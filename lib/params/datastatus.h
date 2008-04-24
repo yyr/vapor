@@ -234,6 +234,8 @@ public:
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 
+	
+
 	//Attribute names:
 	static const string _backgroundColorAttr;
 	static const string _regionFrameColorAttr;
@@ -305,6 +307,7 @@ private:
 	static bool doUseLowerRefinementLevel;
 	//Cache size in megabytes
 	static size_t cacheMB;
+	
 	
 };
 

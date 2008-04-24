@@ -49,12 +49,14 @@ const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 const string DvrParams::_dvrLightingAttr = "DVRLighting";
 const string DvrParams::_dvrPreIntegrationAttr = "DVRPreIntegration";
 const string DvrParams::_numBitsAttr = "BitsPerVoxel";
-
+int DvrParams::defaultBitsPerVoxel = 8;
+bool DvrParams::defaultPreIntegrationEnabled = false;
+bool DvrParams::defaultLightingEnabled = false;
 
 DvrParams::DvrParams(int winnum) : RenderParams(winnum)
 {
 	thisParamType = DvrParamsType;
-	numBits = 8;
+	numBits = defaultBitsPerVoxel;
 	numVariables = 0;
 	type = DVR_INVALID_TYPE;
 	restart();
@@ -185,6 +187,9 @@ reinit(bool doOverride){
 	
 	if (doOverride){
 		numRefinements = 0;
+		numBits = defaultBitsPerVoxel;
+		lightingOn = defaultLightingEnabled;
+		preIntegrationOn = defaultPreIntegrationEnabled;
 	} else {//Try to use existing value
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
@@ -285,9 +290,9 @@ void DvrParams::
 restart(){
 	histoStretchFactor = 1.f;
 	varNum = 0;
-	lightingOn = false;
-    preIntegrationOn = false;
-	numBits = 8;
+	lightingOn = defaultLightingEnabled;
+    preIntegrationOn = defaultPreIntegrationEnabled;
+	numBits = defaultBitsPerVoxel;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){

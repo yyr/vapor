@@ -86,6 +86,13 @@ protected slots:
 	void resetCounts();
 	void okClicked();
 	void doHelp();
+	void setGeometryType(int);
+	void setDvrBits(int);
+	void setIsoBits(int);
+	void dvrLightingChanged(bool);
+	void preIntegrationChanged(bool);
+	void axisArrowsChanged(bool);
+	void showSurfaceChanged(bool);
 	
 protected:
 	static const string _preferencesTag;
@@ -98,6 +105,36 @@ protected:
 	static const string _metadataPathTag;
 	static const string _sessionPathTag;
 	static const string _messagesTag;
+	static const string _probeDefaultsTag;
+	static const string _alphaAttr;
+	static const string _scaleAttr;
+	static const string _phiAttr;
+	static const string _thetaAttr;
+	static const string _psiAttr;
+	static const string _viewpointDefaultsTag;
+	static const string _viewDirAttr;
+	static const string _upVecAttr;
+	static const string _flowDefaultsTag;
+	static const string _integrationAccuracyAttr;
+	static const string _smoothnessAttr;
+	static const string _flowLengthAttr;
+	static const string _flowDiameterAttr;
+	static const string _arrowSizeAttr;
+	static const string _diamondSizeAttr;
+	static const string _geometryTypeAttr;
+	static const string _isoDefaultsTag;
+	static const string _dvrDefaultsTag;
+	static const string _animationDefaultsTag;
+	static const string _vizFeatureDefaultsTag;
+	static const string _isoDefaultBitsPerVoxelAttr; 
+	static const string _dvrDefaultBitsPerVoxelAttr; 
+	static const string _dvrDefaultLightingAttr; 
+	static const string _dvrDefaultPreIntegrationAttr; 
+	static const string _animationDefaultMaxWaitAttr; 
+	static const string _animationDefaultMaxFPSAttr; 
+	static const string _defaultShowAxisArrowsAttr; 
+	static const string _defaultShowTerrainAttr;
+
 
 	//Copy data from session to dialog
 	void setDialog();
@@ -129,6 +166,18 @@ protected:
 	int jpegQuality;
 	int texSize;
 	size_t cacheMB;
+	float scale, alpha, phi, psi, theta;
+	float viewDir[3], upVec[3];
+	float flowLength, smoothness, integrationAccuracy, flowDiameter, arrowSize, diamondSize;
+	int geometryType;
+	int isoBitsPerVoxel;
+	int dvrBitsPerVoxel;
+	bool dvrLighting;
+	bool dvrPreIntegration;
+	float maxWait;
+	float maxFPS;
+	bool showAxisArrows;
+	bool showTerrain;
 };
 
 

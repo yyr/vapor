@@ -49,7 +49,7 @@ const string ParamsIso::_VisualizerNumTag = "VisualizerNum";
 const string ParamsIso::_VariableNameTag = "VariableName";
 const string ParamsIso::_MapVariableNameTag = "MapVariableName";
 const string ParamsIso::_NumBitsTag = "NumVoxelBits";
-
+int ParamsIso::defaultBitsPerVoxel = 8;
 namespace {
 	const string IsoName = "IsosurfaceParams";
 };
@@ -137,7 +137,8 @@ reinit(bool doOverride){
 	int numrefs = GetRefinementLevel();
 	if (doOverride) { 
 		numrefs = 0;
-	} else {  //Try to use existing value
+		SetNumBits(defaultBitsPerVoxel);
+	} else {  //Try to use existing values
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
 		if (numrefs < 0) numrefs = 0;
 	}
@@ -281,7 +282,7 @@ void ParamsIso::restart() {
 	numSessionVariables = 0;
 	
 	SetNormalOnOff(1);
-	SetNumBits(8);
+	SetNumBits(defaultBitsPerVoxel);
 
 	SetHistoStretch(1.0);
 	SetIsoHistoStretch(1.0);
@@ -527,8 +528,8 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	vector<long>& valvec = GetRootNode()->GetElementLong(_NumBitsTag);
 	if (valvec.size() == 0){
 		//For backwards compatibility, insert default value:
-		SetNumBits(8);
-		return 8;
+		SetNumBits(defaultBitsPerVoxel);
+		return defaultBitsPerVoxel;
 	}
 	return (int)valvec[0];
  }

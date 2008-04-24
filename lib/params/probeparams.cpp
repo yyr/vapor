@@ -65,6 +65,11 @@ const string ProbeParams::_mergeColorAttr = "MergeColors";
 const string ProbeParams::_fieldScaleAttr = "FieldScale";
 const string ProbeParams::_alphaAttr= "Alpha";
 const string ProbeParams::_probeTypeAttr = "ProbeType";
+float ProbeParams::defaultAlpha = 0.12f;
+float ProbeParams::defaultScale = 1.0f;
+float ProbeParams::defaultTheta = 0.0f;
+float ProbeParams::defaultPhi = 0.0f;
+float ProbeParams::defaultPsi = 0.0f;
 
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	thisParamType = ProbeParamsType;
@@ -213,9 +218,11 @@ reinit(bool doOverride){
 			}
 		}
 		//default values for phi, theta,  cursorPosition
-		phi = 0.f;
-		theta = 0.f;
-		psi = 0.f;
+		phi = defaultPhi;
+		theta = defaultTheta;
+		psi = defaultPsi;
+		fieldScale = defaultScale;
+		alpha = defaultAlpha;
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
@@ -440,9 +447,9 @@ restart(){
 	ibfvComboVarNum[1] = 2;
 	ibfvComboVarNum[2] = 3;
 
-	alpha = 0.12f;
+	alpha = defaultAlpha;
 	
-	fieldScale = 1.0f;
+	fieldScale = defaultScale;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -483,9 +490,9 @@ restart(){
 	
 	numRefinements = 0;
 	maxNumRefinements = 10;
-	theta = 0.f;
-	phi = 0.f;
-	psi = 0.f;
+	theta = defaultTheta;
+	phi = defaultPhi;
+	psi = defaultPsi;
 	for (int i = 0; i<3; i++){
 		if (i < 2) probeMin[i] = 0.4f;
 		else probeMin[i] = 0.5f;

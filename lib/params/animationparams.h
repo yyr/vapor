@@ -70,6 +70,11 @@ public:
 	//Used when the state changes during a render:
 	void setStateChanged(bool state) {stateChanged = state;}
 
+	static float getDefaultMaxWait() {return defaultMaxWait;}
+	static float getDefaultMaxFPS() {return defaultMaxFPS;}
+	static void setDefaultMaxWait(float val) {defaultMaxWait = val;}
+	static void setDefaultMaxFPS(float val) {defaultMaxFPS = val;}
+
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 
 	//It advances the currentFrame to the next one
@@ -105,6 +110,8 @@ protected:
 	std::vector<int> timestepList;
 	//If the animation state is changed, gui needs to update:
 	bool stateChanged;
+	static float defaultMaxWait;
+	static float defaultMaxFPS;
 	
 };
 };

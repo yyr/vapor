@@ -47,6 +47,8 @@
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
+bool GLWindow::defaultTerrainEnabled = false;
+bool GLWindow::defaultAxisArrowsEnabled = false;
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 75;
 GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
@@ -83,14 +85,14 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	
 	colorbarBackgroundColor = QColor(black);
 	elevColor = QColor(150,75,0);
-	renderElevGrid = false;
+	renderElevGrid = getDefaultTerrainEnabled();
 	surfaceTextureEnabled = false;
 	textureRotation = 0;
 	textureUpsideDown = false;
 	textureFilename = QString("imageFile.jpg");
 	elevGridTexture = 0;
 	elevGridRefLevel = 0;
-	axisArrowsEnabled = false;
+	axisArrowsEnabled = getDefaultAxisArrowsEnabled();
 	axisAnnotationEnabled = false;
 	
 	colorbarEnabled = false;

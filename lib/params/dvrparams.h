@@ -161,6 +161,12 @@ public:
 	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
 
 	virtual void hookupTF(TransferFunction* t, int index);
+	static int getDefaultBitsPerVoxel() {return defaultBitsPerVoxel;}
+	static bool getDefaultLightingEnabled(){return defaultLightingEnabled;}
+	static bool getDefaultPreIntegrationEnabled(){return defaultPreIntegrationEnabled;}
+	static void setDefaultBitsPerVoxel(int val){defaultBitsPerVoxel = val;}
+	static void setDefaultPreIntegration(bool val){defaultPreIntegrationEnabled = val;}
+	static void setDefaultLighting(bool val) {defaultLightingEnabled = val;}
 protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
@@ -190,6 +196,9 @@ protected:
 	PanelCommand* savedCommand;
 	int varNum;
 	int numVariables;
+	static int defaultBitsPerVoxel;
+	static bool defaultPreIntegrationEnabled;
+	static bool defaultLightingEnabled;
 	
 };
 };

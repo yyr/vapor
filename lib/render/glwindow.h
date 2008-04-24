@@ -323,6 +323,10 @@ public:
 	void setPostRenderCB(renderCBFcn f){postRenderCB = f;}
 	static int getJpegQuality();
 	static void setJpegQuality(int qual);
+	static bool getDefaultAxisArrowsEnabled(){return defaultAxisArrowsEnabled;}
+	static void setDefaultAxisArrows(bool val){defaultAxisArrowsEnabled = val;}
+	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
+	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
 	int getWindowNum() {return winNum;}
 	//Static methods so that the vizwinmgr can tell the glwindow about
 	//current active visualizer, and about region sharing
@@ -512,6 +516,9 @@ protected:
 	//If the current window is not active, it will still share the region, if
 	//the region is shared, and the active region is shared.
 	static bool regionShareFlag;
+	static bool defaultTerrainEnabled;
+	static bool defaultAxisArrowsEnabled;
+
 	QLabel** axisTextLabels[3];
 	QLabel* timeAnnotLabel;
 	int axisLabelNums[3];

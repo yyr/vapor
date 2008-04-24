@@ -250,6 +250,16 @@ public:
 	}
 	bool ibfvColorMerged() {return mergeColor;}
 	void setIBFVColorMerged(bool val) {mergeColor = val;}
+	static void setDefaultScale(float val){defaultScale = val;}
+	static float getDefaultScale(){return defaultScale;}
+	static float getDefaultAlpha(){return defaultAlpha;}
+	static void setDefaultAlpha(float val){defaultAlpha = val;}
+	static float getDefaultTheta(){return defaultTheta;}
+	static void setDefaultTheta(float val){defaultTheta = val;}
+	static float getDefaultPhi(){return defaultPhi;}
+	static void setDefaultPhi(float val){defaultPhi = val;}
+	static float getDefaultPsi(){return defaultPsi;}
+	static void setDefaultPsi(float val){defaultPsi = val;}
 	
 protected:
 	
@@ -339,6 +349,11 @@ protected:
 	int ibfvSessionVarNum[3]; // session variable nums +1
 	//scale factors for mapping grid cell space to world coords in probe. Used in projToPlane
 	float ibfvXScale, ibfvYScale;  
+	static float defaultScale; 
+	static float defaultAlpha; 
+	static float defaultTheta; 
+	static float defaultPhi;
+	static float defaultPsi;
 
 	
 	

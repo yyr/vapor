@@ -8,13 +8,13 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>474</width>
-            <height>1154</height>
+            <width>461</width>
+            <height>1912</height>
         </rect>
     </property>
     <property name="maximumSize">
         <size>
-            <width>32767</width>
+            <width>475</width>
             <height>2000</height>
         </size>
     </property>
@@ -33,7 +33,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout74</cstring>
+                <cstring>layout354</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -139,104 +139,21 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout2</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Cache Size (Megabytes)</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>41</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>cacheSizeEdit</cstring>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify total number of megabytes that will be used for data cache</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer24_2</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
                             <height>16</height>
                         </size>
                     </property>
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout11</cstring>
+                        <cstring>layout353</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>textureSizeCheckbox</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Specify graphics texture size</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to override default graphics texture size</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
-                            </property>
-                        </widget>
                         <spacer>
                             <property name="name">
-                                <cstring>spacer25_2</cstring>
+                                <cstring>spacer429</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -246,66 +163,174 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>41</width>
+                                    <width>21</width>
                                     <height>20</height>
                                 </size>
                             </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
-                            </property>
                         </spacer>
-                        <widget class="QLineEdit">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textureSizeEdit</cstring>
+                                <cstring>layout352</cstring>
                             </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify max 3D graphics texture size along each axis</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer50</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>16</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout2_2_2</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1_2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>JPEG image quality (1-100)</string>
-                            </property>
+                            <grid>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLineEdit" row="2" column="2">
+                                    <property name="name">
+                                        <cstring>jpegQualityEdit</cstring>
+                                    </property>
+                                    <property name="enabled">
+                                        <bool>true</bool>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>100</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>75</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify a quality level of the JPEG files to be created</string>
+                                    </property>
+                                </widget>
+                                <spacer row="0" column="1">
+                                    <property name="name">
+                                        <cstring>spacer2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>21</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLineEdit" row="1" column="2">
+                                    <property name="name">
+                                        <cstring>textureSizeEdit</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>100</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify max 3D graphics texture size along each axis</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
+                                    </property>
+                                </widget>
+                                <spacer row="1" column="1">
+                                    <property name="name">
+                                        <cstring>spacer25_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>80</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel" row="2" column="0">
+                                    <property name="name">
+                                        <cstring>textLabel1_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>JPEG image quality (1-100)</string>
+                                    </property>
+                                </widget>
+                                <spacer row="2" column="1">
+                                    <property name="name">
+                                        <cstring>spacer2_2_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>70</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QCheckBox" row="1" column="0">
+                                    <property name="name">
+                                        <cstring>textureSizeCheckbox</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Specify graphics texture size</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Click to override default graphics texture size</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="0" column="0">
+                                    <property name="name">
+                                        <cstring>textLabel1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Cache Size (Megabytes)</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="0" column="2">
+                                    <property name="name">
+                                        <cstring>cacheSizeEdit</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>100</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify total number of megabytes that will be used for data cache</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
+                                    </property>
+                                </widget>
+                            </grid>
                         </widget>
                         <spacer>
                             <property name="name">
-                                <cstring>spacer2_2_2</cstring>
+                                <cstring>spacer431</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -315,28 +340,11 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>41</width>
-                                    <height>21</height>
+                                    <width>21</width>
+                                    <height>20</height>
                                 </size>
                             </property>
                         </spacer>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>jpegQualityEdit</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>75</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify a quality level of the JPEG files to be created</string>
-                            </property>
-                        </widget>
                     </hbox>
                 </widget>
                 <spacer>
@@ -479,7 +487,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout27</cstring>
+                                <cstring>layout347</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -498,244 +506,69 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout59</cstring>
+                                        <cstring>layout345</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QLabel">
+                                        <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>textLabel1_2_3</cstring>
+                                                <cstring>layout344</cstring>
                                             </property>
-                                            <property name="text">
-                                                <string>Log File Name</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2_3</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>80</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>logFilePathEdit</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="readOnly">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the log file name (or stderr for logging to console)</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>logFilePathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify Log File Name</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout61</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_2_3_2_2</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Session file directory</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2_3_2_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>50</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>sessionPathEdit</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="readOnly">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the log file name (or stderr for logging to console)</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>sessionPathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify Log File Name</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout60</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_2_3_2</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Metadata Directory</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2_3_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>80</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>metadataPathEdit</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="readOnly">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the log file name (or stderr for logging to console)</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>metadataPathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify Log File Name</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout58</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_2_4</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Image save directory</string>
-                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Log File Name</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_3_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Session file directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_3_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Metadata Directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_4</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Image save directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_5</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Transfer function directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_5_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Flow save directory</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -754,186 +587,246 @@
                                                 </size>
                                             </property>
                                         </spacer>
-                                        <widget class="QLineEdit">
+                                        <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>jpegPathEdit</cstring>
+                                                <cstring>layout343</cstring>
                                             </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the directory where IDL exporting will be kept</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>jpegPathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Choose Export Directory</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout57</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_2_5</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Transfer function directory</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2_5</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>20</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>tfPathEdit</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the directory where IDL exporting will be kept</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>tfPathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Choose Export Directory</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout57_2</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_2_5_2</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Flow save directory</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2_5_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>20</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>flowPathEdit</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="minimumSize">
-                                                <size>
-                                                    <width>150</width>
-                                                    <height>0</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>/tmp</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify the directory where IDL exporting will be kept</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>flowPathButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="pixmap">
-                                                <pixmap>image0</pixmap>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Choose Export Directory</string>
-                                            </property>
+                                            <grid>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QPushButton" row="3" column="1">
+                                                    <property name="name">
+                                                        <cstring>jpegPathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Choose Export Directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="2" column="0">
+                                                    <property name="name">
+                                                        <cstring>metadataPathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="readOnly">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the log file name (or stderr for logging to console)</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="0">
+                                                    <property name="name">
+                                                        <cstring>sessionPathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="readOnly">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the log file name (or stderr for logging to console)</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="0" column="0">
+                                                    <property name="name">
+                                                        <cstring>logFilePathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="readOnly">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the log file name (or stderr for logging to console)</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton" row="5" column="1">
+                                                    <property name="name">
+                                                        <cstring>flowPathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Choose Export Directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton" row="4" column="1">
+                                                    <property name="name">
+                                                        <cstring>tfPathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Choose Export Directory</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="3" column="0">
+                                                    <property name="name">
+                                                        <cstring>jpegPathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the directory where IDL exporting will be kept</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>logFilePathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify Log File Name</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="5" column="0">
+                                                    <property name="name">
+                                                        <cstring>flowPathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the directory where IDL exporting will be kept</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="4" column="0">
+                                                    <property name="name">
+                                                        <cstring>tfPathEdit</cstring>
+                                                    </property>
+                                                    <property name="enabled">
+                                                        <bool>true</bool>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>200</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>/tmp</string>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the directory where IDL exporting will be kept</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>sessionPathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify Log File Name</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton" row="2" column="1">
+                                                    <property name="name">
+                                                        <cstring>metadataPathButton</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="pixmap">
+                                                        <pixmap>image0</pixmap>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify Log File Name</string>
+                                                    </property>
+                                                </widget>
+                                            </grid>
                                         </widget>
                                     </hbox>
                                 </widget>
@@ -1699,6 +1592,1876 @@
                 <spacer>
                     <property name="name">
                         <cstring>spacer168</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>16</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>frame16</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout351</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>&lt;b&gt;Default Parameter Values&lt;/b&gt;</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>WordBreak|AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer134</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>DVR default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout119</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer164</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_5</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Bits per voxel</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>8</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>16</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>dvrBitsCombo</cstring>
+                                            </property>
+                                            <property name="sizeLimit">
+                                                <number>2</number>
+                                            </property>
+                                            <property name="maxCount">
+                                                <number>2</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the precision of the volume renderer, when the renderer is disabled</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer165</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout118</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer166</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>dvrLightingCheckbox</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="font">
+                                                <font>
+                                                </font>
+                                            </property>
+                                            <property name="text">
+                                                <string>Lighting On</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set lighting on or off</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The Lighting-On checkbox can only be
+used if your graphics hardware supports
+it.  When enabled, the light source is 
+controlled by the lighting parameters
+of Light No. 1 in the Viewpoint panel.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer167</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>61</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>preIntegrationCheckbox</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="font">
+                                                <font>
+                                                </font>
+                                            </property>
+                                            <property name="text">
+                                                <string>Pre-integration On</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>turn on pre-integration</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Pre-integration results in a
+higher quality rendered image,
+with somewhat increased 
+rendering time.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer168_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer169</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Isosurface default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout119_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer164_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_5_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Bits per voxel</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>8</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>16</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>isoBitsCombo</cstring>
+                                            </property>
+                                            <property name="sizeLimit">
+                                                <number>2</number>
+                                            </property>
+                                            <property name="maxCount">
+                                                <number>2</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the precision of the volume renderer, when the renderer is disabled</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer165_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer172</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Probe default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout176</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer220</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout171</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Theta</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>thetaEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>80</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>theta (rotation angle from +X axis)of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout172</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Phi</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>phiEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>80</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Phi angle (angle from +Z) of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout173</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_6_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Psi</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>psiEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>80</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Psi angle (Rotation around axis determined by phi, theta)</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout174</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_6_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Alpha</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>alphaEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>80</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Control how flow texture is smeared</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout175</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_6_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Scale</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>scaleEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>80</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Vector field is scaled by this factor before advecting</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer221</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer322</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Flow default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout181</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer223</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout178</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Integration accuracy</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>accuracyEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>150</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>theta (rotation angle from +X axis)of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout178_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_3_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Steady smoothness</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>smoothnessEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>150</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>theta (rotation angle from +X axis)of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout178_3</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_3_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Steady length</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>lengthEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>150</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>theta (rotation angle from +X axis)of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer224</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout269</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer320</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout268</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel4_4</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Shape</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QComboBox">
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Tube</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Point</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Arrow</string>
+                                                        </property>
+                                                    </item>
+                                                    <property name="name">
+                                                        <cstring>geometryCombo</cstring>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the shapes that will be used for the flow </string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout172_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Diameter</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>diameterEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Phi angle (angle from +Z) of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout172_2_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_2_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Arrow Size</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>arrowEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Phi angle (angle from +Z) of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout172_2_3</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel12_2_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Diamond size</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>diamondEdit</cstring>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Phi angle (angle from +Z) of probe normal vector</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer321</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer222</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2_2_3</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Animation default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout13_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_3_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Max Wait Seconds</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify maximum time to wait for a slow renderer</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>maxWaitEdit</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify maximum time to wait for a slow renderer</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer15</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel5_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Max Frames/Second</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>maxFPSEdit</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>5</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="font">
+                                                <font>
+                                                    <pointsize>10</pointsize>
+                                                </font>
+                                            </property>
+                                            <property name="text">
+                                                <string>10</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify maximum animation rate in frames per second</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer341</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2_2_3_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Viewpoint default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout350</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer427</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout296</cstring>
+                                            </property>
+                                            <grid>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLineEdit" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>viewDir0</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.7071</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>upVec0</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="0" column="2">
+                                                    <property name="name">
+                                                        <cstring>viewDir1</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.7071</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="2">
+                                                    <property name="name">
+                                                        <cstring>upVec1</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="0" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>view direction</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="3">
+                                                    <property name="name">
+                                                        <cstring>upVec2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>1.0</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="0" column="3">
+                                                    <property name="name">
+                                                        <cstring>viewDir2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.5002</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="1" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>up vector</string>
+                                                    </property>
+                                                </widget>
+                                            </grid>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer428</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer377</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_4_2_2_3_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Visualizer feature default values:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout338</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer423</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>surfaceCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Display Terrain Surface</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Enable rendering of lowest elevation level</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When using a layered dataset, you can render a surface at elevation zero (i.e. at the bottom of the bottom layer of the data.  The color and refinement of this surface can also be specified here.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>axisArrowsCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Show X,Y,Z (R,G,B) Arrows</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>show colored X,Y,Z axes in scene</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer422</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                            </vbox>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer133</cstring>
                     </property>
                     <property name="orientation">
                         <enum>Vertical</enum>

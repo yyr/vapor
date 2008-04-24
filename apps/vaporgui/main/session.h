@@ -287,6 +287,7 @@ public:
 		textureSizeSpecified = val;
 		DataStatus::getInstance()->specifyTextureSize(val);
 	}
+	
 		
 	static const string& getPreferencesFile();
 	static const string _specifyTextureSizeAttr;
@@ -377,6 +378,7 @@ protected:
 	string sessionVersionString;
 	static string prefFile;
 	bool metadataSaved;
+	
 
 };
 

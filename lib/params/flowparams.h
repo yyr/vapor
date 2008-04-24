@@ -356,6 +356,21 @@ public:
 	//This virtual RenderParams method is not useful for flow params
 	virtual int getSessionVarNum() { assert(0); return -1;}
 
+	static float getDefaultIntegrationAccuracy(){return defaultIntegrationAccuracy;}
+	static float getDefaultSmoothness(){ return defaultSmoothness;}
+	static float getDefaultFlowLength(){ return defaultFlowLength;}
+	static float getDefaultFlowDiameter(){ return defaultFlowDiameter;}
+	static float getDefaultArrowSize(){ return defaultArrowSize;}
+	static float getDefaultDiamondSize(){return defaultDiamondSize;}
+	static int getDefaultGeometryType() {return defaultGeometryType;}
+	static void setDefaultIntegrationAccuracy(float val) {defaultIntegrationAccuracy = val;}
+	static void setDefaultSmoothness(float val) {defaultSmoothness = val;}
+	static void setDefaultFlowLength(float val){defaultFlowLength = val;}
+	static void setDefaultFlowDiameter(float val){defaultFlowDiameter = val;}
+	static void setDefaultArrowSize(float val){defaultArrowSize = val;}
+	static void setDefaultDiamondSize(float val){defaultDiamondSize = val;}
+	static void setDefaultGeometryType(int val){defaultGeometryType = val;}
+
 	
 protected:
 	//Tags for attributes in session save
@@ -519,6 +534,14 @@ protected:
 	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
 	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
 	float steadyFlowLength;
+	static float defaultIntegrationAccuracy;
+	static float defaultSmoothness;
+	static float defaultFlowLength;
+	static float defaultFlowDiameter;
+	static float defaultArrowSize;
+	static float defaultDiamondSize;
+	static int defaultGeometryType;
+	
 	
 	
 

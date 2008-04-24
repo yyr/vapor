@@ -212,6 +212,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
+	connect (vizFeatureDlg->applyButton2, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisAnnotationCheckbox, SIGNAL(clicked()), this, SLOT(annotationChanged()));
 	connect (vizFeatureDlg->xMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -238,8 +239,11 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisColorButton,SIGNAL(clicked()), this, SLOT(selectAxisColor()));
 	connect (vizFeatureDlg->buttonOk, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect (vizFeatureDlg->buttonCancel,SIGNAL(clicked()), featureHolder, SLOT(reject()));
+	connect (vizFeatureDlg->buttonOk2, SIGNAL(clicked()), this, SLOT(okClicked()));
+	connect (vizFeatureDlg->buttonCancel2,SIGNAL(clicked()), featureHolder, SLOT(reject()));
 	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
 	connect (vizFeatureDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
+	connect (vizFeatureDlg->buttonHelp2, SIGNAL(released()), this, SLOT(doHelp()));
 	connect (vizFeatureDlg->imageCheckbox, SIGNAL(toggled(bool)), this, SLOT(imageToggled(bool)));
 	connect (vizFeatureDlg->imageRotationCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->imageUpDownCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));

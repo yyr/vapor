@@ -40,6 +40,8 @@ float VAPoR::ViewpointParams::maxStretchedCubeSide = 1.f;
 
 float VAPoR::ViewpointParams::minStretchedCubeCoord[3] = {0.f,0.f,0.f};
 float VAPoR::ViewpointParams::maxStretchedCubeCoord[3] = {1.f,1.f,1.f};
+float VAPoR::ViewpointParams::defaultUpVec[3] = {0.f, 1.f, 0.f};
+float VAPoR::ViewpointParams::defaultViewDir[3] = {0.f, 0.f, -1.f};
 
 using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
@@ -159,12 +161,9 @@ reinit(bool doOverride){
 	
 	setCoordTrans();
 	if (doOverride){
-		setViewDir(0,0.f);
-		setViewDir(1,0.f);
-		setUpVec(0,0.f);
-		setUpVec(1,0.f);
-		setUpVec(2,1.f);
-		setViewDir(2,-1.f);
+		setViewDir(defaultViewDir);
+		setUpVec(defaultUpVec);
+	
 		centerFullRegion();
 		//Set the home viewpoint, but don't call setHomeViewpoint().
 		delete homeViewpoint;

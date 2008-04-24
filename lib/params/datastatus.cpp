@@ -62,6 +62,7 @@ bool DataStatus::subregionFrameEnabled = false;
 bool DataStatus::textureSizeSpecified = false;
 int DataStatus::textureSize = 0;
 size_t DataStatus::cacheMB = 0;
+
 const string DataStatus::_backgroundColorAttr = "BackgroundColor";
 const string DataStatus::_regionFrameColorAttr = "DomainFrameColor";
 const string DataStatus::_subregionFrameColorAttr = "SubregionFrameColor";

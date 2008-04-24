@@ -43,6 +43,8 @@ const string AnimationParams::_startFrameAttr = "StartFrame";
 const string AnimationParams::_endFrameAttr = "EndFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
 const string AnimationParams::_maxWaitAttr = "MaxWait";
+float AnimationParams::defaultMaxFPS = 10.f;
+float AnimationParams::defaultMaxWait = 6000.f;
 
 AnimationParams::AnimationParams(int winnum): Params( winnum){
 	thisParamType = AnimationParamsType;
@@ -64,14 +66,14 @@ restart(){
 	// set everything to default state:
 	playDirection = 0;
 	repeatPlay = false;
-	maxFrameRate = 10; 
+	maxFrameRate = defaultMaxFPS;
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;
 	maxFrame = 100; 
 	minFrame = 1;
 	currentFrame = 0;
-	maxWait = 6000.f;
+	maxWait = defaultMaxWait;
 	useTimestepSampleList = false;
 	timestepList.clear();
 	stateChanged = true;
@@ -112,6 +114,8 @@ reinit(bool doOverride){
 		startFrame = minFrame;
 		endFrame = maxFrame;
 		currentFrame = startFrame;
+		maxFrameRate = defaultMaxFPS;
+		maxWait = defaultMaxWait;
 	} else {
 		if (startFrame > maxFrame) startFrame = maxFrame;
 		if (startFrame < minFrame) startFrame = minFrame;

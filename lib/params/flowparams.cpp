@@ -109,7 +109,13 @@ using namespace VAPoR;
 	const string FlowParams::_rightColorBoundAttr = "RightColorBound";
 	const string FlowParams::_leftOpacityBoundAttr = "LeftOpacityBound";
 	const string FlowParams::_rightOpacityBoundAttr = "RightOpacityBound";
-
+	float FlowParams::defaultFlowLength = 1.f;
+	float FlowParams::defaultSmoothness = 20.f;
+	int FlowParams::defaultGeometryType = 0;  //0= tube, 1=point, 2 = arrow
+	float FlowParams::defaultIntegrationAccuracy = 0.5f;
+	float FlowParams::defaultFlowDiameter = 1.f;
+	float FlowParams::defaultArrowSize = 2.f;
+	float FlowParams::defaultDiamondSize = 2.f;
 
 FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
 	thisParamType = FlowParamsType;
@@ -144,21 +150,28 @@ restart() {
 	flaAdvectBeforePrioritize = false;
 	steadyFlowDirection = 0;
 	unsteadyFlowDirection = 1; //default is forward
-	steadyFlowLength = 1.f;
-	steadySmoothness = 20.f;
+
+	steadyFlowLength = defaultFlowLength;
+	steadySmoothness = defaultSmoothness;
+	geometryType = defaultGeometryType;  //0= tube, 1=point, 2 = arrow
+	integrationAccuracy = defaultIntegrationAccuracy;
+	shapeDiameter = defaultFlowDiameter;
+	arrowDiameter = defaultArrowSize;
+	diamondDiameter = defaultDiamondSize;
+
+
+	flowType = 0; //steady
 	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
 	enabled = false;
 	useTimestepSampleList = false;
 	unsteadyTimestepList.clear();
-
-	flowType = 0; //steady
-	
 	numRefinements = 0; 
 	maxNumRefinements = 4; 
 	numComboVariables = 0;
 	firstDisplayFrame = -100;
 	lastDisplayFrame = 1;
+	
 	
 	steadyVarNum[0]= 1;
 	steadyVarNum[1] = 2;
@@ -182,7 +195,7 @@ restart() {
 	comboUnsteadyVarNum[0]= 1;
 	comboUnsteadyVarNum[1] = 2;
 	comboUnsteadyVarNum[2] = 3;
-	integrationAccuracy = 0.5f;
+	
 	steadyScale = 1.0f;
 	unsteadyScale = 1.0f;
 	constantColor = qRgb(255,0,0);
@@ -209,14 +222,11 @@ restart() {
 	seedTimeIncrement = 1;
 	currentDimension = 0;
 
-	geometryType = 0;  //0= tube, 1=point, 2 = arrow
+	
 	objectsPerFlowline = 20;
 	objectsPerTimestep = 1;
 
-	shapeDiameter = 1.f;
-	arrowDiameter = 2.f;
-	diamondDiameter = 2.f;
-
+	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Timestep");
@@ -326,7 +336,15 @@ reinit(bool doOverride){
 		seedTimeEnd = minFrame;
 		seedTimeIncrement = 1;
 		autoRefresh = true;
-		periodicDim[0]=periodicDim[1]=periodicDim[2];
+		periodicDim[0]=periodicDim[1]=periodicDim[2] = false;
+		steadyFlowLength = defaultFlowLength;
+		steadySmoothness = defaultSmoothness;
+		geometryType = defaultGeometryType;  //0= tube, 1=point, 2 = arrow
+		integrationAccuracy = defaultIntegrationAccuracy;
+		shapeDiameter = defaultFlowDiameter;
+		arrowDiameter = defaultArrowSize;
+		diamondDiameter = defaultDiamondSize;
+
 	} else {
 		if (numRefinements> maxNumRefinements) numRefinements = maxNumRefinements;
 		

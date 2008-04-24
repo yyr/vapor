@@ -130,6 +130,14 @@ public:
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	XmlNode* buildNode();
+	static const float* getDefaultViewDir(){return defaultViewDir;}
+	static const float* getDefaultUpVec(){return defaultUpVec;}
+	static void setDefaultUpVec(float val[3]){
+		for (int i = 0; i<3; i++) defaultUpVec[i] = val[i];
+	}
+	static void setDefaultViewDir(float val[3]){
+		for (int i = 0; i<3; i++) defaultViewDir[i] = val[i];
+	}
 
 protected:
 	static const string _currentViewTag;
@@ -164,6 +172,9 @@ protected:
 	static float maxStretchedCubeCoord[3];
 	
 	static float maxStretchedCubeSide;
+	//defaults:
+	static float defaultViewDir[3];
+	static float defaultUpVec[3];
 	//Max sides
 	
 	//GL state saved here since it may be shared...

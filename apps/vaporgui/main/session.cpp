@@ -79,6 +79,7 @@ const string Session::_variableNameAttr = "VariableName";
 const string Session::_aboveGridAttr = "AboveGridValue";
 const string Session::_belowGridAttr = "BelowGridValue";
 const string Session::_VAPORVersionAttr = "VaporVersion";
+
 string Session::prefFile = "";
 Session::Session() {
 
@@ -177,8 +178,8 @@ void Session::init() {
 
 	currentLogfileName = buf;
 	currentMetadataFile = "";
-	currentJpegDirectory = ".";	
-	currentFlowDirectory = ".";
+	currentJpegDirectory = "";	
+	currentFlowDirectory = "";
 	currentMetadataDir = ".";
 	currentTFPath = "";
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
@@ -366,13 +367,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					GLWindow::setJpegQuality(qual);
 				}
 				else if (StrCmpNoCase(attr, _transferFunctionPathAttr) == 0) {
-					currentTFPath = value;
+					if (value != "")
+						currentTFPath = value;
 				}
 				else if (StrCmpNoCase(attr, _imageCapturePathAttr) == 0) {
-					currentJpegDirectory = value;
+					if (value != "")
+						currentJpegDirectory = value;
 				}
 				else if (StrCmpNoCase(attr, _flowDirectoryPathAttr) == 0) {
-					currentFlowDirectory = value;
+					if (value != "")
+						currentFlowDirectory = value;
 				}
 				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
 					currentMetadataFile = value;

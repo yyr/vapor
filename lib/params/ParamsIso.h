@@ -189,6 +189,9 @@ int GetIsoVariableNum(){
 
  virtual void hookupTF(TransferFunction* tf, int index);
 
+ static int getDefaultBitsPerVoxel() {return defaultBitsPerVoxel;}
+ static void setDefaultBitsPerVoxel(int val){defaultBitsPerVoxel = val;}
+
  static const string _IsoValueTag;
  static const string _IsoControlTag;
  static const string _ColorMapTag;
@@ -234,6 +237,7 @@ private:
  bool noIsoControlTags; 
  float oldIsoValue;
  float oldHistoBounds[2];
+ static int defaultBitsPerVoxel;
  
  
 };
