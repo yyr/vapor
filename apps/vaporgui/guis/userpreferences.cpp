@@ -206,7 +206,7 @@ void UserPreferences::launch(){
 	connect (missingDataCheckbox, SIGNAL(toggled(bool)), this, SLOT(warningChanged(bool)));
 	connect (lowerRefinementCheckbox, SIGNAL(toggled(bool)), this, SLOT(lowerResChanged(bool)));
 	connect (dvrLightingCheckbox, SIGNAL(toggled(bool)), this, SLOT(dvrLightingChanged(bool)));
-	connect (preIntegrationCheckbox, SIGNAL(toggled(bool)), this, SLOT(dvrPreIntegrationChanged(bool)));
+	connect (preIntegrationCheckbox, SIGNAL(toggled(bool)), this, SLOT(preIntegrationChanged(bool)));
 	connect (axisArrowsCheckbox, SIGNAL(toggled(bool)), this, SLOT(axisArrowsChanged(bool)));
 	connect (surfaceCheckbox, SIGNAL(toggled(bool)), this, SLOT(showSurfaceChanged(bool)));
 	
