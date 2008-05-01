@@ -311,6 +311,7 @@ void ColorMapBase::maxValue(float value)
 //---------------------------------------------------------------------------- 
 ColorMapBase::Color ColorMapBase::controlPointColor(int index)
 {
+  assert(index>=0 && index<_controlPoints.size());
   return _controlPoints[index]->color();
 }
 
@@ -320,6 +321,7 @@ ColorMapBase::Color ColorMapBase::controlPointColor(int index)
 //---------------------------------------------------------------------------- 
 void ColorMapBase::controlPointColor(int index, Color color)
 {
+  assert(index>=0 && index<_controlPoints.size());
   _controlPoints[index]->color(color);
 }
 
@@ -328,6 +330,7 @@ void ColorMapBase::controlPointColor(int index, Color color)
 //---------------------------------------------------------------------------- 
 float ColorMapBase::controlPointValue(int index)
 {
+  assert(index>=0 && index<_controlPoints.size());
   float norm = _controlPoints[index]->value();
 
   return (norm * (maxValue() - minValue()) + minValue());
@@ -496,6 +499,7 @@ ColorMapBase::Color ColorMapBase::color(float value)
   //
   int index = leftIndex(nv);
 
+  assert(index>=0 && index+1<_controlPoints.size());
   ControlPoint *cp0 = _controlPoints[index];
   ControlPoint *cp1 = _controlPoints[index+1];
 
