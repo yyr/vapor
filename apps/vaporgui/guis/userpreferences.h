@@ -134,6 +134,13 @@ protected:
 	static const string _animationDefaultMaxFPSAttr; 
 	static const string _defaultShowAxisArrowsAttr; 
 	static const string _defaultShowTerrainAttr;
+	static const string _numLightsAttr;
+	static const string _lightDirectionAttr;
+	static const string _diffuseCoeffAttr;
+	static const string _specularCoeffAttr;
+	static const string _ambientCoeffAttr;
+	static const string _specularExpAttr;
+
 
 
 	//Copy data from session to dialog
@@ -168,6 +175,12 @@ protected:
 	size_t cacheMB;
 	float scale, alpha, phi, psi, theta;
 	float viewDir[3], upVec[3];
+	float lightDir[3][3];
+	float diffuseCoeff[3];
+	float specularCoeff[3];
+	float ambientCoeff;
+	float specularExp;
+	int numLights;
 	float flowLength, smoothness, integrationAccuracy, flowDiameter, arrowSize, diamondSize;
 	int geometryType;
 	int isoBitsPerVoxel;

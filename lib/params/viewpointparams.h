@@ -132,12 +132,30 @@ public:
 	XmlNode* buildNode();
 	static const float* getDefaultViewDir(){return defaultViewDir;}
 	static const float* getDefaultUpVec(){return defaultUpVec;}
+	static const float* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
+	static float getDefaultAmbientCoeff(){return defaultAmbientCoeff;}
+	static float getDefaultSpecularExp(){return defaultSpecularExp;}
+	static int getDefaultNumLights(){return defaultNumLights;}
+	static const float* getDefaultDiffuseCoeff() {return defaultDiffuseCoeff;}
+	static const float* getDefaultSpecularCoeff() {return defaultSpecularCoeff;}
+	static void setDefaultLightDirection(int lightNum, float val[3]){
+		for (int i = 0; i<3; i++) defaultLightDirection[lightNum][i] = val[i];
+	}
 	static void setDefaultUpVec(float val[3]){
 		for (int i = 0; i<3; i++) defaultUpVec[i] = val[i];
 	}
 	static void setDefaultViewDir(float val[3]){
 		for (int i = 0; i<3; i++) defaultViewDir[i] = val[i];
 	}
+	static void setDefaultSpecularCoeff(float val[3]){
+		for (int i = 0; i<3; i++) defaultSpecularCoeff[i] = val[i];
+	}
+	static void setDefaultDiffuseCoeff(float val[3]){
+		for (int i = 0; i<3; i++) defaultDiffuseCoeff[i] = val[i];
+	}
+	static void setDefaultAmbientCoeff(float val){ defaultAmbientCoeff = val;}
+	static void setDefaultSpecularExp(float val){ defaultSpecularExp = val;}
+	static void setDefaultNumLights(int val){ defaultNumLights = val;}
 
 protected:
 	static const string _currentViewTag;
@@ -175,6 +193,12 @@ protected:
 	//defaults:
 	static float defaultViewDir[3];
 	static float defaultUpVec[3];
+	static float defaultLightDirection[3][3];
+	static float defaultDiffuseCoeff[3];
+	static float defaultSpecularCoeff[3];
+	static float defaultAmbientCoeff;
+	static float defaultSpecularExp;
+	static int defaultNumLights;
 	//Max sides
 	
 	//GL state saved here since it may be shared...

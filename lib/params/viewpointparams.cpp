@@ -42,6 +42,13 @@ float VAPoR::ViewpointParams::minStretchedCubeCoord[3] = {0.f,0.f,0.f};
 float VAPoR::ViewpointParams::maxStretchedCubeCoord[3] = {1.f,1.f,1.f};
 float VAPoR::ViewpointParams::defaultUpVec[3] = {0.f, 1.f, 0.f};
 float VAPoR::ViewpointParams::defaultViewDir[3] = {0.f, 0.f, -1.f};
+float VAPoR::ViewpointParams::defaultLightDirection[3][3] = {{0.f, 0.f, 1.f},{0.f, 1.f, 0.f},{1.f, 0.f, 0.f}};
+int VAPoR::ViewpointParams::defaultNumLights = 2;
+float VAPoR::ViewpointParams::defaultDiffuseCoeff[3] = {0.8f, 0.8f, 0.8f};
+float VAPoR::ViewpointParams::defaultSpecularCoeff[3] = {0.3f, 0.3f, 0.3f};
+float VAPoR::ViewpointParams::defaultAmbientCoeff = 0.1f;
+float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
+
 
 using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
@@ -108,28 +115,20 @@ centerFullRegion(){
 void ViewpointParams::
 restart(){
 	
-	numLights = 2;
-	lightDirection[0][0] = 0.f;
-	lightDirection[0][1] = 0.f;
-	lightDirection[0][2] = 1.f;
-	lightDirection[1][0] = 0.f;
-	lightDirection[1][1] = 1.f;
-	lightDirection[1][2] = 0.f;
-	lightDirection[2][0] = 1.f;
-	lightDirection[2][1] = 0.f;
-	lightDirection[2][2] = 0.f;
-	//final component is 0 (for gl directional light)
-	lightDirection[0][3] = 0.f;
-	lightDirection[1][3] = 0.f;
-	lightDirection[2][3] = 0.f;
-	diffuseCoeff[0] = 0.8f;
-	specularCoeff[0] = 0.3f;
-	specularExp = 20.f;
-	diffuseCoeff[1] = 0.8f;
-	specularCoeff[1] = 0.3f;
-	diffuseCoeff[2] = 0.8f;
-	specularCoeff[2] = 0.3f;
-	ambientCoeff = 0.1f;
+	numLights = defaultNumLights;
+	for (int i = 0; i<3; i++){
+		for (int j = 0; j<3; j++){
+			lightDirection[i][j] = defaultLightDirection[i][j];
+		}
+		//final component is 0 (for gl directional light)
+		lightDirection[i][3] = 0.f;
+		diffuseCoeff[i] = defaultDiffuseCoeff[i];
+		specularCoeff[i] = defaultSpecularCoeff[i];
+	}
+	
+	specularExp = defaultSpecularExp;
+	ambientCoeff = defaultAmbientCoeff;
+
 	if (currentViewpoint) delete currentViewpoint;
 	currentViewpoint = new Viewpoint();
 	//Set default values in viewpoint:
@@ -163,11 +162,25 @@ reinit(bool doOverride){
 	if (doOverride){
 		setViewDir(defaultViewDir);
 		setUpVec(defaultUpVec);
+		
 	
 		centerFullRegion();
 		//Set the home viewpoint, but don't call setHomeViewpoint().
 		delete homeViewpoint;
 		homeViewpoint = new Viewpoint(*currentViewpoint);
+		//set lighting to defaults:
+		for (int i = 0; i<3; i++){
+			for (int j = 0; j<3; j++){
+				lightDirection[i][j] = defaultLightDirection[i][j];
+			}
+			//final component is 0 (for gl directional light)
+			lightDirection[i][3] = 0.f;
+			diffuseCoeff[i] = defaultDiffuseCoeff[i];
+			specularCoeff[i] = defaultSpecularCoeff[i];
+		}
+	
+		specularExp = defaultSpecularExp;
+		ambientCoeff = defaultAmbientCoeff;
 	}
 	
 	return true;

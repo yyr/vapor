@@ -69,6 +69,13 @@ const string UserPreferences::_scaleAttr = "DefaultScale";
 const string UserPreferences::_viewpointDefaultsTag = "ViewpointDefaults";
 const string UserPreferences::_viewDirAttr = "DefaultViewDir";
 const string UserPreferences::_upVecAttr = "DefaultUpVec";
+const string UserPreferences::_numLightsAttr = "DefaultNumLights";
+const string UserPreferences::_lightDirectionAttr = "DefaultLightDirections";
+const string UserPreferences::_diffuseCoeffAttr = "DefaultDiffuseCoeff";
+const string UserPreferences::_specularCoeffAttr = "DefaultSpecularCoeff";
+const string UserPreferences::_ambientCoeffAttr = "DefaultAmbientCoeff";
+const string UserPreferences::_specularExpAttr = "DefaultSpecularExp";
+
 
 const string UserPreferences::_flowDefaultsTag = "FlowDefaults";
 const string UserPreferences::_integrationAccuracyAttr = "DefaultIntegrationAccuracy";
@@ -156,7 +163,15 @@ UserPreferences* UserPreferences::clone(){
 	for (int i = 0; i<3; i++){ 
 		newPrefs->viewDir[i] = viewDir[i];
 		newPrefs->upVec[i] = upVec[i];
+		for (int j = 0; j<3;j++){
+			newPrefs->lightDir[i][j] = lightDir[i][j];
+		}
+		newPrefs->diffuseCoeff[i] = diffuseCoeff[i];
+		newPrefs->specularCoeff[i] = specularCoeff[i];
 	}
+	newPrefs->numLights = numLights;
+	newPrefs->ambientCoeff = ambientCoeff;
+	newPrefs->specularExp = specularExp;
 	return newPrefs;
 }
 //Set up the dialog with current parameters from session state
@@ -166,8 +181,8 @@ void UserPreferences::launch(){
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Set User Preferences");
 	
 	QScrollView* sv = new QScrollView(featureHolder);
-	sv->setHScrollBarMode(QScrollView::AlwaysOff);
-	sv->setVScrollBarMode(QScrollView::AlwaysOn);
+	sv->setHScrollBarMode(QScrollView::Auto);
+	sv->setVScrollBarMode(QScrollView::Auto);
 	featureHolder->setScroller(sv);
 	sv->addChild(this);
 	
@@ -178,9 +193,9 @@ void UserPreferences::launch(){
 	myPrefsCommand = PreferencesCommand::captureStart(this, "edit user preferences");
 	
 	int h = MainForm::getInstance()->height();
+	int w = 875;
 	if ( h > 768) h = 768;
-	int w = 475;
-
+	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
 	
 	setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();
@@ -235,9 +250,28 @@ void UserPreferences::launch(){
 	connect (viewDir0, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (viewDir1, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (viewDir2, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos00, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos01, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos02, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos10, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos11, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos12, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos20, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos21, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightPos22, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightDiff0, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightDiff1, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightDiff2, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightSpec0, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightSpec1, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (lightSpec2, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (ambientEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (shininessEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (numLightsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (upVec0, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (upVec1, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (upVec2, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+
 	connect (accuracyEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (lengthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (diameterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -519,6 +553,13 @@ setDialog(){
 	thetaEdit->setText(QString::number(theta));
 	phiEdit->setText(QString::number(phi));
 	psiEdit->setText(QString::number(psi));
+	vcopy(ViewpointParams::getDefaultDiffuseCoeff(), diffuseCoeff);
+	vcopy(ViewpointParams::getDefaultSpecularCoeff(), specularCoeff);
+	ambientCoeff = ViewpointParams::getDefaultAmbientCoeff();
+	specularExp = ViewpointParams::getDefaultSpecularExp();
+	numLights = ViewpointParams::getDefaultNumLights();
+	for (int i = 0; i<3; i++)
+		vcopy(ViewpointParams::getDefaultLightDirection(i), lightDir[i]);
 	vcopy(ViewpointParams::getDefaultUpVec(),upVec);
 	vcopy(ViewpointParams::getDefaultViewDir(),viewDir);
 	viewDir0->setText(QString::number(viewDir[0]));
@@ -527,6 +568,25 @@ setDialog(){
 	upVec0->setText(QString::number(upVec[0]));
 	upVec1->setText(QString::number(upVec[1]));
 	upVec2->setText(QString::number(upVec[2]));
+	lightPos00->setText(QString::number(lightDir[0][0]));
+	lightPos01->setText(QString::number(lightDir[0][1]));
+	lightPos02->setText(QString::number(lightDir[0][2]));
+	lightPos10->setText(QString::number(lightDir[1][0]));
+	lightPos11->setText(QString::number(lightDir[1][1]));
+	lightPos12->setText(QString::number(lightDir[1][2]));
+	lightPos20->setText(QString::number(lightDir[2][0]));
+	lightPos21->setText(QString::number(lightDir[2][1]));
+	lightPos22->setText(QString::number(lightDir[2][2]));
+	lightDiff0->setText(QString::number(diffuseCoeff[0]));
+	lightDiff1->setText(QString::number(diffuseCoeff[1]));
+	lightDiff2->setText(QString::number(diffuseCoeff[2]));
+	lightSpec0->setText(QString::number(specularCoeff[0]));
+	lightSpec1->setText(QString::number(specularCoeff[1]));
+	lightSpec2->setText(QString::number(specularCoeff[2]));
+	numLightsEdit->setText(QString::number(numLights));
+	shininessEdit->setText(QString::number(specularExp));
+	ambientEdit->setText(QString::number(ambientCoeff));
+
 	diamondSize = FlowParams::getDefaultDiamondSize();
 	arrowSize = FlowParams::getDefaultArrowSize();
 	flowLength = FlowParams::getDefaultFlowLength();
@@ -598,6 +658,14 @@ applyToState(){
 	ProbeParams::setDefaultTheta(theta);
 	ViewpointParams::setDefaultViewDir(viewDir);
 	ViewpointParams::setDefaultUpVec(upVec);
+	ViewpointParams::setDefaultAmbientCoeff(ambientCoeff);
+	ViewpointParams::setDefaultDiffuseCoeff(diffuseCoeff);
+	ViewpointParams::setDefaultSpecularCoeff(specularCoeff);
+	ViewpointParams::setDefaultNumLights(numLights);
+	ViewpointParams::setDefaultSpecularExp(specularExp);
+	for (int i = 0; i< 3; i++) 
+		ViewpointParams::setDefaultLightDirection(i,lightDir[i]);
+
 	FlowParams::setDefaultArrowSize(arrowSize);
 	FlowParams::setDefaultDiamondSize(diamondSize);
 	FlowParams::setDefaultFlowDiameter(flowDiameter);
@@ -811,7 +879,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	
 	mainNode->AddChild(defaultProbeNode);
 
-	//Create a node for viewpointdefaults:
+	//Create a node for viewpoint defaults and lighting defaults:
 	attrs.clear();
 	
 	const float* vec1 = ViewpointParams::getDefaultUpVec();
@@ -822,6 +890,30 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss.str(empty);
 	oss << vec2[0] <<" "<<vec2[1]<<" "<<vec2[2];
 	attrs[_viewDirAttr] = oss.str();
+	oss.str(empty);
+	
+	for (int i = 0; i<3; i++){
+		const float* lightVec = ViewpointParams::getDefaultLightDirection(i);
+		for (int j = 0; j<3; j++){
+			oss <<lightVec[j]<<" ";
+		}
+	}
+	attrs[_lightDirectionAttr] = oss.str();
+	oss.str(empty);
+	vec1 = ViewpointParams::getDefaultDiffuseCoeff();
+	oss << vec1[0] <<" "<<vec1[1]<<" "<<vec1[2];
+	attrs[_diffuseCoeffAttr] = oss.str();
+	oss.str(empty);
+	vec1 = ViewpointParams::getDefaultSpecularCoeff();
+	oss << vec1[0] <<" "<<vec1[1]<<" "<<vec1[2];
+	attrs[_specularCoeffAttr] = oss.str();
+	oss.str(empty);
+	oss << ViewpointParams::getDefaultAmbientCoeff();
+	attrs[_ambientCoeffAttr] = oss.str();
+	oss.str(empty);
+	oss << ViewpointParams::getDefaultSpecularExp();
+	attrs[_specularExpAttr] = oss.str();
+	
 	
 	XmlNode* defaultViewpointNode = new XmlNode(_viewpointDefaultsTag, attrs, 0);
 	
@@ -1103,13 +1195,47 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					attrs++;
 					istringstream ist(value);	
 					float fltVal[3];
-					ist >> fltVal[0];
-					ist >> fltVal[1];
-					ist >> fltVal[2];
+					
 					if (StrCmpNoCase(attr, _viewDirAttr) == 0) {
+						ist >> fltVal[0];
+						ist >> fltVal[1];
+						ist >> fltVal[2];
 						ViewpointParams::setDefaultViewDir(fltVal);
 					} else if (StrCmpNoCase(attr, _upVecAttr) == 0) {
+						ist >> fltVal[0];
+						ist >> fltVal[1];
+						ist >> fltVal[2];
 						ViewpointParams::setDefaultUpVec(fltVal);
+					} else if (StrCmpNoCase(attr, _diffuseCoeffAttr) == 0) {
+						ist >> fltVal[0];
+						ist >> fltVal[1];
+						ist >> fltVal[2];
+						ViewpointParams::setDefaultDiffuseCoeff(fltVal);
+					} else if (StrCmpNoCase(attr, _specularCoeffAttr) == 0) {
+						ist >> fltVal[0];
+						ist >> fltVal[1];
+						ist >> fltVal[2];
+						ViewpointParams::setDefaultSpecularCoeff(fltVal);
+					} else if (StrCmpNoCase(attr, _ambientCoeffAttr) == 0) {
+						float val;
+						ist >> val;
+						ViewpointParams::setDefaultAmbientCoeff(val);
+					} else if (StrCmpNoCase(attr, _specularExpAttr) == 0) {
+						float val;
+						ist >> val;
+						ViewpointParams::setDefaultSpecularExp(val);
+					} else if (StrCmpNoCase(attr, _numLightsAttr) == 0) {
+						int val;
+						ist >> val;
+						ViewpointParams::setDefaultNumLights(val);
+					} else if (StrCmpNoCase(attr, _lightDirectionAttr) == 0) {
+						//Pull off 3 light direction vectors, one coord at a time
+						for (int light = 0; light < 3; light++){
+							ist >> fltVal[0];
+							ist >> fltVal[1];
+							ist >> fltVal[2];
+							ViewpointParams::setDefaultLightDirection(light, fltVal);
+						}
 					}
 					else {
 						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
@@ -1354,6 +1480,26 @@ void UserPreferences::getTextChanges(){
 	upVec[0] = upVec0->text().toFloat();
 	upVec[1] = upVec1->text().toFloat();
 	upVec[2] = upVec2->text().toFloat();
+	//Lighting:
+	lightDir[0][0] = lightPos00->text().toFloat();
+	lightDir[0][1] = lightPos01->text().toFloat();
+	lightDir[0][2] = lightPos02->text().toFloat();
+	lightDir[1][0] = lightPos10->text().toFloat();
+	lightDir[1][1] = lightPos11->text().toFloat();
+	lightDir[1][2] = lightPos12->text().toFloat();
+	lightDir[2][0] = lightPos20->text().toFloat();
+	lightDir[2][1] = lightPos21->text().toFloat();
+	lightDir[2][2] = lightPos22->text().toFloat();
+	diffuseCoeff[0] = lightDiff0->text().toFloat();
+	diffuseCoeff[1] = lightDiff1->text().toFloat();
+	diffuseCoeff[2] = lightDiff2->text().toFloat();
+	specularCoeff[0] = lightSpec0->text().toFloat();
+	specularCoeff[1] = lightSpec1->text().toFloat();
+	specularCoeff[2] = lightSpec2->text().toFloat();
+	specularExp = shininessEdit->text().toFloat();
+	ambientCoeff = ambientEdit->text().toFloat();
+	numLights = numLightsEdit->text().toInt();
+
 	flowLength = lengthEdit->text().toFloat();
 	smoothness = smoothnessEdit->text().toFloat();
 	integrationAccuracy = accuracyEdit->text().toFloat(); 
