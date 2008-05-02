@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>1018</width>
-            <height>1405</height>
+            <height>1377</height>
         </rect>
     </property>
     <property name="caption">
@@ -2349,24 +2349,6 @@ selected axis.</string>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
-                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -2386,9 +2368,6 @@ selected axis.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Control how flow texture is smeared</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>.</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -2410,24 +2389,6 @@ selected axis.</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -2542,24 +2503,6 @@ selected axis.</string>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
                                                             </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
-                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -2615,24 +2558,6 @@ grid cells.</string>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
                                                             </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
-                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -2652,24 +2577,6 @@ selected axis.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the smoothness of steady flow lines</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -2691,24 +2598,6 @@ selected axis.</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -3123,7 +3012,6 @@ selected axis.</string>
                                                     </property>
                                                     <property name="font">
                                                         <font>
-                                                            <pointsize>10</pointsize>
                                                         </font>
                                                     </property>
                                                     <property name="text">
@@ -3206,6 +3094,9 @@ selected axis.</string>
                                                             <property name="text">
                                                                 <string>0.0</string>
                                                             </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify a vector that points upward in the viewers image</string>
                                                             </property>
@@ -3216,6 +3107,9 @@ selected axis.</string>
                                                             </property>
                                                             <property name="text">
                                                                 <string>1.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify a vector that points upward in the viewers image</string>
@@ -3244,6 +3138,9 @@ selected axis.</string>
                                                             <property name="text">
                                                                 <string>0.7071</string>
                                                             </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the direction the viewer camera is pointing.</string>
                                                             </property>
@@ -3254,6 +3151,9 @@ selected axis.</string>
                                                             </property>
                                                             <property name="text">
                                                                 <string>0.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify a vector that points upward in the viewers image</string>
@@ -3266,6 +3166,9 @@ selected axis.</string>
                                                             <property name="text">
                                                                 <string>0.7071</string>
                                                             </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the direction the viewer camera is pointing.</string>
                                                             </property>
@@ -3276,6 +3179,9 @@ selected axis.</string>
                                                             </property>
                                                             <property name="text">
                                                                 <string>0.5002</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the direction the viewer camera is pointing.</string>
@@ -3459,6 +3365,9 @@ selected axis.</string>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
                                                     </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
+                                                    </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
@@ -3515,6 +3424,9 @@ originating behind the viewer</string>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
                                                     </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
+                                                    </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
@@ -3537,6 +3449,9 @@ originating behind the viewer</string>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
                                                     </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
+                                                    </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
@@ -3558,6 +3473,9 @@ originating behind the viewer</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
@@ -3608,6 +3526,9 @@ originating behind the viewer</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
@@ -3693,6 +3614,9 @@ originating behind the viewer</string>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
                                                     </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
+                                                    </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
@@ -3715,6 +3639,9 @@ originating behind the viewer</string>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
                                                     </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
+                                                    </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
@@ -3736,6 +3663,9 @@ originating behind the viewer</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the x,y, and z components of light source direction vectors</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>VAPOR allows up to three lights to be used
