@@ -58,7 +58,9 @@ const string UserPreferences::_logFileNameTag = "LogFileName";
 const string UserPreferences::_tfPathTag = "TransferFunctionPath";
 const string UserPreferences::_metadataPathTag  = "MetadataPath";
 const string UserPreferences::_sessionPathTag  = "SessionPath";
+const string UserPreferences::_autoSaveFilenameTag = "AutoSaveFilename";
 const string UserPreferences::_messagesTag = "MessageSettings";
+const string UserPreferences::_autoSaveIntervalAttr = "AutoSaveInterval";
 const string UserPreferences::_probeDefaultsTag = "ProbeDefaults";
 const string UserPreferences::_thetaAttr = "DefaultTheta";
 const string UserPreferences::_phiAttr = "DefaultPhi";
@@ -117,6 +119,8 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->textChangedFlag = false;
 	newPrefs->featureHolder = 0;
 	newPrefs->sessionDir=sessionDir;
+	newPrefs->autoSaveFilename = autoSaveFilename;
+	newPrefs->autoSaveInterval = autoSaveInterval;
 	newPrefs->metadataDir=metadataDir;
 	newPrefs->logFileName=logFileName;
 	newPrefs->jpegPath=jpegPath;
@@ -205,6 +209,7 @@ void UserPreferences::launch(){
 	
 	//Do connections for buttons
 	connect (sessionPathButton, SIGNAL(clicked()), this, SLOT(chooseSessionPath()));
+	connect (autoSaveButton, SIGNAL(clicked()), this, SLOT(chooseAutoSaveFilename()));
 	connect (metadataPathButton, SIGNAL(clicked()), this, SLOT(chooseMetadataPath()));
 	connect (logFilePathButton, SIGNAL(clicked()), this, SLOT(chooseLogFilePath()));
 	connect (jpegPathButton, SIGNAL(clicked()), this, SLOT(chooseJpegPath()));
@@ -215,6 +220,7 @@ void UserPreferences::launch(){
 	connect (subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
 	connect (resetCountButton, SIGNAL(clicked()), this, SLOT(resetCounts()));
 
+	connect (autoSaveCheckbox, SIGNAL(toggled(bool)), this, SLOT(setAutoSave(bool)));
 	connect (regionCheckbox, SIGNAL(toggled(bool)), this, SLOT(regionChanged(bool)));
 	connect (subregionCheckbox, SIGNAL(toggled(bool)), this, SLOT(subregionChanged(bool)));
 	connect (textureSizeCheckbox, SIGNAL(toggled(bool)), this, SLOT(changeTextureSize(bool)));
@@ -231,6 +237,8 @@ void UserPreferences::launch(){
 	connect (textureSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (jpegQualityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (sessionPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (autoSaveFilenameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (autoSaveIntervalEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (metadataPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (tfPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (logFilePathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -343,6 +351,21 @@ void UserPreferences::chooseSessionPath(){
 	if (s != "") {
 		sessionPathEdit->setText(s);
 		sessionDir = s.ascii();
+		dialogChanged = true;
+	}
+}
+void UserPreferences::chooseAutoSaveFilename(){
+	//Launch a file-chooser dialog, 
+    QString s = QFileDialog::getSaveFileName(
+				Session::getInstance()->getAutoSaveSessionFilename().c_str(),
+				"Vapor Saved Sessions (*.vss)",
+                this,
+                "open auto session file dialog",
+                "Choose a filename for auto saving sessions" );
+	if (s != ""){
+		autoSaveFilenameEdit->setText(s);
+		Session::getInstance()->setAutoSaveSessionFilename(s.ascii());
+		autoSaveFilename = s.ascii();
 		dialogChanged = true;
 	}
 }
@@ -472,6 +495,14 @@ void UserPreferences::setIsoBits(int comboPos){
 	isoBitsPerVoxel = 8 + 8*comboPos;
 	dialogChanged = true;
 }
+void UserPreferences::setAutoSave(bool val){
+	if (val) { //set interval to default:
+		autoSaveInterval = 10;
+	} else {
+		autoSaveInterval = 0;
+	}
+	autoSaveIntervalEdit->setText(QString::number(autoSaveInterval));
+}
 void UserPreferences::textChanged(){
 	textChangedFlag = true;
 }
@@ -493,6 +524,10 @@ setDialog(){
 			QString::number(texSize));
 	jpegQuality = GLWindow::getJpegQuality();
 	jpegQualityEdit->setText(QString::number(jpegQuality));
+	autoSaveInterval = ses->getAutoSaveInterval();
+	if (autoSaveInterval < 0) autoSaveInterval = 0;
+	autoSaveIntervalEdit->setText(QString::number(autoSaveInterval));
+	autoSaveCheckbox->setChecked(autoSaveInterval > 0);
 	warnDataMissing = DataStatus::warnIfDataMissing();
 	missingDataCheckbox->setChecked(warnDataMissing);
 	useLowerRefinement = DataStatus::useLowerRefinementLevel();
@@ -511,9 +546,11 @@ setDialog(){
 	jpegPath = ses->getJpegDirectory();
 	tfPath = ses->getTFFilePath();
 	flowPath = ses->getFlowDirectory();
+	autoSaveFilename = ses->getAutoSaveSessionFilename();
 
 	//Directories:
 	sessionPathEdit->setText(ses->getSessionDirectory().c_str());
+	autoSaveFilenameEdit->setText(autoSaveFilename.c_str());
 	metadataPathEdit->setText(ses->getMetadataDir().c_str());
 	logFilePathEdit->setText(ses->getLogfileName().c_str());
 	jpegPathEdit->setText(ses->getJpegDirectory().c_str());
@@ -627,6 +664,7 @@ applyToState(){
 	ses->setCacheMB(cacheMB);
 	ses->setTextureSize(texSize);
 	ses->specifyTextureSize(texSizeSpecified);
+	ses->setAutoSaveInterval(autoSaveInterval);
 	GLWindow::setJpegQuality(jpegQuality);
 	DataStatus::setWarnMissingData(warnDataMissing);
 	DataStatus::setUseLowerRefinementLevel(useLowerRefinement);
@@ -638,6 +676,8 @@ applyToState(){
 	ses->setJpegDirectory(jpegPath.c_str());
 	ses->setTFFilePath(tfPath.c_str());
 	ses->setFlowDirectory(flowPath.c_str());
+	ses->setAutoSaveSessionFilename(autoSaveFilename.c_str());
+	
 
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	mReporter->setMaxLog((MessageReporter::messagePriority)0,logNum[0]);
@@ -772,11 +812,16 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss.str(empty);
 	oss << (long)DataStatus::getTextureSize();
 	attrs[Session::_textureSizeAttr] = oss.str();
+	 
+	oss.str(empty);
+	oss << (long)ses->getAutoSaveInterval();
+	attrs[Session::_autoSaveIntervalAttr] = oss.str();
 
 	XmlNode* mainNode = new XmlNode(_preferencesTag, attrs, 10);
 //create element for each path or filename
 	mainNode->SetElementString(_metadataPathTag, ses->getMetadataDir());
 	mainNode->SetElementString(_sessionPathTag, ses->getSessionDirectory());
+	mainNode->SetElementString(_autoSaveFilenameTag, ses->getAutoSaveSessionFilename());
 	mainNode->SetElementString(_tfPathTag, ses->getTFFilePath());
 	mainNode->SetElementString(_imageCapturePathTag, ses->getJpegDirectory());
 	mainNode->SetElementString(_flowDirectoryPathTag, ses->getFlowDirectory());
@@ -1045,6 +1090,11 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					ist >> qual;
 					GLWindow::setJpegQuality(qual);
 				}
+				else if (StrCmpNoCase(attr, Session::_autoSaveIntervalAttr) == 0) {
+					int intvl;
+					ist >> intvl;
+					ses->setAutoSaveInterval(intvl);
+				}
 				else {
 					pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
 					return false;
@@ -1148,7 +1198,8 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 				StrCmpNoCase(tag, _logFileNameTag) == 0 ||
 				StrCmpNoCase(tag, _tfPathTag) == 0 ||
 				StrCmpNoCase(tag, _sessionPathTag) == 0 ||
-				StrCmpNoCase(tag, _metadataPathTag) == 0)
+				StrCmpNoCase(tag, _metadataPathTag) == 0 ||
+				StrCmpNoCase(tag, _autoSaveFilenameTag) == 0)
 			{
 				if (*attrs) {
 					if (StrCmpNoCase(*attrs, _typeAttr) != 0) {
@@ -1418,6 +1469,8 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 		ses->setTFFilePath(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _sessionPathTag) == 0){
 		ses->setSessionDirectory(strdata.c_str());
+	} else if (StrCmpNoCase(tag, _autoSaveFilenameTag) == 0){
+		ses->setAutoSaveSessionFilename(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _metadataPathTag) == 0){
 		ses->setMetadataDirectory(strdata.c_str());
 	} else {
@@ -1458,7 +1511,9 @@ void UserPreferences::getTextChanges(){
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
 	sessionDir = sessionPathEdit->text().ascii();
+	autoSaveFilename = autoSaveFilenameEdit->text().ascii();
 	metadataDir = metadataPathEdit->text().ascii();
+	autoSaveInterval = autoSaveIntervalEdit->text().toInt();
 	tfPath = tfPathEdit->text().ascii();
 	logFileName = logFilePathEdit->text().ascii();
 	flowPath = flowPathEdit->text().ascii();

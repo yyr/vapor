@@ -65,6 +65,7 @@ const string Session::_metadataPathAttr = "MetadataPath";
 const string Session::_transferFunctionPathAttr = "TransferFunctionPath";
 const string Session::_imageCapturePathAttr = "JpegPath";
 const string Session::_flowDirectoryPathAttr = "FlowPath";
+const string Session::_autoSaveIntervalAttr = "AutoSaveInterval";
 
 const string Session::_logFileNameAttr = "LogFileName";
 const string Session::_exportFileNameAttr = "ExportFileName";
@@ -93,6 +94,7 @@ Session::Session() {
 	cacheMB = 1024;
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
+	autoSaveInterval = 0;
 	
 	
 	//Note that the session will create the vizwinmgr!
@@ -182,6 +184,8 @@ void Session::init() {
 	currentFlowDirectory = "";
 	currentMetadataDir = ".";
 	currentTFPath = "";
+	autoSaveSessionFilename = "AutosavedSession.vss";
+	autoSaveInterval = 0;
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
 	currentExportFile = ImpExp::GetPath();
@@ -876,6 +880,23 @@ addToHistory(Command* cmd){
 
 	MainForm::getInstance()->editUndoAction->setEnabled(true);
 	MainForm::getInstance()->editRedoAction->setEnabled(false);
+	//Perform session auto-save if requested, and if the data mgr exists:
+	if (autoSaveInterval > 0 && (endQueuePos%autoSaveInterval == 0 && getDataMgr())){
+		ofstream fileout;
+		fileout.open(getAutoSaveSessionFilename().c_str());
+		if (! fileout) {
+			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s", autoSaveSessionFilename.c_str());
+			return;
+		}
+		
+		if (!saveToFile(fileout)){//Report error if can't save to file
+			MessageReporter::errorMsg("Failed to auto-save session to:\n %s", autoSaveSessionFilename.c_str());
+			fileout.close();
+			return;
+		}
+		fileout.close();
+	}
+
 }
 void Session::backupQueue(){
 	//Make sure we can do it!

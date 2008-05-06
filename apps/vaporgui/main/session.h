@@ -220,7 +220,11 @@ public:
 	string& getJpegDirectory() {return currentJpegDirectory;}
 	string& getFlowDirectory() {return currentFlowDirectory;}
 	string& getSessionDirectory() {return currentSessionDirectory;}
+	string& getAutoSaveSessionFilename() {return autoSaveSessionFilename;}
+	int getAutoSaveInterval(){return autoSaveInterval;}
+	void setAutoSaveInterval(int val){autoSaveInterval = val;}
 	void setSessionDirectory(const char* dir) {currentSessionDirectory = dir;}
+	void setAutoSaveSessionFilename(const char* name) {autoSaveSessionFilename = name;}
 	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
 	void setFlowDirectory(const char* dir) {currentFlowDirectory = dir;}
 	void setExportFile(const char* filename){currentExportFile = filename;}
@@ -297,6 +301,7 @@ public:
 	static const string _maxLogAttr;
 	static const string _VAPORVersionAttr;
 	static const string _cacheSizeAttr;
+	static const string _autoSaveIntervalAttr;
 protected:
 	
 	static const string _stretchFactorsAttr;
@@ -376,6 +381,8 @@ protected:
 	string currentFlowDirectory;
 	string currentSessionDirectory;
 	string sessionVersionString;
+	string autoSaveSessionFilename;
+	int autoSaveInterval;
 	static string prefFile;
 	bool metadataSaved;
 	

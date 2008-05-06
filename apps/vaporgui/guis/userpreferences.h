@@ -72,6 +72,7 @@ protected slots:
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
 	void chooseSessionPath();
+	void chooseAutoSaveFilename();
 	void chooseMetadataPath();
 	void chooseLogFilePath();
 	void chooseJpegPath();
@@ -93,6 +94,7 @@ protected slots:
 	void preIntegrationChanged(bool);
 	void axisArrowsChanged(bool);
 	void showSurfaceChanged(bool);
+	void setAutoSave(bool);
 	
 protected:
 	static const string _preferencesTag;
@@ -104,6 +106,8 @@ protected:
 	static const string _tfPathTag;
 	static const string _metadataPathTag;
 	static const string _sessionPathTag;
+	static const string _autoSaveFilenameTag;
+	static const string _autoSaveIntervalAttr;
 	static const string _messagesTag;
 	static const string _probeDefaultsTag;
 	static const string _alphaAttr;
@@ -162,6 +166,7 @@ protected:
 	int popupNum[3];
 	int logNum[3];
 	string sessionDir;
+	string autoSaveFilename;
 	string metadataDir;
 	string logFileName;
 	string jpegPath;
@@ -191,6 +196,7 @@ protected:
 	float maxFPS;
 	bool showAxisArrows;
 	bool showTerrain;
+	int autoSaveInterval;
 };
 
 
