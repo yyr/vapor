@@ -121,6 +121,7 @@ const string VizWinMgr::_vizAxisArrowsEnabledAttr = "AxesEnabled";
 const string VizWinMgr::_vizAxisAnnotationEnabledAttr = "AxisAnnotationEnabled";
 const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
 const string VizWinMgr::_vizElevGridEnabledAttr = "ElevGridRenderingEnabled";
+const string VizWinMgr::_vizElevGridTexturedAttr = "ElevGridTextured";
 const string VizWinMgr::_vizElevGridColorAttr = "ElevGridColor";
 const string VizWinMgr::_vizElevGridRefinementAttr = "ElevGridRefinement";
 const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
@@ -1435,6 +1436,12 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizElevGridEnabledAttr] = oss.str();
 
 			oss.str(empty);
+			if (vizWin[i]->elevGridTextureEnabled()) oss<<"true";
+				else oss << "false";
+			attrs[_vizElevGridTexturedAttr] = oss.str();
+
+
+			oss.str(empty);
 			if (vizWin[i]->textureInverted()) oss << "true";
 				else oss << "false";
 			attrs[_vizElevGridInvertedAttr] = oss.str();
@@ -1620,6 +1627,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		bool elevGridEnabled = false;
 		int elevGridRefinement = 0;
 		bool elevGridInverted = false;
+		bool elevGridTextured = false;
 		int elevGridRotation = 0;
 		string elevGridTexture = "imageFile.jpg";
 		int numViz = -1;
@@ -1679,6 +1687,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attr, _vizElevGridInvertedAttr) == 0) {
 				if (value == "true") elevGridInverted = true; 
 				else elevGridInverted = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizElevGridTexturedAttr) == 0) {
+				if (value == "true") elevGridTextured = true; 
+				else elevGridTextured = false; 
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridTextureNameAttr) == 0) {
 				elevGridTexture = value;
@@ -1774,7 +1786,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->enableElevGridRendering(elevGridEnabled);
 		vizWin[parsingVizNum]->setElevGridRefinementLevel(elevGridRefinement);
 		vizWin[parsingVizNum]->setElevGridColor(winElevGridColor);
-		vizWin[parsingVizNum]->enableElevGridTexture(false);
+		vizWin[parsingVizNum]->enableElevGridTexture(elevGridTextured);
 		vizWin[parsingVizNum]->rotateTexture(elevGridRotation);
 		vizWin[parsingVizNum]->invertTexture(elevGridInverted);
 		vizWin[parsingVizNum]->setTextureFile(QString(elevGridTexture.c_str()));
