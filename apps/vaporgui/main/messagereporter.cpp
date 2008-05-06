@@ -213,7 +213,7 @@ doPopup(messagePriority t, const char* message){
 bool MessageReporter::
 doLastPopup(messagePriority t, const char* message){
 	QString longMessage = QString(message)+"\nThis message will not be repeated unless you click Continue."
-		+"\nAll messages may be resumed from the Edit Session Parameters dialog";
+		+"\nAll messages may be resumed from the Edit User Preferences dialog";
 	int doContinue = 1;
 	switch (t){
 		case Fatal :
