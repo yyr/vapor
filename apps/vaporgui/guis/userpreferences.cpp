@@ -200,7 +200,7 @@ void UserPreferences::launch(){
 	myPrefsCommand = PreferencesCommand::captureStart(this, "edit user preferences");
 	
 	int h = MainForm::getInstance()->height();
-	int w = 940;
+	int w = 875;
 	if ( h > 768) h = 768;
 	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
 	
