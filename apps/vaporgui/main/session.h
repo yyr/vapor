@@ -220,10 +220,14 @@ public:
 	string& getJpegDirectory() {return currentJpegDirectory;}
 	string& getFlowDirectory() {return currentFlowDirectory;}
 	string& getSessionDirectory() {return currentSessionDirectory;}
+	void makeSessionFilepath(std::string& path);
+	string& getSessionFilename() {return sessionFilename;}
 	string& getAutoSaveSessionFilename() {return autoSaveSessionFilename;}
 	int getAutoSaveInterval(){return autoSaveInterval;}
 	void setAutoSaveInterval(int val){autoSaveInterval = val;}
 	void setSessionDirectory(const char* dir) {currentSessionDirectory = dir;}
+	void setSessionFilename(const char* name) {sessionFilename = name;}
+	void setSessionFilepath(const char* filepath);
 	void setAutoSaveSessionFilename(const char* name) {autoSaveSessionFilename = name;}
 	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
 	void setFlowDirectory(const char* dir) {currentFlowDirectory = dir;}
@@ -380,6 +384,7 @@ protected:
 	string currentJpegDirectory;
 	string currentFlowDirectory;
 	string currentSessionDirectory;
+	string sessionFilename;
 	string sessionVersionString;
 	string autoSaveSessionFilename;
 	int autoSaveInterval;

@@ -127,7 +127,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	modeStatusWidget = 0;
 	
-	sessionSaveFile.setAscii("VaporSaved.vss");
+	
 	//QPixmap* vaporIcon = new QPixmap(vapor_icon___));
 	setIcon(QPixmap(vapor_icon___));
 
@@ -173,6 +173,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	//Setup  the session (hence the viz window manager)
 	Session::getInstance();
+	
+
 	if (getenv("VAPOR_DEBUG")) {
 		MessageReporter* msgRpt = MessageReporter::getInstance();
 		msgRpt->setMaxLog(MessageReporter::Info, 100);
@@ -525,9 +527,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			}
 			//Remember file if load is successful:
 			if(Session::getInstance()->loadFromFile(is)){
-				sessionSaveFile = fileName;
+				QString sessionSaveFile = fileName;
 				QFileInfo fi(fileName);
-				Session::getInstance()->setSessionDirectory(fi.dirPath().ascii());
+				Session::getInstance()->setSessionFilepath(sessionSaveFile.ascii());
 			}
 		} else if (fileName.endsWith(".vdf")){
 #ifdef WIN32
@@ -712,7 +714,12 @@ void MainForm::fileOpen()
 
 	//This launches a panel that enables the
     //user to choose input session save files, then to
-	QString filename = QFileDialog::getOpenFileName(sessionSaveFile,
+	//load that session
+	Session* ses = Session::getInstance();
+	string s;
+	ses->makeSessionFilepath(s);
+	QString fn = s.c_str();//start with filename in session
+	QString filename = QFileDialog::getOpenFileName(fn,
 		"Vapor Session Save Files (*.vss)",
 		this,
 		"Open Session Dialog",
@@ -735,9 +742,7 @@ void MainForm::fileOpen()
 	}
 	//Remember file if load is successful:
 	if(Session::getInstance()->loadFromFile(is)){
-		sessionSaveFile = filename;
-		QFileInfo fi(filename);
-		Session::getInstance()->setSessionDirectory(fi.dirPath().ascii());
+		Session::getInstance()->setSessionFilepath(filename.ascii());
 	}
 }
 
@@ -754,14 +759,17 @@ void MainForm::fileSave()
 		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \nIt will be easier to restore this session if the Metadata is also saved.");
 	
 	ofstream fileout;
-	fileout.open(sessionSaveFile.ascii());
+	string s;
+	Session::getInstance()->makeSessionFilepath(s);
+	
+	fileout.open(s.c_str());
 	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to open session file:\n %s", sessionSaveFile.ascii());
+		MessageReporter::errorMsg( "Unable to open session file:\n %s", s.c_str());
 		return;
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to write session file: \n %s", sessionSaveFile.ascii());
+		MessageReporter::errorMsg("Failed to write session file: \n %s", s.c_str());
 		fileout.close();
 		return;
 	}
@@ -830,7 +838,10 @@ void MainForm::fileSaveAs()
 		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
 	//This launches a panel that enables the
     //user to choose output session save files, saves to it
-	QString filename = QFileDialog::getSaveFileName(sessionSaveFile,
+	string s;
+	Session::getInstance()->makeSessionFilepath(s);
+	
+	QString filename = QFileDialog::getSaveFileName(s.c_str(),
 		"Vapor Session Save Files (*.vss)",
 		this,
 		"Save Session Dialog",
@@ -862,7 +873,7 @@ void MainForm::fileSaveAs()
 		return;
 	}
 	fileout.close();
-	sessionSaveFile = filename;
+	Session::getInstance()->setSessionFilepath(filename.ascii());
 }
 
 

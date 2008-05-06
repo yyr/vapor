@@ -95,6 +95,7 @@ Session::Session() {
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
 	autoSaveInterval = 0;
+	sessionFilename = "VaporSaved.vss";
 	
 	
 	//Note that the session will create the vizwinmgr!
@@ -1110,5 +1111,36 @@ const string& Session::getPreferencesFile(){
 	prefFile = std::string(prefPath)+"/.vapor_prefs";
 	return prefFile;
 }
+void Session::makeSessionFilepath(std::string& path){
+	string s = currentSessionDirectory;
+	if (s == "") {
+		path = sessionFilename;
+		return;
+	}
+	char c = s[s.length()-1];
+	if (c == '/' || c == '\\' ) {
+		path = (s + sessionFilename);
+		return;
+	}
+	path =  (s + '/' + sessionFilename);
+	return;
+}
+void Session::setSessionFilepath(const char* path){
+	
+	string spath = path;
+	//extract filename; find last '/'
+	int posn = spath.find_last_of("/");
+	if (posn == -1) {
+		posn = spath.find_last_of("\\");
+	}
+	if (posn == -1){
+		currentSessionDirectory = "";
+		sessionFilename = path;
+		return;
+	}
+	currentSessionDirectory = spath.substr(0, posn);
+	sessionFilename = spath.substr(posn+1);
+}
+
 
 

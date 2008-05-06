@@ -16,6 +16,9 @@
 //
 //	Description:	Implements the UserPreferences class.
 //
+#ifdef WIN32
+#pragma warning(disable : 4100)
+#endif
 #include "vizfeatureparams.h"
 #include "userpreferences.h"
 #include "command.h"

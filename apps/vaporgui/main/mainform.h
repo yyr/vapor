@@ -258,8 +258,6 @@ protected:
 	
 	VizSelectCombo* windowSelector;
 
-	QString sessionSaveFile;
-
 	QLabel* modeStatusWidget;
 	
 	

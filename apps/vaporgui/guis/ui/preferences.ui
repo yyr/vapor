@@ -1366,7 +1366,7 @@
                                                                 <cstring>textLabel2_2</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>&lt;b&gt;Incidental Colors in Scene&lt;/b&gt;</string>
+                                                                <string>&lt;b&gt;Incidental Geometry in 3D Scene&lt;/b&gt;</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
