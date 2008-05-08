@@ -553,7 +553,11 @@ float OpacityMapBase::opacity(float value)
 
     case GAUSSIAN:
     {
-      cout << _ssq << endl;
+      return pow(M_E, -((nv-_mean) * (nv-_mean))/(2.0*_ssq));
+    }
+
+    case INVERTED_GAUSSIAN:
+    {
       return 1.0-pow(M_E, -((nv-_mean) * (nv-_mean))/(2.0*_ssq));
     }
 

@@ -58,6 +58,7 @@ public:
   {
     CONTROL_POINT,
     GAUSSIAN,
+    INVERTED_GAUSSIAN,
     SINE
   };
 

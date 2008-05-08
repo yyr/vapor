@@ -574,6 +574,7 @@ float OpacityWidget::left()
 bool OpacityWidget::hasTopSlider()
 {
   return (_opacityMap->type() == OpacityMap::GAUSSIAN ||
+          _opacityMap->type() == OpacityMap::INVERTED_GAUSSIAN ||
           _opacityMap->type() == OpacityMap::SINE);
 }
                    
@@ -585,6 +586,7 @@ float OpacityWidget::topSlider()
   switch (_opacityMap->type())
   {
     case OpacityMap::GAUSSIAN:
+    case OpacityMap::INVERTED_GAUSSIAN:
       return left() + (_opacityMap->mean() * (right() - left()));
     case OpacityMap::SINE:
       return left() + (_opacityMap->sineFreq() * (right() - left()));
@@ -601,6 +603,7 @@ void OpacityWidget::topSlider(float value)
   switch (_opacityMap->type())
   {
     case OpacityMap::GAUSSIAN:
+    case OpacityMap::INVERTED_GAUSSIAN:
       _opacityMap->mean((value - left()) / (right() - left()));
     case OpacityMap::SINE:
       _opacityMap->sineFreq((value - left()) / (right() - left()));
@@ -638,6 +641,7 @@ void OpacityWidget::bottomSlider(float)
 bool OpacityWidget::hasLeftSlider()
 {
   return (_opacityMap->type() == OpacityMap::GAUSSIAN ||
+          _opacityMap->type() == OpacityMap::INVERTED_GAUSSIAN ||
           _opacityMap->type() == OpacityMap::SINE);
 }
                    
@@ -649,6 +653,7 @@ float OpacityWidget::leftSlider()
   switch (_opacityMap->type())
   {
     case OpacityMap::GAUSSIAN:
+    case OpacityMap::INVERTED_GAUSSIAN:
       return sqrt(_opacityMap->sigmaSq());
     case OpacityMap::SINE:
       return _opacityMap->sinePhase();
@@ -667,6 +672,7 @@ void OpacityWidget::leftSlider(float value)
   switch (_opacityMap->type())
   {
     case OpacityMap::GAUSSIAN:
+    case OpacityMap::INVERTED_GAUSSIAN:
       _opacityMap->sigmaSq(value*value);
     case OpacityMap::SINE:
       _opacityMap->sinePhase(value);
