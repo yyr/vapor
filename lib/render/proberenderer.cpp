@@ -320,6 +320,8 @@ void ProbeRenderer::popState(){
 
 //Following method is called from glProbeWindow to get the next frame of the IBFV sequence.
 //If animFrame == 0, it starts from beginning.
+//tstep is the current animation time step
+//frameNum is the number in the ibfv animation sequence.
 //
 
 unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
@@ -356,9 +358,9 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	if (pParams->ibfvColorMerged()){
 		dataTex = pParams->getCurrentProbeTexture(tstep, 0);
 		if (!dataTex){
-			dataTex = pParams->calcProbeDataTexture(frameNum, 256,256,fullHeight);
+			dataTex = pParams->calcProbeDataTexture(tstep, 256,256,fullHeight);
 			//Always put this in the data texture cache...
-			pParams->setProbeTexture(dataTex,frameNum,0);
+			pParams->setProbeTexture(dataTex,tstep,0);
 		}
 	}
 	for (int q = 0; q<wid*ht; q++){
