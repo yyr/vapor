@@ -29,7 +29,7 @@ install-dep:: install
 
 MAC_BUNDLE_DIR = /tmp/vapor-macbundle
 
-#macbundle: install-dep
+macbundle: install-dep
 macbundle: FRC
 	@if test ! -d $(MAC_BUNDLE_DIR); then $(MKDIR) $(MAC_BUNDLE_DIR); fi
 	@DYLD_LIBRARY_PATH=$(DSO_DIR); export DYLD_LIBRARY_PATH; $(TOP)/buildutils/macbundle.pl $(INSTALL_PREFIX_DIR) $(TOP)/MacBundle/VAPOR.app $(MAC_BUNDLE_DIR) `$(BINDIR)/vaporversion -numeric`
