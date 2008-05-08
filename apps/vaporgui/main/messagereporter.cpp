@@ -31,6 +31,7 @@
 #include "messagereporter.h"
 #include "vapor/DataMgr.h"
 #include "mainform.h"
+#include "tabmanager.h"
 #include "session.h"
 #include <qstring.h>
 #include <qmessagebox.h>
@@ -185,27 +186,42 @@ writeLog(messagePriority t, const char* message){
 }
 void MessageReporter::
 doPopup(messagePriority t, const char* message){
+	QString title;
+	QMessageBox::Icon msgIcon;
 	
-	switch (t){
+	switch (t) {
 		case Fatal :
-			QMessageBox::critical(MainForm::getInstance(), "VAPoR Fatal Error", message, 
-				QMessageBox::Ok, QMessageBox::NoButton );
+			title = "VAPOR Fatal Error";
+			msgIcon = QMessageBox::Critical;
 			break;
 		case Error :
-			QMessageBox::critical(MainForm::getInstance(), "VAPoR Error", message, 
-				QMessageBox::Ok, QMessageBox::NoButton );
+			title = "VAPOR Error";
+			msgIcon = QMessageBox::Critical;
 			break;
 		case Warning :
-			QMessageBox::warning(MainForm::getInstance(), "VAPoR Warning", message, 
-				QMessageBox::Ok, QMessageBox::NoButton );
+			title = "VAPOR Warning";
+			msgIcon = QMessageBox::Warning;
 			break;
-		case Info :
-			QMessageBox::information(MainForm::getInstance(), "VAPoR Information", message, 
-				QMessageBox::Ok, QMessageBox::NoButton );
+		case Info : 
+			title = "VAPOR Information";
+			msgIcon = QMessageBox::Information;
 			break;
-		default:
+		default: 
 			assert(0);
 	}
+	QMessageBox* msgBox = new QMessageBox(title,message, msgIcon,
+		QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton,
+		MainForm::getInstance()->getTabManager());
+	//msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
+	msgBox->adjustSize();
+	QPoint pt = MainForm::getInstance()->pos();
+	int xpos = pt.x() + MainForm::getInstance()->getTabManager()->width() - msgBox->width();
+	if (xpos < 0) xpos = 0;
+	pt.setX(xpos);
+	
+	msgBox->move(pt);
+	msgBox->exec();
+	delete msgBox;
 	return;
 }
 //This is the last popup before messages are silenced; if users ask for it,

@@ -499,7 +499,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of variable %s, at current timestep.\n %s", 
 					numxforms, varname,
-					"This message can be silenced using the User Preference Panel settings." );
+					"This message can be silenced from the User Preference Panel." );
 			}
 			ds->setDataMissing(timeStep, numxforms, currentRenderParams->getSessionVarNum());
 			return;

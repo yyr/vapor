@@ -831,11 +831,11 @@ int printOglError(char *file, int line)
 
   while (glErr != GL_NO_ERROR)
   {
+#ifdef DEBUG
     std::cout << "glError: " << gluErrorString(glErr) << std::endl
               << "         " << file << " : " << line << std::endl;
-
-    VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_RENDERING, 
-                                "glError: %s\n         %s : %d\n", 
+#endif
+    VetsUtil::MyBase::SetDiagMsg("glError: %s\n         %s : %d\n", 
                                 gluErrorString(glErr), file, line);
 
     retCode = 1;

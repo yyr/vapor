@@ -273,7 +273,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
 					ds->getVariableName(varNums[i]).c_str(),
-					"This message can be silenced using the User Preference Panel settings.");
+					"This message can be silenced from the User Preference Panel.");
 			}
 			return -1;
 		}
@@ -315,9 +315,9 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			//Tell the datastatus that the data isn't really there at minRefLevel:
 			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s at current timestep.\n %s",
 					varName.c_str(),
-					"This message can be silenced using the User Preference Panel settings.");
+					"This message can be silenced in the User Preferences Panel.");
 			}
 			return -1;
 		}
