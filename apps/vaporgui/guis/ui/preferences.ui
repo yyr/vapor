@@ -1275,7 +1275,7 @@
                                                 <enum>Raised</enum>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Incidental colors are those that are likely to be the same independent of VAPOR session.</string>
+                                                <string>Incidental geometry specifies some objects that appear in VAPOR visualizers and are not specified by the parameter tabs.</string>
                                             </property>
                                             <hbox>
                                                 <property name="name">
@@ -1722,7 +1722,7 @@
                                                                         <string>Display Terrain Surface by Default</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Enable rendering of lowest elevation level</string>
+                                                                        <string>Enable terrain rendering when loading layered data into a default session</string>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
                                                                         <string>When using a layered dataset, you can render a surface at elevation zero (i.e. at the bottom of the bottom layer of the data.  The color and refinement of this surface can also be specified here.</string>
@@ -1781,6 +1781,9 @@
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
                                                                         <string>show colored X,Y,Z axes in scene</string>
+                                                                    </property>
+                                                                    <property name="whatsThis" stdset="0">
+                                                                        <string>Checking this box will result in arrows displayed in the scene whenever data is loaded into a default session.  This will not override values saved in a session file.</string>
                                                                     </property>
                                                                 </widget>
                                                                 <spacer>
