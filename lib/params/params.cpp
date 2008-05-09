@@ -330,9 +330,9 @@ void Params::BailOut(const char *errstr, char *fname, int lineno)
 	errorMessage += fname;
 	errorMessage += " at line ";
 	errorMessage += QString::number(lineno);
-	SetErrMsg("Fatal error: %s",errorMessage.ascii());
+	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",errorMessage.ascii());
 	//MessageReporter::fatalMsg(errorMessage);
-    //app->quit();
+    exit(-1);
 }
 //Determine a new value of theta phi and psi when the probe is rotated around either the
 //x-, y-, or z- axis.  axis is 0,1,or 2 1. rotation is in degrees.

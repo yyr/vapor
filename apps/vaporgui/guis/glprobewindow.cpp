@@ -40,7 +40,13 @@ GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char*
 : QGLWidget(fmt, parent, name)
 
 {
-	
+	if(!doubleBuffer()){
+		QString strng(" Inadequate rendering capability.\n");
+		strng += "Ensure your graphics card is properly configured, and/or \n";
+		strng += "Be sure to use 'vlgrun' if you are in a VirtualGL session.";
+		Params::BailOut(strng.ascii(),__FILE__,__LINE__);
+	}
+
 	horizTexSize = 1.f;
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
@@ -49,7 +55,7 @@ GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char*
 	animatingTexture = false;
 	animatingFrameNum = 0;
 	animationStarting = true;
-	assert(doubleBuffer());
+	
 	setAutoBufferSwap(true);
 	patternListNum = -1;
 	currentAnimationTimestep = 0;
