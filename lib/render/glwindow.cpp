@@ -401,6 +401,7 @@ void GLWindow::paintGL()
 	setDirtyBit(DvrRegionBit,false);
 	setDirtyBit(ProjMatrixBit, false);
 	setDirtyBit(ViewportBit, false);
+	setDirtyBit(LightingBit, false);
 	nowPainting = false;
 	postRenderCB(winNum, isControlled);
 	

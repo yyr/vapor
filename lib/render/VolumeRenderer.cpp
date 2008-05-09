@@ -653,9 +653,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  
 	clearClutDirty();
 	clearDatarangeDirty();
-	  
-	myGLWindow->setDvrRegionNavigating(false);
-	myGLWindow->setLightingDirty(false);
 }
 
 
