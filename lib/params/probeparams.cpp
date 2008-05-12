@@ -1299,6 +1299,12 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 }
 void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
 	//Need to determine appropriate texture dimensions
+	//For IBFV texture, the size is always 256.
+	if (probeType == 1) {
+		sz[0] = textureSize[0] = 256;
+		sz[1] = textureSize[1] = 256;
+		return;
+	}
 	//First, map the corners of texture, to determine appropriate
 	//texture sizes and image aspect ratio:
 	//Get the data dimensions (at this resolution):

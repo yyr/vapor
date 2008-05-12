@@ -328,6 +328,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	
 	int sz[2];
 	pParams->getTextureSize(sz);
+	
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
 		pParams->adjustTextureSize(fullHeight, sz);
@@ -336,6 +337,8 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	}
 	int wid = sz[0];
 	int ht = sz[1];
+	// These should always be 256, since that's the best size to fit in the probe width
+	assert(wid == 256 && ht == 256);
 
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
 	pushState(wid,ht);
