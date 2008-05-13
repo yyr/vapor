@@ -229,6 +229,7 @@ ProbeEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void ProbeEventRouter::updateTab(){
+	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 
     setEnabled(!Session::getInstance()->sphericalTransform());
@@ -259,11 +260,15 @@ void ProbeEventRouter::updateTab(){
 	alphaSlider->setValue((int)((100.f *probeParams->getAlpha()+0.5f)));
 	scaleSlider->setValue((int)(((log10(probeParams->getFieldScale())+1.f))*50.f));
 
+	guiSetTextChanged(false);
+
 	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
 	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
 	zSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(2));
 
-	colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
+	if (colorMergeCheckbox->isChecked() != probeParams->ibfvColorMerged()){
+		colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
+	}
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
@@ -357,7 +362,7 @@ void ProbeEventRouter::updateTab(){
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
-
+	guiSetTextChanged(false);
 	//Set the selection in the variable listbox.
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
