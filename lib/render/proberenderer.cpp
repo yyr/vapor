@@ -65,6 +65,7 @@ void ProbeRenderer::paintGL()
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
 	size_t fullHeight = myGLWindow->getActiveRegionParams()->getFullGridHeight();
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	
 	unsigned char* probeTex = 0;
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
@@ -79,6 +80,7 @@ void ProbeRenderer::paintGL()
 	int imgWidth = imgSize[0];
 	int imgHeight = imgSize[1];
 	if (probeTex){
+		enableFullClippingPlanes();
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -97,6 +99,7 @@ void ProbeRenderer::paintGL()
 		glDepthMask(GL_TRUE);
 		
 	} else {
+		
 		return;
 		//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
 		glDepthMask(GL_FALSE);
@@ -131,6 +134,7 @@ void ProbeRenderer::paintGL()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	if (probeTex) glDisable(GL_TEXTURE_2D);
+	disableFullClippingPlanes();
 }
 
 

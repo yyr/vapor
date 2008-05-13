@@ -63,7 +63,8 @@ signals:
     void statusMessage(const QString&);
 
 protected:
-	
+	void enableFullClippingPlanes();
+	void disableFullClippingPlanes();
 	RenderParams* currentRenderParams;
 	void buildColorscaleImage();
 	void renderColorscale(bool rebuild);

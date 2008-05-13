@@ -187,3 +187,37 @@ renderColorscale(bool dorebuild){
 	//Reset to default:
 	glDepthFunc(GL_LESS);
 }
+void Renderer::enableFullClippingPlanes(){
+	GLdouble topPlane[] = {0., -1., 0., 1.}; //y = 1
+	GLdouble rightPlane[] = {-1., 0., 0., 1.0};// x = 1
+	GLdouble leftPlane[] = {1., 0., 0., 0.001};//x = -.001
+	GLdouble botPlane[] = {0., 1., 0., 0.001};//y = -.001
+	GLdouble frontPlane[] = {0., 0., -1., 1.};//z =1
+	GLdouble backPlane[] = {0., 0., 1., 0.001};//z = -.001
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	topPlane[3] = extents[4]*1.001;
+	rightPlane[3] = extents[3]*1.001;
+	frontPlane[3] = extents[5]*1.001;
+	
+	glClipPlane(GL_CLIP_PLANE0, topPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glClipPlane(GL_CLIP_PLANE1, rightPlane);
+	glEnable(GL_CLIP_PLANE1);
+	glClipPlane(GL_CLIP_PLANE2, botPlane);
+	glEnable(GL_CLIP_PLANE2);
+	glClipPlane(GL_CLIP_PLANE3, leftPlane);
+	glEnable(GL_CLIP_PLANE3);
+	glClipPlane(GL_CLIP_PLANE4, frontPlane);
+	glEnable(GL_CLIP_PLANE4);
+	glClipPlane(GL_CLIP_PLANE5, backPlane);
+	glEnable(GL_CLIP_PLANE5);
+
+}
+void Renderer::disableFullClippingPlanes(){
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_PLANE1);
+	glDisable(GL_CLIP_PLANE2);
+	glDisable(GL_CLIP_PLANE3);
+	glDisable(GL_CLIP_PLANE4);
+	glDisable(GL_CLIP_PLANE5);
+}
