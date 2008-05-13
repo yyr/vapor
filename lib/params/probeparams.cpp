@@ -44,6 +44,8 @@
 #include <math.h>
 #include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
+#include "vapor/VDFIOBase.h"
+#include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 
 
@@ -971,28 +973,35 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
 //We also need the actual box coords (min and max) to check for valid coords in the block.
 //Note that the box region may be strictly smaller than the block region
 //
-void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs){
+void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space
-	
+	DataStatus* ds = DataStatus::getInstance();
 	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f);
 	size_t dataSize[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = ds->getExtents();
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i,fullHeight);
+		dataSize[i] = ds->getFullSizeAtLevel(numRefs,i,fullHeight);
 		boxMin[i] = dataSize[i]-1;
 		boxMax[i] = 0;
 	}
-	
+	//Get the regionReader to map coordinates:
+	//Use the region reader to calculate coordinates in volume
+	const VDFIOBase* myReader = ds->getRegionReader();
+	if (ds->dataIsLayered()){
+		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
+	}
+
 	
 	for (int corner = 0; corner< 8; corner++){
 		int intCoord[3];
-		int intResult[3];
-		float startVec[3], resultVec[3];
+		size_t intResult[3];
+		float startVec[3]; 
+		double resultVec[3];
 		intCoord[0] = corner%2;
 		intCoord[1] = (corner/2)%2;
 		intCoord[2] = (corner/4)%2;
@@ -1000,13 +1009,16 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t full
 			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
 		// calculate the mapping of this corner,
 		vtransform(startVec, transformMatrix, resultVec);
-		
+		//Force the result to lie inside full domain:
+		for (int i = 0; i<3; i++){
+			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
+			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+		}
+		myReader->MapUserToVox(timestep, resultVec, intResult, numRefs);
 		// then make sure the container includes it:
 		for(int i = 0; i< 3; i++){
-			intResult[i] = (int) (0.5f+(float)dataSize[i]*(resultVec[i]- extents[i])/(extents[i+3]-extents[i]));
-			if (intResult[i]< 0) intResult[i] = 0;
-			if((size_t)intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
-			if((size_t)intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
+			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
+			if(intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
 		}
 	}
 	return;
@@ -1019,7 +1031,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 		size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs){
 	
 	//Start with the bounding box for this refinement level:
-	getBoundingBox(boxMin, boxMax, fullHeight, numRefs);
+	getBoundingBox(timeStep, boxMin, boxMax, fullHeight, numRefs);
 	
 	const size_t* bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
 	size_t temp_min[3],temp_max[3];
@@ -1169,7 +1181,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 		sesVarNums[numVars++] = varnum;
 	}
 	
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	const size_t *bSize =  ds->getCurrentMetadata()->GetBlockSize();
 	
 	float** volData = getProbeVariables(ts, fullHeight, numVars, sesVarNums,
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
@@ -1194,7 +1206,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	//For each pixel, map it into the volume.
 	//The blkMin values tell you the offset to use.
 	//The blkMax values tell how to stride through the data
-	//The coordMin and coordMax values are used to check validity
+	
 	//We first map the coords in the probe to the volume.  
 	//Then we map the volume into the region provided by dataMgr
 	//This is done for each of the variables,
@@ -1205,9 +1217,16 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	transFunc->makeLut(clut);
 	
 	float probeCoord[3];
-	float dataCoord[3];
+	double dataCoord[3];
 	size_t arrayCoord[3];
 	const float* extents = ds->getExtents();
+	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
+	for (int i = 0; i<3; i++){
+		float mid = (extents[i]+extents[i+3])*0.5;
+		float halfExtendedSize = (extents[i+3]-extents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		extExtents[i] = mid - halfExtendedSize;
+		extExtents[i+3] = mid + halfExtendedSize;
+	}
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
 	for (int cornum = 0; cornum < 4; cornum++){
@@ -1229,42 +1248,42 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	
 	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
+	//Use the region reader to calculate coordinates in volume
+	const VDFIOBase* myReader = ds->getRegionReader();
 
-	//Loop over pixels in texture
+	if (ds->dataIsLayered()){
+		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
+	}
+
+
+	//Loop over pixels in texture.  Pixel centers map to edges of probe
+	
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
 		probeCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
 		for (int ix = 0; ix < texWidth; ix++){
 			
-			//find the coords that the texture maps to
-			//probeCoord is the coord in the probe, dataCoord is in data volume 
+			
 			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			vtransform(probeCoord, transformMatrix, dataCoord);
-			for (int i = 0; i<3; i++){
-				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
-			}
-			
-			//Make sure the transformed coords are in the probe region
-			//This should only fail if they aren't even in the full volume.
+			//find the coords that the texture maps to
+			//probeCoord is the coord in the probe, dataCoord is in data volume 
+			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
-				if (dataCoord[i]< extents[i] || dataCoord[i] > extents[i+3])
-					dataOK = false;
-				if (arrayCoord[i] < coordMin[i] ||
-					arrayCoord[i] > coordMax[i] ) {
-						dataOK = false;
-					} //outside; color it black
+				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 			}
 			
 			if(dataOK) { //find the coordinate in the data array
-				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
-					(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
-				float varVal;
 				
+				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
+					(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[0]*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+				float varVal;
+				assert(xyzCoord >= 0);
 
 				//use the intDataCoords to index into the loaded data
-				if (numVars == 1) varVal = volData[0][xyzCoord];
+				if (numVars == 1) varVal = volData[0][xyzCoord]; 
 				else { //Add up the squares of the variables
 					varVal = 0.f;
 					for (int k = 0; k<numVars; k++){
@@ -1559,10 +1578,17 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 	invMatrix[7] = rotMatrix[5];
 
 	float probeCoord[3];
-	float dataCoord[3];
+	double dataCoord[3];
 	size_t arrayCoord[3];
 	const float* extents = ds->getExtents();
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
+	for (int i = 0; i<3; i++){
+		float mid = (extents[i]+extents[i+3])*0.5;
+		float halfExtendedSize = (extents[i+3]-extents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		extExtents[i] = mid - halfExtendedSize;
+		extExtents[i+3] = mid + halfExtendedSize;
+	}
+	const size_t* bSize =  ds->getCurrentMetadata()->GetBlockSize();
 	float worldCorner[4][3];
 	//Map corners of probe into volume 
 	probeCoord[2] = 0.f;
@@ -1573,10 +1599,11 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 		//Then transform to values in data 
 		vtransform(probeCoord, transformMatrix, worldCorner[cornum]);
 	}
-	vsub(worldCorner[1],worldCorner[0],dataCoord);
-	float xside = vlength(dataCoord);  
-	vsub(worldCorner[2],worldCorner[0],dataCoord);
-	float yside = vlength(dataCoord);
+	float tempCoord[3];
+	vsub(worldCorner[1],worldCorner[0],tempCoord);
+	float xside = vlength(tempCoord);  
+	vsub(worldCorner[2],worldCorner[0],tempCoord);
+	float yside = vlength(tempCoord);
 	int texHeight = textureSize[1];
 	int texWidth = textureSize[0];
 	assert(textureSize[0] != 0); //Should be a valid value
@@ -1593,11 +1620,15 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 	ibfvValid[timestep] = new unsigned char[textureSize[0]*textureSize[1]];
 	float sumMag = 0.f;
 	int numValidPoints = 0;
+	//Use the region reader to calculate coordinates in volume
+	const VDFIOBase* myReader = ds->getRegionReader();
+
 	//Check on below terrain values if layered data;
 	float lowVal[3];
 	bool layeredData = false;
-	if (ds->getMetadata()->GetGridType().compare("layered") == 0) {
+	if (ds->dataIsLayered()) {
 		layeredData = true;
+		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
 		for (int i = 0; i< 3; i++){
 			lowVal[i] = ds->getBelowValue(sesVarNums[i]);
 		}
@@ -1614,23 +1645,18 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 			//datacoord is a point in probe in world coords.
 			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			vtransform(probeCoord, transformMatrix, dataCoord);
-			for (int i = 0; i<3; i++){
-				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
-			}
-			int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
-					(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
 			
-			int texPos = ix + texWidth*iy;
-			//Make sure the transformed coords are in the probe region
-			//This should only fail if they aren't even in the full volume.
+			myReader->MapUserToVox(timestep, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
-				if (dataCoord[i]< extents[i] || dataCoord[i] > extents[i+3])
-					dataOK = false;
-				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i] ) 
-					dataOK = false;
+				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 			}
+			
+			int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
+					(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[0]*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+			assert(xyzCoord >= 0);
+			int texPos = ix + texWidth*iy;
 			
 			if(dataOK) { //find the coordinate in the data array
 				float vecField[3];

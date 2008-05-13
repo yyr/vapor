@@ -93,6 +93,7 @@ PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
 PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
 PARAMS_API void	vreflect (const float *in, const float *mirror, float *out);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
+PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
 PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
@@ -134,6 +135,7 @@ inline float vdot(const float* a, const float* b)
 inline float vlength(const float*a) {return sqrt(vdot(a,a));}
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
+inline void vcopy(const double* a, double* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vsub(const float* a, const float* b, float* c)
 	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
 inline void vadd(const float* a, const float* b, float* c)

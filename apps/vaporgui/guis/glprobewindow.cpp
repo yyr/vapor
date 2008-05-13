@@ -313,10 +313,10 @@ doFrameCapture(){
 	}
 	//The window to extract is x from (rectLeft+1)*w/2 to (1-rectLeft)*w/2 -1
 	// y goes from ((1-rectTop)*h/2 to (1+rectTop)*h/2 -1
-	int minx = ((rectLeft+1.)*width()*.5)+.5;
-	int sizex = -rectLeft*width()-1;
-	int miny = ((1.-rectTop)*height()*.5)+.5;
-	int sizey = rectTop*height()-1;
+	int minx = (int) (((rectLeft+1.)*width()*.5)+.5);
+	int sizex = (int)(-rectLeft*width()-1);
+	int miny = (int)(((1.-rectTop)*height()*.5)+.5);
+	int sizey = (int)(rectTop*height()-1);
 
 	unsigned char* pixData = new unsigned char[sizex*sizey*3];
 	

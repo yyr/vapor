@@ -290,7 +290,7 @@ protected:
 	
 	//Find smallest containing cube in integer coords, 
 	//that will contain image of probe
-	void getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
+	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
 	//Get the rotated box sides in the unit cube, based on current angles:
 	void getRotatedBoxDims(float boxdims[3]);
 

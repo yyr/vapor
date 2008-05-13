@@ -306,8 +306,8 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 	}
 	vsub(camPosBox,nearPtBox,nearPtBox);
 	vsub(camPosBox,farPtBox,farPtBox);
-	minProj = vlength(farPtBox);
-	maxProj = vlength(nearPtBox);
+	minProj = vlength(nearPtBox);
+	maxProj = vlength(farPtBox);
 	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
 	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
 
