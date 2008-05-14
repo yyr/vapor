@@ -1725,7 +1725,7 @@
                                                                         <string>Enable terrain rendering when loading layered data into a default session</string>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
-                                                                        <string>When using a layered dataset, you can render a surface at elevation zero (i.e. at the bottom of the bottom layer of the data).  The color, refinement level, and texture of this surface can be specified in the visualizer features panel.</string>
+                                                                        <string>Checking this box causes the terrain surface to be rendered whenever a layered dataset is loaded into a default session.  It will not affect the current setting in the visualizer features panel.</string>
                                                                     </property>
                                                                 </widget>
                                                                 <spacer>
@@ -1780,10 +1780,10 @@
                                                                         <string>Show X,Y,Z (R,G,B) Arrows by Default</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>show colored X,Y,Z axes in scene</string>
+                                                                        <string>show colored X,Y,Z axes in scene by default</string>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
-                                                                        <string>Checking this box will result in arrows displayed in the scene whenever data is loaded into a default session.  This will not override values saved in a session file.</string>
+                                                                        <string>Checking this box will result in arrows displayed in the scene whenever data is loaded into a default session.  This will not override values saved in a session file, nor change the current arrow display setting.</string>
                                                                     </property>
                                                                 </widget>
                                                                 <spacer>
@@ -1878,7 +1878,7 @@
                                 <enum>Raised</enum>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Default Parameter Values are the values that are used whenever data is loaded into a default session.  They will not be used when data is loaded into the current session.</string>
+                                <string>Default Parameter Values are the values that are used whenever data is loaded into a default session.  They will not be used when data is loaded into the current session, and will be ignored when a new session file is read.</string>
                             </property>
                             <hbox>
                                 <property name="name">
@@ -2058,11 +2058,7 @@
                                                         <string>Set lighting on or off</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>The Lighting-On checkbox can only be
-used if your graphics hardware supports
-it.  When enabled, the light source is 
-controlled by the lighting parameters
-of Light No. 1 in the Viewpoint panel.</string>
+                                                        <string>This checkbox establishes whether or not lighting will be enabled when data is loaded into a default session.</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>
@@ -2347,22 +2343,7 @@ selected axis.</string>
                                                                 <string>theta (rotation angle from +X axis)of probe normal vector</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Default values will be used whenever data is loaded into a default session.</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -2424,22 +2405,7 @@ selected axis.</string>
                                                                 <string>Phi angle (angle from +Z) of probe normal vector</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Default values will be used whenever data is loaded into a default session.</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -2501,22 +2467,7 @@ selected axis.</string>
                                                                 <string>Psi angle (Rotation around axis determined by phi, theta)</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Default values will be used whenever data is loaded into a default session.</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -3517,7 +3468,7 @@ selected axis.</string>
                                                 <cstring>textLabel4_8</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Light direction vectors:</string>
+                                                <string>Default light direction vectors:</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -3932,7 +3883,7 @@ originating behind the viewer</string>
                                                 <cstring>textLabel5_3</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Illumination parameters</string>
+                                                <string>Default illumination parameters</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
