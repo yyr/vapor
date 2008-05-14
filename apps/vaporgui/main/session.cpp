@@ -334,7 +334,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			if (StrCmpNoCase(tag, _sessionTag) != 0) return false;
 			//Initialize session string to 1.2.2, didn't have session strings before that
 			sessionVersionString = "1.2.2";
-			MessageReporter* msgRpt = MessageReporter::getInstance();
 			//Start with default stretch factors
 			float stretchFac[3];
 			stretchFac[0]=stretchFac[1]=stretchFac[2] = 1.f;
@@ -345,21 +344,18 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				attrs++;
 
 				istringstream ist(value);
-				int int1, int2, int3;
+				
 				if (StrCmpNoCase(attr, _specifyTextureSizeAttr) == 0) {
-					string boolVal;
-					ist >> boolVal;
-					if (boolVal == "true") textureSizeSpecified = true;
-					else textureSizeSpecified = false;
+					//Ignore:  This is now in user preferences
 				}
 				else if (StrCmpNoCase(attr, _VAPORVersionAttr) == 0){
 					ist >> sessionVersionString;
 				}
 				else if (StrCmpNoCase(attr, _textureSizeAttr) == 0){
-					ist >> textureSize;
+					//ignore
 				}
 				else if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
-					ist >> cacheMB;
+					//ignore
 				}
 				else if (StrCmpNoCase(attr, _stretchFactorsAttr) == 0) {
 					ist >> stretchFac[0];
@@ -367,9 +363,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					ist >> stretchFac[2];
 				}
 				else if (StrCmpNoCase(attr, _jpegQualityAttr) == 0) {
-					int qual;
-					ist >> qual;
-					GLWindow::setJpegQuality(qual);
+					//Ignore; now it's in preferences
 				}
 				else if (StrCmpNoCase(attr, _transferFunctionPathAttr) == 0) {
 					if (value != "")
@@ -394,23 +388,17 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					currentExportFile = value;
 				}
 				else if (StrCmpNoCase(attr, _logFileNameAttr) == 0) {
-					currentLogfileName = value;
+					//Ignore
 				}
 				else if (StrCmpNoCase(attr, _maxPopupAttr) == 0) {
-					ist >> int1; ist>>int2; ist>>int3;
-					msgRpt->setMaxPopup(MessageReporter::Info, int1);
-					msgRpt->setMaxPopup(MessageReporter::Warning, int2);
-					msgRpt->setMaxPopup(MessageReporter::Error, int3);
+					// ignore
 				}
 				else if (StrCmpNoCase(attr, _dataExtentsAttr) == 0) {
 					ist >> extents[0]; ist>>extents[1]; ist>>extents[2];
 					ist >> extents[3]; ist>>extents[4]; ist>>extents[5];
 				}
 				else if (StrCmpNoCase(attr, _maxLogAttr) == 0) {
-					ist >> int1; ist>>int2; ist>>int3;
-					msgRpt->setMaxLog(MessageReporter::Info, int1);
-					msgRpt->setMaxLog(MessageReporter::Warning, int2);
-					msgRpt->setMaxLog(MessageReporter::Error, int3);
+					//ignore
 				}
 				else {
 					pm->parseError("Invalid session tag attribute : \"%s\"", attr.c_str());
