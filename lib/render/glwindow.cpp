@@ -1588,15 +1588,18 @@ void GLWindow::drawTimeAnnotation(){
 }
 void GLWindow::drawAxisLabels() {
 	float origin[3], ticMin[3], ticMax[3];
-	
+	//Due to a QT bug, must delete all labels and recreate them (during another rendering)
+	//if there's a change:
+	for (int i = 0; i<3; i++) {
+		if (axisLabelNums[i] != 0 && axisLabelNums[i] != numTics[i]) {
+			deleteAxisLabels();
+			return;
+		}
+	}
 	//Create new QLabels, if necessary:
 	for (int i = 0; i<3; i++){
 		if (axisLabelNums[i] != numTics[i]){
-			if (axisTextLabels[i]) {
-				for (int k = 0; k<numTics[i]; k++) delete axisTextLabels[i][k];
-				delete[] axisTextLabels[i];
-				//QT will delete the labels? 
-			}
+			assert (!axisTextLabels[i]);
 			axisTextLabels[i] = new QLabel*[numTics[i]];
 			for (int k = 0; k<numTics[i]; k++){
 				axisTextLabels[i][k] = new QLabel(this);

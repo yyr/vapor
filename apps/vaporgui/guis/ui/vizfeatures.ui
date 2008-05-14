@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>415</width>
-            <height>1397</height>
+            <height>1458</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -42,7 +42,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout342</cstring>
+                <cstring>layout46</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -145,7 +145,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>
@@ -417,7 +417,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>19</height>
                         </size>
                     </property>
                 </spacer>
@@ -546,7 +546,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -618,12 +618,29 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout10</cstring>
+                        <cstring>layout45</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer47_3</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>70</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLineEdit">
                             <property name="name">
                                 <cstring>axisXEdit</cstring>
@@ -632,7 +649,7 @@
                                 <string>0</string>
                             </property>
                             <property name="alignment">
-                                <set>AlignRight</set>
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify x-coord of axis relative to region in [0,1]</string>
@@ -646,7 +663,7 @@
                                 <string>0</string>
                             </property>
                             <property name="alignment">
-                                <set>AlignRight</set>
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify y-coord of axis relative to region in [0,1]</string>
@@ -660,14 +677,48 @@
                                 <string>0</string>
                             </property>
                             <property name="alignment">
-                                <set>AlignRight</set>
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify z-coord of axis relative to region in [0,1]</string>
                             </property>
                         </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer46_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>62</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer48_3</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>19</height>
+                        </size>
+                    </property>
+                </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>layout11_2</cstring>
@@ -701,10 +752,10 @@
                                 <string>Enable axis annotation</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>show colored X,Y,Z axes in scene</string>
+                                <string>Provide axes with coordinates and tic marks</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>This checkbox enables you to specify how the axes will be marked and labelled</string>
+                                <string>Check this checkbox to provide coordinate axes and to specify how the axes will be marked and labelled.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -1529,7 +1580,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>18</height>
                         </size>
                     </property>
                 </spacer>
@@ -1863,7 +1914,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>
@@ -2294,7 +2345,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>18</height>
                         </size>
                     </property>
                 </spacer>
@@ -2625,7 +2676,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>

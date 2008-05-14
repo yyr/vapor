@@ -230,7 +230,7 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
    int phase[NPN][NPN];
    GLubyte pat[NPN][NPN][4];
    int i, j, k, t;
-   int alpha = 255*(pParams->getAlpha());
+   int alpha = (int)(255*(pParams->getAlpha()));
    
    for (i = 0; i < 256; i++) lut[i] = i < 127 ? 0 : 255;
    for (i = 0; i < NPN; i++)
