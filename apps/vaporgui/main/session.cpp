@@ -806,9 +806,12 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	else {
 		myVizWinMgr->reinitializeParams(newSession);
 		
-		//set the annotation to use current extents:
+		//set the annotation to use current extents in all active visualizers
 		if (newSession || !restoredSession) {
-			myVizWinMgr->getVizWin(0)->setAxisExtents(extents);
+			for (int i = 0; i< MAXVIZWINS; i++){
+				if (myVizWinMgr->getVizWin(i))
+					myVizWinMgr->getVizWin(i)->setAxisExtents(extents);
+			}
 		}
 		//Set the newSession flag, next time we'll use these settings.
 		newSession = false;
