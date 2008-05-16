@@ -17,10 +17,13 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-#define NC_ERR_READ(nc_status) \
+#define NC_ERR_READ(X) \
+	{ \
+	int nc_status = (X); \
     if (nc_status != NC_NOERR) { \
 		cerr << "Error reading netCDF file at line " <<  __LINE__ << " : " << nc_strerror(nc_status) << endl; \
 		return(-1); \
+	} \
     }
 
 // Gets info about a 3D variable and stores that info in thisVar.
@@ -30,11 +33,10 @@ int	WRF::GetVarInfo(
 	const vector <ncdim_t> &ncdims,
 	varInfo & thisVar // Variable info
 ) {
-	int nc_status; // Holds error codes
 
 	thisVar.name.assign(name);
 
-	nc_status = nc_inq_varid(ncid, thisVar.name.c_str(), &thisVar.varid);
+	int nc_status = nc_inq_varid(ncid, thisVar.name.c_str(), &thisVar.varid);
 	if (nc_status != NC_NOERR) {
 		MyBase::SetErrMsg(
 			"Variable %s not found in netCDF file", thisVar.name.c_str()
@@ -44,11 +46,10 @@ int	WRF::GetVarInfo(
 
 	char dummy[NC_MAX_NAME+1]; // Will hold a variable's name
 	int natts; // Number of attributes associated with this variable
-	nc_status = nc_inq_var(
+	NC_ERR_READ( nc_inq_var(
 		ncid, thisVar.varid, dummy, &thisVar.xtype, &thisVar.ndimids,
 		thisVar.dimids, &natts
-	);
-	NC_ERR_READ(nc_status);
+	));
 
 	for (int i = 0; i<thisVar.ndimids; i++) {
 		thisVar.dimlens[i] = ncdims[thisVar.dimids[i]].size;
@@ -102,7 +103,6 @@ int WRF::ReadZSlice4D(
 
 	size_t start[NC_MAX_DIMS]; // The point from which we start reading netCDF data
 	size_t count[NC_MAX_DIMS]; // What interval to read the data
-	int nc_status; // Holds netCDF error codes
 
 	// Initialize the count and start arrays for extracting slices from the data:
 	for (int i = 0; i<thisVar.ndimids; i++){
@@ -115,8 +115,7 @@ int WRF::ReadZSlice4D(
 	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
 	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
 
-	nc_status = nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer);
-	NC_ERR_READ(nc_status);
+	NC_ERR_READ(nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
 
 	return(0);
 }
@@ -310,7 +309,6 @@ int WRF::OpenWrfGetMeta(
 	vector<string> & wrfVars, // Variable names in WRF file (out)
 	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
 ) {
-	int nc_status; // Holds error codes for debugging
 	int ncid; // Holds netCDF file ID
 	int ndims; // Number of dimensions in netCDF
 	int ngatts; // Number of global attributes
@@ -320,10 +318,10 @@ int WRF::OpenWrfGetMeta(
 	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
 	
 	// Open netCDF file and check for failure
-	NC_ERR_READ( nc_status = nc_open( wrfName, NC_NOWRITE, &ncid ) );
+	NC_ERR_READ( nc_open( wrfName, NC_NOWRITE, &ncid ));
 	// Find the number of dimensions, variables, and global attributes, and check
 	// the existance of the unlimited dimension (not that we need to)
-	NC_ERR_READ( nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
+	NC_ERR_READ( nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
 
 	// Find out dimension lengths.  x <==> west_east, y <==> south_north,
 	// z <==> bottom_top.  Need names, too, for finding vertical extents.
@@ -336,19 +334,19 @@ int WRF::OpenWrfGetMeta(
 	int btsId = -1;
 	for ( int i = 0 ; i < ndims ; i++ )
 	{
-		NC_ERR_READ( nc_status = nc_inq_dimname( ncid, i, dimName ) );
+		NC_ERR_READ( nc_inq_dimname( ncid, i, dimName ) );
 		if ( strcmp( dimName, "west_east" ) == 0 )
 		{
 			weId = i;
-			NC_ERR_READ( nc_status = nc_inq_dimlen( ncid, i, &dimLens[0] ) );
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[0] ) );
 		} else if ( strcmp( dimName, "south_north" ) == 0 )
 		{
 			snId = i;
-			NC_ERR_READ( nc_status = nc_inq_dimlen( ncid, i, &dimLens[1] ) );
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[1] ) );
 		} else if ( strcmp( dimName, "bottom_top" ) == 0 )
 		{
 			btId = i;
-			NC_ERR_READ( nc_status = nc_inq_dimlen( ncid, i, &dimLens[2] ) );
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[2] ) );
 		} else if ( strcmp( dimName, "west_east_stag" ) == 0 )
 		{
 			wesId = i;
@@ -360,7 +358,7 @@ int WRF::OpenWrfGetMeta(
 			btsId = i;
 		} else if ( strcmp( dimName, "Time" ) == 0 )
 		{
-			NC_ERR_READ( nc_status = nc_inq_dimlen( ncid, i, &dimLens[3] ) );
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[3] ) );
 			timeId = i;
 		}
 	}
@@ -377,15 +375,15 @@ int WRF::OpenWrfGetMeta(
 
 
 	// Get DX and DY
-	NC_ERR_READ( nc_status = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx ) );
-	NC_ERR_READ( nc_status = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy ) );
+	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx ) );
+	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy ) );
 	
 	// Get starting time stamp
 	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
 
 	size_t attlen;
 	char *start_attr = "SIMULATION_START_DATE";
-	nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
+	int nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
 	if (nc_status == NC_ENOTATT) {
 		start_attr = "START_DATE";
 		nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
@@ -397,8 +395,7 @@ int WRF::OpenWrfGetMeta(
 	if (start_attr) {
 		char *buf = new char[attlen];
 
-		nc_status = nc_get_att_text( ncid, NC_GLOBAL, start_attr, buf );
-		NC_ERR_READ(nc_status);
+		NC_ERR_READ(nc_get_att_text( ncid, NC_GLOBAL, start_attr, buf ));
 
 		startDate.assign(buf, attlen);
 	}
@@ -409,10 +406,7 @@ int WRF::OpenWrfGetMeta(
     for (int dimid = 0; dimid < ndims; dimid++) {
         ncdim_t dim;
 
-        nc_status = nc_inq_dim(
-            ncid, dimid, dim.name, &dim.size
-        );
-        NC_ERR_READ(nc_status);
+        NC_ERR_READ(nc_inq_dim( ncid, dimid, dim.name, &dim.size));
         ncdims.push_back(dim);
     }
 
@@ -420,7 +414,7 @@ int WRF::OpenWrfGetMeta(
 	for ( int i = 0 ; i < nvars ; i++ ) {
 		varInfo varinfo;
 		char name[NC_MAX_NAME+1];
-		NC_ERR_READ( nc_status = nc_inq_varname(ncid, i, name ) );
+		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
 		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
 
 		if ((varinfo.ndimids == 4) && 
@@ -560,6 +554,6 @@ int WRF::OpenWrfGetMeta(
 	delete [] timesBuf;
 
 	// Close the WRF file
-	NC_ERR_READ( nc_status = nc_close( ncid ) );
+	NC_ERR_READ( nc_close( ncid ) );
 	return(0);
 }

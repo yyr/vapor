@@ -775,7 +775,7 @@ saveToFile(ofstream& ofs ){
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
 		MessageReporter::errorMsg("Preferences Save Error %d, Writing to:\n %s",
-			MyBase::GetErrCode(),Session::getPreferencesFile());
+			MyBase::GetErrCode(),Session::getPreferencesFile().c_str());
 		MyBase::SetErrCode(0);
 		delete rootNode;
 		return false;

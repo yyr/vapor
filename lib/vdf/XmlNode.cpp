@@ -66,9 +66,9 @@ XmlNode::~XmlNode() {
 	if (! _objInitialized) return;
 
 	for (int i=0; i<(int)_children.size(); i++) {
-		XmlNode* child = _children[i];
 		
-		delete _children[i];
+		if (_children[i]) delete _children[i];
+		_children[i] = NULL;
 	}
 
 	_objInitialized = 0;

@@ -753,7 +753,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	bool zeroZ = (strcmp(zUnsteadyVarName, "0") == 0); 
 	if (zeroX) pUData = 0;
 	else {
-		pUData = pUData = new float*[numTimeSamples];
+		pUData = new float*[numTimeSamples];
 		memset(pUData, 0, sizeof(float*)*numTimeSamples);
 	}
 	if (zeroY) pVData = 0;
