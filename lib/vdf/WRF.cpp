@@ -19,9 +19,9 @@ using namespace VAPoR;
 
 #define NC_ERR_READ(X) \
 	{ \
-	int nc_status = (X); \
-    if (nc_status != NC_NOERR) { \
-		cerr << "Error reading netCDF file at line " <<  __LINE__ << " : " << nc_strerror(nc_status) << endl; \
+	int nc_statusxxx = (X); \
+    if (nc_statusxxx != NC_NOERR) { \
+		cerr << "Error reading netCDF file at line " <<  __LINE__ << " : " << nc_strerror(nc_statusxxx) << endl; \
 		return(-1); \
 	} \
     }
