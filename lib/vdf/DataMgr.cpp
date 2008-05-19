@@ -183,7 +183,10 @@ float	*DataMgr::GetRegion(
 	blks = (float *) get_region_from_cache(
 		ts, varname, reflevel, DataMgr::FLOAT32, min, max, full_height, lock
 	);
-	if (blks) return(blks);
+	if (blks) {
+		SetDiagMsg("DataMgr::GetRegion() - data in cache xll\n", blks);
+		return(blks);
+	}
 
 
 	// Else, read it from disk
@@ -299,6 +302,7 @@ float	*DataMgr::GetRegion(
 			min, max, full_height, belowVal, aboveVal);
 		
 		//unlock the wbregion, we are done with it
+		UnlockRegion(elevblocks);
 		UnlockRegion(wbblocks);
 		layerReader->CloseVariable();
 		return blks;
@@ -360,6 +364,7 @@ float	*DataMgr::GetRegion(
 		_validRegMinMaxMap[ts][varname][reflevel][full_height] = minmax;
 	}
 	
+	SetDiagMsg("DataMgr::GetRegion() - data not in cache %xll\n", blks);
 
 	return(blks);
 }
@@ -595,7 +600,12 @@ unsigned char	*DataMgr::get_quantized_region(
 		ts, varname, reflevel, type, min, max, full_height, lock
 	);
 
-	if (ublks) return(ublks);
+	if (ublks) {
+		SetDiagMsg(
+			"DataMgr::get_quantized_region() - data in cache %xll\n", ublks
+		);
+		return(ublks);
+	}
 
 	float	*blks = NULL;
 
@@ -629,6 +639,9 @@ unsigned char	*DataMgr::get_quantized_region(
 	// Unlock the floating point data
 	//
 	UnlockRegion(blks);
+	SetDiagMsg(
+		"DataMgr::get_quantized_region () - data not in cache %xll\n,", ublks
+	);
 
 	return(ublks);
 }
