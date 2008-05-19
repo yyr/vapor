@@ -852,27 +852,39 @@ guiSetMapComboVarNum(int val){
 	//the session variable name
 	int comboVarNum = 1+DataStatus::getInstance()->getMetadataVarNum(iParams->GetMapVariableName());
 	if (val == comboVarNum) return;
-	
-	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso variable");
-		
-	//reset the display range shown on the histo window
-	//also set dirty flag
-	if(val > 0){
-		iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
-		updateMapBounds(iParams);
-	}
-	else iParams->SetMapVariableName("Constant");
-
-	PanelCommand::captureEnd(cmd, iParams);
-	//If the change is turning on or off the constant color, then disable and
+	//If the change is turning on or off the constant color, then will need to disable and
 	//re-enable the renderer.
 	if(iParams->isEnabled()&&((val == 0 && comboVarNum != 0)||(val!=0 && comboVarNum == 0))){
+		ReenablePanelCommand* cmd = ReenablePanelCommand::captureStart(iParams, "set iso mapping variable");
+		//reset the display range shown on the histo window
+		//also set dirty flag
+		if(val > 0){
+			iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
+		}
+		else iParams->SetMapVariableName("Constant");
 		//Disable and enable:
 		iParams->setEnabled(false);
 		updateRenderer(iParams,true,false);
 		iParams->setEnabled(true);
 		updateRenderer(iParams,false,false);
+		ReenablePanelCommand::captureEnd(cmd, iParams);
+
+		if(val > 0)	updateMapBounds(iParams);
+		
+	} else {
+		PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso mapping variable");
+		
+		//reset the display range shown on the histo window
+		//also set dirty flag
+		if(val > 0){
+			iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
+			updateMapBounds(iParams);
+		}
+		else iParams->SetMapVariableName("Constant");
+
+		PanelCommand::captureEnd(cmd, iParams);
 	}
+	
 	updateTab();
 	
 	if (iParams->isEnabled())
@@ -947,6 +959,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
+		assert(!(viz->getGLWindow()->isPainting()));
 		IsoRenderer* myIso;
 		if (iParams->GetMapVariableNum()< 0)
 			myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
@@ -954,15 +967,16 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 			myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER_2_VAR,iParams);
         
 		//Render order depends on whether opaque or not; 
-		//transparent isos get rendered later.
+		//partially transparent isos get rendered later.
 		int order = 6;
-		if (iParams->GetConstantColor()[3] < 1.f) order = 6;
+		if (iParams->GetConstantColor()[3] < 1.f) order = 7;
 		viz->getGLWindow()->insertRenderer(iParams, myIso, order);
 
 		//force the renderer to refresh region data  (why?)
 		
 		VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
-		
+		VizWinMgr::getInstance()->setClutDirty(iParams);
+		VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit, true);
 		
         lightingCheckbox->setEnabled(myIso->hasLighting());
 
@@ -971,6 +985,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
+	assert(!(viz->getGLWindow()->isPainting()));
 	viz->getGLWindow()->removeRenderer(iParams);
 
 	return;
@@ -981,24 +996,39 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 //Method called when undo/redo changes params.  If prevParams is null, the
 //vizwinmgr will create a new instance.
 void IsoEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
+makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bool reEnable) {
 	assert(instance >= 0);
 	ParamsIso* iParams = (ParamsIso*)(newParams->deepCopy());
 	iParams->GetRootNode()->SetAllFlags(true);
 	int vizNum = iParams->getVizNum();
+	
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumIsoInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, iParams, Params::IsoParamsType, instance);
 	
+	setEditorDirty(iParams);
 	updateTab();
 	
 
 	ParamsIso* formerParams = (ParamsIso*)prevParams;
-	bool wasEnabled = false;
-	if (formerParams) wasEnabled = formerParams->isEnabled();
-	//Check if the enabled and/or Local settings changed:
-	if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
-		updateRenderer(iParams, wasEnabled,  newWin);
+	if (reEnable){
+		assert(formerParams->isEnabled() &&  iParams->isEnabled());
+		assert(!newWin);
+		iParams->setEnabled(false);
+		updateRenderer(iParams, true, newWin);
+		iParams->setEnabled(true);
+		updateRenderer(iParams, false, newWin);
+	} else {
+		bool wasEnabled = false;
+		if (formerParams) wasEnabled = formerParams->isEnabled();
+		//Check if the enabled and/or Local settings changed:
+		if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
+			updateRenderer(iParams, wasEnabled,  newWin);
+		} else { //Just make all the renderer flags dirty
+			VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
+			VizWinMgr::getInstance()->setClutDirty(iParams);
+			VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit, true);
+		}
 	}
 }
 
@@ -1103,18 +1133,25 @@ void IsoEventRouter::
 guiSetNumBits(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	confirmText(false);
-	
-	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso voxel bits");
-	//Value is 0 or 1, corresponding to 8 or 16 bits
-	iParams->SetNumBits(1<<(val+3));
 	if(iParams->isEnabled()){
+		ReenablePanelCommand* cmd = ReenablePanelCommand::captureStart(iParams, "set iso voxel bits");
+		
+		//Value is 0 or 1, corresponding to 8 or 16 bits
+		iParams->SetNumBits(1<<(val+3));
 		//Disable and enable:
 		iParams->setEnabled(false);
 		updateRenderer(iParams,true,false);
 		iParams->setEnabled(true);
 		updateRenderer(iParams,false,false);
+		ReenablePanelCommand::captureEnd(cmd, iParams);
+		
+	} else {
+		PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso voxel bits");
+		//Value is 0 or 1, corresponding to 8 or 16 bits
+		iParams->SetNumBits(1<<(val+3));
+		
+		PanelCommand::captureEnd(cmd, iParams);
 	}
-	PanelCommand::captureEnd(cmd, iParams);
 		
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 }

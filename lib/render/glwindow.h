@@ -328,6 +328,7 @@ public:
 	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
 	int getWindowNum() {return winNum;}
+	bool isPainting() {return nowPainting;}
 	//Static methods so that the vizwinmgr can tell the glwindow about
 	//current active visualizer, and about region sharing
 	static int getActiveWinNum() { return activeWindowNum;}

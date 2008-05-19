@@ -700,15 +700,22 @@ guiSetNumBits(int val){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	confirmText(false);
 	if (dParams->isEnabled()){
-		MessageReporter::warningMsg("Renderer must be disabled before changing bits per voxel");
-		updateTab();
-		return;
+		ReenablePanelCommand* cmd = ReenablePanelCommand::captureStart(dParams, "set dvr voxel bits");
+		//Disable and enable:
+		dParams->setEnabled(false);
+		updateRenderer(dParams,true,false);
+		//Value is 0 or 1, corresponding to 8 or 16 bits
+		dParams->setNumBits(1<<(val+3));
+		dParams->setEnabled(true);
+		updateRenderer(dParams,false,false);
+		ReenablePanelCommand::captureEnd(cmd, dParams);
+	} else {
+		//Otherwise just use a normal setting
+		PanelCommand* cmd = PanelCommand::captureStart(dParams, "set dvr voxel bits");
+		//Value is 0 or 1, corresponding to 8 or 16 bits
+		dParams->setNumBits(1<<(val+3));
+		PanelCommand::captureEnd(cmd, dParams);
 	}
-	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set dvr voxel bits");
-	//Value is 0 or 1, corresponding to 8 or 16 bits
-	dParams->setNumBits(1<<(val+3));
-	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit);
 	
 }
@@ -877,6 +884,8 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 		//force the renderer to refresh region data  (why?)
 		
 		VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+		VizWinMgr::getInstance()->setClutDirty(dParams);
+		VizWinMgr::getInstance()->setVizDirty(dParams,LightingBit, true);
 		setDatarangeDirty(dParams);
 		
         lightingCheckbox->setEnabled(myDvr->hasLighting());
@@ -940,22 +949,37 @@ setDatarangeDirty(RenderParams* params)
 //Method called when undo/redo changes params.  If prevParams is null, the
 //vizwinmgr will create a new instance.
 void DvrEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
+makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bool reEnable) {
 	assert(instance >= 0);
+
 	DvrParams* dParams = (DvrParams*)(newParams->deepCopy());
 	int vizNum = dParams->getVizNum();
+	
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumDvrInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::DvrParamsType, instance);
-	//if (dParams->getMapperFunc())dParams->getMapperFunc()->setParams(dParams);
-	setEditorDirty(dParams);
-	updateTab();
+	
+	//setEditorDirty(dParams);
+	//updateTab();
 	DvrParams* formerParams = (DvrParams*)prevParams;
-	bool wasEnabled = false;
-	if (formerParams) wasEnabled = formerParams->isEnabled();
-	//Check if the enabled and/or Local settings changed:
-	if (newWin || (formerParams->isEnabled() != dParams->isEnabled())){
-		updateRenderer(dParams, wasEnabled,  newWin);
+	if (reEnable){
+		//Need to disable the current instance
+		assert(dParams->isEnabled() && formerParams->isEnabled());
+		assert(!newWin);
+		dParams->setEnabled(false);
+		//Install dParams disabled:
+		updateRenderer(dParams, true, false);
+		//Then enable it
+		dParams->setEnabled(true);
+		updateRenderer(dParams, false, false);
+
+	} else {
+		bool wasEnabled = false;
+		if (formerParams) wasEnabled = formerParams->isEnabled();
+		//Check if the enabled and/or Local settings changed:
+		if (newWin || (formerParams->isEnabled() != dParams->isEnabled())){
+			updateRenderer(dParams, wasEnabled,  newWin);
+		}
 	}
 
 	setDatarangeDirty(dParams);

@@ -1618,7 +1618,7 @@ specified range.</string>
                                                 <number>2</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the precision of the isosurface renderer, can  only be modified when the renderer is disabled</string>
+                                                <string>Specify the precision of the isosurface renderer</string>
                                             </property>
                                         </widget>
                                         <spacer>

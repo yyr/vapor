@@ -61,7 +61,8 @@ public:
 	virtual void updateUrgentTabState() {return;}
 	//Method to install a new params for undo and redo.
 	//Instance is -1 for non-render params
-	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1) = 0;
+	//reEnable is true if (render) params needs to be disabled and re-enabled
+	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1, bool reEnable = false) = 0;
 	
 	//Methods to change instances (for undo/redo).
 	//Only used by renderer params

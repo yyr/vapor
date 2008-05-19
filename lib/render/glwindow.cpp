@@ -181,7 +181,7 @@ void GLWindow::resizeGL( int width, int height )
 	//int winViewport[4];
 	//double projMtx[16];
 	
-
+   
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -1946,6 +1946,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
  */
 bool GLWindow::removeRenderer(RenderParams* rp){
 	int i;
+	assert(!isPainting());
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
 	if (find_iter == rendererMapping.end()) return false;
 	Renderer* ren = find_iter->second;

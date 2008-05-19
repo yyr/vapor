@@ -3096,7 +3096,7 @@ setEditorDirty(RenderParams* p ){
 }
 //Make the new params current
 void FlowEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
+makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance,bool) {
 	assert(instance >= 0);
 	FlowParams* fParams = (FlowParams*)(newParams->deepCopy());
 	int vizNum = fParams->getVizNum();

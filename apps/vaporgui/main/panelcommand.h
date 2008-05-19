@@ -58,6 +58,20 @@ protected:
 	
 	
 };
+//Derived class ReenablePanelCommand performs a disable and an enable before and after
+//the command.  Same API but different functionality.
+class ReenablePanelCommand : public PanelCommand {
+	public:
+	//Constructor is called when a command is executed
+	ReenablePanelCommand(Params* prev, const char* descr, int prevInst = -1);
+	void setNext(Params* next);
+	virtual void reDo();
+	virtual void unDo();
+	//Default instance parameter is for render params to specify an
+	//instance other than the current one
+	static ReenablePanelCommand* captureStart(Params* p,  const char* description, int prevInst = -1);
+	static void captureEnd(ReenablePanelCommand* pCom, Params *p);
+};
 //Instanced panel commands support delete, new, copy, and change instance.
 //  Copy needs:  previousPanel = panel being copied
 //				previousInstance = instance that was current prior to copy.

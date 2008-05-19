@@ -1934,7 +1934,7 @@ refreshHistogram(RenderParams* p){
 //  Calls updateRenderer to rebuild renderer 
 //	Makes the vizwin update.
 void ProbeEventRouter::
-makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance) {
+makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bool) {
 
 	assert(instance >= 0);
 	ProbeParams* pParams = (ProbeParams*)(nextParams->deepCopy());

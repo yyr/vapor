@@ -51,7 +51,7 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
 	virtual void reinitTab(bool doOverride);
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
+	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	//Following are set by gui, result in save history state, 
 	//plus notification to animation controller
 	void guiSetPlay(int direction);

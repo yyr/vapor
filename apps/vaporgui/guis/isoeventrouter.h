@@ -50,7 +50,7 @@ public:
 
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
+	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();

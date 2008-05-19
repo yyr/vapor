@@ -52,7 +52,7 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
+	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	virtual void cleanParams(Params* p); 
 
 	void sessionLoadTF(QString* name);

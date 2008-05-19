@@ -14,7 +14,7 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements the PanelCommand class.  
+//	Description:	Implements the PanelCommand class and two of its subclasses
 //	 Implementation of PanelCommand class
 //	 Supports redo/undo of actions in param classes
 //
@@ -72,6 +72,40 @@ captureEnd(PanelCommand* pCom, Params *p) {
 	pCom->setNext(p);
 	Session::getInstance()->addToHistory(pCom);
 }
+
+//ReenablePanelCommand methods:
+ReenablePanelCommand::ReenablePanelCommand(Params* prevParams, const char* descr, int prevInst) :
+	PanelCommand(prevParams, descr, prevInst){}
+
+void ReenablePanelCommand::unDo(){
+	Session::getInstance()->blockRecording();
+	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(nextPanel,previousPanel, false, previousInstance, true);
+	Session::getInstance()->unblockRecording();
+	
+}
+void ReenablePanelCommand::reDo(){
+	Session::getInstance()->blockRecording();
+	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(previousPanel,nextPanel, false, previousInstance, true);
+	Session::getInstance()->unblockRecording();
+}
+
+ReenablePanelCommand* ReenablePanelCommand::
+captureStart(Params* p,   const char* description, int prevInst){
+	if (!Session::getInstance()->isRecording()) return 0;
+	assert(p->isRenderParams());
+	//If instance is default, get it from vizwinmgr:
+	if ((prevInst < 0) && p->isRenderParams()){
+		prevInst = VizWinMgr::getInstance()->getActiveInstanceIndex(p->getParamType());
+	}
+	ReenablePanelCommand* cmd = new ReenablePanelCommand(p, description, prevInst);
+	return cmd;
+}
+
+void ReenablePanelCommand::
+captureEnd(ReenablePanelCommand* pCom, Params *p) {
+	PanelCommand::captureEnd(pCom, p);
+}
+
 InstancedPanelCommand::InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextIndx) :
 	PanelCommand(prev,descr,prevInst)
 {
