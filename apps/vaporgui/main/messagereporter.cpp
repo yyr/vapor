@@ -77,7 +77,7 @@ reset(const char* newLogFileName){
 	//Save name, reopen the log file
 	if (logFile && logFile != stderr ) fclose(logFile);
 	//Special case for stderr log file
-	if(strcmp(newLogFileName, "stderr") != 0) {
+	if((strlen(newLogFileName) > 0) && strcmp(newLogFileName, "stderr") != 0) {
 		logFile = fopen(newLogFileName, "w");
 		if (!logFile) {
 			std::string s("VAPoR session log file cannot be opened:\n");
