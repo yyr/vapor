@@ -38,7 +38,8 @@ class RENDER_API DVRTexture3d : public DVRBase
     virtual ~RegionState() {};
 
     bool update(int nx, int ny, int nz, 
-                const int roi[6], const int box[6], const float extents[6]);
+                const int roi[6], const int box[6], const float extents[6],
+				int tex_size);
 
     const int* roi()       { return _roi; }
     const int* box()       { return _box; }
@@ -50,6 +51,7 @@ class RENDER_API DVRTexture3d : public DVRBase
     int   _roi[6];
     int   _box[6];
     float _ext[6];
+    int _tex_size;
   };
 
  public:
