@@ -45,6 +45,7 @@ public:
 
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
+		setProbeDirty((ProbeParams*)p);
 		VizWinMgr::getInstance()->setVizDirty(p,ProbeTextureBit,true);
 	}
 	

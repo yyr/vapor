@@ -753,6 +753,7 @@ probeLoadInstalledTF(){
 	char *home = getenv("VAPOR_HOME");
 	QString installPath = QString(home)+ "/share/palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
+	updateClut(pParams);
 }
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the Probe params
@@ -765,6 +766,7 @@ void ProbeEventRouter::
 probeLoadTF(void){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
 	loadTF(pParams, pParams->getSessionVarNum());
+	updateClut(pParams);
 }
 void ProbeEventRouter::
 probeCenterRegion(){
