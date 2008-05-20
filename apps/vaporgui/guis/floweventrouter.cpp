@@ -3135,4 +3135,10 @@ void FlowEventRouter::cleanParams(Params* p)
   colorMappingFrame->setVariableName("");
   colorMappingFrame->updateParams();
 }
-	
+//Fix for clean Windows scrolling:
+void FlowEventRouter::refreshTab(){
+	if(showMapEditor){
+		mappingFrame->hide();
+		mappingFrame->show();
+	}
+}

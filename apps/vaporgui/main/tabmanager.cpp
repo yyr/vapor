@@ -61,6 +61,7 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
 	insertTab(myScrollview, Params::paramName(widType));
+	connect(myScrollview, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
 	myScrollview->addChild(wid);
 	
 	int posn = count()-1;
@@ -185,4 +186,20 @@ newFrontTab(QWidget*) {
 	Session::getInstance()->addToHistory(cmd);
 
 } 
+/*
+ *  When the scroll bar is released, call updateTab on current front window
+ *  This improves the display in windows, at a cost of a display delay
+*/
+void TabManager::tabScrolled(){
+#ifdef WIN32
+	int frontPage = currentPageIndex();
+	
+	if (frontPage < 0) return;
+	Params::ParamType tabType = widgetTypes[frontPage];
+	
+	EventRouter* eRouter = VizWinMgr::getEventRouter(tabType);
+	
+	eRouter->refreshTab();
+#endif
+}
 	

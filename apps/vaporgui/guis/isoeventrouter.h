@@ -69,6 +69,7 @@ public:
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 		
 	virtual void reinitTab(bool doOverride);
+	virtual void refreshTab();
 	void guiSetConstantColor(QColor& c);
 	void guiSetOpacityScale(int val);
 	void sessionLoadTF(QString* name);

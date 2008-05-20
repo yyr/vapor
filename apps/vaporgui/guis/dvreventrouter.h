@@ -84,6 +84,7 @@ public:
 	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);
+	virtual void refreshTab();
 
 	
 public slots:

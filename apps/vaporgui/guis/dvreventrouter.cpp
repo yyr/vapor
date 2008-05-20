@@ -1237,4 +1237,8 @@ void DvrEventRouter::cleanParams(Params* p)
   transferFunctionFrame->updateParams();
 }
 	
+void DvrEventRouter::refreshTab(){
+	bigDVRFrame->hide();
+	bigDVRFrame->show();
+}
 

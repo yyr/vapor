@@ -55,6 +55,7 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	virtual void cleanParams(Params* p); 
 
+	virtual void refreshTab();
 	void sessionLoadTF(QString* name);
 	
 	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);

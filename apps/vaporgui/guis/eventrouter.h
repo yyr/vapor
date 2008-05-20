@@ -81,6 +81,10 @@ public:
 	virtual void performGuiCopyInstance();
 	virtual void performGuiCopyInstanceToViz(int vizwin);
 
+	//Make the tab refresh after a scrolling operation.
+	//Helpful on windows only, and only some tabs
+	virtual void refreshTab() {}
+
 	//UpdateRenderer ignores renderParams argument and uses the
 	//params associated with the instance if it is nonnegative
 	virtual void updateRenderer(RenderParams* , bool /*wasEnabled*/, bool /*newWindow*/){assert(0);}

@@ -57,7 +57,7 @@ public:
 	virtual void updateUrgentTabState();
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	virtual void cleanParams(Params* p); 
-	
+	virtual void refreshTab();
 	
 	void sessionLoadTF(QString*) {assert(0);}  
 		

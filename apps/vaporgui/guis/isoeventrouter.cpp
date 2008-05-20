@@ -1193,3 +1193,10 @@ Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool 
 	return histogramList[varNum];
 	
 }
+//Fix for clean Windows scrolling:
+void IsoEventRouter::refreshTab(){
+	Isovalue_Frame->hide();
+	Isovalue_Frame->show();
+	mappingFrame->hide();
+	mappingFrame->show();
+}

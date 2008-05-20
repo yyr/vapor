@@ -77,7 +77,7 @@ class TabManager : public QTabWidget{
 		}
 	public slots:
 		void newFrontTab(QWidget*);
-
+		void tabScrolled();
 		
 	private:
 		//Data structures to store widget info

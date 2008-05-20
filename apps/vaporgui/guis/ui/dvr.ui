@@ -279,7 +279,7 @@ is controlled by the values in this
                 </spacer>
                 <widget class="QFrame">
                     <property name="name">
-                        <cstring>frame3</cstring>
+                        <cstring>bigDVRFrame</cstring>
                     </property>
                     <property name="frameShape">
                         <enum>StyledPanel</enum>

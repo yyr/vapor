@@ -229,6 +229,7 @@ ProbeEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void ProbeEventRouter::updateTab(){
+	
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 
@@ -394,14 +395,21 @@ void ProbeEventRouter::updateTab(){
 		
 	
 	probeTextureFrame->setParams(probeParams);
-
-	update();
+	
+	vizMgr->getTabManager()->update();
+	
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	vizMgr->getTabManager()->update();
+	
 	notNudgingSliders = false;
 }
-
+//Fix for clean Windows scrolling:
+void ProbeEventRouter::refreshTab(){
+	probeFrameHolder->hide();
+	probeFrameHolder->show();
+	appearanceFrame->hide();
+	appearanceFrame->show();
+}
 
 void ProbeEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;

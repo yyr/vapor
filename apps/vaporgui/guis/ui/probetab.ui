@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>446</width>
-            <height>1890</height>
+            <width>450</width>
+            <height>1946</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout112</cstring>
+                <cstring>layout54</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -306,7 +306,7 @@ create new Probe/Contour instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>28</height>
+                            <height>44</height>
                         </size>
                     </property>
                 </spacer>
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout111</cstring>
+                                <cstring>layout53</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2041,7 +2041,7 @@ selected axis.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>20</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2496,34 +2496,40 @@ level.</string>
                                         </widget>
                                     </hbox>
                                 </widget>
-                                <widget class="QLayoutWidget">
+                                <spacer>
                                     <property name="name">
-                                        <cstring>layout139</cstring>
+                                        <cstring>spacer48</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>16</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QFrame">
+                                    <property name="name">
+                                        <cstring>probeFrameHolder</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Raised</enum>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer146</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>16</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout96</cstring>
+                                                <cstring>layout52</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -2580,25 +2586,25 @@ at the selected point are shown
 to the right of the cross-section view.</string>
                                                     </property>
                                                 </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer49</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Vertical</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>20</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
                                             </vbox>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer147</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>16</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <spacer>
@@ -3119,7 +3125,7 @@ change the selection in the probe</string>
                                 </spacer>
                                 <widget class="QFrame">
                                     <property name="name">
-                                        <cstring>frame6</cstring>
+                                        <cstring>appearanceFrame</cstring>
                                     </property>
                                     <property name="frameShape">
                                         <enum>StyledPanel</enum>
