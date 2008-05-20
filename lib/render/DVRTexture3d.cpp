@@ -37,6 +37,7 @@ using namespace VAPoR;
 // Static member data initalization
 //
 
+#define	DEFAULT_MAX_TEXTURE 512
 
 //----------------------------------------------------------------------------
 // Constructor
@@ -60,6 +61,12 @@ DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int
   _format(format),
   _type(type)
 {
+	MyBase::SetDiagMsg(
+		"DVRTexture3d::DVRTexture3d( %d %d %d %d)", 
+		internalFormat, format, type, nthreads
+	);
+
+  _max_texture = DEFAULT_MAX_TEXTURE;
   _maxTexture = maxTextureSize(_internalFormat, _format, _type);
 }
 
@@ -68,13 +75,15 @@ DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int
 //----------------------------------------------------------------------------
 DVRTexture3d::~DVRTexture3d() 
 {
+	MyBase::SetDiagMsg("DVRTexture3d::~DVRTexture3d()");
+
   for (int i=0; i<_bricks.size(); i++)
   {
     delete _bricks[i];
     _bricks[i] = NULL;
   }
 
-  _bricks.empty();
+  _bricks.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -97,7 +106,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
   _dmax.y = data_roi[4];
   _dmax.z = data_roi[5];
 
-  if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents))
+  if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents, _maxTexture))
   {
     if (_nx != nx || _ny != ny || _nz != nz)
     {
@@ -123,6 +132,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     
     if (_nx <= _maxTexture && _ny <= _maxTexture && _nz <= _maxTexture)
     {
+      MyBase::SetDiagMsg("DVRTexture3d::SetRegion() - Not bricking textures");
       //
       // The data will fit completely within texture memory, so no bricking is 
       // needed. We can save a few cycles by setting up the single brick here,
@@ -148,6 +158,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     } 
     else
     {
+      MyBase::SetDiagMsg("DVRTexture3d::SetRegion() - Bricking textures");
       //
       // The data will not fit completely within texture memory, need to 
       // subdivide into multiple bricks.
@@ -545,17 +556,18 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
   // using a smaller brick size, since we are using uniform brick sizing and 
   // bricks on the borders may contain very small subset of data.
   //
-  while (_bx > _maxBrickDim)
+  int brick_dim = min(_maxTexture, _maxBrickDim);
+  while (_bx > brick_dim)
   {
     _bx /= 2;
   }
 
-  while (_by > _maxBrickDim)
+  while (_by > brick_dim)
   {
     _by /= 2;
   }
 
-  while (_bz > _maxBrickDim)
+  while (_bz > brick_dim)
   {
     _bz /= 2;
   }
@@ -747,7 +759,7 @@ int DVRTexture3d::maxTextureSize(
 ) {
 
   const char *s = (const char *) glGetString(GL_VENDOR);
-  if (! s) return(128);
+  if (! s) return(min(128,_max_texture));
   string glvendor;
   for(int i=0; i<strlen(s); i++) {
     glvendor.append(1, (char) toupper(s[i]));
@@ -756,7 +768,7 @@ int DVRTexture3d::maxTextureSize(
   if ((glvendor.find("INTEL") != string::npos) || 
 	  (glvendor.find("SGI") != string::npos)) {
 		
-    return 128;
+    return min(128, _max_texture);
  }
 
 
@@ -771,10 +783,10 @@ int DVRTexture3d::maxTextureSize(
 
   if (GLEW_ATI_fragment_shader)
   {
-    return 256;
+    return min(256, _max_texture);
   }
 
-  for (int i = 128; i < 2*_max_texture; i*=2)
+  for (int i = 16; i < 2*_max_texture; i*=2)
   {
     glTexImage3D(GL_PROXY_TEXTURE_3D, 0, internalFormat, i, i, i, 0,
                  format, type, NULL);
@@ -803,7 +815,7 @@ int DVRTexture3d::maxTextureSize(
 }
 
 void DVRTexture3d::SetMaxTexture(int texsize) {
-	_max_texture = texsize;
+	_max_texture = texsize > 0 ? texsize : DEFAULT_MAX_TEXTURE ;
 
 	_maxTexture = maxTextureSize(_internalFormat, _format, _type);
 }
@@ -831,7 +843,8 @@ DVRTexture3d::RegionState::RegionState()
 bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
                                        const int roi[6], 
                                        const int box[6], 
-                                       const float extents[6])
+                                       const float extents[6],
+                                       int tex_size)
 {
   if (nx == _dim[0] && ny == _dim[1] &&  nz == _dim[2] &&
       _roi[0] == roi[0] &&
@@ -853,7 +866,8 @@ bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
       _box[2] == box[2] &&
       _box[3] == box[3] &&
       _box[4] == box[4] &&
-      _box[5] == box[5])
+      _box[5] == box[5] &&
+      _tex_size == tex_size)
   {
     return false;
   }
@@ -882,6 +896,7 @@ bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
  _box[3] = box[3];
  _box[4] = box[4];
  _box[5] = box[5];
+ _tex_size = tex_size;
 
  return true;
 
