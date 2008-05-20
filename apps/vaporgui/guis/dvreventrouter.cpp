@@ -985,6 +985,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 	setDatarangeDirty(dParams);
 	updateClut(dParams);
     setEditorDirty();
+	updateTab();
 }
 
 
