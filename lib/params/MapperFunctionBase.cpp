@@ -232,7 +232,7 @@ OpacityMapBase* MapperFunctionBase::createOpacityMap(OpacityMapBase::Type type)
 //----------------------------------------------------------------------------
 OpacityMapBase* MapperFunctionBase::getOpacityMap(int index) const
 {
-  if (index < 0 || index > _opacityMaps.size())
+  if (index < 0 || index >= _opacityMaps.size())
   {
     return NULL;
   }
