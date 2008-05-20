@@ -133,7 +133,9 @@ public:
 	void getTextureSize(int sze[2]) {sze[0] = textureSize[0]; sze[1] = textureSize[1];}
 	//set the texture size appropriately for either ibfv or data probe, return value in sz.
 	void adjustTextureSize(int fullHeight, int sz[2]);
-	
+	// NPN and NMESH are calculated in adjustTextureSize for IBFV textures
+	int getNPN() {return NPN;}
+	int getNMESH() {return NMESH;}
 
 	float getRealImageWidth() {return probeMax[0]-probeMin[0];}
 	float getRealImageHeight() {return probeMax[1]-probeMin[1];}
@@ -332,6 +334,9 @@ protected:
 	float cursorCoords[2];
 	
 	int textureSize[2];
+	//Values used for IBFV sampling
+	int NPN;
+	int NMESH;
 	//IBFV parameters:
 	float alpha, fieldScale;
 	bool mergeColor;

@@ -503,7 +503,8 @@ restart(){
 		selectPoint[i] = 0.5f;
 	}
 	
-	
+	NPN = 0;
+	NMESH = 0;
 	
 }
 
@@ -1318,12 +1319,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 }
 void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
 	//Need to determine appropriate texture dimensions
-	//For IBFV texture, the size is always 256.
-	if (probeType == 1) {
-		sz[0] = textureSize[0] = 256;
-		sz[1] = textureSize[1] = 256;
-		return;
-	}
+	
 	//First, map the corners of texture, to determine appropriate
 	//texture sizes and image aspect ratio:
 	//Get the data dimensions (at this resolution):
@@ -1360,7 +1356,7 @@ void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
 		}
 	}
 	//To get texture width, take distance in array coords, get first power of 2
-	//that exceeds integer dist, but at least 64.
+	//that exceeds integer dist, but at least 256.
 	int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
 		(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
 		(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
@@ -1375,6 +1371,16 @@ void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
 	if (textureSize[1] < 256) textureSize[1] = 256;
 	sz[0] = textureSize[0];
 	sz[1] = textureSize[1];
+	//For IBFV texture, the size is always 256, however
+	//NPN and NMESH may be larger than their minima (64 and 100)
+	if (probeType == 1) {
+		int maxTex = Max(textureSize[0],textureSize[1]);
+		maxTex = maxTex/256;
+		NPN = maxTex*64;
+		NMESH = 100*maxTex;
+		sz[0] = textureSize[0] = 256;
+		sz[1] = textureSize[1] = 256;
+	}
 	
 }
 //Determine the voxel extents of probe mapped into data.

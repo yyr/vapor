@@ -152,9 +152,9 @@ void ProbeRenderer::initializeGL()
 }
 // IBFV constants:
 //IBFV spot noise grid size
-#define	NPN 64
+//#define	NPN 64
 //Size of polygonal mesh used for blending spot noise pattern
-#define NMESH 100
+//#define NMESH 100
 //Number of different spot noise patterns
 #define Npat  32
 
@@ -226,31 +226,42 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
 }
 int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum) 
 { 
+	//Determine the size of the image, to get the appropriate values for NPN and NMESH
    int lut[256];
-   int phase[NPN][NPN];
-   GLubyte pat[NPN][NPN][4];
+
+   //int** phase[NPN][NPN];
+   //GLubyte pat[NPN][NPN][4];
+   int *phase;
+   GLubyte* pat;
+
+   int npn = pParams->getNPN();
+   int nmesh = pParams->getNMESH();
    int i, j, k, t;
    int alpha = (int)(255*(pParams->getAlpha()));
+   phase = new int[npn*npn];
+   pat = new GLubyte[npn*npn*4];
    
    for (i = 0; i < 256; i++) lut[i] = i < 127 ? 0 : 255;
-   for (i = 0; i < NPN; i++)
-   for (j = 0; j < NPN; j++) phase[i][j] = rand() % 256; 
+   for (i = 0; i < npn; i++)
+   for (j = 0; j < npn; j++) phase[npn*i+j] = rand() % 256; 
    if (prevListNum > 0) glDeleteLists(prevListNum,Npat+1);
    int newListNum = glGenLists(Npat+1);
    for (k = 0; k < Npat; k++) {
       t = k*256/Npat;
-      for (i = 0; i < NPN; i++) 
-      for (j = 0; j < NPN; j++) {
-          pat[i][j][0] =
-          pat[i][j][1] =
-          pat[i][j][2] = lut[(t + phase[i][j]) % 255];
-          pat[i][j][3] = alpha;
+      for (i = 0; i < npn; i++) 
+      for (j = 0; j < npn; j++) {
+          pat[4*npn*i+4*j] =
+          pat[4*npn*i+4*j+1] =
+          pat[4*npn*i+4*j+2] = lut[(t + phase[i*npn+j]) % 255];
+          pat[4*npn*i+4*j+3] = alpha;
       }
       glNewList(newListNum+k, GL_COMPILE);
-      glTexImage2D(GL_TEXTURE_2D, 0, 4, NPN, NPN, 0, 
+      glTexImage2D(GL_TEXTURE_2D, 0, 4, npn, npn, 0, 
                    GL_RGBA, GL_UNSIGNED_BYTE, pat);
       glEndList();
    }
+   delete phase;
+   delete pat;
    return newListNum;
 }
 
@@ -395,12 +406,14 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum, int listNum){
 	float x1, x2, y, px, py;
 	
-	int nmesh = NMESH;
+	
 	int txsize[2];
 	pParams->getTextureSize(txsize);
+	int nmesh = pParams->getNMESH();
+	int npn = pParams->getNPN();
 	float scale = 4.f*pParams->getFieldScale();
-	float tmaxx   = txsize[0]/(scale*NPN);
-	float tmaxy   = txsize[1]/(scale*NPN);
+	float tmaxx   = txsize[0]/(scale*npn);
+	float tmaxy   = txsize[1]/(scale*npn);
 	float DM = ((float) (0.999999/(nmesh-1.0)));
 	
 	for (int i = 0; i < nmesh-1; i++) {
