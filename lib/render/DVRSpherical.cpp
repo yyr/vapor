@@ -175,7 +175,7 @@ int DVRSpherical::SetRegionSpherical(void *data,
   //
   _data = data;
 
-  if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents))
+  if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents, _maxTexture))
   {
     _level = level;
 
