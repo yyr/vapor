@@ -723,7 +723,7 @@
                                                                                 <bool>false</bool>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Specify the log file name (or stderr for logging to console)</string>
+                                                                                <string>Specify the log file name (or specify "stderr" for logging to console)</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QPushButton" row="6" column="1">
