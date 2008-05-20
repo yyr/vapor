@@ -175,6 +175,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     for (int i=0; i<_bricks.size(); i++)
     {
       _bricks[i]->refill((GLubyte*)data);
+      loadTexture(_bricks[i]);
     }
   }
 
