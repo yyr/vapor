@@ -105,8 +105,10 @@ MapperFunction::MapperFunction(const MapperFunction &mapper) :
 
 	// Now recreate them with the appropriate type
 	//
-	const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
-	_colormap = new Colormap(cmap, this);
+	if (mapper._colormap){
+		const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
+		_colormap = new Colormap(cmap, this);
+	}
 
 	for (int i=0; i<mapper._opacityMaps.size(); i++) 
     {
@@ -198,6 +200,8 @@ IsoControl::IsoControl() :
     }
     _opacityMaps.clear();
 	isoValue = 0.;
+	if (_colormap) delete _colormap;
+	_colormap = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -218,7 +222,8 @@ IsoControl::IsoControl(RenderParams* p, int nBits) :
 	isoValue = 0.;
 	// Now recreate color map with the appropriate type
 	//
-    _colormap = new Colormap(this);
+    //_colormap = new Colormap(this);
+	_colormap = 0;
 
 }
 
@@ -242,8 +247,9 @@ IsoControl::IsoControl(const IsoControl &mapper) :
 	isoValue = mapper.isoValue;
 	// Now recreate color map with the appropriate type
 	//
-	const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
-	_colormap = new Colormap(cmap, this);
+	//const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
+	//_colormap = new Colormap(cmap, this);
+	_colormap = 0;
 
 }
 

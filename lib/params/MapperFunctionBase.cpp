@@ -284,7 +284,7 @@ void MapperFunctionBase::init()
     }
     
     _opacityMaps.clear();
-    _colormap->clear();
+    if(_colormap) _colormap->clear();
 }
 
 //----------------------------------------------------------------------------
@@ -445,7 +445,8 @@ XmlNode* MapperFunctionBase::buildNode(const string& tfname)
   //
   // Color map
   //
-  mainNode->XmlNode::AddChild(_colormap->buildNode());
+  if (_colormap)
+	mainNode->XmlNode::AddChild(_colormap->buildNode());
 
   return mainNode;
 }
