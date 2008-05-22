@@ -1214,7 +1214,7 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	GLdouble botPlane[] = {0., 1., 0., 0.};
 	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
 	GLdouble backPlane[] = {0., 0., 1., 0.};
-	//Apply a coord transform that moves the full region to the unit cube.
+	//Apply a coord transform that moves the full domain to the unit cube.
 	
 	glPushMatrix();
 	
@@ -1235,6 +1235,15 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	rightPlane[3] = myRegionParams->getRegionMax(0)*scales[0];
 	frontPlane[3] = myRegionParams->getRegionMax(2)*scales[2];
 	backPlane[3] = -myRegionParams->getRegionMin(2)*scales[2];
+
+	//Calculate x and y stretch factors, translation factors for texture mapping:
+	const float* extents = DataStatus::getInstance()->getExtents();
+	float stretchX = (myRegionParams->getRegionMax(0)-myRegionParams->getRegionMin(0))/
+		(extents[3]-extents[0]);
+	float stretchY = (myRegionParams->getRegionMax(1)-myRegionParams->getRegionMin(1))/
+		(extents[4]-extents[1]);
+	float transX = myRegionParams->getRegionMin(0)/(extents[3]-extents[0]);
+	float transY = myRegionParams->getRegionMin(1)/(extents[4]-extents[1]);
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -1283,6 +1292,9 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 		glPushMatrix();
 		//Put an identity on the Texture matrix stack.
 		glLoadIdentity();
+		glTranslatef(transX,transY,0.);
+		glScalef(stretchX,stretchY,1.);
+		
 		glMatrixMode(GL_MODELVIEW);
 		glBindTexture(GL_TEXTURE_2D, _elevTexid);
 		glEnable(GL_TEXTURE_2D);
