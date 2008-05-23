@@ -516,7 +516,7 @@
                                                 <enum>Raised</enum>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The default directories and file names indicate the default directories that are used when users first request to read or write a file.  Many of these (metadata directory, transfer function directory, flow save directory, and image save directory) are saved in a vapor session file.  A default directory of "." indicates the current directory from where the application was launched.</string>
+                                                <string>The default directories and file names indicate the default directories that are used when users first request to read or write a file.  When a file is read or written in a non-default directory, the specified directory will be remembered in the session, but the default will not change unless you click the "Latest" button in this panel. The latest version of the metadata directory, transfer function directory, flow save directory, and image save directory) are saved in a vapor session file.  A default directory of "." indicates the current directory from where the application was launched.</string>
                                             </property>
                                             <hbox>
                                                 <property name="name">
@@ -656,7 +656,7 @@
                                                                         <string>Latest</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default transfer function directory to the most recently used transfer function directory</string>
+                                                                        <string>Click to set the default transfer function directory to the most recently specified transfer function directory</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QLabel" row="5" column="0">
@@ -675,7 +675,7 @@
                                                                         <string>Latest</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default metadata directory to the most recently used metadata directory</string>
+                                                                        <string>Click to set the default metadata directory to the most recently specified metadata directory</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QPushButton" row="4" column="3">
@@ -703,7 +703,7 @@
                                                                         <string>Latest</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default session directory to the most recently used session directory</string>
+                                                                        <string>Click to set the default session directory to the most recently specified session directory</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QLabel" row="3" column="0">
@@ -809,7 +809,7 @@
                                                                         <string>Latest</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default flow directory to the most recently used flow directory</string>
+                                                                        <string>Click to set the default flow directory to the most recently specified flow directory</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QLineEdit" row="3" column="2">
@@ -954,7 +954,7 @@
                                                                         <string>Latest</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default image directory to the most recently used image directory</string>
+                                                                        <string>Click to set the default image directory to the most recently specified image directory</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QPushButton" row="6" column="3">
