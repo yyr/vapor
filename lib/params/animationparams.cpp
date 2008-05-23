@@ -79,6 +79,10 @@ restart(){
 	stateChanged = true;
 	
 }
+void AnimationParams::setDefaultPrefs(){
+	defaultMaxFPS = 10.f;
+	defaultMaxWait = 6000.f;
+}
 //Respond to change in Metadata
 //
 bool AnimationParams::

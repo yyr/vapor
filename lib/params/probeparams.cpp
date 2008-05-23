@@ -507,7 +507,13 @@ restart(){
 	NMESH = 0;
 	
 }
-
+void ProbeParams::setDefaultPrefs(){
+	defaultAlpha = 0.12f;
+	defaultScale = 1.0f;
+	defaultTheta = 0.0f;
+	defaultPhi = 0.0f;
+	defaultPsi = 0.0f;
+}
 
 
 

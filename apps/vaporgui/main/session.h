@@ -111,6 +111,7 @@
 #include "vapor/ExpatParseMgr.h"
 #include "datastatus.h"
 #include "userpreferences.h"
+#include "messagereporter.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -140,6 +141,8 @@ public:
 		return theSession;
 	}
 	virtual ~Session();
+
+	void setDefaultPrefs();
 	
 	DataMgr* getDataMgr() {return dataMgr;}
 	
@@ -215,6 +218,12 @@ public:
 			currentMetadataFile = md;
 		}
 	}
+	string& getPrefTFFilePath() {return preferenceTFPath;}
+	string& getPrefMetadataDir(){return preferenceMetadataDir;}
+	string& getPrefJpegDirectory() {return preferenceJpegDirectory;}
+	string& getPrefFlowDirectory() {return preferenceFlowDirectory;}
+	string& getPrefSessionDirectory() {return preferenceSessionDirectory;}
+
 	string& getMetadataFile(){return currentMetadataFile;}
 	string& getMetadataDir(){return currentMetadataDir;}
 	string& getJpegDirectory() {return currentJpegDirectory;}
@@ -226,6 +235,13 @@ public:
 	int getAutoSaveInterval(){return autoSaveInterval;}
 	void setAutoSaveInterval(int val){autoSaveInterval = val;}
 	void setSessionDirectory(const char* dir) {currentSessionDirectory = dir;}
+
+	void setPrefSessionDirectory(const char* dir) {preferenceSessionDirectory = dir;}
+	void setPrefJpegDirectory(const char* dir) {preferenceJpegDirectory = dir;}
+	void setPrefFlowDirectory(const char* dir) {preferenceFlowDirectory = dir;}
+	void setPrefTFFilePath(const char* path){preferenceTFPath = path;}
+	void setPrefMetadataDirectory(const char* md){preferenceMetadataDir = md;}
+
 	void setSessionFilename(const char* name) {sessionFilename = name;}
 	void setSessionFilepath(const char* filepath);
 	void setAutoSaveSessionFilename(const char* name) {autoSaveSessionFilename = name;}
@@ -385,6 +401,13 @@ protected:
 	string currentFlowDirectory;
 	string currentSessionDirectory;
 	string sessionFilename;
+
+	string preferenceTFPath;
+	string preferenceMetadataDir;
+	string preferenceJpegDirectory;
+	string preferenceFlowDirectory;
+	string preferenceSessionDirectory;
+	
 	string sessionVersionString;
 	string autoSaveSessionFilename;
 	int autoSaveInterval;

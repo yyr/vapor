@@ -43,6 +43,7 @@ public:
 	UserPreferences* clone();
 	//Launch a UserPreferences dialog.  Put its values into state, and offer to save if it succeeds.
 	void launch();
+	
 	//Save to file.  can be saved from outside this dialog when directory changes.
 	//If filename not specified then save to default path/name 
 	void save(QString* filename = 0);
@@ -61,12 +62,13 @@ public:
 	static bool loadPreferences(const char* filename);
 	static bool savePreferences(const char* filename);
 	static bool loadDefault();
+	static void setDefault();
 	
 signals: 
 	void doneWithIt();
 
 protected slots:
-	
+	void setDefaultDialog();
 	void panelChanged();
 	void selectRegionFrameColor();
 	void selectSubregionFrameColor();
@@ -95,6 +97,11 @@ protected slots:
 	void axisArrowsChanged(bool);
 	void showSurfaceChanged(bool);
 	void setAutoSave(bool);
+	void copyLatestSession();
+	void copyLatestMetadata();
+	void copyLatestTF();
+	void copyLatestImage();
+	void copyLatestFlow();
 	
 protected:
 	static const string _preferencesTag;

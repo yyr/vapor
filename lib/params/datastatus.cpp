@@ -266,6 +266,15 @@ DataStatus::
 	}
 	theDataStatus = 0;
 }
+void DataStatus::setDefaultPrefs(){
+	doWarnIfDataMissing = true;
+	doUseLowerRefinementLevel = false;
+	backgroundColor =  Qt::black;
+	regionFrameColor = Qt::white;
+	subregionFrameColor = Qt::red;
+	regionFrameEnabled = true;
+	subregionFrameEnabled = false;
+}
 int DataStatus::
 getFirstTimestep(int sesvarnum){
 	for (int i = 0; i< numTimesteps; i++){

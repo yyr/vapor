@@ -85,6 +85,7 @@ public:
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
 	virtual void restart();
+	static void setDefaultPrefs() {}  //No default preferences
 	
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);

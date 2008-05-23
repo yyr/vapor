@@ -53,7 +53,7 @@ public:
 	//Reset the datastatus when a new datamgr is opened.
 	//This avoids all "Set" methods:
 	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
-	
+	static void setDefaultPrefs();
 	//Update based on current stretch factor:
 	void stretchExtents(float factor[3]){
 		for (int i = 0; i< 3; i++) {
@@ -70,7 +70,7 @@ public:
 	//Determine the min and max extents at a level
 	void getExtentsAtLevel(int level, float exts[6], size_t fullHeight);
 	
-	size_t getCacheMB() {return cacheMB;}
+	static size_t getCacheMB() {return cacheMB;}
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
 	bool dataIsPresent(int sesvarnum, int timestep){

@@ -40,6 +40,7 @@ public:
 	virtual Params* deepCopy();
 
 	virtual void restart();
+	static void setDefaultPrefs();
 	virtual bool reinit(bool doOverride);
 
 	

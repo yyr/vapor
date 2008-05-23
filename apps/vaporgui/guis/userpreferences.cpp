@@ -34,6 +34,7 @@
 #include "viewpointparams.h"
 #include "animationparams.h"
 #include "flowparams.h"
+#include "regionparams.h"
 
 
 #include "messagereporter.h"
@@ -211,6 +212,13 @@ void UserPreferences::launch(){
 	sv->resizeContents(w,h);
 	
 	//Do connections for buttons
+	connect (buttonLatestSession, SIGNAL(clicked()),this, SLOT(copyLatestSession()));
+	connect (buttonLatestMetadata, SIGNAL(clicked()),this, SLOT(copyLatestMetadata()));
+	connect (buttonLatestTF, SIGNAL(clicked()),this, SLOT(copyLatestTF()));
+	connect (buttonLatestFlow, SIGNAL(clicked()),this, SLOT(copyLatestFlow()));
+	connect (buttonLatestImage, SIGNAL(clicked()),this, SLOT(copyLatestImage()));
+	connect (buttonDefault, SIGNAL(clicked()), this, SLOT(setDefaultDialog()));
+	connect (buttonDefault_2, SIGNAL(clicked()), this, SLOT(setDefaultDialog()));
 	connect (sessionPathButton, SIGNAL(clicked()), this, SLOT(chooseSessionPath()));
 	connect (autoSaveButton, SIGNAL(clicked()), this, SLOT(chooseAutoSaveFilename()));
 	connect (metadataPathButton, SIGNAL(clicked()), this, SLOT(chooseMetadataPath()));
@@ -345,8 +353,11 @@ selectBackgroundColor(){
 }
 void UserPreferences::chooseSessionPath(){
 	//Launch a file-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefSessionDirectory() == ".") dir = QDir::currentDirPath();
+	else dir = Session::getInstance()->getPrefSessionDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(
-			Session::getInstance()->getSessionDirectory().c_str(),
+			dir,
             this,
             "directory chooser",
             "Choose the session file directory",
@@ -374,8 +385,11 @@ void UserPreferences::chooseAutoSaveFilename(){
 }
 void UserPreferences::chooseMetadataPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefMetadataDir() == ".") dir = QDir::currentDirPath();
+	else dir = Session::getInstance()->getPrefMetadataDir().c_str();
 	QString s = QFileDialog::getExistingDirectory(
-			Session::getInstance()->getMetadataDir().c_str(),
+			dir,
             this,
             "directory chooser",
             "Choose the metadata directory",
@@ -403,8 +417,11 @@ void UserPreferences::chooseLogFilePath(){
 }
 void UserPreferences::chooseJpegPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefJpegDirectory() == ".") dir = QDir::currentDirPath();
+	else dir = Session::getInstance()->getPrefJpegDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(
-			Session::getInstance()->getJpegDirectory().c_str(),
+			dir,
             this,
             "directory chooser",
             "Choose the jpeg (image) file directory",
@@ -417,8 +434,11 @@ void UserPreferences::chooseJpegPath(){
 }
 void UserPreferences::chooseTFPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefTFFilePath() == ".") dir = QDir::currentDirPath();
+	else dir = Session::getInstance()->getPrefTFFilePath().c_str();
 	QString s = QFileDialog::getExistingDirectory(
-			Session::getInstance()->getTFFilePath().c_str(),
+			dir,
             this,
             "directory chooser",
             "Choose the transfer function file directory",
@@ -431,8 +451,11 @@ void UserPreferences::chooseTFPath(){
 }
 void UserPreferences::chooseFlowPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefFlowDirectory() == ".") dir = QDir::currentDirPath();
+	else dir = Session::getInstance()->getPrefFlowDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(
-			Session::getInstance()->getFlowDirectory().c_str(),
+			dir,
             this,
             "directory chooser",
             "Choose the flow file directory",
@@ -451,6 +474,31 @@ void UserPreferences::changeTextureSize(bool canChange){
 	else 
 		textureSizeEdit->setText("");
 	texSizeSpecified = canChange;
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestSession(){
+	sessionDir = Session::getInstance()->getSessionDirectory();
+	sessionPathEdit->setText(sessionDir.c_str());
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestMetadata(){
+	metadataDir = Session::getInstance()->getMetadataDir();
+	metadataPathEdit->setText(metadataDir.c_str());
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestTF(){
+	tfPath = Session::getInstance()->getTFFilePath();
+	tfPathEdit->setText(tfPath.c_str());
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestImage(){
+	jpegPath = Session::getInstance()->getJpegDirectory();
+	jpegPathEdit->setText(jpegPath.c_str());
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestFlow(){
+	flowPath = Session::getInstance()->getFlowDirectory();
+	flowPathEdit->setText(flowPath.c_str());
 	dialogChanged = true;
 }
 void UserPreferences::
@@ -543,22 +591,22 @@ setDialog(){
 		textureSizeEdit->setEnabled(false);
 	}
 
-	sessionDir = ses->getSessionDirectory();
-	metadataDir = ses->getMetadataDir();
+	sessionDir = ses->getPrefSessionDirectory();
+	metadataDir = ses->getPrefMetadataDir();
 	logFileName = ses->getLogfileName();
-	jpegPath = ses->getJpegDirectory();
-	tfPath = ses->getTFFilePath();
-	flowPath = ses->getFlowDirectory();
+	jpegPath = ses->getPrefJpegDirectory();
+	tfPath = ses->getPrefTFFilePath();
+	flowPath = ses->getPrefFlowDirectory();
 	autoSaveFilename = ses->getAutoSaveSessionFilename();
 
 	//Directories:
-	sessionPathEdit->setText(ses->getSessionDirectory().c_str());
+	sessionPathEdit->setText(ses->getPrefSessionDirectory().c_str());
 	autoSaveFilenameEdit->setText(autoSaveFilename.c_str());
-	metadataPathEdit->setText(ses->getMetadataDir().c_str());
+	metadataPathEdit->setText(ses->getPrefMetadataDir().c_str());
 	logFilePathEdit->setText(ses->getLogfileName().c_str());
-	jpegPathEdit->setText(ses->getJpegDirectory().c_str());
-	tfPathEdit->setText(ses->getTFFilePath().c_str());
-	flowPathEdit->setText(ses->getFlowDirectory().c_str());
+	jpegPathEdit->setText(ses->getPrefJpegDirectory().c_str());
+	tfPathEdit->setText(ses->getPrefTFFilePath().c_str());
+	flowPathEdit->setText(ses->getPrefFlowDirectory().c_str());
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	for (int i = 0; i< 3; i++){
 		popupNum[i] = mReporter->getMaxPopup((MessageReporter::messagePriority)i);
@@ -673,12 +721,15 @@ applyToState(){
 	DataStatus::setUseLowerRefinementLevel(useLowerRefinement);
 	
 	//Directories:
-	ses->setSessionDirectory(sessionDir.c_str());
-	ses->setMetadataDirectory(metadataDir.c_str());
-	ses->setLogfileName(logFileName.c_str());
-	ses->setJpegDirectory(jpegPath.c_str());
-	ses->setTFFilePath(tfPath.c_str());
-	ses->setFlowDirectory(flowPath.c_str());
+	ses->setPrefSessionDirectory(sessionDir.c_str());
+	ses->setPrefMetadataDirectory(metadataDir.c_str());
+	if (ses->getLogfileName() != logFileName){
+		ses->setLogfileName(logFileName.c_str());
+		MessageReporter::getInstance()->reset(logFileName.c_str());
+	}
+	ses->setPrefJpegDirectory(jpegPath.c_str());
+	ses->setPrefTFFilePath(tfPath.c_str());
+	ses->setPrefFlowDirectory(flowPath.c_str());
 	ses->setAutoSaveSessionFilename(autoSaveFilename.c_str());
 	
 
@@ -822,12 +873,12 @@ XmlNode* UserPreferences::buildNode(const string& ){
 
 	XmlNode* mainNode = new XmlNode(_preferencesTag, attrs, 10);
 //create element for each path or filename
-	mainNode->SetElementString(_metadataPathTag, ses->getMetadataDir());
-	mainNode->SetElementString(_sessionPathTag, ses->getSessionDirectory());
+	mainNode->SetElementString(_metadataPathTag, ses->getPrefMetadataDir());
+	mainNode->SetElementString(_sessionPathTag, ses->getPrefSessionDirectory());
 	mainNode->SetElementString(_autoSaveFilenameTag, ses->getAutoSaveSessionFilename());
-	mainNode->SetElementString(_tfPathTag, ses->getTFFilePath());
-	mainNode->SetElementString(_imageCapturePathTag, ses->getJpegDirectory());
-	mainNode->SetElementString(_flowDirectoryPathTag, ses->getFlowDirectory());
+	mainNode->SetElementString(_tfPathTag, ses->getPrefTFFilePath());
+	mainNode->SetElementString(_imageCapturePathTag, ses->getPrefJpegDirectory());
+	mainNode->SetElementString(_flowDirectoryPathTag, ses->getPrefFlowDirectory());
 	mainNode->SetElementString(_exportFileNameTag, ses->getExportFile());
 	mainNode->SetElementString(_logFileNameTag, ses->getLogfileName());
 	
@@ -1463,19 +1514,19 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 	if (StrCmpNoCase(tag, _exportFileNameTag) == 0){
 		ses->setExportFile(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _imageCapturePathTag) == 0){
-		ses->setJpegDirectory(strdata.c_str());
+		ses->setPrefJpegDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _flowDirectoryPathTag) == 0){
-		ses->setFlowDirectory(strdata.c_str());
+		ses->setPrefFlowDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _logFileNameTag) == 0){
 		ses->setLogfileName(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _tfPathTag) == 0){
-		ses->setTFFilePath(strdata.c_str());
+		ses->setPrefTFFilePath(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _sessionPathTag) == 0){
-		ses->setSessionDirectory(strdata.c_str());
+		ses->setPrefSessionDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _autoSaveFilenameTag) == 0){
 		ses->setAutoSaveSessionFilename(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _metadataPathTag) == 0){
-		ses->setMetadataDirectory(strdata.c_str());
+		ses->setPrefMetadataDirectory(strdata.c_str());
 	} else {
 		pm->parseError("Invalid preferences tag  : \"%s\"", tag.c_str());
 		return false;
@@ -1497,8 +1548,45 @@ bool UserPreferences::loadPreferences(const char* filename){
 	parseMgr->parse(is);
 	is.close();
 	delete parseMgr;
+	//Copy the preference paths to the session current paths:
+	Session* ses = Session::getInstance();
+	ses->setSessionDirectory(ses->getPrefSessionDirectory().c_str());
+	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
+	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
+	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
+
 	delete userPrefs;
+	MessageReporter::getInstance()->reset(Session::getInstance()->getLogfileName().c_str());
 	return true;
+}
+void UserPreferences::setDefault(){
+	//Set all the params to defaults
+	ProbeParams::setDefaultPrefs();
+	DataStatus::setDefaultPrefs();
+	FlowParams::setDefaultPrefs();
+	DvrParams::setDefaultPrefs();
+	ParamsIso::setDefaultPrefs();
+	ViewpointParams::setDefaultPrefs();
+	AnimationParams::setDefaultPrefs();
+	RegionParams::setDefaultPrefs();
+	GLWindow::setDefaultPrefs();
+	MessageReporter::getInstance()->setDefaultPrefs();
+	Session::getInstance()->setDefaultPrefs();
+}
+void UserPreferences::setDefaultDialog(){
+	//Set all the params to defaults
+	setDefault();
+
+	//Then load the values into this:
+	setDialog();
+	//Then exit, with offer to save to file:
+	featureHolder->hide();
+	PreferencesCommand::captureEnd(myPrefsCommand, this);
+	requestSave();
+	emit doneWithIt();
+	
+
 }
 bool UserPreferences::savePreferences(const char* filename){
 	
@@ -1514,13 +1602,23 @@ void UserPreferences::getTextChanges(){
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
 	sessionDir = sessionPathEdit->text().ascii();
+	if (sessionDir == "" || sessionDir == "./" || sessionDir == ".\\")
+		sessionDir = ".";
 	autoSaveFilename = autoSaveFilenameEdit->text().ascii();
 	metadataDir = metadataPathEdit->text().ascii();
+	if (metadataDir == "" || metadataDir == "./" || metadataDir == ".\\")
+		metadataDir = ".";
 	autoSaveInterval = autoSaveIntervalEdit->text().toInt();
 	tfPath = tfPathEdit->text().ascii();
+	if (tfPath == "" || tfPath == "./" || tfPath == ".\\")
+		tfPath = ".";
 	logFileName = logFilePathEdit->text().ascii();
 	flowPath = flowPathEdit->text().ascii();
+	if (flowPath == "" || flowPath == "./" || flowPath == ".\\")
+		flowPath = ".";
 	jpegPath = jpegPathEdit->text().ascii();
+	if (jpegPath == "" || jpegPath == "./" || jpegPath == ".\\")
+		jpegPath = ".";
 	logNum[0] = maxInfoLog->text().toInt();
 	popupNum[0] = maxInfoPopup->text().toInt();
 	logNum[1] = maxWarnLog->text().toInt();
@@ -1595,9 +1693,14 @@ bool UserPreferences::loadDefault(){
 			if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 		}
 	}
-	if (!gotFile) return false;
+	if (!gotFile) {  
+		//Set preferences to defaults:
+		setDefault();
+		return false;
+	}
 	
 	bool ok = loadPreferences(filename.c_str());
+	if (!ok) setDefault();
 	return ok;
 
 }

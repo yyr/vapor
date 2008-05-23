@@ -329,7 +329,11 @@ restart(){
 	
 }
 
-
+void DvrParams::setDefaultPrefs(){
+	defaultBitsPerVoxel = 8;
+	defaultPreIntegrationEnabled = false;
+	defaultLightingEnabled = false;
+}
 //Hook up the new transfer function in specified slot,
 //Delete the old one.  This is called whenever a new tf is loaded.
 //

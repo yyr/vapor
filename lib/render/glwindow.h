@@ -327,6 +327,7 @@ public:
 	static void setDefaultAxisArrows(bool val){defaultAxisArrowsEnabled = val;}
 	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
+	static void setDefaultPrefs();
 	int getWindowNum() {return winNum;}
 	bool isPainting() {return nowPainting;}
 	//Static methods so that the vizwinmgr can tell the glwindow about

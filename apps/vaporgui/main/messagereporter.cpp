@@ -53,6 +53,10 @@ MessageReporter::MessageReporter() {
 
 
 	reset(Session::getInstance()->getLogfileName().c_str());
+	setDefaultPrefs();
+	
+}
+void MessageReporter::setDefaultPrefs(){
 	//setup defaults:
 	maxLogMsg[Fatal] = 1;
 	maxPopup[Fatal] = 1;
@@ -62,7 +66,6 @@ MessageReporter::MessageReporter() {
 	maxPopup[Warning] = 3;
 	maxLogMsg[Info] = 0;
 	maxPopup[Info] = 0;
-	
 }
 MessageReporter::~MessageReporter(){
 	if (logFile) fclose(logFile);
@@ -76,8 +79,13 @@ void MessageReporter::
 reset(const char* newLogFileName){
 	//Save name, reopen the log file
 	if (logFile && logFile != stderr ) fclose(logFile);
-	//Special case for stderr log file
-	if((strlen(newLogFileName) > 0) && strcmp(newLogFileName, "stderr") != 0) {
+	//Special case for stderr log file 
+	bool debug_set = false;
+#ifndef WIN32 //On windows, continue to write to logfile, not console with VAPOR_DEBUG
+	debug_set = getenv("VAPOR_DEBUG");
+#endif
+	if((strlen(newLogFileName) > 0) && (strcmp(newLogFileName, "stderr") != 0) &&
+			!debug_set ){
 		logFile = fopen(newLogFileName, "w");
 		if (!logFile) {
 			std::string s("VAPoR session log file cannot be opened:\n");
@@ -144,8 +152,9 @@ void MessageReporter::
 postMsg(messagePriority t, const char* message){
 
 	assert(t>=0 && t <=3);
+	
 	int count = messageCount[message];
-	if (count < maxLogMsg[t]){
+	if ((count < maxLogMsg[t]) || getenv("VAPOR_DEBUG")){
 		writeLog(t, message);
 	}
 	if (count == maxPopup[t] -1){

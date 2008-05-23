@@ -50,7 +50,7 @@ bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
-int GLWindow::jpegQuality = 75;
+int GLWindow::jpegQuality = 100;
 GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
 : QGLWidget(fmt, parent, name)
 
@@ -171,7 +171,11 @@ GLWindow::~GLWindow()
 	if (timeAnnotLabel) delete timeAnnotLabel;
 }
 
-
+void GLWindow::setDefaultPrefs(){
+	defaultTerrainEnabled = false;
+	defaultAxisArrowsEnabled = false;
+	jpegQuality = 100;
+}
 //
 //  Set up the OpenGL view port, matrix mode, etc.
 //

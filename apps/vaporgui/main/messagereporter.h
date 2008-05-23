@@ -40,7 +40,7 @@ public:
 		}
 		return theReporter;
 	}
-	
+	void setDefaultPrefs();
 	//Enum describes various message priorities
 	enum messagePriority {
 		Fatal = 3,

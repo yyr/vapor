@@ -269,6 +269,15 @@ restart() {
 	doRake = true;
 	
 }
+void FlowParams::setDefaultPrefs(){
+	defaultFlowLength = 1.f;
+	defaultSmoothness = 20.f;
+	defaultGeometryType = 0;  //0= tube, 1=point, 2 = arrow
+	defaultIntegrationAccuracy = 0.5f;
+	defaultFlowDiameter = 1.f;
+	defaultArrowSize = 2.f;
+	defaultDiamondSize = 2.f;
+}
 
 //Make a copy of  parameters:
 RenderParams* FlowParams::

@@ -91,10 +91,10 @@ Session::Session() {
 	previousClass = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
-	cacheMB = 1024;
+	
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
-	autoSaveInterval = 0;
+	
 	sessionFilename = "VaporSaved.vss";
 	
 	
@@ -158,35 +158,7 @@ void Session::init() {
 	recordingCount = 0;
 	metadataSaved = false;
 
-	textureSizeSpecified = false;
-	textureSize = 0;
-	//Set up default path for log file:
-	char buf[50];
-#ifdef WIN32
-	//Use the user name in the log file name
-	char buf2[50];
-	//WCHAR buf2[50];
-	DWORD size = 50;
-	//Don't Use QT to convert from unicode back to ascii
-	//WNetGetUserA(0,(LPWSTR)buf2,&size);
-	WNetGetUserA(0,(LPSTR)buf2,&size);
-	sprintf(buf, "C:/TEMP/vaporlog.%s.txt", buf2);
-	//QString qstr((QChar*)buf2, size);
-	//sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
-#else
-	uid_t	uid = getuid();
-	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
-#endif
-
-
-	currentLogfileName = buf;
-	currentMetadataFile = "";
-	currentJpegDirectory = "";	
-	currentFlowDirectory = "";
-	currentMetadataDir = ".";
-	currentTFPath = "";
-	autoSaveSessionFilename = "AutosavedSession.vss";
-	autoSaveInterval = 0;
+	
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
 	currentExportFile = ImpExp::GetPath();
@@ -206,7 +178,7 @@ void Session::init() {
 	keptTFs = 0;
 	tfListSize = 0;
 	
-	GLWindow::setJpegQuality(100);
+	
 	dataExists = false;
 	
 	newSession = true;
@@ -216,8 +188,47 @@ void Session::init() {
 	stretchedExtents[3] = stretchedExtents[4] = stretchedExtents[5] = 1.f;
 	
 	DataStatus::removeMetadataVars();
+	//Set current paths to default preferences
+	setMetadataDirectory(preferenceMetadataDir.c_str());
+	setTFFilePath(preferenceTFPath.c_str());
+	setJpegDirectory(preferenceJpegDirectory.c_str());
+	setFlowDirectory(preferenceFlowDirectory.c_str());
+	setSessionDirectory(preferenceSessionDirectory.c_str());
 	
 }
+void Session::setDefaultPrefs(){
+	cacheMB = 1024;
+	textureSizeSpecified = false;
+	textureSize = 0;
+	//Set up default path for log file:
+	char buf[50];
+#ifdef WIN32
+	//Use the user name in the log file name
+	char buf2[50];
+	//WCHAR buf2[50];
+	DWORD size = 50;
+	//Don't Use QT to convert from unicode back to ascii
+	//WNetGetUserA(0,(LPWSTR)buf2,&size);
+	WNetGetUserA(0,(LPSTR)buf2,&size);
+	sprintf(buf, "C:/TEMP/vaporlog.%s.txt", buf2);
+	//QString qstr((QChar*)buf2, size);
+	//sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
+#else
+	uid_t	uid = getuid();
+	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
+#endif
+	currentLogfileName = buf;
+	char* defaultDir = getenv("HOME");
+	if (!defaultDir) defaultDir = ".";
+	preferenceMetadataDir = defaultDir;
+	preferenceJpegDirectory = defaultDir;	
+	preferenceFlowDirectory = defaultDir;
+	preferenceSessionDirectory = defaultDir;
+	preferenceTFPath = defaultDir;
+	autoSaveSessionFilename = "AutosavedSession.vss";
+	autoSaveInterval = 0;
+}
+
 bool Session::
 saveToFile(ofstream& ofs ){
 	XmlNode* const rootNode = buildNode();

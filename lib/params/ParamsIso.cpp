@@ -330,6 +330,9 @@ void ParamsIso::restart() {
 	SetConstantColor(default_color);
 	
 }
+void ParamsIso::setDefaultPrefs(){
+	defaultBitsPerVoxel = 8;
+}
 //Hook up the new transfer function in specified slot,
 //Delete the old one.  This is called whenever a new tf is loaded.
 //

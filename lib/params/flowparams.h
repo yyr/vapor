@@ -71,7 +71,7 @@ public:
 	virtual void setMaxOpacMapBound(float val);
 
 	virtual void restart();
-	
+	static void setDefaultPrefs();
 	int getNumFLASamples() {return numFLASamples;}
 	void setNumFLASamples(int numSamp){numFLASamples = numSamp;}
 	bool getFLAAdvectBeforePrioritize(){return flaAdvectBeforePrioritize;}

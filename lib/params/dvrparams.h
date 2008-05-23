@@ -148,6 +148,7 @@ public:
 	//Implement virtual function to deal with new session:
 	bool reinit(bool doOverride);
 	virtual void restart();
+	static void setDefaultPrefs();
 	XmlNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);

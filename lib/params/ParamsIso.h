@@ -65,7 +65,7 @@ public:
  //! restore state to the default
  //
  virtual void restart();
-
+ static void setDefaultPrefs();
  //Methods required by Params class:
  virtual int getNumRefinements() {
 	 return GetRefinementLevel();
