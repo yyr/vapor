@@ -1577,6 +1577,13 @@ void UserPreferences::setDefault(){
 void UserPreferences::setDefaultDialog(){
 	//Set all the params to defaults
 	setDefault();
+	//Copy the preference paths to the session current paths:
+	Session* ses = Session::getInstance();
+	ses->setSessionDirectory(ses->getPrefSessionDirectory().c_str());
+	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
+	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
+	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
 
 	//Then load the values into this:
 	setDialog();
