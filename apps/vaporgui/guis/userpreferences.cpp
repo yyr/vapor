@@ -42,6 +42,7 @@
 #include "preferences.h"
 #include "session.h"
 #include "vapor/Version.h"
+#include <qtooltip.h>
 #include <qlineedit.h>
 #include <qfiledialog.h>
 #include <qpushbutton.h>
@@ -185,7 +186,7 @@ UserPreferences* UserPreferences::clone(){
 //Set up the dialog with current parameters from session state
 void UserPreferences::launch(){
 	dialogChanged = false;
-	
+	showAll = false;
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Set User Preferences");
 	
 	QScrollView* sv = new QScrollView(featureHolder);
@@ -201,14 +202,16 @@ void UserPreferences::launch(){
 	myPrefsCommand = PreferencesCommand::captureStart(this, "edit user preferences");
 	
 	int h = MainForm::getInstance()->height();
-	int w = 875;
 	if ( h > 768) h = 768;
-	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
+	int w = 400;
+	paramDefaultsFrame->hide();
+	defaultDirectoryFrame->hide();
+	defaultVizFeatureFrame->hide();
 	
+	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
 	setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
-	
 	sv->resizeContents(w,h);
 	
 	//Do connections for buttons
@@ -217,6 +220,7 @@ void UserPreferences::launch(){
 	connect (buttonLatestTF, SIGNAL(clicked()),this, SLOT(copyLatestTF()));
 	connect (buttonLatestFlow, SIGNAL(clicked()),this, SLOT(copyLatestFlow()));
 	connect (buttonLatestImage, SIGNAL(clicked()),this, SLOT(copyLatestImage()));
+	connect (showDefaultsButton, SIGNAL(clicked()),this, SLOT(showAllDefaults()));
 	connect (buttonDefault, SIGNAL(clicked()), this, SLOT(setDefaultDialog()));
 	connect (buttonDefault_2, SIGNAL(clicked()), this, SLOT(setDefaultDialog()));
 	connect (sessionPathButton, SIGNAL(clicked()), this, SLOT(chooseSessionPath()));
@@ -837,6 +841,39 @@ saveToFile(ofstream& ofs ){
 void UserPreferences::
 doHelp(){
 	QWhatsThis::enterWhatsThisMode();
+}
+void UserPreferences::
+showAllDefaults(){
+	QScrollView* sv = featureHolder->getScroller();
+	showAll = !showAll;
+	int h = MainForm::getInstance()->height();
+	if ( h > 768) h = 768;
+	int w;
+	if(showAll) {
+		showDefaultsButton->setText("Hide Defaults");
+		QToolTip::add(showDefaultsButton,"Click to hide the application defaults");
+		w = 950;
+		paramDefaultsFrame->show();
+		defaultDirectoryFrame->show();
+		defaultVizFeatureFrame->show();
+	}
+	else {
+		showDefaultsButton->setText("Show Defaults");
+		QToolTip::add(showDefaultsButton,"Display all application defaults");
+		w = 460;
+		paramDefaultsFrame->hide();
+		defaultDirectoryFrame->hide();
+		defaultVizFeatureFrame->hide();
+	}
+	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
+	setGeometry(0, 0, w, h);
+	int swidth = sv->verticalScrollBar()->width();
+	featureHolder->setGeometry(50, 50, w+swidth,h);
+	sv->resizeContents(w,h);
+	featureHolder->updateGeometry();
+	featureHolder->adjustSize();
+	featureHolder->update();
+	
 }
 //Build the XML for user preferences, based on the state of the app
 XmlNode* UserPreferences::buildNode(const string& ){

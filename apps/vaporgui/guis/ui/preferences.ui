@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>962</width>
-            <height>1348</height>
+            <height>1396</height>
         </rect>
     </property>
     <property name="caption">
@@ -21,7 +21,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout64</cstring>
+                <cstring>layout161</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -29,75 +29,12 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout53</cstring>
+                        <cstring>layout158</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonHelp2</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Help</string>
-                            </property>
-                            <property name="accel">
-                                <string>F1</string>
-                            </property>
-                            <property name="autoRepeat">
-                                <bool>false</bool>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>false</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to get context-sensitive help on this panel</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonDefault</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Default</string>
-                            </property>
-                            <property name="accel">
-                                <string>Alt+D</string>
-                            </property>
-                            <property name="autoRepeat">
-                                <bool>false</bool>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>false</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to reset all values to default values</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Horizontal Spacing2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>430</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
                         <widget class="QPushButton">
                             <property name="name">
                                 <cstring>buttonOk2</cstring>
@@ -129,11 +66,85 @@
                                 <bool>false</bool>
                             </property>
                         </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonHelp2</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Help</string>
+                            </property>
+                            <property name="accel">
+                                <string>F1</string>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to get context-sensitive help on this panel</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonDefault</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>Set Defaults</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to reset all user preferences and parameter values to their original default values</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>showDefaultsButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Show All</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Display  all application defaults</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>Horizontal Spacing2_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>100</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout62</cstring>
+                        <cstring>layout160</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -170,7 +181,7 @@
                                 <enum>Raised</enum>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>General user preferences include the parameters that users will want to keep the same when running VAPOR on the same workstation, independent of the data.  Most of the general preferences are not affected by loading a session.  However,  the default directories and file names can be set in a VAPOR session file.</string>
+                                <string>General user preferences include the parameters that users will want to keep the same when running VAPOR on the same workstation, independent of the data.  Most of the general preferences are not affected by loading a session.  However,  the default directories and default visualizer features can be set in a VAPOR session file.</string>
                             </property>
                             <hbox>
                                 <property name="name">
@@ -178,7 +189,7 @@
                                 </property>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout61</cstring>
+                                        <cstring>layout159</cstring>
                                     </property>
                                     <vbox>
                                         <property name="name">
@@ -501,7 +512,7 @@
                                             <property name="sizeHint">
                                                 <size>
                                                     <width>20</width>
-                                                    <height>43</height>
+                                                    <height>16</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -516,7 +527,7 @@
                                                 <enum>Raised</enum>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The default directories and file names indicate the default directories that are used when users first request to read or write a file.  When a file is read or written in a non-default directory, the specified directory will be remembered in the session, but the default will not change unless you click the "Latest" button in this panel. The latest version of the metadata directory, transfer function directory, flow save directory, and image save directory) are saved in a vapor session file.  A default directory of "." indicates the current directory from where the application was launched.</string>
+                                                <string>The log file and session autosave file are written to disk as often as required by the user.  The contents of the log file are established by the message logging limit values (below).  The frequency of the session autosave is set by the "automaticalyy save session..." values above.</string>
                                             </property>
                                             <hbox>
                                                 <property name="name">
@@ -524,7 +535,7 @@
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout60</cstring>
+                                                        <cstring>layout152</cstring>
                                                     </property>
                                                     <vbox>
                                                         <property name="name">
@@ -535,7 +546,7 @@
                                                                 <cstring>textLabel1_4</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>&lt;b&gt;Default Directories and File Names&lt;/b&gt;</string>
+                                                                <string>&lt;b&gt;File Names for monitoring progress&lt;/b&gt;</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
@@ -543,13 +554,13 @@
                                                         </widget>
                                                         <widget class="QLayoutWidget">
                                                             <property name="name">
-                                                                <cstring>layout59</cstring>
+                                                                <cstring>layout149</cstring>
                                                             </property>
-                                                            <grid>
+                                                            <hbox>
                                                                 <property name="name">
                                                                     <cstring>unnamed</cstring>
                                                                 </property>
-                                                                <widget class="QLabel" row="0" column="0">
+                                                                <widget class="QLabel">
                                                                     <property name="name">
                                                                         <cstring>textLabel1_2_3</cstring>
                                                                     </property>
@@ -557,234 +568,7 @@
                                                                         <string>Log File Name</string>
                                                                     </property>
                                                                 </widget>
-                                                                <widget class="QLineEdit" row="6" column="2">
-                                                                    <property name="name">
-                                                                        <cstring>autoSaveFilenameEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Specify the file name and path (if not in the current directory) where sessions are automatically saved</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The file specified for auto save is overwritten every time there is an automatic session save</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit" row="2" column="2">
-                                                                    <property name="name">
-                                                                        <cstring>metadataPathEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="readOnly">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>The Metadata directory indicates the default directory from which metadata files (.vdf file) are read or written.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel" row="2" column="0">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_2_3_2</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Metadata Directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer row="6" column="1">
-                                                                    <property name="name">
-                                                                        <cstring>spacer85</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>82</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLineEdit" row="5" column="2">
-                                                                    <property name="name">
-                                                                        <cstring>flowPathEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Flow lines and seeds are read and written to this directory by default.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="4" column="1">
-                                                                    <property name="name">
-                                                                        <cstring>buttonLatestTF</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Latest</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default transfer function directory to the most recently specified transfer function directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel" row="5" column="0">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_2_5_2</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Flow save directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="2" column="1">
-                                                                    <property name="name">
-                                                                        <cstring>buttonLatestMetadata</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Latest</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default metadata directory to the most recently specified metadata directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="4" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>tfPathButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="pixmap">
-                                                                        <pixmap>image0</pixmap>
-                                                                    </property>
-                                                                    <property name="autoDefault">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Choose Export Directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="1" column="1">
-                                                                    <property name="name">
-                                                                        <cstring>buttonLatestSession</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Latest</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default session directory to the most recently specified session directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel" row="3" column="0">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_2_4</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Image save directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="3" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>jpegPathButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="pixmap">
-                                                                        <pixmap>image0</pixmap>
-                                                                    </property>
-                                                                    <property name="autoDefault">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Choose Export Directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit" row="4" column="2">
-                                                                    <property name="name">
-                                                                        <cstring>tfPathEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Transfer function files (*.vdf) are read or written to this directory by default.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel" row="1" column="0">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_2_3_2_2</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Session file directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="0" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>logFilePathButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="pixmap">
-                                                                        <pixmap>image0</pixmap>
-                                                                    </property>
-                                                                    <property name="autoDefault">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Specify Log File Name</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel" row="4" column="0">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_2_5</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Transfer function dir.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer row="0" column="1">
+                                                                <spacer>
                                                                     <property name="name">
                                                                         <cstring>spacer84</cstring>
                                                                     </property>
@@ -801,72 +585,7 @@
                                                                         </size>
                                                                     </property>
                                                                 </spacer>
-                                                                <widget class="QPushButton" row="5" column="1">
-                                                                    <property name="name">
-                                                                        <cstring>buttonLatestFlow</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Latest</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default flow directory to the most recently specified flow directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit" row="3" column="2">
-                                                                    <property name="name">
-                                                                        <cstring>jpegPathEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>The image directory is the default directory where jpeg files are saved.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="2" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>metadataPathButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="pixmap">
-                                                                        <pixmap>image0</pixmap>
-                                                                    </property>
-                                                                    <property name="autoDefault">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Specify Log File Name</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="5" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>flowPathButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="pixmap">
-                                                                        <pixmap>image0</pixmap>
-                                                                    </property>
-                                                                    <property name="autoDefault">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Choose Export Directory</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit" row="0" column="2">
+                                                                <widget class="QLineEdit">
                                                                     <property name="name">
                                                                         <cstring>logFilePathEdit</cstring>
                                                                     </property>
@@ -892,32 +611,9 @@
                                                                         <string>The log file name will be used to write diagnostics, warnings and errors to file.  On unix platforms, if the log file name is "stderr" or if the environment variable "VAPOR_DEBUG" is set, then these messages will be written to the console.</string>
                                                                     </property>
                                                                 </widget>
-                                                                <widget class="QLineEdit" row="1" column="2">
+                                                                <widget class="QPushButton">
                                                                     <property name="name">
-                                                                        <cstring>sessionPathEdit</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>140</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>/tmp</string>
-                                                                    </property>
-                                                                    <property name="readOnly">
-                                                                        <bool>false</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>The session file directory indicates the current directory from which sessions are read</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton" row="1" column="3">
-                                                                    <property name="name">
-                                                                        <cstring>sessionPathButton</cstring>
+                                                                        <cstring>logFilePathButton</cstring>
                                                                     </property>
                                                                     <property name="text">
                                                                         <string></string>
@@ -932,7 +628,17 @@
                                                                         <string>Specify Log File Name</string>
                                                                     </property>
                                                                 </widget>
-                                                                <widget class="QLabel" row="6" column="0">
+                                                            </hbox>
+                                                        </widget>
+                                                        <widget class="QLayoutWidget">
+                                                            <property name="name">
+                                                                <cstring>layout151</cstring>
+                                                            </property>
+                                                            <hbox>
+                                                                <property name="name">
+                                                                    <cstring>unnamed</cstring>
+                                                                </property>
+                                                                <widget class="QLabel">
                                                                     <property name="name">
                                                                         <cstring>textLabel1_2_5_2_2</cstring>
                                                                     </property>
@@ -946,18 +652,47 @@
                                                                         <string>The file specified for auto save is overwritten every time there is an automatic session save</string>
                                                                     </property>
                                                                 </widget>
-                                                                <widget class="QPushButton" row="3" column="1">
+                                                                <spacer>
                                                                     <property name="name">
-                                                                        <cstring>buttonLatestImage</cstring>
+                                                                        <cstring>spacer85</cstring>
+                                                                    </property>
+                                                                    <property name="orientation">
+                                                                        <enum>Horizontal</enum>
+                                                                    </property>
+                                                                    <property name="sizeType">
+                                                                        <enum>Expanding</enum>
+                                                                    </property>
+                                                                    <property name="sizeHint">
+                                                                        <size>
+                                                                            <width>82</width>
+                                                                            <height>20</height>
+                                                                        </size>
+                                                                    </property>
+                                                                </spacer>
+                                                                <widget class="QLineEdit">
+                                                                    <property name="name">
+                                                                        <cstring>autoSaveFilenameEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
+                                                                        <size>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
+                                                                        </size>
                                                                     </property>
                                                                     <property name="text">
-                                                                        <string>Latest</string>
+                                                                        <string>/tmp</string>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Click to set the default image directory to the most recently specified image directory</string>
+                                                                        <string>Specify the file name and path (if not in the current directory) where sessions are automatically saved</string>
+                                                                    </property>
+                                                                    <property name="whatsThis" stdset="0">
+                                                                        <string>The file specified for auto save is overwritten every time there is an automatic session save</string>
                                                                     </property>
                                                                 </widget>
-                                                                <widget class="QPushButton" row="6" column="3">
+                                                                <widget class="QPushButton">
                                                                     <property name="name">
                                                                         <cstring>autoSaveButton</cstring>
                                                                     </property>
@@ -977,7 +712,7 @@
                                                                         <string>The file specified for auto save is overwritten every time there is an automatic session save</string>
                                                                     </property>
                                                                 </widget>
-                                                            </grid>
+                                                            </hbox>
                                                         </widget>
                                                     </vbox>
                                                 </widget>
@@ -996,7 +731,7 @@
                                             <property name="sizeHint">
                                                 <size>
                                                     <width>20</width>
-                                                    <height>43</height>
+                                                    <height>16</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -1324,7 +1059,7 @@
                                         </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer25</cstring>
+                                                <cstring>spacer201</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Vertical</enum>
@@ -1335,7 +1070,7 @@
                                             <property name="sizeHint">
                                                 <size>
                                                     <width>20</width>
-                                                    <height>42</height>
+                                                    <height>31</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -1358,7 +1093,7 @@
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout69</cstring>
+                                                        <cstring>layout156</cstring>
                                                     </property>
                                                     <vbox>
                                                         <property name="name">
@@ -1764,63 +1499,415 @@
                                                                 </spacer>
                                                             </hbox>
                                                         </widget>
+                                                    </vbox>
+                                                </widget>
+                                            </hbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer25</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Vertical</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>16</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QFrame">
+                                            <property name="name">
+                                                <cstring>defaultDirectoryFrame</cstring>
+                                            </property>
+                                            <property name="frameShape">
+                                                <enum>StyledPanel</enum>
+                                            </property>
+                                            <property name="frameShadow">
+                                                <enum>Raised</enum>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The default directories indicate the directories that are used by default when users first request to read or write a file after loading a dataset.  Changing them in this panel will not take effect until the next time a dataset is loaded.  You can set a default directory to the current directory being used in the current session by clicking the "Latest" button in this panel.  The current directories (not these default directories) are saved in a vapor session file.  A default directory of "." indicates the directory from which the application was launched.</string>
+                                            </property>
+                                            <hbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout154</cstring>
+                                                    </property>
+                                                    <vbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel1_4_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>&lt;b&gt;Default Directories &lt;/b&gt;</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>WordBreak|AlignCenter</set>
+                                                            </property>
+                                                        </widget>
                                                         <widget class="QLayoutWidget">
                                                             <property name="name">
-                                                                <cstring>layout68</cstring>
+                                                                <cstring>layout153</cstring>
                                                             </property>
-                                                            <hbox>
+                                                            <grid>
                                                                 <property name="name">
                                                                     <cstring>unnamed</cstring>
                                                                 </property>
-                                                                <spacer>
+                                                                <widget class="QLabel" row="3" column="0">
                                                                     <property name="name">
-                                                                        <cstring>spacer88</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>51</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QCheckBox">
-                                                                    <property name="name">
-                                                                        <cstring>surfaceCheckbox</cstring>
+                                                                        <cstring>textLabel1_2_5_3</cstring>
                                                                     </property>
                                                                     <property name="text">
-                                                                        <string>Display Terrain Surface by Default</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Enable terrain rendering when loading layered data into a default session</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>Checking this box causes the terrain surface to be rendered whenever a layered dataset is loaded into a default session.  It will not affect the current setting in the visualizer features panel.</string>
+                                                                        <string>Transfer function dir.</string>
                                                                     </property>
                                                                 </widget>
-                                                                <spacer>
+                                                                <widget class="QPushButton" row="0" column="3">
                                                                     <property name="name">
-                                                                        <cstring>spacer89</cstring>
+                                                                        <cstring>sessionPathButton</cstring>
                                                                     </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
+                                                                    <property name="text">
+                                                                        <string></string>
                                                                     </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
+                                                                    <property name="pixmap">
+                                                                        <pixmap>image0</pixmap>
                                                                     </property>
-                                                                    <property name="sizeHint">
+                                                                    <property name="autoDefault">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Specify Default session file directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLineEdit" row="2" column="2">
+                                                                    <property name="name">
+                                                                        <cstring>jpegPathEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
                                                                         <size>
-                                                                            <width>51</width>
-                                                                            <height>20</height>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
                                                                         </size>
                                                                     </property>
-                                                                </spacer>
-                                                            </hbox>
+                                                                    <property name="text">
+                                                                        <string>/tmp</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>The image directory is the default directory where jpeg files are saved.</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLabel" row="0" column="0">
+                                                                    <property name="name">
+                                                                        <cstring>textLabel1_2_3_2_2_2</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Session file directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="1" column="3">
+                                                                    <property name="name">
+                                                                        <cstring>metadataPathButton</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string></string>
+                                                                    </property>
+                                                                    <property name="pixmap">
+                                                                        <pixmap>image0</pixmap>
+                                                                    </property>
+                                                                    <property name="autoDefault">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Specify default metadata directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLabel" row="4" column="0">
+                                                                    <property name="name">
+                                                                        <cstring>textLabel1_2_5_2_3</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Flow save directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="3" column="1">
+                                                                    <property name="name">
+                                                                        <cstring>buttonLatestTF</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Latest</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Click to set the default transfer function directory to the most recently specified transfer function directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLabel" row="1" column="0">
+                                                                    <property name="name">
+                                                                        <cstring>textLabel1_2_3_2_3</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Metadata Directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="4" column="1">
+                                                                    <property name="name">
+                                                                        <cstring>buttonLatestFlow</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Latest</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Click to set the default flow directory to the most recently specified flow directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="1" column="1">
+                                                                    <property name="name">
+                                                                        <cstring>buttonLatestMetadata</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Latest</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Click to set the default metadata directory to the most recently specified metadata directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLineEdit" row="4" column="2">
+                                                                    <property name="name">
+                                                                        <cstring>flowPathEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
+                                                                        <size>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
+                                                                        </size>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>/tmp</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Flow lines and seeds are read and written to this directory by default.</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLabel" row="2" column="0">
+                                                                    <property name="name">
+                                                                        <cstring>textLabel1_2_4_2</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Image save directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="3" column="3">
+                                                                    <property name="name">
+                                                                        <cstring>tfPathButton</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string></string>
+                                                                    </property>
+                                                                    <property name="pixmap">
+                                                                        <pixmap>image0</pixmap>
+                                                                    </property>
+                                                                    <property name="autoDefault">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Specify default transfer function directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLineEdit" row="1" column="2">
+                                                                    <property name="name">
+                                                                        <cstring>metadataPathEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
+                                                                        <size>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
+                                                                        </size>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>/tmp</string>
+                                                                    </property>
+                                                                    <property name="readOnly">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>The Metadata directory indicates the default directory from which metadata files (.vdf file) are read or written.</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="2" column="1">
+                                                                    <property name="name">
+                                                                        <cstring>buttonLatestImage</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Latest</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Click to set the default image directory to the most recently specified image directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLineEdit" row="0" column="2">
+                                                                    <property name="name">
+                                                                        <cstring>sessionPathEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
+                                                                        <size>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
+                                                                        </size>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>/tmp</string>
+                                                                    </property>
+                                                                    <property name="readOnly">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>The session file directory indicates the current directory from which sessions are read</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QLineEdit" row="3" column="2">
+                                                                    <property name="name">
+                                                                        <cstring>tfPathEdit</cstring>
+                                                                    </property>
+                                                                    <property name="enabled">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="minimumSize">
+                                                                        <size>
+                                                                            <width>140</width>
+                                                                            <height>0</height>
+                                                                        </size>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>/tmp</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Transfer function files (*.vdf) are read or written to this directory by default.</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="2" column="3">
+                                                                    <property name="name">
+                                                                        <cstring>jpegPathButton</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string></string>
+                                                                    </property>
+                                                                    <property name="pixmap">
+                                                                        <pixmap>image0</pixmap>
+                                                                    </property>
+                                                                    <property name="autoDefault">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Specify default image save directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="0" column="1">
+                                                                    <property name="name">
+                                                                        <cstring>buttonLatestSession</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Latest</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Click to set the default session directory to the most recently specified session directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <widget class="QPushButton" row="4" column="3">
+                                                                    <property name="name">
+                                                                        <cstring>flowPathButton</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string></string>
+                                                                    </property>
+                                                                    <property name="pixmap">
+                                                                        <pixmap>image0</pixmap>
+                                                                    </property>
+                                                                    <property name="autoDefault">
+                                                                        <bool>false</bool>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Specify default flow save directory</string>
+                                                                    </property>
+                                                                </widget>
+                                                            </grid>
+                                                        </widget>
+                                                    </vbox>
+                                                </widget>
+                                            </hbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer202</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Vertical</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QFrame">
+                                            <property name="name">
+                                                <cstring>defaultVizFeatureFrame</cstring>
+                                            </property>
+                                            <property name="frameShape">
+                                                <enum>StyledPanel</enum>
+                                            </property>
+                                            <property name="frameShadow">
+                                                <enum>Raised</enum>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The default visualizer features are settings that apply whenever a new visualizer is created.  They will be overridden by values specified in a session file.</string>
+                                            </property>
+                                            <hbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout155</cstring>
+                                                    </property>
+                                                    <vbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel1_6</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>&lt;b&gt;Default visualizer features&lt;/b&gt;</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>WordBreak|AlignCenter</set>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLayoutWidget">
                                                             <property name="name">
@@ -1880,27 +1967,68 @@
                                                                 </spacer>
                                                             </hbox>
                                                         </widget>
+                                                        <widget class="QLayoutWidget">
+                                                            <property name="name">
+                                                                <cstring>layout68</cstring>
+                                                            </property>
+                                                            <hbox>
+                                                                <property name="name">
+                                                                    <cstring>unnamed</cstring>
+                                                                </property>
+                                                                <spacer>
+                                                                    <property name="name">
+                                                                        <cstring>spacer88</cstring>
+                                                                    </property>
+                                                                    <property name="orientation">
+                                                                        <enum>Horizontal</enum>
+                                                                    </property>
+                                                                    <property name="sizeType">
+                                                                        <enum>Expanding</enum>
+                                                                    </property>
+                                                                    <property name="sizeHint">
+                                                                        <size>
+                                                                            <width>51</width>
+                                                                            <height>20</height>
+                                                                        </size>
+                                                                    </property>
+                                                                </spacer>
+                                                                <widget class="QCheckBox">
+                                                                    <property name="name">
+                                                                        <cstring>surfaceCheckbox</cstring>
+                                                                    </property>
+                                                                    <property name="text">
+                                                                        <string>Display Terrain Surface by Default</string>
+                                                                    </property>
+                                                                    <property name="toolTip" stdset="0">
+                                                                        <string>Enable terrain rendering when loading layered data into a default session</string>
+                                                                    </property>
+                                                                    <property name="whatsThis" stdset="0">
+                                                                        <string>Checking this box causes the terrain surface to be rendered whenever a layered dataset is loaded into a default session.  It will not affect the current setting in the visualizer features panel.</string>
+                                                                    </property>
+                                                                </widget>
+                                                                <spacer>
+                                                                    <property name="name">
+                                                                        <cstring>spacer89</cstring>
+                                                                    </property>
+                                                                    <property name="orientation">
+                                                                        <enum>Horizontal</enum>
+                                                                    </property>
+                                                                    <property name="sizeType">
+                                                                        <enum>Expanding</enum>
+                                                                    </property>
+                                                                    <property name="sizeHint">
+                                                                        <size>
+                                                                            <width>51</width>
+                                                                            <height>20</height>
+                                                                        </size>
+                                                                    </property>
+                                                                </spacer>
+                                                            </hbox>
+                                                        </widget>
                                                     </vbox>
                                                 </widget>
                                             </hbox>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer93</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Vertical</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>20</width>
-                                                    <height>43</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                     </vbox>
                                 </widget>
                             </hbox>
@@ -1924,7 +2052,7 @@
                         </spacer>
                         <widget class="QFrame">
                             <property name="name">
-                                <cstring>frame16</cstring>
+                                <cstring>paramDefaultsFrame</cstring>
                             </property>
                             <property name="sizePolicy">
                                 <sizepolicy>
@@ -1953,7 +2081,7 @@
                                 <enum>Raised</enum>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Default Parameter Values are the values that are used whenever data is loaded into a default session.  They will not be used when data is loaded into the current session, and will be ignored when a new session file is read.</string>
+                                <string>Default Parameter Values are the values that are used whenever data is loaded into a default session, or when the application is first started.  They will not be used when data is loaded into the current session, and will be overridden when a new session file is read.</string>
                             </property>
                             <hbox>
                                 <property name="name">
@@ -4485,75 +4613,12 @@ with all three light sources.</string>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout51</cstring>
+                        <cstring>layout157</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonHelp</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Help</string>
-                            </property>
-                            <property name="accel">
-                                <string>F1</string>
-                            </property>
-                            <property name="autoRepeat">
-                                <bool>false</bool>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>false</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to get context-sensitive help on this panel</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonDefault_2</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Default</string>
-                            </property>
-                            <property name="accel">
-                                <string>Alt+D</string>
-                            </property>
-                            <property name="autoRepeat">
-                                <bool>false</bool>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>false</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to reset all values to default values</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Horizontal Spacing2_2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>540</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
                         <widget class="QPushButton">
                             <property name="name">
                                 <cstring>buttonOk</cstring>
@@ -4585,6 +4650,69 @@ with all three light sources.</string>
                                 <bool>false</bool>
                             </property>
                         </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonHelp</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Help</string>
+                            </property>
+                            <property name="accel">
+                                <string>F1</string>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to get context-sensitive help on this panel</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonDefault_2</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>Set Defaults</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to reset all user preferences and parameter values to their original default values</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer205</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>71</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
             </vbox>

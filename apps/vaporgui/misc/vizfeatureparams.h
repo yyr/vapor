@@ -43,6 +43,7 @@ public:
 	ScrollContainer(QWidget* parent, const char* name) : QDialog(parent, name) {
 		setCaption(name);}
 	void setScroller(QScrollView* sv){scroller = sv;}
+	QScrollView* getScroller(){return scroller;}
 protected:
 	virtual void resizeEvent(QResizeEvent* event){
 		if (scroller) {

@@ -68,6 +68,7 @@ signals:
 	void doneWithIt();
 
 protected slots:
+	
 	void setDefaultDialog();
 	void panelChanged();
 	void selectRegionFrameColor();
@@ -89,6 +90,7 @@ protected slots:
 	void resetCounts();
 	void okClicked();
 	void doHelp();
+	void showAllDefaults();
 	void setGeometryType(int);
 	void setDvrBits(int);
 	void setIsoBits(int);
@@ -204,6 +206,7 @@ protected:
 	bool showAxisArrows;
 	bool showTerrain;
 	int autoSaveInterval;
+	bool showAll;
 };
 
 

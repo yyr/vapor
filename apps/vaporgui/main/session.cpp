@@ -226,7 +226,7 @@ void Session::setDefaultPrefs(){
 	preferenceSessionDirectory = defaultDir;
 	preferenceTFPath = defaultDir;
 	autoSaveSessionFilename = "AutosavedSession.vss";
-	autoSaveInterval = 0;
+	autoSaveInterval = 10;
 }
 
 bool Session::
