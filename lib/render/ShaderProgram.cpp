@@ -26,6 +26,8 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 ShaderProgram::ShaderProgram()
 {
+	_program = 0;
+	_shaders.clear();
 }
 
 
@@ -52,11 +54,11 @@ ShaderProgram::~ShaderProgram()
 
   if (GLEW_VERSION_2_0)
   {
-    glDeleteProgram(_program);
+    if (_program) glDeleteProgram(_program);
   }
   else
   {
-    glDeleteObjectARB(_program);
+    if (_program) glDeleteObjectARB(_program);
   }
 
   printOpenGLError();
