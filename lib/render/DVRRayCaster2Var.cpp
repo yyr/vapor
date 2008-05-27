@@ -29,6 +29,12 @@ DVRRayCaster2Var::DVRRayCaster2Var(
 	GLint internalFormat, GLenum format, GLenum type, int nthreads
 ) : DVRRayCaster(internalFormat, format, type, nthreads)
 {
+	MyBase::SetDiagMsg(
+		"DVRRayCaster2Var::DVRRayCaster2Var( %d %d %d %d)", 
+		internalFormat, format, type, nthreads
+	);
+
+
 	if (GLEW_VERSION_2_0) {
 		_texcrd_texunit = GL_TEXTURE2;
 		_depth_texunit = GL_TEXTURE3;
@@ -46,6 +52,7 @@ DVRRayCaster2Var::DVRRayCaster2Var(
 //----------------------------------------------------------------------------
 DVRRayCaster2Var::~DVRRayCaster2Var() 
 {
+	MyBase::SetDiagMsg("DVRRayCaster2Var::~DVRRayCaster2Var()");
 }
 
 bool DVRRayCaster2Var::createShader(ShaderType type,

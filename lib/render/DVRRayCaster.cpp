@@ -30,6 +30,11 @@ DVRRayCaster::DVRRayCaster(
 	GLint internalFormat, GLenum format, GLenum type, int nthreads
 ) : DVRShader(internalFormat, format, type, nthreads)
 {
+	MyBase::SetDiagMsg(
+		"DVRRayCaster::DVRRayCaster( %d %d %d %d)", 
+		internalFormat, format, type, nthreads
+	);
+
 	_lighting = false;
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
@@ -56,11 +61,14 @@ DVRRayCaster::DVRRayCaster(
 //----------------------------------------------------------------------------
 DVRRayCaster::~DVRRayCaster() 
 {
+	MyBase::SetDiagMsg( "DVRRayCaster::~DVRRayCaster()");
+
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
 	if (_framebufferid) glDeleteFramebuffersEXT(1, &_framebufferid);
 
 	if (_backface_texcrd_texid) glDeleteTextures(1, &_backface_texcrd_texid);
 	if (_backface_depth_texid) glDeleteTextures(1, &_backface_depth_texid);
+	printOpenGLError();
 }
 
 bool DVRRayCaster::createShader(ShaderType type,
@@ -126,6 +134,7 @@ bool DVRRayCaster::createShader(ShaderType type,
 		_shaders[type]->disable();
 	}
 
+	printOpenGLError();
 	return true;
 }
 
@@ -173,7 +182,7 @@ int DVRRayCaster::GraphicsInit()
 	_shader = _shaders[DEFAULT];
 
 	return 0;
-	}
+}
 
 //----------------------------------------------------------------------------
 //

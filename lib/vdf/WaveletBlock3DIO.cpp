@@ -444,6 +444,11 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	int reflevel,
 	size_t //full_height
 ) {
+	SetDiagMsg(
+		"WaveletBlock3DIO::OpenVariableRead(%d, %s, %d)",
+		timestep, varname, reflevel
+	);
+
 	string basename;
 
 	write_mode_c = 0;

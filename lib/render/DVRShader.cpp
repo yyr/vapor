@@ -52,6 +52,11 @@ DVRShader::DVRShader(
   _ks(0.0),
   _expS(0.0)
 {
+	MyBase::SetDiagMsg(
+		"DVRShader::DVRShader( %d %d %d %d)", 
+		internalFormat, format, type, nthreads
+	);
+
   _shaders[DEFAULT]              = NULL;
   _shaders[LIGHT]                = NULL;
   _shaders[PRE_INTEGRATED]       = NULL;
@@ -70,6 +75,7 @@ DVRShader::DVRShader(
 //----------------------------------------------------------------------------
 DVRShader::~DVRShader() 
 {
+	MyBase::SetDiagMsg("DVRShader::~DVRShader()");
   map <int, ShaderProgram *>::iterator pos;
 
   for(pos=_shaders.begin(); pos != _shaders.end(); ++pos) {
@@ -81,6 +87,7 @@ DVRShader::~DVRShader()
   _colormap = NULL;
 
   glDeleteTextures(2, _cmapid);
+  printOpenGLError();
 
 }
 
@@ -226,6 +233,14 @@ int DVRShader::SetRegion(void *data,
                          int level,
 						 size_t fullHeight) 
 { 
+
+	MyBase::SetDiagMsg(
+		"SetRegion(%xll %d %d %d [%d %d %d %d %d %d] [%f %f %f %f %f %f] [%d %d %d %d %d %d] %d %d\n",
+		(unsigned char *) data, nx, ny, nz, 
+		roi[0], roi[1], roi[2], roi[3], roi[4], roi[5],
+		extents[0], extents[1], extents[2], extents[3], extents[4], extents[5],
+		box[0], box[1], box[2], box[3], box[4], box[5], level, fullHeight
+	);
 
   _nx = nx; _ny = ny; _nz = nz;
   _data = data;
