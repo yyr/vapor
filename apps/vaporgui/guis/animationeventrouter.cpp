@@ -451,9 +451,10 @@ void AnimationEventRouter::guiSetFrameStep(int stepsize){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current step size");
 	int endFrame = aParams->getEndFrameNumber();
 	int startFrame = aParams->getStartFrameNumber();
-	int frameStepSize = (int)((float)(endFrame - startFrame)*(float)stepsize/1000.f);
-	aParams->setFrameStepSize(frameStepSize);
+	int frameStepSize = 1+ (int)((float)(endFrame - startFrame)*(float)stepsize/1000.f);
 	if (frameStepSize < 1) frameStepSize = 1;
+	aParams->setFrameStepSize(frameStepSize);
+	
 	frameStepEdit->setText(QString::number(frameStepSize));
 	PanelCommand::captureEnd(cmd, aParams);
 	guiSetTextChanged(false);
@@ -520,10 +521,10 @@ setSliders(AnimationParams* aParams){
 		animationSlider->setValue((int)(1000.f*((float)(currentFrame - startFrame)/(float)(endFrame-startFrame))));
 	}
 	sliderPosition = frameStepSlider->value();
-	int stepsize = (int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
+	int stepsize = 1+(int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
 	if(stepsize < 1) stepsize = 1;
 	if (stepsize != frameStepSize && endFrame != startFrame){
-		frameStepSlider->setValue((int)(1000.f*((float)stepsize/(float)(endFrame-startFrame))));
+		frameStepSlider->setValue((int)(1000.f*((float)frameStepSize/(float)(endFrame-startFrame))));
 	}
 }
 //Method to call when a new window installed via undo/redo
