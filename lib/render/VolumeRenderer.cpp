@@ -454,7 +454,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			_driver->SetMaxTexture(_userTextureSize);
 		}
 		else {
-			_driver->SetMaxTexture(512);
+			_driver->SetMaxTexture(0);
 		}
 	}
 			
@@ -462,7 +462,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	// set up region. Only need to do this if the data
 	// roi changes, or if the datarange has changed.
 	//
-	  
 	if (myGLWindow->regionIsDirty() || forceReload
 		|| datarangeIsDirty() || myGLWindow->dvrRegionIsNavigating()
 		|| myGLWindow->animationIsDirty() || 1) 
