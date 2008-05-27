@@ -2411,30 +2411,6 @@ setOpacMapEntity( int entityNum){
 }
 
 
-/*
-//Calculate the extents of the seedBox region when transformed into the unit cube
-void FlowParams::
-calcSeedExtents(float* extents){
-	const float* fullExtent = DataStatus::getInstance()->getExtents();
-	
-	int i;
-	float maxCrd = -1.f;
-	
-	float regSize[3];
-	for (i=0; i<3; i++){
-		regSize[i] =  fullExtent[i+3]-fullExtent[i];
-		if(regSize[i] > maxCrd ) {
-			maxCrd = regSize[i];
-		}
-	}
-
-	for (i = 0; i<3; i++){
-		extents[i] = (seedBoxMin[i] - fullExtent[i])/maxCrd;
-		extents[i+3] = (seedBoxMax[i] - fullExtent[i])/maxCrd;
-	}
-}
-*/
-
 //When we set the min/map bounds, must save them locally and in the mapper function
 void FlowParams::setMinColorMapBound(float val){
 	minColorBounds[getColorMapEntityIndex()] = val;	
@@ -2467,7 +2443,7 @@ float FlowParams::minRange(int index, int timestep){
 		case (3): //seed index.  Goes from 0 to num seedsp
 			return (0.f );
 		default:
-			int varnum = index -4;
+			int varnum = DataStatus::mapMetadataToSessionVarNum(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
 				return( DataStatus::getInstance()->getDataMin(varnum, timestep));
 			}
@@ -2501,7 +2477,7 @@ float FlowParams::maxRange(int index, int timestep){
 			
 			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
-			int varnum = index -4;
+			int varnum = DataStatus::mapMetadataToSessionVarNum(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
 				return( DataStatus::getInstance()->getDataMax(varnum, timestep));
 			}
