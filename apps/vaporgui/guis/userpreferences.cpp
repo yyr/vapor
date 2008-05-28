@@ -851,15 +851,15 @@ showAllDefaults(){
 	int w;
 	if(showAll) {
 		showDefaultsButton->setText("Hide Defaults");
-		QToolTip::add(showDefaultsButton,"Click to hide the application defaults");
+		QToolTip::add(showDefaultsButton,"Click to hide the session defaults");
 		w = 950;
 		paramDefaultsFrame->show();
 		defaultDirectoryFrame->show();
 		defaultVizFeatureFrame->show();
 	}
 	else {
-		showDefaultsButton->setText("Show Defaults");
-		QToolTip::add(showDefaultsButton,"Display all application defaults");
+		showDefaultsButton->setText("Session Defaults");
+		QToolTip::add(showDefaultsButton,"Display the session defaults that will apply when the application is restarted or a new dataset is loaded");
 		w = 460;
 		paramDefaultsFrame->hide();
 		defaultDirectoryFrame->hide();

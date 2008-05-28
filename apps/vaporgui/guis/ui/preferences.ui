@@ -39,6 +39,12 @@
                             <property name="name">
                                 <cstring>buttonOk2</cstring>
                             </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
                             <property name="text">
                                 <string>&amp;OK</string>
                             </property>
@@ -56,6 +62,12 @@
                             <property name="name">
                                 <cstring>buttonCancel2</cstring>
                             </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
                             <property name="text">
                                 <string>&amp;Cancel</string>
                             </property>
@@ -72,6 +84,12 @@
                             </property>
                             <property name="enabled">
                                 <bool>true</bool>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
                             </property>
                             <property name="text">
                                 <string>&amp;Help</string>
@@ -97,7 +115,7 @@
                                 <bool>true</bool>
                             </property>
                             <property name="text">
-                                <string>Set Defaults</string>
+                                <string>Restore Defaults</string>
                             </property>
                             <property name="accel">
                                 <string></string>
@@ -117,10 +135,10 @@
                                 <cstring>showDefaultsButton</cstring>
                             </property>
                             <property name="text">
-                                <string>Show All</string>
+                                <string>Session Defaults</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Display  all application defaults</string>
+                                <string>Display the application defaults that will be used when the application is restarted or new data is loaded.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -272,7 +290,7 @@
                                                                         </size>
                                                                     </property>
                                                                     <property name="text">
-                                                                        <string>user actiions</string>
+                                                                        <string>user actions</string>
                                                                     </property>
                                                                     <property name="alignment">
                                                                         <set>AlignCenter</set>
@@ -546,7 +564,7 @@
                                                                 <cstring>textLabel1_4</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>&lt;b&gt;File Names for monitoring progress&lt;/b&gt;</string>
+                                                                <string>&lt;b&gt;File Names for Monitoring Progress&lt;/b&gt;</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>WordBreak|AlignCenter</set>
@@ -2261,7 +2279,7 @@
                                                         <string>Set lighting on or off</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>This checkbox establishes whether or not lighting will be enabled when data is loaded into a default session.</string>
+                                                        <string>This checkbox establishes whether or not lighting will be enabled in a volume rendering when data is loaded into a default session.</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>
@@ -2693,6 +2711,9 @@ selected axis.</string>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The alpha and scale parameters control the appearance of the image-based flow visualization</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -2712,6 +2733,9 @@ selected axis.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Control how flow texture is smeared</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The alpha and scale parameters control the appearance of the image-based flow visualization</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -2734,6 +2758,9 @@ selected axis.</string>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The alpha and scale parameters control the appearance of the image-based flow visualization</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -2753,6 +2780,9 @@ selected axis.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Vector field is scaled by this factor before advecting</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The alpha and scale parameters control the appearance of the image-based flow visualization</string>
                                                             </property>
                                                         </widget>
                                                     </vbox>
@@ -4623,6 +4653,12 @@ with all three light sources.</string>
                             <property name="name">
                                 <cstring>buttonOk</cstring>
                             </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
                             <property name="text">
                                 <string>&amp;OK</string>
                             </property>
@@ -4640,6 +4676,12 @@ with all three light sources.</string>
                             <property name="name">
                                 <cstring>buttonCancel</cstring>
                             </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
                             <property name="text">
                                 <string>&amp;Cancel</string>
                             </property>
@@ -4656,6 +4698,12 @@ with all three light sources.</string>
                             </property>
                             <property name="enabled">
                                 <bool>true</bool>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>65</width>
+                                    <height>32767</height>
+                                </size>
                             </property>
                             <property name="text">
                                 <string>&amp;Help</string>
@@ -4681,7 +4729,7 @@ with all three light sources.</string>
                                 <bool>true</bool>
                             </property>
                             <property name="text">
-                                <string>Set Defaults</string>
+                                <string>Restore Defaults</string>
                             </property>
                             <property name="accel">
                                 <string></string>
