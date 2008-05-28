@@ -78,8 +78,8 @@ public:
 
 private:
  static const int _majorVersion = 1;
- static const int _minorVersion = 2;
- static const int _minorMinorVersion = 3;
+ static const int _minorVersion = 3;
+ static const int _minorMinorVersion = 0;
  static string _formatString;
  static string _dateString;
 
