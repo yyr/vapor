@@ -1549,7 +1549,7 @@
                                                 <enum>Raised</enum>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The default directories indicate the directories that are used by default when users first request to read or write a file after loading a dataset.  Changing them in this panel will not take effect until the next time a dataset is loaded.  You can set a default directory to the current directory being used in the current session by clicking the "Latest" button in this panel.  The current directories (not these default directories) are saved in a vapor session file.  A default directory of "." indicates the directory from which the application was launched.</string>
+                                                <string>The default directories are those directories that are initially used when the application is started or when data is loaded into a default session.  Changing them in this panel will not take effect until the next time a dataset is loaded.  You can set a default directory to the currently used directory by clicking the "Latest" button in this panel.  The current directories (not necessarily these default directories) are saved in a vapor session file.  A default directory of "." indicates the directory from which the application was launched.</string>
                                             </property>
                                             <hbox>
                                                 <property name="name">
