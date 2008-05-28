@@ -34,16 +34,14 @@ struct opt_t {
 	vector<string> atypvars;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
-	char * smplwrf;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"smplwrf", 1,  "",		"Sample WRF file from which to get dimensions,\n\t\t\t\textents, and starting time stamp (optional, see\n\t\t\t\tnext three options)"},
 	{"dimension",1, "512x512x512",	"Volume dimensions (unstaggered) expressed in grid\n\t\t\t\tpoints (NXxNYxNZ) if no sample WRF file is\n\t\t\t\tgiven"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying\n\t\t\t\tdomain extents in user coordinates\n\t\t\t\t(X0:Y0:Z0:X1:Y1:Z1) if different from that in\n\t\t\t\tsample WRF"},
 	{"startt",	1,	"", "Starting time stamp, one of \n\t\t\t\t(time|SIMULATION_START_DATE|START_DATE), \n\t\t\t\twhere time has the form : yyyy-mm-dd_hh:mm:ss"},
-	{"numts",	1, 	"1",			"Number of Vapor time steps (default is 1)"},
-	{"deltat",	1,	"3600",			"Seconds per Vapor time step (default is 3600)"},
+	{"numts",	1, 	"0",			"Maximum number of VDC time steps"},
+	{"deltat",	1,	"0",			"Seconds per VDC time step"},
 	{"varnames",1,	"",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
 	{"dervars", 1,	"",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tPHNorm_: normalized geopotential (PH+PHB)/PHB\n\t\t\t\tUVW_: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\tUV_: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tomZ_: estimate of vertical vorticity\n\t\t\t\tPFull_: full pressure P+PB\n\t\t\t\tPNorm_: normalized pressure (P+PB)/PB\n\t\t\t\tTheta_: potential temperature T+300\n\t\t\t\tTK_: temp. in Kelvin\n\t\t\t\t\t(T+300)((P+PB))/100000)^0.286"},
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement\n\t\t\t\t(default is 2)"},
@@ -59,7 +57,6 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 
 OptionParser::Option_T	get_options[] = {
-	{"smplwrf", VetsUtil::CvtToString, &opt.smplwrf, sizeof(opt.smplwrf)},
 	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"startt", VetsUtil::CvtToString, &opt.startt, sizeof(opt.startt)},
@@ -91,6 +88,7 @@ int	GetWRFMetadata(
 	float _dx = 0.0;
 	float _dy = 0.0;
 	float _vertExts[2];
+	string _startDate;
 	
 	vector <TIME64_T> ts;
 	vector<string> _wrfVars(0); // Holds names of variables in WRF file
@@ -129,12 +127,14 @@ int	GetWRFMetadata(
 			_dimLens[1] = dimLens[1];
 			_dimLens[2] = dimLens[2];
 			_wrfVars = wrfVars;
+			_startDate = startDate;
 		}
 		else {
 			bool mismatch = false;
 			if (
 				_dx != dx || _dy != dy || _dimLens[0] != dimLens[0] ||
-				_dimLens[1] != dimLens[1] || _dimLens[2] != dimLens[2]) {
+				_dimLens[1] != dimLens[1] || _dimLens[2] != dimLens[2] ||
+				(_startDate.compare(startDate)!=0) ) {
 	
 				mismatch = true;
 			}
@@ -209,7 +209,6 @@ void Usage(OptionParser &op, const char * msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
 	cerr << "Usage: " << ProgName << " [options] wrf_ncdf_file... vdf_file" << endl;
-	cerr << "Usage: " << ProgName << " [options] -smplwrf wrf_ncdf_file vdf_file" << endl;
 	cerr << "Usage: " << ProgName << " [options] -startt time vdf_file" << endl;
 	op.PrintOptionHelp(stderr);
 
@@ -272,19 +271,26 @@ int	main(int argc, char **argv) {
 	vector <TIME64_T> timestamps;
 	vector <string> wrfVarNames;
 	vector <string> vdfVarNames;
+	string startT;
 
-	if (argc == 1 && strlen(opt.smplwrf) == 0) {	// No template file
+	if (argc == 1) {	// No template file
 	
 		if (strlen(opt.startt) == 0) {
 			Usage(op, "Expected -startt option");
 			exit(1);
 		}
+		if (opt.numts > 1 && opt.deltat < 1) {
+			Usage(op, "Invalid -deltat argument value : must be >= 1");
+			exit(1);
+		}
+
+		// Set the first time stamp
+		//
+		startT.assign(opt.startt);
 		TIME64_T seconds;
 		if (WRF::WRFTimeStrToEpoch(opt.startt, &seconds) < 0) exit(1);
 		timestamps.push_back(seconds);
-		for (TIME64_T t = 1; t<opt.numts; t++) {
-			timestamps.push_back(timestamps[0]+(t*opt.deltat));
-		}
+
 
 		dim[0] = opt.dim.nx;
 		dim[1] = opt.dim.ny;
@@ -302,9 +308,8 @@ int	main(int argc, char **argv) {
 			}
 		}
 	}
-	else if (argc >= 1) {	// Template file specified
+	else if (argc > 1) {
 		int rc;
-		string startDate;
 
 		// If the extents were provided on the command line, set the
 		// extentsPtr to NULL so that we don't have to calulate the
@@ -320,49 +325,21 @@ int	main(int argc, char **argv) {
 			}
 		}
 
-		if (argc == 1) {	// Single template
+		string startDate;
+		rc = GetWRFMetadata(
+			(const char **)argv, argc-1, wrfNames, timestamps, extentsPtr, 
+			dim, wrfVarNames, startDate
+		);
+		if (rc<0) exit(1);
 
-			const char **files = (const char **) &opt.smplwrf;
-			rc = GetWRFMetadata(
-				files, 1, wrfNames, timestamps, extentsPtr, dim, 
-				wrfVarNames, startDate
-			);
-			if (rc<0) exit(1);
+		if (strlen(opt.startt) != 0) {
+			startT.assign(opt.startt);
 
-			if (strlen(opt.startt) != 0) {
-				TIME64_T seconds;
-				string startt(opt.startt);
+			if ((startT.compare("SIMULATION_START_DATE") == 0) ||
+				(startT.compare("START_DATE") == 0)) { 
 
-				if ((startt.compare("SIMULATION_START_DATE") == 0) ||
-					(startt.compare("START_DATE") == 0)) { 
-
-					startt = startDate;
-				}
-
-				if (WRF::WRFTimeStrToEpoch(startt, &seconds) < 0) exit(1);
-				timestamps[0] = seconds;
+				startT = startDate;
 			}
-
-			// Need to compute time stamps - ignore all but the
-			// first returned by GetWRFMetadata()
-			//
-			TIME64_T tsave = timestamps[0];
-			timestamps.clear();
-			timestamps.push_back(tsave);
-			for (size_t t = 1; t<opt.numts; t++) {
-				timestamps.push_back(timestamps[0]+(t*opt.deltat));
-			}
-		}
-		else {
-			if (strlen(opt.smplwrf) != 0) {
-				Usage(op, "Unexpected -smplwrf option");
-				exit(1);
-			}
-			rc = GetWRFMetadata(
-				(const char **)argv, argc-1, wrfNames, timestamps, extentsPtr, 
-				dim, wrfVarNames, startDate
-			);
-			if (rc<0) exit(1);
 		}
 
 		if (opt.varnames.size()) {
@@ -396,6 +373,43 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	// If a start time was specified, make sure we have no time stamps
+	// earlier than the start time
+	//
+	if (! startT.empty()) {
+		TIME64_T seconds;
+		if (WRF::WRFTimeStrToEpoch(startT, &seconds) < 0) exit(1);
+
+		vector <TIME64_T>::iterator itr = timestamps.begin();
+		while (*itr < seconds && itr != timestamps.end()) {
+			itr++;
+		}
+		if (itr != timestamps.begin()) {
+			timestamps.erase(timestamps.begin(), itr);
+		}
+	}
+
+	// If an explict time sampling was specified use it
+	//
+	if (opt.deltat) {
+		TIME64_T seconds = timestamps[0];
+		int numts = Max(opt.numts, (int) timestamps.size());
+		timestamps.clear();
+		timestamps.push_back(seconds);
+
+		for (TIME64_T t = 1; t<numts; t++) {
+			timestamps.push_back(timestamps[0]+(t*opt.deltat));
+		}
+	}
+
+	// If a limit was specified on the number of time steps delete
+	// excess ones
+	//
+	if (opt.numts && (opt.numts < timestamps.size())) {
+		timestamps.erase(timestamps.begin()+opt.numts, timestamps.end());
+	}
+		
+			
 	// Add derived variables to the list of variables
 	for ( int i = 0 ; i < opt.dervars.size() ; i++ )
 	{
