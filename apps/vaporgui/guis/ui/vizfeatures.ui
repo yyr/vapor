@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>415</width>
-            <height>1458</height>
+            <height>1464</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -158,6 +158,9 @@
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The global visualizer settings apply to all visualizers.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -313,7 +316,7 @@
                                         <enum>Raised</enum>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>When visualizing layered data (such as WRF output) there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  By default, the values of all variables are zero above or below the layered data..  Use this section to specify nonzero values above or below the layered data.</string>
+                                        <string>When visualizing layered data (such as WRF output) there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  By default, the values of all variables are zero above or below the layered data..  Use this section to specify nonzero values above or below the layered data.  This is useful to eliminate distracting artifacts that appear above or below the data being visualized.</string>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -383,15 +386,24 @@
                                                             <property name="name">
                                                                 <cstring>highValEdit</cstring>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify value of the variable above the highest layer of the dataset</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit" row="1" column="1">
                                                             <property name="name">
                                                                 <cstring>lowValEdit</cstring>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the value of the variable below the lowest layer of the dataset</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QComboBox" row="1" column="0">
                                                             <property name="name">
                                                                 <cstring>variableCombo</cstring>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the variable whose values are being specified</string>
                                                             </property>
                                                         </widget>
                                                     </grid>
@@ -752,7 +764,7 @@
                                 <string>Enable axis annotation</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Provide axes with coordinates and tic marks</string>
+                                <string>Check to provide axes with coordinates and tic marks</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>Check this checkbox to provide coordinate axes and to specify how the axes will be marked and labelled.</string>
@@ -2359,6 +2371,9 @@
                     <property name="frameShadow">
                         <enum>Raised</enum>
                     </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Specify properties of a color scale that is displayed in the scene, based on the transfer function used in the volume renderer that is rendering in this window.</string>
+                    </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
@@ -2456,7 +2471,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>specify color scale width in [0,1]</string>
+                                                <string>specify color scale width relative to window width in [0,1]</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit" row="0" column="2">
@@ -2470,7 +2485,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>specify color scale lower-left x corner in [0,1]</string>
+                                                <string>specify color scale position in scene as lower-left x corner in [0,1]</string>
                                             </property>
                                         </widget>
                                         <spacer row="0" column="1">
@@ -2501,7 +2516,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>specify color scale lower-left y corner in [0,1]</string>
+                                                <string>specify color scale position in window as lower-left y corner in [0,1]</string>
                                             </property>
                                         </widget>
                                         <spacer row="1" column="1">
@@ -2532,7 +2547,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>specify color scale height in [0,1]</string>
+                                                <string>specify color scale height relative to window height in [0,1]</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel" row="1" column="0">
@@ -2592,7 +2607,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Number of vertical tic marks in color scale</string>
+                                                <string>Number of vertical tic marks in color scale (or 0 to omit tics)</string>
                                             </property>
                                         </widget>
                                     </hbox>

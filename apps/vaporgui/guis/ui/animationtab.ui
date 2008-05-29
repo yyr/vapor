@@ -194,6 +194,9 @@ step, and will animate in unison.</string>
                             <property name="text">
                                 <string>Min: </string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
+                            </property>
                         </widget>
                         <widget class="QLabel">
                             <property name="name">
@@ -204,6 +207,9 @@ step, and will animate in unison.</string>
                             </property>
                             <property name="alignment">
                                 <set>AlignVCenter|AlignLeft</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
                             </property>
                         </widget>
                         <spacer>
@@ -258,6 +264,9 @@ step, and will animate in unison.</string>
                             <property name="text">
                                 <string>Max:</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
+                            </property>
                         </widget>
                         <widget class="QLabel">
                             <property name="name">
@@ -268,6 +277,9 @@ step, and will animate in unison.</string>
                             </property>
                             <property name="alignment">
                                 <set>AlignVCenter|AlignRight</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Min and Max frames refer to the smallest and largest time steps in the current dataset</string>
                             </property>
                         </widget>
                     </hbox>
@@ -823,8 +835,7 @@ size slider and text box.</string>
                                                 <string>Check to use the list of time steps</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will
-be played during the animation.</string>
+                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -865,8 +876,7 @@ be played during the animation.</string>
                                                 <string>Click to add another timestep to the list</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will
-be played during the animation.</string>
+                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -880,8 +890,7 @@ be played during the animation.</string>
                                                 <string>Click to delete the current time step</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will
-be played during the animation.</string>
+                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -895,7 +904,7 @@ be played during the animation.</string>
                                                 <string>Rebuild list of time steps</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Click Rebuild to construct a list of time steps based on the time steps for which there is data.</string>
+                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -937,8 +946,7 @@ be played during the animation.</string>
                                 <string>Specify time steps to be sampled</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Specify a list of time steps that will
-be played during the animation.</string>
+                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
                             </property>
                         </widget>
                         <spacer>

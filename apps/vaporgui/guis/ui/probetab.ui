@@ -1641,7 +1641,7 @@ selected axis.</string>
                                                                 </font>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Rotate probe 90 degrees about center using selected axis direction</string>
+                                                                <string>Rotate probe 90 degrees about its center using selected axis direction</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The orientation of the probe is controlled
@@ -2006,7 +2006,7 @@ selected axis.</string>
                                                 <cstring>probeTypeCombo</cstring>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Select whether the probe will display the color-mapped data or a tlow image</string>
+                                                <string>Select whether the probe will display the color-mapped data or a tlow image (using image-based flow visualization)</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2059,7 +2059,7 @@ selected axis.</string>
                                         <enum>Raised</enum>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>Flow image in the Probe uses a technique called Image Based Flow Visualization, due to Jarke Van Wijk.  A random spot noise pattern is moved via the vector field.  Multiple such images are accumulated, giving the effect of smearing the random pattern along the direction of flow.  This can be seen evolving over time by clicking the "Play" and "Pause" button. The alpha value determines the fraction of new noise that is blended into the previous image.  The flow speed is scaled by the Scale parameter.</string>
+                                        <string>Flow image in the Probe uses a technique called Image Based Flow Visualization, due to Jarke Van Wijk.  A random spot noise pattern is advected by the vector field.  Multiple such images are accumulated, giving the effect of smearing the random pattern along the direction of flow.  This can be seen evolving over time by clicking the "Play" and "Pause" buttons. The alpha value determines the fraction of new noise that is blended into the previous image.  The flow speed is scaled by the Scale parameter.</string>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -2148,7 +2148,7 @@ selected axis.</string>
                                                                 </size>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the variable that is mapped to the X coord of the field</string>
+                                                                <string>Specify the variable that is mapped to the X coordinate of the field</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
@@ -2185,7 +2185,7 @@ selected axis.</string>
                                                                 <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the variable that is mapped to the Y coord of the field</string>
+                                                                <string>Specify the variable that is mapped to the Y coordinate of the field</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
@@ -2222,7 +2222,7 @@ selected axis.</string>
                                                                 <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the variable that is mapped to the Z coord of the field</string>
+                                                                <string>Specify the variable that is mapped to the Z coordinate of the field</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -2402,7 +2402,7 @@ selected axis.</string>
                                                                 <string>Start Capture Sequence</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>click to start or stop capturing of images to jpeg files</string>
+                                                                <string>click to start or stop capturing of images of the flow to jpeg files</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>When the "Capture image to file" 
@@ -2571,7 +2571,10 @@ the probe, the slice determined by
 Zp = 0.  The colors in the slice are
 determined by mapping the variables
 in the slice using the color mapping
-of the current transfer function.  The
+of the current transfer function.  In Flow
+Image mode, the b/w intensity is
+displayed with or instead of the
+variable color. The
 same slice is displayed in the
 scene, however the in-scene image
 is influenced by the opacity as well
@@ -3133,6 +3136,9 @@ change the selection in the probe</string>
                                     <property name="frameShadow">
                                         <enum>Raised</enum>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The appearance parameters affect the coloring and intensity of the image in the probe.  The color and opacity are determined by a transfer function editor.  When using a flow texture, the b/w image represents the value of the advected spot noise.</string>
+                                    </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
@@ -3485,19 +3491,19 @@ how the histogram is scaled.</string>
                                                                         <bool>true</bool>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
-                                                                        <string>The transfer function editor displays a 
+                                                                        <string>The transfer function editor displays a
 mapping (called a "transfer function")
-from the data variable(s) to opacity and 
-color,  This is used when you view a 
-slice or contour plane of the variable(s). 
+from the data variable(s) to opacity and
+color,  This is used when you view a
+slice or contour plane of the variable(s).
 Opacity only affects the in-scene copy
 of the contour plane, not the cross-section
-view in this panel. 
-The opacity values are shown as a 
+view in this panel.
+The opacity values are shown as a
 green curve.  The color is determined
 by the set of control points along the color
-bar at the bottom.  A histogram of data 
-values is shown in blue-green behind 
+bar at the bottom.  A histogram of data
+values is shown in blue-green behind
 the opacity curve.  Additional options are
 available from the right mouse button.</string>
                                                                     </property>
@@ -3526,7 +3532,7 @@ available from the right mouse button.</string>
                                                                         <enum>Vertical</enum>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>Scale Opacity Values</string>
+                                                                        <string>Scale Opacity Values with this slider</string>
                                                                     </property>
                                                                 </widget>
                                                                 <spacer>
@@ -4006,7 +4012,7 @@ depending on which button is clicked.</string>
                                                                 <bool>false</bool>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify number of bits used for volume rendering </string>
+                                                                <string>Specify number of bits (not currently implemented)</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

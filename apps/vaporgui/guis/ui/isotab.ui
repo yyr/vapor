@@ -86,17 +86,17 @@
                                 <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>The instance checkbox determines which
-Probe/Contour planes are actively 
-rendering in the active visualizer.  You 
+                                <string>The instance checkbox determines
+which isosurfaces are actively
+rendering in the active visualizer.  You
 can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the probe instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the "New" 
-button or the "Duplicate In" selector to 
-create new Probe/Contour instances.</string>
+loaded.  The identifying number (at the
+left) selects the probe instance whose
+parameters are currently edited in this
+panel.  Any  number of instances can
+render at the same time.  Use the "New"
+button or the "Duplicate In" selector to
+create new isosurface instances.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -144,16 +144,16 @@ create new Probe/Contour instances.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
-Probe/Contour planes are actively 
+isosurfaces are actively 
 rendering in the active visualizer.  You 
 can only use it after a data set has been
 loaded.  The identifying number (at the 
-left) selects the probe instance whose 
+left) selects the isosurface instance whose 
 parameters are currently edited in this 
 panel.  Any  number of instances can 
 render at the same time.  Use the "New" 
 button or the "Duplicate In" selector to 
-create new Probe/Contour instances.</string>
+create new isosurface instances.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -322,6 +322,9 @@ create new isosurface instances.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Ths isosurface selection panel provides several options for selecting the isosurface to be visualized.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -495,7 +498,7 @@ create new isosurface instances.</string>
                                                 <bool>false</bool>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the variable that is visualized</string>
+                                                <string>Specify the variable whose isosurface is visualized</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -575,7 +578,7 @@ and move control points.</string>
                                                 <string>Fit to View</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Align edit window with histogram boundss</string>
+                                                <string>Align edit window with histogram bounds</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The "Fit to View" button is used to make the current editing region coincide with the histogram bounds.</string>
@@ -701,7 +704,7 @@ how the histogram is scaled.</string>
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Thd isosurface value is the value of the specified variable for which an isosurface will be rendered.</string>
+                                                <string>The isosurface value is the value of the specified variable for which an isosurface will be rendered.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1058,7 +1061,7 @@ specified range.</string>
                                                 <string>Specify the coordinates of a point that will have an isosurface through it</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The three point coordinates can be used to construct an isosurface through a point in the scene.  Set them to any valid point where the variable is defined, and then click on "Pass Iso Thru Point" to construct an isosurface through that point.</string>
+                                                <string>The three point coordinates can be used to construct an isosurface through a point in the scene.  Set them to any valid point where the variable is defined, and then click on "Pass Iso Thru Point" to construct an isosurface through that point..  Note that the isosurface may not precisely pass through the selected point if the resolution of the isosurface or the probe are not sufficiently high..</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -1333,6 +1336,9 @@ specified range.</string>
                     <property name="frameShadow">
                         <enum>Raised</enum>
                     </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The appearance of the isosurface are controlled in this panel.  The isosurface can have constant color and opacity or it can have a color determined by a transfer function applied to another variable.  The appearance is also affected by the bits per voxel, and the lighting.</string>
+                    </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
@@ -1415,7 +1421,10 @@ specified range.</string>
                                                 <bool>false</bool>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the variable that is visualized</string>
+                                                <string>Specify the variable that is used for mapping color and opacity to the isosurface</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The isosurface can have constant color and opacity, or the color and opacity can be applied from a transfer function on another variable.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1874,11 +1883,8 @@ how the histogram is scaled.</string>
                                                         <string>The transfer function editor displays a 
 mapping (called a "transfer function")
 from the data variable(s) to opacity and 
-color,  This is used when you view a 
-slice or contour plane of the variable(s). 
-Opacity only affects the in-scene copy
-of the contour plane, not the cross-section
-view in this panel. 
+color,  This is applied to color the 
+isosurface in the scene.
 The opacity values are shown as a 
 green curve.  The color is determined
 by the set of control points along the color
@@ -1912,7 +1918,7 @@ available from the right mouse button.</string>
                                                         <enum>Vertical</enum>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Scale Opacity Values</string>
+                                                        <string>Scale Opacity Values by the value of this slider</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>

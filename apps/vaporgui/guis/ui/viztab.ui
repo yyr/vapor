@@ -190,6 +190,9 @@ lights.</string>
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -226,6 +229,9 @@ where the camera is pointed.</string>
                             <property name="name">
                                 <cstring>camPos0</cstring>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -245,6 +251,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>3.12332</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
@@ -301,6 +310,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.5002</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -329,6 +341,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.5</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -348,6 +363,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
@@ -377,6 +395,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -396,6 +417,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>-0.24556</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
@@ -417,6 +441,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>1.0</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -436,6 +463,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.0</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
@@ -457,6 +487,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.0</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
@@ -476,6 +509,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
@@ -981,8 +1017,9 @@ originating behind the viewer</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>VAPOR allows up to three lights to be used
-in flow visualization, and one for volume
-rendering.  The orientation vectors specify
+in flow, probe, and terrain visualization, and
+one light for volume rendering and isosurfaces.
+The orientation vectors specify
 the direction to the light source from the
 viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
