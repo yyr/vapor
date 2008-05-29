@@ -121,6 +121,7 @@ TextureBrick::~TextureBrick()
     delete [] _data;
   }
 
+  printOpenGLError();
   _data = NULL;
 }
 
@@ -271,19 +272,29 @@ void TextureBrick::load()
 // else, the data volume pointed to by _data are now a power-of-two
 // and will need to be download as a subimage.
 //
-  if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
-  {
-    glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
+  bool gl_tex_sub_image_broken = false;
+#ifdef	Darwin
+  if (GLEW_VERSION_2_0) gl_tex_sub_image_broken = true;
+#endif
+
+  if (gl_tex_sub_image_broken) {
+      glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
+                 _nx, _ny, _nz, 0, _format, _type, _data);
+  } 
+  else { 
+    if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) {
+      glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
                  _nx, _ny, _nz, 0, _format, _type, _data);
 
-  }
-  else
-  {
-    glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
+    }
+    else
+    {
+      glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
                  _nx, _ny, _nz, 0, _format, _type, NULL);
 
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,
+      glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,
                     _dnx, _dny, _dnz, _format, _type, _data);
+    }
   }
 }
 
@@ -294,15 +305,24 @@ void TextureBrick::reload()
 {
   glBindTexture(GL_TEXTURE_3D, _texid);
 
-  if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
-  {
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
+  bool gl_tex_sub_image_broken = false;
+#ifdef	Darwin
+  if (GLEW_VERSION_2_0) gl_tex_sub_image_broken = true;
+#endif
+  if (gl_tex_sub_image_broken) {
+      glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
+                 _nx, _ny, _nz, 0, _format, _type, _data);
+  } 
+  else {
+	if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) {
+      glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
                     _format, _type, _data);
-  }
-  else
-  {
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
+    }
+    else
+    {
+      glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
                     _format, _type, _data);
+    }
   }
 }
 
@@ -367,9 +387,20 @@ void TextureBrick::fill(GLubyte *data, int nx, int ny, int nz)
   _dny = ny;
   _dnz = nz;
 
-  _nx = nextPowerOf2(nx);
-  _ny = nextPowerOf2(ny);
-  _nz = nextPowerOf2(nz);
+  bool gl_tex_sub_image_broken = false;
+#ifdef	Darwin
+  if (GLEW_VERSION_2_0) gl_tex_sub_image_broken = true;
+#endif
+  if (gl_tex_sub_image_broken) {
+      _nx = nx;
+      _ny = ny;
+      _nz = nz;
+	}
+  else  {
+    _nx = nextPowerOf2(nx);
+    _ny = nextPowerOf2(ny);
+    _nz = nextPowerOf2(nz);
+  }
 
   _xoffset = 0;
   _yoffset = 0;

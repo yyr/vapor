@@ -106,6 +106,11 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
   _dmax.y = data_roi[4];
   _dmax.z = data_roi[5];
 
+  bool gl_tex_sub_image_broken = false;
+#ifdef  Darwin
+  if (GLEW_VERSION_2_0) gl_tex_sub_image_broken = true;
+#endif
+
   if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents, _maxTexture))
   {
     if (_nx != nx || _ny != ny || _nz != nz)
@@ -113,6 +118,13 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       _nx = _bx = nextPowerOf2(nx); 
       _ny = _by = nextPowerOf2(ny); 
       _nz = _bz = nextPowerOf2(nz);
+
+      if (gl_tex_sub_image_broken) {
+        _nx = nx;
+        _ny = ny;
+        _nz = nz;
+      }
+
     }
     
     _vmin.x = extents[0];
@@ -175,7 +187,6 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     for (int i=0; i<_bricks.size(); i++)
     {
       _bricks[i]->refill((GLubyte*)data);
-      loadTexture(_bricks[i]);
     }
   }
 
