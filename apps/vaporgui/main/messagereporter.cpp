@@ -49,9 +49,6 @@ MessageReporter::MessageReporter() {
 	logFile = 0;
 	
 	messageMutex = new QMutex();
-	
-
-
 	reset(Session::getInstance()->getLogfileName().c_str());
 	setDefaultPrefs();
 	
@@ -90,6 +87,7 @@ reset(const char* newLogFileName){
 		if (!logFile) {
 			std::string s("VAPoR session log file cannot be opened:\n");
 			s += newLogFileName;
+			s += "\n Choose another log file from user preferences";
 			doPopup(Error,s.c_str());
 			return;
 		}

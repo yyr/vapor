@@ -200,24 +200,38 @@ void Session::setDefaultPrefs(){
 	cacheMB = 1024;
 	textureSizeSpecified = false;
 	textureSize = 0;
-	//Set up default path for log file:
-	char buf[50];
+	//Set up default paths for log file and autosave file
+	
+	string str;
+	string str1;
+	string formerLogfileName = currentLogfileName;
 #ifdef WIN32
 	//Use the user name in the log file name
+	char* tempDir = getenv("TEMP");
+	if (!tempDir) tempDir = "C:\\TEMP";
 	char buf2[50];
-	//WCHAR buf2[50];
+	
 	DWORD size = 50;
 	//Don't Use QT to convert from unicode back to ascii
 	//WNetGetUserA(0,(LPWSTR)buf2,&size);
 	WNetGetUserA(0,(LPSTR)buf2,&size);
-	sprintf(buf, "C:/TEMP/vaporlog.%s.txt", buf2);
-	//QString qstr((QChar*)buf2, size);
-	//sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
+	str1 = string(tempDir)+"\\VaporAutosave."+string(buf2)+".vss";
+	str = string(tempDir)+"\\vaporlog."+string(buf2)+".txt";
+
 #else
+	char buf[50];
+	char buf1[50];
 	uid_t	uid = getuid();
+	
 	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
+	sprintf (buf1, "/tmp/VaporAutosave.%6.6d.vss", uid);
+	str = buf;
+	str1 = buf1;
 #endif
-	currentLogfileName = buf;
+	currentLogfileName = str;
+	if (currentLogfileName != formerLogfileName)
+		MessageReporter::getInstance()->reset(currentLogfileName.c_str());
+	autoSaveSessionFilename = str1;
 	char* defaultDir = getenv("HOME");
 	if (!defaultDir) defaultDir = ".";
 	preferenceMetadataDir = defaultDir;
@@ -225,7 +239,6 @@ void Session::setDefaultPrefs(){
 	preferenceFlowDirectory = defaultDir;
 	preferenceSessionDirectory = defaultDir;
 	preferenceTFPath = defaultDir;
-	autoSaveSessionFilename = "AutosavedSession.vss";
 	autoSaveInterval = 10;
 }
 
@@ -888,12 +901,14 @@ addToHistory(Command* cmd){
 		ofstream fileout;
 		fileout.open(getAutoSaveSessionFilename().c_str());
 		if (! fileout) {
-			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s", autoSaveSessionFilename.c_str());
+			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s\n %s", autoSaveSessionFilename.c_str(),
+				"Choose another autosave location from user preferences");
 			return;
 		}
 		
 		if (!saveToFile(fileout)){//Report error if can't save to file
-			MessageReporter::errorMsg("Failed to auto-save session to:\n %s", autoSaveSessionFilename.c_str());
+			MessageReporter::errorMsg("Failed to auto-save session to:\n %s\n%s", autoSaveSessionFilename.c_str(),
+				"Choose another autosave location from user preferences");
 			fileout.close();
 			return;
 		}
