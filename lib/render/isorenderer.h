@@ -36,17 +36,17 @@ namespace VAPoR {
       
   public:
 	
-	bool IsoRenderer::datarangeIsDirty() { return(_dataDF.Test()); }
+	bool datarangeIsDirty() { return(_dataDF.Test()); }
 
-	void IsoRenderer::setDatarangeDirty() { _dataDF.Set(); }
+	void setDatarangeDirty() { _dataDF.Set(); }
 
-	void IsoRenderer::clearDatarangeDirty() { _dataDF.Clear(); }
+	void clearDatarangeDirty() { _dataDF.Clear(); }
 
-	bool IsoRenderer::clutIsDirty() { return(_colorMapDF.Test()); }
+	bool clutIsDirty() { return(_colorMapDF.Test()); }
 
-	void IsoRenderer::setClutDirty() { _colorMapDF.Set(); }
+	void setClutDirty() { _colorMapDF.Set(); }
 
-	void IsoRenderer::clearClutDirty() { _colorMapDF.Clear(); }
+	void clearClutDirty() { _colorMapDF.Clear(); }
 
     IsoRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~IsoRenderer();
