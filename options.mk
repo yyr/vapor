@@ -80,7 +80,7 @@ QT_LIB_PATH =
 # licensed product available, for fee, from www.sgi.com. Volumizer is NOT
 # required by vapor.
 #
-BUILD_VOLUMIZER = 1
+BUILD_VOLUMIZER = 0
 
 # Set VOLUMIZER_ROOT to the root of the volumizer directory
 # (Only needed if BUILD_VOLUMIZER is 1)
