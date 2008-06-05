@@ -605,7 +605,9 @@ else  {
 	
 
 my($volume, $directory, $vdfbase) = File::Spec->splitpath($VDFFile);
-chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
+if ($directory ne "") {
+	chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
+}
 
 if (! $NoLog) {
 	open (FILE, "> $LogFile") || die "Can't open log file $LogFile for writing!";
