@@ -193,7 +193,6 @@ void WRF::InterpHorizSlice(
 }
 
 
-
 int WRF::GetZSlice(
    int ncid, // ID of netCDF file
    varInfo & thisVar, // varInfo struct for the variable we're interested in
@@ -208,10 +207,13 @@ int WRF::GetZSlice(
 					   // reduce redundant reads
    const size_t * dim // Dimensions from VDF
 ) {
+	int rc;
+
 	// Read a slice from the netCDF
 	if ( needAnother )
 	{
-		if (ReadZSlice4D( ncid, thisVar, wrfT, z, fbuffer, dim) < 0) return(-1);
+		rc = ReadZSlice4D( ncid, thisVar, wrfT, z, fbuffer, dim);
+		if (rc < 0) return(-1);
 		// Do horizontal interpolation of staggered grids, if necessary
 		if ( thisVar.stag[0] || thisVar.stag[1] )
 			InterpHorizSlice( fbuffer, thisVar, dim );
@@ -221,33 +223,29 @@ int WRF::GetZSlice(
 	// for interpolation
 	if ( thisVar.stag[2] )
 	{
-		float *f1 = fbuffer;
-		float *f2 = fbufferAbove;
-		// If the vertical grid is staggered, save the slice above the one we
-		// just wrote as the one we are going to work on next time
-		if ( !needAnother )
-		{
-			f1 = fbufferAbove;
-			f2 = fbuffer;
+		if ( needAnother ) {
+			// Now we no longer need to read two slices
+			needAnother = false;
+		}
+		else {
+			memcpy(fbuffer, fbufferAbove, dim[0]*dim[1]*sizeof(fbuffer[0]));
 		}
 
-		if (ReadZSlice4D(ncid, thisVar, wrfT, z+1, f2, dim) < 0) return(-1);
+		rc =  ReadZSlice4D(ncid, thisVar, wrfT, z+1, fbufferAbove, dim);
+		if (rc < 0) return(-1);
 		// Iterpolate horizontally, if needed
 		if ( thisVar.stag[0] || thisVar.stag[1] )
 			InterpHorizSlice( fbufferAbove, thisVar, dim );
+
 		// Now do the vertical interpolation
 		for ( size_t l = 0 ; l < dim[0]*dim[1] ; l++ )
 		{
-			fbuffer[l] = (f1[l] + f2[l]) / 2.0;
+			fbuffer[l] = (fbuffer[l] + fbufferAbove[l]) / 2.0;
 		}
-		// Now we no longer need to read two slices
-		if ( needAnother )
-			needAnother = false;
 	}
 
 	return(0);
 }
-
 
 int WRF::WRFTimeStrToEpoch(
 	const string &wrftime,
