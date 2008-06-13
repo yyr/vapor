@@ -27,6 +27,7 @@ endif
 endif
 endif
 
+
 ifeq ($(ARCH), WIN_NT)
 ARCH=WIN32
 endif
@@ -46,16 +47,26 @@ ifeq ($(ARCH), CYGWIN_NT5.1)
 ARCH=WIN32
 endif
 
-ifeq ($(MACHTYPE),i686)
-MACHTYPE=i386
+# On suse versions > 10.2 'uname-m' appends extra crud
+#
+ifeq (x86_64, $(findstring x86_64, $(MACHTYPE)))
+MACHTYPE = x86_64
 endif
 
-ifeq ($(MACHTYPE),i586)
-MACHTYPE=i386
+ifeq (i686, $(findstring i686, $(MACHTYPE)))
+MACHTYPE = i386
 endif
 
-ifeq ($(MACHTYPE),i486)
-MACHTYPE=i386
+ifeq (i586, $(findstring i586, $(MACHTYPE)))
+MACHTYPE = i386
+endif
+
+ifeq (i486, $(findstring i486, $(MACHTYPE)))
+MACHTYPE = i386
+endif
+
+ifeq (i386, $(findstring i386, $(MACHTYPE)))
+MACHTYPE = i386
 endif
 
 include $(TOP)/options.mk
