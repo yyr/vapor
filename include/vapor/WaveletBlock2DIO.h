@@ -3,20 +3,20 @@
 //
 
 
-#ifndef	_WavletBlock3DIO_h_
-#define	_WavletBlock3DIO_h_
+#ifndef	_WavletBlock2DIO_h_
+#define	_WavletBlock2DIO_h_
 
 #include <cstdio>
 #include <netcdf.h>
 #include <vapor/MyBase.h>
-#include <vapor/WaveletBlock3D.h>
+#include <vapor/WaveletBlock2D.h>
 #include <vapor/WaveletBlockIOBase.h>
 
 namespace VAPoR {
 
 
 //
-//! \class WaveletBlock3DIO
+//! \class WaveletBlock2DIO
 //! \brief Performs data IO to VDF files.
 //! \author John Clyne
 //! \version $Revision$
@@ -25,41 +25,35 @@ namespace VAPoR {
 //! This class provides an API for performing low-level IO 
 //! to/from VDF files
 //
-class VDF_API	WaveletBlock3DIO : public VAPoR::WaveletBlockIOBase {
+class VDF_API	WaveletBlock2DIO : public VAPoR::WaveletBlockIOBase {
 
 public:
 
- //! Constructor for the WaveletBlock3DIO class.
+ //! Constructor for the WaveletBlock2DIO class.
  //! \param[in] metadata Pointer to a metadata class object for which all
  //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, WaveletBlock3DRegionReader, GetErrCode(),
+ //! \sa Metadata, WaveletBlock2DRegionReader, GetErrCode(),
  //
- WaveletBlock3DIO(
-	const Metadata *metadata,
-	unsigned int	nthreads = 1
+ WaveletBlock2DIO(
+	const Metadata *metadata
  );
 
- //! Constructor for the WaveletBlock3DIO class.
+ //! Constructor for the WaveletBlock2DIO class.
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, WaveletBlock3DRegionReader, GetErrCode(),
+ //! \sa Metadata, WaveletBlock2DRegionReader, GetErrCode(),
  //
- WaveletBlock3DIO(
-	const char *metafile,
-	unsigned int	nthreads = 1
+ WaveletBlock2DIO(
+	const char *metafile
  );
 
- virtual ~WaveletBlock3DIO();
+ virtual ~WaveletBlock2DIO();
 
 
  //! Open the named variable for writing
@@ -148,11 +142,11 @@ public:
  //!
  int	GetBlockMaxs(const float **maxs, int reflevel);
 
- //! Unpack a block into a contiguous volume
+ //! Unpack a tile into a contiguous volume
  //!
- //! Unblock the block \p blk into a volume pointed to by \p voxels
- //! \param[in] blk A block of voxels
- //! \param[in] bcoord Offset of the start of the block within the 
+ //! Untile the tile \p blk into a volume pointed to by \p voxels
+ //! \param[in] blk A tile of voxels
+ //! \param[in] bcoord Offset of the start of the tile within the 
  //! volume in integer coordinates
  //! \param[in] min Minimum extents of destination volume in voxel 
  //! coordinates. Must be between 0 and block_size-1
@@ -160,19 +154,24 @@ public:
  //! coordinates. 
  //! \param[out] voxels A pointer to a volume
  //
- void	Block2NonBlock(
-		const float *blk, 
-		const size_t bcoord[3],
-		const size_t min[3],
-		const size_t max[3],
+ void	Tile2NonTile(
+		const float *tile, 
+		const size_t bcoord[2],
+		const size_t min[2],
+		const size_t max[2],
+		VarType_T vtype,
 		float	*voxels
 	) const;
 
 
 protected:
 
- float	*super_block_c;		// temp storage for gamma blocks;
- VAPoR::WaveletBlock3D	*wb3d_c;
+ float *_super_tile;
+ VarType_T _vtype;	// Type of currently opened variable
+
+ WaveletBlock2D	*_wb2dXY;
+ WaveletBlock2D	*_wb2dXZ;
+ WaveletBlock2D	*_wb2dYZ;
 
  virtual int	ncDefineDimsVars(
 	int j,
@@ -194,7 +193,7 @@ protected:
  //
  // A non-negative return value indicates success
  //
- int	seekLambdaBlocks(const size_t bcoord[3]);
+ int	seekLambdaBlocks(const size_t bcoord[2]);
 
  // This method moves the file pointer associated with the currently
  // open variable to the disk block containing gamma coefficients
@@ -205,7 +204,7 @@ protected:
  //
  // A non-negative return value indicates success
  //
- int	seekGammaBlocks(const size_t bcoord[3], int reflevel);
+ int	seekGammaBlocks(const size_t bcoord[2], int reflevel);
 
  // Read 'n' contiguous coefficient blocks, associated with the refinement
  // level, 'reflevel', from the currently open variable
@@ -265,15 +264,14 @@ protected:
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
 
-
  int	my_alloc();
  void	my_free();
 
 
- int	_WaveletBlock3DIO();
+ int	_WaveletBlock2DIO();
 
 };
 
 }
 
-#endif	//	_WavletBlock3d_h_
+#endif	//	_WavletBlock2d_h_

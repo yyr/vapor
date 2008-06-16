@@ -33,7 +33,7 @@ namespace VAPoR {
 		return(RETVAL); \
 	}
 
-const int VDF_VERSION = 2;
+const int VDF_VERSION = 3;
 
 //
 //! \class Metadata
@@ -336,10 +336,12 @@ public:
 
  //! Set the names of the field variables in the data collection
  //!
+ //! All variables specified are of type 3D. 
  //! \param[in] value A white-space delimited list of names
  //! \retval status Returns a non-negative integer on success
  //
  int SetVariableNames(const vector <string> &value);
+
 
 
  //! Return the names of the variables in the collection 
@@ -349,6 +351,55 @@ public:
  const vector <string> &GetVariableNames() const {
 	return(_varNames);
 	};
+
+ //! Indicate which variables in a VDC are of type 3D
+ //!
+ //! Specifies which variables in a VDC represent 
+ //! three-dimensional fields.  The variable names must 
+ //! match names previoulsy provided by SetVariableNames().
+ //! \note As the default type of all variables is 3D, this method
+ //! is largely superflous, but is included for completeness
+ //!
+ //! \param[in] value A white-space delimited list of names
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetVariables3D(const vector <string> &value);
+
+ //! Return the names of the 3D variables in the collection 
+ //!
+ //! \retval value is a space-separated list of 3D variable names
+ //
+ const vector <string> &GetVariables3D() const {
+	return(_varNames3D);
+	};
+
+ //! Indicate which variables in a VDC are of type 2DXY
+ //!
+ //! Specifies which variables in a VDC represent 
+ //! two-dimensional, XY-plane fields.  The variable names must 
+ //! match names previoulsy provided by SetVariableNames().
+ //!
+ //! \param[in] value A white-space delimited list of names
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetVariables2DXY(const vector <string> &value);
+ int SetVariables2DXZ(const vector <string> &value);
+ int SetVariables2DYZ(const vector <string> &value);
+
+ //! Return the names of the 2D, XY variables in the collection 
+ //!
+ //! \retval value is a space-separated list of 2D XY variable names
+ //
+ const vector <string> &GetVariables2DXY() const {
+	return(_varNames2DXY);
+	};
+ const vector <string> &GetVariables2DXZ() const {
+	return(_varNames2DXZ);
+	};
+ const vector <string> &GetVariables2DYZ() const {
+	return(_varNames2DYZ);
+	};
+
 
  //! Set a global comment
  //!
@@ -939,6 +990,10 @@ protected:
  int	_objInitialized;	// has the obj successfully been initialized?
  XmlNode	*_rootnode;		// root node of the xml tree
  vector <string> _varNames;	// Names of all the field variables
+ vector <string> _varNames3D;	// Names of all 3D field variables
+ vector <string> _varNames2DXY;	// Names of all 2D XY field variables
+ vector <string> _varNames2DXZ;	// Names of all 2D XZ field variables
+ vector <string> _varNames2DYZ;	// Names of all 2D YZ field variables
  size_t _bs[3];				// blocking factor to be used by data
  size_t _dim[3];			// data dimensions
  int	_nFilterCoef;		// Lifting filter coefficients
@@ -976,6 +1031,10 @@ protected:
  static const string _userTimeTag;
  static const string _timeStepTag;
  static const string _varNamesTag;
+ static const string _vars3DTag;
+ static const string _vars2DXYTag;
+ static const string _vars2DXZTag;
+ static const string _vars2DYZTag;
  static const string _xCoordsTag;
  static const string _yCoordsTag;
  static const string _zCoordsTag;
@@ -1015,6 +1074,11 @@ protected:
 	);
 
  int _SetNumTimeSteps(long value);
+ int _setVariableTypes(
+	const string &tag,
+	const vector <string> &value,
+	const vector <string> &delete_tags
+ );
  int _SetVariableNames(XmlNode *node, long ts);
  int _RecordUserDataTags(vector <string> &keys, const string &tag);
 

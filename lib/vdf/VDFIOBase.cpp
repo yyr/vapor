@@ -42,7 +42,7 @@ int	VDFIOBase::_VDFIOBase(
 	_num_reflevels = _metadata->GetNumTransforms() + 1;
 	_version = _metadata->GetVDFVersion();
 
-	GetDimBlk(_bdim, _num_reflevels-1);
+	VDFIOBase::GetDimBlk(_bdim, _num_reflevels-1);
 
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = 0;
@@ -112,7 +112,7 @@ void	VDFIOBase::GetDimBlk(
 ) const {
 	size_t dim[3];
 
-	GetDim(dim, reflevel);
+	VDFIOBase::GetDim(dim, reflevel);
 
 	for (int i=0; i<3; i++) {
 		bdim[i] = (size_t) ceil ((double) dim[i] / (double) _bs[i]);
@@ -120,7 +120,7 @@ void	VDFIOBase::GetDimBlk(
 }
 
 void	VDFIOBase::GetValidRegion(
-	size_t min[3], size_t max[3], size_t full_height, int reflevel
+	size_t min[3], size_t max[3], int reflevel
 ) const {
 
 	if (reflevel < 0) reflevel = _num_reflevels - 1;
@@ -129,10 +129,6 @@ void	VDFIOBase::GetValidRegion(
 	for (int i=0; i<3; i++) {
 		min[i] = _validRegMin[i] >> ldelta;
 		max[i] = _validRegMax[i] >> ldelta;
-	}
-	if (full_height != 0){
-		min[2] = 0;
-		max[2] = (full_height-1) >> ldelta;
 	}
 }
 
@@ -167,7 +163,7 @@ void	VDFIOBase::MapVoxToUser(
 		size_t	dim[3];
 
 		const vector <double> &extents = _metadata->GetExtents();
-		GetDim(dim, _num_reflevels-1);	// finest dimension
+		VDFIOBase::GetDim(dim, _num_reflevels-1);	// finest dimension
 		for(int i = 0; i<3; i++) {
 
 			// distance between voxels along dimension 'i' in user coords
@@ -212,7 +208,7 @@ void	VDFIOBase::MapUserToVox(
 
 		vector <double> lextents = extents;
 
-		GetDim(dim, reflevel);	
+		VDFIOBase::GetDim(dim, reflevel);	
 		for(int i = 0; i<3; i++) {
 			double a;
 
@@ -246,7 +242,7 @@ int	VDFIOBase::IsValidRegion(
 ) const {
 	size_t dim[3];
 
-	GetDim(dim, reflevel);
+	VDFIOBase::GetDim(dim, reflevel);
 
 	for(int i=0; i<3; i++) {
 		if (min[i] > max[i]) return (0);
@@ -263,13 +259,45 @@ int	VDFIOBase::IsValidRegionBlk(
 ) const {
 	size_t dim[3];
 
-	GetDimBlk(dim, reflevel);
+	VDFIOBase::GetDimBlk(dim, reflevel);
 
 	for(int i=0; i<3; i++) {
 		if (min[i] > max[i]) return (0);
 		if (max[i] >= dim[i]) return (0);
 	}
 	return(1);
+}
+
+VDFIOBase::VarType_T VDFIOBase::GetVarType(
+	const Metadata *metadata,
+	const string &varname
+) {
+
+    {
+        const vector <string> &vars = metadata->GetVariables3D();
+        for (int i=0; i<vars.size(); i++ ) {
+            if (vars[i].compare(varname) == 0) return(VAR3D);
+        }
+    }
+    {
+        const vector <string> &vars = metadata->GetVariables2DXY();
+        for (int i=0; i<vars.size(); i++ ) {
+            if (vars[i].compare(varname) == 0) return(VAR2D_XY);
+        }
+    }
+    {
+        const vector <string> &vars = metadata->GetVariables2DXZ();
+        for (int i=0; i<vars.size(); i++ ) {
+            if (vars[i].compare(varname) == 0) return(VAR2D_XZ);
+        }
+    }
+    {
+        const vector <string> &vars = metadata->GetVariables2DYZ();
+        for (int i=0; i<vars.size(); i++ ) {
+            if (vars[i].compare(varname) == 0) return(VAR2D_YZ);
+        }
+    }
+    return(VARUNKNOWN);
 }
 
 int    VAPoR::MkDirHier(const string &dir) {
@@ -318,3 +346,5 @@ void    VAPoR::DirName(const string &path, string &dir) {
 		dir = path.substr(0, idx+1);
 	}
 }
+
+

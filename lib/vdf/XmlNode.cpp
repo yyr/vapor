@@ -66,7 +66,7 @@ XmlNode::~XmlNode() {
 	if (! _objInitialized) return;
 
 	for (int i=0; i<(int)_children.size(); i++) {
-		
+
 		if (_children[i]) delete _children[i];
 		_children[i] = NULL;
 	}
@@ -163,7 +163,22 @@ string &XmlNode::SetElementString(
 	}
 
 	return(_stringmap[tag]);
+} 
+
+string &XmlNode::SetElementStringVec(
+    const string &tag,const vector <string> &strvec
+) {
+	string s;
+	for (int i=0; i<strvec.size(); i++) {
+		s.append(strvec[i]);
+		if (i<strvec.size()-1) s.append(" ");
+	}
+
+	return(XmlNode::SetElementString(tag, s));
 }
+
+
+
 	
 string &XmlNode::GetElementString(const string &tag) {
 
@@ -179,6 +194,26 @@ string &XmlNode::GetElementString(const string &tag) {
 
 	return(p->second);
 }
+
+void XmlNode::GetElementStringVec(const string &tag, vector <string> &vec) {
+	
+	vec.clear();
+	string s = XmlNode::GetElementString(tag);
+
+	while (! s.empty()) {
+		while (! s.empty() && isspace(s[0])) s.erase(0, 1); 
+
+		int index = 0;
+		while (index < s.length() && ! isspace(s[index])) index++;
+
+		if (index) {
+			string word = s.substr(0, index);
+			vec.push_back(word);
+			s.erase(0, index);
+		}
+	}
+}
+
 
 int XmlNode::HasElementString(const string &tag) const {
 	map <string, string>::const_iterator p = _stringmap.find(tag);

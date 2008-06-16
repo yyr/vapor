@@ -62,8 +62,7 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 int	WaveletBlock3DReader::OpenVariableRead(
 	size_t timestep,
 	const char	*varname,
-	int reflevel,
-	size_t //full_height
+	int reflevel
 ) {
 	int	rc;
 
@@ -103,7 +102,7 @@ int	WaveletBlock3DReader::ReadSlabs(
 	if (_reflevel==0) {
 		int	nb;
 
-		GetDimBlk(lambda_nb, 0);
+		VDFIOBase::GetDimBlk(lambda_nb, 0);
 
 		if (slab_cntr_c+2 <= (int)lambda_nb[2]) nb = (int)(lambda_nb[0] * lambda_nb[1] * 2);
 		else nb = (int)(lambda_nb[0] * lambda_nb[1]); // odd # of slabs
@@ -160,7 +159,7 @@ int	WaveletBlock3DReader::ReadSlabs(
 
 	if (j==0) { // top of tree => read lambda blocks
 
-		GetDimBlk(lambda_nb, 0);
+		VDFIOBase::GetDimBlk(lambda_nb, 0);
 
 		// altenate between slab 0 and slab 1
 		if (((slab_cntr_c / (1<<_reflevel)) % 2) == 1) {
@@ -180,8 +179,8 @@ int	WaveletBlock3DReader::ReadSlabs(
 
 	while (j<_reflevel) {
 
-		GetDimBlk(lambda_nb, j);
-		GetDimBlk(dst_nb, j+1);
+		VDFIOBase::GetDimBlk(lambda_nb, j);
+		VDFIOBase::GetDimBlk(dst_nb, j+1);
 
 		// Calculate offset into temp storage for lambda blocks
 		// at the current level. Alternate between "left" and
@@ -319,7 +318,7 @@ int	WaveletBlock3DReader::my_realloc(
 			size_t     size;
 			size_t nb_j[3];
 
-			GetDimBlk(nb_j, j);
+			VDFIOBase::GetDimBlk(nb_j, j);
 
 			size = nb_j[0] * nb_j[1] * _block_size * 2;
 

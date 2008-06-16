@@ -18,8 +18,7 @@ WaveletBlock3D::WaveletBlock3D(
 	et_c = NULL;
 	threads_c = NULL;
 	deallocate_c = 0;
-	lift_c = NULL;
-	liftbuf_c = NULL;
+	_wb1d = NULL;
 
 	SetClassName("WaveletBlock3D");
 
@@ -35,29 +34,13 @@ WaveletBlock3D::WaveletBlock3D(
 	z0_c = 0;
 	zr_c = bs_c;
 
-	if (n<1 || (IsOdd(n) && n != 1)) {
-		SetErrMsg("Invalid # of filter coefficients : n=%d", n);
-		return;
-	}
-
-	if (ntilde<1 || (IsOdd(ntilde) && ntilde != 1)) {
-		SetErrMsg("Invalid # of lifting coefficients : ntilde=%d", ntilde);
-		return;
-	}
-
-	n_c = n;
-	ntilde_c = n;
 	nthreads_c = nthreads;
 
-	if (n_c>1) {
-		lift_c = new Lifting1D<float> (n_c, ntilde_c, bs_c);
-		if (lift_c->GetErrCode()) {
-			SetErrMsg("Lifting1D() : %s", lift_c->GetErrMsg());
-			return;
-		}
-		liftbuf_c = new float[bs_c];
+	_wb1d = new WaveletBlock1D(bs_c, n, ntilde);
+	if (_wb1d->GetErrCode()) {
+		SetErrMsg("WaveletBlock1D() : %s", _wb1d->GetErrMsg());
+		return;
 	}
-
 
 	temp_blks1_c = new float*[4];
 	temp_blks2_c = new float*[4];
@@ -120,13 +103,11 @@ WaveletBlock3D::~WaveletBlock3D() {
 
 		if (threads_c) delete [] threads_c;
 		if (et_c) delete et_c;
-		if (lift_c) delete lift_c;
-		if (liftbuf_c) delete [] liftbuf_c;
+		if (_wb1d) delete _wb1d;
 
 		threads_c = NULL;
 		et_c = NULL;
-		lift_c = NULL;
-		liftbuf_c = NULL;
+		_wb1d = NULL;
 	}
 	_objInitialized = 0;
 }
@@ -159,7 +140,7 @@ void	WaveletBlock3D::ForwardTransform(
 		for(z=z0_c;z<z0_c+zr_c;z++) {
 			s = temp_blks1_c[i]+z*bs_c*bs_c;
 			d = temp_blks2_c[i]+z*bs_c*bs_c;
-			VAPoR::Transpose(s,d,bs_c,bs_c);
+			Transpose(s,d,bs_c,bs_c);
 		}
 	}
 
@@ -172,7 +153,7 @@ void	WaveletBlock3D::ForwardTransform(
 	// Transpose X&Z coord axis
 	//
 	for(i=0;i<2;i++) {
-		VAPoR::Transpose(
+		Transpose(
 			temp_blks1_c[i], temp_blks2_c[i],
 			0, bs_c*bs_c, bs_c*bs_c, z0_c, zr_c, bs_c
 		);
@@ -186,7 +167,7 @@ void	WaveletBlock3D::ForwardTransform(
 
 	// now transpose back to x,y,z order
 	//
-	VAPoR::Transpose(
+	Transpose(
 		dst_super_blk[0], temp_blks1_c[0],
 		0, bs_c, bs_c, z0_c*bs_c, bs_c*zr_c, bs_c*bs_c
 	);
@@ -196,7 +177,7 @@ void	WaveletBlock3D::ForwardTransform(
 	for(z=z0_c;z<z0_c+zr_c;z++) {
 		s = temp_blks1_c[0]+z*bs_c*bs_c;
 		d = dst_super_blk[0]+z*bs_c*bs_c;
-		VAPoR::Transpose(s,d,bs_c,bs_c);
+		Transpose(s,d,bs_c,bs_c);
 	}
 }
 
@@ -230,7 +211,7 @@ void	WaveletBlock3D::InverseTransform(
 	}
 }
 
-void	WaveletBlock3D::Transpose(
+void	WaveletBlock3D::TransposeBlks(
 	float *super_blk[8]
 ) {
 	int	iy = 2;
@@ -248,7 +229,7 @@ void	WaveletBlock3D::Transpose(
 
 	// Transpose X&Z coordinates for Z gamma blocks
 	//
-    VAPoR::Transpose(
+    Transpose(
         super_blk[iz], temp_blks1_c[iz],
         0, bs_c, bs_c, z0_c*bs_c, bs_c*zr_c, bs_c*bs_c
     );
@@ -262,7 +243,7 @@ void	WaveletBlock3D::Transpose(
         for(z=z0_c;z<z0_c+zr_c;z++) {
             s = temp_blks1_c[iz+i]+z*bs_c*bs_c;
             d = super_blk[iz+i]+z*bs_c*bs_c;
-            VAPoR::Transpose(s,d,bs_c,bs_c);
+            Transpose(s,d,bs_c,bs_c);
         }
 	}
 }
@@ -287,11 +268,11 @@ void	WaveletBlock3D::inverse_transform_thread()
 	for(z=z0_c;z<z0_c+zr_c;z++) {
 		s = (float *) *src_s_blk_ptr_c[0]+z*bs_c*bs_c;
 		d = temp_blks1_c[0]+z*bs_c*bs_c;
-		VAPoR::Transpose(s,d,bs_c,bs_c);
+		Transpose(s,d,bs_c,bs_c);
 	}
 	if (et_c) et_c->Barrier();
 
-	VAPoR::Transpose(
+	Transpose(
 		temp_blks1_c[0], temp_blks2_c[0],
 		0, bs_c*bs_c, bs_c*bs_c, z0_c, zr_c, bs_c
 	);
@@ -311,7 +292,7 @@ void	WaveletBlock3D::inverse_transform_thread()
 	// Transpose X&Z coord axis
 	//
 	for(i=0;i<2;i++) {
-		VAPoR::Transpose(
+		Transpose(
 			temp_blks1_c[i], temp_blks2_c[i],
 			0, bs_c, bs_c, z0_c*bs_c, bs_c*zr_c, bs_c*bs_c
 		);
@@ -334,7 +315,7 @@ void	WaveletBlock3D::inverse_transform_thread()
 		for(z=z0_c;z<z0_c+zr_c;z++) {
 			s = temp_blks1_c[i]+z*bs_c*bs_c;
 			d = temp_blks2_c[i]+z*bs_c*bs_c;
-			VAPoR::Transpose(s,d,bs_c,bs_c);
+			Transpose(s,d,bs_c,bs_c);
 		}
 	}
 	if (et_c) et_c->Barrier();
@@ -405,7 +386,7 @@ void	WaveletBlock3D::forward_transform3d(
 	for(z=z0_c; z<z0_c+zr_c; z++) {
 	for(y=0; y<bs_c; y++) {
 
-		forward_transform1d(src_ptr, lambda_ptr, gamma_ptr, bs_c);
+		_wb1d->ForwardTransform(src_ptr, lambda_ptr, gamma_ptr);
 		src_ptr += bs_c;
 		lambda_ptr += bs_c;
 		gamma_ptr += bs_c;
@@ -414,78 +395,6 @@ void	WaveletBlock3D::forward_transform3d(
 }
 
 
-void	WaveletBlock3D::forward_transform1d(
-	const float *src_ptr,
-	float *lambda_ptr,
-	float *gamma_ptr,
-	int size
-) {
-
-	if (n_c == 1) {
-		forward_transform1d_haar(src_ptr, lambda_ptr, gamma_ptr, size);
-	}
-	else {
-		int	i,j;
-		for(i=0;i<size;i++) liftbuf_c[i] = src_ptr[i];
-
-		lift_c->ForwardTransform(liftbuf_c);
-
-		// Lifting1D object class operates on data in place, 
-		// interleaving coefficients
-		//
-		for(i=0,j=0;i<size;i+=2,j++) {
-			lambda_ptr[j] = liftbuf_c[i];
-			gamma_ptr[j] = liftbuf_c[i+1];
-		}
-	}
-}
-
-void	WaveletBlock3D::forward_transform1d_haar(
-	const float *src_ptr,
-	float *lambda_ptr,
-	float *gamma_ptr,
-	int size
-) {
-	int	i;
-
-	int	nG;	// # gamma coefficients
-	int	nL;	// # lambda coefficients
-	double	lsum = 0.0;	// sum of lambda values
-	double	lave = 0.0;	// average of lambda values
-
-    nG = (size >> 1);
-    nL = size - nG;
-
-	//
-	// Need to preserve average for odd sizes
-	//
-	if (IsOdd(size)) {
-		double	t = 0.0;
-
-		for(i=0;i<size;i++) {
-			t += src_ptr[i];
-		}
-		lave = t / (double) size;
-	}
-
-	for (i=0; i<nG; i++) {
-		*gamma_ptr = src_ptr[1] - src_ptr[0];
-		*lambda_ptr = (float)(*src_ptr + (*gamma_ptr /2.0));
-		lsum += *lambda_ptr;
-
-		src_ptr += 2;
-		lambda_ptr++;
-		gamma_ptr++;
-	}
-
-    // If IsOdd(size), then we have one additional case for */
-    // the Lambda calculations. This is a boundary case  */
-    // and, therefore, has different filter values.      */
-	//
-	if (IsOdd(size)) {
-		*lambda_ptr = (float)((lave * (double) nL) - lsum);
-	}
-}
 
 void	WaveletBlock3D::inverse_transform3d_blocks(
 	const float **lambda_blks,
@@ -545,7 +454,7 @@ void	WaveletBlock3D::inverse_transform3d(
 	for(z=z0_c; z<z0_c+zr_c; z++) {
 	for(y=0; y<bs_c; y++) {
 
-		inverse_transform1d(lambda_ptr, gamma_ptr, dst_ptr, bs_c);
+		_wb1d->InverseTransform(lambda_ptr, gamma_ptr, dst_ptr);
 		dst_ptr += bs_c;
 		lambda_ptr += bs_c;
 		gamma_ptr += bs_c;
@@ -553,77 +462,6 @@ void	WaveletBlock3D::inverse_transform3d(
 	}
 }
 
-
-void	WaveletBlock3D::inverse_transform1d(
-	const float *lambda_ptr,
-	const float *gamma_ptr,
-	float *dst_ptr,
-	int size
-) {
-
-	if (n_c == 1) {
-		inverse_transform1d_haar(lambda_ptr, gamma_ptr, dst_ptr, size);
-	}
-	else {
-		int	i,j;
-
-		// Lifting1D object class expects interleaved coefficients
-		// and operates on data in place
-		//
-		for(i=0,j=0;i<size;i+=2,j++) {
-			dst_ptr[i] = lambda_ptr[j];
-			dst_ptr[i+1] = gamma_ptr[j];
-		}
-
-		lift_c->InverseTransform(dst_ptr);
-	}
-}
-
-void	WaveletBlock3D::inverse_transform1d_haar(
-	const float *lambda_ptr,
-	const float *gamma_ptr,
-	float *dst_ptr,
-	int size
-) {
-	int	i;
-	int	nG;	// # gamma coefficients
-	int	nL;	// # lambda coefficients
-	double	lsum = 0.0;	// sum of lambda values
-	double	lave = 0.0;	// average of lambda values
-
-	nG = (size >> 1);
-	nL = size - nG;
-
-    // Odd # of coefficients require special handling at boundary
-	// Calculate Lambda average 
-	//
-    if (IsOdd(size) ) {
-        double  t = 0.0;
-
-		for(i=0;i<nL;i++) {
-            t += lambda_ptr[i];
-        }
-        lave = t/(double)nL;   // average we've to maintain
-    }
-
-	for (i=0; i<nG; i++) {
-		dst_ptr[0] = (float)(*lambda_ptr - (*gamma_ptr * 0.5));
-		dst_ptr[1] = *gamma_ptr + dst_ptr[0];
-		lsum += dst_ptr[0] +  dst_ptr[1];
-
-		dst_ptr += 2;
-		lambda_ptr++;
-		gamma_ptr++;
-	}
-
-    // If ODD(len), then we have one additional case for */
-    // the Lambda calculations. This is a boundary case  */
-    // and, therefore, has different filter values.      */
-	//
-    if (IsOdd(size)) {
-        *dst_ptr = (float)((lave * (double) size) - lsum);
-    }
-}
 
 #ifdef	DEAD
 

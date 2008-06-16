@@ -9,6 +9,7 @@
 #include <list>
 #include <vapor/MyBase.h>
 #include "vapor/BlkMemMgr.h"
+#include "vapor/WaveletBlock2DRegionReader.h"
 #include "vapor/WaveletBlock3DRegionReader.h"
 #include "vapor/AMRIO.h"
 #include "vaporinternal/common.h"
@@ -22,8 +23,9 @@ namespace VAPoR {
 //! \version $Revision$
 //! \date    $Date$
 //!
-//! This class provides a wrapper to the \b WaveletBlock3DRegionReader
-//! class that includes memory cache. Data regions read from disk through 
+//! This class provides a wrapper to the WaveletBlock3DRegionReader()
+//! and WaveletBlock2DRegionReader()
+//! classes that includes a memory cache. Data regions read from disk through 
 //! this
 //! interface are stored in a cache in main memory, where they may be
 //! be available for future access without reading from disk.
@@ -33,6 +35,7 @@ class VDF_API DataMgr : public VetsUtil::MyBase {
 public:
 
  //! Constructor for the DataMgr class. 
+ //!
  //! \param[in] metadata Pointer to a metadata class object for which all 
  //! future class operations will apply
  //! \param[in] mem_size Size of memory cache to be created, specified 
@@ -51,6 +54,7 @@ public:
  );
 
  //! Constructor for the DataMgr class. 
+ //!
  //! \param[in] metadata Path to a metadata file for which all 
  //! future class operations will apply
  //! \param[in] mem_size Size of memory cache to be created, specified 
@@ -107,8 +111,6 @@ public:
  //! \param[in] reflevel Refinement level requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
- //! \param[in] full_height: full domain height in voxels, at max refinement level,
- //! for layered data; or zero, if data is being retrieved from its WB representation.
  //! \param[in] lock If true, the memory region will be locked into the 
  //! cache (i.e. valid after subsequent GetRegion() calls).
  //! \retval ptr A pointer to a region containing the desired data, or NULL
@@ -121,9 +123,9 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
-	size_t full_height,
     int lock = 0
  );
+
 
  //! Read in, quantize and return a subregion from the multiresolution dataset
  //!
@@ -144,8 +146,6 @@ public:
  //! \param[in] reflevel Transformation number requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
- //! \param[in] full_height is full domain height in voxels, at max refinement level,
- //! for layered data; or zero, if the WB data is being retrieved.
  //! \param[in] range A two-element vector specifying the minimum and maximum
  //! quantization mapping. 
  //! \param[in] lock If true, the memory region will be locked into the 
@@ -160,7 +160,6 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
-	size_t full_height,
 	const float range[2],
     int lock = 0
 );
@@ -179,8 +178,6 @@ public:
  //! \param[in] reflevel Transformation number requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
- //! \param[in] full_height is full domain height in voxels, at max refinement level,
- //! for layered data; or zero, if the WB data is being retrieved.
  //! \param[in] range1 First variable data range
  //! \param[in] range2 Second variable data range
  //! quantization mapping. 
@@ -197,7 +194,6 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
-	size_t full_height,
 	const float range1[2],
 	const float range2[2],
     int lock = 0
@@ -217,8 +213,6 @@ public:
  //! \param[in] reflevel Transformation number requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
- //! \param[in] full_height is full domain height in voxels, at max refinement level,
- //! for layered data; or zero, if the WB data is being retrieved.
  //! \param[in] range1 First variable data range
  //! \param[in] range2 Second variable data range
  //! quantization mapping. 
@@ -235,7 +229,6 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
-	size_t full_height,
 	const float range1[2],
 	const float range2[2],
     int lock = 0
@@ -275,23 +268,10 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
-	size_t full_height,
 	const float range[2],
     int lock = 0
 );
 
-
-#ifdef	DEAD
- //! Return the current data range as a two-element array
- //!
- //! \param[in] varname Name of variable to which data range applies
- //! \retval range A two-element vector containing the current 
- //! minimum and maximum or NULL if the variable is not known
- //! quantization mapping.
- //! \sa SetQuantizationRange()
- //
- const float	*GetQuantizationRange(const char *varname) const;
-#endif
 
  //! Unlock a floating-point region of memory 
  //!
@@ -360,8 +340,6 @@ public:
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] min Minimum coordinate bounds (in voxels) of volume
  //! \param[out] max Maximum coordinate bounds (in voxels) of volume
- //! \param[in] full_height is nonzero only for layered data, specifies
- //! the full z-resolution to which the data is being interpolated.
  //! \retval status A non-negative int is returned on success
  //!
  //
@@ -370,8 +348,7 @@ public:
     const char *varname,
     int reflevel,
     size_t min[3],
-    size_t max[3],
-	size_t full_height
+    size_t max[3]
  );
 
  
@@ -379,58 +356,33 @@ public:
  //! with this class instance.
  //!
  //! The WaveletBlock3DRegionReader object instance used to by GetRegion()
- //! methods to read a region from disk - when the region is not present
+ //! methods to read a region from disk - when the 3D region is not present
  //! in the memory cache - is returned. 
  // 
- const VDFIOBase	*GetRegionReader() const {
-	return (_regionReader);
+ const VDFIOBase	*GetRegionReader() {
+	return (_regionReader3D);
+ };
+
+ //! Return the WaveletBlock2DRegionReader class object associated
+ //! with this class instance.
+ //!
+ //! The WaveletBlock2DRegionReader object instance used to by GetRegion()
+ //! methods to read a region from disk - when the 2D region is not present
+ //! in the memory cache - is returned. 
+ // 
+ const VDFIOBase	*GetRegionReader2D() const {
+	return (_regionReader2D);
  };
 
  //! Return the metadata class object associated with this class
  //!
  const  Metadata *GetMetadata() const { return (_metadata); };
 
- //! Establish the data values that will be returned when a volume
- //! lies outside the valid volume for which data values are specified.
- //! This is needed when using layered data.
- //! This method modifies all the below/above values
- //! associated with specified vector of variable names
- //! \p varNames, to the corresponding values specified by
- //! \p lowVals and \p highvals.
- //! If a specified variable name is not in the metadata,
- //! that name will be ignored.
- //! The vectors of low values and high values must
- //! be the same length as the vector of variable names.
- //! This method will also purge any cached regions.
- //! Any pre-existing low/high values are removed.
- //! Variables not specified will revert to the default
- //! Low/High values of -1.e30, 1.e30.
+ //! Clear the memory cache
  //!
- //! \param[in] varNames A vector of variable names (strings) 
- //! \param[in] lowVals A vector of low values for associated variables (floats)
- //! \param[in] highVals A vector of high values for associated variables (floats)
- //!
+ //! This method clears the internal memory cache of all entries
  //
- void SetLowHighVals(
-	 const vector<string>& varNames,
-	 const vector<float>& lowVals,
-	 const vector<float>& highVals
- );
- //! Method to retrieve current low value for variable
- //!
- //! \param[in] varName variable name (string) 
- //! \retval lowValue A float value that is assigned to points below grid
- //!
- //
- float GetLowValue(string varName) {return lowValMap[varName];}
- //! Method to retrieve current high value for variable
- //!
- //! \param[in] varName variable name (string) 
- //! \retval highValue A float value that is assigned to points above grid
- //!
- //
- float GetHighValue(string varName) {return highValMap[varName];}
-
+ void	Clear();
 
 private:
  int	_objInitialized;
@@ -443,7 +395,6 @@ private:
 	int reflevel;
 	size_t min[3];
 	size_t max[3];
-	size_t full_height;
 	_dataTypes_t	type;
 	int lock_counter;
 	void *blks;
@@ -457,16 +408,14 @@ private:
 
  map <size_t, map<string, float> > _dataRangeMinMap;
  map <size_t, map<string, float> > _dataRangeMaxMap;
- map <size_t, map<string, map<int, map<size_t ,size_t *> > > > _validRegMinMaxMap;
-
- map <string, float> lowValMap;
- map <string, float> highValMap;
+ map <size_t, map<string, map<int, size_t *> > > _validRegMinMaxMap;
 
  const Metadata	*_metadata;
 
  int	_timestamp;	// access time of most recently accessed region
 
- VDFIOBase	*_regionReader;
+ VDFIOBase	*_regionReader3D;
+ WaveletBlock2DRegionReader	*_regionReader2D;
 
  BlkMemMgr	*_blk_mem_mgr;
 
@@ -477,7 +426,6 @@ private:
 	_dataTypes_t    type,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	int lock
  );
 
@@ -488,7 +436,6 @@ private:
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	int lock
  ); 
 
@@ -498,14 +445,12 @@ private:
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
-	const size_t max[3],
-	size_t full_height
+	const size_t max[3]
  );
 
  int	set_quantization_range(const char *varname, const float range[2]);
 
  void   setDefaultHighLowVals();
- void	free_all();
  void	free_var(const string &, int do_native);
 
  int	free_lru();
@@ -514,11 +459,13 @@ private:
 
  int get_cached_data_range(size_t ts, const char *varname, float range[2]);
 
- size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel, size_t full_height);
+ size_t *get_cached_reg_min_max(
+	size_t ts, const char *varname, int reflevel
+ );
 
  unsigned char   *get_quantized_region(
 	size_t ts, const char *varname, int reflevel, const size_t min[3],
-	const size_t max[3], size_t full_height, const float range[2], int lock,
+	const size_t max[3], const float range[2], int lock,
 	_dataTypes_t type
  );
 

@@ -127,8 +127,8 @@ int     WaveletBlock3DWriter::CloseVariable(
 		int blkidx;
 		int blkidxlp1;
 
-		GetDimBlk(bdim, l);
-		GetDimBlk(bdimlp1, l+1);
+		VDFIOBase::GetDimBlk(bdim, l);
+		VDFIOBase::GetDimBlk(bdimlp1, l+1);
 
 		for(int z=0; z<bdim[2]; z++) {
 		for(int y=0; y<bdim[1]; y++) {
@@ -376,8 +376,8 @@ int	WaveletBlock3DWriter::write_slabs(
 		int	offset;
 
 
-		GetDimBlk(src_nb, j);
-		GetDimBlk(lambda_nb, j-1);
+		VDFIOBase::GetDimBlk(src_nb, j);
+		VDFIOBase::GetDimBlk(lambda_nb, j-1);
 
 		if (((slab_cntr_c / (1<<(_num_reflevels-j))) % 2) == 1) {
 			offset = (int)(lambda_nb[0] * lambda_nb[1] * _block_size);
@@ -490,7 +490,7 @@ int	WaveletBlock3DWriter::my_realloc(
 			size_t	size;
 			size_t nb_j[3];
 
-			GetDimBlk(nb_j, j);
+			VDFIOBase::GetDimBlk(nb_j, j);
 
 			size = _block_size * nb_j[0] * nb_j[1] * 2;
 

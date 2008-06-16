@@ -27,6 +27,25 @@ int	DataMgr::_DataMgr(
 	_dataRangeMaxMap.clear();
 	_validRegMinMaxMap.clear();
 
+	if (_metadata->GetGridType().compare("block_amr") == 0) {
+		_regionReader3D = new AMRIO(_metadata, nthreads);
+		_regionReader2D = NULL;
+	} 
+	else if (_metadata->GetGridType().compare("layered") == 0) {
+		_regionReader2D = new WaveletBlock2DRegionReader(_metadata);
+		if (_regionReader2D->GetErrCode() != 0) return(-1);
+
+		_regionReader3D = new LayeredIO(_metadata, nthreads);
+	} 
+	else {
+		_regionReader2D = new WaveletBlock2DRegionReader(_metadata);
+		if (_regionReader2D->GetErrCode() != 0) return(-1);
+
+		_regionReader3D = new WaveletBlock3DRegionReader(_metadata, nthreads);
+	}
+	if (_regionReader3D->GetErrCode() != 0) return(-1);
+
+
 	_timestamp = 0;
 
 	const size_t *bs = _metadata->GetBlockSize();
@@ -54,10 +73,6 @@ int	DataMgr::_DataMgr(
 		// Use of []'s creates an entry in map
 		_quantizationRangeMap[varnames[i]] = range;
 	}
-	//Initially set high/low vals to defaults:
-	lowValMap.clear();
-	highValMap.clear();
-	setDefaultHighLowVals();
 	return(0);
 }
 
@@ -71,16 +86,6 @@ DataMgr::DataMgr(
 	SetDiagMsg("DataMgr::DataMgr(,%d,%d)", mem_size, nthreads);
 
 	_metadata = metadata;
-
-	if (_metadata->GetGridType().compare("block_amr") == 0) {
-		_regionReader = new AMRIO(_metadata, nthreads);
-	}
-	else if (_metadata->GetGridType().compare("layered") == 0) {
-		_regionReader = new LayeredIO(_metadata, nthreads);
-	}
-	else _regionReader = new WaveletBlock3DRegionReader(_metadata, nthreads);
-	
-	if (_regionReader->GetErrCode() != 0) return;
 
 	if (_DataMgr(mem_size, nthreads) < 0) return;
 
@@ -98,14 +103,6 @@ DataMgr::DataMgr(
 	_metadata = new Metadata(metafile);
 	if (Metadata::GetErrCode() != 0) return;
 
-	if (_metadata->GetGridType().compare("block_amr") == 0) {
-		_regionReader = new AMRIO(_metadata, nthreads);
-	} else if (_metadata->GetGridType().compare("layered") == 0){
-		_regionReader = new LayeredIO(_metadata, nthreads);
-	} else _regionReader = new WaveletBlock3DRegionReader(_metadata, nthreads);
-
-	if (_regionReader->GetErrCode() != 0) return;
-
 	if (_DataMgr(mem_size, nthreads) < 0) return;
 
 	_objInitialized = 1;
@@ -117,32 +114,29 @@ DataMgr::~DataMgr(
 	SetDiagMsg("DataMgr::~DataMgr()");
 	if (! _objInitialized) return;
 
-	if (_regionReader) delete _regionReader;
+	if (_regionReader3D) delete _regionReader3D;
+	if (_regionReader2D) delete _regionReader2D;
 
 	_timestamp = 0;
 
-	free_all();
+	Clear();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
 
 	_dataRangeMinMap.clear();
 	_dataRangeMaxMap.clear();
 
-	map <size_t, map<string, map<int, map<size_t, size_t *> > > >::iterator p1;
+	map <size_t, map<string, map<int, size_t *> > >::iterator p1;
 	for(p1 = _validRegMinMaxMap.begin(); p1!=_validRegMinMaxMap.end(); p1++) {
 
-		map <string, map <int, map<size_t, size_t * > > > &vmap = p1->second;
-		map <string, map <int, map<size_t, size_t * > > >::iterator t;
+		map <string, map <int, size_t * > > &vmap = p1->second;
+		map <string, map <int, size_t * > >::iterator t;
 
 		for(t = vmap.begin(); t!=vmap.end(); t++) {
-			map <int, map<size_t,size_t * > > &imap = t->second;
-			map <int, map <size_t, size_t * > >::iterator u;
+			map <int, size_t * > &imap = t->second;
+			map <int, size_t * >::iterator u;
 
 			for(u=imap.begin(); u!=imap.end(); u++) {
-				map<size_t,size_t * > &hmap = u->second;
-				map <size_t, size_t * >::iterator h;
-				for (h = hmap.begin(); h != hmap.end(); h++) {
-					if (h->second) delete [] h->second;
-				}
+				if (u->second) delete [] u->second;
 			}
 		}
 	}
@@ -155,7 +149,8 @@ DataMgr::~DataMgr(
 	}
 	_quantizationRangeMap.clear();
 
-	_regionReader = NULL;
+	_regionReader2D = NULL;
+	_regionReader3D = NULL;
 	_blk_mem_mgr = NULL;
 
 	_objInitialized = 0;
@@ -167,7 +162,6 @@ float	*DataMgr::GetRegion(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	int	lock
 ) {
 
@@ -175,13 +169,13 @@ float	*DataMgr::GetRegion(
 	int	rc;
 
 	SetDiagMsg(
-		"DataMgr::GetRegion(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,%d)",
-		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2],full_height, lock
+		"DataMgr::GetRegion(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d)",
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], lock
 	);
 
 	// See if region is already in cache. If so, return it.
 	blks = (float *) get_region_from_cache(
-		ts, varname, reflevel, DataMgr::FLOAT32, min, max, full_height, lock
+		ts, varname, reflevel, DataMgr::FLOAT32, min, max, lock
 	);
 	if (blks) {
 		SetDiagMsg("DataMgr::GetRegion() - data in cache xll\n", blks);
@@ -192,12 +186,55 @@ float	*DataMgr::GetRegion(
 	// Else, read it from disk
 	//
 
-	
-	if (_metadata->GetGridType().compare("block_amr") == 0) {
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	VDFIOBase *baseio_reader;
+	if (vtype != VDFIOBase::VAR3D) {
+		baseio_reader = _regionReader2D;
 
-		_regionReader->OpenVariableRead(ts, varname, reflevel, 0);
+		rc = _regionReader2D->OpenVariableRead(ts, varname, reflevel);
+		if (rc < 0) return (NULL);
 
-		AMRIO *amrio = (AMRIO *) _regionReader;
+		blks = (float *) alloc_region(
+			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+		);
+		if (! blks) return(NULL);
+
+		size_t min2d[2], max2d[2];
+		switch (vtype) {
+		case VDFIOBase::VAR2D_XY:
+			min2d[0] = min[0]; min2d[1] = min[1]; 
+			max2d[0] = max[0]; max2d[1] = max[1];
+			break;
+		case VDFIOBase::VAR2D_XZ:
+			min2d[0] = min[0]; min2d[1] = min[2]; 
+			max2d[0] = max[0]; max2d[1] = max[2];
+			break;
+		case VDFIOBase::VAR2D_YZ:
+			min2d[0] = min[1]; min2d[1] = min[2]; 
+			max2d[0] = max[1]; max2d[1] = max[2];
+			break;
+		default:
+			SetErrMsg("Invalid variable type");
+			return(NULL);
+		}
+		
+		rc = _regionReader2D->BlockReadRegion(min2d, max2d, blks, 1);
+		if (rc < 0) {
+			string s = _regionReader2D->GetErrMsg();
+			SetErrMsg( "Failed to read region from disk : %s", s.c_str());
+			(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
+			_regionReader2D->CloseVariable();
+			return (NULL);
+		}
+	}
+	else if (_metadata->GetGridType().compare("block_amr") == 0) {
+		baseio_reader = _regionReader3D;	// needed for close
+
+		AMRIO *amrio = (AMRIO *) baseio_reader;
+
+		rc = amrio->OpenVariableRead(ts, varname, reflevel);
+		if (rc < 0) return (NULL);
+
 		AMRTree amrtree;
 
 		//
@@ -228,16 +265,11 @@ float	*DataMgr::GetRegion(
 		AMRData amrdata(&amrtree, bs, minbase, maxbase, reflevel);
 		if (AMRData::GetErrCode() != 0)  return(NULL);
 
-		rc = amrio->OpenVariableRead(ts,varname,reflevel);
-		if (rc < 0) return (NULL);
-
 		rc = amrio->VariableRead(&amrdata);
 		if (rc < 0) return (NULL);
 
-		(void) amrio->CloseVariable();
-
 		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,0,lock
+			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
 		);
 		if (! blks) return(NULL);
 
@@ -247,104 +279,40 @@ float	*DataMgr::GetRegion(
 			SetErrMsg(
 				"Failed to regrid region : %s", s.c_str()
 			);
-			(void) free_region(ts,varname,reflevel,FLOAT32,min,max,0);
+			(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
 			return (NULL);
 		}
-		_regionReader->CloseVariable();
 	}
-	else if (_metadata->GetGridType().compare("layered") == 0 && full_height != 0) {
+	else { 
+		baseio_reader = _regionReader3D;	// needed for close
+		WaveletBlock3DRegionReader *reg_reader = 
+			(WaveletBlock3DRegionReader *) _regionReader3D;
 
-		
-		//get the wb region reader, for dimensions, etc.
-		WaveletBlock3DRegionReader *wbreader;
-			wbreader = ((LayeredIO*) _regionReader) -> GetWBReader();
-		
-		// Get the wb region of the variable and the elevation variable. (maybe in cache).  
-		//Specify a region with full z block range:
-		size_t blkdims[3];
-		wbreader->GetDimBlk(blkdims, reflevel);
-		size_t blkMin[3], blkMax[3];
-		blkMin[0] = min[0];
-		blkMin[1] = min[1];
-		blkMax[0] = max[0];
-		blkMax[1] = max[1];
-		blkMax[2] = blkdims[2]-1;
-		blkMin[2] = 0;
-		float* elevblocks = GetRegion(ts, "ELEVATION", reflevel, blkMin, blkMax, 0, 1);
-		if (!elevblocks) {
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"ELEVATION variable not available at required resolution");
-			return (NULL);
-		}
-		//Obtain the blocked region, by invoking this method, and lock it while we interpolate it:
-		float* wbblocks = GetRegion(
-			ts, varname, reflevel, blkMin, blkMax, 0, 1
-		);
-		
-		if (! wbblocks) return NULL;
-			
-		//Now interpolate:
-		LayeredIO* layerReader = ((LayeredIO*) _regionReader);
-		layerReader->OpenVariableRead(ts, varname, reflevel, full_height);
-		//Allocate storage for interpolated region:
-		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,full_height,lock
-		);
-		if (!blks){
-			UnlockRegion(elevblocks);
-			UnlockRegion(wbblocks);
-			SetErrMsg("Insufficient memory for interpolated region");
-			layerReader->CloseVariable();
-			return NULL;
-		}
-		float belowVal = GetLowValue(varname);
-		float aboveVal = GetHighValue(varname);
-		layerReader->InterpolateRegion(blks, elevblocks, wbblocks, 
-			min, max, full_height, belowVal, aboveVal);
-		
-		//unlock the wbregion, we are done with it
-		UnlockRegion(elevblocks);
-		UnlockRegion(wbblocks);
-		layerReader->CloseVariable();
-		return blks;
-
-	} else { //we doing wb reading
-		//Either use the wb region reader, or get it from the layered region reader:
-		WaveletBlock3DRegionReader *wbreader;
-		if (_metadata->GetGridType().compare("layered") == 0 ){
-			wbreader = ((LayeredIO*) _regionReader) -> GetWBReader();
-			//Need to call OpenVariableRead before setting the datarange...
-			wbreader->OpenVariableRead(ts, varname, reflevel, 0);
-			_regionReader->SetDataRange(wbreader->GetDataRange());
-		}
-		else {
-			wbreader = 
-				(WaveletBlock3DRegionReader *) _regionReader;
-			wbreader->OpenVariableRead(ts, varname, reflevel, 0);
-		}
+		rc = reg_reader->OpenVariableRead(ts, varname, reflevel);
+		if (rc < 0) return (NULL);
 
 		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,0,lock
+			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
 		);
 		if (! blks) return(NULL);
 
-		rc = wbreader->BlockReadRegion(min, max, blks, 1);
+		rc = reg_reader->BlockReadRegion(min, max, blks, 1);
 		if (rc < 0) {
-			string s = wbreader->GetErrMsg();
+			string s = reg_reader->GetErrMsg();
 			SetErrMsg(
 				"Failed to read region from disk : %s", s.c_str()
 			);
-			(void) free_region(ts,varname,reflevel,FLOAT32,min,max,0);
-			wbreader->CloseVariable();
+			(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
+			reg_reader->CloseVariable();
 			return (NULL);
 		}
-		wbreader->CloseVariable();
 	}
 
 
 	float range[2];
 	if (get_cached_data_range(ts, varname, range) < 0) {
 
-		const float *r = _regionReader->GetDataRange();
+		const float *r = baseio_reader->GetDataRange();
 
 		// Use of []'s creates an entry in map
 		_dataRangeMinMap[ts][varname] = r[0];
@@ -352,17 +320,18 @@ float	*DataMgr::GetRegion(
 	}
 
 
-	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel, full_height);
+	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel);
 	if (! minmax) {
 
 		minmax = new size_t[6];
 		assert(minmax != NULL);
 
-		_regionReader->GetValidRegion(minmax, &minmax[3], full_height, reflevel);
+		baseio_reader->GetValidRegion(minmax, &minmax[3], reflevel);
 
 		// Use of []'s creates an entry in map
-		_validRegMinMaxMap[ts][varname][reflevel][full_height] = minmax;
+		_validRegMinMaxMap[ts][varname][reflevel] = minmax;
 	}
+	baseio_reader->CloseVariable();
 	
 	SetDiagMsg("DataMgr::GetRegion() - data not in cache %xll\n", blks);
 
@@ -376,18 +345,17 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	const float range[2],
 	int lock
 ) {
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d)",
-		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
+		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2],
 		range[0], range[1], lock
 	);
 
 	return(get_quantized_region(
-		ts, varname, reflevel, min, max, full_height, range, 
+		ts, varname, reflevel, min, max, range, 
 		lock, DataMgr::UINT8
 	));
 }
@@ -399,15 +367,14 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	const float range1[2],
 	const float range2[2],
 	int lock
 ) {
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],[%f,%f],%d)",
+		"DataMgr::GetRegionUInt8(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],[%f,%f],%d)",
 		ts,varname1, varname2, reflevel,min[0],min[1],min[2],
-		max[0],max[1],max[2], full_height, range1[0], range1[1], 
+		max[0],max[1],max[2], range1[0], range1[1], 
 		range2[0], range2[1], lock
 	);
 
@@ -426,7 +393,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 
 		ublks = (unsigned char *) get_region_from_cache(
 			ts, varname.c_str(), reflevel, DataMgr::UINT16, 
-			min, max, full_height, lock
+			min, max, lock
 		);
 	}
 	if (ublks) return(ublks);
@@ -439,18 +406,32 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	switch (vtype) {
+	case VDFIOBase::VAR2D_XY:
+		nz = 1;
+		break;
+	case VDFIOBase::VAR2D_XZ:
+		ny = 1;
+		break;
+	case VDFIOBase::VAR2D_YZ:
+		nx = 1;
+		break;
+	default:
+		break;
+	}
 	size_t size = nx*ny*nz;
 
 	unsigned char *ublks1, *ublks2;
 
 	ublks = (unsigned char *) alloc_region(
 		ts,varname.c_str(),reflevel,DataMgr::UINT16,
-		min,max,full_height, lock
+		min,max, lock
 	);
 	if (! ublks) return(NULL);
 
 	ublks1 = get_quantized_region(
-		ts, varname1, reflevel, min, max, full_height, range1, 
+		ts, varname1, reflevel, min, max, range1, 
 		0, DataMgr::UINT8
 	);
 	if (! ublks1) return (NULL);
@@ -460,7 +441,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	}
 
 	ublks2 = get_quantized_region(
-		ts, varname2, reflevel, min, max, full_height, range2, 
+		ts, varname2, reflevel, min, max, range2, 
 		0, DataMgr::UINT8
 	);
 	if (! ublks2) return (NULL);
@@ -477,18 +458,17 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	const float range[2],
 	int lock
 ) {
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt16(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d)",
-		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
+		"DataMgr::GetRegionUInt16(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2],
 		range[0], range[1], lock
 	);
 
 	return(get_quantized_region(
-		ts, varname, reflevel, min, max, full_height, range, 
+		ts, varname, reflevel, min, max, range, 
 		lock, DataMgr::UINT16
 	));
 }
@@ -500,15 +480,14 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	const float range1[2],
 	const float range2[2],
 	int lock
 ) {
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt16(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],[%f,%f],%d)",
+		"DataMgr::GetRegionUInt16(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],[%f,%f],%d)",
 		ts,varname1, varname2, reflevel,min[0],min[1],min[2],
-		max[0],max[1],max[2], full_height, range1[0], range1[1], 
+		max[0],max[1],max[2], range1[0], range1[1], 
 		range2[0], range2[1], lock
 	);
 
@@ -527,7 +506,7 @@ unsigned char	*DataMgr::GetRegionUInt16(
 
 		ublks = (unsigned char *) get_region_from_cache(
 			ts, varname.c_str(), reflevel, DataMgr::UINT32, 
-			min, max, full_height, lock
+			min, max, lock
 		);
 	}
 	if (ublks) return(ublks);
@@ -540,18 +519,32 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	switch (vtype) {
+	case VDFIOBase::VAR2D_XY:
+		nz = 1;
+		break;
+	case VDFIOBase::VAR2D_XZ:
+		ny = 1;
+		break;
+	case VDFIOBase::VAR2D_YZ:
+		nx = 1;
+		break;
+	default:
+		break;
+	}
 	size_t size = nx*ny*nz;
 
 	unsigned char *ublks1, *ublks2;
 
 	ublks = (unsigned char *) alloc_region(
 		ts,varname.c_str(),reflevel,DataMgr::UINT32,
-		min,max,full_height, lock
+		min,max, lock
 	);
 	if (! ublks) return(NULL);
 
 	ublks1 = get_quantized_region(
-		ts, varname1, reflevel, min, max, full_height, range1, 
+		ts, varname1, reflevel, min, max, range1, 
 		0, DataMgr::UINT16
 	);
 	if (! ublks1) return (NULL);
@@ -562,7 +555,7 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	}
 
 	ublks2 = get_quantized_region(
-		ts, varname2, reflevel, min, max, full_height, range2, 
+		ts, varname2, reflevel, min, max, range2, 
 		0, DataMgr::UINT16
 	);
 	if (! ublks2) return (NULL);
@@ -580,7 +573,6 @@ unsigned char	*DataMgr::get_quantized_region(
 	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	const float range[2],
 	int lock,
 	_dataTypes_t type
@@ -597,7 +589,7 @@ unsigned char	*DataMgr::get_quantized_region(
 	if (set_quantization_range(varname, range) < 0) return (NULL);
 
 	ublks = (unsigned char *) get_region_from_cache(
-		ts, varname, reflevel, type, min, max, full_height, lock
+		ts, varname, reflevel, type, min, max, lock
 	);
 
 	if (ublks) {
@@ -606,15 +598,17 @@ unsigned char	*DataMgr::get_quantized_region(
 		);
 		return(ublks);
 	}
+    
+
 
 	float	*blks = NULL;
 
-	blks = GetRegion(ts, varname, reflevel, min, max, full_height, 1);
+	blks = GetRegion(ts, varname, reflevel, min, max, 1);
 	if (! blks) return (NULL);
 
 
 	ublks = (unsigned char *) alloc_region(
-		ts,varname,reflevel,type,min,max,full_height, lock
+		ts,varname,reflevel,type,min,max, lock
 	);
 	if (! ublks) {
 		UnlockRegion(blks);
@@ -628,6 +622,21 @@ unsigned char	*DataMgr::get_quantized_region(
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
+
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	switch (vtype) {
+	case VDFIOBase::VAR2D_XY:
+		nz = 1;
+		break;
+	case VDFIOBase::VAR2D_XZ:
+		ny = 1;
+		break;
+	case VDFIOBase::VAR2D_YZ:
+		nx = 1;
+		break;
+	default:
+		break;
+	}
 
 	if (type == DataMgr::UINT8) {
 		quantize_region_uint8(blks, ublks, nx*ny*nz, range);
@@ -708,7 +717,22 @@ int DataMgr::GetDataRange(
 	// Range isn't cache'd. Need to read it from the file
 	//
 
-	rc = _regionReader->OpenVariableRead(ts, varname, 0);
+	VDFIOBase *baseio_reader;
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	switch (vtype) {
+	case VDFIOBase::VAR2D_XY:
+	case VDFIOBase::VAR2D_XZ:
+	case VDFIOBase::VAR2D_YZ:
+		baseio_reader = _regionReader2D;
+		break;
+	case VDFIOBase::VAR3D:
+		baseio_reader = _regionReader3D;
+		break;
+	default:
+		SetErrMsg("Invalid variable type");
+		return(-1);
+	}
+	rc = baseio_reader->OpenVariableRead(ts, varname, 0);
 	if (rc < 0) return (-1);
 
 	// Ugh! For AMR data we have to read some data to get the
@@ -716,7 +740,7 @@ int DataMgr::GetDataRange(
 	// the range info.
 	//
 	if (_metadata->GetGridType().compare("block_amr") == 0) {
-		AMRIO *amrio = (AMRIO *) _regionReader;
+		AMRIO *amrio = (AMRIO *) baseio_reader;
 		AMRTree amrtree;
 
 		rc = amrio->OpenTreeRead(ts);
@@ -740,16 +764,9 @@ int DataMgr::GetDataRange(
 		if (rc < 0) return (-1);
 
 		(void) amrio->CloseVariable();
-	} else if (_metadata->GetGridType().compare("layered") == 0) {
-		//For layered data, need to open the wb reader, pass its range to
-		//its wb reader
-		WaveletBlock3DRegionReader* wbreader = ((LayeredIO*) _regionReader)->GetWBReader();
-		wbreader->OpenVariableRead(ts, varname, 0);
-		_regionReader->SetDataRange(wbreader->GetDataRange());
-		wbreader->CloseVariable();
-	}
+	} 
 
-	const float *r = _regionReader->GetDataRange();
+	const float *r = baseio_reader->GetDataRange();
 
 
 	range[0] = r[0];
@@ -759,7 +776,7 @@ int DataMgr::GetDataRange(
 	_dataRangeMinMap[ts][varname] = range[0];
 	_dataRangeMaxMap[ts][varname] = range[1];
 
-	_regionReader->CloseVariable();
+	baseio_reader->CloseVariable();
 
 	return(0);
 }
@@ -769,8 +786,7 @@ int DataMgr::GetValidRegion(
 	const char *varname,
 	int reflevel,
 	size_t min[3],
-	size_t max[3],
-	size_t full_height
+	size_t max[3]
 ) {
 	int	rc;
 
@@ -779,7 +795,7 @@ int DataMgr::GetValidRegion(
 
 	// See if we've already cache'd it.
 	//
-	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel, full_height);
+	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel);
 
 	if (! minmax) {
 		
@@ -789,15 +805,31 @@ int DataMgr::GetValidRegion(
 		minmax = new size_t[6];
 		assert(minmax != NULL);
 
-		rc = _regionReader->OpenVariableRead(ts, varname, reflevel,full_height);
+		VDFIOBase *baseio_reader;
+		VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+		switch (vtype) {
+		case VDFIOBase::VAR2D_XY:
+		case VDFIOBase::VAR2D_XZ:
+		case VDFIOBase::VAR2D_YZ:
+			baseio_reader = _regionReader2D;
+			break;
+		case VDFIOBase::VAR3D:
+			baseio_reader = _regionReader3D;
+			break;
+		default:
+			SetErrMsg("Invalid variable type");
+			return(-1);
+		}
+
+		rc = baseio_reader->OpenVariableRead(ts, varname, reflevel);
 		if (rc < 0) return(-1);
 
-		_regionReader->GetValidRegion(minmax, &minmax[3], full_height, reflevel);
+		baseio_reader->GetValidRegion(minmax, &minmax[3], reflevel);
 
 		// Use of []'s creates an entry in map
-		_validRegMinMaxMap[ts][varname][reflevel][full_height] = minmax;
+		_validRegMinMaxMap[ts][varname][reflevel] = minmax;
 
-		_regionReader->CloseVariable();
+		baseio_reader->CloseVariable();
 	}
 
 	for (int i=0; i<3; i++) {
@@ -871,7 +903,6 @@ void	*DataMgr::get_region_from_cache(
 	_dataTypes_t	type,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	int	lock
 ) {
 
@@ -888,8 +919,7 @@ void	*DataMgr::get_region_from_cache(
 			region.max[0] == max[0] &&
 			region.max[1] == max[1] &&
 			region.max[2] == max[2] &&
-			region.type == type &&
-			region.full_height == full_height) {
+			region.type == type) {
 
 			// Increment the lock counter
 			region.lock_counter += lock ? 1 : 0;
@@ -913,7 +943,6 @@ void	*DataMgr::alloc_region(
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
-	size_t full_height,
 	int	lock
 ) {
 
@@ -932,8 +961,7 @@ void	*DataMgr::alloc_region(
 			region.max[0] == max[0] &&
 			region.max[1] == max[1] &&
 			region.max[2] == max[2] &&
-			region.type == type &&
-			region.full_height == full_height) {
+			region.type == type) {
 
 			// Reset the lock counter
 			region.lock_counter = lock;
@@ -960,8 +988,27 @@ void	*DataMgr::alloc_region(
 	default:
 		vs = 4;
 	};
+
+	const size_t *bs = _metadata->GetBlockSize();
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
+	switch (vtype) {
+	case VDFIOBase::VAR2D_XY:
+		nblocks = (int) ceil((double) ((max[0]-min[0]+1) * (max[1]-min[1]+1) * vs) / (double) bs[2]);
+		break;
+	case VDFIOBase::VAR2D_XZ:
+		nblocks = (int) ceil((double) ((max[0]-min[0]+1) * (max[2]-min[2]+1) * vs) / (double) bs[1]);
+		break;
+	case VDFIOBase::VAR2D_YZ:
+		nblocks = (int) ceil((double) ((max[1]-min[1]+1) * (max[2]-min[2]+1) * vs) / (double) bs[0]);
+		break;
+	case VDFIOBase::VAR3D:
+		nblocks = (int) (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * vs;
+		break;
+	default:
+		SetErrMsg("Invalid variable type");
+		return(NULL);
+	}
 		
-	nblocks = (int)((max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * vs);
 
 	float *blks;
 	while (! (blks = (float *) _blk_mem_mgr->Alloc(nblocks))) {
@@ -982,7 +1029,6 @@ void	*DataMgr::alloc_region(
 	region.max[0] = max[0];
 	region.max[1] = max[1];
 	region.max[2] = max[2];
-	region.full_height = full_height;
 	region.type = type;
 	region.lock_counter = lock;
 	region.blks = blks;
@@ -998,8 +1044,7 @@ int	DataMgr::free_region(
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
-	const size_t max[3],
-	size_t full_height
+	const size_t max[3]
 ) {
 
 	list <region_t>::iterator itr;
@@ -1015,8 +1060,7 @@ int	DataMgr::free_region(
 			region.max[0] == max[0] &&
 			region.max[1] == max[1] &&
 			region.max[2] == max[2] &&
-			region.type == type &&
-			region.full_height == full_height) {
+			region.type == type ) {
 
 			if (region.lock_counter == 0) {
 				if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
@@ -1030,7 +1074,7 @@ int	DataMgr::free_region(
 	return(-1);
 }
 
-void	DataMgr::free_all() {
+void	DataMgr::Clear() {
 
 	list <region_t>::iterator itr;
 	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
@@ -1112,7 +1156,6 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	return(1);
 }
 
-
 int DataMgr::get_cached_data_range(
 	size_t ts,
 	const char *varname,
@@ -1165,35 +1208,31 @@ int DataMgr::get_cached_data_range(
 size_t *DataMgr::get_cached_reg_min_max(
 	size_t ts,
 	const char *varname,
-	int reflevel,
-	size_t full_height
+	int reflevel
 ) {
 
 	// See if we've already cache'd it.
 	//
 	if (! _validRegMinMaxMap.empty()) {
 
-		map <size_t, map<string, map<int, map<size_t, size_t *> > > >::iterator p;
+		map <size_t, map<string, map<int, size_t *> > >::iterator p;
 
 		p = _validRegMinMaxMap.find(ts);
 
 		if (! (p == _validRegMinMaxMap.end())) {
 
-			map <string, map <int, map<size_t, size_t *> > > &vmap = p->second;
-			map <string, map <int, map<size_t, size_t *> > >::iterator t;
+			map <string, map <int, size_t *> > &vmap = p->second;
+			map <string, map <int, size_t *> >::iterator t;
 
 			t = vmap.find(varname);
 			if (! (t == vmap.end())) {
 
-				map <int, map<size_t, size_t *> > &imap = t->second;
-				map <int, map<size_t, size_t *> >::iterator s;
+				map <int, size_t *> &imap = t->second;
+				map <int, size_t *>::iterator s;
 
 				s = imap.find(reflevel);
 				if (! (s == imap.end())) {
-					map <size_t, size_t *> &hmap = s->second;
-					map <size_t, size_t *>::iterator h;
-					h = hmap.find(full_height);
-					if (! (h == hmap.end())) return (h->second);
+					return(s->second);
 				}
 			}
 		}
@@ -1203,29 +1242,3 @@ size_t *DataMgr::get_cached_reg_min_max(
 	return(NULL);
 }
 
-void DataMgr::SetLowHighVals(const vector<std::string>&varNames, const vector<float>&lowVals,
-							 const vector<float>&highVals)
-{
-	lowValMap.clear();
-	highValMap.clear();
-	setDefaultHighLowVals();
-	for (int i = 0; i<varNames.size(); i++){
-		lowValMap[varNames[i]] = lowVals[i];
-		highValMap[varNames[i]] = highVals[i];
-	}
-	
-	//Purge the cache
-	free_all();
-}
-void DataMgr::setDefaultHighLowVals()
-{
-	 //Set all variables in the Metadata to defaults:
-	
-	const vector<string> mdnames = _metadata->GetVariableNames();
-	for (int i = 0; i< mdnames.size(); i++){
-		
-		lowValMap[mdnames[i]] = BELOW_GRID;
-		highValMap[mdnames[i]] = ABOVE_GRID;
-	
-	}
-}

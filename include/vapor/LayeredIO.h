@@ -1,20 +1,16 @@
 //
-
+//      $Id$
 //
 
 
-#ifndef	LAYEREDIO_H
-#define	LAYEREDIO_H
+#ifndef	_LayeredIO_h_
+#define	_LayeredIO_h_
 
-#include <cstdio>
-#include <netcdf.h>
 #include <vapor/MyBase.h>
-
-#include <vapor/VDFIOBase.h>
+#include <WaveletBlock3DRegionReader.h>
 
 namespace VAPoR {
 
-class WaveletBlock3DRegionReader;
 //
 //! \class LayeredIO
 //! \brief Performs data IO of Layered data to vdf
@@ -22,95 +18,50 @@ class WaveletBlock3DRegionReader;
 //! \version $Revision$
 //! \date    $Date$
 //!
-//! This class provides an API for performing low-level IO 
+//! This class provides an API for performing low-level IO
 //! to/from VDF files.  Data is retrieved in a two-step process.  First,
-//! the data is reconstructed from wavelet coefficients to a 3D array, representing
-//! the data values along horizontal layers of the data.  Then the data is 
+//! the data is reconstructed from wavelet coefficients to a 3D array, 
+//!representing
+//! the data values along horizontal layers of the data.  Then the data is
 //! interpolated from the layered representation to a uniform gridded representation.
 //! The height of the uniform grid can vary dynamically.
 //
-class VDF_API	LayeredIO : public VAPoR::VDFIOBase {
+class VDF_API	LayeredIO : public WaveletBlock3DRegionReader {
 
 public:
 
- //! Constructor for the LayeredIO class.
- //! \param[in] metadata Pointer to a metadata class object for which all
- //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
+ //! Constructor for the LayeredIO class. 
+ //! \param[in] metadata A pointer to a Metadata structure identifying the
+ //! data set upon which all future operations will apply. 
+ //! \param[in] nthreads The number of parallel execution threads to
+ //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, LayeredRegionReader, GetErrCode(),
+ //! \sa Metadata, GetErrCode()
  //
  LayeredIO(
 	const Metadata *metadata,
 	unsigned int	nthreads = 1
  );
 
- //! Constructor for the LayeredIO class.
+ //! Constructor for the LayeredIO class. 
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
+ //! \param[in] nthreads The number of parallel execution threads to
+ //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, LayeredRegionReader, GetErrCode(),
+ //! \sa Metadata, GetErrCode()
  //
  LayeredIO(
-	const char *metafile,
+	const char	*metafile,
 	unsigned int	nthreads = 1
  );
 
- virtual ~LayeredIO();
+ ~LayeredIO();
 
- //! Returns true if indicated data volume exists on disk
- //!
- //! Returns true if the variable identified by the timestep, variable
- //! name, and refinement level is present on disk. Returns 0 if
- //! the variable is not present.
- //! \param[in] ts A valid time step from the Metadata object used
- //! to initialize the class
- //! \param[in] varname A valid variable name
- //! \param[in] reflevel Refinement level requested. The coarsest
- //! refinement level is 0 (zero). A value of -1 indicates the finest
- //! refinement level contained in the VDC.
- //
- virtual int    VariableExists(
-	size_t ts,
-	const char *varname,
-	int reflevel = 0
- ) const;
-
-
- //! Open the named variable for writing
- //!
- //! Prepare a vapor data file for the creation of a multiresolution
- //! data volume via subsequent write operations by
- //! other methods of this classes derived from this class.
- //! The data volume is identified by the specfied time step and
- //! variable name. The number of forward transforms applied to
- //! the volume is determined by the Metadata object used to
- //! initialize the class. The number of refinement levels actually 
- //! saved to the data collection are determined by \p reflevels. If
- //! \p reflevels is zero, the default, only the coarsest approximation is
- //! saved. If \p reflevels is one, all the coarsest and first refinement 
- //! level is saved, and so on. A value of -1 indicates the maximum
- //! refinment level permitted by the VDF
- //!
- //! \param[in] timestep Time step of the variable to read
- //! \param[in] varname Name of the variable to read
- //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level.
- //! \retval status Returns a non-negative value on success
- //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
- //!
- virtual int	OpenVariableWrite(
-	size_t timestep,
-	const char *varname,
-	int reflevel = -1
- );
 
  //! Open the named variable for reading
  //!
@@ -133,86 +84,353 @@ public:
  //! \param[in] varname Name of the variable to read
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
- //! \param[in] full_height indicates the grid height for interpolation.
- //! Use full_height = 0 when opening just to obtain data range.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0,
-	size_t full_height = 0
+	int reflevel = 0
  );
 
- //! Close the currently opened variable.
+
+
+ //! Close the data volume opened by the most recent call to 
+ //! OpenVariableRead()
+ //! \retval status Returns a non-negative value on success
+ //! \sa OpenVariableRead()
  //!
- //! \sa OpenVariableWrite(), OpenVariableRead()
- //
  virtual int	CloseVariable();
 
-
- //! Return the transform timer
+ //! Read in and return a subregion from the currently opened multiresolution
+ //! data volume.  
+ //! The \p min and \p max vectors identify the minium and
+ //! maximum extents, in voxel coordinates, of the subregion of interest. The
+ //! minimum valid value of 'min' is (0,0,0), the maximum valid value of
+ //! \p max is (nx-1,ny-1,nz-1), where nx, ny, and nz are the voxel dimensions
+ //! of the volume at the resolution indicated by \p num_xforms. I.e. 
+ //! the coordinates are specified relative to the desired volume 
+ //! resolution. The volume
+ //! returned is stored in the memory region pointed to by \p region. It 
+ //! is the caller's responsbility to ensure adequate space is available.
  //!
- //! This method returns the accumulated clock time, in seconds,
- //! spent peforming wavelet transforms. There is presently no
- //! way to reset the counter (without creating a new class object)
+ //! ReadRegion will fail if the requested data are not present. The
+ //! VariableExists() method may be used to determine if the data
+ //! identified by a (resolution,timestep,variable) tupple are 
+ //! available on disk.
+ //! \param[in] min Minimum region extents in voxel coordinates
+ //! \param[in] max Maximum region extents in voxel coordinates
+ //! \param[out] region The requested volume subregion
+ //! \retval status Returns a non-negative value on success
+ //! \sa OpenVariableRead(), Metadata::GetDimension()
+ //
+ virtual int	ReadRegion(
+	const size_t min[3], const size_t max[3], 
+	float *region
+ );
+
+
+ //! Read in and return a subregion from the currently opened multiresolution
+ //! data volume.  
  //!
- double	GetXFormTimer() const { return(_xform_timer); };
-//! Return the WaveletBlock3DRegionReader that is used by this LayeredIO
-//! to read the associated wavelet block data
-//
- WaveletBlock3DRegionReader* GetWBReader() { return wbRegionReader;}
-//! Performs an interpolation, converting layered data to uniformly gridded data.
-//! \param[out] blks returns a blocked region of interpolated data 
-//! \param[in] elevblocks is the blocked region of elevation data, representing
-//! the elevation associated with each point on a layer
-//! \param[in] wbblocks is the blocked region of layered data, 
-//! of the desired variable in its WB representation.
-//! Note that both elevblocks and weblocks are currently required to be available
-//! at the full vertical (Z) extent of the volume.
-//! \param[in] minblks specifies the output region min block coordinates
-//! \param[in] maxblks specifies the output region max block coordinates
-//!
-void InterpolateRegion(float* blks, const float* elevblocks, const float* wbblocks, 
-	 const size_t minblks[3], const size_t maxblks[3], 
-	 size_t full_height,
-	 float lowValue, float highValue);
-//!
-//!  Specify the interpolation height to be used for grid interpolation.
-//!  This is necessary if the grid height has been modified and new region extents
-//!  are to be calculated before a variable is opened.
-//!  \param[in] full_height is the full number of voxels to be used in
-//!  interpolating the data at the highest refinement level.
-//!
-void SetGridHeight(size_t full_height);
-protected:
- static const int MAX_LEVELS = 16;	// Max # of forward transforms permitted
+ //! This method is identical to the ReadRegion() method with the exception
+ //! that the region boundaries are defined in block, not voxel, coordinates.
+ //! Secondly, unless the 'unblock' parameter  is set, the internal
+ //! blocking of the data will be preserved. 
+ //!
+ //! BlockReadRegion will fail if the requested data are not present. The
+ //! VariableExists() method may be used to determine if the data
+ //! identified by a (resolution,timestep,variable) tupple are 
+ //! available on disk.
+ //! \param[in] bmin Minimum region extents in block coordinates
+ //! \param[in] bmax Maximum region extents in block coordinates
+ //! \param[out] region The requested volume subregion
+ //! \param[in] unblock If true, unblock the data before copying to \p region
+ //! \retval status Returns a non-negative value on success
+ //! \sa OpenVariableRead(), Metadata::GetBlockSize(), MapVoxToBlk()
+ //
+ virtual int	BlockReadRegion(
+	const size_t bmin[3], const size_t bmax[3], 
+	float *region, int unblock = 1
+ );
+
+ //! Establish the data values that will be returned when a volume
+ //! lies outside the valid volume for which data values are specified.
+ //! This is needed when using layered data.
+ //! This method modifies all the below/above values
+ //! associated with specified vector of variable names
+ //! \p varNames, to the corresponding values specified by
+ //! \p lowVals and \p highvals.
+ //! If a specified variable name is not in the metadata,
+ //! that name will be ignored.
+ //! The vectors of low values and high values must
+ //! be the same length as the vector of variable names.
+ //! Any pre-existing low/high values are removed.
+ //! Variables not specified will revert to the default
+ //! Low/High values of -1.e30, 1.e30.
+ //!
+ //! \param[in] varNames A vector of variable names (strings)
+ //! \param[in] lowVals A vector of low values for associated variables (floats)
+ //! \param[in] highVals A vector of high values for associated variables (floats)
+ //!
+ //
+ void SetLowHighVals(
+     const vector<string>& varNames,
+     const vector<float>& lowVals,
+     const vector<float>& highVals
+ );
+ //! Method to retrieve current low value for variable
+ //!
+ //! \param[in] varName variable name (string)
+ //! \retval lowValue A float value that is assigned to points below grid
+ //!
+ //
+ float GetLowValue(const string &varName) {return _lowValMap[varName];}
+
+ //! Method to retrieve current high value for variable
+ //!
+ //! \param[in] varName variable name (string)
+ //! \retval highValue A float value that is assigned to points above grid
+ //!
+ //
+ float GetHighValue(const string &varName) {return _highValMap[varName];}
+
+ //! Set height of interpolate grid
+ //!
+ //! This method establishes the height (Z dimension) of the 
+ //! interpolation grid.  The grid height is specified for the finest
+ //! resolution grid in the multiresolution grid hierarchy.
+ //!
+ //! \param[in] height Z dimension of interpolation grid
+ //
+ int SetGridHeight(size_t height);
 
 
- int	_reflevel;		// refinement level of currently opened file.
- size_t _timeStep;		// Currently opened timestep
- string _varName;		// Currently opened variable
+ //! Enable or disable interpolation
+ //!
+ //! When enabled, data read with this class are interpolated to a
+ //! uniform grid whose height is determined by SetGridHeight(). Furthermore,
+ //! all coordinate parameters for this class are specified/returned in the
+ //! coordinate system of the uniform intepolation grid. When disabled,
+ //! no intepolation is performed and the Z grid dimension specified by
+ //! SetGridHeight() is ignored. By default interpolation is enabled.
+ // 
+ void SetInterpolateOnOff(bool on);
 
- double	_xform_timer;	// records interpolation time 
+ //! Get the dimension of a volume
+ //!
+ //! Get the resulting dimension of the volume
+ //! after undergoing a specified number of forward transforms.
+ //! If the number of transforms is zero, and the
+ //! grid type is not layered, the
+ //! value returned is the native volume dimension as specified in the
+ //! Metadata structure used to construct the class.
+ //! With layered data, the third coordinate depends
+ //! on the user-specified interpolation.
+ //! \param[in] reflevel Refinement level of the variable
+ //! \param[out] dim Transformed dimension.
+ //!
+ //! \sa Metadata::GetDimension(), LayeredIO::SetInterpolateOnOff()
+ //
+ virtual void   GetDim(size_t dim[3], int reflevel = 0) const;
+
+ //! Get dimension of a volume in blocks
+ //!
+ //! Performs same operation as GetDim() except returns
+ //! dimensions in block coordinates instead of voxels.
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //! \param[out] bdim Transformed dimension in blocks.
+ //!
+ //! \sa Metadata::GetDimension(), LayeredIO::SetInterpolateOnOff()
+ //
+ virtual void   GetDimBlk(size_t bdim[3], int reflevel = 0) const;
+
+ //! Return true if indicated region coordinates are valid
+ //! 
+ //! Returns true if the region defined by \p reflevel,
+ //! \p min, \p max is valid. I.e. returns true if the indicated 
+ //! volume subregion is contained within the volume. Coordinates are
+ //! specified relative to the refinement level.
+ //! 
+ //! \param[in] min Minimum region extents in voxel coordinates
+ //! \param[in] max Maximum region extents in voxel coordinates
+ //! \retval boolean True if region is valid
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //!
+ //! \sa LayeredIO::SetInterpolateOnOff()
+ //
+ virtual int IsValidRegion(
+    const size_t min[3], const size_t max[3], int reflevel = 0
+ ) const;
+ 
+ //! Return true if indicated region coordinates are valid
+ //! 
+ //! Returns true if the region defined by \p reflevel, and the block
+ //! coordinates  
+ //! \p min, \p max are valid. I.e. returns true if the indicated
+ //! volume subregion is contained within the volume.
+ //! Coordinates are
+ //! specified relative to the refinement level.
+ //!
+ //! \param[in] min Minimum region extents in block coordinates
+ //! \param[in] max Maximum region extents in block coordinates
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC 
+ //! \retval boolean True if region is valid
+ //!
+ //! \sa LayeredIO::SetInterpolateOnOff()
+ //
+ virtual int IsValidRegionBlk(
+    const size_t min[3], const size_t max[3], int reflevel = 0
+ ) const;
+
+ //! Return the valid bounds of the currently opened region
+ //! 
+ //! The VDC permits the storage of volume subregions. This method may
+ //! be used to query the valid domain of the currently opened volume. Results
+ //! are returned in voxel coordinates, relative to the refinement level
+ //! indicated by \p reflevel.
+ //! 
+ //! When layered data is used, valid subregions can be restricted
+ //! horizontally, but must include the full vertical extent of
+ //! the data.  In that case the result of GetValidRegion depends
+ //! on the region height in voxels, and can vary from region to region.
+ //!
+ //! \param[out] min A pointer to the minimum bounds of the subvolume
+ //! \param[out] max A pointer to the maximum bounds of the subvolume
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //! \retval status Returns a negative value if the volume is not opened
+ //! for reading or writing.
+ //! 
+ //! \sa OpenVariableWrite(), OpenVariableRead(), 
+ //! LayeredIO::SetInterpolateOnOff()
+ //
+ virtual void GetValidRegion(
+    size_t min[3], size_t max[3], int reflevel
+ ) const;
+ 
 
 
- VAPoR::WaveletBlock3DRegionReader	*wbRegionReader;
+ //! Map integer voxel coordinates to user-defined floating point coords.
+ //!
+ //! Map the integer coordinates of the specified voxel to floating
+ //! point coordinates in a user defined space. The voxel coordinates,
+ //! \p vcoord0 are specified relative to the refinement level
+ //! indicated by \p reflevel for time step \p timestep.  
+ //! The mapping is performed by using linear interpolation 
+ //! The user-defined coordinate system is obtained
+ //! from the Metadata structure passed to the class constructor.
+ //! The user coordinates are returned in \p vcoord1.
+ //! Results are undefined if vcoord is outside of the volume 
+ //! boundary.
+ //!
+ //! \param[in] timestep Time step of the variable 
+ //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel)
+ //! coordinates
+ //! \param[out] vcoord1 Coordinate of transformed voxel in user-defined,
+ //! floating point  coordinates
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //!
+ //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
+ //! GetTSXCoords(), LayeredIO::SetInterpolateOnOff()  
+ //
+ virtual void	MapVoxToUser(
+	size_t timestep,
+	const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
+ ) const;
+
+ //! Map floating point coordinates to integer voxel offsets.
+ //!
+ //! Map floating point coordinates, specified relative to a 
+ //! user-defined coordinate system, to the closest integer voxel 
+ //! coordinates for a voxel at a given refinement level. 
+ //! The integer voxel coordinates, \p vcoord1, 
+ //! returned are specified relative to the refinement level
+ //! indicated by \p reflevel for time step, \p timestep.
+ //! The mapping is performed by using linear interpolation 
+ //! The user defined coordinate system is obtained
+ //! from the Metadata structure passed to the class constructor.
+ //! Results are undefined if \p vcoord0 is outside of the volume 
+ //! boundary.
+ //!
+ //! \param[in] timestep Time step of the variable 
+ //! \param[in] vcoord0 Coordinate of input point in floating point
+ //! coordinates
+ //! \param[out] vcoord1 Integer coordinates of closest voxel, at the 
+ //! indicated refinement level, to the specified point.
+ //! integer coordinates
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //!
+ //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
+ //! GetTSXCoords(), LayeredIO::SetInterpolateOnOff()  
+ //
+ virtual void	MapUserToVox(
+	size_t timestep,
+	const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
+ ) const;
+
 
 
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
+ bool _interpolateOn;	// Is interpolation on?
+ size_t _gridHeight;	// Interpolation grid height
+ WaveletBlock3DRegionReader *_varReader;
+ WaveletBlock3DRegionReader *_elevReader;
 
- typedef int int32_t;
+ float *_elevBlkBuf;	// buffer for layered elevation data
+ float *_varBlkBuf;	// buffer for layered variable data
+ size_t _blkBufSize;	// Size of space allocated to daa buffers
 
- int	type_c;		// data type;
- int	is_open_c;	// true if a file is open
+
+ map <string, float> _lowValMap;
+ map <string, float> _highValMap;
+
+
+ size_t _cacheTimeStep;	// Cached elevation data 
+ size_t _cacheBMin[3];
+ size_t _cacheBMax[3];
+ bool _cacheEmpty;
+ bool cache_check(
+	size_t timestep,
+	const size_t bmin[3],
+	const size_t bmax[3]
+ );
+
+ void cache_set(
+	size_t timestep,
+	const size_t bmin[3],
+	const size_t bmax[3]
+ );
+
+ void cache_clear();
+
+ void _setDefaultHighLowVals();
 
 
  int	_LayeredIO();
 
+void LayeredIO::_interpolateRegion(
+    float *region,			// Destination interpolated ROI
+	const float *elevBlks,	// Source elevation ROI
+	const float *varBlks,	// Source variable ROI
+	const size_t blkMin[3],
+	const size_t blkMax[3],	// coords of native (layered grid)
+							// ROI specified in blocks 
+    size_t zmini,
+	size_t zmaxi,			// Z coords extents of interpolated ROI
+	float lowVal,
+	float highVal
+) const;
+
+
 };
 
-}
+};
 
 #endif	//	_LayeredIO_h_

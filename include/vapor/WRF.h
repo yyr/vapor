@@ -56,7 +56,7 @@ public:
 
 
 
- // Gets info about a 3D variable and stores that info in thisVar.
+ // Gets info about a 2D or 3D variable and stores that info in thisVar.
  static int	GetVarInfo(
 	int ncid, // ID of the file we're reading
 	const char *name,
@@ -72,6 +72,14 @@ public:
 	size_t z, // Which z slice we want
 	float * fbuffer, // Buffer we're going to store slice in
 	const size_t * dim // Dimensions from VDF
+ );
+
+ // Reads a single horizontal slice of netCDF data
+ static int ReadZSlice3D(
+	int ncid, // ID of the netCDF file
+	varInfo_t & thisVar, // Struct for the variable we want
+	size_t wrfT, // The WRF time step we want
+	float * fbuffer // Buffer we're going to store slice in
  );
 
 
@@ -116,7 +124,8 @@ public:
 	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
-	vector<string> & wrfVars, // Variable names in WRF file (out)
+	vector<string> & wrfVars3d, // 3D Variable names in WRF file (out)
+	vector<string> & wrfVars2d, // 2D Variable names in WRF file (out)
 	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
 );
 

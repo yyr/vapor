@@ -69,8 +69,7 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 int	WaveletBlock3DRegionReader::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
-	int reflevel,
-	size_t //full_height
+	int reflevel
 ) {
 	int	rc;
 
@@ -133,8 +132,8 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 		for(int i=0; i<3; i++) assert(((max[i]+1) % _bs[i]) == 0);
 	}
 
-	MapVoxToBlk(min, bmin);
-	MapVoxToBlk(max, bmax);
+	VDFIOBase::MapVoxToBlk(min, bmin);
+	VDFIOBase::MapVoxToBlk(max, bmax);
 
 	size_t x0 = bmin[0];
 	size_t y0 = bmin[1];
@@ -223,7 +222,7 @@ int	WaveletBlock3DRegionReader::ReadRegion(
 		min[0], min[1], min[2], max[0], max[1], max[2]
 	);
 
-	if (! IsValidRegion(min, max, _reflevel)) {
+	if (! VDFIOBase::IsValidRegion(min, max, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			min[0], min[1], min[2], max[0], max[1], max[2]
@@ -248,7 +247,7 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 		bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
 	);
 
-	if (! IsValidRegionBlk(bmin, bmax, _reflevel)) {
+	if (! VDFIOBase::IsValidRegionBlk(bmin, bmax, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
@@ -287,7 +286,7 @@ int	WaveletBlock3DRegionReader::ReadRegionGamma(
         return(-1);
     }
 
-	if (! IsValidRegionBlk(num_xforms, min, max)) {
+	if (! VDFIOBase::IsValidRegionBlk(num_xforms, min, max)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			min[0], min[1], min[2], max[0], max[1], max[2]
@@ -435,8 +434,8 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 		maxsub[2] -= _bs[2];
 	}
 
-	MapVoxToBlk(min, bmin);
-	MapVoxToBlk(max, bmax);
+	VDFIOBase::MapVoxToBlk(min, bmin);
+	VDFIOBase::MapVoxToBlk(max, bmax);
 
 	size_t x0 = bmin[0];
 	size_t y0 = bmin[1];
@@ -611,7 +610,7 @@ int	WaveletBlock3DRegionReader::my_realloc(
 			size_t nb_j[3];
 			size_t     size;
 
-			GetDimBlk(nb_j, j);
+			VDFIOBase::GetDimBlk(nb_j, j);
 			nb_j[0] += 1;	// fudge (deal with odd size dimensions)
 
 			size = nb_j[0] * _block_size * 2 * 2;

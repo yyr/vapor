@@ -116,8 +116,8 @@ int	WaveletBlock3DRegionWriter::CloseVariable(
 		int blkidx;
 		int blkidxlp1;
 
-		GetDimBlk(bdim, l);
-		GetDimBlk(bdimlp1, l+1);
+		VDFIOBase::GetDimBlk(bdim, l);
+		VDFIOBase::GetDimBlk(bdimlp1, l+1);
 
 		for(int z=0; z<bdim[2]; z++) {
 		for(int y=0; y<bdim[1]; y++) {
@@ -282,8 +282,8 @@ int	WaveletBlock3DRegionWriter::_WriteRegion(
 	}
 
 	// Bounds (in blocks) of region relative to global volume
-	MapVoxToBlk(min, _volBMin);
-	MapVoxToBlk(max, _volBMax);
+	VDFIOBase::MapVoxToBlk(min, _volBMin);
+	VDFIOBase::MapVoxToBlk(max, _volBMax);
 
 	// handle case where there is no transform
 	//
@@ -351,7 +351,7 @@ int	WaveletBlock3DRegionWriter::WriteRegion(
 		min[0], min[1], min[2], max[0], max[1], max[2]
 	);
 
-	if (! IsValidRegion(min, max, _reflevel)) {
+	if (! VDFIOBase::IsValidRegion(min, max, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			min[0], min[1], min[2], max[0], max[1], max[2]
@@ -376,7 +376,7 @@ int	WaveletBlock3DRegionWriter::BlockWriteRegion(
 		bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
 	);
 
-	if (! IsValidRegionBlk(bmin, bmax, _reflevel)) {
+	if (! VDFIOBase::IsValidRegionBlk(bmin, bmax, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]

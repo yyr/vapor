@@ -33,6 +33,8 @@ int	WRF::GetVarInfo(
 	const vector <ncdim_t> &ncdims,
 	varInfo & thisVar // Variable info
 ) {
+	static char *buf = NULL;
+	static size_t bufSize = 0;
 
 	thisVar.name.assign(name);
 
@@ -67,7 +69,11 @@ int	WRF::GetVarInfo(
 	}
 	NC_ERR_READ(nc_status);
 
-	char *buf = new char[attlen+1];
+	if (bufSize < attlen+1) {
+		if (buf) delete [] buf;
+		buf = new char[attlen+1];
+		bufSize = attlen+1;
+	}
 	nc_status = nc_get_att_text(ncid, thisVar.varid, "stagger", buf);
 	buf[attlen] = '\0';
 
@@ -115,7 +121,33 @@ int WRF::ReadZSlice4D(
 	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
 	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
 
-	NC_ERR_READ(nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
+	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
+
+	return(0);
+}
+
+// Reads a single slice from a 3D (time + space) variable 
+int WRF::ReadZSlice3D(
+	int ncid, // ID of the netCDF file
+	varInfo & thisVar, // Struct for the variable we want
+	size_t wrfT, // The WRF time step we want
+	float * fbuffer // Buffer we're going to store slice in
+) {
+
+	size_t start[NC_MAX_DIMS]; // The point from which we start reading netCDF data
+	size_t count[NC_MAX_DIMS]; // What interval to read the data
+
+	// Initialize the count and start arrays for extracting slices from the data:
+	for (int i = 0; i<thisVar.ndimids; i++){
+		start[i] = 0; // Start reading in a corner
+		count[i] = 1; // Read every point (changes later)
+	}
+
+	start[thisVar.ndimids-3] = wrfT;
+	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
+	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
+
+	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
 
 	return(0);
 }
@@ -208,6 +240,14 @@ int WRF::GetZSlice(
    const size_t * dim // Dimensions from VDF
 ) {
 	int rc;
+	// Read a slice from the netCDF
+	if ( thisVar.ndimids == 3 )
+	{
+		if (ReadZSlice3D( ncid, thisVar, wrfT, fbuffer) < 0) return(-1);
+		// Do horizontal interpolation of staggered grids, if necessary
+		if ( thisVar.stag[0] || thisVar.stag[1] )
+			InterpHorizSlice( fbuffer, thisVar, dim );
+	}
 
 	// Read a slice from the netCDF
 	if ( needAnother )
@@ -304,7 +344,8 @@ int WRF::OpenWrfGetMeta(
 	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
-	vector<string> & wrfVars, // Variable names in WRF file (out)
+	vector<string> & wrfVars3d, 
+	vector<string> & wrfVars2d, 
 	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
 ) {
 	int ncid; // Holds netCDF file ID
@@ -314,7 +355,14 @@ int WRF::OpenWrfGetMeta(
 	int xdimid; // ID of unlimited dimension (not used)
 	
 	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
+
+	static char *buf = NULL;
+	static size_t bufSize = 0;
 	
+	wrfVars3d.clear();
+	wrfVars2d.clear();
+	timestamps.clear();
+
 	// Open netCDF file and check for failure
 	NC_ERR_READ( nc_open( wrfName, NC_NOWRITE, &ncid ));
 	// Find the number of dimensions, variables, and global attributes, and check
@@ -391,7 +439,11 @@ int WRF::OpenWrfGetMeta(
 		}
 	}
 	if (start_attr) {
-		char *buf = new char[attlen];
+		if (bufSize < attlen+1) {
+			if (buf) delete [] buf;
+			buf = new char[attlen+1];
+			bufSize = attlen+1;
+		}
 
 		NC_ERR_READ(nc_get_att_text( ncid, NC_GLOBAL, start_attr, buf ));
 
@@ -421,7 +473,14 @@ int WRF::OpenWrfGetMeta(
 			((varinfo.dimids[2] ==  snId) || (varinfo.dimids[2] == snsId)) &&
 			((varinfo.dimids[3] ==  weId) || (varinfo.dimids[3] == wesId))) {
 
-			wrfVars.push_back( name );
+			wrfVars3d.push_back( name );
+		}
+		else if ((varinfo.ndimids == 3) && 
+			(varinfo.dimids[0] ==  timeId) &&
+			((varinfo.dimids[1] ==  snId) || (varinfo.dimids[1] == snsId)) &&
+			((varinfo.dimids[2] ==  weId) || (varinfo.dimids[2] == wesId))) {
+
+			wrfVars2d.push_back( name );
 		}
 	}
 
@@ -539,17 +598,20 @@ int WRF::OpenWrfGetMeta(
 		return(-1);
 	}
 	size_t sz = timeInfo.dimlens[0] * timeInfo.dimlens[1];
-	char *timesBuf = new char[sz];
-	nc_status = nc_get_var_text(ncid, timeInfo.varid, timesBuf);
+	if (bufSize < sz) {
+		if (buf) delete [] buf;
+		buf = new char[sz];
+		bufSize = sz;
+	}
+	nc_status = nc_get_var_text(ncid, timeInfo.varid, buf);
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
-		string time_fmt(timesBuf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
+		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		TIME64_T seconds;
 
 		if (WRFTimeStrToEpoch(time_fmt, &seconds) < 0) return(-1);
 
 		timestamps.push_back(seconds);
 	}
-	delete [] timesBuf;
 
 	// Close the WRF file
 	NC_ERR_READ( nc_close( ncid ) );

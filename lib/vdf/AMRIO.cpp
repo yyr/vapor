@@ -269,8 +269,7 @@ int	AMRIO::OpenVariableWrite(
 int	AMRIO::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel,
-	size_t //full_height
+	int reflevel
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableRead(%d, %s, %d)",timestep,varname,reflevel);

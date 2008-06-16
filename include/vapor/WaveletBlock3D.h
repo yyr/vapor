@@ -8,6 +8,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/EasyThreads.h>
 #include <vapor/Metadata.h>
+#include <vapor/WaveletBlock1D.h>
 
 #include "Lifting1D.h"
 
@@ -46,7 +47,7 @@ public:
 	unsigned int bs,	// X,Y,Z coordinate block dimensions
 	unsigned int n,		// # wavelet filter coefficents
 	unsigned int ntilde,	// # wavelet lifting coefficients
-	unsigned int nthreads	// # execution threads to spawn
+	unsigned int nthreads
  );
  ~WaveletBlock3D();
 
@@ -101,7 +102,7 @@ public:
  //!
  //! \sa ForwardTransform()
  //
- void Transpose(
+ void TransposeBlks(
 	float *super_blk[8]
  );
 
@@ -114,14 +115,11 @@ private:
  const float ***src_s_blk_ptr_c;
  float ***dst_s_blk_ptr_c;
  int	bs_c;			// block dimensions in voxels
- int	n_c;			// # filter coefficients
- int	ntilde_c;		// # lifting coefficients
  int	nthreads_c;		// # execution threads
  float	**temp_blks1_c,
 	**temp_blks2_c;
 
- Lifting1D <float>	*lift_c;	// lifting method wavelet transform
- float		*liftbuf_c;	// scratch space for lifting method
+ WaveletBlock1D *_wb1d;	// lifting method wavelet transform
 
  int	deallocate_c;		// execute destructor for this object?
 
@@ -148,20 +146,6 @@ private:
 	int gamma_offset
  );
 
- void	forward_transform1d(
-	const float *src_blk_ptr,
-	float *lambda_blk_ptr,
-	float *gamma_blk_ptr,
-	int size
- );
-
- void	forward_transform1d_haar(
-	const float *src_blk_ptr,
-	float *lambda_blk_ptr,
-	float *gamma_blk_ptr,
-	int size
- );
-
  void	inverse_transform3d_blocks(
 	const float **lambda_blks,
 	const float **gamma_blks,
@@ -175,20 +159,6 @@ private:
 	float *dst_blkptr,
 	int lambda_offset,
 	int gamma_offset
- );
-
- void	inverse_transform1d(
-	const float *lambda_blk_ptr,
-	const float *gamma_blk_ptr,
-	float *dst_blk_ptr,
-	int size
- );
-
- void	inverse_transform1d_haar(
-	const float *lambda_blk_ptr,
-	const float *gamma_blk_ptr,
-	float *src_blk_ptr,
-	int size
  );
 
 };

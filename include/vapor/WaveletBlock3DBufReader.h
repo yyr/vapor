@@ -84,8 +84,7 @@ public:
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0,
-	size_t full_height = 0
+	int reflevel = 0
  );
 
  virtual int	CloseVariable();

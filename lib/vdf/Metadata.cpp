@@ -51,6 +51,10 @@ const string Metadata::_rootTag = "Metadata";
 const string Metadata::_userTimeTag = "UserTime";
 const string Metadata::_timeStepTag = "TimeStep";
 const string Metadata::_varNamesTag = "VariableNames";
+const string Metadata::_vars3DTag = "Variables3D";
+const string Metadata::_vars2DXYTag = "Variables2DXY";
+const string Metadata::_vars2DXZTag = "Variables2DXZ";
+const string Metadata::_vars2DYZTag = "Variables2DYZ";
 const string Metadata::_xCoordsTag = "XCoords";
 const string Metadata::_yCoordsTag = "YCoords";
 const string Metadata::_zCoordsTag = "ZCoords";
@@ -134,6 +138,10 @@ int Metadata::_init(
 	_vdfVersion = vdfVersion;
 
 	_varNames.clear();
+	_varNames3D.clear();
+	_varNames2DXY.clear();
+	_varNames2DXZ.clear();
+	_varNames2DYZ.clear();
 
 	oss.str(empty);
 	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];
@@ -608,6 +616,45 @@ int Metadata::_SetNumTimeSteps(long value) {
 	return(0);
 }
 
+//
+// Delete 'value' from 'vec' if 'value' is contained in 'vec'. Otherwise
+// 'vec' is unchanged.
+//
+void vector_delete (vector <string> &vec, const string &value) {
+
+	vector<string>::iterator itr;
+	for (itr = vec.begin(); itr != vec.end(); ) {
+		if (itr->compare(value) == 0) {
+			vec.erase(itr);
+			itr = vec.begin();
+		}
+		else {
+			itr++;
+		}
+	}
+}
+
+//
+// Delete any duplicate entries from 'vec'.
+//
+void vector_unique (vector <string> &vec) {
+
+	vector <string> tmpvec;
+	vector<string>::iterator itr1;
+	vector<string>::iterator itr2;
+
+	for (itr1 = vec.begin(); itr1 != vec.end(); itr1++) {
+		bool match = false;
+		for (itr2 = tmpvec.begin(); itr2 != tmpvec.end(); itr2++) {
+			if (itr1->compare(*itr2) == 0) {
+				match = true;
+			}
+		}
+		if (! match) tmpvec.push_back(*itr1);
+	}
+	vec = tmpvec;
+}
+
 int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 
 	map <string, string> attrs; // empty map
@@ -681,16 +728,10 @@ int Metadata::SetVariableNames(const vector <string> &value) {
 
 	SetDiagMsg("Metadata::SetVariableNames([%s,...])", value[0].c_str());
 
-	ostringstream oss;
+	vector <string> value_unique = value;
+	vector_unique(value_unique);
 
-	//	Encode variable name vector as a white-space delimited string
-	//
-	_varNames.clear();
-	for(size_t i=0; i<value.size(); i++) {
-		oss << value[i] << " ";
-		_varNames.push_back(value[i]);
-	}
-
+	_varNames = value_unique;
 
 	// For each time step we need to create a list of variable nodes
 	//
@@ -698,8 +739,136 @@ int Metadata::SetVariableNames(const vector <string> &value) {
 		if (_SetVariableNames(_rootnode->GetChild(i), (long)i) < 0) return(-1);
 	}
 
-	_rootnode->SetElementString(_varNamesTag, oss.str());
+	_rootnode->SetElementStringVec(_varNamesTag, value_unique);
 
+	// By default all variables are of type 3D
+	_rootnode->SetElementStringVec(_vars3DTag, value_unique);
+	_varNames3D = value_unique;
+
+
+	// Clear all other data types
+	string empty;
+	_rootnode->SetElementString(_vars2DXYTag, empty); _varNames2DXY.clear();
+	_rootnode->SetElementString(_vars2DXZTag, empty); _varNames2DXZ.clear();
+	_rootnode->SetElementString(_vars2DYZTag, empty); _varNames2DYZ.clear();
+
+	return(0);
+}
+
+
+int Metadata::_setVariableTypes(
+	const string &tag,
+	const vector <string> &delete_tags,
+	const vector <string> &value
+) {
+	vector <string> value_unique = value;
+	vector_unique(value_unique);
+	// 
+	// Make sure the variables all exist (i.e. previously defined)
+	//
+	const vector <string> &vnames = GetVariableNames();
+	vector<string>::const_iterator itr1;
+	vector<string>::const_iterator itr2;
+	for (itr1 = value_unique.begin(); itr1 != value_unique.end(); itr1++) {
+		bool match = false;
+		for (itr2=vnames.begin(); itr2!=vnames.end(); itr2++) {
+			if (itr1->compare(*itr2) == 0) match = true;
+		}
+		if (! match) {
+			SetErrMsg("Variable %s not defined", itr1->c_str());
+			return(-1);
+		}
+	}
+
+	_rootnode->SetElementStringVec(tag, value_unique);
+
+	//
+	// Remove variables in 'value' from all other type
+	// lists.
+	//
+	for (itr1 = delete_tags.begin(); itr1 != delete_tags.end(); itr1++) {
+		vector <string> vtypes;
+		_rootnode->GetElementStringVec(*itr1, vtypes);
+
+
+		// Delete each var name found in 'value' from the 
+		// type list associated with the tag *itr1
+		//
+		for (itr2 = value_unique.begin(); itr2 != value_unique.end(); itr2++) {
+			vector_delete(vtypes, *itr2);
+		}
+		//
+		// Now restore the remaining, undeleted variable names
+		//
+		_rootnode->SetElementStringVec(*itr1, vtypes);
+	}
+
+	// 
+	// Update cache 
+	//
+	_rootnode->GetElementStringVec(_vars3DTag, _varNames3D);
+	_rootnode->GetElementStringVec(_vars2DXYTag, _varNames2DXY);
+	_rootnode->GetElementStringVec(_vars2DXZTag, _varNames2DXZ);
+	_rootnode->GetElementStringVec(_vars2DYZTag, _varNames2DYZ);
+
+	return(0);
+}
+
+
+int Metadata::SetVariables3D(const vector <string> &value) {
+
+	SetDiagMsg("Metadata::SetVariables3D([%s,...])", value[0].c_str());
+
+	vector <string> delete_tags;
+	
+	delete_tags.push_back(_vars2DXYTag);
+	delete_tags.push_back(_vars2DXZTag);
+	delete_tags.push_back(_vars2DYZTag);
+
+	if (_setVariableTypes(_vars3DTag, delete_tags, value)<0) return(-1);
+
+	return(0);
+}
+
+int Metadata::SetVariables2DXY(const vector <string> &value) {
+
+	SetDiagMsg("Metadata::SetVariables2DXY([%s,...])", value[0].c_str());
+
+	vector <string> delete_tags;
+	
+	delete_tags.push_back(_vars3DTag);
+	delete_tags.push_back(_vars2DXZTag);
+	delete_tags.push_back(_vars2DYZTag);
+
+	if (_setVariableTypes(_vars2DXYTag, delete_tags, value)<0) return(-1);
+	return(0);
+}
+
+int Metadata::SetVariables2DXZ(const vector <string> &value) {
+
+	SetDiagMsg("Metadata::SetVariables2DXZ([%s,...])", value[0].c_str());
+
+	vector <string> delete_tags;
+	
+	delete_tags.push_back(_vars3DTag); 
+	delete_tags.push_back(_vars2DXYTag);
+	delete_tags.push_back(_vars2DYZTag);
+
+	if (_setVariableTypes(_vars2DXZTag, delete_tags, value)<0) return(-1);
+	return(0);
+}
+
+int Metadata::SetVariables2DYZ(const vector <string> &value) {
+
+	SetDiagMsg("Metadata::SetVariables2DYZ([%s,...])", value[0].c_str());
+
+	vector <string> delete_tags;
+	
+	delete_tags.push_back(_vars3DTag);
+	delete_tags.push_back(_vars2DXYTag);
+	delete_tags.push_back(_vars2DXZTag);
+
+	if (_setVariableTypes(_vars2DYZTag, delete_tags, value)<0) return(-1);
 	return(0);
 }
 
@@ -1122,6 +1291,30 @@ void	Metadata::_startElementHandler1(ExpatParseMgr* pm,
 			return;
 		}
 	}
+	else if (StrCmpNoCase(tag, _vars3DTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _vars2DXYTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _vars2DXZTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _vars2DYZTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
 	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
 			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
@@ -1378,6 +1571,22 @@ void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
+	}
+	else if (StrCmpNoCase(tag, _vars3DTag) == 0) {
+		_rootnode->SetElementString(_vars3DTag, pm->getStringData());
+		_rootnode->GetElementStringVec(_vars3DTag, _varNames3D);
+	}
+	else if (StrCmpNoCase(tag, _vars2DXYTag) == 0) {
+		_rootnode->SetElementString(_vars2DXYTag, pm->getStringData());
+		_rootnode->GetElementStringVec(_vars2DXYTag, _varNames2DXY);
+	}
+	else if (StrCmpNoCase(tag, _vars2DXZTag) == 0) {
+		_rootnode->SetElementString(_vars2DXZTag, pm->getStringData());
+		_rootnode->GetElementStringVec(_vars2DXZTag, _varNames2DXZ);
+	}
+	else if (StrCmpNoCase(tag, _vars2DYZTag) == 0) {
+		_rootnode->SetElementString(_vars2DYZTag, pm->getStringData());
+		_rootnode->GetElementStringVec(_vars2DYZTag, _varNames2DYZ);
 	}
 	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
 		if (SetPeriodicBoundary(pm->getLongData()) < 0) {

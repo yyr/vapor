@@ -61,6 +61,11 @@ class VDF_API	VDFIOBase : public VetsUtil::MyBase {
 
 public:
 
+ enum VarType_T {
+	VARUNKNOWN = -1,
+	VAR3D, VAR2D_XY, VAR2D_XZ, VAR2D_YZ
+ };
+
  //! Constructor for the VDFIOBase class.
  //! \param[in] metadata Pointer to a metadata class object for which all
  //! future class operations will apply
@@ -160,16 +165,12 @@ public:
  //! \param[in] varname Name of the variable to read
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
- //! \param[in] full_height is used only with layered data, indicates
- //! the vertical grid size to interpolate to at max refinement level.
- //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0,
-	size_t full_height = 0
+	int reflevel = 0
  ) = 0;
 
  //! Close the currently opened variable.
@@ -223,15 +224,13 @@ public:
  //! \param[out] max A pointer to the maximum bounds of the subvolume
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
- //! \param[in] full_height is used with layered data, indicates
- //! interpolation resolution.  full_height is 0 for nonlayered data
  //! \retval status Returns a negative value if the volume is not opened
  //! for reading or writing.
  //!
  //! \sa OpenVariableWrite(), OpenVariableRead()
  //
  virtual void GetValidRegion(
-    size_t min[3], size_t max[3], size_t full_height, int reflevel
+    size_t min[3], size_t max[3], int reflevel
  ) const;
 
 
@@ -421,6 +420,7 @@ public:
 
  void SetDataRange(const float* rng){_dataRange[0] = rng[0]; _dataRange[1] = rng[1];}
 
+ static VarType_T	GetVarType(const Metadata *metadata, const string &varname);
 
 protected:
  const VAPoR::Metadata *_metadata;

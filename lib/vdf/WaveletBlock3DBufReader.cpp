@@ -61,8 +61,7 @@ WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 int	WaveletBlock3DBufReader::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel,
-	size_t //full_height
+	int reflevel
 ) {
 	int	rc;
 	size_t size;
@@ -85,7 +84,7 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 	// volume at the desired resolution.
 	//
 	size_t bdim[3];
-	GetDimBlk(bdim, reflevel);
+	VDFIOBase::GetDimBlk(bdim, reflevel);
 	size = bdim[0] * bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
 	buf_c = new float[size];
 	if (! buf_c) {
@@ -120,8 +119,8 @@ int	WaveletBlock3DBufReader::ReadSlice(
 
 	size_t bdim[3];
 	size_t dim[3];
-	GetDimBlk(bdim, _reflevel);
-	GetDim(dim, _reflevel);
+	VDFIOBase::GetDimBlk(bdim, _reflevel);
+	VDFIOBase::GetDim(dim, _reflevel);
 
 
 	if (! is_open_c) {
