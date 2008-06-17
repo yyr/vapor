@@ -42,7 +42,7 @@
 #include <vapor/OptionParser.h>
 #include <vapor/Metadata.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
-#include <vapor/WaveletBlock3DRegionWriter.h>
+#include <vapor/WaveletBlock2DRegionWriter.h>
 #include <vapor/WRF.h>
 #ifdef WIN32
 #include "windows.h"
@@ -867,7 +867,7 @@ int DoPTStuff(
 }
 
 
-int DoIndependentVars(
+int DoIndependentVars3d(
 	int ncid, 
 	const size_t dim[3],
 	const map<string, WRF::varInfo_t *> &var_info_map, 
@@ -892,6 +892,10 @@ int DoIndependentVars(
 	int rc = 0;
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
+
+		VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(metadata,vn_copy[i]);
+
+		if (vtype != VDFIOBase::VAR3D) continue;
 
 		map<string, WRF::varInfo_t *>::const_iterator itr;
 
@@ -934,6 +938,64 @@ int DoIndependentVars(
 	if (varWriter) {
 		delete varWriter;
 	}
+
+	return(rc);
+}
+
+int DoIndependentVars2d(
+	int ncid, 
+	const size_t dim[3],
+	const map<string, WRF::varInfo_t *> &var_info_map, 
+	size_t aVaporTs, 
+	int wrfT, 
+	Metadata *metadata,
+	const WRF::atypVarNames_t &wrfNames,
+	vector<string> &varnames
+
+) {
+	static float * varBuffer = NULL; 
+	WaveletBlock2DRegionWriter * varWriter = NULL;
+
+	varWriter = new WaveletBlock2DRegionWriter(metadata);
+	if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+
+	// Allocate buffer big enough for staggered variables
+	//
+	if (! varBuffer) varBuffer = new float[(dim[0]+1)*(dim[1]+1)]; 
+
+	int rc = 0;
+	vector <string> vn_copy = varnames;
+	for (int i=0; i<vn_copy.size(); i++) {
+
+		VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(metadata,vn_copy[i]);
+
+		if (vtype != VDFIOBase::VAR2D_XY) continue;
+
+		map<string, WRF::varInfo_t *>::const_iterator itr;
+
+		itr = var_info_map.find(vn_copy[i]);
+		WRF::varInfo_t  *varInfoPtr = itr==var_info_map.end() ? NULL : itr->second; 
+
+		assert(varInfoPtr != NULL);
+
+		varWriter->OpenVariableWrite(aVaporTs, vn_copy[i].c_str(), opt.level);
+		if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
+
+		bool dummy = false;
+		rc = WRF::GetZSlice(
+			ncid, *varInfoPtr, wrfT, 0, varBuffer, NULL, dummy, dim
+		);
+		if (rc<0) break;
+
+		varWriter->WriteRegion( varBuffer );
+
+		varWriter->CloseVariable();
+	}
+
+	if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+
+	if (varWriter) delete varWriter;
 
 	return(rc);
 }
@@ -1019,18 +1081,23 @@ int GetWRFInfo(
 ) {
 	int rc;
 
-	vars.clear();
-	timestamps.clear();
-
 	const WRF::atypVarNames_t atypnames_dummy;
 	size_t dimLens[4];
 	string startDate;
 
+	vars.clear();
+
+	vector <string> vars3d;
+	vector <string> vars2d;
 	rc = WRF::OpenWrfGetMeta(
 		file, atypnames_dummy, dx, dy, NULL, dimLens, startDate,
-		vars, timestamps
+		vars3d, vars2d, timestamps
 	);
 	if (rc<0) return(-1);
+
+	for (int i=0; i<vars2d.size(); i++) vars.push_back(vars2d[i]);
+	for (int i=0; i<vars3d.size(); i++) vars.push_back(vars3d[i]);
+
 	for (int i=0; i<3; i++) dims[i] = dimLens[i];
 
 	return(0);
@@ -1428,7 +1495,7 @@ int	main(int argc, char **argv) {
 		// time steps to copy from in netCDF file
 		vector <long> copy_wrf_timesteps;
 
-		rc = GetWRFInfo(argv[arg], wrf_vars, wrf_timestamps, wrf_dims, dx, dy);
+		rc = GetWRFInfo( argv[arg], wrf_vars, wrf_timestamps, wrf_dims, dx, dy);
 		if (rc<0) {
 			cerr << "Skipping file " << argv[arg] << endl;
 			continue;
@@ -1544,12 +1611,22 @@ int	main(int argc, char **argv) {
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 
-			// Find P- or T-related derived variables, if necessary
-			rc = DoIndependentVars(
+			// Remaining 3D variables
+			rc = DoIndependentVars3d(
 				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
 				metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
+
+			// Remaining 3D variables
+			rc = DoIndependentVars2d(
+				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
+				metadata, wrfNames, vars
+			);
+			if (rc<0) MyBase::SetErrCode(0);
+
+			// Shouldn't have any variables left to process
+			assert(vars.size() == 0);
 
 			TotalTimeSteps++;
 		}
