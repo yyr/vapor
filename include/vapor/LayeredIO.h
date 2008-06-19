@@ -6,8 +6,8 @@
 #ifndef	_LayeredIO_h_
 #define	_LayeredIO_h_
 
-#include <vapor/MyBase.h>
-#include <WaveletBlock3DRegionReader.h>
+#include "vapor/MyBase.h"
+#include "WaveletBlock3DRegionReader.h"
 
 namespace VAPoR {
 
@@ -205,6 +205,15 @@ public:
  //
  int SetGridHeight(size_t height);
 
+ //! Get height of interpolate grid
+ //!
+ //! This method returns the currently set grid height.
+ //! interpolation grid.  The grid height is specified for the finest
+ //! resolution grid in the multiresolution grid hierarchy.
+ //!
+ //! \retval height A size_t value specifying Z dimension of interpolation grid
+ //!
+ size_t GetGridHeight() const {return _gridHeight;} 
 
  //! Enable or disable interpolation
  //!

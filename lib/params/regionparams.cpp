@@ -58,6 +58,7 @@ const string RegionParams::_numTransAttr = "NumTrans";
 const string RegionParams::_regionMinTag = "RegionMin";
 const string RegionParams::_regionMaxTag = "RegionMax";
 const string RegionParams::_fullHeightAttr = "FullGridHeight";
+size_t RegionParams::fullHeight = 0;
 
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
@@ -149,7 +150,7 @@ reinit(bool doOverride){
 			regionMin[i] = extents[i];
 			regionMax[i] = extents[i+3];
 		}
-		if (isLayered) fullHeight = 4*DataStatus::getInstance()->getFullDataSize(2);
+		if (isLayered) setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
 		else fullHeight = 0;
 	} else {
 		//Just force them to fit in current volume 
@@ -168,7 +169,8 @@ reinit(bool doOverride){
 		//If layered data is being read into a session that was not
 		//set for layered data, then the fullheight may need to be
 		//set to default
-		if (isLayered && fullHeight == 0) fullHeight = 4*DataStatus::getInstance()->getFullDataSize(2);
+		if (isLayered && fullHeight == 0)
+			setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
 	}
 	
 	return true;	
@@ -203,14 +205,14 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 //Then puts into unit cube, for use by volume rendering
 //
 void RegionParams::
-convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6],size_t fullHeight){
+convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
 	double fullExtents[6];
 	double subExtents[6];
 	DataStatus* ds = DataStatus::getInstance();
 	const size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
 	
-	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i,fullHeight) - 1;
+	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
 
 	ds->mapVoxelToUserCoords(refLevel, fullMin, fullExtents);
 	ds->mapVoxelToUserCoords(refLevel, fullMax, fullExtents+3);
@@ -288,7 +290,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	const VDFIOBase* myReader = ds->getRegionReader();
 
 	if (ds->dataIsLayered()){
-		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
+		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
 	myReader->MapUserToVox(timestep, userMinCoords, min_dim, minRefLevel);
@@ -310,7 +312,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	size_t temp_min[3], temp_max[3];
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		const string varName = ds->getVariableName(varNums[varIndex]);
-		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max, fullHeight);
+		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
 		if (rc < 0) {
 			//Tell the datastatus that the data isn't really there at minRefLevel:
 			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
@@ -578,7 +580,7 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 		voxCoords[i] -= blkmin[i]*bs[i];
 	}
 	// Obtain the region:
-	float *reg = getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep, getFullGridHeight());
+	float *reg = getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep);
 	if (!reg) return OUT_OF_BOUNDS;
 	
 	//find the coords within this block:
@@ -586,4 +588,23 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 
 	float val = reg[xyzcoord];
 	return val;
+}
+void RegionParams::
+setFullGridHeight(size_t val){
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->dataIsLayered()){
+		
+		LayeredIO* layeredReader = (LayeredIO*)ds->getRegionReader();
+		size_t currentHeight = layeredReader->GetGridHeight();
+		if (currentHeight != val){			
+			layeredReader->SetGridHeight(val);
+			//purge cache:
+			ds->getDataMgr()->Clear();
+		}
+		fullHeight = val;
+		return;
+	}
+	assert(val == 0);
+	fullHeight = 0;
+
 }

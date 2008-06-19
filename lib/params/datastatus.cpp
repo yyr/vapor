@@ -39,6 +39,7 @@
 #include <qcursor.h>
 #include <qcolor.h>
 #include "vapor/errorcodes.h"
+#include "vapor/LayeredIO.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -247,7 +248,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	QApplication::restoreOverrideCursor();
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
-	dataMgr->SetLowHighVals(variableNames, belowValues, aboveValues);
+	if (dataIsLayered()){	
+		LayeredIO* layeredReader = (LayeredIO*)myReader;
+		layeredReader->SetLowHighVals(variableNames, belowValues, aboveValues);
+	}
 	return someDataOverall;
 }
 
@@ -350,7 +354,7 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
 	size_t minm[3], maxm[3];
 	double usermin[3], usermax[3];
 	int minframe = (int)minTimeStep;
-	myReader->GetValidRegion(minm, maxm, fullHeight, level);
+	myReader->GetValidRegion(minm, maxm, level);
 	myReader->MapVoxToUser(minframe, minm, usermin, level);
 	myReader->MapVoxToUser(minframe, maxm, usermax, level);
 	for (int i = 0; i<3; i++){

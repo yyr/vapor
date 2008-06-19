@@ -63,17 +63,17 @@ void ProbeRenderer::paintGL()
 	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
-	size_t fullHeight = myGLWindow->getActiveRegionParams()->getFullGridHeight();
+	
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	
 	unsigned char* probeTex = 0;
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight,true);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true);
 		QApplication::restoreOverrideCursor();
 	} else { //existing texture is OK:
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight,true);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true);
 	}
 	int imgSize[2];
 	myProbeParams->getTextureSize(imgSize);
@@ -163,12 +163,12 @@ void ProbeRenderer::initializeGL()
 //It can be called from probeRenderer, or from glProbeWindow.
 //Every time it's called it generates a new list of patterns.
 
-unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep){
+unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
 	
 	
 	int txsize[2];
-	pParams->adjustTextureSize(fullHeight, txsize);
-	bool ok = pParams->buildIBFVFields(tstep, fullHeight);
+	pParams->adjustTextureSize(txsize);
+	bool ok = pParams->buildIBFVFields(tstep);
 	if (!ok) return 0;
 	int wid = txsize[0];
 	int ht = txsize[1];
@@ -339,15 +339,15 @@ void ProbeRenderer::popState(){
 //frameNum is the number in the ibfv animation sequence.
 //
 
-unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
+unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
 	
 	int sz[2];
 	pParams->getTextureSize(sz);
 	
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
-		pParams->adjustTextureSize(fullHeight, sz);
-		bool ok = pParams->buildIBFVFields(tstep, fullHeight);
+		pParams->adjustTextureSize(sz);
+		bool ok = pParams->buildIBFVFields(tstep);
 		if (!ok) return 0;
 	}
 	int wid = sz[0];
@@ -376,7 +376,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	if (pParams->ibfvColorMerged()){
 		dataTex = pParams->getCurrentProbeTexture(tstep, 0);
 		if (!dataTex){
-			dataTex = pParams->calcProbeDataTexture(tstep, 256,256,fullHeight);
+			dataTex = pParams->calcProbeDataTexture(tstep, 256,256);
 			//Always put this in the data texture cache...
 			pParams->setProbeTexture(dataTex,tstep,0);
 		}
@@ -446,18 +446,18 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 						0, 0, txsize[0], txsize[1], 0);
 }
 //Static method to calculate the probe texture whether IBFV or data or both
-unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight, bool doCache){
+unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum,  bool doCache){
 	if (!pParams->probeIsDirty(frameNum)) 
 		return pParams->getCurrentProbeTexture(frameNum, pParams->getProbeType());
 
-	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0,fullHeight);}
+	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0);}
 	//OK, now handle IBFV texture:
 	if (pParams->ibfvColorMerged()){
-		unsigned char* dataTex = pParams->calcProbeDataTexture(frameNum, 256,256,fullHeight);
+		unsigned char* dataTex = pParams->calcProbeDataTexture(frameNum, 256,256);
 		//Always put this in the cache...
 		pParams->setProbeTexture(dataTex,frameNum,0);
 	}
-	unsigned char* probeTex = buildIBFVTexture(fullHeight, pParams,  frameNum);
+	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
 	if (doCache){
 		pParams->setProbeTexture(probeTex, frameNum, 1);
 	}

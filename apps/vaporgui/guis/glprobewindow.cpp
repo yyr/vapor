@@ -126,7 +126,7 @@ void GLProbeWindow::paintGL()
 {
 	
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
-	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
+	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
     qglClearColor( QColor(233,236,216) ); 		// same as frame
@@ -148,7 +148,7 @@ void GLProbeWindow::paintGL()
 		if (animatingTexture) {
 			if (animationStarting) currentAnimationTimestep = timestep;
 			if (currentAnimationTimestep == timestep){
-				probeTexture = ProbeRenderer::getNextIBFVTexture(fullHeight,myParams, timestep, animatingFrameNum, animationStarting,
+				probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, timestep, animatingFrameNum, animationStarting,
 					&patternListNum);
 				if(probeTexture) animationStarting = false;
 				else return; //failure to build texture
@@ -156,16 +156,16 @@ void GLProbeWindow::paintGL()
 				return;// timestep changed!
 			}
 		} else { //not animated.  Calculate it if necessary
-			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, fullHeight, false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, false);
 		}
-		myParams->adjustTextureSize(fullHeight, imgSize);
+		myParams->adjustTextureSize(imgSize);
 	} else if(myParams ){//data probe
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,fullHeight,false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false);
 			QApplication::restoreOverrideCursor();
 		} else {
-			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,fullHeight,false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false);
 		}
 	}
 	myParams->getTextureSize(imgSize);

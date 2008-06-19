@@ -64,7 +64,7 @@ public:
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
-	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6], size_t fullHeight);
+	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	
 	float calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep);
@@ -76,8 +76,8 @@ public:
 	float getRegionCenter(int indx) {
 		return (0.5f*(regionMin[indx]+regionMax[indx]));
 	}
-	int getFullGridHeight(){ return fullHeight;}
-	void setFullGridHeight(int val) {fullHeight = val;}
+	static int getFullGridHeight(){ return fullHeight;}
+	static void setFullGridHeight(size_t val);//will purge if necessary
 	
 	//Determine how many megabytes will be needed for one variable at specified
 	//refinement level, specified box extents.
@@ -131,7 +131,7 @@ protected:
 	//Actual region bounds
 	float regionMax[3],regionMin[3];
 	//Full grid height for layered data.  0 otherwise.
-	size_t fullHeight;
+	static size_t fullHeight;
 	
 	//RegionTab* myRegionTab;
 	

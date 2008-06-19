@@ -566,7 +566,7 @@ refreshRegionInfo(RegionParams* rParams){
 	if (ds){
 		//Entire region size in voxels
 		for (int i = 0; i<3; i++){
-			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i,rParams->getFullGridHeight()) - 1;
+			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 	
 		}
 	}
@@ -584,7 +584,7 @@ refreshRegionInfo(RegionParams* rParams){
 	int rc = -1;
 	if (ds && refLevel <= maxRefLevel )
 		rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timeStep, varName.c_str(),
-			refLevel, min_vdim, max_vdim, rParams->getFullGridHeight());
+			refLevel, min_vdim, max_vdim);
 	if (rc>= 0)	{
 		minXVoxVarLabel->setText(QString::number(min_vdim[0]));
 		minYVoxVarLabel->setText(QString::number(min_vdim[1]));

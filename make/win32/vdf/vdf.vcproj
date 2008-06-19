@@ -167,10 +167,28 @@
 				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\Transpose.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\vdf.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock1D.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock2D.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock2DIO.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock2DRegionReader.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock2DRegionWriter.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3D.cpp">
@@ -195,6 +213,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlockIOBase.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WRF.cpp">
@@ -241,7 +262,25 @@
 				RelativePath="..\..\..\include\vapor\Metadata.h">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\Transpose.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\VDFIOBase.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlock1D.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlock2D.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlock2DIO.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlock2DRegionReader.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlock2DRegionWriter.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h">
@@ -266,6 +305,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DWriter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\WaveletBlockIOBase.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\XmlNode.h">

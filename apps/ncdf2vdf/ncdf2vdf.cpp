@@ -148,7 +148,7 @@ void save_file(const char *file) {
 		exit(1);
 	}
 }
-//Perform averaging as needed for staggered dimensions.  If x is staggered, the output array
+//Perform averaging as needed for staggered dimensions.  If x or y is staggered, the output array
 //is different from the input; otherwise it's the same.
 //
 void averageSlice(nc_type dataType,void* inSlice, void* outSlice, 
@@ -199,7 +199,7 @@ void averageSlice(nc_type dataType,void* inSlice, void* outSlice,
 					outFloat[ix+iy*inX] = inFloat[ix+iy*inX];
 				}
 			}
-		} else if (inDouble != outDouble) {
+		} else if ((dataType != NC_FLOAT) && (inDouble != outDouble)) {
 			for (int ix = 0; ix < inX; ix++){
 				for (int iy = 0; iy < inY; iy++) {
 					outDouble[ix+iy*inX] = inDouble[ix+iy*inX];
@@ -404,6 +404,10 @@ void	process_volume(
 	
 	float* inFBuffer = 0, *outFBuffer = 0, *outFBuffer2 = 0;
 	double *inDBuffer = 0, *outDBuffer = 0, *outDBuffer2 = 0;
+
+	//When z is staggered we need a separate input buffer from output:
+	float* stagInFBuffer = 0;
+	double* stagInDBuffer = 0;
 	
 	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];
 	else inFBuffer = new float[inSize];
@@ -506,6 +510,10 @@ void	process_volume(
 		float* newFBuffer = outFBuffer2;
 		float* oldFBuffer = outFBuffer;
 		
+		if (xtype == NC_DOUBLE) stagInDBuffer = new double[inSize];
+		else stagInFBuffer = new float[inSize];
+
+		
 		//First, read newbuffer, average inside slice as needed
 		TIMER_START(t1);
 		start[dimIndex[2]] = zbegin;
@@ -513,22 +521,22 @@ void	process_volume(
 		if (xtype == NC_FLOAT) {
 		
 			nc_status = nc_get_vara_float(
-				ncid, varid, start, count, inFBuffer
+				ncid, varid, start, count, stagInFBuffer
 			);
 			
 			NC_ERR_READ(nc_status);
 			TIMER_STOP(t1, *read_timer);
-			averageSlice(xtype,(void*)inFBuffer, (void*)newFBuffer, 
+			averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 			
 		} else if (xtype == NC_DOUBLE){
 			
 			nc_status = nc_get_vara_double(
-				ncid, varid, start, count, inDBuffer
+				ncid, varid, start, count, stagInDBuffer
 			);
 			NC_ERR_READ(nc_status);
 			TIMER_STOP(t1, *read_timer);
-			averageSlice(xtype,(void*)inDBuffer, (void*)newDBuffer, 
+			averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 		}
 	
@@ -554,12 +562,12 @@ void	process_volume(
 			if (xtype == NC_FLOAT) {
 				TIMER_START(t1);
 				nc_status = nc_get_vara_float(
-					ncid, varid, start, count, inFBuffer
+					ncid, varid, start, count, stagInFBuffer
 				);
 				
 				NC_ERR_READ(nc_status);
 				TIMER_STOP(t1, *read_timer);
-				averageSlice(xtype,(void*)inFBuffer, (void*)newFBuffer, 
+				averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into oldBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) oldFBuffer[i] = 0.5*(oldFBuffer[i]+newFBuffer[i]);
@@ -572,11 +580,11 @@ void	process_volume(
 			} else if (xtype == NC_DOUBLE){
 				TIMER_START(t1);
 				nc_status = nc_get_vara_double(
-					ncid, varid, start, count, inDBuffer
+					ncid, varid, start, count, stagInDBuffer
 				);
 				NC_ERR_READ(nc_status);
 				TIMER_STOP(t1, *read_timer);
-				averageSlice(xtype,(void*)inDBuffer, (void*)newDBuffer, 
+				averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into outFBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] =(float)( 0.5*(oldDBuffer[i]+newDBuffer[i]));
@@ -601,6 +609,10 @@ void	process_volume(
 
 	delete outFBuffer;
 	if (outDBuffer) delete outDBuffer;
+
+	if(stagInDBuffer) delete stagInDBuffer;
+	if(stagInFBuffer) delete stagInFBuffer;
+	
 }
 
 

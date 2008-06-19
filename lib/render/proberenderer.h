@@ -40,11 +40,11 @@ public:
 
 	//Method that uses OpenGL to construct an IBFV texture of specified size.
 	//Should be called within an OpenGL rendering context.
-	static unsigned char* buildIBFVTexture(int fullHeight, ProbeParams*, int tstep);
+	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep);
 	
-	static unsigned char* getNextIBFVTexture(int fullHeight, ProbeParams*, int tstep, int frameNum, bool starting, int* listNum);
+	static unsigned char* getNextIBFVTexture(ProbeParams*, int tstep, int frameNum, bool starting, int* listNum);
 
-	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, int fullHeight, bool doCache);
+	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache);
 protected:
 	GLuint _probeid;
 	static int makeIBFVPatterns(ProbeParams*, int prevListNum);

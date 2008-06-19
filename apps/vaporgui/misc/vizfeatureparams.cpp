@@ -25,6 +25,7 @@
 #include "mainform.h"
 #include "session.h"
 #include "datastatus.h"
+#include "vapor/LayeredIO.h"
 #include <qlineedit.h>
 #include <qfiledialog.h>
 #include <qpushbutton.h>
@@ -651,12 +652,16 @@ applyToViz(int vizNum){
 			DvrParams* dp = vizMgr->getDvrParams(j);
 			vizMgr->setDatarangeDirty(dp);
 		}
-		
-		ds->getDataMgr()->SetLowHighVals(
-			ds->getVariableNames(),
-			ds->getBelowValues(),
-			ds->getAboveValues());
+		if (ds->dataIsLayered()){	
+			LayeredIO* layeredReader = (LayeredIO*)ds->getDataMgr()->GetRegionReader();
+			layeredReader->SetLowHighVals(
+				ds->getVariableNames(),
+				ds->getBelowValues(),
+				ds->getAboveValues()
+			);
+		}
 	}
+	
 	bool stretchChanged = false;
 	float oldStretch[3];
 	float ratio[3] = { 1.f, 1.f, 1.f };

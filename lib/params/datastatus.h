@@ -29,6 +29,7 @@
 #include "vapor/VDFIOBase.h"
 #include "vapor/MyBase.h"
 #include <qcolor.h>
+#include "regionparams.h"
 class QApplication;
 
 namespace VAPoR {
@@ -129,11 +130,13 @@ public:
 	//Find the first timestep that has any data with specified session variable num
 	int getFirstTimestep(int sesvarnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
-	size_t getFullSizeAtLevel(int lev, int dim, size_t fullHeight) 
-		{if (dim < 2 || fullHeight == 0) return dataAtLevel[lev][dim];
-		 return (fullHeight >> (numTransforms - lev));}
-	float getVoxelSize(int lev, int dim, size_t fullHeight){
-		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim, fullHeight));
+	size_t getFullSizeAtLevel(int lev, int dim) 
+	{ size_t fullHeight = RegionParams::getFullGridHeight();
+		if (dim < 2 || fullHeight == 0) return dataAtLevel[lev][dim];
+		 return (fullHeight >> (numTransforms - lev));
+	}
+	float getVoxelSize(int lev, int dim){
+		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim));
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){

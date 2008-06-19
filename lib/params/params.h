@@ -186,7 +186,7 @@ Params(int winNum) : ParamsBase() {
 	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
 	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
 	//Get a variable region from the datamanager
-	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, size_t fullHeight);
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep);
 	
 protected:
 	bool local;

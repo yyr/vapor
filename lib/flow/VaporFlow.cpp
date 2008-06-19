@@ -275,7 +275,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,full_height,1);
+	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,1);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
 		SetErrMsg("Error obtaining field data for timestep %d, variable %s",ts, varName);
@@ -1280,13 +1280,13 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, full_height, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return 0;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, full_height, 1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
 		if (pVData[0] == 0 && pUData[0]) {
 			dataMgr->UnlockRegion(pUData[0]);
 			return 0;
@@ -1294,7 +1294,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, full_height, 1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
@@ -1394,13 +1394,13 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, full_height, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return false;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, full_height, 1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk,  1);
 		if (pVData[0] == 0) {
 			if(pUData[0]) dataMgr->UnlockRegion(pUData[0]);
 			return false;
@@ -1408,7 +1408,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, full_height, 1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);

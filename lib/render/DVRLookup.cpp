@@ -71,7 +71,7 @@ int DVRLookup::SetRegion(void *data,
   //
   // Initialize the geometry extents & texture
   //
-  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level, fullHeight);
+  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
 }
 
 //----------------------------------------------------------------------------

@@ -1084,6 +1084,9 @@ void	DataMgr::Clear() {
 			
 	}
 	_regionsList.clear();
+	_dataRangeMinMap.clear();
+	_dataRangeMaxMap.clear();
+	_validRegMinMaxMap.clear();
 }
 
 void	DataMgr::free_var(const string &varname, int do_native) {

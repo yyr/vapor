@@ -627,7 +627,7 @@ void    LayeredIO::GetValidRegion(
     if (reflevel < 0) reflevel = _num_reflevels - 1;
     int  ldelta = _num_reflevels - 1 - reflevel;
 
-	min[2] = _gridHeight >> ldelta;
+	min[2] = 0;
 	max[2] = _gridHeight >> ldelta;
 }
 
@@ -690,13 +690,16 @@ void	LayeredIO::MapUserToVox(
 	for(int i = 0; i<3; i++) {
 		double a;
 
-		// distance between voxels along dimension 'i' in user coords
-		double deltax = (lextents[i+3] - lextents[i]) / (_dim[i] - 1);
+		// distance between voxels along dimension 'i' in user coords at full resolution
+		double deltax;
+		if (i == 2) deltax = (lextents[i+3] - lextents[i]) / (_gridHeight - 1);
+		else deltax = (lextents[i+3] - lextents[i]) / (_dim[i] - 1);
 
 		// coordinate of first voxel in user space
 		double x0 = lextents[i];
 
 		// Boundary shrinks and step size increases with each transform
+		
 		for(int j=0; j<(int)ldelta; j++) {
 			x0 += 0.5 * deltax;
 			deltax *= 2.0;
@@ -705,7 +708,8 @@ void	LayeredIO::MapUserToVox(
 		lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
 
 		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
-		vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
+		if (a < 0.0) vcoord1[i] = 0;
+		else vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
 
 		if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
 	}

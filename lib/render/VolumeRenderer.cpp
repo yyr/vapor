@@ -422,8 +422,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		setClutDirty();
 		savedNumXForms = numxforms;
 	}
-	RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents,
-		myRegionParams->getFullGridHeight());    
+	RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
@@ -524,8 +523,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 		RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
 												min_pad_dim, max_pad_dim, 
-												padded_extents,
-												myRegionParams->getFullGridHeight()); 
+												padded_extents);
+								
 	   
 		// make subregion origin (0,0,0)
 		// Note that this doesn't affect the calc of nx,ny,nz.
@@ -721,7 +720,6 @@ void *VolumeRenderer::_getRegion(
 	if (_voxelType == GL_UNSIGNED_BYTE) {
 		data =  data_mgr->GetRegionUInt8(
 			ts, varname, numxforms, min, max,
-			reg_params->getFullGridHeight(),
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);
@@ -729,7 +727,6 @@ void *VolumeRenderer::_getRegion(
 	else {
 		data = data_mgr->GetRegionUInt16(
 			ts, varname, numxforms, min, max,
-			reg_params->getFullGridHeight(),
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);

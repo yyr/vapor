@@ -397,7 +397,7 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 }
 // Only used by Probe currently:
 float* Params::
-getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, size_t fullHeight){
+getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep){
 	//Get the region associated with the specified variable in the 
 	//specified block extents
 	DataStatus* ds = DataStatus::getInstance();
@@ -418,7 +418,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	if (refLevel > maxRes) refLevel = maxRes;
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		vname, refLevel, blkMin, blkMax, fullHeight, 0);
+		vname, refLevel, blkMin, blkMax,  0);
 	if (!reg){
 		if (ds->warnIfDataMissing()){
 			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,

@@ -160,8 +160,6 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		rParams = vizWinMgr->getRegionParams(vizNum);
 	}
 	
-	size_t fullHeight = rParams->getFullGridHeight();
-	
 	if (!ds->getDataMgr()) return;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	if (!histogramList){
@@ -200,7 +198,6 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 					(const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
 					availRefLevel,
 					min_bdim, max_bdim,
-					fullHeight,
 					dRange,
 					0 //Don't lock!
 		);

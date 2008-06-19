@@ -44,6 +44,7 @@
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
 #include "vapor/errorcodes.h"
+#include "vapor/LayeredIO.h"
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
@@ -1447,12 +1448,23 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	DataStatus* ds = DataStatus::getInstance();
 	int varNum = DataStatus::getSessionVariableNum("ELEVATION");
 	DataMgr* dataMgr = ds->getDataMgr();
+	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
+	// NOTE:  Currently we are clearing cache here just because we need
+	// turn interpolation off.  This will not be so painful when we
+	// allow both interpolated and uninterpolated volumes to coexist
+	// in the data manager.
+
+	dataMgr->Clear();
+	myReader->SetInterpolateOnOff(false);
 	//Try to get requested refinement level or the nearest acceptable level:
 	int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, &varNum, 1, regMin, regMax);
 	
 
-	if(refLevel < 0) return false;
+	if(refLevel < 0) {
+		myReader->SetInterpolateOnOff(true);
+		return false;
+	}
 		
 	
 	//Modify 3rd coord of region extents to obtain only bottom layer:
@@ -1460,8 +1472,9 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	min_bdim[2] = max_bdim[2] = 0;
 	//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
 	//performing the interpolation step
-	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0,0);
-
+	
+	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
+	myReader->SetInterpolateOnOff(true);
 	if (!elevData) {
 		if (ds->warnIfDataMissing()){
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 

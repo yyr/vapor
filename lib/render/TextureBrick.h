@@ -58,7 +58,7 @@ class RENDER_API TextureBrick
   void dataMin(float x, float y, float z);
   void dataMax(float x, float y, float z);
 
-  void setDataBlock(int level, const int box[6], const int block[6], size_t fullHeight);
+  void setDataBlock(int level, const int box[6], const int block[6]);
 
   //
   // Accessors for the brick's region of interest extents
@@ -71,7 +71,7 @@ class RENDER_API TextureBrick
   void volumeMin(float x, float y, float z);
   void volumeMax(float x, float y, float z);
 
-  void setROI(int level, const int box[6], const int roi[6], size_t fullHeight);
+  void setROI(int level, const int box[6], const int roi[6]);
 
   //
   // Accessor for the brick's texture coordinates

@@ -120,7 +120,6 @@ void *IsoRenderer::_getRegion(
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
 				ts, varname, numxforms, min, max,
-				reg_params->getFullGridHeight(),
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
@@ -128,7 +127,6 @@ void *IsoRenderer::_getRegion(
 		else {
 			data = data_mgr->GetRegionUInt16(
 				ts, varname, numxforms, min, max,
-				reg_params->getFullGridHeight(),
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
@@ -140,7 +138,6 @@ void *IsoRenderer::_getRegion(
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
 				ts, varname, map_varname.c_str(), numxforms, min, max,
-				reg_params->getFullGridHeight(),
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);
@@ -148,7 +145,6 @@ void *IsoRenderer::_getRegion(
 		else {
 			data = data_mgr->GetRegionUInt16(
 				ts, varname, map_varname.c_str(), numxforms, min, max,
-				reg_params->getFullGridHeight(),
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);

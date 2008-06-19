@@ -132,7 +132,7 @@ public:
 	
 	void getTextureSize(int sze[2]) {sze[0] = textureSize[0]; sze[1] = textureSize[1];}
 	//set the texture size appropriately for either ibfv or data probe, return value in sz.
-	void adjustTextureSize(int fullHeight, int sz[2]);
+	void adjustTextureSize(int sz[2]);
 	// NPN and NMESH are calculated in adjustTextureSize for IBFV textures
 	int getNPN() {return NPN;}
 	int getNMESH() {return NMESH;}
@@ -162,12 +162,12 @@ public:
 		textureArray[timestep] = tex;
 		if (textureType == 0) probeDataTextures = textureArray; else probeIBFVTextures = textureArray;
 	}
-	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht, size_t fullGridHeight);
+	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht);
 
 	//General method that obtains a list of variables (containing the probe) from the dataMgr
 	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
 	//for addressing into the volumes.  Replaces first half of calcProbeDataTexture.
-	float** getProbeVariables(int ts, size_t fullHeight, int numVars, int* sesVarNums,
+	float** getProbeVariables(int ts, int numVars, int* sesVarNums,
 				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
 				  int* actualRefLevel);
 
@@ -175,7 +175,7 @@ public:
 		if( texType == 0) return probeDataTextures[timestep];
 		else return probeIBFVTextures[timestep];
 	}
-	void getProbeVoxelExtents(size_t fullHeight, float voxdims[2]);
+	void getProbeVoxelExtents(float voxdims[2]);
 
 	virtual float getPhi() {return phi;}
 	virtual float getTheta() {return theta;}
@@ -221,7 +221,7 @@ public:
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
+	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
 	//Obtain the smallest region that contains the probe, and fits within the full data volume:
 	void getContainingRegion(float regMin[3], float regMax[3]);
 
@@ -237,7 +237,7 @@ public:
 	//Advect (x,y) to (*px, *py)
 	//all 4 are in grid coords of current probe
 	void getIBFVValue(int timestep, float x, float y, float* px, float* py);
-	bool buildIBFVFields(int timestep, int fullHeight);
+	bool buildIBFVFields(int timestep);
 	//Project a 3-vector to the probe plane, provide the inverse 3x3 rotation matrix
 	void projToPlane(float vecField[3], float invRotMtrx[9], float* U, float* V);
 	void setIBFVComboVarNum(int indx, int varnum){
@@ -293,7 +293,7 @@ protected:
 	
 	//Find smallest containing cube in integer coords, 
 	//that will contain image of probe
-	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
+	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
 	//Get the rotated box sides in the unit cube, based on current angles:
 	void getRotatedBoxDims(float boxdims[3]);
 

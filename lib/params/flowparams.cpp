@@ -2192,7 +2192,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			opacRefLevel, min_obdim, max_bdim, fullHeight, 0);
+			opacRefLevel, min_obdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!opacRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
@@ -2229,7 +2229,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			colorRefLevel, min_cbdim, max_bdim, fullHeight, 0);
+			colorRefLevel, min_cbdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!colorRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
@@ -2656,7 +2656,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 		else {
 			varData[var] = dataMgr->GetRegion((size_t)timeStep,
 				DataStatus::getInstance()->getVariableName(steadyVarNum[var]-1).c_str(),
-				availRefLevel, min_bdim, max_bdim, fullHeight, 1);
+				availRefLevel, min_bdim, max_bdim,  1);
 			if (!varData[var]) {
 				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]);
 				//release currently locked regions:
@@ -2842,7 +2842,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 		if (testRakeMax[i] < rakeMaxCoords[i]){
 			//max_dim must be increased to include the max extent:
-			if (max_dim[i] < ds->getFullSizeAtLevel(availRefLevel, i, fullHeight) -1){
+			if (max_dim[i] < ds->getFullSizeAtLevel(availRefLevel, i) -1){
 				max_dim[i]++;
 				changed = true;
 			}

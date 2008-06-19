@@ -201,7 +201,6 @@ void Session::setDefaultPrefs(){
 	textureSizeSpecified = false;
 	textureSize = 0;
 	//Set up default paths for log file and autosave file
-	
 	string str;
 	string str1;
 	string formerLogfileName = currentLogfileName;
