@@ -30,6 +30,7 @@ struct opt_t {
 	char *comment;
 	float extents[6];
 	vector <string> varnames;
+	vector <string> vars2d;
 	vector<string> dervars;
 	vector<string> atypvars;
 	OptionParser::Boolean_T	help;
@@ -42,7 +43,8 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"startt",	1,	"", "Starting time stamp, one of \n\t\t\t\t(time|SIMULATION_START_DATE|START_DATE), \n\t\t\t\twhere time has the form : yyyy-mm-dd_hh:mm:ss"},
 	{"numts",	1, 	"0",			"Maximum number of VDC time steps"},
 	{"deltat",	1,	"0",			"Seconds per VDC time step"},
-	{"varnames",1,	"",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
+	{"varnames",1,	"",			"Colon delimited list of all (2D and 3D) variables to be\n\t\t\t\textracted from WRF data"},
+	{"vars2d",1,    "",         "Colon delimited list of 2D variables to be\n\t\t\t\textracted from WRF data"},
 	{"dervars", 1,	"",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tPHNorm_: normalized geopotential (PH+PHB)/PHB\n\t\t\t\tUVW_: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\tUV_: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tomZ_: estimate of vertical vorticity\n\t\t\t\tPFull_: full pressure P+PB\n\t\t\t\tPNorm_: normalized pressure (P+PB)/PB\n\t\t\t\tTheta_: potential temperature T+300\n\t\t\t\tTK_: temp. in Kelvin\n\t\t\t\t\t(T+300)((P+PB))/100000)^0.286"},
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement\n\t\t\t\t(default is 2)"},
 	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T",		"Colon delimited list of atypical names for\n\t\t\t\tU:V:W:PH:PHB:P:PB:T that appear in WRF file"},
@@ -82,7 +84,8 @@ int	GetWRFMetadata(
 	vector <TIME64_T> &timestamps,
 	float extents[6],
 	size_t dims[3],
-	vector <string> &varnames,
+	vector <string> &varnames3d,
+	vector <string> &varnames2d,
 	string startDate
 ) {
 	float _dx = 0.0;
@@ -91,7 +94,8 @@ int	GetWRFMetadata(
 	string _startDate;
 	
 	vector <TIME64_T> ts;
-	vector<string> _wrfVars(0); // Holds names of variables in WRF file
+	vector<string> _wrfVars3d; // Holds names of 3d variables in WRF file
+	vector<string> _wrfVars2d; // Holds names of 2d variables in WRF file
 	vector <TIME64_T> _timestamps;
 	size_t _dimLens[3];
 	bool first = true;
@@ -102,16 +106,18 @@ int	GetWRFMetadata(
 		float vertExts[2] = {0.0, 0.0};
 		float *vertExtsPtr = vertExts;
 		size_t dimLens[4];  //last one holds time, not used
-		vector<string> wrfVars(0); // Holds names of variables in WRF file
+		vector<string> wrfVars3d;
+		vector<string> wrfVars2d;
 		int rc;
 
 		if (! extents) vertExtsPtr = NULL;
 
 		ts.clear();
-		wrfVars.clear();
+		wrfVars3d.clear();
+		wrfVars2d.clear();
 		rc = WRF::OpenWrfGetMeta(
 			files[i], wrfNames, dx, dy, vertExtsPtr, dimLens, 
-			startDate, wrfVars, ts 
+			startDate, wrfVars3d, wrfVars2d, ts 
 		);
 		if (rc < 0 || (vertExtsPtr && vertExtsPtr[0] >= vertExtsPtr[1])) {
 			cerr << "Error processing file " << files[i] << ", skipping" << endl;
@@ -126,7 +132,8 @@ int	GetWRFMetadata(
 			_dimLens[0] = dimLens[0];
 			_dimLens[1] = dimLens[1];
 			_dimLens[2] = dimLens[2];
-			_wrfVars = wrfVars;
+			_wrfVars3d = wrfVars3d;
+			_wrfVars2d = wrfVars2d;
 			_startDate = startDate;
 		}
 		else {
@@ -139,13 +146,24 @@ int	GetWRFMetadata(
 				mismatch = true;
 			}
 
-			if (_wrfVars.size() != wrfVars.size()) {
+			if (_wrfVars3d.size() != wrfVars3d.size()) {
 				mismatch = true;
 			}
 			else {
 
-				for (int j=0; j<wrfVars.size(); j++) {
-					if (wrfVars[j].compare(_wrfVars[j]) != 0) {
+				for (int j=0; j<wrfVars3d.size(); j++) {
+					if (wrfVars3d[j].compare(_wrfVars3d[j]) != 0) {
+						mismatch = true;
+					}
+				}
+			}
+			if (_wrfVars2d.size() != wrfVars2d.size()) {
+				mismatch = true;
+			}
+			else {
+
+				for (int j=0; j<wrfVars2d.size(); j++) {
+					if (wrfVars2d[j].compare(_wrfVars2d[j]) != 0) {
 						mismatch = true;
 					}
 				}
@@ -194,7 +212,8 @@ int	GetWRFMetadata(
 		extents[5] = _vertExts[1]; 
 	}
 
-	varnames = _wrfVars;
+	varnames3d = _wrfVars3d;
+	varnames2d = _wrfVars2d;
 
 	if (success) return(0);
 	else return(-1);
@@ -269,8 +288,10 @@ int	main(int argc, char **argv) {
 	argv++;
 	argc--;
 	vector <TIME64_T> timestamps;
-	vector <string> wrfVarNames;
+	vector <string> wrfVarNames3d, wrfVarNames2d,
+		wrfVarNames;    // 2d and 3d vars
 	vector <string> vdfVarNames;
+	vector <string> vdfVarNames2d;
 	string startT;
 
 	if (argc == 1) {	// No template file
@@ -297,6 +318,7 @@ int	main(int argc, char **argv) {
 		dim[2] = opt.dim.nz;
 
 		vdfVarNames = opt.varnames;
+		vdfVarNames2d = opt.vars2d;
 
 		bool doExtents = false;
 		for(int i=0; i<5; i++) {
@@ -328,7 +350,7 @@ int	main(int argc, char **argv) {
 		string startDate;
 		rc = GetWRFMetadata(
 			(const char **)argv, argc-1, wrfNames, timestamps, extentsPtr, 
-			dim, wrfVarNames, startDate
+			dim, wrfVarNames3d, wrfVarNames2d, startDate
 		);
 		if (rc<0) exit(1);
 
@@ -341,14 +363,18 @@ int	main(int argc, char **argv) {
 				startT = startDate;
 			}
 		}
+		wrfVarNames = wrfVarNames3d;
+		for (int i=0; i<wrfVarNames2d.size(); i++) {
+			wrfVarNames.push_back(wrfVarNames2d[i]);
+		}
 
+		// Check and see if the variable names specified on the command
+		// line exist. Issue a warning if they don't, but we still
+		// include them.
+		//
 		if (opt.varnames.size()) {
 			vdfVarNames = opt.varnames;
 
-			// Check and see if the variable names specified on the command
-			// line exist. Issue a warning if they don't, but we still
-			// include them.
-			//
 			for ( int i = 0 ; i < opt.varnames.size() ; i++ ) {
 
 				bool foundVar = false;
@@ -366,6 +392,32 @@ int	main(int argc, char **argv) {
 		}
 		else {
 			vdfVarNames = wrfVarNames;
+		}
+
+		// Check and see if the 2D variable names specified on the command
+		// line exist. Issue a warning if they don't, but we still
+		// include them.
+		//
+		if (opt.vars2d.size()) {
+			vdfVarNames2d = opt.vars2d;
+
+			for ( int i = 0 ; i < opt.vars2d.size() ; i++ ) {
+
+				bool foundVar = false;
+				for ( int j = 0 ; j < wrfVarNames2d.size() ; j++ )
+					if ( wrfVarNames2d[j] == opt.vars2d[i] ) {
+						foundVar = true;
+						break;
+					}
+
+				if ( !foundVar ) {
+					cerr << ProgName << ": Warning: desired WRF variable " <<
+						opt.vars2d[i] << " does not appear in sample WRF file" << endl;
+				}
+			}
+		}
+		else {
+			vdfVarNames2d = wrfVarNames2d;
 		}
 	}
 	else {
@@ -444,9 +496,10 @@ int	main(int argc, char **argv) {
 		}
 	}
 
-	// Always require the ELEVATION variable
+	// Always require the ELEVATION and HGT variables
 	//
 	vdfVarNames.push_back("ELEVATION");
+	vdfVarNames2d.push_back("HGT");
 		
 	bs[0] = opt.bs.nx;
 	bs[1] = opt.bs.ny;
@@ -489,6 +542,9 @@ int	main(int argc, char **argv) {
 	}
 
 	if (file->SetVariableNames(vdfVarNames) < 0) {
+		exit(1);
+	}
+	if (file->SetVariables2DXY(vdfVarNames2d) < 0) {
 		exit(1);
 	}
 
@@ -534,9 +590,14 @@ int	main(int argc, char **argv) {
 	if (! opt.quiet) {
 		cout << "Created VDF file:" << endl;
 		cout << "\tNum time steps : " << timestamps.size() << endl;
-		cout << "\tVariable names : ";
-		for (int i=0; i<vdfVarNames.size(); i++) {
-			cout << vdfVarNames[i] << " ";
+		cout << "\t3D Variable names : ";
+		for (int i=0; i<file->GetVariables3D().size(); i++) {
+			cout << file->GetVariables3D()[i] << " ";
+		}
+		cout << endl;
+		cout << "\t2D Variable names : ";
+		for (int i=0; i<file->GetVariables2DXY().size(); i++) {
+			cout << file->GetVariables2DXY()[i] << " ";
 		}
 		cout << endl;
 
