@@ -230,8 +230,8 @@ int DVRShader::SetRegion(void *data,
                          const int roi[6],
                          const float extents[6],
                          const int box[6],
-                         int level,
-						 size_t fullHeight) 
+                         int level
+						 ) 
 { 
 
 	MyBase::SetDiagMsg(
@@ -239,7 +239,7 @@ int DVRShader::SetRegion(void *data,
 		(unsigned char *) data, nx, ny, nz, 
 		roi[0], roi[1], roi[2], roi[3], roi[4], roi[5],
 		extents[0], extents[1], extents[2], extents[3], extents[4], extents[5],
-		box[0], box[1], box[2], box[3], box[4], box[5], level, fullHeight
+		box[0], box[1], box[2], box[3], box[4], box[5], level
 	);
 
   _nx = nx; _ny = ny; _nz = nz;

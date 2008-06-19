@@ -56,8 +56,8 @@ int DVRLookup::SetRegion(void *data,
                          const int roi[6],
                          const float extents[6],
                          const int box[6],
-                         int level,
-						 size_t fullHeight) 
+                         int level
+						) 
 { 
   //
   // Construct the color mapping

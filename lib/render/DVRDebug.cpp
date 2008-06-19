@@ -54,8 +54,8 @@ int DVRDebug::SetRegion(
     const int data_roi[6],
     const float extents[6],
     const int data_box[6],
-    int level,
-	size_t fullHeight
+    int level
+	
 ) {
 	fprintf(stdout, "\nDVRDebug::SetRegion() called\n");
 
@@ -84,7 +84,6 @@ int DVRDebug::SetRegion(
 	fprintf(stdout, "\tbox1 = %d\n", data_box[5]);
 
 	fprintf(stdout, "\tlevel = %d\n", level);
-	fprintf(stdout, "\tfullHeight = %d\n", fullHeight);
 
 	return(0);
 }

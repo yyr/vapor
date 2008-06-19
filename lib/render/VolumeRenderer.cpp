@@ -575,7 +575,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 											extents, 
 											datablock, 
 											numxforms,
-											myRegionParams->getFullGridHeight(),
 											metadata->GetGridPermutation(),
 											clip);
 		}
@@ -595,8 +594,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			rc = _driver->SetRegion(data,
 									nx, ny, nz,
 									data_roi, padded_extents,
-									datablock, numxforms,
-									myRegionParams->getFullGridHeight()
+									datablock, numxforms
 									);
 		}
 	    

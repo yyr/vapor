@@ -48,8 +48,8 @@ class RENDER_API DVRSpherical : public DVRShader
                         const int data_roi[6],
                         const float extents[6],
                         const int data_box[6],
-                        int level,
-                        size_t fullHeight) { assert(0); return 0; }
+                        int level
+                        ) { assert(0); return 0; }
 
   virtual int SetRegionSpherical(void *data, 
                                  int nx, int ny, int nz, 
@@ -57,7 +57,6 @@ class RENDER_API DVRSpherical : public DVRShader
                                  const float extents[6],
                                  const int data_box[6],
                                  int level,
-                                 size_t fullHeight,
                                  const std::vector<long> &permutation,
                                  const std::vector<bool> &clipping);
 

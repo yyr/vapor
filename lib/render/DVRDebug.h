@@ -44,8 +44,8 @@ public:
 	const int data_roi[6],
 	const float extents[6],
     const int data_box[6],
-    int level,
-	size_t fullHeight
+    int level
+	
  );
 
 int SetRegionStretched(

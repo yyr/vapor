@@ -350,7 +350,7 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 	maxExtents[2] = (stretchedExtents[5]-stretchedExtents[2])/maxSize;
 }
 //Determine the min and max extents at a given level:
-void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
+void DataStatus::getExtentsAtLevel(int level, float exts[6]){
 	size_t minm[3], maxm[3];
 	double usermin[3], usermax[3];
 	int minframe = (int)minTimeStep;

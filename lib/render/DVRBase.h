@@ -74,8 +74,8 @@ public:
 	const int data_roi[6],
 	const float extents[6],
     const int data_box[6],
-    int refLevel,
-	size_t fullHeight
+    int refLevel
+	
  ) = 0;
 	
 
@@ -103,7 +103,6 @@ public:
                                 const float extents[6],
                                 const int data_box[6],
                                 int level,
-                                size_t fullHeight,
                                 const std::vector<long> &permutation,
                                 const std::vector<bool> &clipping)
  { SetErrMsg("Driver does not support Spherical Grids"); return(-1); }

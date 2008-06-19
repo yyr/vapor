@@ -150,7 +150,7 @@ int DVRSpherical::SetRegionSpherical(void *data,
                                      const float extents[6],
                                      const int data_box[6],
                                      int level,
-                                     size_t /*fullHeight*/,
+                                    
                                      const std::vector<long> &permutation,
                                      const std::vector<bool> &clip)
 { 

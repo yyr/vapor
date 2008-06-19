@@ -799,10 +799,10 @@ flowMapIsDirty(int timeStep){
 bool FlowRenderer::rebuildFlowData(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	RegionParams* rParams = myGLWindow->getActiveRegionParams();
-	size_t fullHeight = rParams->getFullGridHeight();
+	
 	//If we are using a rake, force it to lie (slightly) within the data extents
 	//Check it out:
-	if (!myFlowParams->validateSettings(timeStep, fullHeight)) {
+	if (!myFlowParams->validateSettings(timeStep)) {
 		//If it's not OK, we turn off autoRefresh.  
 		//Also turn off all the needsRefreshflags, so we won't try to render.
 		setAllNeedRefresh(false);

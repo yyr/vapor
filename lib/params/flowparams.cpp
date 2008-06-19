@@ -2144,7 +2144,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
 	//Setup mapping
-	size_t fullHeight = rParams->getFullGridHeight();
+	
 	float opacMin = mapperFunction->getMinOpacMapValue();
 	float colorMin = mapperFunction->getMinColorMapValue();
 	float opacMax = mapperFunction->getMaxOpacMapValue();
@@ -2647,7 +2647,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varnums, varcount);
 	if (availRefLevel < 0) return -1.f;
 
-	size_t fullHeight = rParams->getFullGridHeight();
+	
 	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	//Obtain the variables from the dataMgr:
@@ -2730,7 +2730,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	size_t min_bdim[3], max_bdim[3];
 	DataStatus* ds = DataStatus::getInstance();
 	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
-	size_t fullHeight = rParams->getFullGridHeight();
+	
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	int availRefLevel = numRefinements;
@@ -2961,12 +2961,12 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 }
 
 
-bool FlowParams::validateSettings(int tstep, size_t fullHeight){
+bool FlowParams::validateSettings(int tstep){
 	DataStatus* ds = DataStatus::getInstance();
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){
 		float levExts[6];
-		ds->getExtentsAtLevel(numRefinements, levExts, fullHeight);
+		ds->getExtentsAtLevel(numRefinements, levExts);
 		//Shrink levexts slightly:
 		for (int i = 0; i< 3; i++){
 			float mid = (levExts[i]+levExts[i+3])*0.5;

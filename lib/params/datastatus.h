@@ -69,7 +69,7 @@ public:
 	const float* getStretchedExtents() { return stretchedExtents; }
 	
 	//Determine the min and max extents at a level
-	void getExtentsAtLevel(int level, float exts[6], size_t fullHeight);
+	void getExtentsAtLevel(int level, float exts[6]);
 	
 	static size_t getCacheMB() {return cacheMB;}
 	size_t getMinTimestep() {return minTimeStep;}

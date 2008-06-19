@@ -54,7 +54,7 @@ public:
 	
 	//Check that the current settings are OK for rebuilding the flow at timestep
 	//Issue error/warning messages as appropriate.  Return false on error.
-	bool validateSettings(int timestep, size_t fullHeight);
+	bool validateSettings(int timestep);
 
 	//Save, restore stuff:
 	XmlNode* buildNode(); 
