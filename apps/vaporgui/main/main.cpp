@@ -57,8 +57,10 @@ int main( int argc, char ** argv ) {
 #endif
     	QApplication a( argc, argv,true );
 	
-	//Comment out the next line to see qWarnings in console:
-	//qInstallMsgHandler( myMessageOutput );
+	//see qWarnings in console only in debug mode:
+#ifdef NDEBUG
+	qInstallMsgHandler( myMessageOutput );
+#endif
 
 	app = &a;
 	a.setStyle("windows");
