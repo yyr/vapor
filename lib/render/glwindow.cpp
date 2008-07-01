@@ -2263,6 +2263,8 @@ GLWindow::OGLVendorType GLWindow::GetVendor()
 
 	for (int i=0; i<ven_str.size(); i++) {
 		if (isupper(ven_str[i])) ven_str[i] = tolower(ven_str[i]);
+	}
+	for (int i=0; i<ren_str.size(); i++) {
 		if (isupper(ren_str[i])) ren_str[i] = tolower(ren_str[i]);
 	}
 
