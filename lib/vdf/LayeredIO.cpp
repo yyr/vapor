@@ -360,10 +360,24 @@ void LayeredIO::_interpolateRegion(
 
 	// coordinate of last valid voxel in Z relativeo to ROI coords
 	//
-	size_t zztop = dim[2]-1 - (blkMin[0] * _bs[0]);	
+	size_t zztop = dim[2]-1 - (blkMin[2] * _bs[0]);	
 
+	// Vertical extents of interpolated grid in user coords
+	// N.B. only get extents at X,Y origin (should be constant for
+	// all X & Y
+	//
+	size_t vcoordi[3] = {0,0,zmini*_bs[2]};
+	double ucoordi[3];	// user coorindates of interpolated grid 
+	LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
+	float zbottomi_u = ucoordi[2];
+
+	vcoordi[2] = (zmaxi+1)*_bs[2];
+	LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
+	float ztopi_u = ucoordi[2];
+	float zdeltai_u = (ztopi_u-zbottomi_u)/(float) nzi;
+
+	for (x=0, xx=blkMin[0]*_bs[1]; x<nx; x++, xx++) {
 	for (y=0, yy=blkMin[1]*_bs[1]; y<ny; y++, yy++) {
-	for (x=0, xx=blkMin[1]*_bs[1]; x<nx; x++, xx++) {
 
 		float *regPtr = &region[nx*ny*0 + nx*y + x];
 		const float *varPtr0 = &varBlks[nx*ny*0 + nx*y + x];
@@ -371,35 +385,38 @@ void LayeredIO::_interpolateRegion(
 		const float *elePtr0 = &elevBlks[nx*ny*0 + nx*y + x];
 		const float *elePtr1 = &elevBlks[nx*ny*1 + nx*y + x];
 
+		float zi_u = zbottomi_u;
 		for (zi = 0, zzi=zmini*_bs[2], z=0; zi<nzi; zi++, zzi++) {
-			size_t vcoordi[3] = {xx,yy,zzi};
-			double ucoordi[3];	// user coorindates of interpolated grid 
-			LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
+			// size_t vcoordi[3] = {xx,yy,zzi};
+			// double ucoordi[3];	// user coorindates of interpolated grid 
+			// LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
 
 			// Below the grid
-			if (ucoordi[2] < elevBlks[nx*ny*0 + nx*y + x]) {
+			if (zi_u < elevBlks[nx*ny*0 + nx*y + x]) {
 				*regPtr = lowVal;
 			}
 			// Above the grid
-			else if (ucoordi[2] > elevBlks[nx*ny*zztop + nx*y + x]) {
+			else if (zi_u > elevBlks[nx*ny*zztop + nx*y + x]) {
 				*regPtr = highVal;
 			}
 			else {
-				while (ucoordi[2] > *elePtr1 && z < nz) {
+				while (zi_u > *elePtr1 && z < nz) {
 					z++;
 					elePtr0 = elePtr1;
 					elePtr1 += nx*ny;
 					varPtr0 = varPtr1;
 					varPtr1 += nx*ny;
 				}
-				assert(ucoordi[2] >= *elePtr0 && ucoordi[2] <= *elePtr1);
+				assert(zi_u >= *elePtr0 && zi_u <= *elePtr1);
 
-				float frac = (ucoordi[2] - *elePtr0) / (*elePtr1 - *elePtr0);
+				float frac = (zi_u - *elePtr0) / (*elePtr1 - *elePtr0);
 				*regPtr = ((1.0f - frac) * *varPtr0) + (frac * *varPtr1);
 			}
 
 			regPtr += nx*ny;
+			zi_u += zdeltai_u;
 		}
+
 	}
 	}
 }
