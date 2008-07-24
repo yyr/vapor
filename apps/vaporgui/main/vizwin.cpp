@@ -57,7 +57,7 @@
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
 #include "probeeventrouter.h"
-#include "twodeventrouter.h"
+#include "twoDeventrouter.h"
 #include "animationeventrouter.h"
 #include "floweventrouter.h"
 #include "flowrenderer.h"
