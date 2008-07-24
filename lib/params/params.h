@@ -42,6 +42,7 @@ namespace VAPoR{
 //i.e. a change in one params forces a renderer to rebuild
 enum DirtyBitType {
 	ProbeTextureBit,
+	TwoDTextureBit,
 	RegionBit,//Set when the region bounds change
 	DvrRegionBit,//Set when dvr needs to refresh its region data
 	ColorscaleBit,
@@ -85,6 +86,7 @@ Params(int winNum) : ParamsBase() {
 		DvrParamsType,
 		IsoParamsType,
 		ProbeParamsType,
+		TwoDParamsType,
 		AnimationParamsType,
 		FlowParamsType
 	};
@@ -95,6 +97,7 @@ Params(int winNum) : ParamsBase() {
 	static const string _dvrParamsTag;
 	static const string _isoParamsTag;
 	static const string _probeParamsTag;
+	static const string _twoDParamsTag;
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;

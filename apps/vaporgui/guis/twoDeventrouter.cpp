@@ -6,17 +6,17 @@
 //																		*
 //************************************************************************/
 //
-//	File:		probeeventrouter.cpp
+//	File:		twoDeventrouter.cpp
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		May 2006
+//	Date:		August 2008
 //
-//	Description:	Implements the ProbeEventRouter class.
+//	Description:	Implements the TwoDEventRouter class.
 //		This class supports routing messages from the gui to the params
-//		associated with the probe tab
+//		associated with the TwoD tab
 //
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
@@ -42,7 +42,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
-#include "proberenderer.h"
+#include "twoDrenderer.h"
 #include "MappingFrame.h"
 #include "transferfunction.h"
 #include "regionparams.h"
@@ -51,7 +51,7 @@
 #include "session.h"
 #include "panelcommand.h"
 #include "messagereporter.h"
-#include "probeframe.h"
+#include "twoDframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
 #include "qthumbwheel.h"
@@ -62,15 +62,15 @@
 #include <sstream>
 
 #include "params.h"
-#include "probetab.h"
+#include "twoDtab.h"
 #include "vaporinternal/jpegapi.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
 #include "tabmanager.h"
 #include "glutil.h"
-#include "probeparams.h"
-#include "probeeventrouter.h"
+#include "twoDparams.h"
+#include "twoDeventrouter.h"
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
 #include "eventrouter.h"
@@ -82,119 +82,86 @@
 using namespace VAPoR;
 
 
-ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(parent, name), EventRouter(){
-	myParamsType = Params::ProbeParamsType;
+TwoDEventRouter::TwoDEventRouter(QWidget* parent,const char* name): TwoDtab(parent, name), EventRouter(){
+	myParamsType = Params::TwoDParamsType;
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
 	notNudgingSliders = false;
-	animationFlag = false;
-	myIBFVThread = 0;
-	capturingIBFV = false;
 	
 }
 
 
-ProbeEventRouter::~ProbeEventRouter(){
+TwoDEventRouter::~TwoDEventRouter(){
 	if (savedCommand) delete savedCommand;
 	
-	if (myIBFVThread){
-		animationFlag= false;
-		probeTextureFrame->setAnimatingTexture(false);
-		myIBFVThread->wait();
-		delete myIBFVThread;
-	}
 	
 }
 /**********************************************************
- * Whenever a new Probetab is created it must be hooked up here
+ * Whenever a new TwoDtab is created it must be hooked up here
  ************************************************************/
 void
-ProbeEventRouter::hookUpTab()
+TwoDEventRouter::hookUpTab()
 {
 	//Nudge sliders by clicking on slider bar:
 	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
 	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
 	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
-	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZSize(int)));
+	
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
-	connect (alphaSlider, SIGNAL(sliderReleased()), this, SLOT(guiReleaseAlphaSlider()));
-	connect (scaleSlider, SIGNAL(sliderReleased()), this, SLOT(guiReleaseScaleSlider()));
-	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect(alphaEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect(fieldScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect(colorMergeCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorMerge(bool)));
-	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	
-	connect (fieldScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-
-	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	
-	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (psiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
-	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
-	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
+	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	
+	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(twoDCenterRegion()));
+	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(twoDCenterView()));
+	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(twoDCenterRake()));
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
-	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
-	connect (axisAlignButton, SIGNAL(clicked()), this, SLOT(guiAxisAlign()));
-	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
-	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
-	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
-	connect (xThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseXWheel(int)));
-	connect (yThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseYWheel(int)));
-	connect (zThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseZWheel(int)));
-	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
-	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
-	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
-	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
-	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
-	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
-	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZCenter()));
-	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXSize()));
-	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYSize()));
-	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZSize()));
+	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(twoDAddSeed()));
 	
-	connect (loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
-	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(probeLoadInstalledTF()));
-	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
+	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
+	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
+	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
+	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
+	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
+	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
+	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
+	
+	connect (loadButton, SIGNAL(clicked()), this, SLOT(twoDLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(twoDLoadInstalledTF()));
+	connect (saveButton, SIGNAL(clicked()), this, SLOT(twoDSaveTF()));
 	
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
-	connect (captureFlowButton, SIGNAL(clicked()), this, SLOT(toggleFlowImageCapture()));
-	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (probeOpacityScale()));
+	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+
+	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (twoDOpacityScale()));
 	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
-	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setProbeNavigateMode(bool)));
+	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDNavigateMode(bool)));
 	
-	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setProbeEditMode(bool)));
+	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDEditMode(bool)));
 	
 	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
 	
-	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshProbeHisto()));
+	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshTwoDHisto()));
 	
 	// Transfer function controls:
 	connect(editButton, SIGNAL(toggled(bool)), 
@@ -216,18 +183,12 @@ ProbeEventRouter::hookUpTab()
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
-	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setProbeEnabled(bool,int)));
-	connect (probeTypeCombo, SIGNAL(activated(int)), this, SLOT(guiSetProbeType(int)));
-	connect (playButton, SIGNAL(clicked()), this, SLOT(ibfvPlay()));
-	connect (pauseButton, SIGNAL(clicked()), this, SLOT(ibfvPause()));
-	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXIBFVComboVarNum(int)));
-	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYIBFVComboVarNum(int)));
-	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZIBFVComboVarNum(int)));
+	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
 	
 }
 //Insert values from params into tab panel
 //
-void ProbeEventRouter::updateTab(){
+void TwoDEventRouter::updateTab(){
 	
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
@@ -238,43 +199,16 @@ void ProbeEventRouter::updateTab(){
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 	
-	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* twoDParams = VizWinMgr::getActiveTwoDParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
-	int pType = probeParams->getProbeType();
-	probeTypeCombo->setCurrentItem(pType);
-	if (pType == 1) {
-		ibfvFrame->show();
-		colorMergeCheckbox->setEnabled(true);
-	}
-	else {
-		ibfvFrame->hide();
-		colorMergeCheckbox->setEnabled(false);
-	}
-	captureFlowButton->setEnabled(pType==1);
-	//set ibfv parameters:
-	alphaEdit->setText(QString::number(probeParams->getAlpha()));
 	
-	fieldScaleEdit->setText(QString::number(probeParams->getFieldScale(),'g',4));
-	
-	alphaSlider->setValue((int)((100.f *probeParams->getAlpha()+0.5f)));
-	scaleSlider->setValue((int)(((log10(probeParams->getFieldScale())+1.f))*50.f));
-
 	guiSetTextChanged(false);
 
-	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
-	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
-	zSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(2));
 
-	if (colorMergeCheckbox->isChecked() != probeParams->ibfvColorMerged()){
-		colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
-	}
 	
-	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
-	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
-		planarCheckbox->setChecked(probeParams->isPlanar());
-	}
-
+	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDInstances(winnum) > 1);
+	
 	int numViz = vizMgr->getNumVisualizers();
 
 	copyCombo->clear();
@@ -292,13 +226,13 @@ void ProbeEventRouter::updateTab(){
 	}
 	//setup the texture:
 	
-	resetTextureSize(probeParams);
+	resetTextureSize(twoDParams);
 	
 	QString strn;
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
 
-    transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+    transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
     transferFunctionFrame->updateParams();
 	int numvars = 0;
 	QString varnames = getMappedVariableNames(&numvars);
@@ -319,28 +253,20 @@ void ProbeEventRouter::updateTab(){
       transferFunctionFrame->setVariableName("");
 	  variableLabel->setText("");
     }
-	int numRefs = probeParams->getNumRefinements();
+	int numRefs = twoDParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentItem(numRefs);
 	
-	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
+	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 
-	//Check if planar:
-	bool isPlanar = probeParams->isPlanar();
-	if (isPlanar){
-		zSizeSlider->setEnabled(false);
-		zSizeEdit->setEnabled(false);
-	} else {
-		zSizeSlider->setEnabled(true);
-		zSizeEdit->setEnabled(true);
-	}
+	
 	//setup the size sliders 
-	adjustBoxSize(probeParams);
+	adjustBoxSize(twoDParams);
 
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
 	const float* extents = DataStatus::getInstance()->getExtents();
-	probeParams->getBox(boxmin, boxmax);
+	twoDParams->getBox(boxmin, boxmax);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
@@ -349,15 +275,13 @@ void ProbeEventRouter::updateTab(){
 	yCenterEdit->setText(QString::number(boxCenter[1]));
 	zCenterEdit->setText(QString::number(boxCenter[2]));
 	
-	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
-	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
-	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
-	const float* selectedPoint = probeParams->getSelectedPoint();
+	
+	const float* selectedPoint = twoDParams->getSelectedPoint();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
 	attachSeedCheckbox->setChecked(seedAttached);
-	float val = calcCurrentValue(probeParams,selectedPoint);
+	float val = calcCurrentValue(twoDParams,selectedPoint);
 
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
@@ -367,14 +291,14 @@ void ProbeEventRouter::updateTab(){
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
 	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
-		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
-			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
+		if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
+			variableListBox->setSelected(i, twoDParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
 	}
 	ignoreListboxChanges = false;
 
-	updateMapBounds(probeParams);
+	updateMapBounds(twoDParams);
 	
-	float sliderVal = probeParams->getOpacityScale();
+	float sliderVal = twoDParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	
 	sliderVal = 256.f*(1.f -sliderVal);
@@ -383,7 +307,7 @@ void ProbeEventRouter::updateTab(){
 	
 	//Set the mode buttons:
 	
-	if (probeParams->getEditMode()){
+	if (twoDParams->getEditMode()){
 		
 		editButton->setOn(true);
 		navigateButton->setOn(false);
@@ -393,7 +317,7 @@ void ProbeEventRouter::updateTab(){
 	}
 		
 	
-	probeTextureFrame->setParams(probeParams);
+	twoDTextureFrame->setParams(twoDParams);
 	
 	vizMgr->getTabManager()->update();
 	
@@ -403,47 +327,26 @@ void ProbeEventRouter::updateTab(){
 	notNudgingSliders = false;
 }
 //Fix for clean Windows scrolling:
-void ProbeEventRouter::refreshTab(){
-	probeFrameHolder->hide();
-	probeFrameHolder->show();
+void TwoDEventRouter::refreshTab(){
+	twoDFrameHolder->hide();
+	twoDFrameHolder->show();
 	appearanceFrame->hide();
 	appearanceFrame->show();
 }
 
-void ProbeEventRouter::confirmText(bool /*render*/){
+void TwoDEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(probeParams, "edit Probe text");
+	TwoDParams* twoDParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(twoDParams, "edit TwoD text");
 	QString strn;
 	
-	float thetaVal = thetaEdit->text().toFloat();
-	while (thetaVal > 180.f) thetaVal -= 360.f;
-	while (thetaVal < -180.f) thetaVal += 360.f;
-	thetaEdit->setText(QString::number(thetaVal,'f',1));
-	float phiVal = phiEdit->text().toFloat();
-	while (phiVal > 180.f) phiVal -= 180.f;
-	while (phiVal < 0.f) phiVal += 180.f;
-	phiEdit->setText(QString::number(phiVal,'f',1));
-	float psiVal = psiEdit->text().toFloat();
-	while (psiVal > 180.f) psiVal -= 360.f;
-	while (psiVal < -180.f) psiVal += 360.f;
-	psiEdit->setText(QString::number(psiVal,'f',1));
+	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
-	probeParams->setTheta(thetaVal);
-	probeParams->setPhi(phiVal);
-	probeParams->setPsi(psiVal);
-
-	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
-
-	//Set IBFV values:
-	probeParams->setAlpha(alphaEdit->text().toFloat());
-	probeParams->setFieldScale(fieldScaleEdit->text().toFloat());
-
-	//Set the probe size based on current text box settings:
+	
+	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[0] = xSizeEdit->text().toFloat();
 	boxSize[1] = ySizeEdit->text().toFloat();
-	boxSize[2] = zSizeEdit->text().toFloat();
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
@@ -451,7 +354,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	probeParams->getBox(boxmin, boxmax);
+	twoDParams->getBox(boxmin, boxmax);
 	const float* extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3;i++){
 		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
@@ -459,251 +362,79 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
-	probeParams->setBox(boxmin,boxmax);
-	adjustBoxSize(probeParams);
+	twoDParams->setBox(boxmin,boxmax);
+	adjustBoxSize(twoDParams);
 	//set the center sliders:
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
 	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
-	resetTextureSize(probeParams);
-	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
-	setProbeDirty(probeParams);
-	if (probeParams->getMapperFunc()) {
-		((TransferFunction*)probeParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
-		((TransferFunction*)probeParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
+	resetTextureSize(twoDParams);
+	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+	setTwoDDirty(twoDParams);
+	if (twoDParams->getMapperFunc()) {
+		((TransferFunction*)twoDParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
+		((TransferFunction*)twoDParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
 	
-		setDatarangeDirty(probeParams);
+		setDatarangeDirty(twoDParams);
 		setEditorDirty();
 		update();
-		probeTextureFrame->update();
+		twoDTextureFrame->update();
 	}
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
-	//If we are in probe mode, force a rerender of all windows using the probe:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
-		VizWinMgr::getInstance()->refreshProbe(probeParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(twoDParams,TwoDTextureBit,true);
+	//If we are in twoD mode, force a rerender of all windows using the twoD:
+	if (GLWindow::getCurrentMouseMode() == GLWindow::twoDMode){
+		VizWinMgr::getInstance()->refreshTwoD(twoDParams);
 	}
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
-	PanelCommand::captureEnd(cmd, probeParams);
+	PanelCommand::captureEnd(cmd, twoDParams);
 }
 
 
 /*********************************************************************************
- * Slots associated with ProbeTab:
+ * Slots associated with TwoDTab:
  *********************************************************************************/
-void ProbeEventRouter::guiSetProbeType(int t){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "change probe type");
-	pParams->setProbeType(t);
-	//always stop animation,
-	//Invalidate existing probe images:
-	pParams->setProbeDirty();
-	ibfvPause();
-	if (t == 0){
-		ibfvFrame->hide();
-		probeTextureFrame->update();
-		updateTab();
-	} else {
-		ibfvFrame->show();
-		probeTextureFrame->update();
-		updateTab();
-	}
-	captureFlowButton->setEnabled(t==1);
-	PanelCommand::captureEnd(cmd, pParams);
-}
-void ProbeEventRouter::ibfvPlay(){
-	//Start playing.  Requires initializing the ibfv sequence,
-	//setting the animation flag (so subsequent updates go for animated texture)
-	//then starting the animation thread
-	//Don't allow multiple clicks
-	if(isAnimating()) return;
-	animationFlag = true;
-	probeTextureFrame->setAnimatingTexture(true);
-	myIBFVThread = new ProbeThread();
-	myIBFVThread->start();
-}
-void ProbeEventRouter::ibfvPause(){
-	animationFlag= false;
-	probeTextureFrame->setAnimatingTexture(false);
-	if(capturingIBFV) toggleFlowImageCapture();
-	
-	//terminate the animation thread.
-	if (myIBFVThread) {
-		myIBFVThread->wait(200);
-		delete myIBFVThread;
-	}
-	myIBFVThread = 0;
-}
 
-void ProbeEventRouter::
-rotateXWheel(int val){
-	
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation((float)val/10.f, 0);
-	viz->updateGL();
-	
-}
-void ProbeEventRouter::
-rotateYWheel(int val){
-	
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(-(float)val/10.f, 1);
-	viz->updateGL();
-}
-void ProbeEventRouter::
-rotateZWheel(int val){
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation((float)val/10.f, 2);
-	viz->updateGL();
-}
-void ProbeEventRouter::
-guiReleaseXWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(0, (float)val/10.f);
-
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 0);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiReleaseYWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(1, -(float)val/10.f);
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 1);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiReleaseZWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(2, (float)val/10.f);
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 2);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiReleaseAlphaSlider(){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move alpha slider");
-	float sliderVal = (float)(alphaSlider->value())*0.01f;
-	pParams->setAlpha(sliderVal);
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd, pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-	updateTab();
-}
-void ProbeEventRouter::
-guiReleaseScaleSlider(){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move scale slider");
-	//scale slider goes from 0.1 to 10:
-	float sliderVal = (float)(scaleSlider->value())*0.02f - 1.f;// from -1 to 1
-	sliderVal = pow(10.f,sliderVal);
-	pParams->setFieldScale(sliderVal);
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd, pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-	updateTab();
-}
-void ProbeEventRouter::guiRotate90(int selection){
-	if (selection == 0) return;
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "90 deg probe rotation");
-	int axis = (selection < 4) ? selection - 1 : selection -4;
-	float angle = (selection < 4) ? 90.f : -90.f;
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(axis, angle);
-	rotate90Combo->setCurrentItem(0);
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-
-}
-void ProbeEventRouter::guiChangeInstance(int inst){
+void TwoDEventRouter::guiChangeInstance(int inst){
 	performGuiChangeInstance(inst);
 }
-void ProbeEventRouter::guiNewInstance(){
+void TwoDEventRouter::guiNewInstance(){
 	performGuiNewInstance();
 }
-void ProbeEventRouter::guiDeleteInstance(){
+void TwoDEventRouter::guiDeleteInstance(){
 	performGuiDeleteInstance();
 }
 
-void ProbeEventRouter::guiCopyInstanceTo(int toViz){
+void TwoDEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1){performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
 	copyCombo->setCurrentItem(0);
 	performGuiCopyInstanceToViz(viznum);
 }
-void ProbeEventRouter::
-setProbeTabTextChanged(const QString& ){
+void TwoDEventRouter::
+setTwoDTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
 }
-void ProbeEventRouter::
-probeReturnPressed(void){
+void TwoDEventRouter::
+twoDReturnPressed(void){
 	//Find the appropriate parameter panel, make it update the visualization window
 	confirmText(true);
 }
 
-void ProbeEventRouter::
-setProbeEnabled(bool val, int instance){
+void TwoDEventRouter::
+setTwoDEnabled(bool val, int instance){
 
 	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
-	ProbeParams* pParams = vizMgr->getProbeParams(activeViz,instance);
+	TwoDParams* pParams = vizMgr->getTwoDParams(activeViz,instance);
 	//Make sure this is a change:
 	if (pParams->isEnabled() == val ) return;
-	if (!val) ibfvPause();//When disabling, stop animating ibfv
+	
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		performGuiChangeInstance(instance);
@@ -715,22 +446,22 @@ setProbeEnabled(bool val, int instance){
 	setDatarangeDirty(pParams);
 }
 
-void ProbeEventRouter::
-setProbeEditMode(bool mode){
+void TwoDEventRouter::
+setTwoDEditMode(bool mode){
 	navigateButton->setOn(!mode);
 	guiSetEditMode(mode);
 }
-void ProbeEventRouter::
-setProbeNavigateMode(bool mode){
+void TwoDEventRouter::
+setTwoDNavigateMode(bool mode){
 	editButton->setOn(!mode);
 	guiSetEditMode(!mode);
 }
 
-void ProbeEventRouter::
-refreshProbeHisto(){
+void TwoDEventRouter::
+refreshTwoDHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
@@ -741,13 +472,13 @@ refreshProbeHisto(){
 /*
  * Respond to a slider release
  */
-void ProbeEventRouter::
-probeOpacityScale() {
+void TwoDEventRouter::
+twoDOpacityScale() {
 	guiSetOpacityScale(opacityScaleSlider->value());
 }
-void ProbeEventRouter::
-probeLoadInstalledTF(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+void TwoDEventRouter::
+twoDLoadInstalledTF(){
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	//Get the path from the environment:
 	char *home = getenv("VAPOR_HOME");
 	QString installPath = QString(home)+ "/share/palettes";
@@ -755,39 +486,39 @@ probeLoadInstalledTF(){
 	updateClut(pParams);
 }
 //Respond to user click on save/load TF.  This launches the intermediate
-//dialog, then sends the result to the Probe params
-void ProbeEventRouter::
-probeSaveTF(void){
-	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+//dialog, then sends the result to the TwoD params
+void TwoDEventRouter::
+twoDSaveTF(void){
+	TwoDParams* dParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	saveTF(dParams);
 }
-void ProbeEventRouter::
-probeLoadTF(void){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+void TwoDEventRouter::
+twoDLoadTF(void){
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	loadTF(pParams, pParams->getSessionVarNum());
 	updateClut(pParams);
 }
-void ProbeEventRouter::
-probeCenterRegion(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+void TwoDEventRouter::
+twoDCenterRegion(){
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
-void ProbeEventRouter::
-probeCenterView(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+void TwoDEventRouter::
+twoDCenterView(){
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
-void ProbeEventRouter::
-probeCenterRake(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+void TwoDEventRouter::
+twoDCenterRake(){
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	fRouter->guiCenterRake(pParams->getSelectedPoint());
 }
 
-void ProbeEventRouter::
-probeAddSeed(){
+void TwoDEventRouter::
+twoDAddSeed(){
 	Point4 pt;
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	pt.set3Val(pParams->getSelectedPoint());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
 	
@@ -813,107 +544,51 @@ probeAddSeed(){
 	}
 	fRouter->guiAddSeed(pt);
 }	
-void ProbeEventRouter::
-guiTogglePlanar(bool isOn){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle planar probe");
-	if (isOn){
-		//when make it planar, force z-thickness to 0:
-		pParams->setPlanar(true);
-		setZSize(pParams,0);
-		zSizeSlider->setEnabled(false);
-		zSizeEdit->setEnabled(false);
-		probeTextureFrame->update();
-		updateTab();
-	} else {
-		pParams->setPlanar(false);
-		zSizeSlider->setEnabled(true);
-		zSizeEdit->setEnabled(true);
-	}
-	//Force a redraw
-	
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiAxisAlign(){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "axis-align probe");
-	float theta = pParams->getTheta();
-	//convert to closest number of quarter-turns
-	int angleInt = (int)(((theta+180.)/90.)+0.5) - 2;
-	theta = angleInt*90.;
-	float psi = pParams->getPsi();
-	angleInt = (int)(((psi+180.)/90.)+0.5) - 2;
-	psi = angleInt*90.;
-	float phi = pParams->getPhi();
-	angleInt = (int)((phi/90.)+0.5);
-	phi = angleInt*90.;
-	pParams->setPhi(phi);
-	pParams->setPsi(psi);
-	pParams->setTheta(theta);
-	//Force a redraw, update tab
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
-}	
-void ProbeEventRouter::
-probeAttachSeed(bool attach){
-	if (attach) probeAddSeed();
+void TwoDEventRouter::
+twoDAttachSeed(bool attach){
+	if (attach) twoDAddSeed();
 	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
 	
 	guiAttachSeed(attach, fParams);
 }
 
 
-void ProbeEventRouter::
-setProbeXCenter(){
+void TwoDEventRouter::
+setTwoDXCenter(){
 	guiSetXCenter(
 		xCenterSlider->value());
 }
-void ProbeEventRouter::
-setProbeYCenter(){
+void TwoDEventRouter::
+setTwoDYCenter(){
 	guiSetYCenter(
 		yCenterSlider->value());
 }
-void ProbeEventRouter::
-setProbeZCenter(){
+void TwoDEventRouter::
+setTwoDZCenter(){
 	guiSetZCenter(
 		zCenterSlider->value());
 }
-void ProbeEventRouter::
-setProbeXSize(){
+void TwoDEventRouter::
+setTwoDXSize(){
 	guiSetXSize(
 		xSizeSlider->value());
 }
-void ProbeEventRouter::
-setProbeYSize(){
+void TwoDEventRouter::
+setTwoDYSize(){
 	guiSetYSize(
 		ySizeSlider->value());
 }
-void ProbeEventRouter::
-setProbeZSize(){
-	guiSetZSize(
-		zSizeSlider->value());
-}
-
 
 
 //Respond to user request to load/save TF
 //Assumes name is valid
 //
-void ProbeEventRouter::
+void TwoDEventRouter::
 sessionLoadTF(QString* name){
 	
 	confirmText(false);
-	ProbeParams* dParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* dParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from Session");
 	
 	//Get the transfer function from the session:
@@ -928,38 +603,34 @@ sessionLoadTF(QString* name){
 	setEditorDirty();
 }
 
-//Make region match probe.  Responds to button in region panel
-void ProbeEventRouter::
-guiCopyRegionToProbe(){
+//Make region match twoD.  Responds to button in region panel
+void TwoDEventRouter::
+guiCopyRegionToTwoD(){
 	confirmText(false);
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
-	if (pParams->isPlanar()){//maybe need to turn off planar:
-		if (rParams->getRegionMin(2) < rParams->getRegionMax(2)){
-			pParams->setPlanar(false);
-		}
-	}
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to twoD");
+	
 	for (int i = 0; i< 3; i++){
-		pParams->setProbeMin(i, rParams->getRegionMin(i));
-		pParams->setProbeMax(i, rParams->getRegionMax(i));
+		pParams->setTwoDMin(i, rParams->getRegionMin(i));
+		pParams->setTwoDMax(i, rParams->getRegionMax(i));
 	}
-	//Note:  the probe may not fit in the region.  
+	//Note:  the twoD may not fit in the region.  
 	updateTab();
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 	
 	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
 }
 
 
 
-//Reinitialize Probe tab settings, session has changed.
-//Note that this is called after the globalProbeParams are set up, but before
-//any of the localProbeParams are setup.
-void ProbeEventRouter::
+//Reinitialize TwoD tab settings, session has changed.
+//Note that this is called after the globalTwoDParams are set up, but before
+//any of the localTwoDParams are setup.
+void TwoDEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	
@@ -995,42 +666,22 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
-	//Set up the ibfv variable combos
 	
-	xSteadyVarCombo->clear();
-	xSteadyVarCombo->setMaxCount(newNumComboVariables+1);
-	ySteadyVarCombo->clear();
-	ySteadyVarCombo->setMaxCount(newNumComboVariables+1);
-	zSteadyVarCombo->clear();
-	zSteadyVarCombo->setMaxCount(newNumComboVariables+1);
-	//Put a "0" at the start of the variable combos
-	const QString& text = QString("0");
-	xSteadyVarCombo->insertItem(text);
-	ySteadyVarCombo->insertItem(text);
-	zSteadyVarCombo->insertItem(text);
-	for (int i = 0; i< newNumComboVariables; i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
-		const QString& text = QString(s.c_str());
-		xSteadyVarCombo->insertItem(text);
-		ySteadyVarCombo->insertItem(text);
-		zSteadyVarCombo->insertItem(text);
-	}
 	updateTab();
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetEditMode(bool mode){
 	confirmText(false);
-	ProbeParams* dParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* dParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set edit/navigate mode");
 	dParams->setEditMode(mode);
 	PanelCommand::captureEnd(cmd, dParams); 
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetAligned(){
-	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	TwoDParams* dParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "align tf in edit frame");
 		
@@ -1049,15 +700,15 @@ guiSetAligned(){
  * It can occur that both enablement and local/global change, if the local and global enablement
  * are different, during a local/global change
  * This assumes that the VizWinMgr already is set with the current (new) local/global
- * Probe settings.  
+ * TwoD settings.  
  * If the window is new, (i.e. we are just creating a new window, use: 
  * prevEnabled = false, wasLocal = isLocal = true,
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
-void ProbeEventRouter::
+void TwoDEventRouter::
 updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 
-	ProbeParams* pParams = (ProbeParams*)rParams;
+	TwoDParams* pParams = (TwoDParams*)rParams;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	
 	if (newWindow) {
@@ -1088,10 +739,10 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
 
 
-		ProbeRenderer* myRenderer = new ProbeRenderer (viz->getGLWindow(), pParams);
+		TwoDRenderer* myRenderer = new TwoDRenderer (viz->getGLWindow(), pParams);
 		viz->getGLWindow()->prependRenderer(pParams,myRenderer);
 
-		setProbeDirty(pParams);
+		setTwoDDirty(pParams);
 		return;
 	}
 	
@@ -1102,10 +753,10 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 	viz->getGLWindow()->removeRenderer(pParams);
 	return;
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 setEditorDirty(RenderParams* p){
-	ProbeParams* dp = (ProbeParams*)p;
-	if(!dp) dp = VizWinMgr::getInstance()->getActiveProbeParams();
+	TwoDParams* dp = (TwoDParams*)p;
+	if(!dp) dp = VizWinMgr::getInstance()->getActiveTwoDParams();
 	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
     transferFunctionFrame->updateParams();
@@ -1124,34 +775,34 @@ setEditorDirty(RenderParams* p){
 }
 
 
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
-	ProbeParams* pParams = VizWinMgr::getInstance()->getProbeParams(winnum, instance);    
+	TwoDParams* pParams = VizWinMgr::getInstance()->getTwoDParams(winnum, instance);    
 	confirmText(false);
 	assert(value != pParams->isEnabled());
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle probe enabled",instance);
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle twoD enabled",instance);
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
-	ibfvPause();
+	
 	//Need to rerender the texture:
-	pParams->setProbeDirty();
+	pParams->setTwoDDirty();
 	//and refresh the gui
 	updateTab();
 	setDatarangeDirty(pParams);
 	setEditorDirty();
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	update();
 }
 
 
 //Respond to a change in opacity scale factor
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetOpacityScale(int val){
-	ProbeParams* pp = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pp = VizWinMgr::getActiveTwoDParams();
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( ((float)(256-val))/256.f);
@@ -1159,78 +810,78 @@ guiSetOpacityScale(int val){
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	
 
-	setProbeDirty(pp);
-	probeTextureFrame->update();
+	setTwoDDirty(pp);
+	twoDTextureFrame->update();
 	
 	PanelCommand::captureEnd(cmd,pp);
 	
-	VizWinMgr::getInstance()->setVizDirty(pp,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->setVizDirty(pp,TwoDTextureBit,true);
 }
 //Respond to a change in transfer function (from color selection or mouse down/release events)
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
 //
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiStartChangeMapFcn(QString qstr){
 	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
-	ProbeParams* pp = VizWinMgr::getInstance()->getActiveProbeParams();
+	TwoDParams* pp = VizWinMgr::getInstance()->getActiveTwoDParams();
     savedCommand = PanelCommand::captureStart(pp, qstr.latin1());
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiEndChangeMapFcn(){
 	if (!savedCommand) return;
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand::captureEnd(savedCommand,pParams);
 	savedCommand = 0;
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 	setDatarangeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiBindColorToOpac(){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Color to Opacity");
     transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, pParams);
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiBindOpacToColor(){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Opacity to Color");
     transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, pParams);
 }
-//Make the probe center at selectedPoint.  Shrink size if necessary.
+//Make the twoD center at selectedPoint.  Shrink size if necessary.
 //Reset sliders and text as appropriate.  Equivalent to typing in the values
-void ProbeEventRouter::guiCenterProbe(){
+void TwoDEventRouter::guiCenterTwoD(){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe to Selected Point");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center TwoD to Selected Point");
 	const float* selectedPoint = pParams->getSelectedPoint();
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
+	float twoDMin[3],twoDMax[3];
+	pParams->getBox(twoDMin,twoDMax);
 	for (int i = 0; i<3; i++)
-		textToSlider(pParams,i,selectedPoint[i], probeMax[i]-probeMin[i]);
+		textToSlider(pParams,i,selectedPoint[i], twoDMax[i]-twoDMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
 	updateTab();
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
 //Following method sets up (or releases) a connection to the Flow 
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiAttachSeed(bool attach, FlowParams* fParams){
 	confirmText(false);
 	//Don't capture the attach/detach event.
 	//This cannot be easily undone/redone because it requires maintaining the
-	//state of both the flowparams and the probeparams.
+	//state of both the flowparams and the twoDparams.
 	//But we will capture the successive seed moves that occur while
 	//the seed is attached.
 	if (attach){ 
@@ -1243,13 +894,13 @@ guiAttachSeed(bool attach, FlowParams* fParams){
 	} 
 }
 //Respond to an update of the variable listbox.  set the appropriate bits
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiChangeVariables(){
 	//Don't react if the listbox is being reset programmatically:
 	if (ignoreListboxChanges) return;
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change probe-selected variable(s)");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change twoD-selected variable(s)");
 	int firstVar = -1;
 	int numSelected = 0;
 	//Session* ses = Session::getInstance();
@@ -1284,95 +935,83 @@ guiChangeVariables(){
 	//Need to update the selected point for the new variables
 	updateTab();
 	
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetXCenter(int sliderval){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe X center");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD X center");
 	setXCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetYCenter(int sliderval){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Y center");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD Y center");
 	setYCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetZCenter(int sliderval){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Z center");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD Z center");
 	setZCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetXSize(int sliderval){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe X size");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD X size");
 	setXSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	//setup the texture:
 	resetTextureSize(pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiSetYSize(int sliderval){
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Y size");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD Y size");
 	setYSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	resetTextureSize(pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-
-}
-void ProbeEventRouter::
-guiSetZSize(int sliderval){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Z size");
-	setZSize(pParams,sliderval);
-	
-	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
 
-void ProbeEventRouter::
+
+void TwoDEventRouter::
 guiSetNumRefinements(int n){
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	confirmText(false);
 	int maxNumRefinements = 0;
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "set number Refinements for probe");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "set number Refinements for twoD");
 	if (DataStatus::getInstance()) {
 		maxNumRefinements = DataStatus::getInstance()->getNumTransforms();
 		if (n > maxNumRefinements) {
@@ -1383,19 +1022,19 @@ guiSetNumRefinements(int n){
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->setNumRefinements(n);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 	
 //Set slider position, based on text change. 
 //Requirement is that center is inside full domain.
 //Should not change values in params unless the text is invalid.
 //
-void ProbeEventRouter::
-textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
-	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
-	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+void TwoDEventRouter::
+textToSlider(TwoDParams* pParams, int coord, float newCenter, float newSize){
+	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
+	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
 	//force the new center to fit in the full domain,
@@ -1427,8 +1066,8 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
 	if (centerChanged){
-		pParams->setProbeMin(coord, boxMin);
-		pParams->setProbeMax(coord, boxMax);
+		pParams->setTwoDMin(coord, boxMin);
+		pParams->setTwoDMax(coord, boxMax);
 	}
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
@@ -1463,16 +1102,14 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			lastYCenterSlider = sliderCenter;
 			break;
 		case 2:
-			oldSliderSize = zSizeSlider->value();
+			
 			oldSliderCenter = zCenterSlider->value();
-			if (oldSliderSize != sliderSize)
-				zSizeSlider->setValue(sliderSize);
+			
 			
 			
 			if (oldSliderCenter != sliderCenter)
 				zCenterSlider->setValue(sliderCenter);
 			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastZSizeSlider = sliderSize;
 			lastZCenterSlider = sliderCenter;
 			break;
 		default:
@@ -1480,23 +1117,23 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	}
 	guiSetTextChanged(false);
 	if(centerChanged) {
-		setProbeDirty(pParams);
-		probeTextureFrame->update();
-		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+		setTwoDDirty(pParams);
+		twoDTextureFrame->update();
+		VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	}
 	update();
 	return;
 }
 //Set text when a slider changes.
 //
-void ProbeEventRouter::
-sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
+void TwoDEventRouter::
+sliderToText(TwoDParams* pParams, int coord, int slideCenter, int slideSize){
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
 	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
-	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
-	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
+	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 
@@ -1514,7 +1151,6 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 			selectedYLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 2:
-			zSizeEdit->setText(QString::number(newSize,'g',7));
 			zCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedZLabel->setText(QString::number(selectedPoint[coord]));
 			break;
@@ -1524,10 +1160,10 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	guiSetTextChanged(false);
 	resetTextureSize(pParams);
 	update();
-	//force a new render with new Probe data
-	setProbeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	//force a new render with new TwoD data
+	setTwoDDirty(pParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	return;
 	
 }	
@@ -1537,142 +1173,136 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  */
-void ProbeEventRouter::
+void TwoDEventRouter::
 updateMapBounds(RenderParams* params){
-	ProbeParams* probeParams = (ProbeParams*)params;
+	TwoDParams* twoDParams = (TwoDParams*)params;
 	QString strn;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(probeParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(probeParams->getDataMaxBound(currentTimeStep)));
-	if (probeParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMinColorMapValue(),'g',4));
-		rightMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
+	minDataBound->setText(strn.setNum(twoDParams->getDataMinBound(currentTimeStep)));
+	maxDataBound->setText(strn.setNum(twoDParams->getDataMaxBound(currentTimeStep)));
+	if (twoDParams->getMapperFunc()){
+		leftMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMinColorMapValue(),'g',4));
+		rightMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
 	} else {
 		leftMappingBound->setText("0.0");
 		rightMappingBound->setText("1.0");
 	}
 	
-	setProbeDirty(probeParams);
-	setDatarangeDirty(probeParams);
+	setTwoDDirty(twoDParams);
+	setDatarangeDirty(twoDParams);
 	setEditorDirty();
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(twoDParams,TwoDTextureBit,true);
 	
 }
 
-void ProbeEventRouter::setBindButtons(bool canbind)
+void TwoDEventRouter::setBindButtons(bool canbind)
 {
   OpacityBindButton->setEnabled(canbind);
   ColorBindButton->setEnabled(canbind);
 }
 
-//Save undo/redo state when user grabs a probe handle, or maybe a probe face (later)
+//Save undo/redo state when user grabs a twoD handle, or maybe a twoD face (later)
 //
-void ProbeEventRouter::
+void TwoDEventRouter::
 captureMouseDown(){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	savedCommand = PanelCommand::captureStart(pParams,  "slide probe handle");
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	savedCommand = PanelCommand::captureStart(pParams,  "slide twoD handle");
 	
 	//Force a rerender, so we will see the selected face:
-	VizWinMgr::getInstance()->refreshProbe(pParams);
+	VizWinMgr::getInstance()->refreshTwoD(pParams);
 }
 //The Manip class will have already changed the box?..
-void ProbeEventRouter::
+void TwoDEventRouter::
 captureMouseUp(){
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	//float boxMin[3],boxMax[3];
 	//pParams->getBox(boxMin,boxMax);
-	//probeTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
+	//twoDTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
 	resetTextureSize(pParams);
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 	//Update the tab if it's in front:
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(this)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
 		int viznum = vwm->getActiveViz();
-		if (viznum >= 0 && (pParams == vwm->getProbeParams(viznum)))
+		if (viznum >= 0 && (pParams == vwm->getTwoDParams(viznum)))
 			updateTab();
 	}
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
 	
 }
-//When the center slider moves, set the ProbeMin and ProbeMax
-void ProbeEventRouter::
-setXCenter(ProbeParams* pParams,int sliderval){
+//When the center slider moves, set the TwoDMin and TwoDMax
+void TwoDEventRouter::
+setXCenter(TwoDParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(pParams,0, sliderval, xSizeSlider->value());
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 }
-void ProbeEventRouter::
-setYCenter(ProbeParams* pParams,int sliderval){
+void TwoDEventRouter::
+setYCenter(TwoDParams* pParams,int sliderval){
 	sliderToText(pParams,1, sliderval, ySizeSlider->value());
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 }
-void ProbeEventRouter::
-setZCenter(ProbeParams* pParams,int sliderval){
-	sliderToText(pParams,2, sliderval, zSizeSlider->value());
-	setProbeDirty(pParams);
+void TwoDEventRouter::
+setZCenter(TwoDParams* pParams,int sliderval){
+	sliderToText(pParams,2, sliderval, 0);
+	setTwoDDirty(pParams);
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
-void ProbeEventRouter::
-setXSize(ProbeParams* pParams,int sliderval){
+void TwoDEventRouter::
+setXSize(TwoDParams* pParams,int sliderval){
 	sliderToText(pParams,0, xCenterSlider->value(),sliderval);
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 }
-void ProbeEventRouter::
-setYSize(ProbeParams* pParams,int sliderval){
+void TwoDEventRouter::
+setYSize(TwoDParams* pParams,int sliderval){
 	sliderToText(pParams,1, yCenterSlider->value(),sliderval);
-	setProbeDirty(pParams);
-}
-void ProbeEventRouter::
-setZSize(ProbeParams* pParams,int sliderval){
-	sliderToText(pParams,2, zCenterSlider->value(),sliderval);
-	setProbeDirty(pParams);
+	setTwoDDirty(pParams);
 }
 
 //Save undo/redo state when user clicks cursor
 //
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiStartCursorMove(){
 	confirmText(false);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveProbeParams(),  "move probe cursor");
+	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveTwoDParams(),  "move twoD cursor");
 }
-void ProbeEventRouter::
+void TwoDEventRouter::
 guiEndCursorMove(){
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	//Update the selected point:
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
 		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
 	}
-	bool b = isAnimating();
-	if (b) ibfvPause();
+	
 	//Update the tab, it's in front:
 	updateTab();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
 	setDatarangeDirty(pParams);
-	if (b) ibfvPlay();
+	
 }
 //calculate the variable, or rms of the variables, at a specific point.
-//Returns the OUT_OF_BOUNDS flag if point is not (in region and in probe).
+//Returns the OUT_OF_BOUNDS flag if point is not (in region and in twoD).
 //
 
 
-float ProbeEventRouter::
-calcCurrentValue(ProbeParams* pParams, const float point[3]){
+float TwoDEventRouter::
+calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	double regMin[3],regMax[3];
 	if (numVariables <= 0) return OUT_OF_BOUNDS;
 	DataStatus* ds = DataStatus::getInstance();
@@ -1686,7 +1316,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	
 	int numRefinements = pParams->getNumRefinements();
 	
-	//Find the region that contains the probe.
+	//Find the region that contains the twoD.
 
 	//List the variables we are interested in
 	int* sessionVarNums = new int[numVariables];
@@ -1722,7 +1352,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this probe:
+	//Now obtain all of the volumes needed for this twoD:
 	totVars = 0;
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -1758,9 +1388,9 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 
 //Obtain a new histogram for the current selected variables.
 //Save it at the position associated with firstVarNum
-void ProbeEventRouter::
+void TwoDEventRouter::
 refreshHistogram(RenderParams* p){
-	ProbeParams* pParams = (ProbeParams*)p;
+	TwoDParams* pParams = (TwoDParams*)p;
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	DataStatus* ds = DataStatus::getInstance();
@@ -1806,8 +1436,8 @@ refreshHistogram(RenderParams* p){
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*varCount > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current twoD and resolution.\n%s \n%s",
+			"Lower the refinement level, reduce the twoD size, or increase the cache size.",
 			"Rendering has been disabled.");
 		pParams->setEnabled(false);
 		updateTab();
@@ -1817,7 +1447,7 @@ refreshHistogram(RenderParams* p){
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this probe:
+	//Now obtain all of the volumes needed for this twoD:
 	int totVars = 0;
 	
 	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
@@ -1901,7 +1531,7 @@ refreshHistogram(RenderParams* p){
 			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
 				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
 				if (xyz[0] > (boxExts[3]+voxSize) || xyz[0] < (boxExts[0]-voxSize)) continue;
-				//test if x,y,z is in probe:
+				//test if x,y,z is in twoD:
 				if (pParams->distanceToCube(xyz, normals, corner) < voxSize){
 					//incount++;
 					//Point is (almost) inside.
@@ -1941,18 +1571,18 @@ refreshHistogram(RenderParams* p){
 //  Updates the tab if it's the current instance
 //  Calls updateRenderer to rebuild renderer 
 //	Makes the vizwin update.
-void ProbeEventRouter::
+void TwoDEventRouter::
 makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bool) {
 
 	assert(instance >= 0);
-	ProbeParams* pParams = (ProbeParams*)(nextParams->deepCopy());
+	TwoDParams* pParams = (TwoDParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumProbeInstances(vizNum) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::ProbeParamsType, instance);
+	if (!prevParams) assert(VizWinMgr::getInstance()->getNumTwoDInstances(vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::TwoDParamsType, instance);
 	setEditorDirty();
 	updateTab();
-	ProbeParams* formerParams = (ProbeParams*)prevParams;
+	TwoDParams* formerParams = (TwoDParams*)prevParams;
 	bool wasEnabled = false;
 	if (formerParams) wasEnabled = formerParams->isEnabled();
 	//Check if the enabled  changed:
@@ -1960,27 +1590,27 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 		updateRenderer(pParams, wasEnabled,  newWin);
 	}
 	setDatarangeDirty(pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
-void ProbeEventRouter::
+void TwoDEventRouter::
 setDatarangeDirty(RenderParams* params)
 {
-	ProbeParams* pParams = (ProbeParams*)params;
+	TwoDParams* pParams = (TwoDParams*)params;
 	if (!pParams->getMapperFunc()) return;
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	float minval = pParams->getMapperFunc()->getMinColorMapValue();
 	float maxval = pParams->getMapperFunc()->getMaxColorMapValue();
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
-			VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+			VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	}
 	
 }
 
-void ProbeEventRouter::cleanParams(Params* p) 
+void TwoDEventRouter::cleanParams(Params* p) 
 {
   transferFunctionFrame->setMapperFunction(NULL);
   transferFunctionFrame->setVariableName("");
@@ -1991,7 +1621,7 @@ void ProbeEventRouter::cleanParams(Params* p)
 //Launch a file save dialog to specify the names
 //Then put jpeg in it.
 //
-void ProbeEventRouter::captureImage() {
+void TwoDEventRouter::captureImage() {
 	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
@@ -2021,22 +1651,15 @@ void ProbeEventRouter::captureImage() {
 	//If this is IBFV, then we save texture as is.
 	//If this is data, then reconstruct with appropriate aspect ratio.
 	
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int imgSize[2];
 	pParams->getTextureSize(imgSize);
 	int wid = imgSize[0];
 	int ht = imgSize[1];
-	unsigned char* probeTex;
+	unsigned char* twoDTex;
 	unsigned char* buf;
-	if (pParams->getProbeType() == 1){
-		//Make sure we have created a probe texture already...
-		buf = pParams->getCurrentProbeTexture(timestep, 1);
-		if (!buf){
-			MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
-			return;
-		}
-	} else {
+	
 		
 		//Determine the image size.  Start with the texture dimensions in 
 		// the scene, then increase x or y to make the aspect ratio match the
@@ -2053,27 +1676,20 @@ void ProbeEventRouter::captureImage() {
 		} else { //Make ht larger:
 			ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
 		}
-		//Construct the probe texture of the desired dimensions:
-		buf = pParams->calcProbeDataTexture(timestep,wid,ht);
-	}
+		//Construct the twoD texture of the desired dimensions:
+		buf = pParams->calcTwoDDataTexture(timestep,wid,ht);
+	
 	//Construct an RGB image from this.  Ignore alpha.
 	//invert top and bottom while removing alpha component
-	probeTex = new unsigned char[3*wid*ht];
+	twoDTex = new unsigned char[3*wid*ht];
 	for (int j = 0; j<ht; j++){
 		for (int i = 0; i< wid; i++){
 			for (int k = 0; k<3; k++)
-				probeTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j+1))];
+				twoDTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j+1))];
 		}
 	}
-		/*
-		for (int i = 0; i< wid*ht; i++){
-			for (int k = 0; k<3; k++){
-				buf[(wid*ht-i-1)*3+k] = probeTex[4*i+k];
-			}
-		}
-		*/
-	//Don't delete the IBFV image
-	if(pParams->getProbeType()== 0) delete buf;
+		
+	
 	
 	
 	
@@ -2086,8 +1702,8 @@ void ProbeEventRouter::captureImage() {
 	//Now call the Jpeg library to compress and write the file
 	//
 	int quality = GLWindow::getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, wid, ht, probeTex, quality);
-	delete probeTex;
+	int rc = write_JPEG_file(jpegFile, wid, ht, twoDTex, quality);
+	delete twoDTex;
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
@@ -2099,36 +1715,8 @@ void ProbeEventRouter::captureImage() {
 	MessageReporter::infoMsg("Image is captured to %s",
 			filename.ascii());
 }
-//Start or stop image sequence capture
-void ProbeEventRouter::toggleFlowImageCapture() {
-	if (!capturingIBFV) {
-		//Launch file-open dialog:
-		QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-			"Jpeg Images (*.jpg)",
-			this,
-			"Image sequence capture dialog",
-			true);  //modal
-	
-		fileDialog.setMode(QFileDialog::AnyFile);
-		fileDialog.setCaption("Specify name for image sequence capture");
-		fileDialog.resize(450,450);
-		if (fileDialog.exec() != QDialog::Accepted) return;
-	
-		//Extract the path, and the root name, from the returned string.
-		QString filename = fileDialog.selectedFile();
-		QFileInfo* fileInfo = new QFileInfo(filename);
-		//Save the path for future captures
-		Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
-		if (filename.endsWith(".jpg")) filename.truncate(filename.length()-4);
-		probeTextureFrame->setCaptureName(filename);
-		probeTextureFrame->setCaptureNum(0);
-	}
-	capturingIBFV = !capturingIBFV;
-	if(capturingIBFV) captureFlowButton->setText("Stop Capture");
-	else captureFlowButton->setText("Start Capture Sequence");
-	probeTextureFrame->setCapturing(capturingIBFV);
-}
-void ProbeEventRouter::guiNudgeXSize(int val) {
+
+void TwoDEventRouter::guiNudgeXSize(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -2139,29 +1727,29 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 		return;
 	}
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X size");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
-	float pmin = pParams->getProbeMin(0);
-	float pmax = pParams->getProbeMax(0);
+	float pmin = pParams->getTwoDMin(0);
+	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(0, pmin-voxelSize);
-			pParams->setProbeMax(0, pmax+voxelSize);
+			pParams->setTwoDMin(0, pmin-voxelSize);
+			pParams->setTwoDMax(0, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastXSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(0, pmin+voxelSize);
-			pParams->setProbeMax(0, pmax-voxelSize);
+			pParams->setTwoDMin(0, pmin+voxelSize);
+			pParams->setTwoDMax(0, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2174,7 +1762,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
-void ProbeEventRouter::guiNudgeXCenter(int val) {
+void TwoDEventRouter::guiNudgeXCenter(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -2184,29 +1772,29 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 		return;
 	}
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
-	float pmin = pParams->getProbeMin(0);
-	float pmax = pParams->getProbeMax(0);
+	float pmin = pParams->getTwoDMin(0);
+	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(0, pmin+voxelSize);
-			pParams->setProbeMax(0, pmax+voxelSize);
+			pParams->setTwoDMin(0, pmin+voxelSize);
+			pParams->setTwoDMax(0, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastXCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(0, pmin-voxelSize);
-			pParams->setProbeMax(0, pmax-voxelSize);
+			pParams->setTwoDMin(0, pmin-voxelSize);
+			pParams->setTwoDMax(0, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2219,7 +1807,7 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
-void ProbeEventRouter::guiNudgeYCenter(int val) {
+void TwoDEventRouter::guiNudgeYCenter(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -2229,29 +1817,29 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 		return;
 	}
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
-	float pmin = pParams->getProbeMin(1);
-	float pmax = pParams->getProbeMax(1);
+	float pmin = pParams->getTwoDMin(1);
+	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(1, pmin+voxelSize);
-			pParams->setProbeMax(1, pmax+voxelSize);
+			pParams->setTwoDMin(1, pmin+voxelSize);
+			pParams->setTwoDMax(1, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastYCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(1, pmin-voxelSize);
-			pParams->setProbeMax(1, pmax-voxelSize);
+			pParams->setTwoDMin(1, pmin-voxelSize);
+			pParams->setTwoDMax(1, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2264,7 +1852,7 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
-void ProbeEventRouter::guiNudgeZCenter(int val) {
+void TwoDEventRouter::guiNudgeZCenter(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -2274,29 +1862,29 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 		return;
 	}
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z center");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Z center");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
-	float pmin = pParams->getProbeMin(2);
-	float pmax = pParams->getProbeMax(2);
+	float pmin = pParams->getTwoDMin(2);
+	float pmax = pParams->getTwoDMax(2);
 	float maxExtent = ds->getExtents()[5];
 	float minExtent = ds->getExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(2, pmin+voxelSize);
-			pParams->setProbeMax(2, pmax+voxelSize);
+			pParams->setTwoDMin(2, pmin+voxelSize);
+			pParams->setTwoDMax(2, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastZCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(2, pmin-voxelSize);
-			pParams->setProbeMax(2, pmax-voxelSize);
+			pParams->setTwoDMin(2, pmin-voxelSize);
+			pParams->setTwoDMax(2, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2310,7 +1898,7 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	PanelCommand::captureEnd(cmd,pParams);
 }
 
-void ProbeEventRouter::guiNudgeYSize(int val) {
+void TwoDEventRouter::guiNudgeYSize(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -2320,29 +1908,29 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 		return;
 	}
 	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y size");
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
-	float pmin = pParams->getProbeMin(1);
-	float pmax = pParams->getProbeMax(1);
+	float pmin = pParams->getTwoDMin(1);
+	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(1, pmin-voxelSize);
-			pParams->setProbeMax(1, pmax+voxelSize);
+			pParams->setTwoDMin(1, pmin-voxelSize);
+			pParams->setTwoDMax(1, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastYSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(1, pmin+voxelSize);
-			pParams->setProbeMax(1, pmax-voxelSize);
+			pParams->setTwoDMin(1, pmin+voxelSize);
+			pParams->setTwoDMax(1, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2355,54 +1943,10 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
-void ProbeEventRouter::guiNudgeZSize(int val) {
-	if (notNudgingSliders) return;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
-	//ignore if change is not 1 
-	if(abs(val - lastZSizeSlider) != 1) {
-		lastZSizeSlider = val;
-		return;
-	}
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z size");
-	
-	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
-	float pmin = pParams->getProbeMin(2);
-	float pmax = pParams->getProbeMax(2);
-	float maxExtent = ds->getExtents()[5];
-	float minExtent = ds->getExtents()[2];
-	float newSize = pmax - pmin;
-	if (val > lastZSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
-		lastZSizeSlider++;
-		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(2, pmin-voxelSize);
-			pParams->setProbeMax(2, pmax+voxelSize);
-			newSize = newSize + 2.*voxelSize;
-		}
-	} else {
-		lastZSizeSlider--;
-		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(2, pmin+voxelSize);
-			pParams->setProbeMax(2, pmax-voxelSize);
-			newSize = newSize - 2.*voxelSize;
-		}
-	}
-	//Determine where the slider really should be:
-	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
-	if(lastZSizeSlider != newSliderPos){
-		lastZSizeSlider = newSliderPos;
-		zSizeSlider->setValue(newSliderPos);
-	}
-	updateTab();
-	PanelCommand::captureEnd(cmd,pParams);
-}
-void ProbeEventRouter::
-adjustBoxSize(ProbeParams* pParams){
-	//Determine the max x, y, z sizes of probe:
+
+void TwoDEventRouter::
+adjustBoxSize(TwoDParams* pParams){
+	//Determine the max x, y, z sizes of twoD:
 	
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
@@ -2437,7 +1981,7 @@ adjustBoxSize(ProbeParams* pParams){
 	}
 	
 	
-	//Now make sure the probe box fits
+	//Now make sure the twoD box fits
 	bool boxOK = true;
 	float boxmid[3];
 	for (int i = 0; i<3; i++){
@@ -2453,92 +1997,25 @@ adjustBoxSize(ProbeParams* pParams){
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
-	zSizeEdit->setText(QString::number(boxmax[2]-boxmin[2]));
+	
 	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(maxBoxSize[0])));
 	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(maxBoxSize[1])));
-	zSizeSlider->setValue((int)(256.f*(boxmax[2]-boxmin[2])/(maxBoxSize[2])));
 	
 	//Cancel any response to text events generated in this method:
 	//
 	guiSetTextChanged(false);
 }
-void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
+void TwoDEventRouter::resetTextureSize(TwoDParams* twoDParams){
 	//setup the texture:
 	float voxDims[2];
-	probeParams->getProbeVoxelExtents(voxDims);
-	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+	twoDParams->getTwoDVoxelExtents(voxDims);
+	twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }
 
-void ProbeEventRouter::
-guiSetXIBFVComboVarNum(int varnum){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field X variable");
-	pParams->setIBFVComboVarNum(0,varnum);
-	if (varnum == 0) pParams->setIBFVSessionVarNum(0,0);
-	else 
-		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
-	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiSetYIBFVComboVarNum(int varnum){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field Y variable");
-	pParams->setIBFVComboVarNum(1,varnum);
-	if (varnum == 0) pParams->setIBFVSessionVarNum(1,0);
-	else 
-		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
-	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiSetZIBFVComboVarNum(int varnum){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field Z variable");
-	pParams->setIBFVComboVarNum(2,varnum);
-	if (varnum == 0) pParams->setIBFVSessionVarNum(2,0);
-	else 
-		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
-	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiToggleColorMerge(bool val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle color merge");
-	pParams->setIBFVColorMerged(val);
-	PanelCommand::captureEnd(cmd,pParams);
-	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-	updateTab();
-}
-//control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
-void ProbeThread::run(){
-	ProbeEventRouter* router = VizWinMgr::getInstance()->getProbeRouter();
-	//int count = 0;
-	while(1){
-		
-		//Delete the previous probe texture data, then
-		//display the next texture frame from the probe renderer:
-		if (!router->isAnimating()) return;
-		
-		router->probeTextureFrame->update();
-		
-		//qWarning("called update %d on probe texture frame", count++);
-		//20 frames per second:
-		msleep(50);
-		router->probeTextureFrame->advanceAnimatingFrame();
-	}
-}
-QString ProbeEventRouter::getMappedVariableNames(int* numvars){
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+
+
+QString TwoDEventRouter::getMappedVariableNames(int* numvars){
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	QString names("");
 	*numvars = 0;
 	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){

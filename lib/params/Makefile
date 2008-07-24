@@ -9,7 +9,7 @@ LIBRARY = params
 FILES = \
 	datastatus dvrparams flowparams glutil \
 	histo mapperfunction params probeparams regionparams \
-	tfinterpolator transferfunction viewpoint \
+	tfinterpolator transferfunction viewpoint twoDparams \
 	animationparams	viewpointparams ParamsBase \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite

@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		probeeventrouter.h
+//	File:		twoDeventrouter.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -14,38 +14,39 @@
 //
 //	Date:		May 2006
 //
-//	Description:	Defines the ProbeEventRouter class.
-//		This class handles events for the region params
+//	Description:	Defines the twoDEventRouter class.
+//		This class handles events for the twoD params
 //
-#ifndef PROBEEVENTROUTER_H
-#define PROBEEVENTROUTER_H
+#ifndef TWODEVENTROUTER_H
+#define TWODEVENTROUTER_H
 
 #include <qthread.h>
 #include <qobject.h>
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
-#include "probetab.h"
+#include "twoDParams.h"
+#include "twoDtab.h"
 
 
 using namespace VetsUtil;
 
 namespace VAPoR {
 
-class ProbeParams;
+class TwoDParams;
 class XmlNode;
 class PanelCommand;
-class ProbeEventRouter : public ProbeTab, public EventRouter {
+class TwoDEventRouter : public TwoDtab, public EventRouter {
 	Q_OBJECT
 public: 
 	
-	ProbeEventRouter(QWidget* parent, const char* name);
-	virtual ~ProbeEventRouter();
+	TwoDEventRouter(QWidget* parent, const char* name);
+	virtual ~TwoDEventRouter();
 
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
-		setProbeDirty((ProbeParams*)p);
-		VizWinMgr::getInstance()->setVizDirty(p,ProbeTextureBit,true);
+		setTwoDDirty((TwoDParams*)p);
+		VizWinMgr::getInstance()->setVizDirty(p,TwoDTextureBit,true);
 	}
 	
 	//Connect signals and slots from tab
@@ -58,25 +59,25 @@ public:
 	virtual void refreshTab();
 	void sessionLoadTF(QString* name);
 	
-	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);
+	void sliderToText(TwoDParams* pParams, int coord, int slideCenter, int slideSize);
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();
-	void textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize);
-	void setZCenter(ProbeParams* pParams,int sliderval);
-	void setYCenter(ProbeParams* pParams,int sliderval);
-	void setXCenter(ProbeParams* pParams,int sliderval);
-	void setZSize(ProbeParams* pParams,int sliderval);
-	void setYSize(ProbeParams* pParams,int sliderval);
-	void setXSize(ProbeParams* pParams,int sliderval);
+	void textToSlider(TwoDParams* pParams, int coord, float newCenter, float newSize);
+	void setZCenter(TwoDParams* pParams,int sliderval);
+	void setYCenter(TwoDParams* pParams,int sliderval);
+	void setXCenter(TwoDParams* pParams,int sliderval);
+	
+	void setYSize(TwoDParams* pParams,int sliderval);
+	void setXSize(TwoDParams* pParams,int sliderval);
 	
 	
 	//Determine the value of the variable(s) at specified point.
-	//Return OUT_OF_BOUNDS if not in probe and in full domain
-	float calcCurrentValue(ProbeParams* p, const float point[3]);
+	//Return OUT_OF_BOUNDS if 2 relevant coords not in twoD region and in full domain
+	float calcCurrentValue(TwoDParams* p, const float point[3]);
 
-	//probe has a special version of histogramming
+	//TwoD has a special version of histogramming
 	virtual void refreshHistogram(RenderParams* p);
 
 
@@ -87,7 +88,6 @@ public:
 	//methods with undo/redo support:
 	//Following methods are set from gui, have undo/redo support:
 	//
-	
 	
 
 	virtual void guiSetEnabled(bool value, int instance);
@@ -102,18 +102,15 @@ public:
 	void guiSetZCenter(int sliderVal);
 	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
-	void guiSetXSize(int sliderval);
+	
 	void guiSetYSize(int sliderval);
-	void guiSetZSize(int sliderval);
+	void guiSetXSize(int sliderval);
 	void guiStartCursorMove();
 	void guiEndCursorMove();
-	void guiCopyRegionToProbe();
-	bool isAnimating(){return animationFlag;}
-	void setProbeDirty(ProbeParams* pParams){
-		bool b = animationFlag;
-		if (b) ibfvPause();
-		pParams->setProbeDirty();
-		if (b) ibfvPlay();
+	void guiCopyRegionToTwoD();
+	
+	void setTwoDDirty(TwoDParams* pParams){
+		pParams->setTwoDDirty();
 	}
 
 public slots:
@@ -130,72 +127,50 @@ protected slots:
 	void guiNudgeXCenter(int);
 	void guiNudgeYSize(int);
 	void guiNudgeYCenter(int);
-	void guiNudgeZSize(int);
 	void guiNudgeZCenter(int);
-	void guiSetProbeType(int);
-	void ibfvPlay();
-	void ibfvPause();
-	void guiToggleColorMerge(bool);
 	
-	//Handle thumbwheel events:
-	void rotateXWheel(int);
-	void rotateYWheel(int);
-	void rotateZWheel(int);
-	void guiReleaseXWheel(int);
-	void guiReleaseYWheel(int);
-	void guiReleaseZWheel(int);
-	void guiRotate90(int);
-
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void guiAxisAlign();
-	void guiTogglePlanar(bool);
 	
 	void guiCopyInstanceTo(int toViz);
-	//Slots for probe panel:
-	void probeCenterRegion();
-	void probeCenterView();
-	void probeCenterRake();
-	void guiCenterProbe();
-	void probeAddSeed();
-	void probeAttachSeed(bool attach);
+	//Slots for TwoD panel:
+	void twoDCenterRegion();
+	void twoDCenterView();
+	void twoDCenterRake();
+	void guiCenterTwoD();
+	void twoDAddSeed();
+	void twoDAttachSeed(bool attach);
 	
 	void guiChangeVariables();
-	void setProbeXCenter();
-	void setProbeYCenter();
-	void setProbeZCenter();
-	void setProbeXSize();
-	void setProbeYSize();
-	void setProbeZSize();
-	void setProbeEnabled(bool on, int instance);
-	void setProbeEditMode(bool);
-	void setProbeNavigateMode(bool);
+	void setTwoDXCenter();
+	void setTwoDYCenter();
+	void setTwoDZCenter();
+	
+	void setTwoDXSize();
+	void setTwoDYSize();
+	
+	void setTwoDEnabled(bool on, int instance);
+	void setTwoDEditMode(bool);
+	void setTwoDNavigateMode(bool);
 	void guiSetAligned();
-	void probeOpacityScale();
+	void twoDOpacityScale();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
-	void probeLoadTF();
-	void probeLoadInstalledTF();
-	void probeSaveTF();
-	void refreshProbeHisto();
+	void twoDLoadTF();
+	void twoDLoadInstalledTF();
+	void twoDSaveTF();
+	void refreshTwoDHisto();
 	void guiSetNumRefinements(int numtrans);
-	void setProbeTabTextChanged(const QString& qs);
-	void probeReturnPressed();
+	void setTwoDTabTextChanged(const QString& qs);
+	void twoDReturnPressed();
 	void captureImage();
-	void toggleFlowImageCapture();
-	void guiSetXIBFVComboVarNum(int varnum);
-	void guiSetYIBFVComboVarNum(int varnum);
-	void guiSetZIBFVComboVarNum(int varnum);
-	void guiReleaseAlphaSlider();
-	void guiReleaseScaleSlider();
-	
 	
 protected:
-	bool capturingIBFV;
-	//fix probe box to fit in domain:
-	void adjustBoxSize(ProbeParams*);
-	void resetTextureSize(ProbeParams*);
+	
+	//fix TwoD box to fit in domain:
+	void adjustBoxSize(TwoDParams*);
+	void resetTextureSize(TwoDParams*);
 	virtual void setDatarangeDirty(RenderParams*);
 	QString getMappedVariableNames(int* numvars);
 	bool seedAttached;
@@ -208,17 +183,12 @@ protected:
 	bool notNudgingSliders;
 	int numVariables;
 	int copyCount[MAXVIZWINS+1];
-	int lastXSizeSlider, lastYSizeSlider, lastZSizeSlider;
+	int lastXSizeSlider, lastYSizeSlider;
 	int lastXCenterSlider, lastYCenterSlider, lastZCenterSlider;
 	float maxBoxSize[3];
-	bool animationFlag;
-	QThread* myIBFVThread;
+	
+	
 };
-
-};
-class ProbeThread : public QThread{
-public:
-	void run();
 
 };
 

@@ -51,6 +51,7 @@ class ParamsIso;
 class AnimationParams;
 class FlowParams;
 class ProbeParams;
+class TwoDParams;
 class Renderer;
 class TranslateStretchManip;
 class TranslateRotateManip;
@@ -76,6 +77,7 @@ public:
 		navigateMode,
 		regionMode,
 		probeMode,
+		twoDMode,
 		rakeMode,
 		lightMode
 	};
@@ -273,7 +275,9 @@ public:
 	void setActiveProbeParams(ProbeParams* p) {
 		currentProbeParams = p; myProbeManip->setParams((Params*)currentProbeParams);
 	}
-	
+	void setActiveTwoDParams(TwoDParams* p) {
+		currentTwoDParams = p; myTwoDManip->setParams((Params*)currentTwoDParams);
+	}
 	ViewpointParams* getActiveViewpointParams() {return currentViewpointParams;}
 	RegionParams* getActiveRegionParams() {return currentRegionParams;}
 	AnimationParams* getActiveAnimationParams() {return currentAnimationParams;}
@@ -281,6 +285,7 @@ public:
 	ParamsIso* getActiveIsoParams() {return currentIsoParams;}
 	FlowParams* getActiveFlowParams() {return currentFlowParams;}
 	ProbeParams* getActiveProbeParams() {return currentProbeParams;}
+	TwoDParams* getActiveTwoDParams() {return currentTwoDParams;}
 
 	//The GLWindow keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
@@ -316,6 +321,7 @@ public:
 	void doFrameCapture();
 
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
+	TranslateRotateManip* getTwoDManip() {return myTwoDManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
 	TranslateStretchManip* getRegionManip() {return myRegionManip;}
 
@@ -426,6 +432,7 @@ protected:
 	void drawRegionFace(float* extents, int faceNum, bool isSelected);
 	void drawRegionFaceLines(float* extents, int selectedFace);
 	void drawProbeFace(float* corners, int faceNum, bool isSelected);
+	void drawTwoDFace(float* corners, int faceNum, bool isSelected);
 
 
 	float regionFrameColorFlt[3];
@@ -466,6 +473,7 @@ protected:
 
 	//Manip stuff:
 	TranslateRotateManip* myProbeManip;
+	TranslateRotateManip* myTwoDManip;
 	TranslateStretchManip* myFlowManip;
 	TranslateStretchManip* myRegionManip;
 
@@ -509,6 +517,7 @@ protected:
 	DvrParams* currentDvrParams;
 	ParamsIso* currentIsoParams;
 	ProbeParams* currentProbeParams;
+	TwoDParams* currentTwoDParams;
 
 	renderCBFcn preRenderCB;
 	renderCBFcn postRenderCB;

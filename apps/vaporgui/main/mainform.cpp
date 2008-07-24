@@ -62,6 +62,7 @@
 #include "vizwin.h"
 #include "floweventrouter.h"
 #include "probeeventrouter.h"
+#include "twoDeventrouter.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viewpointeventrouter.h"
@@ -77,6 +78,7 @@
 
 #include "animationparams.h"
 #include "probeparams.h"
+#include "twoDparams.h"
 
 #include "assert.h"
 #include "command.h"
@@ -91,6 +93,7 @@
 #include "images/cascade.xpm"
 #include "images/tiles.xpm"
 #include "images/probe.xpm"
+#include "images/twoD.xpm"
 #include "images/rake.xpm"
 #include "images/wheel.xpm"
 #include "images/cube.xpm"
@@ -123,6 +126,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	theAnimationTab = 0;
 	theFlowTab = 0;
 	theProbeTab = 0;
+	theTwoDTab = 0;
 	theApp = app;
 
 	modeStatusWidget = 0;
@@ -270,6 +274,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	probeAction->setToggleAction(true);
 	probeAction->setOn(false);
 
+	
+	QPixmap* twoDIcon = new QPixmap(twoD);
+	twoDAction = new QAction("Planar Mode", *twoDIcon,
+		"&twoD", CTRL+Key_P, mouseModeActions);
+	twoDAction->setToggleAction(true);
+	twoDAction->setOn(false);
+
+
 	QPixmap* rakeIcon = new QPixmap(rake);
 	rakeAction = new QAction("Rake Mode", *rakeIcon,
 		"&Rake", CTRL+Key_R, mouseModeActions);
@@ -324,6 +336,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	regionSelectAction->addTo(modeToolBar);
 	rakeAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
+	twoDAction->addTo(modeToolBar);
 
 
 	tileAction->addTo(vizToolBar);
@@ -470,6 +483,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
 	
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
+	connect (twoDAction, SIGNAL(toggled(bool)), this, SLOT(setTwoD(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
 	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
 	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
@@ -492,6 +506,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	animationParams();
 	viewpoint();
 	region();
+	launchTwoDTab();
 	launchProbeTab();
 	launchIsoTab();
 	launchFlowTab();
@@ -1265,6 +1280,28 @@ void MainForm::launchProbeTab()
 		tabWidget->moveToFront(Params::ProbeParamsType);
 	}
 }
+void MainForm::launchTwoDTab()
+{
+	//Do the probe panel here
+	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	if (!theTwoDTab){
+		theTwoDTab = new TwoDEventRouter(tabWidget, "TwoDTab");
+		myVizMgr->hookUpTwoDTab(theTwoDTab);
+		QToolTip::add(theTwoDTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		QToolTip::add(theTwoDTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+	}
+	
+	int posn = tabWidget->findWidget(Params::TwoDParamsType);
+         
+	//Create a new parameter class to work with the widget
+		 
+	if (posn < 0){
+		tabWidget->insertWidget(theTwoDTab, Params::TwoDParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::TwoDParamsType);
+	}
+}
 /*
  * Respond to toolbar clicks:
  * navigate mode.  Don't change tab menu
@@ -1317,7 +1354,7 @@ void MainForm::setLights(bool  on)
 }
 void MainForm::setProbe(bool on)
 {
-	//Probe mode right now does nothing
+	
 	if (!on && probeAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
@@ -1336,6 +1373,32 @@ void MainForm::setProbe(bool on)
 			delete modeStatusWidget;
 		}
 		modeStatusWidget = new QLabel("Probe Mode:  To modify probe in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		statusBar()->addWidget(modeStatusWidget,2);
+		
+	}
+	
+}
+void MainForm::setTwoD(bool on)
+{
+	//2d mode is like rake mode
+	if (!on && twoDAction->isOn()){navigationAction->toggle(); return;}
+	if (!on) return;
+	Session* currentSession = Session::getInstance();
+	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDMode);
+		
+		currentSession->blockRecording();
+		launchTwoDTab();
+		currentSession->unblockRecording();
+		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDMode));
+		GLWindow::setCurrentMouseMode(GLWindow::twoDMode);
+		VizWinMgr::getInstance()->updateActiveParams();
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("TwoD Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
 		statusBar()->addWidget(modeStatusWidget,2);
 		
 	}
@@ -1437,6 +1500,7 @@ void MainForm::initViewMenu(){
 void MainForm::resetModeButtons(){
 	navigationAction->setOn(true);
 	probeAction->setOn(false);
+	twoDAction->setOn(false);
 	regionSelectAction->setOn(false);
 	moveLightsAction->setOn(false);
 	rakeAction->setOn(false);

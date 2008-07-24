@@ -191,6 +191,9 @@
 				RelativePath="..\..\..\lib\render\trackball.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\twoDrenderer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\Vect3d.cpp">
 			</File>
 			<File
@@ -292,6 +295,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\trackball.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\twoDrenderer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\Vect3d.h">

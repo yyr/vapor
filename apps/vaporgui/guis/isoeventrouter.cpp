@@ -45,7 +45,6 @@
 #include "instancetable.h"
 #include "MappingFrame.h"
 #include "regionparams.h"
-#include "regiontab.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
 #include "session.h"

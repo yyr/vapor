@@ -52,6 +52,9 @@ void MouseModeCommand::unDo(){
 		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
+		case GLWindow::twoDMode:
+			MainForm::getInstance()->twoDAction->setOn(true);
+			break;
 		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
 			break;
@@ -75,6 +78,9 @@ void MouseModeCommand::reDo(){
 			break;
 		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
+			break;
+		case GLWindow::twoDMode:
+			MainForm::getInstance()->twoDAction->setOn(true);
 			break;
 		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
@@ -100,7 +106,8 @@ modeName(GLWindow::mouseModeType t){
 			return " probe-set ";
 		case GLWindow::rakeMode:
 			return " rake-set ";
-		
+		case GLWindow::twoDMode:
+			return " planar-set ";
 		case GLWindow::lightMode:
 			return " light-move ";
 		default:  
@@ -146,7 +153,9 @@ void TabChangeCommand::unDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		
+		case Params::TwoDParamsType:
+			MainForm::getInstance()->launchProbeTab();
+			break;
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
 			break;
@@ -181,7 +190,9 @@ void TabChangeCommand::reDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		
+		case Params::TwoDParamsType:
+			MainForm::getInstance()->launchProbeTab();
+			break;
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
 			break;
@@ -210,6 +221,8 @@ tabName(Params::ParamType t){
 			return " flow ";
 		case Params::ProbeParamsType:
 			return " probe ";
+		case Params::TwoDParamsType:
+			return " 2D ";
 		default:  
 			assert(0);
 			return 0;

@@ -57,6 +57,7 @@
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
 #include "probeeventrouter.h"
+#include "twodeventrouter.h"
 #include "animationeventrouter.h"
 #include "floweventrouter.h"
 #include "flowrenderer.h"
@@ -319,6 +320,39 @@ mousePressEvent(QMouseEvent* e){
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;
 			break;
+		//twoD mode is like regionmode
+		case GLWindow::twoDMode :
+			if (buttonNum > 0){
+				
+				int faceNum;
+				float boxExtents[6];
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				TwoDParams* tParams = myWinMgr->getTwoDParams(myWindowNum);
+				TranslateStretchManip* twoDManip = myGLWindow->getTwoDManip();
+				twoDManip->setParams(tParams);
+				tParams->calcStretchedBoxExtentsInCube(boxExtents);
+				int handleNum = twoDManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+				if (handleNum >= 0) {
+					//Set up for sliding:
+					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
+						doNavigate = true;
+						break;
+					}
+					float dirVec[3];
+					//Find the direction vector of the camera (World coords)
+					myGLWindow->pixelToVector(screenCoords, 
+						vParams->getCameraPos(), dirVec);
+					//Remember which handle we hit, highlight it, save the intersection point.
+					twoDManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
+					VizWinMgr::getInstance()->getTwoDRouter()->captureMouseDown();
+					setMouseDown(true);
+					break;
+				}
+			
+			}
+			//Otherwise, fall through to navigate mode:
+			doNavigate = true;
+			break;
 
 		case GLWindow::probeMode :
 			if ((buttonNum > 0))
@@ -431,6 +465,22 @@ mouseReleaseEvent(QMouseEvent*e){
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
+		case GLWindow::twoDMode :
+			myManip = myGLWindow->getTwoDManip();
+			//Check if the planar bounds were moved
+			if (myManip->draggingHandle() >= 0){
+				float screenCoords[2];
+				screenCoords[0] = (float)e->x();
+				screenCoords[1] = (float)(height() - e->y());
+				setMouseDown(false);
+				//The manip must move the rake, and then tell the params to
+				//record end of move??
+				myManip->mouseRelease(screenCoords);
+				VizWinMgr::getInstance()->getTwoDRouter()->captureMouseUp();
+				break;
+			} //otherwise fall through to navigate mode
+			doNavigate = true;
+			break;
 		case GLWindow::probeMode :
 			myManip = myGLWindow->getProbeManip();
 			if (myManip->draggingHandle() >= 0){
@@ -530,6 +580,26 @@ mouseMoveEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					myFlowManip->slideHandle(handleNum, dirVec);
+					myGLWindow->updateGL();
+					break;
+				}
+			}
+			//Fall through to navigate if not dragging face
+			doNavigate = true;
+			break;
+		case GLWindow::twoDMode :
+			{
+				TranslateStretchManip* myTwoDManip = myGLWindow->getTwoDManip();
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				int handleNum = myTwoDManip->draggingHandle();
+				//In twoD mode, check first to see if we are dragging face
+				if (handleNum >= 0){
+					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
+					float dirVec[3];
+					myGLWindow->pixelToVector(projMouseCoords, 
+						vParams->getCameraPos(), dirVec);
+					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
+					myTwoDManip->slideHandle(handleNum, dirVec);
 					myGLWindow->updateGL();
 					break;
 				}

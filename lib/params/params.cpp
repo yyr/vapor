@@ -39,6 +39,7 @@ using namespace VAPoR;
 const string Params::_dvrParamsTag = "DvrPanelParameters";
 const string Params::_isoParamsTag = "IsoPanelParameters";
 const string Params::_probeParamsTag = "ProbePanelParameters";
+const string Params::_twoDParamsTag = "TwoDPanelParameters";
 const string Params::_regionParamsTag = "RegionPanelParameters";
 const string Params::_animationParamsTag = "AnimationPanelParameters";
 const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
@@ -72,7 +73,8 @@ QString& Params::paramName(Params::ParamType type){
 			return *(new QString("Iso"));
 		case(ProbeParamsType):
 			return *(new QString("Probe"));
-		
+		case(TwoDParamsType):
+			return *(new QString("2D"));
 		case(AnimationParamsType):
 			return *(new QString("Animation"));
 		case (UnknownParamsType):

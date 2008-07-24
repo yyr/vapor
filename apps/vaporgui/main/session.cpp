@@ -586,6 +586,12 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ProbeParamsType);
 				tempParsedPanel = 0;
 				return true;
+			} else if (StrCmpNoCase(tag, Params::_twoDParamsTag) == 0){
+				// just ignore it
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::TwoDParamsType);
+				tempParsedPanel = 0;
+				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
 				assert(tempParsedPanel);
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::RegionParamsType);

@@ -181,6 +181,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\gltwoDwindow.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\GLWidget.cpp">
 			</File>
 			<File
@@ -242,6 +245,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\TFLocationTip.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\twoDeventrouter.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\twoDframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\misc\unsharedcontrollerthread.cpp">
@@ -446,6 +455,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\gltwoDwindow.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\GLWidget.h">
@@ -805,26 +817,72 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\TFLocationTip.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\twoDeventrouter.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing twoDeventrouter.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing twoDeventrouter.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\twoDframe.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing twoDframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDframe.h -o ..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing twoDframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDframe.h -o ..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\userpreferences.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing userpreferences.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\userpreferences.h -o tmp\moc\moc_userpreferences.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\userpreferences.h -o ..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_userpreferences.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing userpreferences.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\userpreferences.h -o tmp\moc\moc_userpreferences.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\userpreferences.h -o ..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_userpreferences.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1010,7 +1068,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_OpacityWidget.cpp">
 			</File>
 			<File
-				RelativePath=".\tmp\moc\moc_preferences.cpp">
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_preferences.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_probeeventrouter.cpp">
@@ -1043,7 +1101,16 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp">
 			</File>
 			<File
-				RelativePath=".\tmp\moc\moc_userpreferences.cpp">
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_userpreferences.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_viewpointeventrouter.cpp">
@@ -1123,6 +1190,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\setoffset.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\twoDtab.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\twoDtab.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\vizfeatures.cpp">
@@ -1271,20 +1344,20 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\dvr.h -o ..\..\..\apps\vapor
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing preferences.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;tmp\moc\moc_preferences.cpp&quot;
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot;;&quot;tmp\moc\moc_preferences.cpp&quot;"/>
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing preferences.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;tmp\moc\moc_preferences.cpp&quot;
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot;;&quot;tmp\moc\moc_preferences.cpp&quot;"/>
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1358,6 +1431,29 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.h -o ..\..\..\apps
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\twoDtab.ui">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing twoDtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing twoDtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\twoDtab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp&quot;"/>
 				</FileConfiguration>
 			</File>
 			<File

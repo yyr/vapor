@@ -28,6 +28,7 @@
 #include "ParamsIso.h"
 #include "regionparams.h"
 #include "probeparams.h"
+#include "twoDparams.h"
 #include "animationparams.h"
 #include "manip.h"
 #include "datastatus.h"
@@ -129,6 +130,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	vizDirtyBit.clear();
 	//setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
 	setDirtyBit(ProbeTextureBit, true);
+	setDirtyBit(TwoDTextureBit, true);
 	//setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
 	setDirtyBit(RegionBit, true);
 	
@@ -144,7 +146,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	//Create Manips:
 	
 	myProbeManip = new TranslateRotateManip(this, 0);
-	
+	myTwoDManip = new TranslateRotateManip(this, 0);
 	myFlowManip = new TranslateStretchManip(this, 0);
 	myRegionManip = new TranslateStretchManip(this, 0);
 
@@ -353,6 +355,14 @@ void GLWindow::paintGL()
 		regionManip->setParams(getActiveRegionParams());
 		regionManip->render();
 	} 
+	//render the twoD geometry, if in twoD mode, on active visualizer
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDMode) && 
+            windowIsActive() && !sphericalTransform){
+		
+		TranslateStretchManip* twoDManip = getTwoDManip();
+		twoDManip->setParams((Params*)getActiveTwoDParams());
+		twoDManip->render();
+	}
 	//render the rake geometry, if in rake mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 
             windowIsActive() && !sphericalTransform){
@@ -2117,6 +2127,9 @@ void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 	switch (t) {
 		case Params::ProbeParamsType :
 			setActiveProbeParams((ProbeParams*)p);
+			return;
+		case Params::TwoDParamsType :
+			setActiveTwoDParams((TwoDParams*)p);
 			return;
 		case Params::DvrParamsType :
 			setActiveDvrParams((DvrParams*)p);

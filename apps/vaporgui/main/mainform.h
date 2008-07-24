@@ -45,10 +45,6 @@ class QWorkspace;
 class QDockWindow;
 class QLabel;
 class QComboBox;
-class VizTab;
-class FlowTab;
-class ProbeTab;
-class AnimationTab;
 
 
 namespace VAPoR{
@@ -65,6 +61,7 @@ class DvrEventRouter;
 class IsoEventRouter;
 class ViewpointEventRouter;
 class ProbeEventRouter;
+class TwoDEventRouter;
 class FlowEventRouter;
 
 class MainForm : public QMainWindow
@@ -152,6 +149,7 @@ public:
 	QAction* navigationAction;
 	QAction* regionSelectAction;
 	QAction* probeAction;
+	QAction* twoDAction;
 	QAction* rakeAction;
 	
 	QAction* moveLightsAction;
@@ -171,6 +169,7 @@ public:
 	RegionEventRouter* getRegionTab() {return theRegionTab;}
 	DvrEventRouter* getDvrTab() {return theDvrTab;}
 	ProbeEventRouter* getProbeTab() {return theProbeTab;}
+	TwoDEventRouter* getTwoDTab() {return theTwoDTab;}
 	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
 	
 	
@@ -222,11 +221,13 @@ public slots:
 	virtual void launchFlowTab();
 	virtual void launchIsoTab();
 	virtual void launchProbeTab();
+	virtual void launchTwoDTab();
     virtual void batchSetup();
 
-	
+	//Set various manipulator modes:
 	virtual void setRegionSelect(bool);
 	virtual void setProbe(bool);
+	virtual void setTwoD(bool);
 	virtual void setRake(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
@@ -253,6 +254,7 @@ protected:
 	IsoEventRouter* theIsoTab;
 	FlowEventRouter* theFlowTab;
 	ProbeEventRouter* theProbeTab;
+	TwoDEventRouter* theTwoDTab;
 	AnimationEventRouter* theAnimationTab;
 	QApplication* theApp;
 	

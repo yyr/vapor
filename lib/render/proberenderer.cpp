@@ -35,8 +35,6 @@
 
 using namespace VAPoR;
 
-
-int glPixelAlign;
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 :Renderer(glw, pParams)
 {
