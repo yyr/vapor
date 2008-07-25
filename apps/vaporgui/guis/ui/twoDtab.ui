@@ -883,7 +883,7 @@ positioned.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the X center of probe in scene</string>
+                                                                <string>Specify the X center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -928,7 +928,7 @@ positioned.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the X center of probe in scene</string>
+                                                                <string>Specify the X center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -999,7 +999,7 @@ positioned.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y center of probe in scene</string>
+                                                                <string>Specify the Y center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -1044,7 +1044,7 @@ positioned.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y center of probe in scene</string>
+                                                                <string>Specify the Y center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -1115,7 +1115,7 @@ positioned.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Z center of probe in scene</string>
+                                                                <string>Specify the Z center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -1160,7 +1160,7 @@ positioned.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Z center of probe in scene</string>
+                                                                <string>Specify the Z center of plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the location of the 2D
@@ -1564,6 +1564,9 @@ below the contour view.</string>
                                                             <width>380</width>
                                                             <height>261</height>
                                                         </size>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>The contour view shows a planar image of the subset of the 2D data  determined by the size limits.  The colors in the plane are determined by mapping the variables in the 2D data using the color mapping of the current transfer function. The same plane is displayed in the scene, however the in-scene image is influenced by the opacity as well as the color of the transfer function.  Left-mouse clicks in this window are used to select a point in the plane, that is displayed with a cursor.  In 2D planer mode, the cursor is also shown in 3D in the visualizer.  The coordinates and variable value at the selected point are shown below  the contour view.</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>
@@ -2064,7 +2067,7 @@ change the selection in the 2D plane</string>
                                                 <string>Click to write current  image to jpeg file</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Capture image to file" button is clicked, the current cross-section view is captured to a jpeg image file, of size sufficient to display the data at the selected refinement level.</string>
+                                                <string>When the "Capture image to file" button is clicked, the current contour view is captured to a jpeg image file, of size sufficient to display the data at the selected refinement level.</string>
                                             </property>
                                         </widget>
                                         <spacer>

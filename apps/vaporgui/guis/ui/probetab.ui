@@ -2586,7 +2586,7 @@ In data probe mode, the cursor is
 also shown in 3D in the visualizer.
 The coordinates and variable value
 at the selected point are shown
-to the right of the cross-section view.</string>
+below  the cross-section view.</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>
@@ -4115,24 +4115,6 @@ depending on which button is clicked.</string>
         <pixmap>image2</pixmap>
     </customwidget>
     <customwidget>
-        <class>VAPoR::MappingFrame</class>
-        <header location="local">../../guis/MappingFrame.h</header>
-        <sizehint>
-            <width>350</width>
-            <height>150</height>
-        </sizehint>
-        <container>0</container>
-        <sizepolicy>
-            <hordata>5</hordata>
-            <verdata>5</verdata>
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-        </sizepolicy>
-        <pixmap>image2</pixmap>
-        <property type="Bool">opacityMapping</property>
-        <property type="Bool">colorMapping</property>
-    </customwidget>
-    <customwidget>
         <class>InstanceTable</class>
         <header location="local">../../guis/instancetable.h</header>
         <sizehint>
@@ -4167,6 +4149,24 @@ depending on which button is clicked.</string>
             <verstretch>0</verstretch>
         </sizepolicy>
         <pixmap>image3</pixmap>
+    </customwidget>
+    <customwidget>
+        <class>VAPoR::MappingFrame</class>
+        <header location="local">../../guis/MappingFrame.h</header>
+        <sizehint>
+            <width>350</width>
+            <height>150</height>
+        </sizehint>
+        <container>0</container>
+        <sizepolicy>
+            <hordata>5</hordata>
+            <verdata>5</verdata>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+        <pixmap>image2</pixmap>
+        <property type="Bool">opacityMapping</property>
+        <property type="Bool">colorMapping</property>
     </customwidget>
 </customwidgets>
 <images>

@@ -470,10 +470,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				else setEditMode(false);
 			}
 			
-			
-			
-			
-			
 			else return false;
 		}
 		//Create space for the variables:
@@ -712,7 +708,7 @@ buildNode() {
 		twoDNode->AddChild(varNode);
 	}
 	//Now do geometry node:
-	
+	attrs.clear();
 	oss.str(empty);
 	oss << (double)twoDMin[0]<<" "<<(double)twoDMin[1]<<" "<<(double)twoDMin[2];
 	attrs[_twoDMinAttr] = oss.str();
