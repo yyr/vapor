@@ -150,7 +150,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int i = 0; i<numVars; i++){
 		bool match = false;
 		for (int j = 0; j< getNumSessionVariables(); j++){
-			if (getVariableName(j) == currentMetadata->GetVariableNames()[i]){
+			if (getVariableName(j) == currentMetadata->GetVariables3D()[i]){
 				mapMetadataVars[i] = j;
 				match = true;
 				break;
@@ -159,15 +159,18 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		if (match) continue;
 		//Note that we are modifying the very array that we are looping over.
 		//
-		addVarName(currentMetadata->GetVariableNames()[i]);
+		string str = currentMetadata->GetVariables3D()[i];
+		addVarName(currentMetadata->GetVariables3D()[i]);
 		mapMetadataVars[i] = variableNames.size()-1;
 	}
 	//Make sure all the metadata vars are in session vars
 	for (int i = 0; i<numMetaVars2D; i++){
 		bool match = false;
+		
 		for (int j = 0; j< getNumSessionVariables2D(); j++){
 			
 			if (i < numMetaVars2DXY){
+				
 				if (getVariableName2D(j) == currentMetadata->GetVariables2DXY()[i]){
 					mapMetadataVars2D[i] = j;
 					match = true;
@@ -433,7 +436,7 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
-				getMetadata()->GetVariableNames()[varnum].c_str(), ts);
+				getVariableName(varnum).c_str(), ts);
 		}
 		else{
 			dataMax[varnum][ts] = mnmx[1];
@@ -462,7 +465,7 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in 2D variable %s, at timestep %d \n Interval [0,1] assumed",
-				getMetadata()->GetVariableNames()[varnum].c_str(), ts);
+				getVariableName2D(varnum).c_str(), ts);
 		}
 		else{
 			dataMax2D[varnum][ts] = mnmx[1];
@@ -562,9 +565,27 @@ int DataStatus::
 getMetadataVarNum(std::string varname){
 	if (currentMetadata == 0) return -1;
 
-	const vector<string>& names = currentMetadata->GetVariableNames();
+	const vector<string>& names = currentMetadata->GetVariables3D();
 	for (int i = 0; i<names.size(); i++){
 		if (names[i] == varname) return i;
+	}
+	return -1;
+}
+int DataStatus::
+getMetadataVarNum2D(std::string varname){
+	if (currentMetadata == 0) return -1;
+
+	const vector<string>& namesxy = currentMetadata->GetVariables2DXY();
+	for (int i = 0; i<namesxy.size(); i++){
+		if (namesxy[i] == varname) return i;
+	}
+	const vector<string>& namesyz = currentMetadata->GetVariables2DYZ();
+	for (int i = 0; i<namesyz.size(); i++){
+		if (namesyz[i] == varname) return (i+namesxy.size());
+	}
+	const vector<string>& namesxz = currentMetadata->GetVariables2DXZ();
+	for (int i = 0; i<namesxz.size(); i++){
+		if (namesxz[i] == varname) return (i+namesxy.size()+namesyz.size());
 	}
 	return -1;
 }

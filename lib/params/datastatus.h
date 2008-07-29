@@ -245,7 +245,7 @@ public:
 	int getMetadataVarNum2D(std::string varname);
 	//getNumSessionVariables returns the number of session variables
 	static int getNumSessionVariables(){return (int)variableNames.size();}
-	static int getNumSessionVariables2D(){return (int)variableNames.size();}
+	static int getNumSessionVariables2D(){return (int)variableNames2D.size();}
 	static void clearVariableNames() {
 		variableNames.clear();
 		aboveValues.clear();
