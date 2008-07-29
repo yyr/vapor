@@ -53,6 +53,10 @@ std::vector<float> DataStatus::aboveValues;
 std::vector<float> DataStatus::belowValues;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
+std::vector<std::string> DataStatus::variableNames2D;
+
+int DataStatus::numMetadataVariables2D = 0;
+int* DataStatus::mapMetadataVars2D = 0;
 bool DataStatus::doWarnIfDataMissing = true;
 bool DataStatus::doUseLowerRefinementLevel = false;
 QColor DataStatus::backgroundColor =  Qt::black;
@@ -130,10 +134,18 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	removeMetadataVars();
 	
 	
-	int numVars = currentMetadata->GetVariableNames().size();
+	int numVars = currentMetadata->GetVariables3D().size();
 	if (numVars == 0) return false;
 	numMetadataVariables = numVars;
 	mapMetadataVars = new int[numMetadataVariables];
+
+	int numMetaVars2DXY = currentMetadata->GetVariables2DXY().size();
+	int numMetaVars2DYZ = currentMetadata->GetVariables2DYZ().size();
+	int numMetaVars2DXZ = currentMetadata->GetVariables2DXZ().size();
+
+	int numMetaVars2D = numMetaVars2DXY+numMetaVars2DYZ+numMetaVars2DXZ;
+	numMetadataVariables2D = numMetaVars2D;
+	mapMetadataVars2D = new int[numMetadataVariables2D];
 	
 	for (int i = 0; i<numVars; i++){
 		bool match = false;
@@ -150,15 +162,56 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		addVarName(currentMetadata->GetVariableNames()[i]);
 		mapMetadataVars[i] = variableNames.size()-1;
 	}
+	//Make sure all the metadata vars are in session vars
+	for (int i = 0; i<numMetaVars2D; i++){
+		bool match = false;
+		for (int j = 0; j< getNumSessionVariables2D(); j++){
+			
+			if (i < numMetaVars2DXY){
+				if (getVariableName2D(j) == currentMetadata->GetVariables2DXY()[i]){
+					mapMetadataVars2D[i] = j;
+					match = true;
+					break;
+				}
+			} else if ( i < numMetaVars2DXY+numMetaVars2DYZ){
+				if (getVariableName2D(j) == currentMetadata->GetVariables2DYZ()[i-numMetaVars2DXY]){
+					mapMetadataVars2D[i] = j;
+					match = true;
+					break;
+				}
+			} else if ( i < numMetaVars2DXY+numMetaVars2DYZ+numMetaVars2DXZ){
+				if (getVariableName2D(j) == currentMetadata->GetVariables2DXZ()[i-numMetaVars2DXY-numMetaVars2DXZ]){
+					mapMetadataVars2D[i] = j;
+					match = true;
+					break;
+				}
+			}
+				
+		}
+		if (match) continue;
+		//Note that we are modifying the very array that we are looping over.
+		//
+		if (i < numMetaVars2DXY)
+			addVarName2D(currentMetadata->GetVariables2DXY()[i]);
+		else if (i < numMetaVars2DYZ)
+			addVarName2D(currentMetadata->GetVariables2DYZ()[i-numMetaVars2DXY]);
+		else addVarName2D(currentMetadata->GetVariables2DXZ()[i-numMetaVars2DXY-numMetaVars2DXZ]);
+		mapMetadataVars2D[i] = variableNames2D.size()-1;
+	}
 
-	int numVariables = getNumSessionVariables();
+	int numSesVariables = getNumSessionVariables();
+	int numSesVariables2D = getNumSessionVariables2D();
 	
-	variableExists.resize(numVariables);
+	variableExists.resize(numSesVariables);
+	variableExists2D.resize(numSesVariables2D);
 	
-	maxNumTransforms.resize(numVariables);
-	dataMin.resize(numVariables);
-	dataMax.resize(numVariables);
-	for (int i = 0; i<numVariables; i++){
+	maxNumTransforms.resize(numSesVariables);
+	maxNumTransforms2D.resize(numSesVariables2D);
+	dataMin.resize(numSesVariables);
+	dataMax.resize(numSesVariables);
+	dataMin2D.resize(numSesVariables2D);
+	dataMax2D.resize(numSesVariables2D);
+	for (int i = 0; i<numSesVariables; i++){
 		variableExists[i] = false;
 		maxNumTransforms[i] = new int[numTimesteps];
 		dataMin[i] = new float[numTimesteps];
@@ -172,6 +225,20 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			dataMax[i][k] = -1.e30f;
 		}
 	}
+	for (int i = 0; i<numSesVariables2D; i++){
+		variableExists2D[i] = false;
+		maxNumTransforms2D[i] = new int[numTimesteps];
+		dataMin2D[i] = new float[numTimesteps];
+		dataMax2D[i] = new float[numTimesteps];
+		//Initialize these to flagged values.  They will be recalculated
+		//as needed.  Do this lazily because it's expensive and unnecessary to go through
+		//all the timesteps to obtain the data bounds
+		for (int k = 0; k<numTimesteps; k++){
+			maxNumTransforms2D[i][k] = -1;
+			dataMin2D[i][k] = 1.e30f;
+			dataMax2D[i][k] = -1.e30f;
+		}
+	}
 
 
 	numTransforms = currentMetadata->GetNumTransforms();
@@ -180,7 +247,6 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int k = 0; k<= numTransforms; k++){
 		dataAtLevel.push_back(new size_t[3]);
 	}
-	
 	
 	myReader->GetDim(fullDataSize, -1);
 		
@@ -205,13 +271,13 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		myReader->GetDim(dataAtLevel[lev],lev);
 	}
 	bool someDataOverall = false;
-	for (int var = 0; var< numVariables; var++){
+	for (int var = 0; var< numSesVariables; var++){
 		bool dataExists = false;
 		//string s = getVariableName(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		for (int i = 0; i< (int)currentMetadata->GetVariableNames().size(); i++){
-			if (currentMetadata->GetVariableNames()[i] == getVariableName(var)){
+		for (int i = 0; i< (int)currentMetadata->GetVariables3D().size(); i++){
+			if (currentMetadata->GetVariables3D()[i] == getVariableName(var)){
 				inMetadata = true;
 				break;
 			}
@@ -245,6 +311,64 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		}
 		variableExists[var] = dataExists; 
 	}
+
+	for (int var = 0; var< numSesVariables2D; var++){
+		bool dataExists = false;
+		//string s = getVariableName(var);
+		//Check first if this variable is in the metadata:
+		bool inMetadata = false;
+		for (int i = 0; i< (int)currentMetadata->GetVariables2DXY().size(); i++){
+			if (currentMetadata->GetVariables2DXY()[i] == getVariableName2D(var)){
+				inMetadata = true;
+				break;
+			}
+		}
+		if (!inMetadata) {
+			for (int i = 0; i< (int)currentMetadata->GetVariables2DYZ().size(); i++){
+				if (currentMetadata->GetVariables2DYZ()[i] == getVariableName2D(var)){
+					inMetadata = true;
+					break;
+				}
+			}
+		}
+		if (!inMetadata) {
+			for (int i = 0; i< (int)currentMetadata->GetVariables2DXZ().size(); i++){
+				if (currentMetadata->GetVariables2DXZ()[i] == getVariableName2D(var)){
+					inMetadata = true;
+					break;
+				}
+			}
+		}
+		if (! inMetadata) {
+			//variableExists[var] = false;
+			continue;
+		}
+		//OK, it's in the metadata, check the timesteps...
+		for (int ts = 0; ts< numTimesteps; ts++){
+			//Find the maximum number of transforms available on disk
+			//i.e., the highest transform level  (highest resolution) that exists
+			int maxXLevel = -1;
+			for (int xf = numTransforms; xf>= 0; xf--){
+				if (myReader->VariableExists(ts, 
+					getVariableName2D(var).c_str(),
+					xf)) {
+						maxXLevel = xf;
+						break;
+					}
+			}
+			
+			maxNumTransforms2D[var][ts] = maxXLevel;
+			if (maxXLevel >= 0){
+				dataExists = true;
+				someDataOverall = true;
+				if (ts > (int)maxts) maxts = ts;
+				if (ts < (int)mints) mints = ts;
+				
+			}
+		}
+		variableExists2D[var] = dataExists; 
+	}
+
 	QApplication::restoreOverrideCursor();
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
@@ -252,6 +376,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		LayeredIO* layeredReader = (LayeredIO*)myReader;
 		layeredReader->SetLowHighVals(variableNames, belowValues, aboveValues);
 	}
+	//For now there are no low high values for 2D variables...
 	return someDataOverall;
 }
 
@@ -288,7 +413,7 @@ getFirstTimestep(int sesvarnum){
 }
 	
 // calculate the datarange for a specific session variable and timestep:
-// Performed on demand.
+// Performed on demand.  Error if not in metadata.
 // 
 void DataStatus::calcDataRange(int varnum, int ts){
 	vector<double>minMax;
@@ -316,11 +441,47 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		}
 	}
 }
+// calculate the datarange for a specific 2D session variable and timestep:
+// Performed on demand.
+// 
+void DataStatus::calcDataRange2D(int varnum, int ts){
+	vector<double>minMax;
+	
+	if (maxNumTransforms2D[varnum][ts] >= 0){
+		
+		//Trap errors:
+		//
+		ErrMsgCB_T errorCallback = GetErrMsgCB();
+		SetErrMsgCB(0);
+		float mnmx[2];
+		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
+			getVariableName2D(varnum).c_str(), mnmx);
+		//Turn it back on:
+		SetErrMsgCB(errorCallback);
+					
+		if(rc<0){
+			//Post an error:
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in 2D variable %s, at timestep %d \n Interval [0,1] assumed",
+				getMetadata()->GetVariableNames()[varnum].c_str(), ts);
+		}
+		else{
+			dataMax2D[varnum][ts] = mnmx[1];
+			dataMin2D[varnum][ts] = mnmx[0];
+		}
+	}
+}
 
 //Find which index is associated with a name, or -1 if not metadata:
 int DataStatus::getSessionVariableNum(const string& str){
 	for (int i = 0; i<variableNames.size(); i++){
 		if(variableNames[i] == str) return i;
+	}
+	return -1;
+}
+//Find which index is associated with a name, or -1 if not metadata:
+int DataStatus::getSessionVariableNum2D(const string& str){
+	for (int i = 0; i<variableNames2D.size(); i++){
+		if(variableNames2D[i] == str) return i;
 	}
 	return -1;
 }
@@ -334,9 +495,23 @@ int DataStatus::mergeVariableName(const string& str){
 	addVarName(str);
 	return (variableNames.size()-1);
 }
+int DataStatus::mergeVariableName2D(const string& str){
+	for (int i = 0; i<variableNames2D.size(); i++){
+		if(variableNames2D[i] == str) return i;
+	}
+	//Not found, put it in:
+	addVarName2D(str);
+	return (variableNames2D.size()-1);
+}
 int DataStatus::mapSessionToMetadataVarNum(int sesVarNum){
 	for (int i = 0; i< numMetadataVariables; i++){
 		if (mapMetadataVars[i] == sesVarNum) return i;
+	}
+	return -1;
+}
+int DataStatus::mapSessionToMetadataVarNum2D(int sesVarNum){
+	for (int i = 0; i< numMetadataVariables2D; i++){
+		if (mapMetadataVars2D[i] == sesVarNum) return i;
 	}
 	return -1;
 }
