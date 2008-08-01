@@ -276,15 +276,15 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	
 	QPixmap* twoDIcon = new QPixmap(twoD);
-	twoDAction = new QAction("Planar Mode", *twoDIcon,
-		"&twoD", CTRL+Key_P, mouseModeActions);
+	twoDAction = new QAction("2D Planar Mode", *twoDIcon,
+		"&twoD", CTRL+Key_2, mouseModeActions);
 	twoDAction->setToggleAction(true);
 	twoDAction->setOn(false);
 
 
 	QPixmap* rakeIcon = new QPixmap(rake);
 	rakeAction = new QAction("Rake Mode", *rakeIcon,
-		"&Rake", CTRL+Key_R, mouseModeActions);
+		"&Rake", CTRL+Key_K, mouseModeActions);
 	rakeAction->setToggleAction(true);
 	rakeAction->setOn(false);
 

@@ -692,7 +692,7 @@ selected.</string>
                                         </spacer>
                                         <widget class="QCheckBox">
                                             <property name="name">
-                                                <cstring>checkBox4</cstring>
+                                                <cstring>applyTerrainCheckbox</cstring>
                                             </property>
                                             <property name="text">
                                                 <string>Apply To Terrain</string>

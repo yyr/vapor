@@ -148,7 +148,7 @@ public:
 		else return false;
 	}
 	bool variableIsPresent2D(int varnum) {
-		if (varnum < variableExists.size()) return variableExists[varnum];
+		if (varnum < variableExists2D.size()) return variableExists2D[varnum];
 		else return false;
 	}
 	//Verify that field data is present at required resolution and timestep.
@@ -180,6 +180,7 @@ public:
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
+	int get2DOrientation(int mdVarNum); //returns 0,1,2 for XY,YZ, or XZ
 
 	//Get/set methods for global vizfeatures
 	static const QColor getBackgroundColor() {return backgroundColor;}
@@ -225,6 +226,9 @@ public:
 	//"session" variables are those in session
 	static int getNumMetadataVariables() {return numMetadataVariables;}
 	static int getNumMetadataVariables2D() {return numMetadataVariables2D;}
+	static int getNum2DOrientedMetadataVariables(int orientation) 
+	{return numOriented2DVars[orientation];}
+
 	static int mapMetadataToSessionVarNum(int varnum) 
 		{ if(!mapMetadataVars) return 0; 
 		return mapMetadataVars[varnum];}
@@ -339,6 +343,8 @@ private:
 	int numTransforms;
 	//numTimeSteps may include lots of times that are not used. 
 	int numTimesteps;
+
+	static int numOriented2DVars[3];
 
 	
 	

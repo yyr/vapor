@@ -120,7 +120,9 @@ TwoDEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	
+	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
@@ -133,7 +135,7 @@ TwoDEventRouter::hookUpTab()
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(twoDCenterRake()));
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(twoDAddSeed()));
-	
+	connect (applyTerrainCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiApplyTerrain(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
@@ -194,8 +196,10 @@ void TwoDEventRouter::updateTab(){
 	notNudgingSliders = true;  //don't generate nudge events
 
     setEnabled(!Session::getInstance()->sphericalTransform());
-
-	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->getDataMgr()
+		&& ds->getNumMetadataVariables2D()>0) 
+			instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 	
@@ -224,6 +228,21 @@ void TwoDEventRouter::updateTab(){
 			}
 		}
 	}
+
+	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
+	if (orientation == 0)
+		orientationLabel->setText("X-Y");
+	else if (orientation == 1)
+		orientationLabel->setText("Y-Z");
+	else {
+		assert(orientation == 2);
+		orientationLabel->setText("X-Z");
+	}
+	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
+	bool terrainMap = twoDParams->isMappedToTerrain();
+	if (terrainMap) displacementEdit->setEnabled(true);
+	else displacementEdit->setEnabled(false);
+	applyTerrainCheckbox->setChecked(terrainMap);
 	//setup the texture:
 	
 	resetTextureSize(twoDParams);
@@ -290,9 +309,9 @@ void TwoDEventRouter::updateTab(){
 	//Set the selection in the variable listbox.
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
-	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
-		if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
-			variableListBox->setSelected(i, twoDParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
+	for (int i = 0; i< ds->getNumMetadataVariables2D(); i++){
+		if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
+			variableListBox->setSelected(i, twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
 	}
 	ignoreListboxChanges = false;
 
@@ -342,6 +361,8 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
+	if(twoDParams->isMappedToTerrain())
+		twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
@@ -405,6 +426,15 @@ void TwoDEventRouter::guiNewInstance(){
 }
 void TwoDEventRouter::guiDeleteInstance(){
 	performGuiDeleteInstance();
+}
+void TwoDEventRouter::guiApplyTerrain(bool mode){
+	confirmText(false);
+	TwoDParams* dParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
+	dParams->setMappedToTerrain(mode);
+	displacementEdit->setEnabled(mode);
+	
+	PanelCommand::captureEnd(cmd, dParams); 
 }
 
 void TwoDEventRouter::guiCopyInstanceTo(int toViz){
@@ -636,12 +666,12 @@ reinitTab(bool doOverride){
 	
     setEnabled(!ses->sphericalTransform());
 
-	numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
 	variableListBox->clear();
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
+	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
+		const std::string& s = DataStatus::getInstance()->getMetadataVarName2D(i);
 		const QString& text = QString(s.c_str());
 		variableListBox->insertItem(text, i);
 	}
@@ -763,7 +793,7 @@ setEditorDirty(RenderParams* p){
 
     Session *session = Session::getInstance();
 
-    if (session->getNumSessionVariables())
+	if (DataStatus::getInstance()->getNumSessionVariables2D())
     {
 	  int tmp;
       transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).ascii());
@@ -904,13 +934,21 @@ guiChangeVariables(){
 	int firstVar = -1;
 	int numSelected = 0;
 	//Session* ses = Session::getInstance();
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
+	int orientation = 0;
+	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
 		//Index by session variable num:
-		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum(i);
+		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum2D(i);
 		if (variableListBox->isSelected(i)){
 			pParams->setVariableSelected(varnum,true);
 			
-			if(firstVar == -1) firstVar = varnum;
+			if(firstVar == -1) {
+				firstVar = varnum;
+				orientation = DataStatus::getInstance()->get2DOrientation(i);
+			} else if (orientation != DataStatus::getInstance()->get2DOrientation(i)){
+				//De-select any variables that don't match the first variable's orientation
+				variableListBox->setSelected(i,false);
+				numSelected--;
+			}
 			numSelected++;
 		}
 		else 
@@ -920,9 +958,19 @@ guiChangeVariables(){
 	if (firstVar == -1) {
 		firstVar = 0;
 		numSelected = 1;
+		orientation = DataStatus::getInstance()->get2DOrientation(0);
 	}
 	pParams->setNumVariablesSelected(numSelected);
 	pParams->setFirstVarNum(firstVar);
+	if (orientation == 0)
+		orientationLabel->setText("X-Y");
+	else if (orientation == 1)
+		orientationLabel->setText("Y-Z");
+	else {
+		assert(orientation == 2);
+		orientationLabel->setText("X-Z");
+	}
+
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
 	updateMapBounds(pParams);
@@ -1321,7 +1369,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	//List the variables we are interested in
 	int* sessionVarNums = new int[numVariables];
 	int totVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		sessionVarNums[totVars++] = varnum;
 	}
@@ -1356,7 +1404,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	totVars = 0;
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep);
 		if (!volData[totVars]) {
@@ -1410,9 +1458,9 @@ refreshHistogram(RenderParams* p){
 	int refLevel = pParams->getNumRefinements();
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	if (ds->useLowerRefinementLevel()){
-		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
+		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
 			if (pParams->variableIsSelected(varnum)) {
-				refLevel = Min(ds->maxXFormPresent(varnum, timeStep), refLevel);
+				refLevel = Min(ds->maxXFormPresent2D(varnum, timeStep), refLevel);
 			}
 		}
 		if (refLevel < 0) return;
@@ -1431,7 +1479,7 @@ refreshHistogram(RenderParams* p){
 	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
 	//Check how many variables are needed:
 	int varCount = 0;
-	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
 		if (pParams->variableIsSelected(varnum)) varCount++;
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
@@ -1450,7 +1498,7 @@ refreshHistogram(RenderParams* p){
 	//Now obtain all of the volumes needed for this twoD:
 	int totVars = 0;
 	
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables2D(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -2018,11 +2066,11 @@ QString TwoDEventRouter::getMappedVariableNames(int* numvars){
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	QString names("");
 	*numvars = 0;
-	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){
+	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables2D(); i++){
 		//Index by session variable num:
 		if (pParams->variableIsSelected(i)){
 			if (*numvars > 0) names = names + ",";
-			names = names + DataStatus::getInstance()->getVariableName(i).c_str();
+			names = names + DataStatus::getInstance()->getVariableName2D(i).c_str();
 			(*numvars)++;
 		}
 	}

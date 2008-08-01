@@ -123,6 +123,7 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiApplyTerrain(bool);
 	void guiNudgeXSize(int);
 	void guiNudgeXCenter(int);
 	void guiNudgeYSize(int);

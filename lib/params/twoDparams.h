@@ -212,6 +212,10 @@ public:
 	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
 	//Obtain the smallest region that contains the twoD, and fits within the full data volume:
 	void getContainingRegion(float regMin[3], float regMax[3]);
+	float getVerticalDisplacement(){return verticalDisplacement;}
+	void setVerticalDisplacement(float val) {verticalDisplacement = val;}
+	bool isMappedToTerrain() {return mapToTerrain;}
+	void setMappedToTerrain(bool val) {mapToTerrain = val;}
 	
 protected:
 	
@@ -224,6 +228,8 @@ protected:
 	static const string _cursorCoordsAttr;
 	
 	static const string _numTransformsAttr;
+	static const string _terrainMapAttr;
+	static const string _verticalDisplacementAttr;
 
 	void mapCursor();
 	void refreshCtab();
@@ -269,6 +275,8 @@ protected:
 	float theta, phi, psi;
 	float selectPoint[3];
 	float cursorCoords[2];
+	float verticalDisplacement;
+	bool mapToTerrain;
 	
 	int textureSize[2];
 	

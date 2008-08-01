@@ -57,6 +57,8 @@ const string TwoDParams::_geometryTag = "TwoDGeometry";
 const string TwoDParams::_twoDMinAttr = "TwoDMin";
 const string TwoDParams::_twoDMaxAttr = "TwoDMax";
 const string TwoDParams::_cursorCoordsAttr = "CursorCoords";
+const string TwoDParams::_terrainMapAttr = "MapToTerrain";
+const string TwoDParams::_verticalDisplacementAttr = "VerticalDisplacement";
 
 const string TwoDParams::_numTransformsAttr = "NumTransforms";
 
@@ -207,14 +209,14 @@ reinit(bool doOverride){
 	}
 	//Get the variable names:
 
-	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
+	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables2D();
 	
 	//See if current firstVarNum is valid
-	//if not, reset to first variable that is present:
-	if (!DataStatus::getInstance()->variableIsPresent(firstVarNum)){
+	//if not, reset to first 2D variable that is present:
+	if (!DataStatus::getInstance()->variableIsPresent2D(firstVarNum)){
 		firstVarNum = -1;
 		for (i = 0; i<newNumVariables; i++) {
-			if (DataStatus::getInstance()->variableIsPresent(i)){
+			if (DataStatus::getInstance()->variableIsPresent2D(i)){
 				firstVarNum = i;
 				break;
 			}
@@ -226,6 +228,7 @@ reinit(bool doOverride){
 			delete transFunc[i];
 		}
 		delete transFunc;
+		transFunc = 0;
 		numVariables = 0;
 		return false;
 	}
@@ -242,17 +245,11 @@ reinit(bool doOverride){
 		//anything that isn't there:
 		for (int i = 0; i<newNumVariables; i++){
 			if (variableSelected[i] && 
-				!DataStatus::getInstance()->variableIsPresent(i))
+				!DataStatus::getInstance()->variableIsPresent2D(i))
 				variableSelected[i] = false;
 		}
 	}
 	variableSelected[firstVarNum] = true;
-
-	// set up the ibfv variables
-	int numComboVariables = DataStatus::getInstance()->getNumMetadataVariables()+1;
-	 
-	
-		
 	
 	//Create new arrays to hold bounds and transfer functions:
 	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
@@ -271,10 +268,10 @@ reinit(bool doOverride){
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin2D(i));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax2D(i));
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -291,10 +288,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin2D(i));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax2D(i));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -306,8 +303,8 @@ reinit(bool doOverride){
 	//Make sure edit bounds are valid
 	for(i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
@@ -319,6 +316,7 @@ reinit(bool doOverride){
 	delete minColorEditBounds;
 	delete maxColorEditBounds;
 	delete transFunc;
+	transFunc = 0;
 	minColorEditBounds = newMinEdit;
 	maxColorEditBounds = newMaxEdit;
 	//And clone the color edit bounds to use as opac edit bounds:
@@ -347,7 +345,9 @@ reinit(bool doOverride){
 void TwoDParams::
 restart(){
 	
-	
+	verticalDisplacement = 0.f;
+	mapToTerrain = false;
+
 	textureSize[0] = textureSize[1] = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
@@ -436,7 +436,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _twoDParamsTag) == 0) {
 		
 		int newNumVariables = 0;
-		//If it's a TwoD tag, obtain 10 attributes (2 are from Params class)
+		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
 			string attribName = *attrs;
@@ -468,6 +468,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
 				else setEditMode(false);
+			}
+			else if (StrCmpNoCase(attribName, _terrainMapAttr) == 0){
+				if (value == "true") setMappedToTerrain(true); 
+				else setMappedToTerrain(false);
+			}
+			else if (StrCmpNoCase(attribName, _verticalDisplacementAttr) == 0){
+				ist >> verticalDisplacement;
 			}
 			
 			else return false;
@@ -552,7 +559,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		// Now set the values obtained from attribute parsing.
 	
-		parsedVarNum = DataStatus::getInstance()->mergeVariableName(parsedVarName);
+		parsedVarNum = DataStatus::getInstance()->mergeVariableName2D(parsedVarName);
 		variableSelected[parsedVarNum] = varSelected;
 		setMinColorEditBound(leftEdit,parsedVarNum);
 		setMaxColorEditBound(rightEdit,parsedVarNum);
@@ -668,6 +675,17 @@ buildNode() {
 	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 
+	oss.str(empty);
+	oss << (double)getVerticalDisplacement();
+	attrs[_verticalDisplacementAttr] = oss.str();
+
+	oss.str(empty);
+	if (isMappedToTerrain())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_terrainMapAttr] = oss.str();
+
 
 	XmlNode* twoDNode = new XmlNode(_twoDParamsTag, attrs, 3);
 
@@ -678,7 +696,7 @@ buildNode() {
 	
 
 		oss.str(empty);
-		oss << DataStatus::getInstance()->getVariableName(i);
+		oss << DataStatus::getInstance()->getVariableName2D(i);
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);
@@ -857,13 +875,13 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	bool retVal = true;
 	int i;
 	//Now intersect with available bounds based on variables:
-	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables(); varIndex++){
+	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables2D(); varIndex++){
 		if (!variableSelected[varIndex]) continue;
-		if (DataStatus::getInstance()->maxXFormPresent(varIndex,timeStep) < numRefs){
+		if (DataStatus::getInstance()->maxXFormPresent2D(varIndex,timeStep) < numRefs){
 			retVal = false;
 			continue;
 		} else {
-			const string varName = DataStatus::getInstance()->getVariableName(varIndex);
+			const string varName = DataStatus::getInstance()->getVariableName2D(varIndex);
 			int rc = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
 			if (rc < 0) {
 				retVal = false;
@@ -974,10 +992,10 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
 	//Make a list of the session variable nums we want:
-	int* sesVarNums = new int[ds->getNumSessionVariables()];
+	int* sesVarNums = new int[ds->getNumSessionVariables2D()];
 	int actualRefLevel; 
 	int numVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
 		if (!variableIsSelected(varnum)) continue;
 		sesVarNums[numVars++] = varnum;
 	}
@@ -1275,7 +1293,7 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 		for (int varnum = 0; varnum < numVars; varnum++){
 			int sesVarNum = sesVarNums[varnum];
 			if (sesVarNum >= 0){
-				refLevel = Min(ds->maxXFormPresent(sesVarNum, ts), refLevel);
+				refLevel = Min(ds->maxXFormPresent2D(sesVarNum, ts), refLevel);
 			}
 		}
 	}

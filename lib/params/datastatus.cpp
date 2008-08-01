@@ -56,6 +56,7 @@ int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
 
 int DataStatus::numMetadataVariables2D = 0;
+int DataStatus::numOriented2DVars[3] = {0,0,0};
 int* DataStatus::mapMetadataVars2D = 0;
 bool DataStatus::doWarnIfDataMissing = true;
 bool DataStatus::doUseLowerRefinementLevel = false;
@@ -134,16 +135,17 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	removeMetadataVars();
 	
 	
+	int checkNumVars = currentMetadata->GetVariableNames().size();
 	int numVars = currentMetadata->GetVariables3D().size();
 	if (numVars == 0) return false;
 	numMetadataVariables = numVars;
 	mapMetadataVars = new int[numMetadataVariables];
 
-	int numMetaVars2DXY = currentMetadata->GetVariables2DXY().size();
-	int numMetaVars2DYZ = currentMetadata->GetVariables2DYZ().size();
-	int numMetaVars2DXZ = currentMetadata->GetVariables2DXZ().size();
+	numOriented2DVars[0] = currentMetadata->GetVariables2DXY().size();
+	numOriented2DVars[1] = currentMetadata->GetVariables2DYZ().size();
+	numOriented2DVars[2] = currentMetadata->GetVariables2DXZ().size();
 
-	int numMetaVars2D = numMetaVars2DXY+numMetaVars2DYZ+numMetaVars2DXZ;
+	int numMetaVars2D = numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2];
 	numMetadataVariables2D = numMetaVars2D;
 	mapMetadataVars2D = new int[numMetadataVariables2D];
 	
@@ -169,21 +171,21 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		
 		for (int j = 0; j< getNumSessionVariables2D(); j++){
 			
-			if (i < numMetaVars2DXY){
+			if (i < numOriented2DVars[0]){
 				
 				if (getVariableName2D(j) == currentMetadata->GetVariables2DXY()[i]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
 				}
-			} else if ( i < numMetaVars2DXY+numMetaVars2DYZ){
-				if (getVariableName2D(j) == currentMetadata->GetVariables2DYZ()[i-numMetaVars2DXY]){
+			} else if ( i < numOriented2DVars[0]+numOriented2DVars[1]){
+				if (getVariableName2D(j) == currentMetadata->GetVariables2DYZ()[i-numOriented2DVars[0]]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
 				}
-			} else if ( i < numMetaVars2DXY+numMetaVars2DYZ+numMetaVars2DXZ){
-				if (getVariableName2D(j) == currentMetadata->GetVariables2DXZ()[i-numMetaVars2DXY-numMetaVars2DXZ]){
+			} else if ( i < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]){
+				if (getVariableName2D(j) == currentMetadata->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
@@ -194,11 +196,11 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		if (match) continue;
 		//Note that we are modifying the very array that we are looping over.
 		//
-		if (i < numMetaVars2DXY)
+		if (i < numOriented2DVars[0])
 			addVarName2D(currentMetadata->GetVariables2DXY()[i]);
-		else if (i < numMetaVars2DYZ)
-			addVarName2D(currentMetadata->GetVariables2DYZ()[i-numMetaVars2DXY]);
-		else addVarName2D(currentMetadata->GetVariables2DXZ()[i-numMetaVars2DXY-numMetaVars2DXZ]);
+		else if (i < numOriented2DVars[0]+numOriented2DVars[1])
+			addVarName2D(currentMetadata->GetVariables2DYZ()[i-numOriented2DVars[0]]);
+		else addVarName2D(currentMetadata->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]);
 		mapMetadataVars2D[i] = variableNames2D.size()-1;
 	}
 
@@ -597,4 +599,11 @@ bool DataStatus::fieldDataOK(int refLevel, int tstep, int varx, int vary, int va
 	if (vary >= 0 && (maxXFormPresent(vary, tstep) < testRefLevel)) return false;
 	if (varz >= 0 && (maxXFormPresent(varz, tstep) < testRefLevel)) return false;
 	return true;
+}
+int DataStatus::get2DOrientation(int mdvar){
+	if (getNumMetadataVariables2D() <= mdvar) return 0;
+	if (mdvar < numOriented2DVars[0]) return 0;
+	if (mdvar < numOriented2DVars[0]+numOriented2DVars[1]) return 1;
+	assert(mdvar < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]);
+	return 2;
 }
