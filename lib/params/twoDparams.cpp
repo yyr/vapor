@@ -758,110 +758,28 @@ void TwoDParams::setMinOpacMapBound(float val){
 void TwoDParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
-void TwoDParams::getContainingRegion(float regMin[3], float regMax[3]){
-	//Determine the smallest axis-aligned cube that contains the twoD.  This is
-	//obtained by mapping all 8 corners into the space.
-	//Note that this is just a floating point version of getBoundingBox(), below.
-	float transformMatrix[12];
-	//Set up to transform from twoD (coords [-1,1]) into volume:
-	buildCoordTransform(transformMatrix, 0.f);
-	const float* extents = DataStatus::getInstance()->getExtents();
-
-	//Calculate the normal vector to the twoD plane:
-	float zdir[3] = {0.f,0.f,1.f};
-	float normEnd[3];  //This will be the unit normal
-	float normBeg[3];
-	float zeroVec[3] = {0.f,0.f,0.f};
-	vtransform(zdir, transformMatrix, normEnd);
-	vtransform(zeroVec,transformMatrix,normBeg);
-	vsub(normEnd,normBeg,normEnd);
-	vnormal(normEnd);
-
-	//Start by initializing extents, and variables that will be min,max
-	for (int i = 0; i< 3; i++){
-		regMin[i] = 1.e30f;
-		regMax[i] = -1.e30f;
-	}
 	
-	for (int corner = 0; corner< 8; corner++){
-		int intCoord[3];
-		float startVec[3], resultVec[3];
-		intCoord[0] = corner%2;
-		intCoord[1] = (corner/2)%2;
-		intCoord[2] = (corner/4)%2;
-		for (int i = 0; i<3; i++)
-			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
-		// calculate the mapping of this corner,
-		vtransform(startVec, transformMatrix, resultVec);
-		// force mapped corner to lie in the full extents, and then force box to contain the corner:
-		for (int i = 0; i<3; i++) {
-			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
-			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
-			if (resultVec[i] < regMin[i]) regMin[i] = resultVec[i];
-			if (resultVec[i] > regMax[i]) regMax[i] = resultVec[i];
-		}
-	}
-	return;
-}
 
-
-
-//Find the smallest box containing the twoD, in block coords, at current refinement level.
+//Find the smallest box containing the twoD slice, in block coords, at current refinement level.
 //We also need the actual box coords (min and max) to check for valid coords in the block.
 //Note that the box region may be strictly smaller than the block region
 //
 void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs){
-	//Determine the smallest axis-aligned cube that contains the twoD.  This is
-	//obtained by mapping all 8 corners into the space
+	//Determine the box that contains the twoD slice.
 	DataStatus* ds = DataStatus::getInstance();
-	
-	float transformMatrix[12];
-	//Set up to transform from twoD into volume:
-	buildCoordTransform(transformMatrix, 0.f);
-	size_t dataSize[3];
-	const float* extents = ds->getExtents();
-	//Start by initializing extents, and variables that will be min,max
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = ds->getFullSizeAtLevel(numRefs,i);
-		boxMin[i] = dataSize[i]-1;
-		boxMax[i] = 0;
-	}
-	//Get the regionReader to map coordinates:
-	//Use the region reader to calculate coordinates in volume
 	const VDFIOBase* myReader = ds->getRegionReader();
-	if (ds->dataIsLayered()){
-		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
+	double dmin[3],dmax[3];
+	for (int i = 0; i<3; i++) {
+		dmin[i] = twoDMin[i];
+		dmax[i] = twoDMax[i];
 	}
+	myReader->MapUserToVox(timestep,dmin, boxMin, numRefs);
+	myReader->MapUserToVox(timestep,dmax, boxMax, numRefs);
 
-	
-	for (int corner = 0; corner< 8; corner++){
-		int intCoord[3];
-		size_t intResult[3];
-		float startVec[3]; 
-		double resultVec[3];
-		intCoord[0] = corner%2;
-		intCoord[1] = (corner/2)%2;
-		intCoord[2] = (corner/4)%2;
-		for (int i = 0; i<3; i++)
-			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
-		// calculate the mapping of this corner,
-		vtransform(startVec, transformMatrix, resultVec);
-		//Force the result to lie inside full domain:
-		for (int i = 0; i<3; i++){
-			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
-			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
-		}
-		myReader->MapUserToVox(timestep, resultVec, intResult, numRefs);
-		// then make sure the container includes it:
-		for(int i = 0; i< 3; i++){
-			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
-			if(intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
-		}
-	}
-	return;
 }
-//Find the smallest box containing the twoD, in block coords, at current refinement level
+//Find the smallest box containing the twoD slice, in 3d block coords, at current refinement level
 //and current time step.  Restrict it to the available data.
+//The constant dimension is also included:
 //
 bool TwoDParams::
 getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
@@ -882,7 +800,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 			continue;
 		} else {
 			const string varName = DataStatus::getInstance()->getVariableName2D(varIndex);
-			int rc = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
+			int rc = RegionParams::getValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
 			if (rc < 0) {
 				retVal = false;
 			}
@@ -892,6 +810,10 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 			if (boxMax[i] > temp_max[i]) boxMax[i] = temp_max[i];
 		}
 	}
+	int constDim = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
+	
+	boxMin[constDim] = temp_min[constDim];
+	boxMax[constDim] = temp_min[constDim];
 	//Now do the block dimensions:
 	for (int i = 0; i< 3; i++){
 		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i);
@@ -949,17 +871,20 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
 void TwoDParams::mapCursor(){
-	//Get the transform matrix:
-	float transformMatrix[12];
+	//Get the transform 
+	
 	float twoDCoord[3];
-	buildCoordTransform(transformMatrix, 0.f);
+	float a[2],b[2],constVal;
+	int mapDims[3];
+	build2DTransform(a,b,&constVal,mapDims);
 	//The cursor sits in the z=0 plane of the twoD box coord system.
 	//x is reversed because we are looking from the opposite direction (?)
 	twoDCoord[0] = -cursorCoords[0];
 	twoDCoord[1] = cursorCoords[1];
 	twoDCoord[2] = 0.f;
-	
-	vtransform(twoDCoord, transformMatrix, selectPoint);
+	selectPoint[mapDims[2]] = constVal;
+	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
+	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 }
 //Clear out the cache
 void TwoDParams::setTwoDDirty(){
@@ -1002,17 +927,22 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	
 	const size_t *bSize =  ds->getCurrentMetadata()->GetBlockSize();
 	
-	float** volData = getTwoDVariables(ts,  numVars, sesVarNums,
+	//get the slice(s) from the DataMgr
+	//one of the 3 coords in each coordinate argument will be ignored,
+	//depending on orientation of the variables
+	float** planarData = getTwoDVariables(ts,  numVars, sesVarNums,
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
 
-	if(!volData){
+	if(!planarData){
 		delete sesVarNums;
 		return 0;
 	}
 
-	float transformMatrix[12];
+	float a[2],b[2];  //transform of (x,y) is to (a[0]x+b[0],a[1]y+b[1])
 	//Set up to transform from twoD into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	float constValue;
+	int mapDims[3];
+	build2DTransform(a,b,&constValue,mapDims);
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1026,7 +956,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	//The blkMin values tell you the offset to use.
 	//The blkMax values tell how to stride through the data
 	
-	//We first map the coords in the twoD to the volume.  
+	//We first map the coords in the twoD plane to the volume.  
 	//Then we map the volume into the region provided by dataMgr
 	//This is done for each of the variables,
 	//The RMS of the result is then mapped using the transfer function.
@@ -1035,7 +965,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	assert(transFunc);
 	transFunc->makeLut(clut);
 	
-	float twoDCoord[3];
+	float twoDCoord[2];
 	double dataCoord[3];
 	size_t arrayCoord[3];
 	const float* extents = ds->getExtents();
@@ -1046,14 +976,16 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	//Can ignore depth, just mapping center plane
-	twoDCoord[2] = 0.f;
+	//map plane corners
+	dataCoord[mapDims[2]] = constValue;
+
 	for (int cornum = 0; cornum < 4; cornum++){
 		// coords relative to (-1,1)
 		twoDCoord[1] = -1.f + 2.f*(float)(cornum/2);
 		twoDCoord[0] = -1.f + 2.f*(float)(cornum%2);
-		//Then transform to values in data 
-		vtransform(twoDCoord, transformMatrix, dataCoord);
+		//transform into data volume
+		dataCoord[mapDims[0]] = a[0]*twoDCoord[0]+b[0];
+		dataCoord[mapDims[1]] = a[1]*twoDCoord[1]+b[1];
 		
 	}
 	
@@ -1075,7 +1007,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	}
 
 
-	//Loop over pixels in texture.  Pixel centers map to edges of twoD
+	//Loop over pixels in texture.  Pixel centers map to edges of twoD plane
 	
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
@@ -1084,9 +1016,13 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			
 			
 			twoDCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
-			vtransform(twoDCoord, transformMatrix, dataCoord);
 			//find the coords that the texture maps to
-			//twoDCoord is the coord in the twoD, dataCoord is in data volume 
+			//twoDCoord is the coord in the twoD slice, dataCoord is in data volume 
+			dataCoord[mapDims[2]] = constValue;
+			dataCoord[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
+			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
+			
+			
 			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
@@ -1095,18 +1031,18 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			
 			if(dataOK) { //find the coordinate in the data array
 				
-				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
-					(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[0]*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+				int xyzCoord = (arrayCoord[mapDims[0]] - blkMin[mapDims[0]]*bSize[mapDims[0]]) +
+					(arrayCoord[mapDims[1]] - blkMin[mapDims[1]]*bSize[mapDims[1]])*(bSize[mapDims[0]]*(blkMax[mapDims[0]]-blkMin[mapDims[0]]+1));
+					
 				float varVal;
 				assert(xyzCoord >= 0);
 
 				//use the intDataCoords to index into the loaded data
-				if (numVars == 1) varVal = volData[0][xyzCoord]; 
+				if (numVars == 1) varVal = planarData[0][xyzCoord]; 
 				else { //Add up the squares of the variables
 					varVal = 0.f;
 					for (int k = 0; k<numVars; k++){
-						varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
+						varVal += planarData[k][xyzCoord]*planarData[k][xyzCoord];
 					}
 					varVal = sqrt(varVal);
 				}
@@ -1131,58 +1067,37 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	}//End loop over iy
 	
 	if (doCache) setTwoDTexture(twoDTexture,ts);
-	delete volData;
+	delete planarData;
 	delete sesVarNums;
 	return twoDTexture;
 }
 void TwoDParams::adjustTextureSize(int sz[2]){
 	//Need to determine appropriate texture dimensions
-	
-	//First, map the corners of texture, to determine appropriate
-	//texture sizes and image aspect ratio:
+	//It should be at least 256x256, or more if the data resolution
+	//is higher than that.
+	//Find the full size of the data at the current resolution in the
+	//two dimensions being used.
+	//Then see how large is the box, compared to the full extents
+	//in those two dimensions
+
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
-	//Start by initializing extents
+	
 	DataStatus* ds = DataStatus::getInstance();
 	int refLevel = getNumRefinements();
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i);
 	}
-	int icor[4][3];
-	float twoDCoord[3];
-	float dataCoord[3];
-	
-	
+	int orientation = ds->get2DOrientation(firstVarNum);
+	int xcrd = 0, ycrd = 1;
+	if (orientation < 2) ycrd++;
+	if (orientation < 1) xcrd++;
 	const float* extents = ds->getExtents();
-	//Can ignore depth, just mapping center plane
-	twoDCoord[2] = 0.f;
-
-	float transformMatrix[12];
 	
-	//Set up to transform from twoD into volume:
-	buildCoordTransform(transformMatrix, 0.f);
-	
-	for (int cornum = 0; cornum < 4; cornum++){
-		// coords relative to (-1,1)
-		twoDCoord[1] = -1.f + 2.f*(float)(cornum/2);
-		twoDCoord[0] = -1.f + 2.f*(float)(cornum%2);
-		//Then transform to values in data 
-		vtransform(twoDCoord, transformMatrix, dataCoord);
-		//Then get array coords:
-		for (int i = 0; i<3; i++){
-			icor[cornum][i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
-		}
-	}
-	//To get texture width, take distance in array coords, get first power of 2
-	//that exceeds integer dist, but at least 256.
-	int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
-		(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
-		(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
-	int xdist = (int)sqrt((float)distsq);
-	distsq = (icor[0][0]-icor[2][0])*(icor[0][0]-icor[2][0]) + 
-		(icor[0][1]-icor[2][1])*(icor[0][1]-icor[2][1]) +
-		(icor[0][2]-icor[2][2])*(icor[0][2]-icor[2][2]);
-	int ydist = (int)sqrt((float)distsq);
+	float relWid = (twoDMax[xcrd]-twoDMin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
+	float relHt = (twoDMax[ycrd]-twoDMin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
+	int xdist = relWid*dataSize[xcrd];
+	int ydist = relHt*dataSize[ycrd];
 	textureSize[0] = 1<<(VetsUtil::ILog2(xdist));
 	textureSize[1] = 1<<(VetsUtil::ILog2(ydist));
 	if (textureSize[0] < 256) textureSize[0] = 256;
@@ -1190,10 +1105,9 @@ void TwoDParams::adjustTextureSize(int sz[2]){
 	sz[0] = textureSize[0];
 	sz[1] = textureSize[1];
 	
-	
 }
-//Determine the voxel extents of twoD mapped into data.
-//Similar code is in calcTwoDTexture()
+//Determine the voxel extents of plane mapped into data.
+
 void TwoDParams::
 getTwoDVoxelExtents(float voxdims[2]){
 	DataStatus* ds = DataStatus::getInstance();
@@ -1201,83 +1115,22 @@ getTwoDVoxelExtents(float voxdims[2]){
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
-	const float* extents = DataStatus::getInstance()->getExtents();
-	float twoDCoord[3];
-	//Can ignore depth, just mapping center plane
-	twoDCoord[2] = 0.f;
-	float transformMatrix[12];
-	
-	//Set up to transform from twoD into volume:
-	buildCoordTransform(transformMatrix, 0.f);
-	
-	//Get the data dimensions (at this resolution):
-	int dataSize[3];
-	//Start by initializing integer extents
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
-	}
-	
-	float cor[4][3];
-		
-	for (int cornum = 0; cornum < 4; cornum++){
-		float dataCoord[3];
-		// coords relative to (-1,1)
-		twoDCoord[1] = -1.f + 2.f*(float)(cornum/2);
-		twoDCoord[0] = -1.f + 2.f*(float)(cornum%2);
-		//Then transform to values in data 
-		vtransform(twoDCoord, transformMatrix, dataCoord);
-		//Then get array coords:
-		for (int i = 0; i<3; i++){
-			cor[cornum][i] = ((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]);
-		}
-	}
-	float vecWid[3], vecHt[3];
-	
-	vsub(cor[1],cor[0], vecWid);
-	vsub(cor[3],cor[1], vecHt);
-	voxdims[0] = vlength(vecWid);
-	voxdims[1] = vlength(vecHt);
+	int orientation = ds->get2DOrientation(firstVarNum);
+	int xcrd = 0, ycrd = 1;
+	if (orientation < 2) ycrd = 2;
+	if (orientation < 1) xcrd = 1;
+	voxdims[0] = twoDMax[xcrd] - twoDMin[xcrd];
+	voxdims[1] = twoDMax[ycrd] - twoDMin[ycrd];
 	return;
 }
-// Determine the length of the box sides, when rotated and stretched and put into
-// unit cube
-void TwoDParams::getRotatedBoxDims(float boxdims[3]){
-	float corners[8][3];
-	//Find all 8 corners but we will only use 4:
-	//cor(1)-cor[0] is x side
-	//cor[2] - cor[0] is y side
-	//cor[4] - cor[0] is z side
-	calcBoxCorners(corners, 0.f);
-	
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
-	
-	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
-	//Obtain the 4 corners needed (0,1,2,4) in the unit cube
-	float xformCors[4][3];
-	for (int cornum = 0; cornum<4; cornum++){
-		int corIndx = cornum;
-		if (corIndx == 3) corIndx = 4;
-		for (int crd = 0; crd<3; crd++){
-			xformCors[cornum][crd] = (corners[corIndx][crd]*stretch[crd] - fullExtents[crd])/maxSize;
-		}
-	}
-	//Now find the actual length (dist between corner 1,2,4 and 0):
-	float distvec[3];
-	for (int dim = 0; dim <3; dim++){
-		for (int crd = 0; crd < 3; crd++){
-			distvec[crd] = xformCors[dim+1][crd] - xformCors[0][crd];
-		}
-		boxdims[dim] = vlength(distvec);
-	}
-}
 
 
-//General routine that obtains 1 or more variables from the cache in the smallest volume that
-//contains the twoD.  sesVarNums is a list of session variable numbers to be obtained.
+
+//General routine that obtains 1 or more 2D variables from the cache in the smallest volume that
+//contains the 2D slice.  sesVarNums is a list of session variable numbers to be obtained.
 //If the variable num is negative, just returns a null data array.
-//Note that this is a generalization of the first part of calcTwoDDataTexture
-//Provides several variables to be used in adressing into the data
+//(Note that this is a generalization of the first part of calcTwoDDataTexture)
+//Provides several variables to be used in addressing into the data
 
 float** TwoDParams::
 getTwoDVariables(int ts,  int numVars, int* sesVarNums,
@@ -1300,7 +1153,7 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 	if (refLevel < 0) return 0;
 	*actualRefLevel = refLevel;
 	
-	//Determine the integer extents of the containing cube, truncate to
+	//Determine the integer extents of the containing square, truncate to
 	//valid integer coords:
 
 	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, refLevel);
@@ -1320,22 +1173,101 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable 
-	float** volData = new float*[numVars];
-	//obtain all of the volumes needed for this twoD:
+	float** planarData = new float*[numVars];
+	//obtain all of the planes needed for this twoD:
 	
 	for (int varnum = 0; varnum < numVars; varnum++){
 		int varindex = sesVarNums[varnum];
-		if (varindex < 0) {volData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
-		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts);
-		if (!volData[varnum]) {
-			delete volData;
+		if (varindex < 0) {planarData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
+		planarData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, true);
+		if (!planarData[varnum]) {
+			delete planarData;
 			return 0;
 		}
 	}
 
-	return volData;
+	return planarData;
 }
+	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
+	//Mapping [-1,1]X[-1,1] into 3D volume.
+    //Also determine the first and second coords that are used in 
+    //the transform and the constant value
+    //mappedDims[0] and mappedDims[1] are the dimensions that are
+    //varying in the 3D volume.  mappedDims[2] is constant.
+    //constVal is the constant value that is used.
+void TwoDParams::build2DTransform(float a[2],float b[2],float* constVal, int mappedDims[3]){
+	//Find out orientation:
+	int orientation = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
+	mappedDims[2] = orientation;
+	mappedDims[0] = (orientation == 0) ? 1 : 0;  // x or y
+	mappedDims[1] = (orientation < 2) ? 2 : 1; // z or y
+	*constVal = twoDMin[orientation];
+	//constant terms go to middle
+	b[0] = 0.5*(twoDMin[mappedDims[0]]+twoDMax[mappedDims[0]]);
+	b[1] = 0.5*(twoDMin[mappedDims[1]]+twoDMax[mappedDims[1]]);
+	//linear terms send -1,1 to box min,max
+	a[0] = b[0] - twoDMin[mappedDims[0]];
+	a[1] = b[1] - twoDMin[mappedDims[1]];
 
+}
+//Following overrides version in Param for 2D
+//Does not support rotation or thickness
+void TwoDParams::
+calcBoxCorners(float corners[8][3], float, float, int ){
+	
+	float a[2],b[2],constValue;
+	int mapDims[3];
+	build2DTransform(a,b,&constValue,mapDims);
+	float boxCoord[3];
+	//Return the corners of the box (in world space)
+	//Go counter-clockwise around the back, then around the front
+	//X increases fastest, then y then z; 
 
+	//Fatten box slightly, in case it is degenerate.  This will
+	//prevent us from getting invalid face normals.
 
-
+	boxCoord[0] = -1.f;
+	boxCoord[1] = -1.f;
+	boxCoord[2] = -1.f;
+	// calculate the mapping of each corner,
+	corners[0][mapDims[2]] = constValue;
+	corners[0][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[0][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[0] = 1.f;
+	corners[1][mapDims[2]] = constValue;
+	corners[1][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[1][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[1] = 1.f;
+	corners[3][mapDims[2]] = constValue;
+	corners[3][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[3][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[0] = -1.f;
+	corners[2][mapDims[2]] = constValue;
+	corners[2][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[2][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[1] = -1.f;
+	boxCoord[2] = 1.f;
+	corners[4][mapDims[2]] = constValue;
+	corners[4][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[4][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[0] = 1.f;
+	corners[5][mapDims[2]] = constValue;
+	corners[5][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[5][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[1] = 1.f;
+	corners[7][mapDims[2]] = constValue;
+	corners[7][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[7][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+	boxCoord[0] = -1.f;
+	corners[6][mapDims[2]] = constValue;
+	corners[6][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
+	corners[6][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
+	
+}

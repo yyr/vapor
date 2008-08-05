@@ -62,6 +62,11 @@ public:
 	int getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
+	//Two-dim version similar to above.  Region extents are required, but 
+	//will be shrunk if not in available data
+	static int shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
+		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
+		const int* sesVarNums, int numVars, double* regMin, double* regMax, bool twoDims);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
 	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
@@ -78,6 +83,8 @@ public:
 	}
 	static int getFullGridHeight(){ return fullHeight;}
 	static void setFullGridHeight(size_t val);//will purge if necessary
+	//Version of DataMgr::GetValidRegion that knows about layered data
+	static int getValidRegion(size_t timestep, const char* varname, int minRefLevel, size_t min_coord[3], size_t max_coord[3]);
 	
 	//Determine how many megabytes will be needed for one variable at specified
 	//refinement level, specified box extents.

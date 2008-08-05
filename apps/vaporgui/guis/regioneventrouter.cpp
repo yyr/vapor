@@ -583,7 +583,7 @@ refreshRegionInfo(RegionParams* rParams){
 	double var_ext[6];
 	int rc = -1;
 	if (ds && refLevel <= maxRefLevel )
-		rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timeStep, varName.c_str(),
+		rc = RegionParams::getValidRegion(timeStep, varName.c_str(),
 			refLevel, min_vdim, max_vdim);
 	if (rc>= 0)	{
 		minXVoxVarLabel->setText(QString::number(min_vdim[0]));

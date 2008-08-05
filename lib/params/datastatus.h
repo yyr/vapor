@@ -131,15 +131,15 @@ public:
 	double getDefaultDataMax2D(int varnum){return getDataMax2D(varnum, (int)minTimeStep);}
 	double getDefaultDataMin2D(int varnum){return getDataMin2D(varnum, (int)minTimeStep);}
 	
-	int maxXFormPresent(int varnum, int timestep){
+	int maxXFormPresent(int sesvarnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
-		if (!variableExists[varnum]) return -1;
-		return (maxNumTransforms[varnum][timestep]);
+		if (!variableExists[sesvarnum]) return -1;
+		return (maxNumTransforms[sesvarnum][timestep]);
 	}
-	int maxXFormPresent2D(int varnum, int timestep){
+	int maxXFormPresent2D(int sesvarnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
-		if (!variableExists2D[varnum]) return -1;
-		return (maxNumTransforms2D[varnum][timestep]);
+		if (!variableExists2D[sesvarnum]) return -1;
+		return (maxNumTransforms2D[sesvarnum][timestep]);
 	}
 	//Determine if variable is present for *any* timestep 
 	//Needed for setting DVR panel

@@ -149,10 +149,7 @@ void ProbeRenderer::initializeGL()
 	initialized = true;
 }
 // IBFV constants:
-//IBFV spot noise grid size
-//#define	NPN 64
-//Size of polygonal mesh used for blending spot noise pattern
-//#define NMESH 100
+
 //Number of different spot noise patterns
 #define Npat  32
 
@@ -227,13 +224,12 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
 	//Determine the size of the image, to get the appropriate values for NPN and NMESH
    int lut[256];
 
-   //int** phase[NPN][NPN];
-   //GLubyte pat[NPN][NPN][4];
+   
    int *phase;
    GLubyte* pat;
 
    int npn = pParams->getNPN();
-   int nmesh = pParams->getNMESH();
+   
    int i, j, k, t;
    int alpha = (int)(255*(pParams->getAlpha()));
    phase = new int[npn*npn];

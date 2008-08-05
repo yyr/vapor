@@ -99,11 +99,11 @@ public:
 	float getDataMinBound(int currentTimeStep){
 		if(numVariables == 0) return 0.f;
 		if(numVariablesSelected > 1) return (0.f);
-		return (DataStatus::getInstance()->getDataMin(firstVarNum, currentTimeStep));
+		return (DataStatus::getInstance()->getDataMin2D(firstVarNum, currentTimeStep));
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
-		return (DataStatus::getInstance()->getDataMax(firstVarNum, currentTimeStep));
+		return (DataStatus::getInstance()->getDataMax2D(firstVarNum, currentTimeStep));
 	}
 	float getTwoDMin(int i) {return twoDMin[i];}
 	float getTwoDMax(int i) {return twoDMax[i];}
@@ -210,12 +210,14 @@ public:
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
 	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
-	//Obtain the smallest region that contains the twoD, and fits within the full data volume:
-	void getContainingRegion(float regMin[3], float regMax[3]);
+	
 	float getVerticalDisplacement(){return verticalDisplacement;}
 	void setVerticalDisplacement(float val) {verticalDisplacement = val;}
 	bool isMappedToTerrain() {return mapToTerrain;}
 	void setMappedToTerrain(bool val) {mapToTerrain = val;}
+	//override parent version for 2D box corners:
+	virtual void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	
 	
 protected:
 	
@@ -231,6 +233,10 @@ protected:
 	static const string _terrainMapAttr;
 	static const string _verticalDisplacementAttr;
 
+	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
+	//Mapping [-1,1]X[-1,1] into 3D volume.
+	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
+	
 	void mapCursor();
 	void refreshCtab();
 			
@@ -239,8 +245,6 @@ protected:
 	//Find smallest containing cube in integer coords, 
 	//that will contain image of twoD
 	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
-	//Get the rotated box sides in the unit cube, based on current angles:
-	void getRotatedBoxDims(float boxdims[3]);
 
 	float currentDatarange[2];
 	

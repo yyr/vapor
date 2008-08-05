@@ -158,7 +158,7 @@ Params(int winNum) : ParamsBase() {
 	void calcStretchedBoxExtents(float* extents);
 	void calcBoxExtents(float* extents);
 	//Calculate the box in world coords, using any theta or phi
-	void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	virtual void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
 	//void calcStretchedBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
 	
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
@@ -189,7 +189,7 @@ Params(int winNum) : ParamsBase() {
 	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
 	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
 	//Get a variable region from the datamanager
-	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep);
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
 	
 protected:
 	bool local;

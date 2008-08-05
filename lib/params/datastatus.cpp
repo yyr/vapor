@@ -134,8 +134,6 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//mapping of metadata var nums into session var nums:
 	removeMetadataVars();
 	
-	
-	int checkNumVars = currentMetadata->GetVariableNames().size();
 	int numVars = currentMetadata->GetVariables3D().size();
 	if (numVars == 0) return false;
 	numMetadataVariables = numVars;
@@ -600,10 +598,11 @@ bool DataStatus::fieldDataOK(int refLevel, int tstep, int varx, int vary, int va
 	if (varz >= 0 && (maxXFormPresent(varz, tstep) < testRefLevel)) return false;
 	return true;
 }
+//Orientation is 2 for XY, 0 for YZ, 1 for XZ 
 int DataStatus::get2DOrientation(int mdvar){
-	if (getNumMetadataVariables2D() <= mdvar) return 0;
-	if (mdvar < numOriented2DVars[0]) return 0;
-	if (mdvar < numOriented2DVars[0]+numOriented2DVars[1]) return 1;
+	if (getNumMetadataVariables2D() <= mdvar) return 2;
+	if (mdvar < numOriented2DVars[0]) return 2;
+	if (mdvar < numOriented2DVars[0]+numOriented2DVars[1]) return 0;
 	assert(mdvar < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]);
-	return 2;
+	return 1;
 }

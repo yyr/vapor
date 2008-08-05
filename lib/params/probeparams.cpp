@@ -1052,7 +1052,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 			continue;
 		} else {
 			const string varName = DataStatus::getInstance()->getVariableName(varIndex);
-			int rc = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
+			int rc = RegionParams::getValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
 			if (rc < 0) {
 				retVal = false;
 			}
@@ -1781,7 +1781,7 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 	for (int varnum = 0; varnum < numVars; varnum++){
 		int varindex = sesVarNums[varnum];
 		if (varindex < 0) {volData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
-		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts);
+		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, false);
 		if (!volData[varnum]) {
 			delete volData;
 			return 0;

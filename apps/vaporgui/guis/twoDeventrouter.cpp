@@ -208,8 +208,6 @@ void TwoDEventRouter::updateTab(){
 	int winnum = vizMgr->getActiveViz();
 	
 	guiSetTextChanged(false);
-
-
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDInstances(winnum) > 1);
 	
@@ -230,19 +228,33 @@ void TwoDEventRouter::updateTab(){
 	}
 
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
-	if (orientation == 0)
+	if (orientation == 2)
 		orientationLabel->setText("X-Y");
-	else if (orientation == 1)
+	else if (orientation == 0)
 		orientationLabel->setText("Y-Z");
 	else {
-		assert(orientation == 2);
+		assert(orientation == 1);
 		orientationLabel->setText("X-Z");
 	}
 	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
-	bool terrainMap = twoDParams->isMappedToTerrain();
-	if (terrainMap) displacementEdit->setEnabled(true);
-	else displacementEdit->setEnabled(false);
-	applyTerrainCheckbox->setChecked(terrainMap);
+	//Only allow terrain map with horizontal orientation
+	if (orientation != 0) {
+		applyTerrainCheckbox->setChecked(false);
+		applyTerrainCheckbox->setEnabled(false);
+		displacementEdit->setEnabled(false);
+	} else {
+		bool terrainMap = twoDParams->isMappedToTerrain();
+		if (terrainMap) displacementEdit->setEnabled(true);
+		else displacementEdit->setEnabled(false);
+		applyTerrainCheckbox->setChecked(terrainMap);
+	}
+	if (twoDParams->isMappedToTerrain()) {
+		zCenterSlider->setEnabled(false);
+		zCenterEdit->setEnabled(false);
+	} else {
+		zCenterSlider->setEnabled(true);
+		zCenterEdit->setEnabled(true);
+	}
 	//setup the texture:
 	
 	resetTextureSize(twoDParams);
@@ -364,19 +376,25 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	if(twoDParams->isMappedToTerrain())
 		twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
+	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
+	int xcrd =0, ycrd = 1;
+	if (orientation < 2) ycrd = 2;
+	if (orientation < 1) xcrd = 1;
+
+	const float *extents = DataStatus::getInstance()->getExtents();
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
-	boxSize[0] = xSizeEdit->text().toFloat();
-	boxSize[1] = ySizeEdit->text().toFloat();
+	boxSize[xcrd] = xSizeEdit->text().toFloat();
+	boxSize[ycrd] = ySizeEdit->text().toFloat();
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
+		if (boxSize[i] > (extents[i+3]-extents[i])) boxSize[i] = (extents[i+3]-extents[i]);
 	}
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
 	twoDParams->getBox(boxmin, boxmax);
-	const float* extents = DataStatus::getInstance()->getExtents();
+	
 	for (int i = 0; i<3;i++){
 		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
 		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
@@ -433,7 +451,8 @@ void TwoDEventRouter::guiApplyTerrain(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	dParams->setMappedToTerrain(mode);
 	displacementEdit->setEnabled(mode);
-	
+	zCenterSlider->setEnabled(!mode);
+	zCenterEdit->setEnabled(!mode);
 	PanelCommand::captureEnd(cmd, dParams); 
 }
 
@@ -456,8 +475,6 @@ twoDReturnPressed(void){
 
 void TwoDEventRouter::
 setTwoDEnabled(bool val, int instance){
-
-	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
@@ -791,8 +808,6 @@ setEditorDirty(RenderParams* p){
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
     transferFunctionFrame->updateParams();
 
-    Session *session = Session::getInstance();
-
 	if (DataStatus::getInstance()->getNumSessionVariables2D())
     {
 	  int tmp;
@@ -905,6 +920,31 @@ void TwoDEventRouter::guiCenterTwoD(){
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
+//Make the probe center at selectedPoint.
+
+void TwoDEventRouter::guiCenterProbe(){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
+	const float* selectedPoint = tParams->getSelectedPoint();
+	float pMin[3],pMax[3];
+	pParams->getBox(pMin,pMax);
+	//Move center so it coincides with the selected point
+	for (int i = 0; i<3; i++){
+		float diff = (pMax[i]-pMin[i])*0.5;
+		pMin[i] = selectedPoint[i] - diff;
+		pMax[i] = selectedPoint[i] + diff; 
+	}
+	pParams->setBox(pMin,pMax);
+		
+	PanelCommand::captureEnd(cmd, pParams);
+	
+	pParams->setProbeDirty();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+
+}
 //Following method sets up (or releases) a connection to the Flow 
 void TwoDEventRouter::
 guiAttachSeed(bool attach, FlowParams* fParams){
@@ -962,15 +1002,26 @@ guiChangeVariables(){
 	}
 	pParams->setNumVariablesSelected(numSelected);
 	pParams->setFirstVarNum(firstVar);
-	if (orientation == 0)
+	if (orientation == 2)
 		orientationLabel->setText("X-Y");
-	else if (orientation == 1)
+	else if (orientation == 0)
 		orientationLabel->setText("Y-Z");
 	else {
-		assert(orientation == 2);
+		assert(orientation == 1);
 		orientationLabel->setText("X-Z");
 	}
-
+	//Only allow terrain map with horizontal orientation
+	if (orientation != 0) {
+		pParams->setMappedToTerrain(false);
+		applyTerrainCheckbox->setChecked(false);
+		applyTerrainCheckbox->setEnabled(false);
+		displacementEdit->setEnabled(false);
+	} else {
+		bool terrainMap = pParams->isMappedToTerrain();
+		if (terrainMap) displacementEdit->setEnabled(true);
+		else displacementEdit->setEnabled(false);
+		applyTerrainCheckbox->setChecked(terrainMap);
+	}
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
 	updateMapBounds(pParams);
@@ -1027,7 +1078,7 @@ void TwoDEventRouter::
 guiSetXSize(int sliderval){
 	confirmText(false);
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD X size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide Planar width");
 	setXSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1042,7 +1093,7 @@ void TwoDEventRouter::
 guiSetYSize(int sliderval){
 	confirmText(false);
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide twoD Y size");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide Planar Height");
 	setYSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1152,9 +1203,6 @@ textToSlider(TwoDParams* pParams, int coord, float newCenter, float newSize){
 		case 2:
 			
 			oldSliderCenter = zCenterSlider->value();
-			
-			
-			
 			if (oldSliderCenter != sliderCenter)
 				zCenterSlider->setValue(sliderCenter);
 			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
@@ -1176,10 +1224,12 @@ textToSlider(TwoDParams* pParams, int coord, float newCenter, float newSize){
 //
 void TwoDEventRouter::
 sliderToText(TwoDParams* pParams, int coord, int slideCenter, int slideSize){
-	
+	//Determine which coordinate of box is being slid:
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
+	if (orientation < coord) coord++;
 	const float* extents = DataStatus::getInstance()->getExtents();
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
-	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
+	float newSize = (extents[coord+3]-extents[coord])*(float)slideSize/256.f;
 	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
 	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
@@ -1358,13 +1408,15 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	if (!pParams->isEnabled()) return 0.f;
 	int arrayCoord[3];
 	
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	
 	//Get the data dimensions (at current resolution):
 	
 	int numRefinements = pParams->getNumRefinements();
 	
-	//Find the region that contains the twoD.
+	//Specify the region to be just the point:
+	for (int i = 0; i<3; i++){
+		regMin[i] = point[i];
+		regMax[i] = point[i];
+	}
 
 	//List the variables we are interested in
 	int* sessionVarNums = new int[numVariables];
@@ -1377,13 +1429,13 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
-	if (0 > rParams->getAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, totVars, regMin, regMax)) return OUT_OF_BOUNDS;
+	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
+		sessionVarNums, totVars, regMin, regMax, true)) return OUT_OF_BOUNDS;
 
 	for (int i = 0; i< 3; i++){
-		if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
+		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
 		arrayCoord[i] = coordMin[i] + (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
-		//Make sure the transformed coords are in the region
+		//Make sure the transformed coords are in the region of available data
 		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
 			return OUT_OF_BOUNDS;
 		} 
@@ -1399,15 +1451,15 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
+	float** sliceData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this twoD:
 	totVars = 0;
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep);
-		if (!volData[totVars]) {
+		sliceData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, true);
+		if (!sliceData[totVars]) {
 			//failure to get data.  
 			QApplication::restoreOverrideCursor();
 			return OUT_OF_BOUNDS;
@@ -1415,27 +1467,32 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
+
+	//To index into slice, need to know what coordinate is constant:
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum()); 
+	int xcrd = 0, ycrd = 1;
+	if (orientation < 2) ycrd++;
+	if (orientation == 0) xcrd++;
 			
-	int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
-		(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[1]*(blkMax[0]-blkMin[0]+1)) +
-		(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+	int xyzCoord = (arrayCoord[xcrd] - blkMin[xcrd]*bSize[xcrd]) +
+		(arrayCoord[ycrd] - blkMin[ycrd]*bSize[ycrd])*(bSize[ycrd]*(blkMax[xcrd]-blkMin[xcrd]+1));
 	
 	float varVal;
 	//use the int xyzCoord to index into the loaded data
-	if (totVars == 1) varVal = volData[0][xyzCoord];
+	if (totVars == 1) varVal = sliceData[0][xyzCoord];
 	else { //Add up the squares of the variables
 		varVal = 0.f;
 		for (int k = 0; k<totVars; k++){
-			varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
+			varVal += sliceData[k][xyzCoord]*sliceData[k][xyzCoord];
 		}
 		varVal = sqrt(varVal);
 	}
-	delete volData;
+	delete sliceData;
 	return varVal;
 }
 
 //Obtain a new histogram for the current selected variables.
-//Save it at the position associated with firstVarNum
+//Save histogram at the position associated with firstVarNum
 void TwoDEventRouter::
 refreshHistogram(RenderParams* p){
 	TwoDParams* pParams = (TwoDParams*)p;
@@ -1471,143 +1528,63 @@ refreshHistogram(RenderParams* p){
 	size_t boxMin[3],boxMax[3];
 	
 	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, refLevel);
-	//Make sure this box will fit in current 
-	//Check if the region/resolution is too big:
+	
 	
 	float boxExts[6];
 	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
 	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
-	//Check how many variables are needed:
+	//Check which variables are needed:
 	int varCount = 0;
+	std::vector<int> varNums;
 	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
-		if (pParams->variableIsSelected(varnum)) varCount++;
+		if (pParams->variableIsSelected(varnum)) {
+			varCount++;
+			varNums.push_back(varnum);
+		}
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*varCount > (int)(cacheSize*0.75)){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current twoD and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the twoD size, or increase the cache size.",
+			"Lower the refinement level, reduce the plane size, or increase the cache size.",
 			"Rendering has been disabled.");
 		pParams->setEnabled(false);
 		updateTab();
 		return;
 	}
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	const size_t* bSize =  (DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
+	float** planarData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this twoD:
-	int totVars = 0;
 	
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables2D(); varnum++){
-		if (!pParams->variableIsSelected(varnum)) continue;
-		assert(varnum >= firstVarNum);
+	for (int var = 0; var < varCount; var++){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep);
+		planarData[var] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varNums[var], timeStep, true);
 		QApplication::restoreOverrideCursor();
-		if (!volData[totVars]) return;
-		totVars++;
+		if (!planarData[var]) return;
 	}
 	
-	//Get the data dimensions (at current resolution):
-	size_t dataSize[3];
-	float gridSpacing[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
-	
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i);
-		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
-		//if (boxMin[i]< 0) boxMin[i] = 0;  //unsigned, can't be < 0
-		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
-	}
-	float voxSize = vlength(gridSpacing);
+	//Loop over the pixels in the volume(s)
+	int xcrd = 0, ycrd = 1;
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
+	if (orientation < 2) ycrd++;
+	if (orientation < 1) xcrd++;
 
-	//Prepare for test by finding corners and normals to box:
-	float corner[8][3];
-	float normals[6][3];
-	float vec1[3], vec2[3];
-
-	//Get box that is slightly fattened, to ensure nondegenerate normals
-	pParams->calcBoxCorners(corner, 0.5*voxSize);
-	//The first 6 corners are reference points for testing
-	//the 6 normal vectors are outward pointing from these points
-	//Normals are calculated as if cube were axis aligned but this is of 
-	//course not really true, just gives the right orientation
-	//
-	// +Z normal: (c2-c0)X(c1-c0)
-	vsub(corner[2],corner[0],vec1);
-	vsub(corner[1],corner[0],vec2);
-	vcross(vec1,vec2,normals[0]);
-	vnormal(normals[0]);
-	// -Y normal: (c5-c1)X(c0-c1)
-	vsub(corner[5],corner[1],vec1);
-	vsub(corner[0],corner[1],vec2);
-	vcross(vec1,vec2,normals[1]);
-	vnormal(normals[1]);
-	// +Y normal: (c6-c2)X(c3-c2)
-	vsub(corner[6],corner[2],vec1);
-	vsub(corner[3],corner[2],vec2);
-	vcross(vec1,vec2,normals[2]);
-	vnormal(normals[2]);
-	// -X normal: (c7-c3)X(c1-c3)
-	vsub(corner[7],corner[3],vec1);
-	vsub(corner[1],corner[3],vec2);
-	vcross(vec1,vec2,normals[3]);
-	vnormal(normals[3]);
-	// +X normal: (c6-c4)X(c0-c4)
-	vsub(corner[6],corner[4],vec1);
-	vsub(corner[0],corner[4],vec2);
-	vcross(vec1,vec2,normals[4]);
-	vnormal(normals[4]);
-	// -Z normal: (c7-c5)X(c4-c5)
-	vsub(corner[7],corner[5],vec1);
-	vsub(corner[4],corner[5],vec2);
-	vcross(vec1,vec2,normals[5]);
-	vnormal(normals[5]);
-
-	
-	float xyz[3];
-	//int lastxyz = -1;
-	//int incount = 0;
-	//int outcount = 0;
-	//Now loop over the grid points in the bounding box
-	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
-		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
-		if (xyz[2] > (boxExts[5]+voxSize) || (xyz[2] < boxExts[2]-voxSize)) continue;
-		for (size_t j = boxMin[1]; j <= boxMax[1]; j++){
-			xyz[1] = extents[1] + (((float)j)/(float)(dataSize[1]-1))*(extents[4]-extents[1]);
-			if (xyz[1] > (boxExts[4]+voxSize) || xyz[1] < (boxExts[1]-voxSize)) continue;
-			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
-				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
-				if (xyz[0] > (boxExts[3]+voxSize) || xyz[0] < (boxExts[0]-voxSize)) continue;
-				//test if x,y,z is in twoD:
-				if (pParams->distanceToCube(xyz, normals, corner) < voxSize){
-					//incount++;
-					//Point is (almost) inside.
-					//Evaluate the variable(s):
-					int xyzCoord = (i - blkMin[0]*bSize) +
-						(j - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-						(k - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
-					//qWarning(" sampled coord %d",xyzCoord);
-	
-					assert(xyzCoord >= 0);
-					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize));
-					float varVal;
-					//use the int xyzCoord to index into the loaded data
-					if (totVars == 1) varVal = volData[0][xyzCoord];
-					else { //Add up the squares of the variables
-						varVal = 0.f;
-						for (int d = 0; d<totVars; d++){
-							varVal += volData[d][xyzCoord]*volData[d][xyzCoord];
-						}
-						varVal = sqrt(varVal);
-					}
-					histo->addToBin(varVal);
-				
-				} 
-				//else {
-				//	outcount++;
-				//}
+	for (int j = boxMin[ycrd]; j<= boxMax[ycrd]; j++){
+		for (int i = boxMin[xcrd]; i<= boxMax[xcrd]; i++){
+			int xyzCoord = (i - blkMin[xcrd]*bSize[xcrd]) +
+					(j - blkMin[ycrd]*bSize[ycrd])*(bSize[xcrd]*(blkMax[xcrd]-blkMin[xcrd]+1));	
+			float varVal;
+					
+			if (varCount == 1) varVal = planarData[0][xyzCoord];
+			else { //Add up the squares of the variables
+				varVal = 0.f;
+				for (int d = 0; d<varCount; d++){
+					varVal += planarData[d][xyzCoord]*planarData[d][xyzCoord];
+				}
+				varVal = sqrt(varVal);
 			}
+			histo->addToBin(varVal);
 		}
 	}
 
@@ -1696,8 +1673,8 @@ void TwoDEventRouter::captureImage() {
 	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//
-	//If this is IBFV, then we save texture as is.
-	//If this is data, then reconstruct with appropriate aspect ratio.
+	
+	//reconstruct with appropriate aspect ratio.
 	
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -1733,7 +1710,7 @@ void TwoDEventRouter::captureImage() {
 	for (int j = 0; j<ht; j++){
 		for (int i = 0; i< wid; i++){
 			for (int k = 0; k<3; k++)
-				twoDTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j+1))];
+				twoDTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j-1))];
 		}
 	}
 		
@@ -1994,60 +1971,34 @@ void TwoDEventRouter::guiNudgeYSize(int val) {
 
 void TwoDEventRouter::
 adjustBoxSize(TwoDParams* pParams){
-	//Determine the max x, y, z sizes of twoD:
+	//Determine the max x, y, z sizes of twoD slice, and make sure it fits.
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
+	int xcrd = 0, ycrd = 1;
+	if (orientation < 2) ycrd++;
+	if (orientation < 1) xcrd++;
 	
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
 	if (!Session::getInstance()->getDataMgr()) return;
 	pParams->getBox(boxmin, boxmax);
-	float rotMatrix[9];
-	getRotationMatrix(pParams->getTheta()*M_PI/180.,pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
-	//Apply rotation matrix inverted to full domain size
+
+	//
 	const float* extents = DataStatus::getInstance()->getExtents();
 	float extentSize[3];
 	for (int i= 0; i<3; i++) extentSize[i] = (extents[i+3]-extents[i]);
+	if (boxmin[xcrd] < extents[xcrd]) boxmin[xcrd] = extents[xcrd];
+	if (boxmax[xcrd] > extents[xcrd+3]) boxmax[xcrd] = extents[xcrd+3];
+	if (boxmin[ycrd] < extents[ycrd]) boxmin[ycrd] = extents[ycrd];
+	if (boxmax[ycrd] > extents[ycrd+3]) boxmax[ycrd] = extents[ycrd+3];
 	
-	//Transform each side of box by rotMatrix.   Effectively that amounts
-	//to multiplying each column of rotMatrix by the box side
-	//If it projects longer (in any dimension) than extents,
-	//then that side must be shrunk appropriately
-	//In other words, the max box is obtained by taking a column and multiplying it
-	//by the max extents in that dimension.
-	//The largest box size is obtained by finding the minimum of
-	//extentSize[i]/norm(col(i))
-
-	//For each j (axis) find max over i of (col(j))sub i /extent[i].
-	//This is the reciprocal of the max value of j box side.
-	for (int axis = 0; axis<3; axis++){
-		float maxval = 0.;
-		for (int i = 0; i<3; i++){
-			if ((abs(rotMatrix[3*i+axis])/extentSize[i])> maxval)
-				maxval = (abs(rotMatrix[3*i+axis])/extentSize[i]);
-		}
-		assert(maxval > 0.f);
-		maxBoxSize[axis] = 1.f/maxval;
-	}
-	
-	
-	//Now make sure the twoD box fits
-	bool boxOK = true;
-	float boxmid[3];
-	for (int i = 0; i<3; i++){
-		if ((boxmax[i]-boxmin[i]) > maxBoxSize[i]){
-			boxOK = false;
-			boxmid[i] = 0.5f*(boxmax[i]+boxmin[i]);
-			boxmin[i] = boxmid[i] - 0.5f* maxBoxSize[i];
-			boxmax[i] = boxmid[i] + 0.5f*maxBoxSize[i];
-		}
-	}
 	
 	pParams->setBox(boxmin, boxmax);
 	//Set the size sliders appropriately:
-	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
-	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
+	xSizeEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
+	ySizeEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
 	
-	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(maxBoxSize[0])));
-	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(maxBoxSize[1])));
+	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(extents[xcrd+3]-extents[xcrd])));
+	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(extents[ycrd+3]-extents[ycrd])));
 	
 	//Cancel any response to text events generated in this method:
 	//
@@ -2059,8 +2010,6 @@ void TwoDEventRouter::resetTextureSize(TwoDParams* twoDParams){
 	twoDParams->getTwoDVoxelExtents(voxDims);
 	twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }
-
-
 
 QString TwoDEventRouter::getMappedVariableNames(int* numvars){
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
@@ -2076,3 +2025,28 @@ QString TwoDEventRouter::getMappedVariableNames(int* numvars){
 	}
 	return names;
 }
+//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
+//Boolean flag is only used by isoeventrouter version
+Histo* TwoDEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
+	
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
+	int varNum = renParams->getSessionVarNum();
+	if (varNum >= numVariables || varNum < 0) return 0;
+	if (varNum >= numHistograms || !histogramList){
+		if (!mustGet) return 0;
+		histogramList = new Histo*[numVariables];
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+		numHistograms = numVariables;
+	}
+	
+	const float* currentDatarange = renParams->getCurrentDatarange();
+	if (histogramList[varNum]) return histogramList[varNum];
+	
+	if (!mustGet) return 0;
+	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	refreshHistogram(renParams);
+	return histogramList[varNum];
+	
+}
+

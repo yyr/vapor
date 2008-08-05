@@ -1667,7 +1667,7 @@ guiEndCursorMove(){
 	if (b) ibfvPlay();
 }
 //calculate the variable, or rms of the variables, at a specific point.
-//Returns the OUT_OF_BOUNDS flag if point is not (in region and in probe).
+//Returns the OUT_OF_BOUNDS flag if point is not in probe
 //
 
 
@@ -1679,8 +1679,11 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	if (!ds || !ds->getDataMgr()) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
 	int arrayCoord[3];
-	
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+
+	for (int i = 0; i<3; i++){
+		regMin[i] = point[i];
+		regMax[i] = point[i];
+	}
 	
 	//Get the data dimensions (at current resolution):
 	
@@ -1699,11 +1702,11 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
-	if (0 > rParams->getAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, totVars, regMin, regMax)) return OUT_OF_BOUNDS;
+	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
+		sessionVarNums, totVars, regMin, regMax, false)) return OUT_OF_BOUNDS;
 
 	for (int i = 0; i< 3; i++){
-		if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
+		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
 		arrayCoord[i] = coordMin[i] + (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
 		//Make sure the transformed coords are in the region
 		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
@@ -1728,7 +1731,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, false);
 		if (!volData[totVars]) {
 			//failure to get data.  
 			QApplication::restoreOverrideCursor();
@@ -1824,7 +1827,7 @@ refreshHistogram(RenderParams* p){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep, false);
 		QApplication::restoreOverrideCursor();
 		if (!volData[totVars]) return;
 		totVars++;
@@ -2062,16 +2065,10 @@ void ProbeEventRouter::captureImage() {
 	for (int j = 0; j<ht; j++){
 		for (int i = 0; i< wid; i++){
 			for (int k = 0; k<3; k++)
-				probeTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j+1))];
+				probeTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j-1))];
 		}
 	}
-		/*
-		for (int i = 0; i< wid*ht; i++){
-			for (int k = 0; k<3; k++){
-				buf[(wid*ht-i-1)*3+k] = probeTex[4*i+k];
-			}
-		}
-		*/
+		
 	//Don't delete the IBFV image
 	if(pParams->getProbeType()== 0) delete buf;
 	

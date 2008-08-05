@@ -78,6 +78,7 @@ public:
 	float calcCurrentValue(TwoDParams* p, const float point[3]);
 
 	//TwoD has a special version of histogramming
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
 	virtual void refreshHistogram(RenderParams* p);
 
 
@@ -140,6 +141,7 @@ protected slots:
 	void twoDCenterView();
 	void twoDCenterRake();
 	void guiCenterTwoD();
+	void guiCenterProbe();
 	void twoDAddSeed();
 	void twoDAttachSeed(bool attach);
 	
@@ -186,9 +188,7 @@ protected:
 	int copyCount[MAXVIZWINS+1];
 	int lastXSizeSlider, lastYSizeSlider;
 	int lastXCenterSlider, lastYCenterSlider, lastZCenterSlider;
-	float maxBoxSize[3];
-	
-	
+
 };
 
 };

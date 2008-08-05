@@ -214,9 +214,10 @@ public:
 	void setVariableSelected(int sessionVarNum, bool value){
 		variableSelected[sessionVarNum] = value;
 	}
-	bool variableIsSelected(int index) {
-		if (index >= (int)variableSelected.size()) return false;
-		return variableSelected[index];}
+	bool variableIsSelected(int sesindex) {
+		if (sesindex >= (int)variableSelected.size()) return false;
+		return variableSelected[sesindex];
+	}
 	void setFirstVarNum(int val){firstVarNum = val;}
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
