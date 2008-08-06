@@ -86,10 +86,12 @@ void Histo::reset(int newNumBins) {
 	largestBin = -1;
 }
 void Histo::addToBin(float val) {
+	int intVal;
 	if (val < minData) numBelow++; 
 	else if (val > maxData) numAbove++;
 	else {
-		int intVal = (int)((val - minData)*(float)numBins/(maxData - minData));
+		if (maxData == minData) intVal = 0;
+		else intVal = (int)((val - minData)*(float)numBins/(maxData - minData));
 		if (intVal == numBins) intVal--;
 		binArray[intVal]++;
 		if (binArray[intVal] > maxBinSize) {

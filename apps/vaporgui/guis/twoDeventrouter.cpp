@@ -1375,7 +1375,7 @@ guiStartCursorMove(){
 	confirmText(false);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveTwoDParams(),  "move twoD cursor");
+	savedCommand = PanelCommand::captureStart(VizWinMgr::getActiveTwoDParams(),  "move planar cursor");
 }
 void TwoDEventRouter::
 guiEndCursorMove(){
@@ -1406,13 +1406,14 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
+	
 	int arrayCoord[3];
 	
 	//Get the data dimensions (at current resolution):
 	
 	int numRefinements = pParams->getNumRefinements();
 	
-	//Specify the region to be just the point:
+	//Specify the region to initially be just the point:
 	for (int i = 0; i<3; i++){
 		regMin[i] = point[i];
 		regMax[i] = point[i];
@@ -1425,15 +1426,22 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		sessionVarNums[totVars++] = varnum;
 	}
+	//To index into slice, will need to know what coordinate is constant:
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum()); 
+	int xcrd = 0, ycrd = 1;
+	if (orientation < 2) ycrd++;
+	if (orientation == 0) xcrd++;
 	
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
 	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, totVars, regMin, regMax, true)) return OUT_OF_BOUNDS;
-
+		sessionVarNums, totVars, regMin, regMax, true)) {
+			return OUT_OF_BOUNDS;
+		}
 	for (int i = 0; i< 3; i++){
-		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
+		if (i == orientation) { arrayCoord[i] = 0; continue;}
+		if (regMin[i] >= regMax[i]) {arrayCoord[i] = coordMin[i]; continue;}
 		arrayCoord[i] = coordMin[i] + (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
 		//Make sure the transformed coords are in the region of available data
 		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
@@ -1467,12 +1475,6 @@ calcCurrentValue(TwoDParams* pParams, const float point[3]){
 		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
-
-	//To index into slice, need to know what coordinate is constant:
-	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum()); 
-	int xcrd = 0, ycrd = 1;
-	if (orientation < 2) ycrd++;
-	if (orientation == 0) xcrd++;
 			
 	int xyzCoord = (arrayCoord[xcrd] - blkMin[xcrd]*bSize[xcrd]) +
 		(arrayCoord[ycrd] - blkMin[ycrd]*bSize[ycrd])*(bSize[ycrd]*(blkMax[xcrd]-blkMin[xcrd]+1));
