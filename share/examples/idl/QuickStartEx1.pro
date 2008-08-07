@@ -50,6 +50,6 @@ endfor
 
 tmpvdf = 'QuickStartEx1.vdf'
 varname = 'omz'
-expregion, tmpvdf, omz, stateinfo, VARNAME=varname
+expregion, tmpvdf, stateinfo, VARNAME=varname, omz
 
 end

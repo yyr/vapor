@@ -24,7 +24,7 @@ region = region * region
 ;
 tmpvdf = getenv('IDL_TMPDIR') + 'impexp.vdf'
 varname = 'varsqr'
-expregion, tmpvdf, region, stateinfo, VARNAME=varname
+expregion, tmpvdf, stateinfo, VARNAME=varname, region
 
 
 end

@@ -15,12 +15,18 @@
 ;       REFLEVEL[in]:    The desired refinement level. If this keyword is 
 ;			not set, the subregion will be imported at full resolution
 ;
-;       VARNAME[in]:    The desired variable level. If this keyword is 
-;			not set, default exported variable will be obtained
+;       VARNAME[in]:    The desired variable. If this keyword is 
+;			not set, the default exported variable returned by
+;			'vaporimport()' will be obtained
+;
+;       TIMESTEP[in]:    The desired time step. If this keyword is 
+;			not set, the default exported time step returned by
+;			'vaporimport()' will be obtained
 ;
 ;       STATEINFO[out]:    If this keyword is present the output of
 ;			the 'vaporimport()' function is returned by the keyword
-;			argument.
+;			argument, possibly modified by the VARNAME and TIMESTEP 
+;			keyword. 
 ;
 ; OUTPUTS:
 ;       The region is returned
@@ -29,7 +35,7 @@
 ;       None.
 ;
 ;-
-function impregion, REFLEVEL=reflevel, STATEINFO=stateinfo, VARNAME=varname
+function impregion, REFLEVEL=reflevel, STATEINFO=stateinfo, VARNAME=varname, TIMESTEP=timestep
 
 
 on_error,2                      ;Return to caller if an error occurs
@@ -47,7 +53,17 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 	;				coordinates specified relative to the finest resolution
 	stateinfo = vaporimport()
 
-	if keyword_set(varname) eq 0 then varname = stateinfo.varname
+	if keyword_set(varname) then begin
+		stateinfo.varname = varname
+	endif else begin
+		varname = stateinfo.varname
+	endelse
+	;if keyword_set(timestep) then begin
+	if arg_present(timestep) then begin
+		stateinfo.timestep = timestep
+	endif else begin
+		timestep = stateinfo.timestep
+	endelse
 
 	;
 	;   Create a "Buffered Read" object to read the data, passing the
@@ -63,11 +79,11 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 	; convert user coordinates back to voxel coordinates, but at 
 	; the requested refinement level. 
 	;
-	minu = vdc_mapvox2user(dfd, -1, stateinfo.timestep,stateinfo.minrange)
-	min = vdc_mapuser2vox(dfd,reflevel,stateinfo.timestep,minu)
+	minu = vdc_mapvox2user(dfd, -1, timestep,stateinfo.minrange)
+	min = vdc_mapuser2vox(dfd,reflevel,timestep,minu)
 
-	maxu = vdc_mapvox2user(dfd, -1, stateinfo.timestep,stateinfo.maxrange)
-	max = vdc_mapuser2vox(dfd,reflevel,stateinfo.timestep,maxu)
+	maxu = vdc_mapvox2user(dfd, -1, timestep,stateinfo.maxrange)
+	max = vdc_mapuser2vox(dfd,reflevel,timestep,maxu)
 
 
 	; Create an array large enough to hold the volume subregion
@@ -76,7 +92,7 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 
 	; Select the variable and time step we want to read
 	;
-	vdc_openvarread, dfd, stateinfo.timestep, varname, reflevel
+	vdc_openvarread, dfd, timestep, varname, reflevel
 
 	; Read the subregion
 	;
