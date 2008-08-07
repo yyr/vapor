@@ -174,6 +174,8 @@ public:
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
 
+	void setDisplacement(float val){myGLWindow->setDisplacement(val);}
+	float getDisplacement() {return myGLWindow->getDisplacement();}
 	void setElevGridColor(QColor& c) {myGLWindow->setElevGridColor(c);}
 	void setElevGridRefinementLevel(int lev) {myGLWindow->setElevGridRefinementLevel(lev);}
 	void enableElevGridRendering(bool val) {myGLWindow->enableElevGridRendering(val);}

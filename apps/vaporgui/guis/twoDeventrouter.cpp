@@ -1228,8 +1228,13 @@ sliderToText(TwoDParams* pParams, int coord, int slideCenter, int slideSize){
 	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
 	if (orientation < coord) coord++;
 	const float* extents = DataStatus::getInstance()->getExtents();
+	
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
 	float newSize = (extents[coord+3]-extents[coord])*(float)slideSize/256.f;
+	//If it's not inside the domain, move the center:
+	if ((newCenter - 0.5*newSize) < extents[coord]) newCenter = extents[coord]+0.5*newSize;
+	if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
+
 	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
 	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);

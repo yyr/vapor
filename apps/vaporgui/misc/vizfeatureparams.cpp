@@ -95,6 +95,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 		ticLength[i] = vfParams.ticLength[i];
 		ticDir[i] = vfParams.ticDir[i];
 	}
+	displacement = vfParams.displacement;
 	showAxisAnnotation = vfParams.showAxisAnnotation;
 	axisAnnotationColor = vfParams.axisAnnotationColor;
 	labelHeight = vfParams.labelHeight;
@@ -158,6 +159,7 @@ void VizFeatureParams::launch(){
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
+	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
 	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
 	vizFeatureDlg->lowValEdit->setText(QString::number(lowValues[sessionVariableNum]));
 	vizFeatureDlg->highValEdit->setText(QString::number(highValues[sessionVariableNum]));
@@ -216,6 +218,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->applyButton2, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisAnnotationCheckbox, SIGNAL(clicked()), this, SLOT(annotationChanged()));
+	connect (vizFeatureDlg->displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->xMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->yMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->zMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -255,6 +258,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->timeCombo,SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeColorButton,SIGNAL(clicked()), this, SLOT(selectTimeTextColor()));
 	connect(vizFeatureDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
+	connect(vizFeatureDlg->displacementEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(vizFeatureDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(vizFeatureDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
@@ -489,6 +493,8 @@ setDialog(){
 			vizFeatureDlg->refinementCombo->insertItem(QString::number(i));
 		}
 	}
+	displacement = vizWin->getDisplacement();
+	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
 	elevGridColor = vizWin->getElevGridColor();
 	elevGridRefinement = vizWin->getElevGridRefinementLevel();
 	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(elevGridColor);
@@ -504,6 +510,7 @@ setDialog(){
 	surfaceImageFilename = vizWin->getTextureFile();
 	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
 	
+	vizFeatureDlg->displacementEdit->setEnabled(isLayered);
 	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
 	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
 	vizFeatureDlg->surfaceColorButton->setEnabled(isLayered);
@@ -610,6 +617,7 @@ copyFromDialog(){
 
 	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
 
+	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
 	elevGridColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentItem();
@@ -743,6 +751,7 @@ applyToViz(int vizNum){
 	vizWin->setTimeAnnotTextSize(timeAnnotTextSize);
 	vizWin->setTimeAnnotType(timeAnnotType);
 	
+	vizWin->setDisplacement(displacement);
 	vizWin->setElevGridColor(elevGridColor);
 	vizWin->enableElevGridRendering(showElevGrid);
 	vizWin->setElevGridRefinementLevel(elevGridRefinement);

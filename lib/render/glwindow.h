@@ -219,6 +219,8 @@ public:
 	void setLabelDigits(int d) {labelDigits = d;}
 	void setTicWidth(float w) {ticWidth = w;}
 	void setAxisColor(QColor& c) {axisColor = c;}
+	void setDisplacement(float val){displacement = val;}
+	float getDisplacement() {return displacement;}
 	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
 	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
@@ -503,6 +505,7 @@ protected:
 	int labelHeight, labelDigits;
 	float ticWidth;
 	QColor axisColor;
+	float displacement;
 
 	float colorbarLLCoord[2];
 	float colorbarURCoord[2];

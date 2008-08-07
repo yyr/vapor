@@ -62,7 +62,7 @@ public:
 	int getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
-	//Two-dim version similar to above.  Region extents are required, but 
+	//version similar to above with 2D support.  Region extents are required, but 
 	//will be shrunk if not in available data
 	static int shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 

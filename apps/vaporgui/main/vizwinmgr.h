@@ -486,6 +486,7 @@ protected:
 	static const string _vizRegionFrameEnabledAttr;
 	static const string _vizSubregionFrameEnabledAttr;
 	static const string _visualizerNumAttr;
+	static const string _vizElevGridDisplacementAttr;
 	static const string _vizElevGridInvertedAttr;
 	static const string _vizElevGridRotationAttr;
 	static const string _vizElevGridTexturedAttr;

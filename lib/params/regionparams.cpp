@@ -376,8 +376,13 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		//Test if it's acceptable, exit if not:
 		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
 			if (ds->warnIfDataMissing()){
+				char* vname;
+				if (twoDim)
+					vname = (char*)ds->getVariableName2D(varNums[i]).c_str();
+				else
+					vname = (char*)ds->getVariableName(varNums[i]).c_str();
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
-					ds->getVariableName(varNums[i]).c_str(),
+					vname,
 					"This message can be silenced from the User Preference Panel.");
 			}
 			return -1;

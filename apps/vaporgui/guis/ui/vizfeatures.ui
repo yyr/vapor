@@ -1949,7 +1949,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout47</cstring>
+                                <cstring>layout45</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1957,7 +1957,7 @@
                                 </property>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout50</cstring>
+                                        <cstring>layout44</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -1975,7 +1975,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>31</width>
+                                                    <width>16</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -1985,13 +1985,13 @@
                                                 <cstring>surfaceCheckbox</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Display Minimum Elevation Surface</string>
+                                                <string>Display Terrain Surface</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Enable rendering of lowest elevation level</string>
+                                                <string>Enable rendering of surface as determined by HGT variable</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When using a layered dataset, you can render a surface at elevation zero (i.e. at the bottom of the bottom layer of the data.  The color and refinement of this surface can also be specified here.</string>
+                                                <string>When using a layered dataset, you can render a surface at terrain height (i.e. at the height specified by the HGT variable, plus a vertical displacement.  The color or texture and refinement level of this surface can also be specified here.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2006,7 +2006,62 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>71</width>
+                                                    <width>51</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Color:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="indent">
+                                                <number>0</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>surfaceColorButton</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>170</red>
+                                                    <green>170</green>
+                                                    <blue>0</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string></string>
+                                            </property>
+                                            <property name="autoDefault">
+                                                <bool>false</bool>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Click to specify color of surface</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer50_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -2015,7 +2070,7 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout102_2</cstring>
+                                        <cstring>layout43</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -2026,7 +2081,7 @@
                                                 <cstring>textLabel1_2_3</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Surface Refinement</string>
+                                                <string>Refinement</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -2081,6 +2136,60 @@
                                         </widget>
                                         <spacer>
                                             <property name="name">
+                                                <cstring>spacer49_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_7</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Displacement</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify vertical displacement of terrain</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The terrain surface is rendered at the elevation (HGT + displacement) in user coordinates.  Modify the displacement to move it up or down.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>displacementEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>90</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify vertical displacement of terrain</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The terrain surface is rendered at the elevation (HGT + displacement) in user coordinates.  Modify the displacement to move it up or down.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
                                                 <cstring>spacer17</cstring>
                                             </property>
                                             <property name="orientation">
@@ -2096,44 +2205,6 @@
                                                 </size>
                                             </property>
                                         </spacer>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel2</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Color</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>AlignCenter</set>
-                                            </property>
-                                            <property name="indent">
-                                                <number>0</number>
-                                            </property>
-                                        </widget>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>surfaceColorButton</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="paletteBackgroundColor">
-                                                <color>
-                                                    <red>170</red>
-                                                    <green>170</green>
-                                                    <blue>0</blue>
-                                                </color>
-                                            </property>
-                                            <property name="text">
-                                                <string></string>
-                                            </property>
-                                            <property name="autoDefault">
-                                                <bool>false</bool>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Click to specify color of surface</string>
-                                            </property>
-                                        </widget>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">

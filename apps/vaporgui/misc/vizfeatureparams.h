@@ -122,6 +122,7 @@ protected:
 	float ticWidth;
 	QColor axisAnnotationColor;
 
+	float displacement;
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
 	float timeAnnotCoords[2];

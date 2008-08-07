@@ -154,6 +154,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	elevNorm = 0;
 	numElevTimesteps = 0;
 	_elevTexid = 0;
+	displacement = 0;
 	
 }
 
@@ -1456,43 +1457,87 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	double regMin[3],regMax[3];
 	
 	DataStatus* ds = DataStatus::getInstance();
-	int varNum = DataStatus::getSessionVariableNum("ELEVATION");
+	//See if there is a HGT variable
+	
+	float* elevData = 0;
+	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
 	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
-	// NOTE:  Currently we are clearing cache here just because we need
-	// turn interpolation off.  This will not be so painful when we
-	// allow both interpolated and uninterpolated volumes to coexist
-	// in the data manager.
-
-	dataMgr->Clear();
-	myReader->SetInterpolateOnOff(false);
-	//Try to get requested refinement level or the nearest acceptable level:
-	int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
-			timeStep, &varNum, 1, regMin, regMax);
-	
-
-	if(refLevel < 0) {
-		myReader->SetInterpolateOnOff(true);
-		return false;
-	}
+	float displacement = getDisplacement();
+	int varnum = DataStatus::getSessionVariableNum2D("HGT");
+	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
+		//Use Elevation variable as backup:
+		varnum = DataStatus::getSessionVariableNum("ELEVATION");
 		
-	
-	//Modify 3rd coord of region extents to obtain only bottom layer:
-	min_dim[2] = max_dim[2] = 0;
-	min_bdim[2] = max_bdim[2] = 0;
-	//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
-	//performing the interpolation step
-	
-	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
-	myReader->SetInterpolateOnOff(true);
-	if (!elevData) {
-		if (ds->warnIfDataMissing()){
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
-				timeStep,
-				"This message can be silenced using the User Preference Panel settings." );
+		// NOTE:  Currently we are clearing cache here just because we need
+		// turn interpolation off.  This will not be so painful when we
+		// allow both interpolated and uninterpolated volumes to coexist
+		// in the data manager.
+
+		dataMgr->Clear();
+		myReader->SetInterpolateOnOff(false);
+		//Try to get requested refinement level or the nearest acceptable level:
+		int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+				timeStep, &varnum, 1, regMin, regMax);
+		
+
+		if(refLevel < 0) {
+			myReader->SetInterpolateOnOff(true);
+			return false;
 		}
-		ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
-		return false;
+			
+		
+		//Modify 3rd coord of region extents to obtain only bottom layer:
+		min_dim[2] = max_dim[2] = 0;
+		min_bdim[2] = max_bdim[2] = 0;
+		//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
+		//performing the interpolation step
+		
+		elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
+		myReader->SetInterpolateOnOff(true);
+		if (!elevData) {
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
+					timeStep,
+					"This message can be silenced using the User Preference Panel settings." );
+			}
+			ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
+			return false;
+		}
+	} else {
+		
+		RegionParams* rParams = getActiveRegionParams();
+		for (int i = 0; i< 3; i++){
+			regMin[i] = rParams->getRegionMin(i);
+			regMax[i] = rParams->getRegionMax(i);
+		}
+		//Try to get requested refinement level or the nearest acceptable level:
+		int refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+				timeStep, &varnum, 1, regMin, regMax, true);
+		
+
+		if(refLevel < 0) {
+			myReader->SetInterpolateOnOff(true);
+			return false;
+		}
+			
+		
+		//Ignore vertical extents
+		min_dim[2] = max_dim[2] = 0;
+		min_bdim[2] = max_bdim[2] = 0;
+		//Then, ask the Datamgr to retrieve the HGT data
+		
+		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, min_bdim, max_bdim, 0);
+		
+		if (!hgtData) {
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.\n %s", 
+					timeStep,
+					"This message can be silenced using the User Preference Panel settings." );
+			}
+			ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
+			return false;
+		}
 	}
 	//Then create arrays to hold the vertices and their normals:
 	maxXElev = max_dim[0] - min_dim[0] +1;
@@ -1500,14 +1545,16 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	elevVert[timeStep] = new float[3*maxXElev*maxYElev];
 	elevNorm[timeStep] = new float[3*maxXElev*maxYElev];
 
-	//Then loop over all the vertices in the Elevation data. 
+	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
 	//These must be converted to
 	//stretched cube coordinates.  The x and y coordinates are determined by
 	//scaling them to the extents. (Need to know the actual min/max stretched cube extents
 	//that correspond to the min/max grid extents)
-	//The z coordinate is taken from the data array, converted to stretched cube coords
+	//The z coordinate is taken from the data array, converted to 
+	//stretched cube coords
 	//using parameters in the viewpoint params.
+
 	
 	float worldCoord[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
@@ -1519,7 +1566,10 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			int pntPos = 3*(i+j*maxXElev);
 			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxXElev-1);
 			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
-			worldCoord[2] = elevData[xcrd+ycrd];
+			if (elevData)
+				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
+			else
+				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
 		}
