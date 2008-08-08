@@ -898,7 +898,7 @@ void TwoDParams::setTwoDDirty(){
 	}
 	
 	textureSize[0]= textureSize[1] = 0;
-
+	setElevGridDirty(true);
 }
 
 

@@ -120,7 +120,7 @@ TwoDEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	
 	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
@@ -236,18 +236,7 @@ void TwoDEventRouter::updateTab(){
 		assert(orientation == 1);
 		orientationLabel->setText("X-Z");
 	}
-	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
-	//Only allow terrain map with horizontal orientation
-	if (orientation != 0) {
-		applyTerrainCheckbox->setChecked(false);
-		applyTerrainCheckbox->setEnabled(false);
-		displacementEdit->setEnabled(false);
-	} else {
-		bool terrainMap = twoDParams->isMappedToTerrain();
-		if (terrainMap) displacementEdit->setEnabled(true);
-		else displacementEdit->setEnabled(false);
-		applyTerrainCheckbox->setChecked(terrainMap);
-	}
+	
 	if (twoDParams->isMappedToTerrain()) {
 		zCenterSlider->setEnabled(false);
 		zCenterEdit->setEnabled(false);
@@ -291,8 +280,7 @@ void TwoDEventRouter::updateTab(){
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 
 	
-	//setup the size sliders 
-	adjustBoxSize(twoDParams);
+	
 
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
@@ -306,7 +294,8 @@ void TwoDEventRouter::updateTab(){
 	yCenterEdit->setText(QString::number(boxCenter[1]));
 	zCenterEdit->setText(QString::number(boxCenter[2]));
 	
-	
+	//setup the size sliders 
+	adjustBoxSize(twoDParams);
 	const float* selectedPoint = twoDParams->getSelectedPoint();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
@@ -347,7 +336,18 @@ void TwoDEventRouter::updateTab(){
 		navigateButton->setOn(true);
 	}
 		
-	
+	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
+	//Only allow terrain map with horizontal orientation
+	if (orientation != 2) {
+		applyTerrainCheckbox->setEnabled(false);
+		applyTerrainCheckbox->setChecked(false);
+		displacementEdit->setEnabled(false);
+	} else {
+		bool terrainMap = twoDParams->isMappedToTerrain();
+		displacementEdit->setEnabled(true);
+		applyTerrainCheckbox->setChecked(terrainMap);
+		applyTerrainCheckbox->setEnabled(true);
+	}
 	twoDTextureFrame->setParams(twoDParams);
 	
 	vizMgr->getTabManager()->update();
@@ -367,14 +367,15 @@ void TwoDEventRouter::refreshTab(){
 
 void TwoDEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	TwoDParams* twoDParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(twoDParams, "edit TwoD text");
 	QString strn;
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
-	if(twoDParams->isMappedToTerrain())
-		twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
+	
+	twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
 	int xcrd =0, ycrd = 1;
@@ -450,10 +451,11 @@ void TwoDEventRouter::guiApplyTerrain(bool mode){
 	TwoDParams* dParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	dParams->setMappedToTerrain(mode);
-	displacementEdit->setEnabled(mode);
 	zCenterSlider->setEnabled(!mode);
 	zCenterEdit->setEnabled(!mode);
 	PanelCommand::captureEnd(cmd, dParams); 
+	setTwoDDirty(dParams);
+	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
 }
 
 void TwoDEventRouter::guiCopyInstanceTo(int toViz){
@@ -469,7 +471,6 @@ setTwoDTabTextChanged(const QString& ){
 }
 void TwoDEventRouter::
 twoDReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
 	confirmText(true);
 }
 
@@ -1011,16 +1012,16 @@ guiChangeVariables(){
 		orientationLabel->setText("X-Z");
 	}
 	//Only allow terrain map with horizontal orientation
-	if (orientation != 0) {
+	if (orientation != 2) {
 		pParams->setMappedToTerrain(false);
-		applyTerrainCheckbox->setChecked(false);
 		applyTerrainCheckbox->setEnabled(false);
+		applyTerrainCheckbox->setChecked(false);
 		displacementEdit->setEnabled(false);
 	} else {
 		bool terrainMap = pParams->isMappedToTerrain();
-		if (terrainMap) displacementEdit->setEnabled(true);
-		else displacementEdit->setEnabled(false);
+		displacementEdit->setEnabled(true);
 		applyTerrainCheckbox->setChecked(terrainMap);
+		applyTerrainCheckbox->setEnabled(true);
 	}
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag

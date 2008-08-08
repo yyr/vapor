@@ -50,6 +50,12 @@ public:
 	bool twoDIsDirty(int timestep) {
 		return (!twoDDataTextures || twoDDataTextures[timestep] == 0);
 	}
+	bool elevGridIsDirty() { 
+		return elevGridDirty;
+	}
+	void setElevGridDirty(bool val){
+		elevGridDirty = val;
+	}
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
 	}
@@ -120,8 +126,9 @@ public:
 	void fileLoadTF();
 	void fileSaveTF();
 	
-	//Set all the cached twoD textures dirty
+	//Set all the cached twoD textures dirty, as well as elev grid
 	void setTwoDDirty();
+	int getMaxTimestep() {return maxTimestep;}
 	//get/set methods
 	void setNumRefinements(int numtrans){numRefinements = numtrans; setTwoDDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
@@ -259,7 +266,7 @@ protected:
 	
 	
 	std::vector<bool> variableSelected;
-	
+	bool elevGridDirty;
 	bool clutDirty;
 	//The first variable selected is used to specify 
 	//which TF will be used.

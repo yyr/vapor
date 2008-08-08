@@ -278,7 +278,7 @@ void GLWindow::paintGL()
 
 	DataStatus *dataStatus = DataStatus::getInstance();
 
-	if (!dataStatus ||!(dataStatus->renderReady())) {
+	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
 		return;

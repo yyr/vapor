@@ -39,8 +39,17 @@ public:
     virtual void		paintGL();
 
 	static unsigned char* getTwoDTexture(TwoDParams*, int frameNum, bool doCache);
+	
 protected:
 	GLuint _twoDid;
+	int numElevTimesteps;
+	//Cached elevation grid (one for each time step)
+	int maxXElev, maxYElev;
+	float** elevVert, **elevNorm;
+	void invalidateElevGrid();
+	void drawElevationGrid(size_t timestep);
+	bool rebuildElevationGrid(size_t timestep);
+	void calcElevGridNormals(size_t timestep);
 	
 
 };
