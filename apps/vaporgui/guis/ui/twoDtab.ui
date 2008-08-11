@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout134</cstring>
+                <cstring>layout98</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout133</cstring>
+                                <cstring>layout97</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -661,7 +661,7 @@ selected.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>28</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -778,7 +778,7 @@ selected.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>19</height>
+                                            <height>18</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -1487,6 +1487,434 @@ orientation of the plane.</string>
                                 </widget>
                                 <spacer>
                                     <property name="name">
+                                        <cstring>spacer102</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout52_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer48_2_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>51</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_11</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>User extents (X,Y,Z)</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer49_2_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>91</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_11_4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Grid extents (X,Y,Z)</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer50_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>31</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout56</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel9</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Min:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minUserXLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minUserYLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minUserZLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer53_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Preferred</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>3</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minGridXLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minGridYLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>minGridZLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout55_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel9_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Max</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxUserXLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxUserYLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxUserZLabel</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>70</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.2345e5</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer52_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Preferred</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>3</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxGridXLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxGridYLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>maxGridZLabel</cstring>
+                                            </property>
+                                            <property name="paletteBackgroundColor">
+                                                <color>
+                                                    <red>209</red>
+                                                    <green>207</green>
+                                                    <blue>190</blue>
+                                                </color>
+                                            </property>
+                                            <property name="text">
+                                                <string>1234</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
                                         <cstring>spacer48</cstring>
                                     </property>
                                     <property name="orientation">
@@ -1933,7 +2361,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>17</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2027,7 +2455,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>17</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2102,7 +2530,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>17</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>

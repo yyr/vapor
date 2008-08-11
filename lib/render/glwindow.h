@@ -323,7 +323,7 @@ public:
 	void doFrameCapture();
 
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
-	TranslateRotateManip* getTwoDManip() {return myTwoDManip;}
+	TranslateStretchManip* getTwoDManip() {return myTwoDManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
 	TranslateStretchManip* getRegionManip() {return myRegionManip;}
 
@@ -475,7 +475,7 @@ protected:
 
 	//Manip stuff:
 	TranslateRotateManip* myProbeManip;
-	TranslateRotateManip* myTwoDManip;
+	TranslateStretchManip* myTwoDManip;
 	TranslateStretchManip* myFlowManip;
 	TranslateStretchManip* myRegionManip;
 

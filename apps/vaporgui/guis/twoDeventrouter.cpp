@@ -205,6 +205,7 @@ void TwoDEventRouter::updateTab(){
 	
 	TwoDParams* twoDParams = VizWinMgr::getActiveTwoDParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
 	
 	guiSetTextChanged(false);
@@ -227,7 +228,7 @@ void TwoDEventRouter::updateTab(){
 		}
 	}
 
-	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
+	int orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
 	if (orientation == 2)
 		orientationLabel->setText("X-Y");
 	else if (orientation == 0)
@@ -279,12 +280,9 @@ void TwoDEventRouter::updateTab(){
 	
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 
-	
-	
-
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = ds->getExtents();
 	twoDParams->getBox(boxmin, boxmax);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
@@ -296,6 +294,35 @@ void TwoDEventRouter::updateTab(){
 	
 	//setup the size sliders 
 	adjustBoxSize(twoDParams);
+
+	//Specify the box extents in both user and grid coords:
+	minUserXLabel->setText(QString::number(boxmin[0]));
+	minUserYLabel->setText(QString::number(boxmin[1]));
+	minUserZLabel->setText(QString::number(boxmin[2]));
+	maxUserXLabel->setText(QString::number(boxmax[0]));
+	maxUserYLabel->setText(QString::number(boxmax[1]));
+	maxUserZLabel->setText(QString::number(boxmax[2]));
+
+	const VDFIOBase* myReader = ds->getRegionReader();
+	if (myReader){
+		int fullRefLevel = ds->getNumTransforms();
+
+		double dBoxMin[3], dBoxMax[3];
+		size_t gridMin[3],gridMax[3];
+		for (int i = 0; i<3; i++) {
+			dBoxMin[i] = boxmin[i];
+			dBoxMax[i] = boxmax[i];
+		}
+		myReader->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
+		myReader->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
+		minGridXLabel->setText(QString::number(gridMin[0]));
+		minGridYLabel->setText(QString::number(gridMin[1]));
+		minGridZLabel->setText(QString::number(gridMin[2]));
+		maxGridXLabel->setText(QString::number(gridMax[0]));
+		maxGridYLabel->setText(QString::number(gridMax[1]));
+		maxGridZLabel->setText(QString::number(gridMax[2]));
+	}
+
 	const float* selectedPoint = twoDParams->getSelectedPoint();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));

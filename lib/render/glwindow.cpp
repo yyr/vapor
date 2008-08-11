@@ -146,7 +146,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	//Create Manips:
 	
 	myProbeManip = new TranslateRotateManip(this, 0);
-	myTwoDManip = new TranslateRotateManip(this, 0);
+	myTwoDManip = new TranslateStretchManip(this, 0);
 	myFlowManip = new TranslateStretchManip(this, 0);
 	myRegionManip = new TranslateStretchManip(this, 0);
 

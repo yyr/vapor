@@ -234,7 +234,8 @@ void ProbeEventRouter::updateTab(){
 
     setEnabled(!Session::getInstance()->sphericalTransform());
 
-	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 	
@@ -339,7 +340,7 @@ void ProbeEventRouter::updateTab(){
 
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = ds->getExtents();
 	probeParams->getBox(boxmin, boxmax);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
@@ -348,6 +349,47 @@ void ProbeEventRouter::updateTab(){
 	xCenterEdit->setText(QString::number(boxCenter[0]));
 	yCenterEdit->setText(QString::number(boxCenter[1]));
 	zCenterEdit->setText(QString::number(boxCenter[2]));
+
+	//Calculate extents of the containing box
+	float corners[8][3];
+	probeParams->calcBoxCorners(corners, 0.f);
+	double dboxmin[3], dboxmax[3];
+	size_t gridMin[3],gridMax[3];
+	for (int i = 0; i< 3; i++){
+		float mincrd = corners[0][i];
+		float maxcrd = mincrd;
+		for (int j = 0; j<8;j++){
+			if (mincrd > corners[j][i]) mincrd = corners[j][i];
+			if (maxcrd < corners[j][i]) maxcrd = corners[j][i];
+		}
+		if (mincrd < extents[i]) mincrd = extents[i];
+		if (maxcrd > extents[i+3]) maxcrd = extents[i+3];
+		dboxmin[i] = mincrd;
+		dboxmax[i] = maxcrd;
+	}
+
+	minUserXLabel->setText(QString::number(dboxmin[0]));
+	minUserYLabel->setText(QString::number(dboxmin[1]));
+	minUserZLabel->setText(QString::number(dboxmin[2]));
+	maxUserXLabel->setText(QString::number(dboxmax[0]));
+	maxUserYLabel->setText(QString::number(dboxmax[1]));
+	maxUserZLabel->setText(QString::number(dboxmax[2]));
+
+	//And convert these to grid coordinates:
+	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	const VDFIOBase* myReader = ds->getRegionReader();
+	if (myReader){
+		int fullRefLevel = ds->getNumTransforms();
+		myReader->MapUserToVox(currentTimeStep, dboxmin, gridMin, fullRefLevel);
+		myReader->MapUserToVox(currentTimeStep, dboxmax, gridMax, fullRefLevel);
+		minGridXLabel->setText(QString::number(gridMin[0]));
+		minGridYLabel->setText(QString::number(gridMin[1]));
+		minGridZLabel->setText(QString::number(gridMin[2]));
+		maxGridXLabel->setText(QString::number(gridMax[0]));
+		maxGridYLabel->setText(QString::number(gridMax[1]));
+		maxGridZLabel->setText(QString::number(gridMax[2]));
+	}
+
 	
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
 	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
