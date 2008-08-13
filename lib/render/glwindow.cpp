@@ -363,6 +363,8 @@ void GLWindow::paintGL()
 		TranslateStretchManip* twoDManip = getTwoDManip();
 		twoDManip->setParams((Params*)getActiveTwoDParams());
 		twoDManip->render();
+		//Also render the cursor
+		draw3DCursor(getActiveTwoDParams()->getSelectedPoint());
 	}
 	//render the rake geometry, if in rake mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 
@@ -1464,6 +1466,9 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	DataMgr* dataMgr = ds->getDataMgr();
 	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
 	float displacement = getDisplacement();
+	//Don't allow the terrain surface to be below the minimum extents:
+	const float* extents = ds->getExtents();
+	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
@@ -1570,6 +1575,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
 			else
 				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
+			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
 		}

@@ -63,8 +63,10 @@ public:
 		currentDatarange[0] = minval; currentDatarange[1]=maxval;}
 	
 	const float* getSelectedPoint() {
-		mapCursor();
 		return selectPoint;
+	}
+	void setSelectedPoint(const float point[3]){
+		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
 	const float* getCursorCoords(){return cursorCoords;}
 	void setCursorCoords(float x, float y){
@@ -114,7 +116,13 @@ public:
 	float getTwoDMin(int i) {return twoDMin[i];}
 	float getTwoDMax(int i) {return twoDMax[i];}
 	void setTwoDMin(int i, float val){twoDMin[i] = val;}
-	void setTwoDMax(int i, float val){twoDMax[i] = val;}
+	void setTwoDMax(int i, float val){
+		twoDMax[i] = val;
+		if ((i == 2) && mapToTerrain){
+			twoDMax[2] = minTerrainHeight+verticalDisplacement;
+			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
+		}
+	}
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
 	
@@ -193,6 +201,11 @@ public:
 			twoDMin[i] = boxMin[i];
 			twoDMax[i] = boxMax[i];
 		}
+		if (mapToTerrain){
+			twoDMin[2]= minTerrainHeight;
+			twoDMax[2] = maxTerrainHeight+verticalDisplacement;
+			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
+		}
 	}
 	//Get the bounding extents of twoD, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
@@ -224,6 +237,9 @@ public:
 	void setMappedToTerrain(bool val) {mapToTerrain = val;}
 	//override parent version for 2D box corners:
 	virtual void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
+	//Mapping [-1,1]X[-1,1] into 3D volume.
+	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
 	
 protected:
@@ -240,11 +256,8 @@ protected:
 	static const string _terrainMapAttr;
 	static const string _verticalDisplacementAttr;
 
-	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
-	//Mapping [-1,1]X[-1,1] into 3D volume.
-	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
-	void mapCursor();
+	
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram
@@ -283,12 +296,12 @@ protected:
 	//State variables controlled by GUI:
 	float twoDMin[3], twoDMax[3];
 	int numRefinements, maxNumRefinements;
-	float theta, phi, psi;
+	
 	float selectPoint[3];
 	float cursorCoords[2];
 	float verticalDisplacement;
 	bool mapToTerrain;
-	
+	float minTerrainHeight, maxTerrainHeight;
 	int textureSize[2];
 	
 	

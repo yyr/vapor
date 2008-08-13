@@ -1115,22 +1115,7 @@ void ProbeParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	}
 	return;
 }
-// Map the cursor coords into world space,
-// refreshing the selected point.  CursorCoords go from -1 to 1
-//
-void ProbeParams::mapCursor(){
-	//Get the transform matrix:
-	float transformMatrix[12];
-	float probeCoord[3];
-	buildCoordTransform(transformMatrix, 0.f);
-	//The cursor sits in the z=0 plane of the probe box coord system.
-	//x is reversed because we are looking from the opposite direction (?)
-	probeCoord[0] = -cursorCoords[0];
-	probeCoord[1] = cursorCoords[1];
-	probeCoord[2] = 0.f;
-	
-	vtransform(probeCoord, transformMatrix, selectPoint);
-}
+
 //Clear out the cache
 void ProbeParams::setProbeDirty(){
 	if (probeDataTextures){

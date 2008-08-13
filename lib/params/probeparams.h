@@ -56,9 +56,11 @@ public:
 	}
 	virtual void setCurrentDatarange(float minval, float maxval){
 		currentDatarange[0] = minval; currentDatarange[1]=maxval;}
-	
+
+	void setSelectedPoint(const float point[3]){
+		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
+	}
 	const float* getSelectedPoint() {
-		mapCursor();
 		return selectPoint;
 	}
 	const float* getCursorCoords(){return cursorCoords;}
@@ -285,9 +287,6 @@ protected:
 	static const string _alphaAttr;
 	static const string _probeTypeAttr;
 	
-	
-	
-	void mapCursor();
 	void refreshCtab();
 			
 	//Utility functions for building texture and histogram

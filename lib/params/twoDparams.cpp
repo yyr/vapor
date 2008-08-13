@@ -162,9 +162,9 @@ void TwoDParams::setOpacityScale(float val)
 bool TwoDParams::
 reinit(bool doOverride){
 	int i;
-	
-	const float* extents = DataStatus::getInstance()->getExtents();
-	setMaxNumRefinements(DataStatus::getInstance()->getNumTransforms());
+	DataStatus* ds = DataStatus::getInstance();
+	const float* extents = ds->getExtents();
+	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
 	
 	
@@ -209,14 +209,14 @@ reinit(bool doOverride){
 	}
 	//Get the variable names:
 
-	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables2D();
+	int newNumVariables = ds->getNumSessionVariables2D();
 	
 	//See if current firstVarNum is valid
 	//if not, reset to first 2D variable that is present:
-	if (!DataStatus::getInstance()->variableIsPresent2D(firstVarNum)){
+	if (!ds->variableIsPresent2D(firstVarNum)){
 		firstVarNum = -1;
 		for (i = 0; i<newNumVariables; i++) {
-			if (DataStatus::getInstance()->variableIsPresent2D(i)){
+			if (ds->variableIsPresent2D(i)){
 				firstVarNum = i;
 				break;
 			}
@@ -245,7 +245,7 @@ reinit(bool doOverride){
 		//anything that isn't there:
 		for (int i = 0; i<newNumVariables; i++){
 			if (variableSelected[i] && 
-				!DataStatus::getInstance()->variableIsPresent2D(i))
+				!ds->variableIsPresent2D(i))
 				variableSelected[i] = false;
 		}
 	}
@@ -268,10 +268,10 @@ reinit(bool doOverride){
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin2D(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax2D(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
+			newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
+			newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
+			newMinEdit[i] = ds->getDefaultDataMin2D(i);
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -288,10 +288,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin2D(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax2D(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin2D(i));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax2D(i));
+				newMinEdit[i] = ds->getDefaultDataMin2D(i);
+				newMaxEdit[i] = ds->getDefaultDataMax2D(i);
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -303,8 +303,8 @@ reinit(bool doOverride){
 	//Make sure edit bounds are valid
 	for(i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin2D(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax2D(i);
+			newMinEdit[i] = ds->getDefaultDataMin2D(i);
+			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
@@ -312,6 +312,11 @@ reinit(bool doOverride){
 			newMaxEdit[i] = 1.f;
 		}
 	}
+	minTerrainHeight = extents[2];
+	maxTerrainHeight = extents[2];
+	int hgtvar = ds->getSessionVariableNum2D("HGT");
+	if (hgtvar >= 0)
+		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
 	//Hook up new stuff
 	delete minColorEditBounds;
 	delete maxColorEditBounds;
@@ -347,7 +352,8 @@ restart(){
 	
 	verticalDisplacement = 0.f;
 	mapToTerrain = false;
-
+	minTerrainHeight = 0.f;
+	maxTerrainHeight = 0.f;
 	textureSize[0] = textureSize[1] = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
@@ -867,25 +873,7 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	}
 	return;
 }
-// Map the cursor coords into world space,
-// refreshing the selected point.  CursorCoords go from -1 to 1
-//
-void TwoDParams::mapCursor(){
-	//Get the transform 
-	
-	float twoDCoord[3];
-	float a[2],b[2],constVal;
-	int mapDims[3];
-	build2DTransform(a,b,&constVal,mapDims);
-	//The cursor sits in the z=0 plane of the twoD box coord system.
-	//x is reversed because we are looking from the opposite direction (?)
-	twoDCoord[0] = -cursorCoords[0];
-	twoDCoord[1] = cursorCoords[1];
-	twoDCoord[2] = 0.f;
-	selectPoint[mapDims[2]] = constVal;
-	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
-	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
-}
+
 //Clear out the cache
 void TwoDParams::setTwoDDirty(){
 	if (twoDDataTextures){
@@ -1195,13 +1183,14 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
     //mappedDims[0] and mappedDims[1] are the dimensions that are
     //varying in the 3D volume.  mappedDims[2] is constant.
     //constVal is the constant value that is used.
-void TwoDParams::build2DTransform(float a[2],float b[2],float* constVal, int mappedDims[3]){
+void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
 	//Find out orientation:
 	int orientation = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
 	mappedDims[2] = orientation;
 	mappedDims[0] = (orientation == 0) ? 1 : 0;  // x or y
 	mappedDims[1] = (orientation < 2) ? 2 : 1; // z or y
-	*constVal = twoDMin[orientation];
+	constVal[0] = twoDMin[orientation];
+	constVal[1] = twoDMax[orientation];
 	//constant terms go to middle
 	b[0] = 0.5*(twoDMin[mappedDims[0]]+twoDMax[mappedDims[0]]);
 	b[1] = 0.5*(twoDMin[mappedDims[1]]+twoDMax[mappedDims[1]]);
@@ -1215,9 +1204,9 @@ void TwoDParams::build2DTransform(float a[2],float b[2],float* constVal, int map
 void TwoDParams::
 calcBoxCorners(float corners[8][3], float, float, int ){
 	
-	float a[2],b[2],constValue;
+	float a[2],b[2],constValue[2];
 	int mapDims[3];
-	build2DTransform(a,b,&constValue,mapDims);
+	build2DTransform(a,b,constValue,mapDims);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front
@@ -1230,43 +1219,43 @@ calcBoxCorners(float corners[8][3], float, float, int ){
 	boxCoord[1] = -1.f;
 	boxCoord[2] = -1.f;
 	// calculate the mapping of each corner,
-	corners[0][mapDims[2]] = constValue;
+	corners[0][mapDims[2]] = constValue[0];
 	corners[0][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[0][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[0] = 1.f;
-	corners[1][mapDims[2]] = constValue;
+	corners[1][mapDims[2]] = constValue[0];
 	corners[1][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[1][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[1] = 1.f;
-	corners[3][mapDims[2]] = constValue;
+	corners[3][mapDims[2]] = constValue[0];
 	corners[3][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[3][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[0] = -1.f;
-	corners[2][mapDims[2]] = constValue;
+	corners[2][mapDims[2]] = constValue[0];
 	corners[2][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[2][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[1] = -1.f;
 	boxCoord[2] = 1.f;
-	corners[4][mapDims[2]] = constValue;
+	corners[4][mapDims[2]] = constValue[1];
 	corners[4][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[4][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[0] = 1.f;
-	corners[5][mapDims[2]] = constValue;
+	corners[5][mapDims[2]] = constValue[1];
 	corners[5][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[5][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[1] = 1.f;
-	corners[7][mapDims[2]] = constValue;
+	corners[7][mapDims[2]] = constValue[1];
 	corners[7][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[7][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 	boxCoord[0] = -1.f;
-	corners[6][mapDims[2]] = constValue;
+	corners[6][mapDims[2]] = constValue[1];
 	corners[6][mapDims[0]] = a[0]*boxCoord[mapDims[0]]+b[0];
 	corners[6][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	

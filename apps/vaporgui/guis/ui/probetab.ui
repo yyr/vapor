@@ -1343,6 +1343,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -1370,6 +1373,9 @@ same as the X, Y, and Z axes.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1433,6 +1439,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1457,6 +1466,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1480,6 +1492,9 @@ same as the X, Y, and Z axes.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1516,6 +1531,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1534,6 +1552,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1551,6 +1572,9 @@ same as the X, Y, and Z axes.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -1597,6 +1621,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1621,6 +1648,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1644,6 +1674,9 @@ same as the X, Y, and Z axes.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max user coordinates of smallest box containing the probe</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1680,6 +1713,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1698,6 +1734,9 @@ same as the X, Y, and Z axes.</string>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
@@ -1715,6 +1754,9 @@ same as the X, Y, and Z axes.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
                                             </property>
                                         </widget>
                                     </hbox>

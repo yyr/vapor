@@ -75,7 +75,7 @@ public:
 	
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if 2 relevant coords not in twoD region and in full domain
-	float calcCurrentValue(TwoDParams* p, const float point[3]);
+	float calcCurrentValue(TwoDParams* p, const float point[3], int* sessionVarNums, int numVars);
 
 	//TwoD has a special version of histogramming
 	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
@@ -171,6 +171,8 @@ protected slots:
 	
 protected:
 	
+	//Calculate the current cursor position, set it in the Params:
+	void mapCursor();
 	//fix TwoD box to fit in domain:
 	void adjustBoxSize(TwoDParams*);
 	void resetTextureSize(TwoDParams*);

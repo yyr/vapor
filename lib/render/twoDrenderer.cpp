@@ -389,6 +389,8 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	regMin[2] = extents[2];
 	regMax[2] = extents[5];
+	//Don't allow the terrain surface to be below the minimum extents:
+	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	int elevGridRefLevel = tParams->getNumRefinements();
 	//Try to get requested refinement level or the nearest acceptable level:
 	int refLevel = RegionParams::shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
@@ -449,6 +451,7 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
 			else
 				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
+			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
 		}

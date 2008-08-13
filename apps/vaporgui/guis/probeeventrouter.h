@@ -74,7 +74,7 @@ public:
 	
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
-	float calcCurrentValue(ProbeParams* p, const float point[3]);
+	float calcCurrentValue(ProbeParams* p, const float point[3], int* sessionVarNums, int numVars);
 
 	//probe has a special version of histogramming
 	virtual void refreshHistogram(RenderParams* p);
@@ -192,6 +192,7 @@ protected slots:
 	
 	
 protected:
+	void mapCursor();
 	bool capturingIBFV;
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);

@@ -394,13 +394,21 @@ void ProbeEventRouter::updateTab(){
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
 	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
 	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
+	mapCursor();
 	const float* selectedPoint = probeParams->getSelectedPoint();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
 	attachSeedCheckbox->setChecked(seedAttached);
-	float val = calcCurrentValue(probeParams,selectedPoint);
-
+	int* sesVarNums = new int[numVariables];
+	int nvars = 0;
+	for (int i = 0; i< numVariables; i++){
+		if (probeParams->variableIsSelected(i)){
+			sesVarNums[nvars++] = i;
+		}
+	}
+	float val = calcCurrentValue(probeParams,selectedPoint,sesVarNums, nvars);
+	delete sesVarNums;
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
@@ -830,6 +838,7 @@ void ProbeEventRouter::
 probeAddSeed(){
 	Point4 pt;
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	mapCursor();
 	pt.set3Val(pParams->getSelectedPoint());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
 	
@@ -1541,7 +1550,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
-
+	mapCursor();
 	const float* selectedPoint = pParams->getSelectedPoint();
 	
 	switch(coord) {
@@ -1696,6 +1705,7 @@ guiEndCursorMove(){
 	//Update the selected point:
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
+		mapCursor();
 		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
 	}
 	bool b = isAnimating();
@@ -1714,7 +1724,7 @@ guiEndCursorMove(){
 
 
 float ProbeEventRouter::
-calcCurrentValue(ProbeParams* pParams, const float point[3]){
+calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums, int numVars){
 	double regMin[3],regMax[3];
 	if (numVariables <= 0) return OUT_OF_BOUNDS;
 	DataStatus* ds = DataStatus::getInstance();
@@ -1733,19 +1743,12 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	
 	//Find the region that contains the probe.
 
-	//List the variables we are interested in
-	int* sessionVarNums = new int[numVariables];
-	int totVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
-		if (!pParams->variableIsSelected(varnum)) continue;
-		sessionVarNums[totVars++] = varnum;
-	}
 	
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
 	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, totVars, regMin, regMax, false)) return OUT_OF_BOUNDS;
+		sessionVarNums, numVars, regMin, regMax, false)) return OUT_OF_BOUNDS;
 
 	for (int i = 0; i< 3; i++){
 		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
@@ -1766,20 +1769,18 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
+	float** volData = new float*[numVars];
 	//Now obtain all of the volumes needed for this probe:
-	totVars = 0;
+	
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
-		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, false);
-		if (!volData[totVars]) {
+	for (int varnum = 0; varnum < numVars; varnum++){
+		volData[varnum] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, sessionVarNums[varnum], timeStep, false);
+		if (!volData[varnum]) {
 			//failure to get data.  
 			QApplication::restoreOverrideCursor();
 			return OUT_OF_BOUNDS;
 		}
-		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
 			
@@ -1789,10 +1790,10 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	
 	float varVal;
 	//use the int xyzCoord to index into the loaded data
-	if (totVars == 1) varVal = volData[0][xyzCoord];
+	if (numVars == 1) varVal = volData[0][xyzCoord];
 	else { //Add up the squares of the variables
 		varVal = 0.f;
-		for (int k = 0; k<totVars; k++){
+		for (int k = 0; k<numVars; k++){
 			varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
 		}
 		varVal = sqrt(varVal);
@@ -2589,4 +2590,25 @@ QString ProbeEventRouter::getMappedVariableNames(int* numvars){
 		}
 	}
 	return names;
+}
+// Map the cursor coords into world space,
+// refreshing the selected point.  CursorCoords go from -1 to 1
+//
+void ProbeEventRouter::mapCursor(){
+	//Get the transform matrix:
+	float transformMatrix[12];
+	float probeCoord[3];
+	float selectPoint[3];
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	pParams->buildCoordTransform(transformMatrix, 0.f);
+	//The cursor sits in the z=0 plane of the probe box coord system.
+	//x is reversed because we are looking from the opposite direction (?)
+	const float* cursorCoords = pParams->getCursorCoords();
+	
+	probeCoord[0] = -cursorCoords[0];
+	probeCoord[1] = cursorCoords[1];
+	probeCoord[2] = 0.f;
+	
+	vtransform(probeCoord, transformMatrix, selectPoint);
+	pParams->setSelectedPoint(selectPoint);
 }

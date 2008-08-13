@@ -333,6 +333,12 @@ mousePressEvent(QMouseEvent* e){
 				tParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = twoDManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
+					//Do nothing if grabbing z on elevation grid:
+					if ((handleNum == 5 || handleNum == 0) &&
+						tParams->isMappedToTerrain()) {
+							doNavigate = true;
+							break;
+						}
 					//Set up for sliding:
 					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
 						doNavigate = true;
