@@ -350,7 +350,7 @@ void TwoDEventRouter::updateTab(){
 	}
 	ignoreListboxChanges = false;
 
-	updateMapBounds(twoDParams);
+	updateBoundsText(twoDParams);
 	
 	float sliderVal = twoDParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
@@ -1077,7 +1077,7 @@ guiChangeVariables(){
 	   
 	
 	PanelCommand::captureEnd(cmd, pParams);
-	setTwoDDirty(pParams);
+
 	//Need to update the selected point for the new variables
 	updateTab();
 	twoDTextureFrame->update();
@@ -1166,7 +1166,6 @@ guiSetNumRefinements(int n){
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->setNumRefinements(n);
 	PanelCommand::captureEnd(cmd, pParams);
-	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
@@ -1324,18 +1323,8 @@ sliderToText(TwoDParams* pParams, int coord, int slideCenter, int slideSize){
 void TwoDEventRouter::
 updateMapBounds(RenderParams* params){
 	TwoDParams* twoDParams = (TwoDParams*)params;
-	QString strn;
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(twoDParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(twoDParams->getDataMaxBound(currentTimeStep)));
-	if (twoDParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMinColorMapValue(),'g',4));
-		rightMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
-	} else {
-		leftMappingBound->setText("0.0");
-		rightMappingBound->setText("1.0");
-	}
 	
+	updateBoundsText(params);
 	setTwoDDirty(twoDParams);
 	setDatarangeDirty(twoDParams);
 	setEditorDirty();
@@ -2126,4 +2115,18 @@ void TwoDEventRouter::mapCursor(){
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);
+}
+void TwoDEventRouter::updateBoundsText(RenderParams* params){
+	QString strn;
+	TwoDParams* twoDParams = (TwoDParams*) params;
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	minDataBound->setText(strn.setNum(twoDParams->getDataMinBound(currentTimeStep)));
+	maxDataBound->setText(strn.setNum(twoDParams->getDataMaxBound(currentTimeStep)));
+	if (twoDParams->getMapperFunc()){
+		leftMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMinColorMapValue(),'g',4));
+		rightMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
+	} else {
+		leftMappingBound->setText("0.0");
+		rightMappingBound->setText("1.0");
+	}
 }

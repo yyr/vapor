@@ -193,6 +193,7 @@ protected slots:
 	
 protected:
 	void mapCursor();
+	void updateBoundsText(RenderParams*);
 	bool capturingIBFV;
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);

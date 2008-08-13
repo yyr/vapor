@@ -216,8 +216,7 @@ public:
 	void setOpacityScale(float val); 
 	virtual void setEnabled(bool value) {
 		enabled = value;
-		//Always clear out the cache
-		if (!value) setTwoDDirty();
+		
 	}
 	void setVariableSelected(int sessionVarNum, bool value){
 		variableSelected[sessionVarNum] = value;

@@ -422,7 +422,7 @@ void ProbeEventRouter::updateTab(){
 	}
 	ignoreListboxChanges = false;
 
-	updateMapBounds(probeParams);
+	updateBoundsText(probeParams);
 	
 	float sliderVal = probeParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
@@ -1591,17 +1591,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 void ProbeEventRouter::
 updateMapBounds(RenderParams* params){
 	ProbeParams* probeParams = (ProbeParams*)params;
-	QString strn;
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(probeParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(probeParams->getDataMaxBound(currentTimeStep)));
-	if (probeParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMinColorMapValue(),'g',4));
-		rightMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
-	} else {
-		leftMappingBound->setText("0.0");
-		rightMappingBound->setText("1.0");
-	}
+	updateBoundsText(params);
 	
 	setProbeDirty(probeParams);
 	setDatarangeDirty(probeParams);
@@ -2612,3 +2602,18 @@ void ProbeEventRouter::mapCursor(){
 	vtransform(probeCoord, transformMatrix, selectPoint);
 	pParams->setSelectedPoint(selectPoint);
 }
+void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
+	ProbeParams* probeParams = (ProbeParams*)rParams;
+	QString strn;
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	minDataBound->setText(strn.setNum(probeParams->getDataMinBound(currentTimeStep)));
+	maxDataBound->setText(strn.setNum(probeParams->getDataMaxBound(currentTimeStep)));
+	if (probeParams->getMapperFunc()){
+		leftMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMinColorMapValue(),'g',4));
+		rightMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
+	} else {
+		leftMappingBound->setText("0.0");
+		rightMappingBound->setText("1.0");
+	}
+}
+	

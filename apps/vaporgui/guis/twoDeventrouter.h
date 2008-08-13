@@ -173,6 +173,8 @@ protected:
 	
 	//Calculate the current cursor position, set it in the Params:
 	void mapCursor();
+	// update the left and right bounds text:
+	void updateBoundsText(RenderParams*);
 	//fix TwoD box to fit in domain:
 	void adjustBoxSize(TwoDParams*);
 	void resetTextureSize(TwoDParams*);
