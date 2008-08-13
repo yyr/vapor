@@ -1378,23 +1378,6 @@ same as the X, Y, and Z axes.</string>
                                                 <string>Min and max grid coordinates of smallest box containing the probe at full resolution</string>
                                             </property>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer50</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>31</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">

@@ -1569,26 +1569,9 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer50_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>31</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
@@ -1726,7 +1709,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -1747,7 +1730,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -1768,7 +1751,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -1908,7 +1891,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -1929,7 +1912,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -1950,7 +1933,7 @@ orientation of the plane.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Min and max grid coordinates of the planer region, at highest refinement level</string>
+                                                <string>Min and max grid coordinates of the planar region, at highest refinement level</string>
                                             </property>
                                         </widget>
                                     </hbox>

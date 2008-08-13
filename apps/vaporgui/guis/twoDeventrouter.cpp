@@ -489,9 +489,14 @@ void TwoDEventRouter::guiApplyTerrain(bool mode){
 		const float* extents = DataStatus::getInstance()->getExtents();
 		dParams->setTwoDMin(2, extents[2]);
 		dParams->setTwoDMax(2, extents[5]);
+	} else {
+		//Set box bottom z-coord to current box max:
+		dParams->setTwoDMin(2,dParams->getTwoDMax(2));
 	}
 	zCenterSlider->setEnabled(!mode);
 	zCenterEdit->setEnabled(!mode);
+	//Reposition cursor:
+	mapCursor();
 	PanelCommand::captureEnd(cmd, dParams); 
 	setTwoDDirty(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
@@ -1072,10 +1077,9 @@ guiChangeVariables(){
 	   
 	
 	PanelCommand::captureEnd(cmd, pParams);
+	setTwoDDirty(pParams);
 	//Need to update the selected point for the new variables
 	updateTab();
-	
-	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }

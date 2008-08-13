@@ -119,7 +119,7 @@ public:
 	void setTwoDMax(int i, float val){
 		twoDMax[i] = val;
 		if ((i == 2) && mapToTerrain){
-			twoDMax[2] = minTerrainHeight+verticalDisplacement;
+			twoDMax[2] = maxTerrainHeight+verticalDisplacement;
 			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
 		}
 	}
