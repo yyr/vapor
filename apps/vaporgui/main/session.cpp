@@ -637,15 +637,12 @@ exportData(){
 		MessageReporter::errorMsg("Export of pre-version-2 metadata not supported");
 		return;
 	}
-	const string& gtype = currentMetadata->GetGridType();
-	if (gtype == "layered") {
-		MessageReporter::errorMsg("Export of data on layered grids not supported");
-		return;
-	}
+	RegionParams* r = winMgr->getRegionParams(winNum);
+	
 	//Set up arguments to Export():
 	//
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
-	RegionParams* r = winMgr->getRegionParams(winNum);
+	
 	DvrParams* dParams = winMgr->getDvrParams(winNum);
 	//always go for max number of transforms:
 	int numxforms = DataStatus::getInstance()->getNumTransforms();
@@ -664,7 +661,19 @@ exportData(){
 		minCoords[i] = mncrds[i];
 		maxCoords[i] = mxcrds[i];
 	}
-
+	const string& gtype = currentMetadata->GetGridType();
+	if (gtype == "layered") {
+		//Make sure region is full in z dimension:
+		
+		size_t max_zdim = DataStatus::getInstance()->getFullSizeAtLevel(numxforms,2) - 1;
+		if (max_zdim != maxCoords[2] || minCoords[2] != 0){
+			MessageReporter::errorMsg("Export of a region on layered grids is only permitted when \nthe region is full in the vertical (z) dimension.");
+			return;
+		}
+		//Determine the unlayered vertical grid size of the data:
+		const size_t* dim = currentMetadata->GetDimension();
+		maxCoords[2] = dim[2];
+	}
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
