@@ -37,6 +37,7 @@
 #include <vapor/Metadata.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
+#include <vapor/WaveletBlock2DRegionWriter.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -78,7 +79,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file"},
+	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file\n (z ignored if variable is 2D)"},
 	{"cnstnames",1, "-", "Colon-separated list of constant dimension names"},
 	{"cnstvals",1,"0", "Colon-separated list of constant dimension values, for corresponding constant dimension names"},
 	{NULL}
@@ -615,6 +616,264 @@ void	process_volume(
 	
 }
 
+void	process_slice(
+	WaveletBlock2DRegionWriter *bufwriter,
+	const size_t *dim, //dimensions from vdf
+	const int ncid,
+	double *read_timer
+) {
+
+	// Check out the netcdf file.
+	// It needs to have the specified variable name, and the specified dimension names
+	// The dimensions must agree with the dimensions in the metadata, and they 
+	// must be in the same order.
+	size_t* ncdfdims;
+	size_t* start;
+	size_t* count;
+	size_t* outCount, *inCount;
+	
+
+    int nc_status;
+
+    int ndims;          // # dims in source file
+    int nvars;          // number of variables (not used)
+    int ngatts;         // number of global attributes (not used)
+    int xdimid;         // id of unlimited dimension (not used)
+	int varid;			// id of variable we are reading
+
+	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid);
+	
+	NC_ERR_READ(nc_status);
+
+	//Check on the variable we are going to read:
+	nc_status = nc_inq_varid(ncid, opt.ncdfvarname, &varid);
+	if (nc_status != NC_NOERR){
+		fprintf(stderr, "variable %s not found in netcdf file\n", opt.ncdfvarname);
+		exit(1);
+	}
+	
+	//allocate array for dimensions in the netcdf file:
+	ncdfdims = new size_t[ndims];
+	
+	//Get all the dimensions in the file:
+	for (int d=0; d<ndims; d++) {
+		nc_status = nc_inq_dimlen(ncid, d, &ncdfdims[d]);
+		NC_ERR_READ(nc_status);
+	}
+
+	
+	char name[NC_MAX_NAME+1];
+	nc_type xtype;
+	int ndimids;
+	//Array of dimension id's used in netcdf file
+	int dimids[NC_MAX_VAR_DIMS];
+	int natts;
+
+	//Find the type and the dimensions associated with the variable:
+	nc_status = nc_inq_var(
+		ncid, varid, name, &xtype, &ndimids,
+		dimids, &natts
+	);
+	NC_ERR_READ(nc_status);
+
+	//Need at least 2 dimensions
+	if (ndimids < 2) {
+		cerr << ProgName << ": Insufficient netcdf variable dimensions" << endl;
+		exit(1);
+	}
+	
+	bool foundXDim = false, foundYDim = false;
+	int dimIDs[2];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
+	int dimIndex[2]; //specify which dimension (for this variable) is associated with x,y,z
+	// Initialize the count and start arrays for extracting slices from the data:
+	count = new size_t[ndimids];
+	start = new size_t[ndimids];
+	outCount = new size_t[ndimids];
+	inCount = new size_t[ndimids];
+	for (int i = 0; i<ndimids; i++){
+		outCount[i] = 1;
+		inCount[i] = 1;
+		start[i] = 0;
+		count[i] = 1;
+	}
+
+	//Make sure any constant dimension names are valid:
+	for (int i = 0; i<opt.constDimNames.size(); i++){
+		int constDimID;
+		if (nc_inq_dimid(ncid, opt.constDimNames[i].c_str(), &constDimID) != NC_NOERR){
+			fprintf(stderr, "Constant dimension name %s not in NetCDF file\n",
+				opt.constDimNames[i].c_str());
+			exit(1);
+		}
+		//OK, found it.  Verify that the constant value is OK:
+		size_t constDimLen=0;
+		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
+			constDimLen <= opt.constDimValues[i] ||
+			opt.constDimValues[i] < 0)
+		{
+			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
+				opt.constDimValues[i],
+				opt.constDimNames[i].c_str(),
+				constDimLen);
+			exit(1);
+		}
+	}
+
+	
+	//Go through the dimensions looking for the 2 dimensions that we are using,
+	//as well as the constant dimension names/values
+	for (int i = 0; i<ndimids; i++){
+		//For each dimension id, get the name associated with it
+		nc_status = nc_inq_dimname(ncid, dimids[i], name);
+		NC_ERR_READ(nc_status);
+		//See if that dimension name is a coordinate of the desired array.
+		if (!foundXDim){
+			if (strcmp(name, opt.dimnames[0].c_str()) == 0){
+				foundXDim = true;
+				dimIDs[0] = dimids[i];
+				dimIndex[0] = i;
+				//Allow dimension to be off by 1, in case of 
+				//staggered dimensions.
+				if (ncdfdims[dimIDs[0]] != dim[0] &&
+					ncdfdims[dimIDs[0]] != (dim[0]+1)){
+					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
+					exit(1);
+				}
+				outCount[i] = dim[0];
+				inCount[i] = ncdfdims[dimIDs[0]];
+				continue;
+			} 
+		} 
+		if (!foundYDim) {
+			if (strcmp(name, opt.dimnames[1].c_str()) == 0){
+				foundYDim = true;
+				dimIDs[1] = dimids[i];
+				dimIndex[1] = i;
+				if (ncdfdims[dimIDs[1]] != dim[1] &&
+					ncdfdims[dimIDs[1]] != (dim[1]+1)){
+					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
+					exit(1);
+				}
+				outCount[i] = dim[1];
+				inCount[i] = ncdfdims[dimIDs[1]];
+				
+				continue;
+			}
+		} 
+		
+		//See if the dimension name is an identified constant dimension:
+		for (int k = 0; k<opt.constDimNames.size(); k++){
+			if (strcmp(name, opt.constDimNames[k].c_str()) == 0){
+				start[i] = (size_t) opt.constDimValues[k];
+				break;
+			}
+		}
+	}
+	if (!foundYDim || !foundXDim){
+		fprintf(stderr, "Specified Netcdf dimension name not found");
+		exit(1);
+	}
+
+	int elem_size = 0;
+	switch (xtype) {
+		case NC_FLOAT:
+			elem_size = sizeof(float);
+			break;
+		case NC_DOUBLE:
+			elem_size = sizeof(double);
+			break;
+		default:
+			cerr << ProgName << ": Invalid variable data type" << endl;
+			exit(1);
+			break;
+	}
+
+	size_t outSize = outCount[dimIndex[0]]*inCount[dimIndex[1]];
+	size_t inSize = inCount[dimIndex[0]]*inCount[dimIndex[1]];
+	//allocate a buffer big enough for input 2D slice :
+	
+	float* inFBuffer = 0, *outFBuffer = 0, *outFBuffer2 = 0;
+	double *inDBuffer = 0, *outDBuffer = 0, *outDBuffer2 = 0;
+
+	
+	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];
+	else inFBuffer = new float[inSize];
+
+	// If data is staggered in x, need additional buffer for output
+
+	if (inCount[dimIndex[0]]>outCount[dimIndex[0]]){
+		if (!opt.quiet) fprintf(stderr, "variable is staggered in x\n");
+		if (xtype == NC_DOUBLE) outDBuffer = new double[outSize];
+		else outFBuffer = new float[outSize];
+	} else {
+		outFBuffer = inFBuffer;
+		outDBuffer = inDBuffer;
+	}
+	//Always need an outFBuffer, (for conversion if data is double)
+	if (!outFBuffer) outFBuffer = new float[outSize];
+
+	if (inCount[dimIndex[1]]>outCount[dimIndex[1]] && !opt.quiet)
+		fprintf(stderr, "variable is staggered in y\n");
+	
+
+	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d\n",
+		outCount[dimIndex[0]],outCount[dimIndex[1]]);
+	
+	//
+	// Translate the volume one slice at a time
+	//
+	// Set up counts to grab a slice of input
+	for (int i = 0; i< ndimids; i++) count[i] = inCount[i];
+	
+	int inSizeX = inCount[dimIndex[0]], inSizeY = inCount[dimIndex[1]];
+	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
+
+
+	TIMER_START(t1);
+	
+	if (xtype == NC_FLOAT) {
+	
+		nc_status = nc_get_vara_float(
+			ncid, varid, start, count, inFBuffer
+		);
+		
+		NC_ERR_READ(nc_status);
+		TIMER_STOP(t1, *read_timer);
+		averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
+				inSizeX, inSizeY, outSizeX, outSizeY);
+
+		
+	} else if (xtype == NC_DOUBLE){
+		
+		nc_status = nc_get_vara_double(
+			ncid, varid, start, count, inDBuffer
+		);
+		NC_ERR_READ(nc_status);
+		TIMER_STOP(t1, *read_timer);
+		averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
+				inSizeX, inSizeY, outSizeX, outSizeY);
+		//Convert to float:
+		for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] = (float)outDBuffer[i];
+	}
+	//
+	// Write the slice of data
+	//
+	
+	bufwriter->WriteRegion(outFBuffer);
+	if (bufwriter->GetErrCode() != 0) {
+		cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+		exit(1);
+	}
+	
+	if (inFBuffer && inFBuffer != outFBuffer) delete inFBuffer;
+	if (inDBuffer && inDBuffer != outDBuffer)
+		delete inDBuffer;
+
+	delete outFBuffer;
+	if (outDBuffer) delete outDBuffer;
+	
+}
+
 
 int	main(int argc, char **argv) {
 
@@ -643,16 +902,14 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (opt.help) {
+	if (opt.help || argc != 3) {
 		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
+		cerr << "  Converts (2D or 3D) variable in netcdf file to variable in VAPOR VDC." << endl;
+		cerr << "  X dimension of variable must be after Y dimension in netcdf file." << endl;
+		cerr << "  2D variables must use X and Y dimensions." << endl;
+		cerr << "  Options are:" << endl;
 		op.PrintOptionHelp(stderr);
-		exit(0);
-	}
-
-	if (argc != 3) {
-		cerr << "Usage: " << ProgName << " [options] metafile NetCDFfile" << endl;
-		op.PrintOptionHelp(stderr);
-		exit(1);
+		exit(argc != 3);
 	}
 
 	//Make sure that the names and values of constant dimensions agree:
@@ -671,33 +928,57 @@ int	main(int argc, char **argv) {
 
     if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	WaveletBlock3DIO	*wbwriter;
+	// If the netcdf variable name was not specified, use the same name as
+	//  in the vdf
+	if (strcmp(opt.ncdfvarname,"???????") == 0){
+		opt.ncdfvarname = opt.varname;
+	}
+
+	//Determine if variable is 3D, create a temporary metadata:
+	Metadata mdTemp (metafile);
+	const vector<string> vars3d = mdTemp.GetVariables3D();
+
+	bool is3D = false;
+	for (int i = 0; i<vars3d.size(); i++){
+		if (vars3d[i] == opt.varname) {
+			is3D = true;
+			break;
+		}
+	}
+	
+
+	WaveletBlock3DIO	*wbwriter3D = 0;
+	WaveletBlock2DIO	*wbwriter2D = 0;
 
 	//
 	// Create an appropriate WaveletBlock writer. Initialize with
 	// path to .vdf file
 	//
-	
-	wbwriter = new WaveletBlock3DBufWriter(metafile, 0);
-	
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
-		exit(1);
+	if (is3D){
+		wbwriter3D = new WaveletBlock3DBufWriter(metafile, 0);
+		if (wbwriter3D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
+			exit(1);
+		}
+		metadata = wbwriter3D->GetMetadata();
+		if (wbwriter3D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+			cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
+			exit(1);
+		} 
+	} else {
+		wbwriter2D = new WaveletBlock2DRegionWriter(metafile);
+		if (wbwriter2D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		}
+		metadata = wbwriter2D->GetMetadata();
+		if (wbwriter2D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		} 
 	}
+	
 
-	// Get a pointer to the Metadata object associated with
-	// the WaveletBlock3DBufWriter object
-	//
-	metadata = wbwriter->GetMetadata();
-
-
-	//
-	// Open a variable for writing at the indicated time step
-	//
-	if (wbwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
-		exit(1);
-	} 
 
 	//
 	// If pre version 2, create a backup of the .vdf file. The 
@@ -705,11 +986,7 @@ int	main(int argc, char **argv) {
 	//
 	if (metadata->GetVDFVersion() < 2) save_file(metafile);
 
-	// If the netcdf variable name was not specified, use the same name as
-	//  in the vdf
-	if (strcmp(opt.ncdfvarname,"???????") == 0){
-		opt.ncdfvarname = opt.varname;
-	}
+	
 	
 	
     int nc_status;
@@ -725,23 +1002,36 @@ int	main(int argc, char **argv) {
 
 
 	TIMER_START(t0);
-
-	process_volume((WaveletBlock3DBufWriter *) wbwriter, dim, ncid, &read_timer);
-	
-	// Close the variable. We're done writing.
-	//
-	wbwriter->CloseVariable();
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
-		exit(1);
+	if (is3D){
+		process_volume((WaveletBlock3DBufWriter *) wbwriter3D, dim, ncid, &read_timer);
+		wbwriter3D->CloseVariable();
+		if (wbwriter3D->GetErrCode() != 0) {
+			cerr << ProgName << ": " << wbwriter3D->GetErrMsg() << endl;
+			exit(1);
+		}
 	}
+	else {
+		process_slice((WaveletBlock2DRegionWriter *) wbwriter2D, dim, ncid, &read_timer);
+		wbwriter2D->CloseVariable();
+		if (wbwriter2D->GetErrCode() != 0) {
+			cerr << ProgName << ": " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		}
+	}
+	
 	TIMER_STOP(t0,timer);
 
 	if (! opt.quiet) {
-		float	write_timer = wbwriter->GetWriteTimer();
-		float	xform_timer = wbwriter->GetXFormTimer();
-		const float *range = wbwriter->GetDataRange();
-
+		float write_timer, xform_timer, *range;
+		if (is3D){
+			write_timer = wbwriter3D->GetWriteTimer();
+			xform_timer = wbwriter3D->GetXFormTimer();
+			range = (float*) wbwriter3D->GetDataRange();
+		} else {
+			write_timer = wbwriter2D->GetWriteTimer();
+			xform_timer = wbwriter2D->GetXFormTimer();
+			range = (float*) wbwriter2D->GetDataRange();
+		}
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);
 		fprintf(stdout, "transform time : %f\n", xform_timer);
