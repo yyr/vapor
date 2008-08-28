@@ -33,8 +33,6 @@ int	WRF::GetVarInfo(
 	const vector <ncdim_t> &ncdims,
 	varInfo & thisVar // Variable info
 ) {
-	static char *buf = NULL;
-	static size_t bufSize = 0;
 
 	thisVar.name.assign(name);
 
@@ -62,35 +60,26 @@ int	WRF::GetVarInfo(
 	//
 	thisVar.stag[0] = thisVar.stag[1] = thisVar.stag[2] =  false;
 
-	size_t attlen;
-	nc_status = nc_inq_attlen(ncid, thisVar.varid, "stagger", &attlen);
-	if (nc_status == NC_ENOTATT) {
-		return(0);
-	}
-	NC_ERR_READ(nc_status);
-
-	if (bufSize < attlen+1) {
-		if (buf) delete [] buf;
-		buf = new char[attlen+1];
-		bufSize = attlen+1;
-	}
-	nc_status = nc_get_att_text(ncid, thisVar.varid, "stagger", buf);
-	buf[attlen] = '\0';
-
-	string stagger(buf);
-
-	string::size_type loc;
-
-	if ((loc = stagger.find("X",0)) != string::npos) {
-			thisVar.stag[0] = true;
-	}
-	if ((loc = stagger.find("Y",0)) != string::npos) {
-			thisVar.stag[1] = true;
-	}
-	if ((loc = stagger.find("Z",0)) != string::npos) {
+	if (thisVar.ndimids == 4) { 
+		if (strcmp(ncdims[thisVar.dimids[1]].name, "bottom_top_stag") == 0) {
 			thisVar.stag[2] = true;
+		}
+		if (strcmp(ncdims[thisVar.dimids[2]].name, "south_north_stag") == 0) { 
+			thisVar.stag[1] = true;
+		}
+		if (strcmp(ncdims[thisVar.dimids[3]].name, "west_east_stag") == 0) {
+			thisVar.stag[0] = true;
+		}
 	}
-		
+	else if (thisVar.ndimids == 3) { 
+		if (strcmp(ncdims[thisVar.dimids[1]].name, "south_north_stag") == 0) {
+			thisVar.stag[1] = true;
+		}
+		if (strcmp(ncdims[thisVar.dimids[2]].name, "west_east_stag") == 0) { 
+			thisVar.stag[0] = true;
+		}
+	}
+
 	return(0);
 	
 }
