@@ -8,7 +8,7 @@
 //                                                                       *
 //***********************************************************************/
 //
-//      File:		ncdf2vdf.cpp
+//      File:		wrf2vdf.cpp
 //
 //      Author:         Alan Norton
 //                      National Center for Atmospheric Research
@@ -69,6 +69,7 @@ struct opt_t {
 	char * tsstart;
 	char * tsend;
 	int level;
+	OptionParser::Boolean_T	noelev;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -81,6 +82,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"tsstart", 1,  "", "Starting time stamp for conversion (default is\n\t\t\t\tfound in VDF"},
 	{"tsend",	1,  "", "Last time stamp to convert (default is latest\n\t\t\t\ttime stamp)"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next\n\t\t\t\trefinement, etc. -1=>finest"},
+	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly (outputs only vertical extents\n\t\t\t\tthat are lower than those in the VDF)"},
@@ -95,6 +97,7 @@ OptionParser::Option_T	get_options[] = {
 	{"tsstart", VetsUtil::CvtToString, &opt.tsstart, sizeof(opt.tsstart)},
 	{"tsend", VetsUtil::CvtToString, &opt.tsend, sizeof(opt.tsend)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"noelev", VetsUtil::CvtToBoolean, &opt.noelev, sizeof(opt.noelev)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -1115,7 +1118,8 @@ void SelectVariables(
 	const vector <string> &wrf_vars, 
 	const vector <string> &opt_varnames, 
 	const WRF::atypVarNames_t &wrfNames,
-	vector <string> &copy_vars
+	vector <string> &copy_vars,
+	bool noelev
 ) {
 	copy_vars.clear();
 
@@ -1123,6 +1127,14 @@ void SelectVariables(
 
 	if (opt_varnames.size()) candidates = opt_varnames;
 	else candidates = vdf_vars;
+
+	// Always include "ELEVATION" unless requested no to
+	//
+	if (! noelev) {
+		if (find(candidates.begin(),candidates.end(),"ELEVATION")==candidates.end()){
+			candidates.push_back("ELEVATION");
+		}
+	}
 
 	for (int i=0; i<candidates.size(); i++) {
 		string v = candidates[i];
@@ -1218,11 +1230,6 @@ void SelectVariables(
 		}
 	}
 
-	// Always include "ELEVATION"
-	//
-	if (find(copy_vars.begin(),copy_vars.end(),"ELEVATION")==copy_vars.end()){
-		copy_vars.push_back("ELEVATION");
-	}
 }
 
 int get_dep_var_info(
@@ -1538,9 +1545,12 @@ int	main(int argc, char **argv) {
 
 		// Figure out which variables we're copying
 		//
-		SelectVariables(vdf_vars, wrf_vars, opt.varnames, wrfNames, copy_vars);
+		SelectVariables(
+			vdf_vars, wrf_vars, opt.varnames, wrfNames, copy_vars,
+			opt.noelev
+		);
 
-		if (find(copy_vars.begin(),copy_vars.end(),"ELEVATION")==copy_vars.end()) {
+		if (! opt.noelev && find(copy_vars.begin(),copy_vars.end(),"ELEVATION")==copy_vars.end()) {
 			cerr << "Elevation could not be computed, skipping file " << argv[arg] << endl;
 			continue;
 		}
@@ -1590,10 +1600,10 @@ int	main(int argc, char **argv) {
 				metadata, wrfNames, vars, wrf_vexts
 			);
 			if (rc<0) MyBase::SetErrCode(0);
-			if ((wrf_vexts[0] < (vdf_extents[2]-0.000001)) && ! opt.quiet) {
+			if ((wrf_vexts[0] < (vdf_extents[2]-0.000001)) && ! opt.quiet && ! opt.noelev) {
 				cerr << ProgName << " : Warning, extents of file " << argv[arg] << " out of range\n";
 			}
-			if ((wrf_vexts[1] < (vdf_extents[5]-0.000001)) && ! opt.quiet) {
+			if ((wrf_vexts[1] < (vdf_extents[5]-0.000001)) && ! opt.quiet && ! opt.noelev) {
 				cerr << ProgName << " : Warning, extents of file " << argv[arg] << " out of range\n";
 			}
 
