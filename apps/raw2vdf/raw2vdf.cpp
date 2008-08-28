@@ -709,6 +709,8 @@ int	main(int argc, char **argv) {
 		//
 		const size_t *dim = metadata->GetDimension();
 
+		TIMER_START(t0);
+
 		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
 			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1)
 		{

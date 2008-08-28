@@ -38,7 +38,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"block",	0,	"",	"Preserve internal blocking in output file"},
+	{"block",	0,	"",	"Preserve internal blocking in 3D output file"},
     {"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
     {"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
     {"zregion", 1, "-1:-1", "Z dimension subregion bounds (min:max)"},
@@ -98,7 +98,9 @@ void	process_volume(
 		wbreader2D->GetDim(dim, opt.level);
 	}
 	if (!is3D) {
-
+		if (opt.block){
+			cerr << "Block option ignored with 2D data" << endl;
+		}
 		size = dim[0] * dim[1];
 		buf = new float[size];
 		assert (buf != NULL);
