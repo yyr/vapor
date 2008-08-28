@@ -32,6 +32,7 @@
 #include <vapor/Metadata.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
+#include <vapor/WaveletBlock2DRegionWriter.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -346,7 +347,99 @@ void	process_volume(
 
 	}
 }
+//Just write a 2d variable 
+void	process_plane(
+	WaveletBlock2DRegionWriter *bufwriter,
+	FILE	*fp, 
+	const size_t *dim,
+	double *read_timer
+) {
 
+	// Allocate a buffer large enough to hold one slice of data,
+	// plus one if staggered.
+	//
+	int element_sz;
+	if (opt.dbl) element_sz = sizeof(double);
+	else element_sz = sizeof (float);
+
+	//dimx and dimy are the size of the input data:
+	size_t dimx,dimy;
+	dimx = (opt.staggeredDim == 1) ? dim[0]+1 : dim[0];
+	dimy = (opt.staggeredDim == 2) ? dim[1]+1 : dim[1];
+	unsigned char *slice = new unsigned char [dimx*dimy*element_sz];
+	
+	//
+	// Translate the volume slice
+	//
+	TIMER_START(t1);
+	int rc = fread(slice, element_sz, dimx*dimy, fp);
+	if (rc != dimx*dimy) {
+		if (rc<0) {
+			cerr << ProgName << ": Error reading input file : " << 
+				strerror(errno) << endl;
+		}
+		else {
+			cerr << ProgName << ": short read" << endl;
+		}
+		exit(1);
+	}
+	TIMER_STOP(t1, *read_timer);
+
+	//
+	// If the data stored on disk are byte swapped relative
+	// to the machine we're running on...
+	//
+	if (opt.swapbytes) {
+		swapbytes(slice, element_sz, dimx*dimy); 
+	}
+
+	// Convert data from double to float if needed.
+	if (opt.dbl) {
+		float *fptr = (float *) slice;
+		double *dptr = (double *) slice;
+		for(int i=0; i<dimx*dimy; i++) *fptr++ = (float) *dptr++;
+	}
+	// If staggered in x, average to smaller array.  Need to
+	// shrink (in x) as we go, bypassing
+	//
+	float* fslice = (float*)slice;
+	if (opt.staggeredDim == 1){
+		size_t inposn = 0;
+		//Loop over output positions:
+		for (int j = 0; j<dim[1]; j++){
+			for (int i = 0; i< dim[0]; i++){
+				fslice[i+dim[0]*j] = 
+					0.5*(fslice[inposn]+fslice[inposn+1]);
+				inposn++;
+			}
+			//At end of row, skip one position:
+			inposn++;
+		}
+		//at the end, the inposn should be one past the end of the data:
+		assert(inposn == dimx*dimy);
+	}
+	
+	//
+	// If staggered in y, average each row, ignore the
+	// last row
+	//
+	else if (opt.staggeredDim == 2){
+		for (int j = 0; j<dim[1]; j++){
+			for (int i = 0; i<dim[0]; i++){
+				fslice[i+dim[0]*j] =
+					(fslice[i+dim[0]*j]+fslice[i+dim[0]*(j+1)])*0.5;
+			}
+		}
+	}
+	// Write a single slice of data
+	//
+	bufwriter->WriteRegion((float *) slice);
+	if (bufwriter->GetErrCode() != 0) {
+		cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+		exit(1);
+	}
+		
+}
 void	process_region(
 	WaveletBlock3DRegionWriter *regwriter,
 	FILE	*fp, 
@@ -435,6 +528,88 @@ void	process_region(
 	}
 }
 
+void	process_plane_region(
+	WaveletBlock2DRegionWriter *regwriter2D,
+	FILE	*fp, 
+	const size_t *dim,
+	double *read_timer
+) {
+
+	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
+	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
+	
+	size_t rdim[3];
+	//Check that we are not doing staggered dimensions:
+	if( opt.staggeredDim != 0){
+		cerr << ProgName << ": " << "Staggered dimensions not supported for subregion" << endl;
+				exit(1);
+	}
+	for(int i=0; i<3; i++) {
+		if (min[i] == (size_t) -1)  min[i] = 0;
+		if (max[i] == (size_t) -1)  max[i] = dim[i]-1;
+		rdim[i] = max[i]-min[i]+1;
+	}
+
+	// Allocate a buffer large enough to hold entire subregion
+	//
+	size_t size;
+	size_t element_sz;
+	if (opt.dbl) {
+		element_sz = sizeof(double);
+		// extra space to convert a slice of double to float;
+		size = rdim[0] * rdim[1] * rdim[2] * sizeof(float) +
+			(rdim[0]*rdim[1] * (sizeof(double) - sizeof(float)));
+	}
+	else {
+		element_sz = sizeof(float);
+		size = rdim[0] * rdim[1] * rdim[2] * sizeof(float);
+	}
+
+	unsigned char *buf = new unsigned char [size];
+
+	//
+	// Translate one slice
+	//
+	unsigned char *slice = buf;
+	
+	TIMER_START(t1);
+	int rc = fread(slice, element_sz, rdim[0]*rdim[1]*rdim[2], fp);
+	if (rc != rdim[0]*rdim[1]*rdim[2]) {
+		if (rc<0) {
+			cerr << ProgName << ": Error reading input file : " << 
+				strerror(errno) << endl;
+		}
+		else {
+			cerr << ProgName << ": short read" << endl;
+		}
+		exit(1);
+	}
+	TIMER_STOP(t1, *read_timer);
+
+	//
+	// If the data stored on disk are byte swapped relative
+	// to the machine we're running on...
+	//
+	if (opt.swapbytes) {
+		swapbytes(slice, element_sz, rdim[0]*rdim[1]*rdim[2]); 
+	}
+
+	// Convert data from double to float if needed.
+	if (opt.dbl) {
+		float *fptr = (float *) slice;
+		double *dptr = (double *) slice;
+		for(int i=0; i<rdim[0]*rdim[1]*rdim[2]; i++) *fptr++ = (float) *dptr++;
+	}
+
+	slice += rdim[0]*rdim[1]*rdim[2]*element_sz;
+	
+
+	regwriter2D->WriteRegion((float *) buf, min, max);
+	if (regwriter2D->GetErrCode() != 0) {
+		cerr << ProgName << ": " << regwriter2D->GetErrMsg() << endl;
+		exit(1);
+	}
+}
 int	main(int argc, char **argv) {
 
 	OptionParser op;
@@ -479,39 +654,135 @@ int	main(int argc, char **argv) {
 
     if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	WaveletBlock3DIO	*wbwriter;
+	WaveletBlock3DIO	*wbwriter3D;
+	WaveletBlock2DRegionWriter	*wbwriter2D;
 
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
-	//
+	//Determine if variable is 3D, create a temporary metadata:
+	Metadata mdTemp (metafile);
+	const vector<string> vars3d = mdTemp.GetVariables3D();
+
+	bool is3D = false;
+	for (int i = 0; i<vars3d.size(); i++){
+		if (vars3d[i] == opt.varname) {
+			is3D = true;
+			break;
+		}
+	}
+	//Handle 2D separately:
+	if (!is3D){
+		wbwriter2D = new WaveletBlock2DRegionWriter(metafile);
+			if (wbwriter2D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		}
+
+		
+		metadata = wbwriter2D->GetMetadata();
+
+
+		//
+		// Open a variable for writing at the indicated time step
+		//
+		if (wbwriter2D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		} 
+
+		//
+		// If pre version 2, create a backup of the .vdf file. The 
+		// translation process will generate a new .vdf file
+		//
+		if (metadata->GetVDFVersion() < 2) save_file(metafile);
+
+		fp = FOPEN64(datafile, "rb");
+		if (! fp) {
+			cerr << ProgName << ": Could not open file \"" << 
+				datafile << "\" : " <<strerror(errno) << endl;
+
+			exit(1);
+		}
+
+		// Get the dimensions of the full volume
+		//
+		const size_t *dim = metadata->GetDimension();
+
+		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
+			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1)
+		{
+			process_plane(wbwriter2D, fp, dim, &read_timer);
+		}
+		else
+		{
+			process_plane_region(wbwriter2D, fp, dim, &read_timer);
+		}
+
+		// Close the variable. We're done writing.
+		//
+		wbwriter2D->CloseVariable();
+		if (wbwriter2D->GetErrCode() != 0) {
+			cerr << ProgName << ": " << wbwriter2D->GetErrMsg() << endl;
+			exit(1);
+		}
+		TIMER_STOP(t0,timer);
+
+		if (! opt.quiet) {
+			float	write_timer = wbwriter2D->GetWriteTimer();
+			float	xform_timer = wbwriter2D->GetXFormTimer();
+			const float *range = wbwriter2D->GetDataRange();
+
+			fprintf(stdout, "read time : %f\n", read_timer);
+			fprintf(stdout, "write time : %f\n", write_timer);
+			fprintf(stdout, "transform time : %f\n", xform_timer);
+			fprintf(stdout, "total transform time : %f\n", timer);
+			fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
+		}
+
+		// For pre-version 2 vdf files we need to write out the updated metafile. 
+		// If we don't call this then
+		// the .vdf file will not be updated with stats gathered from
+		// the volume we just translated.
+		//
+		if (metadata->GetVDFVersion() < 2) {
+			Metadata *m = (Metadata *) metadata;
+			m->Write(metafile);
+		}
+
+		exit(0);
+
+	}
+
+
+	// For 3D data,
 	// Create an appropriate WaveletBlock writer. Initialize with
 	// path to .vdf file
 	//
 	if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
 		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1)
 	{
-		wbwriter = new WaveletBlock3DBufWriter(metafile, 0);
+		wbwriter3D = new WaveletBlock3DBufWriter(metafile, 0);
 	}
 	else {
-		wbwriter = new WaveletBlock3DRegionWriter(metafile, 0);
+		wbwriter3D = new WaveletBlock3DRegionWriter(metafile, 0);
 	}
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+	if (wbwriter3D->GetErrCode() != 0) {
+		cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
 		exit(1);
 	}
 
-	// Get a pointer to the Metdata object associated with
+	// Get a pointer to the Metadata object associated with
 	// the WaveletBlock3DBufWriter object
 	//
-	metadata = wbwriter->GetMetadata();
+	metadata = wbwriter3D->GetMetadata();
 
 
 	//
 	// Open a variable for writing at the indicated time step
 	//
-	if (wbwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+	if (wbwriter3D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+		cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
 		exit(1);
 	} 
 
@@ -539,29 +810,29 @@ int	main(int argc, char **argv) {
 		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1)
 	{
 		process_volume(
-			(WaveletBlock3DBufWriter *) wbwriter, fp, dim, &read_timer
+			(WaveletBlock3DBufWriter *) wbwriter3D, fp, dim, &read_timer
 		);
 	}
 	else {
 		process_region(
-			(WaveletBlock3DRegionWriter *) wbwriter, fp, dim, &read_timer
+			(WaveletBlock3DRegionWriter *) wbwriter3D, fp, dim, &read_timer
 		);
 	}
 
 
 	// Close the variable. We're done writing.
 	//
-	wbwriter->CloseVariable();
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
+	wbwriter3D->CloseVariable();
+	if (wbwriter3D->GetErrCode() != 0) {
+		cerr << ProgName << ": " << wbwriter3D->GetErrMsg() << endl;
 		exit(1);
 	}
 	TIMER_STOP(t0,timer);
 
 	if (! opt.quiet) {
-		float	write_timer = wbwriter->GetWriteTimer();
-		float	xform_timer = wbwriter->GetXFormTimer();
-		const float *range = wbwriter->GetDataRange();
+		float	write_timer = wbwriter3D->GetWriteTimer();
+		float	xform_timer = wbwriter3D->GetXFormTimer();
+		const float *range = wbwriter3D->GetDataRange();
 
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);

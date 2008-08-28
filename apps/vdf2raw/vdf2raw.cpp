@@ -12,6 +12,7 @@
 #include <vapor/WaveletBlock3DBufReader.h>
 #include <vapor/WaveletBlock3DReader.h>
 #include <vapor/WaveletBlock3DRegionReader.h>
+#include <vapor/WaveletBlock2DRegionReader.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -33,11 +34,11 @@ struct opt_t {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
+	{"level",1, "0","Multiresolution refinement level. Zero implies coarsest resolution"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
-	{"quiet",	0,	"",	"Operate quitely"},
-	{"block",	0,	"",	"Preserve internal blockign in output file"},
+	{"quiet",	0,	"",	"Operate quietly"},
+	{"block",	0,	"",	"Preserve internal blocking in output file"},
     {"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
     {"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
     {"zregion", 1, "-1:-1", "Z dimension subregion bounds (min:max)"},
@@ -62,29 +63,70 @@ OptionParser::Option_T	get_options[] = {
 const char	*ProgName;
 
 void	process_volume(
-	const char *metafile, FILE *fp,
+	const char *metafile, FILE *fp, bool is3D,
 	double *read_timer, double *xform_timer, double *write_timer
 ) {
 	size_t	size;
 	float	*buf;
 	const Metadata *metadata;
-
-	if (! opt.block) {
-		size_t dim[3];
-
-		WaveletBlock3DBufReader	wbreader(metafile, 0);
-		if (wbreader.GetErrCode() != 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
+	WaveletBlock3DBufReader *wbreader3D = 0;
+	WaveletBlock2DRegionReader *wbreader2D = 0;
+	size_t dim[3];
+	if (is3D) {
+		wbreader3D = new WaveletBlock3DBufReader(metafile, 0);
+		if (wbreader3D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
 			exit(1);
 		}
-		metadata = wbreader.GetMetadata();
-
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
+		metadata = wbreader3D->GetMetadata();
+		if (wbreader3D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
+			cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
 			exit(1);
 		} 
+		wbreader2D->GetDim(dim, opt.level);
+	} else {
+		wbreader2D = new WaveletBlock2DRegionReader(metafile);
+		if (wbreader2D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+			exit(1);
+		}
+		metadata = wbreader2D->GetMetadata();
+		if (wbreader2D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
+			cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+			exit(1);
+		} 
+		wbreader2D->GetDim(dim, opt.level);
+	}
+	if (!is3D) {
 
-		wbreader.GetDim(dim, opt.level);
+		size = dim[0] * dim[1];
+		buf = new float[size];
+		assert (buf != NULL);
+
+		if (wbreader2D->ReadRegion(buf) < 0) {
+			cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+			exit(1);
+		} 
+		TIMER_START(t0);
+		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
+			cerr << ProgName << ": Could not write to output file : " 
+				<< strerror(errno) << endl;
+			exit(1);
+		}
+		TIMER_STOP(t0, *write_timer);
+
+		*xform_timer = wbreader2D->GetXFormTimer();
+		*read_timer = wbreader2D->GetReadTimer();
+		wbreader2D->CloseVariable();
+
+		if (! opt.quiet) {
+			fprintf(stdout, "Wrote %dx%d plane\n", dim[0],dim[1]);
+		}
+		delete wbreader2D;
+		return;
+	}
+	if (! opt.block) {
+		
 		size = dim[0] * dim[1];
 		buf = new float[size];
 		assert (buf != NULL);
@@ -95,8 +137,8 @@ void	process_volume(
 				cerr << "Writing slice # " << z << endl; 
 			}
 
-			if (wbreader.ReadSlice(buf) < 0) {
-				cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
+			if (wbreader3D->ReadSlice(buf) < 0) {
+				cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
 				exit(1);
 			} 
 			TIMER_START(t0);
@@ -108,9 +150,9 @@ void	process_volume(
 			TIMER_STOP(t0, *write_timer);
 		}
 
-		*xform_timer = wbreader.GetXFormTimer();
-		*read_timer = wbreader.GetReadTimer();
-		wbreader.CloseVariable();
+		*xform_timer = wbreader3D->GetXFormTimer();
+		*read_timer = wbreader3D->GetReadTimer();
+		wbreader3D->CloseVariable();
 
 		if (! opt.quiet) {
 			fprintf(stdout, "Wrote %dx%dx%d volume\n", dim[0],dim[1],dim[2]);
@@ -118,21 +160,10 @@ void	process_volume(
 	}
 	else {
 		size_t bdim[3];
-
-		WaveletBlock3DBufReader	wbreader(metafile, 0);
-		if (wbreader.GetErrCode() != 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-			exit(1);
-		}
-		metadata = wbreader.GetMetadata();
 		const size_t *bs = metadata->GetBlockSize();
-
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-			exit(1);
-		} 
-
-		wbreader.GetDimBlk(bdim, opt.level);
+		
+		wbreader3D->GetDimBlk(bdim, opt.level);
+		
 		
 		size = bdim[0]*bs[0] * bdim[1]*bs[1] * bs[2]*2;
 
@@ -144,9 +175,8 @@ void	process_volume(
 			if (! opt.quiet) {
 				cerr << "Writing slab # " << z << endl; 
 			}
-
-			if (wbreader.ReadSlabs(buf,0) < 0) {
-				cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
+			if (wbreader3D->ReadSlabs(buf,0) < 0) {
+				cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
 				exit(1);
 			}
 
@@ -164,10 +194,10 @@ void	process_volume(
 
 			TIMER_STOP(t0, *write_timer);
 		}
-		*xform_timer = wbreader.GetXFormTimer();
-		*read_timer = wbreader.GetReadTimer();
-		wbreader.CloseVariable();
-
+		*xform_timer = wbreader3D->GetXFormTimer();
+		*read_timer = wbreader3D->GetReadTimer();
+		wbreader3D->CloseVariable();
+		delete wbreader3D;
 		size = bdim[0]*bs[0] * bdim[1]*bs[1];
 		if (! opt.quiet) {
 			fprintf(
@@ -179,28 +209,42 @@ void	process_volume(
 }
 
 void	process_region(
-	const char *metafile, FILE *fp,
+	const char *metafile, FILE *fp, bool is3D,
 	double *read_timer, double *xform_timer, double *write_timer
 ) {
 	size_t	size;
 	float	*buf;
 	const Metadata *metadata;
 
-
-	WaveletBlock3DRegionReader	wbreader(metafile, 0);
-	if (wbreader.GetErrCode() != 0) {
-		cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-		exit(1);
-	}
-	metadata = wbreader.GetMetadata();
-
-	if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
-		cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-		exit(1);
-	} 
-
+	WaveletBlock3DRegionReader *wbreader3D = 0;
+	WaveletBlock2DRegionReader *wbreader2D = 0;
 	size_t dim[3];
-	wbreader.GetDim(dim, opt.level);
+	if (is3D) {
+		wbreader3D = new WaveletBlock3DRegionReader(metafile, 0);
+		if (wbreader3D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
+			exit(1);
+		}
+		metadata = wbreader3D->GetMetadata();
+		if (wbreader3D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
+			cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
+			exit(1);
+		} 
+		wbreader2D->GetDim(dim, opt.level);
+	} else {
+		wbreader2D = new WaveletBlock2DRegionReader(metafile);
+		if (wbreader2D->GetErrCode() != 0) {
+			cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+			exit(1);
+		}
+		metadata = wbreader2D->GetMetadata();
+		if (wbreader2D->OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
+			cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+			exit(1);
+		} 
+		wbreader2D->GetDim(dim, opt.level);
+	}
+	
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
@@ -216,11 +260,18 @@ void	process_region(
 		size = dim[0] * dim[1] * dim[2];
 		buf = new float[size];
 		assert (buf != NULL);
-
-		if (wbreader.ReadRegion(min,max,buf) < 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-			exit(1);
-		} 
+		
+		if (is3D){
+			if (wbreader3D->ReadRegion(min,max,buf) < 0) {
+				cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
+				exit(1);
+			} 
+		} else {
+			if (wbreader2D->ReadRegion(min,max,buf) < 0) {
+				cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+				exit(1);
+			} 
+		}
 
 		TIMER_START(t0);
 
@@ -241,8 +292,11 @@ void	process_region(
 		size_t bmax[3];
 		const size_t *bs = metadata->GetBlockSize();
 
-		wbreader.MapVoxToBlk(min,bmin);
-		wbreader.MapVoxToBlk(max,bmax);
+		if (is3D){
+			wbreader3D->MapVoxToBlk(min,bmin);
+		} else {
+			wbreader2D->MapVoxToBlk(min,bmin);
+		}
 
 		size_t bdim[3] = {
 			bmax[0]-bmin[0]+1,
@@ -254,10 +308,17 @@ void	process_region(
 		buf = new float[size];
 		assert (buf != NULL);
 
-		if (wbreader.BlockReadRegion(bmin,bmax,buf,0) < 0) {
-			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
-			exit(1);
-		} 
+		if (is3D) {
+			if (wbreader3D->BlockReadRegion(bmin,bmax,buf,0) < 0) {
+				cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
+				exit(1);
+			} 
+		} else {
+			if (wbreader2D->BlockReadRegion(bmin,bmax,buf,0) < 0) {
+				cerr << ProgName << " : " << wbreader2D->GetErrMsg() << endl;
+				exit(1);
+			} 
+		}
 
 		TIMER_START(t0);
 
@@ -276,9 +337,17 @@ void	process_region(
 			);
 		}
 	}
-	*xform_timer = wbreader.GetXFormTimer();
-	*read_timer = wbreader.GetReadTimer();
-	wbreader.CloseVariable();
+	if (is3D) {
+		*xform_timer = wbreader3D->GetXFormTimer();
+		*read_timer = wbreader3D->GetReadTimer();
+		wbreader3D->CloseVariable();
+		delete wbreader3D;
+	} else {
+		*xform_timer = wbreader2D->GetXFormTimer();
+		*read_timer = wbreader2D->GetReadTimer();
+		wbreader2D->CloseVariable();
+		delete wbreader2D;
+	}
 }
 
 int	main(int argc, char **argv) {
@@ -335,15 +404,28 @@ int	main(int argc, char **argv) {
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
+	//Determine if variable is 2D or 3D:
+	//Determine if variable is 3D, create a temporary metadata:
+	Metadata mdTemp (metafile);
+	const vector<string> vars3d = mdTemp.GetVariables3D();
+
+	bool is3D = false;
+	for (int i = 0; i<vars3d.size(); i++){
+		if (vars3d[i] == opt.varname) {
+			is3D = true;
+			break;
+		}
+	}
+
 	TIMER_START(t0);
 
 	if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
 		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1) 
 	{
-		process_volume(metafile, fp, &read_timer, &xform_timer, &write_timer);
+		process_volume(metafile, fp, is3D, &read_timer, &xform_timer, &write_timer);
 	}
 	else {
-		process_region(metafile, fp, &read_timer, &xform_timer, &write_timer);
+		process_region(metafile, fp, is3D, &read_timer, &xform_timer, &write_timer);
 	}
 
 	fclose(fp);

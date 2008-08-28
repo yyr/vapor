@@ -907,6 +907,8 @@ int	main(int argc, char **argv) {
 		cerr << "  Converts (2D or 3D) variable in netcdf file to variable in VAPOR VDC." << endl;
 		cerr << "  X dimension of variable must be after Y dimension in netcdf file." << endl;
 		cerr << "  2D variables must use X and Y dimensions." << endl;
+		cerr << "  If a NetCDF dimension is one greater than the corresponding VDC dimension," << endl;
+		cerr << "  data is averaged to the VDC dimension, to support staggered grids" << endl;
 		cerr << "  Options are:" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(argc != 3);
