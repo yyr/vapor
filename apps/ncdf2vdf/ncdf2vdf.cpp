@@ -947,6 +947,22 @@ int	main(int argc, char **argv) {
 			break;
 		}
 	}
+	if (!is3D){
+		//Make sure the orientation is horizontal:
+		const vector<string> vars2d = mdTemp.GetVariables2DXY();
+		bool isOK = false;
+		for (int i = 0; i<vars2d.size(); i++){
+			if (vars2d[i] == opt.varname) {
+				isOK = true;
+				break;
+			}
+		}
+		if (!isOK){
+			cerr << "Variable named " << opt.varname << " is neither 3D nor horizontal." << endl;
+			cerr << "Conversion not supported." << endl;
+			exit(1);
+		}
+	}
 	
 
 	WaveletBlock3DIO	*wbwriter3D = 0;

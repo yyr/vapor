@@ -526,7 +526,14 @@ setTwoDEnabled(bool val, int instance){
 	TwoDParams* pParams = vizMgr->getTwoDParams(activeViz,instance);
 	//Make sure this is a change:
 	if (pParams->isEnabled() == val ) return;
+	//Make sure it's oriented horizontally:
 	
+	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
+	if (orientation != 2) {
+		MessageReporter::errorMsg("Display of non-horizontal 2D variables not supported");
+		return;
+	}
+
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		performGuiChangeInstance(instance);

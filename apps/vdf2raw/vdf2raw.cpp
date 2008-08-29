@@ -403,7 +403,7 @@ int	main(int argc, char **argv) {
 	fp = FOPEN64(datafile, "wb");
 	if (! fp) {
 		cerr << ProgName << ": Could not open file \"" << 
-			datafile << "\" : " <<strerror(errno) << endl;
+			datafile << "\" : " << strerror(errno) << endl;
 
 		exit(1);
 	}
@@ -421,6 +421,22 @@ int	main(int argc, char **argv) {
 		if (vars3d[i] == opt.varname) {
 			is3D = true;
 			break;
+		}
+	}
+	if (!is3D){
+		//Make sure the orientation is horizontal:
+		const vector<string> vars2d = mdTemp.GetVariables2DXY();
+		bool isOK = false;
+		for (int i = 0; i<vars2d.size(); i++){
+			if (vars2d[i] == opt.varname) {
+				isOK = true;
+				break;
+			}
+		}
+		if (!isOK){
+			cerr << "Variable named " << opt.varname << " is neither 3D nor horizontal." << endl;
+			cerr << "Conversion not supported." << endl;
+			exit(1);
 		}
 	}
 

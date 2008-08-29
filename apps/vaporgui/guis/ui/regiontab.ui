@@ -2008,7 +2008,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2029,7 +2029,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2050,7 +2050,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -2092,7 +2092,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2113,7 +2113,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2134,7 +2134,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Display full extents of this Vapor Data Colection</string>
+                                                                                <string>Full extents of this Vapor Data Collection</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -2388,7 +2388,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2409,7 +2409,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2430,7 +2430,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -2475,7 +2475,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2496,7 +2496,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2517,7 +2517,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate xtents of specified variable in this VDC</string>
+                                                                                <string>User coordinate extents of specified variable in this VDC</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -2768,7 +2768,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2789,7 +2789,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2810,7 +2810,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -2858,7 +2858,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2879,7 +2879,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -2900,7 +2900,7 @@ available.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>User coordinate extents of current region (or -1 if data not available)</string>
+                                                                                <string>User coordinate extents of current region (or blank if data not available)</string>
                                                                             </property>
                                                                         </widget>
                                                                     </vbox>
@@ -3132,7 +3132,7 @@ available.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Size of voxel data in specified region</string>
+                                                <string>Size of voxel data of variable in specified region</string>
                                             </property>
                                         </widget>
                                         <spacer>

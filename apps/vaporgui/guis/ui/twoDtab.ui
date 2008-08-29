@@ -321,17 +321,7 @@ create new 2D planar instances.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The Probe/Contour panel
-controls the location and 
-orientation of a 2- or 3- dimensional
-volume that is placed within the 
-full data volume.  It is useful
-for histogramming, displaying,
-and selecting variable values 
-within the volume.  This is 
-used in conjunction with the
-Data Probe Tool from the main
-window toolbar.</string>
+                        <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  This panel controls positioning and color-mapping of the planar region and allows querying variable values and flow seed placement.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -631,17 +621,7 @@ window toolbar.</string>
                                                         <string>Select one or more variables to be displayed in contour view</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>Select one or more 2D variables
-to be examined.
-Multiple variables are selected
-by ctrl-click with the left mouse 
-button.  When multiple variables
-are selected, they must have the same
-orientation, and the histogram and
-the cross-section images are based
-on the magnitude of the vector
-consisting of all the variables
-selected.</string>
+                                                        <string>Select one or more 2D variables to be examined.  Variables must be horizontal (X-Y oriented).  Multiple variables are selected by ctrl-click with the left mouse button.  When multiple variables are selected, the histogram and the cross-section images are based on the magnitude of the vector consisting of all the selected variables.</string>
                                                     </property>
                                                 </widget>
                                             </vbox>
