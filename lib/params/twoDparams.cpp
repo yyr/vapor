@@ -996,7 +996,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 
 
 	//Loop over pixels in texture.  Pixel centers map to edges of twoD plane
-	
+	int orientation = ds->get2DOrientation(firstVarNum);
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
 		twoDCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
@@ -1014,7 +1014,9 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
+				if (i == orientation) continue;
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
+				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
 			
 			if(dataOK) { //find the coordinate in the data array

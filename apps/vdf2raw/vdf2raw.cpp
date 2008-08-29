@@ -286,7 +286,8 @@ void	process_region(
 		TIMER_STOP(t0, *write_timer);
 
 		if (! opt.quiet) {
-			fprintf(stdout, "Wrote %dx%dx%d volume\n", dim[0],dim[1],dim[2]);
+			if(is3D) fprintf(stdout, "Wrote %dx%dx%d volume\n", dim[0],dim[1],dim[2]);
+			else fprintf(stdout, "Wrote %dx%d plane\n", dim[0],dim[1]);
 		}
 	}
 	else {
@@ -333,9 +334,13 @@ void	process_region(
 		TIMER_STOP(t0, *write_timer);
 
 		if (! opt.quiet) {
-			fprintf(
+			if (is3D) fprintf(
 				stdout, "Wrote %dx%dx%d volume\n", 
 				bdim[0]*bs[0],bdim[1]*bs[0],bdim[2]*bs[0]
+			);
+			else fprintf(
+				stdout, "Wrote %dx%d plane\n", 
+				bdim[0]*bs[0],bdim[1]*bs[0]
 			);
 		}
 	}

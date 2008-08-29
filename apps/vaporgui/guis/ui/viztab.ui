@@ -190,6 +190,9 @@ lights.</string>
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector in which the camera is pointed</string>
                             </property>
@@ -229,6 +232,9 @@ where the camera is pointed.</string>
                             <property name="name">
                                 <cstring>camPos0</cstring>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of the viewer (i.e. camera)</string>
                             </property>
@@ -251,6 +257,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>3.12332</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of the viewer (i.e. camera)</string>
@@ -310,6 +319,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.5002</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector in which the camera is pointed</string>
                             </property>
@@ -341,6 +353,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.5</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
                             </property>
@@ -363,6 +378,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
@@ -395,6 +413,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector in which the camera is pointed</string>
                             </property>
@@ -417,6 +438,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>-0.24556</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of the viewer (i.e. camera)</string>
@@ -441,6 +465,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>1.0</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector that will point upward in the scene</string>
                             </property>
@@ -463,6 +490,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.0</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector that will point upward in the scene</string>
@@ -487,6 +517,9 @@ where the camera is pointed.</string>
                             <property name="text">
                                 <string>0.0</string>
                             </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates of a vector that will point upward in the scene</string>
                             </property>
@@ -509,6 +542,9 @@ where the camera is pointed.</string>
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>

@@ -723,7 +723,8 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	int rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
 	if (!ds->dataIsLayered()) return rc;
 	if (rc < 0) return rc;
+	int maxRefLevel = ds->getNumTransforms();
 	min_coord[2] = 0;
-	max_coord[2] = (fullHeight >> minRefLevel) -1;
+	max_coord[2] = (fullHeight >> (maxRefLevel -minRefLevel)) -1;
 	return rc;
 }

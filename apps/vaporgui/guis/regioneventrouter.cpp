@@ -501,10 +501,28 @@ refreshRegionInfo(RegionParams* rParams){
 	
 	int varNum = -1;
 	std::string varName;
+	bool is3D = false;
+	int orientation = -1;
 	if (ds ) {
-		varName = ds->getCurrentMetadata()->GetVariableNames()[mdVarNum];
-		varNum = ds->getSessionVariableNum(varName);
-		maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
+		const Metadata* md = ds->getCurrentMetadata();
+		varName = md->GetVariableNames()[mdVarNum];
+		vector<string> varnames = md->GetVariables3D();
+		for (int i = 0; i< varnames.size(); i++){
+			if (varName == varnames[i]) {
+				is3D = true;
+				break;
+			}
+		}
+		if (is3D){
+			varNum = ds->getSessionVariableNum(varName);
+			maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
+		}
+		else {
+			int mdVarnum = ds->getMetadataVarNum2D(varName);
+			orientation = ds->get2DOrientation(mdVarnum);
+			varNum = ds->getSessionVariableNum2D(varName);
+			maxRefLevel = ds->maxXFormPresent2D(varNum, timeStep);
+		}
 		
 	} 
 
@@ -540,6 +558,7 @@ refreshRegionInfo(RegionParams* rParams){
 	maxXSelectedLabel->setText(QString::number(regionMax[0],'g',5));
 	maxYSelectedLabel->setText(QString::number(regionMax[1],'g',5));
 	maxZSelectedLabel->setText(QString::number(regionMax[2],'g',5));
+
 
 	//Now produce the corresponding voxel coords:
 	size_t min_dim[3], max_dim[3];
@@ -621,13 +640,54 @@ refreshRegionInfo(RegionParams* rParams){
 		maxVarYLabel->setText("");
 		maxVarZLabel->setText("");
 	}
-	
 
+	switch (orientation){
+		case 0 : 
+			minVarXLabel->setText("-");
+			maxVarXLabel->setText("-");
+			minXVoxVarLabel->setText("-");
+			maxXVoxVarLabel->setText("-");
+			minXVoxSelectedLabel->setText("-");
+			maxXVoxSelectedLabel->setText("-");
+			minXSelectedLabel->setText("-");
+			maxXSelectedLabel->setText("-");
+			break;
+		case 1 : 
+			minVarYLabel->setText("-");
+			maxVarYLabel->setText("-");
+			minYVoxVarLabel->setText("-");
+			maxYVoxVarLabel->setText("-");
+			minYVoxSelectedLabel->setText("-");
+			maxYVoxSelectedLabel->setText("-");
+			minYSelectedLabel->setText("-");
+			maxYSelectedLabel->setText("-");
+			break;
+		case 2 : 
+			minVarZLabel->setText("-");
+			maxVarZLabel->setText("-");
+			minZVoxVarLabel->setText("-");
+			maxZVoxVarLabel->setText("-");
+			minZVoxSelectedLabel->setText("-");
+			maxZVoxSelectedLabel->setText("-");
+			minZSelectedLabel->setText("-");
+			maxZSelectedLabel->setText("-");
+			break;
+		default:
+			break;
+	}
 	if (ds && ds->getCurrentMetadata())
 		bs = *(ds->getCurrentMetadata()->GetBlockSize());
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
-	float newFullMB = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
-	
+	float newFullMB;
+	if (is3D)
+		newFullMB = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+	else {
+		//get other coords:
+		int crd0 = 0, crd1 = 1;
+		if (orientation < 2) crd1++;
+		if (orientation < 1) crd0++;
+		newFullMB = (float)(bs*bs*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
+	}
 	
 	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
 	newFullMB /= 262144.f;

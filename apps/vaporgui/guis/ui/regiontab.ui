@@ -36,7 +36,7 @@
         <string>Region Settings</string>
     </property>
     <property name="toolTip" stdset="0">
-        <string>Full vertical (Z) size of grid at highest refinement level</string>
+        <string></string>
     </property>
     <property name="whatsThis" stdset="0">
         <string>The Region panel specifies a box
@@ -2711,7 +2711,7 @@ available.</string>
                                                                 <cstring>textLabel1_4</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Selected Extents</string>
+                                                                <string>Region Extents</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>

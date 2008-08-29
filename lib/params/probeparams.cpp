@@ -1264,6 +1264,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
+				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
 			
 			if(dataOK) { //find the coordinate in the data array
