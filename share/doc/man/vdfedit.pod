@@ -1,0 +1,80 @@
+=head1 NAME
+
+vdfedit - Edit the contents of a VAPOR .vdf file
+
+=head1 SYNOPSIS
+
+B<vdfedit> [options] I<vdffile>
+
+=head1 DESCRIPTION
+
+B<vdfedit> allows simple editing operations to be performed on a
+VAPOR Data Collection (VDC) metafile, I<vdffile>. B<vdfedit> does not
+in any way change the contents of the numerical solution data in a VDC; 
+it only permits the contents of the parent .vdf file to be modified.
+Note, that the newly edited metafile will overwrite the original metafile (a
+backup of the original file is saved to I<vdffile>.bak). In general,
+it is not possible to change the name of a .vdf file without changing
+the name of the data directory associated with the .vdf file.
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item -addvars3d E<lt>listE<gt>
+
+A colon delimited list of 3D variable names to be added to the .vdf file.
+
+=item -addvars2dxy E<lt>listE<gt>
+
+A colon delimited list of 2D, XY-plane  variable names to be added to 
+the .vdf file.
+
+=item -addvars2dxz E<lt>listE<gt>
+
+A colon delimited list of 2D, XZ-plane  variable names to be added to 
+the .vdf file.
+
+=item -addvars2dyz E<lt>listE<gt>
+
+A colon delimited list of 2D, YZ-plane  variable names to be added to 
+the .vdf file.
+
+=item -delvars E<lt>listE<gt>
+
+A colon delimited list variable names to be deleted from 
+the .vdf file. The type of variable (e.g. 3D, 2DXY, 2DXZ) is not 
+relevant.
+
+=item -addts E<lt>nE<gt>
+
+Add I<n> time steps to the .vdf file, where I<n> is an
+integer. If I<n> is less than zero, I<n> time steps are 
+deleted. If I<n> is greater than zero, I<n> time steps are
+added. If I<n> is zero the file is unchanged.
+
+=item -timeincr E<lt>deltaE<gt>
+
+This option specifies the increment, I<delta>, between time steps
+to be used when calculating the B<UserTime> VDF keyword. I<delta> is a floating point number. The default value is 1.0.
+
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+C<vdfedit -addvars3d U:V:W -addts 10 file.vdf>
+
+will add the 3D variables B<U>, B<V>, and B<W> to the .vdf file B<file.vdf>. It
+will also increase the number of time steps by 10.
+
+=head1 SEE ALSO
+
+vdfcreate, wrf2vdf
