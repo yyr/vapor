@@ -275,7 +275,7 @@ Metadata::~Metadata() {
 }
 
 
-int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
+int Metadata::Merge(Metadata *metadata, size_t ts_start) {
 
 	const size_t *bs = this->GetBlockSize();
 	const size_t *mbs = metadata->GetBlockSize();
@@ -299,6 +299,18 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 
 	if (this->GetVDFVersion() < 2 || metadata->GetVDFVersion() < 2) {
 		SetErrMsg("Pre version 2 vdf files not supported");
+		return(-1);
+	}
+
+	//
+	// Ensure that both metadata objects have current version numbers
+	//
+	if (this->MakeCurrent() < 0) {
+		SetErrMsg("Could not make Metadata object current");
+		return(-1);
+	}
+	if (metadata->MakeCurrent() < 0) {
+		SetErrMsg("Could not make Metadata object current");
 		return(-1);
 	}
 		
@@ -404,6 +416,28 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 
 	return(0);
 }
+
+int Metadata::MakeCurrent() {
+
+	if (GetVDFVersion() < 1) {
+		SetErrMsg("Can't make a pre-version 1 VDF file current");
+		return(-1);
+	}
+	if (GetVDFVersion() == VDF_VERSION) return(0);
+
+	_vdfVersion = VDF_VERSION;
+
+	map <string, string> &attrs = _rootnode->Attrs();
+	ostringstream oss;
+    oss << _vdfVersion;
+    attrs[_vdfVersionAttr] = oss.str();
+
+	const vector <string> &vnames = GetVariableNames();
+	vector <string> myvnames = vnames;	// get a local copy
+
+	return(SetVariableNames(vnames));
+}
+	
 
 int Metadata::Merge(const string &path, size_t ts_start) {
 	Metadata *metadata;
@@ -726,7 +760,7 @@ long Metadata::GetNumTimeSteps() const {
 int Metadata::SetVariableNames(const vector <string> &value) {
 	size_t numTS = _rootnode->GetNumChildren();
 
-	SetDiagMsg("Metadata::SetVariableNames([%s,...])", value[0].c_str());
+	SetDiagMsg("Metadata::SetVariableNames()");
 
 	vector <string> value_unique = value;
 	vector_unique(value_unique);
@@ -741,9 +775,13 @@ int Metadata::SetVariableNames(const vector <string> &value) {
 
 	_rootnode->SetElementStringVec(_varNamesTag, value_unique);
 
+	_varNames3D = value_unique;
+
+
+    if (this->GetVDFVersion() < 3) return(0);
+
 	// By default all variables are of type 3D
 	_rootnode->SetElementStringVec(_vars3DTag, value_unique);
-	_varNames3D = value_unique;
 
 
 	// Clear all other data types
@@ -817,7 +855,12 @@ int Metadata::_setVariableTypes(
 
 int Metadata::SetVariables3D(const vector <string> &value) {
 
-	SetDiagMsg("Metadata::SetVariables3D([%s,...])", value[0].c_str());
+	SetDiagMsg("Metadata::SetVariables3D()");
+
+	if (this->GetVDFVersion() < 3) {
+		SetErrMsg("Pre version 3 vdf files not supported");
+		return(-1);
+	}
 
 	vector <string> delete_tags;
 	
@@ -832,7 +875,12 @@ int Metadata::SetVariables3D(const vector <string> &value) {
 
 int Metadata::SetVariables2DXY(const vector <string> &value) {
 
-	SetDiagMsg("Metadata::SetVariables2DXY([%s,...])", value[0].c_str());
+	SetDiagMsg("Metadata::SetVariables2DXY()");
+
+	if (this->GetVDFVersion() < 3) {
+		SetErrMsg("Pre version 3 vdf files not supported");
+		return(-1);
+	}
 
 	vector <string> delete_tags;
 	
@@ -846,7 +894,12 @@ int Metadata::SetVariables2DXY(const vector <string> &value) {
 
 int Metadata::SetVariables2DXZ(const vector <string> &value) {
 
-	SetDiagMsg("Metadata::SetVariables2DXZ([%s,...])", value[0].c_str());
+	SetDiagMsg("Metadata::SetVariables2DXZ()");
+
+	if (this->GetVDFVersion() < 3) {
+		SetErrMsg("Pre version 3 vdf files not supported");
+		return(-1);
+	}
 
 	vector <string> delete_tags;
 	
@@ -860,7 +913,12 @@ int Metadata::SetVariables2DXZ(const vector <string> &value) {
 
 int Metadata::SetVariables2DYZ(const vector <string> &value) {
 
-	SetDiagMsg("Metadata::SetVariables2DYZ([%s,...])", value[0].c_str());
+	SetDiagMsg("Metadata::SetVariables2DYZ()");
+
+	if (this->GetVDFVersion() < 3) {
+		SetErrMsg("Pre version 3 vdf files not supported");
+		return(-1);
+	}
 
 	vector <string> delete_tags;
 	
@@ -893,7 +951,7 @@ int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
 		return(-1);
 	}
 
-	SetDiagMsg("Metadata::SetTSXCoords(%d, [%d,...])", ts, value[0]);
+	SetDiagMsg("Metadata::SetTSXCoords(%d)", ts);
 
 	CHK_TS(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value);
@@ -906,7 +964,7 @@ int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
 		return(-1);
 	}
 
-	SetDiagMsg("Metadata::SetTSYCoords(%d, [%d,...])", ts, value[0]);
+	SetDiagMsg("Metadata::SetTSYCoords(%d)", ts);
 
 	CHK_TS(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value);
@@ -919,7 +977,7 @@ int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
 		return(-1);
 	}
 
-	SetDiagMsg("Metadata::SetTSZCoords(%d, [%d,...])", ts, value[0]);
+	SetDiagMsg("Metadata::SetTSZCoords(%d)", ts);
 
 	CHK_TS(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value);

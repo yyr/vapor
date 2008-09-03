@@ -126,12 +126,16 @@ public:
  //! Similary, global and time step comments found in \p metadata are 
  //! not merged, nor is any user-defined data.
  //!
+ //! As a side effect both the Metadata object pointed to by this class
+ //! and the Metadata object pointed to by \p metadata are 
+ //! made current with MakeCurrent().
+ //!
  //! \param[in] metadata A pointer to a valid metadata object. 
  //! \param[in] ts Timestep offset
  //! \retval status A negative integer is returned on failure, otherwise
  //! the method has succeeded.
  //
- int Merge(const Metadata *metadata, size_t ts = 0);
+ int Merge(Metadata *metadata, size_t ts = 0);
 
  //! Merge the contents of two metadata objects
  //!
@@ -146,6 +150,17 @@ public:
  //
  int Merge(const string &path, size_t ts = 0);
 
+ //! Make the metadata object current
+ //!
+ //! This method updates the metadata object to the most current version.
+ //! Metadata objects older than version 1 cannot be updated.
+ //!
+ //! \retval status A negative integer is returned on failure, otherwise
+ //! the method has succeeded.
+ //!
+ //! \sa GetVDFVersion()
+ //
+ int MakeCurrent();
 
  //! Return the file path name to the metafile's parent directory.
  //! If the class was constructed with a path name, this method
