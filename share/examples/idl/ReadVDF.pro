@@ -24,7 +24,7 @@ reflevel = 1
 ;	metadata file must already exist on disk, having been created from
 ;	one of the example programs that generates a .vdf file.
 ;
-vdffile = getenv('IDL_TMPDIR') + 'test.vdf'
+vdffile = 'test.vdf'
 mfd = vdf_create(vdffile)
 
 

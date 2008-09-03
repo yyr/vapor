@@ -46,7 +46,7 @@ vdf_setvarnames, mfd, varnames
 ;
 ;	Store the metadata object in a file for subsequent use
 ;
-vdffile = getenv('IDL_TMPDIR') + 'test.vdf'
+vdffile = 'test.vdf'
 vdf_write, mfd, vdffile
 
 ;

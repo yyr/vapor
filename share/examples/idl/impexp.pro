@@ -22,9 +22,9 @@ region = region * region
 ; either import into a running vaporgui session from whence the original
 ; data came, or may simply be loaded as a new data set
 ;
-tmpvdf = getenv('IDL_TMPDIR') + 'impexp.vdf'
+tmpvdf = 'impexp.vdf'
 varname = 'varsqr'
-expregion, tmpvdf, stateinfo, VARNAME=varname, region
+expregion, tmpvdf, stateinfo, varname, region
 
 
 end
