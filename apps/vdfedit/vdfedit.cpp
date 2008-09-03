@@ -151,6 +151,11 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	if (metadata->GetVDFVersion() < VDF_VERSION) {
+		if (metadata->MakeCurrent() < 0) exit(1);
+	}
+		
+
 	string bkupfile(metafile);
 	bkupfile += ".bak";
 
