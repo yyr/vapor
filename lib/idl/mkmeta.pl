@@ -103,6 +103,86 @@
 		tag		=> 0
 	},
 	{
+		idlname	=> "VDF_SETVARIABLES3D",
+		name => "SetVariables3D",
+		set => 1,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETVARIABLES3D",
+		name => "GetVariables3D",
+		set => 0,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_SETVARIABLES2DXY",
+		name => "SetVariables2DXY",
+		set => 1,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETVARIABLES2DXY",
+		name => "GetVariables2DXY",
+		set => 0,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_SETVARIABLES2DXZ",
+		name => "SetVariables2DXZ",
+		set => 1,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETVARIABLES2DXZ",
+		name => "GetVariables2DXZ",
+		set => 0,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_SETVARIABLES2DYZ",
+		name => "SetVariables2DYZ",
+		set => 1,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETVARIABLES2DYZ",
+		name => "GetVariables2DYZ",
+		set => 0,
+		type	=> "string",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
 		idlname	=> "VDF_SETCOMMENT",
 		name => "SetComment",
 		set => 1,
