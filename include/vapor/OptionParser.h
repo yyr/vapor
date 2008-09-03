@@ -124,7 +124,7 @@ public:
  int ParseOptions(int *argc, char **argv, Option_T *opts);
  int ParseOptions(const EnvOpt_T *envv, Option_T *opts);
  void	RemoveOptions(const OptDescRec_T  *odr);
- void	PrintOptionHelp(FILE *fp);
+ void	PrintOptionHelp(FILE *fp, int linelimit = 80);
 
 private:
  typedef struct _OptRec {

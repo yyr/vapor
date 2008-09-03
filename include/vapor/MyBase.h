@@ -36,6 +36,7 @@
 
 #include <cmath>
 #include <string>
+#include <vector>
 #include "vaporinternal/common.h"
 
 #ifdef WIN32
@@ -284,6 +285,17 @@ private:
  //! Performs in-place removal of all white space from a string.
  //! \param[in,out] s The string.
  COMMON_API void	StrRmWhiteSpace(string &s);
+
+ //! Parse a string, returning a vector of words
+ //
+ //! Parses a string containing a white-space delimited collection
+ //! of words. The words are in order of occurence and returned
+ //! as a vector of strings with all white space removed.
+ //!
+ //! \param[in] s The input string.
+ //! \param[out] v The output vector.
+ //
+ COMMON_API void	StrToWordVec(const string &s, vector <string> &v);
 
  //! Retrieve a sequence of bits
  //!
