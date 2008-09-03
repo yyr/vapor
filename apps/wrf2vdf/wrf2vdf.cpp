@@ -76,16 +76,16 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"varnames",1, 	"",	"Colon delimited list of variable names in\n\t\t\t\tmetadata to convert"},
-	{"tsincr",	1,	"1","Increment between Vapor times steps to convert\n\t\t\t\t(e.g., 3=every third), from Vapor time \n\t\t\t\tstep 0 (NOT CURRENTLY SUPPORTED!!!)"},
-	{"numts",	1,	"-1","Maximum number of time steps that may be converted"},
-	{"tsstart", 1,  "", "Starting time stamp for conversion (default is\n\t\t\t\tfound in VDF"},
-	{"tsend",	1,  "", "Last time stamp to convert (default is latest\n\t\t\t\ttime stamp)"},
-	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next\n\t\t\t\trefinement, etc. -1=>finest"},
-	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui"},
-	{"help",	0,	"",	"Print this message and exit"},
-	{"debug",	0,	"",	"Enable debugging"},
-	{"quiet",	0,	"",	"Operate quietly (outputs only vertical extents\n\t\t\t\tthat are lower than those in the VDF)"},
+	{"varnames",1, 	"",	"Colon delimited list of variable names in WRF file to convert. The default is to convert variables in the set intersection of those variables found in the VDF file and those in the WRF file."},
+	{"tsincr",	1,	"1","Increment between Vapor times steps to convert (e.g., 3=every third), from Vapor time step 0 (NOT CURRENTLY SUPPORTED!!!)"},
+	{"numts",	1,	"-1","Maximum number of time steps that may be converted. A -1 implies the conversion of all time steps found"},
+	{"tsstart", 1,  "", "Starting time stamp for conversion (default is found in VDF)"},
+	{"tsend",	1,  "", "Last time stamp to convert (default is latest time stamp)"},
+	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui."},
+	{"help",	0,	"",	"Print this message and exit."},
+	{"debug",	0,	"",	"Enable debugging."},
+	{"quiet",	0,	"",	"Operate quietly (outputs only vertical extents that are lower than those in the VDF)."},
 	{NULL}
 };
 
@@ -1442,7 +1442,7 @@ int	main(int argc, char **argv) {
 
 	if (opt.help) 
 	{
-		cerr << "Usage: " << ProgName << " [options] metafile wrffiles..." << endl;
+		cerr << "Usage: " << ProgName << " [options] metafile wrffiles..." << endl << endl;
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
