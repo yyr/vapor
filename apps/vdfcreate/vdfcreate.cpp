@@ -30,26 +30,48 @@ struct opt_t {
 	float extents[6];
 	int order[3];
 	int periodic[3];
-	vector <string> varnames;
+	vector <string> vars3d;
+	vector <string> vars2dxy;
+	vector <string> vars2dxz;
+	vector <string> vars2dyz;
 	OptionParser::Boolean_T	mtkcompat;
 	OptionParser::Boolean_T	help;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"dimension",1, "512x512x512",	"Volume dimensions expressed in grid points (NXxNYxNZ)"},
-	{"numts",	1, 	"1",			"Number of timesteps"},
-	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in grid points (NXxNYxNZ)"},
-	{"level",	1, 	"0",			"Maximum refinement level. 0 => no refinement"},
+	{"dimension",1, "512x512x512",	"Data volume dimensions expressed in "
+		"grid points (NXxNYxNZ)"},
+	{"numts",	1, 	"1",			"Number of timesteps in the data set"},
+	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor "
+		"expressed in grid points (NXxNYxNZ)"},
+	{"level",	1, 	"0",			"Number of approximation levels. "
+		"0 => no approximations"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
-	{"comment",	1,	"",				"Top-level comment"},
-	{"gridtype",	1,	"regular",	"Data grid type (regular|layered|stretched|block_amr)"}, 
-	{"usertimes",	1,	"",	"Path to a file containing a whitespace delineated list of user times. If present, -numts option is ignored."}, 
-	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
-	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
-	{"order",	1,	"0:1:2",	"Colon delimited 3-element vector specifying permutation ordering of raw data on disk "},
-	{"periodic",	1,	"0:0:0",	"Colon delimited 3-element boolean (0=>nonperiodic, 1=>periodic) vector specifying periodicity of X,Y,Z coordinate axes (X:Y:Z)"},
-	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
+	{"comment",	1,	"",				"Top-level comment to be included in VDF"},
+	{"gridtype",	1,	"regular",	"Data grid type "
+		"(regular|layered|stretched|block_amr)"}, 
+	{"usertimes",	1,	"",	"Path to a file containing a whitespace "
+		"delineated list of user times. If present, -numts "
+		"option is ignored."}, 
+	{"coordsystem",	1,	"cartesian","Data coordinate system "
+		"(cartesian|spherical)"},
+	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector "
+		"specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
+	{"order",	1,	"0:1:2",	"Colon delimited 3-element vector specifying "
+		"permutation ordering of raw data on disk "},
+	{"periodic",	1,	"0:0:0",	"Colon delimited 3-element boolean "
+		"(0=>nonperiodic, 1=>periodic) vector specifying periodicity of "
+		"X,Y,Z coordinate axes (X:Y:Z)"},
+	{"varnames",1,	"",				"Deprecated. Use -vars3d instead"},
+	{"vars3d",1,	"var1",			"Colon delimited list of 3D variable "
+		"names to be included in the VDF"},
+	{"vars2dxy",1,	"",			"Colon delimited list of 2D XY-plane variable "
+		"names to be included in the VDF"},
+	{"vars2dxz",1,	"",			"Colon delimited list of 3D XZ-plane variable "
+		"names to be included in the VDF"},
+	{"vars2dyz",1,	"",			"Colon delimited list of 3D YZ-plane variable "
+		"names to be included in the VDF"},
 	{"mtkcompat",	0,	"",			"Force compatibility with older mtk files"},
 	{"help",	0,	"",				"Print this message and exit"},
 	{NULL}
@@ -70,7 +92,11 @@ OptionParser::Option_T	get_options[] = {
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"order", cvtToOrder, &opt.order, sizeof(opt.order)},
 	{"periodic", cvtTo3DBool, &opt.periodic, sizeof(opt.periodic)},
-	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
+	{"varnames", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
+	{"vars3d", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
+	{"vars2dxy", VetsUtil::CvtToStrVec, &opt.vars2dxy, sizeof(opt.vars2dxy)},
+	{"vars2dxz", VetsUtil::CvtToStrVec, &opt.vars2dxz, sizeof(opt.vars2dxz)},
+	{"vars2dyz", VetsUtil::CvtToStrVec, &opt.vars2dyz, sizeof(opt.vars2dyz)},
 	{"mtkcompat", VetsUtil::CvtToBoolean, &opt.mtkcompat, sizeof(opt.mtkcompat)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{NULL}
@@ -220,17 +246,37 @@ int	main(int argc, char **argv) {
 	if (file->GetGridType().compare("layered") == 0){
 		//Make sure there's an ELEVATION variable in the vdf
 		bool hasElevation = false;
-		for (int i = 0; i<opt.varnames.size(); i++){
-			if (opt.varnames[i].compare("ELEVATION") == 0){
+		for (int i = 0; i<opt.vars3d.size(); i++){
+			if (opt.vars3d[i].compare("ELEVATION") == 0){
 				hasElevation = true;
 				break;
 			}
 		}
 		if (!hasElevation){
-			opt.varnames.push_back("ELEVATION");
+			opt.vars3d.push_back("ELEVATION");
 		}
 	}
-	if (file->SetVariableNames(opt.varnames) < 0) {
+
+	vector <string> allvars;
+	for (int i=0;i<opt.vars3d.size();i++) allvars.push_back(opt.vars3d[i]);
+	for (int i=0;i<opt.vars2dxy.size();i++) allvars.push_back(opt.vars2dxy[i]);
+	for (int i=0;i<opt.vars2dxz.size();i++) allvars.push_back(opt.vars2dxz[i]);
+	for (int i=0;i<opt.vars2dyz.size();i++) allvars.push_back(opt.vars2dyz[i]);
+
+	if (file->SetVariableNames(allvars) < 0) {
+		cerr << Metadata::GetErrMsg() << endl;
+		exit(1);
+	}
+
+	if (file->SetVariables2DXY(opt.vars2dxy) < 0) {
+		cerr << Metadata::GetErrMsg() << endl;
+		exit(1);
+	}
+	if (file->SetVariables2DXZ(opt.vars2dxz) < 0) {
+		cerr << Metadata::GetErrMsg() << endl;
+		exit(1);
+	}
+	if (file->SetVariables2DYZ(opt.vars2dyz) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
