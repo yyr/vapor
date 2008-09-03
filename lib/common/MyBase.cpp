@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <cctype>
 #include <string>
+#include <vector>
 
 #include "vapor/MyBase.h"
 #ifdef WIN32
@@ -198,6 +199,24 @@ void	VetsUtil::StrRmWhiteSpace(string &s) {
 
 	if (i<(s.length() - 1)) {
 		s.replace(i+1, s.length()-i+1, "", 0);
+	}
+}
+
+void VetsUtil::StrToWordVec(const string &s, vector <string> &v)
+{
+	string tmp = s;
+	v.clear();
+	while (! tmp.empty()) {
+		while (! tmp.empty() && isspace(tmp[0])) tmp.erase(0, 1);
+
+		int index = 0;
+		while (index < tmp.length() && ! isspace(tmp[index])) index++;
+
+		if (index) {
+			string word = tmp.substr(0, index);
+			v.push_back(word);
+			tmp.erase(0, index);
+		}
 	}
 }
 

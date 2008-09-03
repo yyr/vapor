@@ -5,6 +5,7 @@
 #include "vapor/OptionParser.h"
 #include <cassert>
 #include <cctype>
+#include <sstream>
 #include "vapor/Version.h"
 
 using namespace VetsUtil;
@@ -637,13 +638,87 @@ int	OptionParser::ParseOptions(
 //	*fp		: file pointer where output is written.
 //
 void	OptionParser::PrintOptionHelp(
-	FILE	*fp
+	FILE	*fp,
+	int linelimit
 ) {
-	int		i,j;
-	char		buf[30];
-	char		sbf[20];
 
+	string h1("OPTION");
+	string d1("------");
+	string h2("NUM_ARGS");
+	string d2("--------");
+	string h3("DEFAULT");
+	string d3("-------");
+	int f1 = h1.size();
+	int f2 = h2.size();
+	int f3 = h3.size();
+	for(int i=0; i<(int)_optTbl.size(); i++) {
+		string	option = _optTbl[i]->option;
+		if (option.size() > f1) f1 = option.size();
 
+		string	default_value = _optTbl[i]->default_value;
+		if (default_value.size() > f3) f3 = default_value.size();
+	}
+	f1 += 4; f2 += 4; f3 += 4;
+	ostringstream format;
+	format << "    ";
+	format << "%-";
+	format << f1;
+	format << ".";
+	format << f1;
+	format << "s";
+	format << "%-";
+	format << f2;
+	format << ".";
+	format << f2;
+	format << "s";
+	format << "%-";
+	format << f3;
+	format << ".";
+	format << f3;
+	format << "s";
+		
+	fprintf(fp, format.str().c_str(), h1.c_str(), h2.c_str(), h3.c_str());
+	fprintf(fp, "\n");
+	fprintf(fp, format.str().c_str(), d1.c_str(), d2.c_str(), d3.c_str());
+	fprintf(fp, "\n");
+
+	string margin("        ");
+	for(int i=0; i<(int)_optTbl.size(); i++) {
+		_OptRec_T	*o = _optTbl[i];
+		ostringstream arg_count_str;
+		arg_count_str << o->arg_count;
+		string option = "-";
+		option.append(o->option);
+		string defvalstr(o->default_value);
+		if (! defvalstr.size())  defvalstr = "\"\"";
+		
+
+		fprintf(
+			fp, format.str().c_str(), option.c_str(), 
+			arg_count_str.str().c_str(), defvalstr.c_str()
+		);
+
+		vector <string> helpvec;
+		string helpstr(o->help);
+		StrToWordVec(helpstr, helpvec);
+
+		int linecount = linelimit;
+		for (int j=0; j<helpvec.size(); j++) {
+
+			if (linecount + helpvec[j].size() < linelimit) {
+				fprintf(fp, "%s ", helpvec[j].c_str());
+				linecount += helpvec[j].size()+1;
+			}
+			else {
+				linecount = 0;
+				fprintf(fp, "\n%s%s ", margin.c_str(), helpvec[j].c_str());
+				linecount += margin.size() + helpvec[j].size() + 1;
+			}
+		}
+		fprintf(fp, "\n");
+	}
+
+#ifdef	DEAD
 	for(i=0; i<(int)_optTbl.size(); i++) {
 		_OptRec_T	*o = _optTbl[i];
 
@@ -674,14 +749,15 @@ void	OptionParser::PrintOptionHelp(
 			(void) fprintf(fp, "\n");
 		}
 	}
+#endif
 
 	fprintf(
-		stderr, 
+		fp, 
 		"\nCopyright 2007 The National Center for Atmospheric Research\n"
 	);
 
 	fprintf(
-		stderr, "\nVersion: %s (%s) www.vapor.ucar.edu\n",
+		fp, "\nVersion: %s (%s) www.vapor.ucar.edu\n",
 		Version::GetVersionString().c_str(), Version::GetDateString().c_str()
 	);
 }

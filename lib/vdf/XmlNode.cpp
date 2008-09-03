@@ -197,21 +197,9 @@ string &XmlNode::GetElementString(const string &tag) {
 
 void XmlNode::GetElementStringVec(const string &tag, vector <string> &vec) {
 	
-	vec.clear();
 	string s = XmlNode::GetElementString(tag);
 
-	while (! s.empty()) {
-		while (! s.empty() && isspace(s[0])) s.erase(0, 1); 
-
-		int index = 0;
-		while (index < s.length() && ! isspace(s[index])) index++;
-
-		if (index) {
-			string word = s.substr(0, index);
-			vec.push_back(word);
-			s.erase(0, index);
-		}
-	}
+	StrToWordVec(s, vec);
 }
 
 
