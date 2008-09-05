@@ -624,7 +624,8 @@ endSpin(){
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
 	if (!savedCommand) return;
 	updateTab();
-	savedCommand->setDescription(QString("viewpoint spin"));
+	
+	((Command*)savedCommand)->setDescription(QString("viewpoint spin"));
 	PanelCommand::captureEnd(savedCommand, vpParams);
 	//Set region  dirty
 	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
