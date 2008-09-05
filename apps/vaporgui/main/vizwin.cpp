@@ -19,7 +19,7 @@
 //		Supports mouse event reporting
 //
 #include "vizwin.h"
-
+#include <qdatetime.h>
 #include <qvariant.h>
 #include <qlayout.h>
 #include <qtooltip.h>
@@ -82,6 +82,11 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 		setName( "VizWin" );
     myParent = parent;
     myWindowNum = winNum;
+	spinTimer = 0;
+	elapsedTime = 0;
+	moveCount = 0;
+	moveCoords[0] = moveCoords[1] = 0;
+	moveDist = 0;
 	
 	
         
@@ -162,6 +167,7 @@ VizWin::~VizWin()
      if (localTrackball) delete localTrackball;
 	 //The renderers are deleted in the glwindow destructor:
 	 //delete myGLWindow;
+	 if (spinTimer) delete spinTimer;
 }
 
 
@@ -251,7 +257,7 @@ mousePressEvent(QMouseEvent* e){
 	else if (e->button() == Qt::RightButton) buttonNum = 2;
 	//possibly navigate after other activities
 	bool doNavigate = false;
-	
+	endSpin();
 	switch (GLWindow::getCurrentMouseMode()){
 		//In region mode,first check for clicks on selected region
 		case GLWindow::regionMode :
@@ -412,6 +418,14 @@ mousePressEvent(QMouseEvent* e){
 			
 		case GLWindow::navigateMode : 
 			doNavigate = true;
+			if (e->button() == Qt::LeftButton){
+				//Create a timer to use to measure how long between mouse moves:
+				if (spinTimer) delete spinTimer;
+				spinTimer = new QTime();
+				spinTimer->start();
+				moveCount = 0;
+				olderMoveTime = latestMoveTime = 0;
+			}
 			break;
 			
 		
@@ -436,6 +450,7 @@ void VizWin::
 mouseReleaseEvent(QMouseEvent*e){
 	//if (numRenderers <= 0) return;//used for mouse mode stuff
 	bool doNavigate = false;
+	bool navMode = false;
 	TranslateStretchManip* myManip;
 	switch (GLWindow::getCurrentMouseMode()){
 		
@@ -505,12 +520,13 @@ mouseReleaseEvent(QMouseEvent*e){
 		default:
 		case GLWindow::navigateMode : 
 			doNavigate = true;
+			navMode = true;
 			break;
 
 		
 	}
 	if(doNavigate){
-		VizWinMgr::getEventRouter(Params::ViewpointParamsType)->captureMouseUp();
+		
 		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 		setMouseDown(false);
 		//If it's a right mouse being released, must update near/far distances:
@@ -518,7 +534,33 @@ mouseReleaseEvent(QMouseEvent*e){
 			myWinMgr->resetViews(myWinMgr->getRegionParams(myWindowNum),
 				myWinMgr->getViewpointParams(myWindowNum));
 		}
-		//Force an update of region params, so low res is shown
+		//Decide whether or not to start a spin animation
+		bool doSpin = (navMode && e->button() == Qt::LeftButton && spinTimer &&
+			!getGLWindow()->getActiveAnimationParams()->isPlaying());
+		
+			//Determine if the motion is sufficient to start a spin animation.
+			//Require that some time has elapsed since the last move event, and,
+			//to allow users to stop spin by holding mouse steady, make sure that
+			//the time from the last move event is no more than 6 times the 
+			//difference between the last two move times.
+		if (doSpin) {
+			int latestTime = spinTimer->elapsed();
+		
+			if (moveDist > 0 && moveCount > 0 && (latestTime - latestMoveTime)< 6*(latestMoveTime-olderMoveTime)){
+				myGLWindow->startSpin(latestTime/moveCount);
+			} else {
+				doSpin = false;
+			}
+		}
+		if (!doSpin){
+			//terminate current mouse motion
+			VizWinMgr::getEventRouter(Params::ViewpointParamsType)->captureMouseUp();
+		}
+		//Done with timer:
+		if(spinTimer) delete spinTimer;
+		spinTimer = 0;
+		
+		//Force an update of region params, so correct res is shown
 		setRegionNavigating(true);
 		myGLWindow->updateGL();
 	}
@@ -636,6 +678,16 @@ mouseMoveEvent(QMouseEvent* e){
 		default:
 		case GLWindow::navigateMode : 
 			doNavigate = true;
+			if (!spinTimer) break;
+			moveCount++;
+			if (moveCount > 0){//find distance from last move event...
+				moveDist = abs(moveCoords[0]-e->x())+abs(moveCoords[1]-e->y());
+			}
+			moveCoords[0] = e->x();
+			moveCoords[1] = e->y();
+			int latestTime = spinTimer->elapsed();
+			olderMoveTime = latestMoveTime;
+			latestMoveTime = latestTime;
 			break;
 		
 	}
@@ -942,68 +994,14 @@ changeViewerFrame(){
 	changeCoords(minv+12, minv+8, minv+4);
 	
 }
-
-/*
-void VizWin::
-doFrameCapture(){
-	if (capturing == 0) return;
-	//Create a string consisting of captureName, followed by nnnn (framenum), 
-	//followed by .jpg
-	QString filename;
-	if (capturing == 2){
-		filename = captureName;
-		filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
-		filename +=  ".jpg";
-	} //Otherwise we are just capturing one frame:
-	else filename = captureName;
-	if (!filename.endsWith(".jpg")) filename += ".jpg";
-	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.ascii(), "wb");
-	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
-		capturing = 0;
-		return;
-	}
-	//Get the image buffer 
-	unsigned char* buf = new unsigned char[3*myGLWindow->width()*myGLWindow->height()];
-	//Use openGL to fill the buffer:
-	if(!myGLWindow->getPixelData(buf)){
-		//Error!
-		MessageReporter::errorMsg("%s","Image Capture Error; error obtaining GL data");
-		capturing = 0;
-		delete buf;
-		return;
-	}
-	//Now call the Jpeg library to compress and write the file
-	//
-	int quality = Session::getInstance()->getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, myGLWindow->width(), myGLWindow->height(), buf, quality);
-	if (rc){
-		//Error!
-		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
-			filename.ascii());
-		capturing = 0;
-		delete buf;
-		return;
-	}
-	//If just capturing single frame, turn it off, otherwise advance frame number
-	if(capturing > 1) captureNum++;
-	else capturing = 0;
-	delete buf;
+//Terminate the current spin, and complete the VizEventRouter command that
+//started when the mouse was pressed...
+void VizWin::endSpin(){
+	if (!myGLWindow) return;
+	if (!myGLWindow->stopSpin()) return;
+	VizWinMgr::getInstance()->getViewpointRouter()->endSpin();
 }
 
-float VizWin::getPixelSize(){
-	float temp[3];
-	//Window height is subtended by viewing angle (45 degrees),
-	//at viewer distance (dist from camera to view center)
-	ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myWindowNum);
-	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
-	float distToScene = vlength(temp);
-	//tan(45 deg *0.5) is ratio between half-height and dist to scene
-	float halfHeight = tan(M_PI*0.125)* distToScene;
-	return (2.f*halfHeight/(float)height());
 
-}
-*/
     
     

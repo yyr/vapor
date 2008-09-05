@@ -57,6 +57,8 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 : QGLWidget(fmt, parent, name)
 
 {
+	spinThread = 0;
+	isSpinning = false;
 	timeAnnotLabel = 0;
 	winNum = windowNum;
 	rendererMapping.clear();
@@ -203,6 +205,7 @@ void GLWindow::resizeGL( int width, int height )
 		//float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
 		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
 		//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+		//qWarning("setting near, far dist: %f %f", nearDist, farDist);
 		gluPerspective(45., w, nearDist, farDist );
 		//gluPerspective(45., w, 1.0, 5. );
 		//save the current value...
@@ -421,6 +424,11 @@ void GLWindow::paintGL()
 	setDirtyBit(ViewportBit, false);
 	setDirtyBit(LightingBit, false);
 	nowPainting = false;
+	if (isSpinning){
+		getTBall()->TrackballSpin();
+		setViewerCoordsChanged(true);
+		setDirtyBit(ProjMatrixBit, true);
+	}
 	postRenderCB(winNum, isControlled);
 	
 }
@@ -2363,4 +2371,36 @@ GLWindow::OGLVendorType GLWindow::GetVendor()
 	}
 
 	return(UNKNOWN);
+}
+
+void GLWindow::startSpin(int renderMS){
+	spinThread = new SpinThread(this, renderMS);
+	spinThread->start();
+	isSpinning = true;
+	//Increment the rotation and request another render..
+	getTBall()->TrackballSpin();
+	setViewerCoordsChanged(true);
+	setDirtyBit(ProjMatrixBit, true);
+	update();
+}
+bool GLWindow::stopSpin(){
+	if (isSpinning && spinThread){
+		spinThread->setWindow(0);
+		spinThread->finish();
+		delete spinThread;
+		spinThread = 0;
+		isSpinning = false;
+		return true;
+	}
+	return false;
+}
+//control the repeated display of spinning scene, by repeatedly doing updateGL() on the GLWindow
+void SpinThread::run(){
+
+	while(1){
+		if (!spinningWindow) return;
+		spinningWindow->update();
+		msleep(renderTime);
+		
+	}
 }

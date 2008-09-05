@@ -72,6 +72,10 @@ public:
 	void getExtentsAtLevel(int level, float exts[6]);
 	
 	static size_t getCacheMB() {return cacheMB;}
+	static void setInteractiveRefinementLevel(int lev) {
+		interactiveRefLevel = lev;
+	}
+	static int getInteractiveRefinementLevel() {return interactiveRefLevel;}
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
 	bool dataIsPresent(int sesvarnum, int timestep){
@@ -386,6 +390,8 @@ private:
 	static bool doUseLowerRefinementLevel;
 	//Cache size in megabytes
 	static size_t cacheMB;
+	//Interactive refinement level:
+	static int interactiveRefLevel;
 	
 	
 };

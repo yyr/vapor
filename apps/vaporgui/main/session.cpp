@@ -56,6 +56,7 @@
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
+const string Session::_interactiveRefLevelAttr = "InteractiveRefinementLevel";
 const string Session::_specifyTextureSizeAttr = "SpecifyTextureSize";
 const string Session::_textureSizeAttr = "SpecifiedTextureSize";
 const string Session::_stretchFactorsAttr = "StretchFactors";
@@ -194,6 +195,7 @@ void Session::init() {
 	setJpegDirectory(preferenceJpegDirectory.c_str());
 	setFlowDirectory(preferenceFlowDirectory.c_str());
 	setSessionDirectory(preferenceSessionDirectory.c_str());
+	MainForm::getInstance()->setInteractiveRefinementSpin(0);
 	
 }
 void Session::setDefaultPrefs(){
@@ -278,6 +280,9 @@ buildNode() {
 	attrs[_imageCapturePathAttr] = currentJpegDirectory;
 	attrs[_flowDirectoryPathAttr] = currentFlowDirectory;
 	attrs[_metadataPathAttr] = currentMetadataFile;
+	oss.str(empty);
+	oss << DataStatus::getInteractiveRefinementLevel();
+	attrs[_interactiveRefLevelAttr] = oss.str();
 	
 	int numSesVars = getNumSessionVariables();
 	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numSesVars+numTFs+2);
@@ -379,6 +384,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				}
 				else if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
 					//ignore
+				}
+				else if (StrCmpNoCase(attr, _interactiveRefLevelAttr) == 0){
+					int val;
+					ist >> val;
+					MainForm::getInstance()->setInteractiveRefinementSpin(val);
 				}
 				else if (StrCmpNoCase(attr, _stretchFactorsAttr) == 0) {
 					ist >> stretchFac[0];

@@ -68,6 +68,7 @@ bool DataStatus::subregionFrameEnabled = false;
 bool DataStatus::textureSizeSpecified = false;
 int DataStatus::textureSize = 0;
 size_t DataStatus::cacheMB = 0;
+int DataStatus::interactiveRefLevel = 0;
 
 const string DataStatus::_backgroundColorAttr = "BackgroundColor";
 const string DataStatus::_regionFrameColorAttr = "DomainFrameColor";
@@ -76,6 +77,7 @@ const string DataStatus::_regionFrameEnabledAttr = "DomainFrameEnabled";
 const string DataStatus::_subregionFrameEnabledAttr = "SubregionFrameEnabled";
 const string DataStatus::_useLowerRefinementAttr = "UseLowerRefinementLevel";
 const string DataStatus::_missingDataWarningAttr = "WarnDataMissing";
+
 //Default constructor
 //Whether or not it exists on disk, what's its max and min
 //What resolutions are available.

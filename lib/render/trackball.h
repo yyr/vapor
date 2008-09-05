@@ -48,6 +48,7 @@
 
 
 //#include <GL/gl.h>
+#include <qthread.h>
 #include <qgl.h>
 #include "common.h"
 
@@ -60,6 +61,7 @@
  * A trackball class is needed for each rotated scene.
  */
 namespace VAPoR {
+class GLWindow;
 class RENDER_API Trackball {
 public:
 	Trackball();
@@ -99,6 +101,7 @@ private:
 	
 	bool perspective;
 } ;
+
 };
 
 

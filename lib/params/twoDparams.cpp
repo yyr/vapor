@@ -619,7 +619,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 				break;
 			}
 		}
-		if (i == numVariables) variableSelected[0] = true;
+		if (i == numVariables && numVariables > 0) variableSelected[0] = true;
 		
         if (numVariables)
         {

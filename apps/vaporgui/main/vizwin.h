@@ -216,6 +216,7 @@ public:
 		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
 	}
 
+	void endSpin();
 public slots:
     //Force an update in the gl window:
 	void updateGL() { if (myGLWindow) myGLWindow->update();}
@@ -238,14 +239,7 @@ protected:
 	
 	//Indicate whether using global or local viewpoint:
 	bool globalVP;
-	/*
-	int capturing;
-	int captureNum;
-	//Flag to set indicating start of capture sequence.
-	bool newCapture;
-	QString captureName;
-
-	*/
+	
 	
 public slots:
     
@@ -274,6 +268,14 @@ protected:
     virtual void windowActivationChange(bool oldActive);
     virtual void resizeEvent(QResizeEvent*);
     bool isReallyMaximized();
+	//Variables to control spin animation: 
+	QTime* spinTimer;
+	int elapsedTime; //Time since mouse press event in navigation mode
+	int moveCount; //number of mouse move events since mouse press
+	int moveCoords[2];  //position at last move event during rotation navigation
+	int moveDist;  //Distance between last two mouse move events
+	int latestMoveTime; //most recent time of move
+	int olderMoveTime; //time of move before the latest
 		
 protected slots:
     virtual void languageChange();

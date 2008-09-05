@@ -369,6 +369,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		GLfloat nearplane, farplane;
 		myGLWindow->getNearFarClippingPlanes(&nearplane, &farplane);
 		_driver->SetNearFar(nearplane, farplane);
+		
+		_driver->calculateSampling();
 	}
 	
   
@@ -379,9 +381,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //of the full mapped data.
 	int numxforms;
 
-	if (myGLWindow->mouseIsDown()) 
+	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
 	{
-		numxforms = 0;
+		numxforms = Min(currentRenderParams->getNumRefinements(),
+			DataStatus::getInteractiveRefinementLevel());
 		_driver->SetRenderFast(true);
 
 		// Need update sampling rate & opacity correction 
@@ -753,7 +756,8 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 		_driver->SetOLUT(myDVRParams->getClut(), 
 		metadata->GetNumTransforms() - savedNumXForms);
 	}
-
+	
+	
 	if (myGLWindow->lightingIsDirty()) {
 		bool shading = myDVRParams->getLighting();
 

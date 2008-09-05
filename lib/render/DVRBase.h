@@ -243,6 +243,8 @@ public:
  // Set maximum
  virtual void SetMaxTexture(int texsize) {_max_texture = texsize;};
 
+ virtual void calculateSampling() {}
+
 
 protected:
   int _max_texture;

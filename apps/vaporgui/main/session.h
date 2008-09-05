@@ -340,6 +340,7 @@ protected:
 	static const string _variableNameAttr;
 	static const string _belowGridAttr;
 	static const string _aboveGridAttr;
+	static const string _interactiveRefLevelAttr;
 	
 
 	XmlNode* buildNode();

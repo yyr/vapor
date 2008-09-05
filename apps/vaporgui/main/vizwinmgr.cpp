@@ -2356,7 +2356,10 @@ int VizWinMgr::getNumInstances(int winnum, Params::ParamType pType){
 			return -1;
 	}
 }
-
-
-			
+void VizWinMgr::setInteractiveNavigating(int level){
+	DataStatus::setInteractiveRefinementLevel(level);
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if (vizWin[i]) vizWin[i]->setDirtyBit(DvrRegionBit, true);
+	}
+}
 

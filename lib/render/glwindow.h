@@ -25,8 +25,10 @@
 #include <qgl.h>
 #include <map>
 #include "trackball.h"
+#include <qthread.h>
 #include "qcolor.h"
 #include "qlabel.h"
+
 #include "params.h"
 #include "manip.h"
 #include "vapor/MyBase.h"
@@ -41,9 +43,12 @@
 //normals more away from the vertical
 #define ELEVATION_GRID_ACCENT 20.f
 class QLabel;
+class QThread;
+
 namespace VAPoR {
 
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
+
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
@@ -57,6 +62,7 @@ class TranslateStretchManip;
 class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
+class SpinThread;
 
 class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
@@ -227,11 +233,7 @@ public:
 	bool colorbarIsDirty() {return colorbarDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
 
-	
-	
 	int getElevGridRefinementLevel() {return elevGridRefLevel;}
-	
-
 
 	bool mouseIsDown() {return mouseDownHere;}
 	void setMouseDown(bool downUp) {mouseDownHere = downUp;}
@@ -366,7 +368,10 @@ public:
 	};
 	static OGLVendorType GetVendor();
 
-
+	void startSpin(int renderMS);
+	//Terminate spin, return true if successful
+	bool stopSpin();
+	bool spinning(){return isSpinning;}
 
 protected:
 	int winNum;
@@ -543,8 +548,26 @@ protected:
 	// unit vector in direction of handle
 	float handleProjVec[2];
 
+	SpinThread* spinThread;
+	bool isSpinning;
+	QTime* spinTimer;
+
 	
 };
+class SpinThread : public QThread{
+public:
+	SpinThread(GLWindow* w, int renderMS) : QThread() {
+		spinningWindow = w;
+		renderTime = renderMS;
+	}
+	void run();
+	void setWindow(GLWindow* w) { spinningWindow = w;}
+	void finish() { wait(4*renderTime);}
+private:
+	GLWindow* spinningWindow;
+	int renderTime;
+};
+
 };
 
 #endif // GLWINDOW_H

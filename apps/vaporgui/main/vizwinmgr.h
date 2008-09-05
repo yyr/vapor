@@ -425,6 +425,7 @@ public:
 	Params* getCorrespondingLocalParams(Params* p) {
 		return getLocalParams(p->getParamType());
 	}
+	void setInteractiveNavigating(int level);
 
 public slots:
 	//arrange the viz windows:

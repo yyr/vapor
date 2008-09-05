@@ -28,6 +28,7 @@
 #include <qmainwindow.h>
 #include <qstring.h>
 
+
 #include "command.h"
 #include "params.h"
 class QApplication;
@@ -45,6 +46,7 @@ class QWorkspace;
 class QDockWindow;
 class QLabel;
 class QComboBox;
+class QSpinBox;
 
 
 namespace VAPoR{
@@ -161,6 +163,7 @@ public:
 	QAction* viewRegionAction;
 
 	QComboBox* alignViewCombo;
+	QSpinBox* interactiveRefinementSpin;
 
     QDockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}
@@ -180,6 +183,8 @@ public:
 	void disableUndoRedo();
 	QApplication* getApp() {return theApp;}
 	
+	void setInteractiveRefinementSpin(int);
+
 	
 	
 
@@ -269,6 +274,7 @@ protected:
 protected slots:
     virtual void languageChange();
 	void initViewMenu();
+	void setInteractiveRefLevel(int);
 
 };
 };

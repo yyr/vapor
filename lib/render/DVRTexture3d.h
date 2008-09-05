@@ -72,9 +72,11 @@ class RENDER_API DVRTexture3d : public DVRBase
 
   virtual void loadTexture(TextureBrick *brick) = 0;
 
-protected:
+
 
   virtual void calculateSampling();
+
+  protected:
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,

@@ -58,6 +58,8 @@ public:
 	virtual void captureMouseDown();
 	//When the mouse goes up, save the face displacement into the region.
 	virtual void captureMouseUp();
+	//When the spin is ended, it replaces captureMouseUp:
+	void endSpin();
 	void navigate (ViewpointParams* vpParams, float* posn, float* viewDir, float* upVec);
 
 	

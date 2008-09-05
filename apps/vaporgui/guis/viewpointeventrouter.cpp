@@ -616,6 +616,21 @@ captureMouseUp(){
 	savedCommand = 0;
 	
 }
+//If the mouse drag resulted in a spin, the event is modified when
+//the spin is terminated:
+void ViewpointEventRouter::
+endSpin(){
+	//Update the tab:
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	if (!savedCommand) return;
+	updateTab();
+	savedCommand->setDescription(QString("viewpoint spin"));
+	PanelCommand::captureEnd(savedCommand, vpParams);
+	//Set region  dirty
+	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
+	savedCommand = 0;
+	
+}
 
 
 /*

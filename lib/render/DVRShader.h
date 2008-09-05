@@ -63,6 +63,8 @@ class RENDER_API DVRShader : public DVRTexture3d
 
   static bool supported();
 
+  virtual void calculateSampling();
+
 protected:
 
   enum ShaderType
@@ -83,8 +85,6 @@ protected:
                     const char *fragmentSource);
 
   ShaderProgram* shader();
-
-  virtual void calculateSampling();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,

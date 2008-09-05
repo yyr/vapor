@@ -129,6 +129,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	theTwoDTab = 0;
 	theApp = app;
 
+	interactiveRefinementSpin = 0;
 	modeStatusWidget = 0;
 	
 	
@@ -319,7 +320,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     // toolbars for mouse modes and visualizers
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar = new QToolBar( QString(""), this, DockTop); 
-	vizToolBar->setOffset(2000);
+	vizToolBar->setOffset(1500);
 	vizToolBar->setVerticallyStretchable(false);
 	QDockArea* dkArea = leftDock();
 	dkArea->setAcceptDockWindow(vizToolBar, false);
@@ -357,8 +358,15 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	alignViewCombo->insertItem("Default: - Z ");
 	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
 	
+	interactiveRefinementSpin = new QSpinBox(0, 10, 1, vizToolBar);
+	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
 	
-   
+	QToolTip::add(interactiveRefinementSpin,"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
+	QWhatsThis::add(interactiveRefinementSpin, 
+		QString("While the viewpoint is changing due to mouse-dragging ")+
+		"in a visualizer, the refinement level used by the DVR "+
+		"and Iso renderers is reduced to this interactive refinement level, "+
+		"if it is less than the current refinement level of the renderer.");
     //helpContentsAction->addTo( toolBar );
     //helpIndexAction->addTo( toolBar );
     //helpAboutAction->addTo( toolBar );
@@ -495,6 +503,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
  
+	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
  
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
 	
@@ -1614,3 +1623,10 @@ void MainForm::launchPreferencesPanel(){
 	UserPreferences uPref;
 	uPref.launch();
 }
+void MainForm::setInteractiveRefLevel(int val){
+	VizWinMgr::getInstance()->setInteractiveNavigating(val);
+}
+void MainForm::setInteractiveRefinementSpin(int val){
+	if(interactiveRefinementSpin)interactiveRefinementSpin->setValue(val);
+}
+	
