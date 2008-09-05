@@ -625,7 +625,8 @@ endSpin(){
 	if (!savedCommand) return;
 	updateTab();
 	
-	((Command*)savedCommand)->setDescription(QString("viewpoint spin"));
+	QString* str = new QString("viewpoint spin");
+	savedCommand->setDescription(*str);
 	PanelCommand::captureEnd(savedCommand, vpParams);
 	//Set region  dirty
 	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
