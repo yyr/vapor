@@ -13,12 +13,23 @@
 ;	varx, vary, varz = the 3 variables defining the file
 ;		whose magnitude is being calculated
 ;	magvarname is the name for the field magnitude being calculated
-;	timestep specifies the (only) timestep for which the magnitude
+;	tsstart specifies the first timestep for which the magnitude
 ;		is calculated.  If multiple timesteps are needed,
-;		the calculation must be repeated for each of them.
+;	keyword variables:
+;       tsmax = largest time step
+;	tsival = increment between time steps	
 ;
 
-PRO AddMagVDF,vdffile,varx,vary,varz,magvarname,timestep
+PRO AddMagVDF,vdffile,varx,vary,varz,magvarname,tsstart,$
+	TSMAX=tsmax,TSIVAL=tsival
+
+;
+;   Set up timesteps
+;
+timestep = tsstart
+IF (~keyword_set(tsmax)) THEN tsmax = tsstart
+IF (~keyword_set(tsival)) THEN tsival = 1
+
 
 ;
 ;	Start with the current metadata:
@@ -59,6 +70,8 @@ if (isinvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
 
 reflevel = vdf_getnumtransforms(mfd)
 numtimesteps = vdf_getnumtimesteps(mfd)
+
+REPEAT BEGIN
 
 ;
 ;	Create "Buffered Read" objects for each variable to read the data, passing the 
@@ -131,11 +144,17 @@ vdc_bufreaddestroy, dfdx
 vdc_bufreaddestroy, dfdy
 vdc_bufreaddestroy, dfdz
 
-;
-;  Replace the vdf file with the new one
-;
 
-vdf_write,mfd,vdffile
+;
+;  Replace the vdf file with the new one, the first time through:
+;
+IF (timestep EQ tsstart AND isinvariables EQ 0) THEN vdf_write,mfd,vdffile
+
+print,'Magnitude calculated of timestep ', timestep
+
+timestep += tsival
+
+ENDREP UNTIL (timestep GT tsmax)
 vdf_destroy, mfd
 
 end

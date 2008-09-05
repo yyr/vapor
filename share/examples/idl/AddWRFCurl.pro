@@ -1,11 +1,12 @@
 ;
-;   AddCurlVDF.pro
+;   AddWRFCurl.pro
 ;
-;   Utility to read three variables from a VDF, calculate their curl
-;   and optionally the curl's magnitude, and put them back into the VDF.
-;   All three variables must be present at full resolution.
+;   Utility to read three variables from a WRF VDF, calculate their curl
+;   and put them back into the VDF.
+;   All three variables and ELEVATION must be present at full resolution.
 ;
-;   The .pro files curl_findiff.pro and deriv_findiff.pro must be in the
+;   The .pro files wrf_curl_findiff.pro and deriv_findiff.pro  
+;   and elev_deriv.pro must be in the
 ;   directory from which you started idl.
 ;
 ;   The vdf file is replaced.  The previous vdf file is saved, with
@@ -17,24 +18,25 @@
 ;       whose magnitude is being calculated
 ;   curlx,curly,curlz = the names for the three components
 ;       of the curl being calculated
-;   tsstart = the time step to start with (or the only time step)
-;   tsmax = (keyword parameter) the time step to stop with (don't specify
-;           if you only want the one time step, tsstart)
-;   tsival = (keyword parameter) the interval between time steps (will compute
-;            info for tsstart, tsstart + tsival, etc.) (again, don't specify if
-;            you only want the one time step, tsstart)
+;   tsstart = the first (smallest) time step this is applied to
+;     keyword args:
+;   tsmax = the largest time step this is applied to
+;   tsival = the increment between successive time steps  
 ;   mag = (keyword parameter) name of curl's magnitude (do not specify if you
 ;         don't want the
 ;         magnitude of the curl written)
-;   onlymag = (keyword parameter) set this to anything if you only want the 
+;   onlymag = (keyword parameter) set this to anything if you only want the
 ;             curl's magnitude and not the actual vector field (note that you
 ;             must still supply names for curlx, curly, curlz)
 ;
 ;   Note: if you want to add the magnitude later, use AddMagVDF
 ;
 
-PRO AddCurlVDF, vdffile,varx,vary,varz,curlx,curly,curlz,tsstart, $
-                TSMAX=tsmax,TSIVAL=tsival,MAG=mag,ONLYMAG=onlymag
+;
+;
+
+PRO AddWRFCurl, vdffile,varx,vary,varz,curlx,curly,curlz,tsstart, $
+		TSMAX=tsmax,TSIVAL=tsival,MAG=mag,ONLYMAG=onlymag
 
 ;   Make sure we're actually doing something
 IF ( ~keyword_set(mag) && keyword_set(onlymag) ) THEN BEGIN
@@ -43,12 +45,13 @@ IF ( ~keyword_set(mag) && keyword_set(onlymag) ) THEN BEGIN
 ENDIF
 
 
-;   
-;   Variable timestep now functions as a switch and initializer
+;
+;   Set up timesteps
 ;
 timestep = tsstart
-IF ( ~keyword_set(tsmax) ) THEN tsmax=tsstart
-IF ( ~keyword_set(tsival) ) THEN tsival=1
+IF (~keyword_set(tsmax)) THEN tsmax = tsstart
+IF (~keyword_set(tsival)) THEN tsival = 1
+
 
 ;
 ;   Start with the current metadata:
@@ -70,7 +73,7 @@ vdf_write,mfd,savedvdffile
 ;
 ;   How many variable names?
 ;
-IF ( keyword_set(mag) && ~keyword_set(onlymag) ) THEN newnum = 4 
+IF ( keyword_set(mag) && ~keyword_set(onlymag) ) THEN newnum = 4
 IF ( keyword_set(mag) && keyword_set(onlymag) ) THEN newnum = 1
 IF ( ~keyword_set(mag) ) THEN newnum = 3
 
@@ -109,20 +112,13 @@ IF (repeatvariables EQ 0) THEN BEGIN
     IF ( keyword_set(onlymag) ) THEN newvarnames[numvars-newnum] = mag
 ENDIF
 
-IF (repeatvariables EQ newnum) THEN newvarnames = varnames
-
-
 ;
 ;   reset the varnames in mfd to the new value:
-;   provided not all variables are repeated
 ;
-if (repeatvariables NE newnum) THEN vdf_setvarnames,mfd,newvarnames
+if (repeatvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
 
 reflevel = vdf_getnumtransforms(mfd)
 
-;
-;   Begin loop that iterates over time steps
-;
 REPEAT BEGIN
 
 print, "Working on time step ", timestep
@@ -135,12 +131,15 @@ print, "Working on time step ", timestep
 dfdx = vdc_bufreadcreate(mfd)
 dfdy = vdc_bufreadcreate(mfd)
 dfdz = vdc_bufreadcreate(mfd)
+dfde = vdc_bufreadcreate(mfd)
 
 ;
 ;
 ;   Determine the dimensions of the x-variable at the full transformation
 ;   level.
 ;   This is used as the dimension of all the variables
+;   Note. vdc_getdim() correctly handles dimension calucation for
+;   volumes with non-power-of-two dimensions.
 ;
 
 dim = vdc_getdim(dfdx, reflevel)
@@ -152,6 +151,7 @@ dim = vdc_getdim(dfdx, reflevel)
 srcx = fltarr(dim[0],dim[1],dim[2])
 srcy = fltarr(dim[0],dim[1],dim[2])
 srcz = fltarr(dim[0],dim[1],dim[2])
+srce = fltarr(dim[0],dim[1],dim[2])
 
 dstx = fltarr(dim[0],dim[1],dim[2])
 dsty = fltarr(dim[0],dim[1],dim[2])
@@ -162,6 +162,9 @@ dstz = fltarr(dim[0],dim[1],dim[2])
 ;
 
 vdc_openvarread, dfdx, timestep, varx, reflevel
+vdc_openvarread, dfdy, timestep, vary, reflevel
+vdc_openvarread, dfdz, timestep, varz, reflevel
+vdc_openvarread, dfde, timestep, 'ELEVATION', reflevel
 
 ;
 ;   Read the volume one slice at a time
@@ -169,88 +172,70 @@ vdc_openvarread, dfdx, timestep, varx, reflevel
 slcx = fltarr(dim[0],dim[1])
 slcy = fltarr(dim[0],dim[1])
 slcz = fltarr(dim[0],dim[1])
+slce = fltarr(dim[0],dim[1])
 
 ;   Determine the grid spacing
 
 extents = VDF_GETEXTENTS(mfd)
 deltax = (extents[3] - extents[0])/FLOAT(dim[0])
 deltay = (extents[4] - extents[1])/FLOAT(dim[1])
-deltaz = (extents[5] - extents[2])/FLOAT(dim[2])
 
 FOR z = 0, dim[2]-1 DO BEGIN
     vdc_bufreadslice, dfdx, slcx
 
     ; copy to 3d array
     srcx[*,*,z] = slcx
+    vdc_bufreadslice, dfdy, slcy
+    srcy[*,*,z] = slcy
+    vdc_bufreadslice, dfdz, slcz
+    srcz[*,*,z] = slcz
+    vdc_bufreadslice, dfde, slce
+    srce[*,*,z] = slce
 
     ;  Report every 100 reads:
-    IF ((z MOD 100) EQ 0) THEN print,'reading x  slice ',z
+    IF ((z MOD 100) EQ 0) THEN print,'reading slice ',z
 ENDFOR
 vdc_closevar, dfdx
 vdc_bufreaddestroy, dfdx
-vdc_openvarread, dfdy, timestep, vary, reflevel
-FOR z = 0, dim[2]-1 DO BEGIN
-    vdc_bufreadslice, dfdy, slcy
-    ; copy to 3d array
-    srcy[*,*,z] = slcy
-    ;  Report every 100 reads:
-    IF ((z MOD 100) EQ 0) THEN print,'reading y  slice ',z
-ENDFOR
 
 vdc_closevar, dfdy
 vdc_bufreaddestroy, dfdy
-vdc_openvarread, dfdz, timestep, varz, reflevel
-FOR z = 0, dim[2]-1 DO BEGIN
-    vdc_bufreadslice, dfdz, slcz
-    ; copy to 3d array
-    srcz[*,*,z] = slcz
-    ;  Report every 100 reads:
-    IF ((z MOD 100) EQ 0) THEN print,'reading z  slice ',z
-ENDFOR
 
 vdc_closevar, dfdz
 vdc_bufreaddestroy, dfdz
+
+vdc_closevar, dfde
+vdc_bufreaddestroy, dfde
 ;  Now perform the curl on the data
-curl_findiff,srcx,srcy,srcz,dstx,dsty,dstz,deltax,deltay,deltaz
-
-print,'performed the curl on ',varx,' ', vary,' ', varz
+wrf_curl_findiff,srcx,srcy,srcz,dstx,dsty,dstz,deltax,deltay,srce
 
 
-IF ( ~keyword_set(onlymag) ) THEN BEGIN
-
+;  If requested, write out the components of the curl:
+IF (~keyword_set(onlymag) ) THEN BEGIN
     dfdcurlx = vdc_bufwritecreate(mfd)
     vdc_openvarwrite, dfdcurlx, timestep, curlx, reflevel
+    dfdcurly = vdc_bufwritecreate(mfd)
+    vdc_openvarwrite, dfdcurly, timestep, curly, reflevel
+    dfdcurlz = vdc_bufwritecreate(mfd)
+    vdc_openvarwrite, dfdcurlz, timestep, curlz, reflevel
     ; write the data one slice at a time
     FOR z = 0, dim[2]-1 DO BEGIN
         slcx = dstx[*,*,z]
         vdc_bufwriteslice,dfdcurlx, slcx
-        ;  Report every 100 writes:
-        IF ((z MOD 100) EQ 0) THEN print,'writing x slice ',z
-    ENDFOR
-    vdc_closevar, dfdcurlx
-    vdc_bufwritedestroy, dfdcurlx
-
-    dfdcurly = vdc_bufwritecreate(mfd)
-    vdc_openvarwrite, dfdcurly, timestep, curly, reflevel
-    FOR z = 0, dim[2]-1 DO BEGIN
         slcy = dsty[*,*,z]
         vdc_bufwriteslice,dfdcurly, slcy
-        ;  Report every 100 writes:
-        IF ((z MOD 100) EQ 0) THEN print,'writing y slice ',z
-    ENDFOR
-    vdc_closevar, dfdcurly
-    vdc_bufwritedestroy, dfdcurly
-
-    dfdcurlz = vdc_bufwritecreate(mfd)
-    vdc_openvarwrite, dfdcurlz, timestep, curlz, reflevel
-    FOR z = 0, dim[2]-1 DO BEGIN
         slcz = dstz[*,*,z]
         vdc_bufwriteslice,dfdcurlz, slcz
         ;  Report every 100 writes:
-        IF ((z MOD 100) EQ 0) THEN print,'writing z slice ',z
+        IF ((z MOD 100) EQ 0) THEN print,'writing slice ',z
     ENDFOR
+    vdc_closevar, dfdcurlx
+    vdc_bufwritedestroy, dfdcurlx
+    vdc_closevar, dfdcurly
+    vdc_bufwritedestroy, dfdcurly
     vdc_closevar, dfdcurlz
     vdc_bufwritedestroy, dfdcurlz
+
 
 ENDIF
 
@@ -274,17 +259,16 @@ IF ( keyword_set(mag) ) THEN BEGIN
 ENDIF
 
 ;
-;  First time, replace the vdf file with the new one
+;  Replace the vdf file with the new one, the first time through:
 ;
-
+ 
 IF (timestep EQ tsstart AND repeatvariables NE newnum) THEN vdf_write,mfd,vdffile
 
-
-print,'Curl completed'
+print,'Curl completed of timestep ', timestep
 
 timestep += tsival
 
-ENDREP UNTIL ( timestep GT tsmax )
+ENDREP UNTIL (timestep GT tsmax)
 
 vdf_destroy, mfd
 

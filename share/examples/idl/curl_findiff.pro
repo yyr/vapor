@@ -30,16 +30,16 @@ PRO curl_findiff,inx,iny,inz,outx,outy,outz,dx,dy,dz
 
 on_error,2                      ;return to caller if an error occurs
 
-deriv_findiff,inz,aux1,2,dz       ;x component of the curl
-deriv_findiff,iny,aux2,3,dy
+deriv_findiff,inz,aux1,3,dz       ;x component of the curl
+deriv_findiff,iny,aux2,2,dy
 outx = aux1-aux2
 
-deriv_findiff,inx,aux1,3,dx       ;y component of the curl
-deriv_findiff,inz,aux2,1,dz
+deriv_findiff,inx,aux1,1,dx       ;y component of the curl
+deriv_findiff,inz,aux2,3,dz
 outy = aux1-aux2
 
-deriv_findiff,iny,aux1,1,dy       ;z component of the curl
-deriv_findiff,inx,aux2,2,dx
+deriv_findiff,iny,aux1,2,dy       ;z component of the curl
+deriv_findiff,inx,aux2,1,dx
 outz = aux1-aux2
 
 end
