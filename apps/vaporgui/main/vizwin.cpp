@@ -546,7 +546,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		if (doSpin) {
 			int latestTime = spinTimer->elapsed();
 		
-			if (moveDist > 0 && moveCount > 0 && (latestTime - latestMoveTime)< 6*(latestMoveTime-olderMoveTime)){
+			if (moveDist > 3 && moveCount > 0 && (latestTime - latestMoveTime)< 6*(latestMoveTime-olderMoveTime)){
 				myGLWindow->startSpin(latestTime/moveCount);
 			} else {
 				doSpin = false;
