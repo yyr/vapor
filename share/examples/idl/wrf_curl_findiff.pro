@@ -5,6 +5,9 @@
 ; PURPOSE:
 ;       Computes the curl of a vector field using sixth
 ;       order finite differences on WRF grid 
+;	Uses an interpolation scheme described by Mark Stoellinga
+;	to directly calculate the derivatives on the WRF grid.
+;	The 6th order difference terms are due to Pablo Mininni
 ;
 ; CALLING SEQUENCE:
 ;       CURL_FINDIFF,INX,INY,INZ,OUTX,OUTY,OUTZ,DX,DY,ELEV
@@ -41,7 +44,6 @@ deriv_findiff, elev, aux3, 2, dy
 elev_deriv, iny, aux4, elev
 outx = aux1 - aux2*aux3 - aux4
 
-
 ; y component is dU/dz - dW/dx 
 ;  dU/dz:
 elev_deriv, inx, aux4, elev
@@ -61,7 +63,7 @@ deriv_findiff, elev, aux3, 1, dx
 deriv_findiff, inx, aux4, 2, dy
 elev_deriv, inx, aux5, elev
 deriv_findiff, elev, aux6, 2, dy  
-
 outz = aux1 - aux2*aux3 - aux4 + aux5*aux6
+
 
 end
