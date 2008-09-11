@@ -1,0 +1,81 @@
+=head1 NAME
+
+ncdf2vdf - Convert NetCDF data to VAPOR data 
+
+=head1 SYNOPSIS
+
+B<ncdf2vdf> [options] I<metafile> I<ncdffile>
+
+=head1 DESCRIPTION
+
+B<ncdf2vdf>
+converts a variable in the named NetCDF data file, I<ncdffile>,
+into a variable in the VAPOR Data
+Collection (VDC) associated with the named .vdf file, I<metafile>.
+The variable name in the VDC must already be specified as either a 2D or 3D variable 
+in the associated .vdf file (using e.g. B<vdfedit>, B<vdfcreate>, or B<wrfvdfcreate>).  
+The Y dimension of the variable must precede the X dimension in the dimensions
+associated with the variable in the NetCDF file.
+If a NetCDF dimension is one greater than the corresponding VDC dimension, 
+data is averaged to the VDC dimension, to enable conversion of variables on staggered grids.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -debug
+
+Turn on debugging mode. 
+
+=item -quiet
+
+Operate quietly. 
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=item -ts E<lt>timestepE<gt>
+
+Specify the timestep in the VDC that will be converted; default is 0.
+
+=item -varname E<lt>VariableNameE<gt>
+
+Specify the name of the variable in the VDC 
+
+=item -ncdfvar E<lt>ncdfVariableNameE<gt>
+
+Specify the name of the variable in the NetCDF file, if it is not the same as in the VDC.
+
+=item -dimnames E<lt>xdim:ydim:zdimE<gt>
+
+Specify a colon-separated list of the dimension names in the NetCDF file that will be converted to X, Y, and Z dimensions in the VDC.  If the variable is 2D, the Z dimension name is ignored.  The Y dimension
+must precede the X dimension in the list of dimensions associated with the variable being converted.
+
+=item -cnstnames E<lt>dim1:dim2:...E<gt>
+
+In a colon-separated list, specify one or more dimension names in the NetCDF file that are held constant for this time step of the variable.  Typically time is a constant dimension name.
+
+=item -cnstvals E<lt>val1:val2:...E<gt>
+
+In a colon-separated list, specify the constant values that will be associated with each associated constant dimension name.   
+
+=item -level E<lt>levE<gt>
+
+Specify the maximum refinement level of the variable that will be written to the VDC.  
+By default this is the maximum refinement level of the VDC.  
+
+=item -swapz
+
+If specified, the Z coordinate will be reversed (largest to smallest) 
+
+=back
+
+
+=head1 SEE ALSO
+
+=head1 NOTES
+
+=head1 HISTORY
+
+Last updated on $Date$
