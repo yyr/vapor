@@ -1,0 +1,198 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+vdfcreate - Generate a VDF metadata file
+
+=head1 SYNOPSIS
+
+B<vdfcreate> [options] I<vdffile>
+
+=head1 DESCRIPTION
+
+B<vdfcreate> generates a .vdf metafile that will define a VAPOR Data
+Collection (VDC). A VDC consists of a grouping of related 3D and
+2D data volumes, most typically these field variables are solution
+outputs to a single numerical simulation. The metadata contents of a
+.vdf file establishes common attributes for all data contained in a VDC
+(e.g. volume dimension) as well as providing information unique to each
+data volume contained in a VDC (e.g. path names to files containing a
+particular solution variable).
+
+Data volumes in a VDC are represented hiearchically: each volume may
+be accessed at varying, power-of-two coarsened approximations. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item -dimension E<lt>NXxNYxNZE<gt>
+
+The B<-dimension> option specifies the volumetric dimensions of all 
+3D elements of the VDC. I<NX> is an integer specifying the bounds 
+(in grid points) of the fastest varying dimension. I<NY> specifies the
+bounds of the second fastest varying dimension, and so on.
+
+
+=item -numts E<lt>nE<gt>
+
+This option specifies the maximum number of time steps that the VDC may
+contain. A VDC may contain fewer time steps than what is specified by
+the .vdf file, but not more. The default number of time steps is one.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+The internal storage blocking factor expressed in voxels. In general this 
+should not be changed from the default value, 32x32x32.
+
+=item -level E<lt>levelE<gt>
+
+This option specifies the number of refinement levels in the VDC data
+approximation hierarchy. Starting with the native grid resolution, each
+successive level in the hierarchy is a factor of two smaller along each
+dimension. If I<level> is 0 no hiearchy will be created (all data will be
+stored in the VDC at their native resolution). If I<level> is 1 a single
+approximation will be created, thus the hierachy will have two levels:
+the native grid resolution, and the first approximation.  And so on.
+
+=item -nfilter E<lt>nE<gt>
+
+Specifies the number of wavelet filter coefficients to be used when
+constructing a Lifting wavelet for transforming data into
+the VDC. In general this option should not be changed from the default
+value, one.
+
+=item -nlifting E<lt>nE<gt>
+
+Specifies the number of wavelet lifting coefficients to be used when
+constructing a Lifting wavelet for transforming data into the VDC. In
+general this option should not be changed from the default value, one.
+
+=item -comment E<lt>stringE<gt>
+
+Specifies a comment to be included in the .vdf file. 
+
+=item -gridtype E<lt>typeE<gt>
+
+Specifies the type of the volumetric data grid. Currently supported 
+values for I<type> are: B<regular>, B<layered>, B<stretched>, and 
+B<block_amr>.  The default is B<regular>, a uniformly sampled Cartesian grid.
+
+=item -usertimes E<lt>pathE<gt>
+
+Specifies the path to a file containing a whitespace-delimited list
+of monotonically increasing user times. Each I<user time> is a unitless
+floating point value indicating the time associated with a time step. User
+times are required for correct calculation of time-dependent algorithms
+such as unsteady flow visualization. If this option is present, the
+B<-numts> option is ignored. If no user time information the default
+the time step is used as the user time.
+
+=item -coordsystem E<lt>typeE<gt>
+
+Specifies the data coordinate system. Currently support values for 
+I<type> are B<cartesian> and B<spherical>. The default is B<cartesian>.
+
+=item -extents E<lt>X0:Y0:Z0:X1:Y1:Z1E<gt>
+
+The option specifies a colon-delimited, 6-element vector defining
+the spatial domain extents of all 3D data volumes in a user defined
+coordinate system.  I<X0>, I<Y0>, and I<Z0> provided the minimum bounds of
+the fastest to slowest varying dimensions, respectively.  I<X1>, I<Y1>,
+and I<Z1> provided the maximum bounds of the fastest to slowest varying
+dimensions, respectively.  Correct domain extents are required for some
+visualization algorithms such as flow integration. For Cartesian data,
+if this option is not supplied domain extents will be calculated such
+that the largest dimension (in grid points) has extents [0..1.0]. The
+other extents are caluclated such that the minimum bound is 0.0 and the
+maximum bound assures cubic voxels. For spherical data, the defaults
+are calculated as:
+
+    X0 = 0.0 + (360.0 / NX / 2.0) # min_lon
+    X1 = 360 - (360 / NX/ 2.0)    # max_lon
+    Y0 = 0.0 + (180 / NY / 2.0)   # min_lat
+    Y1 = 360 - (180 / NY / 2.0)   # min_lat
+    Z0 = 0.0                      # min_radius
+    Z1 = 0.5                      # max_radius
+
+where I<NX> and I<NY> are the dimension, in grid points, of the longitude and
+latitude coordinates, respectively.
+
+=item -order E<lt>p0:p1:p2E<gt>
+
+A colon-delimited, 3-element vector specifying the permutation ordering of
+raw data on disk. The default permutation B<0:1:2>, in the case of
+spherical data, for example, indicates 
+that Longitude is the fastest varying dimension, followed by
+lattitude, then radius. The permutation specification B<2:1:0> would swap
+Longitude and Radius dimensions.  Note, that this option not only
+permutes the expected ordering of data, but also permutes option arguments
+to B<vdfcreate> that specify dimensions. This includes the B<-dimension>,
+B<-extents>, and B<-periodic> command line options.
+
+=item -periodic E<lt>b0:b1:b2E<gt>
+
+A colon-delimited, 3-element boolean vector (0==false, 1==true) specifying
+the periodicity of the X, Y, and Z coordinate axes. A true value, B<1>,
+indicates that the coresponding axis has periodic boundaries. The default
+is B<0:0:0>, indicating that all of the boundaries are non-periodic.
+
+=item -varnames E<lt>string_vectorE<gt>
+
+This option is deprecated. Use B<-vars3d>.
+
+=item -vars3d E<lt>string_vectorE<gt>
+
+A colon delimited list of 3D field variable  names to be included in the
+VDF. The default is the single element vector, B<var1>.
+
+=item -vars2dXY E<lt>string_vectorE<gt>
+
+A colon delimited list of 2D, XY-plane field variable names to be included 
+in the VDF. The default is to include no 2D XY-plane variables.
+
+=item -vars2dXZ E<lt>string_vectorE<gt>
+
+A colon delimited list of 2D, XZ-plane field variable names to be included 
+in the VDF. The default is to include no 2D XZ-plane variables.
+
+=item -vars2dYZ E<lt>string_vectorE<gt>
+
+A colon delimited list of 2D, YZ-plane field variable names to be included 
+in the VDF. The default is to include no 2D YZ-plane variables.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+C<vdfcreate -dimension 512x512x512 -numts 100 -level 3 -varnames vx:vy:vz
+foo.vdf>
+
+will produce a VDF file named, B<foo.vdf>. This file will describe a VDC
+containing up to 100 time steps, starting from 0 and running through 99; three 
+field variables, B<vx>, B<vy>, and B<vz>; each volume would have a 
+spatial resolution of 512^3; and three wavelet transformations would
+be applied resulting in data approximations at resolutions 64^4, 
+128^3, and 256^3.
+
+=head1 SEE ALSO
+
+vdfcreate, raw2vdf, vdf2raw
+
+I<An Overview of VAPOR Data Collections>
+
+
+=head1 HISTORY
+
+Last updated on $Date$
+

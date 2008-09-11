@@ -1,0 +1,197 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+wrfvdfcreate - Generate a VDF metadata file for a WRF data set
+
+=head1 SYNOPSIS
+
+B<wrfvdfcreate> [options] I<wrf_ncdf_file...> I<vdffile>
+
+B<wrfvdfcreate> [options] -start I<time> -deltat I<seconds> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<wrfvdfcreate> generates a .vdf metafile that will define a VAPOR Data
+Collection (VDC) suitable for containing Weather Research Forecast
+(WRF) simulation output. In the first form of the command one or more
+WRF netCDF files are used as templates for generating I<vdffile>. This
+is the recommended usage. In the second form, command line arguments
+are required to specify all WRF metadata information.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -dimension E<lt>NXxNYxNZE<gt>
+
+Grid dimensions.  This option determines the grid lengths (in number of
+grid points) of the three Cartesian dimensions, in the order west_east,
+south_north, bottom_top.  This option is only recognized by the second
+form of the command, and is silently ignored in the first form.  The grid
+lengths should be those of the unstaggered dimensions.
+
+=item -extents E<lt>X0:Y0:Z0:X1:Y1:Z1E<gt>
+
+Physical extents.  This option determines the physical length of each
+dimension (for example, in meters).  In the second form of the command if
+the option is not present, the extents are assumed to be proportional
+to the grid lengths.  If the first form of the command is used, by
+default the netCDF's DX and DY global attributes are used to find the
+horizontal extents, and the variables PH and PHB are used to find the
+vertical extents.  In general it is best to let B<wrfvdfcreate> calculate
+the extents.
+
+=item -startt E<lt>time<gt>
+
+Starting time.  This is the date and time, which corresponds to the first
+time step in the VDC (time step 0). If the first form of the command is
+used, the starting time is calculated as the ealiest time found in the
+WRF netCDF files, I<wrf_ncdf_file...> based on the contents of the netCDF
+B<Times> variable. In the second form of the command there is no default,
+and this option must be provided. Care should be taken in using this
+option. WRF netCDF files with times earlier than the starting time will
+not be able to be inserted into the VDC associated with the resulting
+.vdf file. In general, WRF data whose time stamps do not agree with the
+time steps in a .vdf file will not be able to be inserted into the VDC
+associated with that .vdf file.
+
+The format of the I<time> argument is I<yyyy-mm-dd_hh:mm:ss>, where
+I<yyyy> is the four-digit year,  I<mm> is the two-digit month (January ==
+1), I<dd> is the day of the month, I<hh> is the hour, I<mm> is the minute,
+and I<ss> is the second.
+
+=item -numts E<lt>numberE<gt>
+
+Maximum number of VDC (rather than WRF) time steps.
+This should be set to the largest number you would consider ever having
+in the given data set. In the first form of the command the number of
+time steps generated is determined by the contents of the WRF netCDF
+file(s). If the second form of the command is used the default value
+is 1.  
+
+=item -deltat E<lt>numberE<gt>
+
+Time in seconds between successive time steps.  This option specifies
+a uniform, integer sampling interval between successive time steps in
+seconds. If the first form of the command is used and this option is
+not present the sampling is determined by the contents of the B<Times>
+variable and may be non-uniform. In the second form of the command there
+is no default and this option must be specified.
+
+Time stamps will be calculated using the formula:
+
+    time_stamp = (time_step + 1) * I<number>
+
+Care should be used with this option. WRF data whose time stamps do
+not agree with the time stamps in a .vdf file will not be able to be
+inserted into the VDC associated with that .vdf file.  
+
+=item -vars3d E<lt>varsE<gt>
+
+A colon-delimited list of names of 3D variables (as they appear in the
+WRF file) to include in the .vdf file.  The arguments to B<-varnames>
+need not exclusively be WRF variables--for example, derived variables
+(such as vorticity) that are stored in a netCDF file with the same
+dimensions and B<PH>, B<PHB>, and B<Times> variables can be converted
+as well. In the first form of the command the default is to convert all
+3D variables found in the first of the WRF netCDF input files.
+
+=item -vars2d E<lt>varsE<gt>
+
+A colon-delimited list of names of 2D variables. See B<-vars3d>.
+
+=item <-dervars> E<lt>varsE<gt>
+
+A colon-delimited list of variables that are to be derived from WRF data during 
+conversion with the wrf2vdf command.  These include: 
+ 
+B<PHNorm_>: the normalized geopotential (PH+PHB)/PHB; 
+B<UVW_>: the three-dimensional wind speed (U^2+V^2+W^2)^1/2; 
+B<UV_>: the two-dimensional wind speed (U^2+V^2)^1/2; 
+B<omZ_>: a rough estimate of the vertical vorticity (see note below); 
+B<PFull_>: the full pressure P+PB; 
+B<PNorm_>: the normalized pressure (P+PB)/PB; 
+B<Theta_>: the potential temperature T+300; and 
+B<TK_>: the temperature in Kelvin, B<TK_> = (B<T> + 300) *
+((B<P>+B<PB>)/100000)^0.286
+
+No other arguments to this option may be given.  
+
+=item -atypvars E<lt>varsE<gt>
+
+Atypical variable names.  When calculating the B<ELEVATION> variable
+as well as several derived variables (see below), B<wrfvdfcreate>
+and B<wrf2vdf> assume that the wind components are named B<U>, B<V>,
+and B<W>, the perturbation pressure is named B<P>, the base pressure is
+B<PB>, the perturbation geopotential is B<PH>, and the base geopotential is
+B<PHB>.  If any one of these variables has a name other than these (for
+example, some users have wind components named U1, V1, W1), this option
+must be given.  Its argument is a colon delimited list of the actual
+names of the variables which are typically named U:V:W:PH:PHB:P:PB:T.
+The list must be given in that order and contain all 8 elements, even
+if some of these eight variables have the expected names.
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -nfilter E<lt>nE<gt>
+
+See vdfcreate.
+
+=item -nlifting E<lt>nE<gt>
+ 
+See vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+=head2 First form of command
+
+The command 
+
+    wrfvdfcreate -vars3d P:T -level 2 wrf1.ncdf wrf2.ncdf wrf3.ncdf mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<P>
+and B<T> variable names for all time steps found in the WRF netCDF files
+B<wrf1.ncdf>, B<wrf2.ncdf>, and B<wrf3.ncdf>.
+
+=head2 Second form of command
+
+The command 
+
+    wrfvdfcreate -dimension 1000x1500x34 -extents \
+    0:0:0:1000000:2000000:20000 -startt 1981-07-05_12:00:00 \
+    -numts 24000 -deltat 3600 -vars3d U1:V1:W1:PH:PHB:T \
+    -dervars UV_:UVW_ -level 3 mydata.vdf
+
+is an example of how to create a VDF file when a template WRF netCDF file
+is not available. 
+
+=head1 SEE ALSO
+
+vdfcreate, wrf2vdf,
+
+I<Conversion of WRF-ARW datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$

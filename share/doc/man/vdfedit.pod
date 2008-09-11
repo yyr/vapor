@@ -1,3 +1,9 @@
+=begin comment
+
+$Id$
+
+=end comment
+
 =head1 NAME
 
 vdfedit - Edit the contents of a VAPOR .vdf file
@@ -77,4 +83,12 @@ will also increase the number of time steps by 10.
 
 =head1 SEE ALSO
 
-vdfcreate, wrf2vdf
+vdfcreate
+
+I<An Overview of VAPOR Data Collections>
+
+
+=head1 HISTORY
+
+Last updated on $Date$
+

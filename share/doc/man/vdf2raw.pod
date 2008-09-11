@@ -1,0 +1,105 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+vdf2raw - Inverse transform a field variable found in a VDC and store
+the results in a file.
+
+=head1 SYNOPSIS
+
+B<vdf2raw> [options] I<vdffile> I<datafile>
+
+=head1 DESCRIPTION
+
+B<vdf2raw> extracts a field variable from the VDC associated with the
+VDF file I<vdffile>, performs and inverse translation on the data,
+and stores the results in the file indicated by I<vdffile>.
+The data are written as a contiguous array of unformatted binary
+floating point values. The X dimension varies fastest, followed by Y, then Z.
+Data are written at 32 bit precision in the native format of the 
+machine where B<vdf2raw> is run.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -ts E<lt>nE<gt>
+
+The B<-ts> option specifies the integer time step of the variable. The
+default value is 0, which corresponds to the first time step
+in a VDC.
+
+=item -varname E<lt>nameE<gt>
+
+This option specifies name of the variable to extract. 
+
+=item -level E<lt>levelE<gt>
+
+Data in a VDC are represented by a multiresolution hierarchy. This
+option specifies which level in the hierarchy to extract the 
+variable from. A value of 0, the default, indicates the 
+coarsest level in hierarchy. A value of 1 implies the first 
+refinement level, and so on. The special value, -1, is synonymous with
+the native data resolution, whatever level that may be.
+
+=item -quiet
+
+Operate quietly without reporting any informational messages.
+
+=item -block 
+
+The internal blocking of the data are preserved as they are written
+to disk. 
+
+=item -xregion E<lt>min:maxE<gt> 
+
+This option limits the extraction of the variable to a subvolume, whose
+minimum and maximum integer voxel bounds along the X dimension are given by 
+I<min> and I<max>, respectively. The smallest allowable value of I<min> is
+0. The largest allowable value of I<max> is I<NX-1>, where I<NX> is the
+dimension of the X axis.
+
+=item -yregion E<lt>min:maxE<gt> 
+
+See B<-xregion>
+
+=item -zregion E<lt>min:maxE<gt> 
+
+See B<-xregion>
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+C<vdf2raw -level -1 -ts 0 -varname vx foo.vdf vx.float>
+
+would inverse transform the variable with name B<vx> and step 0,
+associated with the VDC indicated by B<foo.vdf>, and write the results
+to the file B<vx.float>. The data would be extracted at their native
+grid resolution.
+
+The command 
+
+C<vdf2raw -ts 0 -varname vx foo.vdf vx.float>
+
+would perform identically to the one above except that the 
+coarsest data in the hiearchy would be extracted for variable B<vx>.
+
+
+=head1 SEE ALSO
+
+vdfcreate, raw2vdf
+
+I<An Overview of VAPOR Data Collections>
+
+
+=head1 HISTORY
+
+Last updated on $Date$
+

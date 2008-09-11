@@ -1,0 +1,117 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+raw2vdf - Transform a raw data volume into a VDC
+
+=head1 SYNOPSIS
+
+B<raw2vdf> [options] I<vdffile> I<datafile>
+
+=head1 DESCRIPTION
+
+B<raw2vdf> reads a 3D or 2D volume of data from disk, wavelet transforms
+the data, and stores it in the VDC associated with the file I<vdffile>.
+The data volume must be stored on disk as a contiguous array of
+unformatted binary floating point values (32bit precision by default)
+with no header or trailer information. The dimensions of the raw data
+volume must match those specified in I<vdffile>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -ts E<lt>nE<gt>
+
+The B<-ts> option specifies the integer time step of the data volume. The
+default value is 0, which corresponds to the first allowable time step
+in a VDC.
+
+=item -varname E<lt>nameE<gt>
+
+This option specifies name of the variable that the raw data volume 
+corresponds too. The name must match either a 2D or 3D variable name
+in the VDF indicated by I<vdffile>. If I<name> matches a 2D variable, 
+a 2D slice of data expected to be contained in I<datafile>. If I<name> 
+matches a 3D variable, B<raw2vdf>
+will attempt to read a 3D data volume from I<datafile>.
+
+=item -level E<lt>levelE<gt>
+
+This option can be used to limit the wavelet approximation hierarchy
+written to the VDC. By default, I<level> == -1, and all levels of the
+approximation hierarchy computed by the wavelet transform are stored
+in the VDC. If I<level> is 0, only the coarsest approximation is saved.
+If I<level> is 1, the coarsest approximation, and first refinement are
+saved. And so on.
+
+=item -quiet
+
+Operate quietly without reporting any informational messages.
+
+=item -swapbytes 
+
+As data are read from the file I<datafile> their byte ordering is
+reversed, making "big endian" numbers "little endian" numbers, or
+vice-versa.
+
+=item -dbl 
+
+By default data values stored in the file I<datafile> are assumed to be
+32bit. If this option is present 64bit floating point values are read.
+
+=item -xregion E<lt>min:maxE<gt> 
+
+This option limits the reading of the raw data to a subvolume, whose
+minimum and maximum integer voxel bounds along the X dimension are given by 
+I<min> and I<max>, respectively. The smallest allowable value of I<min> is
+0. The largest allowable value of I<max> is I<NX-1>, where I<NX> is the
+dimension of the X axis.
+
+=item -yregion E<lt>min:maxE<gt> 
+
+See B<-xregion>
+
+=item -zregion E<lt>min:maxE<gt> 
+
+See B<-xregion>
+
+=item -stagdim E<lt>dimE<gt> 
+
+This option informs B<raw2vdf> that one of the raw data volume 
+dimensions is "staggered": data samples are computed on cell faces, not 
+cell centers.  A staggered dimension will have I<N>+B<1> sample
+points, where I<N> is the axis dimension. A value of B<1> indicates that
+the X dimension is staggered, a value of 2 indicates a Y staggered 
+dimesion, and so on. By default, no dimensions are staggered.
+
+Staggered dimensions are resampled to cell centers by B<raw2vdf> prior 
+to wavelet transforming the data.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+C<raw2vdf -ts 0 -varname vx foo.vdf vx.float>
+
+would transform the volume stored in the file B<vx.float> and write it into 
+the VDC associated with the B<foo.vdf> VDF file. The time step and variable 
+would be B<0> and B<vx>, 
+respectively. 
+
+=head1 SEE ALSO
+
+vdfcreate, vdf2raw
+
+I<An Overview of VAPOR Data Collections>
+
+=head1 HISTORY
+
+Last updated on $Date$
+

@@ -1,3 +1,9 @@
+=begin comment
+
+$Id$
+
+=end comment
+
 =head1 NAME
 
 vdfls - List directory contents of a VAPOR Data Collection
@@ -38,6 +44,11 @@ I<order> is one of B<time>, B<level>, or B<varname>.
 
 
 =head1 SEE ALSO
+
+vdfcreate
+
+I<An Overview of VAPOR Data Collections>
+
 
 =head1 NOTES
 

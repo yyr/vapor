@@ -1,3 +1,9 @@
+=begin comment
+
+$Id$
+
+=end comment
+
 =head1 NAME
 
 asciitf2vtf - Convert an ASCII description of a Lookup Transfer table

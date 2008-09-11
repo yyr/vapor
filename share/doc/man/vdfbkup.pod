@@ -1,3 +1,9 @@
+=begin comment
+
+$Id$
+
+=end comment
+
 =head1 NAME
 
 vdfbkup.pl - Create a backup of a VAPOR Data Collection
@@ -102,6 +108,9 @@ would back up the VDC files associated with B<mydata.vdf> to the remote system,
 B<myremotehost>, using the B<scp> command.
 
 =head1 SEE ALSO
+
+I<An Overview of VAPOR Data Collections>
+
 
 =head1 NOTES
 
