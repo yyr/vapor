@@ -2139,8 +2139,8 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	GLWindow* glwin = vw->getGLWindow();
 	if (!glwin) return;
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
-	if(!flowRend) return;
-	flowRend->setDataDirty(doInterrupt);
+	if(flowRend)
+		flowRend->setDataDirty(doInterrupt);
 	vw->updateGL();
 }
 
