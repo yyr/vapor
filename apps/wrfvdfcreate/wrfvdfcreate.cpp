@@ -29,7 +29,7 @@ struct opt_t {
 	int	nlifting;
 	char *comment;
 	float extents[6];
-	vector <string> varnames;
+	vector <string> vars3d;
 	vector <string> vars2d;
 	vector<string> dervars;
 	vector<string> atypvars;
@@ -43,7 +43,8 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"startt",	1,	"", "Starting time stamp, one of (time|SIMULATION_START_DATE|START_DATE), where time has the form : yyyy-mm-dd_hh:mm:ss"},
 	{"numts",	1, 	"0",			"Maximum number of VDC time steps"},
 	{"deltat",	1,	"0",			"Seconds per VDC time step"},
-	{"varnames",1,	"",			"Colon delimited list of all (2D and 3D) variables to be extracted from WRF data"},
+	{"varnames",1,	"",			"Deprecated. Use -vars3d instead"},
+	{"vars3d",1,	"",			"Colon delimited list of 3D variables to be extracted from WRF data"},
 	{"vars2d",1,    "",         "Colon delimited list of 2D variables to be extracted from WRF data"},
 	{"dervars", 1,	"",	"Colon delimited list of desired derived variables.  Choices are: PHNorm_: normalized geopotential (PH+PHB)/PHB, UVW_: 3D wind speed (U^2+V^2+W^2)^1/2, UV_: 2D wind speed (U^2+V^2)^1/2, omZ_: estimate of vertical vorticity, PFull_: full pressure P+PB, PNorm_: normalized pressure (P+PB)/PB, Theta_: potential temperature T+300, TK_: temp. in Kelvin (T+300)((P+PB))/100000)^0.286"},
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement (default is 2)"},
@@ -64,7 +65,8 @@ OptionParser::Option_T	get_options[] = {
 	{"startt", VetsUtil::CvtToString, &opt.startt, sizeof(opt.startt)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
 	{"deltat", VetsUtil::CvtToInt, &opt.deltat, sizeof(opt.deltat)},
-	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
+	{"vars3d", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
+	{"vars2d", VetsUtil::CvtToStrVec, &opt.vars2d, sizeof(opt.vars2d)},
 	{"dervars", VetsUtil::CvtToStrVec, &opt.dervars, sizeof(opt.dervars)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"atypvars", VetsUtil::CvtToStrVec, &opt.atypvars, sizeof(opt.atypvars)},
@@ -288,9 +290,8 @@ int	main(int argc, char **argv) {
 	argv++;
 	argc--;
 	vector <TIME64_T> timestamps;
-	vector <string> wrfVarNames3d, wrfVarNames2d,
-		wrfVarNames;    // 2d and 3d vars
-	vector <string> vdfVarNames;
+	vector <string> wrfVarNames3d, wrfVarNames2d;    // 2d and 3d vars
+	vector <string> vdfVarNames3d;
 	vector <string> vdfVarNames2d;
 	string startT;
 
@@ -317,7 +318,7 @@ int	main(int argc, char **argv) {
 		dim[1] = opt.dim.ny;
 		dim[2] = opt.dim.nz;
 
-		vdfVarNames = opt.varnames;
+		vdfVarNames3d = opt.vars3d;
 		vdfVarNames2d = opt.vars2d;
 
 		bool doExtents = false;
@@ -363,35 +364,31 @@ int	main(int argc, char **argv) {
 				startT = startDate;
 			}
 		}
-		wrfVarNames = wrfVarNames3d;
-		for (int i=0; i<wrfVarNames2d.size(); i++) {
-			wrfVarNames.push_back(wrfVarNames2d[i]);
-		}
 
 		// Check and see if the variable names specified on the command
 		// line exist. Issue a warning if they don't, but we still
 		// include them.
 		//
-		if (opt.varnames.size()) {
-			vdfVarNames = opt.varnames;
+		if (opt.vars3d.size()) {
+			vdfVarNames3d = opt.vars3d;
 
-			for ( int i = 0 ; i < opt.varnames.size() ; i++ ) {
+			for ( int i = 0 ; i < opt.vars3d.size() ; i++ ) {
 
 				bool foundVar = false;
-				for ( int j = 0 ; j < wrfVarNames.size() ; j++ )
-					if ( wrfVarNames[j] == opt.varnames[i] ) {
+				for ( int j = 0 ; j < wrfVarNames3d.size() ; j++ )
+					if ( wrfVarNames3d[j] == opt.vars3d[i] ) {
 						foundVar = true;
 						break;
 					}
 
 				if ( !foundVar ) {
-					cerr << ProgName << ": Warning: desired WRF variable " << 
-						opt.varnames[i] << " does not appear in sample WRF file" << endl;
+					cerr << ProgName << ": Warning: desired WRF 3D variable " << 
+						opt.vars3d[i] << " does not appear in sample WRF file" << endl;
 				}
 			}
 		}
 		else {
-			vdfVarNames = wrfVarNames;
+			vdfVarNames3d = wrfVarNames3d;
 		}
 
 		// Check and see if the 2D variable names specified on the command
@@ -411,7 +408,7 @@ int	main(int argc, char **argv) {
 					}
 
 				if ( !foundVar ) {
-					cerr << ProgName << ": Warning: desired WRF variable " <<
+					cerr << ProgName << ": Warning: desired WRF 2D variable " <<
 						opt.vars2d[i] << " does not appear in sample WRF file" << endl;
 				}
 			}
@@ -466,28 +463,28 @@ int	main(int argc, char **argv) {
 	for ( int i = 0 ; i < opt.dervars.size() ; i++ )
 	{
 		if ( opt.dervars[i] == "PFull_" ) {
-			vdfVarNames.push_back( "PFull_" );
+			vdfVarNames3d.push_back( "PFull_" );
 		}
 		else if ( opt.dervars[i] == "PNorm_" ) {
-			vdfVarNames.push_back( "PNorm_" );
+			vdfVarNames3d.push_back( "PNorm_" );
 		}
 		else if ( opt.dervars[i] == "PHNorm_" ) {
-			vdfVarNames.push_back( "PHNorm_" );
+			vdfVarNames3d.push_back( "PHNorm_" );
 		}
 		else if ( opt.dervars[i] == "Theta_" ) {
-			vdfVarNames.push_back( "Theta_" );
+			vdfVarNames3d.push_back( "Theta_" );
 		}
 		else if ( opt.dervars[i] == "TK_" ) {
-			vdfVarNames.push_back( "TK_" );
+			vdfVarNames3d.push_back( "TK_" );
 		}
 		else if ( opt.dervars[i] == "UV_" ) {
-			vdfVarNames.push_back( "UV_" );
+			vdfVarNames3d.push_back( "UV_" );
 		}
 		else if ( opt.dervars[i] == "UVW_" ) {
-			vdfVarNames.push_back( "UVW_" );
+			vdfVarNames3d.push_back( "UVW_" );
 		} 
 		else if ( opt.dervars[i] == "omZ_" ) {
-			vdfVarNames.push_back( "omZ_" );
+			vdfVarNames3d.push_back( "omZ_" );
 		}
 		else {
 			cerr << ProgName << " : Invalid derived variable : " <<
@@ -498,7 +495,7 @@ int	main(int argc, char **argv) {
 
 	// Always require the ELEVATION and HGT variables
 	//
-	vdfVarNames.push_back("ELEVATION");
+	vdfVarNames3d.push_back("ELEVATION");
 	vdfVarNames2d.push_back("HGT");
 		
 	bs[0] = opt.bs.nx;
@@ -541,7 +538,13 @@ int	main(int argc, char **argv) {
 		}
 	}
 
-	if (file->SetVariableNames(vdfVarNames) < 0) {
+	// need a list of 2d and 3d varnames together
+	//
+	vector <string> varnames = vdfVarNames3d;
+	for (int i=0; i<vdfVarNames2d.size(); i++) {
+		varnames.push_back(vdfVarNames2d[i]);
+	}
+	if (file->SetVariableNames(varnames) < 0) {
 		exit(1);
 	}
 	if (file->SetVariables2DXY(vdfVarNames2d) < 0) {
