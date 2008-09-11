@@ -1705,7 +1705,7 @@ guiEndCursorMove(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
-	setDatarangeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	if (b) ibfvPlay();
 }
 //calculate the variable, or rms of the variables, at a specific point.

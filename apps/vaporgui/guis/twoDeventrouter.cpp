@@ -1438,7 +1438,7 @@ guiEndCursorMove(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
-	setDatarangeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
 }
 //calculate the variable, or rms of the variables, at a specific point.
