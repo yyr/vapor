@@ -512,10 +512,10 @@ int WRF::OpenWrfGetMeta(
 			int rc;
 
 			// Dummies needed by function
-			bool needAnotherPh = true;
-			bool needAnotherPhb = true;
 
 			// Read bottom slices
+			bool needAnotherPh = true;
+			bool needAnotherPhb = true;
 			rc = GetZSlice(
 				ncid, phInfo, t, 0, phBuf, phBufTemp, needAnotherPh, dimLens
 			);
@@ -548,6 +548,8 @@ int WRF::OpenWrfGetMeta(
 			);
 			if (rc<0) return (rc);
 
+			needAnotherPh = true;
+			needAnotherPhb = true;
 			rc = GetZSlice(
 				ncid, phbInfo, t, dimLens[2] - 1, phbBuf, phbBufTemp, 
 				needAnotherPhb, dimLens
