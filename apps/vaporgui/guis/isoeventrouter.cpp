@@ -1125,6 +1125,13 @@ setEditorDirty(RenderParams* p){
 		isoSelectionFrame->setVariableName("N/A");
 		transferFunctionFrame->setVariableName("N/A");
 	}
+	if(ip) {
+		MapperFunction* mf = ip->getMapperFunc();
+		if (mf) {
+			leftMappingEdit->setText(QString::number(mf->getMinOpacMapValue()));
+			rightMappingEdit->setText(QString::number(mf->getMaxOpacMapValue()));
+		}
+	}
 	isoSelectionFrame->update();
 	transferFunctionFrame->update();
 }

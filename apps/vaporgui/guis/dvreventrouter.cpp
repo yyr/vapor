@@ -920,6 +920,13 @@ setEditorDirty(RenderParams *p){
     {
       transferFunctionFrame->setVariableName("");
     }
+	if(dp) {
+		MapperFunction* mf = dp->getMapperFunc();
+		if (mf) {
+			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
+			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
+		}
+	}
 }
 
 
