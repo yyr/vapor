@@ -257,16 +257,21 @@ void TwoDEventRouter::updateTab(){
     transferFunctionFrame->updateParams();
 	int numvars = 0;
 	QString varnames = getMappedVariableNames(&numvars);
+    QString shortVarNames = varnames;
+	if(shortVarNames.length() > 12){
+		shortVarNames.setLength(12);
+		shortVarNames.append("...");
+	}
     if (numvars > 1)
     {
       transferFunctionFrame->setVariableName(varnames.ascii());
-	  QString labelString = "Magnitude of mapped variables("+varnames+") at selected point:";
+	  QString labelString = "Length of vector("+shortVarNames+") at selected point:";
 	  variableLabel->setText(labelString);
     }
 	else if (numvars > 0)
 	{
       transferFunctionFrame->setVariableName(varnames.ascii());
-	  QString labelString = "Value of mapped variable("+varnames+") at selected point:";
+	  QString labelString = "Value of variable("+shortVarNames+") at selected point:";
 	  variableLabel->setText(labelString);
     }
     else
