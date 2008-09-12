@@ -252,6 +252,7 @@ viewpointReturnPressed(void){
 //Insert values from params into tab panel
 //
 void ViewpointEventRouter::updateTab(){
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	
 	QString strng;

@@ -63,7 +63,7 @@
 
 #include "animationeventrouter.h"
 #include "animationcontroller.h"
-
+#include "mainform.h"
 #include "eventrouter.h"
 
 using namespace VAPoR;
@@ -190,7 +190,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 //Insert values from params into tab panel
 //
 void AnimationEventRouter::updateTab(){
-
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;
 	QString strn;

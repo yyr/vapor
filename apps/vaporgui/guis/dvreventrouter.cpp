@@ -336,6 +336,7 @@ sessionLoadTF(QString* name){
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(){
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
 

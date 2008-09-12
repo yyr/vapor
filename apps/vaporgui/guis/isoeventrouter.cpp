@@ -186,6 +186,7 @@ IsoEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void IsoEventRouter::updateTab(){
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	Session *session = Session::getInstance();
 	setEnabled(!session->sphericalTransform());
 	session->blockRecording();

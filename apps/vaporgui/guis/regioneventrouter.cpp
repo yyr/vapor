@@ -223,6 +223,7 @@ void RegionEventRouter::copyRegionToProbe(){
 //Insert values from params into tab panel
 //
 void RegionEventRouter::updateTab(){
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 
 	float* regionMin = rParams->getRegionMin();

@@ -322,7 +322,7 @@ FlowEventRouter::hookUpTab()
 //This is called whenever the tab is displayed
 //
 void FlowEventRouter::updateTab(){
-	
+	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	DataStatus* dStatus = DataStatus::getInstance();
 
     setEnabled(!Session::getInstance()->sphericalTransform());
@@ -1558,7 +1558,7 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
 		opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
-	updateTab();
+	
 }
 
 //Methods that record changes in the history:
