@@ -286,6 +286,7 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 	float nearPtBox[3],farPtBox[3],camPosBox[3];
 	float maxProj = -.1e30f;
 	float minProj = 1.e30f;
+	bool insideRegion = false; //flag set if we are inside region
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
 	for (int i = 0; i<8; i++){
@@ -294,6 +295,8 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 		}
 		vsub(cor, getCameraPos(), wrk);
 		float dist = vlength(wrk);
+		float mdist = vdot(wrk, getViewDir());
+		if (mdist < 0.f) insideRegion = true;
 		if (minProj > dist) {
 			minProj = dist;
 			vcopy(cor, nearPt);
@@ -321,9 +324,15 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 	}
 	vsub(camPosBox,nearPtBox,nearPtBox);
 	vsub(camPosBox,farPtBox,farPtBox);
-	minProj = vlength(nearPtBox);
+	
 	maxProj = vlength(farPtBox);
+	minProj = vlength(nearPtBox);
 	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
+	//If we are inside region, make the min dist equal to .03 times max dist.
+	if (insideRegion && !DataStatus::getInstance()->sphericalTransform()){
+		minProj = 0.03*maxProj;
+	}
+	
 	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
 
 	*boxFar = maxProj;
