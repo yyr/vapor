@@ -195,7 +195,7 @@ float	*DataMgr::GetRegion(
 		if (rc < 0) return (NULL);
 
 		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+			ts,varname,vtype, reflevel,DataMgr::FLOAT32,min,max,lock
 		);
 		if (! blks) return(NULL);
 
@@ -269,7 +269,7 @@ float	*DataMgr::GetRegion(
 		if (rc < 0) return (NULL);
 
 		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+			ts,varname,vtype, reflevel,DataMgr::FLOAT32,min,max,lock
 		);
 		if (! blks) return(NULL);
 
@@ -292,7 +292,7 @@ float	*DataMgr::GetRegion(
 		if (rc < 0) return (NULL);
 
 		blks = (float *) alloc_region(
-			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+			ts,varname,vtype, reflevel,DataMgr::FLOAT32,min,max,lock
 		);
 		if (! blks) return(NULL);
 
@@ -377,6 +377,12 @@ unsigned char	*DataMgr::GetRegionUInt8(
 		max[0],max[1],max[2], range1[0], range1[1], 
 		range2[0], range2[1], lock
 	);
+	VDFIOBase::VarType_T vtype1 = VDFIOBase::GetVarType(_metadata, varname1);
+	VDFIOBase::VarType_T vtype2 = VDFIOBase::GetVarType(_metadata, varname2);
+	if (vtype1 != vtype2) {
+		SetErrMsg("Variable type mismatch");
+		return(NULL);
+	}
 
 	string varname = varname1;
 	varname += "+";
@@ -406,8 +412,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
-	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
-	switch (vtype) {
+	switch (vtype1) {
 	case VDFIOBase::VAR2D_XY:
 		nz = 1;
 		break;
@@ -425,7 +430,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	unsigned char *ublks1, *ublks2;
 
 	ublks = (unsigned char *) alloc_region(
-		ts,varname.c_str(),reflevel,DataMgr::UINT16,
+		ts,varname.c_str(),vtype1, reflevel,DataMgr::UINT16,
 		min,max, lock
 	);
 	if (! ublks) return(NULL);
@@ -491,6 +496,13 @@ unsigned char	*DataMgr::GetRegionUInt16(
 		range2[0], range2[1], lock
 	);
 
+	VDFIOBase::VarType_T vtype1 = VDFIOBase::GetVarType(_metadata, varname1);
+	VDFIOBase::VarType_T vtype2 = VDFIOBase::GetVarType(_metadata, varname2);
+	if (vtype1 != vtype2) {
+		SetErrMsg("Variable type mismatch");
+		return(NULL);
+	}
+
 	string varname = varname1;
 	varname += "+";
 	varname += varname2;
@@ -519,8 +531,7 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
-	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
-	switch (vtype) {
+	switch (vtype1) {
 	case VDFIOBase::VAR2D_XY:
 		nz = 1;
 		break;
@@ -538,7 +549,7 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	unsigned char *ublks1, *ublks2;
 
 	ublks = (unsigned char *) alloc_region(
-		ts,varname.c_str(),reflevel,DataMgr::UINT32,
+		ts,varname.c_str(),vtype1, reflevel,DataMgr::UINT32,
 		min,max, lock
 	);
 	if (! ublks) return(NULL);
@@ -580,7 +591,6 @@ unsigned char	*DataMgr::get_quantized_region(
 
 	unsigned char	*ublks = NULL;
 
-
 	// 
 	// Set the data range for the quantization mapping. This operation 
 	// is a no-op if the value specified does not differ from the
@@ -599,16 +609,15 @@ unsigned char	*DataMgr::get_quantized_region(
 		return(ublks);
 	}
     
-
-
 	float	*blks = NULL;
 
 	blks = GetRegion(ts, varname, reflevel, min, max, 1);
 	if (! blks) return (NULL);
 
 
+	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
 	ublks = (unsigned char *) alloc_region(
-		ts,varname,reflevel,type,min,max, lock
+		ts,varname,vtype, reflevel,type,min,max, lock
 	);
 	if (! ublks) {
 		UnlockRegion(blks);
@@ -623,7 +632,6 @@ unsigned char	*DataMgr::get_quantized_region(
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
 
-	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
 	switch (vtype) {
 	case VDFIOBase::VAR2D_XY:
 		nz = 1;
@@ -939,6 +947,7 @@ void	*DataMgr::get_region_from_cache(
 void	*DataMgr::alloc_region(
 	size_t ts,
 	const char *varname,
+	VDFIOBase::VarType_T vtype,
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
@@ -990,7 +999,6 @@ void	*DataMgr::alloc_region(
 	};
 
 	const size_t *bs = _metadata->GetBlockSize();
-	VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(_metadata, varname);
 	switch (vtype) {
 	case VDFIOBase::VAR2D_XY:
 		nblocks = (int) ceil((double) ((max[0]-min[0]+1) * (max[1]-min[1]+1) * vs) / (double) bs[2]);
