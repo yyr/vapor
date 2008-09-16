@@ -40,6 +40,11 @@ namespace VAPoR {
     inline int minIndex() const { return _minIndex; }
     inline int maxIndex() const { return _maxIndex; }
 
+	// Return true if point, p, is inside the possibly non-axis aligned
+	// bounding box (may be non axis-aligned if transform has been called).
+	//
+    bool insideBox(const Point3d &p);
+
     // return the corner point
     inline const Point3d& operator[](int i) const { return _corners[i]; };
 

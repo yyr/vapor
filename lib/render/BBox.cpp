@@ -92,6 +92,62 @@ BBox::BBox(const BBox& box) :
 }
 
 
+bool BBox::insideBox(const Point3d &point) {
+
+	// Indecies, in proper winding order, of vertices making up planes
+	// of BBox.
+	//
+	static const int planes[6][4] = {
+		{4,5,7,6},  // front
+		{0,2,3,1},  // back
+		{5,1,3,7},  // right
+		{4,6,2,0},  // left 
+		{6,7,3,2},  // top
+		{4,0,1,5}   // bottom
+	};
+
+	//
+	// Verify point is "behind" each plane making up the bounding box
+	//
+	for (int i=0; i<6; i++) {
+
+		// Two vectors in plane i
+		//
+		Point3d p0(_corners[planes[i][0]]);
+		Point3d p1(_corners[planes[i][1]]);
+		Point3d p2(_corners[planes[i][2]]);
+		Vect3d v1(p0, p1);
+		Vect3d v2(p0, p2);
+
+		// normal to plane
+		//
+		Vect3d N = v1.cross(v2);
+
+		// Find d, distance from plane to origin
+		//
+		// d = - (ax + by + cz) 
+		//
+		float d = - (N(0)*p0(0) + N(1)*p0(1) + N(2)*p0(2));
+
+		// Compute Hessian normal form of plane equation:
+		//
+		// Nunit dot x = -p, where:
+		//
+		//	Nx = a / sqrt(a^2 + b^2 + c^2)
+		//	Ny = b / sqrt(a^2 + b^2 + c^2)
+		//	Nz = c / sqrt(a^2 + b^2 + c^2)
+		//	p = d / sqrt(a^2 + b^2 + c^2)
+		//
+		Vect3d Nunit = N.unit();
+		float p = d / N.mag();
+
+		Vect3d pv(point);
+		if ((Nunit.dot(pv) + p) > 0.0) return false;
+	}
+	return(true);
+
+}
+
 //----------------------------------------------------------------------------
 // Assignment operator
 //----------------------------------------------------------------------------
