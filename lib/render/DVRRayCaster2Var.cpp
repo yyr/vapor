@@ -163,7 +163,8 @@ int DVRRayCaster2Var::GraphicsInit()
 // render the front-facing polygons
 //
 void DVRRayCaster2Var::raycasting_pass(
-	const TextureBrick *brick, const BBox &box, const BBox &tbox
+	const TextureBrick *brick, 
+	const Matrix3d &modelview, const Matrix3d &modelviewInverse
 ) {
 
 	// enable color map
@@ -185,7 +186,7 @@ void DVRRayCaster2Var::raycasting_pass(
     }
     glEnable(GL_TEXTURE_1D);
   }
-	DVRRayCaster::raycasting_pass(brick, box, tbox);
+	DVRRayCaster::raycasting_pass(brick, modelview, modelviewInverse);
 }
 
 

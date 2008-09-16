@@ -83,12 +83,20 @@ protected:
   ShaderProgram* shader();
 
 
+  void DVRRayCaster::drawFrontPlane(
+	const BBox &volumeBox, const BBox &textureBox,
+	const Matrix3d &modelview,
+	const Matrix3d &modelviewInverse
+  );
+
   virtual void drawVolumeFaces(const BBox &box, const BBox &tbox);
 
-  virtual void render_backface(const BBox &box, const BBox &tbox); 
+  virtual void render_backface(const TextureBrick *brick);
 
   virtual void raycasting_pass(
-	const TextureBrick *brick, const BBox &box, const BBox &tbox
+	const TextureBrick *brick, 
+	const Matrix3d &modelview, const Matrix3d &modelviewInverse
+
   );
 
   virtual void renderBrick(

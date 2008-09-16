@@ -207,6 +207,92 @@ int DVRRayCaster::Render(const float matrix[16])
 }
 
 
+//----------------------------------------------------------------------------
+// Draw the proxy geometry
+//----------------------------------------------------------------------------
+void DVRRayCaster::drawFrontPlane(
+	const BBox &volumeBox, const BBox &textureBox,
+	const Matrix3d &modelview,
+	const Matrix3d &modelviewInverse
+) {
+  //
+  //  
+  //
+  BBox rotatedBox(volumeBox);
+
+  //
+  // transform the volume into world coordinates
+  //
+  rotatedBox.transform(modelview);
+
+  //
+  // Define the slice view aligned slice plane. The plane will be positioned
+  // at the volume corner furthest from the eye. (model coordinates)
+  //
+  Vect3d sp(0,0,-0.01,1); // slice point in model coordinates
+  Vect3d slicePoint =  modelviewInverse * sp;
+
+  //
+  // Calculate the slice plane normal (i.e., the view plane normal transformed
+  // into model space). 
+  //
+  // slicePlaneNormal = modelviewInverse * viewPlaneNormal; 
+  //                                       (0,0,1);
+  //
+  Vect3d slicePlaneNormal(modelviewInverse(2,0), 
+                          modelviewInverse(2,1),
+                          modelviewInverse(2,2)); 
+  slicePlaneNormal.unitize();
+
+  //
+  // Calculate edge intersections between the plane and the boxes
+  //
+  Vect3d verts[6];   // for edge intersections
+  Vect3d tverts[6];  // for texture intersections
+  Vect3d rverts[6];  // for transformed edge intersections
+
+  { 
+    int order[6] ={0,1,2,3,4,5};
+    int size = 0;
+
+    //
+    // Intersect the slice plane with the bounding boxes
+    //
+    size = intersect(slicePoint, slicePlaneNormal, 
+                     volumeBox, verts, 
+                     textureBox, tverts, 
+                     rotatedBox, rverts);
+    //
+    // Calculate the convex hull of the vertices (world coordinates)
+    //
+    findVertexOrder(rverts, order, size);
+
+    //
+    // Draw slice and texture map it
+    //
+	glBegin(GL_POLYGON); 
+	{
+      for(int j=0; j< size; ++j)
+      {
+		glColor3f(tverts[order[j]].x(), 
+			 tverts[order[j]].y(), 
+			 tverts[order[j]].z()
+		);
+        
+        glTexCoord3f(tverts[order[j]].x(), 
+                     tverts[order[j]].y(), 
+                     tverts[order[j]].z());
+
+        glVertex3f(verts[order[j]].x(), 
+                   verts[order[j]].y(), 
+                   verts[order[j]].z());
+      }
+	}
+	glEnd();
+  }
+}
+
+
 void DVRRayCaster::drawVolumeFaces(
 	const BBox &box, const BBox &tbox
 ) {
@@ -285,8 +371,10 @@ void DVRRayCaster::drawVolumeFaces(
 
 // render the backfacing polygons
 void DVRRayCaster::render_backface(
-	const BBox &box, const BBox &tbox
+	const TextureBrick *brick
 ) {
+	const BBox &volumeBox  = brick->volumeBox();
+	const BBox &textureBox = brick->textureBox();
 
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glEnable(GL_CULL_FACE);
@@ -315,7 +403,7 @@ void DVRRayCaster::render_backface(
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_BLEND);
 
-	drawVolumeFaces(box, tbox);
+	drawVolumeFaces(volumeBox, textureBox);
 
     glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -326,8 +414,12 @@ void DVRRayCaster::render_backface(
 // render the front-facing polygons
 //
 void DVRRayCaster::raycasting_pass(
-	const TextureBrick *brick, const BBox &box, const BBox &tbox
+	const TextureBrick *brick,
+	const Matrix3d &modelview,
+	const Matrix3d &modelviewInverse
 ) {
+	const BBox &volumeBox  = brick->volumeBox();
+	const BBox &textureBox = brick->textureBox();
 
 
 	if (GLEW_VERSION_2_0) {
@@ -363,8 +455,22 @@ void DVRRayCaster::raycasting_pass(
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+
 	if (_shader->enable() == 0) {
-		drawVolumeFaces(box, tbox);
+
+		BBox rotatedBox(volumeBox);
+		rotatedBox.transform(modelview);
+		Point3d camera(0,0,0);
+
+		// Call different proxy drawing method depending on whether
+		// camera is inside or outside the volume's bounding box
+		//
+		if (rotatedBox.insideBox(camera)) {
+			drawFrontPlane(volumeBox, textureBox, modelview, modelviewInverse);
+		}
+		else {
+			drawVolumeFaces(volumeBox, textureBox);
+		}
 		_shader->disable();
 	}
 
@@ -405,8 +511,6 @@ void DVRRayCaster::renderBrick(
 	const Matrix3d &modelview,
 	const Matrix3d &modelviewInverse
 ) {
-	BBox volumeBox  = brick->volumeBox();
-	BBox textureBox = brick->textureBox();
 
 	// Write depth info.
 	glDepthMask(GL_TRUE);
@@ -420,7 +524,7 @@ void DVRRayCaster::renderBrick(
 	// No depth comparisons
 	glDepthFunc(GL_ALWAYS);
 
-    render_backface(volumeBox, textureBox);
+    render_backface(brick);
 	 
 	// disable rendering to FBO
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -428,7 +532,7 @@ void DVRRayCaster::renderBrick(
 	// Restore normal depth comparison for ray casting pass.
 	glDepthFunc(GL_LESS);
 
-	raycasting_pass(brick, volumeBox, textureBox);
+	raycasting_pass(brick, modelview, modelviewInverse);
 
 	printOpenGLError();
 }
