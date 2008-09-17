@@ -432,6 +432,7 @@ private:
  void    *alloc_region(
 	size_t ts,
 	const char *varname,
+	VDFIOBase::VarType_T vtype,
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
