@@ -608,12 +608,14 @@ useHomeViewpoint(){
 void ViewpointEventRouter::
 captureMouseUp(){
 	//Update the tab:
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	if (!savedCommand) return;
 	updateTab();
 	PanelCommand::captureEnd(savedCommand, vpParams);
-	//Set region  dirty
-	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
+	//DON't Set region  dirty
+	//VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
+	//Just rerender:
+	VizWinMgr::getInstance()->refreshViewpoint(vpParams);
 	savedCommand = 0;
 	
 }
@@ -629,8 +631,6 @@ endSpin(){
 	QString* str = new QString("viewpoint spin");
 	savedCommand->setDescription(*str);
 	PanelCommand::captureEnd(savedCommand, vpParams);
-	//Set region  dirty
-	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
 	savedCommand = 0;
 	
 }

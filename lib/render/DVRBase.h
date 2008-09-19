@@ -22,9 +22,12 @@
 #include <stdio.h>
 #include <vector>
 #include "vapor/MyBase.h"
+#include "renderer.h"
+#include "vapor/errorcodes.h"
 
 using namespace VetsUtil;
 namespace VAPoR {
+class Renderer;
 class	RENDER_API DVRBase : public MyBase {
 public:
 
@@ -105,7 +108,11 @@ public:
                                 int level,
                                 const std::vector<long> &permutation,
                                 const std::vector<bool> &clipping)
- { SetErrMsg("Driver does not support Spherical Grids"); return(-1); }
+ { 
+    myRenderer->setAllBypass(true);
+	SetErrMsg(VAPOR_ERROR_SPHERICAL,"Driver does not support Spherical Grids"); 
+	return(-1); 
+ }
 
  // This version of the SetRegion method permits the non-uniform 
  // spacing of voxels. Three coordinate arrays, xcoords, ycoords, and
@@ -133,7 +140,11 @@ public:
 	const float *,
 	const float *,
 	const float *
- ) {SetErrMsg("Driver does not support Stretched Grids"); return(-1); }
+ ) {
+	 myRenderer->setAllBypass(true);
+	 SetErrMsg(VAPOR_ERROR_STRETCHED,"Driver does not support Stretched Grids"); 
+	 return(-1); 
+ }
 
  // Returns true if the driver supports "stretched" Cartesian grids
  //
@@ -248,6 +259,12 @@ public:
 
 protected:
   int _max_texture;
+  Renderer* myRenderer;
+
+// Determine the renderer, for error reporting
+// This is set in constructors of derived classes
+
+  Renderer* getRenderer() {return myRenderer;}
 
 private:
 

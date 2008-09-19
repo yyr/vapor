@@ -281,7 +281,7 @@ reinit(bool doOverride){
 	numVariables = totNumVariables;
 	//bool wasEnabled = enabled;
 	//setEnabled(false);
-	
+	initializeBypassFlags();
 	return true;
 }
 //Initialize to default state

@@ -80,15 +80,15 @@ Params(int winNum) : ParamsBase() {
 
 	virtual bool isRenderParams() {return false;}
 	enum ParamType {
-		UnknownParamsType,
-		ViewpointParamsType,
-		RegionParamsType,
-		DvrParamsType,
-		IsoParamsType,
-		ProbeParamsType,
-		TwoDParamsType,
-		AnimationParamsType,
-		FlowParamsType
+		UnknownParamsType = 0,
+		ViewpointParamsType = 1,
+		RegionParamsType = 2,
+		DvrParamsType = 4,
+		IsoParamsType = 8,
+		ProbeParamsType = 16,
+		TwoDParamsType = 32,
+		AnimationParamsType = 64,
+		FlowParamsType = 128
 	};
 	
 	static void	BailOut (const char *errstr, char *fname, int lineno);
@@ -188,8 +188,7 @@ Params(int winNum) : ParamsBase() {
 	//Determine a new value of theta and phi when the probe is rotated around either the
 	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
 	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
-	//Get a variable region from the datamanager
-	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
+	
 	
 protected:
 	bool local;
@@ -287,8 +286,20 @@ public:
 	virtual int getNumRefinements()=0;
 	void setStopFlag(bool val = true) {stopFlag = val;}
 	bool getStopFlag() {return stopFlag;}
-
-	
+	//Bypass flag is used to indicate a renderer should
+	//not render until its state is changed.
+	//Partial bypass is only used by DVR, to 
+	//indicate a renderer that should be bypassed at
+	//full resolution but not at interactive resolution.
+	void setBypass(int i) {bypassFlags[i] = 2;}
+	void setPartialBypass(int i) {bypassFlags[i] = 1;}
+	void setAllBypass(bool val);
+	int getBypassValue(int i) {return bypassFlags[i];}
+	bool doBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]);}
+	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
+	void initializeBypassFlags();
+	//Get a variable region from the datamanager
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
 
 protected:
 	
@@ -302,7 +313,7 @@ protected:
 	float* minOpacEditBounds;
 	float* maxOpacEditBounds;
 
-	
+	vector<int> bypassFlags;
 };
 }; //End namespace VAPoR
 #endif //PARAMS_H 

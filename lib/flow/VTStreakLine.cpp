@@ -240,7 +240,7 @@ void vtCStreakLine::advectFLAPoints(int tstep, int flowDir, FlowLineData** flDat
 		m_itsParticles.erase(v);
 	}
 	if(numPointsAdvected == 0) {
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No field lines remain in region at time step %d",
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No field lines remain in region\nat time step %d",
 			(int)finalT);
 	}
 }

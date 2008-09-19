@@ -9,6 +9,7 @@
 #include <GL/glu.h>
 #include <qgl.h>
 
+#include "renderer.h"
 #include "DVRRayCaster2Var.h"
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
@@ -26,14 +27,13 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRRayCaster2Var::DVRRayCaster2Var(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads
-) : DVRRayCaster(internalFormat, format, type, nthreads)
+	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
+) : DVRRayCaster(internalFormat, format, type, nthreads, ren)
 {
 	MyBase::SetDiagMsg(
 		"DVRRayCaster2Var::DVRRayCaster2Var( %d %d %d %d)", 
 		internalFormat, format, type, nthreads
 	);
-
 
 	if (GLEW_VERSION_2_0) {
 		_texcrd_texunit = GL_TEXTURE2;

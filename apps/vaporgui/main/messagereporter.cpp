@@ -33,6 +33,7 @@
 #include "mainform.h"
 #include "tabmanager.h"
 #include "session.h"
+#include "glwindow.h"
 #include <qstring.h>
 #include <qmessagebox.h>
 #include <qmutex.h>
@@ -44,8 +45,14 @@ char* MessageReporter::messageString = 0;
 int MessageReporter::messageSize = 0;
 QMutex* MessageReporter::messageMutex = 0;
 MessageReporter* MessageReporter::theReporter = 0;
+std::vector<std::string> MessageReporter::savedErrMsgs;
+std::vector<int> MessageReporter::savedErrCodes;
 
 MessageReporter::MessageReporter() {
+	MyBase::SetErrMsgCB(postMessageCBFcn);
+	GLWindow::setMessagePostCB(MessageReporter::postMessageCBFcn);
+	GLWindow::setMessageSaveCB(MessageReporter::addErrorMessageCBFcn);
+	GLWindow::setMessageReleaseCB(MessageReporter::postSavedMessagesCBFcn);
 	logFile = 0;
 	
 	messageMutex = new QMutex();
@@ -195,6 +202,7 @@ void MessageReporter::
 doPopup(messagePriority t, const char* message){
 	QString title;
 	QMessageBox::Icon msgIcon;
+	static int count = 0;  //Use to slightly jitter the popups
 	
 	switch (t) {
 		case Fatal :
@@ -219,14 +227,13 @@ doPopup(messagePriority t, const char* message){
 	QMessageBox* msgBox = new QMessageBox(title,message, msgIcon,
 		QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton,
 		MainForm::getInstance()->getTabManager());
-	//msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
+	msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
 	msgBox->adjustSize();
-	QPoint pt = MainForm::getInstance()->pos();
-	int xpos = pt.x() + MainForm::getInstance()->getTabManager()->width() - msgBox->width();
-	if (xpos < 0) xpos = 0;
-	pt.setX(xpos);
-	
-	msgBox->move(pt);
+	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
+	tabPsn.setY(tabPsn.y() + (5*count++)%20);
+	MainForm::getInstance()->getTabManager()->scrollFrontToTop();
+	//pnt is the absolute position of the tab manager?
+	msgBox->move(tabPsn);
 	msgBox->exec();
 	delete msgBox;
 	return;
@@ -235,29 +242,47 @@ doPopup(messagePriority t, const char* message){
 //they can continue to get messages
 bool MessageReporter::
 doLastPopup(messagePriority t, const char* message){
-	QString longMessage = QString(message)+"\nThis message will not be repeated unless you click Continue."
-		+"\nAll messages may be resumed from the Edit User Preferences dialog";
-	int doContinue = 1;
-	switch (t){
+	QString longMessage = QString(message)+"\nThis message will not be repeated \n unless you click Continue."
+		+"\nAll messages may be resumed from\nthe Edit User Preferences dialog";
+	int doContinue = 0;
+	// No do as in doPopup, but include an OK and Continue button
+	QString title;
+	QMessageBox::Icon msgIcon;
+	
+	switch (t) {
 		case Fatal :
-			QMessageBox::critical(MainForm::getInstance(), "VAPoR Fatal Error", message, 
-				QMessageBox::Ok, QMessageBox::NoButton );
+			title = "VAPOR Fatal Error";
+			msgIcon = QMessageBox::Critical;
 			break;
 		case Error :
-			doContinue = QMessageBox::critical(MainForm::getInstance(), "VAPoR Error", longMessage, 
-				"OK","Continue displaying message");
+			title = "VAPOR Error";
+			msgIcon = QMessageBox::Critical;
 			break;
 		case Warning :
-			doContinue = QMessageBox::warning(MainForm::getInstance(), "VAPoR Warning", longMessage, 
-				"OK","Continue displaying message");
+			title = "VAPOR Warning";
+			msgIcon = QMessageBox::Warning;
 			break;
-		case Info :
-			doContinue = QMessageBox::information(MainForm::getInstance(), "VAPoR Information", longMessage, 
-				"OK","Continue displaying message");
+		case Info : 
+			title = "VAPOR Information";
+			msgIcon = QMessageBox::Information;
 			break;
-		default:
+		default: 
 			assert(0);
 	}
+	QMessageBox* msgBox = new QMessageBox(title,longMessage, msgIcon,
+		QMessageBox::Ok,QMessageBox::Cancel,QMessageBox::NoButton,
+		MainForm::getInstance()->getTabManager());
+	msgBox->setButtonText(2,"Continue");
+	msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
+	msgBox->adjustSize();
+	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
+	
+	MainForm::getInstance()->getTabManager()->scrollFrontToTop();
+	//pnt is the absolute position of the tab manager
+	msgBox->move(tabPsn);
+	msgBox->exec();
+	if (msgBox->result() != QDialog::Accepted) doContinue = 1;
+	delete msgBox;
 	return (doContinue==1);
 }
 char* MessageReporter::
@@ -279,5 +304,54 @@ convertText(const char* format, va_list args){
 		}
 	}
 	return messageString;
+}
+//This is invoked on callback from MyBase, and also
+//called by postSavedMsgsCBFcn as it unloads the saved messages
+void MessageReporter::postMessageCBFcn(const char* msg, int err_code){
+	QString strng("Code: ");
+	strng += QString::number(err_code,16);
+	strng += "\n Message: ";
+	strng += msg;
+	if (err_code & 0x2000){
+		MessageReporter::warningMsg(strng.ascii());
+	} else if (err_code & 0x4000){
+		MessageReporter::errorMsg(strng.ascii());
+	} else if (err_code & 0x8000){
+		MessageReporter::fatalMsg(strng.ascii());
+	} else {
+		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
+	}
+	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
+	//Turn off error:
+	MyBase::SetErrCode(0);
+}
+//Note:  the following is invoked (only) by GLWindow at the end of rendering.
+//GLWindow already has a lock on GLWindow::messagePostingMutex
+void MessageReporter::postSavedMessagesCBFcn(){
+	if(savedErrMsgs.size() == 0) {
+		GLWindow::releaseMessageLock();
+		return;
+	}
+	//Copy all the saved messages.  We can't post them
+	//until the lock is released, to avoid deadlock.
+	std::vector<std::string> tempMsgs(savedErrMsgs);
+	std::vector<int> tempCodes(savedErrCodes);
+	
+	savedErrMsgs.clear();
+	savedErrCodes.clear();
+	GLWindow::releaseMessageLock();
+	for (int i= 0; i< tempMsgs.size(); i++){
+		postMessageCBFcn(tempMsgs[i].c_str(),tempCodes[i]);
+	}
+	
+}
+void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
+	if (!GLWindow::getMessageLock()) assert(0);
+	savedErrMsgs.push_back(std::string(message));
+	savedErrCodes.push_back(errcode);
+	GLWindow::releaseMessageLock();
+	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
+	//Turn off error:
+	MyBase::SetErrCode(0);
 }
 

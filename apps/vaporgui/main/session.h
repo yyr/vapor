@@ -197,15 +197,8 @@ public:
 	TransferFunction* getTF(const std::string* tfName);
 	bool isValidTFName(const std::string* tfName);
 	
-
-	static void errorCallbackFcn(const char* msg, int err_code);
 	static void infoCallbackFcn(const char* msg);
-	static void pauseErrorCallback() {
-		DataMgr::SetErrMsgCB(0);
-	}
-	static void resumeErrorCallback(){
-		DataMgr::SetErrMsgCB(errorCallbackFcn);
-	}
+	
 	//Session save/restore:
 	bool saveToFile(ofstream&);
 	bool loadFromFile(ifstream&);

@@ -19,9 +19,10 @@
 #include <map>
 
 namespace VAPoR {
-
+  class Renderer;
   class BBox;
   class TextureBrick;
+  class Renderer;
 
 class RENDER_API DVRTexture3d : public DVRBase 
 {
@@ -57,7 +58,7 @@ class RENDER_API DVRTexture3d : public DVRBase
  public:
 
 
-  DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads);
+  DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
   virtual ~DVRTexture3d();
 
   virtual int SetRegion(void *data, 

@@ -419,6 +419,7 @@ reinit(bool doOverride){
 	probeIBFVTextures = 0;
 	ibfvUField = 0;
 	ibfvVField = 0;
+	initializeBypassFlags();
 	return true;
 }
 //Initialize to default state
@@ -1146,7 +1147,7 @@ void ProbeParams::setProbeDirty(){
 		}
 	}
 	ibfvMag = -1.f;
-
+	setAllBypass(false);
 }
 
 
@@ -1162,6 +1163,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 
+	if (doBypass(ts)) return 0;
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
 	//Make a list of the session variable nums we want:
@@ -1752,8 +1754,9 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*numVars > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+		setAllBypass(true);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
+			"Lower the refinement level, reduce the\nprobe size, or increase the cache size.",
 			"Rendering has been disabled.");
 		setEnabled(false);
 		return 0;

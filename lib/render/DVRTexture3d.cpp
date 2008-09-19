@@ -19,6 +19,7 @@
 #include "TextureBrick.h"
 #include "BBox.h"
 #include "glutil.h"
+#include "renderer.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -42,7 +43,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads) :
+DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren) :
   _nx(0),
   _ny(0),
   _nz(0),
@@ -61,11 +62,12 @@ DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int
   _format(format),
   _type(type)
 {
+	
 	MyBase::SetDiagMsg(
 		"DVRTexture3d::DVRTexture3d( %d %d %d %d)", 
 		internalFormat, format, type, nthreads
 	);
-
+   myRenderer = ren;
   _max_texture = DEFAULT_MAX_TEXTURE;
   _maxTexture = maxTextureSize(_internalFormat, _format, _type);
 }

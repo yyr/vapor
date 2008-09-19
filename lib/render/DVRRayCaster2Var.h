@@ -17,6 +17,7 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
+  class Renderer;
 
 
 class RENDER_API DVRRayCaster2Var : public DVRRayCaster
@@ -27,7 +28,7 @@ class RENDER_API DVRRayCaster2Var : public DVRRayCaster
  public:
 
 
-  DVRRayCaster2Var(GLint internalFormat, GLenum format, GLenum type, int nthreads);
+  DVRRayCaster2Var(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
   virtual ~DVRRayCaster2Var();
 
   virtual int GraphicsInit();

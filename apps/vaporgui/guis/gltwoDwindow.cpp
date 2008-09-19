@@ -124,11 +124,11 @@ void GLTwoDWindow::paintGL()
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
     qglClearColor( QColor(233,236,216) ); 		// same as frame
-   
+	
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
+	if (myParams->doBypass(timestep)) return;
 	if (!myParams->isEnabled()) {return;}
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

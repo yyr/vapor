@@ -128,15 +128,15 @@ void GLProbeWindow::paintGL()
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
-
+	
     qglClearColor( QColor(233,236,216) ); 		// same as frame
-   
+	
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	if (!myParams->isEnabled()) {return;}
-	
+	if (myParams->doBypass(timestep)) return;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
@@ -307,7 +307,7 @@ doFrameCapture(){
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: %s",filename.ascii());
 		capturing = 0;
 		return;
 	}
@@ -322,7 +322,7 @@ doFrameCapture(){
 	
 	
 	if(!getPixelData(minx, miny, sizex,sizey,pixData)){
-		MessageReporter::errorMsg("Image Capture Error; error obtaining GL data");
+		MessageReporter::errorMsg("Image Capture Error; \nerror obtaining GL data");
 		capturing = 0;
 		delete pixData;
 		return;
@@ -335,7 +335,7 @@ doFrameCapture(){
 	int rc = write_JPEG_file(jpegFile, sizex,sizey, pixData, quality);
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file ");
+		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file ");
 		delete pixData;
 		return;
 	}

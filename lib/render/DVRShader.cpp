@@ -22,6 +22,7 @@
 #include "Matrix3d.h"
 #include "Point3d.h"
 #include "shaders.h"
+#include "renderer.h"
 
 using namespace VAPoR;
 
@@ -41,8 +42,8 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRShader::DVRShader(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads
-) : DVRTexture3d(internalFormat, format, type, nthreads),
+	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
+) : DVRTexture3d(internalFormat, format, type, nthreads, ren),
  _colormap(NULL),
   _shader(NULL),
   _lighting(false),

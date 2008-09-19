@@ -342,7 +342,7 @@ reinit(bool doOverride){
 	
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	twoDDataTextures = 0;
-
+	initializeBypassFlags();
 	return true;
 }
 //Initialize to default state
@@ -887,6 +887,7 @@ void TwoDParams::setTwoDDirty(){
 	
 	textureSize[0]= textureSize[1] = 0;
 	setElevGridDirty(true);
+	setAllBypass(false);
 }
 
 
@@ -901,7 +902,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
-
+	if (doBypass(ts)) return 0;
+	
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
 	//Make a list of the session variable nums we want:
@@ -923,6 +925,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 
 	if(!planarData){
 		delete sesVarNums;
+		setBypass(ts);
 		return 0;
 	}
 
@@ -1154,8 +1157,9 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*numVars > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current twoD and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the twoD size, or increase the cache size.",
+		setAllBypass(true);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current twoD and resolution.\n%s \n%s",
+			"Lower the refinement level,\nreduce the twoD size,\nor increase the cache size.",
 			"Rendering has been disabled.");
 		setEnabled(false);
 		return 0;

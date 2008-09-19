@@ -437,8 +437,8 @@ mousePressEvent(QMouseEvent* e){
 		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
 		setMouseDown(true);
 		mouseDownPosition = e->pos();
-		//Force an update of dvr region params, so low res is shown
-		setDirtyBit(DvrRegionBit,true);
+		//Don't: Force an update of dvr region params, so low res is shown
+		//setDirtyBit(DvrRegionBit,true);
 	}
 	
 }
@@ -560,8 +560,8 @@ mouseReleaseEvent(QMouseEvent*e){
 		if(spinTimer) delete spinTimer;
 		spinTimer = 0;
 		
-		//Force an update of region params, so correct res is shown
-		setRegionNavigating(true);
+		//Force rerender, so correct resolution is shown
+		//setRegionNavigating(true);
 		myGLWindow->updateGL();
 	}
 	
@@ -1000,6 +1000,7 @@ void VizWin::endSpin(){
 	if (!myGLWindow) return;
 	if (!myGLWindow->stopSpin()) return;
 	VizWinMgr::getInstance()->getViewpointRouter()->endSpin();
+	myGLWindow->updateGL();
 }
 
 

@@ -31,6 +31,7 @@
 #include "vapor/MyBase.h"
 
 #include "DVRVolumizer.h"
+#include "renderer.h"
 
 
 using namespace VAPoR;
@@ -48,10 +49,11 @@ static void	deletion_cb(
 DVRVolumizer::DVRVolumizer(
 	int * ,//argc
 	char **, //argv
-	int	nthreads
+	int	nthreads,
+	Renderer* ren
 ) {
 	int	i;
-
+	myRenderer = ren;
 	volume_c = NULL;
 	shader_c = NULL;
 	appearance_c = NULL;

@@ -40,6 +40,7 @@ using namespace VAPoR;
 TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
 	: QTabWidget(parent, name, f)
 {
+	myParent = parent;
 	//Initialize arrays:
 	//
 	for (int i = 0; i< MAX_WIDGETS; i++){
@@ -206,5 +207,10 @@ void TabManager::tabScrolled(){
 	
 	eRouter->refreshTab();
 #endif
+}
+void TabManager::scrollFrontToTop(){
+	//Get the front scrollview:
+	QScrollView* sv = (QScrollView*)currentPage();
+	sv->ensureVisible(0,0);
 }
 	

@@ -37,6 +37,7 @@
 
 #include "DVRBase.h"
 namespace VAPoR {
+class Renderer;
 class	RENDER_API DVRVolumizer : public DVRBase {
 public:
 
@@ -44,7 +45,8 @@ public:
  DVRVolumizer(
 	int *argc,
 	char **argv,
-	int	nthreads
+	int	nthreads,
+	Renderer* ren
  );
 
  virtual ~DVRVolumizer();

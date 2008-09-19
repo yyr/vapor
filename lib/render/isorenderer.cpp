@@ -42,7 +42,7 @@
 #include <qstring.h>
 #include <qstatusbar.h>
 
-#include "vapor/errorcodes.h"
+
 #include "isorenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"

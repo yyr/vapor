@@ -24,6 +24,9 @@
 #include <string>
 #include <map>
 #include <stdarg.h>
+#include <vector>
+#include <string>
+
 class QMutex;
 
 namespace VAPoR{
@@ -55,6 +58,14 @@ public:
 	static void postMessage(messagePriority t, const char* message){
 		getInstance()->postMsg(t,message);
 	}
+	//Following is called by MessageReporter in response to an error message save callback.
+	//It adds the message to the list
+	static void addErrorMessageCBFcn(const char* message, int errcode);
+	static void postSavedMessagesCBFcn();
+	//Post a message using error code to determine priority.
+	//This is invoked via callback from MyBase:
+	static void postMessageCBFcn(const char* message, int err_code);
+		
 	static void fatalMsg(const char* format, ...); 
 	static void errorMsg(const char* format, ...); 
 	static void warningMsg(const char* format, ...); 
@@ -89,6 +100,10 @@ protected:
 	static int messageSize;
 	//Mutex is so that multiple threads can post messages simultaneously
 	static QMutex* messageMutex;
+
+	//Storage for list of messages posted during rendering
+	static std::vector<std::string> savedErrMsgs;
+	static std::vector<int> savedErrCodes;
  
 	//Integers to keep result of posting various priority messages:
 	//FATAL cannot be changed, always terminate

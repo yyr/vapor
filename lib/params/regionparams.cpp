@@ -272,11 +272,6 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
 		//Test if it's acceptable, exit if not:
 		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
-					ds->getVariableName(varNums[i]).c_str(),
-					"This message can be silenced from the User Preference Panel.");
-			}
 			return -1;
 		}
 	}
@@ -317,9 +312,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			//Tell the datastatus that the data isn't really there at minRefLevel:
 			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s at current timestep.\n %s",
-					varName.c_str(),
-					"This message can be silenced in the User Preferences Panel.");
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"VDC access error: \nvariable %s not accessible at timestep %d.",
+					timestep, varName.c_str());
 			}
 			return -1;
 		}
@@ -381,9 +375,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 					vname = (char*)ds->getVariableName2D(varNums[i]).c_str();
 				else
 					vname = (char*)ds->getVariableName(varNums[i]).c_str();
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
-					vname,
-					"This message can be silenced from the User Preference Panel.");
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"VDC error: Data inaccessible\nfor variable %s at timestep %d.",
+					vname, timestep);
 			}
 			return -1;
 		}
@@ -428,7 +421,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 			else
 				ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s at current timestep.\n %s",
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
 					varName.c_str(),
 					"This message can be silenced in the User Preferences Panel.");
 			}
@@ -662,7 +655,7 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 
 
 float RegionParams::
-calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep){
+calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3], int numRefinements, int timeStep){
 	
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) return OUT_OF_BOUNDS;
@@ -670,11 +663,18 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 	//Get the data dimensions (at current resolution):
 	int voxCoords[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
-	
+	const char* varname = ds->getVariableName(sessionVarNum).c_str();
 	double regMin[3], regMax[3];
 	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
 	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);
-	if (availRefLevel < 0) return OUT_OF_BOUNDS;
+	if (availRefLevel < 0) {
+		renParams->setBypass(timeStep);
+		if (ds->warnIfDataMissing()){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, 
+				"Data unavailable for variable %s\nat refinement level %d",varname, numRefinements);
+		}
+		return OUT_OF_BOUNDS;
+	}
 	//Get the closest voxel coords of the point, and the block coords that
 	//contain it.
 	for (int i = 0; i<3; i++) {
@@ -688,7 +688,7 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 		voxCoords[i] -= blkmin[i]*bs[i];
 	}
 	// Obtain the region:
-	float *reg = getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep, false);
+	float *reg = renParams->getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep, false);
 	if (!reg) return OUT_OF_BOUNDS;
 	
 	//find the coords within this block:

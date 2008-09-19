@@ -9,13 +9,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <qgl.h>
-
+#include "renderer.h"
 #include "DVRRayCaster.h"
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
 #include "BBox.h"
 #include "glutil.h"
 #include "params.h"
+
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -27,14 +28,13 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRRayCaster::DVRRayCaster(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads
-) : DVRShader(internalFormat, format, type, nthreads)
+	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
+) : DVRShader(internalFormat, format, type, nthreads, ren)
 {
 	MyBase::SetDiagMsg(
 		"DVRRayCaster::DVRRayCaster( %d %d %d %d)", 
 		internalFormat, format, type, nthreads
 	);
-
 	_lighting = false;
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
@@ -638,7 +638,8 @@ int DVRRayCaster::initTextures()
 		}
 	}
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		SetErrMsg(
+		myRenderer->setAllBypass(true);
+		SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,
 			"Failed to create OpenGL color framebuffer_object : %d", status
 		);
 		return(-1);
@@ -674,7 +675,8 @@ int DVRRayCaster::initTextures()
 		}
 	}
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		SetErrMsg(
+		myRenderer->setAllBypass(true);
+		SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,
 			"Failed to create OpenGL depth framebuffer_object : %d", status
 		);
 		return(-1);

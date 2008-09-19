@@ -161,7 +161,10 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	}
 	
 	if (!ds->getDataMgr()) return;
-	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	//Don't refresh histo if bypassFlag is set:
+	if (renParams->doBypass(timeStep)) return;
+	int numVariables = ds->getNumSessionVariables();
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
@@ -173,17 +176,25 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		histogramList[varNum] = 0;
 	}
 	int numTrans = renParams->getNumRefinements();
-	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	const char* varname = ds->getVariableName(varNum).c_str();
 	
 	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
-	if(availRefLevel < 0) return;
+	if(availRefLevel < 0) {
+		renParams->setBypass(timeStep);
+		if (ds->warnIfDataMissing()){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, 
+				"Data unavailable for variable %s\nat refinement level %d",varname, numTrans);
+		}
+		return;
+	}
 		
 	//Check if the region/resolution is too big:
 	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), availRefLevel);
 	  int cacheSize = DataStatus::getInstance()->getCacheMB();
 	  if (numMBs > (int)(0.75*cacheSize)){
-		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s \n%s",
-			  "Lower the refinement level, reduce the region size, or increase the cache size.",
+		  renParams->setAllBypass(true);
+		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current region and resolution.\n%s \n%s",
+			  "Lower the refinement level,\nreduce the region size,\nor increase the cache size.",
 			  "Rendering has been disabled.");
 		  renParams->setEnabled(false);
 		  updateTab();
@@ -195,7 +206,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 					timeStep, 
-					(const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
+					varname,
 					availRefLevel,
 					min_bdim, max_bdim,
 					dRange,
@@ -205,6 +216,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	//Make sure we can build a histogram
 	if (!data) {
 		if (ds->warnIfDataMissing())
+			renParams->setBypass(timeStep);
 			MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
 		ds->setDataMissing(timeStep, availRefLevel, varNum);
 		return;

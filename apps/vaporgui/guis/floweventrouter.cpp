@@ -70,7 +70,7 @@
 #include "vapor/VDFIOBase.h"
 #include "vapor/flowlinedata.h"
 #include "vapor/VaporFlow.h"
-#include "vapor/errorcodes.h"
+
 #include "tabmanager.h"
 #include "glutil.h"
 #include "flowparams.h"
@@ -749,7 +749,7 @@ void FlowEventRouter::updateTab(){
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
-//Initially the only state that needs updating is the auto refresh checkbox:
+//the only state that needs urgent updating is the auto refresh checkbox:
 void FlowEventRouter::updateUrgentTabState(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (fParams) {
@@ -1774,7 +1774,7 @@ guiSetNumRefinements(int n){
 	confirmText(false);
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n);
 	if (newNumTrans != n) {
-		MessageReporter::warningMsg("%s","Invalid number of Refinements for current region, data cache size");
+		MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current region, data cache size");
 		refinementCombo->setCurrentItem(newNumTrans);
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
@@ -2541,7 +2541,7 @@ void FlowEventRouter::saveFlowLines(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
 	if (!fRenderer){
-		MessageReporter::errorMsg("Flow cannot be saved until rendering is enabled");
+		MessageReporter::errorMsg("Flow cannot be saved until \nrendering is enabled");
 		return;
 	}
 	//Launch an open-file dialog
@@ -2592,7 +2592,8 @@ void FlowEventRouter::saveFlowLines(){
 	//Rebuild if necessary:
 	if (fRenderer->flowDataIsDirty(timeStep))
 		if (!fRenderer->rebuildFlowData(timeStep)) {
-			MessageReporter::errorMsg("Unable to build stream lines for timestep %d",timeStep);
+			fParams->setBypass(timeStep);
+			MessageReporter::errorMsg("Unable to build stream lines \nfor timestep %d",timeStep);
 			return;
 		}
 	if (fParams->getFlowType() != 1){//steady flow, or field line advection
@@ -2617,7 +2618,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					padValue[0],padValue[1],padValue[2],(float)timeStep);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2627,7 +2628,7 @@ void FlowEventRouter::saveFlowLines(){
 					point[0],point[1],point[2],
 					(float)timeStep);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line\nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2645,7 +2646,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					padValue[0],padValue[1],padValue[2],(float)timeStep);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2668,7 +2669,7 @@ void FlowEventRouter::saveFlowLines(){
 					END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG,
 					-1.f);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2678,7 +2679,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					point[0],point[1],point[2],time);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
 					return;
 				}
 			}

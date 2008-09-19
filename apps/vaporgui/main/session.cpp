@@ -87,7 +87,7 @@ Session::Session() {
 
 	//Initialize version to current version
 	sessionVersionString = Version::GetVersionString();
-	MyBase::SetErrMsgCB(errorCallbackFcn);
+	
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
 	dataMgr = 0;
@@ -639,12 +639,12 @@ exportData(){
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
 	if (winNum < 0 || (currentMetadata == 0)){
-		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data and active visualizer");
+		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data \nand active visualizer");
 		return;
 	}
 	int ver = currentMetadata->GetVDFVersion();
 	if (ver < 2) {
-		MessageReporter::errorMsg("Export of pre-version-2 metadata not supported");
+		MessageReporter::errorMsg("Export of pre-version-2 metadata \nis not supported");
 		return;
 	}
 	RegionParams* r = winMgr->getRegionParams(winNum);
@@ -677,7 +677,7 @@ exportData(){
 		
 		size_t max_zdim = DataStatus::getInstance()->getFullSizeAtLevel(numxforms,2) - 1;
 		if (max_zdim != maxCoords[2] || minCoords[2] != 0){
-			MessageReporter::errorMsg("Export of a region on layered grids is only permitted when \nthe region is full in the vertical (z) dimension.");
+			MessageReporter::errorMsg("Export of a region on layered grids \nis only permitted when \nthe region is full in the \nvertical (z) dimension.");
 			return;
 		}
 		//Determine the unlayered vertical grid size of the data:
@@ -695,7 +695,7 @@ exportData(){
 		MessageReporter::errorMsg("Export data error: \n%s", exporter.GetErrMsg());
 		exporter.SetErrCode(0);
 	} else {
-		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables may not be exported",
+		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables \nmay not be exported",
 			currentFrame, VizWinMgr::getInstance()->getVizWinName(winNum).ascii());
 	}
 	return;
@@ -926,13 +926,13 @@ addToHistory(Command* cmd){
 		fileout.open(getAutoSaveSessionFilename().c_str());
 		if (! fileout) {
 			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s\n %s", autoSaveSessionFilename.c_str(),
-				"Choose another autosave location from user preferences");
+				"Choose another autosave location \nfrom user preferences");
 			return;
 		}
 		
 		if (!saveToFile(fileout)){//Report error if can't save to file
 			MessageReporter::errorMsg("Failed to auto-save session to:\n %s\n%s", autoSaveSessionFilename.c_str(),
-				"Choose another autosave location from user preferences");
+				"Choose another autosave location \nfrom user preferences");
 			fileout.close();
 			return;
 		}
@@ -1116,27 +1116,7 @@ updateTFFilePath(QString* s){
 	if (pos < 0) return;
 	currentTFPath = s->left(pos+1).ascii();
 }
-//Error callback:
-void Session::
-errorCallbackFcn(const char* msg, int err_code){
-	QString strng("Code: ");
-	strng += QString::number(err_code,16);
-	strng += "\n Message: ";
-	strng += msg;
-	if (err_code & 0x2000){
-		MessageReporter::warningMsg(strng.ascii());
-	} else if (err_code & 0x4000){
-		MessageReporter::errorMsg(strng.ascii());
-	} else if (err_code & 0x8000){
-		MessageReporter::fatalMsg(strng.ascii());
-	} else {
-		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
-	}
-	
-	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
-	//Turn off error:
-	MyBase::SetErrCode(0);
-}
+
 //Diagnostic message callback:
 void Session::
 infoCallbackFcn(const char* msg){

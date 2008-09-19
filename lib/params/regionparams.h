@@ -72,7 +72,7 @@ public:
 	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	
-	float calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep);
+	float calcCurrentValue(RenderParams* rp, int sessionVarNum, const float point[3], int numRefinements, int timeStep);
 
 	float getRegionMin(int coord){ return regionMin[coord];}
 	float getRegionMax(int coord){ return regionMax[coord];}

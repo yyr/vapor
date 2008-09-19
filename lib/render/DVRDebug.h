@@ -23,7 +23,7 @@
 #include "DVRBase.h"
 namespace VAPoR{
 
-
+class Renderer;
 class	RENDER_API DVRDebug : public DVRBase {
 public:
 
@@ -31,7 +31,8 @@ public:
  DVRDebug(
 	int *argc,
 	char **argv,
-	int	nthreads
+	int	nthreads,
+	Renderer* ren
  );
 
  virtual ~DVRDebug();

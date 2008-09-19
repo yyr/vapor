@@ -621,7 +621,7 @@ reinit(bool doOverride){
 	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
 	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
 	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
-	
+	initializeBypassFlags();
 	return true;
 }
 
@@ -987,7 +987,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 			//Only give a warning if the seed list is nonempty:
 			if (numSeedPoints == 0 && getNumListSeedPoints() > 0) {
 				MyBase::SetErrMsg(VAPOR_WARNING_SEEDS, "No seeds at current time step");
-				return false;
+				return 0;
 			}
 			seedCounter = 0;
 			seedList = new float[numSeedPoints*3];
@@ -1114,9 +1114,9 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	}
 	if (numValidTimesteps < numTimesteps && ds->warnIfDataMissing()){
 		
-		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Unsteady flow field data not available at required level %d for all requested timesteps\n %s", 
+		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Unsteady flow field data not available\nat required level %d for all requested timesteps\n %s", 
 			minRefLevel,
-			"This message can be silenced using the User Preference Panel settings." );
+			"This message can be silenced\nusing the User Preference Panel settings." );
 	}
 	
 	if (!setupFlowRegion(rParams, flowLib, -1)) return 0;
@@ -1188,7 +1188,9 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			}
 			//Then do a steady advection at the start time
 			FlowLineData* flData = regenerateSteadyFieldLines(flowLib, flData1, 0, seedTimeStart, minFrame, rParams, false);
-			if (!flData) delete flData1;
+			if (!flData) {
+				delete flData1;
+			}
 			return flData;
 		} else {
 			//In this version of field line advection, 
@@ -1252,7 +1254,7 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
 			"Vector field may not be available;",
-			"Also be sure that seed injection times are timestep sample times");
+			"Also be sure that seed injection\ntimes are timestep sample times");
 		return 0;
 	}
 	
@@ -1319,7 +1321,7 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
 			"Vector field may not be available;",
-			"Also be sure that seed injection times are timestep sample times");
+			"Also be sure that seed injection\ntimes are timestep sample times");
 		return 0;
 	}
 	
@@ -2173,7 +2175,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
 			timeStep = ds->getFirstTimestep(ds->mapMetadataToSessionVarNum(getOpacMapEntityIndex()-4));
-			if (timeStep < 0) MyBase::SetErrMsg("No data for opacity mapped variable");
+			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for opacity mapped variable");
 		}
 		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
@@ -2196,7 +2198,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::restoreOverrideCursor();
 		if (!opacRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
-				MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Opacity mapped variable data unavailable for refinement %d at timestep %d", opacRefLevel, timeStep);
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
 			DataStatus::getInstance()->setDataMissing(timeStep, opacRefLevel, opacVarnum);
 			return;
 		}
@@ -2208,7 +2210,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
 			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
+			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for mapped variable");
 		}
 		
 		size_t min_dim[3], max_dim[3], max_bdim[3];
@@ -2217,7 +2219,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
 			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
-		if(colorRefLevel < 0) return;
+		if(colorRefLevel < 0) {
+			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Color mapping data unavailable");
+			return;
+		}
 		
 		for (int i = 0; i<3; i++){
 			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
@@ -2233,7 +2238,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::restoreOverrideCursor();
 		if (!colorRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
-				MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Color mapped variable data unavailable for refinement %d at timestep %d", colorRefLevel, timeStep);
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Color mapped variable data unavailable\nfor refinement %d at timestep %d", colorRefLevel, timeStep);
 			DataStatus::getInstance()->setDataMissing(timeStep, colorRefLevel, colorVarnum);
 			return;
 		}
@@ -2507,7 +2512,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 			int ts = unsteadyTimestepList[i];
 			if (!validateVectorField(ts,numRefs,varnums)){
 				MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid timestep sample list:\n %s",
-					"Unsteady field not available at requested refinement at all time steps in list.");
+					"Unsteady field not available at requested \nrefinement at all time steps in list.");
 				return true;
 			}
 		}
@@ -2530,7 +2535,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Vector field is not available at any sampled time steps");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Vector field is not available\nat any sampled time steps");
 		return false;
 	}
 	//was the proposed start invalid?
@@ -2645,7 +2650,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	int varcount = 0;
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
 	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varnums, varcount);
-	if (availRefLevel < 0) return -1.f;
+	if (availRefLevel < 0) {
+		return -1.f;
+	}
 
 	
 	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
@@ -2742,7 +2749,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			timeStep, varnums,varcount);
 	
 		if(availRefLevel < 0){
-			return 0;
+			return false;
 		}
 	} else { 
 		//Unsteady flow.  Find the intersection of all the regions for the timesteps to be sampled.
@@ -2782,6 +2789,8 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) varnums[varcount++] = unsteadyVarNum[i] -1;}
 			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				ts, varnums, varcount);
+			if(refLevel < 0)
+				return false;
 			assert(refLevel == availRefLevel);
 			
 			//Intersect the available region bounds.
@@ -2807,7 +2816,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	
 	//Multiply by 32^3 *4 to get total bytes, divide by 2^20 for mbytes, * num variables
 	if (nvars*numVoxels/8.f >= (float)DataStatus::getInstance()->getCacheMB()){
-		SetErrMsg(101," Data cache size %d is too small for this flow integration",
+		SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG," Data cache size %d is\ntoo small for this flow integration",
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
@@ -2912,7 +2921,7 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	}
 	
 	if (!myFlowLib->AdvectFieldLines(steadyFlowCache,startTime,endTime,forwardSamples)){
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No flow lines were advected to time step %d", endTime);
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No flow lines were advected\nto time step %d", endTime);
 		return false;
 	}
 	//For each line, put the highest priority seed at the start position at endTime
@@ -2954,7 +2963,7 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 
 	steadyFlowCache[nextStep] = regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, nextStep, minFrame, rParams, true);
 	if(!steadyFlowCache[nextStep]){
-		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
+		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration\nat timestep %d", prevStep);
 		return false;
 	}
 	return true;
@@ -2997,8 +3006,8 @@ bool FlowParams::validateSettings(int tstep){
 				if (ds->warnIfDataMissing()){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-						"Steady field not available at required resolution for timestep %d\n%s",
-						tstep, "Auto refresh has been disabled to facilitate corrective action");
+						"Steady field not available at required resolution\nfor timestep %d\n%s",
+						tstep, "Auto refresh has been disabled\n to facilitate corrective action");
 				}
 				return false;
 			}
@@ -3013,8 +3022,8 @@ bool FlowParams::validateSettings(int tstep){
 					if (ds->warnIfDataMissing()){
 						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-							"Steady field not available at required resolution for timestep %d\n%s",
-							ts, "Auto refresh has been disabled to facilitate corrective action");
+							"Steady field not available at required\nresolution for timestep %d\n%s",
+							ts, "Auto refresh has been disabled\n to facilitate corrective action");
 					}
 					
 					break;
@@ -3039,8 +3048,8 @@ bool FlowParams::validateSettings(int tstep){
 		if (numLegitimate <= 1){
 			autoRefresh = false;
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-				"At least two time step samples at specified refinement are necessary for unsteady flow integration.\n%s",
-				"Auto refresh has been disabled to facilitate corrective action");
+				"At least two time step samples at \nspecified refinement are necessary \nfor unsteady flow integration.\n%s",
+				"Auto refresh has been disabled\nto facilitate corrective action");
 				
 				return false;
 		}
@@ -3052,8 +3061,8 @@ bool FlowParams::validateSettings(int tstep){
 						unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-							"Unsteady field not available at required resolution for timestep %d\n%s",
-							ts, "Auto refresh has been disabled to facilitate corrective action");
+							"Unsteady field not available at required\nresolution for timestep %d\n%s",
+							ts, "Auto refresh has been disabled\nto facilitate corrective action");
 					
 					return false;
 				}
@@ -3074,8 +3083,8 @@ bool FlowParams::validateSettings(int tstep){
 						seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-							"Seed distribution field not available at required resolution for timestep %d\n%s",
-							tstep, "Auto refresh has been disabled to facilitate corrective action");
+							"Seed distribution field not available at\nrequired resolution for timestep %d\n%s",
+							tstep, "Auto refresh has been disabled\nto facilitate corrective action");
 					
 					return false;
 				}
@@ -3087,8 +3096,8 @@ bool FlowParams::validateSettings(int tstep){
 								seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 							autoRefresh = false;
 							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-									"Seed distribution field not available at required resolution for timestep %d\n%s",
-									i, "Auto refresh has been disabled to enable corrective action");
+									"Seed distribution field not available at\nrequired resolution for timestep %d\n%s",
+									i, "Auto refresh has been disabled\nto enable corrective action");
 							
 							return false;
 						}
@@ -3101,8 +3110,8 @@ bool FlowParams::validateSettings(int tstep){
 							seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-								"Seed distribution field not available at required resolution for timestep %d\n%s",
-								seedTimeStart, "Auto refresh has been disabled to facilitate corrective action");
+								"Seed distribution field not available at\nrequired resolution for timestep %d\n%s",
+								seedTimeStart, "Auto refresh has been disabled\nto facilitate corrective action");
 						
 						return false;
 					}
@@ -3120,8 +3129,8 @@ bool FlowParams::validateSettings(int tstep){
 					priorityVarNum[0],priorityVarNum[1], priorityVarNum[2])){
 				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-						"Prioritization field not available at required resolution for timestep %d\n%s",
-						ts, "Auto refresh has been disabled to facilitate corrective action");
+						"Prioritization field not available at\nrequired resolution for timestep %d\n%s",
+						ts, "Auto refresh has been disabled\nto facilitate corrective action");
 				
 				return false;
 			}
@@ -3142,7 +3151,7 @@ bool FlowParams::validateSettings(int tstep){
 					}
 				}
 				if (!found && seedPointList.size()>0 ) {
-					
+					if(refreshIsAuto())setBypass(tstep);
 					MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
 						"No seed points specified at current timestep\n");
 					return false;
@@ -3192,8 +3201,8 @@ bool FlowParams::validateSettings(int tstep){
 				if (!found && seedPointList.size()> 0) {
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-							"No seeds available after the first sample time %d of the unsteady flow\n%s",
-							ts,"Auto refresh has been disabled to facilitate corrective action");
+							"No seeds available after the first sample\ntime %d of the unsteady flow\n%s",
+							ts,"Auto refresh has been disabled\nto facilitate corrective action");
 						
 						return false;
 				}
@@ -3220,7 +3229,7 @@ bool FlowParams::validateSettings(int tstep){
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"No seeds available at start seed time %d \n%s",
 								seedTimeStart,
-								"Auto refresh has been disabled to facilitate corrective action");
+								"Auto refresh has been disabled\nto facilitate corrective action");
 						
 						return false;
 					}
@@ -3238,7 +3247,7 @@ bool FlowParams::validateSettings(int tstep){
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"start seed time %d is not a sample time\n%s",
 							seedTimeStart,
-							"Auto refresh has been disabled to enable corrective action");
+							"Auto refresh has been disabled\nto enable corrective action");
 					
 					return false;
 				}
@@ -3255,10 +3264,10 @@ bool FlowParams::validateSettings(int tstep){
 				if (!OK){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-						"Cannot perform field line advection from the seed time %d to current time %d\n%s\n%s",
+						"Cannot perform field line advection\nfrom the seed time %d to current time %d\n%s\n%s",
 						seedTimeStart, tstep,
-						"Because the current time is not between the seed time and a sample time",
-						"Auto refresh has been disabled to facilitate corrective action");
+						"Because the current time is not\nbetween the seed time and a sample time",
+						"Auto refresh has been disabled\nto facilitate corrective action");
 					return false;
 				}
 

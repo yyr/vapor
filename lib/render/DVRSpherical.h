@@ -31,14 +31,14 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
-
+  class Renderer;
 
 class RENDER_API DVRSpherical : public DVRShader
 {
  public:
 
 
-  DVRSpherical(GLint internalFormat, GLenum format, GLenum type, int nthreads);
+  DVRSpherical(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
   virtual ~DVRSpherical();
 
   virtual int GraphicsInit();

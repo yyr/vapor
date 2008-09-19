@@ -10,6 +10,7 @@
 #include "glutil.h"
 #include "vapor/errorcodes.h"
 #include "vapor/MyBase.h"
+#include "renderer.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>

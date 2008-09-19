@@ -270,15 +270,11 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 //////////////////////////////////////////////////////////////////////////
 float* VaporFlow::GetData(size_t ts, const char* varName)
 {
-	//AN 10/19/05
-	//Trap read errors:
-	//
-	ErrMsgCB_T errorCallback = GetErrMsgCB();
-	SetErrMsgCB(0);
+	
 	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,1);
-	SetErrMsgCB(errorCallback);
+	
 	if (!regionData) {
-		SetErrMsg("Error obtaining field data for timestep %d, variable %s",ts, varName);
+		SetErrMsg(VAPOR_ERROR_FLOW,"Error obtaining field\ndata for timestep %d, variable %s",ts, varName);
 		return 0;
 	}
 	return regionData;
@@ -634,7 +630,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		
 	if (seedsInRegion < totalSeeds){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-			" %d Steady flow lines have left region at timestep %d:",
+			" %d Steady flow lines have left region\nat timestep %d:",
 			numSeeds - seedsInRegion, steadyStartTimeStep);
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);

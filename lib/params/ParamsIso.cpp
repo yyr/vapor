@@ -261,7 +261,7 @@ reinit(bool doOverride){
 		float col[4] = {1.f, 1.f, 1.f, 1.f};
 		SetConstantColor(col);
 	}
-	
+	initializeBypassFlags();
 	return true;
 }
 
@@ -360,20 +360,24 @@ IsoControl* ParamsIso::getIsoControl(){
 void ParamsIso::setMinColorMapBound(float val){
 	getMapperFunc()->setMinColorMapValue(val);
 	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	setAllBypass(false);
 }
 void ParamsIso::setMaxColorMapBound(float val){
 	getMapperFunc()->setMaxColorMapValue(val);
 	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	setAllBypass(false);
 }
 
 
 void ParamsIso::setMinOpacMapBound(float val){
 	getMapperFunc()->setMinOpacMapValue(val);
 	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	setAllBypass(false);
 }
 void ParamsIso::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	setAllBypass(false);
 }
 
 
@@ -382,6 +386,7 @@ void ParamsIso::SetIsoValue(double value) {
 	if (oldVal == value) return;
 	getIsoControl()->setIsoValue(value);
 	_rootParamNode->SetFlagDirty(_IsoValueTag);
+	setAllBypass(false);
 }
 
 double ParamsIso::GetIsoValue() {
@@ -443,6 +448,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	isoContr->setMinHistoValue(bnds[0]);
 	isoContr->setMaxHistoValue(bnds[1]);
 	_rootParamNode->SetFlagDirty(_HistoBoundsTag);
+	setAllBypass(false);
  }
  
  void ParamsIso::SetMapBounds(float bnds[2]){
@@ -455,6 +461,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	mapFunc->setMinOpacMapValue(bnds[0]);
 	mapFunc->setMaxOpacMapValue(bnds[1]);
 	SetFlagDirty(_MapBoundsTag);
+	setAllBypass(false);
  }
  const float* ParamsIso::GetHistoBounds(){
 	 if (!getIsoControl()){
@@ -548,6 +555,7 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
 	 GetRootNode()->SetElementString(_VariableNameTag, varName);
 	 SetFlagDirty(_HistoBoundsTag);
 	 SetFlagDirty(_IsoValueTag);
+	 setAllBypass(false);
  }
  const string& ParamsIso::GetIsoVariableName(){
 	 return GetRootNode()->GetElementString(_VariableNameTag);
@@ -559,6 +567,7 @@ void ParamsIso::SetMapVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_MapVariableNameTag, varName);
 	 SetFlagDirty(_MapBoundsTag);
 	 SetFlagDirty(_ColorMapTag);
+	 setAllBypass(false);
  }
  const string& ParamsIso::GetMapVariableName(){
 	 return GetRootNode()->GetElementString(_MapVariableNameTag);

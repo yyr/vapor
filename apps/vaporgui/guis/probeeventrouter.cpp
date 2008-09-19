@@ -77,7 +77,7 @@
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
 #include "VolumeRenderer.h"
-#include "vapor/errorcodes.h"
+
 
 using namespace VAPoR;
 
@@ -786,7 +786,10 @@ refreshProbeHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	
+	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
 		refreshHistogram(pParams);
@@ -856,7 +859,7 @@ probeAddSeed(){
 	}
 	if (fParams->rakeEnabled()){
 		MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
-			"the target flow is using a rake instead of seed list");
+			"the target flow is using \na rake instead of seed list");
 	}
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -1347,7 +1350,7 @@ guiChangeVariables(){
 	//Need to update the selected point for the new variables
 	updateTab();
 	
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
@@ -1439,7 +1442,7 @@ guiSetNumRefinements(int n){
 	if (DataStatus::getInstance()) {
 		maxNumRefinements = DataStatus::getInstance()->getNumTransforms();
 		if (n > maxNumRefinements) {
-			MessageReporter::warningMsg("%s","Invalid number of Refinements for current data");
+			MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
 			n = maxNumRefinements;
 			refinementCombo->setCurrentItem(n);
 		}
@@ -1732,6 +1735,8 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if (pParams->doBypass(timeStep)) return OUT_OF_BOUNDS;
 	int arrayCoord[3];
 
 	for (int i = 0; i<3; i++){
@@ -1746,11 +1751,14 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 	//Find the region that contains the probe.
 
 	
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
 	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, numVars, regMin, regMax, false)) return OUT_OF_BOUNDS;
+		sessionVarNums, numVars, regMin, regMax, false)) 
+	{
+		return OUT_OF_BOUNDS;
+	}
 
 	for (int i = 0; i< 3; i++){
 		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
@@ -1781,6 +1789,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 		if (!volData[varnum]) {
 			//failure to get data.  
 			QApplication::restoreOverrideCursor();
+			pParams->setBypass(timeStep);
 			return OUT_OF_BOUNDS;
 		}
 	}
@@ -1813,6 +1822,8 @@ refreshHistogram(RenderParams* p){
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
@@ -1826,7 +1837,7 @@ refreshHistogram(RenderParams* p){
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//Determine what resolution is available:
 	int refLevel = pParams->getNumRefinements();
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	if (ds->useLowerRefinementLevel()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
 			if (pParams->variableIsSelected(varnum)) {
@@ -1854,8 +1865,9 @@ refreshHistogram(RenderParams* p){
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*varCount > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+		pParams->setAllBypass(true);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
+			"Lower the refinement level,\nreduce the probe size,\nor increase the cache size.",
 			"Rendering has been disabled.");
 		pParams->setEnabled(false);
 		updateTab();
@@ -1874,7 +1886,10 @@ refreshHistogram(RenderParams* p){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep, false);
 		QApplication::restoreOverrideCursor();
-		if (!volData[totVars]) return;
+		if (!volData[totVars]) {
+			pParams->setBypass(timeStep);
+			return;
+		}
 		totVars++;
 	}
 	
@@ -2122,7 +2137,7 @@ void ProbeEventRouter::captureImage() {
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: %s",filename.ascii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -2132,7 +2147,7 @@ void ProbeEventRouter::captureImage() {
 	delete probeTex;
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
+		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file %s",
 			filename.ascii());
 		delete buf;
 		return;

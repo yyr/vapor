@@ -710,7 +710,7 @@ guiCopyProbeToRegion(){
 		pParams->getTheta() != 0.f ||
 		pParams->getPsi() != 0.f) {
 			MessageReporter::warningMsg("Note: current probe is rotated.\n%s",
-				"Copied region is the smallest axis-aligned box that contains the probe");
+				"Copied region is the smallest \naxis-aligned box that contains the probe");
 	}
 	float regMin[3], regMax[3];
 	pParams->getContainingRegion(regMin, regMax);

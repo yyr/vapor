@@ -336,13 +336,17 @@ void ProbeRenderer::popState(){
 unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
 	
 	int sz[2];
+	if (pParams->doBypass(tstep)) return 0;
 	pParams->getTextureSize(sz);
 	
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
 		pParams->adjustTextureSize(sz);
 		bool ok = pParams->buildIBFVFields(tstep);
-		if (!ok) return 0;
+		if (!ok) {
+			pParams->setBypass(tstep);
+			return 0;
+		}
 	}
 	int wid = sz[0];
 	int ht = sz[1];
@@ -373,6 +377,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep
 			dataTex = pParams->calcProbeDataTexture(tstep, 256,256);
 			//Always put this in the data texture cache...
 			pParams->setProbeTexture(dataTex,tstep,0);
+			
 		}
 	}
 	for (int q = 0; q<wid*ht; q++){
@@ -394,6 +399,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep
 				imageBuffer[4*q+r] = (unsigned char)0;
 		}
 	}
+	if (!dataTex) pParams->setBypass(tstep);
 	return imageBuffer;
 
 }
@@ -443,15 +449,21 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum,  bool doCache){
 	if (!pParams->probeIsDirty(frameNum)) 
 		return pParams->getCurrentProbeTexture(frameNum, pParams->getProbeType());
-
-	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0);}
+	if (pParams->doBypass(frameNum)) return 0;
+	if (pParams->getProbeType() == 0) {
+		unsigned char* dtex = pParams->calcProbeDataTexture(frameNum, 0,0);
+		if (!dtex) pParams->setBypass(frameNum);
+		return dtex;
+	}
 	//OK, now handle IBFV texture:
 	if (pParams->ibfvColorMerged()){
 		unsigned char* dataTex = pParams->calcProbeDataTexture(frameNum, 256,256);
 		//Always put this in the cache...
 		pParams->setProbeTexture(dataTex,frameNum,0);
+		if (!dataTex) pParams->setBypass(frameNum);
 	}
 	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
+	if (!probeTex) pParams->setBypass(frameNum);
 	if (doCache){
 		pParams->setProbeTexture(probeTex, frameNum, 1);
 	}

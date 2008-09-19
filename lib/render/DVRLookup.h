@@ -17,13 +17,14 @@
 namespace VAPoR {
 
   class BBox;
+  class Renderer;
 
 class RENDER_API DVRLookup : public DVRTexture3d
 {
  public:
 
 
-  DVRLookup(GLenum type, int nthreads);
+  DVRLookup(GLenum type, int nthreads, Renderer* ren);
   virtual ~DVRLookup();
 
   virtual int GraphicsInit();

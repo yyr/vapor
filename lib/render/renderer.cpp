@@ -43,6 +43,9 @@ Renderer::Renderer( GLWindow* glw, RenderParams* rp )
 	currentRenderParams = rp;
 	initialized = false;
 	clutDirtyBit = false;
+	
+	
+	rp->initializeBypassFlags();
 }
 
 
@@ -221,3 +224,5 @@ void Renderer::disableFullClippingPlanes(){
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 }
+
+ 

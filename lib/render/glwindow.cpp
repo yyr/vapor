@@ -32,6 +32,7 @@
 #include "animationparams.h"
 #include "manip.h"
 #include "datastatus.h"
+#include "vapor/MyBase.h"
 
 #include <math.h>
 #include <qgl.h>
@@ -39,18 +40,28 @@
 #include <qpainter.h>
 #include <qpixmap.h>
 #include <qimage.h>
+#include <qmutex.h>
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 #include "common.h"
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
-#include "vapor/errorcodes.h"
+
 #include "vapor/LayeredIO.h"
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
+
+//Following are used to redirect error messages during rendering:
+int GLWindow::numActiveRenderers = 0;
+MyBase::ErrMsgCB_T GLWindow::messagePostCallback = 0;
+MyBase::ErrMsgCB_T GLWindow::messageSaveCallback = 0;
+GLWindow::ErrMsgReleaseCB_T GLWindow::messageReleaseCallback = 0;
+QMutex GLWindow::renderMessageMutex;
+
+
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 100;
 GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
@@ -260,6 +271,8 @@ void GLWindow::paintGL()
 
     if (nowPainting) return;
 	nowPainting = true;
+	// redirect error messages during the rendering
+	startRendering();
 	//Force a resize if perspective has changed:
 	if (perspective != oldPerspective || needsResize){
 		resizeGL(width(), height());
@@ -284,6 +297,7 @@ void GLWindow::paintGL()
 	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
+		finishRendering();
 		return;
 	}
 
@@ -322,6 +336,7 @@ void GLWindow::paintGL()
 		setViewerCoordsChanged(false);
 	}
 
+	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
     getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
     DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
@@ -390,7 +405,7 @@ void GLWindow::paintGL()
 	
 	if (renderElevGrid) {
 		if (DataStatus::getInstance()->dataIsLayered()){
-			size_t timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+			
 			drawElevationGrid(timeStep);
 		}
 	}
@@ -405,7 +420,7 @@ void GLWindow::paintGL()
 	}
 	
 	for (int i = 0; i< getNumRenderers(); i++){
-		if(renderer[i]->isInitialized()) renderer[i]->paintGL();
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) renderer[i]->paintGL();
 	}
 	
 	swapBuffers();
@@ -429,6 +444,9 @@ void GLWindow::paintGL()
 		setViewerCoordsChanged(true);
 		setDirtyBit(ProjMatrixBit, true);
 	}
+	
+	
+	finishRendering();
 	postRenderCB(winNum, isControlled);
 	
 }
@@ -459,6 +477,7 @@ void GLWindow::initializeGL()
 	//Check to see if we are using MESA:
 	if (GetVendor() == MESA){
 		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
+		
 	}
 	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
@@ -2111,7 +2130,25 @@ Renderer* GLWindow::getRenderer(RenderParams* p){
 void GLWindow::
 setDirtyBit(DirtyBitType t, bool nowDirty){
 	vizDirtyBit[t] = nowDirty;
+	if (nowDirty){
+		if (t == RegionBit){
+			//Must clear all iso, dvr, and flow bypass flags
+			clearRendererBypass((Params::ParamType)(Params::DvrParamsType|Params::IsoParamsType|Params::FlowParamsType));
+		} else if (t == DvrRegionBit) {
+			clearRendererBypass((Params::ParamType)(Params::DvrParamsType|Params::IsoParamsType));
+		}
+	}
 }
+//Clear all render bypass flags for active renderers that match the specified type(s)
+//The renderer type can be an 'or' of multiple types.
+void GLWindow::
+clearRendererBypass(Params::ParamType t){
+	for (int i = 0; i< getNumRenderers(); i++){
+		if(renderer[i]->isInitialized() && (renderType[i]&t))
+			renderer[i]->setAllBypass(false);
+	}
+}
+
 bool GLWindow::
 vizIsDirty(DirtyBitType t) {
 	return vizDirtyBit[t];
@@ -2132,7 +2169,7 @@ doFrameCapture(){
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		SetErrMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
 		capturing = 0;
 		return;
 	}
@@ -2141,7 +2178,7 @@ doFrameCapture(){
 	//Use openGL to fill the buffer:
 	if(!getPixelData(buf)){
 		//Error!
-		SetErrMsg("Image Capture Error; error obtaining GL data");
+		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; error obtaining GL data");
 		capturing = 0;
 		delete buf;
 		return;
@@ -2160,7 +2197,7 @@ doFrameCapture(){
 	int rc = write_JPEG_file(jpegFile, width(), height(), buf, quality);
 	if (rc){
 		//Error!
-		SetErrMsg("Image Capture Error; Error writing jpeg file %s",
+		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
 			filename.ascii());
 		capturing = 0;
 		delete buf;

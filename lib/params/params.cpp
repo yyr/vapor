@@ -397,8 +397,21 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	minOpacEditBounds = 0;
 	maxOpacEditBounds = 0;
 }
-// used by Probe and TwoD currently.  Can retrieve either slice or volume
-float* Params::
+void RenderParams::initializeBypassFlags(){
+	bypassFlags.clear();
+	int numTimesteps = DataStatus::getInstance()->getNumTimesteps();
+	bypassFlags.resize(numTimesteps, 0);
+}
+void RenderParams::setAllBypass(bool val){ 
+	//set all bypass flags to either 0 or 2
+	//when set to 0, indicates "never bypass"
+	//when set to 2, indicates "always bypass"
+	int ival = val ? 2 : 0;
+	for (int i = 0; i<bypassFlags.size(); i++)
+		bypassFlags[i] = ival;
+}
+// used by Probe, TwoD, and Region currently.  Can retrieve either slice or volume
+float* RenderParams::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, bool twoDim){
 	//Get the region associated with the specified variable in the 
 	//specified block extents
@@ -416,11 +429,12 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 
 	//Check if maxRes is not OK:
 	if (maxRes < 0 || (maxRes < refLevel && !ds->useLowerRefinementLevel())){
+		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
-			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
-				"Data unavailable for refinement level %d of variable %s, at current timestep.\n %s",
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+				"Data unavailable for refinement level %d \nof variable %s, at current timestep.\n%s",
 				refLevel, vname,
-				"This message can be silenced in user preferences panel.");
+				"This message can be silenced\nin user preferences panel.");
 		}
 		return 0;
 	}
@@ -431,10 +445,11 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		vname, refLevel, blkMin, blkMax,  0);
 	if (!reg){
 		if (ds->warnIfDataMissing()){
-			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
-				"Data unavailable for refinement level %d of variable %s, at current timestep.\n %s",
+			setBypass(timeStep);
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+				"Data unavailable for refinement level %d\nof variable %s, at current timestep.\n %s",
 				refLevel, vname,
-				"This message can be silenced in user preferences panel.");
+				"This message can be silenced\nin user preferences panel.");
 		}
 		ds->setDataMissing(timeStep,refLevel, sessionVarNum);
 	}

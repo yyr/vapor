@@ -845,7 +845,7 @@ int printOglError(char *file, int line)
     std::cout << "glError: " << gluErrorString(glErr) << std::endl
               << "         " << file << " : " << line << std::endl;
 #endif
-    VetsUtil::MyBase::SetDiagMsg("glError: %s\n         %s : %d\n", 
+    VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_ERROR,"glError: %s\n         %s : %d", 
                                 gluErrorString(glErr), file, line);
 
     retCode = 1;

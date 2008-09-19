@@ -28,8 +28,9 @@
 #include "BBox.h"
 #include "glutil.h"
 #include "params.h"
-#include "vapor/errorcodes.h"
+
 #include "datastatus.h"
+#include "renderer.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -45,8 +46,8 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRSpherical::DVRSpherical(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads
-) : DVRShader(internalFormat, format, type, nthreads),
+	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
+) : DVRShader(internalFormat, format, type, nthreads, ren),
   _nr(0),
   _shellWidth(1.0),
   _permutation(3),
@@ -234,9 +235,10 @@ int DVRSpherical::SetRegionSpherical(void *data,
 
       // TBD 
       // buildBricks(level, data_box, data_roi, nx, ny, nz);
-
+	  myRenderer->setAllBypass(true);
       SetErrMsg(VAPOR_WARNING, 
                 "Bricking is currently unsupported for spherical rendering");
+	  
     }
 
     initShaderVariables();

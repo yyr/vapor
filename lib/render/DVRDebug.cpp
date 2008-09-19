@@ -18,15 +18,17 @@
 //
 #include <stdio.h>
 #include "DVRDebug.h" 
+#include "renderer.h"
 using namespace VAPoR;
 
 DVRDebug::DVRDebug(
 	int *argc,
 	char **argv,
-	int	nthreads
+	int	nthreads,
+	Renderer* ren
 ) {
 	int	i;
-
+	myRenderer = ren;
 	fprintf(stdout, "\nDVRDebug::DVRDebug() called\n");
 
 	for(i=0; i<*argc; i++) {

@@ -216,14 +216,6 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	frontPlane[3] = extents[5]*scales[2];
 	backPlane[3] = -extents[2]*scales[2];
 
-	//Calculate x and y stretch factors, translation factors for texture mapping:
-	
-	float stretchX = (tParams->getTwoDMax(0)-tParams->getTwoDMin(0))/
-		(extents[3]-extents[0]);
-	float stretchY = (tParams->getTwoDMax(1)-tParams->getTwoDMin(1))/
-		(extents[4]-extents[1]);
-	float transX = tParams->getTwoDMin(0)/(extents[3]-extents[0]);
-	float transY = tParams->getTwoDMin(1)/(extents[4]-extents[1]);
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -265,15 +257,13 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	glPushMatrix();
 	//Put an identity on the Texture matrix stack.
 	glLoadIdentity();
-	//glTranslatef(transX,transY,0.);
-	//glScalef(stretchX,stretchY,1.);
 	
 	glMatrixMode(GL_MODELVIEW);
 	glBindTexture(GL_TEXTURE_2D, _twoDid);
-	//glEnable(GL_TEXTURE_2D);
+	
 	
 	//Now we can just traverse the elev grid, one row at a time:
-	//glEnable(GL_DEPTH_TEST);
+	
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int j = 0; j< maxYElev-1; j++){
 		glBegin(GL_TRIANGLE_STRIP);
@@ -398,6 +388,8 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	
 	if(refLevel < 0) {
+		setBypass(timeStep);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable for 2D rendering at timestep %d",timeStep);
 		myReader->SetInterpolateOnOff(true);
 		return false;
 	}
@@ -411,12 +403,14 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, min_bdim, max_bdim, 0);
 	
 	if (!hgtData) {
+		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.\n %s", 
-				timeStep,
-				"This message can be silenced using the User Preference Panel settings." );
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
+				timeStep
+				 );
 		}
 		ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
+		
 		return false;
 	}
 	

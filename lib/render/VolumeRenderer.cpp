@@ -46,7 +46,6 @@
 #include <qstring.h>
 #include <qstatusbar.h>
 
-#include "vapor/errorcodes.h"
 #include "vapor/MetadataSpherical.h"
 #include "VolumeRenderer.h"
 #include "regionparams.h"
@@ -122,11 +121,13 @@ void VolumeRenderer::initializeGL()
     
   if (_driver->GraphicsInit() < 0) 
   {
+	  setAllBypass(true);
 	  MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Failure to initialize OpenGL renderer.  Possible remedies:\n %s %s %s",
 		  "   Specify a different Renderer Type,\n",
 		  "   Install newer graphics drivers on your system, or\n",
-		  "   Install one of the recommended graphics cards.\n"
+		  "   Install one of the recommended graphics cards."
 		  );
+	  
       initialized = false;
   } else
 	initialized = true;
@@ -258,28 +259,28 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRLookup(_voxelType, 1);
+    driver = new DVRLookup(_voxelType, 1, this);
   }
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRShader(internalFormat, format, _voxelType, 1);
+    driver = new DVRShader(internalFormat, format, _voxelType, 1, this);
   }
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRSpherical(internalFormat, format, _voxelType, 1);
+    driver = new DVRSpherical(internalFormat, format, _voxelType, 1, this);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
     _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRRayCaster(internalFormat, format, _voxelType, 1);
+    driver = new DVRRayCaster(internalFormat, format, _voxelType, 1,this);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER_2_VAR)
   {
@@ -287,7 +288,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
     _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
-    driver = new DVRRayCaster2Var(internalFormat, format, _voxelType, 1);
+    driver = new DVRRayCaster2Var(internalFormat, format, _voxelType, 1,this);
   }
 
 #ifdef VOLUMIZER
@@ -295,7 +296,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRVolumizer(&argc, argv, _voxelType, 1);
+    driver = new DVRVolumizer(&argc, argv, _voxelType, 1, this);
   }
 #endif
 
@@ -303,7 +304,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRDebug(&argc, argv, 1);
+    driver = new DVRDebug(&argc, argv, 1, this);
   }
   
 #ifdef	DVR_STRETCHEDGRID
@@ -311,13 +312,14 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads);
+    driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads, this);
   }
 #endif
   else 
   {
-    SetErrMsg("Invalid driver ");
-    return NULL;
+	  setAllBypass(true);
+	  MyBase::SetErrMsg(VAPOR_ERROR_DVR,"Invalid driver ");
+      return NULL;
   }
 
   return(driver);
@@ -350,15 +352,23 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 	// Nothing to do if there's no data source!
 	if (!myDataMgr) return;
-		
+	
 	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	int timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+
+	//If we have partial bypass, the data is only available at low res, so exit if
+	//the mouse is not down:
+	bool bp = currentRenderParams->doBypass(timeStep);
+	bool msdn = myGLWindow->mouseIsDown();
+	bool spn = myGLWindow->spinning();
+	if (currentRenderParams->doBypass(timeStep) && !myGLWindow->mouseIsDown() && !myGLWindow->spinning()) 
+		return;
+
 	  
 	ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 	DataStatus* ds = DataStatus::getInstance();
 		
-	//This is no longer the case, because of multiple instancing:
-	//assert(myDVRParams == myGLWindow->getActiveDvrParams());
+	
 	int varNum = currentRenderParams->getSessionVarNum();
 
 	if (myGLWindow->viewportIsDirty()) {
@@ -418,7 +428,26 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	int availRefLevel = myRegionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
 		timeStep,&varNum, 1);
 
-	if(availRefLevel < 0) return;
+	if(availRefLevel < 0) {
+		//The data is not available at the required ref level.
+		//Set full bypass if the interactiveRefinementLevel is not available:
+		//Set partial bypass if interactive level is available
+		//Provide an error message if bypass was not already set:
+		bool doMsg = true;
+		if ((DataStatus::getInstance()->maxXFormPresent(varNum, timeStep)) < DataStatus::getInteractiveRefinementLevel())
+			setBypass(timeStep);
+		else {
+			doMsg = !doBypass(timeStep);
+			setPartialBypass(timeStep);
+		}
+		if (doMsg) {
+			const char* varname = ds->getVariableName(varNum).c_str();
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+				"Data unavailable for variable %s\n at refinement level %d and current time step",
+				varname, numxforms);
+		}
+		return;
+	}
 
 	if (availRefLevel < numxforms){
 		numxforms = availRefLevel;
@@ -472,8 +501,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
 		int cacheSize = DataStatus::getInstance()->getCacheMB();
 		if (numMBs > (int)(0.75*cacheSize)){
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s",
-				"Lower the refinement level, reduce the region size, or increase the cache size.");
+			setAllBypass(true);
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small \nfor current region and resolution.\n%s",
+				"Lower the refinement level, reduce region size,\nor increase the cache size.");
 			return;
 		}
 		myGLWindow->setRenderNew();
@@ -497,12 +527,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		QApplication::restoreOverrideCursor();
 		
 		if (!data){
+			//Only set bypass if the data is not available at the interactiveRefLevel
+			//Otherwise set partial bypass
+			if (numxforms <= DataStatus::getInteractiveRefinementLevel())
+				setBypass(timeStep);
+			else setPartialBypass(timeStep);
 			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of variable %s, at current timestep.\n %s", 
-					numxforms, varname,
-					"This message can be silenced from the User Preference Panel." );
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Volume data unavailable\nfor refinement level %d\nof variable %s, at current timestep.", 
+					numxforms, varname);
 			}
 			ds->setDataMissing(timeStep, numxforms, currentRenderParams->getSessionVarNum());
+			setBypass(timeStep);
 			return;
 		}
 
@@ -602,9 +637,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		}
 	    
 		if (rc < 0) {
-			fprintf(stderr, "Error in DVRVolume::SetRegion\n");
-			fflush(stderr);
-		      
+			setBypass(timeStep);
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Error in DVRVolume::SetRegion");
 			return;
 		}
 		
@@ -630,7 +664,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	glDepthMask(GL_FALSE);
 	//qWarning("Starting render");
 	if (_driver->Render((GLfloat *) matrix ) < 0){
-		SetErrMsg("Unable to Render");
+		setBypass(timeStep);
+		SetErrMsg(VAPOR_ERROR_DVR, "Unable to volume render");
 		return;
 	}
 	//qWarning("Render done");

@@ -818,7 +818,7 @@ void UserPreferences::requestSave(){
 	os.open(filename.ascii());
 
 	if (!os || !saveToFile(os)){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open preferences file: %s", filename.ascii());
+		MessageReporter::errorMsg("Unable to open preferences file: \n%s", filename.ascii());
 	}
 	os.close();
 	
@@ -829,7 +829,7 @@ saveToFile(ofstream& ofs ){
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
-		MessageReporter::errorMsg("Preferences Save Error %d, Writing to:\n %s",
+		MessageReporter::errorMsg("Preferences Save Error %d, \nWriting to:\n %s",
 			MyBase::GetErrCode(),Session::getPreferencesFile().c_str());
 		MyBase::SetErrCode(0);
 		delete rootNode;
@@ -1575,7 +1575,7 @@ bool UserPreferences::loadPreferences(const char* filename){
 	ifstream is;
 	is.open(filename);
 	if (!is){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open user preferences file: %s", filename);
+		MessageReporter::errorMsg("Unable to open user preferences file: \n%s", filename);
 		return false;
 	}
 	//Then set values from file.

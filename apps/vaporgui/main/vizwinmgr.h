@@ -367,6 +367,7 @@ public:
 	//Force rerender of window using a flowParams, or region params..
 	//
 	void refreshFlow(FlowParams*);
+	void refreshViewpoint(ViewpointParams* vParams);
 	void refreshRegion(RegionParams* rParams);
 	void refreshProbe(ProbeParams* pParams);
 	void refreshTwoD(TwoDParams* pParams);

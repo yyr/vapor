@@ -75,6 +75,11 @@ class TabManager : public QTabWidget{
 		EventRouter* getFrontEventRouter() { 
 			return VizWinMgr::getInstance()->getEventRouter(widgetTypes[currentFrontPage]);
 		}
+		QPoint tabPos() {
+			return (myParent->pos());
+		}
+		//Make the visible tab scroll to top.
+		void scrollFrontToTop();
 	public slots:
 		void newFrontTab(QWidget*);
 		void tabScrolled();
@@ -86,6 +91,7 @@ class TabManager : public QTabWidget{
 		Params::ParamType widgetTypes[MAX_WIDGETS];
 		bool haveMultipleViz;
 		int currentFrontPage;
+		QWidget* myParent;
 };
 };
 

@@ -142,7 +142,10 @@ void FlowRenderer::paintGL()
 
 	//Check if the cache needs rebuilding, and/or rgba's need rebuilding:
 	if ((flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep))){
-		if(!rebuildFlowData(timeStep)) return;
+		if(!rebuildFlowData(timeStep)) {
+			if(myFlowParams->refreshIsAuto())setBypass(timeStep);
+			return;
+		}
 		didRebuild = true;
 		didRemap = true;
 	} else { //just rebuild the rgba's if necessary:
@@ -861,6 +864,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
 	
 	//Clean the dirty parts of cache, unless this is just a rebuild of the graphics:
+	bool OK = true;
 	if (!graphicsOnly){
 		if (allFlowDataIsDirty()){
 			if (steadyFlowCache[timeStep]){
@@ -898,7 +902,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	}
 	//Construct the caches if needed:
 	if (!graphicsOnly) {
-		bool OK = false;
+		OK = false;
 		int prevStep, nextStep;
 		int unsteadyFlowDir;
 		int numTimestepsToRender;
@@ -913,11 +917,13 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				unsteadyFlowCache = (PathLineData*)myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
 					if (myFlowParams->rakeEnabled() || myFlowParams->getNumListSeedPoints() > 0){
+						if(myFlowParams->refreshIsAuto())setAllBypass(true);
 						MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
 							"No seeds for unsteady flow from time steps %d to %d .\n%s",
 							minFrame, maxFrame,
 							"Ensure sample times are consistent with seed times\n");
 					}
+					
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -944,7 +950,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						unsteadyFlowCache = 0;
 						setAllNeedRefresh(false);
 						QApplication::restoreOverrideCursor();
-						MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Terminated");
+						MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Terminated by user");
 						return false;
 					}
 
@@ -960,6 +966,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				}
 				QApplication::restoreOverrideCursor();
 				if (numTimestepsToRender < 1){
+					if(myFlowParams->refreshIsAuto())setAllBypass(true);
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient valid timesteps for unsteady integration");
 				} else {
 					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
@@ -995,6 +1002,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 							//the seeds in the unsteadycache.  This should only be needed the first time.
 							steadyFlowCache[seedTimeStart] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, seedTimeStart, minFrame, rParams, true);
 							if(!steadyFlowCache[seedTimeStart]){
+								if(myFlowParams->refreshIsAuto())setAllBypass(true);
 								MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", seedTimeStart);
 								QApplication::restoreOverrideCursor();
 								return false;
@@ -1026,7 +1034,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					for (int i = 0;; i++){
 						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame, unsteadyFlowDir);
 						if (prevStep < 0) {
-							MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Seed time is not a sample time for field line advection");
+							if(myFlowParams->refreshIsAuto())setAllBypass(true);
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Seed time is not a sample time for field line advection");
 							return false;
 						}
 						if (prevStep == seedTimeStart) {
@@ -1056,6 +1065,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 							if (prevStep < 0 || nextStep < 0) { 
 								// past the end...
 								MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Field Line Advection\nCannot advect to unsampled timestep %d", timeStep);
+								if(myFlowParams->refreshIsAuto())setAllBypass(true);
 								QApplication::restoreOverrideCursor();
 								return false;
 							}
@@ -1069,13 +1079,12 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 							
 							setAllNeedRefresh(false);
 							QApplication::restoreOverrideCursor();
-							MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Terminated");
+							MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Interrupted");
 							return false;
 						}
 						//At this point we know we need to advect from prevStep to nextStep
 						//This is either performed by advecting before or after prioritization
 
-						bool OK;
 						if (myFlowParams->getFLAAdvectBeforePrioritize()){
 							OK = myFlowParams->multiAdvectFieldLines(myFlowLib, steadyFlowCache, prevStep, nextStep,minFrame,rParams);
 						} else {
@@ -1087,7 +1096,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 								flowDataDirty[i] = false;
 								if (i == nextStep) break;
 							}
-						}
+						} 
 						
 						//Stop here if the current timestep is done:
 						if (unsteadyFlowDir > 0 && timeStep <= nextStep) { OK = true; break;}
@@ -1101,12 +1110,13 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	}//End of cache reconstruction
 	//Now we only rebuild the rgba's if we didn't build the flow lines
 	else if (!constColors) {
+		OK = true;
 		if (flowType != 1)
 			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, rParams);
 		else 
 			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, rParams);
 	}
-	return true;
+	return OK;
 }
 
 void FlowRenderer::

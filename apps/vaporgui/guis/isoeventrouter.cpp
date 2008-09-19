@@ -72,7 +72,7 @@
 #include "animationeventrouter.h"
 #include "eventrouter.h"
 
-#include "vapor/errorcodes.h"
+
 
 using namespace VAPoR;
 
@@ -486,6 +486,10 @@ void IsoEventRouter::refreshTFHisto(){
 	if (!vizWin) return;
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	if (iParams->GetMapVariableNum()<0) return;
+	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
 		const float* bnds = iParams->GetMapBounds();
@@ -650,7 +654,7 @@ float IsoEventRouter::evaluateSelectedPoint(){
 	int numRefinements = iParams->GetRefinementLevel();
 	int sessionVarNum = iParams->getSessionVarNum();
 	for (int i = 0; i<3; i++) fltpnt[i] = pnt[i];
-	float val = rParams->calcCurrentValue(sessionVarNum, fltpnt, numRefinements, timeStep);
+	float val = rParams->calcCurrentValue(iParams, sessionVarNum, fltpnt, numRefinements, timeStep);
 	return val;
 }
 
@@ -660,7 +664,10 @@ refreshHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
-	
+	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
 	
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
@@ -753,8 +760,8 @@ guiSetEnabled(bool value, int instance){
 	
 	//Check if we really can do raycasting:
 	if (value && !DVRRayCaster::supported()){
-		MessageReporter::errorMsg("This computer's graphics capabilities do not support isosurfacing.\n %s\n",
-			"Update graphics drivers or install a supported graphics card to render isosurfaces.");
+		MessageReporter::errorMsg("This computer's graphics capabilities \ndo not support isosurfacing.\n %s\n",
+			"Update graphics drivers \nor install a supported graphics card \nto render isosurfaces.");
 		return;
 	}
 	confirmText(false);
@@ -811,7 +818,7 @@ guiCopyProbePoint(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	//Issue a warning if the probe resolution does not match iso resolution;
 	if (pParams->getNumRefinements() != iParams->getNumRefinements()){
-		MessageReporter::warningMsg("Note:  Refinement levels of probe and isosurface are different.\n%s",
+		MessageReporter::warningMsg("Note:  Refinement levels of probe and \nisosurface are different.\n%s",
 			"Variable values may differ as a result");
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "copy point from probe");

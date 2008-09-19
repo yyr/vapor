@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include "vapor/WaveletBlockIOBase.h"
 #include "vapor/MyBase.h"
+#include "vapor/errorcodes.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -369,7 +370,7 @@ int	WaveletBlockIOBase::OpenVariableRead(
 	}
 
 	if (!VariableExists(timestep, varname, reflevel)) {
-		SetErrMsg(
+		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
 			"Variable \"%s\" not present at requested timestep or level",
 			varname
 		);

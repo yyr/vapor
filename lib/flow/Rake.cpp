@@ -104,7 +104,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed, stride);
 			if (!rc) {
 				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
-					"Unable to generate requested number of distributed seed points.\nTry a bias closer to 0.");
+					"Unable to generate requested number of\ndistributed seed points.\nTry a bias closer to 0.");
 				delete fData; delete pRake; return false;
 			}
 			fData->releaseData(vFlow->getDataMgr());

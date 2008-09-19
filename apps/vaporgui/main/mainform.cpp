@@ -768,7 +768,7 @@ void MainForm::fileSave()
 	//This directly saves the session to the current session save file.
     //It does not prompt the user unless there is an error
 	if (!Session::getInstance()->getCurrentMetadata()){
-		MessageReporter::warningMsg( "There is no current metadata.  Session state cannot be saved");
+		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
 		return;
 	}
 	if (!Session::getInstance()->metadataIsSaved())
@@ -798,12 +798,12 @@ void MainForm::saveMetadata()
 {
 	//Do nothing if there is no metadata:
 	if (!Session::getInstance()->getCurrentMetadata()) {
-			MessageReporter::errorMsg("There is no Metadata to save in current session");
+			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
 		return;
 	}
 	//Warn the user that this file is not portable:
-	MessageReporter::warningMsg("Note that the Metadata file to be written is non-portable;\n%s",
-		"You may not be able to load the associated data from another system");
+	MessageReporter::warningMsg("Note that the Metadata file\nto be written is non-portable;\n%s",
+		"You may not be able to load \nthe associated data from another system");
 	//This directly saves the session to the current vdf directory
    QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
@@ -846,12 +846,12 @@ void MainForm::saveMetadata()
 void MainForm::fileSaveAs()
 {
 	if (!Session::getInstance()->getCurrentMetadata()){
-		MessageReporter::warningMsg( "There is no current metadata.  Session state cannot be saved");
+		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
 		return;
 	}
 	
 	if ( !Session::getInstance()->metadataIsSaved())
-		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
+		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
 	//This launches a panel that enables the
     //user to choose output session save files, saves to it
 	string s;

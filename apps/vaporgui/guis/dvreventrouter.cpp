@@ -77,7 +77,7 @@
 #include "loadtfdialog.h"
 #include "colorpicker.h"
 #include "VolumeRenderer.h"
-#include "vapor/errorcodes.h"
+
 
 using namespace VAPoR;
 
@@ -273,6 +273,10 @@ refreshHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	if (dParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
 	//Refresh data range:
 	//dParams->setDatarangeDirty();
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
@@ -391,10 +395,10 @@ void DvrEventRouter::updateTab(){
     {
       transferFunctionFrame->setVariableName("");
     }
-	//Force the dvr to refresh
-	VizWinMgr::getInstance()->setClutDirty(dvrParams);
-    VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
-	VizWinMgr::getInstance()->setVizDirty(dvrParams,DvrRegionBit,true, true);
+	//Force the dvr to refresh  WHY?
+	//VizWinMgr::getInstance()->setClutDirty(dvrParams);
+    //VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
+	//VizWinMgr::getInstance()->setVizDirty(dvrParams,DvrRegionBit,true, true);
 
 	
 	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:

@@ -57,7 +57,12 @@ public:
 	virtual bool clutIsDirty() {return clutDirtyBit;}
 	virtual void setClutDirty(){clutDirtyBit = true;}
 	virtual void clearClutDirty(){clutDirtyBit = false;}
-	
+	void setBypass(int i) {if(currentRenderParams)currentRenderParams->setBypass(i);}
+	void setPartialBypass(int i) {if(currentRenderParams)currentRenderParams->setPartialBypass(i);}
+	void setAllBypass(bool val){if (currentRenderParams) currentRenderParams->setAllBypass(val);}
+	bool doBypass(int ts) {return (currentRenderParams && currentRenderParams->doBypass(ts));}
+	bool doAlwaysBypass(int ts) {
+		return (currentRenderParams && currentRenderParams->doAlwaysBypass(ts));}
 signals:
 
     void statusMessage(const QString&);
@@ -79,6 +84,7 @@ protected:
 	float subregionFrameColor[3];
 	int savedNumXForms;
 	bool initialized;
+	
 private:
 	bool clutDirtyBit;
 };

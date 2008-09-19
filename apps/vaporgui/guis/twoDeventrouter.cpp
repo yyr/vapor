@@ -77,7 +77,6 @@
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
 #include "VolumeRenderer.h"
-#include "vapor/errorcodes.h"
 
 using namespace VAPoR;
 
@@ -535,7 +534,7 @@ setTwoDEnabled(bool val, int instance){
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
 	if (orientation != 2) {
-		MessageReporter::errorMsg("Display of non-horizontal 2D variables not supported");
+		MessageReporter::errorMsg("Display of non-horizontal \n2D variables not supported");
 		return;
 	}
 
@@ -566,7 +565,10 @@ refreshTwoDHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
-	
+	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
+		return;
+	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
 		refreshHistogram(pParams);
@@ -636,7 +638,7 @@ twoDAddSeed(){
 	}
 	if (fParams->rakeEnabled()){
 		MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
-			"the target flow is using a rake instead of seed list");
+			"the target flow is using \na rake instead of seed list");
 	}
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -645,7 +647,7 @@ twoDAddSeed(){
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
-			"the seed point is outside the current region");
+			"the seed point is outside current region");
 	}
 	fRouter->guiAddSeed(pt);
 }	
@@ -1464,6 +1466,8 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if (pParams->doBypass(timeStep)) return OUT_OF_BOUNDS;
 	
 	int arrayCoord[3];
 	
@@ -1484,7 +1488,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 	if (orientation < 2) ycrd++;
 	if (orientation == 0) xcrd++;
 	
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
 	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
@@ -1521,6 +1525,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 		if (!sliceData[i]) {
 			//failure to get data.  
 			QApplication::restoreOverrideCursor();
+			pParams->setBypass(timeStep);
 			return OUT_OF_BOUNDS;
 		}
 	}
@@ -1552,6 +1557,8 @@ refreshHistogram(RenderParams* p){
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
@@ -1565,7 +1572,7 @@ refreshHistogram(RenderParams* p){
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//Determine what resolution is available:
 	int refLevel = pParams->getNumRefinements();
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	if (ds->useLowerRefinementLevel()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
 			if (pParams->variableIsSelected(varnum)) {
@@ -1596,8 +1603,9 @@ refreshHistogram(RenderParams* p){
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*varCount > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current twoD and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the plane size, or increase the cache size.",
+		pParams->setAllBypass(true);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current twoD and resolution.\n%s \n%s",
+			"Lower the refinement level,\nreduce the plane size,\nor increase the cache size.",
 			"Rendering has been disabled.");
 		pParams->setEnabled(false);
 		updateTab();
@@ -1613,7 +1621,10 @@ refreshHistogram(RenderParams* p){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		planarData[var] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varNums[var], timeStep, true);
 		QApplication::restoreOverrideCursor();
-		if (!planarData[var]) return;
+		if (!planarData[var]) {
+			pParams->setBypass(timeStep);
+			return;
+		}
 	}
 	
 	//Loop over the pixels in the volume(s)
@@ -1773,7 +1784,7 @@ void TwoDEventRouter::captureImage() {
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.ascii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -1783,7 +1794,7 @@ void TwoDEventRouter::captureImage() {
 	delete twoDTex;
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
+		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file %s",
 			filename.ascii());
 		delete buf;
 		return;

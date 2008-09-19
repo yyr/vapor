@@ -14,16 +14,18 @@
 #include "DVRLookup.h"
 #include "TextureBrick.h"
 #include "glutil.h"
+#include "renderer.h"
 
 using namespace VAPoR;
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRLookup::DVRLookup(GLenum type, int nthreads) :
-  DVRTexture3d(GL_RGB8, GL_COLOR_INDEX, type, nthreads),
+DVRLookup::DVRLookup(GLenum type, int nthreads, Renderer* ren) :
+  DVRTexture3d(GL_RGB8, GL_COLOR_INDEX, type, nthreads, ren),
   _colormap(NULL)
 {
+  
   if (GLEW_NV_fragment_program)
   {
     _maxTexture /= 4;

@@ -900,6 +900,22 @@ void VizWinMgr::refreshRegion(RegionParams* rParams){
 		}
 	}
 }
+//Trigger a re-render of the windows that share a viewpoint params
+void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
+	int vizNum = vParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->updateGL();
+	}
+	//Is another viz using these viewpoint params?
+	if (vParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!vpParams[i])||!vpParams[i]->isLocal())
+			){
+			vizWin[i]->updateGL();
+		}
+	}
+}
 
 //Force the windows that uses  a flow params to rerender
 //(possibly with new data)
@@ -2108,6 +2124,7 @@ void VizWinMgr::setClutDirty(RenderParams* p){
 	Renderer* ren = glwin->getRenderer(p);
 	if (!ren) return;
 	ren->setClutDirty();
+	p->setAllBypass(false);
 	vw->updateGL();
 }
 void VizWinMgr::setDatarangeDirty(RenderParams* p){
@@ -2119,6 +2136,7 @@ void VizWinMgr::setDatarangeDirty(RenderParams* p){
 	VolumeRenderer* volRend = (VolumeRenderer*)glwin->getRenderer(p);
 	if (!volRend)return;
 	volRend->setDatarangeDirty();
+	p->setAllBypass(false);
 	vw->updateGL();
 }
 void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
@@ -2130,6 +2148,7 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if (!flowRend)return;
 	flowRend->setGraphicsDirty();
+	p->setAllBypass(false);
 	vw->updateGL();
 }
 void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
@@ -2141,6 +2160,7 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if(flowRend)
 		flowRend->setDataDirty(doInterrupt);
+	p->setAllBypass(false);
 	vw->updateGL();
 }
 
