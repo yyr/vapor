@@ -328,9 +328,11 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 	maxProj = vlength(farPtBox);
 	minProj = vlength(nearPtBox);
 	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
-	//If we are inside region, make the min dist equal to .03 times max dist.
+	//If we are inside region, make the min dist no greater than .002 times max dist,
+	//So we can explore the interior of the region.
 	if (insideRegion && !DataStatus::getInstance()->sphericalTransform()){
-		minProj = 0.03*maxProj;
+		if (minProj > .002*maxProj)
+			minProj = 0.002*maxProj;
 	}
 	
 	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;

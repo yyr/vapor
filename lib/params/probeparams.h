@@ -106,7 +106,15 @@ public:
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
-		return (DataStatus::getInstance()->getDataMax(firstVarNum, currentTimeStep));
+		DataStatus* ds = DataStatus::getInstance();
+		if(numVariablesSelected <= 1) 
+			return (ds->getDataMax(firstVarNum, currentTimeStep));
+		//calc rms of selected variable maxima
+		float sumVal = 0.f;
+		for (int i = 0; i<numVariables; i++){
+			if (variableSelected[i]) sumVal +=  ((ds->getDataMax(i, currentTimeStep)*ds->getDataMax(i, currentTimeStep)));
+		}
+		return (sqrt(sumVal));
 	}
 	float getProbeMin(int i) {return probeMin[i];}
 	float getProbeMax(int i) {return probeMax[i];}

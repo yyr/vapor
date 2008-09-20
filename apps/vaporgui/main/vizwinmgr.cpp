@@ -1383,12 +1383,12 @@ restartParams(){
 //
 void VizWinMgr::
 reinitializeParams(bool doOverride){
-	
-	defaultDvrParams->reinit(doOverride);
-	defaultIsoParams->reinit(doOverride);
-	defaultFlowParams->reinit(doOverride);
-	defaultProbeParams->reinit(doOverride);
-	defaultTwoDParams->reinit(doOverride);
+	// Default render params should override
+	defaultDvrParams->reinit(true);
+	defaultIsoParams->reinit(true);
+	defaultFlowParams->reinit(true);
+	defaultProbeParams->reinit(true);
+	defaultTwoDParams->reinit(true);
 
 	globalRegionParams->reinit(doOverride);
 	regionEventRouter->reinitTab(doOverride);

@@ -111,7 +111,15 @@ public:
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
-		return (DataStatus::getInstance()->getDataMax2D(firstVarNum, currentTimeStep));
+		DataStatus* ds = DataStatus::getInstance();
+		if(numVariablesSelected <= 1) 
+			return (ds->getDataMax2D(firstVarNum, currentTimeStep));
+		//calc rms of selected variable maxima
+		float sumVal = 0.f;
+		for (int i = 0; i<numVariables; i++){
+			if (variableSelected[i]) sumVal +=  ((ds->getDataMax2D(i, currentTimeStep)*ds->getDataMax2D(i, currentTimeStep)));
+		}
+		return (sqrt(sumVal));
 	}
 	float getTwoDMin(int i) {return twoDMin[i];}
 	float getTwoDMax(int i) {return twoDMax[i];}

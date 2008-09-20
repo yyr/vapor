@@ -199,7 +199,6 @@ void ProbeParams::setOpacityScale(float val)
 //
 bool ProbeParams::
 reinit(bool doOverride){
-	int i;
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
 	setMaxNumRefinements(DataStatus::getInstance()->getNumTransforms());
@@ -234,7 +233,7 @@ reinit(bool doOverride){
 		//because of rotation, the probe max/min may not correspond
 		//to the same extents.
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
-		for (i = 0; i<3; i++){
+		for (int i = 0; i<3; i++){
 			if (probeMax[i] - probeMin[i] > maxExtents)
 				probeMax[i] = probeMin[i] + maxExtents;
 			float center = 0.5f*(probeMin[i]+probeMax[i]);
@@ -259,7 +258,7 @@ reinit(bool doOverride){
 	//if not, reset to first variable that is present:
 	if (!DataStatus::getInstance()->variableIsPresent(firstVarNum)){
 		firstVarNum = -1;
-		for (i = 0; i<newNumVariables; i++) {
+		for (int i = 0; i<newNumVariables; i++) {
 			if (DataStatus::getInstance()->variableIsPresent(i)){
 				firstVarNum = i;
 				break;
@@ -268,7 +267,7 @@ reinit(bool doOverride){
 	}
 	if (firstVarNum == -1){
 		
-		for (i = 0; i<numVariables; i++){
+		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
 		delete transFunc;
@@ -293,6 +292,10 @@ reinit(bool doOverride){
 		}
 	}
 	variableSelected[firstVarNum] = true;
+	numVariablesSelected = 0;
+	for (int i = 0; i< newNumVariables; i++){
+		if (variableSelected[i]) numVariablesSelected++;
+	}
 
 	// set up the ibfv variables
 	int numComboVariables = DataStatus::getInstance()->getNumMetadataVariables()+1;
@@ -335,12 +338,12 @@ reinit(bool doOverride){
 	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
 	if (doOverride){
-		for (i = 0; i<numVariables; i++){
+		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
 		//Create new transfer functions, their editors, hook them up:
 		
-		for (i = 0; i<newNumVariables; i++){
+		for (int i = 0; i<newNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, 8);
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
@@ -355,7 +358,7 @@ reinit(bool doOverride){
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
-		for (i = 0; i<newNumVariables; i++){
+		for (int i = 0; i<newNumVariables; i++){
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
@@ -373,12 +376,12 @@ reinit(bool doOverride){
 			}
 		}
 			//Delete trans funcs 
-		for (i = newNumVariables; i<numVariables; i++){
+		for (int i = newNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
 	} //end if(doOverride)
 	//Make sure edit bounds are valid
-	for(i = 0; i<newNumVariables; i++){
+	for(int i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
 			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
@@ -398,7 +401,7 @@ reinit(bool doOverride){
 	//And clone the color edit bounds to use as opac edit bounds:
 	minOpacEditBounds = new float[newNumVariables];
 	maxOpacEditBounds = new float[newNumVariables];
-	for (i = 0; i<newNumVariables; i++){
+	for (int i = 0; i<newNumVariables; i++){
 		minOpacEditBounds[i] = minColorEditBounds[i];
 		maxOpacEditBounds[i] = maxColorEditBounds[i];
 	}

@@ -161,7 +161,7 @@ void TwoDParams::setOpacityScale(float val)
 //
 bool TwoDParams::
 reinit(bool doOverride){
-	int i;
+	
 	DataStatus* ds = DataStatus::getInstance();
 	const float* extents = ds->getExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
@@ -190,7 +190,7 @@ reinit(bool doOverride){
 		//because of rotation, the twoD max/min may not correspond
 		//to the same extents.
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
-		for (i = 0; i<3; i++){
+		for (int i = 0; i<3; i++){
 			if (twoDMax[i] - twoDMin[i] > maxExtents)
 				twoDMax[i] = twoDMin[i] + maxExtents;
 			float center = 0.5f*(twoDMin[i]+twoDMax[i]);
@@ -215,7 +215,7 @@ reinit(bool doOverride){
 	//if not, reset to first 2D variable that is present:
 	if (!ds->variableIsPresent2D(firstVarNum)){
 		firstVarNum = -1;
-		for (i = 0; i<newNumVariables; i++) {
+		for (int i = 0; i<newNumVariables; i++) {
 			if (ds->variableIsPresent2D(i)){
 				firstVarNum = i;
 				break;
@@ -224,7 +224,7 @@ reinit(bool doOverride){
 	}
 	if (firstVarNum == -1){
 		
-		for (i = 0; i<numVariables; i++){
+		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
 		delete transFunc;
@@ -250,7 +250,10 @@ reinit(bool doOverride){
 		}
 	}
 	variableSelected[firstVarNum] = true;
-	
+	numVariablesSelected = 0;
+	for (int i = 0; i< newNumVariables; i++){
+		if (variableSelected[i]) numVariablesSelected++;
+	}
 	//Create new arrays to hold bounds and transfer functions:
 	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
 	float* newMinEdit = new float[newNumVariables];
@@ -258,12 +261,12 @@ reinit(bool doOverride){
 	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
 	if (doOverride){
-		for (i = 0; i<numVariables; i++){
+		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
 		//Create new transfer functions, their editors, hook them up:
 		
-		for (i = 0; i<newNumVariables; i++){
+		for (int i = 0; i<newNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, 8);
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
@@ -278,7 +281,7 @@ reinit(bool doOverride){
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
-		for (i = 0; i<newNumVariables; i++){
+		for (int i = 0; i<newNumVariables; i++){
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
@@ -296,12 +299,12 @@ reinit(bool doOverride){
 			}
 		}
 			//Delete trans funcs 
-		for (i = newNumVariables; i<numVariables; i++){
+		for (int i = newNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
 	} //end if(doOverride)
 	//Make sure edit bounds are valid
-	for(i = 0; i<newNumVariables; i++){
+	for(int i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
 			newMinEdit[i] = ds->getDefaultDataMin2D(i);
 			newMaxEdit[i] = ds->getDefaultDataMax2D(i);
@@ -327,7 +330,7 @@ reinit(bool doOverride){
 	//And clone the color edit bounds to use as opac edit bounds:
 	minOpacEditBounds = new float[newNumVariables];
 	maxOpacEditBounds = new float[newNumVariables];
-	for (i = 0; i<newNumVariables; i++){
+	for (int i = 0; i<newNumVariables; i++){
 		minOpacEditBounds[i] = minColorEditBounds[i];
 		maxOpacEditBounds[i] = maxColorEditBounds[i];
 	}

@@ -294,7 +294,7 @@ public:
 	void setBypass(int i) {bypassFlags[i] = 2;}
 	void setPartialBypass(int i) {bypassFlags[i] = 1;}
 	void setAllBypass(bool val);
-	int getBypassValue(int i) {return bypassFlags[i];}
+	// for debugging: int getBypassValue(int i) {return bypassFlags[i];}
 	bool doBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]);}
 	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
 	void initializeBypassFlags();
