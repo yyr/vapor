@@ -375,7 +375,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 					vname = (char*)ds->getVariableName2D(varNums[i]).c_str();
 				else
 					vname = (char*)ds->getVariableName(varNums[i]).c_str();
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"VDC error: Data inaccessible\nfor variable %s at timestep %d.",
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
 					vname, timestep);
 			}
 			return -1;

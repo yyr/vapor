@@ -311,7 +311,7 @@ reinit(bool doOverride){
 		if (ibfvSessionVarNum[dim] > 0) {
 			if (!DataStatus::getInstance()->variableIsPresent(ibfvSessionVarNum[dim]-1)){
 				ibfvSessionVarNum[dim] = -1;
-				for (i = 0; i<newNumVariables; i++) {
+				for (int i = 0; i<newNumVariables; i++) {
 					if (DataStatus::getInstance()->variableIsPresent(i)){
 						ibfvSessionVarNum[dim] = i+1;
 						break;
@@ -543,7 +543,7 @@ bool ProbeParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
 	
 	static int parsedVarNum = -1;
-	int i;
+	
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
 		
 		int newNumVariables = 0;
@@ -627,11 +627,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		maxOpacEditBounds = new float[numVars];
 		
 		variableSelected.clear();
-		for (i = 0; i<newNumVariables; i++){
+		for (int i = 0; i<newNumVariables; i++){
 			variableSelected.push_back(false);
 		}
 		//Setup with default values, in case not specified:
-		for (i = 0; i< newNumVariables; i++){
+		for (int i = 0; i< newNumVariables; i++){
 			minColorEditBounds[i] = 0.f;
 			maxColorEditBounds[i] = 1.f;
 		}
