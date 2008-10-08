@@ -399,7 +399,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep
 				imageBuffer[4*q+r] = (unsigned char)0;
 		}
 	}
-	if (!dataTex) pParams->setBypass(tstep);
+	
 	return imageBuffer;
 
 }
