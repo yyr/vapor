@@ -378,14 +378,14 @@ list<float> ColorbarWidget::selectedPoints()
 //----------------------------------------------------------------------------
 void ColorbarWidget::deleteSelectedControlPoint()
 {
-  if (_colormap && selected())
+  if (_colormap && selected() && _colormap->numControlPoints() > 2)
   {
     emit startChange("Delete color control point");
 
     _colormap->deleteControlPoint(_selected);
 
     _selected = NONE;
-
+	_selectedCPs.clear();
     _updateTexture = true;
 
     emit endChange();
