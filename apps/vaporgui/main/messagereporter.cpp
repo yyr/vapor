@@ -162,10 +162,10 @@ postMsg(messagePriority t, const char* message){
 	if ((count < maxLogMsg[t]) || getenv("VAPOR_DEBUG")){
 		writeLog(t, message);
 	}
-	if (t == Fatal || count < maxPopup[t]){
+	if (t == Fatal || count < maxPopup[t]-1){
 		doPopup(t, message);	
 	}
-	else if (count == maxPopup[t] -1){
+	else if (count == maxPopup[t]-1){
 		//Users can reset the message count if they don't want to silence it:
 		if (doLastPopup(t, message)){
 			messageCount[message] = 0;
