@@ -2824,6 +2824,12 @@ selected axis.</string>
                                                             <property name="name">
                                                                 <cstring>fieldScaleEdit</cstring>
                                                             </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>1</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="maximumSize">
                                                                 <size>
                                                                     <width>50</width>
@@ -4622,7 +4628,7 @@ depending on which button is clicked.</string>
     </customwidget>
     <customwidget>
         <class>MappingFrame</class>
-        <header location="local">../../guis/mappingframe.h</header>
+        <header location="local">mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>

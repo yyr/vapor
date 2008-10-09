@@ -510,7 +510,7 @@ is controlled by the values in this
                                     <property name="minimumSize">
                                         <size>
                                             <width>115</width>
-                                            <height>0</height>
+                                            <height>2</height>
                                         </size>
                                     </property>
                                     <property name="toolTip" stdset="0">
@@ -1595,8 +1595,28 @@ rendering time.</string>
 </widget>
 <customwidgets>
     <customwidget>
+        <class>InstanceTable</class>
+        <header location="local">../../guis/instancetable.h</header>
+        <sizehint>
+            <width>17</width>
+            <height>21</height>
+        </sizehint>
+        <container>0</container>
+        <sizepolicy>
+            <hordata>5</hordata>
+            <verdata>5</verdata>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+        <pixmap>image0</pixmap>
+        <signal>enableInstance(int, bool)</signal>
+        <signal>deleteInstance(int)</signal>
+        <signal>copyInstance(int, int)</signal>
+        <signal>renameInstance(int, QString&amp;)</signal>
+    </customwidget>
+    <customwidget>
         <class>ColorPickerFrame</class>
-        <header location="global">../colorpickerframe.h</header>
+        <header location="global">colorpickerframe.h</header>
         <sizehint>
             <width>-1</width>
             <height>130</height>
@@ -1616,7 +1636,7 @@ rendering time.</string>
     </customwidget>
     <customwidget>
         <class>MappingFrame</class>
-        <header location="local">../../guis/mappingframe.h</header>
+        <header location="local">mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>
@@ -1631,26 +1651,6 @@ rendering time.</string>
         <pixmap>image1</pixmap>
         <property type="Bool">opacityMapping</property>
         <property type="Bool">colorMapping</property>
-    </customwidget>
-    <customwidget>
-        <class>InstanceTable</class>
-        <header location="local">../../guis/instancetable.h</header>
-        <sizehint>
-            <width>17</width>
-            <height>21</height>
-        </sizehint>
-        <container>0</container>
-        <sizepolicy>
-            <hordata>5</hordata>
-            <verdata>5</verdata>
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-        </sizepolicy>
-        <pixmap>image0</pixmap>
-        <signal>enableInstance(int, bool)</signal>
-        <signal>deleteInstance(int)</signal>
-        <signal>copyInstance(int, int)</signal>
-        <signal>renameInstance(int, QString&amp;)</signal>
     </customwidget>
 </customwidgets>
 <images>

@@ -6810,6 +6810,12 @@ flow line.</string>
                                     <property name="name">
                                         <cstring>showMappingButton</cstring>
                                     </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>1</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
                                     <property name="text">
                                         <string>Show Color/Opacity Mapping</string>
                                     </property>
@@ -7732,7 +7738,7 @@ bounds.</string>
     </customwidget>
     <customwidget>
         <class>MappingFrame</class>
-        <header location="local">../../guis/mappingframe.h</header>
+        <header location="local">mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>

@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		twoDframe.h
+//	File:		twodframe.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research

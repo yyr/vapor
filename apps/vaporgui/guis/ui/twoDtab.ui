@@ -716,6 +716,12 @@ create new 2D planar instances.</string>
                                             <property name="name">
                                                 <cstring>displacementEdit</cstring>
                                             </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>1</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
                                             <property name="text">
                                                 <string>342.5</string>
                                             </property>
@@ -3318,24 +3324,6 @@ depending on which button is clicked.</string>
         <signal>renameInstance(int, QString&amp;)</signal>
     </customwidget>
     <customwidget>
-        <class>MappingFrame</class>
-        <header location="local">../../guis/mappingframe.h</header>
-        <sizehint>
-            <width>350</width>
-            <height>150</height>
-        </sizehint>
-        <container>0</container>
-        <sizepolicy>
-            <hordata>5</hordata>
-            <verdata>5</verdata>
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-        </sizepolicy>
-        <pixmap>image1</pixmap>
-        <property type="Bool">opacityMapping</property>
-        <property type="Bool">colorMapping</property>
-    </customwidget>
-    <customwidget>
         <class>TwoDFrame</class>
         <header location="local">./twodframe.h</header>
         <sizehint>
@@ -3350,6 +3338,24 @@ depending on which button is clicked.</string>
             <verstretch>0</verstretch>
         </sizepolicy>
         <pixmap>image0</pixmap>
+    </customwidget>
+    <customwidget>
+        <class>MappingFrame</class>
+        <header location="local">mappingframe.h</header>
+        <sizehint>
+            <width>350</width>
+            <height>150</height>
+        </sizehint>
+        <container>0</container>
+        <sizepolicy>
+            <hordata>5</hordata>
+            <verdata>5</verdata>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+        <pixmap>image1</pixmap>
+        <property type="Bool">opacityMapping</property>
+        <property type="Bool">colorMapping</property>
     </customwidget>
 </customwidgets>
 <images>

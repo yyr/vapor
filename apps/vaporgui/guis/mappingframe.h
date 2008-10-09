@@ -1,4 +1,4 @@
-//--MappingFrame.h ---------------------------------------------------------
+//--mappingframe.h ---------------------------------------------------------
 //
 // Copyright (C) 2006 Kenny Gruchalla.  All rights reserved.
 //

@@ -7,7 +7,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		coloradjustdialog.h
+//	File:		colorpickerframe.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research

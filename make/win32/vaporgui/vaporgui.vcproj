@@ -157,7 +157,7 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\ColorbarWidget.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\colorpicker.cpp">
+				RelativePath="..\..\..\apps\vaporgui\guis\colorpickerframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\command.cpp">
@@ -205,7 +205,7 @@
 				RelativePath="..\..\..\apps\vaporgui\main\mainform.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\MappingFrame.cpp">
+				RelativePath="..\..\..\apps\vaporgui\guis\mappingframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.cpp">
@@ -250,7 +250,7 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\twoDeventrouter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\twoDframe.cpp">
+				RelativePath="..\..\..\apps\vaporgui\guis\twodframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\misc\unsharedcontrollerthread.cpp">
@@ -330,26 +330,26 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\colorpicker.h">
+				RelativePath="..\..\..\apps\vaporgui\guis\colorpickerframe.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\colorpicker.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp
+						Description="Moc&apos;ing colorpickerframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\colorpickerframe.h -o tmp\moc\moc_colorpickerframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
+						Outputs="tmp\moc\moc_colorpickerframe.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\colorpicker.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp
+						Description="Moc&apos;ing colorpickerframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\colorpickerframe.h -o tmp\moc\moc_colorpickerframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
+						Outputs="tmp\moc\moc_colorpickerframe.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -598,26 +598,26 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\MappingFrame.h">
+				RelativePath="..\..\..\apps\vaporgui\guis\mappingframe.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing MappingFrame.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\MappingFrame.h -o ..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp
+						Description="Moc&apos;ing mappingframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\mappingframe.h -o tmp\moc\moc_mappingframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp"/>
+						Outputs="tmp\moc\moc_mappingframe.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing MappingFrame.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\MappingFrame.h -o ..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp
+						Description="Moc&apos;ing mappingframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\mappingframe.h -o tmp\moc\moc_mappingframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp"/>
+						Outputs="tmp\moc\moc_mappingframe.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -840,26 +840,26 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\twoDframe.h">
+				RelativePath="..\..\..\apps\vaporgui\guis\twodframe.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing twoDframe.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDframe.h -o ..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp
+						Description="Moc&apos;ing twodframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twodframe.h -o tmp\moc\moc_twodframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp"/>
+						Outputs="tmp\moc\moc_twodframe.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing twoDframe.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDframe.h -o ..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp
+						Description="Moc&apos;ing twodframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twodframe.h -o tmp\moc\moc_twodframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp"/>
+						Outputs="tmp\moc\moc_twodframe.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1017,7 +1017,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_ColorbarWidget.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp">
+				RelativePath=".\tmp\moc\moc_colorpickerframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_ControlPointEditor.cpp">
@@ -1062,7 +1062,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_mainform.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp">
+				RelativePath=".\tmp\moc\moc_mappingframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_OpacityWidget.cpp">
@@ -1104,7 +1104,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDframe.cpp">
+				RelativePath=".\tmp\moc\moc_twodframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_twoDtab.cpp">
