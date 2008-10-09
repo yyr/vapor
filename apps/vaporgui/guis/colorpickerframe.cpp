@@ -37,7 +37,7 @@
 //#include "qsettings.h"
 //#include "qpopupmenu.h"
 
-#include "colorpicker.h"
+#include "colorpickerframe.h"
 //Color picker dimensions:
 static int pWidth = 140;
 static int pHeight = 120;

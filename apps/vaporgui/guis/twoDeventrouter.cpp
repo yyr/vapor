@@ -43,7 +43,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include "twoDrenderer.h"
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "transferfunction.h"
 #include "regionparams.h"
 #include "mainform.h"
@@ -51,7 +51,7 @@
 #include "session.h"
 #include "panelcommand.h"
 #include "messagereporter.h"
-#include "twoDframe.h"
+#include "twodframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
 #include "qthumbwheel.h"

@@ -7387,7 +7387,7 @@ bounds.</string>
                                         <property name="spacing">
                                             <number>0</number>
                                         </property>
-                                        <widget class="VAPoR::MappingFrame">
+                                        <widget class="MappingFrame">
                                             <property name="name">
                                                 <cstring>opacityMappingFrame</cstring>
                                             </property>
@@ -7439,7 +7439,7 @@ the right mouse button.</string>
                                         <property name="margin">
                                             <number>0</number>
                                         </property>
-                                        <widget class="VAPoR::MappingFrame">
+                                        <widget class="MappingFrame">
                                             <property name="name">
                                                 <cstring>colorMappingFrame</cstring>
                                             </property>
@@ -7731,8 +7731,8 @@ bounds.</string>
         <signal>renameInstance(int, QString&amp;)</signal>
     </customwidget>
     <customwidget>
-        <class>VAPoR::MappingFrame</class>
-        <header location="local">../../guis/MappingFrame.h</header>
+        <class>MappingFrame</class>
+        <header location="local">../../guis/mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>
@@ -7760,7 +7760,7 @@ bounds.</string>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
     <includehint>instancetable.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
 </includehints>
 </UI>

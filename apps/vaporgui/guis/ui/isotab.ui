@@ -635,7 +635,7 @@ how the histogram is scaled.</string>
                                         <property name="spacing">
                                             <number>0</number>
                                         </property>
-                                        <widget class="VAPoR::MappingFrame">
+                                        <widget class="MappingFrame">
                                             <property name="name">
                                                 <cstring>isoSelectionFrame</cstring>
                                             </property>
@@ -1863,7 +1863,7 @@ how the histogram is scaled.</string>
                                                 <property name="spacing">
                                                     <number>0</number>
                                                 </property>
-                                                <widget class="VAPoR::MappingFrame">
+                                                <widget class="MappingFrame">
                                                     <property name="name">
                                                         <cstring>transferFunctionFrame</cstring>
                                                     </property>
@@ -2441,8 +2441,8 @@ depending on which button is clicked.</string>
 </widget>
 <customwidgets>
     <customwidget>
-        <class>VAPoR::MappingFrame</class>
-        <header location="local">../../guis/MappingFrame.h</header>
+        <class>MappingFrame</class>
+        <header location="local">../../guis/mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>
@@ -2490,7 +2490,7 @@ depending on which button is clicked.</string>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
     <includehint>instancetable.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
 </includehints>
 </UI>

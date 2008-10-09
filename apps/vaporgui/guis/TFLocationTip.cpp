@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------
 
 #include "TFLocationTip.h"
-#include "MappingFrame.h"
+#include "mappingframe.h"
 
 using namespace VAPoR;
 

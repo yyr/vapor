@@ -42,7 +42,7 @@
 #include <qtimer.h>
 #include <qtooltip.h>
 #include "instancetable.h"
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -75,7 +75,7 @@
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
-#include "colorpicker.h"
+#include "colorpickerframe.h"
 #include "VolumeRenderer.h"
 
 

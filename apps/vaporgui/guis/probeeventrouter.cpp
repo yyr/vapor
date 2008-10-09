@@ -43,7 +43,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include "proberenderer.h"
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "transferfunction.h"
 #include "regionparams.h"
 #include "mainform.h"

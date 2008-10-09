@@ -22,7 +22,7 @@
 #include "twoDrenderer.h"
 
 #include "glutil.h"
-#include "twoDframe.h"
+#include "twodframe.h"
 #include "twoDparams.h"
 #include "twoDeventrouter.h"
 #include "messagereporter.h"

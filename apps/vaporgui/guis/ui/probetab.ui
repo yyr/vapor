@@ -3944,7 +3944,7 @@ how the histogram is scaled.</string>
                                                                 <property name="spacing">
                                                                     <number>0</number>
                                                                 </property>
-                                                                <widget class="VAPoR::MappingFrame">
+                                                                <widget class="MappingFrame">
                                                                     <property name="name">
                                                                         <cstring>transferFunctionFrame</cstring>
                                                                     </property>
@@ -4621,8 +4621,8 @@ depending on which button is clicked.</string>
         <pixmap>image3</pixmap>
     </customwidget>
     <customwidget>
-        <class>VAPoR::MappingFrame</class>
-        <header location="local">../../guis/MappingFrame.h</header>
+        <class>MappingFrame</class>
+        <header location="local">../../guis/mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>
@@ -4660,6 +4660,6 @@ depending on which button is clicked.</string>
     <includehint>qthumbwheel.h</includehint>
     <includehint>qthumbwheel.h</includehint>
     <includehint>probeframe.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
 </includehints>
 </UI>

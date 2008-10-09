@@ -18,10 +18,10 @@
 
 struct GLUquadric;
 
+class MappingFrame;
 namespace VAPoR {
 
 class Params;
-class MappingFrame;
 class Colormap;
 
 class ColorbarWidget : public GLWidget

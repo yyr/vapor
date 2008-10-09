@@ -10,7 +10,7 @@
 
 #include "ControlPointEditor.h"
 
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "OpacityMap.h"
 #include "Colormap.h"
 #include "mapperfunction.h"

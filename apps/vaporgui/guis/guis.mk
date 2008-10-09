@@ -1,24 +1,24 @@
 GUI_FILES := \
-	colorpicker eventrouter loadtfdialog savetfdialog \
+	colorpickerframe eventrouter loadtfdialog savetfdialog \
 	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	isoeventrouter probeframe glprobewindow \
-	twoDeventrouter twoDframe gltwoDwindow \
+	twoDeventrouter twodframe gltwoDwindow \
 	DomainWidget GLWidget OpacityWidget \
 	qthumbwheel userpreferences \
-	TFLocationTip ControlPointEditor MappingFrame ColorbarWidget
+	TFLocationTip ControlPointEditor mappingframe ColorbarWidget
 
 
 GUI_QT_HEADERS := \
-	colorpicker loadtfdialog  \
+	colorpickerframe loadtfdialog  \
 	savetfdialog vizselectcombo \
 	probeframe seedlisteditor instancetable \
-	twoDframe twoDeventrouter \
+	twodframe twoDeventrouter \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	isoeventrouter DomainWidget GLWidget OpacityWidget ControlPointEditor \
 	qthumbwheel userpreferences \
-	MappingFrame ColorbarWidget
+	mappingframe ColorbarWidget
 
 

@@ -17,11 +17,11 @@
 #include <set>
 
 struct GLUquadric;
+class MappingFrame;
 
 namespace VAPoR {
 
 class OpacityMap;
-class MappingFrame;
 
 class OpacityWidget : public GLWidget
 {

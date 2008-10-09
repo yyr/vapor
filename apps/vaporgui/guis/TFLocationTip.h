@@ -9,9 +9,10 @@
 #include <qtooltip.h>
 #include <qwidget.h>
 
+class MappingFrame;
+
 namespace VAPoR {
 
-class MappingFrame;
 
 class TFLocationTip : public QToolTip 
 {

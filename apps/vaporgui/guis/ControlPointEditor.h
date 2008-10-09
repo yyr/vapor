@@ -13,9 +13,10 @@
 
 #include "ControlPointEditorBase.h"
 
+class MappingFrame;
+
 namespace VAPoR {
 
-class MappingFrame;
 class MapperFunction;
 class OpacityMap;
 class Colormap;

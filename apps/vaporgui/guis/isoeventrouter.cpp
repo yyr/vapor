@@ -43,7 +43,7 @@
 #include <qlabel.h>
 
 #include "instancetable.h"
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "regionparams.h"
 #include "mainform.h"
 #include "vizwinmgr.h"

@@ -746,7 +746,7 @@ how the histogram is scaled.</string>
                                         <property name="spacing">
                                             <number>0</number>
                                         </property>
-                                        <widget class="VAPoR::MappingFrame">
+                                        <widget class="MappingFrame">
                                             <property name="name">
                                                 <cstring>transferFunctionFrame</cstring>
                                             </property>
@@ -1596,7 +1596,7 @@ rendering time.</string>
 <customwidgets>
     <customwidget>
         <class>ColorPickerFrame</class>
-        <header location="global">../colorpicker.h</header>
+        <header location="global">../colorpickerframe.h</header>
         <sizehint>
             <width>-1</width>
             <height>130</height>
@@ -1615,8 +1615,8 @@ rendering time.</string>
         <slot access="public" specifier="">newColorTypedIn( QRgb )</slot>
     </customwidget>
     <customwidget>
-        <class>VAPoR::MappingFrame</class>
-        <header location="local">../../guis/MappingFrame.h</header>
+        <class>MappingFrame</class>
+        <header location="local">../../guis/mappingframe.h</header>
         <sizehint>
             <width>350</width>
             <height>150</height>
@@ -1665,6 +1665,6 @@ rendering time.</string>
 <includehints>
     <includehint>instancetable.h</includehint>
     <includehint>colorpickerframe.h</includehint>
-    <includehint>vapor::mappingframe.h</includehint>
+    <includehint>mappingframe.h</includehint>
 </includehints>
 </UI>

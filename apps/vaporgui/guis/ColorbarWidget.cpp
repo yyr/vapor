@@ -14,7 +14,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "MappingFrame.h"
+#include "mappingframe.h"
 #include "glutil.h"
 
 #include <iostream>
