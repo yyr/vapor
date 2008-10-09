@@ -217,7 +217,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	if (!data) {
 		if (ds->warnIfDataMissing())
 			renParams->setBypass(timeStep);
-			MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
+			MessageReporter::errorMsg("Invalid/nonexistent data;\ncannot be histogrammed");
 		ds->setDataMissing(timeStep, availRefLevel, varNum);
 		return;
 	}

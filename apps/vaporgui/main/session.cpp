@@ -249,7 +249,7 @@ saveToFile(ofstream& ofs ){
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
-		MessageReporter::errorMsg("Session Save Error %d, creating Data Manager:\n %s",
+		MessageReporter::errorMsg("Session Save Error %d, creating Data Manager:\n%s",
 			MyBase::GetErrCode(),MyBase::GetErrMsg());
 		MyBase::SetErrCode(0);
 		delete rootNode;
@@ -639,12 +639,12 @@ exportData(){
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
 	if (winNum < 0 || (currentMetadata == 0)){
-		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data \nand active visualizer");
+		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data\nand active visualizer");
 		return;
 	}
 	int ver = currentMetadata->GetVDFVersion();
 	if (ver < 2) {
-		MessageReporter::errorMsg("Export of pre-version-2 metadata \nis not supported");
+		MessageReporter::errorMsg("Export of pre-version-2 metadata\nis not supported");
 		return;
 	}
 	RegionParams* r = winMgr->getRegionParams(winNum);
@@ -677,7 +677,7 @@ exportData(){
 		
 		size_t max_zdim = DataStatus::getInstance()->getFullSizeAtLevel(numxforms,2) - 1;
 		if (max_zdim != maxCoords[2] || minCoords[2] != 0){
-			MessageReporter::errorMsg("Export of a region on layered grids \nis only permitted when \nthe region is full in the \nvertical (z) dimension.");
+			MessageReporter::errorMsg("Export of a region on layered grids\nis only permitted when\nthe region is full in the\nvertical (z) dimension.");
 			return;
 		}
 		//Determine the unlayered vertical grid size of the data:
@@ -692,7 +692,7 @@ exportData(){
 		maxCoords,
 		frameInterval);
 	if (rc < 0){
-		MessageReporter::errorMsg("Export data error: \n%s", exporter.GetErrMsg());
+		MessageReporter::errorMsg("Export data error:\n%s", exporter.GetErrMsg());
 		exporter.SetErrCode(0);
 	} else {
 		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables \nmay not be exported",
@@ -821,8 +821,8 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		
 		//Is there any data here?
 		if(!dataExists) {
-			MessageReporter::errorMsg("%s",
-				"Session: No data in specified dataset, or data in specified files cannot be read");
+			MessageReporter::errorMsg(
+				"Session: No data in specified dataset,\nor data in specified files cannot be read");
 			delete dataMgr;
 			dataMgr = 0;
 			return false;
@@ -925,7 +925,7 @@ addToHistory(Command* cmd){
 		ofstream fileout;
 		fileout.open(getAutoSaveSessionFilename().c_str());
 		if (! fileout) {
-			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s\n %s", autoSaveSessionFilename.c_str(),
+			MessageReporter::errorMsg( "Unable to auto-save session to file: \n %s\n%s", autoSaveSessionFilename.c_str(),
 				"Choose another autosave location \nfrom user preferences");
 			return;
 		}

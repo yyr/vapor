@@ -859,7 +859,7 @@ probeAddSeed(){
 	}
 	if (fParams->rakeEnabled()){
 		MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
-			"the target flow is using \na rake instead of seed list");
+			"the target flow is using \nrake instead of seed list");
 	}
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -2137,7 +2137,7 @@ void ProbeEventRouter::captureImage() {
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: %s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",filename.ascii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -2147,7 +2147,7 @@ void ProbeEventRouter::captureImage() {
 	delete probeTex;
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file %s",
+		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
 			filename.ascii());
 		delete buf;
 		return;

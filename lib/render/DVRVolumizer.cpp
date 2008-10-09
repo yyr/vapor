@@ -244,7 +244,7 @@ int	DVRVolumizer::Render(
 	
 
 	if (! data_c) {
-		MessageReporter::errorMsg("Volumizer error, no data to render, possibly insufficient memory");
+		MessageReporter::errorMsg("Volumizer error, no data to render,\npossibly insufficient memory");
 		return(-1);
 	}
 
@@ -500,7 +500,7 @@ vzParameterVolumeTexture	*DVRVolumizer::compute_gradient_volume(
 		grad_data_c = new unsigned char[size];
 		if (! grad_data_c) {
 			MessageReporter::errorMsg(
-			"Volumizer Error, gradient malloc error, insufficient memory");
+			"Volumizer Error, gradient malloc error,\ninsufficient memory");
 			return(NULL);
 		}
 		grad_data_size_c = size;

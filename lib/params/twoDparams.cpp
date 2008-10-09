@@ -1092,8 +1092,8 @@ void TwoDParams::adjustTextureSize(int sz[2]){
 	
 	float relWid = (twoDMax[xcrd]-twoDMin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
 	float relHt = (twoDMax[ycrd]-twoDMin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
-	int xdist = relWid*dataSize[xcrd];
-	int ydist = relHt*dataSize[ycrd];
+	int xdist = (int)(relWid*dataSize[xcrd]);
+	int ydist = (int)(relHt*dataSize[ycrd]);
 	textureSize[0] = 1<<(VetsUtil::ILog2(xdist));
 	textureSize[1] = 1<<(VetsUtil::ILog2(ydist));
 	if (textureSize[0] < 256) textureSize[0] = 256;

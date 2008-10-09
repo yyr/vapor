@@ -538,7 +538,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			is.open(fileName.ascii());
 
 			if (!is){//Report error if you can't open the file
-				MessageReporter::errorMsg("Unable to open session file: %s", fileName.ascii());
+				MessageReporter::errorMsg("Unable to open session file: \n%s", fileName.ascii());
 				return;
 			}
 			//Remember file if load is successful:
@@ -753,7 +753,7 @@ void MainForm::fileOpen()
 	is.open(filename.ascii());
 
 	if (!is){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open session file: %s", filename.ascii());
+		MessageReporter::errorMsg("Unable to open session file: \n%s", filename.ascii());
 		return;
 	}
 	//Remember file if load is successful:
@@ -772,7 +772,7 @@ void MainForm::fileSave()
 		return;
 	}
 	if (!Session::getInstance()->metadataIsSaved())
-		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \nIt will be easier to restore this session if the Metadata is also saved.");
+		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \nIt will be easier to restore this session \nif the Metadata is also saved.");
 	
 	ofstream fileout;
 	string s;
@@ -780,12 +780,12 @@ void MainForm::fileSave()
 	
 	fileout.open(s.c_str());
 	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to open session file:\n %s", s.c_str());
+		MessageReporter::errorMsg( "Unable to open session file:\n%s", s.c_str());
 		return;
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to write session file: \n %s", s.c_str());
+		MessageReporter::errorMsg("Failed to write session file: \n%s", s.c_str());
 		fileout.close();
 		return;
 	}
@@ -819,7 +819,7 @@ void MainForm::saveMetadata()
 		if (!metadataFile.contains(path)){
 			int mposn = metadataFile.findRev("/");
 			QString mpath = metadataFile.left(mposn);
-			MessageReporter::errorMsg("Specified directory %s is invalid. \n Metadata must be saved to %s .",path.ascii(), mpath.ascii());
+			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",path.ascii(), mpath.ascii());
 			return;
 		}
 		//If ok, go ahead and try to save using current DataMgr
@@ -832,7 +832,7 @@ void MainForm::saveMetadata()
 		Metadata* md = (Metadata *) Session::getInstance()->getCurrentMetadata();
 		std::string stdName = std::string(filename.ascii());
 		int rc = md->Write(stdName,0);
-		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n %s", filename.ascii());
+		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.ascii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
 			//Save the metadata file name
@@ -851,7 +851,7 @@ void MainForm::fileSaveAs()
 	}
 	
 	if ( !Session::getInstance()->metadataIsSaved())
-		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
+		MessageReporter::warningMsg( "Note: The current (merged) Metadata \nhas not been saved. \n It will be easier to restore this session \nif the Metadata is also saved.");
 	//This launches a panel that enables the
     //user to choose output session save files, saves to it
 	string s;
@@ -879,12 +879,12 @@ void MainForm::fileSaveAs()
 	ofstream fileout;
 	fileout.open(filename.ascii());
 	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to save to file: \n %s", filename.ascii());
+		MessageReporter::errorMsg( "Unable to save to file: \n%s", filename.ascii());
 		return;
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to save session to: \n %s", filename.ascii());
+		MessageReporter::errorMsg("Failed to save session to: \n%s", filename.ascii());
 		fileout.close();
 		return;
 	}
@@ -992,7 +992,7 @@ void MainForm::loadPrefs(){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
 			UserPreferences::loadPreferences(filename.ascii());
-		else MessageReporter::errorMsg("Unable to read preferences file %s", filename.ascii());
+		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", filename.ascii());
 	}
 	
 }
@@ -1006,7 +1006,7 @@ void MainForm::savePrefs(){
 		QFileInfo fInfo(filename);
 		
 		if(!UserPreferences::savePreferences(filename.ascii()))
-			MessageReporter::errorMsg("Unable to save preferences file %s", filename.ascii());
+			MessageReporter::errorMsg("Unable to save preferences file \n%s", filename.ascii());
 	}
 }
 //Load data into current session
@@ -1027,7 +1027,7 @@ void MainForm::loadData()
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
 			Session::getInstance()->resetMetadata(filename.ascii(), true);
-		else MessageReporter::errorMsg("Unable to read metadata file %s", filename.ascii());
+		else MessageReporter::errorMsg("Unable to read metadata file \n%s", filename.ascii());
 	}
 	
 }
@@ -1056,9 +1056,9 @@ void MainForm::mergeData()
 		if (sDialog->exec() != QDialog::Accepted) return;
 		int offset = sDialog->timestepOffsetSpin->value();
 		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true, offset)){
-			MessageReporter::errorMsg("Unsuccessful metadata merge of %s",filename.ascii());
+			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",filename.ascii());
 		}
-	} else MessageReporter::errorMsg("Unable to open %s",filename.ascii());
+	} else MessageReporter::errorMsg("Unable to open \n%s",filename.ascii());
 	
 }
 //Load data into default session

@@ -162,16 +162,16 @@ postMsg(messagePriority t, const char* message){
 	if ((count < maxLogMsg[t]) || getenv("VAPOR_DEBUG")){
 		writeLog(t, message);
 	}
-	if (count == maxPopup[t] -1){
+	if (t == Fatal || count < maxPopup[t]){
+		doPopup(t, message);	
+	}
+	else if (count == maxPopup[t] -1){
 		//Users can reset the message count if they don't want to silence it:
 		if (doLastPopup(t, message)){
 			messageCount[message] = 0;
 			return;
 		}
-	} else if (count < maxPopup[t]){
-		
-		doPopup(t, message);	
-	}
+	} 
 	messageCount[message] = count+1;
 	
 }
@@ -227,7 +227,7 @@ doPopup(messagePriority t, const char* message){
 	QMessageBox* msgBox = new QMessageBox(title,message, msgIcon,
 		QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton,
 		MainForm::getInstance()->getTabManager());
-	msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
+	
 	msgBox->adjustSize();
 	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
 	tabPsn.setY(tabPsn.y() + (5*count++)%20);
@@ -245,7 +245,7 @@ doLastPopup(messagePriority t, const char* message){
 	QString longMessage = QString(message)+"\nThis message will not be repeated \n unless you click Continue."
 		+"\nAll messages may be resumed from\nthe Edit User Preferences dialog";
 	int doContinue = 0;
-	// No do as in doPopup, but include an OK and Continue button
+	// Now do as in doPopup, but include an OK and Continue button
 	QString title;
 	QMessageBox::Icon msgIcon;
 	
@@ -273,7 +273,7 @@ doLastPopup(messagePriority t, const char* message){
 		QMessageBox::Ok,QMessageBox::Cancel,QMessageBox::NoButton,
 		MainForm::getInstance()->getTabManager());
 	msgBox->setButtonText(2,"Continue");
-	msgBox->setMaximumWidth(MainForm::getInstance()->getTabManager()->width());
+	
 	msgBox->adjustSize();
 	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
 	

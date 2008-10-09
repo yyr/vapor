@@ -307,7 +307,7 @@ doFrameCapture(){
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: %s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.ascii());
 		capturing = 0;
 		return;
 	}

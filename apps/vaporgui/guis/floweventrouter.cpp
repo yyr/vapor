@@ -2505,7 +2505,7 @@ void FlowEventRouter::saveSeeds(){
 			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 				seedPoints[4*j+0],seedPoints[4*j+1],seedPoints[4*j+2],seedPoints[4*j+3]);
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file %s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n %s",j,filename.ascii());
 				break;
 			}
 		}
@@ -2519,7 +2519,7 @@ void FlowEventRouter::saveSeeds(){
 				seedList[j].getVal(0),seedList[j].getVal(1),
 				seedList[j].getVal(2),seedList[j].getVal(3));
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file %s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n %s",j,filename.ascii());
 				break;
 			}
 		}
@@ -2574,7 +2574,7 @@ void FlowEventRouter::saveFlowLines(){
 	//Open the save file:
 	FILE* saveFile = fopen(filename.ascii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file %s",filename.ascii());
+		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n %s",filename.ascii());
 		return;
 	}
 	//Refresh the flow, if necessary
@@ -2646,7 +2646,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					padValue[0],padValue[1],padValue[2],(float)timeStep);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line\nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2669,7 +2669,7 @@ void FlowEventRouter::saveFlowLines(){
 					END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG,
 					-1.f);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line\nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2679,7 +2679,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					point[0],point[1],point[2],time);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line \nfor timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line\nfor timestep %d",timeStep);
 					return;
 				}
 			}
@@ -2687,7 +2687,7 @@ void FlowEventRouter::saveFlowLines(){
 				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 					END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG, -1.f);
 				if (rc <= 0){
-					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					MessageReporter::errorMsg("Unable to write stream line\nfor timestep %d",timeStep);
 					return;
 				}
 			}

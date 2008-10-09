@@ -638,7 +638,7 @@ twoDAddSeed(){
 	}
 	if (fParams->rakeEnabled()){
 		MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
-			"the target flow is using \na rake instead of seed list");
+			"the target flow is using \nrake instead of seed list");
 	}
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -1794,7 +1794,7 @@ void TwoDEventRouter::captureImage() {
 	delete twoDTex;
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file %s",
+		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
 			filename.ascii());
 		delete buf;
 		return;
