@@ -95,7 +95,7 @@ beginRendering(int viznum){
 	//We had better be in the "unstarted" state. or "finished" state.
 	//If the controller put us into
 	//"finished" state then don't start rendering this frame.
-	assert(!renderStarted(viznum));  // not in the "started" state
+	
 	//The controller could change us to "finished" if we were taking too long:
 	if (!renderUnstarted(viznum)) {
 		animationMutex.unlock();
