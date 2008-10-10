@@ -16,7 +16,7 @@
 //
 //      Date:           May 7, 2007
 //
-//      Description:	Read a NetCDF file containing a 3D array of floats or doubles
+//      Description:	Read a NetCDF file containing a 2-3D array of floats or doubles
 //			and insert the volume into an existing
 //			Vapor Data Collection
 //
@@ -72,14 +72,14 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varname",	1, 	"var1",	"Name of variable in metadata"},
+	{"varname",	1, 	"???????",	"Required: Name of variable in metadata"},
 	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"swapz",	0,	"",	"Swap the order of processing for the Z coordinate (largest to smallest)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file\n (z ignored if variable is 2D)"},
+	{"dimnames", 1, "???:???:???", "Required: Colon-separated list of x-, y-, and z-dimension names in NetCDF file\n (z ignored if variable is 2D)"},
 	{"cnstnames",1, "-", "Colon-separated list of constant dimension names"},
 	{"cnstvals",1,"0", "Colon-separated list of constant dimension values, for corresponding constant dimension names"},
 	{NULL}
@@ -381,7 +381,7 @@ void	process_volume(
 		}
 	}
 	if (!foundZDim || !foundYDim || !foundXDim){
-		fprintf(stderr, "Specified Netcdf dimension name not found");
+		fprintf(stderr, "A specified NetCDF dimension name was not used with specified variable.\n");
 		exit(1);
 	}
 
@@ -770,7 +770,7 @@ void	process_slice(
 		}
 	}
 	if (!foundYDim || !foundXDim){
-		fprintf(stderr, "Specified Netcdf dimension name not found");
+		fprintf(stderr, "A specified NetCDF dimension name was not used with specified variable.\n");
 		exit(1);
 	}
 
@@ -903,10 +903,10 @@ int	main(int argc, char **argv) {
 	}
 
 	if (opt.help || argc != 3) {
-		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
-		cerr << "  Converts (2D or 3D) variable in netcdf file to variable in VAPOR VDC." << endl;
-		cerr << "  X dimension of variable must be after Y dimension in netcdf file." << endl;
-		cerr << "  2D variables must use X and Y dimensions." << endl;
+		cerr << "Usage: " << ProgName << " [options] -varname variable_name -dimnames xdim:ydim:zdim metafile.vdf NetCDFfile" << endl;
+		cerr << "  Converts (2D or 3D) variable in NetCDF file to variable in VAPOR VDC." << endl;
+		cerr << "  X dimension of variable must be after Y dimension in NetCDF file." << endl;
+		cerr << "  2D variables use X and Y dimension names." << endl;
 		cerr << "  If a NetCDF dimension is one greater than the corresponding VDC dimension," << endl;
 		cerr << "  data is averaged to the VDC dimension, to support staggered grids" << endl;
 		cerr << "  Options are:" << endl;
@@ -922,6 +922,14 @@ int	main(int argc, char **argv) {
 	}
 	if (opt.constDimNames.size() != opt.constDimValues.size()){
 		cerr << "The number of constant dimension names "<< opt.constDimNames.size() << " and constant dimension values "<< opt.constDimValues.size() <<" must be the same" << endl;
+		exit(1);
+	}
+	if (strcmp(opt.dimnames[0].c_str(),"???") == 0){
+		cerr << "Dimension names of the variable must be specified" << endl;
+		exit(1);
+	}
+	if (strcmp(opt.varname,"???????") == 0){
+		cerr << "The name of the variable in the NetCDF file must be specified." << endl;
 		exit(1);
 	}
 
@@ -1004,8 +1012,6 @@ int	main(int argc, char **argv) {
 	//
 	if (metadata->GetVDFVersion() < 2) save_file(metafile);
 
-	
-	
 	
     int nc_status;
     int ncid;

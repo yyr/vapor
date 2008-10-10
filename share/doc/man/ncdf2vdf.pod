@@ -43,7 +43,7 @@ Specify the timestep in the VDC that will be converted; default is 0.
 
 =item -varname E<lt>VariableNameE<gt>
 
-Specify the name of the variable in the VDC 
+This option is required.  Specify the name of the variable in the VDC 
 
 =item -ncdfvar E<lt>ncdfVariableNameE<gt>
 
@@ -51,12 +51,12 @@ Specify the name of the variable in the NetCDF file, if it is not the same as in
 
 =item -dimnames E<lt>xdim:ydim:zdimE<gt>
 
-Specify a colon-separated list of the dimension names in the NetCDF file that will be converted to X, Y, and Z dimensions in the VDC.  If the variable is 2D, the Z dimension name is ignored.  The Y dimension
+This option is required.  Specify a colon-separated list of the dimension names in the NetCDF file that will be converted to X, Y, and Z dimensions in the VDC.  If the variable is 2D, the Z dimension name is ignored.  The Y dimension
 must precede the X dimension in the dimension ordering associated with the variable in the NetCDF file.
 
 =item -cnstnames E<lt>dim1:dim2:...E<gt>
 
-In a colon-separated list, specify one or more dimension names in the NetCDF file that are held constant for this time step of the variable.  Typically time is a constant dimension name.
+This option is required if there are more dimensions associated with the NetCDF variable than the 2 or 3 dimensions of the variable in the VDC. In a colon-separated list, specify one or more dimension names in the NetCDF file that are held constant for this time step of the variable.  Typically time is a constant dimension name.
 
 =item -cnstvals E<lt>val1:val2:...E<gt>
 
