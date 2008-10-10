@@ -423,7 +423,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
 					varName.c_str(),
-					"This message can be silenced in the User Preferences Panel.");
+					"This message can be silenced \nin the User Preferences Panel.");
 			}
 			return -1;
 		}

@@ -825,8 +825,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	if (flowType == 0) numMBs *= 3; else numMBs *= 6;
 	int cacheSize = (int)DataStatus::getInstance()->getCacheMB();
 	if (numMBs > (int)(0.75*cacheSize)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for flow integration at current region and resolution.\n%s\n%s",
-			"Lower the refinement level, reduce the region size, or increase the cache size.",
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too \nsmall for flow integration at current region and resolution.\n%s\n%s",
+			"Lower the refinement level, \nreduce the region size, \nor increase the cache size.",
 			"autoRefresh has been disabled");
 		myFlowParams->setAutoRefresh(false);
 		setAllNeedRefresh(false);
@@ -1035,7 +1035,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame, unsteadyFlowDir);
 						if (prevStep < 0) {
 							if(myFlowParams->refreshIsAuto())setAllBypass(true);
-							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Seed time is not a sample time for field line advection");
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Seed time is not a sample time \nfor field line advection");
 							return false;
 						}
 						if (prevStep == seedTimeStart) {

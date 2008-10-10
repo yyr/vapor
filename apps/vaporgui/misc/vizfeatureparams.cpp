@@ -486,20 +486,20 @@ setDialog(){
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
 	int numRefs = ds->getNumTransforms();
-	if (isLayered){
+	//if (isLayered){
 		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
 		vizFeatureDlg->refinementCombo->clear();
 		for (i = 0; i<= numRefs; i++){
 			vizFeatureDlg->refinementCombo->insertItem(QString::number(i));
 		}
-	}
+	//}
 	displacement = vizWin->getDisplacement();
 	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
 	elevGridColor = vizWin->getElevGridColor();
 	elevGridRefinement = vizWin->getElevGridRefinementLevel();
 	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(elevGridColor);
 	vizFeatureDlg->refinementCombo->setCurrentItem(elevGridRefinement);
-	showElevGrid = (vizWin->elevGridRenderingEnabled() && isLayered);
+	showElevGrid = vizWin->elevGridRenderingEnabled();
 	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
 	textureSurface = vizWin->elevGridTextureEnabled();
 	vizFeatureDlg->imageCheckbox->setChecked(textureSurface);
@@ -509,7 +509,7 @@ setDialog(){
 	vizFeatureDlg->imageRotationCombo->setCurrentItem(surfaceRotation/90);
 	surfaceImageFilename = vizWin->getTextureFile();
 	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
-	
+	/* Removed so we can put terrain in unlayered models:
 	vizFeatureDlg->displacementEdit->setEnabled(isLayered);
 	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
 	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
@@ -517,6 +517,7 @@ setDialog(){
 	vizFeatureDlg->imageCheckbox->setEnabled(isLayered);
 	vizFeatureDlg->imageRotationCombo->setEnabled(isLayered);
 	vizFeatureDlg->imageUpDownCombo->setEnabled(isLayered);
+	*/
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified

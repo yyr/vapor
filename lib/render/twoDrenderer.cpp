@@ -389,7 +389,7 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	if(refLevel < 0) {
 		setBypass(timeStep);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable for 2D rendering at timestep %d",timeStep);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
 		myReader->SetInterpolateOnOff(true);
 		return false;
 	}

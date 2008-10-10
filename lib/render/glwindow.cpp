@@ -404,10 +404,7 @@ void GLWindow::paintGL()
 	} 
 	
 	if (renderElevGrid) {
-		if (DataStatus::getInstance()->dataIsLayered()){
-			
 			drawElevationGrid(timeStep);
-		}
 	}
 	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisLabels();
 	else if (axisLabelNums[0]||axisLabelNums[1]||axisLabelNums[2]) deleteAxisLabels();
@@ -1500,41 +1497,51 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
 		varnum = DataStatus::getSessionVariableNum("ELEVATION");
-		
-		// NOTE:  Currently we are clearing cache here just because we need
-		// turn interpolation off.  This will not be so painful when we
-		// allow both interpolated and uninterpolated volumes to coexist
-		// in the data manager.
+		if (varnum >= 0) {
+			// NOTE:  Currently we are clearing cache here just because we need
+			// turn interpolation off.  This will not be so painful if we
+			// allowed both interpolated and uninterpolated volumes to coexist
+			// in the data manager.
 
-		dataMgr->Clear();
-		myReader->SetInterpolateOnOff(false);
-		//Try to get requested refinement level or the nearest acceptable level:
-		int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
-				timeStep, &varnum, 1, regMin, regMax);
-		
-
-		if(refLevel < 0) {
-			myReader->SetInterpolateOnOff(true);
-			return false;
-		}
+			dataMgr->Clear();
+			myReader->SetInterpolateOnOff(false);
+			//Try to get requested refinement level or the nearest acceptable level:
+			int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+					timeStep, &varnum, 1, regMin, regMax);
 			
-		
-		//Modify 3rd coord of region extents to obtain only bottom layer:
-		min_dim[2] = max_dim[2] = 0;
-		min_bdim[2] = max_bdim[2] = 0;
-		//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
-		//performing the interpolation step
-		
-		elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
-		myReader->SetInterpolateOnOff(true);
-		if (!elevData) {
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
-					timeStep,
-					"This message can be silenced using the User Preference Panel settings." );
+
+			if(refLevel < 0) {
+				myReader->SetInterpolateOnOff(true);
+				return false;
 			}
-			ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
-			return false;
+				
+			
+			//Modify 3rd coord of region extents to obtain only bottom layer:
+			min_dim[2] = max_dim[2] = 0;
+			min_bdim[2] = max_bdim[2] = 0;
+			//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
+			//performing the interpolation step
+			
+			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
+			myReader->SetInterpolateOnOff(true);
+			if (!elevData) {
+				if (ds->warnIfDataMissing()){
+					SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
+						timeStep,
+						"This message can be silenced \nusing the User Preference Panel settings." );
+				}
+				ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
+				return false;
+			}
+		}
+		else { //setup for just doing flat plane:
+			RegionParams* rParams = getActiveRegionParams();
+			size_t bbmin[3], bbmax[3];
+			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, bbmin, bbmax);
+			for (int i = 0; i<3; i++){
+				regMin[i] = rParams->getRegionMin(i);
+				regMax[i] = rParams->getRegionMax(i);
+			}
 		}
 	} else {
 		
@@ -1565,7 +1572,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.\n %s", 
 					timeStep,
-					"This message can be silenced using the User Preference Panel settings." );
+					"This message can be silenced \nusing the User Preference Panel settings." );
 			}
 			ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
 			return false;
@@ -1592,16 +1599,21 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
 	for (int j = 0; j<maxYElev; j++){
 		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxYElev-1);
-		size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-			
+		size_t ycrd = 0; 
+		if (varnum >= 0) ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 		for (int i = 0; i<maxXElev; i++){
 			int pntPos = 3*(i+j*maxXElev);
 			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxXElev-1);
-			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
-			if (elevData)
-				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
-			else
-				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
+			if (varnum < 0) { //No elevation data, just use min extents:
+				worldCoord[2] = minElev+displacement;
+			} else {
+				size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
+				if (elevData)
+					worldCoord[2] = elevData[xcrd+ycrd] + displacement;
+				else {
+					worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
+				} 
+			}
 			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
