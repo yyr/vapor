@@ -27,6 +27,7 @@
 //
 //----------------------------------------------------------------------------
 
+#include <GL/glew.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -265,21 +266,21 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    GLint internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
     driver = new DVRShader(internalFormat, format, _voxelType, 1, this);
   }
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    GLint internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
     driver = new DVRSpherical(internalFormat, format, _voxelType, 1, this);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
     _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    GLint internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
     driver = new DVRRayCaster(internalFormat, format, _voxelType, 1,this);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER_2_VAR)
@@ -287,7 +288,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
     GLenum format = GL_LUMINANCE_ALPHA;
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
     _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
+    GLint internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
     driver = new DVRRayCaster2Var(internalFormat, format, _voxelType, 1,this);
   }
 

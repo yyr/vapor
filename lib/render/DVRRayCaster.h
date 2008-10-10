@@ -84,7 +84,7 @@ protected:
   ShaderProgram* shader();
 
 
-  void DVRRayCaster::drawFrontPlane(
+  void drawFrontPlane(
 	const BBox &volumeBox, const BBox &textureBox,
 	const Matrix3d &modelview,
 	const Matrix3d &modelviewInverse
