@@ -142,8 +142,7 @@ int	GetWRFMetadata(
 			bool mismatch = false;
 			if (
 				_dx != dx || _dy != dy || _dimLens[0] != dimLens[0] ||
-				_dimLens[1] != dimLens[1] || _dimLens[2] != dimLens[2] ||
-				(_startDate.compare(startDate)!=0) ) {
+				_dimLens[1] != dimLens[1] || _dimLens[2] != dimLens[2]) {
 	
 				mismatch = true;
 			}
