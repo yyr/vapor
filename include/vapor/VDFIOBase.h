@@ -336,7 +336,7 @@ public:
 	const double vcoord0[3], size_t bcoord0[3], int reflevel = 0
  ) const {
 	size_t v[3];
-	VDFIOBase::MapUserToVox(timestep, vcoord0, v, reflevel);
+	MapUserToVox(timestep, vcoord0, v, reflevel);
 	VDFIOBase::MapVoxToBlk(v, bcoord0);
  }
 	
