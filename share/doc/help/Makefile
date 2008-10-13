@@ -5,8 +5,7 @@ include $(TOP)/make/config/prebase.mk
 
 DOCS = FieldLineAdvectionHelp.html  UnsteadyHelp.html
 
-VERSION = $(shell cat $(TOP)/Version)
-INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc/$(VERSION)
+INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc
 
 
 include ${TOP}/make/config/base.mk

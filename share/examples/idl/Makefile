@@ -11,7 +11,7 @@ IDL_EXAMPLES = AddMagVDF.pro AddCurlVDF.pro PrintMetaVDF.pro \
 
 
 VERSION = $(shell cat $(TOP)/Version)
-INSTALL_IDL_EX_DIR = $(INSTALL_PREFIX_DIR)/share/examples/$(VERSION)/idl
+INSTALL_IDL_EX_DIR = $(INSTALL_PREFIX_DIR)/share/examples/idl
 
 include ${TOP}/make/config/base.mk
 

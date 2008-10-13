@@ -9,7 +9,7 @@ DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
 	WRFGetStarted.doc
 
 VERSION = $(shell cat $(TOP)/Version)
-INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc/$(VERSION)
+INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc
 
 
 include ${TOP}/make/config/base.mk
