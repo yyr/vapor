@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt8(
-					ts, opt.varname, opt.level, min, max, 0, qrange, 0
+					ts, opt.varname, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt16(
-					ts, opt.varname, opt.level, min, max, 0, qrange, 0
+					ts, opt.varname, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
