@@ -424,7 +424,7 @@ private:
 
  int	_LayeredIO();
 
-void LayeredIO::_interpolateRegion(
+void _interpolateRegion(
     float *region,			// Destination interpolated ROI
 	const float *elevBlks,	// Source elevation ROI
 	const float *varBlks,	// Source variable ROI
