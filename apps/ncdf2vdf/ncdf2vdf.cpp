@@ -792,8 +792,8 @@ void	process_slice(
 	size_t inSize = inCount[dimIndex[0]]*inCount[dimIndex[1]];
 	//allocate a buffer big enough for input 2D slice :
 	
-	float* inFBuffer = 0, *outFBuffer = 0, *outFBuffer2 = 0;
-	double *inDBuffer = 0, *outDBuffer = 0, *outDBuffer2 = 0;
+	float* inFBuffer = 0, *outFBuffer = 0;
+	double *inDBuffer = 0, *outDBuffer = 0;
 
 	
 	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];

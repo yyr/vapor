@@ -359,9 +359,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 	//If we have partial bypass, the data is only available at low res, so exit if
 	//the mouse is not down:
-	bool bp = currentRenderParams->doBypass(timeStep);
-	bool msdn = myGLWindow->mouseIsDown();
-	bool spn = myGLWindow->spinning();
 	if (currentRenderParams->doBypass(timeStep) && !myGLWindow->mouseIsDown() && !myGLWindow->spinning()) 
 		return;
 
