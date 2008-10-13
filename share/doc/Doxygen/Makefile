@@ -10,7 +10,7 @@ doc: Doxyfile
 
 Doxyfile: FRC
 	@$(ECHO) Building documentation
-	@sed -e "s#TOP_OF_TREE#$(TOP)#" -e s#DOCDIR#$(DOCDIR)# $@.in > $@ 
+	@sed -e "s#TOP_OF_TREE#$(TOP)#" -e s#DOCDIR#$(DOCDIR)/library# $@.in > $@ 
 	@@doxygen $@
 
 FRC:
