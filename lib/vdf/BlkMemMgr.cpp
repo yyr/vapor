@@ -100,7 +100,7 @@ int	BlkMemMgr::_Reinit()
 	_blkptr = _blks;
 
 	if (page_size) {
-		_blkptr += page_size - (((long) _blks) % page_size);
+		_blkptr += page_size - (((size_t) _blks) % page_size);
 	}
 
 	return(0);

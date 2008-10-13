@@ -214,13 +214,13 @@ void HelpWindow::showHelp(const QString& filename){
 	string dirpath;
 	if (char *home = getenv("VAPOR_HOME")) {
 		string homestr(home);
-		filePath = QString(homestr.c_str())+"/share/doc/vapor-"+appver+'/'+filename;
+		filePath = QString(homestr.c_str())+"/share/doc/"+filename;
 	}
 	else if (get_doc_path_from_bundle(dirpath)) {
-		filePath = QString(dirpath.c_str())+"/vapor-"+appver+"/"+filename;
+		filePath = QString(dirpath.c_str())+"/"+filename;
 	}
 	else {
-		filePath = QString("./share/doc/vapor-"+appver+'/'+filename);
+		filePath = QString("./share/doc/"+filename);
 	}
 #ifdef WIN32
 	filePath.replace('/','\\');
