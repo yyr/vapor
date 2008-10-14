@@ -669,7 +669,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	//qWarning("Render done");
 	  
 	//Colorbar is rendered with DVR renderer:
-	if(myGLWindow->colorbarIsEnabled()){
+	if(myGLWindow->colorbarIsEnabled() &&
+		currentRenderParams->getParamType() == Params::DvrParamsType){
 		//Now go to default 2D window
 		glLoadIdentity();
 		glMatrixMode(GL_PROJECTION);
