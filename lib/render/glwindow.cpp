@@ -263,7 +263,7 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 
 void GLWindow::paintGL()
 {
-	
+	static int previousTimeStep = -1;
 	GLenum	buffer;
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
@@ -311,6 +311,7 @@ void GLWindow::paintGL()
 	//if they really are new.
 	//
 	renderNew = captureIsNew();
+	if (renderNew) previousTimeStep = -1; //reset saved time step
 	setCaptureNew(false);
 
 	//Tell the animation we are starting.  If it returns false, we are not
@@ -337,6 +338,11 @@ void GLWindow::paintGL()
 	}
 
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	//make sure to capture whenever the time step changes
+	if (timeStep != previousTimeStep) {
+		setRenderNew();
+		previousTimeStep = timeStep;
+	}
     getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
     DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	

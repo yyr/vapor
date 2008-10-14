@@ -78,12 +78,14 @@ void TwoDRenderer::paintGL()
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		twoDTex = getTwoDTexture(myTwoDParams,currentFrameNum,true);
 		QApplication::restoreOverrideCursor();
+		myGLWindow->setRenderNew();
 	} else { //existing texture is OK:
 		twoDTex = getTwoDTexture(myTwoDParams,currentFrameNum,true);
 	}
 	if (myTwoDParams->elevGridIsDirty()){
 		invalidateElevGrid();
 		myTwoDParams->setElevGridDirty(false);
+		myGLWindow->setRenderNew();
 	}
 	int imgSize[2];
 	myTwoDParams->getTextureSize(imgSize);
