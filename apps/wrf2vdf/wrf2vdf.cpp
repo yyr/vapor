@@ -889,7 +889,10 @@ int DoIndependentVars3d(
 	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
 
 	if (! varBuffer) {
-		varBuffer = new float[dim[0]*dim[1]]; 
+		// allocate buffer for a slice. Leave space for horizontally staggered
+		// vars.
+		//
+		varBuffer = new float[(dim[0]+1)*(dim[1]+1)]; 
 	}
 
 	int rc = 0;
