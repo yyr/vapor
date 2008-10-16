@@ -383,16 +383,24 @@ mousePressEvent(QMouseEvent* e){
 
 					//Stretching doesn't work well if rotation is not a multiple of 90 deg.
 					if (buttonNum > 1) {
+						bool doStretch = true;
 						//check if the rotation angle is approx a multiple of 90 degrees:
 						int tolerance = 20;
 						int thet = (int)(fabs(pParams->getTheta())+0.5f);
 						int ph = (int)(fabs(pParams->getPhi())+ 0.5f);
 						int ps = (int)(fabs(pParams->getPsi())+ 0.5f);
 						//Make sure that these are within tolerance of a multiple of 90
-						if (abs(((thet+45)/90)*90 -thet) > tolerance) break;
-						if (abs(((ps+45)/90)*90 -ps) > tolerance) break;
-						if (abs(((ph+45)/90)*90 -ph) > tolerance) break;
+						if (abs(((thet+45)/90)*90 -thet) > tolerance) doStretch = false;
+						if (abs(((ps+45)/90)*90 -ps) > tolerance) doStretch = false;
+						if (abs(((ph+45)/90)*90 -ph) > tolerance) doStretch = false;
 						
+						if (!doStretch) {
+							MessageReporter::warningMsg("Probe is not axis-aligned.\n%s %s %s",
+								"To stretch or shrink the Probe,\n",
+								"You must use the Probe/Contour Size\n",
+								"(sliders or text) in the Probe tab.");
+							break;
+						}
 					}
 					//Set up for sliding:
 					if (!myGLWindow->startHandleSlide(screenCoords, handleNum, pParams)){

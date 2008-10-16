@@ -1558,6 +1558,7 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
 		opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
+	updateTab();
 	
 }
 
