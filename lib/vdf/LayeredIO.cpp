@@ -21,7 +21,8 @@ int	LayeredIO::_LayeredIO()
 	if (_elevReader->GetErrCode()) return(-1);
 
 	cache_clear();
-	_setDefaultHighLowVals();
+	_lowValMap.clear();
+	_highValMap.clear();
 
 	SetGridHeight(_dim[2]);
 	SetInterpolateOnOff(true);
@@ -276,11 +277,17 @@ int	LayeredIO::BlockReadRegion(
 	// Finally interpolate layered data to uniform grid
 	//
 
-	float lowVal = GetLowValue(_varName);
-	float highVal = GetHighValue(_varName);
+	
+	float *lowValPtr = NULL;
+	map <string, float>::iterator itr;
+	if ((itr = _lowValMap.find(_varName)) != _lowValMap.end()) lowValPtr = &(itr->second);
+
+	float *highValPtr = NULL;
+	if ((itr = _highValMap.find(_varName)) != _highValMap.end()) highValPtr = &(itr->second);
+
 	_interpolateRegion(
 		region, _elevBlkBuf, _varBlkBuf, blkMinFullZ, blkMaxFullZ, 
-		bmin[2], bmax[2], lowVal, highVal
+		bmin[2], bmax[2], lowValPtr, highValPtr
 	);
 
 	return(0);
@@ -298,38 +305,59 @@ void LayeredIO::SetInterpolateOnOff(bool on)
 	_interpolateOn = on;
 }
 
-void LayeredIO::SetLowHighVals(
+void LayeredIO::SetLowVals(
 	const vector<string>&varNames, 
-	const vector<float>&lowVals, 
-	const vector<float>&highVals
+	const vector<float>&vals
 ) {       
     _lowValMap.clear();
-    _highValMap.clear();
-    _setDefaultHighLowVals();
     for (int i = 0; i<varNames.size(); i++){
-        _lowValMap[varNames[i]] = lowVals[i];
-        _highValMap[varNames[i]] = highVals[i];
+        _lowValMap[varNames[i]] = vals[i];
     } 
 }       
 
+void LayeredIO::SetHighVals(
+	const vector<string>&varNames, 
+	const vector<float>&vals
+) {       
+    _highValMap.clear();
+    for (int i = 0; i<varNames.size(); i++){
+        _highValMap[varNames[i]] = vals[i];
+    } 
+}       
 
-void LayeredIO::_setDefaultHighLowVals()
-{           
-     //Set all variables in the Metadata to defaults:
-            
-    const vector<string> mdnames = _metadata->GetVariableNames();
-    for (int i = 0; i< mdnames.size(); i++){
-            
-        _lowValMap[mdnames[i]] = BELOW_GRID;
-        _highValMap[mdnames[i]] = ABOVE_GRID;
-     
-    }
+void LayeredIO::GetLowVals(
+	vector<string>&varNames, 
+	vector<float>&vals
+) {       
+	varNames.clear(); 
+	vals.clear();
+
+	map <string, float>::iterator itr;
+	for (itr = _lowValMap.begin(); itr != _lowValMap.end(); itr++) {
+		varNames.push_back(itr->first);
+		vals.push_back(itr->second);
+	}
 }
+
+void LayeredIO::GetHighVals(
+	vector<string>&varNames, 
+	vector<float>&vals
+) {       
+	varNames.clear(); 
+	vals.clear();
+
+	map <string, float>::iterator itr;
+	for (itr = _lowValMap.begin(); itr != _lowValMap.end(); itr++) {
+		varNames.push_back(itr->first);
+		vals.push_back(itr->second);
+	}
+}
+
 
 void LayeredIO::_interpolateRegion(
 	float *region, const float *elevBlks, const float *varBlks, 
 	const size_t blkMin[3], const size_t blkMax[3], 
-	size_t zmini, size_t zmaxi, float lowVal, float highVal
+	size_t zmini, size_t zmaxi, float *lowValPtr, float *highValPtr
 ) const {
 	// Dimenions in voxels. nx & ny are the dimensions for both
 	// the interpolated and native (layered) ROI. nz is the Z dimension
@@ -393,11 +421,13 @@ void LayeredIO::_interpolateRegion(
 
 			// Below the grid
 			if (zi_u < elevBlks[nx*ny*0 + nx*y + x]) {
-				*regPtr = lowVal;
+				if (lowValPtr) *regPtr = *lowValPtr;
+				else *regPtr = varBlks[nx*ny*0 + nx*y + x];
 			}
 			// Above the grid
 			else if (zi_u > elevBlks[nx*ny*zztop + nx*y + x]) {
-				*regPtr = highVal;
+				if (highValPtr) *regPtr = *highValPtr;
+				else *regPtr = varBlks[nx*ny*zztop + nx*y + x];
 			}
 			else {
 				while (zi_u > *elePtr1 && z < nz) {

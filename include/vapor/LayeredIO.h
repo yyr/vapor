@@ -30,8 +30,6 @@ class VDF_API	LayeredIO : public WaveletBlock3DRegionReader {
 
 public:
 
- //! Constructor for the LayeredIO class. 
- //! \param[in] metadata A pointer to a Metadata structure identifying the
  //! data set upon which all future operations will apply. 
  //! \param[in] nthreads The number of parallel execution threads to
  //! create.
@@ -154,46 +152,68 @@ public:
 	float *region, int unblock = 1
  );
 
- //! Establish the data values that will be returned when a volume
- //! lies outside the valid volume for which data values are specified.
+ //! Establish the constant data values that will be returned when a volume
+ //! lies outside (below) the valid volume for which data values are specified.
  //! This is needed when using layered data.
- //! This method modifies all the below/above values
+ //! This method modifies all the below values
  //! associated with specified vector of variable names
  //! \p varNames, to the corresponding values specified by
- //! \p lowVals and \p highvals.
+ //! \p values.
  //! If a specified variable name is not in the metadata,
  //! that name will be ignored.
- //! The vectors of low values and high values must
+ //! The vectors of low values values must
  //! be the same length as the vector of variable names.
- //! Any pre-existing low/high values are removed.
- //! Variables not specified will revert to the default
- //! Low/High values of -1.e30, 1.e30.
+ //! Any pre-existing low values are removed.
+ //!
+ //! If constant data value is not set for a variable, the extrapolation
+ //! method that will be used is replication of the boundary value.
  //!
  //! \param[in] varNames A vector of variable names (strings)
- //! \param[in] lowVals A vector of low values for associated variables (floats)
- //! \param[in] highVals A vector of high values for associated variables (floats)
+ //! \param[in] values A vector of low values for associated variables (floats)
  //!
  //
- void SetLowHighVals(
+ void SetLowVals(
      const vector<string>& varNames,
-     const vector<float>& lowVals,
-     const vector<float>& highVals
+     const vector<float>& values
  );
- //! Method to retrieve current low value for variable
- //!
- //! \param[in] varName variable name (string)
- //! \retval lowValue A float value that is assigned to points below grid
- //!
- //
- float GetLowValue(const string &varName) {return _lowValMap[varName];}
 
- //! Method to retrieve current high value for variable
+ //! Establish the constant data values that will be returned when a volume
+ //! lies outside (above) the valid volume for which data values are specified.
+ //! This is needed when using layered data.
+ //! This method modifies all the above values
+ //! associated with specified vector of variable names
+ //! \p varNames, to the corresponding values specified by
+ //! \p values.
+ //! If a specified variable name is not in the metadata,
+ //! that name will be ignored.
+ //! The vectors of high values values must
+ //! be the same length as the vector of variable names.
+ //! Any pre-existing high values are removed.
  //!
- //! \param[in] varName variable name (string)
- //! \retval highValue A float value that is assigned to points above grid
+ //! If constant data value is not set for a variable, the extrapolation
+ //! method that will be used is replication of the boundary value.
+ //!
+ //! \param[in] varNames A vector of variable names (strings)
+ //! \param[in] values A vector of high values for associated variables (floats)
  //!
  //
- float GetHighValue(const string &varName) {return _highValMap[varName];}
+ void SetHighVals(
+     const vector<string>& varNames,
+     const vector<float>& values
+ );
+ //! Method to retrieve current low value for all variables
+ //!
+ //! \param[out] varNames list of variables with low values
+ //! \param[out] values list of low values 
+ //!
+ void GetLowVals(vector<string>&varNames, vector<float>&vals);
+
+ //! Method to retrieve current high value for all variables
+ //!
+ //! \param[out] varNames list of variables with low values
+ //! \param[out] values list of low values 
+ //!
+ void GetHighVals(vector<string>&varNames, vector<float>&vals);
 
  //! Set height of interpolate grid
  //!
@@ -433,8 +453,8 @@ void _interpolateRegion(
 							// ROI specified in blocks 
     size_t zmini,
 	size_t zmaxi,			// Z coords extents of interpolated ROI
-	float lowVal,
-	float highVal
+	float *lowVal,
+	float *highVal
 ) const;
 
 
