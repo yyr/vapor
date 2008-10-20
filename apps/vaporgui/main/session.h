@@ -333,6 +333,8 @@ protected:
 	static const string _variableNameAttr;
 	static const string _belowGridAttr;
 	static const string _aboveGridAttr;
+	static const string _extendDownAttr;
+	static const string _extendUpAttr;
 	static const string _interactiveRefLevelAttr;
 	
 

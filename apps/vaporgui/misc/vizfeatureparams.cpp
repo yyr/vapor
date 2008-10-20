@@ -50,6 +50,7 @@ VizFeatureParams::VizFeatureParams(){
 	textureSurface = false;
 	
 	Session* currentSession = Session::getInstance();
+	
 	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
 
 	
@@ -58,14 +59,24 @@ VizFeatureParams::VizFeatureParams(){
 
 	lowValues.clear();
 	highValues.clear();
+	extendDown.clear();
+	extendUp.clear();
 	tempLowValues.clear();
 	tempHighValues.clear();
-	
-	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){
-		lowValues.push_back(DataStatus::getInstance()->getBelowValue(i));
-		highValues.push_back(DataStatus::getInstance()->getAboveValue(i));
-		tempLowValues.push_back(DataStatus::getInstance()->getBelowValue(i));
-		tempHighValues.push_back(DataStatus::getInstance()->getAboveValue(i));
+	tempExtendDown.clear();
+	tempExtendUp.clear();
+
+	DataStatus *ds;
+	ds = DataStatus::getInstance();
+	for (int i = 0; i< ds->getNumSessionVariables(); i++){
+		lowValues.push_back(ds->getBelowValue(i));
+		highValues.push_back(ds->getAboveValue(i));
+		tempLowValues.push_back(ds->getBelowValue(i));
+		tempHighValues.push_back(ds->getAboveValue(i));
+		extendUp.push_back(ds->isExtendedUp(i));
+		tempExtendUp.push_back(ds->isExtendedUp(i));
+		extendDown.push_back(ds->isExtendedDown(i));
+		tempExtendDown.push_back(ds->isExtendedDown(i));
 	}
 }
 //Clone a new vizfeatureparams
@@ -123,10 +134,16 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	highValues.clear();
 	tempLowValues.clear();
 	tempHighValues.clear();
+	extendDown.clear();
+	extendUp.clear();
+	tempExtendDown.clear();
+	tempExtendUp.clear();
 	int numvars = vfParams.lowValues.size();
 	for (int i = 0; i<numvars; i++){
 		lowValues.push_back(vfParams.lowValues[i]);
 		highValues.push_back(vfParams.highValues[i]);
+		extendUp.push_back(vfParams.extendUp[i]);
+		extendDown.push_back(vfParams.extendDown[i]);
 	}
 	newOutVals = false;
 }
@@ -163,6 +180,10 @@ void VizFeatureParams::launch(){
 	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
 	vizFeatureDlg->lowValEdit->setText(QString::number(lowValues[sessionVariableNum]));
 	vizFeatureDlg->highValEdit->setText(QString::number(highValues[sessionVariableNum]));
+	vizFeatureDlg->extendDownCheckbox->setChecked(extendDown[sessionVariableNum]);
+	vizFeatureDlg->lowValEdit->setEnabled(!extendDown[sessionVariableNum]);
+	vizFeatureDlg->extendUpCheckbox->setChecked(extendUp[sessionVariableNum]);
+	vizFeatureDlg->highValEdit->setEnabled(!extendUp[sessionVariableNum]);
 	newOutVals = false;
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
 		vizFeatureDlg->axisAnnotationFrame->show();
@@ -261,6 +282,8 @@ void VizFeatureParams::launch(){
 	connect(vizFeatureDlg->displacementEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(vizFeatureDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	connect(vizFeatureDlg->extendDownCheckbox, SIGNAL(clicked()), this, SLOT(setOutsideVal()));
+	connect(vizFeatureDlg->extendUpCheckbox, SIGNAL(clicked()), this, SLOT(setOutsideVal()));
 	connect(vizFeatureDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
 	connect(vizFeatureDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
 	connect(vizFeatureDlg->stretch0Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -278,7 +301,10 @@ setVariableNum(int varNum){
 	sessionVariableNum = varNum;
 	vizFeatureDlg->lowValEdit->setText(QString::number(tempLowValues[sessionVariableNum]));
 	vizFeatureDlg->highValEdit->setText(QString::number(tempHighValues[sessionVariableNum]));
-	
+	vizFeatureDlg->extendDownCheckbox->setChecked(tempExtendDown[sessionVariableNum]);
+	vizFeatureDlg->extendUpCheckbox->setChecked(tempExtendUp[sessionVariableNum]);
+	vizFeatureDlg->highValEdit->setEnabled(!vizFeatureDlg->extendUpCheckbox->isChecked());
+	vizFeatureDlg->lowValEdit->setEnabled(!vizFeatureDlg->extendDownCheckbox->isChecked());
 	dialogChanged = true;
 }
 void VizFeatureParams::
@@ -287,6 +313,11 @@ setOutsideVal(){
 	float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
 	tempLowValues[sessionVariableNum] = belowVal;
 	tempHighValues[sessionVariableNum] = aboveVal;
+	tempExtendUp[sessionVariableNum] = vizFeatureDlg->extendUpCheckbox->isChecked();
+	tempExtendDown[sessionVariableNum] = vizFeatureDlg->extendDownCheckbox->isChecked();
+	vizFeatureDlg->highValEdit->setEnabled(!vizFeatureDlg->extendUpCheckbox->isChecked());
+	vizFeatureDlg->lowValEdit->setEnabled(!vizFeatureDlg->extendDownCheckbox->isChecked());
+	newOutVals = true;
 	dialogChanged = true;
 	
 }
@@ -538,10 +569,14 @@ copyFromDialog(){
 		float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
 		tempLowValues[sessionVariableNum] = belowVal;
 		tempHighValues[sessionVariableNum] = aboveVal;
+		tempExtendUp[sessionVariableNum] = vizFeatureDlg->extendUpCheckbox->isChecked();
+		tempExtendDown[sessionVariableNum] = vizFeatureDlg->extendDownCheckbox->isChecked();
 		//Now copy all temp values to perm values:
 		for (int i = 0; i<lowValues.size(); i++){
 			lowValues[i] = tempLowValues[i];
 			highValues[i] = tempHighValues[i];
+			extendDown[i] = tempExtendDown[i];
+			extendUp[i] = tempExtendUp[i];
 		}
 		newOutVals = false;
 	}
@@ -645,8 +680,11 @@ applyToViz(int vizNum){
 	
 	bool changedOutVals = false;
 	for (i = 0; i<ds->getNumSessionVariables(); i++){
-		if(ds->getBelowValue(i) != lowValues[i] || ds->getAboveValue(i) != highValues[i]){
-			ds->setOutsideValues(i, lowValues[i],highValues[i]);
+	
+		if(ds->getBelowValue(i) != lowValues[i] || ds->getAboveValue(i) != highValues[i]
+			|| ds->isExtendedDown(i) != extendDown[i] || ds->isExtendedUp(i) != extendUp[i])
+		{
+			ds->setOutsideValues(i, lowValues[i],highValues[i],extendDown[i],extendUp[i]);
 			changedOutVals = true;
 		}
 	}
@@ -660,15 +698,31 @@ applyToViz(int vizNum){
 			
 			DvrParams* dp = vizMgr->getDvrParams(j);
 			vizMgr->setDatarangeDirty(dp);
+			win->setDirtyBit(RegionBit, true);
 		}
 		if (ds->dataIsLayered()){	
 			LayeredIO* layeredReader = (LayeredIO*)ds->getDataMgr()->GetRegionReader();
-			layeredReader->SetLowHighVals(
-				ds->getVariableNames(),
-				ds->getBelowValues(),
-				ds->getAboveValues()
-			);
+			//construct a list of the non extended variables
+			std::vector<string> vNames;
+			std::vector<float> vals;
+			for (int i = 0; i< ds->getNumSessionVariables(); i++){
+				if (!ds->isExtendedDown(i)){
+					vNames.push_back(ds->getVariableName(i));
+					vals.push_back(ds->getBelowValue(i));
+				}
+			}
+			layeredReader->SetLowVals(vNames, vals);
+			vNames.clear();
+			for (int i = 0; i< ds->getNumSessionVariables(); i++){
+				if (!ds->isExtendedUp(i)){
+					vNames.push_back(ds->getVariableName(i));
+					vals.push_back(ds->getAboveValue(i));
+				}
+			}
+			layeredReader->SetHighVals(vNames, vals);
 		}
+		//Must purge the cache when the outside values change:
+		ds->getDataMgr()->Clear();
 	}
 	
 	bool stretchChanged = false;

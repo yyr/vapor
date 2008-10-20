@@ -203,6 +203,8 @@ public:
 	static std::string& getVariableName2D(int sesvarNum) {return variableNames2D[sesvarNum];}
 	static float getBelowValue(int sesvarNum) {return belowValues[sesvarNum];}
 	static float getAboveValue(int sesvarNum) {return aboveValues[sesvarNum];}
+	static bool isExtendedUp(int sesvarnum) {return extendUp[sesvarnum];}
+	static bool isExtendedDown(int sesvarnum) {return extendDown[sesvarnum];}
 
 	//Find the session num of a name, or -1 if it's not metadata:
 	static int getSessionVariableNum(const std::string& str);
@@ -216,14 +218,18 @@ public:
 		variableNames.push_back(newName);
 		aboveValues.push_back(VetsUtil::ABOVE_GRID);
 		belowValues.push_back(VetsUtil::BELOW_GRID);
+		extendUp.push_back(true);
+		extendDown.push_back(true);
 	}
 	static void addVarName2D(const std::string newName) {
 		variableNames2D.push_back(newName);
 	}
 	//Set outside values for an existing session variable 
-	static void setOutsideValues(int varnum, float belowVal, float aboveVal){
+	static void setOutsideValues(int varnum, float belowVal, float aboveVal, bool down, bool up){
 		belowValues[varnum] = belowVal;
 		aboveValues[varnum] = aboveVal;
+		extendDown[varnum] = down;
+		extendUp[varnum] = up;
 	}
 	
 	//"Metadata" variables are those that are in current metadata, as opposed to
@@ -258,6 +264,8 @@ public:
 		variableNames.clear();
 		aboveValues.clear();
 		belowValues.clear();
+		extendUp.clear();
+		extendDown.clear();
 		variableNames2D.clear();
 	}
 	static void removeMetadataVars(){
@@ -282,6 +290,7 @@ public:
 	vector<string> getVariableNames() {return variableNames;}
 	vector<float> getBelowValues() {return belowValues;}
 	vector<float> getAboveValues() {return aboveValues;}
+	
 	vector<string> getVariableNames2D() {return variableNames2D;}
 
 	//used for specifying nondefault graphics hardware texture size:
@@ -368,6 +377,8 @@ private:
 	static std::vector<std::string> variableNames;
 	static std::vector<float> belowValues;
 	static std::vector<float> aboveValues;
+	static std::vector<bool> extendUp;
+	static std::vector<bool> extendDown;
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
 	static std::vector<std::string> variableNames2D;

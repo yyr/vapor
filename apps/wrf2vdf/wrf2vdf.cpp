@@ -1550,7 +1550,7 @@ int	main(int argc, char **argv) {
 		//
 		SelectVariables(
 			vdf_vars, wrf_vars, opt.varnames, wrfNames, copy_vars,
-			opt.noelev
+			(opt.noelev != 0)
 		);
 
 		if (! opt.noelev && find(copy_vars.begin(),copy_vars.end(),"ELEVATION")==copy_vars.end()) {

@@ -51,6 +51,8 @@ DataStatus* DataStatus::theDataStatus = 0;
 std::vector<std::string> DataStatus::variableNames;
 std::vector<float> DataStatus::aboveValues;
 std::vector<float> DataStatus::belowValues;
+std::vector<bool> DataStatus::extendUp;
+std::vector<bool> DataStatus::extendDown;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
@@ -379,7 +381,24 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	maxTimeStep = (size_t)maxts;
 	if (dataIsLayered()){	
 		LayeredIO* layeredReader = (LayeredIO*)myReader;
-		layeredReader->SetLowHighVals(variableNames, belowValues, aboveValues);
+		//construct a list of the non extended variables
+		std::vector<string> vNames;
+		std::vector<float> vals;
+		for (int i = 0; i< getNumSessionVariables(); i++){
+			if (!isExtendedDown(i)){
+				vNames.push_back(getVariableName(i));
+				vals.push_back(getBelowValue(i));
+			}
+		}
+		layeredReader->SetLowVals(vNames, vals);
+		vNames.clear();
+		for (int i = 0; i< getNumSessionVariables(); i++){
+			if (!isExtendedUp(i)){
+				vNames.push_back(getVariableName(i));
+				vals.push_back(getAboveValue(i));
+			}
+		}
+		layeredReader->SetHighVals(vNames, vals);
 	}
 	//For now there are no low high values for 2D variables...
 	return someDataOverall;

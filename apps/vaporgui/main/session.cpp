@@ -80,6 +80,8 @@ const string Session::_sessionVariableTag = "SessionVariable";
 const string Session::_variableNameAttr = "VariableName";
 const string Session::_aboveGridAttr = "AboveGridValue";
 const string Session::_belowGridAttr = "BelowGridValue";
+const string Session::_extendUpAttr = "ExtendAboveGrid";
+const string Session::_extendDownAttr = "ExtendBelowGrid";
 const string Session::_VAPORVersionAttr = "VaporVersion";
 
 string Session::prefFile = "";
@@ -309,6 +311,12 @@ buildNode() {
 		oss << getVariableName(i);
 		attrs[_variableNameAttr] = oss.str();
 		oss.str(empty);
+		if (DataStatus::isExtendedUp(i)) oss << "true"; else oss << "false";
+		attrs[_extendUpAttr] = oss.str();
+		oss.str(empty);
+		if (DataStatus::isExtendedDown(i)) oss << "true"; else oss << "false";
+		attrs[_extendDownAttr] = oss.str();
+		oss.str(empty);
 		oss << getBelowValue(i);
 		attrs[_belowGridAttr] = oss.str();
 		oss.str(empty);
@@ -466,6 +474,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				//start with default above/below values
 				float belowVal = BELOW_GRID;
 				float aboveVal = ABOVE_GRID;
+				//Session files if not specifed do NOT extend, since
+				//this option is specified in session files after 1.3
+				bool extendUp = false;
+				bool extendDown = false;
 				std::string varName;
 				
 				while (*attrs) {
@@ -483,11 +495,17 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					else if (StrCmpNoCase(attr, _aboveGridAttr) == 0){
 						ist >> aboveVal;
 					}
+					else if (StrCmpNoCase(attr, _extendUpAttr) == 0){
+						if (value == "true") extendUp = true; else extendUp = false;
+					}
+					else if (StrCmpNoCase(attr, _extendDownAttr) == 0){
+						if (value == "true") extendDown = true; else extendDown = false;
+					}
 					else return false;
 				}
 				if (varName == "") return false;
 				int varnum = mergeVariableName(varName);
-				DataStatus::getInstance()->setOutsideValues(varnum, belowVal, aboveVal);
+				DataStatus::getInstance()->setOutsideValues(varnum, belowVal, aboveVal, extendDown, extendUp);
 				return true;
 			}
 			return false;

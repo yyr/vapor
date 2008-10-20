@@ -1669,6 +1669,13 @@ guiSetEnabled(bool on, int instance){
 	int winnum = vizMgr->getActiveViz();
 	FlowParams* fParams = vizMgr->getFlowParams(winnum, instance);
 	if (on == fParams->isEnabled()) return;
+	//Check that the flow variables are extended by zero below the grid,
+	//if the data is layered:
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->dataIsLayered() && !flowVarsZeroBelow()){
+		MessageReporter::warningMsg("Note that flow variables are not set\nto zero below the terrain.\n%s",
+			"The value below the terrain can be set\nin the Edit Visualizer Features panel.");
+	}
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
 	fParams->setEnabled(on);
@@ -2506,7 +2513,7 @@ void FlowEventRouter::saveSeeds(){
 			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 				seedPoints[4*j+0],seedPoints[4*j+1],seedPoints[4*j+2],seedPoints[4*j+3]);
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n %s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.ascii());
 				break;
 			}
 		}
@@ -2520,7 +2527,7 @@ void FlowEventRouter::saveSeeds(){
 				seedList[j].getVal(0),seedList[j].getVal(1),
 				seedList[j].getVal(2),seedList[j].getVal(3));
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n %s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.ascii());
 				break;
 			}
 		}
@@ -2575,7 +2582,7 @@ void FlowEventRouter::saveFlowLines(){
 	//Open the save file:
 	FILE* saveFile = fopen(filename.ascii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n %s",filename.ascii());
+		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n%s",filename.ascii());
 		return;
 	}
 	//Refresh the flow, if necessary
@@ -3143,4 +3150,28 @@ void FlowEventRouter::refreshTab(){
 		mappingFrame->hide();
 		mappingFrame->show();
 	}
+}
+//Check to see if all the flow variables are zero
+//below the terrain.
+bool FlowEventRouter::
+flowVarsZeroBelow(){
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	//check steady vars:
+	if (fParams->getFlowType() != 1){
+		for (int i = 0; i< 3; i++){
+			int vnum = fParams->getSteadyVarNums()[i];
+			if (vnum == 0) continue;
+			if(DataStatus::isExtendedDown(vnum-1)) return false;
+			if(DataStatus::getBelowValue(vnum-1) != 0.f) return false;
+		}
+	}
+	if (fParams->getFlowType() != 0){
+		for (int i = 0; i< 3; i++){
+			int vnum = fParams->getUnsteadyVarNums()[i];
+			if (vnum == 0) continue;
+			if(DataStatus::isExtendedDown(vnum-1)) return false;
+			if(DataStatus::getBelowValue(vnum-1) != 0.f) return false;
+		}
+	}
+	return true;
 }

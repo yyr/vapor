@@ -167,6 +167,7 @@ protected slots:
 	void guiToggleTimestepSample(bool isOn);
 
 protected:
+	bool flowVarsZeroBelow();  //Test if the flow variables are zero below terrain
 	void guiUpdateUnsteadyTimes(QTable*, const char*);
 	void populateTimestepTables();
 	void setXCenter(FlowParams*,int sliderval);

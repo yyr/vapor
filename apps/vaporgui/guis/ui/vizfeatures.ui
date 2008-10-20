@@ -168,7 +168,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout46</cstring>
+                                <cstring>layout45</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -316,7 +316,7 @@
                                         <enum>Raised</enum>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>When visualizing layered data (such as WRF output) there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  By default, the values of all variables are zero above or below the layered data..  Use this section to specify nonzero values above or below the layered data.  This is useful to eliminate distracting artifacts that appear above or below the data being visualized.</string>
+                                        <string>When visualizing layered data (such as WRF output), there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  These variable values are not defined by the dataset but can affect its visualization.  By default, the values of all 3D variables are extended above or below the layered data;  i.e. the values of a variable at the bottom of the grid are extended to apply to points in the region below the grid, and the values at the top of the grid are extended to points above the grid.  Variable values can be extended to be constant, by un-checking the Extend Down and Extend Up checkboxes.  For example, variables that are components of the flow field should ordinarily be set to the constant 0 below the terrain.</string>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -324,7 +324,7 @@
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout10_3</cstring>
+                                                <cstring>layout44</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -343,32 +343,29 @@
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout9</cstring>
+                                                        <cstring>layout43</cstring>
                                                     </property>
                                                     <grid>
                                                         <property name="name">
                                                             <cstring>unnamed</cstring>
                                                         </property>
-                                                        <widget class="QLabel" row="0" column="1">
+                                                        <widget class="QLineEdit" row="1" column="1">
                                                             <property name="name">
-                                                                <cstring>textLabel2_2_2</cstring>
+                                                                <cstring>lowValEdit</cstring>
                                                             </property>
-                                                            <property name="text">
-                                                                <string>Value below grid</string>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the value of the variable below the lowest layer of the dataset</string>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QLabel" row="0" column="2">
+                                                        <widget class="QCheckBox" row="1" column="3">
                                                             <property name="name">
-                                                                <cstring>textLabel2_2_2_2</cstring>
+                                                                <cstring>extendDownCheckbox</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Value above grid</string>
+                                                                <string>Down</string>
                                                             </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Check to extend the variable values below the bottom of the grid; un-check to use the specified constant value below the grid.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel" row="0" column="0">
@@ -382,20 +379,37 @@
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QLineEdit" row="1" column="2">
+                                                        <widget class="QLabel" row="0" column="3">
                                                             <property name="name">
-                                                                <cstring>highValEdit</cstring>
+                                                                <cstring>textLabel2_2_2_2_2_2</cstring>
                                                             </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify value of the variable above the highest layer of the dataset</string>
+                                                            <property name="text">
+                                                                <string>Extend</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QLineEdit" row="1" column="1">
+                                                        <widget class="QLabel" row="0" column="1">
                                                             <property name="name">
-                                                                <cstring>lowValEdit</cstring>
+                                                                <cstring>textLabel2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Below</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QCheckBox" row="1" column="4">
+                                                            <property name="name">
+                                                                <cstring>extendUpCheckbox</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Up</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the value of the variable below the lowest layer of the dataset</string>
+                                                                <string>Check to extend the variable values above the top of the grid; un-check to use the specified constant value above the grid</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox" row="1" column="0">
@@ -404,6 +418,36 @@
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the variable whose values are being specified</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel" row="0" column="4">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_2_2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Extend</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit" row="1" column="2">
+                                                            <property name="name">
+                                                                <cstring>highValEdit</cstring>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify value of the variable above the highest layer of the dataset</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel" row="0" column="2">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Above</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
                                                             </property>
                                                         </widget>
                                                     </grid>

@@ -139,6 +139,10 @@ protected:
 	std::vector<float> highValues;
 	std::vector<float> tempLowValues;
 	std::vector<float> tempHighValues;
+	std::vector<bool> extendDown;
+	std::vector<bool> extendUp;
+	std::vector<bool> tempExtendDown;
+	std::vector<bool> tempExtendUp;
 	
 	
 };
