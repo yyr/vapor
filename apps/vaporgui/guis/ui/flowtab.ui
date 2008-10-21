@@ -2975,12 +2975,7 @@ time steps, use the time step list
                                                                 <string>Check to use the list of time steps</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -3018,15 +3013,10 @@ used for steady flow integration.</string>
                                                                 <string>Add</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Click to add another timestep to the list</string>
+                                                                <string>Click to add blank timestep to list, you must type in desired value</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -3037,15 +3027,10 @@ used for steady flow integration.</string>
                                                                 <string>Delete</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Click to delete the current time step</string>
+                                                                <string>Click to delete the selected time step</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -3056,7 +3041,7 @@ used for steady flow integration.</string>
                                                                 <string>Rebuild</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Build a list of timesteps based on the timesteps available in the data</string>
+                                                                <string>Build a list of timesteps based on the timesteps available for any variable  in the data</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3095,15 +3080,10 @@ used for steady flow integration.</string>
                                                 <bool>true</bool>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify time steps to be sampled</string>
+                                                <string>Edit the list to specify time steps to be sampled</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4096,12 +4076,7 @@ time steps, use the time step list
                                                                 <string>Check to use the list of time steps</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -4139,15 +4114,10 @@ used for steady flow integration.</string>
                                                                 <string>Add</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Click to add another timestep to the list</string>
+                                                                <string>Click to add blank timestep to list, you must type in desired value</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -4158,15 +4128,10 @@ used for steady flow integration.</string>
                                                                 <string>Delete</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Click to delete the current time step</string>
+                                                                <string>Click to delete the selected time step</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -4224,15 +4189,10 @@ used for steady flow integration.</string>
                                                 <bool>true</bool>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify time steps to be sampled</string>
+                                                <string>Edit the list to specify time steps to be sampled</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.
-During field line advection,
-These time steps will also be
-used for steady flow integration.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be used to sample the vector fields during unsteady flow integration.  The list contents can be edited and time steps can be inserted or deleted.  During field line advection, these time steps will also be used for steady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>

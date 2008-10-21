@@ -835,7 +835,7 @@ size slider and text box.</string>
                                                 <string>Check to use the list of time steps</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be played during animation.  The list contents can be edited and time steps can be inserted or deleted.  Click the "rebuild" button to construct a list consisting of all time steps in the dataset for which any variable is available.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -873,10 +873,10 @@ size slider and text box.</string>
                                                 <string>Add</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to add another timestep to the list</string>
+                                                <string>Click to add blank timestep to list, you must type in desired value</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be played during animation.  The list contents can be edited and time steps can be inserted or deleted.  Click the "rebuild" button to construct a list consisting of all time steps in the dataset for which any variable is available.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -887,10 +887,10 @@ size slider and text box.</string>
                                                 <string>Delete</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to delete the current time step</string>
+                                                <string>Click to delete the selected time step from the list</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be played during animation.  The list contents can be edited and time steps can be inserted or deleted.  Click the "rebuild" button to construct a list consisting of all time steps in the dataset for which any variable is available.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -901,10 +901,10 @@ size slider and text box.</string>
                                                 <string>Rebuild</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Rebuild list of time steps</string>
+                                                <string>Rebuild list of time steps to include all timesteps in the data for any variable.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
+                                                <string>Check the "Use time step list" check box to specify a set of time steps that will be played during animation.  The list contents can be edited and time steps can be inserted or deleted.  Click the "rebuild" button to construct a list consisting of all time steps in the dataset for which any variable is available.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -943,10 +943,10 @@ size slider and text box.</string>
                                 <bool>true</bool>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Specify time steps to be sampled</string>
+                                <string>Edit this list to specify time steps to be sampled.</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Edit the time step list to specify a list of time steps that will be played during the animation.</string>
+                                <string>Check the "Use time step list" check box to specify a set of time steps that will be played during animation.  The list contents can be edited and time steps can be inserted or deleted.  Click the "rebuild" button to construct a list consisting of all time steps in the dataset for which any variable is available.</string>
                             </property>
                         </widget>
                         <spacer>
