@@ -857,8 +857,22 @@ guiSetMapComboVarNum(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	//The mapcomboVarNum is the metadata num +1, but the ParamsIso keeps
 	//the session variable name
-	int comboVarNum = 1+DataStatus::getInstance()->getMetadataVarNum(iParams->GetMapVariableName());
+	DataStatus* ds = DataStatus::getInstance();
+	int comboVarNum = 1+ds->getMetadataVarNum(iParams->GetMapVariableName());
 	if (val == comboVarNum) return;
+	//If the change is to set the combo to a nonexistent variable, then do not make
+	//the change:
+	if (val != 0){ 
+		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int sesvarnum = ds->mapMetadataToSessionVarNum(val-1);
+		int ref = ds->maxXFormPresent(sesvarnum, timeStep);
+		if (ref < 0 || (ref < iParams->GetRefinementLevel() && ds->useLowerRefinementLevel())){
+			//don't change the variable
+			MessageReporter::errorMsg("Selected variable is not available\nat required refinement level\nand at current timestep.");
+			mapVariableCombo->setCurrentItem(comboVarNum);
+			return;
+		}
+	}
 	//If the change is turning on or off the constant color, then will need to disable and
 	//re-enable the renderer.
 	if(iParams->isEnabled()&&((val == 0 && comboVarNum != 0)||(val!=0 && comboVarNum == 0))){
