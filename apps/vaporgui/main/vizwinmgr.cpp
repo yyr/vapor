@@ -291,6 +291,9 @@ vizAboutToDisappear(int i)  {
 	//Don't delete vizName, it's handled by ref counts
     
     vizName[i] = "";
+
+	EventRouter* ev = tabManager->getFrontEventRouter();
+	ev->updateTab();
 }
 //When a visualizer is launched, we may optionally specify a number and a name
 //if this is a relaunch of a previously created visualizer.  If useWindowNum == -1,
