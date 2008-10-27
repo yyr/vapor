@@ -202,14 +202,14 @@ void UserPreferences::launch(){
 	myPrefsCommand = PreferencesCommand::captureStart(this, "edit user preferences");
 	
 	int h = MainForm::getInstance()->height();
-	if ( h > 768) h = 768;
+	if ( h > 900) h = 900;
 	int w = 400;
 	paramDefaultsFrame->hide();
 	defaultDirectoryFrame->hide();
 	defaultVizFeatureFrame->hide();
 	
 	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
-	setGeometry(0, 0, w, h);
+	setGeometry(0, 0, w, 1300);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
 	sv->resizeContents(w,h);
@@ -829,8 +829,9 @@ saveToFile(ofstream& ofs ){
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
-		MessageReporter::errorMsg("Preferences Save Error %d, \nWriting to:\n%s",
-			MyBase::GetErrCode(),Session::getPreferencesFile().c_str());
+		MessageReporter::errorMsg("Preferences Save Error %d, \nWriting to:\n%s\n%s",
+			MyBase::GetErrCode(),Session::getPreferencesFile().c_str(),
+			"Redefine $HOME or $VAPOR_PREFS variable to save to writable directory");
 		MyBase::SetErrCode(0);
 		delete rootNode;
 		return false;

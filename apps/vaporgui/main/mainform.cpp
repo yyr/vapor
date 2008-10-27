@@ -1336,7 +1336,7 @@ void MainForm::setNavigate(bool on)
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
 		}
-		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate, right to zoom, middle to translate",this);
+		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
 		statusBar()->addWidget(modeStatusWidget,2);
 		//statusBar()->message("Use right mouse to rotate, left to zoom, middle to translate",10000);
 	}
