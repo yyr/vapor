@@ -1100,7 +1100,7 @@ void	DataMgr::Clear() {
 void	DataMgr::free_var(const string &varname, int do_native) {
 
 	list <region_t>::iterator itr;
-	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); ) {
 		const region_t &region = *itr;
 
 		if (region.varname.compare(varname) == 0 &&
@@ -1111,6 +1111,7 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 			_regionsList.erase(itr);
 			itr = _regionsList.begin();
 		}
+		else itr++;
 	}
 
 }
