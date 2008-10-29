@@ -39,16 +39,12 @@ C_DEBUG_FLAGS     += -g
 
 endif
 
-ifeq ($(MACHTYPE),ia64)
 CXXFLAGS          += -fPIC
 CFLAGS          += -fPIC
 
-endif
 
 ifeq ($(MACHTYPE),x86_64)
 LDFLAGS           += -L/usr/X11R6/lib64
-CXXFLAGS          += -fPIC
-CFLAGS            += -fPIC
 else
 LDFLAGS           += -L/usr/X11R6/lib
 endif
