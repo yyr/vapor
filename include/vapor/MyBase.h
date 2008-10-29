@@ -102,8 +102,7 @@ public:
  //! Record an error code
  // 
  //! Sets the error code to the indicated value. 
- //! \param[in] format A 'C' style sprintf format string.
- //! \param[in] arg... Arguments to format 
+ //! \param[in] code The error code
  //! \sa GetErrMsg(), GetErrCode(), SetErrMsg()
  //
  static void	SetErrCode(int err_code) { ErrCode = err_code; }
