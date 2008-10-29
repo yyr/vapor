@@ -313,7 +313,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"VDC access error: \nvariable %s not accessible at timestep %d.",
-					timestep, varName.c_str());
+					varName.c_str(), timestep);
 			}
 			return -1;
 		}
