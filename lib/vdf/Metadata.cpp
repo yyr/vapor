@@ -457,6 +457,8 @@ int Metadata::ConstructFullVBase(
 
     const string &bp = GetVBasePath(ts, var);
     if (GetErrCode() != 0 || bp.length() == 0) {
+		fprintf(stderr, "GetVBasepath error, ts = %d var = %s basepath = %s\n",
+			ts, var.c_str(), (*path).c_str());
         return (-1);
     }
 #ifdef WIN32

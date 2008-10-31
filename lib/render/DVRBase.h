@@ -100,14 +100,14 @@ public:
  // Modification by AN, 2/10/05:  'extents' is subvolume of the unit cube
  // (0,1)x(0,1)x(0,1).  Actual mapping to real coords is done in application.
  //
- virtual int SetRegionSpherical(void *data, 
-                                int nx, int ny, int nz, 
-                                const int data_roi[6],
-                                const float extents[6],
-                                const int data_box[6],
-                                int level,
-                                const std::vector<long> &permutation,
-                                const std::vector<bool> &clipping)
+ virtual int SetRegionSpherical(void * /*data*/, 
+                                int /*nx*/, int /*ny*/, int /*nz*/, 
+                                const int /*data_roi*/[6],
+                                const float /*extents*/[6],
+                                const int /*data_box*/[6],
+                                int /*level*/,
+                                const std::vector<long> &/*permutation*/,
+                                const std::vector<bool> &/*clipping*/)
  { 
     myRenderer->setAllBypass(true);
 	SetErrMsg(VAPOR_ERROR_SPHERICAL,"Driver does not support Spherical Grids"); 
@@ -174,11 +174,11 @@ public:
 
  // Sets the view direction
  //
- virtual void SetView(const float *pos, const float *dir) {}
+ virtual void SetView(const float* /*pos*/, const float* /*dir*/) {}
 
  // Sets the preintegration table
  //
- virtual void SetPreIntegrationTable(const float tab[256][4], const int nR) {}
+ virtual void SetPreIntegrationTable(const float /*tab*/[256][4], const int /*nR*/) {}
 
 
  // Returns true if the driver supports a lighting model
@@ -246,7 +246,7 @@ public:
  virtual void   SetRenderFast(bool)   { return; }
 
  // Notifiy the driver that the window size has changed.
- virtual void Resize(int width, int height) {return;};
+ virtual void Resize(int /*width*/, int /*height*/) {return;};
 
  // Notify the driver that the near and far clipping planes have changed.
  virtual void SetNearFar(float near, float far) {return;};

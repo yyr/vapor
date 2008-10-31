@@ -29,9 +29,14 @@ namespace VAPoR
 {
   enum errorcodes
   {
+    // VDF Errors: 0x1 - 0xFF:  Handled specially
+    VAPOR_ERROR_VDF				= 0x1,
+	VAPOR_ERROR_XML				= 0x2,
     // Diagnostic Codes  0x1001 - 0x1FFF
 	//Currently, diagnostic codes are not used
     VAPOR_DIAGNOSTIC = 0x1000,
+
+
     
     // Warning Codes     0x2001 - 0x2FFF
     VAPOR_WARNING               = 0x2000,
@@ -55,6 +60,7 @@ namespace VAPoR
 	VAPOR_ERROR_IMAGE_CAPTURE		= 0x4008,
 	VAPOR_ERROR_SPHERICAL			= 0x4009,
 	VAPOR_ERROR_STRETCHED			= 0x4010,
+	VAPOR_ERROR_PARAMS				= 0x4011,
 
 	//Flow errors
 	VAPOR_ERROR_FLOW = 0x4100,

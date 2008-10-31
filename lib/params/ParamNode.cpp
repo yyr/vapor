@@ -22,6 +22,7 @@
 #include <iostream>
 #include <cassert>
 #include "vapor/Base64.h"
+#include "vapor/errorcodes.h"
 #include "ParamNode.h"
 
 using namespace VAPoR;
@@ -137,7 +138,7 @@ void ParamNode::SetFlagDirty(const string &tag){
 
 int ParamNode::AddChild(ParamNode* child) {
 	if (HasChild(child->Tag())) {
-		SetErrMsg("Child named %d already exists", child->Tag().c_str());
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child named %d already exists", child->Tag().c_str());
 		return(-1);
 	}
 	XmlNode::AddChild(child);

@@ -17,7 +17,7 @@
 #include <iostream>
 using namespace std;
 
-struct GLUquadric;
+class GLUquadric;
 
 namespace VAPoR {
 

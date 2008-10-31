@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		messagereporting.h
+//	File:		messagereporter.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -26,12 +26,14 @@
 #include <stdarg.h>
 #include <vector>
 #include <string>
+#include <qevent.h>
+#include <qobject.h>
+#include <qmutex.h>
 
-class QMutex;
 
 namespace VAPoR{
 
-class MessageReporter {
+	class MessageReporter : public QObject {
 
 public:
 	MessageReporter();
@@ -61,11 +63,10 @@ public:
 	//Following is called by MessageReporter in response to an error message save callback.
 	//It adds the message to the list
 	static void addErrorMessageCBFcn(const char* message, int errcode);
-	static void postSavedMessagesCBFcn();
-	//Post a message using error code to determine priority.
-	//This is invoked via callback from MyBase:
-	static void postMessageCBFcn(const char* message, int err_code);
-		
+	
+	//This is directly called when unloading messages in customEvent
+	static void postMessages(const char* message, int err_code);
+	void customEvent(QCustomEvent*);
 	static void fatalMsg(const char* format, ...); 
 	static void errorMsg(const char* format, ...); 
 	static void warningMsg(const char* format, ...); 
@@ -98,9 +99,14 @@ protected:
 	
 	static char* messageString;
 	static int messageSize;
-	//Mutex is so that multiple threads can post messages simultaneously
-	static QMutex* messageMutex;
+	//Mutex is serialize access to message list
+	
+	static QMutex messageListMutex;
 
+	static bool getMessageLock();
+	static void releaseMessageLock(){
+		messageListMutex.unlock();
+	}
 	//Storage for list of messages posted during rendering
 	static std::vector<std::string> savedErrMsgs;
 	static std::vector<int> savedErrCodes;

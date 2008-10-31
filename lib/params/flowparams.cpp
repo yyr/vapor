@@ -2535,7 +2535,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Vector field is not available\nat any sampled time steps");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Flow vector field is not available\nat any sampled time steps");
 		return false;
 	}
 	//was the proposed start invalid?

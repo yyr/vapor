@@ -37,25 +37,21 @@
 #include <qstring.h>
 #include <qmessagebox.h>
 #include <qmutex.h>
+#include <qapplication.h>
 
 
 using namespace VAPoR;
 
 char* MessageReporter::messageString = 0;
 int MessageReporter::messageSize = 0;
-QMutex* MessageReporter::messageMutex = 0;
 MessageReporter* MessageReporter::theReporter = 0;
 std::vector<std::string> MessageReporter::savedErrMsgs;
 std::vector<int> MessageReporter::savedErrCodes;
+QMutex MessageReporter::messageListMutex;
 
 MessageReporter::MessageReporter() {
-	MyBase::SetErrMsgCB(postMessageCBFcn);
-	GLWindow::setMessagePostCB(MessageReporter::postMessageCBFcn);
-	GLWindow::setMessageSaveCB(MessageReporter::addErrorMessageCBFcn);
-	GLWindow::setMessageReleaseCB(MessageReporter::postSavedMessagesCBFcn);
+	MyBase::SetErrMsgCB(addErrorMessageCBFcn);
 	logFile = 0;
-	
-	messageMutex = new QMutex();
 	reset(Session::getInstance()->getLogfileName().c_str());
 	setDefaultPrefs();
 	
@@ -74,7 +70,6 @@ void MessageReporter::setDefaultPrefs(){
 MessageReporter::~MessageReporter(){
 	if (logFile) fclose(logFile);
 	
-	delete messageMutex;
 	if (messageString) delete messageString;
 	//Destructor for messageCount should delete its contents?
 	//messageCount.clear();
@@ -111,46 +106,42 @@ void MessageReporter::fatalMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	messageMutex->lock();
+	
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Fatal, message);
-	messageMutex->unlock();
+	
 	
 }
 void MessageReporter::errorMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	messageMutex->lock();
+	
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Error, message);
-	messageMutex->unlock();
+	
 	
 }
 void MessageReporter::warningMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	bool gotIt = messageMutex->tryLock();
-	if (!gotIt) return;
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Warning, message);
-	messageMutex->unlock();
 	
 }
 void MessageReporter::infoMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	bool gotIt = messageMutex->tryLock();
-	if (!gotIt) return;
+	
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Info, message);
-	messageMutex->unlock();
+	
 }
 	
 void MessageReporter::
@@ -163,16 +154,19 @@ postMsg(messagePriority t, const char* message){
 		writeLog(t, message);
 	}
 	if (t == Fatal || count < maxPopup[t]-1){
+		
+		messageCount[message] = count + 1;
 		doPopup(t, message);	
 	}
 	else if (count == maxPopup[t]-1){
+		messageCount[message] = count + 1;
 		//Users can reset the message count if they don't want to silence it:
 		if (doLastPopup(t, message)){
 			messageCount[message] = 0;
 			return;
 		}
 	} 
-	messageCount[message] = count+1;
+	
 	
 }
 void MessageReporter::
@@ -305,13 +299,15 @@ convertText(const char* format, va_list args){
 	}
 	return messageString;
 }
-//This is invoked on callback from MyBase, and also
-//called by postSavedMsgsCBFcn as it unloads the saved messages
-void MessageReporter::postMessageCBFcn(const char* msg, int err_code){
+
+//This is 
+//called by customEvent as it unloads the saved messages
+void MessageReporter::postMessages(const char* msg, int err_code){
 	QString strng("Code: ");
 	strng += QString::number(err_code,16);
 	strng += "\n Message: ";
 	strng += msg;
+	
 	if (err_code & 0x2000){
 		MessageReporter::warningMsg(strng.ascii());
 	} else if (err_code & 0x4000){
@@ -322,16 +318,32 @@ void MessageReporter::postMessageCBFcn(const char* msg, int err_code){
 		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
 	}
 	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
-	//Turn off error:
-	MyBase::SetErrCode(0);
 }
-//Note:  the following is invoked (only) by GLWindow at the end of rendering.
-//GLWindow already has a lock on GLWindow::messagePostingMutex
-void MessageReporter::postSavedMessagesCBFcn(){
-	if(savedErrMsgs.size() == 0) {
-		GLWindow::releaseMessageLock();
+
+void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
+	//Turn off error code just on non-VDF generated errors:
+	if(MyBase::GetErrCode() > 0xfff) MyBase::SetErrCode(0);
+	if (!getMessageLock()) assert(0);
+	savedErrMsgs.push_back(std::string(message));
+	savedErrCodes.push_back(errcode);
+	if (savedErrMsgs.size() == 1){ 
+		QCustomEvent* postMessageEvent = new QCustomEvent(65432);
+		QApplication::postEvent(MessageReporter::getInstance(), postMessageEvent);
+	}
+	releaseMessageLock();
+	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
+	
+}
+
+void MessageReporter::customEvent(QCustomEvent* e)
+{
+	if (e->type() != 65432) {assert(0); return;}
+	if(!getMessageLock()) assert(0);
+    if(savedErrMsgs.size() == 0) {
+		releaseMessageLock();
 		return;
 	}
+
 	//Copy all the saved messages.  We can't post them
 	//until the lock is released, to avoid deadlock.
 	std::vector<std::string> tempMsgs(savedErrMsgs);
@@ -339,19 +351,23 @@ void MessageReporter::postSavedMessagesCBFcn(){
 	
 	savedErrMsgs.clear();
 	savedErrCodes.clear();
-	GLWindow::releaseMessageLock();
+
+	releaseMessageLock();
 	for (int i= 0; i< tempMsgs.size(); i++){
-		postMessageCBFcn(tempMsgs[i].c_str(),tempCodes[i]);
+		postMessages(tempMsgs[i].c_str(),tempCodes[i]);
 	}
 	
 }
-void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
-	if (!GLWindow::getMessageLock()) assert(0);
-	savedErrMsgs.push_back(std::string(message));
-	savedErrCodes.push_back(errcode);
-	GLWindow::releaseMessageLock();
-	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
-	//Turn off error:
-	MyBase::SetErrCode(0);
+bool MessageReporter::getMessageLock(){//Lock on adding to message list
+	
+	for (int i = 0; i< 10; i++){
+		if(messageListMutex.tryLock()) return true;
+#ifdef WIN32
+		Sleep(100);
+#else
+		sleep(1);
+#endif
+	}
+	
+	return false;
 }
-

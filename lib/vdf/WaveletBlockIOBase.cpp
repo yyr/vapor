@@ -370,7 +370,7 @@ int	WaveletBlockIOBase::OpenVariableRead(
 	}
 
 	if (!VariableExists(timestep, varname, reflevel)) {
-		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+		SetErrMsg(VAPOR_ERROR_VDF,
 			"Variable \"%s\" not present \nat requested timestep or level",
 			varname
 		);

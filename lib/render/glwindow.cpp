@@ -54,13 +54,6 @@ bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 
-//Following are used to redirect error messages during rendering:
-int GLWindow::numActiveRenderers = 0;
-MyBase::ErrMsgCB_T GLWindow::messagePostCallback = 0;
-MyBase::ErrMsgCB_T GLWindow::messageSaveCallback = 0;
-GLWindow::ErrMsgReleaseCB_T GLWindow::messageReleaseCallback = 0;
-QMutex GLWindow::renderMessageMutex;
-
 
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 100;
@@ -271,8 +264,6 @@ void GLWindow::paintGL()
 
     if (nowPainting) return;
 	nowPainting = true;
-	// redirect error messages during the rendering
-	startRendering();
 	//Force a resize if perspective has changed:
 	if (perspective != oldPerspective || needsResize){
 		resizeGL(width(), height());
@@ -297,7 +288,6 @@ void GLWindow::paintGL()
 	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
-		finishRendering();
 		return;
 	}
 
@@ -447,9 +437,7 @@ void GLWindow::paintGL()
 		setViewerCoordsChanged(true);
 		setDirtyBit(ProjMatrixBit, true);
 	}
-	
-	
-	finishRendering();
+
 	postRenderCB(winNum, isControlled);
 	
 }

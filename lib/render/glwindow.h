@@ -373,44 +373,10 @@ public:
 	bool stopSpin();
 	bool spinning(){return isSpinning;}
 
-	//Methods to postpone messages that occur in render loop
-	//All are protected by renderMessageMutex
-	//Call following at start and end of paintGL method
-	static void startRendering(){
-		if (!getMessageLock()) assert(0);
-		numActiveRenderers++;
-		MyBase::SetErrMsgCB(messageSaveCallback);
-		releaseMessageLock();
-	}
-	static void finishRendering(){
-		if (!getMessageLock()) assert(0);
-
-		numActiveRenderers--;
-		if (numActiveRenderers == 0) MyBase::SetErrMsgCB(messagePostCallback);
-		//Message release callback will post messages and release the lock...
-		messageReleaseCallback();
-	}
-	static bool getMessageLock(){
-		for (int i = 0; i< 10; i++){
-			if(renderMessageMutex.tryLock()) return true;
-#ifdef WIN32
-			Sleep(100);
-#else
-			sleep(1);
-#endif
-		}
-		return false;
-	}
-	static void releaseMessageLock(){
-		renderMessageMutex.unlock();
-	}
+	
+	
 	void clearRendererBypass(Params::ParamType t);
 	
-	//Following are called by MessageReporter so that GLWindow can redirect messages
-	//during rendering by calling the appropriate callback
-	static void setMessageSaveCB(MyBase::ErrMsgCB_T fcn) {messageSaveCallback = fcn;}
-	static void setMessagePostCB(MyBase::ErrMsgCB_T fcn) {messagePostCallback = fcn;}
-	static void setMessageReleaseCB(ErrMsgReleaseCB_T fcn) {messageReleaseCallback = fcn;}
 
 protected:
 	int winNum;
@@ -586,16 +552,6 @@ protected:
 	float mouseDownPoint[2];
 	// unit vector in direction of handle
 	float handleProjVec[2];
-
-	static int numActiveRenderers;
-	static QMutex renderMessageMutex;
-	
-	static MyBase::ErrMsgCB_T messagePostCallback;
-	static MyBase::ErrMsgCB_T messageSaveCallback;
-	static ErrMsgReleaseCB_T messageReleaseCallback;
-	
-
-
 
 	SpinThread* spinThread;
 	bool isSpinning;

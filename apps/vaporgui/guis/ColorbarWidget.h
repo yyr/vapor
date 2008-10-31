@@ -16,7 +16,7 @@
 #include <set>
 #include <list>
 
-struct GLUquadric;
+class GLUquadric;
 
 class MappingFrame;
 namespace VAPoR {
