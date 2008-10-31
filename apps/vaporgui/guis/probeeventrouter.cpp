@@ -449,7 +449,7 @@ void ProbeEventRouter::updateTab(){
 		
 	
 	probeTextureFrame->setParams(probeParams);
-	
+	probeTextureFrame->update();
 	vizMgr->getTabManager()->update();
 	
 	guiSetTextChanged(false);

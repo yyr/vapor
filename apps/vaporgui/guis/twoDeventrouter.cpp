@@ -389,7 +389,7 @@ void TwoDEventRouter::updateTab(){
 	twoDTextureFrame->setParams(twoDParams);
 	
 	vizMgr->getTabManager()->update();
-	
+	twoDTextureFrame->update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	
