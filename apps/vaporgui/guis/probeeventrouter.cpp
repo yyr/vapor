@@ -568,7 +568,9 @@ void ProbeEventRouter::guiSetProbeType(int t){
 		updateTab();
 	}
 	captureFlowButton->setEnabled(t==1);
+
 	PanelCommand::captureEnd(cmd, pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::ibfvPlay(){
 	//Start playing.  Requires initializing the ibfv sequence,
