@@ -809,11 +809,21 @@ probeOpacityScale() {
 void ProbeEventRouter::
 probeLoadInstalledTF(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	TransferFunction* tf = pParams->getTransFunc();
+	float minb = tf->getMinMapValue();
+	float maxb = tf->getMaxMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	//Get the path from the environment:
 	char *home = getenv("VAPOR_HOME");
 	QString installPath = QString(home)+ "/share/palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
+	tf = pParams->getTransFunc();
+	tf->setMinMapValue(minb);
+	tf->setMaxMapValue(maxb);
+	setEditorDirty();
 	updateClut(pParams);
+	
+	
 }
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the Probe params

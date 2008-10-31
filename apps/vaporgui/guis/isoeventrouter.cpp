@@ -385,7 +385,15 @@ void IsoEventRouter::isoLoadTF(){
 void IsoEventRouter::isoLoadInstalledTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
 	if (iParams->GetMapVariableNum() < 0) return;
+	TransferFunction* tf = (TransferFunction*)iParams->getMapperFunc();
+	float minb = tf->getMinMapValue();
+	float maxb = tf->getMaxMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	loadInstalledTF(iParams,iParams->GetMapVariableNum());
+	tf = (TransferFunction*)iParams->getMapperFunc();
+	tf->setMinMapValue(minb);
+	tf->setMaxMapValue(maxb);
+	setEditorDirty();
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
 	if (iParams->isEnabled())
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();

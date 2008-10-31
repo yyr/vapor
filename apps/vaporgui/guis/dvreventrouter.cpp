@@ -305,7 +305,15 @@ dvrSaveTF(void){
 void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	TransferFunction* tf = dParams->getTransFunc();
+	float minb = tf->getMinMapValue();
+	float maxb = tf->getMaxMapValue();
+	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	loadInstalledTF(dParams,dParams->getSessionVarNum());
+	tf = dParams->getTransFunc();
+	tf->setMinMapValue(minb);
+	tf->setMaxMapValue(maxb);
+	setEditorDirty();
 }
 void DvrEventRouter::
 dvrLoadTF(void){
