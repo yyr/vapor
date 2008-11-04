@@ -113,6 +113,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrfToVdf", "..\wrfToVdf\wrf
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdfedit", "..\vdfedit\vdfedit.vcproj", "{65634769-33F9-4AF8-B9A3-CB53D66ABC7A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -195,6 +201,10 @@ Global
 		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Debug.Build.0 = Debug|Win32
 		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Release.ActiveCfg = Release|Win32
 		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Release.Build.0 = Release|Win32
+		{65634769-33F9-4AF8-B9A3-CB53D66ABC7A}.Debug.ActiveCfg = Debug|Win32
+		{65634769-33F9-4AF8-B9A3-CB53D66ABC7A}.Debug.Build.0 = Debug|Win32
+		{65634769-33F9-4AF8-B9A3-CB53D66ABC7A}.Release.ActiveCfg = Release|Win32
+		{65634769-33F9-4AF8-B9A3-CB53D66ABC7A}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 	EndGlobalSection
