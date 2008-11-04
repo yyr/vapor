@@ -192,8 +192,6 @@ ProbeEventRouter::hookUpTab()
 	
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setProbeEditMode(bool)));
 	
-	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
-	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshProbeHisto()));
 	
 	// Transfer function controls:
@@ -1099,17 +1097,6 @@ guiSetEditMode(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set edit/navigate mode");
 	dParams->setEditMode(mode);
 	PanelCommand::captureEnd(cmd, dParams); 
-}
-void ProbeEventRouter::
-guiSetAligned(){
-	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "align tf in edit frame");
-		
-	setEditorDirty();
-
-	update();
-	PanelCommand::captureEnd(cmd, dParams);
 }
 
 

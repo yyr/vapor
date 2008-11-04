@@ -171,7 +171,7 @@ protected slots:
 	void setProbeEnabled(bool on, int instance);
 	void setProbeEditMode(bool);
 	void setProbeNavigateMode(bool);
-	void guiSetAligned();
+	
 	void probeOpacityScale();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();

@@ -153,7 +153,7 @@ protected slots:
 	void guiSetOpacMapEntity( int entityNum);
 	void setFlowEditMode(bool);
 	void setFlowNavigateMode(bool);
-	void guiSetAligned();
+	
 	void guiSetRakeList(int index);
 	
 	void guiEditSeedList();

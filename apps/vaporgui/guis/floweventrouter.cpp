@@ -2391,9 +2391,7 @@ guiSetFLAOption(int option){
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 }
-void FlowEventRouter::
-guiSetAligned(){
-}
+
 //Respond to a change in mapper function (from color selection or mouse down/release events)
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
 //

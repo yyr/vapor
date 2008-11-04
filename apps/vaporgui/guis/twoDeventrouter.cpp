@@ -160,8 +160,6 @@ TwoDEventRouter::hookUpTab()
 	
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDEditMode(bool)));
 	
-	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
-	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshTwoDHisto()));
 	
 	// Transfer function controls:
@@ -793,17 +791,6 @@ guiSetEditMode(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set edit/navigate mode");
 	dParams->setEditMode(mode);
 	PanelCommand::captureEnd(cmd, dParams); 
-}
-void TwoDEventRouter::
-guiSetAligned(){
-	TwoDParams* dParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "align tf in edit frame");
-		
-	setEditorDirty();
-
-	update();
-	PanelCommand::captureEnd(cmd, dParams);
 }
 
 

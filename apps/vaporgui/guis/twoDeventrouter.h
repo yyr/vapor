@@ -156,7 +156,7 @@ protected slots:
 	void setTwoDEnabled(bool on, int instance);
 	void setTwoDEditMode(bool);
 	void setTwoDNavigateMode(bool);
-	void guiSetAligned();
+	
 	void twoDOpacityScale();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
