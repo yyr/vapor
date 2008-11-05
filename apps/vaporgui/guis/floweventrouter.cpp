@@ -286,7 +286,6 @@ FlowEventRouter::hookUpTab()
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
 
-	connect (alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
 	connect (seedListLoadButton, SIGNAL(clicked()), this, SLOT(guiLoadSeeds()));
 	connect (saveSeedsButton, SIGNAL(clicked()), this, SLOT(saveSeeds()));
 	connect (saveFlowButton, SIGNAL(clicked()), this, SLOT(saveFlowLines()));
