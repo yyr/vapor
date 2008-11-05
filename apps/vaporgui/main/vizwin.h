@@ -259,6 +259,9 @@ protected:
 
     //Event handling
 	//Virtual overrides:
+	virtual void wheelEvent(QWheelEvent* e){
+		e->accept();
+	}
 	virtual void mousePressEvent(QMouseEvent*);
 	virtual void mouseReleaseEvent(QMouseEvent*);
 	virtual void mouseMoveEvent(QMouseEvent*);
