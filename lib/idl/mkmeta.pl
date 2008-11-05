@@ -846,6 +846,7 @@ sub GetFunc {
 		$nElts = "valueptr->size()";
 		$valVecAssign = "valuevec[i] = valvar->value.data[i];";
     	$resAssign = "$idlType *result_ptr = ($idlType *) IDL_MakeTempVector( $idlTypeSpec, valueptr->size(), IDL_ARR_INI_NOP, &result);";
+		$emptyVecCheck = "if (valueptr->size() < 1) $nullVecAssign"
 	}
 	else {
 		$valueType = "const $cType ";
@@ -853,6 +854,7 @@ sub GetFunc {
 		$valVecAssign = "valuevec[i] = ($cType) value;";
         $resPtrAssign = "";
 		$nullVecAssign = "valueptr = &value;";
+		$emptyVecCheck = "";
 	}
 		
 
@@ -890,6 +892,7 @@ IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
         }
     }
 
+	$emptyVecCheck;
 	n = $nElts;
 
     IDL_VPTR result;
