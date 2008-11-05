@@ -1,7 +1,7 @@
 ;
 ;	AddMagVDF.pro
 ;
-;	Utility to read three variables from a VDF and calculate their magnitude
+;	Utility to read three 3D variables from a VDF and calculate their magnitude
 ;	and put it back into the VDF.
 ;	All three variables must be present at full resolution.
 ;	This is performed one time-step at a time.
@@ -10,7 +10,7 @@
 ;	 
 ;	Arguments are:
 ;	vdffile = file path of the metadata file
-;	varx, vary, varz = the 3 variables defining the file
+;	varx, vary, varz = the 3 3D variables defining the field
 ;		whose magnitude is being calculated
 ;	magvarname is the name for the field magnitude being calculated
 ;	tsstart specifies the first timestep for which the magnitude
@@ -49,6 +49,9 @@ vdf_write,mfd,savedvdffile
 ;
 
 varnames = vdf_getvarnames(mfd)
+varnames2d = vdf_getvariables2dxy(mfd)
+have2dvars = (varnames2d[0] NE '')
+
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars) 
@@ -65,8 +68,13 @@ print,'The variable names in the vdf will be: ',newvarnames
 
 ;
 ;	reset the varnames in mfd to the new value:
+;	and set the 2d vars if there are any
 ;
-if (isinvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
+
+if (isinvariables EQ 0) THEN BEGIN
+	vdf_setvarnames,mfd,newvarnames
+	if(have2dvars) THEN vdf_setvariables2DXY,mfd,varnames2d
+ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
 numtimesteps = vdf_getnumtimesteps(mfd)

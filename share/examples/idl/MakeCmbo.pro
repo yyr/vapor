@@ -1,9 +1,9 @@
 ;
-;   MakeLinCmbMod.pro
+;   MakeCombo.pro
 ;
 ;   Utility to calculate a combination of variables in a vdf,
 ;   and put it back into the VDF.
-;   i.e. calculate A*U/W+B*V/T+C/S, where U, V, W, T, and S are variables and
+;   i.e. calculate A*U/W+B*V/T+C/S, where U, V, W, T, and S are 3D variables and
 ;   A, B, and C are constants.  
 ;   All variables involved must be present at full resolution,
 ;
@@ -12,7 +12,7 @@
 ;
 ;   Arguments are:
 ;   vdffile = file path of the metadata file
-;   uVar, vVar, wVar, tVar, sVar = (keyword parameters) the 5 variable names.
+;   uVar, vVar, wVar, tVar, sVar = (keyword parameters) the 5 3D variable names.
 ;       To add a constant, omit S and set C to your constant
 ;   resVar = name for the combination
 ;   A,B,C = coefficients
@@ -72,6 +72,8 @@ vdf_write,mfd,savedvdffile
 ;
 
 varnames = vdf_getvarnames(mfd)
+varnames2d = vdf_getvariables2dxy(mfd)
+have2dvars = (varnames2d[0] NE '')
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars)
@@ -89,7 +91,10 @@ print,'The variable names in the vdf will be: ',newvarnames
 ;
 ;   reset the varnames in mfd to the new value:
 ;
-if (isinvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
+if (isinvariables EQ 0) THEN BEGIN
+	vdf_setvarnames,mfd,newvarnames
+	if(have2dvars) THEN vdf_setvariables2dxy,mfd,varnames2d
+ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
 numtimesteps = vdf_getnumtimesteps(mfd)

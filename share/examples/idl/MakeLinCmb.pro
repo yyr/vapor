@@ -1,9 +1,9 @@
 ;
 ;   MakeLinCmb.pro
 ;
-;   Utility to calculate a linear combination of variables in a vdf,
+;   Utility to calculate a linear combination of 3D variables in a vdf,
 ;   and put it back into the VDF.
-;   i.e. calculate A*U+B*V+C, where U and V are variables and
+;   i.e. calculate A*U+B*V+C, where U and V are 3D variables and
 ;   A, B, and C are constants.  If B is 0, V is ignored.
 ;   U must be present at full resolution,
 ;   If B != 0, then V must be present at full resolution
@@ -43,6 +43,8 @@ vdf_write,mfd,savedvdffile
 ;
 
 varnames = vdf_getvarnames(mfd)
+varnames2D = vdf_getvariables2dxy(mfd)
+have2dvars = (varnames2D[0] NE '')
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars)
@@ -60,7 +62,10 @@ print,'The variable names in the vdf will be: ',newvarnames
 ;
 ;   reset the varnames in mfd to the new value:
 ;
-if (isinvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
+if (isinvariables EQ 0) THEN BEGIN
+	vdf_setvarnames,mfd,newvarnames
+	if(have2dvars) THEN vdf_setvariables2dxy,mfd,varnames2d
+ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
 numtimesteps = vdf_getnumtimesteps(mfd)

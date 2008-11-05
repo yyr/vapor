@@ -1,4 +1,4 @@
-;
+
 ;   AddCurlVDF.pro
 ;
 ;   Utility to read three variables from a VDF, calculate their curl
@@ -13,8 +13,8 @@
 ;
 ;   Arguments are:
 ;   vdffile = file path of the metadata file
-;   varx, vary, varz = the 3 variables defining the file
-;       whose magnitude is being calculated
+;   varx, vary, varz = the 3 variables defining the field 
+;       whose curl is being calculated
 ;   curlx,curly,curlz = the names for the three components
 ;       of the curl being calculated
 ;   tsstart = the time step to start with (or the only time step)
@@ -75,10 +75,12 @@ IF ( keyword_set(mag) && keyword_set(onlymag) ) THEN newnum = 1
 IF ( ~keyword_set(mag) ) THEN newnum = 3
 
 varnames = vdf_getvarnames(mfd)
+varnames2d = vdf_getvariables2DXY(mfd)
+have2dvars = (varnames2d[0] NE '')
 numvarsarray = size(varnames)
 numvars = newnum + numvarsarray[1]
 newvarnames = strarr(numvars)
-;   Need to make sure these are not in the list!
+;   Need to make sure the new var names are not in the list!
 repeatvariables = 0
 print, 'numvars = ',numvars
 FOR I = 0, numvars-newnum-1 DO BEGIN
@@ -115,8 +117,12 @@ IF (repeatvariables EQ newnum) THEN newvarnames = varnames
 ;
 ;   reset the varnames in mfd to the new value:
 ;   provided not all variables are repeated
+;   Note that by default all variable names are 3D
 ;
-if (repeatvariables NE newnum) THEN vdf_setvarnames,mfd,newvarnames
+if (repeatvariables NE newnum) THEN BEGIN
+	vdf_setvarnames,mfd,newvarnames
+	if (have2dvars) THEN vdf_setvariables2DXY,mfd,varnames2d
+ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
 

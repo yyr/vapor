@@ -78,6 +78,8 @@ IF ( keyword_set(mag) && keyword_set(onlymag) ) THEN newnum = 1
 IF ( ~keyword_set(mag) ) THEN newnum = 3
 
 varnames = vdf_getvarnames(mfd)
+varnames2d = vdf_getvariables2dxy(mfd)
+have2dvars = (varnames2d[0] NE '')
 numvarsarray = size(varnames)
 numvars = newnum + numvarsarray[1]
 newvarnames = strarr(numvars)
@@ -115,7 +117,10 @@ ENDIF
 ;
 ;   reset the varnames in mfd to the new value:
 ;
-if (repeatvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
+if (repeatvariables EQ 0) THEN BEGIN
+	vdf_setvarnames,mfd,newvarnames
+	if(have2dvars) THEN vdf_setvariables2dXY,mfd,varnames2D
+ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
 
