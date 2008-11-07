@@ -37,6 +37,7 @@
 #include <ctime>
 #include <netcdf.h>
 #include <algorithm>
+#include <climits>
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>

@@ -36,6 +36,7 @@
 
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <vector>
 #include "vaporinternal/common.h"
 
