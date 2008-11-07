@@ -817,7 +817,6 @@ sub GetFunc {
 		$cType = "string";
 		$resAssign = "result = IDL_StrToSTRING((char *) valueptr->c_str());";
         $resPtrAssign = "IDL_StrStore(&result_ptr[i], (char *) (*valueptr)[i].c_str());";
-		$nullVecAssign = "valueptr = &stringNullVec;";
 	}
 	elsif ($type =~ /long/) {
 		$idlTypeSpec = "IDL_TYP_LONG";
@@ -826,7 +825,6 @@ sub GetFunc {
 		$cType = "long";
 		$resAssign = "result = IDL_GettmpLong((IDL_LONG) *valueptr);";
         $resPtrAssign = "result_ptr[i] = (IDL_LONG) (*valueptr)[i];";
-		$nullVecAssign = "valueptr = &longNullVec;";
 	}
 	elsif ($type =~ /double/) {
 		$idlTypeSpec = "IDL_TYP_DOUBLE";
@@ -834,7 +832,6 @@ sub GetFunc {
 		$cType = "double";
 		$resAssign = "result = IDL_Gettmp(); IDL_ALLTYPES v; v.l = *valueptr; IDL_StoreScalar(result, IDL_TYP_DOUBLE, &v)";
         $resPtrAssign = "result_ptr[i] = (double) (*valueptr)[i];";
-		$nullVecAssign = "valueptr = &doubleNullVec;";
 	}
 	else {
 		die "Invalid type : $type";
@@ -846,14 +843,13 @@ sub GetFunc {
 		$nElts = "valueptr->size()";
 		$valVecAssign = "valuevec[i] = valvar->value.data[i];";
     	$resAssign = "$idlType *result_ptr = ($idlType *) IDL_MakeTempVector( $idlTypeSpec, valueptr->size(), IDL_ARR_INI_NOP, &result);";
-		$emptyVecCheck = "if (valueptr->size() < 1) $nullVecAssign"
+		$emptyVecCheck = "if (valueptr && valueptr->size() < 1) valueptr = NULL;"
 	}
 	else {
 		$valueType = "const $cType ";
 		$nElts = "0";
 		$valVecAssign = "valuevec[i] = ($cType) value;";
         $resPtrAssign = "";
-		$nullVecAssign = "valueptr = &value;";
 		$emptyVecCheck = "";
 	}
 		
@@ -888,16 +884,22 @@ IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
 				IDL_M_NAMED_GENERIC, IDL_MSG_INFO, 
 				"Requested element not present in metafile"
 			);
-			$nullVecAssign
+			valueptr = NULL;
         }
     }
-
-	$emptyVecCheck;
-	n = $nElts;
-
     IDL_VPTR result;
+
+	$emptyVecCheck
+
+	if (! valueptr) {
+		result = IDL_Gettmp();
+		result->type = IDL_TYP_UNDEF;
+		return(result);
+	}
+
 	$resAssign
 
+	n = $nElts;
     for(int i=0; i<n; i++) {
 		$resPtrAssign
     }
