@@ -153,6 +153,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_299F7AB5F16A491F9A01DF202DE2F442"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_29FFDE12BDE84B33812D696C15A5BEC8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1471,6 +1477,26 @@
             "TargetName" = "8:vdfbkup.pl"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{A582A373-4685-4296-BEFE-614B80A702C3}:_299F7AB5F16A491F9A01DF202DE2F442"
+            {
+            "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddWRFETH.pro"
+            "TargetName" = "8:AddWRFETH.pro"
+            "Tag" = "8:"
+            "Folder" = "8:_072F187AA10F49D78093098C4BE5B81C"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
