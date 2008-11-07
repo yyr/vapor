@@ -51,7 +51,7 @@ vdf_write,mfd,savedvdffile
 
 varnames = vdf_getvarnames(mfd)
 varnames2d = vdf_getvariables2dxy(mfd)
-have2dvars = (varnames2d[0] NE '')
+have2dvars = n_elements(varnames2d)
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars)
@@ -172,7 +172,7 @@ vdc_bufwritedestroy, dfdETH
 ;  Replace the vdf file with the new one, the first time through:
 ;
  
-IF (timestep EQ tsstart AND repeatvariables NE 0) THEN vdf_write,mfd,vdffile
+IF (timestep EQ tsstart AND repeatvariables EQ 0) THEN vdf_write,mfd,vdffile
 
 print,'ETH_ completed of timestep ', timestep
 

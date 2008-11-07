@@ -76,7 +76,7 @@ IF ( ~keyword_set(mag) ) THEN newnum = 3
 
 varnames = vdf_getvarnames(mfd)
 varnames2d = vdf_getvariables2DXY(mfd)
-have2dvars = (varnames2d[0] NE '')
+have2dvars = n_elements(varnames2d)
 numvarsarray = size(varnames)
 numvars = newnum + numvarsarray[1]
 newvarnames = strarr(numvars)

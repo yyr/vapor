@@ -44,7 +44,7 @@ vdf_write,mfd,savedvdffile
 
 varnames = vdf_getvarnames(mfd)
 varnames2D = vdf_getvariables2dxy(mfd)
-have2dvars = (varnames2D[0] NE '')
+have2dvars = n_elements(varnames2D)
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars)
