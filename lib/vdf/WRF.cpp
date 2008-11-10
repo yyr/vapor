@@ -404,6 +404,12 @@ int WRF::OpenWrfGetMeta(
 		MyBase::SetErrMsg("Could not find expected dimensions WRF file");
 		return(-1);
 	}
+	for (int i=0; i<4; i++) {
+		if (dimLens[i] < 1) {
+			MyBase::SetErrMsg("Zero-length WRF variable dimension");
+			return(-1);
+		}
+	}
 	if ( wesId < 0 || snsId < 0 || btsId < 0 ) {
 		cerr << "Caution: could not find staggered dimensions in WRF file\n";
 	}
