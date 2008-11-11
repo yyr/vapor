@@ -2531,10 +2531,10 @@
                                                 <cstring>colorbarCheckbox</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Display color scale</string>
+                                                <string>Display color scale of current DVR</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>turn on/off display of color bar in scene</string>
+                                                <string>turn on/off display of color bar of DVR in scene</string>
                                             </property>
                                         </widget>
                                         <spacer>
