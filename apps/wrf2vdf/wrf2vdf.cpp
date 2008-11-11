@@ -1481,6 +1481,15 @@ int	main(int argc, char **argv) {
 	);
 	if (rc < 0) exit(1);
 
+	for (vector<string>::iterator itr = opt.varnames.begin(); itr!=opt.varnames.end(); itr++) {
+		if (find(vdf_vars.begin(),vdf_vars.end(),*itr)==vdf_vars.end()) {
+			MyBase::SetErrMsg(
+				"Requested variable \"%s\" not found in VDF file %s",
+				itr->c_str(), metafile);
+			exit(1);
+		}
+	}
+
 
 	// Process the netCDF files
 	//
