@@ -32,6 +32,9 @@
 #include <vapor/Metadata.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
+#ifdef WIN32
+#include "windows.h"
+#endif
 
 using namespace VetsUtil;
 using namespace VAPoR;

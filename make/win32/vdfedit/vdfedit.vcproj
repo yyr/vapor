@@ -23,7 +23,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/vdfedit/"
 				ProgramDataBaseFileName="../../../targets/win32/built/vdfedit/vc70.pdb"
@@ -34,7 +34,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="mpr.lib netcdf.lib netcdf.lib"
+				AdditionalDependencies="mpr.lib netcdf.lib "
 				OutputFile=".\..\..\..\targets\win32\bin\vdfedit.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
@@ -71,9 +71,9 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(NETCDF_INC_PATH)&quot;;../../../include;"
+				AdditionalIncludeDirectories="&quot;$(NETCDF_INC_PATH)&quot;;../../../include;&quot;$(EXPAT_INC_PATH)&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="4"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/vdfedit/"
 				ProgramDataBaseFileName="../../../targets/win32/built/vdfedit/vc70.pdb"
