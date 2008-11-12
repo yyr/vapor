@@ -168,11 +168,11 @@ reinit(bool doOverride){
 	//Set up the numRefinements combo
 	
 	
-	//Either set the twoD bounds to a default size in the center of the domain, or 
+	//Either set the twoD bounds to default (full) size in the center of the domain, or 
 	//try to use the previous bounds:
 	if (doOverride){
 		for (int i = 0; i<3; i++){
-			float twoDRadius = 0.1f*(extents[i+3] - extents[i]);
+			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
 			float twoDMid = 0.5f*(extents[i+3] + extents[i]);
 			if (i<2) {
 				twoDMin[i] = twoDMid - twoDRadius;
@@ -407,9 +407,9 @@ restart(){
 	maxNumRefinements = 10;
 	
 	for (int i = 0; i<3; i++){
-		if (i < 2) twoDMin[i] = 0.4f;
+		if (i < 2) twoDMin[i] = 0.0f;
 		else twoDMin[i] = 0.5f;
-		if(i<2) twoDMax[i] = 0.6f;
+		if(i<2) twoDMax[i] = 1.0f;
 		else twoDMax[i] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
