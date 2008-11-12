@@ -44,7 +44,7 @@ protected:
 	GLuint _twoDid;
 	int numElevTimesteps;
 	//Cached elevation grid (one for each time step)
-	int maxXElev, maxYElev;
+	int *maxXElev, *maxYElev; // size for each time step
 	float** elevVert, **elevNorm;
 	void invalidateElevGrid();
 	void drawElevationGrid(size_t timestep);

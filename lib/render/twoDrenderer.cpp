@@ -185,7 +185,8 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	if (!elevVert || !elevVert[timeStep]) {
 		if(!rebuildElevationGrid(timeStep)) return;
 	}
-	
+	int maxx = maxXElev[timeStep];
+	int maxy = maxYElev[timeStep];
 	//Establish clipping planes:
 	GLdouble topPlane[] = {0., -1., 0., 1.};
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
@@ -267,33 +268,33 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	//Now we can just traverse the elev grid, one row at a time:
 	
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	for (int j = 0; j< maxYElev-1; j++){
+	for (int j = 0; j< maxy-1; j++){
 		glBegin(GL_TRIANGLE_STRIP);
 		//float vert[3], norm[3];
-		for (int i = 0; i< maxXElev-1; i+=2){
+		for (int i = 0; i< maxx-1; i+=2){
 		
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
-			float tcrdx = (float)i/(float)(maxXElev-1);
-			float tcrdxp = (float)(i+1)/(float)(maxXElev-1);
-			float tcrdy = (float)j/(float)(maxYElev-1);
-			float tcrdyp = (float)(j+1)/(float)(maxYElev-1);
+			float tcrdx = (float)i/(float)(maxx-1);
+			float tcrdxp = (float)(i+1)/(float)(maxx-1);
+			float tcrdy = (float)j/(float)(maxy-1);
+			float tcrdyp = (float)(j+1)/(float)(maxy-1);
 
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxx));
 			glTexCoord2f(tcrdx,tcrdyp);
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxx));
 			glTexCoord2f(tcrdx,tcrdy);
-			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*(i+j*maxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxx));
 			glTexCoord2f(tcrdxp,tcrdyp);
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxx));
 			glTexCoord2f(tcrdxp,tcrdy);
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxx));
 
 		}
 		
@@ -351,9 +352,13 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
 		elevVert = new float*[numElevTimesteps];
 		elevNorm = new float*[numElevTimesteps];
+		maxXElev = new int[numElevTimesteps];
+		maxYElev = new int[numElevTimesteps];
 		for (int i = 0; i< numElevTimesteps; i++){
 			elevVert[i] = 0;
 			elevNorm[i] = 0;
+			maxXElev[i] = 0;
+			maxYElev[i] = 0;
 		}
 	}
 
@@ -417,10 +422,10 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//Then create arrays to hold the vertices and their normals:
-	maxXElev = max_dim[0] - min_dim[0] +1;
-	maxYElev = max_dim[1] - min_dim[1] +1;
-	elevVert[timeStep] = new float[3*maxXElev*maxYElev];
-	elevNorm[timeStep] = new float[3*maxXElev*maxYElev];
+	maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
+	maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
+	elevVert[timeStep] = new float[3*maxXElev[timeStep]*maxYElev[timeStep]];
+	elevNorm[timeStep] = new float[3*maxXElev[timeStep]*maxYElev[timeStep]];
 
 	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
@@ -431,17 +436,18 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	//The z coordinate is taken from the data array, converted to 
 	//stretched cube coords
 	//using parameters in the viewpoint params.
-
+	int maxx = maxXElev[timeStep];
+	int maxy = maxYElev[timeStep];
 	
 	float worldCoord[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
-	for (int j = 0; j<maxYElev; j++){
-		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxYElev-1);
+	for (int j = 0; j<maxy; j++){
+		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxy-1);
 		size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 			
-		for (int i = 0; i<maxXElev; i++){
-			int pntPos = 3*(i+j*maxXElev);
-			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxXElev-1);
+		for (int i = 0; i<maxx; i++){
+			int pntPos = 3*(i+j*maxx);
+			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxx-1);
 			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
 			if (elevData)
 				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
@@ -467,36 +473,37 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 //adjacent vertices will be miniscule
 void TwoDRenderer::calcElevGridNormals(size_t timeStep){
 	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
-	
+	int maxx = maxXElev[timeStep];
+	int maxy = maxYElev[timeStep];
 	//Go over the grid of vertices, calculating normals
 	//by looking at adjacent x,y,z coords.
-	for (int j = 0; j < maxYElev; j++){
-		for (int i = 0; i< maxXElev; i++){
-			float* point = elevVert[timeStep]+3*(i+maxXElev*j);
-			float* norm = elevNorm[timeStep]+3*(i+maxXElev*j);
+	for (int j = 0; j < maxy; j++){
+		for (int i = 0; i< maxx; i++){
+			float* point = elevVert[timeStep]+3*(i+maxx*j);
+			float* norm = elevNorm[timeStep]+3*(i+maxx*j);
 			//do differences of right point vs left point,
 			//except at edges of grid just do differences
 			//between current point and adjacent point:
 			float dx=0.f, dy=0.f, dzx=0.f, dzy=0.f;
-			if (i>0 && i <maxXElev-1){
+			if (i>0 && i <maxx-1){
 				dx = *(point+3) - *(point-3);
 				dzx = *(point+5) - *(point-1);
 			} else if (i == 0) {
 				dx = *(point+3) - *(point);
 				dzx = *(point+5) - *(point+2);
-			} else if (i == maxXElev-1) {
+			} else if (i == maxx-1) {
 				dx = *(point) - *(point-3);
 				dzx = *(point+2) - *(point-1);
 			}
-			if (j>0 && j <maxYElev-1){
-				dy = *(point+1+3*maxXElev) - *(point+1 - 3*maxXElev);
-				dzy = *(point+2+3*maxXElev) - *(point+2 - 3*maxXElev);
+			if (j>0 && j <maxy-1){
+				dy = *(point+1+3*maxx) - *(point+1 - 3*maxx);
+				dzy = *(point+2+3*maxx) - *(point+2 - 3*maxx);
 			} else if (j == 0) {
-				dy = *(point+1+3*maxXElev) - *(point+1);
-				dzy = *(point+2+3*maxXElev) - *(point+2);
-			} else if (j == maxYElev-1) {
-				dy = *(point+1) - *(point+1 - 3*maxXElev);
-				dzy = *(point+2) - *(point+2 - 3*maxXElev);
+				dy = *(point+1+3*maxx) - *(point+1);
+				dzy = *(point+2+3*maxx) - *(point+2);
+			} else if (j == maxy-1) {
+				dy = *(point+1) - *(point+1 - 3*maxx);
+				dzy = *(point+2) - *(point+2 - 3*maxx);
 			}
 			norm[0] = dy*dzx;
 			norm[1] = dx*dzy;
