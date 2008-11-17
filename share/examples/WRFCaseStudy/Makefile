@@ -2,7 +2,7 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-WRF_VSS = WRFFigure1.7.vss WRFFigure1.8.vss WRFFigure1.9.vss \
+WRF_VSS = WRFFigure1.6.vss WRFFigure1.7.vss WRFFigure1.8.vss WRFFigure1.9.vss \
 	WRFFigure1.10.vss WRFFigure1.11.vss WRFFigure1.12.vss \
 	WRFFigure1.13.vss WRFFigure1.14.vss WRFFigure1.15.vss \
 	WRFFigure2.1.vss WRFFigure2.3.vss \
