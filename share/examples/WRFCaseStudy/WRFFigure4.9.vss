@@ -33,7 +33,7 @@
   0 0 7.60009765625 
 </RegionMin>
 </RegionPanelParameters>
-<AnimationPanelParameters CurrentFrame="0"  EndFrame="180"  FrameStepSize="1"  Local="false"  MaxFrameRate="10"  MaxWait="6000"  RepeatPlay="false"  StartFrame="0"  UseTimestepSampleList="false"  VisualizerNum="-1" >
+<AnimationPanelParameters CurrentFrame="150"  EndFrame="180"  FrameStepSize="1"  Local="false"  MaxFrameRate="10"  MaxWait="6000"  RepeatPlay="false"  StartFrame="0"  UseTimestepSampleList="false"  VisualizerNum="-1" >
 </AnimationPanelParameters>
 <ViewpointPanelParameters AmbientCoefficient="0.1"  Local="false"  SpecularExponent="20"  StereoMode="center"  StereoSeparation="0"  VisualizerNum="-1" >
 <Light DiffuseCoefficient="0.8"  LightDirection="0 0 1 "  LightNum="0"  SpecularCoefficient="0.3" >
@@ -43,16 +43,16 @@
 <CurrentViewpoint>
 <Viewpoint Perspective="true" >
 <CameraPosition Type="Double">
-  469353.59375 -396869.28125 9442.70019531 
+  593795.0625 1589236.75 4455.01464844 
 </CameraPosition>
 <RotationCenter Type="Double">
   477000 526500 1612.08618164 
 </RotationCenter>
 <UpVector Type="Double">
-  0.000727318227291 0.746649622917 0.665217161179 
+  0.0378693938255 -0.419402450323 0.907010138035 
 </UpVector>
 <ViewDirection Type="Double">
-  0.0141957644373 0.665142595768 -0.746581554413 
+  -0.0479442849755 -0.90737837553 -0.417571127415 
 </ViewDirection>
 </Viewpoint>
 </CurrentViewpoint>
@@ -746,10 +746,10 @@
 </IsoControl>
 </Variable>
 </IsoPanelParameters>
-<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="0"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="10"  SteadyFlowDirection="0"  SteadyFlowLength="2"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="U V W"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="413853"  unsteadyScale="1" >
-<FlowSeeding GeneratorCountsByDimension="8 8 1"  RandomSeed="1"  RandomSeeding="false"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="954000 1.05281e+006 1357.38"  SeedRegionMins="13629.1 13810 65.7586"  TotalGeneratorCount="50"  UseRake="true" >
+<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="0"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="200"  SteadyFlowDirection="0"  SteadyFlowLength="2"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="U V W"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="327498"  unsteadyScale="1" >
+<FlowSeeding GeneratorCountsByDimension="1 1 1"  RandomSeed="1"  RandomSeeding="true"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="954000 1.05281e+006 3216.7"  SeedRegionMins="13629.1 13810 65.7585"  TotalGeneratorCount="50"  UseRake="true" >
 </FlowSeeding>
-<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="2"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="2"  ObjectsPerFlowline="20"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
+<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="2"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="0"  ObjectsPerFlowline="400"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
 <MapperFunction LeftColorBound="0"  LeftOpacityBound="0"  OpacityComposition="0"  RightColorBound="59.06"  RightOpacityBound="1" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
@@ -779,7 +779,7 @@
 </Variable>
 <Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="59.0605"  RightOpacityBound="59.0605"  VariableName="FieldMagnitude" >
 </Variable>
-<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="63"  RightOpacityBound="63"  VariableName="SeedIndex" >
+<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="49"  RightOpacityBound="49"  VariableName="SeedIndex" >
 </Variable>
 <Variable LeftColorBound="-8.34601"  LeftOpacityBound="-8.34601"  RightColorBound="59.0605"  RightOpacityBound="59.0605"  VariableName="U" >
 </Variable>

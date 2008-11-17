@@ -4,14 +4,19 @@ include ${TOP}/make/config/prebase.mk
 
 WRF_VSS = WRFFigure1.7.vss WRFFigure1.8.vss WRFFigure1.9.vss \
 	WRFFigure1.10.vss WRFFigure1.11.vss WRFFigure1.12.vss \
-	WRFFigure1.13.vss WRFFigure2.1.vss WRFFigure2.3.vss \
+	WRFFigure1.13.vss WRFFigure1.14.vss WRFFigure1.15.vss \
+	WRFFigure2.1.vss WRFFigure2.3.vss \
 	WRFFigure2.4.vss WRFFigure2.5.vss WRFFigure2.6.vss \
 	WRFFigure2.7.vss WRFFigure3.1.vss WRFFigure3.2.vss \
-	WRFFigure3.3.vss WRFFigure3.4.vss WRFFigure3.5.vss \
-	WRFFigure3.6.vss WRFFigure3.7.vss WRFFigure3.8.vss \
+	WRFFigure3.3.vss  \
 	WRFFigure4.1.vss WRFFigure4.2.vss WRFFigure4.3.vss \
 	WRFFigure4.4.vss WRFFigure4.5.vss WRFFigure4.6.vss \
-	WRFFigure4.7.vss 
+	WRFFigure4.7.vss WRFFigure4.8.vss WRFFigure4.9.vss \
+	WRFFigure4.10.vss WRFFigure4.11.vss WRFFigure4.12.vss \
+	WRFFigure4.13.vss
+	WRFFigure5.1.vss WRFFigure5.2.vss WRFFigure5.3.vss \
+	WRFFigure5.4.vss WRFFigure5.5.vss WRFFigure5.6.vss \
+	WRFFigure5.7.vss
 
 VERSION = $(shell cat $(TOP)/Version)
 INSTALL_WRF_VSS_DIR = $(INSTALL_PREFIX_DIR)/share/examples/WRFCaseStudy

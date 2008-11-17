@@ -33,7 +33,7 @@
   0 0 7.60009765625 
 </RegionMin>
 </RegionPanelParameters>
-<AnimationPanelParameters CurrentFrame="0"  EndFrame="180"  FrameStepSize="1"  Local="false"  MaxFrameRate="10"  MaxWait="6000"  RepeatPlay="false"  StartFrame="0"  UseTimestepSampleList="false"  VisualizerNum="-1" >
+<AnimationPanelParameters CurrentFrame="150"  EndFrame="180"  FrameStepSize="1"  Local="false"  MaxFrameRate="10"  MaxWait="6000"  RepeatPlay="false"  StartFrame="0"  UseTimestepSampleList="false"  VisualizerNum="-1" >
 </AnimationPanelParameters>
 <ViewpointPanelParameters AmbientCoefficient="0.1"  Local="false"  SpecularExponent="20"  StereoMode="center"  StereoSeparation="0"  VisualizerNum="-1" >
 <Light DiffuseCoefficient="0.8"  LightDirection="0 0 1 "  LightNum="0"  SpecularCoefficient="0.3" >
@@ -43,16 +43,16 @@
 <CurrentViewpoint>
 <Viewpoint Perspective="true" >
 <CameraPosition Type="Double">
-  469353.59375 -396869.28125 9442.70019531 
+  1015992.5625 1603714.125 5242.17138672 
 </CameraPosition>
 <RotationCenter Type="Double">
-  477000 526500 1612.08618164 
+  495448.5 953088.5 1493.97998047 
 </RotationCenter>
 <UpVector Type="Double">
-  0.000727318227291 0.746649622917 0.665217161179 
+  -0.297837793827 -0.285328179598 0.910435974598 
 </UpVector>
 <ViewDirection Type="Double">
-  0.0141957644373 0.665142595768 -0.746581554413 
+  -0.56960773468 -0.711950182915 -0.410147488117 
 </ViewDirection>
 </Viewpoint>
 </CurrentViewpoint>
@@ -75,7 +75,7 @@
 </ViewpointPanelParameters>
 </GlobalParameterPanels>
 <Visualizers>
-<VizWindow AxesEnabled="false"  AxisAnnotationColor="255 255 255"  AxisAnnotationEnabled="false"  AxisLabelDigits="4"  AxisLabelHeight="10"  AxisOriginPosition="0 0 0"  AxisPosition="0 0 0"  AxisTicLengths="52650 47700 47700"  ColorbarBackgroundColor="0 0 0"  ColorbarEnabled="false"  ColorbarLLPosition="0.1 0.1"  ColorbarNumTics="11"  ColorbarURPosition="0.3 0.5"  ElevGridColor="150 75 0"  ElevGridDisplacement="0"  ElevGridInverted="false"  ElevGridRefinement="0"  ElevGridRenderingEnabled="true"  ElevGridRotation="0"  ElevGridTextureFilename="C:/Vapor/exampleData/april_lowres/georgia_satview.jpg"  ElevGridTextured="true"  MaxTicPositions="954000 1.053e+006 15936.3"  MinTicPositions="0 0 7.37964"  NumTicMarks="6 6 6"  TicDirections="1 0 0"  TicWidth="2"  TimeAnnotationColor="255 255 255"  TimeAnnotationCoords="0.1 0.1"  TimeAnnotationTextSize="10"  TimeAnnotationType="none"  VisualizerNum="0"  WindowName="Visualizer No. 0" >
+<VizWindow AxesEnabled="false"  AxisAnnotationColor="255 255 255"  AxisAnnotationEnabled="false"  AxisLabelDigits="4"  AxisLabelHeight="10"  AxisOriginPosition="0 0 0"  AxisPosition="0 0 0"  AxisTicLengths="52650 47700 47700"  ColorbarBackgroundColor="0 0 0"  ColorbarEnabled="false"  ColorbarLLPosition="0.1 0.1"  ColorbarNumTics="11"  ColorbarURPosition="0.3 0.5"  ElevGridColor="150 75 0"  ElevGridDisplacement="0"  ElevGridInverted="false"  ElevGridRefinement="1"  ElevGridRenderingEnabled="true"  ElevGridRotation="0"  ElevGridTextureFilename="C:/Vapor/exampleData/april_lowres/georgia_satview.jpg"  ElevGridTextured="true"  MaxTicPositions="954000 1.053e+006 15936.3"  MinTicPositions="0 0 7.37964"  NumTicMarks="6 6 6"  TicDirections="1 0 0"  TicWidth="2"  TimeAnnotationColor="255 255 255"  TimeAnnotationCoords="0.1 0.1"  TimeAnnotationTextSize="10"  TimeAnnotationType="none"  VisualizerNum="0"  WindowName="Visualizer No. 0" >
 <DvrPanelParameters ActiveVariableName="QVAPOR"  BitsPerVoxel="8"  DVRLighting="false"  DVRPreIntegration="false"  HistoStretchFactor="1"  NumTransforms="0"  NumVariables="12"  TFEditMode="true"  VisualizerNum="0" >
 <Variable LeftEditBound="-8.34601"  OpacityScale="1"  RightEditBound="59.0605"  VariableName="U" >
 <TransferFunction LeftBound="-8.34601"  OpacityComposition="0"  RightBound="59.0605" >
@@ -746,10 +746,10 @@
 </IsoControl>
 </Variable>
 </IsoPanelParameters>
-<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="0"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="10"  SteadyFlowDirection="0"  SteadyFlowLength="2"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="U V W"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="413853"  unsteadyScale="1" >
-<FlowSeeding GeneratorCountsByDimension="8 8 1"  RandomSeed="1"  RandomSeeding="false"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="954000 1.05281e+006 1357.38"  SeedRegionMins="13629.1 13810 65.7586"  TotalGeneratorCount="50"  UseRake="true" >
+<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="1"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="200"  SteadyFlowDirection="0"  SteadyFlowLength="2"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="U V W"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="327498"  unsteadyScale="1" >
+<FlowSeeding GeneratorCountsByDimension="1 1 1"  RandomSeed="1"  RandomSeeding="true"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="949457 1.05281e+006 3216.7"  SeedRegionMins="13629.1 13810 65.7585"  TotalGeneratorCount="50"  UseRake="true" >
 </FlowSeeding>
-<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="2"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="2"  ObjectsPerFlowline="20"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
+<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="2"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="0"  ObjectsPerFlowline="400"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
 <MapperFunction LeftColorBound="0"  LeftOpacityBound="0"  OpacityComposition="0"  RightColorBound="59.06"  RightOpacityBound="1" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
@@ -779,7 +779,7 @@
 </Variable>
 <Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="59.0605"  RightOpacityBound="59.0605"  VariableName="FieldMagnitude" >
 </Variable>
-<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="63"  RightOpacityBound="63"  VariableName="SeedIndex" >
+<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="49"  RightOpacityBound="49"  VariableName="SeedIndex" >
 </Variable>
 <Variable LeftColorBound="-8.34601"  LeftOpacityBound="-8.34601"  RightColorBound="59.0605"  RightOpacityBound="59.0605"  VariableName="U" >
 </Variable>
@@ -796,8 +796,8 @@
 <Variable LeftColorBound="7.90394"  LeftOpacityBound="7.90394"  RightColorBound="16172.6"  RightOpacityBound="16172.6"  VariableName="P" >
 </Variable>
 </FlowPanelParameters>
-<ProbePanelParameters Alpha="0.12"  FieldScale="1"  FieldVariables="U V W "  HistoStretchFactor="1"  MergeColors="false"  NumTransforms="0"  NumVariables="12"  Planar="true"  ProbeType="0"  TFEditMode="true"  VisualizerNum="0" >
-<Variable LeftEditBound="-8.34601"  OpacityScale="1"  RightEditBound="59.0605"  VariableName="U"  VariableSelected="true" >
+<ProbePanelParameters Alpha="0.12"  FieldScale="1"  FieldVariables="U V W "  HistoStretchFactor="1"  MergeColors="false"  NumTransforms="1"  NumVariables="12"  Planar="true"  ProbeType="1"  TFEditMode="true"  VisualizerNum="0" >
+<Variable LeftEditBound="-8.34601"  OpacityScale="1"  RightEditBound="59.0605"  VariableName="U"  VariableSelected="false" >
 <TransferFunction LeftBound="-8.34601"  OpacityComposition="0"  RightBound="59.0605" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
@@ -845,8 +845,8 @@
 </Colormap>
 </TransferFunction>
 </Variable>
-<Variable LeftEditBound="-0.0873267"  OpacityScale="1"  RightEditBound="0.0852899"  VariableName="W"  VariableSelected="false" >
-<TransferFunction LeftBound="-0.0873267"  OpacityComposition="0"  RightBound="0.0852899" >
+<Variable LeftEditBound="-0.0873267"  OpacityScale="1"  RightEditBound="0.0852899"  VariableName="W"  VariableSelected="true" >
+<TransferFunction LeftBound="-0.08733"  OpacityComposition="0"  RightBound="0.08529" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
 </OpacityMapControlPoint>
@@ -1085,7 +1085,7 @@
 </Colormap>
 </TransferFunction>
 </Variable>
-<ProbeGeometry CursorCoords="0 0"  PhiAngle="0"  ProbeMax="572400 631800 7971.85"  ProbeMin="381600 421200 7971.85"  PsiAngle="0"  ThetaAngle="0" >
+<ProbeGeometry CursorCoords="0 0.0703125"  PhiAngle="90"  ProbeMax="615000 891053 1239.29"  ProbeMin="265000 888947 1239.29"  PsiAngle="90"  ThetaAngle="45" >
 </ProbeGeometry>
 </ProbePanelParameters>
 <TwoDPanelParameters HistoStretchFactor="1"  MapToTerrain="false"  NumTransforms="0"  NumVariables="8"  TFEditMode="true"  VerticalDisplacement="0"  VisualizerNum="0" >
