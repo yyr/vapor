@@ -13,7 +13,7 @@ WRF_VSS = WRFFigure1.7.vss WRFFigure1.8.vss WRFFigure1.9.vss \
 	WRFFigure4.4.vss WRFFigure4.5.vss WRFFigure4.6.vss \
 	WRFFigure4.7.vss WRFFigure4.8.vss WRFFigure4.9.vss \
 	WRFFigure4.10.vss WRFFigure4.11.vss WRFFigure4.12.vss \
-	WRFFigure4.13.vss
+	WRFFigure4.13.vss \
 	WRFFigure5.1.vss WRFFigure5.2.vss WRFFigure5.3.vss \
 	WRFFigure5.4.vss WRFFigure5.5.vss WRFFigure5.6.vss \
 	WRFFigure5.7.vss
