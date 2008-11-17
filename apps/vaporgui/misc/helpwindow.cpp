@@ -163,7 +163,7 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 
 }
 
-bool get_doc_path_from_bundle(string &path) {
+bool get_doc_path_from_bundle(string & /*path*/) {
 
 #ifdef	Darwin
 	//
