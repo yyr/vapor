@@ -11,11 +11,11 @@
 </OpacityMapControlPoint>
 </OpacityMap>
 <Colormap MaxValue="1"  MinValue="0" >
-<ColorMapControlPoint HSV="0.833333 1 1"  Value="0" >
+<ColorMapControlPoint HSV="0.75 1 1"  Value="0" >
 </ColorMapControlPoint>
-<ColorMapControlPoint HSV="0.666667 1 1"  Value="0.333" >
+<ColorMapControlPoint HSV="0.555556 1 1"  Value="0.333" >
 </ColorMapControlPoint>
-<ColorMapControlPoint HSV="0.333333 1 1"  Value="0.667" >
+<ColorMapControlPoint HSV="0.277778 1 1"  Value="0.667" >
 </ColorMapControlPoint>
 <ColorMapControlPoint HSV="0 1 1"  Value="1" >
 </ColorMapControlPoint>
