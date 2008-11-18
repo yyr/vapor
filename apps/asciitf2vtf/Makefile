@@ -8,7 +8,7 @@ FILES = asciitf2vtf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = params vdf common 
+LIBRARIES = params flow vdf common 
 
 include ${TOP}/make/config/base.mk
 

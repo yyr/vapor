@@ -5,7 +5,6 @@ include ${TOP}/make/config/prebase.mk
 TFS = farge_turb1.vtf grayscale.vtf reversedOpaque.vtf reversed.vtf
 
 
-VERSION = $(shell cat $(TOP)/Version)
 INSTALL_PALETTE_DIR = $(INSTALL_PREFIX_DIR)/share/palettes
 
 include ${TOP}/make/config/base.mk

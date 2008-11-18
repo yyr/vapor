@@ -18,7 +18,6 @@ QUICKSTART_VSS = 8spothighres.vss guideFigure1.10.vss guideFigure1.11.vss \
 	guideFigure5.5.vss saved8spot.vss
 
 
-VERSION = $(shell cat $(TOP)/Version)
 INSTALL_QS_VSS_DIR = $(INSTALL_PREFIX_DIR)/share/examples/quickstart
 
 include ${TOP}/make/config/base.mk

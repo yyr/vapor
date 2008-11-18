@@ -13,5 +13,19 @@ endif
 
 #LIB_DEFS = common.def
 
+#
+# Force version to be updated before other processing
+#
+all:: VERSION
+
+
 include ${TOP}/make/config/base.mk
+
+
+VERSION: $(INCDIR)/$(PROJECT)/Version.h
+
+$(INCDIR)/$(PROJECT)/Version.h:: Version.h.sed  $(TOP)/Version
+	$(ECHO) "Rebuilding $(INCDIR)/$(PROJECT)/Version.h"
+	sed -e 's/MAJOR/$(VERSION_MAJOR)/' -e 's/MINOR/$(VERSION_MINOR)/' -e 's/RELEASE/$(VERSION_RELEASE)/' < Version.h.sed > $(INCDIR)/$(PROJECT)/Version.h
+
 

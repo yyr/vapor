@@ -10,19 +10,6 @@ endif
 
 include ${TOP}/make/config/base.mk
 
-all:: Version
-
-ifeq ($(ARCH),Darwin)
-
-Version: $(BINDIR)/vaporversion
-	@DYLD_LIBRARY_PATH=$(DSO_DIR); export DYLD_LIBRARY_PATH; $(BINDIR)/vaporversion > Version
-else
-Version: $(BINDIR)/vaporversion
-	@LD_LIBRARY_PATH=$(DSO_DIR); export LD_LIBRARY_PATH; $(BINDIR)/vaporversion > Version
-endif
-
-$(BINDIR)/vaporversion:
-
 install-dep:: install
 	@sed -e s#ARCH#$(ARCH)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
 	@chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh
@@ -32,7 +19,7 @@ MAC_BUNDLE_DIR = /tmp/vapor-macbundle
 macbundle: install-dep
 macbundle: FRC
 	@if test ! -d $(MAC_BUNDLE_DIR); then $(MKDIR) $(MAC_BUNDLE_DIR); fi
-	@DYLD_LIBRARY_PATH=$(DSO_DIR); export DYLD_LIBRARY_PATH; $(TOP)/buildutils/macbundle.pl $(INSTALL_PREFIX_DIR) $(TOP)/MacBundle/VAPOR.app $(MAC_BUNDLE_DIR) `$(BINDIR)/vaporversion -numeric`
+	$(TOP)/buildutils/macbundle.pl $(INSTALL_PREFIX_DIR) $(TOP)/MacBundle/VAPOR.app $(MAC_BUNDLE_DIR) $(VERSION) 
 	if test ! -d $(MAC_BUNDLE_DIR)/Install_Resources; then $(MKDIR) $(MAC_BUNDLE_DIR)/Install_Resources; fi
 	$(CP) $(TOP)/buildutils/postflight $(MAC_BUNDLE_DIR)/Install_Resources
 	$(CP) $(TOP)/Images/splash.jpg $(MAC_BUNDLE_DIR)/Install_Resources

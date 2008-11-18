@@ -17,4 +17,4 @@ FRC:
 
 clobber::
 	@$(ECHO) Removing doxygen output
-	@rm -fr $(DOCDIR)/*
+	@-rm -fr $(DOCDIR)/*

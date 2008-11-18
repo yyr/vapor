@@ -10,7 +10,6 @@ IDL_EXAMPLES = AddMagVDF.pro AddCurlVDF.pro PrintMetaVDF.pro \
 	impregion.pro marschner_lobb.pro QuickStartEx1.pro myderiv.pro
 
 
-VERSION = $(shell cat $(TOP)/Version)
 INSTALL_IDL_EX_DIR = $(INSTALL_PREFIX_DIR)/share/examples/idl
 
 include ${TOP}/make/config/base.mk

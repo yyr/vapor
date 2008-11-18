@@ -26,6 +26,13 @@ BUILDDIR := dummy_builddir
 endif
 endif
 
+VERSION :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)/\1/')
+VERSION_MAJOR :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/\([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*/\1/')
+VERSION_MINOR :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/[0-9][0-9]*\.\([0-9][0-9]*\)\.[0-9][0-9]*/\1/')
+VERSION_RELEASE :=  $(shell tr -d '[:space:]' < $(TOP)/Version | sed 's/[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)/\1/')
+
+VERSION_APP := $(PROJECT)-$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+
 
 CR_CC = $(CC)
 CR_CXX = $(CXX)
@@ -328,7 +335,8 @@ ifeq ($(ARCH), IRIX64)
 LDFLAGS += -L$(DSO_DIR) -rpath $(DSO_DIR)
 else
 ifeq ($(ARCH), Linux)
-LDFLAGS += -L$(DSO_DIR) -Xlinker -rpath -Xlinker $(DSO_DIR)
+#LDFLAGS += -L$(DSO_DIR) -Xlinker -rpath -Xlinker $(DSO_DIR)
+LDFLAGS += -L$(DSO_DIR) 
 else
 LDFLAGS += -L$(DSO_DIR) 
 endif
@@ -369,7 +377,7 @@ ifdef SUBDIRS
 	for i in $(SUBDIRS); do $(MAKE) -C $$i headers; done
 else
 ifdef	HEADER_FILES
-$(HEADER_FILES): 
+$(HEADER_FILES)::
 	@$(RM) $@
 	@$(LN) $(INCDIR)/$(PROJECT)/$@ $@
 
