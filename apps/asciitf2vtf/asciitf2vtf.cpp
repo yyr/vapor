@@ -46,7 +46,7 @@ void Usage(OptionParser &op, const char * msg) {
 	if (msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
-	cerr << "Usage: " << ProgName << " [options] file.vtf" << endl;
+	cerr << "Usage: " << ProgName << " [options] (-cmap cmap.txt | -omap omap.txt) file.vtf" << endl;
 	op.PrintOptionHelp(stderr);
 
 }
@@ -83,7 +83,11 @@ int	main(int argc, char **argv) {
 		Usage(op, "Wrong number of arguments");
 		exit(1);
 	}
-
+	
+	if ((strlen(opt.cmap) == 0) && (strlen(opt.omap) == 0)) {
+		Usage(op, "Wrong number of arguments");
+		exit(1);
+	}
 
 	TransferFunctionLite tf(8);
 	if (MyBase::GetErrCode() !=0) exit(1);
