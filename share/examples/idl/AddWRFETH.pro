@@ -140,17 +140,18 @@ thtecon3=.81
 
 ; process the data one slice at a time:
 
-
+maxslcETH = 0.0
+minslcETH = 10000000.
 FOR z = 0, dim[2]-1 DO BEGIN
     vdc_bufreadslice, dfdP, slcP
     vdc_bufreadslice, dfdPB, slcPB
     vdc_bufreadslice, dfdQV, slcQV
     vdc_bufreadslice, dfdTK, slcTK
-    PR = slcP + slcPB
-   
+    PR = (slcP + slcPB)*0.01
     
-    Q = slcQV < 1.e-15
+    Q = slcQV > 1.e-15
     E = Q*PR/(eps+Q)
+     
     tlcl = tlclc1/(alog(slcTK^tlclc2/E)-tlclc3)+tlclc4
     slcETH = slcTK*(1000./PR)^(gamm*(1.+gammamd*Q))*EXP((thtecon1/tlcl-thtecon2)*Q*(1.+thtecon3*Q))
     ;  Report every 20 slices
