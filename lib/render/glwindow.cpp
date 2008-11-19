@@ -158,6 +158,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 
 	elevVert = 0;
 	elevNorm = 0;
+	maxXElev = 0;
+	maxYElev = 0;
+	xbeg = ybeg = xfactr = yfactr = 0;
 	numElevTimesteps = 0;
 	_elevTexid = 0;
 	displacement = 0;
@@ -1242,7 +1245,12 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	if (!elevVert || !elevVert[timeStep]) {
 		if(!rebuildElevationGrid(timeStep)) return;
 	}
-	
+	mxx = maxXElev[timeStep];
+	mxy = maxYElev[timeStep];
+	xfct = xfactr[timeStep];
+	xbg = xbeg[timeStep];
+	yfct = yfactr[timeStep];
+	ybg = ybeg[timeStep];
 	//Establish clipping planes:
 	GLdouble topPlane[] = {0., -1., 0., 1.};
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
@@ -1339,50 +1347,35 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	//Now we can just traverse the elev grid, one row at a time:
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	for (int j = 0; j< maxYElev-1; j++){
-		glBegin(GL_TRIANGLE_STRIP);
+	
+	
+	for (int j = 0; j< mxy-1; j++){
+		glBegin(GL_QUAD_STRIP);
 		//float vert[3], norm[3];
-		if(elevGridTextureEnabled()) for (int i = 0; i< maxXElev-1; i+=2){
+		if(elevGridTextureEnabled()) for (int i = 0; i< mxx; i++){
 		
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
-			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
+			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j).  Send 2 at a time.
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*mxx));
 			glTexCoord2fv(setTexCrd(i,j+1));
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*mxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+j*mxx));
 			glTexCoord2fv(setTexCrd(i,j));
-			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
-			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
-			glTexCoord2fv(setTexCrd(i+1,j+1));
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
-			
-
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
-			glTexCoord2fv(setTexCrd(i+1,j));
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
-			
-
+			glVertex3fv(elevVert[timeStep]+3*(i+j*mxx));
 		}
 		
-		else for (int i = 0; i< maxXElev-1; i+=2){ //No texture
+		else for (int i = 0; i< mxx; i++){ //No texture
 		
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*mxx));
+			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*mxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
-			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
-			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
-			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+j*mxx));
+			glVertex3fv(elevVert[timeStep]+3*(i+j*mxx));
 			
 		}
 		glEnd();
@@ -1413,26 +1406,26 @@ setTexCrd(int i, int j){
 	static GLfloat tcoord[2];
 	switch (textureRotation) {
 		case (0) :
-			tcoord[0] = (float)i/(float)(maxXElev-1);
-			tcoord[1] = (float)j/(float)(maxYElev-1);
+			tcoord[0] = xbg + (float)i*xfct;
+			tcoord[1] = ybg + (float)j*yfct;
 			break;
 		case (90) :
-			tcoord[0] = (float)j/(float)(maxYElev-1);
-			tcoord[1] = (float)(maxXElev - i -1)/(float)(maxXElev-1);
+			tcoord[0] = ybg + (float)j*yfct;
+			tcoord[1] = xbg + (float)(mxx - i -1)*xfct;
 			break;
 		case(180) :
-			tcoord[0] = (float)(maxXElev - i -1)/(float)(maxXElev-1);
-			tcoord[1] = (float)(maxYElev - j -1)/(float)(maxYElev-1);
+			tcoord[0] = xbg + (float)(mxx - i -1)*xfct;
+			tcoord[1] = ybg + (float)(mxy - j -1)*yfct;
 			break;
 		case(270) :
-			tcoord[1] = (float)(i)/(float)(maxXElev-1);
-			tcoord[0] = (float)(maxYElev - j -1)/(float)(maxYElev-1);
+			tcoord[1] = xbg + (float)i*xfct;
+			tcoord[0] = ybg + (float)(mxy - j -1)*yfct;
 			break;
 		default:
 			assert(0);
 	}
 	if (textureUpsideDown) {
-		tcoord[0] = 1.f - tcoord[0];
+		tcoord[0] = (mxx-1)*xfct - tcoord[0];
 	}
 	return tcoord;
 	
@@ -1457,6 +1450,12 @@ void GLWindow::invalidateElevGrid(){
 		delete elevNorm;
 		elevNorm = 0;
 		numElevTimesteps = 0;
+		delete maxXElev;
+		delete maxYElev;
+		delete xfactr;
+		delete yfactr;
+		delete xbeg;
+		delete ybeg;
 	}
 }
 bool GLWindow::rebuildElevationGrid(size_t timeStep){
@@ -1466,16 +1465,28 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
 		elevVert = new float*[numElevTimesteps];
 		elevNorm = new float*[numElevTimesteps];
+		maxXElev = new int[numElevTimesteps];
+		maxYElev = new int[numElevTimesteps];
+		xfactr = new float[numElevTimesteps];
+		yfactr = new float[numElevTimesteps];
+		xbeg = new float[numElevTimesteps];
+		ybeg = new float[numElevTimesteps];
 		for (int i = 0; i< numElevTimesteps; i++){
 			elevVert[i] = 0;
 			elevNorm[i] = 0;
+			maxXElev[i] = 0;
+			maxYElev[i] = 0;
+			xfactr[i] = 0.f;
+			yfactr[i] = 0.f;
+			xbeg[i] = 0.f;
+			ybeg[i] = 0.f;
 		}
 	}
 
 	//find the grid coordinate ranges
 	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
 	double regMin[3],regMax[3];
-	
+	double regMinOrig[3], regMaxOrig[3];
 	DataStatus* ds = DataStatus::getInstance();
 	//See if there is a HGT variable
 	
@@ -1535,6 +1546,8 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			for (int i = 0; i<3; i++){
 				regMin[i] = rParams->getRegionMin(i);
 				regMax[i] = rParams->getRegionMax(i);
+				regMinOrig[i] = regMin[i];
+				regMaxOrig[i] = regMax[i];
 			}
 		}
 	} else {
@@ -1543,6 +1556,8 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		for (int i = 0; i< 3; i++){
 			regMin[i] = rParams->getRegionMin(i);
 			regMax[i] = rParams->getRegionMax(i);
+			regMinOrig[i] = regMin[i];
+			regMaxOrig[i] = regMax[i];
 		}
 		//Try to get requested refinement level or the nearest acceptable level:
 		int refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
@@ -1573,10 +1588,24 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		}
 	}
 	//Then create arrays to hold the vertices and their normals:
-	maxXElev = max_dim[0] - min_dim[0] +1;
-	maxYElev = max_dim[1] - min_dim[1] +1;
-	elevVert[timeStep] = new float[3*maxXElev*maxYElev];
-	elevNorm[timeStep] = new float[3*maxXElev*maxYElev];
+	mxx = maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
+	mxy = maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
+	elevVert[timeStep] = new float[3*mxx*mxy];
+	elevNorm[timeStep] = new float[3*mxx*mxy];
+	
+	//Determine linear function that maps points of grid into the
+	//subset of interval (0,1)  associated with region.  Interval [0,1] is because the
+	// extents are mapped into unit box.
+	//There are mxx points evenly spaced
+	//going from xbeg to (mxx-1)*xfactr.  
+	xbeg[timeStep] = (regMin[0]-regMinOrig[0])/(regMaxOrig[0]-regMinOrig[0]);
+	//Bx is the max x coordinate, xbeg is min x coord.
+	float Bx = (regMax[0] - regMinOrig[0])/(regMaxOrig[0]-regMinOrig[0]);
+	xfactr[timeStep] = (Bx - xbeg[timeStep])/(float)(mxx-1);
+	ybeg[timeStep] = (regMin[1]-regMinOrig[1])/(regMaxOrig[1]-regMinOrig[1]);
+	float By = (regMax[1] - regMinOrig[1])/(regMaxOrig[1]-regMinOrig[1]);
+	yfactr[timeStep] = (By - ybeg[timeStep])/(float)(mxy-1);
+
 
 	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
@@ -1591,13 +1620,13 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	
 	float worldCoord[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
-	for (int j = 0; j<maxYElev; j++){
-		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxYElev-1);
+	for (int j = 0; j<mxy; j++){
+		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(mxy-1);
 		size_t ycrd = 0; 
 		if (varnum >= 0) ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-		for (int i = 0; i<maxXElev; i++){
-			int pntPos = 3*(i+j*maxXElev);
-			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxXElev-1);
+		for (int i = 0; i<mxx; i++){
+			int pntPos = 3*(i+j*mxx);
+			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(mxx-1);
 			if (varnum < 0) { //No elevation data, just use min extents:
 				worldCoord[2] = minElev+displacement;
 			} else {
@@ -1615,6 +1644,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	}
 	//Now calculate normals:
 	calcElevGridNormals(timeStep);
+	
 	return true;
 }
 //Once the elevation grid vertices are determined, calculate the normals.  Use the stretched
@@ -1628,36 +1658,37 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 //adjacent vertices will be miniscule
 void GLWindow::calcElevGridNormals(size_t timeStep){
 	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
-	
+	mxx = maxXElev[timeStep];
+	mxy = maxYElev[timeStep];
 	//Go over the grid of vertices, calculating normals
 	//by looking at adjacent x,y,z coords.
-	for (int j = 0; j < maxYElev; j++){
-		for (int i = 0; i< maxXElev; i++){
-			float* point = elevVert[timeStep]+3*(i+maxXElev*j);
-			float* norm = elevNorm[timeStep]+3*(i+maxXElev*j);
+	for (int j = 0; j < mxy; j++){
+		for (int i = 0; i< mxx; i++){
+			float* point = elevVert[timeStep]+3*(i+mxx*j);
+			float* norm = elevNorm[timeStep]+3*(i+mxx*j);
 			//do differences of right point vs left point,
 			//except at edges of grid just do differences
 			//between current point and adjacent point:
 			float dx=0.f, dy=0.f, dzx=0.f, dzy=0.f;
-			if (i>0 && i <maxXElev-1){
+			if (i>0 && i <mxx-1){
 				dx = *(point+3) - *(point-3);
 				dzx = *(point+5) - *(point-1);
 			} else if (i == 0) {
 				dx = *(point+3) - *(point);
 				dzx = *(point+5) - *(point+2);
-			} else if (i == maxXElev-1) {
+			} else if (i == mxx-1) {
 				dx = *(point) - *(point-3);
 				dzx = *(point+2) - *(point-1);
 			}
-			if (j>0 && j <maxYElev-1){
-				dy = *(point+1+3*maxXElev) - *(point+1 - 3*maxXElev);
-				dzy = *(point+2+3*maxXElev) - *(point+2 - 3*maxXElev);
+			if (j>0 && j <mxy-1){
+				dy = *(point+1+3*mxx) - *(point+1 - 3*mxx);
+				dzy = *(point+2+3*mxx) - *(point+2 - 3*mxx);
 			} else if (j == 0) {
-				dy = *(point+1+3*maxXElev) - *(point+1);
-				dzy = *(point+2+3*maxXElev) - *(point+2);
-			} else if (j == maxYElev-1) {
-				dy = *(point+1) - *(point+1 - 3*maxXElev);
-				dzy = *(point+2) - *(point+2 - 3*maxXElev);
+				dy = *(point+1+3*mxx) - *(point+1);
+				dzy = *(point+2+3*mxx) - *(point+2);
+			} else if (j == mxy-1) {
+				dy = *(point+1) - *(point+1 - 3*mxx);
+				dzy = *(point+2) - *(point+2 - 3*mxx);
 			}
 			norm[0] = dy*dzx;
 			norm[1] = dx*dzy;

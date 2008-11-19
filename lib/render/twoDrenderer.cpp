@@ -187,6 +187,11 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	}
 	int maxx = maxXElev[timeStep];
 	int maxy = maxYElev[timeStep];
+	if (maxx < 2 || maxy < 2) return;
+	float firstx = minXTex[timeStep];
+	float firsty = minYTex[timeStep];
+	float lastx = maxXTex[timeStep];
+	float lasty = maxYTex[timeStep];
 	//Establish clipping planes:
 	GLdouble topPlane[] = {0., -1., 0., 1.};
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
@@ -253,9 +258,9 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	}
 	
 	//texture is always enabled
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	//Put an identity on the Texture matrix stack.
@@ -265,20 +270,55 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	glBindTexture(GL_TEXTURE_2D, _twoDid);
 	
 	
-	//Now we can just traverse the elev grid, one row at a time:
+	//Now we can just traverse the elev grid, one row at a time.
+	//However, special case for start and end quads
 	
+	float deltax, deltay;
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (firsty == 0.f && lasty == 1.f) deltay = 1.f/(float)(maxy-1);
+	else if (firsty == 0.f || lasty == 1.f) deltay = (lasty-firsty)/(float)(maxy -2);
+	else deltay = (lasty-firsty)/(float)(maxy - 3);
+	if (firstx == 0.f && lastx == 1.f) deltax = 1.f/(float)(maxx-1);
+	else if (firstx == 0.f || lastx == 1.f) deltax = (lastx-firstx)/(float)(maxx -2);
+	else deltax = (lastx-firstx)/(float)(maxx - 3);
+
+	float tcrdy, tcrdyp, tcrdx;
 	for (int j = 0; j< maxy-1; j++){
-		glBegin(GL_TRIANGLE_STRIP);
-		//float vert[3], norm[3];
-		for (int i = 0; i< maxx-1; i+=2){
 		
+		if (firsty > 0) {
+			if (j == 0) {
+				tcrdy = 0.f;
+				tcrdyp = firsty;
+			} else {
+				tcrdy = firsty + (j-1)*deltay;
+				tcrdyp = firsty + j*deltay;
+			} 
+		} else {
+			tcrdy = j*deltay;
+			tcrdyp = (j+1)*deltay;
+		}
+		if (lasty < 1.f && (j == (maxy -2))){
+			tcrdy = lasty;
+			tcrdyp = 1.f;
+		}
+
+		glBegin(GL_QUAD_STRIP);
+		for (int i = 0; i< maxx; i++){
+			if (firstx > 0) {
+				if (i == 0) {
+					tcrdx = 0.f;
+				} else {
+					tcrdx = firstx + (i-1)*deltax;
+				} 
+			} else {
+				tcrdx = i*deltax;
+			}
+			if (lastx < 1.f && (i == (maxx -1))){
+				tcrdx = 1.f;
+			}
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
-			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
-			float tcrdx = (float)i/(float)(maxx-1);
-			float tcrdxp = (float)(i+1)/(float)(maxx-1);
-			float tcrdy = (float)j/(float)(maxy-1);
-			float tcrdyp = (float)(j+1)/(float)(maxy-1);
+			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j).  Only send 2 at a time.
+			//
 
 			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxx));
 			glTexCoord2f(tcrdx,tcrdyp);
@@ -288,17 +328,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 			glTexCoord2f(tcrdx,tcrdy);
 			glVertex3fv(elevVert[timeStep]+3*(i+j*maxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxx));
-			glTexCoord2f(tcrdxp,tcrdyp);
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxx));
-			
-			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxx));
-			glTexCoord2f(tcrdxp,tcrdy);
-			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxx));
-
 		}
-		
-		
 		glEnd();
 	}
 	
@@ -343,6 +373,12 @@ void TwoDRenderer::invalidateElevGrid(){
 		delete tmpArray;
 		delete elevNorm;
 		elevNorm = 0;
+		delete minXTex;
+		delete minYTex;
+		delete maxXTex;
+		delete maxYTex;
+		delete maxXElev;
+		delete maxYElev;
 	}
 }
 bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
@@ -354,11 +390,19 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 		elevNorm = new float*[numElevTimesteps];
 		maxXElev = new int[numElevTimesteps];
 		maxYElev = new int[numElevTimesteps];
+		minXTex = new float[numElevTimesteps];
+		minYTex = new float[numElevTimesteps];
+		maxXTex = new float[numElevTimesteps];
+		maxYTex = new float[numElevTimesteps];
 		for (int i = 0; i< numElevTimesteps; i++){
 			elevVert[i] = 0;
 			elevNorm[i] = 0;
 			maxXElev[i] = 0;
 			maxYElev[i] = 0;
+			minXTex[i] = 0.f;
+			maxXTex[i] = 1.f;
+			minYTex[i] = 0.f;
+			maxYTex[i] = 1.f;
 		}
 	}
 
@@ -379,20 +423,48 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	
 	
-	
+	double origRegMin[2], origRegMax[2];
 	for (int i = 0; i< 2; i++){
 		regMin[i] = tParams->getTwoDMin(i);
 		regMax[i] = tParams->getTwoDMax(i);
+		origRegMin[i] = regMin[i];
+		origRegMax[i] = regMax[i];
+		//Test for empty box:
+		if (regMax[i] <= regMin[i]){
+			maxXElev[timeStep] = 0;
+			maxYElev[timeStep] = 0;
+			return false;
+		}
+
 	}
+	
 	regMin[2] = extents[2];
 	regMax[2] = extents[5];
+	//Convert to voxels:
+	
+	int elevGridRefLevel = tParams->getNumRefinements();
+	//Do mapping to voxel coords at current ref level:
+	myReader->MapUserToVox(timeStep, regMin, min_dim, elevGridRefLevel);
+	myReader->MapUserToVox(timeStep, regMax, max_dim, elevGridRefLevel);
+	//Convert back to user coords:
+	myReader->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
+	myReader->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
+	//Extend by 1 voxel in x and y if it is smaller than original domain
+	for (int i = 0; i< 2; i++){
+		if(regMin[i] > origRegMin[i] && min_dim[i]>0) min_dim[i]--;
+		if(regMax[i] < origRegMax[i] && max_dim[i]< ds->getFullSizeAtLevel(elevGridRefLevel,i)-1)
+			max_dim[i]++;
+	}
+	
+	//Convert increased vox dims to user coords:
+	myReader->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
+	myReader->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
 	//Don't allow the terrain surface to be below the minimum extents:
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
-	int elevGridRefLevel = tParams->getNumRefinements();
+	
 	//Try to get requested refinement level or the nearest acceptable level:
 	int refLevel = RegionParams::shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, &varnum, 1, regMin, regMax, true);
-	
 	
 	if(refLevel < 0) {
 		setBypass(timeStep);
@@ -400,7 +472,7 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 		myReader->SetInterpolateOnOff(true);
 		return false;
 	}
-		
+	
 	
 	//Ignore vertical extents
 	min_dim[2] = max_dim[2] = 0;
@@ -422,10 +494,49 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//Then create arrays to hold the vertices and their normals:
-	maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
-	maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
-	elevVert[timeStep] = new float[3*maxXElev[timeStep]*maxYElev[timeStep]];
-	elevNorm[timeStep] = new float[3*maxXElev[timeStep]*maxYElev[timeStep]];
+	//Make each size be grid size + 2. 
+	int maxx = maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
+	int maxy = maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
+	elevVert[timeStep] = new float[3*maxx*maxy];
+	elevNorm[timeStep] = new float[3*maxx*maxy];
+
+	float deltax = (regMax[0]-regMin[0])/(maxx-1); 
+	float deltay = (regMax[1]-regMin[1])/(maxy-1); 
+
+	//set minTex, maxTex values less than deltax, deltay so that the texture will
+	//map exactly to the original region bounds
+
+	if (regMin[0] < origRegMin[0] && regMax[0] > origRegMax[0]){
+		minXTex[timeStep] = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+		maxXTex[timeStep] = minXTex[timeStep] + deltax*(maxx-3)/(origRegMax[0]-origRegMin[0]);
+	} else if (regMin[0] < origRegMin[0]){
+		minXTex[timeStep] = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+		maxXTex[timeStep] = 1.f;
+	} else if (regMax[0] > origRegMax[0]){
+		minXTex[timeStep] = 0.f;
+		maxXTex[timeStep] = deltax*(maxx-2)/(origRegMax[0]-origRegMin[0]);
+	} else {
+		minXTex[timeStep] = 0.f;
+		maxXTex[timeStep] = 1.f;
+	}
+	assert (maxXTex[timeStep] <= 1.f && maxXTex[timeStep] >= 0.f);
+	assert (minXTex[timeStep] <= 1.f && minXTex[timeStep] >= 0.f);
+	if (regMin[1] < origRegMin[1] && regMax[1] > origRegMax[1]){
+		minYTex[timeStep] = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
+		maxYTex[timeStep] =  minYTex[timeStep] + deltay*(maxy-3)/(origRegMax[1]-origRegMin[1]);
+	} else if (regMin[1] < origRegMin[1]){
+		minYTex[timeStep] = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
+		maxYTex[timeStep] = 1.f;
+	} else if (regMax[1] > origRegMax[1]){
+		minYTex[timeStep] = 0.f;
+		maxYTex[timeStep] = deltay*(maxy-2)/(origRegMax[1]-origRegMin[1]);
+	} else {
+		minYTex[timeStep] = 0.f;
+		maxYTex[timeStep] = 1.f;
+	}
+	assert (maxYTex[timeStep] <= 1.f && maxYTex[timeStep] >= 0.f);
+	assert (minYTex[timeStep] <= 1.f && minYTex[timeStep] >= 0.f);
+
 
 	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
@@ -436,18 +547,20 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	//The z coordinate is taken from the data array, converted to 
 	//stretched cube coords
 	//using parameters in the viewpoint params.
-	int maxx = maxXElev[timeStep];
-	int maxy = maxYElev[timeStep];
 	
 	float worldCoord[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
 	for (int j = 0; j<maxy; j++){
-		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxy-1);
+		worldCoord[1] = regMin[1] + (float)j*deltay;
+		if (worldCoord[1] < origRegMin[1]) worldCoord[1] = origRegMin[1];
+		if (worldCoord[1] > origRegMax[1]) worldCoord[1] = origRegMax[1];
 		size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 			
 		for (int i = 0; i<maxx; i++){
 			int pntPos = 3*(i+j*maxx);
-			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxx-1);
+			worldCoord[0] = regMin[0] + (float)i*deltax;
+			if (worldCoord[0] < origRegMin[0]) worldCoord[0] = origRegMin[0];
+			if (worldCoord[0] > origRegMax[0]) worldCoord[0] = origRegMax[0];
 			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
 			if (elevData)
 				worldCoord[2] = elevData[xcrd+ycrd] + displacement;

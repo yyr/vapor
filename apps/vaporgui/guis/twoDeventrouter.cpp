@@ -492,8 +492,10 @@ void TwoDEventRouter::guiApplyTerrain(bool mode){
 		dParams->setTwoDMin(2, extents[2]);
 		dParams->setTwoDMax(2, extents[5]);
 	} else {
-		//Set box bottom z-coord to current box max:
-		dParams->setTwoDMin(2,dParams->getTwoDMax(2));
+		//Set box bottom and top z-coord to average:
+		float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
+		dParams->setTwoDMin(2,avg);
+		dParams->setTwoDMax(2,avg);
 	}
 	zCenterSlider->setEnabled(!mode);
 	zCenterEdit->setEnabled(!mode);
@@ -502,6 +504,7 @@ void TwoDEventRouter::guiApplyTerrain(bool mode){
 	PanelCommand::captureEnd(cmd, dParams); 
 	setTwoDDirty(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
+	updateTab();
 }
 
 void TwoDEventRouter::guiCopyInstanceTo(int toViz){
@@ -2136,7 +2139,7 @@ void TwoDEventRouter::mapCursor(){
 		if (varnum >= 0){
 			float val = calcCurrentValue(tParams,selectPoint,&varnum, 1);
 			if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val;
+				selectPoint[mapDims[2]] = val+tParams->getVerticalDisplacement();
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);

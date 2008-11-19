@@ -450,9 +450,15 @@ protected:
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
 
-	//Cached elevation grid (one for each time step)
-	int maxXElev, maxYElev;
+	//Cached elevation grid sizes (one for each time step)
+	int *maxXElev, *maxYElev;
 	float** elevVert, **elevNorm;
+	//constants used in fitting texture to domain:
+	float *xfactr, *xbeg, *yfactr, *ybeg;
+	//current values used in tex coord mapping:
+	float xfct, yfct, xbg, ybg;
+	int mxx, mxy;
+
 	int numElevTimesteps;
 	//Additional parameters used for elev grid:
 	QColor elevColor;

@@ -46,6 +46,7 @@ protected:
 	//Cached elevation grid (one for each time step)
 	int *maxXElev, *maxYElev; // size for each time step
 	float** elevVert, **elevNorm;
+	float *maxXTex, *minXTex, *maxYTex, *minYTex;
 	void invalidateElevGrid();
 	void drawElevationGrid(size_t timestep);
 	bool rebuildElevationGrid(size_t timestep);
