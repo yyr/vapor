@@ -808,12 +808,18 @@ void ProbeEventRouter::
 probeLoadInstalledTF(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
 	TransferFunction* tf = pParams->getTransFunc();
+	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	//Get the path from the environment:
-	char *home = getenv("VAPOR_HOME");
-	QString installPath = QString(home)+ "/share/palettes";
+	char *share = getenv("VAPOR_SHARE");
+#ifdef WIN32
+	char *slash = "\\";
+#else
+	char* slash = "/";
+#endif
+	QString installPath = QString(share)+ slash +"palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

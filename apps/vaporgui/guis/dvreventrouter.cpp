@@ -306,6 +306,7 @@ void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
 	TransferFunction* tf = dParams->getTransFunc();
+	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}

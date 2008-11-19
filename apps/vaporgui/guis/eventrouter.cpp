@@ -305,8 +305,14 @@ fileSaveTF(RenderParams* rParams){
 void EventRouter::
 loadInstalledTF(RenderParams* rParams, int varnum){
 	//Get the path from the environment:
-	char *home = getenv("VAPOR_HOME");
-	QString installPath = QString(home)+ "/share/palettes";
+	char *share = getenv("VAPOR_SHARE");
+#ifdef WIN32
+	char *slash = "\\";
+#else
+	char* slash = "/";
+#endif
+
+	QString installPath = QString(share)+ slash + "palettes";
 	fileLoadTF(rParams,varnum, installPath.ascii(),false);
 }
 void EventRouter::

@@ -587,12 +587,18 @@ void TwoDEventRouter::
 twoDLoadInstalledTF(){
 	TwoDParams* pParams = (TwoDParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDParamsType);
 	TransferFunction* tf = pParams->getTransFunc();
+	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	//Get the path from the environment:
-	char *home = getenv("VAPOR_HOME");
-	QString installPath = QString(home)+ "/share/palettes";
+#ifdef WIN32
+	char *slash = "\\";
+#else
+	char* slash = "/";
+#endif
+	char *share = getenv("VAPOR_SHARE");
+	QString installPath = QString(share)+ slash + "palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

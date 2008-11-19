@@ -213,9 +213,10 @@ void HelpWindow::showHelp(const QString& filename){
 	QString filePath;
 
 	string dirpath;
-	if (char *home = getenv("VAPOR_HOME")) {
-		string homestr(home);
-		filePath = QString(homestr.c_str())+"/share/doc/"+filename;
+
+	if (char *share = getenv("VAPOR_SHARE")) {
+		string sharestr(share);
+		filePath = QString(sharestr.c_str())+"/doc/"+filename;
 	}
 	else if (get_doc_path_from_bundle(dirpath)) {
 		filePath = QString(dirpath.c_str())+"/"+filename;

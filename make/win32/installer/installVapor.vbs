@@ -17,6 +17,7 @@ End if
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
 
 vaporhome = vaporhome & "VAPOR"
+vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
 
 set shell = CreateObject("wscript.shell")
@@ -28,6 +29,7 @@ Else
 End If
 	
 SysEnv("VAPOR_HOME") = vaporhome
+SysEnv("VAPOR_SHARE") = vaporshare
 
 'Insert VAPOR_HOME\bin at start of path
 pathvar = sysEnv("path")

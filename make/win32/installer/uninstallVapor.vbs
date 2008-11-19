@@ -13,6 +13,7 @@ End if
 vaporhome = Right(inputstring, len(inputstring) - posn -1)
 vaporhome = vaporhome & "VAPOR"
 vaporbin = vaporhome & "\bin;"
+vaporshare = vaporhome & "\share"
 vaporidl = vaporhome & "\bin"
 vaporidl2 = vaporhome & "\bin;"
 set shell = CreateObject("wscript.shell")
@@ -24,6 +25,7 @@ Else
 End If
 'unset the VAPOR_HOME variable:
 SysEnv.Remove("VAPOR_HOME")
+SysEnv.Remove("VAPOR_SHARE")
 'Find VAPOR_HOME\bin; in the path
 pathvar = sysEnv("path")
 posn = inStr(pathvar,vaporbin)
