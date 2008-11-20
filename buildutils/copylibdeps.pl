@@ -177,7 +177,7 @@ if (! (defined($Libdir = pop @ARGV))) {
 }
 
 if (! -d $Libdir) {
-	print STDERR "$ProgName: Library directory $libdir does not exist\n";
+	print STDERR "$ProgName: Library directory $Libdir does not exist\n";
 	exit(1);
 }
 
