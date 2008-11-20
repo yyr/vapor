@@ -6,7 +6,7 @@ PROGRAM = vdfcreate
 FILES = vdfcreate
 
 
-LIBRARIES = vdf common
+LIBRARIES = vdf common netcdf $(EXPAT_LIB)
 
 include ${TOP}/make/config/base.mk
 

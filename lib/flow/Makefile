@@ -2,7 +2,6 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-SHARED = 0
 LIBRARY = flow
 FILES = \
 	Field Grid Interpolator Rake Solution flowlinedata\
@@ -14,9 +13,6 @@ FILES = \
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"FLOW_EXPORTS"
 endif
-
-LIBRARIES = common vdf
-
 
 include ${TOP}/make/config/base.mk
 

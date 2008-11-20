@@ -9,7 +9,7 @@ ifeq ($(BUILD_64_BIT),1)
 CXXFLAGS          += -DIRIX_64BIT -64 -DIRIX 
 CFLAGS            += -DIRIX_64BIT -64 -DIRIX
 LDFLAGS           += -64 -lm 
-SHARED_LDFLAGS = -shared -all -64
+SHARED_LDFLAGS = -shared -all -64 
 else
 CXXFLAGS          += -n32 -DIRIX 
 CFLAGS            += -n32 -DIRIX

@@ -1,6 +1,8 @@
 //
 //      $Id$
 //
+//	WARNING: Version.h is generated automatically from Version.h.sed
+//
 //************************************************************************
 //								*
 //		     Copyright (C)  2004			*

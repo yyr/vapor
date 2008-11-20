@@ -33,8 +33,13 @@ if ( "$arch" == "Darwin" ) then
 	else
 	    setenv DYLD_LIBRARY_PATH "$root/lib${auxlib}:$DYLD_LIBRARY_PATH"
 	endif
+else if ( "$arch" == "AIX" ) then
+	if !($?LIBPATH) then
+	    setenv LIBPATH "$root/lib$auxlib"
+	else
+	    setenv LIBPATH "$root/lib${auxlib}:$LIBPATH"
+	endif
 else
-
 	if !($?LD_LIBRARY_PATH) then
 	    setenv LD_LIBRARY_PATH "$root/lib$auxlib"
 	else

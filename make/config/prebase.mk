@@ -1,3 +1,5 @@
+SHARED = 1
+
 include $(TOP)/make/config/arch.mk
 include $(TOP)/make/config/$(ARCH).mk
 include $(TOP)/options.mk
@@ -13,4 +15,5 @@ QTLIB = -lqt-mt
 
 EXPATLIB = -lexpat
 NETCDFLIB = -lnetcdf
+
 

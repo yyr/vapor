@@ -1,3 +1,4 @@
+AIX = 1
 G++-INCLUDE-DIR = /usr/include/g++
 #CXX = g++
 CXX=xlC_r
@@ -5,7 +6,8 @@ CXX=xlC_r
 CC=xlc_r
 CXXFLAGS += -q64 -DAIX  -I $(TOP)/include
 CFLAGS += -q64 -qcpluscmt -DAIX -I $(TOP)/include 
-#LDFLAGS += -L/usr/X11R6/lib -lX11 -lpthread
+LDFLAGS += 
+SHARED = 
 
 
 DEBUGFLAGS = -g
@@ -33,7 +35,7 @@ BIBTEX = bibtex
 DVIPS = dvips -t letter
 GHOSTSCRIPT = gs
 LIBPREFIX = lib
-DLLSUFFIX = .a
+DLLSUFFIX = .so
 LIBSUFFIX = .a
 OBJSUFFIX = .o
 MV = mv
@@ -48,12 +50,7 @@ CAT = cat
 MPI_CC = mpicc
 MPI_CXX = mpiCC
 MPI_LDFLAGS =
-AIXSHAREDLIB=y
-# SHARED=y
-SHARED_LDFLAGS = -L $(TOP)/lib/$(ARCH) -lX11 -lXmu -lpthread
-ifdef OPENGL
-    SHARED_LDFLAGS += -lGL
-endif
+SHARED_LDFLAGS = -G
 
 INSTALL_EXEC = $(TOP)/buildutils/install-sh -c -m 0755
 INSTALL_NONEXEC = $(TOP)/buildutils/install-sh -c -m 0644

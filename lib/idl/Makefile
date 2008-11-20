@@ -3,8 +3,6 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-SHARED = 0
-
 ifeq ($(ARCH),WIN32)
 LIBRARY = libidl_vdfmodule
 else
@@ -35,12 +33,6 @@ endif
 
 ifdef IDL_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(IDL_INC_PATH)
-endif
-
-LIBRARIES = common vdf 
-
-ifeq ($(ARCH),WIN32)
-LIBRARIES += mpr
 endif
 
 

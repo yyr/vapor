@@ -8,7 +8,6 @@ else
 MAKEFILE_CFLAGS += -DJPEG_EXPORTS
 endif
 
-SHARED = 0
 LIBRARY = vjpeg
 FILES = \
 	jcapimin   jcmarker jdapimin jdinput  jdtrans  jidctred \

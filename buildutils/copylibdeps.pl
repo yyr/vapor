@@ -69,11 +69,9 @@ sub get_deps {
 	$directories = abs_path($directories);
 	$target = File::Spec->catpath($volume, $directories, $file);
 
-	$darwin = 0;
-	if (-e "/usr/bin/otool" ) {
+	if ($ARCH eq "Darwin") {
 		# Mac system
 		@lddcmd = ("/usr/bin/otool", "-L"); 
-		$darwin = 1;
 	} else {
 		@lddcmd = ("/usr/bin/ldd");
 	}
@@ -86,18 +84,23 @@ sub get_deps {
 	}
 
 	@lines = split /\n/, $_;
-	if ($darwin) {
+	if (($ARCH eq "Darwin") || ($ARCH eq "AIX")) {
 		shift @lines;	# discard first line
 	}
 
 
 LINE:	foreach $line (@lines) {
 		$line =~ s/^\s+//;
-		if ($darwin) {
-			($lib) = split(/\s+/, $line)
+		if ($ARCH eq "Darwin") {
+			($lib) = split(/\s+/, $line);
+		}
+		elsif ($ARCH eq "AIX") {
+			($lib) = split(/\s+/, $line);
+			$lib =~ s/\(.*\)//;
+			next LINE if ($lib eq "/unix");
 		}
 		else {
-			($junk1, $junk2, $lib) = split(/\s+/, $line)
+			($junk1, $junk2, $lib) = split(/\s+/, $line);
 		}
 		next LINE if (! defined($lib));
 		if ($lib =~ "not found") {
@@ -114,7 +117,7 @@ LINE:	foreach $line (@lines) {
 
 
 		($name, $path, $suffix) = fileparse($lib);
-		next LINE if ($darwin && !($lib =~ /dylib/));
+		next LINE if (($Arch eq "Darwin") && !($lib =~ /dylib/));
 
 		if (! -f $lib) {
 			printf STDERR "$ProgName: Command \"$cmd\" failed - library not found\n";
@@ -158,6 +161,9 @@ while ($ARGV[0] =~ /^-/) {
         defined($_ = shift @ARGV) || die "Missing argument";
 		push(@ExcludePaths, $_);
     }
+    elsif (/^-arch$/) {
+        defined($ARCH = shift @ARGV) || die "Missing argument";
+    }
     elsif (/^-include$/) {
         defined($_ = shift @ARGV) || die "Missing argument";
 		push(@IncludePaths, $_);
@@ -190,7 +196,6 @@ $ENV{"LD_LIBRARY64_PATH"} = $LD_LIBRARY_PATH;
 @cpfiles = ();
 while (defined($target = shift(@Targets))) {
 
-
 	@_ = get_deps($target);
 
 	foreach $dep (@_) {
@@ -198,7 +203,9 @@ while (defined($target = shift(@Targets))) {
 		foreach $target (@Targets) {
 			$match = 1 if ($dep eq $target);
 		}
-		push @Targets, $dep if (! $match);
+		if ($ARCH ne "AIX") {
+			push @Targets, $dep if (! $match);
+		}
 
 		$match = 0;
 		foreach $cpfile (@cpfiles) {

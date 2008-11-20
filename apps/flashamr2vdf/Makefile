@@ -19,7 +19,7 @@ endif
 endif
 
 
-LIBRARIES = common vdf hdf5
+LIBRARIES = common vdf hdf5 netcdf $(EXPAT_LIB)
 
 
 include ${TOP}/make/config/base.mk

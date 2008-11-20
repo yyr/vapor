@@ -2,7 +2,6 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-SHARED = 0
 LIBRARY = vdf
 FILES = \
 	BlkMemMgr DataMgr Metadata WaveletBlock1D WaveletBlock2D WaveletBlock3D \
@@ -31,17 +30,5 @@ ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
 MAKEFILE_CXXFLAGS += /D"DLL_NETCDF"
 endif
-
-ifeq ($(ARCH),WIN32)
-LIBRARIES = common libexpat netcdf
-else
-LIBRARIES = common expat netcdf
-endif
-
-
-ifeq ($(ARCH),WIN32)
-LIBRARIES += mpr
-endif
-
 
 include ${TOP}/make/config/base.mk

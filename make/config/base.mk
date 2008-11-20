@@ -36,6 +36,10 @@ VERSION_APP := $(PROJECT)-$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
 
 CR_CC = $(CC)
 CR_CXX = $(CXX)
+OGL_LIB = GL
+GLU_LIB = GLU
+QT_LIB = qt-mt
+EXPAT_LIB = expat
 
 
 
@@ -147,8 +151,10 @@ INCS    := $(addsuffix .h, $(INCS))
 HEADER_FILES    := $(addsuffix .h, $(HEADER_FILES))
 ifdef LIBRARY
 ifdef SHARED
-	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX))
-	AIXDLIBNAME := $(addprefix $(OBJDIR)/, $(LIBPREFIX)$(LIBRARY)$(OBJSUFFIX))
+	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
+	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR)
+	LIB_REALNAME = $(LIB_SONAME).$(VERSION_MINOR).$(VERSION_RELEASE)
+	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIB_REALNAME))
 else
 	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(LIBSUFFIX))
 endif
@@ -329,24 +335,16 @@ LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(PLATFORM)/lib/
 STATICLIBRARIES :=
 
 LDFLAGS += "/LIBPATH:$(DSO_DIR)" 
-else
 
-ifeq ($(ARCH), IRIX64)
-LDFLAGS += -L$(DSO_DIR) -rpath $(DSO_DIR)
 else
-ifeq ($(ARCH), Linux)
-#LDFLAGS += -L$(DSO_DIR) -Xlinker -rpath -Xlinker $(DSO_DIR)
-LDFLAGS += -L$(DSO_DIR) 
-else
-LDFLAGS += -L$(DSO_DIR) 
-endif
-endif
-
 
 STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(PLATFORM)/lib$(lib)$(LIBSUFFIX)))
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),-l$(SHORT_TARGET_NAME)_$(lib)_copy)
 P_LIB_FILES := $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/lib/$(PLATFORM)/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(DLLSUFFIX) )
+
+LDFLAGS += -L$(DSO_DIR) 
+
 endif
 
 
@@ -420,28 +418,20 @@ else
 endif #shared
 else #windows
 ifdef SHARED
-ifdef AIXSHAREDLIB
-	@$(ECHO) "AIX shared obj link "
-	rm -f $(AIXDLIBNAME)
-	rm -f $(LIB_TARGET)
-	$(CXX) -qmkshrobj -G -o shr.o $(OBJS) $(LDFLAGS) $(LIBRARIES)
-	ar $(ARCREATEFLAGS) $(LIB_TARGET) shr.o
-	rm -f shr.o 
-else #aixsharedlib
 ifdef BINUTIL_LINK_HACK
 ifdef PERSONAL_LIBRARIES
 	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(SHORT_TARGET_NAME) $(TOP)/built/$(SHORT_TARGET_NAME)/$(PLATFORM) $(P_LIB_FILES)
 endif
 endif
 	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LDFLAGS) $(LIBRARIES)
-endif #aixsharedlib
+	cd $(DSO_DIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
+	cd $(DSO_DIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
 else #shared
-	@$(AR) $(ARCREATEFLAGS) $@ $(OBJS)
-	@$(RANLIB) $@
+	$(AR) $(ARCREATEFLAGS) $@ $(OBJS)
+	$(RANLIB) $@
 endif #shared
 endif #windows
 
-#	@$(CP) $(LIB_TARGET) $(DSO_DIR)
 endif #library
 
 
@@ -636,12 +626,18 @@ ifdef LIBRARY
 	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
 	@$(MAKE_INSTALL_LIBDIR)
 	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
+ifdef SHARED
+	cd $(INSTALL_LIBDIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
+	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
+endif #SHARED
 install-dep:: install
 else
 ifdef PROGRAM
 	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
 	@$(MAKE_INSTALL_BINDIR)
 	$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+
+LDLIBPATHS += -ldlibpath $(DSO_DIR)
 
 ifdef NETCDF_LIB_PATH
 LDLIBPATHS += -ldlibpath $(NETCDF_LIB_PATH)
@@ -657,7 +653,7 @@ endif
 
 install-dep:: install
 	@$(ECHO) "Installing program $(PROGRAM) library dependencies in $(INSTALL_LIBDIR)."
-	$(PERL) $(TOP)/buildutils/copylibdeps.pl $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
 
 endif
 endif

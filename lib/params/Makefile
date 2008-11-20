@@ -2,7 +2,6 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-SHARED = 0
 QT = 1
 UI_DIR = ui
 LIBRARY = params
@@ -24,32 +23,7 @@ endif
 
 ifeq ($(ARCH),Darwin)
 MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
-MAKEFILE_LDFLAGS += -framework OpenGL -L/usr/X11R6/lib
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
-endif
-
-
-LIBRARIES = common vdf flow
-
-ifeq ($(ARCH),WIN32)
-LIBRARIES += qt-mt334 
-LIBRARIES += glu32
-LIBRARIES += opengl32
-
-ifdef   QT_LIB_PATH
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
-endif
-
-else
-
-LIBRARIES += qt-mt
-LIBRARIES += GL
-LIBRARIES += GLU
-
-ifdef   QT_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
-endif
-
 endif
 
 include ${TOP}/make/config/base.mk

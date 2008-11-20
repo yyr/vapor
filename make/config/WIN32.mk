@@ -29,6 +29,11 @@ LD_DEBUG_FLAGS   +=
 CXXFLAGS += -I"$(VOLUMIZER_ROOT)/include"
 CXXFLAGS += /Fd"$(OBJDIR)/vc70.pdb"
 
+OGL_LIB = opengl32
+GLU_LIB = glu32
+QT_LIB = mpr qt-mt334 qtmain
+EXPAT_LIB = libexpat
+
 
 CAT = cat
 LEX = flex -t

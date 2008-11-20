@@ -42,6 +42,15 @@ then
 	    DYLD_LIBRARY_PATH="$root/lib${auxlib}:$DYLD_LIBRARY_PATH"; export DYLD_LIBRARY_PATH
 	fi
 else
+if [ "$arch" = "AIX" ]
+then
+	if [ -z "${LIBPATH}" ]
+	then
+	    LIBPATH="$root/lib${auxlib}"; export LIBPATH
+	else
+	    LIBPATH="$root/lib${auxlib}:$LIBPATH"; export LIBPATH
+	fi
+else
 	if [ -z "${LD_LIBRARY_PATH}" ]
 	then
 	    LD_LIBRARY_PATH="$root/lib${auxlib}"; export LD_LIBRARY_PATH

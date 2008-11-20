@@ -23,32 +23,29 @@ endif
 
 MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = vdf common vjpeg flow params render
+LIBRARIES = vjpeg flow params render vdf common netcdf $(EXPAT_LIB)
+LIBRARIES += $(EXPAT_LIB) $(QT_LIB) GLEW $(OGL_LIB) $(GLU_LIB)
 
 ifeq ($(BUILD_VOLUMIZER), 1)
-LIBRARIES += vz 
+LIBRARIES += vz
 endif
 
 ifeq ($(ARCH),WIN32) 
+
+ifeq ($(BUILD_VOLUMIZER), 1)
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
+endif
+
 ifdef QT_LIB_PATH
 MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
 endif
-LIBRARIES += mpr
-LIBRARIES += qt-mt334
-LIBRARIES += qtmain
-LIBRARIES += opengl32
-LIBRARIES += glu32
-LIBRARIES += glew32
 
 else   
-LIBRARIES += qt-mt 
-LIBRARIES += GLEW
-LIBRARIES += GL
-LIBRARIES += GLU
+
 ifdef	QT_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
 endif
+
 endif
 
 
