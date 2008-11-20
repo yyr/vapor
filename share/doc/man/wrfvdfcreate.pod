@@ -65,6 +65,12 @@ I<yyyy> is the four-digit year,  I<mm> is the two-digit month (January ==
 1), I<dd> is the day of the month, I<hh> is the hour, I<mm> is the minute,
 and I<ss> is the second.
 
+Alternatively I<time> may be set to one of the two keywords
+B<SIMUATION_START_DATE> or B<START_DATE>. In either case B<wrfvdfcreate>
+will attempt to use the value of B<SIMULATION_START_DATE> netCDF
+attribute, if present in the file, otherwise it will attempt to use the
+value of the B<START_DATE> attribute, if present.
+
 =item -numts E<lt>numberE<gt>
 
 Maximum number of VDC (rather than WRF) time steps.
