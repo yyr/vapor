@@ -73,7 +73,7 @@ sub copy_dir_contents{
 
 	$cwd = getcwd();
 	chdir $srcdir or die "$ProgName: Can't cd to $srcdir: $!\n";
-	@cmd = ("/sw/bin/tar", "-cf", $tmpfile, ".");
+	@cmd = ("/usr/bin/tar", "-cf", $tmpfile, ".");
 	mysystem(@cmd);
 
 	chdir $cwd or die "$ProgName: Can't cd to $cwd: $!\n";
