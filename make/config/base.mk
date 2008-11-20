@@ -626,10 +626,15 @@ ifdef LIBRARY
 	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
 	@$(MAKE_INSTALL_LIBDIR)
 	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
+<<<<<<< base.mk
+	cd $(INSTALL_LIBDIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
+	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
+=======
 ifdef SHARED
 	cd $(INSTALL_LIBDIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
 	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
 endif #SHARED
+>>>>>>> 1.31
 install-dep:: install
 else
 ifdef PROGRAM
