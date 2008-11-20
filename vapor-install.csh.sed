@@ -1,6 +1,7 @@
 #!/bin/csh -f
 
-set arch = Linux
+set arch = "ARCH"
+set version_app = "VERSION_APP"
 
 set nocopy = 0
 if ($#argv && "$argv[1]" == "-nocopy") then
@@ -109,7 +110,9 @@ set old2 = 'set[ 	][ 	]*netcdf[ 	][ 	]*=.*$'
 set new2 = "set netcdf = "
 set old3 = 'set[ 	][ 	]*qt[ 	][ 	]*=.*$'
 set new3 = "set qt = "
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
+set old4 = 'set[ 	][ 	]*share[ 	][ 	]*=.*$'
+set new4 = "set share = $vapor_root/share/$version_app"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.csh
 
 
@@ -121,7 +124,9 @@ set old2 = 'netcdf=.*$'
 set new2 = "netcdf="
 set old3 = 'qt=.*$'
 set new3 = "qt="
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
+set old4 = 'share=.*$'
+set new4 = "share=$vapor_root/share/$version_app"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.sh
 
 

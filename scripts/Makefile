@@ -15,6 +15,7 @@ $(BINDIR)/vapor-setup.sh: FRC
 		-e s#NETCDF_LIB_PATH#$(NETCDF_LIB_PATH)# \
 		-e s#QT_LIB_PATH#$(QT_LIB_PATH)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
+		-e s#INSTALL_SHAREDIR#$(INSTALL_SHAREDIR)# \
 		< vapor-setup.sh.sed > $@
 
 vdfbkup.pl: FRC
@@ -31,6 +32,7 @@ $(BINDIR)/vapor-setup.csh: FRC
 		-e s#NETCDF_LIB_PATH#$(NETCDF_LIB_PATH)# \
 		-e s#QT_LIB_PATH#$(QT_LIB_PATH)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
+		-e s#INSTALL_SHAREDIR#$(INSTALL_SHAREDIR)# \
 		< vapor-setup.csh.sed > $@
 
 FRC:

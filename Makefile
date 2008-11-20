@@ -10,8 +10,9 @@ endif
 
 include ${TOP}/make/config/base.mk
 
-install-dep:: install
-	@sed -e s#ARCH#$(ARCH)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
+#install-dep:: install
+foo:: 
+	@sed -e s#ARCH#$(ARCH)# -e  s#VERSION_APP#$(VERSION_APP)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
 	@chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh
 
 MAC_BUNDLE_DIR = /tmp/vapor-macbundle

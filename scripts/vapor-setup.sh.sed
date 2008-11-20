@@ -3,6 +3,7 @@
 arch=ARCH
 build64=BUILD_64_BIT
 root=INSTALL_PREFIX_DIR
+share=INSTALL_SHAREDIR
 expat=EXPAT_LIB_PATH
 netcdf=NETCDF_LIB_PATH
 qt=QT_LIB_PATH
@@ -25,6 +26,7 @@ then
 fi
 
 VAPOR_HOME="$root"; export VAPOR_HOME
+VAPOR_SHARE="$share"; export VAPOR_SHARE
 
 if [ -z "${PATH}" ]
 then

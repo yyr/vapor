@@ -8,7 +8,7 @@ DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
 	VDCIntro.doc WRFsupport.doc GeorgiaCaseStudy.doc \
 	WRFGetStarted.doc
 
-INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc
+INSTALL_DOC_DIR = $(INSTALL_SHAREDIR)/doc
 
 
 include ${TOP}/make/config/base.mk

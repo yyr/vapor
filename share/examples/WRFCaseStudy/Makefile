@@ -18,7 +18,7 @@ WRF_VSS = WRFFigure1.6.vss WRFFigure1.7.vss WRFFigure1.8.vss WRFFigure1.9.vss \
 	WRFFigure5.4.vss WRFFigure5.5.vss WRFFigure5.6.vss \
 	WRFFigure5.7.vss
 
-INSTALL_WRF_VSS_DIR = $(INSTALL_PREFIX_DIR)/share/examples/WRFCaseStudy
+INSTALL_WRF_VSS_DIR = $(INSTALL_SHAREDIR)/examples/WRFCaseStudy
 
 include ${TOP}/make/config/base.mk
 

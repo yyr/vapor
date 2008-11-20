@@ -3,6 +3,7 @@
 set arch = ARCH
 set build64 = BUILD_64_BIT
 set root = INSTALL_PREFIX_DIR
+set share = INSTALL_SHAREDIR
 set expat = EXPAT_LIB_PATH
 set netcdf = NETCDF_LIB_PATH
 set qt = QT_LIB_PATH
@@ -20,6 +21,7 @@ if ("$qt" != "") then
 endif
 
 setenv VAPOR_HOME $root
+setenv VAPOR_SHARE $share
 
 if !($?PATH) then
     setenv PATH "$root/bin"
