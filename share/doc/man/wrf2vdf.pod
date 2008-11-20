@@ -14,7 +14,7 @@ B<wrf2vdf> [options] I<vdffile> I<wrf_ncdf_file...>
 
 =head1 DESCRIPTION
 
-B<raw2vdf> reads 3D and 2D variables from one ore more WRF netCDF file,
+B<wrf2vdf> reads 3D and 2D variables from one ore more WRF netCDF file,
 wavelet transforms the data, and stores it in the VDC associated with
 the .vdf file I<vdffile>.
 
@@ -61,6 +61,13 @@ in the WRF netCDF file for which a match is found in the .vdf file.
 Specify the maximum number of time steps to convert. After converting
 number time steps, no further processing will take place.
 
+=item -noelev 
+
+Specifies that no B<ELEVATION> variable will be generated.  This option
+is useful for adding variables to a VDC when the B<ELEVATION> variable
+has already been calculated, or if the WRF NetCDF files do not contain
+B<PH> and B<PHB>  
+
 =item -level E<lt>levelE<gt> 
 
 See raw2vdf
@@ -97,7 +104,7 @@ B<1996-03-30_00:00:00>.
 
 =head1 SEE ALSO
 
-wrfvdfcreate, vdf2wrf,
+wrfvdfcreate, ncdf2vdf, raw2vdf 
 
 I<Conversion of WRF-ARW datafiles to a VAPOR VDC>
 

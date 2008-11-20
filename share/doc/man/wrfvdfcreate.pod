@@ -113,7 +113,7 @@ conversion with the wrf2vdf command.  These include:
 B<PHNorm_>: the normalized geopotential (PH+PHB)/PHB; 
 B<UVW_>: the three-dimensional wind speed (U^2+V^2+W^2)^1/2; 
 B<UV_>: the two-dimensional wind speed (U^2+V^2)^1/2; 
-B<omZ_>: a rough estimate of the vertical vorticity (see note below); 
+B<omZ_>: a rough estimate of the vertical vorticity; 
 B<PFull_>: the full pressure P+PB; 
 B<PNorm_>: the normalized pressure (P+PB)/PB; 
 B<Theta_>: the potential temperature T+300; and 
