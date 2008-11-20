@@ -60,6 +60,7 @@ else
 	    LD_LIBRARY_PATH="$root/lib${auxlib}:$LD_LIBRARY_PATH"; export LD_LIBRARY_PATH
 	fi
 fi
+fi
 
 if [ "$arch" = "IRIX64" ]
 then
@@ -81,17 +82,17 @@ then
 	fi
 fi
 
-#if [ -z "${MANPATH}" ]
-#then
-#	if [ "$arch" = "Linux" ]
-#	then
-#		MANPATH="$root/man":$(man -w); export MANPATH
-#	else
-#		MANPATH="$root/man"; export MANPATH
-#	fi
-#else
-#    MANPATH="$root/man:${MANPATH}"; export MANPATH
-#fi
+if [ -z "${MANPATH}" ]
+then
+	if [ "$arch" = "AIX" ]
+	then
+		MANPATH="$root/share/man"; export MANPATH
+	else
+		MANPATH="$root/share/man":$(man -w); export MANPATH
+	fi
+else
+    MANPATH="$root/share/man:${MANPATH}"; export MANPATH
+fi
 
 if [ "$idl" -eq 1 ]
 then
