@@ -16,12 +16,12 @@ install-dep:: install
 
 MAC_BUNDLE_DIR = /tmp/vapor-macbundle
 
-macbundle: install-dep
-macbundle: FRC
+macbundle:: install-dep macbundle-scripts
+
+macbundle-scripts:: 
+	@sed -e s#VERSION_APP#$(VERSION_APP)# < $(TOP)/buildutils/postflight.sed > $(TOP)/buildutils/postflight
 	@if test ! -d $(MAC_BUNDLE_DIR); then $(MKDIR) $(MAC_BUNDLE_DIR); fi
 	$(TOP)/buildutils/macbundle.pl $(INSTALL_PREFIX_DIR) $(TOP)/MacBundle/VAPOR.app $(MAC_BUNDLE_DIR) $(VERSION) 
 	if test ! -d $(MAC_BUNDLE_DIR)/Install_Resources; then $(MKDIR) $(MAC_BUNDLE_DIR)/Install_Resources; fi
 	$(CP) $(TOP)/buildutils/postflight $(MAC_BUNDLE_DIR)/Install_Resources
 	$(CP) $(TOP)/Images/splash.jpg $(MAC_BUNDLE_DIR)/Install_Resources
-
-FRC:
