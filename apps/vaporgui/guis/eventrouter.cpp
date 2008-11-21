@@ -313,7 +313,7 @@ loadInstalledTF(RenderParams* rParams, int varnum){
 	char* slash = "/";
 #endif
 
-	QString installPath = share + slash + "palettes";
+	QString installPath = (share + slash + "palettes").c_str();
 	fileLoadTF(rParams,varnum, installPath.ascii(),false);
 }
 void EventRouter::

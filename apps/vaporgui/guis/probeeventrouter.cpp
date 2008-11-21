@@ -820,7 +820,7 @@ probeLoadInstalledTF(){
 #else
 	char* slash = "/";
 #endif
-	QString installPath = share + slash +"palettes";
+	QString installPath = (share + slash +"palettes").c_str();
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

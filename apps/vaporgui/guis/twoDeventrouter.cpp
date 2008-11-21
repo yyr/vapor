@@ -599,7 +599,7 @@ twoDLoadInstalledTF(){
 	char* slash = "/";
 #endif
 	string share = GetAppPath("vapor", "share");
-	QString installPath = share + slash + "palettes";
+	QString installPath = (share + slash + "palettes").c_str();
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

@@ -163,7 +163,7 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 void HelpWindow::showHelp(const QString& filename){
 	
 
-	QString filePath =  GetAppPath("vapor", "share");
+	QString filePath =  GetAppPath("vapor", "share").c_str();
 
 	filePath += "/doc/" + filename;
 
