@@ -10,7 +10,7 @@
 ;	The 6th order difference terms are due to Pablo Mininni
 ;
 ; CALLING SEQUENCE:
-;       CURL_FINDIFF,INX,INY,INZ,OUTX,OUTY,OUTZ,DX,DY,ELEV
+;       WRF_CURL_FINDIFF,INX,INY,INZ,OUTX,OUTY,OUTZ,DX,DY,ELEV
 ;
 ; PARAMETERS:
 ;       INX[in]:   3D array with the x component of the field
