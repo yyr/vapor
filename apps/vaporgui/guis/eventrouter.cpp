@@ -31,6 +31,7 @@
 #include <qfileinfo.h>
 #include <qfiledialog.h>
 #include "vapor/DataMgr.h"
+#include "vapor/GetAppPath.h"
 #include "vapor/errorcodes.h"
 #include "session.h"
 #include "messagereporter.h"
@@ -305,14 +306,14 @@ fileSaveTF(RenderParams* rParams){
 void EventRouter::
 loadInstalledTF(RenderParams* rParams, int varnum){
 	//Get the path from the environment:
-	char *share = getenv("VAPOR_SHARE");
+	string share = GetAppPath("vapor", "share");
 #ifdef WIN32
 	char *slash = "\\";
 #else
 	char* slash = "/";
 #endif
 
-	QString installPath = QString(share)+ slash + "palettes";
+	QString installPath = share + slash + "palettes";
 	fileLoadTF(rParams,varnum, installPath.ascii(),false);
 }
 void EventRouter::

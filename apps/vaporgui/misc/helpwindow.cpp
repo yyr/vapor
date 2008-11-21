@@ -7,15 +7,11 @@
 ** program may be used, distributed and modified without limitation.
 **
 *****************************************************************************/
-#ifdef	Darwin
-#include <CoreFoundation/CFBundle.h>
-#include <CoreServices/CoreServices.h>
-#endif
 #include "../images/back.xpm"
 #include "../images/forward.xpm"
 #include "../images/home2.xpm"
 #include "helpwindow.h"
-#include "vapor/Version.h"
+#include "vapor/GetAppPath.h"
 #include <qstatusbar.h>
 #include <qpixmap.h>
 #include <qimage.h>
@@ -163,67 +159,15 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 
 }
 
-bool get_doc_path_from_bundle(string & path) {
-	path.clear();
-
-#ifdef	Darwin
-	//
-	// Get path to document directory from the application "Bundle";
-	//
-
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    if (!mainBundle) return(false);
-
-    CFURLRef url = CFBundleCopyBundleURL(mainBundle);
-    if (! url) return(false);
-
-    const int kBufferLength = 1024;
-    UInt8 buffer[kBufferLength];
-    char componentStr[kBufferLength];
-
-    CFIndex componentLength = CFURLGetBytes(url, buffer, kBufferLength);
-	if (componentLength < 0) return(false);
-    buffer[componentLength] = 0;
-
-    CFRange range;
-    CFRange rangeIncludingSeparators;
-
-    range = CFURLGetByteRangeForComponent(
-        url, kCFURLComponentPath, &rangeIncludingSeparators
-    );
-    if (range.location == kCFNotFound) return(false);
-
-    strncpy(componentStr, (const char *)&buffer[range.location], range.length);
-    componentStr[range.length] = 0;
-
-    path = componentStr;
-	path.append("/Contents/SharedSupport/doc");
-    return(true);
-#else
-	return(false);
-#endif
-
-}
-
 
 void HelpWindow::showHelp(const QString& filename){
 	
 
-	QString appver(Version::GetVersionString().c_str());
-	QString filePath;
+	QString filePath =  GetAppPath("vapor", "share");
 
-	string dirpath;
+	filePath += "/doc/" + filename;
 
-	if (char *share = getenv("VAPOR_SHARE")) {
-		string sharestr(share);
-		filePath = QString(sharestr.c_str())+"/doc/"+filename;
-	}
-	else if (get_doc_path_from_bundle(dirpath)) {
-		filePath = QString(dirpath.c_str())+"/"+filename;
-	}
-	else {
-		filePath = QString("./share/doc/"+filename);
-	}
+
 #ifdef WIN32
 	filePath.replace('/','\\');
 #endif

@@ -67,6 +67,7 @@
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
+#include "vapor/GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "twoDparams.h"
@@ -597,8 +598,8 @@ twoDLoadInstalledTF(){
 #else
 	char* slash = "/";
 #endif
-	char *share = getenv("VAPOR_SHARE");
-	QString installPath = QString(share)+ slash + "palettes";
+	string share = GetAppPath("vapor", "share");
+	QString installPath = share + slash + "palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

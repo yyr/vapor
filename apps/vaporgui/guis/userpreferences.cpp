@@ -42,6 +42,7 @@
 #include "preferences.h"
 #include "session.h"
 #include "vapor/Version.h"
+#include "vapor/GetAppPath.h"
 #include <qtooltip.h>
 #include <qlineedit.h>
 #include <qfiledialog.h>
@@ -1732,11 +1733,9 @@ bool UserPreferences::loadDefault(){
 		}
 	}
 	if (!gotFile){
-		prefPath = getenv("VAPOR_HOME");
-		if (prefPath){
-			filename = string(prefPath)+"/.vapor_prefs";
-			if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
-		}
+		filename = GetAppPath("vapor", "home");
+		filename += string(prefPath)+"/.vapor_prefs";
+		if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 	}
 	if (!gotFile) {  
 		//Set preferences to defaults:

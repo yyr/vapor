@@ -67,6 +67,7 @@
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
+#include "vapor/GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "probeparams.h"
@@ -813,13 +814,13 @@ probeLoadInstalledTF(){
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	//Get the path from the environment:
-	char *share = getenv("VAPOR_SHARE");
+	string share = GetAppPath("vapor", "share");
 #ifdef WIN32
 	char *slash = "\\";
 #else
 	char* slash = "/";
 #endif
-	QString installPath = QString(share)+ slash +"palettes";
+	QString installPath = share + slash +"palettes";
 	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);

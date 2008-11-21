@@ -25,6 +25,7 @@
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include "vapor/DataMgr.h"
+#include "vapor/GetAppPath.h"
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "command.h"
@@ -1142,11 +1143,11 @@ infoCallbackFcn(const char* msg){
 }
 
 const string& Session::getPreferencesFile(){
-	char* prefPath = getenv("VAPOR_PREFS_DIR");
+	const char* prefPath = getenv("VAPOR_PREFS_DIR");
 	if (!prefPath)
 		prefPath = getenv("HOME");
 	if (!prefPath)
-		prefPath = getenv("VAPOR_HOME");
+		prefPath = GetAppPath("vapor", "home").c_str();
 	prefFile = std::string(prefPath)+"/.vapor_prefs";
 	return prefFile;
 }
