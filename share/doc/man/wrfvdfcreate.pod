@@ -46,7 +46,7 @@ horizontal extents, and the variables PH and PHB are used to find the
 vertical extents.  In general it is best to let B<wrfvdfcreate> calculate
 the extents.
 
-=item -startt E<lt>time<gt>
+=item -startt E<lt>timeE<gt>
 
 Starting time.  This is the date and time, which corresponds to the first
 time step in the VDC (time step 0). If the first form of the command is
@@ -117,15 +117,22 @@ A colon-delimited list of variables that are to be derived from WRF data during
 conversion with the wrf2vdf command.  These include: 
  
 B<PHNorm_>: the normalized geopotential (PH+PHB)/PHB; 
+  
 B<UVW_>: the three-dimensional wind speed (U^2+V^2+W^2)^1/2; 
+ 
 B<UV_>: the two-dimensional wind speed (U^2+V^2)^1/2; 
+ 
 B<omZ_>: a rough estimate of the vertical vorticity; 
+ 
 B<PFull_>: the full pressure P+PB; 
+ 
 B<PNorm_>: the normalized pressure (P+PB)/PB; 
+  
 B<Theta_>: the potential temperature T+300; and 
+ 
 B<TK_>: the temperature in Kelvin, B<TK_> = (B<T> + 300) *
 ((B<P>+B<PB>)/100000)^0.286
-
+ 
 No other arguments to this option may be given.  
 
 =item -atypvars E<lt>varsE<gt>
