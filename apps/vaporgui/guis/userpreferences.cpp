@@ -1718,23 +1718,26 @@ bool UserPreferences::loadDefault(){
 	bool gotFile = false;
 	string filename;
 	struct STAT64 statbuf;
-	
+#ifdef WIN32
+	char *slash = "\\";
+#else
+	char* slash = "/";
+#endif
 	char* prefPath = getenv("VAPOR_PREFS_DIR");
 	if (prefPath){
-		filename = string(prefPath)+"/.vapor_prefs";
+		filename = string(prefPath)+slash +".vapor_prefs";
 		if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 	}
 	if (!gotFile){
 		prefPath = getenv("HOME");
 		if (prefPath){
-			filename = string(prefPath)+"/.vapor_prefs";
-			
+			filename = string(prefPath)+slash+".vapor_prefs";
 			if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 		}
 	}
 	if (!gotFile){
 		filename = GetAppPath("vapor", "home");
-		filename += string(prefPath)+"/.vapor_prefs";
+		filename = filename + slash + ".vapor_prefs";
 		if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 	}
 	if (!gotFile) {  
