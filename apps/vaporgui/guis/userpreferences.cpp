@@ -1735,11 +1735,7 @@ bool UserPreferences::loadDefault(){
 			if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
 		}
 	}
-	if (!gotFile){
-		filename = GetAppPath("vapor", "home");
-		filename = filename + slash + ".vapor_prefs";
-		if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
-	}
+	
 	if (!gotFile) {  
 		//Set preferences to defaults:
 		setDefault();
