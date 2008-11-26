@@ -23,8 +23,8 @@ endif
 
 MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = vjpeg flow params render vdf common netcdf $(EXPAT_LIB)
-LIBRARIES += $(EXPAT_LIB) $(QT_LIB) GLEW $(OGL_LIB) $(GLU_LIB)
+LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB)
+LIBRARIES += $(EXPAT_LIB) $(QT_LIB) GLEW $(GLU_LIB) $(OGL_LIB)
 
 ifeq ($(BUILD_VOLUMIZER), 1)
 LIBRARIES += vz
