@@ -806,7 +806,6 @@ void UserPreferences::requestSave(){
 		 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,QMessageBox::NoButton);
 	if (rc != QMessageBox::Yes) return;
 	
-	std::string s = Session::getPreferencesFile();
 	QString filename = QFileDialog::getSaveFileName(
 			Session::getPreferencesFile().c_str(),
             ".*",
@@ -1718,39 +1717,25 @@ bool UserPreferences::loadDefault(){
 	bool gotFile = false;
 	string filename;
 	struct STAT64 statbuf;
-#ifdef WIN32
-	char *slash = "\\";
-#else
-	char* slash = "/";
-#endif
-	char* prefPath = getenv("VAPOR_PREFS_DIR");
-	if (prefPath){
-		filename = string(prefPath)+slash +".vapor_prefs";
-		if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
-	}
-	if (!gotFile){
-		prefPath = getenv("HOME");
-		if (prefPath){
-			filename = string(prefPath)+slash+".vapor_prefs";
-			if (STAT64(filename.c_str(), &statbuf) >= 0) gotFile = true;
-		}
+
+	string prefFile = Session::getInstance()->getPreferencesFile();
+	if (STAT64(prefFile.c_str(), &statbuf) >= 0) gotFile = true;
+	
+	if (gotFile){ 
+		bool ok = loadPreferences(prefFile.c_str());
+		if (ok) return true;
 	}
 	
-	if (!gotFile) {  
-		//Set preferences to defaults:
-		setDefault();
-		//Now copy the default to current:
-		Session* ses = Session::getInstance();
-		ses->setSessionDirectory(ses->getPrefSessionDirectory().c_str());
-		ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
-		ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
-		ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
-		ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
-		return false;
-	}
+	//Set preferences to defaults:
+	setDefault();
+	//Now copy the default to current:
+	Session* ses = Session::getInstance();
+	ses->setSessionDirectory(ses->getPrefSessionDirectory().c_str());
+	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
+	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
+	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
+	return false;
 	
-	bool ok = loadPreferences(filename.c_str());
-	if (!ok) setDefault();
-	return ok;
 
 }

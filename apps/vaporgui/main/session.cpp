@@ -1146,9 +1146,14 @@ const string& Session::getPreferencesFile(){
 	const char* prefPath = getenv("VAPOR_PREFS_DIR");
 	if (!prefPath)
 		prefPath = getenv("HOME");
-	if (!prefPath)
-		prefPath = GetAppPath("vapor", "home").c_str();
-	prefFile = std::string(prefPath)+"/.vapor_prefs";
+	if (!prefPath){
+		char *tmp = getenv("VAPOR_SHARE");
+		if (tmp) {
+			prefFile = string(tmp)+"/examples/.vapor_prefs";
+			return prefFile;
+		}
+	}
+	prefFile = string(prefPath)+"/.vapor_prefs";
 	return prefFile;
 }
 void Session::makeSessionFilepath(std::string& path){
