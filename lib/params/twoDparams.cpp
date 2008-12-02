@@ -934,9 +934,9 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 
 	float a[2],b[2];  //transform of (x,y) is to (a[0]x+b[0],a[1]y+b[1])
 	//Set up to transform from twoD into volume:
-	float constValue;
+	float constValue[2];
 	int mapDims[3];
-	build2DTransform(a,b,&constValue,mapDims);
+	build2DTransform(a,b,constValue,mapDims);
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -970,8 +970,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	//map plane corners
-	dataCoord[mapDims[2]] = constValue;
+	//map plane corners.  Always use constValue[0] = z, this is bottom of 2D box
+	dataCoord[mapDims[2]] = constValue[0];
 
 	for (int cornum = 0; cornum < 4; cornum++){
 		// coords relative to (-1,1)
@@ -1012,7 +1012,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			twoDCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			//find the coords that the texture maps to
 			//twoDCoord is the coord in the twoD slice, dataCoord is in data volume 
-			dataCoord[mapDims[2]] = constValue;
+			dataCoord[mapDims[2]] = constValue[0];
 			dataCoord[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
@@ -1191,7 +1191,8 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
     //the transform and the constant value
     //mappedDims[0] and mappedDims[1] are the dimensions that are
     //varying in the 3D volume.  mappedDims[2] is constant.
-    //constVal is the constant value that is used.
+    //constVal are the constant values that are used, for top and bottom of
+    //box (only different if terrain mapped)
 void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
 	//Find out orientation:
 	int orientation = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
