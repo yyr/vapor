@@ -49,7 +49,7 @@ else
 LDFLAGS           += -L/usr/X11R6/lib
 endif
 
-LDFLAGS			+= -lrt
+LDFLAGS			+= -Wl,-rpath,$(DSO_DIR) -lrt
 
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
