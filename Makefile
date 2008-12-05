@@ -8,6 +8,8 @@ ifeq ($(BUILD_TESTAPPS), 1)
 SUBDIRS += test_apps
 endif
 
+all::
+
 install-dep:: 
 	@$(ECHO) "Removing $(INSTALL_PREFIX_DIR)"
 	@if test -d $(INSTALL_PREFIX_DIR); then $(RM) -r $(INSTALL_PREFIX_DIR); fi
