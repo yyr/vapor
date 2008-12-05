@@ -23,8 +23,11 @@ endif
 
 MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB)
-LIBRARIES += $(EXPAT_LIB) $(QT_LIB) GLEW $(GLU_LIB) $(OGL_LIB)
+LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB) $(QT_LIB) GLEW 
+
+ifneq ($(ARCH),Darwin)
+LIBRARIES += $(GLU_LIB) $(OGL_LIB)
+endif
 
 ifeq ($(BUILD_VOLUMIZER), 1)
 LIBRARIES += vz
@@ -51,7 +54,7 @@ endif
 
 ifeq ($(ARCH),Darwin)
 MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
-MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib -framework CoreFoundation -framework CoreServices
+MAKEFILE_LDFLAGS += -framework OpenGL -framework CoreFoundation -framework CoreServices
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
 endif   
 

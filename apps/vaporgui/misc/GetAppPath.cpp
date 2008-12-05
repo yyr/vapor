@@ -8,7 +8,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreServices/CoreServices.h>
 #endif
-#include <vapor/GetAppPath.h>
+#include "GetAppPath.h"
 
 using namespace VetsUtil;
 

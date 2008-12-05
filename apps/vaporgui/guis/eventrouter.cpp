@@ -31,8 +31,8 @@
 #include <qfileinfo.h>
 #include <qfiledialog.h>
 #include "vapor/DataMgr.h"
-#include "vapor/GetAppPath.h"
 #include "vapor/errorcodes.h"
+#include "GetAppPath.h"
 #include "session.h"
 #include "messagereporter.h"
 #include "transferfunction.h"

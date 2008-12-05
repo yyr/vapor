@@ -42,7 +42,7 @@
 #include "preferences.h"
 #include "session.h"
 #include "vapor/Version.h"
-#include "vapor/GetAppPath.h"
+#include "GetAppPath.h"
 #include <qtooltip.h>
 #include <qlineedit.h>
 #include <qfiledialog.h>

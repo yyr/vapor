@@ -25,7 +25,7 @@
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include "vapor/DataMgr.h"
-#include "vapor/GetAppPath.h"
+#include "GetAppPath.h"
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "command.h"

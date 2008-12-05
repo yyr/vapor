@@ -67,7 +67,7 @@
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
-#include "vapor/GetAppPath.h"
+#include "GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "probeparams.h"

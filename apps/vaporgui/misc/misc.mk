@@ -2,7 +2,8 @@ MISC_FILES := \
 	animationcontroller helpwindow\
 	sharedcontrollerthread\
 	unsharedcontrollerthread \
-	vizfeatureparams 
+	vizfeatureparams \
+	GetAppPath
 
 MISC_QT_HEADERS := \
 	helpwindow\

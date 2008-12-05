@@ -11,7 +11,7 @@
 #include "../images/forward.xpm"
 #include "../images/home2.xpm"
 #include "helpwindow.h"
-#include "vapor/GetAppPath.h"
+#include "GetAppPath.h"
 #include <qstatusbar.h>
 #include <qpixmap.h>
 #include <qimage.h>
