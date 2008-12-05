@@ -30,6 +30,7 @@ struct opt_t {
 	float extents[6];
 	int order[3];
 	int periodic[3];
+	vector <string> varnames;
 	vector <string> vars3d;
 	vector <string> vars2dxy;
 	vector <string> vars2dxz;
@@ -92,7 +93,7 @@ OptionParser::Option_T	get_options[] = {
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"order", cvtToOrder, &opt.order, sizeof(opt.order)},
 	{"periodic", cvtTo3DBool, &opt.periodic, sizeof(opt.periodic)},
-	{"varnames", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
+	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
 	{"vars3d", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
 	{"vars2dxy", VetsUtil::CvtToStrVec, &opt.vars2dxy, sizeof(opt.vars2dxy)},
 	{"vars2dxz", VetsUtil::CvtToStrVec, &opt.vars2dxz, sizeof(opt.vars2dxz)},
@@ -241,7 +242,9 @@ int	main(int argc, char **argv) {
 			exit(1);
 		}
 	}
-	
+
+	// Deal with deprecated option
+	if (opt.varnames.size()) opt.vars3d = opt.varnames;
 
 	if (file->GetGridType().compare("layered") == 0){
 		//Make sure there's an ELEVATION variable in the vdf
