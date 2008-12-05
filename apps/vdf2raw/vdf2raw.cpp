@@ -83,7 +83,7 @@ void	process_volume(
 			cerr << ProgName << " : " << wbreader3D->GetErrMsg() << endl;
 			exit(1);
 		} 
-		wbreader2D->GetDim(dim, opt.level);
+		wbreader3D->GetDim(dim, opt.level);
 	} else {
 		wbreader2D = new WaveletBlock2DRegionReader(metafile);
 		if (wbreader2D->GetErrCode() != 0) {
