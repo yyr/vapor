@@ -227,6 +227,7 @@ int	VetsUtil::CvtToStrVec(
 	void		*to
 ) {
 	vector <string> *vptr	= (vector <string> *) to;
+	vptr->clear();
 
 	string::size_type idx;
 
@@ -251,6 +252,7 @@ int	VetsUtil::CvtToIntVec(
 	void		*to
 ) {
 	vector <int> *vptr	= (vector <int> *) to;
+	vptr->clear();
 
 	string::size_type idx;
 
