@@ -35,6 +35,7 @@ ifdef IDL_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(IDL_INC_PATH)
 endif
 
+LIBRARIES = common vdf expat netcdf
 
 ifeq ($(ARCH), Darwin)
 DLLSUFFIX = .so
