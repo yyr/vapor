@@ -1794,6 +1794,8 @@ void GLWindow::drawAxisLabels() {
 				projectPointToWin(pointOnAxis, winCoords);
 				int x = (int)(winCoords[0]+2*ticWidth);
 				int y = (int)(height()-winCoords[1]+2*ticWidth);
+				if (x < 0 || x > width()) continue;
+				if (y < 0 || y > height()) continue;
 				axisTextLabels[axis][i]->setText(QString::number(labelValue,'g',labelDigits));
 				axisTextLabels[axis][i]->adjustSize();
 				axisTextLabels[axis][i]->move(x,y);
@@ -1830,6 +1832,8 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 				projectPointToWin(pointOnAxis, winCoords);
 				int x = (int)(winCoords[0]+2*ticWidth);
 				int y = (int)(height()-winCoords[1]+2*ticWidth);
+				if (x < 0 || x > width()) continue;
+				if (y < 0 || y > height()) continue;
 				//Create a new QPixmap to paint into.  
 				//Then create a QPainter for the new Pixmap
 				//Then use QPainter::drawText() to put the text from the label
