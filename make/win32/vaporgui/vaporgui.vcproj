@@ -178,6 +178,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\floweventrouter.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\misc\GetAppPath.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.cpp">
 			</File>
 			<File
@@ -452,6 +455,9 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_floweventrouter.cpp"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\misc\GetAppPath.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.h">

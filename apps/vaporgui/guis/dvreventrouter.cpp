@@ -350,6 +350,7 @@ sessionLoadTF(QString* name){
 //
 void DvrEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if (!isEnabled()) return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
 
@@ -461,7 +462,8 @@ void DvrEventRouter::updateTab(){
 void DvrEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	
+	if (DataStatus::getInstance()->dataIsPresent3D()) setEnabled(true);
+	else setEnabled(false);
 	variableCombo->clear();
 	variableCombo->setMaxCount(ses->getNumMetadataVariables());
 	int i;

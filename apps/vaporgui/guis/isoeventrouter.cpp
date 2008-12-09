@@ -187,8 +187,9 @@ IsoEventRouter::hookUpTab()
 //
 void IsoEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if (!isEnabled()) return;
 	Session *session = Session::getInstance();
-	setEnabled(!session->sphericalTransform());
+	
 	session->blockRecording();
 
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
@@ -693,7 +694,9 @@ refreshHisto(){
 void IsoEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	
+	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	else setEnabled(false);
+
 	variableCombo->clear();
 	variableCombo->setMaxCount(ses->getNumMetadataVariables());
 	int i;

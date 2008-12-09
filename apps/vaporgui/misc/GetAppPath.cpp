@@ -56,7 +56,7 @@ string get_path_from_bundle(const string &app, const string & name) {
 }
 #endif
 
-string VetsUtil::GetAppPath(const string &app, const string &name) {
+std::string VetsUtil::GetAppPath(const string &app, const string &name) {
 	string path;
 	path.clear();
 

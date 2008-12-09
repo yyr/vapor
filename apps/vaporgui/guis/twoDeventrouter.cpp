@@ -190,10 +190,10 @@ TwoDEventRouter::hookUpTab()
 //
 void TwoDEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if (!isEnabled()) return;
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 
-    setEnabled(!Session::getInstance()->sphericalTransform());
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()
 		&& ds->getNumMetadataVariables2D()>0) 
@@ -755,9 +755,11 @@ guiCopyRegionToTwoD(){
 //any of the localTwoDParams are setup.
 void TwoDEventRouter::
 reinitTab(bool doOverride){
-	Session* ses = Session::getInstance();
 	
-    setEnabled(!ses->sphericalTransform());
+    Session *ses = Session::getInstance();
+	if (DataStatus::getInstance()->dataIsPresent2D()&&!ses->sphericalTransform()) setEnabled(true);
+	else setEnabled(false);
+
 
 	numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
 	//Set the names in the variable listbox

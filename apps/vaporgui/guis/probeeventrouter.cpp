@@ -228,10 +228,9 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if (!isEnabled()) return;
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
-
-    setEnabled(!Session::getInstance()->sphericalTransform());
 
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) instanceTable->setEnabled(true);
@@ -1039,8 +1038,8 @@ guiCopyRegionToProbe(){
 void ProbeEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	
-    setEnabled(!ses->sphericalTransform());
+	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	else setEnabled(false);
 
 	numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	//Set the names in the variable listbox

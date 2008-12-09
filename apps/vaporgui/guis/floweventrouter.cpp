@@ -322,9 +322,8 @@ FlowEventRouter::hookUpTab()
 //
 void FlowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if (!isEnabled()) return;
 	DataStatus* dStatus = DataStatus::getInstance();
-
-    setEnabled(!Session::getInstance()->sphericalTransform());
 
 	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
@@ -1443,8 +1442,9 @@ setFlowNavigateMode(bool mode){
 void FlowEventRouter::
 reinitTab(bool doOverride){
 
-
-	setEnabled(!Session::getInstance()->sphericalTransform());
+	Session *ses = Session::getInstance();
+	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	else setEnabled(false);
 
 	flowDataChanged = false;
 	mapBoundsChanged = false;

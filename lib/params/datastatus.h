@@ -90,6 +90,24 @@ public:
 		if (!variableExists2D[sesvarnum]) return false;
 		return (maxNumTransforms2D[sesvarnum][timestep] >= 0);
 	}
+	bool dataIsPresent3D(int timestep){
+		if (!dataMgr) return false;
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
+		for (int i = 0; i<variableExists.size(); i++){
+			if (variableExists[i] && maxNumTransforms[i][timestep] >= 0)
+				return true;
+		}
+		return false;
+	}
+	bool dataIsPresent2D(int timestep){
+		if (!dataMgr) return false;
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
+		for (int i = 0; i<variableExists2D.size(); i++){
+			if (variableExists2D[i] && maxNumTransforms2D[i][timestep] >= 0)
+				return true;
+		}
+		return false;
+	}
 	bool dataIsPresent(int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
@@ -103,7 +121,18 @@ public:
 		}
 		return false;
 	}
-
+	bool dataIsPresent3D(){
+		for (int t = (int)minTimeStep; t <= (int)maxTimeStep; t++) {
+			if (dataIsPresent3D(t)) return true;
+		}
+		return false;
+	}
+	bool dataIsPresent2D(){
+		for (int t = (int)minTimeStep; t <= (int)maxTimeStep; t++) {
+			if (dataIsPresent2D(t)) return true;
+		}
+		return false;
+	}
 	bool dataIsLayered();
 
 	double getDataMax(int sesvarNum, int timestep){

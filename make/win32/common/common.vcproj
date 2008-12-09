@@ -138,9 +138,6 @@
 				RelativePath="..\..\..\lib\common\EasyThreads.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\common\GetAppPath.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\common\MyBase.cpp">
 			</File>
 			<File
@@ -171,9 +168,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\errorcodes.h">
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\GetAppPath.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\MyBase.h">
