@@ -53,6 +53,7 @@ int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
+bool GLWindow::nowPainting = false;
 
 
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
@@ -182,6 +183,7 @@ GLWindow::~GLWindow()
 	invalidateElevGrid();
 	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
 	if (timeAnnotLabel) delete timeAnnotLabel;
+	nowPainting = false;
 }
 
 void GLWindow::setDefaultPrefs(){
@@ -242,7 +244,7 @@ void GLWindow::resizeGL( int width, int height )
 	}
 	glMatrixMode(GL_MODELVIEW);
 	needsResize = false;
-
+	nowPainting = false;
 }
 	
 void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
@@ -336,6 +338,7 @@ void GLWindow::paintGL()
 		setRenderNew();
 		previousTimeStep = timeStep;
 	}
+	
     getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
     DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
@@ -408,24 +411,25 @@ void GLWindow::paintGL()
 	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisLabels();
 	else if (axisLabelNums[0]||axisLabelNums[1]||axisLabelNums[2]) deleteAxisLabels();
 
-	//Apply time annotation:
+	
+	
+	for (int i = 0; i< getNumRenderers(); i++){
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) renderer[i]->paintGL();
+	}
+	
+	
+	//Create time annotation from current time step
 	if (getTimeAnnotType()){
 		drawTimeAnnotation();
 	} else {
 		if(timeAnnotLabel) timeAnnotLabel->hide();
 	}
 	
-	for (int i = 0; i< getNumRenderers(); i++){
-		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) renderer[i]->paintGL();
-	}
-	
-	swapBuffers();
-
-	
-	//Capture the image, if not navigating:
+	//Capture the back-buffer image, if not navigating:
 	if (renderNew && !mouseDownHere) doFrameCapture();
 
 	glPopMatrix();
+	swapBuffers();
 	//clear dirty bits
 	
 	setDirtyBit(RegionBit,false);
@@ -482,9 +486,7 @@ void GLWindow::initializeGL()
 	}
     glGenTextures(1, &_elevTexid);
 	glBindTexture(GL_TEXTURE_2D, _elevTexid);
-    //
-    // Initialize the graphics-dependent dvrparam state
-    //
+	nowPainting = false;
     
 }
 
@@ -577,7 +579,7 @@ pointIsOnBox(float corners[8][3], float pickPt[2]){
 	return -1;
 }
 
-//Produce an array based on current contents of the (front) buffer
+//Produce an array based on current contents of the (back) buffer
 bool GLWindow::
 getPixelData(unsigned char* data){
 	// set the current window 
@@ -1725,6 +1727,7 @@ void GLWindow::drawTimeAnnotation(){
 			const string& timeStamp = md->GetTSUserDataString(timeStep,"UserTimeStampString");
 			labelContents = QString("Date/Time: ")+QString(timeStamp.c_str());
 		}
+		
 	}
 	if(!timeAnnotLabel) { //Do we need a new label?
 		QFont f;
@@ -2109,7 +2112,7 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
  */
 bool GLWindow::removeRenderer(RenderParams* rp){
 	int i;
-	assert(!isPainting());
+	assert(!nowPainting);
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
 	if (find_iter == rendererMapping.end()) return false;
 	Renderer* ren = find_iter->second;

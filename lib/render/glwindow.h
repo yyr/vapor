@@ -339,7 +339,7 @@ public:
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
 	static void setDefaultPrefs();
 	int getWindowNum() {return winNum;}
-	bool isPainting() {return nowPainting;}
+	
 	//Static methods so that the vizwinmgr can tell the glwindow about
 	//current active visualizer, and about region sharing
 	static int getActiveWinNum() { return activeWindowNum;}
@@ -376,6 +376,7 @@ public:
 	
 	
 	void clearRendererBypass(Params::ParamType t);
+	static bool isRendering(){return nowPainting;}
 	
 
 protected:
@@ -487,7 +488,7 @@ protected:
 
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];
-	bool nowPainting;
+	static bool nowPainting;
 
 	//Manip stuff:
 	TranslateRotateManip* myProbeManip;

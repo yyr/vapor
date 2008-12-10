@@ -756,6 +756,7 @@ void MappingFrame::deleteOpacityWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::resizeGL(int width, int height)
 {
+	if (GLWindow::isRendering()) return;
   //
   // Update the size of the drawing rectangle
   //
@@ -774,6 +775,7 @@ void MappingFrame::resizeGL(int width, int height)
 //----------------------------------------------------------------------------
 void MappingFrame::paintGL()
 {
+  if (GLWindow::isRendering()) return;
   printOpenGLError();
 
   qglClearColor(backgroundColor());
@@ -907,6 +909,7 @@ void MappingFrame::paintGL()
 //----------------------------------------------------------------------------
 void MappingFrame::initializeGL()
 {
+	if (GLWindow::isRendering()) return;
   qglClearColor(QColor(0,0,0)); 
 
   glShadeModel( GL_SMOOTH );

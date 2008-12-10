@@ -75,6 +75,7 @@ GLTwoDWindow::~GLTwoDWindow()
 
 void GLTwoDWindow::resizeGL( int width, int height )
 {
+	if (GLWindow::isRendering()) return;
 	//update the size of the drawing rectangle
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	
@@ -118,7 +119,7 @@ void GLTwoDWindow::setTextureSize(float horiz, float vert){
 
 void GLTwoDWindow::paintGL()
 {
-	
+	if (GLWindow::isRendering()) return;
 	TwoDParams* myParams = VizWinMgr::getActiveTwoDParams();
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
@@ -190,6 +191,7 @@ void GLTwoDWindow::paintGL()
 
 void GLTwoDWindow::initializeGL()
 {
+	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	
 	qglClearColor( QColor(233,236,216) ); 		// same as frame

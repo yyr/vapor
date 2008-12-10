@@ -991,7 +991,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-		//assert(!(viz->getGLWindow()->isPainting()));
+		
 		IsoRenderer* myIso;
 		if (iParams->GetMapVariableNum()< 0)
 			myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
@@ -1017,7 +1017,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	}
 	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	//assert(!(viz->getGLWindow()->isPainting()));
+	
 	viz->getGLWindow()->removeRenderer(iParams);
 
 	return;

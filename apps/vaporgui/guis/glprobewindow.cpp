@@ -81,6 +81,7 @@ GLProbeWindow::~GLProbeWindow()
 
 void GLProbeWindow::resizeGL( int width, int height )
 {
+	if (GLWindow::isRendering()) return;
 	//update the size of the drawing rectangle
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	
@@ -124,7 +125,7 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 
 void GLProbeWindow::paintGL()
 {
-	
+	if (GLWindow::isRendering()) return;
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
@@ -221,6 +222,7 @@ void GLProbeWindow::paintGL()
 
 void GLProbeWindow::initializeGL()
 {
+	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	
 	qglClearColor( QColor(233,236,216) ); 		// same as frame

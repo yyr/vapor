@@ -258,6 +258,7 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 			}
 			else if (StrCmpNoCase(attribName, _maxRateAttr) == 0) {
 				ist >> maxFrameRate;
+				if (maxFrameRate <= 0.f) maxFrameRate = 0.001f;
 			}
 			else if (StrCmpNoCase(attribName, _maxWaitAttr) == 0) {
 				ist >> maxWait;
@@ -328,7 +329,7 @@ buildNode(){
 	attrs[_localAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)maxFrameRate;
+	oss << (double)maxFrameRate;
 	attrs[_maxRateAttr] = oss.str();
 
 	oss.str(empty);
