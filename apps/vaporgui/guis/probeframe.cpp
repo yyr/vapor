@@ -61,6 +61,7 @@ void ProbeFrame::paintEvent(QPaintEvent* ){
 	//	return;
 	//}
 	//Defer to the glProbeWindow (do a GL draw)
+	if (GLWindow::isRendering()) return;
 	glProbeWindow->updateGL();
 }
 

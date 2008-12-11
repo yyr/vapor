@@ -21,6 +21,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <qgl.h>
+#include "glwindow.h"
 
 #include <qpoint.h>
 #include <list>
@@ -126,6 +127,12 @@ public slots:
 
   void bindColorToOpacity();
   void bindOpacityToColor();
+  void updateGL(){
+	  if (!GLWindow::isRendering()) QGLWidget::updateGL();
+  }
+  void update(){
+	  if (!GLWindow::isRendering()) QGLWidget::update();
+  }
 
 signals:
 
@@ -163,6 +170,10 @@ protected:
   void initializeGL();
   void paintGL();
   void resizeGL( int w, int h );
+  //Virtual, Reimplemented here:
+  void paintEvent(QPaintEvent* event){
+	  if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
+  }
 
   void drawOpacityCurve();
   void drawOpacityWidgets();

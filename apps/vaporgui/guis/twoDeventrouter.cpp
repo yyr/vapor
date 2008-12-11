@@ -191,6 +191,7 @@ TwoDEventRouter::hookUpTab()
 void TwoDEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
+	if (GLWindow::isRendering()) return;
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 

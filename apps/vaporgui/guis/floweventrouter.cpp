@@ -323,6 +323,7 @@ FlowEventRouter::hookUpTab()
 void FlowEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
+	if (GLWindow::isRendering())return;
 	DataStatus* dStatus = DataStatus::getInstance();
 
 	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);

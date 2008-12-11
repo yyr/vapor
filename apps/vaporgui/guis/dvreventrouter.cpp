@@ -351,6 +351,7 @@ sessionLoadTF(QString* name){
 void DvrEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
+	if (GLWindow::isRendering())return;
 	Session *session = Session::getInstance();
 	session->blockRecording();
 

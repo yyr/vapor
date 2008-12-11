@@ -25,6 +25,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <qgl.h>
+#include "glwindow.h"
 #define CURSOR_COLOR 1.f,1.f,1.f
 #define CURSOR_SIZE 0.05f
 class ProbeFrame;
@@ -60,6 +61,10 @@ protected:
     void		initializeGL();
     void		paintGL();
     void		resizeGL( int w, int h );
+	//Virtual, Reimplemented here:
+	void paintEvent(QPaintEvent* event){
+		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
+	}
 
 	bool getPixelData(int minx, int miny, int sizex, int sizey,unsigned char* pixData);
 	void doFrameCapture();

@@ -414,6 +414,10 @@ protected:
     void		initializeGL();
     void		paintGL();
     void		resizeGL( int w, int h );
+	//Virtual, Reimplemented here, to prevent multiple nested gl rendering:
+	void paintEvent(QPaintEvent* event){
+		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
+	}
 
 	//Methods to support drawing domain bounds, axes etc.
 	//Set colors to use in domain-bound rendering:

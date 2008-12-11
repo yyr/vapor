@@ -188,6 +188,7 @@ IsoEventRouter::hookUpTab()
 void IsoEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
+	if (GLWindow::isRendering()) return;
 	Session *session = Session::getInstance();
 	
 	session->blockRecording();
