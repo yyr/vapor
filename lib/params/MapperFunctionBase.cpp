@@ -243,7 +243,7 @@ OpacityMapBase* MapperFunctionBase::getOpacityMap(int index) const
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-ColorMapBase* MapperFunctionBase::getColormap() {
+ColorMapBase* MapperFunctionBase::getColormap() const {
 	return(_colormap);
 }
 

@@ -121,12 +121,22 @@ MapperFunction::MapperFunction(const MapperFunctionBase &mapper) :
   MapperFunctionBase(mapper),
   _params(NULL)
 {
+cerr << "AAAAAAAAAAAAAA\n";
+	// Delete ColorMapBase and OpacityMapBase created by parent class
+	if (_colormap) delete _colormap;	
+
 	for (int i=0; i<_opacityMaps.size(); i++) {
 		delete _opacityMaps[i];
 		_opacityMaps[i] = NULL;
     }
     _opacityMaps.clear();
 
+	// Now recreate them with the appropriate type
+	//
+	const ColorMapBase *cmap =  mapper.getColormap();
+	if (cmap){
+		_colormap = new Colormap((const Colormap &) *cmap, this);
+	}
 	for (int i=0; i<mapper.getNumOpacityMaps(); i++) 
     {
       const OpacityMapBase *omap =  mapper.getOpacityMap(i);

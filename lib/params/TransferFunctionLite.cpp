@@ -53,6 +53,8 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 TransferFunctionLite::TransferFunctionLite() : MapperFunctionBase()
 {	
+	createOpacityMap();
+	_colormap = new ColorMapBase();
 }
 
 //----------------------------------------------------------------------------
@@ -62,6 +64,8 @@ TransferFunctionLite::TransferFunctionLite() : MapperFunctionBase()
 TransferFunctionLite::TransferFunctionLite(int nBits) : 
   MapperFunctionBase(nBits)
 {
+	createOpacityMap();
+	_colormap = new ColorMapBase();
 }
 	
 //----------------------------------------------------------------------------

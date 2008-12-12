@@ -111,7 +111,7 @@ public:
     //
     // Colormap
     //
-    virtual ColorMapBase*   getColormap();
+    virtual ColorMapBase*   getColormap() const;
 
     //
 	// Color conversion 
