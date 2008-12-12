@@ -341,6 +341,30 @@ int Metadata::Merge(Metadata *metadata, size_t ts_start) {
 	const vector <string> varnames = this->GetVariableNames();
 	const vector <string> mvarnames = metadata->GetVariableNames();
 
+	const vector <string> vars3d0 = this->GetVariables3D();
+	const vector <string> vars3d1 = metadata->GetVariables3D();
+	vector <string> vars3d;
+	for (int i=0; i<vars3d0.size(); i++) vars3d.push_back(vars3d0[i]);
+	for (int i=0; i<vars3d1.size(); i++) vars3d.push_back(vars3d1[i]);
+
+	const vector <string> vars2dxy0 = this->GetVariables2DXY();
+	const vector <string> vars2dxy1 = metadata->GetVariables2DXY();
+	vector <string> vars2dxy;
+	for (int i=0; i<vars2dxy0.size(); i++) vars2dxy.push_back(vars2dxy0[i]);
+	for (int i=0; i<vars2dxy1.size(); i++) vars2dxy.push_back(vars2dxy1[i]);
+
+	const vector <string> vars2dxz0 = this->GetVariables2DXZ();
+	const vector <string> vars2dxz1 = metadata->GetVariables2DXZ();
+	vector <string> vars2dxz;
+	for (int i=0; i<vars2dxz0.size(); i++) vars2dxz.push_back(vars2dxz0[i]);
+	for (int i=0; i<vars2dxz1.size(); i++) vars2dxz.push_back(vars2dxz1[i]);
+
+	const vector <string> vars2dyz0 = this->GetVariables2DYZ();
+	const vector <string> vars2dyz1 = metadata->GetVariables2DYZ();
+	vector <string> vars2dyz;
+	for (int i=0; i<vars2dyz0.size(); i++) vars2dyz.push_back(vars2dyz0[i]);
+	for (int i=0; i<vars2dyz1.size(); i++) vars2dyz.push_back(vars2dyz1[i]);
+
 	long ts = this->GetNumTimeSteps();
 
 	// Need to make a copy of the base names. Later, when we call
@@ -372,6 +396,13 @@ int Metadata::Merge(Metadata *metadata, size_t ts_start) {
 		int rc = SetVariableNames(newnames);
 		if (rc < 0) return(-1);
 	}
+
+	// Ugh. SetVariableNames destroys the variable type
+	//
+	SetVariables3D(vars3d);
+	SetVariables2DXY(vars2dxy);
+	SetVariables2DXZ(vars2dxz);
+	SetVariables2DYZ(vars2dyz);
 
 	// Restore basenames of the old variables to whatever they were before
 	// SetVariableNames clobbered them.
