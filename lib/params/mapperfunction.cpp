@@ -121,7 +121,6 @@ MapperFunction::MapperFunction(const MapperFunctionBase &mapper) :
   MapperFunctionBase(mapper),
   _params(NULL)
 {
-cerr << "AAAAAAAAAAAAAA\n";
 	// Delete ColorMapBase and OpacityMapBase created by parent class
 	if (_colormap) delete _colormap;	
 
