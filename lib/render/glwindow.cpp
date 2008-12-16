@@ -1500,6 +1500,14 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	//Don't allow the terrain surface to be below the minimum extents:
 	const float* extents = ds->getExtents();
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
+	//Initialize regmin, origregmin to full region extents:
+	RegionParams* rParams = getActiveRegionParams();
+	for (int i = 0; i< 3; i++){
+		regMin[i] = rParams->getRegionMin(i);
+		regMax[i] = rParams->getRegionMax(i);
+		regMinOrig[i] = regMin[i];
+		regMaxOrig[i] = regMax[i];
+	}
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
@@ -1542,25 +1550,13 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			}
 		}
 		else { //setup for just doing flat plane:
-			RegionParams* rParams = getActiveRegionParams();
+			
 			size_t bbmin[3], bbmax[3];
 			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, bbmin, bbmax);
-			for (int i = 0; i<3; i++){
-				regMin[i] = rParams->getRegionMin(i);
-				regMax[i] = rParams->getRegionMax(i);
-				regMinOrig[i] = regMin[i];
-				regMaxOrig[i] = regMax[i];
-			}
 		}
 	} else {
 		
-		RegionParams* rParams = getActiveRegionParams();
-		for (int i = 0; i< 3; i++){
-			regMin[i] = rParams->getRegionMin(i);
-			regMax[i] = rParams->getRegionMax(i);
-			regMinOrig[i] = regMin[i];
-			regMaxOrig[i] = regMax[i];
-		}
+		
 		//Try to get requested refinement level or the nearest acceptable level:
 		int refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				timeStep, &varnum, 1, regMin, regMax, true);

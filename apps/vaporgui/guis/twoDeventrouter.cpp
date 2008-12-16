@@ -1501,6 +1501,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 	size_t coordMin[3], coordMax[3];
 	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
 		sessionVarNums, numVars, regMin, regMax, true)) {
+			pParams->setBypass(timeStep);
 			return OUT_OF_BOUNDS;
 		}
 	for (int i = 0; i< 3; i++){

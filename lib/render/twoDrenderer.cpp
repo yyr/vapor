@@ -183,6 +183,8 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	//First, check if we have already constructed the elevation grid vertices.
 	//If not, rebuild them:
 	if (!elevVert || !elevVert[timeStep]) {
+		//Don't try to rebuild if we failed already..
+		if (doBypass(timeStep)) return;
 		if(!rebuildElevationGrid(timeStep)) return;
 	}
 	int maxx = maxXElev[timeStep];
@@ -485,8 +487,7 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
-				timeStep
-				 );
+				timeStep);
 		}
 		ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
 		
