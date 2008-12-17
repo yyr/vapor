@@ -147,6 +147,12 @@ void ProbeRenderer::initializeGL()
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 	glGenTextures(1, &_probeid);
 	glBindTexture(GL_TEXTURE_2D, _probeid);
+	int val;
+	glGetIntegerv(GL_AUX_BUFFERS, &val);
+	if (val < 1) {
+		MyBase::SetErrMsg(VAPOR_ERROR_GL_RENDERING,
+			" No Aux buffer available.\nFlow images will not display properly in the probe");
+	} 
 	initialized = true;
 }
 // IBFV constants:
@@ -266,9 +272,11 @@ void ProbeRenderer::pushState(int wid, int ht){
 	//We need 2 draw buffers
 	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
 	//assert(val > 1);
-
+	//We need an aux buffer
+	
 	glDrawBuffer(GL_AUX0);
 	glReadBuffer(GL_AUX0);
+	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
