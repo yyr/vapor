@@ -22,7 +22,7 @@ class MappingFrame;
 namespace VAPoR {
 
 class Params;
-class Colormap;
+class VColormap;
 
 class ColorbarWidget : public GLWidget
 {
@@ -30,7 +30,7 @@ class ColorbarWidget : public GLWidget
 
 public:
 
-  ColorbarWidget(MappingFrame *parent, Colormap *colormap);
+  ColorbarWidget(MappingFrame *parent, VColormap *colormap);
   virtual ~ColorbarWidget();
 
   void paintGL();
@@ -51,8 +51,8 @@ public:
   float minValue() const  { return _minValue; }
   float maxValue() const  { return _maxValue; }
 
-  void setColormap(Colormap *colormap);
-  Colormap* colormap() { return _colormap; }
+  void setColormap(VColormap *colormap);
+  VColormap* colormap() { return _colormap; }
 
   void setDirty() { _updateTexture = true; }
 
@@ -90,7 +90,7 @@ private:
   const int _NUM_BINS;
 
   MappingFrame *_parent;
-  Colormap     *_colormap;
+  VColormap     *_colormap;
 
   unsigned int   _texid;
   unsigned char *_texture;

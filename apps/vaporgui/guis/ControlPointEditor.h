@@ -19,7 +19,7 @@ namespace VAPoR {
 
 class MapperFunction;
 class OpacityMap;
-class Colormap;
+class VColormap;
 
 class ControlPointEditor : public ControlPointEditorBase
 {
@@ -28,7 +28,7 @@ class ControlPointEditor : public ControlPointEditorBase
  public:
 
   ControlPointEditor(MappingFrame* parent, OpacityMap *map, int cp);
-  ControlPointEditor(MappingFrame* parent, Colormap *map, int cp);
+  ControlPointEditor(MappingFrame* parent, VColormap *map, int cp);
 
   ~ControlPointEditor();
 
@@ -57,7 +57,7 @@ class ControlPointEditor : public ControlPointEditorBase
 
   MapperFunction *_mapper;
   OpacityMap     *_omap;
-  Colormap       *_cmap;
+  VColormap       *_cmap;
 };
 
 }; // VAPoR namespace

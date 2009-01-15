@@ -577,7 +577,7 @@ void MappingFrame::bindColorToOpacity()
       OpacityMap *omap = owidget->opacityMap();
 
       int cIndex = _colorbarWidget->selectedControlPoint();
-      Colormap   *cmap = _colorbarWidget->colormap();
+      VColormap   *cmap = _colorbarWidget->colormap();
       
       cmap->controlPointValue(cIndex, omap->controlPointValue(oIndex));
 
@@ -606,7 +606,7 @@ void MappingFrame::bindOpacityToColor()
       OpacityMap *omap = owidget->opacityMap();
 
       int cIndex = _colorbarWidget->selectedControlPoint();
-      Colormap   *cmap = _colorbarWidget->colormap();
+      VColormap   *cmap = _colorbarWidget->colormap();
       
       omap->controlPointValue(oIndex, cmap->controlPointValue(cIndex));
 
@@ -2134,7 +2134,7 @@ void MappingFrame::addColorControlPoint()
 
   if (_mapper)
   {
-    Colormap *colormap = _mapper->getColormap();
+    VColormap *colormap = _mapper->getColormap();
 
     if (colormap && (x >= colormap->minValue() && x <= colormap->maxValue()))
     {

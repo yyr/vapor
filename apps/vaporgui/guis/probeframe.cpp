@@ -28,6 +28,7 @@
 #include "glutil.h"
 #include "vizwinmgr.h"
 #include "probeeventrouter.h"
+#include "customcontext.h"
 
 
 ProbeFrame::ProbeFrame( QWidget * parent, const char * name, WFlags f ) :
@@ -40,7 +41,10 @@ ProbeFrame::ProbeFrame( QWidget * parent, const char * name, WFlags f ) :
 	fmt.setRgba(true);
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
-    glProbeWindow = new GLProbeWindow(fmt, this, "glprobewindow", this);
+	//QGLContext* ctx = new QGLContext(fmt);
+	CustomContext* ctx = new CustomContext(fmt);
+	//ctx->create();
+    glProbeWindow = new GLProbeWindow(ctx, this, "glprobewindow", this);
 	if (!(fmt.directRendering() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}

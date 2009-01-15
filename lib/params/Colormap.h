@@ -18,16 +18,16 @@ namespace VAPoR {
 class MapperFunctionBase;
 class XmlNode;
 
-class PARAMS_API Colormap : public ColorMapBase 
+class PARAMS_API VColormap : public ColorMapBase 
 {
 
 public:
 
-  Colormap(MapperFunctionBase *mapper);
-  Colormap(const Colormap &cmap, MapperFunctionBase *mapper);
-  const Colormap& operator=(const Colormap &cmap);
+  VColormap(MapperFunctionBase *mapper);
+  VColormap(const VColormap &cmap, MapperFunctionBase *mapper);
+  const VColormap& operator=(const VColormap &cmap);
 
-  virtual ~Colormap();
+  virtual ~VColormap();
 
   virtual float minValue() const;      // Data Coordinates
   virtual void  minValue(float value); // Data Coordinates

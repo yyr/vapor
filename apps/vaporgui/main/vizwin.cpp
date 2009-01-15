@@ -66,6 +66,7 @@
 #include "assert.h"
 #include "session.h"
 #include "vaporinternal/jpegapi.h"
+#include "customcontext.h"
 
 using namespace VAPoR;
 
@@ -113,7 +114,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	fmt.setDepth(true);
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
-    myGLWindow = new GLWindow(fmt, f, "glwindow",myWindowNum);
+	CustomContext* ctx = new CustomContext(fmt);
+    myGLWindow = new GLWindow(ctx, f, "glwindow",myWindowNum);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}

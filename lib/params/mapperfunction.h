@@ -61,7 +61,7 @@ public:
 
 	virtual OpacityMap* getOpacityMap(int index);
 
-	virtual Colormap*   getColormap();
+	virtual VColormap*   getColormap();
 
 
 

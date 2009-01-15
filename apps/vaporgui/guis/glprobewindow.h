@@ -30,16 +30,17 @@
 #define CURSOR_SIZE 0.05f
 class ProbeFrame;
 
+
 namespace VAPoR {
 
-
+class CustomContext;
 
 class GLProbeWindow : public QGLWidget
 {
 
 public:
 
-    GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char* name, ProbeFrame*  );
+    GLProbeWindow( CustomContext* ctx, QWidget* parent, const char* name, ProbeFrame*  );
     ~GLProbeWindow();
 	
 	void setTextureSize(float horiz, float vert);

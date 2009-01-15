@@ -40,7 +40,7 @@ ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMap *map,
 //----------------------------------------------------------------------------
 // Constructor -- Color control point
 //----------------------------------------------------------------------------
-ControlPointEditor::ControlPointEditor(MappingFrame* parent, Colormap *map, 
+ControlPointEditor::ControlPointEditor(MappingFrame* parent, VColormap *map, 
                                        int cp) :
   ControlPointEditorBase(parent),
   _controlPoint(cp),
@@ -78,7 +78,7 @@ void ControlPointEditor::initWidgets()
   
   if (_cmap)
   {
-    Colormap::Color color = _cmap->controlPointColor(_controlPoint);
+    VColormap::Color color = _cmap->controlPointColor(_controlPoint);
     QColor qcolor;
 
     qcolor.setHsv((int)(359*color.hue()), 
@@ -196,7 +196,7 @@ void ControlPointEditor::okHandler()
 
     int h,s,v;
     _colorButton->paletteForegroundColor().hsv(&h,&s,&v);
-    Colormap::Color color(h/359.0, s/255.0, v/255.0);
+    VColormap::Color color(h/359.0, s/255.0, v/255.0);
 
     _cmap->controlPointValue(_controlPoint, value);
     _cmap->controlPointColor(_controlPoint, color);

@@ -58,7 +58,7 @@ MapperFunction::MapperFunction() :
 	// Delete ColorMapBase created by parent class
 	if (_colormap) delete _colormap;	
  
-	_colormap = new Colormap(NULL);
+	_colormap = new VColormap(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits) :
 
 	// Now recreate them with the appropriate type
 	//
-    _colormap = new Colormap(this);
+    _colormap = new VColormap(this);
 
     _opacityMaps.push_back(new OpacityMap(this));
 }
@@ -106,8 +106,8 @@ MapperFunction::MapperFunction(const MapperFunction &mapper) :
 	// Now recreate them with the appropriate type
 	//
 	if (mapper._colormap){
-		const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
-		_colormap = new Colormap(cmap, this);
+		const VColormap &cmap =  (const VColormap &) (*(mapper._colormap));
+		_colormap = new VColormap(cmap, this);
 	}
 
 	for (int i=0; i<mapper._opacityMaps.size(); i++) 
@@ -134,7 +134,7 @@ MapperFunction::MapperFunction(const MapperFunctionBase &mapper) :
 	//
 	const ColorMapBase *cmap =  mapper.getColormap();
 	if (cmap){
-		_colormap = new Colormap((const Colormap &) *cmap, this);
+		_colormap = new VColormap((const VColormap &) *cmap, this);
 	}
 	for (int i=0; i<mapper.getNumOpacityMaps(); i++) 
     {
@@ -191,8 +191,8 @@ OpacityMap* MapperFunction::getOpacityMap(int index)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-Colormap* MapperFunction::getColormap() {
-    return((Colormap *)_colormap);
+VColormap* MapperFunction::getColormap() {
+    return((VColormap *)_colormap);
 }
 
 

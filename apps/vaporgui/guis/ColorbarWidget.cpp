@@ -26,7 +26,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-ColorbarWidget::ColorbarWidget(MappingFrame *parent, Colormap *colormap) :
+ColorbarWidget::ColorbarWidget(MappingFrame *parent, VColormap *colormap) :
   GLWidget(parent),
   _NUM_BINS(256),
   _parent(parent),
@@ -57,7 +57,7 @@ ColorbarWidget::~ColorbarWidget()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void ColorbarWidget::setColormap(Colormap *colormap)
+void ColorbarWidget::setColormap(VColormap *colormap)
 {
   _colormap = colormap;
   
@@ -334,7 +334,7 @@ void ColorbarWidget::select(int handle, Qt::ButtonState state)
 
   if (_colormap)
   {
-    Colormap::Color color = _colormap->controlPointColor(handle);
+    VColormap::Color color = _colormap->controlPointColor(handle);
     QColor qcolor;
     qcolor.setHsv((int)(360*color.hue()),
                   (int)(255*color.sat()),
@@ -410,7 +410,7 @@ void ColorbarWidget::newHsv(int h, int s, int v)
     
       for (iter=_selectedCPs.begin(); iter!=_selectedCPs.end(); iter++)
       {
-        _colormap->controlPointColor(*iter, Colormap::Color(hf, sf ,vf));
+        _colormap->controlPointColor(*iter, VColormap::Color(hf, sf ,vf));
       }
       
       _updateTexture = true;

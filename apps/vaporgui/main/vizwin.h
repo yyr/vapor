@@ -70,7 +70,7 @@ public:
 
 	
 	void setDirtyBit(DirtyBitType t, bool val){
-		myGLWindow->setDirtyBit(t,val);
+		if(myGLWindow) myGLWindow->setDirtyBit(t,val);
 	}
 		
 	bool vizIsDirty(DirtyBitType t){return myGLWindow->vizIsDirty(t);}

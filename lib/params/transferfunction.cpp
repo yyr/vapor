@@ -274,7 +274,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
       } else return false;//Unknown attribute
     }
 
-    _colormap->addNormControlPoint(posn, Colormap::Color(hue, sat, val));
+    _colormap->addNormControlPoint(posn, VColormap::Color(hue, sat, val));
 
     return true;
 
@@ -321,7 +321,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
 
     return map->elementStartHandler(pm, depth, tagString, attrs);
   }
-  else if (StrCmpNoCase(tagString, Colormap::xmlTag()) == 0) 
+  else if (StrCmpNoCase(tagString, VColormap::xmlTag()) == 0) 
   {
     pm->pushClassStack(_colormap);
 

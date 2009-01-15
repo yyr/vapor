@@ -27,6 +27,7 @@
 #include "probeeventrouter.h"
 #include "messagereporter.h"
 #include "session.h"
+#include "customcontext.h"
 #include <math.h>
 #include <qgl.h>
 #include <qapplication.h>
@@ -36,10 +37,9 @@
 using namespace VAPoR;
 
 
-GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char* name, ProbeFrame* pf )
-: QGLWidget(fmt, parent, name)
+GLProbeWindow::GLProbeWindow( CustomContext* ctx, QWidget* parent, const char* name, ProbeFrame* pf ) : 
+	QGLWidget(ctx, parent, name) {
 
-{
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";

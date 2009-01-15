@@ -25,7 +25,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-Colormap::Colormap(MapperFunctionBase *mapper) :
+VColormap::VColormap(MapperFunctionBase *mapper) :
   ColorMapBase(),
   _mapper(mapper)
 {
@@ -34,7 +34,7 @@ Colormap::Colormap(MapperFunctionBase *mapper) :
 //----------------------------------------------------------------------------
 // Copy constructor
 //----------------------------------------------------------------------------
-Colormap::Colormap(const Colormap &cmap, MapperFunctionBase *mapper) : 
+VColormap::VColormap(const VColormap &cmap, MapperFunctionBase *mapper) : 
   ColorMapBase(cmap),
   _mapper(mapper)
 {
@@ -43,7 +43,7 @@ Colormap::Colormap(const Colormap &cmap, MapperFunctionBase *mapper) :
 //----------------------------------------------------------------------------
 // Destructor
 //----------------------------------------------------------------------------
-Colormap::~Colormap()
+VColormap::~VColormap()
 {
 }
 
@@ -56,7 +56,7 @@ Colormap::~Colormap()
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-float Colormap::minValue() const
+float VColormap::minValue() const
 {
   assert(_mapper);
 
@@ -71,7 +71,7 @@ float Colormap::minValue() const
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-void Colormap::minValue(float value)
+void VColormap::minValue(float value)
 {
   assert(_mapper);
 
@@ -87,7 +87,7 @@ void Colormap::minValue(float value)
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-float Colormap::maxValue() const
+float VColormap::maxValue() const
 {
   assert(_mapper);
 
@@ -102,7 +102,7 @@ float Colormap::maxValue() const
 // space. Therefore, the color map will change relative to any changes in
 // the parameter space. 
 //----------------------------------------------------------------------------
-void Colormap::maxValue(float value)
+void VColormap::maxValue(float value)
 {
   assert(_mapper);
 
