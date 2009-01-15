@@ -14,6 +14,11 @@ ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
 endif
 
+ifdef   QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
+
+
 include ${TOP}/make/config/base.mk
 
 ifeq ($(ARCH),Darwin)
