@@ -28,7 +28,6 @@ int CustomContext::choosePixelFormat(void*p, HDC pdc){
 }
 #elif defined (Q_WS_X11)
 void *CustomContext::chooseVisual() {
-	fprintf(stderr, "in custom context::chooseVisual\n");
 	GLint attribs[] = {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_AUX_BUFFERS, 1, None};
 	XVisualInfo *vis = glXChooseVisual(device()->x11Display(), device()->x11Screen(), attribs);
 	

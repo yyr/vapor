@@ -416,15 +416,16 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
-	int xcrd =0, ycrd = 1;
-	if (orientation < 2) ycrd = 2;
-	if (orientation < 1) xcrd = 1;
+	int xcrd =0, ycrd = 1, zcrd = 2;
+	if (orientation < 2) {ycrd = 2; zcrd = 1;}
+	if (orientation < 1) {xcrd = 1; zcrd = 0;}
 
 	const float *extents = DataStatus::getInstance()->getExtents();
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[xcrd] = xSizeEdit->text().toFloat();
 	boxSize[ycrd] = ySizeEdit->text().toFloat();
+	boxSize[zcrd] = 0;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
 		if (boxSize[i] > (extents[i+3]-extents[i])) boxSize[i] = (extents[i+3]-extents[i]);
@@ -433,7 +434,8 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
 	twoDParams->getBox(boxmin, boxmax);
-	
+	//the box z-size is not adjustable:
+	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
 		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
 		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];

@@ -341,9 +341,9 @@ mousePressEvent(QMouseEvent* e){
 				tParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = twoDManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
-					//Do nothing if grabbing z on elevation grid:
+					//Do nothing if grabbing z on elevation grid or with right mouse:
 					if ((handleNum == 5 || handleNum == 0) &&
-						tParams->isMappedToTerrain()) {
+						(tParams->isMappedToTerrain()||(buttonNum == 2))) {
 							doNavigate = true;
 							break;
 						}
