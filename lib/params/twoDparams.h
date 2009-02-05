@@ -77,6 +77,20 @@ public:
 		refreshCtab();
 		return ctab;
 	}
+	bool isDataMode() {return useData;}
+	void setDataMode(bool data) { useData = data;}
+	//Variables specific to images:
+	bool isGeoreferenced() {return useGeoreferencing;}
+	void setGeoreferenced(bool val){useGeoreferencing = val;}
+	float getResampRate(){return resampRate;}
+	void setResampRate(float val){ resampRate = val;}
+	float getOpacMult() {return opacityMultiplier;}
+	void setOpacMult(float val){opacityMultiplier = val;}
+	string& getImageFileName(){return imageFileName;}
+	void setOrientation(int val){orientation = val;}
+	int getOrientation() {return orientation;}
+	void setImageFileName(string& fname) {imageFileName = fname;}
+
 	void setMinMapBound(float val)
 		{setMinColorMapBound(val);setMinOpacMapBound(val);}
 	void setMaxMapBound(float val)
@@ -248,6 +262,7 @@ public:
 	//Mapping [-1,1]X[-1,1] into 3D volume.
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
+
 	
 protected:
 	
@@ -262,6 +277,13 @@ protected:
 	static const string _numTransformsAttr;
 	static const string _terrainMapAttr;
 	static const string _verticalDisplacementAttr;
+
+	static const string _dataModeAttr;
+	static const string _georeferencedAttr;
+	static const string _resampleRateAttr;
+	static const string _opacityMultAttr;
+	static const string _imageFileNameAttr;
+	static const string _orientationAttr;
 
 	
 	
@@ -301,6 +323,15 @@ protected:
 	
 	
 	//State variables controlled by GUI:
+
+	bool useData;
+	//Variables specific to images:
+	bool useGeoreferencing;
+	float resampRate;
+	float opacityMultiplier;
+	string imageFileName;
+	int orientation; //Only settable in image mode
+
 	float twoDMin[3], twoDMax[3];
 	int numRefinements, maxNumRefinements;
 	

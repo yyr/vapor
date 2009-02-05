@@ -50,6 +50,7 @@ public:
 	}
 	
 	//Connect signals and slots from tab
+	
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
@@ -124,6 +125,11 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiChangeType(int);
+	void selectImageFile();
+	void guiSetOrientation(int);
+	void guiSetGeoreferencing(bool);
+
 	void guiApplyTerrain(bool);
 	void guiNudgeXSize(int);
 	void guiNudgeXCenter(int);

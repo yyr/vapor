@@ -43,7 +43,7 @@ GLProbeWindow::GLProbeWindow( CustomContext* ctx, QWidget* parent, const char* n
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";
-		strng += "Be sure to use 'vlgrun' if you are in a VirtualGL session.";
+		strng += "Be sure to use 'vglrun' if you are in a VirtualGL session.";
 		Params::BailOut(strng.ascii(),__FILE__,__LINE__);
 	}
 

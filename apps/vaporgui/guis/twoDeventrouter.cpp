@@ -42,6 +42,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
+#include <qlayout.h>
 #include "twoDrenderer.h"
 #include "mappingframe.h"
 #include "transferfunction.h"
@@ -121,13 +122,16 @@ TwoDEventRouter::hookUpTab()
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-	
 	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (resampleEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (opacityEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (resampleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (opacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(twoDCenterRegion()));
@@ -184,6 +188,10 @@ TwoDEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
+	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiChangeType(int)));
+	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(selectImageFile()));
+	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
+	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
 	
 }
 //Insert values from params into tab panel
@@ -208,6 +216,111 @@ void TwoDEventRouter::updateTab(){
 	int winnum = vizMgr->getActiveViz();
 	
 	guiSetTextChanged(false);
+	int orientation = 2; //x-y aligned
+	//set up the cursor position
+	mapCursor();
+	const float* selectedPoint = twoDParams->getSelectedPoint();
+	selectedXLabel->setText(QString::number(selectedPoint[0]));
+	selectedYLabel->setText(QString::number(selectedPoint[1]));
+	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	attachSeedCheckbox->setChecked(seedAttached);
+	
+	//Check on data/image mode, this affects what is displayed:
+	typeCombo->setCurrentItem(twoDParams->isDataMode() ? 0 : 1);
+	if (twoDParams->isDataMode()){
+		imageFrame->hide();
+		variableFrame->show();
+		
+		appearanceFrame->show();
+		//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
+		orientationCombo->setCurrentItem(orientation);
+		orientationCombo->setEnabled(false);
+		transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
+		transferFunctionFrame->updateParams();
+		int numvars = 0;
+		QString varnames = getMappedVariableNames(&numvars);
+		QString shortVarNames = varnames;
+		if(shortVarNames.length() > 12){
+			shortVarNames.setLength(12);
+			shortVarNames.append("...");
+		}
+		if (numvars > 1)
+		{
+		transferFunctionFrame->setVariableName(varnames.ascii());
+		QString labelString = "Length of vector("+shortVarNames+") at selected point:";
+		variableLabel->setText(labelString);
+		}
+		else if (numvars > 0)
+		{
+		transferFunctionFrame->setVariableName(varnames.ascii());
+		QString labelString = "Value of variable("+shortVarNames+") at selected point:";
+		variableLabel->setText(labelString);
+		}
+		else
+		{
+		transferFunctionFrame->setVariableName("");
+		variableLabel->setText("");
+		}
+		int numRefs = twoDParams->getNumRefinements();
+		if(numRefs <= refinementCombo->count())
+			refinementCombo->setCurrentItem(numRefs);
+		
+		histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
+		//List the variables in the combo
+		int* sessionVarNums = new int[numVariables];
+		int totVars = 0;
+		for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
+			if (!twoDParams->variableIsSelected(varnum)) continue;
+			sessionVarNums[totVars++] = varnum;
+		}
+		float val = OUT_OF_BOUNDS;
+		if (numVariables > 0) {val = calcCurrentValue(twoDParams,selectedPoint,sessionVarNums, totVars);
+			delete sessionVarNums;
+		}
+		if (val == OUT_OF_BOUNDS)
+			valueMagLabel->setText(QString(" "));
+		else valueMagLabel->setText(QString::number(val));
+		guiSetTextChanged(false);
+		//Set the selection in the variable listbox.
+		//Turn off listBox message-listening
+		ignoreListboxChanges = true;
+		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++){
+			if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
+				variableListBox->setSelected(i, twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
+		}
+		ignoreListboxChanges = false;
+
+		updateBoundsText(twoDParams);
+		
+		float sliderVal = twoDParams->getOpacityScale();
+		QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+		
+		sliderVal = 256.f*(1.f -sliderVal);
+		opacityScaleSlider->setValue((int) sliderVal);
+		
+		
+		//Set the mode buttons:
+		
+		if (twoDParams->getEditMode()){
+			
+			editButton->setOn(true);
+			navigateButton->setOn(false);
+		} else {
+			editButton->setOn(false);
+			navigateButton->setOn(true);
+		}
+	} else {
+		orientation = twoDParams->getOrientation();
+		orientationCombo->setEnabled(true);
+		imageFrame->show();
+		variableFrame->hide();
+		appearanceFrame->hide();
+		orientationCombo->setCurrentItem(orientation);
+		resampleEdit->setText(QString::number(twoDParams->getResampRate()));
+		opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
+		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+	}
+
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDInstances(winnum) > 1);
 	
@@ -227,15 +340,7 @@ void TwoDEventRouter::updateTab(){
 		}
 	}
 
-	int orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
-	if (orientation == 2)
-		orientationLabel->setText("X-Y");
-	else if (orientation == 0)
-		orientationLabel->setText("Y-Z");
-	else {
-		assert(orientation == 1);
-		orientationLabel->setText("X-Z");
-	}
+	
 	
 	if (twoDParams->isMappedToTerrain()) {
 		zCenterSlider->setEnabled(false);
@@ -252,38 +357,7 @@ void TwoDEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
 
-    transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
-    transferFunctionFrame->updateParams();
-	int numvars = 0;
-	QString varnames = getMappedVariableNames(&numvars);
-    QString shortVarNames = varnames;
-	if(shortVarNames.length() > 12){
-		shortVarNames.setLength(12);
-		shortVarNames.append("...");
-	}
-    if (numvars > 1)
-    {
-      transferFunctionFrame->setVariableName(varnames.ascii());
-	  QString labelString = "Length of vector("+shortVarNames+") at selected point:";
-	  variableLabel->setText(labelString);
-    }
-	else if (numvars > 0)
-	{
-      transferFunctionFrame->setVariableName(varnames.ascii());
-	  QString labelString = "Value of variable("+shortVarNames+") at selected point:";
-	  variableLabel->setText(labelString);
-    }
-    else
-    {
-      transferFunctionFrame->setVariableName("");
-	  variableLabel->setText("");
-    }
-	int numRefs = twoDParams->getNumRefinements();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
-	
-	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
-
+    
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
 	const float* extents = ds->getExtents();
@@ -326,54 +400,7 @@ void TwoDEventRouter::updateTab(){
 		maxGridYLabel->setText(QString::number(gridMax[1]));
 		maxGridZLabel->setText(QString::number(gridMax[2]));
 	}
-    mapCursor();
-	const float* selectedPoint = twoDParams->getSelectedPoint();
-	selectedXLabel->setText(QString::number(selectedPoint[0]));
-	selectedYLabel->setText(QString::number(selectedPoint[1]));
-	selectedZLabel->setText(QString::number(selectedPoint[2]));
-	attachSeedCheckbox->setChecked(seedAttached);
-	//List the variables in the combo
-	int* sessionVarNums = new int[numVariables];
-	int totVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
-		if (!twoDParams->variableIsSelected(varnum)) continue;
-		sessionVarNums[totVars++] = varnum;
-	}
-	float val = calcCurrentValue(twoDParams,selectedPoint,sessionVarNums, totVars);
-	delete sessionVarNums;
-	if (val == OUT_OF_BOUNDS)
-		valueMagLabel->setText(QString(" "));
-	else valueMagLabel->setText(QString::number(val));
-	guiSetTextChanged(false);
-	//Set the selection in the variable listbox.
-	//Turn off listBox message-listening
-	ignoreListboxChanges = true;
-	for (int i = 0; i< ds->getNumMetadataVariables2D(); i++){
-		if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
-			variableListBox->setSelected(i, twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
-	}
-	ignoreListboxChanges = false;
-
-	updateBoundsText(twoDParams);
-	
-	float sliderVal = twoDParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
-	
-	sliderVal = 256.f*(1.f -sliderVal);
-	opacityScaleSlider->setValue((int) sliderVal);
-	
-	
-	//Set the mode buttons:
-	
-	if (twoDParams->getEditMode()){
-		
-		editButton->setOn(true);
-		navigateButton->setOn(false);
-	} else {
-		editButton->setOn(false);
-		navigateButton->setOn(true);
-	}
-		
+    
 	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
@@ -397,10 +424,13 @@ void TwoDEventRouter::updateTab(){
 }
 //Fix for clean Windows scrolling:
 void TwoDEventRouter::refreshTab(){
+	 
 	twoDFrameHolder->hide();
 	twoDFrameHolder->show();
-	appearanceFrame->hide();
-	appearanceFrame->show();
+	if (typeCombo->currentItem() == 0){
+		appearanceFrame->hide();
+		appearanceFrame->show();
+	}
 }
 
 void TwoDEventRouter::confirmText(bool /*render*/){
@@ -412,6 +442,17 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
+	float op = opacityEdit->text().toFloat();
+	if (op < 0.f) {op = 0.f; opacityEdit->setText(QString::number(op));}
+	if (op > 1.f) {op = 1.f; opacityEdit->setText(QString::number(op));}
+	twoDParams->setOpacMult(op);
+
+	float resamp = resampleEdit->text().toFloat();
+	if (resamp <= 0.f){
+		resamp = 1.f;
+		resampleEdit->setText("1.0");
+	}
+	twoDParams->setResampRate(resamp);
 	
 	twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
@@ -476,6 +517,44 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 /*********************************************************************************
  * Slots associated with TwoDTab:
  *********************************************************************************/
+void TwoDEventRouter::guiChangeType(int type){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle 2D image/data");
+	tParams->setDataMode(type == 0);
+	PanelCommand::captureEnd(cmd, tParams); 
+	setTwoDDirty(tParams);
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	updateTab();
+}
+
+// Launch a file selection dialog to pick and open an image file
+void TwoDEventRouter::selectImageFile(){
+	confirmText(false);
+}
+void TwoDEventRouter::guiSetOrientation(int val){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	//If this is triggered by variable selection, don't catch the
+	//undo/redo:
+	if (tParams->isDataMode()) return;
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set 2D orientation");
+	tParams->setOrientation(val);
+	PanelCommand::captureEnd(cmd, tParams); 
+	setTwoDDirty(tParams);
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	updateTab();
+}
+void TwoDEventRouter::guiSetGeoreferencing(bool val){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle georeferencing on/off");
+	tParams->setGeoreferenced(val);
+	PanelCommand::captureEnd(cmd, tParams); 
+	setTwoDDirty(tParams);
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	updateTab();
+}
 
 void TwoDEventRouter::guiChangeInstance(int inst){
 	performGuiChangeInstance(inst);
@@ -1079,14 +1158,8 @@ guiChangeVariables(){
 	}
 	pParams->setNumVariablesSelected(numSelected);
 	pParams->setFirstVarNum(firstVar);
-	if (orientation == 2)
-		orientationLabel->setText("X-Y");
-	else if (orientation == 0)
-		orientationLabel->setText("Y-Z");
-	else {
-		assert(orientation == 1);
-		orientationLabel->setText("X-Z");
-	}
+	orientationCombo->setCurrentItem(orientation);
+	
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
 		pParams->setMappedToTerrain(false);

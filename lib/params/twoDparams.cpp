@@ -59,8 +59,13 @@ const string TwoDParams::_twoDMaxAttr = "TwoDMax";
 const string TwoDParams::_cursorCoordsAttr = "CursorCoords";
 const string TwoDParams::_terrainMapAttr = "MapToTerrain";
 const string TwoDParams::_verticalDisplacementAttr = "VerticalDisplacement";
-
 const string TwoDParams::_numTransformsAttr = "NumTransforms";
+const string TwoDParams::_dataModeAttr = "DataMode";
+const string TwoDParams::_georeferencedAttr = "Georeferenced";
+const string TwoDParams::_orientationAttr = "Orientation";
+const string TwoDParams::_resampleRateAttr = "ResamplingRate";
+const string TwoDParams::_opacityMultAttr = "OpacityMultiplier";
+const string TwoDParams::_imageFileNameAttr = "ImageFileName";
 
 TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	thisParamType = TwoDParamsType;
@@ -364,8 +369,12 @@ restart(){
 	if (twoDDataTextures) delete twoDDataTextures;
 	twoDDataTextures = 0;
 	
-	
-	
+	resampRate = 1.f;
+	opacityMultiplier = 1.f;
+	useData = true;
+	useGeoreferencing = true;
+	imageFileName = "";
+
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
@@ -443,8 +452,16 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	static int parsedVarNum = -1;
 	int i;
 	if (StrCmpNoCase(tagString, _twoDParamsTag) == 0) {
-		
+		//Set defaults in case reading an old session:
+		resampRate = 1.f;
+		opacityMultiplier = 1.f;
+		useData = true;
+		useGeoreferencing = true;
+		imageFileName = "";
+		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
+
+		
 		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -484,6 +501,26 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _verticalDisplacementAttr) == 0){
 				ist >> verticalDisplacement;
+			}
+			else if (StrCmpNoCase(attribName, _dataModeAttr) == 0) {
+				if (value == "true") setDataMode(true); 
+				else setDataMode(false);
+			}
+			else if (StrCmpNoCase(attribName, _orientationAttr) == 0) {
+				ist >> orientation;
+			}
+			else if (StrCmpNoCase(attribName, _georeferencedAttr) == 0) {
+				if (value == "true") setGeoreferenced(true);
+				else setGeoreferenced(false);
+			}
+			else if (StrCmpNoCase(attribName, _resampleRateAttr) == 0) {
+				ist >> resampRate;
+			}
+			else if (StrCmpNoCase(attribName, _opacityMultAttr) == 0) {
+				ist >> opacityMultiplier;
+			}
+			else if (StrCmpNoCase(attribName, _imageFileNameAttr) == 0) {
+				imageFileName = value;
 			}
 			
 			else return false;
@@ -695,7 +732,34 @@ buildNode() {
 		oss << "false";
 	attrs[_terrainMapAttr] = oss.str();
 
+	oss.str(empty);
+	if (isDataMode())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_dataModeAttr] = oss.str();
 
+	oss.str(empty);
+	if (isGeoreferenced())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_georeferencedAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)orientation;
+	attrs[_orientationAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)resampRate;
+	attrs[_resampleRateAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double) opacityMultiplier;
+	attrs[_opacityMultAttr] = oss.str();
+
+	attrs[_imageFileNameAttr] = imageFileName;
+	
 	XmlNode* twoDNode = new XmlNode(_twoDParamsTag, attrs, 3);
 
 	//Now add children:  
