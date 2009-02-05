@@ -365,10 +365,16 @@ create new 2D planar instances.</string>
                                                 <cstring>textLabel1_4</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>2D Type</string>
+                                                <string>2D Mode</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify Data or Image mode</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -384,6 +390,12 @@ create new 2D planar instances.</string>
                                             </item>
                                             <property name="name">
                                                 <cstring>typeCombo</cstring>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify Data or Image mode</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -414,7 +426,10 @@ create new 2D planar instances.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Indicates the orientation of the selected 2D Variables</string>
+                                                <string>Specifies coordinate plane alignment of data or image</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>In data mode, the orientation indicates the planar alignment of the selected variable(s).  In image mode, the orientation can be selected.  Only horizontal (X-Y) oriented images can make use of georeferencing.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -438,6 +453,9 @@ create new 2D planar instances.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specifies coordinate plane alignment of data or image</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>In data mode, the orientation indicates the planar alignment of the selected variable(s).  In image mode, the orientation can be selected.  Only horizontal (X-Y) oriented images can make use of georeferencing.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -614,7 +632,7 @@ create new 2D planar instances.</string>
                                                                 <cstring>textLabel2_7</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Resampling</string>
+                                                                <string>Resampling rate</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -629,6 +647,12 @@ create new 2D planar instances.</string>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
                                                                 <cstring>resampleEdit</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>32767</height>
+                                                                </size>
                                                             </property>
                                                             <property name="text">
                                                                 <string>1.0</string>
@@ -674,6 +698,12 @@ create new 2D planar instances.</string>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
                                                                 <cstring>opacityEdit</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>32767</height>
+                                                                </size>
                                                             </property>
                                                             <property name="text">
                                                                 <string>1.0</string>
