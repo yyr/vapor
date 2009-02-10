@@ -103,31 +103,34 @@ bool DVRShader::createShader(ShaderType type,
                              const char *fragmentSource)
 {
   _shaders[type] = new ShaderProgram();
-  _shaders[type]->create();
+  if (! _shaders[type]->create()) return false;
 
+  bool status;
   //
   // Vertex shader
   //
   if (Params::searchCmdLine(vertexCommandLine))
   {
-    _shaders[type]->loadVertexShader(Params::parseCmdLine(vertexCommandLine));
+    status = _shaders[type]->loadVertexShader(Params::parseCmdLine(vertexCommandLine));
   }
   else if (vertexSource)
   {
-    _shaders[type]->loadVertexSource(vertexSource);
+    status = _shaders[type]->loadVertexSource(vertexSource);
   }
+  if (! status) return (status);
 
   //
   // Fragment shader
   //
   if (Params::searchCmdLine(fragCommandLine))
   {
-    _shaders[type]->loadFragmentShader(Params::parseCmdLine(fragCommandLine));
+    status = _shaders[type]->loadFragmentShader(Params::parseCmdLine(fragCommandLine));
   }
   else if (fragmentSource)
   {
-    _shaders[type]->loadFragmentSource(fragmentSource);
+    status = _shaders[type]->loadFragmentSource(fragmentSource);
   }
+  if (! status) return (status);
 
   if (!_shaders[type]->compile())
   {

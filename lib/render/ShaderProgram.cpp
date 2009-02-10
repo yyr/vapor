@@ -124,22 +124,22 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
     shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &sourceBuffer, &size);
 
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     glAttachShader(_program, shader);
 
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
   }
   else
   {
     shader = glCreateShaderObjectARB(shaderType);
     glShaderSourceARB(shader, 1, &sourceBuffer, &size);
 
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     glAttachObjectARB(_program, shader);
 
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
   }
 
   _shaders.push_back(shader);
@@ -183,25 +183,25 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
   {
     shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &sourceBuffer, &length);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     //
     // Attach the shader
     //
     glAttachShader(_program, shader);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
   }
   else
   {
     shader = glCreateShaderObjectARB(shaderType);
     glShaderSourceARB(shader, 1, &sourceBuffer, &length);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     //
     // Attach the shader
     //
     glAttachObjectARB(_program, shader);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
   }
 
 
@@ -213,7 +213,7 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
 //----------------------------------------------------------------------------
 // Create the shader program
 //----------------------------------------------------------------------------
-void ShaderProgram::create()
+bool ShaderProgram::create()
 {
   if (GLEW_VERSION_2_0)
   {
@@ -224,7 +224,8 @@ void ShaderProgram::create()
     _program = glCreateProgramObjectARB();    
   }
 
-  printOpenGLError();
+  if (printOpenGLError() != 0) return(false);
+  return(true);
 }
 
 
@@ -252,7 +253,7 @@ bool ShaderProgram::compile()
       //
       glCompileShader(shader);
       glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
-      printOpenGLError();
+      if (printOpenGLError() != 0) return(false);
 
       //compiled &= shaderCompiled;
       
@@ -260,7 +261,7 @@ bool ShaderProgram::compile()
       // Print log information
       //
       glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
-      printOpenGLError();
+      if (printOpenGLError() != 0) return(false);
       
       if (shaderCompiled != GL_TRUE && infologLength > 1)
       {
@@ -287,7 +288,7 @@ bool ShaderProgram::compile()
       glGetObjectParameterivARB(shader, 
                                 GL_OBJECT_COMPILE_STATUS_ARB, 
                                 &shaderCompiled);
-      printOpenGLError();
+      if (printOpenGLError() != 0) return(false);
 
       //compiled &= shaderCompiled;
       
@@ -297,7 +298,7 @@ bool ShaderProgram::compile()
       glGetObjectParameterivARB(shader, 
                                 GL_OBJECT_INFO_LOG_LENGTH_ARB, 
                                 &infologLength);
-      printOpenGLError();
+      if (printOpenGLError() != 0) return(false);
       
       if (shaderCompiled != GL_TRUE && infologLength > 1)
       {
@@ -332,14 +333,14 @@ bool ShaderProgram::compile()
   {
     glLinkProgram(_program);
     glGetProgramiv(_program, GL_LINK_STATUS, &linked);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     //
     // Print log information
     //
     GLint infologLength = 0;
     glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &infologLength);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
     
     if (linked != GL_TRUE && infologLength > 1)
     {
@@ -361,7 +362,7 @@ bool ShaderProgram::compile()
   {
     glLinkProgramARB(_program);
     glGetObjectParameterivARB(_program, GL_OBJECT_LINK_STATUS_ARB, &linked);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
 
     //
     // Print log information
@@ -369,7 +370,7 @@ bool ShaderProgram::compile()
     GLint infologLength = 0;
     glGetObjectParameterivARB(_program, 
                               GL_OBJECT_INFO_LOG_LENGTH_ARB, &infologLength);
-    printOpenGLError();
+    if (printOpenGLError() != 0) return(false);
     
     if (linked != GL_TRUE && infologLength > 1)
     {

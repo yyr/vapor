@@ -36,7 +36,7 @@ class RENDER_API ShaderProgram
   bool loadFragmentSource(const char *source);
   bool loadSource(const char *source, GLenum shaderType);
 
-  void create();
+  bool create();
   bool compile();
   int enable();
   void disable();
