@@ -165,6 +165,7 @@ bool DVRShader::createShader(ShaderType type,
 int DVRShader::GraphicsInit() 
 {
   glewInit();
+  printOpenGLError();
 
   if (initTextures() < 0) return(-1);
 
@@ -642,6 +643,7 @@ int DVRShader::initTextures()
   glBindTexture(GL_TEXTURE_1D, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glFlush();
+  if (printOpenGLError() != 0) return(-1);
 
   return(0);
 }
