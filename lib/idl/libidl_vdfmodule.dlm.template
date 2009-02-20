@@ -12,7 +12,9 @@ FUNCTION	vdf_getnumtransforms	1	1
 FUNCTION	vdf_getmsbfirst	1	1
 FUNCTION	vdc_bufreadcreate	1	1
 FUNCTION	vdc_regreadcreate	1	1
+FUNCTION	vdc_regreadcreate2d	1	1
 FUNCTION	vdc_regwritecreate	1	1
+FUNCTION	vdc_regwritecreate2d	1	1
 FUNCTION	vdc_bufwritecreate	1	1
 FUNCTION	vdc_varexists		4	4
 FUNCTION	vdc_getdim			2	2

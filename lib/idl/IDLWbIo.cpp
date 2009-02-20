@@ -27,13 +27,16 @@
 #include <vapor/WaveletBlock3DRegionReader.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
+#include <vapor/WaveletBlock2DRegionWriter.h>
+#include <vapor/WaveletBlock2DRegionReader.h>
+
 #include "IDLCommon.h"
 
 
 namespace {	// un-named namespace
 
 
-WaveletBlock3DIO *varGetIO(
+WaveletBlockIOBase *varGetIO(
 	IDL_VPTR var
 ) {
 
@@ -44,17 +47,19 @@ WaveletBlock3DIO *varGetIO(
 		errFatal("VDC IO handle must be of type IDL_TYP_MEMINT");
 	}
 
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) var->value.memint;
+	WaveletBlockIOBase	*io = (WaveletBlockIOBase *) var->value.memint;
 	const string	&classname = io->getClassName();
 
 	if (! ((classname.compare("WaveletBlock3DBufReader") == 0) ||
 		(classname.compare("WaveletBlock3DRegionReader") == 0) ||
 		(classname.compare("WaveletBlock3DRegionWriter") == 0) ||
-		(classname.compare("WaveletBlock3DBufWriter") == 0))) { 
+		(classname.compare("WaveletBlock3DBufWriter") == 0) ||
+		(classname.compare("WaveletBlock2DRegionReader") == 0) ||
+		(classname.compare("WaveletBlock2DRegionWriter") == 0))) { 
 
 		errFatal("Invalid VDC IO handle type for operation");
 	}
-	return((WaveletBlock3DIO *) var->value.memint);
+	return((WaveletBlockIOBase *) var->value.memint);
 }
 
 
@@ -163,34 +168,47 @@ IDL_VPTR vdcRegionReaderCreate(int argc, IDL_VPTR *argv)
 	return(result);
 }
 
-void vdcRegionReaderDestroy(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcRegionReaderCreate2D(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->getClassName();
+	IDL_VPTR arg = argv[0];
+	WaveletBlock2DRegionReader *reader;
 
-	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
-		errFatal("Invalid VDC IO handle type for operation");
+	IDL_ENSURE_SCALAR(arg);
+
+	if (arg->type == IDL_TYP_MEMINT) {
+		Metadata *metadata = varGetMetadata(arg);
+		reader = new WaveletBlock2DRegionReader(metadata);
+	}
+	else {
+		char *path = IDL_VarGetString(arg);
+		reader = new WaveletBlock2DRegionReader(path);
 	}
 
-	WaveletBlock3DRegionReader	*obj = (WaveletBlock3DRegionReader *) io;
+	myBaseErrChk();
 
-	delete obj;
+
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) reader;
+	result->type = IDL_TYP_MEMINT;
+
+	return(result);
+}
+
+void vdcRegionReaderDestroy(int argc, IDL_VPTR *argv)
+{
+	WaveletBlockIOBase	*io = (WaveletBlockIOBase *) varGetIO(argv[0]);
+
+	delete io;
 }
 
 void vdcReadRegion(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = (WaveletBlockIOBase *) varGetIO(argv[0]);
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[1],IDL_TYP_LONG);
 	IDL_VPTR max_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 	IDL_VPTR	region_var = argv[3];
 
-	const string	&classname = io->getClassName();
-
-	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
-		errFatal("Invalid VDC IO handle type for operation");
-	}
-
-	WaveletBlock3DRegionReader	*obj = (WaveletBlock3DRegionReader *) io;
 
 	IDL_ENSURE_SIMPLE(region_var);
 	IDL_ENSURE_ARRAY(region_var);
@@ -199,27 +217,52 @@ void vdcReadRegion(int argc, IDL_VPTR *argv)
 		errFatal("Input region not modifiable");
 	}
 
-	if (region_var->value.arr->n_dim != 3) {
-		errFatal("Input region must be a 3D array");
-	}
-
 	if (region_var->type != IDL_TYP_FLOAT) {
 		errFatal("Input region must be of type float");
 	}
 
+	const string	&classname = io->getClassName();
+
 	IDL_LONG    *minptr = (IDL_LONG *) min_var->value.arr->data;
 	IDL_LONG    *maxptr = (IDL_LONG *) max_var->value.arr->data;
 
+	if (classname.compare("WaveletBlock3DRegionReader") == 0) {
+		WaveletBlock3DRegionReader	*obj = (WaveletBlock3DRegionReader *) io;
 
-	size_t min[3];
-	size_t max[3];
+		if (region_var->value.arr->n_dim != 3) {
+			errFatal("Input region must be a 3D array");
+		}
 
-	for(int i=0; i<3; i++) {
-		min[i] = (size_t) minptr[i];
-		max[i] = (size_t) maxptr[i];
+		size_t min[3];
+		size_t max[3];
+
+		for(int i=0; i<3; i++) {
+			min[i] = (size_t) minptr[i];
+			max[i] = (size_t) maxptr[i];
+		}
+
+		obj->ReadRegion(min, max, (float *) region_var->value.arr->data);
 	}
+	else if (classname.compare("WaveletBlock2DRegionReader") == 0) {
+		WaveletBlock2DRegionReader	*obj = (WaveletBlock2DRegionReader *) io;
 
-	obj->ReadRegion(min, max, (float *) region_var->value.arr->data);
+		if (region_var->value.arr->n_dim != 2) {
+			errFatal("Input region must be a 2D array");
+		}
+
+		size_t min[2];
+		size_t max[2];
+
+		for(int i=0; i<2; i++) {
+			min[i] = (size_t) minptr[i];
+			max[i] = (size_t) maxptr[i];
+		}
+
+		obj->ReadRegion(min, max, (float *) region_var->value.arr->data);
+	}
+	else {
+		errFatal("Invalid VDC IO handle type for operation");
+	}
 
 	myBaseErrChk();
 
@@ -252,59 +295,94 @@ IDL_VPTR vdcRegionWriterCreate(int argc, IDL_VPTR *argv)
 	return(result);
 }
 
-void vdcRegionWriterDestroy(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcRegionWriterCreate2D(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->getClassName();
+	IDL_VPTR arg = argv[0];
+	WaveletBlock2DRegionWriter *writer;
 
-	if (! (classname.compare("WaveletBlock3DRegionWriter") == 0)) {
-		errFatal("Invalid VDC IO handle type for operation");
+	IDL_ENSURE_SCALAR(arg);
+
+	if (arg->type == IDL_TYP_MEMINT) {
+		Metadata *metadata = varGetMetadata(arg);
+		writer = new WaveletBlock2DRegionWriter(metadata);
+	}
+	else {
+		char *path = IDL_VarGetString(arg);
+		writer = new WaveletBlock2DRegionWriter(path);
 	}
 
-	WaveletBlock3DRegionWriter	*obj = (WaveletBlock3DRegionWriter *) io;
+	myBaseErrChk();
 
-	delete obj;
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) writer;
+	result->type = IDL_TYP_MEMINT;
+
+	return(result);
+}
+
+void vdcRegionWriterDestroy(int argc, IDL_VPTR *argv)
+{
+	WaveletBlockIOBase	*io = (WaveletBlockIOBase *) varGetIO(argv[0]);
+
+	delete io;
 }
 
 void vdcWriteRegion(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = (WaveletBlockIOBase *) varGetIO(argv[0]);
 	IDL_VPTR region_var = argv[1];
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 
 	const string	&classname = io->getClassName();
 
-	if (! (classname.compare("WaveletBlock3DRegionWriter") == 0)) {
-		errFatal("Invalid VDC IO handle type for operation");
-	}
-
-	WaveletBlock3DRegionWriter	*obj = (WaveletBlock3DRegionWriter *) io;
+	IDL_LONG    *minptr = (IDL_LONG *) min_var->value.arr->data;
 
 	IDL_ENSURE_SIMPLE(region_var);
 	IDL_ENSURE_ARRAY(region_var);
-
-	if (region_var->value.arr->n_dim != 3) {
-		errFatal("Input region must be a 3D array");
-	}
 
 	if (region_var->type != IDL_TYP_FLOAT) {
 		errFatal("Input region must be of type float");
 	}
 
-	IDL_LONG    *minptr = (IDL_LONG *) min_var->value.arr->data;
-
 
 	size_t min[3];
 	size_t max[3];
 
-	for(int i=0; i<3; i++) {
-		min[i] = (size_t) minptr[i];
-		max[i] = min[i] + region_var->value.arr->dim[i] - 1;
+	if (classname.compare("WaveletBlock3DRegionWriter") == 0) {
+
+		WaveletBlock3DRegionWriter	*obj = (WaveletBlock3DRegionWriter *) io;
+
+		if (region_var->value.arr->n_dim != 3) {
+			errFatal("Input region must be a 3D array");
+		}
+		for(int i=0; i<3; i++) {
+			min[i] = (size_t) minptr[i];
+			max[i] = min[i] + region_var->value.arr->dim[i] - 1;
+		}
+
+		obj->WriteRegion((float *) region_var->value.arr->data, min, max);
+	}
+	else if (classname.compare("WaveletBlock2DRegionWriter") == 0) {
+
+		WaveletBlock2DRegionWriter	*obj = (WaveletBlock2DRegionWriter *) io;
+
+		if (region_var->value.arr->n_dim != 2) {
+			errFatal("Input region must be a 2D array");
+		}
+		for(int i=0; i<2; i++) {
+			min[i] = (size_t) minptr[i];
+			max[i] = min[i] + region_var->value.arr->dim[i] - 1;
+		}
+
+		obj->WriteRegion((float *) region_var->value.arr->data, min, max);
+	}
+	else {
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
-	obj->WriteRegion((float *) region_var->value.arr->data, min, max);
-
 	myBaseErrChk();
+
+	if (min_var != argv[2]) IDL_Deltmp(min_var);
 }
 
 IDL_VPTR vdcBufWriterCreate(int argc, IDL_VPTR *argv)
@@ -378,20 +456,12 @@ void vdcWriteSlice(int argc, IDL_VPTR *argv)
 
 void vdcOpenVarRead(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[3]);
 
-	const string &classname = io->getClassName();
-	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
-		WaveletBlock3DBufReader *reader = (WaveletBlock3DBufReader *) io;
-		reader->OpenVariableRead((size_t) ts, varname, reflevel);
-	}
-	else {
-		WaveletBlock3DRegionReader *reader = (WaveletBlock3DRegionReader *) io;
-		reader->OpenVariableRead((size_t) ts, varname, reflevel);
-	}
+	io->OpenVariableRead((size_t) ts, varname, reflevel);
 
 	myBaseErrChk();
 }
@@ -399,7 +469,7 @@ void vdcOpenVarRead(int argc, IDL_VPTR *argv)
 
 void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
 	IDL_LONG reflevel = -1;
@@ -408,20 +478,7 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 		reflevel = IDL_LongScalar(argv[3]);
 	}
 
-	const string	&classname = io->getClassName();
-
-
-	if (classname.compare("WaveletBlock3DBufWriter") == 0) {
-		WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
-		obj->OpenVariableWrite((size_t) ts, varname, reflevel);
-	}
-	else if (classname.compare("WaveletBlock3DRegionWriter") == 0) {
-		WaveletBlock3DRegionWriter *obj = (WaveletBlock3DRegionWriter *) io;
-		obj->OpenVariableWrite((size_t) ts, varname, reflevel);
-	}
-	else {
-		errFatal("Invalid VDC IO handle type for operation");
-	}
+	io->OpenVariableWrite((size_t) ts, varname, reflevel);
 
 	myBaseErrChk();
 }
@@ -429,32 +486,16 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 
 void vdcCloseVar(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 
-	const string &classname = io->getClassName();
-	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
-		WaveletBlock3DBufReader *obj = (WaveletBlock3DBufReader *) io;
-		obj->CloseVariable();
-	}
-	else if (classname.compare("WaveletBlock3DRegionReader") == 0) { 
-		WaveletBlock3DRegionReader *obj = (WaveletBlock3DRegionReader *) io;
-		obj->CloseVariable();
-	}
-	else if (classname.compare("WaveletBlock3DRegionWriter") == 0) { 
-		WaveletBlock3DRegionWriter *obj = (WaveletBlock3DRegionWriter *) io;
-		obj->CloseVariable();
-	}
-	else {
-		WaveletBlock3DBufWriter *obj = (WaveletBlock3DBufWriter *) io;
-		obj->CloseVariable();
-	}
+	io->CloseVariable();
 
 	myBaseErrChk();
 }
 
 IDL_VPTR vdcVarExists(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[3]);
@@ -469,7 +510,7 @@ IDL_VPTR vdcVarExists(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdcGetDim(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 
 
@@ -494,7 +535,7 @@ IDL_VPTR vdcGetDim(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_LONG ts = IDL_LongScalar(argv[2]);
 	IDL_VPTR vcoord_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_LONG);
@@ -533,7 +574,7 @@ IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_LONG ts = IDL_LongScalar(argv[2]);
 	IDL_VPTR vcoord_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_DOUBLE);
@@ -567,7 +608,7 @@ IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdcIsValidRegion(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 	IDL_VPTR max_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_LONG);
@@ -603,7 +644,7 @@ IDL_VPTR vdcIsValidRegion(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdcGetMetadata(int argc, IDL_VPTR *argv)
 {
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
+	WaveletBlockIOBase	*io = varGetIO(argv[0]);
 
 	myBaseErrChk();
 
@@ -639,6 +680,12 @@ int IDL_LoadIO(void)
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcBufWriterCreate, 
 			"VDC_BUFWRITECREATE", 1, 1, 0, 0
+		},
+		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderCreate2D, 
+			"VDC_REGREADCREATE2D", 1, 1, 0, 0
+		},
+		{ (IDL_SYSRTN_GENERIC) vdcRegionWriterCreate2D, 
+			"VDC_REGWRITECREATE2D", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcVarExists, 
 			"VDC_VAREXISTS", 4, 4, 0, 0
