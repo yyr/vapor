@@ -44,7 +44,7 @@ public:
 	unsigned int n,		// # wavelet filter coefficents
 	unsigned int ntilde	// # wavelet lifting coefficients
  );
- ~WaveletBlock1D();
+ virtual ~WaveletBlock1D();
 
  void	ForwardTransform(
 	const float *src_blk_ptr,

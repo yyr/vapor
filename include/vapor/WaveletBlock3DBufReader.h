@@ -54,7 +54,7 @@ public:
 	unsigned int    nthreads = 1
  );
 
- ~WaveletBlock3DBufReader();
+ virtual ~WaveletBlock3DBufReader();
 
 
  //! Open the named variable for reading

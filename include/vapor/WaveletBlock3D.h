@@ -49,7 +49,7 @@ public:
 	unsigned int ntilde,	// # wavelet lifting coefficients
 	unsigned int nthreads
  );
- ~WaveletBlock3D();
+ virtual ~WaveletBlock3D();
 
  //! Perform a forward wavelet transform on a super block
  //!

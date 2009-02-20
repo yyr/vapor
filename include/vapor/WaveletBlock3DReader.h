@@ -57,7 +57,7 @@ public:
 	unsigned int	nthreads = 1
  );
 
- ~WaveletBlock3DReader();
+ virtual ~WaveletBlock3DReader();
 
  //! Open the named variable for reading
  //!
@@ -89,8 +89,14 @@ public:
 	int reflevel = 0
  );
 
+ virtual int OpenVariableWrite(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
+ ) {SetErrMsg("Operation not supported"); return(-1);};
 
- int	CloseVariable();
+
+ virtual int	CloseVariable();
 
 
  //! Read in and return two "slabs" of voxels from the currently opened 

@@ -48,7 +48,7 @@ public:
 	unsigned int n,		// # wavelet filter coefficents
 	unsigned int ntilde	// # wavelet lifting coefficients
  );
- ~WaveletBlock2D();
+ virtual ~WaveletBlock2D();
 
  //! Perform a forward wavelet transform on a super tile
  //!

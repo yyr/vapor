@@ -56,7 +56,7 @@ public:
 	unsigned int    nthreads = 1
  );
 
- ~WaveletBlock3DWriter();
+ virtual ~WaveletBlock3DWriter();
 
  //! Open the named variable for writing
  //!
@@ -85,6 +85,13 @@ public:
 	const char *varname,
 	int reflevel = -1
  );
+
+ virtual int OpenVariableRead(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
+ ) {SetErrMsg("Operation not supported"); return(-1);};
+
 
  virtual int	CloseVariable();
 

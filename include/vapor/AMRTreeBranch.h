@@ -116,7 +116,7 @@ public:
 	const size_t location[3]
  );
 
- ~AMRTreeBranch();
+ virtual ~AMRTreeBranch();
 
  //! Delete a node from the tree branch
  //!

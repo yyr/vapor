@@ -148,7 +148,7 @@ public:
 	int reflevel = -1
  );
 
- ~AMRData();
+ virtual ~AMRData();
 
  //! Change the spatial region of interest
  //!

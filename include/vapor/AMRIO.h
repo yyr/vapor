@@ -226,7 +226,7 @@ public:
  //!
  //! \sa OpenVariableWrite(), OpenVariableRead()
  //
- int	CloseVariable();
+ virtual int	CloseVariable();
 
  //! Read an AMR grid
  //!

@@ -31,7 +31,7 @@ public:
  //! Initialize a block-based memory allocator
  //
  BlkMemMgr();
- ~BlkMemMgr();
+ virtual ~BlkMemMgr();
 
  //! Alloc space from memory pool
  //

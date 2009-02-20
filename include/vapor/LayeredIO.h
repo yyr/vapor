@@ -58,7 +58,7 @@ public:
 	unsigned int	nthreads = 1
  );
 
- ~LayeredIO();
+ virtual ~LayeredIO();
 
 
  //! Open the named variable for reading

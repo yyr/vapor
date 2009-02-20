@@ -54,7 +54,7 @@ public:
 	unsigned int    nthreads = 1
  );
 
- ~WaveletBlock3DBufWriter();
+ virtual ~WaveletBlock3DBufWriter();
 
 
  //! Open the named variable for writing

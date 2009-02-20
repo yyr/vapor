@@ -73,7 +73,7 @@ public:
  );
 
 
- ~DataMgr(); 
+ virtual ~DataMgr(); 
 
  //! Read in and return a subregion from the multiresolution dataset.
  //!

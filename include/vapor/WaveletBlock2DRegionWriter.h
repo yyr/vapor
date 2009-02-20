@@ -51,7 +51,7 @@ public:
 	const char	*metafile
  );
 
- ~WaveletBlock2DRegionWriter();
+ virtual ~WaveletBlock2DRegionWriter();
 
 
  //! Open the named 2D variable for writing
@@ -83,6 +83,11 @@ public:
 	int reflevel = -1
  );
 
+ virtual int OpenVariableRead(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
+ ) {SetErrMsg("Operation not supported"); return(-1);};
 
 
  //! Close the data area opened by the most recent call to 
@@ -90,7 +95,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //! \sa OpenVariableWrite()
  //!
- int	CloseVariable();
+ virtual int	CloseVariable();
 
  //! Write a subregion to the currently opened multiresolution
  //! data area.  

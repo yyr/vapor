@@ -57,7 +57,7 @@ public:
 	unsigned int	nthreads = 1
  );
 
- ~WaveletBlock3DRegionWriter();
+ virtual ~WaveletBlock3DRegionWriter();
 
 
  //! Open the named variable for writing
@@ -88,6 +88,11 @@ public:
 	const char *varname,
 	int reflevel = -1
  );
+ virtual int OpenVariableRead(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
+ ) {SetErrMsg("Operation not supported"); return(-1);};
 
 
 
@@ -96,7 +101,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //! \sa OpenVariableWrite()
  //!
- int	CloseVariable();
+ virtual int	CloseVariable();
 
  //! Write a subregion to the currently opened multiresolution
  //! data volume.  
