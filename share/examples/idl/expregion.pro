@@ -34,6 +34,8 @@
 ;
 ;		TS:			If set specifies the time set offset for the
 ;					exported variable. The default is 0
+;
+;		VAR2DXY:	If set the variables 2D arrays in the XY plane
 ;					
 ;
 ; INPUTS:
@@ -62,7 +64,7 @@
 ;       None.
 ;
 ;-
-pro expregion, vdf, stateinfo, varnames, array0, array1, array2, array3, array4, array5, COORD=coord, APPEND=append, NUMTS=numts, TS=ts
+pro expregion, vdf, stateinfo, varnames, array0, array1, array2, array3, array4, array5, COORD=coord, APPEND=append, NUMTS=numts, TS=ts, VAR2DXY=var2dxy
 
 
 	on_error,2                      ;Return to caller if an error occurs
@@ -70,6 +72,7 @@ pro expregion, vdf, stateinfo, varnames, array0, array1, array2, array3, array4,
 	if keyword_set(numts) eq 0 then numts = 1
 	if keyword_set(ts) eq 0 then ts = 0
 	if keyword_set(append) eq 0 then append = 0
+	if keyword_set(var2dxy) eq 0 then var2dxy = 0
 	varnamesvec = [varnames]	; Ensure varnames is an array
 
 
@@ -101,6 +104,9 @@ pro expregion, vdf, stateinfo, varnames, array0, array1, array2, array3, array4,
 		; Add the new variable to the mini VDC
 		;
 		vdf_setvarnames, mfd, varnamesvec
+		if (var2dxy eq 1)  then begin
+			vdf_setvariables2dxy, mfd, varnamesvec
+		endif
 		vdf_setnumtimesteps, mfd, numts
 
 		vdf_write, mfd, vdf
@@ -111,7 +117,11 @@ pro expregion, vdf, stateinfo, varnames, array0, array1, array2, array3, array4,
 	;
 	; Now write the arrays to the new VDC
 	;
-	dfd = vdc_regwritecreate(vdf)
+	if (var2dxy eq 1)  then begin
+		dfd = vdc_regwritecreate2d(vdf)
+	endif else begin
+		dfd = vdc_regwritecreate(vdf)
+	endelse
 
 	;
 	; Brain damaged code for handling optional number of function

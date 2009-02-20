@@ -65,11 +65,23 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 		timestep = stateinfo.timestep
 	endelse
 
+	mfd = vdf_create(stateinfo.vdfpath)
+	vars3d = vdf_getvariables3d(mfd)
+	varIs2D = 1
+	for i=0, n_elements(vars3d)-1 do begin
+		if (vars3d[i] eq varname) then varIs2D = 0
+	endfor
+
+
 	;
 	;   Create a "Buffered Read" object to read the data, passing the
 	;   metadata object handle created by vdf_create() as an argument
 	;
-	dfd = vdc_regreadcreate(stateinfo.vdfpath)
+	if (varIs2D) then begin
+		dfd = vdc_regreadcreate2d(mfd) 
+	endif else begin
+		dfd = vdc_regreadcreate(mfd) 
+	endelse
 
 	;
 	; Transform coordinates from finest resolution to resolution
@@ -88,7 +100,11 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 
 	; Create an array large enough to hold the volume subregion
 	;
-	f = fltarr(max[0]-min[0]+1,max[1]-min[1]+1,max[2]-min[2]+1)
+	if (varIs2D) then begin
+		f = fltarr(max[0]-min[0]+1,max[1]-min[1]+1)
+	endif else begin
+		f = fltarr(max[0]-min[0]+1,max[1]-min[1]+1,max[2]-min[2]+1)
+	endelse
 
 	; Select the variable and time step we want to read
 	;
