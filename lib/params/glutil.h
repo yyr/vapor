@@ -179,9 +179,10 @@ void	ViewMatrix (GLfloat *m);
 int	ViewAxis (int *direction);
 void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, float converge, float eye);
 
-PARAMS_API int printOglError(char *file, int line);
+PARAMS_API int printOglError(char *file, int line, const char *msg = NULL);
 
 #define printOpenGLError() printOglError(__FILE__, __LINE__)
+#define printOpenGLErrorMsg(msg) printOglError(__FILE__, __LINE__, msg)
 
 class PARAMS_API Point4{
 public:

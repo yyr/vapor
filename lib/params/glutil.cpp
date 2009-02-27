@@ -829,7 +829,7 @@ double det2x2(double a, double b, double c, double d)
     return ans;
 }
 
-int printOglError(char *file, int line)     
+int printOglError(char *file, int line, const char *msg)
 {
   //
   // Returns 1 if an OpenGL error occurred, 0 otherwise.
@@ -845,6 +845,10 @@ int printOglError(char *file, int line)
     std::cout << "glError: " << gluErrorString(glErr) << std::endl
               << "         " << file << " : " << line << std::endl;
 #endif
+    if (msg) {
+		VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_ERROR,"glError: %s\n",msg);
+		msg = NULL;
+	}
     VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_ERROR,"glError: %s\n         %s : %d", 
                                 gluErrorString(glErr), file, line);
 
