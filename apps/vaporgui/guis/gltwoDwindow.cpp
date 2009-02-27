@@ -119,6 +119,7 @@ void GLTwoDWindow::setTextureSize(float horiz, float vert){
 
 void GLTwoDWindow::paintGL()
 {
+	printOpenGLErrorMsg("GLTwoDWindow");
 	if (GLWindow::isRendering()) return;
 	TwoDParams* myParams = VizWinMgr::getActiveTwoDParams();
 	
@@ -183,6 +184,7 @@ void GLTwoDWindow::paintGL()
 		glVertex2f(crossX, crossY+CURSOR_SIZE);
 		glEnd();
 	}
+	printOpenGLErrorMsg("GLTwoDWindow");
 }
 
 //
@@ -191,6 +193,7 @@ void GLTwoDWindow::paintGL()
 
 void GLTwoDWindow::initializeGL()
 {
+	printOpenGLErrorMsg("GLTwoDWindow");
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	
@@ -204,6 +207,7 @@ void GLTwoDWindow::initializeGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	
     
+	printOpenGLErrorMsg("GLTwoDWindow");
 }
 //
 //To map the window coords, first map the device coords (0..width-1)

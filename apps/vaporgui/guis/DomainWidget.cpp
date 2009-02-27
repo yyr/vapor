@@ -97,9 +97,9 @@ void DomainWidget::drag(float dx, float dy, float)
 //----------------------------------------------------------------------------
 void DomainWidget::paintGL()
 {
+  printOpenGLErrorMsg("DomainWidget");
   float length = 0.03;
 
-  printOpenGLError();
   glPushName(_id);
   glPushMatrix();
   {
@@ -287,7 +287,7 @@ void DomainWidget::paintGL()
   glPopMatrix();
   glPopName();
 
-  printOpenGLError();
+  printOpenGLErrorMsg("DomainWidget");
 }
 
 //----------------------------------------------------------------------------

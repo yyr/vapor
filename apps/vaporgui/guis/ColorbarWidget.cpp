@@ -121,7 +121,7 @@ void ColorbarWidget::drag(float dx, float, float)
 //----------------------------------------------------------------------------
 void ColorbarWidget::paintGL()
 {
-  printOpenGLError();
+  printOpenGLErrorMsg("ColorbarWidget");
 
   float offset = (_maxY - _minY) * 0.2;
 
@@ -168,7 +168,7 @@ void ColorbarWidget::paintGL()
     glDisable(GL_BLEND);
   }
 
-  printOpenGLError();
+  printOpenGLErrorMsg("ColorbarWidget");
 
 }
 
@@ -177,6 +177,7 @@ void ColorbarWidget::paintGL()
 //----------------------------------------------------------------------------
 void ColorbarWidget::initializeGL()
 {
+  printOpenGLErrorMsg("ColorbarWidget");
   glShadeModel( GL_SMOOTH );
   glPolygonMode(GL_FRONT, GL_FILL);
 
@@ -189,6 +190,7 @@ void ColorbarWidget::initializeGL()
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
   updateTexture();
+  printOpenGLErrorMsg("ColorbarWidget");
 }
 
 

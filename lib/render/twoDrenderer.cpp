@@ -38,7 +38,7 @@
 using namespace VAPoR;
 
 TwoDRenderer::TwoDRenderer(GLWindow* glw, TwoDParams* pParams )
-:Renderer(glw, pParams)
+:Renderer(glw, pParams, "TwoDRenderer")
 {
 	_twoDid = 0;
 	maxXElev = maxYElev = 0;

@@ -105,7 +105,7 @@ bool DVRShader::createShader(ShaderType type,
   _shaders[type] = new ShaderProgram();
   if (! _shaders[type]->create()) return false;
 
-  bool status;
+  bool status = true;
   //
   // Vertex shader
   //

@@ -86,8 +86,8 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* rp) 
-  : Renderer(glw, rp),
+VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* rp, string name) 
+  : Renderer(glw, rp, name),
     _driver(NULL),
     _type(type),
     _frames(0),

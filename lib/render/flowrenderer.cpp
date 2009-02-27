@@ -47,7 +47,7 @@
 */
 using namespace VAPoR;
 FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
-:Renderer(glw, fParams)
+:Renderer(glw, fParams, "FlowRenderer")
 {
     myFlowLib = 0;
 	
@@ -184,7 +184,6 @@ void FlowRenderer::paintGL()
 		setFlowMapClean(timeStep);
 		myGLWindow->setRenderNew();
 	}
-	printOpenGLError();
 }
 //New version of rendering, uses FlowLineData, used on both steady and unsteady flow.
 void FlowRenderer::

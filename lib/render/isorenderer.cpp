@@ -75,7 +75,7 @@ using namespace VetsUtil;
 //
 //----------------------------------------------------------------------------
 IsoRenderer::IsoRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* rp) 
-  : VolumeRenderer(glw, type, rp)
+  : VolumeRenderer(glw, type, rp, "IsoRenderer")
 	
 {
 	setRenderParams(rp);

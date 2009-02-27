@@ -32,7 +32,7 @@ class RENDER_API ProbeRenderer : public Renderer
 
 public:
 
-    ProbeRenderer( GLWindow* , ProbeParams* );
+    ProbeRenderer( GLWindow* , ProbeParams*);
     ~ProbeRenderer();
 	
 	virtual void	initializeGL();

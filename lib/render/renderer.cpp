@@ -33,11 +33,12 @@
 
 using namespace VAPoR;
 
-Renderer::Renderer( GLWindow* glw, RenderParams* rp )
+Renderer::Renderer( GLWindow* glw, RenderParams* rp, string name)
 {
 	//Establish the data sources for the rendering:
 	//
 	
+	_myName = name;
     myGLWindow = glw;
 	savedNumXForms = -1;
 	currentRenderParams = rp;

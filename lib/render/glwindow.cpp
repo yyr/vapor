@@ -265,6 +265,7 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 
 void GLWindow::paintGL()
 {
+	printOpenGLError();
 	static int previousTimeStep = -1;
 	GLenum	buffer;
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
@@ -297,6 +298,7 @@ void GLWindow::paintGL()
 	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
+		printOpenGLError();
 		return;
 	}
 
@@ -417,8 +419,14 @@ void GLWindow::paintGL()
 
 	
 	
+	printOpenGLError();
 	for (int i = 0; i< getNumRenderers(); i++){
-		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) renderer[i]->paintGL();
+		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+
+
+			renderer[i]->paintGL();
+			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
+		}
 	}
 	
 	
@@ -451,6 +459,7 @@ void GLWindow::paintGL()
 
 	postRenderCB(winNum, isControlled);
 	
+	printOpenGLError();
 }
 //Draw a 3D cursor at specified world coords
 void GLWindow::draw3DCursor(const float position[3]){
@@ -474,6 +483,7 @@ void GLWindow::draw3DCursor(const float position[3]){
 
 void GLWindow::initializeGL()
 {
+	printOpenGLError();
     
 	glewInit();
 	//Check to see if we are using MESA:
@@ -485,12 +495,15 @@ void GLWindow::initializeGL()
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
+	printOpenGLError();
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->initializeGL();
+		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
     glGenTextures(1, &_elevTexid);
 	glBindTexture(GL_TEXTURE_2D, _elevTexid);
 	nowPainting = false;
+	printOpenGLError();
     
 }
 
@@ -2300,9 +2313,11 @@ void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 }
 
 void GLWindow::placeLights(){
+	printOpenGLError();
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
 	if (nLights >0){
+		printOpenGLError();
 		float specColor[4], ambColor[4];
 		float diffLight[3], specLight[3];
 		GLfloat lmodel_ambient[4];
@@ -2327,7 +2342,9 @@ void GLWindow::placeLights(){
 		//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 		
 		glEnable(GL_LIGHT0);
+		printOpenGLError();
 		if (nLights > 1){
+			printOpenGLError();
 			glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
 			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
 			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
@@ -2335,10 +2352,14 @@ void GLWindow::placeLights(){
 			glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
 			glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
 			glEnable(GL_LIGHT1);
+			printOpenGLError();
 		} else {
+			printOpenGLError();
 			glDisable(GL_LIGHT1);
+			printOpenGLError();
 		}
 		if (nLights > 2){
+			printOpenGLError();
 			glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
 			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
 			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
@@ -2346,8 +2367,11 @@ void GLWindow::placeLights(){
 			glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
 			glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
 			glEnable(GL_LIGHT2);
+			printOpenGLError();
 		} else {
+			printOpenGLError();
 			glDisable(GL_LIGHT2);
+			printOpenGLError();
 		}
 		
 	} 

@@ -125,6 +125,7 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 
 void GLProbeWindow::paintGL()
 {
+	printOpenGLErrorMsg("GLProbeWindow");
 	if (GLWindow::isRendering()) return;
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	
@@ -214,6 +215,7 @@ void GLProbeWindow::paintGL()
 	if ((myParams->getProbeType() == 1) && animatingTexture) {  //animating IBFV texture
 		delete probeTexture;
 	}
+	printOpenGLErrorMsg("GLProbeWindow");
 }
 
 //
@@ -222,6 +224,7 @@ void GLProbeWindow::paintGL()
 
 void GLProbeWindow::initializeGL()
 {
+	printOpenGLErrorMsg("GLProbeWindow");
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	
@@ -234,6 +237,7 @@ void GLProbeWindow::initializeGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	capturing = false;
+	printOpenGLErrorMsg("GLProbeWindow");
     
 }
 //

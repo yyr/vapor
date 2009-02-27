@@ -36,7 +36,7 @@
 using namespace VAPoR;
 
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
-:Renderer(glw, pParams)
+:Renderer(glw, pParams, "ProbeRenderer")
 {
 	_probeid = 0;
 }

@@ -776,7 +776,7 @@ void MappingFrame::resizeGL(int width, int height)
 void MappingFrame::paintGL()
 {
   if (GLWindow::isRendering()) return;
-  printOpenGLError();
+  printOpenGLErrorMsg("MappingFrame");
 
   qglClearColor(backgroundColor());
 
@@ -900,8 +900,7 @@ void MappingFrame::paintGL()
     glDisable(GL_BLEND);
   }
 
-
-  printOpenGLError();
+  printOpenGLErrorMsg("MappingFrame");
 }
 
 //----------------------------------------------------------------------------
@@ -910,6 +909,7 @@ void MappingFrame::paintGL()
 void MappingFrame::initializeGL()
 {
 	if (GLWindow::isRendering()) return;
+  printOpenGLErrorMsg("MappingFrame");
   qglClearColor(QColor(0,0,0)); 
 
   glShadeModel( GL_SMOOTH );
@@ -959,6 +959,7 @@ void MappingFrame::initializeGL()
   {
     _colorbarWidget->initializeGL();
   }
+  printOpenGLErrorMsg("MappingFrame");
 }
 
 //----------------------------------------------------------------------------

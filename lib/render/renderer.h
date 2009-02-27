@@ -41,7 +41,7 @@ public:
 	//Constructor is called when the renderer is enabled.  Does any
 	//setup of renderer state
 	//
-	Renderer(GLWindow* vw, RenderParams* rp);
+	Renderer(GLWindow* vw, RenderParams* rp, string name);
 	virtual ~Renderer();
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
@@ -63,6 +63,7 @@ public:
 	bool doBypass(int ts) {return (currentRenderParams && currentRenderParams->doBypass(ts));}
 	bool doAlwaysBypass(int ts) {
 		return (currentRenderParams && currentRenderParams->doAlwaysBypass(ts));}
+	string getMyName() const {return(_myName);};
 signals:
 
     void statusMessage(const QString&);
@@ -87,6 +88,7 @@ protected:
 	
 private:
 	bool clutDirtyBit;
+	string _myName;
 };
 };
 
