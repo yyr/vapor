@@ -283,16 +283,12 @@ void GLWindow::paintGL()
 	
 	qglClearColor(getBackgroundColor()); 
 	
-	glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
 	//Clear out in preparation for rendering
-	glDrawBuffer(GL_BACK);
 	glClearDepth(1);
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	
-	glDrawBuffer(buffer);
-
 	DataStatus *dataStatus = DataStatus::getInstance();
 
 	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
@@ -610,7 +606,7 @@ getPixelData(unsigned char* data){
 	//
 	//else
 	//  {
-	glReadBuffer(GL_BACK);
+	glReadBuffer(GL_BACK_LEFT);
 	//  }
 	glDisable( GL_SCISSOR_TEST );
 
