@@ -47,9 +47,9 @@
 #include "vapor/VDFIOBase.h"
 #include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
-
+#include "vapor/WRF.h"
 //tiff stuff:
-//#include "gdal_priv.h"
+
 #include "geo_normalize.h"
 #include "geotiff.h"
 #include "xtiffio.h"
@@ -79,6 +79,7 @@ TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	twoDDataTextures = 0;
 	imageExtents = 0;
 	maxTimestep = 1;
+	imageNums = 0;
 	restart();
 	
 }
@@ -96,7 +97,10 @@ TwoDParams::~TwoDParams(){
 		}
 		delete twoDDataTextures;
 		delete imageExtents;
+		if (imageNums) delete imageNums;
+		imageNums = 0;
 	}
+	
 	
 	
 }
@@ -127,6 +131,7 @@ deepRCopy(){
 	//TwoD texture must be recreated when needed
 	newParams->twoDDataTextures = 0;
 	newParams->imageExtents = 0;
+	newParams->imageNums = 0;
 	
 	//never keep the SavedCommand:
 	
@@ -358,11 +363,14 @@ reinit(bool doOverride){
 	if (twoDDataTextures) {
 		delete twoDDataTextures;
 		delete imageExtents;
+		if(imageNums) delete imageNums;
+		imageNums = 0;
 	}
 	
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	twoDDataTextures = 0;
 	imageExtents = 0;
+	
 	initializeBypassFlags();
 	return true;
 }
@@ -382,10 +390,11 @@ restart(){
 	if (twoDDataTextures) {
 		delete twoDDataTextures;
 		delete imageExtents;
+		if (imageNums) delete imageNums;
 	}
 	twoDDataTextures = 0;
 	imageExtents = 0;
-	
+	imageNums = 0;
 	resampRate = 1.f;
 	opacityMultiplier = 1.f;
 	useData = true;
@@ -970,6 +979,8 @@ void TwoDParams::setTwoDDirty(){
 		twoDDataTextures = 0;
 		delete imageExtents;
 		imageExtents = 0;
+		if (imageNums) delete imageNums;
+		imageNums = 0;
 	}
 	
 	textureSize[0]= textureSize[1] = 0;
@@ -1378,7 +1389,7 @@ calcBoxCorners(float corners[8][3], float, float, int ){
 	
 }
 //Get texture from image file, set it in the cache
-#include "tiffio.h"
+
 unsigned char* TwoDParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
@@ -1391,24 +1402,12 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 
 	//Set the tif directory to the one associated with the
 	//current frame num.
+	if (!imageNums) setupImageNums(tif);
 	//First count the directories, checking for date/time tags
 	bool haveDateTime = true;
-	int dircount = 0;
-    if (tif) {
-		int nCount;
-		char** timePtr;
-		int rc;
-		do {
-			dircount++;
-			
-			rc = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
-			if (!rc) haveDateTime = false;
-		} while (TIFFReadDirectory(tif));
-		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
-		
-	}
-	int currentDir = timestep;
-	if (dircount < timestep) currentDir = dircount-1;
+	
+	int currentDir = getImageNum(timestep);
+	
 	TIFFSetDirectory(tif, currentDir);
 	char* proj4String;
 	GTIFDefn* gtifDef;
@@ -1462,4 +1461,80 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 
 	return 0;
 }
-
+void TwoDParams::setupImageNums(TIFF* tif){
+	//Initialize to zeroes
+	imageNums = new int[maxTimestep + 1];
+	for (int i = 0; i<=maxTimestep; i++) imageNums[i] = 0;
+	int rc;
+	char** timePtr = 0;
+	TIME64_T* userTimes = 0;
+	//Check if the first time step has a time stamp
+	bool timesOK = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
+	 
+	if (timesOK) {
+		
+		//If so, build a list of the user times:
+		userTimes = new TIME64_T[maxTimestep + 1];
+		Metadata* md = DataStatus::getInstance()->getMetadata();
+	
+		for (int i = 0; i<=maxTimestep; i++){
+			const vector<double>& d = md->GetTSUserTime((size_t)i);
+			if(d.size()==0){ timesOK = false; break;}
+			userTimes[i] = (TIME64_T)d[0];
+		}
+	}
+	int dircount = 0;
+	
+	if (timesOK){
+		do {
+			dircount++;
+			rc = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
+			if (!rc) {
+				timesOK = false;
+				break;
+			} else {
+				//determine user time from the time stamp
+				string wrftime(*timePtr);
+				TIME64_T *seconds = 0;
+				rc = WRF::WRFTimeStrToEpoch(wrftime, seconds);
+				if (!rc) {
+					timesOK = false;
+					break;
+				}
+				else {
+					//Find the closest user time to the wrf time,
+					//for each image time:
+					TIME64_T minTimeDiff = 123456789123456789LL;
+					int bestpos = -1;
+					for (int i = 0; i<=maxTimestep; i++){
+						TIME64_T timediff = (*seconds > userTimes[i]) ? (*seconds - userTimes[i]) : (userTimes[i] - *seconds);
+						if (timediff < minTimeDiff){
+							bestpos = i;
+							minTimeDiff = timediff;
+						}
+						if (minTimeDiff == 0) break;
+					}
+					imageNums[i] = bestpos;
+				}
+			}
+		} while (TIFFReadDirectory(tif));
+	}
+	if (userTimes) delete userTimes;
+	if (timesOK){
+		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
+		return;
+	} else { //Don't use time stamps, just count the images:
+		
+	
+		dircount = 0;
+		do {
+			dircount++;
+		} while (TIFFReadDirectory(tif));
+		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
+		for (int i = 0; i<= maxTimestep; i++){
+			imageNums[i] = MIN(dircount-1,i);
+		}
+	}
+		
+	return;
+}

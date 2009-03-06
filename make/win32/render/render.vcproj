@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(PROJ_INC_DIR)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="../../../include/;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_DLL;QT_THREAD_SUPPORT;RENDER_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -38,7 +38,7 @@
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_DIR)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/render.pdb"

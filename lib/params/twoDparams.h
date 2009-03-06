@@ -26,7 +26,7 @@
 
 #include <qwidget.h>
 #include "params.h"
-
+#include "xtiffio.h"
 #include <vector>
 #include <string>
 #include "datastatus.h"
@@ -39,6 +39,7 @@ class PanelCommand;
 class XmlNode;
 class FlowParams;
 class Histo;
+
 class PARAMS_API TwoDParams : public RenderParams {
 	
 public: 
@@ -279,6 +280,7 @@ public:
 	
 	std::string& getProjectionString() {return projDefinitionString;}
 	
+	
 protected:
 	
 	static const string _editModeAttr;
@@ -308,6 +310,11 @@ protected:
 	//Find smallest containing cube in integer coords, 
 	//that will contain image of twoD
 	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
+
+	int getImageNum(int timestep){
+		return imageNums[timestep];
+	}
+	void setupImageNums(TIFF* tif);
 
 	float currentDatarange[2];
 	
@@ -339,6 +346,8 @@ protected:
 	unsigned char** twoDDataTextures;
 	float * imageExtents; //(4 floats for each time step)
 	int maxTimestep;
+
+	int* imageNums;
 	
 	
 	//State variables controlled by GUI:
