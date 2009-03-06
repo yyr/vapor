@@ -267,7 +267,7 @@ void GLWindow::paintGL()
 {
 	printOpenGLError();
 	static int previousTimeStep = -1;
-	GLenum	buffer;
+	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
 	float maxFull[3] = {1.f,1.f,1.f};
