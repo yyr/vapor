@@ -189,7 +189,7 @@ TwoDEventRouter::hookUpTab()
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
 	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiChangeType(int)));
-	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(selectImageFile()));
+	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(guiSelectImageFile()));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
 	
@@ -228,6 +228,8 @@ void TwoDEventRouter::updateTab(){
 	//Check on data/image mode, this affects what is displayed:
 	typeCombo->setCurrentItem(twoDParams->isDataMode() ? 0 : 1);
 	if (twoDParams->isDataMode()){
+		captureButton->setEnabled(twoDParams->isEnabled());
+
 		imageFrame->hide();
 		variableFrame->show();
 		
@@ -310,6 +312,8 @@ void TwoDEventRouter::updateTab(){
 			navigateButton->setOn(true);
 		}
 	} else {
+		captureButton->setEnabled(false);
+		filenameEdit->setText(twoDParams->getImageFileName().c_str());
 		orientation = twoDParams->getOrientation();
 		orientationCombo->setEnabled(true);
 		imageFrame->show();
@@ -528,9 +532,32 @@ void TwoDEventRouter::guiChangeType(int type){
 	updateTab();
 }
 
-// Launch a file selection dialog to pick and open an image file
-void TwoDEventRouter::selectImageFile(){
+// Launch a file selection dialog to select an image file
+void TwoDEventRouter::guiSelectImageFile(){
 	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "select image file");
+	QString filename = QFileDialog::getOpenFileName(
+		Session::getInstance()->getJpegDirectory().c_str(),
+        "TIFF files (*.tiff *.tif)",
+        this,
+        "Specify image file Dialog",
+        "Specify file name for loading image into 2D panel" );
+	//Check that user did specify a file:
+	if (filename.isNull()) {
+		delete cmd;
+		return;
+	}
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future image I/O
+	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	
+	tParams->setImageFileName(filename.ascii());
+	filenameEdit->setText(filename);
+	PanelCommand::captureEnd(cmd, tParams);
+	tParams->setTwoDDirty();
+	VizWinMgr::getInstance()->refreshTwoD(tParams);
 }
 void TwoDEventRouter::guiSetOrientation(int val){
 	confirmText(false);
@@ -1794,6 +1821,8 @@ void TwoDEventRouter::cleanParams(Params* p)
 //Then put jpeg in it.
 //
 void TwoDEventRouter::captureImage() {
+	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	if (!pParams->isEnabled()) return;
 	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
@@ -1823,7 +1852,7 @@ void TwoDEventRouter::captureImage() {
 	
 	//reconstruct with appropriate aspect ratio.
 	
-	TwoDParams* pParams = VizWinMgr::getActiveTwoDParams();
+	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int imgSize[2];
 	pParams->getTextureSize(imgSize);

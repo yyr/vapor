@@ -48,6 +48,12 @@
 #include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 
+//tiff stuff:
+//#include "gdal_priv.h"
+#include "geo_normalize.h"
+#include "geotiff.h"
+#include "xtiffio.h"
+
 
 using namespace VAPoR;
 const string TwoDParams::_editModeAttr = "TFEditMode";
@@ -71,6 +77,7 @@ TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	thisParamType = TwoDParamsType;
 	numVariables = 0;
 	twoDDataTextures = 0;
+	imageExtents = 0;
 	maxTimestep = 1;
 	restart();
 	
@@ -88,6 +95,7 @@ TwoDParams::~TwoDParams(){
 			if (twoDDataTextures[i]) delete twoDDataTextures[i];
 		}
 		delete twoDDataTextures;
+		delete imageExtents;
 	}
 	
 	
@@ -118,6 +126,7 @@ deepRCopy(){
 	}
 	//TwoD texture must be recreated when needed
 	newParams->twoDDataTextures = 0;
+	newParams->imageExtents = 0;
 	
 	//never keep the SavedCommand:
 	
@@ -346,10 +355,14 @@ reinit(bool doOverride){
 	setEnabled(false);
 	// set up the texture cache
 	setTwoDDirty();
-	if (twoDDataTextures) delete twoDDataTextures;
+	if (twoDDataTextures) {
+		delete twoDDataTextures;
+		delete imageExtents;
+	}
 	
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	twoDDataTextures = 0;
+	imageExtents = 0;
 	initializeBypassFlags();
 	return true;
 }
@@ -366,8 +379,12 @@ restart(){
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	setTwoDDirty();
-	if (twoDDataTextures) delete twoDDataTextures;
+	if (twoDDataTextures) {
+		delete twoDDataTextures;
+		delete imageExtents;
+	}
 	twoDDataTextures = 0;
+	imageExtents = 0;
 	
 	resampRate = 1.f;
 	opacityMultiplier = 1.f;
@@ -950,6 +967,9 @@ void TwoDParams::setTwoDDirty(){
 				twoDDataTextures[i] = 0;
 			}
 		}
+		twoDDataTextures = 0;
+		delete imageExtents;
+		imageExtents = 0;
 	}
 	
 	textureSize[0]= textureSize[1] = 0;
@@ -971,7 +991,30 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	if (!ds->getDataMgr()) return 0;
 	if (doBypass(ts)) return 0;
 	
+	//if width and height are 0, then the image will
+	//be of the size specified in the 2D params, and the result
+	//will be placed in the cache. Otherwise we are just needing
+	//an image of specified size for writing to file, not to be put in the cache.
+	//
 	bool doCache = (texWidth == 0 && texHeight == 0);
+
+	//If this params is in image mode, we need to read the current timestep
+	//of image into the texture for this timestep.  If there's only
+	//one image, then we shall put it in position 0 in the cache.
+	//If a map projection is undefined, invalid imageExts are returned
+	// (i.e. imgExts[2]<imgExts[0])
+	if (!isDataMode()){
+		int wid, ht;
+		float imgExts[4];
+		unsigned char* img = readTextureImage(ts, &wid, &ht, imgExts);
+		if (doCache && img) {
+			
+			textureSize[0] = wid;
+			textureSize[1] = ht;
+			setTwoDTexture(img,ts, imgExts);
+		}
+		return img;
+	}
 
 	//Make a list of the session variable nums we want:
 	int* sesVarNums = new int[ds->getNumSessionVariables2D()];
@@ -1334,3 +1377,89 @@ calcBoxCorners(float corners[8][3], float, float, int ){
 	corners[6][mapDims[1]] = a[1]*boxCoord[mapDims[1]]+b[1];
 	
 }
+//Get texture from image file, set it in the cache
+#include "tiffio.h"
+unsigned char* TwoDParams::
+readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
+	
+ 
+	//Initially set imgExts to an invalid setting:
+	imgExts[0] = 0.f;
+	imgExts[2] = -1.f;
+	projDefinitionString = "";
+    TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
+
+	//Set the tif directory to the one associated with the
+	//current frame num.
+	//First count the directories, checking for date/time tags
+	bool haveDateTime = true;
+	int dircount = 0;
+    if (tif) {
+		int nCount;
+		char** timePtr;
+		int rc;
+		do {
+			dircount++;
+			
+			rc = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
+			if (!rc) haveDateTime = false;
+		} while (TIFFReadDirectory(tif));
+		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
+		
+	}
+	int currentDir = timestep;
+	if (dircount < timestep) currentDir = dircount-1;
+	TIFFSetDirectory(tif, currentDir);
+	char* proj4String;
+	GTIFDefn* gtifDef;
+	GTIF* gtifHandle;
+	
+	
+	if (tif){  //get a proj4 definition string if it exists, using geoTiff lib
+		gtifHandle = GTIFNew(tif);
+		gtifDef = new GTIFDefn();
+		int rc1 = GTIFGetDefn(gtifHandle,gtifDef);
+		proj4String = GTIFGetProj4Defn(gtifDef);
+		qWarning("proj4 string: %s",proj4String);
+		projDefinitionString = proj4String;
+		
+		
+//ModelTiepointTag and modelpixelscale needed to calculate image corners
+		uint16 nCount;
+		double* padfTiePoints, *modelPixelScale;
+		int rc = TIFFGetField(tif,TIFFTAG_GEOTIEPOINTS,&nCount,&padfTiePoints);
+		
+		int rc2 = TIFFGetField(tif, TIFFTAG_GEOPIXELSCALE, &nCount, &modelPixelScale );
+		uint32 w, h;
+		size_t npixels;
+
+		TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+		
+		double pixelStart[2];
+		if (rc2 && rc){
+			pixelStart[0] = padfTiePoints[0];
+			pixelStart[1] = h-1 - padfTiePoints[1];
+			imgExts[0] = padfTiePoints[3]-pixelStart[0]*modelPixelScale[0];
+			imgExts[1] = padfTiePoints[4]-pixelStart[1]*modelPixelScale[1];
+			imgExts[2] = padfTiePoints[3]+(w-1-pixelStart[0])*modelPixelScale[0];
+			imgExts[3] = padfTiePoints[4]+(h-1-pixelStart[1])*modelPixelScale[1];
+		}
+		npixels = w * h;
+		
+		uint32* texture = new unsigned int[npixels];
+		if (texture != NULL) {
+			if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
+				*wid = w;
+				*ht = h;
+				//May need to resample here!
+			}
+		}
+	
+		TIFFClose(tif);
+		return (unsigned char*) texture;
+	}
+
+	return 0;
+}
+

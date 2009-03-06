@@ -23,7 +23,7 @@ endif
 
 MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB) $(QT_LIB) GLEW 
+LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB) $(QT_LIB) GLEW tiff geotiff proj 
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
@@ -47,6 +47,15 @@ else
 
 ifdef	QT_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
+ifdef PROJ_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(PROJ_LIB_PATH)
+endif
+ifdef TIFF_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(TIFF_LIB_PATH)
+endif
+ifdef GTIFF_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(GTIFF_LIB_PATH)
 endif
 
 endif

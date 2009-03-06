@@ -89,7 +89,7 @@ public:
 	string& getImageFileName(){return imageFileName;}
 	void setOrientation(int val){orientation = val;}
 	int getOrientation() {return orientation;}
-	void setImageFileName(string& fname) {imageFileName = fname;}
+	void setImageFileName(const char* fname) {imageFileName = std::string(fname);}
 
 	void setMinMapBound(float val)
 		{setMinColorMapBound(val);setMinOpacMapBound(val);}
@@ -186,17 +186,29 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
-	void setTwoDTexture(unsigned char* tex, int timestep){ 
+	void setTwoDTexture(unsigned char* tex, int timestep,
+		float imExts[4] = 0){ 
 		unsigned char** textureArray = twoDDataTextures;
 		if (!textureArray){
 			textureArray = new unsigned char*[maxTimestep + 1];
-				for (int i = 0; i<= maxTimestep; i++) textureArray[i] = 0;
+			for (int i = 0; i<= maxTimestep; i++) 
+				textureArray[i] = 0;
+			if (imageExtents) delete imageExtents;
+			imageExtents = 0;
+			if(imExts) imageExtents = new float [4*(maxTimestep+1)];
 		}
-		if (textureArray[timestep]) delete textureArray[timestep];
+		if (textureArray[timestep]) 
+			delete textureArray[timestep];
 		textureArray[timestep] = tex;
+		if(imExts) for (int k = 0; k < 4; k++)
+			imageExtents[4*timestep+k] = imExts[k];
 		twoDDataTextures = textureArray; 
 	}
 	unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht);
+
+	//Read texture image from tif (or kml).
+	unsigned char* readTextureImage(int timestep, int* wid, int* ht,
+		float imgExtents[4]);
 
 	//General method that obtains a list of variables (containing the twoD) from the dataMgr
 	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
@@ -208,6 +220,9 @@ public:
 	unsigned char* getCurrentTwoDTexture(int timestep) {
 		return twoDDataTextures[timestep];
 		
+	}
+	float * getCurrentTwoDImageExtents(int timestep){
+		return imageExtents + 4*timestep;
 	}
 	void getTwoDVoxelExtents(float voxdims[2]);
 
@@ -262,7 +277,7 @@ public:
 	//Mapping [-1,1]X[-1,1] into 3D volume.
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
-
+	std::string& getProjectionString() {return projDefinitionString;}
 	
 protected:
 	
@@ -285,7 +300,6 @@ protected:
 	static const string _imageFileNameAttr;
 	static const string _orientationAttr;
 
-	
 	
 	void refreshCtab();
 			
@@ -317,8 +331,13 @@ protected:
 	int numVariablesSelected;
 
 	//Cache of twoD textures, one per timestep.
-	
+	//Also cache image positions, because each image has 
+	//different LL and UR coordinates (meters in projection space)
+	//for each time step.
+	//The elev grid is cached in the 
+	//renderer class
 	unsigned char** twoDDataTextures;
+	float * imageExtents; //(4 floats for each time step)
 	int maxTimestep;
 	
 	
@@ -341,9 +360,8 @@ protected:
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
 	int textureSize[2];
-	
-	
-	
+
+	std::string projDefinitionString;
 	
 };
 };

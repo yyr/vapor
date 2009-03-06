@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>1660</height>
+            <height>1776</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -321,7 +321,7 @@ create new 2D planar instances.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  This panel controls positioning and color-mapping of the planar region and allows querying variable values and flow seed placement.</string>
+                        <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  In image mode, geo-referenced images are displayed. This panel controls positioning and color-mapping of the planar region and, in data mode, allows querying variable values and flow seed placement.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -337,15 +337,15 @@ create new 2D planar instances.</string>
                                 </property>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout79</cstring>
+                                        <cstring>layout43</cstring>
                                     </property>
-                                    <hbox>
+                                    <grid>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <spacer>
+                                        <spacer row="1" column="5">
                                             <property name="name">
-                                                <cstring>spacer100_2</cstring>
+                                                <cstring>spacer64</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -355,29 +355,12 @@ create new 2D planar instances.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>21</width>
+                                                    <width>31</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel1_4</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>2D Mode</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>AlignCenter</set>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify Data or Image mode</string>
-                                            </property>
-                                            <property name="whatsThis" stdset="0">
-                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QComboBox">
+                                        <widget class="QComboBox" row="1" column="4">
                                             <item>
                                                 <property name="text">
                                                     <string>Data</string>
@@ -398,24 +381,51 @@ create new 2D planar instances.</string>
                                                 <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
                                             </property>
                                         </widget>
-                                        <spacer>
+                                        <widget class="QComboBox" row="1" column="1">
+                                            <item>
+                                                <property name="text">
+                                                    <string>0</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>1</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>2</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>3</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>4</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>5</string>
+                                                </property>
+                                            </item>
                                             <property name="name">
-                                                <cstring>spacer50</cstring>
+                                                <cstring>refinementCombo</cstring>
                                             </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
+                                            <property name="sizeLimit">
+                                                <number>10</number>
                                             </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
+                                            <property name="maxCount">
+                                                <number>5</number>
                                             </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>29</width>
-                                                    <height>20</height>
-                                                </size>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Select the refinement level (resolution) of the current 2D data</string>
                                             </property>
-                                        </spacer>
-                                        <widget class="QLabel">
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="6" rowspan="1" colspan="2">
                                             <property name="name">
                                                 <cstring>textLabel2</cstring>
                                             </property>
@@ -432,7 +442,143 @@ create new 2D planar instances.</string>
                                                 <string>In data mode, the orientation indicates the planar alignment of the selected variable(s).  In image mode, the orientation can be selected.  Only horizontal (X-Y) oriented images can make use of georeferencing.</string>
                                             </property>
                                         </widget>
-                                        <widget class="QComboBox">
+                                        <spacer row="0" column="8">
+                                            <property name="name">
+                                                <cstring>spacer62</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel" row="0" column="1" rowspan="1" colspan="2">
+                                            <property name="name">
+                                                <cstring>textLabel1_4_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Refinement:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify Data or Image mode</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="4">
+                                            <property name="name">
+                                                <cstring>textLabel1_4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>2D Mode:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify Data or Image mode</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer row="1" column="2" rowspan="1" colspan="2">
+                                            <property name="name">
+                                                <cstring>spacer65</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <spacer row="1" column="7" rowspan="1" colspan="2">
+                                            <property name="name">
+                                                <cstring>spacer63</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <spacer row="0" column="0">
+                                            <property name="name">
+                                                <cstring>spacer59_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <spacer row="0" column="5">
+                                            <property name="name">
+                                                <cstring>spacer61</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <spacer row="0" column="3">
+                                            <property name="name">
+                                                <cstring>spacer60</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QComboBox" row="1" column="6">
                                             <item>
                                                 <property name="text">
                                                     <string>Y-Z</string>
@@ -458,9 +604,9 @@ create new 2D planar instances.</string>
                                                 <string>In data mode, the orientation indicates the planar alignment of the selected variable(s).  In image mode, the orientation can be selected.  Only horizontal (X-Y) oriented images can make use of georeferencing.</string>
                                             </property>
                                         </widget>
-                                        <spacer>
+                                        <spacer row="1" column="0">
                                             <property name="name">
-                                                <cstring>spacer101</cstring>
+                                                <cstring>spacer66</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -475,7 +621,7 @@ create new 2D planar instances.</string>
                                                 </size>
                                             </property>
                                         </spacer>
-                                    </hbox>
+                                    </grid>
                                 </widget>
                                 <spacer>
                                     <property name="name">
@@ -510,7 +656,7 @@ create new 2D planar instances.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout47</cstring>
+                                                <cstring>layout48</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -518,7 +664,7 @@ create new 2D planar instances.</string>
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout46</cstring>
+                                                        <cstring>layout47</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -536,7 +682,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>31</width>
+                                                                    <width>59</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -567,25 +713,52 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>30</width>
+                                                                    <width>16</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
                                                         </spacer>
-                                                        <widget class="QCheckBox">
+                                                        <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>geoRefCheckbox</cstring>
+                                                                <cstring>textLabel1_5</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Use Georeferencing</string>
+                                                                <string>File name:</string>
                                                             </property>
-                                                            <property name="checked">
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>filenameEdit</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>137</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>209</red>
+                                                                    <green>207</green>
+                                                                    <blue>190</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string></string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignAuto</set>
+                                                            </property>
+                                                            <property name="readOnly">
                                                                 <bool>true</bool>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Name of image file to display</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer55_2</cstring>
+                                                                <cstring>spacer56_2</cstring>
                                                             </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
@@ -595,7 +768,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>20</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -621,7 +794,7 @@ create new 2D planar instances.</string>
                                                 </spacer>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout81</cstring>
+                                                        <cstring>layout43</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -632,7 +805,7 @@ create new 2D planar instances.</string>
                                                                 <cstring>textLabel2_7</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Resampling rate</string>
+                                                                <string>Resampling</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -650,7 +823,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="maximumSize">
                                                                 <size>
-                                                                    <width>70</width>
+                                                                    <width>50</width>
                                                                     <height>32767</height>
                                                                 </size>
                                                             </property>
@@ -679,7 +852,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>16</width>
                                                                     <height>21</height>
                                                                 </size>
                                                             </property>
@@ -701,7 +874,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="maximumSize">
                                                                 <size>
-                                                                    <width>70</width>
+                                                                    <width>50</width>
                                                                     <height>32767</height>
                                                                 </size>
                                                             </property>
@@ -716,6 +889,37 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>If image file has transparency, this factor is multiplied by the image opacity to determine the opacity of each pixel.  If there is no transparency specified in the image, then the displayed image will have the opacity as specified here.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer55_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>16</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QCheckBox">
+                                                            <property name="name">
+                                                                <cstring>geoRefCheckbox</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Georeference</string>
+                                                            </property>
+                                                            <property name="checked">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify whether to place image according to georeferencing in file</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -740,227 +944,111 @@ create new 2D planar instances.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout43</cstring>
+                                                <cstring>layout42</cstring>
                                             </property>
                                             <hbox>
                                                 <property name="name">
                                                     <cstring>unnamed</cstring>
                                                 </property>
-                                                <widget class="QLayoutWidget">
+                                                <spacer>
                                                     <property name="name">
-                                                        <cstring>layout77</cstring>
+                                                        <cstring>spacer57_2</cstring>
                                                     </property>
-                                                    <vbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>textLabel1_2</cstring>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Refinement level</string>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Select the refinement level (resolution) of the current 2D plane</string>
-                                                            </property>
-                                                        </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer97</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Vertical</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>20</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout74</cstring>
-                                                            </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer96</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>20</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QComboBox">
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>0</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>1</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>2</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>3</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>4</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <item>
-                                                                        <property name="text">
-                                                                            <string>5</string>
-                                                                        </property>
-                                                                    </item>
-                                                                    <property name="name">
-                                                                        <cstring>refinementCombo</cstring>
-                                                                    </property>
-                                                                    <property name="sizeLimit">
-                                                                        <number>10</number>
-                                                                    </property>
-                                                                    <property name="maxCount">
-                                                                        <number>5</number>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Select the refinement level (resolution) of the current 2D data</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer95</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>20</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
-                                                        </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer98</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Vertical</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>20</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
-                                                    </vbox>
-                                                </widget>
-                                                <widget class="QLayoutWidget">
+                                                    <property name="orientation">
+                                                        <enum>Horizontal</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>21</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
+                                                <widget class="QLabel">
                                                     <property name="name">
-                                                        <cstring>layout55</cstring>
+                                                        <cstring>textLabel1_3</cstring>
                                                     </property>
-                                                    <vbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>textLabel1_3</cstring>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>2D Variable(s)</string>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QListBox">
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>not present</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>not present</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>not present</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>not present</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>not present</string>
-                                                                </property>
-                                                            </item>
-                                                            <property name="name">
-                                                                <cstring>variableListBox</cstring>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>55</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="focusPolicy">
-                                                                <enum>NoFocus</enum>
-                                                            </property>
-                                                            <property name="selectionMode">
-                                                                <enum>Extended</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Select one or more variables to be displayed in contour view</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Select one or more 2D variables to be examined.  Variables must be horizontal (X-Y oriented).  Multiple variables are selected by ctrl-click with the left mouse button.  When multiple variables are selected, the histogram and the cross-section images are based on the magnitude of the vector consisting of all the selected variables.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </vbox>
+                                                    <property name="text">
+                                                        <string>2D Variable(s):</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
                                                 </widget>
+                                                <widget class="QListBox">
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>not present</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>not present</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>not present</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>not present</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>not present</string>
+                                                        </property>
+                                                    </item>
+                                                    <property name="name">
+                                                        <cstring>variableListBox</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>144</width>
+                                                            <height>107</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>32767</width>
+                                                            <height>55</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="focusPolicy">
+                                                        <enum>NoFocus</enum>
+                                                    </property>
+                                                    <property name="selectionMode">
+                                                        <enum>Extended</enum>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Select one or more variables to be displayed in contour view</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Select one or more 2D variables to be examined.  Variables must be horizontal (X-Y oriented).  Multiple variables are selected by ctrl-click with the left mouse button.  When multiple variables are selected, the histogram and the cross-section images are based on the magnitude of the vector consisting of all the selected variables.</string>
+                                                    </property>
+                                                </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer58_2</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Horizontal</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>21</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
                                             </hbox>
                                         </widget>
                                     </vbox>
@@ -2379,7 +2467,7 @@ below the contour view.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>20</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>

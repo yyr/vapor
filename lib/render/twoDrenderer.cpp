@@ -34,6 +34,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include "renderer.h"
+#include "proj_api.h"
 
 using namespace VAPoR;
 
@@ -117,8 +118,8 @@ void TwoDRenderer::paintGL()
 		glDepthMask(GL_FALSE);
 		glColor4f(.8f,.8f,0.f,0.2f);
 	}
-
-	if (myTwoDParams->isMappedToTerrain()){
+	//Textures always draw elev grid.
+	if (!myTwoDParams->isDataMode() || myTwoDParams->isMappedToTerrain()){
 		drawElevationGrid(currentFrameNum);
 		return;
 	}
@@ -179,13 +180,18 @@ unsigned char* TwoDRenderer::getTwoDTexture(TwoDParams* pParams, int frameNum,  
 //Texture is already specified
 void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	//If the twoD is dirty, or the timestep has changed, must rebuild.
-	
+	TwoDParams* tParams = (TwoDParams*)currentRenderParams;
 	//First, check if we have already constructed the elevation grid vertices.
 	//If not, rebuild them:
 	if (!elevVert || !elevVert[timeStep]) {
 		//Don't try to rebuild if we failed already..
 		if (doBypass(timeStep)) return;
-		if(!rebuildElevationGrid(timeStep)) return;
+		if (tParams->isDataMode()){
+			if(!rebuildElevationGrid(timeStep)) return;
+		} else {//image mode:
+			if(!rebuildImageGrid(timeStep)) return;
+		}
+
 	}
 	int maxx = maxXElev[timeStep];
 	int maxy = maxYElev[timeStep];
@@ -213,7 +219,6 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	
-	TwoDParams* tParams = (TwoDParams*)currentRenderParams;
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	
@@ -549,6 +554,11 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	//stretched cube coords
 	//using parameters in the viewpoint params.
 	
+	float minvals[3], maxvals[3];
+	for (int i = 0; i< 3; i++){
+		minvals[i] = 1.e30;
+		maxvals[i] = -1.e30;
+	}
 	float worldCoord[3];
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
 	for (int j = 0; j<maxy; j++){
@@ -570,9 +580,222 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
+			for (int k = 0; k< 3; k++){
+				if( *(elevVert[timeStep] + pntPos+k) > maxvals[k])
+					maxvals[k] = *(elevVert[timeStep] + pntPos+k);
+				if( *(elevVert[timeStep] + pntPos+k) < minvals[k])
+					minvals[k] = *(elevVert[timeStep] + pntPos+k);
+			}
 		}
 	}
+	qWarning("min,max coords: %f %f %f %f %f %f",
+		minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
 	//Now calculate normals:
+	calcElevGridNormals(timeStep);
+	return true;
+}
+bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
+	//Reconstruct the elevation grid using the map projection specified
+	//It may or may not be terrain following.  
+	//The following code assumes horizontal orientation and a defined
+	//map projection.
+	//First, set up the cache if necessary:
+	if (!elevVert){
+		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
+		//Following arrays hold vertices and normals
+		elevVert = new float*[numElevTimesteps];
+		elevNorm = new float*[numElevTimesteps];
+		//maxXelev, maxYelev are the dimensions of the elevation grid
+		maxXElev = new int[numElevTimesteps];
+		maxYElev = new int[numElevTimesteps];
+		//minXTex, minYTex are min/max texture coordinates (between 0 and 1).
+		//tex coords will be uniformly spaced (only the vertex coords are moved)
+		minXTex = new float[numElevTimesteps];
+		minYTex = new float[numElevTimesteps];
+		maxXTex = new float[numElevTimesteps];
+		maxYTex = new float[numElevTimesteps];
+		for (int i = 0; i< numElevTimesteps; i++){
+			elevVert[i] = 0;
+			elevNorm[i] = 0;
+			maxXElev[i] = 0;
+			maxYElev[i] = 0;
+			minXTex[i] = 0.f;
+			maxXTex[i] = 1.f;
+			minYTex[i] = 0.f;
+			maxYTex[i] = 1.f;
+		}
+	}
+
+	//Specify the parameters that are needed to define the elevation grid:
+
+	 
+	//Note (TODO): 
+	//When we support a vertical oriented image or if there
+	//is no projection mapping, then there 
+	//will be no need for more than one polygon.
+
+	//Determine the grid size, the data extents, and the image size:
+	DataStatus* ds = DataStatus::getInstance();
+	const float* extents = ds->getExtents();
+	DataMgr* dataMgr = ds->getDataMgr();
+	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
+	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
+	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
+
+	
+	// intersect the twoD box with the imageExtents.  This will
+	// determine the region used for the elevation grid.  
+	// Construct
+	// an elevation grid that covers the full image.  Later may
+	// decide it's more efficient to construct a smaller one.
+	// Need to determine the approximate size of the image, to decide
+	// how large a grid to use. 
+
+	//char* pjstring1 = "+proj=latlong +ellps=WGS84 +to_meter=1.0000000000";
+	//char* pjstring1 = "+proj=latlong +ellps=sphere +to_meter=1.0000000000";
+	//char* pjstring1 = "+proj=latlon +ellps=sphere";
+	//char* pjstring2 = "+proj=lcc +lon_0=-83.7 +lat_1=31.9 +lat_2=31.9 +lat_0=31.9 +ellps=sphere";
+	//Set up proj.4:
+	projPJ dst_proj;
+	projPJ src_proj; 
+	
+	src_proj = pj_init_plus(tParams->getProjectionString().c_str());
+	
+	dst_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	
+	bool doProj = (src_proj != 0 && dst_proj != 0);
+	if (!doProj) return 0;
+
+	//If a projection string is latlon, the coordinates are in Radians!
+	bool latlonSrc = pj_is_latlong(src_proj);
+	bool latlonDst = pj_is_latlong(dst_proj);
+
+	static const double RAD2DEG = 180./M_PI;
+	static const double DEG2RAD = M_PI/180.0;
+	
+	double displayExtents[4];
+	
+	//Convert image extents to Vapor coordinates, just to find
+	//size of region we are dealing with
+	if (latlonSrc) //need to convert degrees to radians, image exts are in degrees
+		for (int i = 0; i<4; i++) displayExtents[i] = imgExts[i]*DEG2RAD;
+	else 
+		for (int i = 0; i<4; i++) displayExtents[i] = imgExts[i];
+
+	//apply proj4 to transform the four corners (in place):
+	int rc = pj_transform(src_proj,dst_proj,2,2, displayExtents,displayExtents+1, 0);
+
+	if (rc){
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
+			pj_strerrno(rc));
+		return 0;
+	}
+	if (latlonDst)  //results are in radians, convert to degrees
+		for (int i = 0; i<4; i++) displayExtents[i] = imgExts[i]*RAD2DEG;
+	
+	//Now displayExtents are corners in local system.  subtract offsets:
+	for (int i = 0; i<4; i++) displayExtents[i] -= RegionParams::getExtentsOffset(i%2, timeStep);
+	//divide that size
+	//by the full data extents.  Multiply that ratio by the grid size at the current
+	//refinement level.
+
+	//Also translate the display extents by the projection extents, since the
+	//local coordinates 
+	
+	int gridsize[2];
+	for (int i = 0; i<2; i++){
+		gridsize[i] = (int)(ds->getFullSizeAtLevel(tParams->getNumRefinements(),i)*
+			(displayExtents[i+2]-displayExtents[i])/(extents[i+3]-extents[i])+0.5f);
+	}
+	int maxx, maxy;
+	maxXElev[timeStep] = maxx = gridsize[0] +1;
+	maxYElev[timeStep] = maxy = gridsize[1] +1;
+	
+	elevVert[timeStep] = new float[3*maxx*maxy];
+	elevNorm[timeStep] = new float[3*maxx*maxy];
+	
+	//texture coordinate range goes from 0 to 1
+	minXTex[timeStep] = 0.f;
+	maxXTex[timeStep] = 1.f;
+	minYTex[timeStep] = 0.f;
+	maxYTex[timeStep] = 1.f;
+
+	
+	float minvals[3], maxvals[3];
+	for (int i = 0; i< 3; i++){
+		minvals[i] = 1.e30;
+		maxvals[i] = -1.e30;
+	}
+
+	//If data is not mapped to terrain, elevation is determined
+	//by twoDParams z (max or min are same).
+	float constElev = tParams->getTwoDMax(2);
+	//If data is mapped to terrain, need to prepare the data array,
+	//and to determine the extents of the data in world coordinates.
+	//Use a line buffer to hold 3d coordinates for transforming
+	double* elevVertLine = new double[3*maxx];
+	float locCoords[3];
+	for (int j = 0; j<maxy; j++){
+		
+		for (int i = 0; i<maxx; i++){
+			
+			//determine the x,y coordinates of each point
+			//in the image coordinate space:
+			//int pntPos = 3*(i+j*maxx);
+			elevVertLine[3*i] = imgExts[0] + (imgExts[2]-imgExts[0])*(double)i/(double)(maxx-1);
+			elevVertLine[3*i+1] = imgExts[1] + (imgExts[3]-imgExts[1])*(double)j/(double)(maxy-1);
+			//*(elevVert[timeStep] + pntPos) = displayExtents[0] + (displayExtents[2]-displayExtents[0])*(float)i/(float)(maxx-1);
+			//*(elevVert[timeStep] + pntPos+1) = displayExtents[1] + (displayExtents[3]-displayExtents[1])*(float)j/(float)(maxy-1);
+			//Convert and put results into elevation grid vertices:
+			//ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
+		}
+		
+		//apply proj4 to transform the line.  If source is in degrees, convert to radians:
+		if (latlonSrc)
+			for(int i = 0; i< maxx; i++) {
+				elevVertLine[3*i] *= DEG2RAD;
+				elevVertLine[3*i+1] *= DEG2RAD;
+			}
+		pj_transform(src_proj,dst_proj,maxx,3, elevVertLine,elevVertLine+1, 0);
+		//If the scene is latlon, convert to degrees:
+		if (latlonDst) 
+			for(int i = 0; i< maxx; i++) {
+				elevVertLine[3*i] *= RAD2DEG;
+				elevVertLine[3*i+1] *= RAD2DEG;
+			}
+		//Copy the result back to elevVert. 
+		//Translate by local offset
+		//then convert to stretched cube coords
+		
+		for (int i = 0; i< maxx; i++){
+			locCoords[0] = (float)elevVertLine[3*i] - RegionParams::getExtentsOffset(0, timeStep);
+			locCoords[1] = (float)elevVertLine[3*i+1] - RegionParams::getExtentsOffset(1, timeStep);
+			locCoords[2] = constElev - RegionParams::getExtentsOffset(2, timeStep);
+			//Convert to stretched cube coords.  Note that following
+			//routine requires local coords, not world coords
+			ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
+			for (int k = 0; k< 3; k++){
+				if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
+					maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+				if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
+					minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+			}
+		
+	
+		}
+		
+		//Later: Set the z coordinate using the elevation data:
+		//float* elevs = elevData != 0 ? elevData : hgtData;
+		//interpHeights(elevVert[timeStep]+3*j*maxx, maxx, maxx, maxy, imgExts, elevs);
+
+	}
+
+	qWarning("min,max coords: %f %f %f %f %f %f",
+		minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
+	
+	//Now calculate normals.  For now, just do it as if the points are
+	//on a regular grid:
+	delete elevVertLine;
 	calcElevGridNormals(timeStep);
 	return true;
 }
@@ -627,4 +850,45 @@ void TwoDRenderer::calcElevGridNormals(size_t timeStep){
 			vnormal(norm);
 		}
 	}
+}
+//Interpolate the elevations of an array of points, packed as x,y,z's
+//Assumes that an array of elevations is provided, and that array
+//is linearly mapped to world elevation extents specified in wElevExtents.
+//The dimensions of the height data are elevWid, elevHt
+//points that are outside wElevExtents get elevation = defaultElev.
+
+//Also need to handle stretch and displacement of elev grid.
+void TwoDRenderer::
+interpHeights(float* rowData, int numPts, int elevWid, int elevHt, 
+	float defaultElev, const float wElevExtents[4], const float* elevData)
+{
+	for (int i = 0; i<numPts; i++){
+		float x = rowData[i*3];
+		float y = rowData[i*3+1];
+		//Assume default elevation:
+		rowData[i*3+2] = defaultElev;
+		//find where it fits relative to exts:
+		
+		float xgrid = ((x-wElevExtents[0])/(wElevExtents[2]-wElevExtents[0])*elevWid);
+		float ygrid = ((y-wElevExtents[1])/(wElevExtents[3]-wElevExtents[1])*elevHt);
+		//Get grid corners at lower-left
+		int xll = (int)(xgrid);
+		int yll = (int)(ygrid);
+		if (xll < 0 || yll < 0) continue;
+		if(xll > elevWid-2) continue;
+		if(yll > elevHt-2) continue;
+		//find values at corners:
+		float elevll = elevData[xll + yll*elevWid];
+		float elevlr = elevData[(xll+1) + yll*elevWid];
+		float elevul = elevData[xll + (yll+1)*elevWid];
+		float elevur = elevData[xll+1 + (yll+1)*elevWid];
+		//Do bilinear interpolate of the four corners 
+		//coeffs are (xgrid-x11) and (ygrid-y11)
+		float xcoeff = xgrid -xll;
+		float ycoeff = ygrid -yll;
+		
+		rowData[i*3+2] = ((1-ycoeff)*elevll + ycoeff*elevul)*(1-xcoeff) +
+			((1-ycoeff)*elevlr + ycoeff*elevur)*xcoeff;
+	}
+
 }

@@ -47,10 +47,15 @@ protected:
 	int *maxXElev, *maxYElev; // size for each time step
 	float** elevVert, **elevNorm;
 	float *maxXTex, *minXTex, *maxYTex, *minYTex;
+	
 	void invalidateElevGrid();
 	void drawElevationGrid(size_t timestep);
 	bool rebuildElevationGrid(size_t timestep);
+	bool rebuildImageGrid(size_t timestep);
 	void calcElevGridNormals(size_t timestep);
+	//Interpolate heights of an elevation grid.  The points in rowData
+	//are in world coordinates
+	void interpHeights(float* rowData, int numPts, int elevWid, int elevHt, float defaultElev, const float worldElevExtents[4], const float* elevData);
 	
 
 };

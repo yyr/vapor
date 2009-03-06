@@ -30,6 +30,7 @@ MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor 
 endif
 
-MAKEFILE_CXXFLAGS += -I../params
+MAKEFILE_INCLUDE_DIRS += -I../params -I$(PROJ_INC_PATH)
+MAKEFILE_LDFLAGS += -L$(PROJ_LIB_PATH)
 
 include ${TOP}/make/config/base.mk

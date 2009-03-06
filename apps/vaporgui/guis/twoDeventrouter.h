@@ -126,7 +126,7 @@ public slots:
 
 protected slots:
 	void guiChangeType(int);
-	void selectImageFile();
+	void guiSelectImageFile();
 	void guiSetOrientation(int);
 	void guiSetGeoreferencing(bool);
 
