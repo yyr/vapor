@@ -63,7 +63,7 @@
 #endif
 
 //#define vset(a,x,y,z)	(a[0] = x, a[1] = y, a[2] = z)
-#define Verify(expr,estr)	if (!(expr)) BailOut(estr,__FILE__,__LINE__)
+//#define Verify(expr,estr)	if (!(expr)) BailOut(estr,__FILE__,__LINE__)
 
 #define CallocType(type,i)	(type *) calloc(i,sizeof(type))
 
