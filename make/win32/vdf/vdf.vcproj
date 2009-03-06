@@ -310,6 +310,9 @@
 				RelativePath="..\..\..\include\vapor\WaveletBlockIOBase.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\WRF.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\XmlNode.h">
 			</File>
 		</Filter>
