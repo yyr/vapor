@@ -1400,10 +1400,10 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	projDefinitionString = "";
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
 
+	
 	//Set the tif directory to the one associated with the
 	//current frame num.
 	if (!imageNums) setupImageNums(tif);
-	
 	int currentDir = getImageNum(timestep);
 	
 	TIFFSetDirectory(tif, currentDir);
@@ -1464,10 +1464,10 @@ void TwoDParams::setupImageNums(TIFF* tif){
 	imageNums = new int[maxTimestep + 1];
 	for (int i = 0; i<=maxTimestep; i++) imageNums[i] = 0;
 	int rc;
-	char** timePtr = 0;
+	char* timePtr = 0;
 	TIME64_T* userTimes = 0;
 	//Check if the first time step has a time stamp
-	bool timesOK = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
+	bool timesOK = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
 	 
 	if (timesOK) {
 		
@@ -1486,16 +1486,16 @@ void TwoDParams::setupImageNums(TIFF* tif){
 	if (timesOK){
 		do {
 			dircount++;
-			rc = TIFFGetField(tif,TIFFTAG_DATETIME,timePtr);
+			rc = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
 			if (!rc) {
 				timesOK = false;
 				break;
 			} else {
 				//determine user time from the time stamp
-				string wrftime(*timePtr);
-				TIME64_T *seconds = 0;
-				rc = WRF::WRFTimeStrToEpoch(wrftime, seconds);
-				if (!rc) {
+				string wrftime(timePtr);
+				TIME64_T seconds = 0;
+				rc = WRF::WRFTimeStrToEpoch(wrftime, &seconds);
+				if (rc) {
 					timesOK = false;
 					break;
 				}
@@ -1505,7 +1505,7 @@ void TwoDParams::setupImageNums(TIFF* tif){
 					TIME64_T minTimeDiff = 123456789123456789LL;
 					int bestpos = -1;
 					for (int i = 0; i<=maxTimestep; i++){
-						TIME64_T timediff = (*seconds > userTimes[i]) ? (*seconds - userTimes[i]) : (userTimes[i] - *seconds);
+						TIME64_T timediff = (seconds > userTimes[i]) ? (seconds - userTimes[i]) : (userTimes[i] - seconds);
 						if (timediff < minTimeDiff){
 							bestpos = i;
 							minTimeDiff = timediff;
