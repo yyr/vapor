@@ -1403,8 +1403,6 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	//Set the tif directory to the one associated with the
 	//current frame num.
 	if (!imageNums) setupImageNums(tif);
-	//First count the directories, checking for date/time tags
-	bool haveDateTime = true;
 	
 	int currentDir = getImageNum(timestep);
 	
@@ -1514,7 +1512,7 @@ void TwoDParams::setupImageNums(TIFF* tif){
 						}
 						if (minTimeDiff == 0) break;
 					}
-					imageNums[i] = bestpos;
+					imageNums[dircount-1] = bestpos;
 				}
 			}
 		} while (TIFFReadDirectory(tif));
@@ -1532,7 +1530,7 @@ void TwoDParams::setupImageNums(TIFF* tif){
 		} while (TIFFReadDirectory(tif));
 		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
 		for (int i = 0; i<= maxTimestep; i++){
-			imageNums[i] = MIN(dircount-1,i);
+			imageNums[i] = Min(dircount-1,i);
 		}
 	}
 		
