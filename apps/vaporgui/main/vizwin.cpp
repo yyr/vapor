@@ -657,7 +657,8 @@ mouseMoveEvent(QMouseEvent* e){
 					myGLWindow->pixelToVector(projMouseCoords, 
 						vParams->getCameraPos(), dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
-					myTwoDManip->slideHandle(handleNum, dirVec);
+					bool constrain = ((TwoDParams*)myTwoDManip->getParams())->isDataMode();
+					myTwoDManip->slideHandle(handleNum, dirVec, constrain);
 					myGLWindow->updateGL();
 					break;
 				}

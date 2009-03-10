@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;PARAMS_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="0"
@@ -36,10 +36,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib gdal.lib glu32.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib gdal.lib glu32.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/params.pdb"

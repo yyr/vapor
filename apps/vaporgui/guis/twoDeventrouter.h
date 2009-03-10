@@ -125,6 +125,8 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiFitToImage();
+	void guiSetLatLon(bool);
 	void guiChangeType(int);
 	void guiSelectImageFile();
 	void guiSetOrientation(int);

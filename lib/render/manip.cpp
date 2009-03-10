@@ -553,7 +553,7 @@ captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int b
 //
 
 void TranslateStretchManip::
-slideHandle(int handleNum, float movedRay[3]){
+slideHandle(int handleNum, float movedRay[3], bool constrain){
 	float normalVector[3] = {0.f,0.f,0.f};
 	float q[3], r[3], w[3];
 	assert(handleNum >= 0);
@@ -602,25 +602,27 @@ slideHandle(int handleNum, float movedRay[3]){
 			if(dragDistance + boxExtents[coord] > boxExtents[coord+3]) {
 				dragDistance = boxExtents[coord+3] - boxExtents[coord];
 			}
-			if(dragDistance + boxExtents[coord] < extents[coord]) {
+			if(constrain && (dragDistance + boxExtents[coord] < extents[coord])) {
 				dragDistance = extents[coord] - boxExtents[coord];
 			}
 		} else {//Moving "high" handle:
 			if (dragDistance + boxExtents[coord+3] < boxExtents[coord]) {
 				dragDistance = boxExtents[coord] - boxExtents[coord+3];
 			}
-			if (dragDistance + boxExtents[coord+3] > extents[coord+3]) {
+			if (constrain&&(dragDistance + boxExtents[coord+3] > extents[coord+3])) {
 				dragDistance = extents[coord+3]-boxExtents[coord+3];
 			}
 		}
-	} else { //sliding, not stretching
+	} else if (constrain){ //sliding, not stretching
 		//Don't push the box out of the full region extents:
+		
 		if (dragDistance + boxExtents[coord] < extents[coord]) {
 			dragDistance = extents[coord] - boxExtents[coord];
 		}
 		if (dragDistance + boxExtents[coord+3] > extents[coord+3]) {
 			dragDistance = extents[coord+3] - boxExtents[coord+3];
 		}
+		
 	}
 	//now convert from stretched world to cube coords:
 	dragDistance /= ViewpointParams::getMaxStretchedCubeSide();
@@ -806,7 +808,7 @@ void TranslateRotateManip::drawBoxFaces(){
 //
 
 void TranslateRotateManip::
-slideHandle(int handleNum, float movedRay[3]){
+slideHandle(int handleNum, float movedRay[3], bool constrain){
 	float normalVector[3] = {0.f,0.f,0.f};
 	float q[3], r[3], w[3];
 	assert(handleNum >= 0);

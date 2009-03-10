@@ -192,6 +192,9 @@ TwoDEventRouter::hookUpTab()
 	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(guiSelectImageFile()));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
+	connect (latLonCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetLatLon(bool)));
+	connect (fitToImageButton, SIGNAL(clicked()), this, SLOT(guiFitToImage()));
+
 	
 }
 //Insert values from params into tab panel
@@ -482,8 +485,10 @@ void TwoDEventRouter::confirmText(bool /*render*/){
 	//the box z-size is not adjustable:
 	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
-		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		if (twoDParams->isDataMode()){
+			if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
+			if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		}
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
@@ -554,9 +559,10 @@ void TwoDEventRouter::guiSelectImageFile(){
 	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
 	
 	tParams->setImageFileName(filename.ascii());
+	
 	filenameEdit->setText(filename);
 	PanelCommand::captureEnd(cmd, tParams);
-	tParams->setTwoDDirty();
+	tParams->setImageDirty();
 	VizWinMgr::getInstance()->refreshTwoD(tParams);
 }
 void TwoDEventRouter::guiSetOrientation(int val){
@@ -572,11 +578,48 @@ void TwoDEventRouter::guiSetOrientation(int val){
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
 	updateTab();
 }
+void TwoDEventRouter::guiFitToImage(){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "fit 2D extents to image");
+	//Get the 4 corners of the image (in local coordinates)
+	double corners[8];
+	float newExts[6];
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	tParams->getImageCorners(timestep, corners);
+	tParams->getBox(newExts, newExts+3);
+	newExts[0] = newExts[1] = 1.e30f;
+	newExts[3] = newExts[4] = -1.e30f;
+	//Adjust the new 2d extents to contain these corners
+	
+	for (int i = 0; i<4; i++){
+		if (newExts[0] > corners[2*i]) newExts[0] = corners[2*i];
+		if (newExts[1] > corners[2*i+1]) newExts[1] = corners[2*i+1];
+		if (newExts[3] < corners[2*i]) newExts[3] = corners[2*i];
+		if (newExts[4] < corners[2*i+1]) newExts[4] = corners[2*i+1];
+	}
+	tParams->setBox(newExts, newExts+3);
+	PanelCommand::captureEnd(cmd, tParams); 
+	setTwoDDirty(tParams);
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	updateTab();
+}
 void TwoDEventRouter::guiSetGeoreferencing(bool val){
 	confirmText(false);
 	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle georeferencing on/off");
 	tParams->setGeoreferenced(val);
+	PanelCommand::captureEnd(cmd, tParams); 
+	setTwoDDirty(tParams);
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	updateTab();
+}
+void TwoDEventRouter::guiSetLatLon(bool val){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle lat/lon on/off");
+	tParams->setLatLon(val);
 	PanelCommand::captureEnd(cmd, tParams); 
 	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
@@ -1024,6 +1067,7 @@ guiSetEnabled(bool value, int instance){
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	update();
+	guiSetTextChanged(false);
 }
 
 
@@ -2158,10 +2202,29 @@ adjustBoxSize(TwoDParams* pParams){
 	if (!Session::getInstance()->getDataMgr()) return;
 	pParams->getBox(boxmin, boxmax);
 
-	//
 	const float* extents = DataStatus::getInstance()->getExtents();
-	float extentSize[3];
-	for (int i= 0; i<3; i++) extentSize[i] = (extents[i+3]-extents[i]);
+	//In image mode, just make box have nonnegative extent
+	if (!pParams->isDataMode()){
+		for (int i = 0; i< 3; i++) {
+			if (boxmin[xcrd]> boxmax[xcrd]) boxmax[xcrd] = boxmin[xcrd];
+			if (boxmin[ycrd]> boxmax[ycrd]) boxmax[ycrd] = boxmin[ycrd];
+		}
+		pParams->setBox(boxmin, boxmax);
+		xSizeEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
+		ySizeEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
+		//If the box is bigger than the extents, just put the sliders at the
+		//max value
+		float xsize = (boxmax[xcrd]-boxmin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
+		float ysize = (boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
+		if (xsize > 1.f) xsize = 1.f;
+		if (ysize > 1.f) ysize = 1.f;
+		xSizeSlider->setValue((int)(256.f*xsize));
+		ySizeSlider->setValue((int)(256.f*ysize));
+		guiSetTextChanged(false);
+		return;
+	}
+	//force 2d data to be no larger than extents:
+	
 	if (boxmin[xcrd] < extents[xcrd]) boxmin[xcrd] = extents[xcrd];
 	if (boxmax[xcrd] > extents[xcrd+3]) boxmax[xcrd] = extents[xcrd+3];
 	if (boxmin[ycrd] < extents[ycrd]) boxmin[ycrd] = extents[ycrd];
@@ -2173,8 +2236,8 @@ adjustBoxSize(TwoDParams* pParams){
 	xSizeEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
 	ySizeEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
 	
-	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(extents[xcrd+3]-extents[xcrd])));
-	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(extents[ycrd+3]-extents[ycrd])));
+	xSizeSlider->setValue((int)(256.f*(boxmax[xcrd]-boxmin[xcrd])/(extents[xcrd+3]-extents[xcrd])));
+	ySizeSlider->setValue((int)(256.f*(boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3]-extents[ycrd])));
 	
 	//Cancel any response to text events generated in this method:
 	//
@@ -2273,3 +2336,4 @@ void TwoDEventRouter::updateBoundsText(RenderParams* params){
 		rightMappingBound->setText("1.0");
 	}
 }
+

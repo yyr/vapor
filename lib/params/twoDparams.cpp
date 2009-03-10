@@ -53,9 +53,11 @@
 #include "geo_normalize.h"
 #include "geotiff.h"
 #include "xtiffio.h"
+#include "proj_api.h"
 
 
 using namespace VAPoR;
+const string TwoDParams::_latLonAttr = "UseLatLon";
 const string TwoDParams::_editModeAttr = "TFEditMode";
 const string TwoDParams::_histoStretchAttr = "HistoStretchFactor";
 const string TwoDParams::_variableSelectedAttr = "VariableSelected";
@@ -399,6 +401,7 @@ restart(){
 	opacityMultiplier = 1.f;
 	useData = true;
 	useGeoreferencing = true;
+	useLatLon = false;
 	imageFileName = "";
 
 	if(numVariables > 0){
@@ -483,6 +486,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		opacityMultiplier = 1.f;
 		useData = true;
 		useGeoreferencing = true;
+		useLatLon = false;
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
@@ -538,6 +542,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _georeferencedAttr) == 0) {
 				if (value == "true") setGeoreferenced(true);
 				else setGeoreferenced(false);
+			}
+			else if (StrCmpNoCase(attribName, _latLonAttr) == 0) {
+				if (value == "true") setLatLon(true);
+				else setLatLon(false);
 			}
 			else if (StrCmpNoCase(attribName, _resampleRateAttr) == 0) {
 				ist >> resampRate;
@@ -773,6 +781,13 @@ buildNode() {
 	attrs[_georeferencedAttr] = oss.str();
 
 	oss.str(empty);
+	if (isLatLon())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_latLonAttr] = oss.str();
+
+	oss.str(empty);
 	oss << (long)orientation;
 	attrs[_orientationAttr] = oss.str();
 
@@ -967,8 +982,30 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	return;
 }
 
-//Clear out the cache
+//Clear out the cache.  But in image mode, don't clear out the textures,
+//just delete the elevation grid
 void TwoDParams::setTwoDDirty(){
+	if (!isDataMode()){
+		setElevGridDirty(true);
+		setAllBypass(false);
+		return;
+	}
+	if (twoDDataTextures){
+		for (int i = 0; i<=maxTimestep; i++){
+			if (twoDDataTextures[i]) {
+				delete twoDDataTextures[i];
+				twoDDataTextures[i] = 0;
+			}
+		}
+		twoDDataTextures = 0;
+	}
+	
+	textureSize[0]= textureSize[1] = 0;
+	setElevGridDirty(true);
+	setAllBypass(false);
+}
+//In image mode, need to clear out cached info obtained from image file
+void TwoDParams::setImageDirty(){
 	if (twoDDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
 			if (twoDDataTextures[i]) {
@@ -1465,25 +1502,13 @@ void TwoDParams::setupImageNums(TIFF* tif){
 	for (int i = 0; i<=maxTimestep; i++) imageNums[i] = 0;
 	int rc;
 	char* timePtr = 0;
-	TIME64_T* userTimes = 0;
+	int dircount = 0;
+	TIME64_T wrfTime;
 	//Check if the first time step has a time stamp
 	bool timesOK = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
-	 
-	if (timesOK) {
-		
-		//If so, build a list of the user times:
-		userTimes = new TIME64_T[maxTimestep + 1];
-		Metadata* md = DataStatus::getInstance()->getMetadata();
 	
-		for (int i = 0; i<=maxTimestep; i++){
-			const vector<double>& d = md->GetTSUserTime((size_t)i);
-			if(d.size()==0){ timesOK = false; break;}
-			userTimes[i] = (TIME64_T)d[0];
-		}
-	}
-	int dircount = 0;
-	
-	if (timesOK){
+	vector <TIME64_T> tiffTimes;
+	if (timesOK) { //build a list of the times in the tiff
 		do {
 			dircount++;
 			rc = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
@@ -1491,39 +1516,49 @@ void TwoDParams::setupImageNums(TIFF* tif){
 				timesOK = false;
 				break;
 			} else {
-				//determine user time from the time stamp
-				string wrftime(timePtr);
+				//determine seconds from the time stamp in the tiff
+				string tifftime(timePtr);
 				TIME64_T seconds = 0;
-				rc = WRF::WRFTimeStrToEpoch(wrftime, &seconds);
+				rc = WRF::WRFTimeStrToEpoch(tifftime, &seconds);
 				if (rc) {
 					timesOK = false;
 					break;
 				}
 				else {
-					//Find the closest user time to the wrf time,
-					//for each image time:
-					TIME64_T minTimeDiff = 123456789123456789LL;
-					int bestpos = -1;
-					for (int i = 0; i<=maxTimestep; i++){
-						TIME64_T timediff = (seconds > userTimes[i]) ? (seconds - userTimes[i]) : (userTimes[i] - seconds);
-						if (timediff < minTimeDiff){
-							bestpos = i;
-							minTimeDiff = timediff;
-						}
-						if (minTimeDiff == 0) break;
-					}
-					imageNums[dircount-1] = bestpos;
+					tiffTimes.push_back(seconds);
 				}
 			}
 		} while (TIFFReadDirectory(tif));
 	}
-	if (userTimes) delete userTimes;
+	if (timesOK) {
+		//get the user times from the metadata,
+		//and find the min difference for each usertime.
+		
+		Metadata* md = DataStatus::getInstance()->getMetadata();
+	
+		for (int i = 0; i<=maxTimestep; i++){
+			const vector<double>& d = md->GetTSUserTime((size_t)i);
+			if(d.size()==0){ timesOK = false; break;}
+			wrfTime = (TIME64_T)d[0];
+			//Find the nearest tifftime:
+			TIME64_T minTimeDiff = 123456789123456789LL;
+			int bestpos = -1;
+			for (int j = 0; j<tiffTimes.size(); j++){
+				TIME64_T timediff = (wrfTime > tiffTimes[j]) ? (wrfTime - tiffTimes[j]) : (tiffTimes[j] - wrfTime);
+				if (timediff < minTimeDiff){
+					bestpos = j;
+					minTimeDiff = timediff;
+				}
+				if (minTimeDiff == 0) break;
+			}
+			imageNums[i] = bestpos;
+		}
+	}
+	
 	if (timesOK){
 		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
 		return;
 	} else { //Don't use time stamps, just count the images:
-		
-	
 		dircount = 0;
 		do {
 			dircount++;
@@ -1535,4 +1570,58 @@ void TwoDParams::setupImageNums(TIFF* tif){
 	}
 		
 	return;
+}
+//Determine the image corners (from lower-left, clockwise) in local coords.
+bool TwoDParams::getImageCorners(int timestep, double displayCorners[8]){
+
+	
+	const float* imgExts = getCurrentTwoDImageExtents(timestep);
+	//Set up proj.4 to convert from image space to VDC coords
+	projPJ dst_proj;
+	projPJ src_proj; 
+	
+	src_proj = pj_init_plus(getProjectionString().c_str());
+	dst_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	
+	bool doProj = (src_proj != 0 && dst_proj != 0);
+	if (!doProj) return false;
+
+	//If a projection string is latlon, the coordinates are in Radians!
+	bool latlonSrc = pj_is_latlong(src_proj);
+	bool latlonDst = pj_is_latlong(dst_proj);
+
+	static const double RAD2DEG = 180./M_PI;
+	static const double DEG2RAD = M_PI/180.0;
+	
+
+	//copy x and y coords:
+	// 0,1,2,3 go to 0, 0, 2, 2 in x
+	// 0,1,2,3 go to 1, 3, 3, 1 in y
+	for (int i = 0; i<4; i++){
+		displayCorners[2*i] = imgExts[2*(i/2)];
+		displayCorners[2*i+1] = imgExts[(1 + 2*((i+1)/2))%4];
+	}
+	
+	//Convert image extents to Vapor coordinates, just to find
+	//size of region we are dealing with
+	if (latlonSrc){ //need to convert degrees to radians, image exts are in degrees
+		for (int i = 0; i<8; i++) displayCorners[i] *= DEG2RAD;
+	}
+	
+	//The above are LL and UR coords.  
+	//apply proj4 to transform the four corners (in place):
+	int rc = pj_transform(src_proj,dst_proj,4,2, displayCorners,displayCorners+1, 0);
+
+	if (rc){
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
+			pj_strerrno(rc));
+		return false;
+	}
+	if (latlonDst)  //results are in radians, convert to degrees
+		for (int i = 0; i<8; i++) displayCorners[i] *= RAD2DEG;
+	
+	//Now displayCorners are corners in projection space.  subtract offsets:
+	for (int i = 0; i<8; i++) displayCorners[i] -= RegionParams::getExtentsOffset(i%2, timestep);
+	return true;
+	
 }

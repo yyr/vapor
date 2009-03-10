@@ -90,7 +90,7 @@ public:
 	virtual void mouseRelease(float screenCoords[2]);
 	virtual int draggingHandle() {return selectedHandle;}
 	virtual void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum);
-	virtual void slideHandle(int handleNum, float movedRay[3]);
+	virtual void slideHandle(int handleNum, float movedRay[3], bool constrain = true);
 	
 
 protected:
@@ -129,7 +129,7 @@ public:
 	TranslateRotateManip(GLWindow* w, Params* p);
 	virtual ~TranslateRotateManip(){}
 	virtual void render();
-	virtual void slideHandle(int handleNum, float movedRay[3]);
+	virtual void slideHandle(int handleNum, float movedRay[3], bool constrain = true);
 	virtual void mouseRelease(float screenCoords[2]);
 	//While dragging the thumbwheel call this.
 	//When drag is over, set rot to 0.f

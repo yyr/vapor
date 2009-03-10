@@ -83,6 +83,8 @@ public:
 	//Variables specific to images:
 	bool isGeoreferenced() {return useGeoreferencing;}
 	void setGeoreferenced(bool val){useGeoreferencing = val;}
+	bool isLatLon() {return useLatLon;}
+	void setLatLon(bool val){useLatLon = val;}
 	float getResampRate(){return resampRate;}
 	void setResampRate(float val){ resampRate = val;}
 	float getOpacMult() {return opacityMultiplier;}
@@ -211,6 +213,10 @@ public:
 	unsigned char* readTextureImage(int timestep, int* wid, int* ht,
 		float imgExtents[4]);
 
+	//Whenever the 2D image filename changes or the session changes,
+	//we need to reread the file and reset the image extents.
+	void setImageDirty();
+	
 	//General method that obtains a list of variables (containing the twoD) from the dataMgr
 	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
 	//for addressing into the volumes.  Replaces first half of calcTwoDDataTexture.
@@ -279,10 +285,13 @@ public:
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
 	std::string& getProjectionString() {return projDefinitionString;}
+	//Determine the corners of the image in local coordinates
+	//Only available when the renderer is enabled.
+	bool getImageCorners(int timestep, double cors[8]);
 	
 	
 protected:
-	
+	static const string _latLonAttr;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _variableSelectedAttr;
@@ -355,10 +364,12 @@ protected:
 	bool useData;
 	//Variables specific to images:
 	bool useGeoreferencing;
+	bool useLatLon;
 	float resampRate;
 	float opacityMultiplier;
 	string imageFileName;
 	int orientation; //Only settable in image mode
+	
 
 	float twoDMin[3], twoDMax[3];
 	int numRefinements, maxNumRefinements;
