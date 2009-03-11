@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>440</width>
-            <height>775</height>
+            <height>905</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -50,7 +50,7 @@ scene.</string>
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout11</cstring>
+                <cstring>layout202</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -169,35 +169,145 @@ lights.</string>
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout9</cstring>
+                        <cstring>layout123</cstring>
                     </property>
-                    <grid>
+                    <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QLabel" row="4" column="0">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel3_2_2</cstring>
+                                <cstring>layout122</cstring>
                             </property>
-                            <property name="text">
-                                <string>rotation center</string>
-                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_3</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>110</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string></string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel4_2</cstring>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>5</hsizetype>
+                                            <vsizetype>0</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>32767</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>X</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel5_2</cstring>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>5</hsizetype>
+                                            <vsizetype>0</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                        <string>Y</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel6_2</cstring>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>5</hsizetype>
+                                            <vsizetype>0</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                        <string>Z</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                            </hbox>
                         </widget>
-                        <widget class="QLineEdit" row="2" column="1">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>viewDir0</cstring>
+                                <cstring>layout121</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.7071</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>110</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>view direction</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>viewDir0</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>1000</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.7071</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -207,39 +317,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="0" column="2">
-                            <property name="name">
-                                <cstring>textLabel5_2</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>5</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="text">
-                                <string>Y</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignCenter</set>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="1" column="1">
-                            <property name="name">
-                                <cstring>camPos0</cstring>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>viewDir1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.7071</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -249,23 +343,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="1" column="2">
-                            <property name="name">
-                                <cstring>camPos1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>3.12332</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>viewDir2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.5002</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector in which the camera is pointed</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -275,58 +369,56 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
+                                    </property>
+                                </widget>
+                            </hbox>
                         </widget>
-                        <widget class="QLabel" row="0" column="0">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel1_3</cstring>
+                                <cstring>layout120</cstring>
                             </property>
-                            <property name="text">
-                                <string></string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="1" column="0">
-                            <property name="name">
-                                <cstring>textLabel1_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>camera position</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="0" column="3">
-                            <property name="name">
-                                <cstring>textLabel6_2</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>5</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="text">
-                                <string>Z</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignCenter</set>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="2" column="3">
-                            <property name="name">
-                                <cstring>viewDir2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.5002</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel3_2</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>110</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>up vector</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>upVec0</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>1000</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.0</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector that will point upward in the scene</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -336,31 +428,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="2" column="0">
-                            <property name="name">
-                                <cstring>textLabel2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>view direction</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="4" column="1">
-                            <property name="name">
-                                <cstring>rotCenter0</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.5</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>upVec1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.0</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector that will point upward in the scene</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -370,23 +454,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="4" column="3">
-                            <property name="name">
-                                <cstring>rotCenter2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.5</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>upVec2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>1.0</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of a vector that will point upward in the scene</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -396,31 +480,53 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
+                                    </property>
+                                </widget>
+                            </hbox>
                         </widget>
-                        <widget class="QLabel" row="3" column="0">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel3_2</cstring>
+                                <cstring>layout119</cstring>
                             </property>
-                            <property name="text">
-                                <string>up vector</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="2" column="2">
-                            <property name="name">
-                                <cstring>viewDir1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.7071</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector in which the camera is pointed</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_2</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>110</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>camera position</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>camPos0</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>1000</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of the viewer (i.e. camera)</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -430,23 +536,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="1" column="3">
-                            <property name="name">
-                                <cstring>camPos2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>-0.24556</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of the viewer (i.e. camera)</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>camPos1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>3.12332</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of the viewer (i.e. camera)</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -456,23 +562,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="3" column="3">
-                            <property name="name">
-                                <cstring>upVec2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>1.0</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>camPos2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>-0.24556</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates of the viewer (i.e. camera)</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -482,23 +588,56 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
+                                    </property>
+                                </widget>
+                            </hbox>
                         </widget>
-                        <widget class="QLineEdit" row="3" column="1">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>upVec0</cstring>
+                                <cstring>layout118</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel3_2_2</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>110</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>rotation center</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>rotCenter0</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>1000</width>
+                                            <height>32767</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.5</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -508,23 +647,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="3" column="2">
-                            <property name="name">
-                                <cstring>upVec1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.0</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates of a vector that will point upward in the scene</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>rotCenter1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.5</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -534,23 +673,23 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="4" column="2">
-                            <property name="name">
-                                <cstring>rotCenter1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>0.5</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
-                            </property>
-                            <property name="whatsThis" stdset="0">
-                                <string>These four vectors specify where
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit">
+                                    <property name="name">
+                                        <cstring>rotCenter2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>0.5</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>These four vectors specify where
 the camera is located, in the same
 coordinates system as the
 data is located (see the region panel).
@@ -560,34 +699,340 @@ current region) around which the
 scene rotates or zooms during
 mouse navigation, which is also
 where the camera is pointed.</string>
-                            </property>
+                                    </property>
+                                </widget>
+                            </hbox>
                         </widget>
-                        <widget class="QLabel" row="0" column="1">
+                    </vbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer189</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>16</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>latLonFrame</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>NoFrame</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Plain</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel4_2</cstring>
+                                <cstring>layout201</cstring>
                             </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>5</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>32767</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                            <property name="text">
-                                <string>X</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignCenter</set>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout114</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer190</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>latLonCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Use Latitude/Longitude</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Check to position camera and rotation center using lat/lon coordinates</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>If the scene has georeferencing then the camera position and rotation center are shown as longitude and latitude.  If this box is checked, then the latitude and longitude settings determine the viewpoint at all time steps.  If it is not checked, then theviewpoint is determined by the camera postion and rotation center in the local coordinate system of the data.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer191</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>61</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout116</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer192</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout115</cstring>
+                                            </property>
+                                            <grid>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel" row="0" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel4_4</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>110</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="1" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2_2</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>110</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>camera position</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignVCenter|AlignRight</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="2">
+                                                    <property name="name">
+                                                        <cstring>camPosLat</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="2" column="1">
+                                                    <property name="name">
+                                                        <cstring>rotCenterLon</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>textLabel5</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Longitude</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="2" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_2_2_2</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>110</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>rotation center</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignVCenter|AlignRight</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>camPosLon</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="2" column="2">
+                                                    <property name="name">
+                                                        <cstring>rotCenterLat</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>90</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the coordinates in the scene about which the scene is rotated by the left mouse drags</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the
+data is located (see the region panel).
+The rotation center specifies the
+position (usually the center of the
+current region) around which the
+scene rotates or zooms during
+mouse navigation, which is also
+where the camera is pointed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="0" column="2">
+                                                    <property name="name">
+                                                        <cstring>textLabel6</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Latitude</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                            </grid>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer193</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>31</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                            </vbox>
                         </widget>
-                    </grid>
+                    </hbox>
                 </widget>
                 <spacer>
                     <property name="name">
@@ -756,7 +1201,7 @@ where the camera is pointed.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -887,7 +1332,7 @@ where the camera is pointed.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1354,7 +1799,7 @@ originating behind the viewer</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>26</height>
+                            <height>30</height>
                         </size>
                     </property>
                 </spacer>

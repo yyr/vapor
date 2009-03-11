@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout133</cstring>
+                <cstring>layout64</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -329,7 +329,7 @@ create new 2D planar instances.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout132</cstring>
+                                <cstring>layout63</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -636,7 +636,7 @@ create new 2D planar instances.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -1226,7 +1226,7 @@ create new 2D planar instances.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>17</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -1349,10 +1349,45 @@ create new 2D planar instances.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2</cstring>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>5</hsizetype>
+                                            <vsizetype>7</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                        <string>Plane/Contour Size</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>WordBreak|AlignCenter</set>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>Manipulate the size of the 2D
+imate with these sliders and/or
+text boxes.  You can "nudge"
+the plane size, increasing or
+decreasing the size by two
+volume cells (at the current
+refinement level) in width or
+height by clicking on the bar
+of a slider to the left or right
+of the slider handle. The Width
+and Height sizes refer to the
+X and Y, X and Z, or Y and Z 
+sizes depending on the
+orientation of the plane.</string>
+                                    </property>
+                                </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
                                         <cstring>layout61</cstring>
@@ -1361,31 +1396,374 @@ create new 2D planar instances.</string>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer76</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>xSizeSlider</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>0</number>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="pageStep">
+                                                <number>1</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>128</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the width of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the size of the 2D
+imate with these sliders and/or
+text boxes.  You can "nudge"
+the plane size, increasing or
+decreasing the size by two
+volume cells (at the current
+refinement level) in width or
+height by clicking on the bar
+of a slider to the left or right
+of the slider handle. The Width
+and Height sizes refer to the
+X and Y, X and Z, or Y and Z 
+sizes depending on the
+orientation of the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>widthLabel</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Width</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>xSizeEdit</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>25</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.3</string>
+                                            </property>
+                                            <property name="maxLength">
+                                                <number>200</number>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the width of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the size of the 2D
+imate with these sliders and/or
+text boxes.  You can "nudge"
+the plane size, increasing or
+decreasing the size by two
+volume cells (at the current
+refinement level) in width or
+height by clicking on the bar
+of a slider to the left or right
+of the slider handle. The Width
+and Height sizes refer to the
+X and Y, X and Z, or Y and Z 
+sizes depending on the
+orientation of the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer69</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>ySizeSlider</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>0</number>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="pageStep">
+                                                <number>1</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>22</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the height of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the size of the 2D
+imate with these sliders and/or
+text boxes.  You can "nudge"
+the plane size, increasing or
+decreasing the size by two
+volume cells (at the current
+refinement level) in width or
+height by clicking on the bar
+of a slider to the left or right
+of the slider handle. The Width
+and Height sizes refer to the
+X and Y, X and Z, or Y and Z 
+sizes depending on the
+orientation of the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>heightLabel</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Height</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>ySizeEdit</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>25</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.132</string>
+                                            </property>
+                                            <property name="maxLength">
+                                                <number>200</number>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the height of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the size of the 2D
+imate with these sliders and/or
+text boxes.  You can "nudge"
+the plane size, increasing or
+decreasing the size by two
+volume cells (at the current
+refinement level) in width or
+height by clicking on the bar
+of a slider to the left or right
+of the slider handle. The Width
+and Height sizes refer to the
+X and Y, X and Z, or Y and Z 
+sizes depending on the
+orientation of the plane.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer75</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2_2</cstring>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>5</hsizetype>
+                                            <vsizetype>7</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                        <string>Plane/Contour Center:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>WordBreak|AlignCenter</set>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout62</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer77</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout19_2</cstring>
+                                                <cstring>layout55</cstring>
                                             </property>
-                                            <vbox>
+                                            <grid>
                                                 <property name="name">
                                                     <cstring>unnamed</cstring>
                                                 </property>
-                                                <widget class="QLabel">
+                                                <widget class="QLineEdit" row="1" column="2">
                                                     <property name="name">
-                                                        <cstring>textLabel2_2_2</cstring>
+                                                        <cstring>yCenterEdit</cstring>
                                                     </property>
                                                     <property name="sizePolicy">
                                                         <sizepolicy>
-                                                            <hsizetype>5</hsizetype>
+                                                            <hsizetype>0</hsizetype>
                                                             <vsizetype>7</vsizetype>
                                                             <horstretch>0</horstretch>
                                                             <verstretch>0</verstretch>
                                                         </sizepolicy>
                                                     </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>25</height>
+                                                        </size>
+                                                    </property>
                                                     <property name="text">
-                                                        <string>Plane/Contour Center</string>
+                                                        <string>0.132</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
                                                     </property>
                                                     <property name="alignment">
-                                                        <set>WordBreak|AlignCenter</set>
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the Y center of plane in scene</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>Manipulate the location of the 2D
@@ -1402,658 +1780,468 @@ where the center of the plane is
 positioned.</string>
                                                     </property>
                                                 </widget>
-                                                <widget class="QLayoutWidget">
+                                                <widget class="QSlider" row="0" column="0">
                                                     <property name="name">
-                                                        <cstring>layout88_2</cstring>
-                                                    </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>textLabel3_12_2</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>1</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>X</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QSlider">
-                                                            <property name="name">
-                                                                <cstring>xCenterSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>256</number>
-                                                            </property>
-                                                            <property name="pageStep">
-                                                                <number>1</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>128</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the X center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QLineEdit">
-                                                            <property name="name">
-                                                                <cstring>xCenterEdit</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>0</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>25</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>0.3</string>
-                                                            </property>
-                                                            <property name="maxLength">
-                                                                <number>200</number>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignHCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the X center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </hbox>
-                                                </widget>
-                                                <widget class="QLayoutWidget">
-                                                    <property name="name">
-                                                        <cstring>layout88_3_3</cstring>
-                                                    </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>textLabel3_12_3_3</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>1</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Y</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QSlider">
-                                                            <property name="name">
-                                                                <cstring>yCenterSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>256</number>
-                                                            </property>
-                                                            <property name="pageStep">
-                                                                <number>1</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>22</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QLineEdit">
-                                                            <property name="name">
-                                                                <cstring>yCenterEdit</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>0</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>25</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>0.132</string>
-                                                            </property>
-                                                            <property name="maxLength">
-                                                                <number>200</number>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignHCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </hbox>
-                                                </widget>
-                                                <widget class="QLayoutWidget">
-                                                    <property name="name">
-                                                        <cstring>layout88_3_2_2</cstring>
-                                                    </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>textLabel3_12_3_2_2</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>1</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Z</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QSlider">
-                                                            <property name="name">
-                                                                <cstring>zCenterSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>256</number>
-                                                            </property>
-                                                            <property name="pageStep">
-                                                                <number>1</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the Z center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QLineEdit">
-                                                            <property name="name">
-                                                                <cstring>zCenterEdit</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>0</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>25</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>0.0</string>
-                                                            </property>
-                                                            <property name="maxLength">
-                                                                <number>200</number>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignHCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the Z center of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the location of the 2D
-image with these sliders and/or
-text boxes.  You can "nudge"
-the image (move it) by
-one volume cell (at the current
-refinement level) in any direction
-by clicking on the bar of a slider to
-the left or right of the slider handle.
-The X, Y, and Z center refer to 
-the coordinates in the 3D volume
-where the center of the plane is
-positioned.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </hbox>
-                                                </widget>
-                                            </vbox>
-                                        </widget>
-                                        <widget class="QLayoutWidget">
-                                            <property name="name">
-                                                <cstring>layout60</cstring>
-                                            </property>
-                                            <vbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
-                                                <widget class="QLabel">
-                                                    <property name="name">
-                                                        <cstring>textLabel2_2</cstring>
+                                                        <cstring>xCenterSlider</cstring>
                                                     </property>
                                                     <property name="sizePolicy">
                                                         <sizepolicy>
-                                                            <hsizetype>5</hsizetype>
+                                                            <hsizetype>7</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="minValue">
+                                                        <number>0</number>
+                                                    </property>
+                                                    <property name="maxValue">
+                                                        <number>256</number>
+                                                    </property>
+                                                    <property name="pageStep">
+                                                        <number>1</number>
+                                                    </property>
+                                                    <property name="value">
+                                                        <number>128</number>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Horizontal</enum>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the X center of plane in scene</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_12_2</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>1</hsizetype>
                                                             <vsizetype>7</vsizetype>
                                                             <horstretch>0</horstretch>
                                                             <verstretch>0</verstretch>
                                                         </sizepolicy>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Plane/Contour Size</string>
+                                                        <string>X</string>
                                                     </property>
                                                     <property name="alignment">
-                                                        <set>WordBreak|AlignCenter</set>
-                                                    </property>
-                                                    <property name="whatsThis" stdset="0">
-                                                        <string>Manipulate the size of the 2D
-imate with these sliders and/or
-text boxes.  You can "nudge"
-the plane size, increasing or
-decreasing the size by two
-volume cells (at the current
-refinement level) in width or
-height by clicking on the bar
-of a slider to the left or right
-of the slider handle. The Width
-and Height sizes refer to the
-X and Y, X and Z, or Y and Z 
-sizes depending on the
-orientation of the plane.</string>
+                                                        <set>AlignCenter</set>
                                                     </property>
                                                 </widget>
-                                                <widget class="QLayoutWidget">
+                                                <widget class="QSlider" row="1" column="0">
                                                     <property name="name">
-                                                        <cstring>layout88</cstring>
+                                                        <cstring>yCenterSlider</cstring>
                                                     </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>widthLabel</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>1</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Width</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QSlider">
-                                                            <property name="name">
-                                                                <cstring>xSizeSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>256</number>
-                                                            </property>
-                                                            <property name="pageStep">
-                                                                <number>1</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>128</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the width of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the size of the 2D
-imate with these sliders and/or
-text boxes.  You can "nudge"
-the plane size, increasing or
-decreasing the size by two
-volume cells (at the current
-refinement level) in width or
-height by clicking on the bar
-of a slider to the left or right
-of the slider handle. The Width
-and Height sizes refer to the
-X and Y, X and Z, or Y and Z 
-sizes depending on the
-orientation of the plane.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QLineEdit">
-                                                            <property name="name">
-                                                                <cstring>xSizeEdit</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>0</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>25</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>0.3</string>
-                                                            </property>
-                                                            <property name="maxLength">
-                                                                <number>200</number>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignHCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the width of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the size of the 2D
-imate with these sliders and/or
-text boxes.  You can "nudge"
-the plane size, increasing or
-decreasing the size by two
-volume cells (at the current
-refinement level) in width or
-height by clicking on the bar
-of a slider to the left or right
-of the slider handle. The Width
-and Height sizes refer to the
-X and Y, X and Z, or Y and Z 
-sizes depending on the
-orientation of the plane.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </hbox>
-                                                </widget>
-                                                <widget class="QLayoutWidget">
-                                                    <property name="name">
-                                                        <cstring>layout88_3</cstring>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>7</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
                                                     </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <widget class="QLabel">
-                                                            <property name="name">
-                                                                <cstring>heightLabel</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>1</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Height</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QSlider">
-                                                            <property name="name">
-                                                                <cstring>ySizeSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>256</number>
-                                                            </property>
-                                                            <property name="pageStep">
-                                                                <number>1</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>22</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the height of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the size of the 2D
-imate with these sliders and/or
-text boxes.  You can "nudge"
-the plane size, increasing or
-decreasing the size by two
-volume cells (at the current
-refinement level) in width or
-height by clicking on the bar
-of a slider to the left or right
-of the slider handle. The Width
-and Height sizes refer to the
-X and Y, X and Z, or Y and Z 
-sizes depending on the
-orientation of the plane.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <widget class="QLineEdit">
-                                                            <property name="name">
-                                                                <cstring>ySizeEdit</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>0</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="maximumSize">
-                                                                <size>
-                                                                    <width>32767</width>
-                                                                    <height>25</height>
-                                                                </size>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>0.132</string>
-                                                            </property>
-                                                            <property name="maxLength">
-                                                                <number>200</number>
-                                                            </property>
-                                                            <property name="alignment">
-                                                                <set>AlignHCenter</set>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Specify the height of plane in scene</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>Manipulate the size of the 2D
-imate with these sliders and/or
-text boxes.  You can "nudge"
-the plane size, increasing or
-decreasing the size by two
-volume cells (at the current
-refinement level) in width or
-height by clicking on the bar
-of a slider to the left or right
-of the slider handle. The Width
-and Height sizes refer to the
-X and Y, X and Z, or Y and Z 
-sizes depending on the
-orientation of the plane.</string>
-                                                            </property>
-                                                        </widget>
-                                                    </hbox>
-                                                </widget>
-                                                <spacer>
-                                                    <property name="name">
-                                                        <cstring>spacer54</cstring>
+                                                    <property name="minValue">
+                                                        <number>0</number>
+                                                    </property>
+                                                    <property name="maxValue">
+                                                        <number>256</number>
+                                                    </property>
+                                                    <property name="pageStep">
+                                                        <number>1</number>
+                                                    </property>
+                                                    <property name="value">
+                                                        <number>128</number>
                                                     </property>
                                                     <property name="orientation">
-                                                        <enum>Vertical</enum>
+                                                        <enum>Horizontal</enum>
                                                     </property>
-                                                    <property name="sizeType">
-                                                        <enum>Expanding</enum>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the Y center of plane in scene</string>
                                                     </property>
-                                                    <property name="sizeHint">
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="0" column="2">
+                                                    <property name="name">
+                                                        <cstring>xCenterEdit</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>0</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="maximumSize">
                                                         <size>
-                                                            <width>20</width>
-                                                            <height>20</height>
+                                                            <width>100</width>
+                                                            <height>25</height>
                                                         </size>
                                                     </property>
-                                                </spacer>
-                                            </vbox>
+                                                    <property name="text">
+                                                        <string>0.3</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the X center of plane in scene</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_12_3_3</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>1</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Y</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                            </grid>
                                         </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer71</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout53</cstring>
+                                            </property>
+                                            <grid>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLineEdit" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>latCenterEdit</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>0</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>25</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.3</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the latitude of center of plane in scene</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Whenever the VAPOR VDC is georeferenced, the latitude and longitude of the 2D planar region is displayed here.  When "Use Lat/lon" is checked, latitude and longitude center values can be specified here, and the X and Y of the local user coordinates will be displayed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="1" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Latitude</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>lonCenterEdit</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>0</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>100</width>
+                                                            <height>25</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.3</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the longitude of center of plane in scene</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Whenever the VAPOR VDC is georeferenced, the latitude and longitude of the 2D planar region is displayed here.  When "Use Lat/lon" is checked, latitude and longitude center values can be specified here, and the X and Y of the local user coordinates will be displayed.</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="0" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_8</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Longitude</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                            </grid>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer78</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout57</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer73</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel3_12_3_2_2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Z</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>zCenterSlider</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>0</number>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="pageStep">
+                                                <number>1</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>0</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the Z center of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>zCenterEdit</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>25</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.0</string>
+                                            </property>
+                                            <property name="maxLength">
+                                                <number>200</number>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the Z center of plane in scene</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Manipulate the location of the 2D
+image with these sliders and/or
+text boxes.  You can "nudge"
+the image (move it) by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the plane is
+positioned.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer74</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>51</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <spacer>
@@ -2069,7 +2257,7 @@ orientation of the plane.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2103,7 +2291,7 @@ orientation of the plane.</string>
                                                 <cstring>textLabel1_11</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>User extents (X,Y,Z)</string>
+                                                <string>user (local) extents (X,Y,Z)</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -2522,7 +2710,7 @@ orientation of the plane.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2627,7 +2815,7 @@ below the contour view.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2998,7 +3186,7 @@ below the contour view.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -3079,7 +3267,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -3173,7 +3361,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>17</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -3248,7 +3436,7 @@ change the selection in the 2D plane</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>18</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>

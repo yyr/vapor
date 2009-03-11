@@ -40,7 +40,8 @@
 #include <qcolor.h>
 #include "vapor/errorcodes.h"
 #include "vapor/LayeredIO.h"
-
+#include "proj_api.h"
+#include "math.h"
 using namespace VAPoR;
 using namespace VetsUtil;
 #include "vaporinternal/common.h"
@@ -626,4 +627,61 @@ int DataStatus::get2DOrientation(int mdvar){
 	if (mdvar < numOriented2DVars[0]+numOriented2DVars[1]) return 0;
 	assert(mdvar < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]);
 	return 1;
+}
+
+
+//static methods to convert coordinates to and from latlon
+bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
+	//Set up proj.4 to convert from LatLon to VDC coords
+	if (RegionParams::getProjectionString().size() == 0) return false;
+	projPJ vapor_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	if (!vapor_proj) return false;
+	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
+	if (!latlon_proj) return false;
+	
+	if (!pj_is_latlong(vapor_proj)){ //if data is already latlong, bypass following:
+		static const double DEG2RAD = 3.1415926545/180.;
+		//source point is in degrees, convert to radians:
+		for (int i = 0; i<npoints*2; i++) coords[i] *= DEG2RAD;
+
+		int rc = pj_transform(latlon_proj,vapor_proj,npoints,2, coords,coords+1, 0);
+
+		if (rc){
+			MyBase::SetErrMsg(VAPOR_WARNING, "Error in coordinate projection: \n%s",
+				pj_strerrno(rc));
+			return false;
+		}
+	}
+	//Modify offset to convert projection coords to vapor coords
+	for (int i = 0; i<2*npoints; i++) coords[i] -= RegionParams::getExtentsOffset(i%2, timestep);
+	return true;
+	
+}
+bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
+
+	//Set up proj.4 to convert to latlon
+	if (RegionParams::getProjectionString().size() == 0) return false;
+	projPJ vapor_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	if (!vapor_proj) return false;
+	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
+	if (!latlon_proj) return false;
+	
+	//Apply projection offset to convert vapor local coords to projection space:
+	for (int i = 0; i<npoints*2; i++) coords[i] += RegionParams::getExtentsOffset(i%2, timestep);
+	//If it's already latlon, we're done:
+	if (pj_is_latlong(vapor_proj)) return true;
+
+	static const double RAD2DEG = 180./3.1415926545;
+	
+	int rc = pj_transform(vapor_proj,latlon_proj,npoints,2, coords,coords+1, 0);
+
+	if (rc){
+		MyBase::SetErrMsg(VAPOR_WARNING, "Error in coordinate projection: \n%s",
+			pj_strerrno(rc));
+		return false;
+	}
+	 //results are in radians, convert to degrees
+	for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
+	return true;
+	
 }

@@ -393,6 +393,26 @@ void ProbeEventRouter::updateTab(){
 		maxGridYLabel->setText(QString::number(gridMax[1]));
 		maxGridZLabel->setText(QString::number(gridMax[2]));
 	}
+	//Provide latlon box extents if available:
+	if (RegionParams::getProjectionString().size() == 0){
+		minMaxLonLatFrame->hide();
+	} else {
+		double boxLatLon[4];
+		boxLatLon[0] = boxmin[0];
+		boxLatLon[1] = boxmin[1];
+		boxLatLon[2] = boxmax[0];
+		boxLatLon[3] = boxmax[1];
+		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+			minLonLabel->setText(QString::number(boxLatLon[0]));
+			minLatLabel->setText(QString::number(boxLatLon[1]));
+			maxLonLabel->setText(QString::number(boxLatLon[2]));
+			maxLatLabel->setText(QString::number(boxLatLon[3]));
+			minMaxLonLatFrame->show();
+		} else {
+			minMaxLonLatFrame->hide();
+		}
+	}
+    
 
 	
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
@@ -403,6 +423,22 @@ void ProbeEventRouter::updateTab(){
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
+
+	//Provide latlon coords if available:
+	if (RegionParams::getProjectionString().size() == 0){
+		latLonFrame->hide();
+	} else {
+		double selectedLatLon[2];
+		selectedLatLon[0] = selectedPoint[0];
+		selectedLatLon[1] = selectedPoint[1];
+		if (DataStatus::convertToLatLon(currentTimeStep,selectedLatLon)){
+			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
+			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
+			latLonFrame->show();
+		} else {
+			latLonFrame->hide();
+		}
+	}
 	attachSeedCheckbox->setChecked(seedAttached);
 	int* sesVarNums = new int[numVariables];
 	int nvars = 0;

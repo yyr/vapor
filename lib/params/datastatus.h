@@ -344,6 +344,10 @@ public:
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 
+	//Convert point coordinates in-place.  Return bool if can't do it.
+	static bool convertToLatLon(int timestep, double coords[], int npoints = 1);
+	static bool convertFromLatLon(int timestep, double coords[], int npoints = 1);
+
 	
 
 	//Attribute names:

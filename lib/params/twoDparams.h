@@ -78,6 +78,14 @@ public:
 		refreshCtab();
 		return ctab;
 	}
+	void getLatLonBoxCenter(float center[2]){
+		center[0] = latLonBoxCenter[0];
+		center[1] = latLonBoxCenter[1];
+	}
+	void setLatLonBoxCenter(const float center[2]){
+		latLonBoxCenter[0] = center[0];
+		latLonBoxCenter[1] = center[1];
+	}
 	bool isDataMode() {return useData;}
 	void setDataMode(bool data) { useData = data;}
 	//Variables specific to images:
@@ -310,6 +318,7 @@ protected:
 	static const string _opacityMultAttr;
 	static const string _imageFileNameAttr;
 	static const string _orientationAttr;
+	static const string _latLonBoxCenterAttr;
 
 	
 	void refreshCtab();
@@ -317,7 +326,7 @@ protected:
 	//Utility functions for building texture and histogram
 	
 	//Find smallest containing cube in integer coords, 
-	//that will contain image of twoD
+	//that will contain twoD box
 	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
 
 	int getImageNum(int timestep){
@@ -380,6 +389,7 @@ protected:
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
 	int textureSize[2];
+	float latLonBoxCenter[2];
 
 	std::string projDefinitionString;
 	

@@ -74,6 +74,8 @@ const string TwoDParams::_orientationAttr = "Orientation";
 const string TwoDParams::_resampleRateAttr = "ResamplingRate";
 const string TwoDParams::_opacityMultAttr = "OpacityMultiplier";
 const string TwoDParams::_imageFileNameAttr = "ImageFileName";
+const string TwoDParams::_latLonBoxCenterAttr = "LatLonBoxCenter";
+
 
 TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	thisParamType = TwoDParamsType;
@@ -402,6 +404,7 @@ restart(){
 	useData = true;
 	useGeoreferencing = true;
 	useLatLon = false;
+	latLonBoxCenter[0] = latLonBoxCenter[1] = 0.f;
 	imageFileName = "";
 
 	if(numVariables > 0){
@@ -491,7 +494,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
 
-		
 		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -673,6 +675,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
 			}
+			else if (StrCmpNoCase(attribName, _latLonBoxCenterAttr) == 0){
+				ist >> latLonBoxCenter[0]; ist >> latLonBoxCenter[1];
+			}
 			else return false;
 		}
 		return true;
@@ -850,6 +855,9 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
 	attrs[_cursorCoordsAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)latLonBoxCenter[0] << " " << (double)latLonBoxCenter[1];
+	attrs[_latLonBoxCenterAttr] = oss.str();
 	twoDNode->NewChild(_geometryTag, attrs, 0);
 	return twoDNode;
 }

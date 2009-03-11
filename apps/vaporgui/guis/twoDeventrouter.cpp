@@ -227,6 +227,21 @@ void TwoDEventRouter::updateTab(){
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
 	attachSeedCheckbox->setChecked(seedAttached);
+	//Provide latlon coords if available:
+	if (RegionParams::getProjectionString().size() == 0){
+		latLonFrame->hide();
+	} else {
+		double selectedLatLon[2];
+		selectedLatLon[0] = selectedPoint[0];
+		selectedLatLon[1] = selectedPoint[1];
+		if (DataStatus::convertToLatLon(currentTimeStep,selectedLatLon)){
+			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
+			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
+			latLonFrame->show();
+		} else {
+			latLonFrame->hide();
+		}
+	}
 	
 	//Check on data/image mode, this affects what is displayed:
 	typeCombo->setCurrentItem(twoDParams->isDataMode() ? 0 : 1);
@@ -235,7 +250,10 @@ void TwoDEventRouter::updateTab(){
 
 		imageFrame->hide();
 		variableFrame->show();
-		
+		xCenterSlider->show();
+		yCenterSlider->show();
+		xSizeSlider->show();
+		ySizeSlider->show();
 		appearanceFrame->show();
 		//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
 		orientationCombo->setCurrentItem(orientation);
@@ -322,6 +340,10 @@ void TwoDEventRouter::updateTab(){
 		imageFrame->show();
 		variableFrame->hide();
 		appearanceFrame->hide();
+		xCenterSlider->hide();
+		yCenterSlider->hide();
+		xSizeSlider->hide();
+		ySizeSlider->hide();
 		orientationCombo->setCurrentItem(orientation);
 		resampleEdit->setText(QString::number(twoDParams->getResampRate()));
 		opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
