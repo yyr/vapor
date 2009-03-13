@@ -315,6 +315,14 @@ void GLWindow::paintGL()
 	//being monitored by the animation controller
 	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
 	
+	//If we are visualizing in latLon space, must update the local coordinates
+	//and put them in the trackball, prior to setting up the trackball.
+	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	if (currentViewpointParams->isLatLon()){
+		currentViewpointParams->convertFromLatLon(timeStep);
+		setValuesFromGui(currentViewpointParams);
+	}
 	// Move to trackball view of scene  
 	glPushMatrix();
 	glLoadIdentity();
@@ -334,7 +342,7 @@ void GLWindow::paintGL()
 		setViewerCoordsChanged(false);
 	}
 
-	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	//make sure to capture whenever the time step changes
 	if (timeStep != previousTimeStep) {
 		setRenderNew();
@@ -2504,4 +2512,22 @@ void SpinThread::run(){
 		msleep(renderTime);
 		
 	}
+}
+void GLWindow::
+setValuesFromGui(ViewpointParams* vpparams){
+	
+	//Same as the version in vizwin, but doesn't force redraw.
+	Viewpoint* vp = vpparams->getCurrentViewpoint();
+	float transCameraPos[3];
+	float cubeCoords[3];
+	//Must transform from world coords to unit cube coords for trackball.
+	ViewpointParams::worldToStretchedCube(vpparams->getCameraPos(), transCameraPos);
+	ViewpointParams::worldToStretchedCube(vpparams->getRotationCenter(), cubeCoords);
+	myTBall->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
+	
+	//If the perspective was changed, a resize event will be triggered at next redraw:
+	
+	setPerspective(vp->hasPerspective());
+	setDirtyBit(ProjMatrixBit,true);
+	
 }

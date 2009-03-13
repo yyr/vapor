@@ -52,6 +52,7 @@ float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
 
 
 using namespace VAPoR;
+const string ViewpointParams::_latLonAttr = "UseLatLon";
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
 const string ViewpointParams::_homeViewTag = "HomeViewpoint";
 const string ViewpointParams::_lightTag = "Light";
@@ -90,7 +91,7 @@ ViewpointParams::~ViewpointParams(){
 
 
 void ViewpointParams::
-centerFullRegion(){
+centerFullRegion(int timestep){
 	//Find the largest of the dimensions of the current region:
 	const float * fullExtent = DataStatus::getInstance()->getExtents();
 	float maxSide = Max(fullExtent[5]-fullExtent[2], 
@@ -106,8 +107,11 @@ centerFullRegion(){
 	for (int i = 0; i<3; i++){
 		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i)/stretch[i];
-		currentViewpoint->setCameraPos(i, camPosCrd);
-		setRotationCenter(i,dataCenter);
+		currentViewpoint->setCameraPosLocal(i, camPosCrd);
+		currentViewpoint->setRotationCenterLocal(i, camPosCrd);
+	}
+	if (useLatLon) {
+		convertToLatLon(timestep);
 	}
 }
 
@@ -115,7 +119,7 @@ centerFullRegion(){
 //(this is starting state)
 void ViewpointParams::
 restart(){
-	
+	useLatLon = false;
 	numLights = defaultNumLights;
 	for (int i = 0; i<3; i++){
 		for (int j = 0; j<3; j++){
@@ -137,14 +141,16 @@ restart(){
 	stereoMode = 0; //Center view
 	currentViewpoint->setPerspective(true);
 	for (int i = 0; i< 3; i++){
-		setCameraPos(i,0.5f);
+		currentViewpoint->setCameraPosLocal(i,0.5f);
 		setViewDir(i,0.f);
 		setUpVec(i, 0.f);
-		setRotationCenter(i,0.5f);
+		currentViewpoint->setRotationCenterLocal(i,0.5f);
 	}
+	setCamPosLatLon(0.f, 0.f);
+	setRotCenterLatLon(0.f,0.f);
 	setUpVec(1,1.f);
 	setViewDir(2,-1.f); 
-	setCameraPos(2,2.5f);
+	currentViewpoint->setCameraPosLocal(2,2.5f);
 	if (homeViewpoint) delete homeViewpoint;
 	homeViewpoint = new Viewpoint(*currentViewpoint);
 	
@@ -179,7 +185,7 @@ reinit(bool doOverride){
 		setUpVec(defaultUpVec);
 		
 	
-		centerFullRegion();
+		centerFullRegion(0);
 		//Set the home viewpoint, but don't call setHomeViewpoint().
 		delete homeViewpoint;
 		homeViewpoint = new Viewpoint(*currentViewpoint);
@@ -202,28 +208,31 @@ reinit(bool doOverride){
 }
 //Rescale viewing parameters when the scene is rescaled by factor
 void ViewpointParams::
-rescale (float scaleFac[3]){
+rescale (float scaleFac[3], int timestep){
 	float vtemp[3], vtemp2[3];
 	Viewpoint* vp = getCurrentViewpoint();
 	Viewpoint* vph = getHomeViewpoint();
-	float* vps = vp->getCameraPos();
-	float* vctr = vp->getRotationCenter();
+	float* vps = vp->getCameraPosLocal();
+	float* vctr = vp->getRotationCenterLocal();
 	vsub(vps, vctr, vtemp);
 	//Want to move the camera in or out, based on scaling in directions orthogonal to view dir.
 	for (int i = 0; i<3; i++){
 		vtemp[i] /= scaleFac[i];
 	}
 	vadd(vtemp, vctr, vtemp2);
-	vp->setCameraPos(vtemp2);
+	vp->setCameraPosLocal(vtemp2);
 	//Do same for home viewpoint
-	vps = vph->getCameraPos();
-	vctr = vph->getRotationCenter();
+	vps = vph->getCameraPosLocal();
+	vctr = vph->getRotationCenterLocal();
 	vsub(vps, vctr, vtemp);
 	for (int i = 0; i<3; i++){
 		vtemp[i] /= scaleFac[i];
 	}
 	vadd(vtemp, vctr, vtemp2);
-	vph->setCameraPos(vtemp2);
+	vph->setCameraPosLocal(vtemp2);
+	//Convert to latlon
+	if (useLatLon)
+		convertToLatLon(timestep);
 }
 
 
@@ -350,6 +359,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 	if (StrCmpNoCase(tagString, _viewpointParamsTag) == 0) {
 		//If it's a viewpoint tag, save 2 from Params class
 		//Do this by repeatedly pulling off the attribute name and value
+		useLatLon = false;
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -370,6 +380,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			}
 			else if (StrCmpNoCase(attribName, _stereoSeparationAttr) == 0){
 				ist >> stereoSeparation;
+			}
+			else if (StrCmpNoCase(attribName, _latLonAttr) == 0) {
+				if (value == "true") setLatLon(true);
+				else setLatLon(false);
 			}
 			//Possible values are center, left, right (0,1,2)
 			else if (StrCmpNoCase(attribName, _stereoModeAttr) == 0){
@@ -477,6 +491,13 @@ buildNode(){
 	attrs[_localAttr] = oss.str();
 
 	oss.str(empty);
+	if (isLatLon())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_latLonAttr] = oss.str();
+
+	oss.str(empty);
 	oss << (double)ambientCoeff;
 	attrs[_ambientLightAttr] = oss.str();
 	oss.str(empty);
@@ -530,4 +551,38 @@ void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
 	resvec[0] = modelViewMatrix[0]*vec[0] + modelViewMatrix[1]*vec[1] + modelViewMatrix[2]*vec[2];
 	resvec[1] = modelViewMatrix[4]*vec[0] + modelViewMatrix[5]*vec[1] + modelViewMatrix[6]*vec[2];
 	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
+}
+bool ViewpointParams::
+convertFromLatLon(int timestep){
+//Convert the latlon coordinates for this time step.
+//Note that the latlon coords are in the order Lon,Lat
+	double coords[4];
+	coords[0] = getCamPosLatLon()[1];
+	coords[1] = getCamPosLatLon()[0];
+	coords[2] = getRotCenterLatLon()[1];
+	coords[3] = getRotCenterLatLon()[0];
+	bool ok = DataStatus::convertFromLatLon(timestep,coords,2);
+	if (ok){
+		currentViewpoint->setCameraPosLocal(0, (float)coords[0]);
+		currentViewpoint->setCameraPosLocal(1, (float)coords[1]);
+		currentViewpoint->setRotationCenterLocal(0,(float)coords[2]);
+		currentViewpoint->setRotationCenterLocal(1,(float)coords[2]);
+	}
+	return ok;
+}
+bool ViewpointParams::
+convertToLatLon(int timestep){
+//Convert the latlon coordinates for this time step:
+	double coords[4];
+	coords[0] = getCameraPos(0);
+	coords[1] = getCameraPos(1);
+	coords[2] = getRotationCenter(0);
+	coords[3] = getRotationCenter(1);
+	
+	bool ok = DataStatus::convertToLatLon(timestep,coords,2);
+	if (ok){
+		setCamPosLatLon((float)coords[1],(float)coords[0]);
+		setRotCenterLatLon((float)coords[3],(float)coords[2]);
+	}
+	return ok;
 }

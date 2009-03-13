@@ -800,7 +800,7 @@ setValuesFromGui(ViewpointParams* vpparams){
 	float transCameraPos[3];
 	float cubeCoords[3];
 	//Must transform from world coords to unit cube coords for trackball.
-	ViewpointParams::worldToStretchedCube(vp->getCameraPos(), transCameraPos);
+	ViewpointParams::worldToStretchedCube(vpparams->getCameraPos(), transCameraPos);
 	ViewpointParams::worldToStretchedCube(vpparams->getRotationCenter(), cubeCoords);
 	myTrackball->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
 	

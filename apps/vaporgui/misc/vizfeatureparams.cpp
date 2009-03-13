@@ -750,6 +750,7 @@ applyToViz(int vizNum){
 		ds->stretchExtents(stretch);
 		
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		int timestep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 		//Set the region dirty bit in every window:
 		bool firstShared = false;
 		for (int j = 0; j< MAXVIZWINS; j++) {
@@ -763,7 +764,7 @@ applyToViz(int vizNum){
 				if(firstShared) continue;
 				else firstShared = true;
 			}
-			vpp->rescale(ratio);
+			vpp->rescale(ratio, timestep);
 			vpp->setCoordTrans();
 			win->setValuesFromGui(vpp);
 			vizMgr->resetViews(vizMgr->getRegionParams(j),vpp);

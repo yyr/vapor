@@ -15,10 +15,14 @@ public:
 	
 	virtual ~Viewpoint(){}
 	
-	float* getCameraPos() {return cameraPosition;}
-	float getCameraPos(int i) {return cameraPosition[i];}
-	void setCameraPos(int i, float val) { cameraPosition[i] = val;}
-	void setCameraPos(float* val) {cameraPosition[0] = val[0]; cameraPosition[1]=val[1]; cameraPosition[2] = val[2];}
+	float* getCameraPosLocal() {return cameraPosition;}
+	float getCameraPosLocal(int i) {return cameraPosition[i];}
+	void setCameraPosLocal(int i, float val) { cameraPosition[i] = val;}
+	void setCameraPosLocal(float* val) {cameraPosition[0] = val[0]; cameraPosition[1]=val[1]; cameraPosition[2] = val[2];}
+	float* getCamPosLatLon() {return camLatLon;}
+	void setCamPosLatLon(float x, float y){camLatLon[0] = x; camLatLon[1] = y;}
+	float* getRotCenterLatLon() {return rotCenterLatLon;}
+	void setRotCenterLatLon(float x, float y){rotCenterLatLon[0] = x; rotCenterLatLon[1] = y;}
 	float* getViewDir() {return viewDirection;}
 	float getViewDir(int i) {return viewDirection[i];}
 	void setViewDir(int i, float val) { viewDirection[i] = val;}
@@ -27,10 +31,10 @@ public:
 	float getUpVec(int i) {return upVector[i];}
 	void setUpVec(int i, float val) { upVector[i] = val;}
 	void setUpVec(float* val) {upVector[0] = val[0]; upVector[1]=val[1]; upVector[2] = val[2];}
-	float* getRotationCenter() {return rotationCenter;}
-	float getRotationCenter(int i) {return rotationCenter[i];}
-	void setRotationCenter(int i, float val) { rotationCenter[i] = val;}
-	void setRotationCenter(float* val) {rotationCenter[0] = val[0]; rotationCenter[1]=val[1]; rotationCenter[2] = val[2];}
+	float* getRotationCenterLocal() {return rotationCenter;}
+	float getRotationCenterLocal(int i) {return rotationCenter[i];}
+	void setRotationCenterLocal(int i, float val) { rotationCenter[i] = val;}
+	void setRotationCenterLocal(float* val) {rotationCenter[0] = val[0]; rotationCenter[1]=val[1]; rotationCenter[2] = val[2];}
 	//Routines that deal with stretched coordinates:
 	void getStretchedUpVec(float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
@@ -40,11 +44,11 @@ public:
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) upVector[i] = vec[i]/stretch[i];
 	}
-	void getStretchedRotCtr(float* vec){
+	void getStretchedRotCtrLocal(float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*rotationCenter[i];
 	}
-	void setStretchedRotCtr(const float* vec){
+	void setStretchedRotCtrLocal(const float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) rotationCenter[i] = vec[i]/stretch[i];
 	}	
@@ -56,11 +60,11 @@ public:
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*viewDirection[i];
 	}
-	void setStretchedCamPos(const float* vec){
+	void setStretchedCamPosLocal(const float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) cameraPosition[i] = vec[i]/stretch[i];
 	}
-	void getStretchedCamPos(float* vec){
+	void getStretchedCamPosLocal(float* vec){
 		const float* stretch = DataStatus::getInstance()->getStretchFactors();
 		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cameraPosition[i];
 	}
@@ -75,6 +79,8 @@ protected:
 	static const string _camPosTag;
 	static const string _viewDirTag;
 	static const string _upVecTag;
+	static const string _rotCenterLatLonTag;
+	static const string _camLatLonTag;
 	static const string _rotCenterTag;
 	static const string _perspectiveAttr;
 	static const string _viewpointTag;
@@ -82,6 +88,8 @@ protected:
 	float viewDirection[3];
 	float upVector[3];
 	float rotationCenter[3];
+	float rotCenterLatLon[2];
+	float camLatLon[2];
 	
 	bool perspective;
 	

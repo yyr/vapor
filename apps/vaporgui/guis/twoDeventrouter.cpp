@@ -192,7 +192,7 @@ TwoDEventRouter::hookUpTab()
 	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(guiSelectImageFile()));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
-	connect (latLonCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetLatLon(bool)));
+	connect (cropCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetCrop(bool)));
 	connect (fitToImageButton, SIGNAL(clicked()), this, SLOT(guiFitToImage()));
 
 	
@@ -226,7 +226,6 @@ void TwoDEventRouter::updateTab(){
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
-	attachSeedCheckbox->setChecked(seedAttached);
 	//Provide latlon coords if available:
 	if (RegionParams::getProjectionString().size() == 0){
 		latLonFrame->hide();
@@ -242,6 +241,7 @@ void TwoDEventRouter::updateTab(){
 			latLonFrame->hide();
 		}
 	}
+	attachSeedCheckbox->setChecked(seedAttached);
 	
 	//Check on data/image mode, this affects what is displayed:
 	typeCombo->setCurrentItem(twoDParams->isDataMode() ? 0 : 1);
@@ -250,10 +250,7 @@ void TwoDEventRouter::updateTab(){
 
 		imageFrame->hide();
 		variableFrame->show();
-		xCenterSlider->show();
-		yCenterSlider->show();
-		xSizeSlider->show();
-		ySizeSlider->show();
+		
 		appearanceFrame->show();
 		//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
 		orientationCombo->setCurrentItem(orientation);
@@ -340,10 +337,6 @@ void TwoDEventRouter::updateTab(){
 		imageFrame->show();
 		variableFrame->hide();
 		appearanceFrame->hide();
-		xCenterSlider->hide();
-		yCenterSlider->hide();
-		xSizeSlider->hide();
-		ySizeSlider->hide();
 		orientationCombo->setCurrentItem(orientation);
 		resampleEdit->setText(QString::number(twoDParams->getResampRate()));
 		opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
@@ -429,7 +422,25 @@ void TwoDEventRouter::updateTab(){
 		maxGridYLabel->setText(QString::number(gridMax[1]));
 		maxGridZLabel->setText(QString::number(gridMax[2]));
 	}
-    
+    //Provide latlon box extents if available:
+	if (RegionParams::getProjectionString().size() == 0){
+		minMaxLonLatFrame->hide();
+	} else {
+		double boxLatLon[4];
+		boxLatLon[0] = boxmin[0];
+		boxLatLon[1] = boxmin[1];
+		boxLatLon[2] = boxmax[0];
+		boxLatLon[3] = boxmax[1];
+		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+			minLonLabel->setText(QString::number(boxLatLon[0]));
+			minLatLabel->setText(QString::number(boxLatLon[1]));
+			maxLonLabel->setText(QString::number(boxLatLon[2]));
+			maxLatLabel->setText(QString::number(boxLatLon[3]));
+			minMaxLonLatFrame->show();
+		} else {
+			minMaxLonLatFrame->hide();
+		}
+	}
 	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
@@ -637,15 +648,13 @@ void TwoDEventRouter::guiSetGeoreferencing(bool val){
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
 	updateTab();
 }
-void TwoDEventRouter::guiSetLatLon(bool val){
+void TwoDEventRouter::guiSetCrop(bool val){
 	confirmText(false);
 	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
-	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle lat/lon on/off");
-	tParams->setLatLon(val);
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle 2D cropping on/off");
+	tParams->setImageCrop(val);
 	PanelCommand::captureEnd(cmd, tParams); 
-	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
-	updateTab();
 }
 
 void TwoDEventRouter::guiChangeInstance(int inst){

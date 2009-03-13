@@ -78,21 +78,13 @@ public:
 		refreshCtab();
 		return ctab;
 	}
-	void getLatLonBoxCenter(float center[2]){
-		center[0] = latLonBoxCenter[0];
-		center[1] = latLonBoxCenter[1];
-	}
-	void setLatLonBoxCenter(const float center[2]){
-		latLonBoxCenter[0] = center[0];
-		latLonBoxCenter[1] = center[1];
-	}
 	bool isDataMode() {return useData;}
 	void setDataMode(bool data) { useData = data;}
 	//Variables specific to images:
 	bool isGeoreferenced() {return useGeoreferencing;}
 	void setGeoreferenced(bool val){useGeoreferencing = val;}
-	bool isLatLon() {return useLatLon;}
-	void setLatLon(bool val){useLatLon = val;}
+	bool imageCrop() {return cropImage;}
+	void setImageCrop(bool val){cropImage = val;}
 	float getResampRate(){return resampRate;}
 	void setResampRate(float val){ resampRate = val;}
 	float getOpacMult() {return opacityMultiplier;}
@@ -299,7 +291,7 @@ public:
 	
 	
 protected:
-	static const string _latLonAttr;
+	static const string _cropImageAttr;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _variableSelectedAttr;
@@ -318,7 +310,6 @@ protected:
 	static const string _opacityMultAttr;
 	static const string _imageFileNameAttr;
 	static const string _orientationAttr;
-	static const string _latLonBoxCenterAttr;
 
 	
 	void refreshCtab();
@@ -326,7 +317,7 @@ protected:
 	//Utility functions for building texture and histogram
 	
 	//Find smallest containing cube in integer coords, 
-	//that will contain twoD box
+	//that will contain image of twoD
 	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
 
 	int getImageNum(int timestep){
@@ -373,7 +364,7 @@ protected:
 	bool useData;
 	//Variables specific to images:
 	bool useGeoreferencing;
-	bool useLatLon;
+	bool cropImage;
 	float resampRate;
 	float opacityMultiplier;
 	string imageFileName;
@@ -389,7 +380,6 @@ protected:
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
 	int textureSize[2];
-	float latLonBoxCenter[2];
 
 	std::string projDefinitionString;
 	

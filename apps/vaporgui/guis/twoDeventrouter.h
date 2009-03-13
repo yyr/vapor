@@ -126,7 +126,7 @@ public slots:
 
 protected slots:
 	void guiFitToImage();
-	void guiSetLatLon(bool);
+	void guiSetCrop(bool);
 	void guiChangeType(int);
 	void guiSelectImageFile();
 	void guiSetOrientation(int);

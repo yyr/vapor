@@ -378,7 +378,7 @@ public:
 	
 	void clearRendererBypass(Params::ParamType t);
 	static bool isRendering(){return nowPainting;}
-	
+	void setValuesFromGui(ViewpointParams* vpparams);
 
 protected:
 	int winNum;

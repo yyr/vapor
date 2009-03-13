@@ -43,11 +43,23 @@ public:
 	
 	virtual Params* deepCopy();
 	
-	
-	float* getCameraPos() {return currentViewpoint->getCameraPos();}
-	float getCameraPos(int coord) {return currentViewpoint->getCameraPos()[coord];}
-	void setCameraPos(int i, float val) { currentViewpoint->setCameraPos(i, val);}
-	void setCameraPos(float* val) {currentViewpoint->setCameraPos(val);}
+	//Note that all calls to get camera pos and get rot center return values
+	//in local coordinates, not in lat/lon.  When the viewpoint params is in
+	//latlon mode, it is necessary to perform convertFromLatLon and convertToLatLon
+	//to keep the local coords current with latlons.  This conversion must occur whenever
+	//the coordinates change (from the gui or the manip), 
+	//and when the time step changes, whenever
+	//there is a change between latlon and local mode, and whenever a new
+	//data set is loaded
+	//When setCameraPos or setRotCenter is called in latlon mode, the new local values
+	//must be converted to latlon values.
+	float* getCameraPos() {return currentViewpoint->getCameraPosLocal();}
+	float getCameraPos(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
+	//void setCameraPos(int i, float val) { currentViewpoint->setCameraPos(i, val);}
+	void setCameraPos(float* val,int timestep ) {
+		currentViewpoint->setCameraPosLocal(val);
+		if (useLatLon) convertToLatLon(timestep);
+	}
 	float* getViewDir() {return currentViewpoint->getViewDir();}
 	void setViewDir(int i, float val) { currentViewpoint->setViewDir(i,val);}
 	void setViewDir(float* val) {currentViewpoint->setViewDir(val);}
@@ -86,14 +98,25 @@ public:
 	}
 	
 	//Set to default viewpoint for specified region
-	void centerFullRegion();
-	float* getRotationCenter(){return currentViewpoint->getRotationCenter();}
-	float getRotationCenter(int i){ return currentViewpoint->getRotationCenter(i);}
-	void setRotationCenter(int i, float val){currentViewpoint->setRotationCenter(i,val);}
-	void setRotationCenter(float* vec){currentViewpoint->setRotationCenter(vec);}
+	void centerFullRegion(int timestep);
+	float* getRotationCenter(){return currentViewpoint->getRotationCenterLocal();}
+	float* getRotCenterLatLon(){return currentViewpoint->getRotCenterLatLon();}
+	float getRotationCenter(int i){ return currentViewpoint->getRotationCenterLocal(i);}
+	float* getCamPosLatLon() {return currentViewpoint->getCamPosLatLon();}
+	//void setRotationCenter(int i, float val){currentViewpoint->setRotationCenter(i,val);}
+	void setRotationCenter(float* vec, int timestep){
+		currentViewpoint->setRotationCenterLocal(vec);
+		if (useLatLon) convertToLatLon(timestep);
+	}
+	void setCamPosLatLon(float x, float y) {currentViewpoint->setCamPosLatLon(x,y);}
+	void setRotCenterLatLon(float x, float y) {currentViewpoint->setRotCenterLatLon(x,y);}
+	bool isLatLon() {return useLatLon;}
+	void setLatLon(bool val){useLatLon = val;}
 	
-	void rescale(float scaleFac[3]);
+	void rescale(float scaleFac[3], int timestep);
 
+	bool convertToLatLon(int timestep);
+	bool convertFromLatLon(int timestep);
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(RegionParams* rParams, float* far, float* near, float* boxFar, float* boxNear);
 	
@@ -159,6 +182,7 @@ public:
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
 
 protected:
+	static const string _latLonAttr;
 	static const string _currentViewTag;
 	static const string _homeViewTag;
 	static const string _lightTag;
@@ -176,7 +200,7 @@ protected:
 	Viewpoint* homeViewpoint;
 	float stereoSeparation;
 	int stereoMode; //0 for center, 1 for left, 2 for right
-	
+	bool useLatLon;
 	int numLights;
 	int parsingLightNum;
 	float lightDirection[3][4];

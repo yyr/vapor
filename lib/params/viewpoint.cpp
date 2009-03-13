@@ -41,7 +41,10 @@ const string Viewpoint::_camPosTag = "CameraPosition";
 const string Viewpoint::_viewDirTag = "ViewDirection";
 const string Viewpoint::_upVecTag = "UpVector";
 const string Viewpoint::_rotCenterTag = "RotationCenter";
+const string Viewpoint::_rotCenterLatLonTag = "RotCenterLatLon";
+const string Viewpoint::_camLatLonTag = "CameraLatLon";
 const string Viewpoint::_perspectiveAttr = "Perspective";
+
 
 
 bool Viewpoint::
@@ -67,6 +70,8 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 	else if ((StrCmpNoCase(tagString, _camPosTag) == 0) ||
 			(StrCmpNoCase(tagString, _viewDirTag) == 0) ||
 			(StrCmpNoCase(tagString, _upVecTag) == 0) ||
+			(StrCmpNoCase(tagString, _camLatLonTag) == 0) ||
+			(StrCmpNoCase(tagString, _rotCenterLatLonTag) == 0) ||
 			(StrCmpNoCase(tagString, _rotCenterTag) == 0) ){
 		//Should have a double type attribute
 		string attribName = *attrs;
@@ -102,7 +107,18 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		cameraPosition[1] = (float)posn[1];
 		cameraPosition[2] = (float)posn[2];
 		return true;
-	} else if (StrCmpNoCase(tag, _viewDirTag) == 0){
+	} else if (StrCmpNoCase(tag, _camLatLonTag) == 0){
+		vector<double> posn = pm->getDoubleData();
+		camLatLon[0] = (float)posn[0];
+		camLatLon[1] = (float)posn[1];
+		return true;
+	} else if (StrCmpNoCase(tag, _rotCenterLatLonTag) == 0){
+		vector<double> posn = pm->getDoubleData();
+		rotCenterLatLon[0] = (float)posn[0];
+		rotCenterLatLon[1] = (float)posn[1];
+		return true;
+	}
+	else if (StrCmpNoCase(tag, _viewDirTag) == 0){
 		vector<double> vec = pm->getDoubleData();
 		viewDirection[0] = (float)vec[0];
 		viewDirection[1] = (float)vec[1];
@@ -154,11 +170,22 @@ buildNode(){
 	viewpointNode->SetElementDouble(_camPosTag, dbvec);
 
 	dbvec.clear();
+	for (i = 0; i< 2; i++){
+		dbvec.push_back((double) camLatLon[i]);
+	}
+	viewpointNode->SetElementDouble(_camLatLonTag, dbvec);
+
+	dbvec.clear();
+	for (i = 0; i< 2; i++){
+		dbvec.push_back((double) rotCenterLatLon[i]);
+	}
+	viewpointNode->SetElementDouble(_rotCenterLatLonTag, dbvec);
+
+	dbvec.clear();
 	for (i = 0; i< 3; i++){
 		dbvec.push_back((double) upVector[i]);
 	}
 	viewpointNode->SetElementDouble(_upVecTag, dbvec);
-
 	dbvec.clear();
 	for (i = 0; i< 3; i++){
 		dbvec.push_back((double) viewDirection[i]);

@@ -57,7 +57,7 @@
 
 
 using namespace VAPoR;
-const string TwoDParams::_latLonAttr = "UseLatLon";
+const string TwoDParams::_cropImageAttr = "CropImage";
 const string TwoDParams::_editModeAttr = "TFEditMode";
 const string TwoDParams::_histoStretchAttr = "HistoStretchFactor";
 const string TwoDParams::_variableSelectedAttr = "VariableSelected";
@@ -74,8 +74,6 @@ const string TwoDParams::_orientationAttr = "Orientation";
 const string TwoDParams::_resampleRateAttr = "ResamplingRate";
 const string TwoDParams::_opacityMultAttr = "OpacityMultiplier";
 const string TwoDParams::_imageFileNameAttr = "ImageFileName";
-const string TwoDParams::_latLonBoxCenterAttr = "LatLonBoxCenter";
-
 
 TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	thisParamType = TwoDParamsType;
@@ -403,8 +401,7 @@ restart(){
 	opacityMultiplier = 1.f;
 	useData = true;
 	useGeoreferencing = true;
-	useLatLon = false;
-	latLonBoxCenter[0] = latLonBoxCenter[1] = 0.f;
+	cropImage = false;
 	imageFileName = "";
 
 	if(numVariables > 0){
@@ -489,11 +486,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		opacityMultiplier = 1.f;
 		useData = true;
 		useGeoreferencing = true;
-		useLatLon = false;
+		cropImage = false;
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
 
+		
 		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -545,9 +543,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				if (value == "true") setGeoreferenced(true);
 				else setGeoreferenced(false);
 			}
-			else if (StrCmpNoCase(attribName, _latLonAttr) == 0) {
-				if (value == "true") setLatLon(true);
-				else setLatLon(false);
+			else if (StrCmpNoCase(attribName, _cropImageAttr) == 0) {
+				if (value == "true") setImageCrop(true);
+				else setImageCrop(false);
 			}
 			else if (StrCmpNoCase(attribName, _resampleRateAttr) == 0) {
 				ist >> resampRate;
@@ -675,9 +673,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
 			}
-			else if (StrCmpNoCase(attribName, _latLonBoxCenterAttr) == 0){
-				ist >> latLonBoxCenter[0]; ist >> latLonBoxCenter[1];
-			}
 			else return false;
 		}
 		return true;
@@ -786,11 +781,11 @@ buildNode() {
 	attrs[_georeferencedAttr] = oss.str();
 
 	oss.str(empty);
-	if (isLatLon())
+	if (imageCrop())
 		oss << "true";
 	else 
 		oss << "false";
-	attrs[_latLonAttr] = oss.str();
+	attrs[_cropImageAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)orientation;
@@ -855,9 +850,6 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
 	attrs[_cursorCoordsAttr] = oss.str();
-	oss.str(empty);
-	oss << (double)latLonBoxCenter[0] << " " << (double)latLonBoxCenter[1];
-	attrs[_latLonBoxCenterAttr] = oss.str();
 	twoDNode->NewChild(_geometryTag, attrs, 0);
 	return twoDNode;
 }

@@ -631,6 +631,7 @@ int DataStatus::get2DOrientation(int mdvar){
 
 
 //static methods to convert coordinates to and from latlon
+//coordinates are in the order longitude,latitude
 bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 	//Set up proj.4 to convert from LatLon to VDC coords
 	if (RegionParams::getProjectionString().size() == 0) return false;

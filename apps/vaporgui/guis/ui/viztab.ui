@@ -774,13 +774,13 @@ where the camera is pointed.</string>
                                                 <cstring>latLonCheckbox</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Use Latitude/Longitude</string>
+                                                <string>Position camera in latitude/longitude coordinates</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Check to position camera and rotation center using lat/lon coordinates</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>If the scene has georeferencing then the camera position and rotation center are shown as longitude and latitude.  If this box is checked, then the latitude and longitude settings determine the viewpoint at all time steps.  If it is not checked, then theviewpoint is determined by the camera postion and rotation center in the local coordinate system of the data.</string>
+                                                <string>If the scene has georeferencing, then the camera position and rotation center are shown here as longitude and latitude.  When this box is checked, the latitude and longitude settings are used to determine the viewpoint at all time steps.  If the data grid moves in time, the visualized data will move relative to the camera .  If this box is not checked, then the viewpoint is determined by the camera postion and rotation center in the local coordinate system of the data, and, if the extents are moving,  the camera will move with the data.</string>
                                             </property>
                                         </widget>
                                         <spacer>
