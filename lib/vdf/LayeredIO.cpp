@@ -574,7 +574,9 @@ void    LayeredIO::MapVoxToUser(
 
 	size_t  dim[3];
 
-	const vector <double> &extents = _metadata->GetExtents();
+	vector <double> extents = _metadata->GetExtents(timestep);
+	if (! extents.size()) extents = _metadata->GetExtents();
+
 	LayeredIO::GetDim(dim, -1);   // finest dimension
 	for(int i = 0; i<3; i++) {
 
@@ -608,10 +610,9 @@ void	LayeredIO::MapUserToVox(
 	int	 ldelta = _num_reflevels - 1 - reflevel;
 
 	size_t	dim[3];
-	const vector <double> &extents = _metadata->GetExtents();
+	vector <double> extents = _metadata->GetExtents(timestep);
+	if (! extents.size()) extents = _metadata->GetExtents();
 	// assert(_metadata->GetErrCode() == 0);
-
-	vector <double> lextents = extents;
 
 	LayeredIO::GetDim(dim, reflevel);	
 	for(int i = 0; i<3; i++) {
@@ -619,11 +620,11 @@ void	LayeredIO::MapUserToVox(
 
 		// distance between voxels along dimension 'i' in user coords at full resolution
 		double deltax;
-		if (i == 2) deltax = (lextents[i+3] - lextents[i]) / (_gridHeight - 1);
-		else deltax = (lextents[i+3] - lextents[i]) / (_dim[i] - 1);
+		if (i == 2) deltax = (extents[i+3] - extents[i]) / (_gridHeight - 1);
+		else deltax = (extents[i+3] - extents[i]) / (_dim[i] - 1);
 
 		// coordinate of first voxel in user space
-		double x0 = lextents[i];
+		double x0 = extents[i];
 
 		// Boundary shrinks and step size increases with each transform
 		
@@ -631,10 +632,10 @@ void	LayeredIO::MapUserToVox(
 			x0 += 0.5 * deltax;
 			deltax *= 2.0;
 		}
-		lextents[i] = x0;
-		lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
+		extents[i] = x0;
+		extents[i+3] = extents[i] + (deltax * (dim[i]-1));
 
-		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
+		a = (vcoord0[i] - extents[i]) / (extents[i+3]-extents[i]);
 		if (a < 0.0) vcoord1[i] = 0;
 		else vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
 
