@@ -223,6 +223,26 @@
 		tag		=> 0
 	},
 	{
+		idlname	=> "VDF_SETTEXTENTS",
+		name => "SetTSExtents",
+		set => 1,
+		type	=> "double",
+		vector	=> 1,
+		ts		=> 1,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETTEXTENTS",
+		name => "GetTSExtents",
+		set => 0,
+		type	=> "double",
+		vector	=> 1,
+		ts		=> 1,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
 		idlname	=> "VDF_SETTUSERTIME",
 		name => "SetTSUserTime",
 		set => 1,
