@@ -288,6 +288,8 @@ public:
 	//Determine the corners of the image in local coordinates
 	//Only available when the renderer is enabled.
 	bool getImageCorners(int timestep, double cors[8]);
+	int getImagePlacement(){return imagePlacement;}
+	void setImagePlacement(int val){ imagePlacement = val;}
 	
 	
 protected:
@@ -310,6 +312,7 @@ protected:
 	static const string _opacityMultAttr;
 	static const string _imageFileNameAttr;
 	static const string _orientationAttr;
+	static const string _imagePlacementAttr;
 
 	
 	void refreshCtab();
@@ -380,6 +383,7 @@ protected:
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
 	int textureSize[2];
+	int imagePlacement;
 
 	std::string projDefinitionString;
 	

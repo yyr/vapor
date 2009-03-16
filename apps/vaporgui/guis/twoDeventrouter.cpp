@@ -194,6 +194,7 @@ TwoDEventRouter::hookUpTab()
 	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
 	connect (cropCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetCrop(bool)));
 	connect (fitToImageButton, SIGNAL(clicked()), this, SLOT(guiFitToImage()));
+	connect (placementCombo, SIGNAL(activated(int)), this, SLOT(guiSetPlacement(int)));
 
 	
 }
@@ -341,6 +342,7 @@ void TwoDEventRouter::updateTab(){
 		resampleEdit->setText(QString::number(twoDParams->getResampRate()));
 		opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
 		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+		placementCombo->setCurrentItem(twoDParams->getImagePlacement());
 	}
 
 	
@@ -655,6 +657,16 @@ void TwoDEventRouter::guiSetCrop(bool val){
 	tParams->setImageCrop(val);
 	PanelCommand::captureEnd(cmd, tParams); 
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+}
+void TwoDEventRouter::guiSetPlacement(int val){
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "specify image placement");
+	tParams->setImagePlacement(val);
+	PanelCommand::captureEnd(cmd, tParams); 
+	//When placement is changed, must reload images
+	tParams->setImageDirty();
+	VizWinMgr::getInstance()->refreshTwoD(tParams);
 }
 
 void TwoDEventRouter::guiChangeInstance(int inst){

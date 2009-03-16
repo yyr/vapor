@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout46</cstring>
+                <cstring>layout47</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -329,7 +329,7 @@ create new 2D planar instances.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout45</cstring>
+                                <cstring>layout46</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -659,7 +659,7 @@ create new 2D planar instances.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout44</cstring>
+                                                <cstring>layout45</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -948,12 +948,63 @@ create new 2D planar instances.</string>
                                                 </spacer>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout39</cstring>
+                                                        <cstring>layout44</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
                                                             <cstring>unnamed</cstring>
                                                         </property>
+                                                        <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>Place upright</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>rotate 90</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>rotate 180</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>rotate 270</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>invert</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>invert, rotate 90</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>invert, rotate 180</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>invert, rotate 270</string>
+                                                                </property>
+                                                            </item>
+                                                            <property name="name">
+                                                                <cstring>placementCombo</cstring>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>specify image placement</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>When georeferencing is not used, the image is placed to fit in the 2D extents.  The placement within the extents can be rotated a multiple of 90 degrees, or the image may be inverted with or without a rotation.</string>
+                                                            </property>
+                                                        </widget>
                                                         <spacer>
                                                             <property name="name">
                                                                 <cstring>spacer60_2</cstring>
@@ -966,7 +1017,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>20</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -976,7 +1027,7 @@ create new 2D planar instances.</string>
                                                                 <cstring>textLabel2_7</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Resampling</string>
+                                                                <string>Resampling:</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1023,7 +1074,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>16</width>
+                                                                    <width>29</width>
                                                                     <height>21</height>
                                                                 </size>
                                                             </property>
@@ -1033,29 +1084,12 @@ create new 2D planar instances.</string>
                                                                 <cstring>textLabel3_2</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Opacity</string>
+                                                                <string>Opacity:</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                         </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer55_2</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>16</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
                                                                 <cstring>opacityEdit</cstring>
@@ -1091,7 +1125,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>20</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>

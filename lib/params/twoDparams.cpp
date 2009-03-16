@@ -57,6 +57,7 @@
 
 
 using namespace VAPoR;
+const string TwoDParams::_imagePlacementAttr = "ImagePlacement";
 const string TwoDParams::_cropImageAttr = "CropImage";
 const string TwoDParams::_editModeAttr = "TFEditMode";
 const string TwoDParams::_histoStretchAttr = "HistoStretchFactor";
@@ -381,6 +382,7 @@ reinit(bool doOverride){
 void TwoDParams::
 restart(){
 	
+	imagePlacement = 0;
 	verticalDisplacement = 0.f;
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
@@ -490,6 +492,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
 		int newNumVariables = 0;
+		imagePlacement = 0;
 
 		
 		//If it's a TwoD tag, obtain 12 attributes (2 are from Params class)
@@ -546,6 +549,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _cropImageAttr) == 0) {
 				if (value == "true") setImageCrop(true);
 				else setImageCrop(false);
+			}
+			else if (StrCmpNoCase(attribName, _imagePlacementAttr) == 0) {
+				ist >> imagePlacement;
 			}
 			else if (StrCmpNoCase(attribName, _resampleRateAttr) == 0) {
 				ist >> resampRate;
@@ -794,6 +800,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)resampRate;
 	attrs[_resampleRateAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)imagePlacement;
+	attrs[_imagePlacementAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (double) opacityMultiplier;

@@ -319,7 +319,7 @@ void GLWindow::paintGL()
 	//and put them in the trackball, prior to setting up the trackball.
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
 	
-	if (currentViewpointParams->isLatLon()){
+	if (currentViewpointParams->isLatLon()&& timeStep != previousTimeStep){
 		currentViewpointParams->convertFromLatLon(timeStep);
 		setValuesFromGui(currentViewpointParams);
 	}
