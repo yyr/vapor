@@ -289,6 +289,10 @@ public:
  //! Results are undefined if \p vcoord0 is outside of the volume 
  //! boundary.
  //!
+ //! If a user coordinate system is not defined for the specified
+ //! time step, \p timestep, the global extents for the VDC will 
+ //! be used.
+ //!
  //! \param[in] timestep Time step of the variable 
  //! \param[in] vcoord0 Coordinate of input point in floating point
  //! coordinates
@@ -320,6 +324,10 @@ public:
  //! The user coordinates are returned in \p vcoord1.
  //! Results are undefined if \p vcoord0 is outside of the volume 
  //! boundary.
+ //!
+ //! If a user coordinate system is not defined for the specified
+ //! time step, \p timestep, the global extents for the VDC will 
+ //! be used.
  //!
  //! \param[in] timestep Time step of the variable 
  //! \param[in] vcoord0 Coordinate of input point in floating point
