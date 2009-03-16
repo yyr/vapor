@@ -162,7 +162,7 @@ void	VDFIOBase::MapVoxToUser(
 	else {
 		size_t	dim[3];
 
-		vector <double> extents = _metadata->GetExtents(timestep);
+		vector <double> extents = _metadata->GetTSExtents(timestep);
 		if (! extents.size()) extents = _metadata->GetExtents();
 		VDFIOBase::GetDim(dim, _num_reflevels-1);	// finest dimension
 		for(int i = 0; i<3; i++) {
@@ -204,7 +204,7 @@ void	VDFIOBase::MapUserToVox(
 	} 
 	else {
 		size_t	dim[3];
-		vector <double> extents = _metadata->GetExtents(timestep);
+		vector <double> extents = _metadata->GetTSExtents(timestep);
 		if (! extents.size()) extents = _metadata->GetExtents();
 		// assert(_metadata->GetErrCode() == 0);
 

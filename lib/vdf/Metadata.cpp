@@ -963,6 +963,23 @@ int Metadata::SetVariables2DYZ(const vector <string> &value) {
 	return(0);
 }
 
+int Metadata::SetTSExtents(size_t ts, const vector<double> &value) {
+	if (!IsValidExtents(value)) {
+		SetErrMsg("Invalid Extents specification");
+		return(-1);
+	}
+
+	SetDiagMsg(
+		"Metadata::SetExtents(%d, [%f %f %f %f %f %f])",
+		ts, value[0], value[1], value[2], value[3], value[4], value[5]
+	);
+
+	CHK_TS_REQ(ts, -1);
+	_rootnode->GetChild(ts)->SetElementDouble(_extentsTag, value);
+
+	return(0);
+}
+
 int Metadata::SetTSUserTime(size_t ts, const vector<double> &value) {
 
 

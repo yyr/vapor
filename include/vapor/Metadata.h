@@ -719,7 +719,7 @@ public:
  //! specify the maximum coordinate extents.
  //! \retval status Returns a non-negative integer on success
  //
- int SetExtents(size_t ts, const vector<double> &value);
+ int SetTSExtents(size_t ts, const vector<double> &value);
 
  //! Return the domain extents specified in user coordinates
  //! for the indicated time step
@@ -733,7 +733,7 @@ public:
  //!
  //! \remarks Optional element
  //
- const vector<double> &GetExtents(size_t ts) const {
+ const vector<double> &GetTSExtents(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
 	if (_rootnode->GetChild(ts)->HasElementDouble(_extentsTag))
 		return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
