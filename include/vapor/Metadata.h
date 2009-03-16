@@ -600,6 +600,21 @@ public:
 	return(_rootnode->GetChild(ts)->GetElementString(_auxBasePathTag));
 	};
 
+ //! Return true if a user time exists for the indicated time step
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //!
+ //! \retval boolean True if \p value is a valid argument
+ //!
+ //! \nb This method is deprecated and should always return true
+ //! as UserTime is a required metadata element.
+ //
+ int HasTSUserTime(size_t ts) const {
+    if (! _rootnode->HasChild(ts)) return(0);
+    return(_rootnode->GetChild(ts)->HasElementDouble(_userTimeTag));
+    };
+
  //! Return true if \p value is a valid time specification.
  //!
  //! \retval boolean True if \p value is a valid argument
