@@ -973,7 +973,7 @@ int Metadata::SetTSUserTime(size_t ts, const vector<double> &value) {
 
 	SetDiagMsg("Metadata::SetTSUserTime(%d, [%d,...])", ts, value[0]);
 
-	CHK_TS(ts, -1);
+	CHK_TS_REQ(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_userTimeTag, value);
 	return(0);
 }
@@ -986,7 +986,7 @@ int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
 
 	SetDiagMsg("Metadata::SetTSXCoords(%d)", ts);
 
-	CHK_TS(ts, -1);
+	CHK_TS_REQ(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value);
 	return(0);
 }
@@ -999,7 +999,7 @@ int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
 
 	SetDiagMsg("Metadata::SetTSYCoords(%d)", ts);
 
-	CHK_TS(ts, -1);
+	CHK_TS_REQ(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value);
 	return(0);
 }
@@ -1012,7 +1012,7 @@ int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
 
 	SetDiagMsg("Metadata::SetTSZCoords(%d)", ts);
 
-	CHK_TS(ts, -1);
+	CHK_TS_REQ(ts, -1);
 	_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value);
 	return(0);
 }
@@ -1024,25 +1024,11 @@ int Metadata::SetTSComment(
 
 	SetDiagMsg("Metadata::SetTSComment(%d, %s)", ts, value.c_str());
 
-	CHK_TS(ts, -1);
+	CHK_TS_REQ(ts, -1);
 	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
 
 	timenode->SetElementString(_commentTag, value);
 	return(0);
-}
-
-const string &Metadata::GetTSComment(
-	size_t ts
-) const {
-
-	XmlNode	*timenode;
-
-	SetDiagMsg("Metadata::GetTSComment(%d)", ts);
-
-	CHK_TS(ts, _emptyString);
-	if (! (timenode = _rootnode->GetChild(ts))) return(_emptyString);
-
-	return(timenode->GetElementString(_commentTag));
 }
 
 int Metadata::SetVComment(
@@ -1056,28 +1042,12 @@ int Metadata::SetVComment(
 		ts, var.c_str(), value.c_str()
 	);
 
-	CHK_VAR(ts, var, -1);
+	CHK_VAR_REQ(ts, var, -1);
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
 
 	varnode->SetElementString(_commentTag, value);
 	return(0);
-}
-
-const string &Metadata::GetVComment(
-	size_t ts, const string &var
-) const {
-
-	XmlNode	*timenode;
-	XmlNode	*varnode;
-
-	SetDiagMsg("Metadata::GetVComment(%d, %s)", ts, var.c_str());
-
-	CHK_VAR(ts, var, _emptyString);
-	timenode = _rootnode->GetChild(ts);
-	varnode = timenode->GetChild(var);
-
-	return(varnode->GetElementString(_commentTag));
 }
 
 const string &Metadata::GetVBasePath(
@@ -1089,7 +1059,7 @@ const string &Metadata::GetVBasePath(
 
 	SetDiagMsg("Metadata::GetVBasePath(%d, %s)", ts, var.c_str());
 
-	CHK_VAR(ts, var, _emptyString);
+	CHK_VAR_REQ(ts, var, _emptyString);
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
 
@@ -1107,7 +1077,7 @@ int Metadata::SetVBasePath(
 		"Metadata::SetVBasePath(%d, %s, %s)", ts, var.c_str(), value.c_str()
 	);
 
-	CHK_VAR(ts, var, -1);
+	CHK_VAR_REQ(ts, var, -1);
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
 
@@ -1139,7 +1109,7 @@ int Metadata::SetVDataRange(
 
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
-	CHK_VAR(ts, var, -1);
+	CHK_VAR_REQ(ts, var, -1);
 
 	varnode->SetElementDouble(_dataRangeTag, value);
 	return(0);
@@ -1419,7 +1389,7 @@ void	Metadata::_startElementHandler1(ExpatParseMgr* pm,
 		}
 	}
 	else {
-		// must be user data
+		// must be user or optional data
 		if (!((StrCmpNoCase(type, _stringType) != 0) ||
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
@@ -1497,26 +1467,8 @@ void	Metadata::_startElementHandler2(ExpatParseMgr* pm,
 			return;
 		}
 	}
-	else if (StrCmpNoCase(tag, _xCoordsTag) == 0) {
-		if (StrCmpNoCase(type, _doubleType) != 0) {
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
-			return;
-		}
-	}
-	else if (StrCmpNoCase(tag, _yCoordsTag) == 0) {
-		if (StrCmpNoCase(type, _doubleType) != 0) {
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
-			return;
-		}
-	}
-	else if (StrCmpNoCase(tag, _zCoordsTag) == 0) {
-		if (StrCmpNoCase(type, _doubleType) != 0) {
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
-			return;
-		}
-	}
 	else {
-		// must be user data
+		// must be user or optional data
 		if (!((StrCmpNoCase(type, _stringType) != 0) ||
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
@@ -1569,12 +1521,7 @@ void	Metadata::_startElementHandler3(ExpatParseMgr* pm,
 	ist >> type;
 	state->data_type = type;
 
-	if (StrCmpNoCase(tag, _commentTag) == 0) {
-		if (StrCmpNoCase(type, _stringType) != 0) {
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
-			return;
-		}
-	} else if (StrCmpNoCase(tag, _basePathTag) == 0) {
+	if (StrCmpNoCase(tag, _basePathTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
 			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
@@ -1586,7 +1533,7 @@ void	Metadata::_startElementHandler3(ExpatParseMgr* pm,
 		}
 	}
 	else {
-		// must be user data
+		// must be user or optional data
 		if (!((StrCmpNoCase(type, _stringType) != 0) ||
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
@@ -1628,12 +1575,6 @@ void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 	}
 	else if (StrCmpNoCase(tag, _extentsTag) == 0) {
 		if (SetExtents(pm->getDoubleData()) < 0) {
-			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
-			return;
-		}
-	}
-	else if (StrCmpNoCase(tag, _commentTag) == 0) {
-		if (SetComment(pm->getStringData()) < 0) {
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
@@ -1693,7 +1634,7 @@ void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 	}
 	else {
 		int	rc;
-		// must be user data
+		// must be user or optional data
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
 			rc = SetUserDataString(tag, pm->getStringData());
@@ -1757,7 +1698,7 @@ void	Metadata::_endElementHandler2(ExpatParseMgr* pm,
 	}
 	else {
 		int	rc;
-		// must be user data
+		// must be user or optional data
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
 			rc = SetTSUserDataString(_currentTS, tag, pm->getStringData());
@@ -1805,7 +1746,7 @@ void	Metadata::_endElementHandler3(ExpatParseMgr* pm,
 	}
 	else {
 		int	rc;
-		// must be user data
+		// must be user or optional data
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
 			rc = SetVUserDataString(

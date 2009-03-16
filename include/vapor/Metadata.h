@@ -18,18 +18,38 @@
 
 namespace VAPoR {
 
-#define	CHK_TS(TS, RETVAL) \
+//
+// Macros to check for required Metadata elements
+// Call SetErrMsg if element is not present
+//
+#define	CHK_TS_REQ(TS, RETVAL) \
 	if (! _rootnode->GetChild(TS)) { \
 		SetErrMsg("Invalid time step : %d", TS); \
 		return(RETVAL); \
 	}
-#define	CHK_VAR(TS, VAR, RETVAL) \
+#define	CHK_VAR_REQ(TS, VAR, RETVAL) \
 	if (! _rootnode->GetChild(TS)) { \
 		SetErrMsg("Invalid time step : %d", TS); \
 		return(RETVAL); \
 	}; \
 	if (! _rootnode->GetChild(TS)->GetChild(VAR)) { \
 		SetErrMsg("Invalid variable name : %s", VAR.c_str()); \
+		return(RETVAL); \
+	}
+
+//
+// Macros to check for optional Metadata elements
+// Don't call SetErrMsg if element is not present
+//
+#define	CHK_TS_OPT(TS, RETVAL) \
+	if (! _rootnode->HasChild(TS)) { \
+		return(RETVAL); \
+	}
+#define	CHK_VAR_OPT(TS, VAR, RETVAL) \
+	if (! _rootnode->HasChild(TS)) { \
+		return(RETVAL); \
+	}; \
+	if (! _rootnode->GetChild(TS)->HasChild(VAR)) { \
 		return(RETVAL); \
 	}
 
@@ -54,12 +74,18 @@ const int VDF_VERSION = 3;
 //! metadata and dependent field data are store in
 //! separate files.
 //! 
-//! The Meadata class is derived from the MyBase base
+//! The Metadata class is derived from the MyBase base
 //!	class. Hence all of the methods make use of MyBase's
 //!	error reporting capability - the success of any method
 //!	(including constructors) can (and should) be tested
 //!	with the GetErrCode() method. If non-zero, an error 
 //!	message can be retrieved with GetErrMsg().
+//!
+//! Methods that retrieve required Metadata elements will
+//! set an error code via MyBase::SetErrMsg() if the requested
+//! element is not present in the Metadata object. Methods
+//! that retrieve optional elements will NOT set an error 
+//! code if an optional element is not present.
 //!
 class VDF_API Metadata : public VetsUtil::MyBase , public ParsedXml {
 public:
@@ -202,6 +228,7 @@ public:
  //! Return the internal blocking factor use for WaveletBlock files
  //!
  //! \retval size Internal block factor
+ //! \remarks Required element
  //
  const size_t *GetBlockSize() const { return(_bs); }
 
@@ -209,30 +236,42 @@ public:
  //! \retval dim A three element vector containing the voxel dimension of 
  //! the data at its native resolution
  //!
+ //! \remarks Required element
+ //!
  const size_t *GetDimension() const { return(_dim); }
 
  //! Returns the number of filter coefficients employed for wavelet transforms
  //! \retval _nFilterCoef Number of filter coefficients
+ //!
+ //! \remarks Required element
  //
  int GetFilterCoef() const { return(_nFilterCoef); }
 
  //! Returns the number of lifting coefficients employed for wavelet transforms
  //! \retval _nLiftingCoef Number of lifting coefficients
+ //!
+ //! \remarks Required element
  //
  int GetLiftingCoef() const { return(_nLiftingCoef); }
 
  //! Returns the number of wavelet transforms
  //! \param _numTransforms Number of transforms
+ //!
+ //! \remarks Required element
  //
  int GetNumTransforms() const { return(_numTransforms); }
 
  //! Returns true if the storage order for data is most signicant byte first
  //! \retval _msbFirst Booean
+ //!
+ //! \remarks Required element
  //
  int GetMSBFirst() const { return(_msbFirst); }
 
  //! Returns vdf file version number
  //! \retval _vdfVersion Version number
+ //!
+ //! \remarks Required element
  //
  int GetVDFVersion() const { return(_vdfVersion); }
 
@@ -259,6 +298,8 @@ public:
  //! Return the grid type.
  //!
  //! \retval type The grid type
+ //!
+ //! \remarks Required element
  //
  const string &GetGridType() const {
 	return(_rootnode->GetElementString(_gridTypeTag));
@@ -286,6 +327,8 @@ public:
 
  //! Return the coordinate system type.
  //! \retval type The grid type
+ //!
+ //! \remarks Required element
  //
  const string &GetCoordSystemType() const {
 	return(_rootnode->GetElementString(_coordSystemTypeTag));
@@ -317,6 +360,8 @@ public:
  //!
  //! \retval extents A six-element array containing the min and max
  //! bounds of the data domain in user-defined coordinates
+ //!
+ //! \remarks Required element
  //
  const vector<double> &GetExtents() const {
 	return(_rootnode->GetElementDouble(_extentsTag));
@@ -338,6 +383,8 @@ public:
  //! Return the number of time steps in the collection
  //!
  //! \retval value The number of time steps or a negative number on error
+ //!
+ //! \remarks Required element
  //
  long GetNumTimeSteps() const;
 
@@ -362,6 +409,8 @@ public:
  //! Return the names of the variables in the collection 
  //!
  //! \retval value is a space-separated list of variable names
+ //!
+ //! \remarks Required element
  //
  const vector <string> &GetVariableNames() const {
 	return(_varNames);
@@ -383,6 +432,8 @@ public:
  //! Return the names of the 3D variables in the collection 
  //!
  //! \retval value is a space-separated list of 3D variable names
+ //!
+ //! \remarks Required element (VDF version 1.3 or greater)
  //
  const vector <string> &GetVariables3D() const {
 	return(_varNames3D);
@@ -404,6 +455,8 @@ public:
  //! Return the names of the 2D, XY variables in the collection 
  //!
  //! \retval value is a space-separated list of 2D XY variable names
+ //!
+ //! \remarks Required element (VDF version 1.3 or greater)
  //
  const vector <string> &GetVariables2DXY() const {
 	return(_varNames2DXY);
@@ -429,10 +482,16 @@ public:
 
  //! Return the global comment, if it exists
  //!
- //! \retval value The global comment
+ //! \retval value The global comment. An empty string is returned
+ //! if the global comment is not defined.
+ //!
+ //! \remarks Optional element 
  //
  const string &GetComment() const {
-	return(_rootnode->GetElementString(_commentTag));
+	if (_rootnode->HasElementString(_commentTag))
+		return(_rootnode->GetElementString(_commentTag));
+	else
+		return(_emptyString);
 	};
 
  //! Set the grid boundary type
@@ -451,6 +510,8 @@ public:
  //! axes have periodic boundaries, respectively.
  //!
  //! \retval boolean-vector  
+ //!
+ //! \remarks Required element (VDF version 1.3 or greater)
  //
  const vector<long> &GetPeriodicBoundary() const {
 	if (_rootnode->HasElementLong(_periodicBoundaryTag)) {
@@ -489,6 +550,8 @@ public:
  //! ordering permutation.
  //!
  //! \retval integer-vector  
+ //!
+ //! \remarks Required element (VDF version 1.3 or greater)
  //
  const vector<long> &GetGridPermutation() const {
 	if (_rootnode->HasElementLong(_gridPermutationTag)) {
@@ -514,9 +577,11 @@ public:
  //! GetNumTimeSteps() - 1.
  //! \retval value A single element vector specifying the time
  //!
+ //! \remarks Required element 
+ //!
  //
  const vector<double> &GetTSUserTime(size_t ts) const {
-	CHK_TS(ts, _emptyDoubleVec)
+	CHK_TS_REQ(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag));
 	};
 
@@ -527,22 +592,12 @@ public:
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
  //! \retval path Auxiliary data base path name
+ //!
+ //! \remarks Required element 
  //
  const string &GetTSAuxBasePath(size_t ts) const {
-	CHK_TS(ts, _emptyString)
+	CHK_TS_REQ(ts, _emptyString)
 	return(_rootnode->GetChild(ts)->GetElementString(_auxBasePathTag));
-	};
-
- //! Return true if a user time exists for the indicated time step
- //!
- //! \param[in] ts A valid data set time step in the range from zero to
- //! GetNumTimeSteps() - 1.
- //!
- //! \retval boolean True if \p value is a valid argument
- //
- int HasTSUserTime(size_t ts) const {
-	if (! _rootnode->HasChild(ts)) return(0);
-	return(_rootnode->GetChild(ts)->HasElementDouble(_userTimeTag));
 	};
 
  //! Return true if \p value is a valid time specification.
@@ -577,12 +632,18 @@ public:
  //!
  //! \retval value An array of monotonically increasing values specifying
  //! the X // coordinates, in a user-defined coordinate system, of each
- //! YZ sample plane.
+ //! YZ sample plane. An empty vector is returned if the coordinate
+ //! dimension array is not defined for the specified time step.
  //! \sa SetGridType(), GetGridType(), GetTSXCoords()
+ //!
+ //! \remarks Optional element 
  //
  const vector<double> &GetTSXCoords(size_t ts) const {
-	CHK_TS(ts, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->HasElementDouble(_xCoordsTag))
+		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+	else 
+		return(_emptyDoubleVec);
 	};
 
  //! Return true if \p value is a valid X dimension coordinate array
@@ -599,8 +660,11 @@ public:
  int SetTSYCoords(size_t ts, const vector<double> &value);
 
  const vector<double> &GetTSYCoords(size_t ts) const {
-	CHK_TS(ts, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(_yCoordsTag));
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->HasElementDouble(_yCoordsTag))
+		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+	else 
+		return(_emptyDoubleVec);
 	}
  int IsValidYCoords(const vector<double> &value) const {
 	return(value.size() == _dim[1]);
@@ -608,8 +672,11 @@ public:
 
  int SetTSZCoords(size_t ts, const vector<double> &value);
  const vector<double> &GetTSZCoords(size_t ts) const {
-	CHK_TS(ts, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(_zCoordsTag));
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->HasElementDouble(_zCoordsTag))
+		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+	else 
+		return(_emptyDoubleVec);
 	}
  int IsValidZCoords(const vector<double> &value) const {
 	return(value.size() == _dim[2]);
@@ -628,9 +695,51 @@ public:
  //
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
- //! \retval comment A comment string
+ //! \retval comment A comment string. An empty string is returned if
+ //! the comment for the specified time step is not defined.
+ //!
+ //! \remarks Optional element 
  //
- const string &GetTSComment(size_t ts) const;
+ const string &GetTSComment(size_t ts) const {
+	CHK_TS_OPT(ts, _emptyString)
+	if (_rootnode->GetChild(ts)->HasElementString(_commentTag))
+		return(_rootnode->GetChild(ts)->GetElementString(_commentTag));
+	else 
+		return(_emptyString);
+	}
+
+ //! Set the spatial domain extents of the indicated time step
+ //!
+ //! Set the spatial domain extents of the data set in user-defined (world) 
+ //! coordinates for the indicated time step. 
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \param value A six-element array, the first three elements
+ //! specify the minimum coordinate extents, the last three elements 
+ //! specify the maximum coordinate extents.
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetExtents(size_t ts, const vector<double> &value);
+
+ //! Return the domain extents specified in user coordinates
+ //! for the indicated time step
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \retval extents A six-element array containing the min and max
+ //! bounds of the data domain in user-defined coordinates.
+ //! An empty vector is returned if the extents for the specified time
+ //! step is not defined.
+ //!
+ //! \remarks Optional element
+ //
+ const vector<double> &GetExtents(size_t ts) const {
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->HasElementDouble(_extentsTag))
+		return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
+	else 
+		return(_emptyDoubleVec);
+	};
 
  //! Set a comment for the variable, \p v at the time step indicated by \p ts
  //!
@@ -648,9 +757,18 @@ public:
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
  //! \param[in] var A valid data set variable name
- //! \retval comment A comment string
+ //! \retval comment A comment string. An emptry string is returned if no
+ //! comment is defined for the specified variable
+ //!
+ //! \remarks Optional element 
  //
- const string &GetVComment(size_t ts, const string &var) const;
+ const string &GetVComment(size_t ts, const string &var) const {
+	CHK_VAR_OPT(ts, var, _emptyString)
+	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementString(_commentTag))
+		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(_commentTag));
+	else 
+		return(_emptyString);
+	}
 
  //! Return the base path for the variable, \p v, indicated by the time 
  //! step, \p ts, if it exists.  
@@ -660,6 +778,8 @@ public:
  //! GetNumTimeSteps() - 1.
  //! \param[in] var A valid data set variable name
  //! \retval path Variable base path name
+ //!
+ //! \remarks Required element 
  //
  const string &GetVBasePath(size_t ts, const string &var) const;
 
@@ -692,7 +812,7 @@ public:
  //! \nb This method is deprecated and should no longer be used.
  //
  const vector<double> &GetVDataRange(size_t ts, const string &var) const {
-	CHK_VAR(ts, var, _emptyDoubleVec)
+	CHK_VAR_REQ(ts, var, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(_dataRangeTag));
 	}
 
@@ -774,10 +894,16 @@ public:
  //! \param[in] tag Name of metadata tag
  //! \retval vector A vector of metadata values associated with \p tag. If
  //! \p tag is not defined by the metadata class, the vector returned 
+ //! is empty.
  //! \sa GetUserDataLongTag(), SetUserDataLong()
+ //!
+ //! \remarks Optional element
  //
  const vector<long> &GetUserDataLong(const string &tag) const {
-	return(_rootnode->GetElementLong(tag));
+	if (_rootnode->HasElementLong(tag))
+		return(_rootnode->GetElementLong(tag));
+	else 
+		return(_emptyLongVec);
  }
 
  const vector<string> &GetUserDataDoubleTags() const {return(_userDDTags);}
@@ -788,7 +914,10 @@ public:
 	return(0);
  }
  const vector<double> &GetUserDataDouble(const string &tag) const {
-	return(_rootnode->GetElementDouble(tag));
+	if (_rootnode->HasElementDouble(tag))
+		return(_rootnode->GetElementDouble(tag));
+	else 
+		return(_emptyDoubleVec);
  }
 
  const vector<string> &GetUserDataStringTags() const {return(_userDSTags);}
@@ -799,7 +928,10 @@ public:
 	return(0);
  }
  const string &GetUserDataString(const string &tag) const {
-	return(_rootnode->GetElementString(tag));
+	if (_rootnode->HasElementString(tag))
+		return(_rootnode->GetElementString(tag));
+	else 
+		return(_emptyString);
  }
 
 
@@ -821,6 +953,7 @@ public:
  //! the returned tags may be queried with GetTSUserDataLong().
  //! \retval vector A vector of tag names
  //! \sa SetTSUserDataLong(), GetTSUserDataLong()
+ //!
  //
  const vector<string> &GetTSUserDataLongTags() const {
 	return(_timeStepUserDLTags); 
@@ -837,7 +970,7 @@ public:
  //! \sa GetTSUserDataLongTag(), GetTSUserDataLong()
  //
  int SetTSUserDataLong(size_t ts, const string &tag, const vector<long> &value) {
-	CHK_TS(ts, -1)
+	CHK_TS_REQ(ts, -1)
 	_RecordUserDataTags(_timeStepUserDLTags, tag);
 	_rootnode->GetChild(ts)->SetElementLong(tag, value);
 	return(0);
@@ -852,25 +985,34 @@ public:
  //! \param[in] tag Name of metadata tag
  //! \retval vector A vector of metadata values associated with \p tag. If
  //! \p tag is not defined by the metadata class, the vector returned 
+ //! is empty.
  //! \sa GetTSUserDataLongTag(), SetTSUserDataLong()
+ //!
+ //! \remarks Optional element
  //
  const vector<long> &GetTSUserDataLong( size_t ts, const string &tag) const {
-	CHK_TS(ts, _emptyLongVec)
-	return(_rootnode->GetChild(ts)->GetElementLong(tag));
+	CHK_TS_OPT(ts, _emptyLongVec)
+	if (_rootnode->GetChild(ts)->HasElementLong(tag))
+		return(_rootnode->GetChild(ts)->GetElementLong(tag));
+	else 
+		return(_emptyLongVec);
  }
 
  int SetTSUserDataDouble(
 	size_t ts, const string &tag, const vector<double> &value
  ) {
-	CHK_TS(ts, -1)
+	CHK_TS_REQ(ts, -1)
 	_RecordUserDataTags(_timeStepUserDDTags, tag);
 	_rootnode->GetChild(ts)->SetElementDouble(tag, value);
 	return(0);
  }
 
  const vector<double> &GetTSUserDataDouble(size_t ts, const string &tag) const {
-	CHK_TS(ts, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(tag));
+	CHK_TS_OPT(ts, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->HasElementDouble(tag))
+		return(_rootnode->GetChild(ts)->GetElementDouble(tag));
+	else 
+		return(_emptyDoubleVec);
  }
  const vector<string> &GetTSUserDataDoubleTags() const {
 	return(_timeStepUserDDTags);
@@ -879,15 +1021,18 @@ public:
  int SetTSUserDataString(
 	size_t ts, const string &tag, const string &value
  ) {
-	CHK_TS(ts, -1)
+	CHK_TS_REQ(ts, -1)
 	_RecordUserDataTags(_timeStepUserDSTags, tag);
 	_rootnode->GetChild(ts)->SetElementString(tag, value);
 	return(0);
  }
 
  const string &GetTSUserDataString(size_t ts, const string &tag) const {
-	CHK_TS(ts, _emptyString)
-	return(_rootnode->GetChild(ts)->GetElementString(tag));
+	CHK_TS_OPT(ts, _emptyString)
+	if (_rootnode->GetChild(ts)->HasElementString(tag))
+		return(_rootnode->GetChild(ts)->GetElementString(tag));
+	else 
+		return(_emptyString);
  }
  const vector<string> &GetTSUserDataStringTags() const {
 	return(_timeStepUserDSTags);
@@ -937,7 +1082,7 @@ public:
  int SetVUserDataLong(
 	size_t ts, const string &var, const string &tag, const vector<long> &value
  ) {
-	CHK_VAR(ts, var, -1)
+	CHK_VAR_REQ(ts, var, -1)
 	_RecordUserDataTags(_variableUserDLTags, tag);
 	_rootnode->GetChild(ts)->GetChild(var)->SetElementLong(tag, value);
 	return(0);
@@ -953,13 +1098,19 @@ public:
  //! \param[in] tag Name of metadata tag
  //! \retval vector A vector of metadata values associated with \p tag. If
  //! \p tag is not defined by the metadata class, the vector returned 
+ //! is empty.
  //! \sa GetTSUserDataLongTag(), SetTSUserDataLong()
+ //!
+ //! \remarks Optional element
  //
  const vector<long> &GetVUserDataLong(
 	size_t ts, const string &var, const string &tag
  ) const {
-	CHK_VAR(ts, var, _emptyLongVec)
-	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementLong(tag));
+	CHK_VAR_OPT(ts, var, _emptyLongVec)
+	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementLong(tag))
+		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementLong(tag));
+	else 
+		return(_emptyLongVec);
  }
 
  const vector<string> &GetVUserDataDoubleTags() const {
@@ -968,7 +1119,7 @@ public:
  int SetVUserDataDouble(
 	size_t ts, const string &var, const string &tag, const vector<double> &value
  ) {
-	CHK_VAR(ts, var, -1)
+	CHK_VAR_REQ(ts, var, -1)
 	_RecordUserDataTags(_variableUserDDTags, tag);
 	_rootnode->GetChild(ts)->GetChild(var)->SetElementDouble(tag, value);
 	return(0);
@@ -977,15 +1128,17 @@ public:
  const vector<double> &GetVUserDataDouble(
 	size_t ts, const string &var, const string &tag
  ) const {
-	CHK_VAR(ts, var, _emptyDoubleVec)
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyDoubleVec);
-	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(tag));
+	CHK_VAR_OPT(ts, var, _emptyDoubleVec)
+	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementDouble(tag))
+		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(tag));
+	else 
+		return(_emptyDoubleVec);
  }
 
  int SetVUserDataString(
 	size_t ts, const string &var, const string &tag, const string &value
  ) {
-	CHK_VAR(ts,var,-1)
+	CHK_VAR_REQ(ts,var,-1)
 	_RecordUserDataTags(_variableUserDSTags, tag);
 	_rootnode->GetChild(ts)->GetChild(var)->SetElementString(tag, value);
 	return(0);
@@ -994,9 +1147,13 @@ public:
  const string &GetVUserDataString(
 	size_t ts, const string &var, const string &tag
  ) const {
-	CHK_VAR(ts, var, _emptyString)
-	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(tag));
+	CHK_VAR_OPT(ts, var, _emptyString)
+	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementString(tag))
+		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(tag));
+	else 
+		return(_emptyString);
  }
+
  const vector<string> &GetVUserDataStringTags() const {
 	return(_variableUserDSTags);
  }
