@@ -203,6 +203,26 @@
 		tag		=> 0
 	},
 	{
+		idlname	=> "VDF_SETMAPPROJECTION",
+		name => "SetMapProjection",
+		set => 1,
+		type	=> "string",
+		vector	=> 0,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETMAPPROJECTION",
+		name => "GetMapProjection",
+		set => 0,
+		type	=> "string",
+		vector	=> 0,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
 		idlname	=> "VDF_SETPERIODIC",
 		name => "SetPeriodicBoundary",
 		set => 1,
