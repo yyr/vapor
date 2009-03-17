@@ -551,7 +551,7 @@ public:
  //!
  //! \retval integer-vector  
  //!
- //! \remarks Required element (VDF version 1.3 or greater)
+ //! \remarks Optional element 
  //
  const vector<long> &GetGridPermutation() const {
 	if (_rootnode->HasElementLong(_gridPermutationTag)) {
@@ -559,6 +559,46 @@ public:
 	} else {
 		return(_gridPermutationDefault);
 	}
+	};
+
+ //! Set a map projection argument string
+ //!
+ //! This method defines a 2D map projection from spherical to 2D space.
+ //! The projection string defines a mapping from a portion of the
+ //! earth's surface to a plane. The format of the string is white-space
+ //! separated list of parameter names and values. I.e.
+ //!
+ //! <tt> +param_name=param_value [+param_name=param_value...] </tt>
+ //!
+ //! where \b param_name is the name of the parameter and \b param_value
+ //! is the value associated with \b param_name. Further documentation
+ //! on allowable parameters and values may be found in the references
+ //! below.
+ //! 
+ //! \param[in] value projection string argument list
+ //! \retval status Returns a non-negative integer on success
+ //!
+ //! \sa http://trac.osgeo.org/geotiff/ http://www.vapor.ucar.edu
+ //
+ int SetMapProjection(const string &value) {
+	_rootnode->SetElementString(_mapProjectionTag, value);
+	return(0);
+	}
+
+ //! Return the map projection argument string, if it exists
+ //!
+ //! \retval value The map projection string. An empty string is returned
+ //! if a map projection is not defined.
+ //!
+ //! \remarks Optional element 
+ //!
+ //! \sa SetMapProjection()
+ //
+ const string &GetMapProjection() const {
+	if (_rootnode->HasElementString(_mapProjectionTag))
+		return(_rootnode->GetElementString(_mapProjectionTag));
+	else
+		return(_emptyString);
 	};
 
 
@@ -1227,6 +1267,7 @@ protected:
  static const string _zCoordsTag;
  static const string _periodicBoundaryTag;
  static const string _gridPermutationTag;
+ static const string _mapProjectionTag;
 
  // known xml attribute names
  //

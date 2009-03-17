@@ -60,6 +60,7 @@ const string Metadata::_yCoordsTag = "YCoords";
 const string Metadata::_zCoordsTag = "ZCoords";
 const string Metadata::_periodicBoundaryTag = "PeriodicBoundary";
 const string Metadata::_gridPermutationTag = "GridPermutation";
+const string Metadata::_mapProjectionTag = "MapProjection";
 
 
 const string Metadata::_blockSizeAttr = "BlockSize";
@@ -1399,12 +1400,6 @@ void	Metadata::_startElementHandler1(ExpatParseMgr* pm,
 			return;
 		}
 	}
-	else if (StrCmpNoCase(tag, _gridPermutationTag) == 0) {
-		if (StrCmpNoCase(type, _longType) != 0) {
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
-			return;
-		}
-	}
 	else {
 		// must be user or optional data
 		if (!((StrCmpNoCase(type, _stringType) != 0) ||
@@ -1639,12 +1634,6 @@ void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 	}
 	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
 		if (SetPeriodicBoundary(pm->getLongData()) < 0) {
-			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
-			return;
-		}
-	}
-	else if (StrCmpNoCase(tag, _gridPermutationTag) == 0) {
-		if (SetGridPermutation(pm->getLongData()) < 0) {
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
