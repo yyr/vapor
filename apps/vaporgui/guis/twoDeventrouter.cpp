@@ -219,7 +219,7 @@ void TwoDEventRouter::updateTab(){
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
 	
-	guiSetTextChanged(false);
+	
 	int orientation = 2; //x-y aligned
 	//set up the cursor position
 	mapCursor();
@@ -242,6 +242,7 @@ void TwoDEventRouter::updateTab(){
 			latLonFrame->hide();
 		}
 	}
+	guiSetTextChanged(false);
 	attachSeedCheckbox->setChecked(seedAttached);
 	
 	//Check on data/image mode, this affects what is displayed:
@@ -331,6 +332,7 @@ void TwoDEventRouter::updateTab(){
 			navigateButton->setOn(true);
 		}
 	} else {
+		
 		captureButton->setEnabled(false);
 		filenameEdit->setText(twoDParams->getImageFileName().c_str());
 		orientation = twoDParams->getOrientation();
@@ -341,7 +343,12 @@ void TwoDEventRouter::updateTab(){
 		orientationCombo->setCurrentItem(orientation);
 		resampleEdit->setText(QString::number(twoDParams->getResampRate()));
 		opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
-		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+		guiSetTextChanged(false);
+		if (geoRefCheckbox->isChecked() != twoDParams->isGeoreferenced()){
+			
+			geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+			
+		}
 		placementCombo->setCurrentItem(twoDParams->getImagePlacement());
 	}
 
@@ -608,6 +615,7 @@ void TwoDEventRouter::guiSetOrientation(int val){
 	if (tParams->isDataMode()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set 2D orientation");
 	tParams->setOrientation(val);
+	if (val!=2) tParams->setGeoreferenced(false);
 	PanelCommand::captureEnd(cmd, tParams); 
 	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
@@ -664,8 +672,8 @@ void TwoDEventRouter::guiSetPlacement(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "specify image placement");
 	tParams->setImagePlacement(val);
 	PanelCommand::captureEnd(cmd, tParams); 
-	//When placement is changed, must reload images
-	tParams->setImageDirty();
+	//When placement is changed, need to rebuild geometry for same image
+	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->refreshTwoD(tParams);
 }
 

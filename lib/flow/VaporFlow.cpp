@@ -811,10 +811,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	{
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
-		
-		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex] = (float)(dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0]);
+		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep);
+		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep);
+		if (prevTime.size()> 0 && nextTime.size()> 0)
+			pUserTimeSteps[tIndex] = (float)(nextTime[0] - prevTime[0]);
 		else
 			pUserTimeSteps[tIndex] = (float)(nextSampledStep - prevSampledStep);
 		//following should make the value always positive
@@ -867,12 +867,13 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		//Currently only one vapor time step is integrated at a time.
 		double diff = 0.0, curDiff = 0.0;
+		const vector<double>& iforTime = dataMgr->GetMetadata()->GetTSUserTime(iFor);
+		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSample);
+		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSample);
+		if (iforTime.size()>0 && prevTime.size()>0 && nextTime.size()> 0){
 		
-		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
-			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
-				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
-			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
-					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
+			diff = iforTime[0] -prevTime[0];
+			curDiff = nextTime[0] - iforTime[0]; 
 			
 		} else {
 			diff = (iFor - prevSample);
@@ -1080,9 +1081,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
-		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex] = (float)(dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0]);
+		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep);
+		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep);
+		if (nextTime.size()> 0 && prevTime.size()>0)
+			pUserTimeSteps[tIndex] = nextTime[0] - prevTime[0];	
 		else
 			pUserTimeSteps[tIndex] = (float)(nextSampledStep - prevSampledStep);
 		//following should make the value always positive
@@ -1143,12 +1145,15 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		double diff = 0.0, curDiff = 0.0;
-	
-		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
-			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
-				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
-			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
-					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
+		const vector<double>& iforTime = dataMgr->GetMetadata()->GetTSUserTime(iFor);
+		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSample);
+		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSample);
+		if(iforTime.size()> 0 && prevTime.size()> 0 && nextTime.size()> 0){
+		
+			diff = iforTime[0] - prevTime[0];
+				
+			curDiff = nextTime[0] - iforTime[0];
+					
 		} else {
 			diff = (iFor - prevSample);
 			curDiff = (nextSample - iFor);

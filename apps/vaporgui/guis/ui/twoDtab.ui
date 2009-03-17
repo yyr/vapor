@@ -962,44 +962,50 @@ create new 2D planar instances.</string>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>rotate 90</string>
+                                                                    <string>Rotate 90</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>rotate 180</string>
+                                                                    <string>Rotate 180</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>rotate 270</string>
+                                                                    <string>Rotate 270</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>invert</string>
+                                                                    <string>Invert</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>invert, rotate 90</string>
+                                                                    <string>Invert, rotate 90</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>invert, rotate 180</string>
+                                                                    <string>Invert, rotate 180</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>invert, rotate 270</string>
+                                                                    <string>Invert, rotate 270</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
                                                                 <cstring>placementCombo</cstring>
                                                             </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>115</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>specify image placement</string>
+                                                                <string>specify non-georeferenced image placement</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>When georeferencing is not used, the image is placed to fit in the 2D extents.  The placement within the extents can be rotated a multiple of 90 degrees, or the image may be inverted with or without a rotation.</string>

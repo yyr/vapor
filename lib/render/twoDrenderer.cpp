@@ -93,7 +93,7 @@ void TwoDRenderer::paintGL()
 	int imgWidth = imgSize[0];
 	int imgHeight = imgSize[1];
 	if (twoDTex){
-		enableFullClippingPlanes();
+		if(myTwoDParams->imageCrop()) enableFullClippingPlanes();
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -118,33 +118,68 @@ void TwoDRenderer::paintGL()
 		glDepthMask(GL_FALSE);
 		glColor4f(.8f,.8f,0.f,0.2f);
 	}
-	//Textures always draw elev grid.
-	if (!myTwoDParams->isDataMode() || myTwoDParams->isMappedToTerrain()){
+	//Draw elevation grid if we are mapped to terrain, or if
+	//It's in georeferenced image mode:
+	if ((!myTwoDParams->isDataMode() && myTwoDParams->isGeoreferenced()) || myTwoDParams->isMappedToTerrain()){
 		drawElevationGrid(currentFrameNum);
 		return;
 	}
 
+	//Following code renders a textured rectangle inside the 2D extents.
 	float corners[8][3];
 	myTwoDParams->calcBoxCorners(corners, 0.f);
 	for (int cor = 0; cor < 8; cor++)
 		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
 	
-	//determine the corners of the textured plane.
-	//the front corners are numbered 4 more than the back.
-	//Average the front and back to get the middle:
-	//
-	float midCorners[4][3];
-	for (int i = 0; i<4; i++){
-		for(int j=0; j<3; j++){
-			midCorners[i][j] = 0.5f*(corners[i][j]+corners[i+4][j]);
+	if (!myTwoDParams->isDataMode()) {
+		//determine the corners of the textured plane.
+		//If it's X-Y (orientation = 2) then use first 4. (2nd bit = 0)
+		//If it's X-Z (orientation = 1) then use 0,1,4,5 (1st bit = 0)
+		//If it's Y-Z (orientation = 0) then use even numbered (0th bit = 0)
+		float rectCorners[4][3];
+		int orient = myTwoDParams->getOrientation();
+		//Copy the corners that will be the corners of the image: 
+		int cor1 = 0;
+		for(int rectCor = 0; rectCor< 4; rectCor++){
+			for(int j=0; j<3; j++){
+				rectCorners[rectCor][j] = corners[cor1][j];
+			}
+			cor1++; //always increment at least 1
+			if (orient == 0) cor1++; //increment 2 each time
+			if (orient == 1 && rectCor == 1) cor1 +=2; //increment 3 the 2nd time
 		}
+
+		//Now reorder based on rotation and inversion.
+		//Rotation by 90, 180, 270 advances the vertex index by 1,2,3 (mod 4).
+		//Inversion swaps first 2 and second 2.
+		//Put the results back in the first four values of the original corners array:
+		int ordering = myTwoDParams->getImagePlacement();
+		
+		for (int i = 0; i< 4; i++){
+			//strange ordering for rotation:
+			//bitrev, then add 2 to rotate 90 degrees
+			//bitrev swaps 1 and 2
+			int sourceIndex = i;
+			for (int k = 0; k<ordering; k++){
+				int bitrevIndex = sourceIndex;
+				if (bitrevIndex == 2 || bitrevIndex == 1) bitrevIndex = 3 - bitrevIndex;
+				sourceIndex = (bitrevIndex+2)%4;
+			}
+
+			if (ordering>3) //inversion
+				sourceIndex+= 2;
+			for(int j=0; j<3; j++){
+				corners[i][j] = rectCorners[sourceIndex%4][j];
+			}
+		}
+
 	}
 	//Draw the textured rectangle:
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.f,0.f); glVertex3fv(midCorners[0]);
-	glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
-	glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
-	glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
+	glTexCoord2f(0.f,0.f); glVertex3fv(corners[0]);
+	glTexCoord2f(0.f, 1.f); glVertex3fv(corners[2]);
+	glTexCoord2f(1.f,1.f); glVertex3fv(corners[3]);
+	glTexCoord2f(1.f, 0.f); glVertex3fv(corners[1]);
 	
 	glEnd();
 	

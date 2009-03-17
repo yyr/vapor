@@ -90,7 +90,7 @@ public:
 	float getOpacMult() {return opacityMultiplier;}
 	void setOpacMult(float val){opacityMultiplier = val;}
 	string& getImageFileName(){return imageFileName;}
-	void setOrientation(int val){orientation = val;}
+	void setOrientation(int val);
 	int getOrientation() {return orientation;}
 	void setImageFileName(const char* fname) {imageFileName = std::string(fname);}
 

@@ -390,6 +390,7 @@ restart(){
 	textureSize[0] = textureSize[1] = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
+	orientation = 2;
 	setTwoDDirty();
 	if (twoDDataTextures) {
 		delete twoDDataTextures;
@@ -1167,7 +1168,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 
 
 	//Loop over pixels in texture.  Pixel centers map to edges of twoD plane
-	int orientation = ds->get2DOrientation(firstVarNum);
+	int dataOrientation = ds->get2DOrientation(firstVarNum);
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
 		twoDCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
@@ -1185,7 +1186,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
-				if (i == orientation) continue;
+				if (i == dataOrientation) continue;
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
@@ -1249,10 +1250,10 @@ void TwoDParams::adjustTextureSize(int sz[2]){
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i);
 	}
-	int orientation = ds->get2DOrientation(firstVarNum);
+	int dataOrientation = ds->get2DOrientation(firstVarNum);
 	int xcrd = 0, ycrd = 1;
-	if (orientation < 2) ycrd++;
-	if (orientation < 1) xcrd++;
+	if (dataOrientation < 2) ycrd++;
+	if (dataOrientation < 1) xcrd++;
 	const float* extents = ds->getExtents();
 	
 	float relWid = (twoDMax[xcrd]-twoDMin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
@@ -1276,10 +1277,10 @@ getTwoDVoxelExtents(float voxdims[2]){
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
-	int orientation = ds->get2DOrientation(firstVarNum);
+	int dataOrientation = ds->get2DOrientation(firstVarNum);
 	int xcrd = 0, ycrd = 1;
-	if (orientation < 2) ycrd = 2;
-	if (orientation < 1) xcrd = 1;
+	if (dataOrientation < 2) ycrd = 2;
+	if (dataOrientation < 1) xcrd = 1;
 	voxdims[0] = twoDMax[xcrd] - twoDMin[xcrd];
 	voxdims[1] = twoDMax[ycrd] - twoDMin[ycrd];
 	return;
@@ -1360,12 +1361,12 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
     //box (only different if terrain mapped)
 void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
 	//Find out orientation:
-	int orientation = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
-	mappedDims[2] = orientation;
-	mappedDims[0] = (orientation == 0) ? 1 : 0;  // x or y
-	mappedDims[1] = (orientation < 2) ? 2 : 1; // z or y
-	constVal[0] = twoDMin[orientation];
-	constVal[1] = twoDMax[orientation];
+	int dataOrientation = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
+	mappedDims[2] = dataOrientation;
+	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
+	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
+	constVal[0] = twoDMin[dataOrientation];
+	constVal[1] = twoDMax[dataOrientation];
 	//constant terms go to middle
 	b[0] = 0.5*(twoDMin[mappedDims[0]]+twoDMax[mappedDims[0]]);
 	b[1] = 0.5*(twoDMin[mappedDims[1]]+twoDMax[mappedDims[1]]);
@@ -1447,62 +1448,88 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	projDefinitionString = "";
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
 
-	
+	if (!tif) {
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 
+			"Unable to open tiff file: %s\n",
+			imageFileName.c_str());
+		return 0;
+	}
 	//Set the tif directory to the one associated with the
 	//current frame num.
 	if (!imageNums) setupImageNums(tif);
 	int currentDir = getImageNum(timestep);
 	
 	TIFFSetDirectory(tif, currentDir);
-	char* proj4String;
-	GTIFDefn* gtifDef;
-	GTIF* gtifHandle;
 	
+	uint32 w, h;
+	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
 	
-	if (tif){  //get a proj4 definition string if it exists, using geoTiff lib
-		gtifHandle = GTIFNew(tif);
-		gtifDef = new GTIFDefn();
+
+	if (isGeoreferenced()){  //get a proj4 definition string if it exists, using geoTiff lib
+		GTIF* gtifHandle = GTIFNew(tif);
+		GTIFDefn* gtifDef = new GTIFDefn();
 		int rc1 = GTIFGetDefn(gtifHandle,gtifDef);
-		proj4String = GTIFGetProj4Defn(gtifDef);
+		char* proj4String = GTIFGetProj4Defn(gtifDef);
 		qWarning("proj4 string: %s",proj4String);
 		projDefinitionString = proj4String;
-		
-		
-//ModelTiepointTag and modelpixelscale needed to calculate image corners
-		uint16 nCount;
+		//Check it out..
+		projPJ p = pj_init_plus(proj4String);
+		int gotFields = false;
 		double* padfTiePoints, *modelPixelScale;
-		int rc = TIFFGetField(tif,TIFFTAG_GEOTIEPOINTS,&nCount,&padfTiePoints);
 		
-		int rc2 = TIFFGetField(tif, TIFFTAG_GEOPIXELSCALE, &nCount, &modelPixelScale );
-		uint32 w, h;
-		size_t npixels;
+		if (!p){
+			//Invalid string. Get the error code:
+			int *pjerrnum = pj_get_errno_ref();
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not properly geo-referenced\n %s\n %s\n",
+				pj_strerrno(*pjerrnum),
+				"Geo-referencing has been disabled");
+			setGeoreferenced(false);
+		} else {
 
-		TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+			pj_free(p);
+		
+			//ModelTiepointTag and modelpixelscale needed to calculate image corners
+			uint16 nCount;
+			
+			gotFields = TIFFGetField(tif,TIFFTAG_GEOTIEPOINTS,&nCount,&padfTiePoints);
+		
+			if(gotFields) gotFields = TIFFGetField(tif, TIFFTAG_GEOPIXELSCALE, &nCount, &modelPixelScale );
+		}
+		
+
+		
 		
 		double pixelStart[2];
-		if (rc2 && rc){
+		if (gotFields && isGeoreferenced()){
 			pixelStart[0] = padfTiePoints[0];
 			pixelStart[1] = h-1 - padfTiePoints[1];
 			imgExts[0] = padfTiePoints[3]-pixelStart[0]*modelPixelScale[0];
 			imgExts[1] = padfTiePoints[4]-pixelStart[1]*modelPixelScale[1];
 			imgExts[2] = padfTiePoints[3]+(w-1-pixelStart[0])*modelPixelScale[0];
 			imgExts[3] = padfTiePoints[4]+(h-1-pixelStart[1])*modelPixelScale[1];
+		} else if (isGeoreferenced()){
+			//Inadequate georeferencing:
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not geo-referenced\n %s\n",
+				"Geo-referencing has been disabled");
+			setGeoreferenced(false);
 		}
-		npixels = w * h;
-		
-		uint32* texture = new unsigned int[npixels];
-		if (texture != NULL) {
-			if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
-				*wid = w;
-				*ht = h;
-				//May need to resample here!
-			}
-		}
-	
-		TIFFClose(tif);
-		return (unsigned char*) texture;
 	}
+	//Following is valid whether or not we are georeferenced:
+	size_t npixels = w * h;
+	
+	uint32* texture = new unsigned int[npixels];
+	if (texture != NULL) {
+		if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
+			*wid = w;
+			*ht = h;
+			//May need to resample here!
+		}
+	}
+
+	TIFFClose(tif);
+	return (unsigned char*) texture;
+	
 
 	return 0;
 }
@@ -1515,6 +1542,9 @@ void TwoDParams::setupImageNums(TIFF* tif){
 	int dircount = 0;
 	TIME64_T wrfTime;
 	//Check if the first time step has a time stamp
+	
+	//const TIFFFieldInfo*  tfield = TIFFFindFieldInfo(tif, TIFFTAG_DATETIME, TIFF_ASCII);
+	//  For some reason the following can crash on windows in TIFFFindFieldInfo:
 	bool timesOK = TIFFGetField(tif,TIFFTAG_DATETIME,&timePtr);
 	
 	vector <TIME64_T> tiffTimes;
@@ -1633,5 +1663,34 @@ bool TwoDParams::getImageCorners(int timestep, double displayCorners[8]){
 	//Now displayCorners are corners in projection space.  subtract offsets:
 	for (int i = 0; i<8; i++) displayCorners[i] -= RegionParams::getExtentsOffset(i%2, timestep);
 	return true;
+	
+}
+void TwoDParams::setOrientation(int val){
+	//Determine current proportions in width and height, with previous orientation
+	float boxwidth, boxheight;
+	int widthIndex = 0;
+	int heightIndex = 1;
+	if (orientation != 2) {heightIndex = 2; }
+	if (orientation == 0) {widthIndex = 1;}
+	const float* extents = DataStatus::getInstance()->getExtents();
+	
+	boxwidth = (twoDMax[widthIndex] - twoDMin[widthIndex])/(extents[widthIndex+3]-extents[widthIndex]);
+	boxheight = (twoDMax[heightIndex] - twoDMin[heightIndex])/(extents[heightIndex+3]-extents[heightIndex]);
+	
+	//Use the new values to reset the box extents.
+	//Make them use the same height and width, relative to the extents.
+	orientation = val;
+	float boxmid = 0.5f*(twoDMax[orientation]+twoDMin[orientation]);
+	twoDMax[orientation]=twoDMin[orientation] = boxmid;
+	heightIndex = 1; 
+	widthIndex = 0;
+	if (orientation != 2) {heightIndex = 2; }
+	if (orientation == 0) {widthIndex = 1;}
+	boxmid = 0.5f*(twoDMax[widthIndex]+twoDMin[widthIndex]);
+	twoDMax[widthIndex] = boxmid + 0.5f*boxwidth*(extents[widthIndex+3]-extents[widthIndex]);
+	twoDMin[widthIndex] = boxmid - 0.5f*boxwidth*(extents[widthIndex+3]-extents[widthIndex]);
+	boxmid = 0.5f*(twoDMax[heightIndex]+twoDMin[heightIndex]);
+	twoDMax[heightIndex] = boxmid + 0.5f*boxheight*(extents[heightIndex+3]-extents[heightIndex]);
+	twoDMin[heightIndex] = boxmid - 0.5f*boxheight*(extents[heightIndex+3]-extents[heightIndex]);
 	
 }
