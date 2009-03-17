@@ -27,6 +27,7 @@ struct opt_t {
 	char *coordsystem;
 	char *gridtype;
 	char *usertimes;
+	char *mapprojection;
 	float extents[6];
 	int order[3];
 	int periodic[3];
@@ -55,6 +56,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"usertimes",	1,	"",	"Path to a file containing a whitespace "
 		"delineated list of user times. If present, -numts "
 		"option is ignored."}, 
+	{"mapprojection",	1,	"",	"A whitespace "
+		"delineated list of GeoTiff +paramname=paramvalue pairs. vdfcreate "
+		"does not validate the string for correctness in any way"},
 	{"coordsystem",	1,	"cartesian","Data coordinate system "
 		"(cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector "
@@ -89,6 +93,7 @@ OptionParser::Option_T	get_options[] = {
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
 	{"gridtype", VetsUtil::CvtToString, &opt.gridtype, sizeof(opt.gridtype)},
 	{"usertimes", VetsUtil::CvtToString, &opt.usertimes, sizeof(opt.usertimes)},
+	{"mapprojection", VetsUtil::CvtToString, &opt.mapprojection, sizeof(opt.mapprojection)},
 	{"coordsystem", VetsUtil::CvtToString, &opt.coordsystem, sizeof(opt.coordsystem)},
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"order", cvtToOrder, &opt.order, sizeof(opt.order)},
@@ -188,6 +193,13 @@ int	main(int argc, char **argv) {
 	}
 	else {
 		if (file->SetNumTimeSteps(opt.numts) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
+	}
+
+	if (strlen(opt.mapprojection)) {
+		if (file->SetMapProjection(opt.mapprojection) < 0) {
 			cerr << Metadata::GetErrMsg() << endl;
 			exit(1);
 		}

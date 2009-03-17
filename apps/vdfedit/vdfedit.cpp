@@ -44,6 +44,7 @@ int	cvtTo3DBool(const char *from, void *to);
 int	cvtToOrder(const char *from, void *to);
 
 struct opt_t {
+	char *mapprojection;
 	vector <string> addvars3d;
 	vector <string> addvars2dxy;
 	vector <string> addvars2dxz;
@@ -56,6 +57,9 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
+	{"mapprojection",1,	"",			"A whitespace "
+        "delineated list of GeoTiff +paramname=paramvalue pairs. vdfedit "
+        "does not validate the string for correctness in any way"},
 	{"addvars3d",1,	"",			"Colon delimited list of 3D variables to be\n\t\t\t\tadded to the VDF file"},
 	{"addvars2dxy",1,	"",			"Colon delimited list of 2D XY-plane variables to be\n\t\t\t\tadded to the VDF file"},
 	{"addvars2dxz",1,	"",			"Colon delimited list of 2D XZ-plane variables to be\n\t\t\t\tadded to the VDF file"},
@@ -70,6 +74,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 
 OptionParser::Option_T	get_options[] = {
+	{"mapprojection", VetsUtil::CvtToString, &opt.mapprojection, sizeof(opt.mapprojection)},
 	{"addvars3d", VetsUtil::CvtToStrVec, &opt.addvars3d, sizeof(opt.addvars3d)},
 	{"addvars2dxy", VetsUtil::CvtToStrVec, &opt.addvars2dxy, sizeof(opt.addvars2dxy)},
 	{"addvars2dxz", VetsUtil::CvtToStrVec, &opt.addvars2dxz, sizeof(opt.addvars2dxz)},
@@ -164,6 +169,13 @@ int	main(int argc, char **argv) {
 
 	if (metadata->Write(bkupfile) < 0) {
 		exit(1);
+	}
+
+	if (strlen(opt.mapprojection)) {
+		if (metadata->SetMapProjection(opt.mapprojection) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
 	}
 
 	//
