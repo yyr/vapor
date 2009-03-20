@@ -49,12 +49,12 @@ int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo,
 int WRF::GetProjectionString(int ncid, string& projString){
 	string empty;
 	ostringstream oss;
-	
+	float lat0,lat1,lat2,lon0,latts;
 	int projNum;
 	NC_ERR_READ( nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) );
 	switch (projNum){
 		case(1): //Lambert
-			float lat0, lat1, lat2, lon0;
+			
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "MOAD_CEN_LAT", &lat0 ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT1", &lat1 ) );
@@ -83,7 +83,28 @@ int WRF::GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
+		case(3): //Mercator
+			
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT1", &latts ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
+			//Construct the projection string:
+			projString = "+proj=merc";
+
+			projString += " +lon_0=";
+			oss.str(empty);
+			oss << (double)lon0;
+			projString += oss.str();
+			
+			projString += " +lat_ts=";
+			oss.str(empty);
+			oss << (double)latts;
+			projString += oss.str();
+
+			projString += " +ellps=sphere";
+			break;
 		default:
+
+			cerr << "Unknown MAP_PROJ value " <<  projNum <<  endl;
 			return -1;
 
 	}

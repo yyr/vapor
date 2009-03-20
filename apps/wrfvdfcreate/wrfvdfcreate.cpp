@@ -51,9 +51,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement (default is 2)"},
 	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T",		"Colon delimited list of atypical names for U:V:W:PH:PHB:P:PB:T that appear in WRF file"},
 	{"comment",	1,	"",				"Top-level comment (optional)"},
-	{"mapprojection",	1,	"",	"A whitespace "
-		"delineated list of PROJ4 +paramname=paramvalue pairs. vdfcreate "
-		"does not validate the string for correctness in any way"},
+	{"mapprojection",	1,	"",	"A whitespace delineated list of "
+		"PROJ4 +paramname=paramvalue pairs. If this is invalid, then time-varying extents "
+		"will not be provided in the metadata"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in grid points (NXxNYxNZ) (default is 32)"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default is 1)"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients (default is 1)"},
