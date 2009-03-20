@@ -182,7 +182,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 		currentViewpoint->setRotationCenterLocal(1,rotCenter1->text().toFloat());
 		//Convert to latlon if there is georeferencing
 		bool doconvert = false;
-		if (RegionParams::getProjectionString().size() != 0){
+		if (DataStatus::getProjectionString().size() != 0){
 			doconvert = vParams->convertToLatLon(timestep);
 		}
 		if(doconvert){
@@ -318,7 +318,7 @@ void ViewpointEventRouter::updateTab(){
 		showlatlon = true;
 	}
 	else {
-		if (RegionParams::getProjectionString().size() > 0)
+		if (DataStatus::getProjectionString().size() > 0)
 			showlatlon = vpParams->convertToLatLon(timestep);
 	}
 	if (showlatlon){

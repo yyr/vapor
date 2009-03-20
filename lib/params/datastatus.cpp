@@ -57,6 +57,8 @@ std::vector<bool> DataStatus::extendDown;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
+std::vector<float*> DataStatus::timeVaryingExtents;
+std::string DataStatus::projString;
 
 int DataStatus::numMetadataVariables2D = 0;
 int DataStatus::numOriented2DVars[3] = {0,0,0};
@@ -132,6 +134,18 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	std::vector<double> mdExtents = currentMetadata->GetExtents();
 	for (int i = 0; i< 6; i++)
 		extents[i] = (float)mdExtents[i];
+
+	projString = currentMetadata->GetMapProjection();
+	
+	timeVaryingExtents.clear();
+	for (int i = 0; i<numTS; i++){
+		
+		const vector<double>& mdexts = currentMetadata->GetTSExtents(i);
+		if (mdexts.size() < 6) continue;
+		float* tsexts = new float[6];
+		for (int j = 0; j< 6; j++){ tsexts[j] = mdexts[j];}
+		timeVaryingExtents.push_back(tsexts);
+	}
 	
 	//clean out the various status arrays:
 
@@ -553,10 +567,10 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 void DataStatus::getExtentsAtLevel(int level, float exts[6]){
 	size_t minm[3], maxm[3];
 	double usermin[3], usermax[3];
-	int minframe = (int)minTimeStep;
+	//int minframe = (int)minTimeStep;
 	myReader->GetValidRegion(minm, maxm, level);
-	myReader->MapVoxToUser(minframe, minm, usermin, level);
-	myReader->MapVoxToUser(minframe, maxm, usermax, level);
+	myReader->MapVoxToUser((size_t)-1, minm, usermin, level);
+	myReader->MapVoxToUser((size_t)-1, maxm, usermax, level);
 	for (int i = 0; i<3; i++){
 		exts[i] = (float)usermin[i];
 		exts[i+3] = (float)usermax[i];
@@ -634,8 +648,8 @@ int DataStatus::get2DOrientation(int mdvar){
 //coordinates are in the order longitude,latitude
 bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 	//Set up proj.4 to convert from LatLon to VDC coords
-	if (RegionParams::getProjectionString().size() == 0) return false;
-	projPJ vapor_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	if (getProjectionString().size() == 0) return false;
+	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
 	if (!vapor_proj) return false;
 	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
 	if (!latlon_proj) return false;
@@ -653,22 +667,32 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 			return false;
 		}
 	}
-	//Modify offset to convert projection coords to vapor coords
-	for (int i = 0; i<2*npoints; i++) coords[i] -= RegionParams::getExtentsOffset(i%2, timestep);
+	//Subtract offset to convert projection coords to vapor coords
+	if(timestep < 0) {
+		const float * globExts = DataStatus::getInstance()->getExtents();
+		const float* exts = getExtents(timestep);
+		for (int i = 0; i<2*npoints; i++) coords[i] -= (exts[i%2]-globExts[i%2]);
+	}
 	return true;
 	
 }
+//if timestep is -1, the coordinates are assumed to be in the invariant
+//extents.  Otherwise they are taken to be in the time-varying extents
 bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 
 	//Set up proj.4 to convert to latlon
-	if (RegionParams::getProjectionString().size() == 0) return false;
-	projPJ vapor_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	if (getProjectionString().size() == 0) return false;
+	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
 	if (!vapor_proj) return false;
 	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
 	if (!latlon_proj) return false;
+	if (timestep < 0){
+		const float * globExts = DataStatus::getInstance()->getExtents();
+		//Apply projection offset to convert vapor local coords to projection space:
+		const float* exts = getExtents(timestep);
+		for (int i = 0; i<2*npoints; i++) coords[i] += (exts[i%2]-globExts[i%2]);
+	}
 	
-	//Apply projection offset to convert vapor local coords to projection space:
-	for (int i = 0; i<npoints*2; i++) coords[i] += RegionParams::getExtentsOffset(i%2, timestep);
 	//If it's already latlon, we're done:
 	if (pj_is_latlong(vapor_proj)) return true;
 

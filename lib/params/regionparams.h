@@ -121,20 +121,7 @@ public:
 	void setInfoNumRefinements(int n){infoNumRefinements = n;}
 	void setInfoTimeStep(int n) {infoTimeStep = n;}
 	void setInfoVarNum(int n) {infoVarNum = n;}
-	static std::string getProjectionString(){
-		return(std::string("+proj=lcc +lon_0=-83.7 +lat_1=31.9 +lat_2=31.9 +lat_0=31.9 +ellps=sphere"));}
-	static float* getProjectionExts(){
-		static float val[6] = {-472574.f, -522081.f, 0.f, 472572.f, 522081.f, 0.f};
-		return val;
-	}
-	//Return offset of current region corner from projection center.
-	//This is the value that is added to a local coordinate to obtain
-	//the position in the projection (world) coord space.
-	//
-	static float getExtentsOffset(int coord, int /*timestep*/) {
-		return getProjectionExts()[coord];}
-
-
+		
 protected:
 	static const string _regionMinTag;
 	static const string _regionMaxTag;

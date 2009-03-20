@@ -1025,7 +1025,7 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
 			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
 		}
-		myReader->MapUserToVox(timestep, resultVec, intResult, numRefs);
+		myReader->MapUserToVox((size_t)-1, resultVec, intResult, numRefs);
 		// then make sure the container includes it:
 		for(int i = 0; i< 3; i++){
 			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
@@ -1265,7 +1265,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			//find the coords that the texture maps to
 			//probeCoord is the coord in the probe, dataCoord is in data volume 
-			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
+			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
@@ -1650,7 +1650,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			
-			myReader->MapUserToVox(timestep, dataCoord, arrayCoord, actualRefLevel);
+			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;

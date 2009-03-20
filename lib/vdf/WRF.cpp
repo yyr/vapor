@@ -7,6 +7,7 @@
 #include <sstream>
 #include <ctime>
 #include <netcdf.h>
+#include "assert.h"
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
@@ -25,6 +26,70 @@ using namespace VAPoR;
 		return(-1); \
 	} \
     }
+//Read the corner coordinates (in latitude and longitude) from the xlat,xlong variables
+int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo, float coords[4]){
+	size_t coordIndex[3];
+	coordIndex[2] = 0;
+	coordIndex[1] = 0;
+	coordIndex[0] = ts;
+	int rc = nc_get_var1_float(ncid, lonInfo.varid, coordIndex, coords);
+	if (rc<0) return rc;
+	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+1);
+	if (rc<0) return rc;
+	//set to xsize, ysize, ts
+	coordIndex[2] = latInfo.dimlens[2]-1;
+	coordIndex[1] = latInfo.dimlens[1]-1;
+	rc = nc_get_var1_float(ncid, lonInfo.varid, coordIndex,coords+2);
+	if (rc<0) return rc;
+	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+3);
+	if (rc<0) return rc;
+	return 0;
+}
+
+int WRF::GetProjectionString(int ncid, string& projString){
+	string empty;
+	ostringstream oss;
+	
+	int projNum;
+	NC_ERR_READ( nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) );
+	switch (projNum){
+		case(1): //Lambert
+			float lat0, lat1, lat2, lon0;
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "MOAD_CEN_LAT", &lat0 ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT1", &lat1 ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT2", &lat2 ) );
+			//Construct the projection string:
+			projString = "+proj=lcc";
+			projString += " +lon_0=";
+			oss.str(empty);
+			oss << (double)lon0;
+			projString += oss.str();
+			
+			projString += " +lat_0=";
+			oss.str(empty);
+			oss << (double)lat0;
+			projString += oss.str();
+
+			projString += " +lat_1=";
+			oss.str(empty);
+			oss << (double)lat1;
+			projString += oss.str();
+
+			projString += " +lat_2=";
+			oss.str(empty);
+			oss << (double)lat2;
+			projString += oss.str();
+
+			projString += " +ellps=sphere";
+			break;
+		default:
+			return -1;
+
+	}
+	return 0;
+	
+}
 
 // Gets info about a 3D variable and stores that info in thisVar.
 int	WRF::GetVarInfo(
@@ -333,9 +398,10 @@ int WRF::OpenWrfGetMeta(
 	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
+	string &mapProjection, //PROJ4 projection string
 	vector<string> & wrfVars3d, 
 	vector<string> & wrfVars2d, 
-	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
+	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon extents (out)
 ) {
 	int ncid; // Holds netCDF file ID
 	int ndims; // Number of dimensions in netCDF
@@ -350,7 +416,7 @@ int WRF::OpenWrfGetMeta(
 	
 	wrfVars3d.clear();
 	wrfVars2d.clear();
-	timestamps.clear();
+	tsExtents.clear();
 
 	// Open netCDF file and check for failure
 	NC_ERR_READ( nc_open( wrfName, NC_NOWRITE, &ncid ));
@@ -418,6 +484,10 @@ int WRF::OpenWrfGetMeta(
 	// Get DX and DY
 	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx ) );
 	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy ) );
+
+	//Build the projection string, 
+	//If we can't, the projection string is length 0
+	GetProjectionString(ncid, mapProjection);
 	
 	// Get starting time stamp
 	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
@@ -585,9 +655,17 @@ int WRF::OpenWrfGetMeta(
 
 	}
 
-	// Get time stamps
+	// Get time stamps and lat/lon extents
 	//
 	varInfo timeInfo; // structs for variable information
+
+	varInfo latInfo, lonInfo;
+	if (GetVarInfo(ncid, "XLAT", ncdims, latInfo)< 0) return -1;
+	if (GetVarInfo(ncid, "XLONG", ncdims, lonInfo)< 0) return -1;
+
+	assert((latInfo.dimids[1] ==  snId) && (latInfo.dimids[2] ==  weId) &&
+		(latInfo.dimids[0] == timeId));
+			
 
 	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
 	if (timeInfo.ndimids != 2) {
@@ -602,12 +680,15 @@ int WRF::OpenWrfGetMeta(
 	}
 	nc_status = nc_get_var_text(ncid, timeInfo.varid, buf);
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
+		float * latlonexts = new float[4];
+		if (GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0) return -1;
 		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		TIME64_T seconds;
 
 		if (WRFTimeStrToEpoch(time_fmt, &seconds) < 0) return(-1);
-
-		timestamps.push_back(seconds);
+		pair <TIME64_T, float*> pr;
+		pr = make_pair(seconds, (float*)latlonexts);
+		tsExtents.push_back(pr);
 	}
 
 	// Close the WRF file

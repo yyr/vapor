@@ -486,11 +486,11 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	int elevGridRefLevel = tParams->getNumRefinements();
 	//Do mapping to voxel coords at current ref level:
-	myReader->MapUserToVox(timeStep, regMin, min_dim, elevGridRefLevel);
-	myReader->MapUserToVox(timeStep, regMax, max_dim, elevGridRefLevel);
+	myReader->MapUserToVox((size_t)-1, regMin, min_dim, elevGridRefLevel);
+	myReader->MapUserToVox((size_t)-1, regMax, max_dim, elevGridRefLevel);
 	//Convert back to user coords:
-	myReader->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
-	myReader->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
+	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
+	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
 	//Extend by 1 voxel in x and y if it is smaller than original domain
 	for (int i = 0; i< 2; i++){
 		if(regMin[i] > origRegMin[i] && min_dim[i]>0) min_dim[i]--;
@@ -499,8 +499,8 @@ bool TwoDRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//Convert increased vox dims to user coords:
-	myReader->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
-	myReader->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
+	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
+	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
 	//Don't allow the terrain surface to be below the minimum extents:
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	
@@ -663,11 +663,7 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 
 	//Specify the parameters that are needed to define the elevation grid:
 
-	 
-	//Note (TODO): 
-	//When we support a vertical oriented image or if there
-	//is no projection mapping, then there 
-	//will be no need for more than one polygon.
+	
 
 	//Determine the grid size, the data extents, and the image size:
 	DataStatus* ds = DataStatus::getInstance();
@@ -678,7 +674,8 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
 	int refLevel = tParams->getNumRefinements();
 
-	//Find the corners of the image (to find size of image in scene
+	//Find the corners of the image (to find size of image in scene.
+	//Get these relative to actual extents in projection space
 	double displayCorners[8];
 	if (!tParams->getImageCorners(timeStep,displayCorners))
 		return false;
@@ -702,8 +699,8 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	projPJ dst_proj;
 	projPJ src_proj; 
 	
-	src_proj = pj_init_plus(tParams->getProjectionString().c_str());
-	dst_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
+	src_proj = pj_init_plus(tParams->getImageProjectionString().c_str());
+	dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
 	bool doProj = (src_proj != 0 && dst_proj != 0);
 	if (!doProj) return false;
 
@@ -755,9 +752,9 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 			min_dim[i] = 0;
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
-		//Convert to user coords:
-		myReader->MapVoxToUser(timeStep, min_dim, regMin, refLevel);
-		myReader->MapVoxToUser(timeStep, max_dim, regMax, refLevel);
+		//Convert to user coords in non-moving extents:
+		myReader->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
+		myReader->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
 
 		int varnum = DataStatus::getSessionVariableNum2D("HGT");
 		//Try to get requested refinement level or the nearest acceptable level:
@@ -807,6 +804,8 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	//Use a line buffer to hold 3d coordinates for transforming
 	double* elevVertLine = new double[3*maxx];
 	float locCoords[3];
+	const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
+	
 	for (int j = 0; j<maxy; j++){
 		
 		for (int i = 0; i<maxx; i++){
@@ -836,10 +835,13 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 		//Copy the result back to elevVert. 
 		//Translate by local offset
 		//then convert to stretched cube coords
+		//The coordinates are in projection space, which is associated
+		//with the moving extents.  Need to get them back into the
+		//local (non-moving) extents for rendering:
 		
 		for (int i = 0; i< maxx; i++){
-			locCoords[0] = (float)elevVertLine[3*i] - RegionParams::getExtentsOffset(0, timeStep);
-			locCoords[1] = (float)elevVertLine[3*i+1] - RegionParams::getExtentsOffset(1, timeStep);
+			locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
+			locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
 			if (tParams->isMappedToTerrain()){
 				//Find cell coordinates of locCoords in data grid space
 				int gridLL[2];
@@ -853,7 +855,7 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 				if (gridLL[0] < min_dim[0] || gridLL[1] < min_dim[1] || gridLL[0] > max_dim[0]-2 ||
 						gridLL[1] > (max_dim[1] -2)){ 
 					//outside points go to minimum elevation
-					locCoords[2] = constElev - RegionParams::getExtentsOffset(2, timeStep);
+					locCoords[2] = constElev;
 				} else { 
 					//find locCoords [0..1]relative to grid cell:???
 					float x = (fltGridLL[0] - gridLL[0]);
@@ -875,7 +877,7 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 				}
 			}
 			else { //not mapped to terrain, use constant elevation
-				locCoords[2] = constElev - RegionParams::getExtentsOffset(2, timeStep);
+				locCoords[2] = constElev;
 			}
 			//Convert to stretched cube coords.  Note that following
 			//routine requires local coords, not global world coords, despite name of method:

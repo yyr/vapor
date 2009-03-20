@@ -108,7 +108,7 @@ centerFullRegion(int timestep){
 		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i)/stretch[i];
 		currentViewpoint->setCameraPosLocal(i, camPosCrd);
-		currentViewpoint->setRotationCenterLocal(i, camPosCrd);
+		currentViewpoint->setRotationCenterLocal(i, dataCenter);
 	}
 	if (useLatLon) {
 		convertToLatLon(timestep);
@@ -570,8 +570,11 @@ convertFromLatLon(int timestep){
 	}
 	return ok;
 }
+//Convert time-invariant extents, (timestep is >= 0)
+
 bool ViewpointParams::
 convertToLatLon(int timestep){
+	assert (timestep >= 0);
 //Convert the latlon coordinates for this time step:
 	double coords[4];
 	coords[0] = getCameraPos(0);

@@ -7,7 +7,17 @@ FILES = wrfvdfcreate
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = vdf common netcdf $(EXPAT_LIB)
+ifdef PROJ_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
+endif
+
+ifdef PROJ_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(PROJ_LIB_PATH)
+endif
+
+
+
+LIBRARIES = vdf common netcdf proj $(EXPAT_LIB)
 
 include ${TOP}/make/config/base.mk
 

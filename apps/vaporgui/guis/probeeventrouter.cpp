@@ -384,8 +384,8 @@ void ProbeEventRouter::updateTab(){
 	const VDFIOBase* myReader = ds->getRegionReader();
 	if (myReader){
 		int fullRefLevel = ds->getNumTransforms();
-		myReader->MapUserToVox(currentTimeStep, dboxmin, gridMin, fullRefLevel);
-		myReader->MapUserToVox(currentTimeStep, dboxmax, gridMax, fullRefLevel);
+		myReader->MapUserToVox((size_t)-1, dboxmin, gridMin, fullRefLevel);
+		myReader->MapUserToVox((size_t)-1, dboxmax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -394,7 +394,7 @@ void ProbeEventRouter::updateTab(){
 		maxGridZLabel->setText(QString::number(gridMax[2]));
 	}
 	//Provide latlon box extents if available:
-	if (RegionParams::getProjectionString().size() == 0){
+	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
@@ -402,6 +402,7 @@ void ProbeEventRouter::updateTab(){
 		boxLatLon[1] = boxmin[1];
 		boxLatLon[2] = boxmax[0];
 		boxLatLon[3] = boxmax[1];
+		
 		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
@@ -425,7 +426,7 @@ void ProbeEventRouter::updateTab(){
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
 
 	//Provide latlon coords if available:
-	if (RegionParams::getProjectionString().size() == 0){
+	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <netcdf.h>
-
+#include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
 #include <vapor/Metadata.h>
@@ -28,6 +28,7 @@ struct opt_t {
 	int	nfilter;
 	int	nlifting;
 	char *comment;
+	char* mapprojection;
 	float extents[6];
 	vector <string> vars3d;
 	vector <string> vars2d;
@@ -50,6 +51,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement (default is 2)"},
 	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T",		"Colon delimited list of atypical names for U:V:W:PH:PHB:P:PB:T that appear in WRF file"},
 	{"comment",	1,	"",				"Top-level comment (optional)"},
+	{"mapprojection",	1,	"",	"A whitespace "
+		"delineated list of PROJ4 +paramname=paramvalue pairs. vdfcreate "
+		"does not validate the string for correctness in any way"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in grid points (NXxNYxNZ) (default is 32)"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default is 1)"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients (default is 1)"},
@@ -71,6 +75,7 @@ OptionParser::Option_T	get_options[] = {
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"atypvars", VetsUtil::CvtToStrVec, &opt.atypvars, sizeof(opt.atypvars)},
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
+	{"mapprojection", VetsUtil::CvtToString, &opt.mapprojection, sizeof(opt.mapprojection)},
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
@@ -79,26 +84,36 @@ OptionParser::Option_T	get_options[] = {
 	{NULL}
 };
 
+//Define ordering of pairs <timestep, extents> so they can be sorted together
+bool timeOrdering(pair<TIME64_T, float* > p,pair<TIME64_T, float* > q){
+	if (p.first < q.first) return true;
+	return false;
+}
+
 int	GetWRFMetadata(
 	const char **files,
 	int nfiles,
 	const WRF::atypVarNames_t wrfNames,
-	vector <TIME64_T> &timestamps,
+	
 	float extents[6],
 	size_t dims[3],
 	vector <string> &varnames3d,
 	vector <string> &varnames2d,
-	string startDate
+	string startDate,
+	string &mapProjection,
+	vector<pair<TIME64_T, float*> > &tStepExtents
 ) {
 	float _dx = 0.0;
 	float _dy = 0.0;
 	float _vertExts[2];
 	string _startDate;
+	string _mapProjection;
 	
-	vector <TIME64_T> ts;
+	vector<pair<TIME64_T,float*> > tsExtents; //one file's pairs of times and extents
 	vector<string> _wrfVars3d; // Holds names of 3d variables in WRF file
 	vector<string> _wrfVars2d; // Holds names of 2d variables in WRF file
-	vector <TIME64_T> _timestamps;
+	
+	vector<pair<TIME64_T,float*> > _tStepExtents; //accumulate times/extents as obtained.
 	size_t _dimLens[3];
 	bool first = true;
 	bool success = false;
@@ -114,12 +129,13 @@ int	GetWRFMetadata(
 
 		if (! extents) vertExtsPtr = NULL;
 
-		ts.clear();
+		tsExtents.clear();
 		wrfVars3d.clear();
 		wrfVars2d.clear();
 		rc = WRF::OpenWrfGetMeta(
 			files[i], wrfNames, dx, dy, vertExtsPtr, dimLens, 
-			startDate, wrfVars3d, wrfVars2d, ts 
+			startDate, mapProjection, wrfVars3d, wrfVars2d, 
+			tsExtents
 		);
 		if (rc < 0 || (vertExtsPtr && vertExtsPtr[0] >= vertExtsPtr[1])) {
 			cerr << "Error processing file " << files[i] << ", skipping" << endl;
@@ -137,6 +153,7 @@ int	GetWRFMetadata(
 			_wrfVars3d = wrfVars3d;
 			_wrfVars2d = wrfVars2d;
 			_startDate = startDate;
+			_mapProjection = mapProjection;
 		}
 		else {
 			bool mismatch = false;
@@ -146,6 +163,8 @@ int	GetWRFMetadata(
 	
 				mismatch = true;
 			}
+
+			if (mapProjection != _mapProjection) mismatch = true;
 
 			if (_wrfVars3d.size() != wrfVars3d.size()) {
 				mismatch = true;
@@ -182,39 +201,46 @@ int	GetWRFMetadata(
 		if (vertExts[0] < _vertExts[0]) _vertExts[0] = vertExts[0];
 		if (vertExts[1] < _vertExts[1]) _vertExts[1] = vertExts[1];
 
-		for (int j=0; j<ts.size(); j++) {
-			_timestamps.push_back(ts[j]);
+		//Copy all the timesteps & extents acquired from this file
+		for (int j=0; j< tsExtents.size(); j++) {
+			_tStepExtents.push_back(tsExtents[j]);
 		}
 		success = true;
 	}
 
 	// sort the time stamps, remove duplicates
+	// time stamps are paired with time-varying extents
 	//
-	sort(_timestamps.begin(), _timestamps.end());
-	timestamps.clear();
-	if (_timestamps.size()) timestamps.push_back(_timestamps[0]);
-	for (size_t i=1; i<_timestamps.size(); i++) {
-		if (_timestamps[i] != timestamps.back()) {
-			timestamps.push_back(_timestamps[i]);	// unique
+	
+	sort (_tStepExtents.begin(), _tStepExtents.end(), timeOrdering);
+	tStepExtents.clear();
+	if (_tStepExtents.size()) tStepExtents.push_back(_tStepExtents[0]);
+	for (size_t i=1; i<_tStepExtents.size(); i++) {
+		if (_tStepExtents[i].first != tStepExtents.back().first) {
+			tStepExtents.push_back(_tStepExtents[i]);	// unique times
+			
 		}
 	}
-
 
 	dims[0] = _dimLens[0];
 	dims[1] = _dimLens[1];
 	dims[2] = _dimLens[2];
 
 	if (extents) {
+
 		extents[0] = 0.0;
 		extents[1] = 0.0;
 		extents[2] = _vertExts[0];
-		extents[3] = _dx*_dimLens[0];
-		extents[4] = _dy*_dimLens[1];
+		extents[3] = _dx*(_dimLens[0]-1.);
+		extents[4] = _dy*(_dimLens[1]-1.);
 		extents[5] = _vertExts[1]; 
 	}
-
+	
+	
 	varnames3d = _wrfVars3d;
 	varnames2d = _wrfVars2d;
+
+	mapProjection = _mapProjection;
 
 	if (success) return(0);
 	else return(-1);
@@ -241,6 +267,7 @@ void ErrMsgCBHandler(const char *msg, int) {
 int	main(int argc, char **argv) {
 
 	OptionParser op;
+
 
 	size_t bs[3];
 	size_t dim[3];
@@ -288,12 +315,13 @@ int	main(int argc, char **argv) {
 
 	argv++;
 	argc--;
-	vector <TIME64_T> timestamps;
+	vector <pair<TIME64_T,float*> > tStepExtents; //pairs of timestamps, extents
 	vector <string> wrfVarNames3d, wrfVarNames2d;    // 2d and 3d vars
 	vector <string> vdfVarNames3d;
 	vector <string> vdfVarNames2d;
 	string startT;
-
+	string mapProj;
+	bool userSpecifiedExtents = false;  //set true if user specifies on command line
 	if (argc == 1) {	// No template file
 	
 		if (strlen(opt.startt) == 0) {
@@ -310,7 +338,9 @@ int	main(int argc, char **argv) {
 		startT.assign(opt.startt);
 		TIME64_T seconds;
 		if (WRF::WRFTimeStrToEpoch(opt.startt, &seconds) < 0) exit(1);
-		timestamps.push_back(seconds);
+		pair<TIME64_T,float*>pr;
+		pr = make_pair(seconds, (float*)0);
+		tStepExtents.push_back(pr);
 
 
 		dim[0] = opt.dim.nx;
@@ -320,15 +350,16 @@ int	main(int argc, char **argv) {
 		vdfVarNames3d = opt.vars3d;
 		vdfVarNames2d = opt.vars2d;
 
-		bool doExtents = false;
+		
 		for(int i=0; i<5; i++) {
-			if (opt.extents[i] != opt.extents[i+1]) doExtents = true;
+			if (opt.extents[i] != opt.extents[i+1]) userSpecifiedExtents = true;
 		}
-		if (doExtents) {
+		if (userSpecifiedExtents) {
 			for(int i=0; i<6; i++) {
 				extents[i] = opt.extents[i];
 			}
 		}
+
 	}
 	else if (argc > 1) {
 		int rc;
@@ -339,7 +370,10 @@ int	main(int argc, char **argv) {
 		//
 		float *extentsPtr = extents;
 		for(int i=0; i<5; i++) {
-			if (opt.extents[i] != opt.extents[i+1]) extentsPtr = NULL;
+			if (opt.extents[i] != opt.extents[i+1]) {
+				extentsPtr = NULL;
+				userSpecifiedExtents = true;
+			}
 		}
 		if (! extentsPtr) {
 			for(int i=0; i<6; i++) {
@@ -348,12 +382,14 @@ int	main(int argc, char **argv) {
 		}
 
 		string startDate;
+		
 		rc = GetWRFMetadata(
-			(const char **)argv, argc-1, wrfNames, timestamps, extentsPtr, 
-			dim, wrfVarNames3d, wrfVarNames2d, startDate
+			(const char **)argv, argc-1, wrfNames, extentsPtr, 
+			dim, wrfVarNames3d, wrfVarNames2d, startDate, mapProj, tStepExtents
 		);
 		if (rc<0) exit(1);
 
+		
 		if (strlen(opt.startt) != 0) {
 			startT.assign(opt.startt);
 
@@ -427,34 +463,37 @@ int	main(int argc, char **argv) {
 	if (! startT.empty()) {
 		TIME64_T seconds;
 		if (WRF::WRFTimeStrToEpoch(startT, &seconds) < 0) exit(1);
-
-		vector <TIME64_T>::iterator itr = timestamps.begin();
-		while (*itr < seconds && itr != timestamps.end()) {
+	
+		vector <pair<TIME64_T,float*> >::iterator itr = tStepExtents.begin();
+		while ((*itr).first < seconds && itr != tStepExtents.end()) {
 			itr++;
 		}
-		if (itr != timestamps.begin()) {
-			timestamps.erase(timestamps.begin(), itr);
+		if (itr != tStepExtents.begin()) {
+			tStepExtents.erase(tStepExtents.begin(), itr);
 		}
 	}
 
 	// If an explict time sampling was specified use it
 	//
 	if (opt.deltat) {
-		TIME64_T seconds = timestamps[0];
-		int numts = Max(opt.numts, (int) timestamps.size());
-		timestamps.clear();
-		timestamps.push_back(seconds);
+		TIME64_T seconds = tStepExtents[0].first;
+		int numts = Max(opt.numts, (int) tStepExtents.size());
+		tStepExtents.clear();
+		pair<TIME64_T,float*> pr;
+		pr = make_pair(seconds,(float*)0);
+		tStepExtents.push_back(pr);
 
 		for (TIME64_T t = 1; t<numts; t++) {
-			timestamps.push_back(timestamps[0]+(t*opt.deltat));
+			pr = make_pair(tStepExtents[0].first+(t*opt.deltat),(float*)0);
+			tStepExtents.push_back(pr);
 		}
 	}
 
 	// If a limit was specified on the number of time steps delete
 	// excess ones
 	//
-	if (opt.numts && (opt.numts < timestamps.size())) {
-		timestamps.erase(timestamps.begin()+opt.numts, timestamps.end());
+	if (opt.numts && (opt.numts < tStepExtents.size())) {
+		tStepExtents.erase(tStepExtents.begin()+opt.numts, tStepExtents.end());
 	}
 		
 			
@@ -506,7 +545,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (file->SetNumTimeSteps(timestamps.size()) < 0) {
+	if (file->SetNumTimeSteps(tStepExtents.size()) < 0) {
 		exit(1);
 	}
 
@@ -520,22 +559,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	// let Metadata class calculate extents automatically if not 
-	// supplied by user explicitly.
-	//
-	int doExtents = 0;
-    for(int i=0; i<5; i++) {
-        if (extents[i] != extents[i+1]) doExtents = 1;
-    }
-	if (doExtents) {
-		vector <double> extentsVec;
-		for(int i=0; i<6; i++) {
-			extentsVec.push_back(extents[i]);
-		}
-		if (file->SetExtents(extentsVec) < 0) {
-			exit(1);
-		}
-	}
+	
 
 	// need a list of 2d and 3d varnames together
 	//
@@ -550,10 +574,100 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	//Set the map projection from the command line if it was there:
+	if (strlen(opt.mapprojection)) {
+		mapProj = opt.mapprojection;
+	} //or set it from the WRF file
+	if (mapProj.size() > 0) {
+		if (file->SetMapProjection(mapProj) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
+	}
+	// reproject the latlon to box coords
+	int firstAvailTime = -1;
+	double mappedExtents[4];
+	if (mapProj.size()>0){
+		projPJ p = pj_init_plus(mapProj.c_str());
+		
+		if (!p  && !opt.quiet){
+			//Invalid string. Get the error code:
+			int *pjerrnum = pj_get_errno_ref();
+			fprintf(stderr, "Invalid geo-referencing in WRF output\n %s\n",
+				pj_strerrno(*pjerrnum));
+		}
+		
+		
+		if (p){
+			//reproject latlon to current coord projection.
+			//Must convert to radians:
+			const double DEG2RAD = 3.141592653589793/180.;
+			const char* latLongProjString = "+proj=latlong +ellps=sphere";
+			projPJ latlon_p = pj_init_plus(latLongProjString);
+			
+			double dbextents[4];
+			vector<double> currExtents;
+			
+			for ( size_t t = 0 ; t < tStepExtents.size() ; t++ ){
+				float* exts = tStepExtents[t].second;
+				if (!exts) continue;
+				for (int j = 0; j<4; j++) dbextents[j] = exts[j]*DEG2RAD;
+				int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
+				if (rc && opt.quiet){
+					int *pjerrnum = pj_get_errno_ref();
+					fprintf(stderr, "Error geo-referencing WRF domain extents\n %s\n",
+						pj_strerrno(*pjerrnum));
+				}
+				//Put the reprojected extents into the vdf
+				//Use the global specified extents for vertical coords
+				if (!rc){
+					currExtents.clear();
+					currExtents.push_back(dbextents[0]);
+					currExtents.push_back(dbextents[1]);
+					currExtents.push_back(extents[2]);
+					currExtents.push_back(dbextents[2]);
+					currExtents.push_back(dbextents[3]);
+					currExtents.push_back(extents[5]);
+					file->SetTSExtents(t, currExtents);
+					if (firstAvailTime == -1) {
+						for (int k = 0; k<4; k++) mappedExtents[k] = dbextents[k];
+						firstAvailTime = t;
+					}
+
+				}
+			}
+
+		}
+	}
+	//If the user specified the (global)extents, use those unmodified.
+	//If the user didn't specify them, and specified no sample file, 
+	//Then don't put them in the metadata either; 
+	//so the metadata class can calculate.
+	bool calcExtentsFromData = false;
+	if (!userSpecifiedExtents) {
+		//see if extents were calculated from data
+		for(int i=0; i<5; i++) {
+			if (extents[i] != extents[i+1]) {
+				calcExtentsFromData = true;
+			}
+		}
+	}
+	
+	//then put into metadata:
+	if (userSpecifiedExtents || calcExtentsFromData){
+		vector<double> extentsVec;
+		for(int i=0; i<6; i++) {
+			extentsVec.push_back(extents[i]);
+		}
+		if (file->SetExtents(extentsVec) < 0) {
+			exit(1);
+		}
+	}
+	
     // Set the user time for each time step
-    for ( size_t t = 0 ; t < timestamps.size() ; t++ )
+    for ( size_t t = 0 ; t < tStepExtents.size() ; t++ )
     {
-		vector<double> tsNow(1, (double) timestamps[t]);
+		vector<double> tsNow(1, (double) tStepExtents[t].first);
         if ( file->SetTSUserTime( t, tsNow ) < 0) {
             exit( 1 );
         }
@@ -561,7 +675,7 @@ int	main(int argc, char **argv) {
 		// Add a user readable tag with the time stamp
 		string tag("UserTimeStampString");
 		string wrftime_str;
-		(void) WRF::EpochToWRFTimeStr(timestamps[t], wrftime_str);
+		(void) WRF::EpochToWRFTimeStr(tStepExtents[t].first, wrftime_str);
 
         if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
             exit( 1 );
@@ -591,7 +705,7 @@ int	main(int argc, char **argv) {
 
 	if (! opt.quiet) {
 		cout << "Created VDF file:" << endl;
-		cout << "\tNum time steps : " << timestamps.size() << endl;
+		cout << "\tNum time steps : " << tStepExtents.size() << endl;
 		cout << "\t3D Variable names : ";
 		for (int i=0; i<file->GetVariables3D().size(); i++) {
 			cout << file->GetVariables3D()[i] << " ";

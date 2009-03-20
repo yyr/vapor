@@ -898,8 +898,8 @@ void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3]
 		dmin[i] = twoDMin[i];
 		dmax[i] = twoDMax[i];
 	}
-	myReader->MapUserToVox(timestep,dmin, boxMin, numRefs);
-	myReader->MapUserToVox(timestep,dmax, boxMax, numRefs);
+	myReader->MapUserToVox((size_t)-1,dmin, boxMin, numRefs);
+	myReader->MapUserToVox((size_t)-1,dmax, boxMax, numRefs);
 
 }
 //Find the smallest box containing the twoD slice, in 3d block coords, at current refinement level
@@ -1183,7 +1183,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
 			
-			myReader->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
+			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (i == dataOrientation) continue;
@@ -1616,13 +1616,13 @@ bool TwoDParams::getImageCorners(int timestep, double displayCorners[8]){
 
 	
 	const float* imgExts = getCurrentTwoDImageExtents(timestep);
+	if (!imgExts) return false;
 	//Set up proj.4 to convert from image space to VDC coords
 	projPJ dst_proj;
 	projPJ src_proj; 
 	
-	src_proj = pj_init_plus(getProjectionString().c_str());
-	dst_proj = pj_init_plus(RegionParams::getProjectionString().c_str());
-	
+	src_proj = pj_init_plus(getImageProjectionString().c_str());
+	dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
 	bool doProj = (src_proj != 0 && dst_proj != 0);
 	if (!doProj) return false;
 
@@ -1661,7 +1661,9 @@ bool TwoDParams::getImageCorners(int timestep, double displayCorners[8]){
 		for (int i = 0; i<8; i++) displayCorners[i] *= RAD2DEG;
 	
 	//Now displayCorners are corners in projection space.  subtract offsets:
-	for (int i = 0; i<8; i++) displayCorners[i] -= RegionParams::getExtentsOffset(i%2, timestep);
+	const float* exts = DataStatus::getExtents(timestep);
+	const float* globExts = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<8; i++) displayCorners[i] -= (exts[i%2] - globExts[i%2]);
 	return true;
 	
 }

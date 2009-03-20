@@ -229,6 +229,7 @@ public:
 		
 	}
 	float * getCurrentTwoDImageExtents(int timestep){
+		if (!imageExtents) return 0;
 		return imageExtents + 4*timestep;
 	}
 	void getTwoDVoxelExtents(float voxdims[2]);
@@ -284,7 +285,7 @@ public:
 	//Mapping [-1,1]X[-1,1] into 3D volume.
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
 	
-	std::string& getProjectionString() {return projDefinitionString;}
+	std::string& getImageProjectionString() {return projDefinitionString;}
 	//Determine the corners of the image in local coordinates
 	//Only available when the renderer is enabled.
 	bool getImageCorners(int timestep, double cors[8]);

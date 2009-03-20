@@ -288,8 +288,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	myReader->MapUserToVox(timestep, userMinCoords, min_dim, minRefLevel);
-	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, minRefLevel);
+	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, minRefLevel);
+	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, minRefLevel);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -333,8 +333,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//If bounds are needed, calculate them:
 	if (regMax && regMin){
 		//Do mapping to voxel coords
-		myReader->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
-		myReader->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
+		myReader->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
+		myReader->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
 	}
 	
 	return minRefLevel;
@@ -389,8 +389,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	myReader->MapUserToVox(timestep, regMin, min_dim, minRefLevel);
-	myReader->MapUserToVox(timestep, regMax, max_dim, minRefLevel);
+	myReader->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
+	myReader->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
 	if (!twoDim){
 		for(i = 0; i< 3; i++){
 			//Make sure 3D slab has nonzero thickness (this can only
@@ -442,8 +442,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	}
 	//Calculate new bounds:
 	
-	myReader->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
-	myReader->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
+	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
+	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
 	
 	return minRefLevel;
 }
@@ -470,10 +470,10 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
 	size_t timestep = DataStatus::getInstance()->getMinTimestep();
-	myReader->MapUserToBlk(timestep, userMinCoords, min_bdim, numxforms);
-	myReader->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
-	myReader->MapUserToBlk(timestep, userMaxCoords, max_bdim, numxforms);
-	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
+	myReader->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
+	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
+	myReader->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
+	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
 	
 	return;
 }

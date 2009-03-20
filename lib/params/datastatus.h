@@ -207,13 +207,20 @@ public:
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		myReader->MapVoxToUser(0, voxCoords, userCoords, refLevel);
+		myReader->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
 	}
 	const VDFIOBase* getRegionReader() {return myReader;}
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
 	int get2DOrientation(int mdVarNum); //returns 0,1,2 for XY,YZ, or XZ
+
+	//Used for georeferencing and moving region:
+	static const std::string getProjectionString() {return projString;}
+	static const float* getExtents(int timestep){ 
+		return timeVaryingExtents[timestep];
+	}
+
 
 	//Get/set methods for global vizfeatures
 	static const QColor getBackgroundColor() {return backgroundColor;}
@@ -345,6 +352,8 @@ public:
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 
 	//Convert point coordinates in-place.  Return bool if can't do it.
+	//If the timestep is negative, then the coords are in a time-varying
+	//extent.
 	static bool convertToLatLon(int timestep, double coords[], int npoints = 1);
 	static bool convertFromLatLon(int timestep, double coords[], int npoints = 1);
 
@@ -436,6 +445,8 @@ private:
 	static size_t cacheMB;
 	//Interactive refinement level:
 	static int interactiveRefLevel;
+	static std::string projString;
+	static vector <float*> timeVaryingExtents;
 	
 	
 };

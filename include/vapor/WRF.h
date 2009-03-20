@@ -54,7 +54,18 @@ public:
     string T;
  } atypVarNames_t;
 
-
+//Construct a proj4 projection string from metadata in a WRF file
+ static int GetProjectionString(
+	 int ncid,
+	 string& projString
+);
+ static int GetCornerCoords(
+	 int ncid,
+	 int ts, //time step in file
+	 varInfo_t latInfo, 
+	 varInfo_t lonInfo, 
+	 float coords[4]
+);
 
  // Gets info about a 2D or 3D variable and stores that info in thisVar.
  static int	GetVarInfo(
@@ -124,9 +135,10 @@ public:
 	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
+	string &mapProj, // Map projection string (out)
 	vector<string> & wrfVars3d, // 3D Variable names in WRF file (out)
 	vector<string> & wrfVars2d, // 2D Variable names in WRF file (out)
-	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
+	vector <pair <TIME64_T, float*> > &tstepExtents // Time stamps, in seconds, and matching extents (out)
 );
 
 private:

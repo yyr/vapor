@@ -55,7 +55,7 @@ public:
 	//must be converted to latlon values.
 	float* getCameraPos() {return currentViewpoint->getCameraPosLocal();}
 	float getCameraPos(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
-	//void setCameraPos(int i, float val) { currentViewpoint->setCameraPos(i, val);}
+	
 	void setCameraPos(float* val,int timestep ) {
 		currentViewpoint->setCameraPosLocal(val);
 		if (useLatLon) convertToLatLon(timestep);

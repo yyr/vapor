@@ -2831,14 +2831,14 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	
 	const VDFIOBase* myReader = ds->getRegionReader();
 	
-	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, availRefLevel);
-	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, availRefLevel);
-	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, availRefLevel);
-	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, availRefLevel);
+	myReader->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
+	myReader->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
+	myReader->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
+	myReader->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
-	myReader->MapVoxToUser(timeStep,min_dim, testRakeMin,availRefLevel);
-	myReader->MapVoxToUser(timeStep,max_dim, testRakeMax,availRefLevel);
+	myReader->MapVoxToUser((size_t)-1,min_dim, testRakeMin,availRefLevel);
+	myReader->MapVoxToUser((size_t)-1,max_dim, testRakeMax,availRefLevel);
 	bool changed = false;
 	for (int i = 0; i< 3; i++){
 		if (testRakeMin[i] > rakeMinCoords[i]) {
@@ -2858,12 +2858,12 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 	}
 	
-	myReader->MapVoxToUser(timeStep,min_dim, rakeMinCoords,availRefLevel);
-	myReader->MapVoxToUser(timeStep,max_dim, rakeMaxCoords,availRefLevel);
-	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, availRefLevel);
-	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, availRefLevel);
-	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, availRefLevel);
-	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, availRefLevel);
+	myReader->MapVoxToUser((size_t)-1,min_dim, rakeMinCoords,availRefLevel);
+	myReader->MapVoxToUser((size_t)-1,max_dim, rakeMaxCoords,availRefLevel);
+	myReader->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
+	myReader->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
+	myReader->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
+	myReader->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
 	
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;

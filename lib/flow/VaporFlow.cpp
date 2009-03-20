@@ -340,8 +340,8 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	double minDouble[3], maxDouble[3];
 	
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	myReader->MapVoxToUser(timeStep,minRegion, minDouble, (int)numXForms);
-	myReader->MapVoxToUser(timeStep,maxRegion, maxDouble, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
 	//Use the current region bounds, not the rake bounds...
 	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
 		false, (int)numXForms, timeStep, false);
@@ -576,10 +576,10 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, (int)numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, (int)numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, (int)numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
@@ -781,10 +781,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, (int)numXForms);
-	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, (int)numXForms);
-	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, (int)numXForms);
-	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
+	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
 	minB.Set((float)minUser[0], (float)minUser[1], (float)minUser[2]);
 	maxB.Set((float)maxUser[0], (float)maxUser[1], (float)maxUser[2]);
@@ -1050,10 +1050,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, numXForms);
 	
 	minB.Set(minUser[0], minUser[1], minUser[2]);
 	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
@@ -1327,11 +1327,11 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 		blockRegionMin[i] = bs[i]*minBlk[i];
 		blockRegionMax[i] = bs[i]*(maxBlk[i]+1)-1;
 	}
-	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numRefinements);
-	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numRefinements);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numRefinements);
+	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numRefinements);
 	//Also, map the region extents (needed for in/out testing):
-	myReader->MapVoxToUser(timestep, minInt, regMin, numRefinements);
-	myReader->MapVoxToUser(timestep, maxInt, regMax, numRefinements);
+	myReader->MapVoxToUser((size_t)-1, minInt, regMin, numRefinements);
+	myReader->MapVoxToUser((size_t)-1, maxInt, regMax, numRefinements);
 	
 	
 	//Now adjust minB, maxB to block region extents:

@@ -1081,7 +1081,7 @@ int GetVDFInfo(
 int GetWRFInfo(
 	const char *file,
 	vector <string> &vars,
-	vector <TIME64_T>	&timestamps,
+	vector<pair <TIME64_T, float*>	>&timesExtents,
 	size_t dims[3],
 	float & dx,
 	float & dy
@@ -1091,14 +1091,15 @@ int GetWRFInfo(
 	const WRF::atypVarNames_t atypnames_dummy;
 	size_t dimLens[4];
 	string startDate;
+	string mapProjection;
 
 	vars.clear();
 
 	vector <string> vars3d;
 	vector <string> vars2d;
 	rc = WRF::OpenWrfGetMeta(
-		file, atypnames_dummy, dx, dy, NULL, dimLens, startDate,
-		vars3d, vars2d, timestamps
+		file, atypnames_dummy, dx, dy, NULL, dimLens, startDate, mapProjection,
+		vars3d, vars2d, timesExtents
 	);
 	if (rc<0) return(-1);
 
@@ -1502,7 +1503,7 @@ int	main(int argc, char **argv) {
 	for (int arg = 0; arg<argc && TotalTimeSteps < MaxTimeSteps; arg++) {
 
 		vector <string> wrf_vars;		// vars contained in netCDF file
-		vector <TIME64_T> wrf_timestamps;	// timestamps contained in netCDF file
+		vector < pair <TIME64_T, float*> > wrf_timesExtents;	// times and extents in wrf file
 		size_t wrf_dims[4];				// dims of 3d vars
 		vector <string> copy_vars;		// list of vars to copy
 		int ncid;
@@ -1515,7 +1516,7 @@ int	main(int argc, char **argv) {
 		// time steps to copy from in netCDF file
 		vector <long> copy_wrf_timesteps;
 
-		rc = GetWRFInfo( argv[arg], wrf_vars, wrf_timestamps, wrf_dims, dx, dy);
+		rc = GetWRFInfo( argv[arg], wrf_vars, wrf_timesExtents, wrf_dims, dx, dy);
 		if (rc<0) {
 			cerr << "Skipping file " << argv[arg] << endl;
 			continue;
@@ -1542,8 +1543,8 @@ int	main(int argc, char **argv) {
 			if (WRF::WRFTimeStrToEpoch(opt.tsend, &tlast) < 0) exit(1);
 		}
 			
-		for (size_t t=0; t<wrf_timestamps.size(); t++) {
-			TIME64_T tstamp = wrf_timestamps[t];
+		for (size_t t=0; t<wrf_timesExtents.size(); t++) {
+			TIME64_T tstamp = wrf_timesExtents[t].first;
 			vector <TIME64_T>::iterator itr;
 			if (
 				tstamp >= tfirst && 

@@ -228,7 +228,7 @@ void TwoDEventRouter::updateTab(){
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
 	//Provide latlon coords if available:
-	if (RegionParams::getProjectionString().size() == 0){
+	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];
@@ -422,8 +422,8 @@ void TwoDEventRouter::updateTab(){
 			dBoxMin[i] = boxmin[i];
 			dBoxMax[i] = boxmax[i];
 		}
-		myReader->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
-		myReader->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
+		myReader->MapUserToVox((size_t)-1, dBoxMin, gridMin, fullRefLevel);
+		myReader->MapUserToVox((size_t)-1, dBoxMax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -432,7 +432,7 @@ void TwoDEventRouter::updateTab(){
 		maxGridZLabel->setText(QString::number(gridMax[2]));
 	}
     //Provide latlon box extents if available:
-	if (RegionParams::getProjectionString().size() == 0){
+	if (DataStatus::getProjectionString().size() == 0){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
@@ -622,14 +622,17 @@ void TwoDEventRouter::guiSetOrientation(int val){
 	updateTab();
 }
 void TwoDEventRouter::guiFitToImage(){
-	confirmText(false);
-	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
-	
-	PanelCommand* cmd = PanelCommand::captureStart(tParams, "fit 2D extents to image");
 	//Get the 4 corners of the image (in local coordinates)
 	double corners[8];
-	float newExts[6];
+	confirmText(false);
+	TwoDParams* tParams = VizWinMgr::getActiveTwoDParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if(!tParams->getImageCorners(timestep, corners)) return;
+
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "fit 2D extents to image");
+	
+	float newExts[6];
+	
 	tParams->getImageCorners(timestep, corners);
 	tParams->getBox(newExts, newExts+3);
 	newExts[0] = newExts[1] = 1.e30f;
