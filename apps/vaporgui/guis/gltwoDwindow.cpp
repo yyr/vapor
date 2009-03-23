@@ -148,7 +148,7 @@ void GLTwoDWindow::paintGL()
 			twoDTexture = TwoDRenderer::getTwoDTexture(myParams,timestep,false);
 		}
 	}
-	myParams->getTextureSize(imgSize);
+	myParams->getTextureSize(imgSize, timestep);
 	
 	if(twoDTexture) {
 		glEnable(GL_TEXTURE_2D);

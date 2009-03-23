@@ -668,7 +668,7 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 		}
 	}
 	//Subtract offset to convert projection coords to vapor coords
-	if(timestep < 0) {
+	if(timestep >= 0) {
 		const float * globExts = DataStatus::getInstance()->getExtents();
 		const float* exts = getExtents(timestep);
 		for (int i = 0; i<2*npoints; i++) coords[i] -= (exts[i%2]-globExts[i%2]);
@@ -686,7 +686,7 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 	if (!vapor_proj) return false;
 	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
 	if (!latlon_proj) return false;
-	if (timestep < 0){
+	if (timestep >= 0){
 		const float * globExts = DataStatus::getInstance()->getExtents();
 		//Apply projection offset to convert vapor local coords to projection space:
 		const float* exts = getExtents(timestep);

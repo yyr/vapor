@@ -81,6 +81,7 @@ TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	numVariables = 0;
 	twoDDataTextures = 0;
 	imageExtents = 0;
+	textureSizes = 0;
 	maxTimestep = 1;
 	imageNums = 0;
 	restart();
@@ -99,7 +100,10 @@ TwoDParams::~TwoDParams(){
 			if (twoDDataTextures[i]) delete twoDDataTextures[i];
 		}
 		delete twoDDataTextures;
-		delete imageExtents;
+		delete textureSizes;
+		if (imageExtents){
+			delete imageExtents;
+		}
 		if (imageNums) delete imageNums;
 		imageNums = 0;
 	}
@@ -135,6 +139,7 @@ deepRCopy(){
 	newParams->twoDDataTextures = 0;
 	newParams->imageExtents = 0;
 	newParams->imageNums = 0;
+	newParams->textureSizes = 0;
 	
 	//never keep the SavedCommand:
 	
@@ -366,6 +371,7 @@ reinit(bool doOverride){
 	if (twoDDataTextures) {
 		delete twoDDataTextures;
 		delete imageExtents;
+		delete textureSizes;
 		if(imageNums) delete imageNums;
 		imageNums = 0;
 	}
@@ -373,6 +379,7 @@ reinit(bool doOverride){
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	twoDDataTextures = 0;
 	imageExtents = 0;
+	textureSizes = 0;
 	
 	initializeBypassFlags();
 	return true;
@@ -387,7 +394,7 @@ restart(){
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
-	textureSize[0] = textureSize[1] = 0;
+	
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	orientation = 2;
@@ -395,10 +402,12 @@ restart(){
 	if (twoDDataTextures) {
 		delete twoDDataTextures;
 		delete imageExtents;
+		delete textureSizes;
 		if (imageNums) delete imageNums;
 	}
 	twoDDataTextures = 0;
 	imageExtents = 0;
+	textureSizes = 0;
 	imageNums = 0;
 	resampRate = 1.f;
 	opacityMultiplier = 1.f;
@@ -1009,9 +1018,9 @@ void TwoDParams::setTwoDDirty(){
 			}
 		}
 		twoDDataTextures = 0;
+		delete textureSizes;
 	}
 	
-	textureSize[0]= textureSize[1] = 0;
 	setElevGridDirty(true);
 	setAllBypass(false);
 }
@@ -1026,12 +1035,13 @@ void TwoDParams::setImageDirty(){
 		}
 		twoDDataTextures = 0;
 		delete imageExtents;
+		delete textureSizes;
 		imageExtents = 0;
+		textureSizes = 0;
 		if (imageNums) delete imageNums;
 		imageNums = 0;
 	}
 	
-	textureSize[0]= textureSize[1] = 0;
 	setElevGridDirty(true);
 	setAllBypass(false);
 }
@@ -1065,12 +1075,13 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	if (!isDataMode()){
 		int wid, ht;
 		float imgExts[4];
+		int imgSize[2];
 		unsigned char* img = readTextureImage(ts, &wid, &ht, imgExts);
 		if (doCache && img) {
 			
-			textureSize[0] = wid;
-			textureSize[1] = ht;
-			setTwoDTexture(img,ts, imgExts);
+			imgSize[0] = wid;
+			imgSize[1] = ht;
+			setTwoDTexture(img,ts, imgSize, imgExts);
 		}
 		return img;
 	}
@@ -1148,9 +1159,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		dataCoord[mapDims[1]] = a[1]*twoDCoord[1]+b[1];
 		
 	}
-	
+	int txsize[2];
 	if (doCache) {
-		int txsize[2];
 		adjustTextureSize(txsize);
 		texWidth = txsize[0];
 		texHeight = txsize[1];
@@ -1228,7 +1238,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		}//End loop over ix
 	}//End loop over iy
 	
-	if (doCache) setTwoDTexture(twoDTexture,ts);
+	if (doCache) setTwoDTexture(twoDTexture,ts, txsize);
 	delete planarData;
 	delete sesVarNums;
 	return twoDTexture;
@@ -1244,7 +1254,7 @@ void TwoDParams::adjustTextureSize(int sz[2]){
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
-	
+	int texSize[2];
 	DataStatus* ds = DataStatus::getInstance();
 	int refLevel = getNumRefinements();
 	for (int i = 0; i< 3; i++){
@@ -1260,12 +1270,13 @@ void TwoDParams::adjustTextureSize(int sz[2]){
 	float relHt = (twoDMax[ycrd]-twoDMin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
 	int xdist = (int)(relWid*dataSize[xcrd]);
 	int ydist = (int)(relHt*dataSize[ycrd]);
-	textureSize[0] = 1<<(VetsUtil::ILog2(xdist));
-	textureSize[1] = 1<<(VetsUtil::ILog2(ydist));
-	if (textureSize[0] < 256) textureSize[0] = 256;
-	if (textureSize[1] < 256) textureSize[1] = 256;
-	sz[0] = textureSize[0];
-	sz[1] = textureSize[1];
+	texSize[0] = 1<<(VetsUtil::ILog2(xdist));
+	texSize[1] = 1<<(VetsUtil::ILog2(ydist));
+	if (texSize[0] < 256) texSize[0] = 256;
+	if (texSize[1] < 256) texSize[1] = 256;
+	
+	sz[0] = texSize[0];
+	sz[1] = texSize[1];
 	
 }
 //Determine the voxel extents of plane mapped into data.

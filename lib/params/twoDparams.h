@@ -169,8 +169,8 @@ public:
 	//This needs to be fixed to handle multiple variables!
 	virtual int getSessionVarNum() { return firstVarNum;}
 	
-	void getTextureSize(int sze[2]) {sze[0] = textureSize[0]; sze[1] = textureSize[1];}
-	//set the texture size appropriately for either ibfv or data twoD, return value in sz.
+	void getTextureSize(int sze[2], int timestep) {sze[0] = textureSizes[2*timestep]; sze[1] = textureSizes[2*timestep+1];}
+	//determine the texture size appropriately for either ibfv or data twoD, return value in sz.
 	void adjustTextureSize(int sz[2]);
 	
 
@@ -189,23 +189,33 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
-	void setTwoDTexture(unsigned char* tex, int timestep,
-		float imExts[4] = 0){ 
+	void setTwoDTexture(unsigned char* tex, int timestep, int imgSize[2],
+		float imExts[4] = 0 ){ 
 		unsigned char** textureArray = twoDDataTextures;
 		if (!textureArray){
 			textureArray = new unsigned char*[maxTimestep + 1];
-			for (int i = 0; i<= maxTimestep; i++) 
+			textureSizes = new int[2*(maxTimestep+1)];
+			for (int i = 0; i<= maxTimestep; i++) {
 				textureArray[i] = 0;
+				textureSizes[2*i] = 0;
+				textureSizes[2*i+1] = 0;
+			}
 			if (imageExtents) delete imageExtents;
 			imageExtents = 0;
-			if(imExts) imageExtents = new float [4*(maxTimestep+1)];
+			if(imExts) 
+				imageExtents = new float [4*(maxTimestep+1)];
+			twoDDataTextures = textureArray;	
 		}
 		if (textureArray[timestep]) 
 			delete textureArray[timestep];
+		textureSizes[2*timestep] = imgSize[0];
+		textureSizes[2*timestep+1] = imgSize[1];
 		textureArray[timestep] = tex;
-		if(imExts) for (int k = 0; k < 4; k++)
-			imageExtents[4*timestep+k] = imExts[k];
-		twoDDataTextures = textureArray; 
+		if(imExts) {
+			for (int k = 0; k < 4; k++)
+				imageExtents[4*timestep+k] = imExts[k];
+		}
+		 
 	}
 	unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht);
 
@@ -232,6 +242,7 @@ public:
 		if (!imageExtents) return 0;
 		return imageExtents + 4*timestep;
 	}
+	
 	void getTwoDVoxelExtents(float voxdims[2]);
 
 	
@@ -358,6 +369,7 @@ protected:
 	//renderer class
 	unsigned char** twoDDataTextures;
 	float * imageExtents; //(4 floats for each time step)
+	int * textureSizes; //2 ints for each time step
 	int maxTimestep;
 
 	int* imageNums;
@@ -383,7 +395,7 @@ protected:
 	float verticalDisplacement;
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
-	int textureSize[2];
+	
 	int imagePlacement;
 
 	std::string projDefinitionString;

@@ -1953,7 +1953,7 @@ void TwoDEventRouter::captureImage() {
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int imgSize[2];
-	pParams->getTextureSize(imgSize);
+	pParams->getTextureSize(imgSize, timestep);
 	int wid = imgSize[0];
 	int ht = imgSize[1];
 	unsigned char* twoDTex;
