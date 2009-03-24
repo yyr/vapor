@@ -38,7 +38,7 @@
 #define	TRUE	1
 #define	FALSE	0
 
-int getopt();
+int getopt(int nargc, char** nargv, char* ostr);
 
 static  int outtiled = -1;
 static  uint32 tilewidth;
@@ -121,7 +121,7 @@ main(int argc, char* argv[])
 			timeExtentsName = optarg;
 			timeExtentsFile = fopen(timeExtentsName,"r");
 			if (!timeExtentsFile){
-				fprintf(stderr,"Failure to open %s\n",timeExtentsFile);
+				fprintf(stderr,"Failure to open %s\n",timeExtentsName);
 				exit (-1);
 			}
 			break;

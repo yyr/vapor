@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)getopt.c	4.13 (Berkeley) 2/23/91";
 
 #include <stdio.h>
 #include <string.h>
-
+int getopt(int nargc, char** nargv, char* ostr);
 /*
  * get option letter from argument vector
  */
