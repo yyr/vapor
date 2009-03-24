@@ -3,7 +3,7 @@ TOP = ../
 include $(TOP)/make/config/prebase.mk
 
 SUBDIRS = vdfcreate raw2vdf vdf2raw vaporversion ncdf2vdf wrf2vdf \
-	wrfvdfcreate vdfls vdfedit
+	wrfvdfcreate vdfls vdfedit tiff2geotiff
 
 ifeq ($(BUILD_AMR_SUPPORT), 1)
 SUBDIRS += flashamr2vdf

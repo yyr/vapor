@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>442</width>
-            <height>910</height>
+            <height>922</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -56,7 +56,7 @@ the probe panels).</string>
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout50</cstring>
+                <cstring>layout99</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -168,7 +168,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -683,7 +683,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1111,7 +1111,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1206,7 +1206,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1278,7 +1278,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1451,7 +1451,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1487,7 +1487,7 @@ available.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout223</cstring>
+                                <cstring>layout98</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1743,7 +1743,7 @@ available.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>17</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -3068,6 +3068,182 @@ available.</string>
                                                                     </property>
                                                                 </widget>
                                                             </vbox>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QFrame">
+                                    <property name="name">
+                                        <cstring>minMaxLonLatFrame</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>NoFrame</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Plain</enum>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout105_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout55_2_2</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel9_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Longitude extents</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>minLonLabel</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>209</red>
+                                                                    <green>207</green>
+                                                                    <blue>190</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.2345e5</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Min and max longitude of 2D extents</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>maxLonLabel</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>209</red>
+                                                                    <green>207</green>
+                                                                    <blue>190</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.2345e5</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Min and max longitude of 2D extents</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout55_2_2_2</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel9_2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Latitude extents</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>minLatLabel</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>209</red>
+                                                                    <green>207</green>
+                                                                    <blue>190</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.2345e5</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Min and max latitude of 2D extents</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>maxLatLabel</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>209</red>
+                                                                    <green>207</green>
+                                                                    <blue>190</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.2345e5</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Min and max latitude of 2D extents</string>
+                                                            </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
