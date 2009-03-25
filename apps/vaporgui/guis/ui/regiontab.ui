@@ -3140,7 +3140,7 @@ available.</string>
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Min and max longitude of 2D extents</string>
+                                                                <string>Min and max longitude of current region</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel">
@@ -3167,7 +3167,7 @@ available.</string>
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Min and max longitude of 2D extents</string>
+                                                                <string>Min and max longitude of current region</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3215,7 +3215,7 @@ available.</string>
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Min and max latitude of 2D extents</string>
+                                                                <string>Min and max latitude of current region</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel">
@@ -3242,7 +3242,7 @@ available.</string>
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Min and max latitude of 2D extents</string>
+                                                                <string>Min and max latitude of current region</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>

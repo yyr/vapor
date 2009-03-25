@@ -1,4 +1,5 @@
-/* tiff2geotiff.c -- based on Sam Leffler's "tiffcp" code */
+/* tiff2geotiff.c -- based on Sam Leffler's "tiffcp" and "geotifcp" codes */
+
 
 /*
  *  Original code had this copyright notice: 

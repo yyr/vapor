@@ -152,6 +152,7 @@ void RegionEventRouter::confirmText(bool /*render*/){
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
 
 	refreshRegionInfo(rParams);
+	
 	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	
@@ -263,6 +264,27 @@ void RegionEventRouter::updateTab(){
 	else 
 		LocalGlobal->setCurrentItem(0);
 	refreshRegionInfo(rParams);
+
+	//Provide latlon box extents if available:
+	if (DataStatus::getProjectionString().size() == 0){
+		minMaxLonLatFrame->hide();
+	} else {
+		double boxLatLon[4];
+		boxLatLon[0] = regionMin[0];
+		boxLatLon[1] = regionMin[1];
+		boxLatLon[2] = regionMax[0];
+		boxLatLon[3] = regionMax[1];
+		int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+			minLonLabel->setText(QString::number(boxLatLon[0]));
+			minLatLabel->setText(QString::number(boxLatLon[1]));
+			maxLonLabel->setText(QString::number(boxLatLon[2]));
+			maxLatLabel->setText(QString::number(boxLatLon[3]));
+			minMaxLonLatFrame->show();
+		} else {
+			minMaxLonLatFrame->hide();
+		}
+	}
 	guiSetTextChanged(false);
 
     relabel();

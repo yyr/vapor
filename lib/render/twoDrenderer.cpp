@@ -206,9 +206,11 @@ void TwoDRenderer::initializeGL()
 }
 //Static method to calculate the twoD texture 
 unsigned char* TwoDRenderer::getTwoDTexture(TwoDParams* pParams, int frameNum,  bool doCache){
-	if (!pParams->twoDIsDirty(frameNum)) 
-		return pParams->getCurrentTwoDTexture(frameNum);
-
+	unsigned char* tex;
+	if (!pParams->twoDIsDirty(frameNum)) {
+		tex =  pParams->getCurrentTwoDTexture(frameNum);
+		if (tex) return tex;
+	}
 	return pParams->calcTwoDDataTexture(frameNum, 0,0);
 	
 }
@@ -678,8 +680,18 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	//Find the corners of the image (to find size of image in scene.
 	//Get these relative to actual extents in projection space
 	double displayCorners[8];
-	if (!tParams->getImageCorners(timeStep,displayCorners))
-		return false;
+	if (tParams->isGeoreferenced()){
+		if (!tParams->getImageCorners(timeStep,displayCorners))
+			return false;
+	} else {
+		//Use corners of 2D extents:
+		float boxmin[3], boxmax[3];
+		tParams->getBox(boxmin, boxmax);
+		displayCorners[0] = boxmin[0];
+		displayCorners[1] = boxmin[1];
+		displayCorners[4] = boxmax[0];
+		displayCorners[5] = boxmax[1];
+	}
 	
 	int gridsize[2];
 	for (int i = 0; i<2; i++){
@@ -696,23 +708,9 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	// how large a grid to use. 
 
 	
-	//Set up proj.4:
-	projPJ dst_proj;
-	projPJ src_proj; 
-	
-	src_proj = pj_init_plus(tParams->getImageProjectionString().c_str());
-	dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
-	bool doProj = (src_proj != 0 && dst_proj != 0);
-	if (!doProj) return false;
 
-	//If a projection string is latlon, the coordinates are in Radians!
-	bool latlonSrc = pj_is_latlong(src_proj);
-	bool latlonDst = pj_is_latlong(dst_proj);
+	
 
-	static const double RAD2DEG = 180./M_PI;
-	static const double DEG2RAD = M_PI/180.0;
-	
-	
 	int maxx, maxy;
 	maxXElev[timeStep] = maxx = gridsize[0] +1;
 	maxYElev[timeStep] = maxy = gridsize[1] +1;
@@ -737,7 +735,7 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 	//by twoDParams z (max or min are same).  
 	//If data is mapped to terrain, but we are outside data, then
 	//take elevation to be the min (which is just vert displacement)
-	float constElev = tParams->getTwoDMin(2);
+	float constElev = tParams->getTwoDMin(2)+tParams->getVerticalDisplacement();
 
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
@@ -797,53 +795,133 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 		vertOffset = min_dim[1]  - regMin[1]*vertFact;
 
 		//Don't allow the terrain surface to be below the minimum extents:
-		minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
+		minElev = extents[2]+(0.0001)*(extents[5] - extents[2])+tParams->getVerticalDisplacement();
 		
 
 	}
 	
-	//Use a line buffer to hold 3d coordinates for transforming
-	double* elevVertLine = new double[3*maxx];
-	float locCoords[3];
-	const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
+	if (tParams->isGeoreferenced()) {
+		//Set up proj.4:
+		projPJ dst_proj;
+		projPJ src_proj; 
+		
+		src_proj = pj_init_plus(tParams->getImageProjectionString().c_str());
+		dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
+		bool doProj = (src_proj != 0 && dst_proj != 0);
+		if (!doProj) return false;
+
+		//If a projection string is latlon, the coordinates are in Radians!
+		bool latlonSrc = pj_is_latlong(src_proj);
+		bool latlonDst = pj_is_latlong(dst_proj);
+
+		static const double RAD2DEG = 180./M_PI;
+		static const double DEG2RAD = M_PI/180.0;
+
+		//Use a line buffer to hold 3d coordinates for transforming
+		double* elevVertLine = new double[3*maxx];
+		float locCoords[3];
+		const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
 	
-	for (int j = 0; j<maxy; j++){
+		for (int j = 0; j<maxy; j++){
+			
+			for (int i = 0; i<maxx; i++){
+				
+				//determine the x,y coordinates of each point
+				//in the image coordinate space:
+				//int pntPos = 3*(i+j*maxx);
+				elevVertLine[3*i] = imgExts[0] + (imgExts[2]-imgExts[0])*(double)i/(double)(maxx-1);
+				elevVertLine[3*i+1] = imgExts[1] + (imgExts[3]-imgExts[1])*(double)j/(double)(maxy-1);
+				
+			}
+			
+			//apply proj4 to transform the line.  If source is in degrees, convert to radians:
+			if (latlonSrc)
+				for(int i = 0; i< maxx; i++) {
+					elevVertLine[3*i] *= DEG2RAD;
+					elevVertLine[3*i+1] *= DEG2RAD;
+				}
+			pj_transform(src_proj,dst_proj,maxx,3, elevVertLine,elevVertLine+1, 0);
+			//If the scene is latlon, convert to degrees:
+			if (latlonDst) 
+				for(int i = 0; i< maxx; i++) {
+					elevVertLine[3*i] *= RAD2DEG;
+					elevVertLine[3*i+1] *= RAD2DEG;
+				}
+			//Copy the result back to elevVert. 
+			//Translate by local offset
+			//then convert to stretched cube coords
+			//The coordinates are in projection space, which is associated
+			//with the moving extents.  Need to get them back into the
+			//local (non-moving) extents for rendering:
+			
+			for (int i = 0; i< maxx; i++){
+				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
+				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
+				if (tParams->isMappedToTerrain()){
+					//Find cell coordinates of locCoords in data grid space
+					int gridLL[2];
+					float fltGridLL[2];
+					fltGridLL[0] = (locCoords[0]*horizFact + horizOffset);
+					fltGridLL[1] = (locCoords[1]*vertFact + vertOffset);
+					gridLL[0] = (int)fltGridLL[0];
+					gridLL[1] = (int)fltGridLL[1];
+					
+					//check that all 4 corners are inside valid grid coordinates:
+					if (gridLL[0] < min_dim[0] || gridLL[1] < min_dim[1] || gridLL[0] > max_dim[0]-2 ||
+							gridLL[1] > (max_dim[1] -2)){ 
+						//outside points go to minimum elevation
+						locCoords[2] = constElev;
+					} else { 
+						//find locCoords [0..1]relative to grid cell:???
+						float x = (fltGridLL[0] - gridLL[0]);
+						float y = (fltGridLL[1] - gridLL[1]);
+						//To get elevations at corners, need grid coordinates:
+						size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+gridLL[0];
+						size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1])*(max_bdim[0]-min_bdim[0]+1)*bs[0];
+						size_t ycrdP1 = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1]+1)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
+						
+						
+						float elevLL = hgtData[xcrd+ycrd] + displacement;
+						float elevLR = hgtData[1+xcrd+ycrd] + displacement;
+						float elevUL = hgtData[xcrd+ycrdP1] + displacement;
+						float elevUR = hgtData[1+xcrd+ycrdP1] + displacement;
+						//Bilinear interpolate:
+						locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
+							y*((1-x)*elevUL + x*elevUR);
+						if (locCoords[2] < minElev) locCoords[2] = minElev;
+					}
+				}
+				else { //not mapped to terrain, use constant elevation
+					locCoords[2] = constElev;
+				}
+				//Convert to stretched cube coords.  Note that following
+				//routine requires local coords, not global world coords, despite name of method:
+				ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
+				for (int k = 0; k< 3; k++){
+					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
+						maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
+						minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+				}
+			
 		
-		for (int i = 0; i<maxx; i++){
+			}
 			
-			//determine the x,y coordinates of each point
-			//in the image coordinate space:
-			//int pntPos = 3*(i+j*maxx);
-			elevVertLine[3*i] = imgExts[0] + (imgExts[2]-imgExts[0])*(double)i/(double)(maxx-1);
-			elevVertLine[3*i+1] = imgExts[1] + (imgExts[3]-imgExts[1])*(double)j/(double)(maxy-1);
-			
-			//ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
 		}
+		delete elevVertLine;
+	} else {
+		//Not georeferenced, but elevation mapped.
+		//Uses twoD extents, not image extents;
 		
-		//apply proj4 to transform the line.  If source is in degrees, convert to radians:
-		if (latlonSrc)
-			for(int i = 0; i< maxx; i++) {
-				elevVertLine[3*i] *= DEG2RAD;
-				elevVertLine[3*i+1] *= DEG2RAD;
-			}
-		pj_transform(src_proj,dst_proj,maxx,3, elevVertLine,elevVertLine+1, 0);
-		//If the scene is latlon, convert to degrees:
-		if (latlonDst) 
-			for(int i = 0; i< maxx; i++) {
-				elevVertLine[3*i] *= RAD2DEG;
-				elevVertLine[3*i+1] *= RAD2DEG;
-			}
-		//Copy the result back to elevVert. 
-		//Translate by local offset
-		//then convert to stretched cube coords
-		//The coordinates are in projection space, which is associated
-		//with the moving extents.  Need to get them back into the
-		//local (non-moving) extents for rendering:
-		
-		for (int i = 0; i< maxx; i++){
-			locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
-			locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
-			if (tParams->isMappedToTerrain()){
+		float locCoords[3];
+	
+		for (int j = 0; j<maxy; j++){
+			
+			//obtain coords based on 2D extents,
+			for (int i = 0; i< maxx; i++){
+				locCoords[0] = displayCorners[0] + (displayCorners[4]-displayCorners[0])*(double)i/(double)(maxx-1);
+				locCoords[1] = displayCorners[1] + (displayCorners[5]-displayCorners[1])*(double)j/(double)(maxy-1);
+				assert(tParams->isMappedToTerrain());
 				//Find cell coordinates of locCoords in data grid space
 				int gridLL[2];
 				float fltGridLL[2];
@@ -858,7 +936,7 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 					//outside points go to minimum elevation
 					locCoords[2] = constElev;
 				} else { 
-					//find locCoords [0..1]relative to grid cell:???
+					//find locCoords [0..1] relative to grid cell:
 					float x = (fltGridLL[0] - gridLL[0]);
 					float y = (fltGridLL[1] - gridLL[1]);
 					//To get elevations at corners, need grid coordinates:
@@ -876,35 +954,27 @@ bool TwoDRenderer::rebuildImageGrid(size_t timeStep){
 						y*((1-x)*elevUL + x*elevUR);
 					if (locCoords[2] < minElev) locCoords[2] = minElev;
 				}
+				
+				//Convert to stretched cube coords.  Note that following
+				//routine requires local coords, not global world coords, despite name of method:
+				ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
+				for (int k = 0; k< 3; k++){
+					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
+						maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
+						minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+				}
+			
 			}
-			else { //not mapped to terrain, use constant elevation
-				locCoords[2] = constElev;
-			}
-			//Convert to stretched cube coords.  Note that following
-			//routine requires local coords, not global world coords, despite name of method:
-			ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
-			for (int k = 0; k< 3; k++){
-				if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
-					maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
-				if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
-					minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
-			}
-		
-	
+			
 		}
-		
-		//Set the z coordinate using the elevation data:
-		//float* elevs = elevData != 0 ? elevData : hgtData;
-		//interpHeights(elevVert[timeStep]+3*j*maxx, maxx, maxx, maxy, imgExts, elevs);
-
 	}
 
-	//qWarning("min,max coords: %f %f %f %f %f %f",
-	//	minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
+	qWarning("min,max coords: %f %f %f %f %f %f",
+	 minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
 	
-	//Now calculate normals.  For now, just do it as if the points are
+	//Now calculate normals.  For now, just do it as if the points were
 	//on a regular grid:
-	delete elevVertLine;
 	calcElevGridNormals(timeStep);
 	return true;
 }

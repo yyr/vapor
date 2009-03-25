@@ -225,7 +225,7 @@ public:
 
 	//Whenever the 2D image filename changes or the session changes,
 	//we need to reread the file and reset the image extents.
-	void setImageDirty();
+	void setImagesDirty();
 	
 	//General method that obtains a list of variables (containing the twoD) from the dataMgr
 	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
@@ -258,7 +258,7 @@ public:
 			twoDMax[i] = boxMax[i];
 		}
 		if (mapToTerrain){
-			twoDMin[2]= minTerrainHeight;
+			twoDMin[2]= minTerrainHeight+verticalDisplacement;
 			twoDMax[2] = maxTerrainHeight+verticalDisplacement;
 			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
 		}

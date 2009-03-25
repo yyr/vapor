@@ -1025,7 +1025,7 @@ void TwoDParams::setTwoDDirty(){
 	setAllBypass(false);
 }
 //In image mode, need to clear out cached info obtained from image file
-void TwoDParams::setImageDirty(){
+void TwoDParams::setImagesDirty(){
 	if (twoDDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
 			if (twoDDataTextures[i]) {
@@ -1453,9 +1453,11 @@ unsigned char* TwoDParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
  
-	//Initially set imgExts to an invalid setting:
-	imgExts[0] = 0.f;
-	imgExts[2] = -1.f;
+	//Initially set imgExts to the twoD extents
+	imgExts[0] = twoDMin[0];
+	imgExts[1] = twoDMin[1];
+	imgExts[2] = twoDMax[0];
+	imgExts[3] = twoDMax[1];
 	projDefinitionString = "";
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
 
@@ -1477,7 +1479,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
 	
 
-	if (isGeoreferenced()){  //get a proj4 definition string if it exists, using geoTiff lib
+	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
 		int rc1 = GTIFGetDefn(gtifHandle,gtifDef);
@@ -1488,42 +1490,33 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		projPJ p = pj_init_plus(proj4String);
 		int gotFields = false;
 		double* padfTiePoints, *modelPixelScale;
-		
-		if (!p){
+		if (p) pj_free(p);
+		if (!p && isGeoreferenced()){
 			//Invalid string. Get the error code:
 			int *pjerrnum = pj_get_errno_ref();
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not properly geo-referenced\n %s\n %s\n",
-				pj_strerrno(*pjerrnum),
-				"Geo-referencing has been disabled");
-			setGeoreferenced(false);
-		} else {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not properly geo-referenced\n %s\n",
+				pj_strerrno(*pjerrnum));
+		} else if (p && isGeoreferenced()) {
 
-			pj_free(p);
-		
 			//ModelTiepointTag and modelpixelscale needed to calculate image corners
 			uint16 nCount;
 			
 			gotFields = TIFFGetField(tif,TIFFTAG_GEOTIEPOINTS,&nCount,&padfTiePoints);
 		
 			if(gotFields) gotFields = TIFFGetField(tif, TIFFTAG_GEOPIXELSCALE, &nCount, &modelPixelScale );
-		}
 		
-
-		
-		
-		double pixelStart[2];
-		if (gotFields && isGeoreferenced()){
-			pixelStart[0] = padfTiePoints[0];
-			pixelStart[1] = h-1 - padfTiePoints[1];
-			imgExts[0] = padfTiePoints[3]-pixelStart[0]*modelPixelScale[0];
-			imgExts[1] = padfTiePoints[4]-pixelStart[1]*modelPixelScale[1];
-			imgExts[2] = padfTiePoints[3]+(w-1-pixelStart[0])*modelPixelScale[0];
-			imgExts[3] = padfTiePoints[4]+(h-1-pixelStart[1])*modelPixelScale[1];
-		} else if (isGeoreferenced()){
-			//Inadequate georeferencing:
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not geo-referenced\n %s\n",
-				"Geo-referencing has been disabled");
-			setGeoreferenced(false);
+			if (gotFields){
+				double pixelStart[2];
+				pixelStart[0] = padfTiePoints[0];
+				pixelStart[1] = h-1 - padfTiePoints[1];
+				imgExts[0] = padfTiePoints[3]-pixelStart[0]*modelPixelScale[0];
+				imgExts[1] = padfTiePoints[4]-pixelStart[1]*modelPixelScale[1];
+				imgExts[2] = padfTiePoints[3]+(w-1-pixelStart[0])*modelPixelScale[0];
+				imgExts[3] = padfTiePoints[4]+(h-1-pixelStart[1])*modelPixelScale[1];
+			} else {
+				//Inadequate georeferencing:
+				MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not geo-referenced\n");
+			}
 		}
 	}
 	//Following is valid whether or not we are georeferenced:
@@ -1536,13 +1529,16 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			*ht = h;
 			//May need to resample here!
 		}
+		else {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
+				imageFileName.c_str());
+			delete texture;
+			texture = 0;
+		}
 	}
 
 	TIFFClose(tif);
 	return (unsigned char*) texture;
-	
-
-	return 0;
 }
 void TwoDParams::setupImageNums(TIFF* tif){
 	//Initialize to zeroes

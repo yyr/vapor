@@ -604,7 +604,7 @@ void TwoDEventRouter::guiSelectImageFile(){
 	
 	filenameEdit->setText(filename);
 	PanelCommand::captureEnd(cmd, tParams);
-	tParams->setImageDirty();
+	tParams->setImagesDirty();
 	VizWinMgr::getInstance()->refreshTwoD(tParams);
 }
 void TwoDEventRouter::guiSetOrientation(int val){
@@ -657,7 +657,7 @@ void TwoDEventRouter::guiSetGeoreferencing(bool val){
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle georeferencing on/off");
 	tParams->setGeoreferenced(val);
 	PanelCommand::captureEnd(cmd, tParams); 
-	setTwoDDirty(tParams);
+	tParams->setImagesDirty();
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
 	updateTab();
 }
