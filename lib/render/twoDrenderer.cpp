@@ -95,6 +95,7 @@ void TwoDRenderer::paintGL()
 	int imgHeight = imgSize[1];
 	if (twoDTex){
 		if(myTwoDParams->imageCrop()) enableFullClippingPlanes();
+		else disableFullClippingPlanes();
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -258,32 +259,42 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	
 	//Set up clipping planes
-	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	if (tParams->imageCrop()){
+		const float* scales = DataStatus::getInstance()->getStretchFactors();
 	
-	const float* extents = DataStatus::getInstance()->getExtents();
+		const float* extents = DataStatus::getInstance()->getExtents();
 
-	topPlane[3] = tParams->getTwoDMax(1)*scales[1];
-	botPlane[3] = -tParams->getTwoDMin(1)*scales[1];
-	leftPlane[3] = -tParams->getTwoDMin(0)*scales[0];
-	rightPlane[3] = tParams->getTwoDMax(0)*scales[0];
-	frontPlane[3] = extents[5]*scales[2];
-	backPlane[3] = -extents[2]*scales[2];
+		topPlane[3] = tParams->getTwoDMax(1)*scales[1];
+		botPlane[3] = -tParams->getTwoDMin(1)*scales[1];
+		leftPlane[3] = -tParams->getTwoDMin(0)*scales[0];
+		rightPlane[3] = tParams->getTwoDMax(0)*scales[0];
+		frontPlane[3] = extents[5]*scales[2];
+		backPlane[3] = -extents[2]*scales[2];
 
 	
-	glClipPlane(GL_CLIP_PLANE0, topPlane);
-	glEnable(GL_CLIP_PLANE0);
-	glClipPlane(GL_CLIP_PLANE1, rightPlane);
-	glEnable(GL_CLIP_PLANE1);
-	glClipPlane(GL_CLIP_PLANE2, botPlane);
-	glEnable(GL_CLIP_PLANE2);
-	glClipPlane(GL_CLIP_PLANE3, leftPlane);
-	glEnable(GL_CLIP_PLANE3);
-	glClipPlane(GL_CLIP_PLANE4, frontPlane);
-	glEnable(GL_CLIP_PLANE4);
-	glClipPlane(GL_CLIP_PLANE5, backPlane);
-	glEnable(GL_CLIP_PLANE5);
+		glClipPlane(GL_CLIP_PLANE0, topPlane);
+		glEnable(GL_CLIP_PLANE0);
+		glClipPlane(GL_CLIP_PLANE1, rightPlane);
+		glEnable(GL_CLIP_PLANE1);
+		glClipPlane(GL_CLIP_PLANE2, botPlane);
+		glEnable(GL_CLIP_PLANE2);
+		glClipPlane(GL_CLIP_PLANE3, leftPlane);
+		glEnable(GL_CLIP_PLANE3);
+		glClipPlane(GL_CLIP_PLANE4, frontPlane);
+		glEnable(GL_CLIP_PLANE4);
+		glClipPlane(GL_CLIP_PLANE5, backPlane);
+		glEnable(GL_CLIP_PLANE5);
 
-	glPopMatrix();
+		glPopMatrix();
+	} else {
+		glDisable(GL_CLIP_PLANE0);
+		glDisable(GL_CLIP_PLANE1);
+		glDisable(GL_CLIP_PLANE2);
+		glDisable(GL_CLIP_PLANE3);
+		glDisable(GL_CLIP_PLANE4);
+		glDisable(GL_CLIP_PLANE5);
+		glPopMatrix();
+	}
 	//Set up  color
 	float elevGridColor[4];
 	elevGridColor[0] = 1.f;
