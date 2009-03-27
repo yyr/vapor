@@ -43,7 +43,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include <qlayout.h>
-#include "twoDDatarenderer.h"
+#include "twoDdatarenderer.h"
 #include "mappingframe.h"
 #include "transferfunction.h"
 #include "regionparams.h"

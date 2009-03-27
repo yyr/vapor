@@ -62,8 +62,8 @@
 #include "vizwin.h"
 #include "floweventrouter.h"
 #include "probeeventrouter.h"
-#include "twoDDataeventrouter.h"
-#include "twoDImageeventrouter.h"
+#include "twoDdataeventrouter.h"
+#include "twoDimageeventrouter.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viewpointeventrouter.h"
@@ -79,8 +79,8 @@
 
 #include "animationparams.h"
 #include "probeparams.h"
-#include "twoDDataparams.h"
-#include "twoDImageparams.h"
+#include "twoDdataparams.h"
+#include "twoDimageparams.h"
 
 #include "assert.h"
 #include "command.h"

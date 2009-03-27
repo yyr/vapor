@@ -25,7 +25,7 @@
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
-#include "twoDDataparams.h"
+#include "twoDdataparams.h"
 #include "twoDdatatab.h"
 #include "twoDeventrouter.h"
 
