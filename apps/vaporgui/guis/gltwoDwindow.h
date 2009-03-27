@@ -45,7 +45,7 @@ public:
 	void setTextureSize(float horiz, float vert);
 	void mapPixelToTwoDCoords(int ix, int iy, float* x, float* y);
 
-	
+	void setWindowType(bool isData){isDataWindow = isData;}
 
 
 protected:
@@ -68,7 +68,7 @@ protected:
 	float horizTexSize, vertTexSize;
 	float rectLeft, rectTop;
 	TwoDFrame* twoDFrame;
-	
+	bool isDataWindow;  //true if it's a data window
 
 };
 };

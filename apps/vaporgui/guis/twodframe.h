@@ -45,7 +45,10 @@ public:
 		glTwoDWindow->setTextureSize(h,v);
 	}
 	
-	void setParams(TwoDParams* p) {twoDParams = p;}
+	void setParams(TwoDParams* p, bool isData) {
+		twoDParams = p; isDataWindow = isData;
+		glTwoDWindow->setWindowType(isData);
+	}
 	TwoDParams* getParams() {return twoDParams;}
 	
 	
@@ -73,6 +76,7 @@ protected:
 	
 	bool mouseIsDown;
 	VAPoR::TwoDParams* twoDParams;
+	bool isDataWindow;
 	
 };
 

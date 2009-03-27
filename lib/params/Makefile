@@ -9,6 +9,7 @@ FILES = \
 	datastatus dvrparams flowparams glutil \
 	histo mapperfunction params probeparams regionparams \
 	tfinterpolator transferfunction viewpoint twoDparams \
+	twoDimageparams twoDdataparams \
 	animationparams	viewpointparams ParamsBase \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite

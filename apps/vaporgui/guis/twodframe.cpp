@@ -27,7 +27,8 @@
 #include "gltwoDwindow.h"
 #include "glutil.h"
 #include "vizwinmgr.h"
-#include "twoDeventrouter.h"
+#include "twoDdataeventrouter.h"
+#include "twoDimageeventrouter.h"
 
 
 TwoDFrame::TwoDFrame( QWidget * parent, const char * name, WFlags f ) :
@@ -47,6 +48,7 @@ TwoDFrame::TwoDFrame( QWidget * parent, const char * name, WFlags f ) :
 	QHBoxLayout* flayout = new QHBoxLayout( this, 2, 2, "flayout");
     flayout->addWidget( glTwoDWindow, 1 );
 	twoDParams = 0;
+	isDataWindow = true;
 
 }
 TwoDFrame::~TwoDFrame() {
@@ -66,11 +68,18 @@ void TwoDFrame::paintEvent(QPaintEvent* ){
 }
 
 void TwoDFrame::mousePressEvent( QMouseEvent * e){
-	TwoDEventRouter* per = VizWinMgr::getInstance()->getTwoDRouter();
-	if (!twoDParams) return;
 	float x,y;
-	glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-	per->guiStartCursorMove();
+	if (!twoDParams) return;
+	if (isDataWindow){
+		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
+		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		per->guiStartCursorMove();
+	}
+	else {
+		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
+		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		per->guiStartCursorMove();
+	}
 	twoDParams->setCursorCoords(x,y);
 	update();
 	
@@ -82,11 +91,19 @@ void TwoDFrame::mousePressEvent( QMouseEvent * e){
 void TwoDFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!glTwoDWindow) return;
 	if (!twoDParams) return;
-	TwoDEventRouter* per = VizWinMgr::getInstance()->getTwoDRouter();
 	float x,y;
-	glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-	twoDParams->setCursorCoords(x,y);
-	per->guiEndCursorMove();
+	if (isDataWindow){
+		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
+		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		twoDParams->setCursorCoords(x,y);
+		per->guiEndCursorMove();
+	}
+	else {
+		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
+		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		twoDParams->setCursorCoords(x,y);
+		per->guiEndCursorMove();
+	}
 	update();
 }
 	

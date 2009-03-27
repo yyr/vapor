@@ -14,7 +14,8 @@
 //
 //	Date:		July 2008
 //
-//	Description:	Definition of the TwoDRenderer class
+//	Description:	Definition of the TwoDRenderer class, parent class
+//					for TwoDDataRenderer and TwoDImageRenderer
 //
 #ifndef TWODRENDERER_H
 #define TWODRENDERER_H
@@ -36,7 +37,7 @@ public:
     ~TwoDRenderer();
 	
 	virtual void	initializeGL();
-    virtual void		paintGL();
+    virtual void		paintGL()=0;
 
 	static unsigned char* getTwoDTexture(TwoDParams*, int frameNum, bool doCache);
 	
@@ -50,12 +51,8 @@ protected:
 	
 	void invalidateElevGrid();
 	void drawElevationGrid(size_t timestep);
-	bool rebuildElevationGrid(size_t timestep);
-	bool rebuildImageGrid(size_t timestep);
+	virtual bool rebuildElevationGrid(size_t timestep)=0;
 	void calcElevGridNormals(size_t timestep);
-	//Interpolate heights of an elevation grid.  The points in rowData
-	//are in world coordinates
-	void interpHeights(float* rowData, int numPts, int elevWid, int elevHt, float defaultElev, const float worldElevExtents[4], const float* elevData);
 	
 
 };

@@ -62,7 +62,8 @@
 #include "vizwin.h"
 #include "floweventrouter.h"
 #include "probeeventrouter.h"
-#include "twoDeventrouter.h"
+#include "twoDDataeventrouter.h"
+#include "twoDImageeventrouter.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viewpointeventrouter.h"
@@ -78,7 +79,8 @@
 
 #include "animationparams.h"
 #include "probeparams.h"
-#include "twoDparams.h"
+#include "twoDDataparams.h"
+#include "twoDImageparams.h"
 
 #include "assert.h"
 #include "command.h"
@@ -126,7 +128,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	theAnimationTab = 0;
 	theFlowTab = 0;
 	theProbeTab = 0;
-	theTwoDTab = 0;
+	theTwoDDataTab = 0;
+	theTwoDImageTab = 0;
 	theApp = app;
 
 	interactiveRefinementSpin = 0;
@@ -277,11 +280,15 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	
 	QPixmap* twoDIcon = new QPixmap(twoD);
-	twoDAction = new QAction("2D Planar Mode", *twoDIcon,
+	twoDDataAction = new QAction("2D Planar Mode", *twoDIcon,
 		"&twoD", CTRL+Key_2, mouseModeActions);
-	twoDAction->setToggleAction(true);
-	twoDAction->setOn(false);
+	twoDDataAction->setToggleAction(true);
+	twoDDataAction->setOn(false);
 
+	twoDImageAction = new QAction("2D Planar Mode", *twoDIcon,
+		"&twoD", CTRL+Key_2, mouseModeActions);
+	twoDImageAction->setToggleAction(true);
+	twoDImageAction->setOn(false);
 
 	QPixmap* rakeIcon = new QPixmap(rake);
 	rakeAction = new QAction("Rake Mode", *rakeIcon,
@@ -337,7 +344,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	regionSelectAction->addTo(modeToolBar);
 	rakeAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
-	twoDAction->addTo(modeToolBar);
+	twoDDataAction->addTo(modeToolBar);
+	twoDImageAction->addTo(modeToolBar);
 
 
 	tileAction->addTo(vizToolBar);
@@ -491,7 +499,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
 	
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
-	connect (twoDAction, SIGNAL(toggled(bool)), this, SLOT(setTwoD(bool)));
+	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
+	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
 	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
 	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
@@ -515,7 +524,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	animationParams();
 	viewpoint();
 	region();
-	launchTwoDTab();
+	launchTwoDDataTab();
+	launchTwoDImageTab();
 	launchProbeTab();
 	launchIsoTab();
 	launchFlowTab();
@@ -1289,26 +1299,48 @@ void MainForm::launchProbeTab()
 		tabWidget->moveToFront(Params::ProbeParamsType);
 	}
 }
-void MainForm::launchTwoDTab()
+void MainForm::launchTwoDDataTab()
 {
 	//Do the probe panel here
 	//Determine which is the current active window:
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theTwoDTab){
-		theTwoDTab = new TwoDEventRouter(tabWidget, "TwoDTab");
-		myVizMgr->hookUpTwoDTab(theTwoDTab);
-		QToolTip::add(theTwoDTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		QToolTip::add(theTwoDTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+	if (!theTwoDDataTab){
+		theTwoDDataTab = new TwoDDataEventRouter(tabWidget, "TwoDDataTab");
+		myVizMgr->hookUpTwoDDataTab(theTwoDDataTab);
+		QToolTip::add(theTwoDDataTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		QToolTip::add(theTwoDDataTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 	}
 	
-	int posn = tabWidget->findWidget(Params::TwoDParamsType);
+	int posn = tabWidget->findWidget(Params::TwoDDataParamsType);
          
 	//Create a new parameter class to work with the widget
 		 
 	if (posn < 0){
-		tabWidget->insertWidget(theTwoDTab, Params::TwoDParamsType, true );
+		tabWidget->insertWidget(theTwoDDataTab, Params::TwoDDataParamsType, true );
 	} else {
-		tabWidget->moveToFront(Params::TwoDParamsType);
+		tabWidget->moveToFront(Params::TwoDDataParamsType);
+	}
+}
+void MainForm::launchTwoDImageTab()
+{
+	//Do the probe panel here
+	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	if (!theTwoDImageTab){
+		theTwoDImageTab = new TwoDImageEventRouter(tabWidget, "TwoDImageTab");
+		myVizMgr->hookUpTwoDImageTab(theTwoDImageTab);
+		QToolTip::add(theTwoDImageTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		QToolTip::add(theTwoDImageTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+	}
+	
+	int posn = tabWidget->findWidget(Params::TwoDImageParamsType);
+         
+	//Create a new parameter class to work with the widget
+		 
+	if (posn < 0){
+		tabWidget->insertWidget(theTwoDImageTab, Params::TwoDImageParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::TwoDImageParamsType);
 	}
 }
 /*
@@ -1387,27 +1419,53 @@ void MainForm::setProbe(bool on)
 	}
 	
 }
-void MainForm::setTwoD(bool on)
+void MainForm::setTwoDData(bool on)
 {
 	//2d mode is like rake mode
-	if (!on && twoDAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && twoDDataAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
-	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDMode){
+	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDDataMode){
 		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDMode);
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDDataMode);
 		
 		currentSession->blockRecording();
-		launchTwoDTab();
+		launchTwoDDataTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDMode));
-		GLWindow::setCurrentMouseMode(GLWindow::twoDMode);
+		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDDataMode));
+		GLWindow::setCurrentMouseMode(GLWindow::twoDDataMode);
 		VizWinMgr::getInstance()->updateActiveParams();
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
 		}
-		modeStatusWidget = new QLabel("TwoD Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		modeStatusWidget = new QLabel("TwoDData Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		statusBar()->addWidget(modeStatusWidget,2);
+		
+	}
+	
+}
+void MainForm::setTwoDImage(bool on)
+{
+	//2d mode is like rake mode
+	if (!on && twoDImageAction->isOn()){navigationAction->toggle(); return;}
+	if (!on) return;
+	Session* currentSession = Session::getInstance();
+	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDImageMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDImageMode);
+		
+		currentSession->blockRecording();
+		launchTwoDImageTab();
+		currentSession->unblockRecording();
+		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDImageMode));
+		GLWindow::setCurrentMouseMode(GLWindow::twoDImageMode);
+		VizWinMgr::getInstance()->updateActiveParams();
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("TwoDImage Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
 		statusBar()->addWidget(modeStatusWidget,2);
 		
 	}
@@ -1509,7 +1567,8 @@ void MainForm::initViewMenu(){
 void MainForm::resetModeButtons(){
 	navigationAction->setOn(true);
 	probeAction->setOn(false);
-	twoDAction->setOn(false);
+	twoDDataAction->setOn(false);
+	twoDImageAction->setOn(false);
 	regionSelectAction->setOn(false);
 	moveLightsAction->setOn(false);
 	rakeAction->setOn(false);

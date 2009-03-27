@@ -86,9 +86,10 @@ Params(int winNum) : ParamsBase() {
 		DvrParamsType = 4,
 		IsoParamsType = 8,
 		ProbeParamsType = 16,
-		TwoDParamsType = 32,
+		TwoDDataParamsType = 32,
 		AnimationParamsType = 64,
-		FlowParamsType = 128
+		FlowParamsType = 128,
+		TwoDImageParamsType = 256
 	};
 	
 	static void	BailOut (const char *errstr, char *fname, int lineno);
@@ -98,6 +99,8 @@ Params(int winNum) : ParamsBase() {
 	static const string _isoParamsTag;
 	static const string _probeParamsTag;
 	static const string _twoDParamsTag;
+	static const string _twoDDataParamsTag;
+	static const string _twoDImageParamsTag;
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;

@@ -63,7 +63,8 @@ class DvrEventRouter;
 class IsoEventRouter;
 class ViewpointEventRouter;
 class ProbeEventRouter;
-class TwoDEventRouter;
+class TwoDDataEventRouter;
+class TwoDImageEventRouter;
 class FlowEventRouter;
 
 class MainForm : public QMainWindow
@@ -151,7 +152,8 @@ public:
 	QAction* navigationAction;
 	QAction* regionSelectAction;
 	QAction* probeAction;
-	QAction* twoDAction;
+	QAction* twoDImageAction;
+	QAction* twoDDataAction;
 	QAction* rakeAction;
 	
 	QAction* moveLightsAction;
@@ -172,7 +174,8 @@ public:
 	RegionEventRouter* getRegionTab() {return theRegionTab;}
 	DvrEventRouter* getDvrTab() {return theDvrTab;}
 	ProbeEventRouter* getProbeTab() {return theProbeTab;}
-	TwoDEventRouter* getTwoDTab() {return theTwoDTab;}
+	TwoDImageEventRouter* getTwoDImageTab() {return theTwoDImageTab;}
+	TwoDDataEventRouter* getTwoDDataTab() {return theTwoDDataTab;}
 	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
 	
 	
@@ -226,13 +229,15 @@ public slots:
 	virtual void launchFlowTab();
 	virtual void launchIsoTab();
 	virtual void launchProbeTab();
-	virtual void launchTwoDTab();
+	virtual void launchTwoDImageTab();
+	virtual void launchTwoDDataTab();
     virtual void batchSetup();
 
 	//Set various manipulator modes:
 	virtual void setRegionSelect(bool);
 	virtual void setProbe(bool);
-	virtual void setTwoD(bool);
+	virtual void setTwoDImage(bool);
+	virtual void setTwoDData(bool);
 	virtual void setRake(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
@@ -259,7 +264,8 @@ protected:
 	IsoEventRouter* theIsoTab;
 	FlowEventRouter* theFlowTab;
 	ProbeEventRouter* theProbeTab;
-	TwoDEventRouter* theTwoDTab;
+	TwoDImageEventRouter* theTwoDImageTab;
+	TwoDDataEventRouter* theTwoDDataTab;
 	AnimationEventRouter* theAnimationTab;
 	QApplication* theApp;
 	

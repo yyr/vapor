@@ -195,6 +195,12 @@
 				RelativePath="..\..\..\lib\render\trackball.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\twoDdatarenderer.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\twoDimagerenderer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\twoDrenderer.cpp">
 			</File>
 			<File
@@ -302,6 +308,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\trackball.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\twoDdatarenderer.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\twoDimagerenderer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\twoDrenderer.h">

@@ -52,8 +52,11 @@ void MouseModeCommand::unDo(){
 		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
-		case GLWindow::twoDMode:
-			MainForm::getInstance()->twoDAction->setOn(true);
+		case GLWindow::twoDDataMode:
+			MainForm::getInstance()->twoDDataAction->setOn(true);
+			break;
+		case GLWindow::twoDImageMode:
+			MainForm::getInstance()->twoDImageAction->setOn(true);
 			break;
 		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
@@ -79,8 +82,11 @@ void MouseModeCommand::reDo(){
 		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
-		case GLWindow::twoDMode:
-			MainForm::getInstance()->twoDAction->setOn(true);
+		case GLWindow::twoDDataMode:
+			MainForm::getInstance()->twoDDataAction->setOn(true);
+			break;
+		case GLWindow::twoDImageMode:
+			MainForm::getInstance()->twoDImageAction->setOn(true);
 			break;
 		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
@@ -106,8 +112,10 @@ modeName(GLWindow::mouseModeType t){
 			return " probe-set ";
 		case GLWindow::rakeMode:
 			return " rake-set ";
-		case GLWindow::twoDMode:
-			return " planar-set ";
+		case GLWindow::twoDDataMode:
+			return " 2d data planar-set ";
+		case GLWindow::twoDImageMode:
+			return " 2d image planar-set ";
 		case GLWindow::lightMode:
 			return " light-move ";
 		default:  
@@ -153,8 +161,11 @@ void TabChangeCommand::unDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		case Params::TwoDParamsType:
-			MainForm::getInstance()->launchProbeTab();
+		case Params::TwoDDataParamsType:
+			MainForm::getInstance()->launchTwoDDataTab();
+			break;
+		case Params::TwoDImageParamsType:
+			MainForm::getInstance()->launchTwoDImageTab();
 			break;
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
@@ -190,8 +201,11 @@ void TabChangeCommand::reDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		case Params::TwoDParamsType:
-			MainForm::getInstance()->launchProbeTab();
+		case Params::TwoDDataParamsType:
+			MainForm::getInstance()->launchTwoDDataTab();
+			break;
+		case Params::TwoDImageParamsType:
+			MainForm::getInstance()->launchTwoDImageTab();
 			break;
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
@@ -208,7 +222,7 @@ tabName(Params::ParamType t){
 		case Params::UnknownParamsType:
 			return " none ";
 		case Params::ViewpointParamsType:
-			return " viewpoint ";
+			return "viewpoint";
 		case Params::RegionParamsType:
 			return " region ";
 		case Params::DvrParamsType:
@@ -221,8 +235,10 @@ tabName(Params::ParamType t){
 			return " flow ";
 		case Params::ProbeParamsType:
 			return " probe ";
-		case Params::TwoDParamsType:
-			return " 2D ";
+		case Params::TwoDDataParamsType:
+			return "2DData";
+		case Params::TwoDImageParamsType:
+			return "2DImage";
 		default:  
 			assert(0);
 			return 0;

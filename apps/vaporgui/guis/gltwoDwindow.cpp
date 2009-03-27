@@ -121,7 +121,9 @@ void GLTwoDWindow::paintGL()
 {
 	printOpenGLErrorMsg("GLTwoDWindow");
 	if (GLWindow::isRendering()) return;
-	TwoDParams* myParams = VizWinMgr::getActiveTwoDParams();
+	TwoDParams* myParams;
+	if (isDataWindow) myParams = VizWinMgr::getActiveTwoDDataParams();
+	else myParams = VizWinMgr::getActiveTwoDImageParams();
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 

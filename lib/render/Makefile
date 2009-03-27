@@ -10,6 +10,7 @@ UI_DIR = ui
 FILES = \
 	DVRBase DVRDebug \
 	glwindow renderer twoDrenderer \
+	twoDimagerenderer twoDdatarender \
 	customcontext \
 	manip proberenderer\
 	trackball flowrenderer isorenderer\

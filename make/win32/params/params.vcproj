@@ -193,6 +193,12 @@
 				RelativePath="..\..\..\lib\params\TransferFunctionLite.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\twoDdataparams.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\twoDimageparams.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\twoDparams.cpp">
 			</File>
 			<File
@@ -268,6 +274,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\transferfunction.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\twoDdataparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\twoDimageparams.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\twoDparams.h">

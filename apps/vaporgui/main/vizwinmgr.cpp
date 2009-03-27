@@ -59,7 +59,8 @@
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include "params.h"
-#include "twoDparams.h"
+#include "twoDImageparams.h"
+#include "twoDDataparams.h"
 #include "animationparams.h"
 #include "probeparams.h"
 #include "animationcontroller.h"
@@ -76,7 +77,8 @@
 #include "isoeventrouter.h"
 #include "viewpointeventrouter.h"
 #include "probeeventrouter.h"
-#include "twoDeventrouter.h"
+#include "twoDimageeventrouter.h"
+#include "twoDDataeventrouter.h"
 #include "floweventrouter.h"
 #include "panelcommand.h"
 #include "eventrouter.h"
@@ -156,13 +158,15 @@ VizWinMgr::VizWinMgr()
 		dvrParamsInstances[i].clear();
 		isoParamsInstances[i].clear();
 		probeParamsInstances[i].clear();
-		twoDParamsInstances[i].clear();
+		twoDImageParamsInstances[i].clear();
+		twoDDataParamsInstances[i].clear();
 		flowParamsInstances[i].clear();
 		currentDvrInstance[i] = -1;
 		currentIsoInstance[i] = -1;
 		currentFlowInstance[i] = -1;
 		currentProbeInstance[i] = -1;
-		currentTwoDInstance[i] = -1;
+		currentTwoDImageInstance[i] = -1;
+		currentTwoDDataInstance[i] = -1;
 
 		animationParams[i] = 0;
 		activationOrder[i] = -1;
@@ -173,7 +177,8 @@ VizWinMgr::VizWinMgr()
 	regionEventRouter = 0;
 	viewpointEventRouter = 0;
 	probeEventRouter = 0;
-	twoDEventRouter = 0;
+	twoDImageEventRouter = 0;
+	twoDDataEventRouter = 0;
 	animationEventRouter = 0;
 	flowEventRouter = 0;
 }
@@ -191,7 +196,8 @@ createGlobalParams() {
 	defaultIsoParams = new ParamsIso(NULL, -1);
 	defaultFlowParams = new FlowParams(-1);
 	defaultProbeParams = new ProbeParams(-1);
-	defaultTwoDParams = new TwoDParams(-1);
+	defaultTwoDImageParams = new TwoDImageParams(-1);
+	defaultTwoDDataParams = new TwoDDataParams(-1);
 	globalTrackball = new Trackball();
 }
 
@@ -265,11 +271,16 @@ vizAboutToDisappear(int i)  {
 		delete getProbeParams(i,inst);
 	}
 	probeParamsInstances[i].clear();
-	for (int inst = 0; inst < getNumTwoDInstances(i); inst++){
-		twoDEventRouter->cleanParams(getTwoDParams(i,inst));
-		delete getTwoDParams(i,inst);
+	for (int inst = 0; inst < getNumTwoDImageInstances(i); inst++){
+		twoDImageEventRouter->cleanParams(getTwoDImageParams(i,inst));
+		delete getTwoDImageParams(i,inst);
 	}
-	twoDParamsInstances[i].clear();
+	twoDImageParamsInstances[i].clear();
+	for (int inst = 0; inst < getNumTwoDDataInstances(i); inst++){
+		twoDDataEventRouter->cleanParams(getTwoDDataParams(i,inst));
+		delete getTwoDDataParams(i,inst);
+	}
+	twoDDataParamsInstances[i].clear();
 	for (int inst = 0; inst < getNumFlowInstances(i); inst++){
 		flowEventRouter->cleanParams(getFlowParams(i,inst));
 		delete getFlowParams(i,inst);
@@ -415,12 +426,19 @@ createDefaultParams(int winnum){
 	probeParamsInstances[winnum].push_back(pParams);
 	setCurrentProbeInstIndex(winnum,0);
 
-	TwoDParams* tParams = (TwoDParams*)(defaultTwoDParams->deepCopy());
+	TwoDImageParams* tParams = (TwoDImageParams*)(defaultTwoDImageParams->deepCopy());
 	tParams->setVizNum(winnum);
 	tParams->setEnabled(false);
-	assert (getNumTwoDInstances(winnum) == 0);
-	twoDParamsInstances[winnum].push_back(tParams);
-	setCurrentTwoDInstIndex(winnum,0);
+	assert (getNumTwoDImageInstances(winnum) == 0);
+	twoDImageParamsInstances[winnum].push_back(tParams);
+	setCurrentTwoDImageInstIndex(winnum,0);
+
+	TwoDDataParams* tdParams = (TwoDDataParams*)(defaultTwoDDataParams->deepCopy());
+	tdParams->setVizNum(winnum);
+	tdParams->setEnabled(false);
+	assert (getNumTwoDDataInstances(winnum) == 0);
+	twoDDataParamsInstances[winnum].push_back(tdParams);
+	setCurrentTwoDDataInstIndex(winnum,0);
 
 	FlowParams* fParams = (FlowParams*)(defaultFlowParams->deepCopy());
 	fParams->setVizNum(winnum);
@@ -461,9 +479,13 @@ void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 			if(defaultProbeParams) delete defaultProbeParams;
 			defaultProbeParams = (ProbeParams*)p;
 			return;
-		case (Params::TwoDParamsType):
-			if(defaultTwoDParams) delete defaultTwoDParams;
-			defaultTwoDParams = (TwoDParams*)p;
+		case (Params::TwoDImageParamsType):
+			if(defaultTwoDImageParams) delete defaultTwoDImageParams;
+			defaultTwoDImageParams = (TwoDImageParams*)p;
+			return;
+		case (Params::TwoDDataParamsType):
+			if(defaultTwoDDataParams) delete defaultTwoDDataParams;
+			defaultTwoDDataParams = (TwoDDataParams*)p;
 			return;
 		case (Params::FlowParamsType):
 			if(defaultFlowParams) delete defaultFlowParams;
@@ -605,7 +627,8 @@ updateActiveParams(){
 	dvrEventRouter->updateTab();
 	isoEventRouter->updateTab();
 	probeEventRouter->updateTab();
-	twoDEventRouter->updateTab();
+	twoDImageEventRouter->updateTab();
+	twoDDataEventRouter->updateTab();
 	flowEventRouter->updateTab();
 	animationEventRouter->updateTab();
 	//Also update the activeParams in the GLWindow:
@@ -615,7 +638,8 @@ updateActiveParams(){
 	glwin->setActiveDvrParams(getDvrParams(activeViz));
 	glwin->setActiveIsoParams(getIsoParams(activeViz));
 	glwin->setActiveProbeParams(getProbeParams(activeViz));
-	glwin->setActiveTwoDParams(getTwoDParams(activeViz));
+	glwin->setActiveTwoDImageParams(getTwoDImageParams(activeViz));
+	glwin->setActiveTwoDDataParams(getTwoDDataParams(activeViz));
 	glwin->setActiveAnimationParams(getAnimationParams(activeViz));
 	glwin->setActiveRegionParams(getRegionParams(activeViz));
 	glwin->setActiveViewpointParams(getViewpointParams(activeViz));
@@ -669,7 +693,7 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 		RenderParams* newRParams = 0;
 		GLWindow* glwin = vizWin[winnum]->getGLWindow();
 		switch (t) {
-			FlowParams* fp; DvrParams* dp; ProbeParams* pp; ParamsIso* ip; TwoDParams *tp;
+			FlowParams* fp; DvrParams* dp; ProbeParams* pp; ParamsIso* ip; TwoDDataParams *tp; TwoDImageParams *tip;
 			
 			case Params::FlowParamsType :
 				fp = (FlowParams*)p;
@@ -718,17 +742,29 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 				
 				newRParams = pp;
 				break;
-			case Params::TwoDParamsType :
+			case Params::TwoDDataParamsType :
 				
-				tp = (TwoDParams*)p;
-				if (getNumTwoDInstances(winnum)> inst) {
-					if (getTwoDParams(winnum,inst)) delete getTwoDParams(winnum,inst);
-					getAllTwoDParams(winnum)[inst] = tp;
+				tp = (TwoDDataParams*)p;
+				if (getNumTwoDDataInstances(winnum)> inst) {
+					if (getTwoDDataParams(winnum,inst)) delete getTwoDDataParams(winnum,inst);
+					getAllTwoDDataParams(winnum)[inst] = tp;
 				} else {
-					appendTwoDInstance(winnum, tp);
+					appendTwoDDataInstance(winnum, tp);
 				}
 				
 				newRParams = tp;
+				break;
+			case Params::TwoDImageParamsType :
+				
+				tip = (TwoDImageParams*)p;
+				if (getNumTwoDImageInstances(winnum)> inst) {
+					if (getTwoDImageParams(winnum,inst)) delete getTwoDImageParams(winnum,inst);
+					getAllTwoDImageParams(winnum)[inst] = tip;
+				} else {
+					appendTwoDImageInstance(winnum, tip);
+				}
+				
+				newRParams = tip;
 				break;
 			default:
 				assert(0);
@@ -798,12 +834,17 @@ VizWinMgr::hookUpProbeTab(ProbeEventRouter* probeTab)
 	probeEventRouter->hookUpTab();
 }
 void
-VizWinMgr::hookUpTwoDTab(TwoDEventRouter* twoDTab)
+VizWinMgr::hookUpTwoDImageTab(TwoDImageEventRouter* twoDTab)
 {
-	twoDEventRouter = twoDTab;
-	twoDEventRouter->hookUpTab();
+	twoDImageEventRouter = twoDTab;
+	twoDImageEventRouter->hookUpTab();
 }
-
+void
+VizWinMgr::hookUpTwoDDataTab(TwoDDataEventRouter* twoDTab)
+{
+	twoDDataEventRouter = twoDTab;
+	twoDDataEventRouter->hookUpTab();
+}
 /**********************************************************
  * Whenever a new tab is created it must be hooked up here
  ************************************************************/
@@ -941,10 +982,19 @@ refreshProbe(ProbeParams* pParams){
 		vizWin[activeViz]->updateGL();
 	} else assert(0);
 }
-//Force the window that uses a TwoD params to rerender
+//Force the window that uses a TwoDImage params to rerender
 //(possibly with new data)
 void VizWinMgr::
-refreshTwoD(TwoDParams* pParams){
+refreshTwoDImage(TwoDImageParams* pParams){
+	int vizNum = pParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->updateGL();
+	} else assert(0);
+}
+//Force the window that uses a TwoDData params to rerender
+//(possibly with new data)
+void VizWinMgr::
+refreshTwoDData(TwoDDataParams* pParams){
 	int vizNum = pParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->updateGL();
@@ -1194,12 +1244,19 @@ getProbeParams(int winNum, int instance){
 	return (probeParamsInstances[winNum])[instance];
 }
 //For a renderer, there should exist a local version.
-TwoDParams* VizWinMgr::
-getTwoDParams(int winNum, int instance){
-	if(winNum < 0) return defaultTwoDParams;
-	if (instance < 0) instance = currentTwoDInstance[winNum];
-	if (instance >= getNumTwoDInstances(winNum)) return 0;
-	return (twoDParamsInstances[winNum])[instance];
+TwoDImageParams* VizWinMgr::
+getTwoDImageParams(int winNum, int instance){
+	if(winNum < 0) return defaultTwoDImageParams;
+	if (instance < 0) instance = currentTwoDImageInstance[winNum];
+	if (instance >= getNumTwoDImageInstances(winNum)) return 0;
+	return (twoDImageParamsInstances[winNum])[instance];
+}
+TwoDDataParams* VizWinMgr::
+getTwoDDataParams(int winNum, int instance){
+	if(winNum < 0) return defaultTwoDDataParams;
+	if (instance < 0) instance = currentTwoDDataInstance[winNum];
+	if (instance >= getNumTwoDDataInstances(winNum)) return 0;
+	return (twoDDataParamsInstances[winNum])[instance];
 }
 AnimationParams* VizWinMgr::
 getAnimationParams(int winNum){
@@ -1233,8 +1290,10 @@ getGlobalParams(Params::ParamType t){
 			return defaultFlowParams;
 		case (Params::ProbeParamsType):
 			return defaultProbeParams;
-		case (Params::TwoDParamsType):
-			return defaultTwoDParams;
+		case (Params::TwoDImageParamsType):
+			return defaultTwoDImageParams;
+		case (Params::TwoDDataParamsType):
+			return defaultTwoDDataParams;
 		default:  assert(0);
 			return 0;
 	}
@@ -1270,8 +1329,10 @@ getLocalParams(Params::ParamType t){
 			return getIsoParams(activeViz);
 		case (Params::ProbeParamsType):
 			return getProbeParams(activeViz);
-		case (Params::TwoDParamsType):
-			return getTwoDParams(activeViz);
+		case (Params::TwoDImageParamsType):
+			return getTwoDImageParams(activeViz);
+		case (Params::TwoDDataParamsType):
+			return getTwoDDataParams(activeViz);
 		case (Params::AnimationParamsType):
 			return getRealAnimationParams(activeViz);
 		case (Params::FlowParamsType):
@@ -1296,8 +1357,10 @@ getApplicableParams(Params::ParamType t){
 			return getIsoParams(activeViz);
 		case (Params::ProbeParamsType):
 			return getProbeParams(activeViz);
-		case (Params::TwoDParamsType):
-			return getTwoDParams(activeViz);
+		case (Params::TwoDImageParamsType):
+			return getTwoDImageParams(activeViz);
+		case (Params::TwoDDataParamsType):
+			return getTwoDDataParams(activeViz);
 		case (Params::AnimationParamsType):
 			return getAnimationParams(activeViz);
 		case (Params::FlowParamsType):
@@ -1322,8 +1385,10 @@ getEventRouter(Params::ParamType t){
 			return getInstance()->getIsoRouter();
 		case (Params::ProbeParamsType):
 			return getInstance()->getProbeRouter();
-		case (Params::TwoDParamsType):
-			return getInstance()->getTwoDRouter();
+		case (Params::TwoDImageParamsType):
+			return getInstance()->getTwoDImageRouter();
+		case (Params::TwoDDataParamsType):
+			return getInstance()->getTwoDDataRouter();
 		case (Params::AnimationParamsType):
 			return getInstance()->getAnimationRouter();
 		case (Params::FlowParamsType):
@@ -1365,9 +1430,13 @@ restartParams(){
 			probeEventRouter->cleanParams(getProbeParams(i,inst));
 			getProbeParams(i,inst)->restart();
 		}
-		for (int inst = 0; inst<getNumTwoDInstances(i); inst++){
-			twoDEventRouter->cleanParams(getTwoDParams(i,inst));
-			getTwoDParams(i,inst)->restart();
+		for (int inst = 0; inst<getNumTwoDImageInstances(i); inst++){
+			twoDImageEventRouter->cleanParams(getTwoDImageParams(i,inst));
+			getTwoDImageParams(i,inst)->restart();
+		}
+		for (int inst = 0; inst<getNumTwoDDataInstances(i); inst++){
+			twoDDataEventRouter->cleanParams(getTwoDDataParams(i,inst));
+			getTwoDDataParams(i,inst)->restart();
 		}
 		for (int inst = 0; inst<getNumFlowInstances(i); inst++){
 			flowEventRouter->cleanParams(getFlowParams(i,inst));
@@ -1391,7 +1460,8 @@ reinitializeParams(bool doOverride){
 	defaultIsoParams->reinit(true);
 	defaultFlowParams->reinit(true);
 	defaultProbeParams->reinit(true);
-	defaultTwoDParams->reinit(true);
+	defaultTwoDImageParams->reinit(true);
+	defaultTwoDDataParams->reinit(true);
 
 	globalRegionParams->reinit(doOverride);
 	regionEventRouter->reinitTab(doOverride);
@@ -1425,10 +1495,15 @@ reinitializeParams(bool doOverride){
 			pParams->reinit(doOverride);
 			probeEventRouter->updateRenderer(pParams,pParams->isEnabled(),false);
 		}
-		for (int inst = 0; inst < getNumTwoDInstances(i); inst++){
-			TwoDParams* pParams = getTwoDParams(i,inst);
+		for (int inst = 0; inst < getNumTwoDImageInstances(i); inst++){
+			TwoDImageParams* pParams = getTwoDImageParams(i,inst);
 			pParams->reinit(doOverride);
-			twoDEventRouter->updateRenderer(pParams,pParams->isEnabled(),false);
+			twoDImageEventRouter->updateRenderer(pParams,pParams->isEnabled(),false);
+		}
+		for (int inst = 0; inst < getNumTwoDDataInstances(i); inst++){
+			TwoDDataParams* pParams = getTwoDDataParams(i,inst);
+			pParams->reinit(doOverride);
+			twoDDataEventRouter->updateRenderer(pParams,pParams->isEnabled(),false);
 		}
 		for (int inst = 0; inst < getNumFlowInstances(i); inst++){
 			FlowParams* fParams = getFlowParams(i,inst);
@@ -1449,7 +1524,8 @@ reinitializeParams(bool doOverride){
 	dvrEventRouter->reinitTab(doOverride);
 	isoEventRouter->reinitTab(doOverride);
 	probeEventRouter->reinitTab(doOverride);
-	twoDEventRouter->reinitTab(doOverride);
+	twoDImageEventRouter->reinitTab(doOverride);
+	twoDDataEventRouter->reinitTab(doOverride);
 	animationEventRouter->reinitTab(doOverride);
 	viewpointEventRouter->reinitTab(doOverride);
 	globalAnimationParams->reinit(doOverride);
@@ -1656,8 +1732,12 @@ XmlNode* VizWinMgr::buildNode() {
 				XmlNode* probeNode = getProbeParams(i,inst)->buildNode();
 				if(probeNode) locals->AddChild(probeNode);
 			}
-			for (int inst = 0; inst< getNumTwoDInstances(i); inst++){
-				XmlNode* twoDNode = getTwoDParams(i,inst)->buildNode();
+			for (int inst = 0; inst< getNumTwoDImageInstances(i); inst++){
+				XmlNode* twoDNode = getTwoDImageParams(i,inst)->buildNode();
+				if(twoDNode) locals->AddChild(twoDNode);
+			}
+			for (int inst = 0; inst< getNumTwoDDataInstances(i); inst++){
+				XmlNode* twoDNode = getTwoDDataParams(i,inst)->buildNode();
 				if(twoDNode) locals->AddChild(twoDNode);
 			}
 			XmlNode* rgNode = rgParams[i]->buildNode();
@@ -1875,7 +1955,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		parsingDvrInstance = -1;
 		parsingIsoInstance = -1;
 		parsingProbeInstance = -1;
-		parsingTwoDInstance = -1;
+		parsingTwoDImageInstance = -1;
+		parsingTwoDDataInstance = -1;
 		parsingFlowInstance = -1;
 		vizWin[parsingVizNum]->setBackgroundColor(winBgColor);
 		vizWin[parsingVizNum]->setRegionFrameColor(winRgColor);
@@ -1991,26 +2072,48 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				vizWin[parsingVizNum]->getGLWindow()->setActiveProbeParams(pParams);
 			return true;
 			
-		} else if (StrCmpNoCase(tag, Params::_twoDParamsTag) == 0){
-			parsingTwoDInstance++;
-			TwoDParams* pParams;
-			if (parsingTwoDInstance > 0){
+		} else if (StrCmpNoCase(tag, Params::_twoDImageParamsTag) == 0){
+			parsingTwoDImageInstance++;
+			TwoDImageParams* pParams;
+			if (parsingTwoDImageInstance > 0){
 				//create a new params
-				pParams = new TwoDParams(parsingVizNum);
-				twoDParamsInstances[parsingVizNum].push_back(pParams);
+				pParams = new TwoDImageParams(parsingVizNum);
+				twoDImageParamsInstances[parsingVizNum].push_back(pParams);
 			} else {
-				pParams = getTwoDParams(parsingVizNum,0);
+				pParams = getTwoDImageParams(parsingVizNum,0);
 			}
-			assert(getNumTwoDInstances(parsingVizNum) == (parsingTwoDInstance+1));
+			assert(getNumTwoDImageInstances(parsingVizNum) == (parsingTwoDImageInstance+1));
 			
 			//Need to "push" to TwoD parser.
 			//That parser will "pop" back to vizwinmgr when done.
 
-			twoDEventRouter->cleanParams(pParams);
+			twoDImageEventRouter->cleanParams(pParams);
 			pm->pushClassStack(pParams);
 			pParams->elementStartHandler(pm, depth, tag, attrs);
-			if(parsingTwoDInstance == 0)
-				vizWin[parsingVizNum]->getGLWindow()->setActiveTwoDParams(pParams);
+			if(parsingTwoDImageInstance == 0)
+				vizWin[parsingVizNum]->getGLWindow()->setActiveTwoDImageParams(pParams);
+			return true;
+			
+		} else if (StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0){
+			parsingTwoDDataInstance++;
+			TwoDDataParams* pParams;
+			if (parsingTwoDDataInstance > 0){
+				//create a new params
+				pParams = new TwoDDataParams(parsingVizNum);
+				twoDDataParamsInstances[parsingVizNum].push_back(pParams);
+			} else {
+				pParams = getTwoDDataParams(parsingVizNum,0);
+			}
+			assert(getNumTwoDDataInstances(parsingVizNum) == (parsingTwoDDataInstance+1));
+			
+			//Need to "push" to TwoD parser.
+			//That parser will "pop" back to vizwinmgr when done.
+
+			twoDDataEventRouter->cleanParams(pParams);
+			pm->pushClassStack(pParams);
+			pParams->elementStartHandler(pm, depth, tag, attrs);
+			if(parsingTwoDDataInstance == 0)
+				vizWin[parsingVizNum]->getGLWindow()->setActiveTwoDDataParams(pParams);
 			return true;
 			
 		} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
@@ -2207,8 +2310,11 @@ void VizWinMgr::setCurrentInstanceIndex(int winnum, int inst, Params::ParamType 
 		case Params::ProbeParamsType :
 			setCurrentProbeInstIndex(winnum, inst);
 			break;
-		case Params::TwoDParamsType :
-			setCurrentTwoDInstIndex(winnum, inst);
+		case Params::TwoDImageParamsType :
+			setCurrentTwoDImageInstIndex(winnum, inst);
+			break;
+		case Params::TwoDDataParamsType :
+			setCurrentTwoDDataInstIndex(winnum, inst);
 			break;
 		case Params::FlowParamsType :
 			setCurrentFlowInstIndex(winnum, inst);
@@ -2238,9 +2344,15 @@ int VizWinMgr::findInstanceIndex(int winnum, Params* rParams, Params::ParamType 
 					return i;
 			}
 			return -1;
-		case Params::TwoDParamsType :
-			for (unsigned int i = 0; i< twoDParamsInstances[winnum].size(); i++){
-				if (twoDParamsInstances[winnum][i] == rParams)
+		case Params::TwoDImageParamsType :
+			for (unsigned int i = 0; i< twoDImageParamsInstances[winnum].size(); i++){
+				if (twoDImageParamsInstances[winnum][i] == rParams)
+					return i;
+			}
+			return -1;
+		case Params::TwoDDataParamsType :
+			for (unsigned int i = 0; i< twoDDataParamsInstances[winnum].size(); i++){
+				if (twoDDataParamsInstances[winnum][i] == rParams)
 					return i;
 			}
 			return -1;
@@ -2263,8 +2375,10 @@ int VizWinMgr::getCurrentInstanceIndex(int winnum, Params::ParamType t){
 			return getCurrentIsoInstIndex(winnum);
 		case Params::ProbeParamsType :
 			return getCurrentProbeInstIndex(winnum);
-		case Params::TwoDParamsType :
-			return getCurrentTwoDInstIndex(winnum);
+		case Params::TwoDImageParamsType :
+			return getCurrentTwoDImageInstIndex(winnum);
+		case Params::TwoDDataParamsType :
+			return getCurrentTwoDDataInstIndex(winnum);
 		case Params::FlowParamsType :
 			return getCurrentFlowInstIndex(winnum);
 		default :
@@ -2284,8 +2398,11 @@ void VizWinMgr::insertInstance(int winnum, int inst, Params* newParams){
 		case Params::ProbeParamsType :
 			insertProbeInstance(winnum, inst, (ProbeParams*)newParams);
 			break;
-		case Params::TwoDParamsType :
-			insertTwoDInstance(winnum, inst, (TwoDParams*)newParams);
+		case Params::TwoDImageParamsType :
+			insertTwoDImageInstance(winnum, inst, (TwoDImageParams*)newParams);
+			break;
+		case Params::TwoDDataParamsType :
+			insertTwoDDataInstance(winnum, inst, (TwoDDataParams*)newParams);
 			break;
 		case Params::FlowParamsType :
 			insertFlowInstance(winnum, inst, (FlowParams*)newParams);
@@ -2306,8 +2423,11 @@ void VizWinMgr::appendInstance(int winnum, Params* newParams){
 		case Params::ProbeParamsType :
 			appendProbeInstance(winnum, (ProbeParams*)newParams);
 			break;
-		case Params::TwoDParamsType :
-			appendTwoDInstance(winnum, (TwoDParams*)newParams);
+		case Params::TwoDImageParamsType :
+			appendTwoDImageInstance(winnum, (TwoDImageParams*)newParams);
+			break;
+		case Params::TwoDDataParamsType :
+			appendTwoDDataInstance(winnum, (TwoDDataParams*)newParams);
 			break;
 		case Params::FlowParamsType :
 			appendFlowInstance(winnum, (FlowParams*)newParams);
@@ -2328,8 +2448,11 @@ void VizWinMgr::removeInstance(int winnum, int instance, Params::ParamType t){
 		case Params::ProbeParamsType :
 			removeProbeInstance(winnum, instance);
 			break;
-		case Params::TwoDParamsType :
-			removeTwoDInstance(winnum, instance);
+		case Params::TwoDImageParamsType :
+			removeTwoDImageInstance(winnum, instance);
+			break;
+		case Params::TwoDDataParamsType :
+			removeTwoDDataInstance(winnum, instance);
 			break;
 		case Params::FlowParamsType :
 			removeFlowInstance(winnum, instance);
@@ -2347,8 +2470,10 @@ Params* VizWinMgr::getParams(int winnum, Params::ParamType pType, int instance )
 			return getIsoParams(winnum, instance);
 		case Params::ProbeParamsType :
 			return getProbeParams(winnum, instance);
-		case Params::TwoDParamsType :
-			return getTwoDParams(winnum, instance);
+		case Params::TwoDImageParamsType :
+			return getTwoDImageParams(winnum, instance);
+		case Params::TwoDDataParamsType :
+			return getTwoDDataParams(winnum, instance);
 		case Params::FlowParamsType :
 			return getFlowParams(winnum, instance);
 		case Params::ViewpointParamsType :
@@ -2370,8 +2495,10 @@ int VizWinMgr::getNumInstances(int winnum, Params::ParamType pType){
 			return getNumIsoInstances(winnum);
 		case Params::ProbeParamsType :
 			return getNumProbeInstances(winnum);
-		case Params::TwoDParamsType :
-			return getNumTwoDInstances(winnum);
+		case Params::TwoDImageParamsType :
+			return getNumTwoDImageInstances(winnum);
+		case Params::TwoDDataParamsType :
+			return getNumTwoDDataInstances(winnum);
 		case Params::FlowParamsType :
 			return getNumFlowInstances(winnum);
 		default:

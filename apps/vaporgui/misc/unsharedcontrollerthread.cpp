@@ -125,7 +125,8 @@ run(){
 					(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
 					((!myVizWinMgr->getDvrParams(viznum)->isEnabled()) &&
 					(!myVizWinMgr->getIsoParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getTwoDParams(viznum)->isEnabled()) &&
+					(!myVizWinMgr->getTwoDDataParams(viznum)->isEnabled()) &&
+					(!myVizWinMgr->getTwoDImageParams(viznum)->isEnabled()) &&
 					(!myVizWinMgr->getProbeParams(viznum)->isEnabled()) &&
 					(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
 					//deactivate stopped animations

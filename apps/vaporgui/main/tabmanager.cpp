@@ -34,7 +34,8 @@
 #include "probeeventrouter.h"
 #include "viewpointeventrouter.h"
 #include "animationeventrouter.h"
-#include "twoDeventrouter.h"
+#include "twoDdataeventrouter.h"
+#include "twoDimageeventrouter.h"
 
 using namespace VAPoR;
 TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
@@ -174,8 +175,11 @@ newFrontTab(QWidget*) {
 	} else if (newType == Params::ProbeParamsType){
 		ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
 		per->updateTab();
-	} else if (newType == Params::TwoDParamsType){
-		TwoDEventRouter* per = VizWinMgr::getInstance()->getTwoDRouter();
+	} else if (newType == Params::TwoDDataParamsType){
+		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
+		per->updateTab();
+	} else if (newType == Params::TwoDImageParamsType){
+		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
 		per->updateTab();
 	} else if (newType == Params::AnimationParamsType){
 		AnimationEventRouter* aer = VizWinMgr::getInstance()->getAnimationRouter();

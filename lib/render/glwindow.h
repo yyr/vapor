@@ -56,7 +56,8 @@ class ParamsIso;
 class AnimationParams;
 class FlowParams;
 class ProbeParams;
-class TwoDParams;
+class TwoDDataParams;
+class TwoDImageParams;
 class Renderer;
 class TranslateStretchManip;
 class TranslateRotateManip;
@@ -84,7 +85,8 @@ public:
 		navigateMode,
 		regionMode,
 		probeMode,
-		twoDMode,
+		twoDDataMode,
+		twoDImageMode,
 		rakeMode,
 		lightMode
 	};
@@ -280,8 +282,11 @@ public:
 	void setActiveProbeParams(ProbeParams* p) {
 		currentProbeParams = p; myProbeManip->setParams((Params*)currentProbeParams);
 	}
-	void setActiveTwoDParams(TwoDParams* p) {
-		currentTwoDParams = p; myTwoDManip->setParams((Params*)currentTwoDParams);
+	void setActiveTwoDDataParams(TwoDDataParams* p) {
+		currentTwoDDataParams = p; myTwoDDataManip->setParams((Params*)currentTwoDDataParams);
+	}
+	void setActiveTwoDImageParams(TwoDImageParams* p) {
+		currentTwoDImageParams = p; myTwoDImageManip->setParams((Params*)currentTwoDImageParams);
 	}
 	ViewpointParams* getActiveViewpointParams() {return currentViewpointParams;}
 	RegionParams* getActiveRegionParams() {return currentRegionParams;}
@@ -290,7 +295,8 @@ public:
 	ParamsIso* getActiveIsoParams() {return currentIsoParams;}
 	FlowParams* getActiveFlowParams() {return currentFlowParams;}
 	ProbeParams* getActiveProbeParams() {return currentProbeParams;}
-	TwoDParams* getActiveTwoDParams() {return currentTwoDParams;}
+	TwoDDataParams* getActiveTwoDDataParams() {return currentTwoDDataParams;}
+	TwoDImageParams* getActiveTwoDImageParams() {return currentTwoDImageParams;}
 
 	//The GLWindow keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
@@ -326,7 +332,8 @@ public:
 	void doFrameCapture();
 
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
-	TranslateStretchManip* getTwoDManip() {return myTwoDManip;}
+	TranslateStretchManip* getTwoDDataManip() {return myTwoDDataManip;}
+	TranslateStretchManip* getTwoDImageManip() {return myTwoDImageManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
 	TranslateStretchManip* getRegionManip() {return myRegionManip;}
 
@@ -497,7 +504,8 @@ protected:
 
 	//Manip stuff:
 	TranslateRotateManip* myProbeManip;
-	TranslateStretchManip* myTwoDManip;
+	TranslateStretchManip* myTwoDDataManip;
+	TranslateStretchManip* myTwoDImageManip;
 	TranslateStretchManip* myFlowManip;
 	TranslateStretchManip* myRegionManip;
 
@@ -542,7 +550,9 @@ protected:
 	DvrParams* currentDvrParams;
 	ParamsIso* currentIsoParams;
 	ProbeParams* currentProbeParams;
-	TwoDParams* currentTwoDParams;
+	TwoDDataParams* currentTwoDDataParams;
+	TwoDImageParams* currentTwoDImageParams;
+
 
 	renderCBFcn preRenderCB;
 	renderCBFcn postRenderCB;

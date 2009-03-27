@@ -29,7 +29,8 @@
 #include "ParamsIso.h"
 #include "regionparams.h"
 #include "probeparams.h"
-#include "twoDparams.h"
+#include "twoDdataparams.h"
+#include "twoDimageparams.h"
 #include "animationparams.h"
 #include "manip.h"
 #include "datastatus.h"
@@ -157,7 +158,8 @@ GLWindow::GLWindow( CustomContext* ctx, QWidget* parent, const char* name, int w
 	//Create Manips:
 	
 	myProbeManip = new TranslateRotateManip(this, 0);
-	myTwoDManip = new TranslateStretchManip(this, 0);
+	myTwoDDataManip = new TranslateStretchManip(this, 0);
+	myTwoDImageManip = new TranslateStretchManip(this, 0);
 	myFlowManip = new TranslateStretchManip(this, 0);
 	myRegionManip = new TranslateStretchManip(this, 0);
 
@@ -387,14 +389,14 @@ void GLWindow::paintGL()
 		regionManip->render();
 	} 
 	//render the twoD geometry, if in twoD mode, on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDMode) && 
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDDataMode) && 
             windowIsActive() && !sphericalTransform){
 		
-		TranslateStretchManip* twoDManip = getTwoDManip();
-		twoDManip->setParams((Params*)getActiveTwoDParams());
-		twoDManip->render();
+		TranslateStretchManip* twoDDataManip = getTwoDDataManip();
+		twoDDataManip->setParams((Params*)getActiveTwoDDataParams());
+		twoDDataManip->render();
 		//Also render the cursor
-		draw3DCursor(getActiveTwoDParams()->getSelectedPoint());
+		draw3DCursor(getActiveTwoDDataParams()->getSelectedPoint());
 	}
 	//render the rake geometry, if in rake mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 
@@ -2290,8 +2292,11 @@ void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 		case Params::ProbeParamsType :
 			setActiveProbeParams((ProbeParams*)p);
 			return;
-		case Params::TwoDParamsType :
-			setActiveTwoDParams((TwoDParams*)p);
+		case Params::TwoDDataParamsType :
+			setActiveTwoDDataParams((TwoDDataParams*)p);
+			return;
+		case Params::TwoDImageParamsType :
+			setActiveTwoDImageParams((TwoDImageParams*)p);
 			return;
 		case Params::DvrParamsType :
 			setActiveDvrParams((DvrParams*)p);
