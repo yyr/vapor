@@ -28,6 +28,7 @@
 #include "proj_api.h"
 #include "getopt.h"
 
+
 #define TIFFOpen XTIFFOpen
 #define TIFFClose XTIFFClose
 
@@ -88,8 +89,8 @@ main(int argc, char* argv[])
 	TIFF* out;
 	const char* mode = "w";
 	int c;
-	//extern int optind;
-	//extern char* optarg;
+	extern int optind;
+	extern char* optarg;
 
 	while ((c = getopt(argc, argv, "c:f:l:m:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
@@ -120,7 +121,7 @@ main(int argc, char* argv[])
 		case 'g':		/* GeoTIFF metadata file */
 			geofile = optarg;
 			break;
-		case 'm':     /*multiple times and extents file */
+		case 'm':     /*multiple times and latlon extents file */
 			timeLonLatName = optarg;
 			timeLonLatFile = fopen(timeLonLatName,"r");
 			if (!timeLonLatFile){
@@ -294,7 +295,7 @@ static void InstallGeoTIFF(TIFF *out)
             exit (-1);
         }
 		if (timeLonLatFile){
-			//get next timestamp and extents from timeExtentsFile
+			//get next timestamp and latlon extents from timeLonLatFile
 			float lonlat[4];
 			char timestamp[20];
 			double modelPixelScale[3] = {0.,0.,0.};
@@ -457,7 +458,8 @@ char* stuff[] = {
 " -4 proj4_str	install GeoTIFF metadata from proj4 string",
 " -e file	install positioning info from ESRI Worldfile <file>",
 " -a		append to output instead of overwriting",
-" -m file   specify file with multiple timestamps and extents; requires option -4",
+" -m file	specify file with multiple timestamps and lon-lat extents;",
+"			each line of file has timestamp and 4 lon/lat corners; requires option -4",
 " -o offset	set initial directory offset",
 " -p contig	pack samples contiguously (e.g. RGBRGB...)",
 " -p separate	store samples separately (e.g. RRR...GGG...BBB...)",
