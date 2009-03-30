@@ -388,7 +388,7 @@ void GLWindow::paintGL()
 		regionManip->setParams(getActiveRegionParams());
 		regionManip->render();
 	} 
-	//render the twoD geometry, if in twoD mode, on active visualizer
+	//render the twoD geometry, if in twoDData mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDDataMode) && 
             windowIsActive() && !sphericalTransform){
 		
@@ -397,6 +397,16 @@ void GLWindow::paintGL()
 		twoDDataManip->render();
 		//Also render the cursor
 		draw3DCursor(getActiveTwoDDataParams()->getSelectedPoint());
+	}
+			//render the twoD geometry, if in twoDData mode, on active visualizer
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDImageMode) && 
+            windowIsActive() && !sphericalTransform){
+		
+		TranslateStretchManip* twoDImageManip = getTwoDImageManip();
+		twoDImageManip->setParams((Params*)getActiveTwoDImageParams());
+		twoDImageManip->render();
+		//Also render the cursor
+		draw3DCursor(getActiveTwoDImageParams()->getSelectedPoint());
 	}
 	//render the rake geometry, if in rake mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 

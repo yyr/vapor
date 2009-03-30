@@ -201,7 +201,7 @@ void TwoDImageParams::
 restart(){
 	
 	imagePlacement = 0;
-	verticalDisplacement = 0.f;
+	
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
@@ -290,9 +290,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _terrainMapAttr) == 0){
 				if (value == "true") setMappedToTerrain(true); 
 				else setMappedToTerrain(false);
-			}
-			else if (StrCmpNoCase(attribName, _verticalDisplacementAttr) == 0){
-				ist >> verticalDisplacement;
 			}
 			
 			else if (StrCmpNoCase(attribName, _orientationAttr) == 0) {
@@ -384,10 +381,6 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
-
-	oss.str(empty);
-	oss << (double)getVerticalDisplacement();
-	attrs[_verticalDisplacementAttr] = oss.str();
 
 	oss.str(empty);
 	if (isMappedToTerrain())

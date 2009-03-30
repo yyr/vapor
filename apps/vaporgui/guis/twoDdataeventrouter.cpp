@@ -121,8 +121,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	connect (displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
@@ -333,15 +332,6 @@ void TwoDDataEventRouter::updateTab(){
 		}
 	}
 
-	
-	
-	if (twoDParams->isMappedToTerrain()) {
-		zCenterSlider->setEnabled(false);
-		zCenterEdit->setEnabled(false);
-	} else {
-		zCenterSlider->setEnabled(true);
-		zCenterEdit->setEnabled(true);
-	}
 	//setup the texture:
 	
 	resetTextureSize(twoDParams);
@@ -412,15 +402,13 @@ void TwoDDataEventRouter::updateTab(){
 			minMaxLonLatFrame->hide();
 		}
 	}
-	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
+	
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
-		displacementEdit->setEnabled(false);
 	} else {
 		bool terrainMap = twoDParams->isMappedToTerrain();
-		displacementEdit->setEnabled(true);
 		applyTerrainCheckbox->setChecked(terrainMap);
 		applyTerrainCheckbox->setEnabled(true);
 	}
@@ -450,7 +438,6 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
-	twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
 	int xcrd =0, ycrd = 1, zcrd = 2;
@@ -527,18 +514,13 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	TwoDDataParams* dParams = VizWinMgr::getActiveTwoDDataParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	dParams->setMappedToTerrain(mode);
-	if (mode){
-		const float* extents = DataStatus::getInstance()->getExtents();
-		dParams->setTwoDMin(2, extents[2]);
-		dParams->setTwoDMax(2, extents[5]);
-	} else {
-		//Set box bottom and top z-coord to average:
-		float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
-		dParams->setTwoDMin(2,avg);
-		dParams->setTwoDMax(2,avg);
-	}
-	zCenterSlider->setEnabled(!mode);
-	zCenterEdit->setEnabled(!mode);
+	
+	//Set box bottom and top z-coord to average:
+	float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
+	dParams->setTwoDMin(2,avg);
+	dParams->setTwoDMax(2,avg);
+	
+	
 	//Reposition cursor:
 	mapCursor();
 	PanelCommand::captureEnd(cmd, dParams); 
@@ -1089,10 +1071,9 @@ guiChangeVariables(){
 		pParams->setMappedToTerrain(false);
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
-		displacementEdit->setEnabled(false);
+		
 	} else {
 		bool terrainMap = pParams->isMappedToTerrain();
-		displacementEdit->setEnabled(true);
 		applyTerrainCheckbox->setChecked(terrainMap);
 		applyTerrainCheckbox->setEnabled(true);
 	}
@@ -2059,7 +2040,7 @@ void TwoDDataEventRouter::mapCursor(){
 		if (varnum >= 0){
 			float val = calcCurrentValue(tParams,selectPoint,&varnum, 1);
 			if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getVerticalDisplacement();
+				selectPoint[mapDims[2]] = val+tParams->getTwoDMin(2);
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);

@@ -182,7 +182,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	DataMgr* dataMgr = ds->getDataMgr();
 	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
-	float displacement = tParams->getVerticalDisplacement();
+	float displacement = tParams->getTwoDMin(2);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	
 	

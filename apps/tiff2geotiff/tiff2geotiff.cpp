@@ -9,7 +9,8 @@
  *
  * and a lot of legal stuff denying liability for anything.
  * This version modified (A. Norton) to enable specifying a file of lon-lat extents
- * and timesteps that can be inserted in the output geotiff file.
+ * and timesteps that can be inserted to georeference and date the 
+ * separate directories in the output geotiff file.
  */
 
 #include <stdio.h>

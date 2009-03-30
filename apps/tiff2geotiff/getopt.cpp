@@ -40,12 +40,13 @@ static char sccsid[] = "@(#)getopt.c	4.13 (Berkeley) 2/23/91";
 
 char* optarg = 0;
 int optind = 1;
-//int getopt(int nargc, char** nargv, char* ostr);
+
 /*
- * get option letter from argument vector
- */
- int opterr = 1; /* if error message should be printed */
- int optopt; /* character checked for validity */
+* get option letter from argument vector
+*/
+
+ int opterr = 1;	/* if error message should be printed */
+ int optopt;		/* character checked for validity */
 
 #define	BADCH	(int)'?'
 #define	EMSG	""

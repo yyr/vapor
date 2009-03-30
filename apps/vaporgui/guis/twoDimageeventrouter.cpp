@@ -104,7 +104,6 @@ TwoDImageEventRouter::hookUpTab()
 	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
 	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
-	
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
 	
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
@@ -113,17 +112,13 @@ TwoDImageEventRouter::hookUpTab()
 	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	
-	
-	connect (displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-	connect (displacementEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	//connect (resampleEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	
 	connect (opacityEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	//connect (resampleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (opacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	
 	
@@ -235,7 +230,7 @@ void TwoDImageEventRouter::updateTab(){
 	}
 
 	
-	
+	/*
 	if (twoDParams->isMappedToTerrain()) {
 		zCenterSlider->setEnabled(false);
 		zCenterEdit->setEnabled(false);
@@ -243,6 +238,7 @@ void TwoDImageEventRouter::updateTab(){
 		zCenterSlider->setEnabled(true);
 		zCenterEdit->setEnabled(true);
 	}
+	*/
 	//setup the texture:
 	
 	resetTextureSize(twoDParams);
@@ -313,15 +309,13 @@ void TwoDImageEventRouter::updateTab(){
 			minMaxLonLatFrame->hide();
 		}
 	}
-	displacementEdit->setText(QString::number(twoDParams->getVerticalDisplacement()));
+	
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
-		displacementEdit->setEnabled(false);
 	} else {
 		bool terrainMap = twoDParams->isMappedToTerrain();
-		displacementEdit->setEnabled(true);
 		applyTerrainCheckbox->setChecked(terrainMap);
 		applyTerrainCheckbox->setEnabled(true);
 	}
@@ -362,7 +356,7 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	twoDParams->setResampRate(resamp);
 	*/
 	
-	twoDParams->setVerticalDisplacement(displacementEdit->text().toFloat());
+	
 	
 	int orientation = twoDParams->getOrientation();
 	int xcrd =0, ycrd = 1, zcrd = 2;
@@ -522,19 +516,14 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	confirmText(false);
 	TwoDImageParams* dParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
+	if(mode) dParams->setOrientation(2);
 	dParams->setMappedToTerrain(mode);
-	if (mode){
-		const float* extents = DataStatus::getInstance()->getExtents();
-		dParams->setTwoDMin(2, extents[2]);
-		dParams->setTwoDMax(2, extents[5]);
-	} else {
-		//Set box bottom and top z-coord to average:
-		float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
-		dParams->setTwoDMin(2,avg);
-		dParams->setTwoDMax(2,avg);
-	}
-	zCenterSlider->setEnabled(!mode);
-	zCenterEdit->setEnabled(!mode);
+	
+	//Set box bottom and top z-coord to average:
+	float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
+	dParams->setTwoDMin(2,avg);
+	dParams->setTwoDMax(2,avg);
+	
 	//Reposition cursor:
 	mapCursor();
 	PanelCommand::captureEnd(cmd, dParams); 
@@ -1496,7 +1485,7 @@ void TwoDImageEventRouter::mapCursor(){
 		if (varnum >= 0){
 			float val = calcCurrentValue(tParams,selectPoint,&varnum, 1);
 			if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getVerticalDisplacement();
+				selectPoint[mapDims[2]] = val+tParams->getTwoDMin(2);
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);

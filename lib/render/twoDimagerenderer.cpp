@@ -290,7 +290,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//by twoDParams z (max or min are same).  
 	//If data is mapped to terrain, but we are outside data, then
 	//take elevation to be the min (which is just vert displacement)
-	float constElev = tParams->getTwoDMin(2)+tParams->getVerticalDisplacement();
+	float constElev = tParams->getTwoDMin(2);
 
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
@@ -298,7 +298,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	float* hgtData;
 	float horizFact, vertFact, horizOffset, vertOffset, minElev;
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
-	float displacement = tParams->getVerticalDisplacement();
+	
 	if (tParams->isMappedToTerrain()){
 		//We shall retrieve HGT for the full extents of the data
 		//at the current refinement level.
@@ -350,9 +350,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		vertOffset = min_dim[1]  - regMin[1]*vertFact;
 
 		//Don't allow the terrain surface to be below the minimum extents:
-		minElev = extents[2]+(0.0001)*(extents[5] - extents[2])+tParams->getVerticalDisplacement();
+		minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 		
-
 	}
 	
 	if (tParams->isGeoreferenced()) {
@@ -436,10 +435,10 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 						size_t ycrdP1 = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1]+1)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 						
 						
-						float elevLL = hgtData[xcrd+ycrd] + displacement;
-						float elevLR = hgtData[1+xcrd+ycrd] + displacement;
-						float elevUL = hgtData[xcrd+ycrdP1] + displacement;
-						float elevUR = hgtData[1+xcrd+ycrdP1] + displacement;
+						float elevLL = hgtData[xcrd+ycrd] + constElev;
+						float elevLR = hgtData[1+xcrd+ycrd] + constElev;
+						float elevUL = hgtData[xcrd+ycrdP1] + constElev;
+						float elevUR = hgtData[1+xcrd+ycrdP1] + constElev;
 						//Bilinear interpolate:
 						locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
 							y*((1-x)*elevUL + x*elevUR);
@@ -500,10 +499,10 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 					size_t ycrdP1 = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1]+1)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 					
 					
-					float elevLL = hgtData[xcrd+ycrd] + displacement;
-					float elevLR = hgtData[1+xcrd+ycrd] + displacement;
-					float elevUL = hgtData[xcrd+ycrdP1] + displacement;
-					float elevUR = hgtData[1+xcrd+ycrdP1] + displacement;
+					float elevLL = hgtData[xcrd+ycrd] + constElev;
+					float elevLR = hgtData[1+xcrd+ycrd] + constElev;
+					float elevUL = hgtData[xcrd+ycrdP1] + constElev;
+					float elevUR = hgtData[1+xcrd+ycrdP1] + constElev;
 					//Bilinear interpolate:
 					locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
 						y*((1-x)*elevUL + x*elevUR);

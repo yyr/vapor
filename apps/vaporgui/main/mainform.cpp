@@ -1447,7 +1447,7 @@ void MainForm::setTwoDData(bool on)
 }
 void MainForm::setTwoDImage(bool on)
 {
-	//2d mode is like rake mode
+	//2d image mode is like rake mode
 	if (!on && twoDImageAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();

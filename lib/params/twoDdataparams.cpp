@@ -348,7 +348,7 @@ reinit(bool doOverride){
 void TwoDDataParams::
 restart(){
 	
-	verticalDisplacement = 0.f;
+	
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
@@ -483,7 +483,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				else setMappedToTerrain(false);
 			}
 			else if (StrCmpNoCase(attribName, _verticalDisplacementAttr) == 0){
-				ist >> verticalDisplacement;
+				//obsolete
 			}
 			
 			else if (StrCmpNoCase(attribName, _orientationAttr) == 0) {
@@ -688,9 +688,6 @@ buildNode() {
 	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 
-	oss.str(empty);
-	oss << (double)getVerticalDisplacement();
-	attrs[_verticalDisplacementAttr] = oss.str();
 
 	oss.str(empty);
 	if (isMappedToTerrain())

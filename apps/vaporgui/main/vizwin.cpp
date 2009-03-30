@@ -342,12 +342,12 @@ mousePressEvent(QMouseEvent* e){
 				tParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = twoDDataManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
-					//Do nothing if grabbing z on elevation grid or with right mouse:
-					if ((handleNum == 5 || handleNum == 0) &&
-						(tParams->isMappedToTerrain()||(buttonNum == 2))) {
+					//Do nothing if grabbing orthog direction with right mouse:
+					if (buttonNum == 2 && ((handleNum == (tParams->getOrientation() +3))
+						|| (handleNum == (tParams->getOrientation() -2)))){
 							doNavigate = true;
 							break;
-						}
+					}
 					//Set up for sliding:
 					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
 						doNavigate = true;
@@ -378,12 +378,12 @@ mousePressEvent(QMouseEvent* e){
 				tParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = twoDImageManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
-					//Do nothing if grabbing z on elevation grid or with right mouse:
-					if ((handleNum == 5 || handleNum == 0) &&
-						(tParams->isMappedToTerrain()||(buttonNum == 2))) {
+					//Do nothing if grabbing orthogonal plane with right mouse:
+					if (buttonNum == 2 && ((handleNum == (tParams->getOrientation() +3))
+						|| (handleNum == (tParams->getOrientation() -2)))){
 							doNavigate = true;
 							break;
-						}
+					}
 					//Set up for sliding:
 					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
 						doNavigate = true;

@@ -77,10 +77,6 @@ public:
 	void setTwoDMin(int i, float val){twoDMin[i] = val;}
 	void setTwoDMax(int i, float val){
 		twoDMax[i] = val;
-		if ((i == 2) && mapToTerrain){
-			twoDMax[2] = maxTerrainHeight+verticalDisplacement;
-			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
-		}
 	}
 	
 	
@@ -125,11 +121,6 @@ public:
 		for (int i = 0; i< 3; i++){
 			twoDMin[i] = boxMin[i];
 			twoDMax[i] = boxMax[i];
-		}
-		if (mapToTerrain){
-			twoDMin[2]= minTerrainHeight+verticalDisplacement;
-			twoDMax[2] = maxTerrainHeight+verticalDisplacement;
-			if (twoDMax[2]<twoDMin[2]) twoDMax[2] = twoDMin[2];
 		}
 	}
 	//Get the bounding extents of twoD, in cube coords
