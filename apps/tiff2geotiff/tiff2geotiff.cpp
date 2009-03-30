@@ -8,8 +8,8 @@
  * Copyright (c) 1991-1995 Silicon Graphics, Inc.
  *
  * and a lot of legal stuff denying liability for anything.
- * This version modified to enable specifying a file of extents
- * and timesteps that can be inserted in the file.
+ * This version modified (A. Norton) to enable specifying a file of lon-lat extents
+ * and timesteps that can be inserted in the output geotiff file.
  */
 
 #include <stdio.h>
@@ -25,6 +25,8 @@
 #include "geo_keyp.h"
 #include "xtiffio.h"
 #include "cpl_serv.h"
+#include "proj_api.h"
+#include "getopt.h"
 
 #define TIFFOpen XTIFFOpen
 #define TIFFClose XTIFFClose
@@ -59,8 +61,8 @@ static	int jpegcolormode = JPEGCOLORMODE_RGB;
 static	uint16 defcompression = (uint16) -1;
 static	uint16 defpredictor = (uint16) -1;
 static 	char *geofile=(char *)0;
-static  char *timeExtentsName=(char*)0;
-static FILE* timeExtentsFile= (FILE*)0;
+static  char *timeLonLatName=(char*)0;
+static FILE* timeLonLatFile= (FILE*)0;
 static uint32 currentImageWidth;
 static uint32 currentImageHeight;
 
@@ -86,8 +88,8 @@ main(int argc, char* argv[])
 	TIFF* out;
 	const char* mode = "w";
 	int c;
-	extern int optind;
-	extern char* optarg;
+	//extern int optind;
+	//extern char* optarg;
 
 	while ((c = getopt(argc, argv, "c:f:l:m:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
@@ -119,10 +121,10 @@ main(int argc, char* argv[])
 			geofile = optarg;
 			break;
 		case 'm':     /*multiple times and extents file */
-			timeExtentsName = optarg;
-			timeExtentsFile = fopen(timeExtentsName,"r");
-			if (!timeExtentsFile){
-				fprintf(stderr,"Failure to open %s\n",timeExtentsName);
+			timeLonLatName = optarg;
+			timeLonLatFile = fopen(timeLonLatName,"r");
+			if (!timeLonLatFile){
+				fprintf(stderr,"Failure to open %s\n",timeLonLatName);
 				exit (-1);
 			}
 			break;
@@ -291,31 +293,71 @@ static void InstallGeoTIFF(TIFF *out)
             fprintf(stderr,"Failure in GTIFSetFromProj4\n");
             exit (-1);
         }
-		if (timeExtentsFile){
+		if (timeLonLatFile){
 			//get next timestamp and extents from timeExtentsFile
-			float extents[4];
+			float lonlat[4];
 			char timestamp[20];
 			double modelPixelScale[3] = {0.,0.,0.};
 			double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
 			
-			int rc = fscanf(timeExtentsFile,"%19s %f %f %f %f",
-				timestamp, extents, extents+1, extents+2, extents+3);
+			int rc = fscanf(timeLonLatFile,"%19s %f %f %f %f",
+				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3);
 			dirnum++;
 			if (rc != 5){
-				printf("Failed to read line %d of time-extents file\n",dirnum);
-			} else {
+				printf("Failed to read line %d of time-lon-lat file\n",dirnum);
+				exit (-1);
+			} else { //convert the latlon and time and put into geotiff
 				
 				//insert time stamp from file
 				TIFFSetField(out, TIFFTAG_DATETIME,timestamp);
 
-				// calculate scale and model tie point
-				modelPixelScale[0] = (extents[2]-extents[0])/((double)currentImageWidth-1.);
-				modelPixelScale[1] = (extents[3]-extents[1])/((double)currentImageHeight-1.);
+				//Use proj4 to calculate the corner coordinates of the
+				//image from the lonlat extents
+				//
+				void* p;
+				p = pj_init_plus(proj4_string);
+		
+				if (!p  && !ignore){
+					//Invalid string. Get the error code:
+					int *pjerrnum = pj_get_errno_ref();
+					fprintf(stderr, "Invalid geo-referencing in WRF output\n %s\n",
+					pj_strerrno(*pjerrnum));
+				}
+				if (p){
+					//reproject latlon to specified coord projection.
+					//unless it's already a lat/lon projection
+					double dbextents[4];
+					if ( pj_is_latlong(p)) {
+						for (int j = 0; j<4; j++) 
+						{
+							dbextents[j] = lonlat[j];
+						}
+					} else {
+						//Must convert to radians:
+						const double DEG2RAD = 3.141592653589793/180.;
+						const char* latLongProjString = "+proj=latlong +ellps=sphere";
+						projPJ latlon_p = pj_init_plus(latLongProjString);
+						//convert to radians...
+						for (int j = 0; j<4; j++) dbextents[j] = lonlat[j]*DEG2RAD;
+						//convert the latlons to coordinates in the projection.
+						int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
+						if (rc && !ignore){
+							int *pjerrnum = pj_get_errno_ref();
+							fprintf(stderr, "Error converting lonlat to projection\n %s\n",
+								pj_strerrno(*pjerrnum));
+							exit(-1);
+						}
+					}
+					// calculate scale and model tie point
+					modelPixelScale[0] = (dbextents[2]-dbextents[0])/((double)currentImageWidth-1.);
+					modelPixelScale[1] = (dbextents[3]-dbextents[1])/((double)currentImageHeight-1.);
 
-				tiePoint[3] = extents[0];
-				tiePoint[4] = extents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
-				TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
-				TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
+					tiePoint[3] = dbextents[0];
+					tiePoint[4] = dbextents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
+					TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
+					TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
+				}
+					
 			}
 		}
 	}
