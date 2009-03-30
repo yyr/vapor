@@ -26,7 +26,7 @@
 #include "xtiffio.h"
 #include "cpl_serv.h"
 #include "proj_api.h"
-#include "getopt.h"
+
 
 
 #define TIFFOpen XTIFFOpen
@@ -305,7 +305,7 @@ static void InstallGeoTIFF(TIFF *out)
 				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3);
 			dirnum++;
 			if (rc != 5){
-				printf("Failed to read line %d of time-lon-lat file\n",dirnum);
+				fprintf(stderr, "Failed to read line %d of time-lon-lat file\n",dirnum);
 				exit (-1);
 			} else { //convert the latlon and time and put into geotiff
 				

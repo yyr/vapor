@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)getopt.c	4.13 (Berkeley) 2/23/91";
 
 #include <stdio.h>
 #include <string.h>
-#include "getopt.h"
+
 char* optarg = 0;
 int optind = 1;
 //int getopt(int nargc, char** nargv, char* ostr);
@@ -46,12 +46,6 @@ int optind = 1;
  */
  int opterr = 1; /* if error message should be printed */
  int optopt; /* character checked for validity */
-//optind = 1;
-
-
-//	optind = 1,		/* index into parent argv vector */
-		
-//char	*optarg;		/* argument associated with option */
 
 #define	BADCH	(int)'?'
 #define	EMSG	""
