@@ -365,6 +365,9 @@ mousePressEvent(QMouseEvent* e){
 				}
 			
 			}
+			//Otherwise, fall through to navigate mode:
+			doNavigate = true;
+			break;
 			//twoDImage mode is like regionmode
 		case GLWindow::twoDImageMode :
 			if (buttonNum > 0){

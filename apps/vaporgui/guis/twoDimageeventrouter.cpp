@@ -89,8 +89,6 @@ TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* name): Tw
 
 
 TwoDImageEventRouter::~TwoDImageEventRouter(){
-	if (savedCommand) delete savedCommand;
-	
 	
 }
 /**********************************************************
@@ -136,6 +134,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
+	connect (opacitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetOpacitySlider()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
@@ -205,7 +204,9 @@ void TwoDImageEventRouter::updateTab(){
 	
 	orientationCombo->setCurrentItem(orientation);
 	//resampleEdit->setText(QString::number(twoDParams->getResampRate()));
-	opacityEdit->setText(QString::number(twoDParams->getOpacMult()));
+	float opacityMult = twoDParams->getOpacMult();
+	opacityEdit->setText(QString::number(opacityMult));
+	opacitySlider->setValue((int)(opacityMult*256.f));
 	guiSetTextChanged(false);
 	if (geoRefCheckbox->isChecked() != twoDParams->isGeoreferenced()){
 		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
@@ -347,17 +348,8 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	if (op < 0.f) {op = 0.f; opacityEdit->setText(QString::number(op));}
 	if (op > 1.f) {op = 1.f; opacityEdit->setText(QString::number(op));}
 	twoDParams->setOpacMult(op);
+	opacitySlider->setValue((int)(op*256.f));
 
-	/*float resamp = resampleEdit->text().toFloat();
-	if (resamp <= 0.f){
-		resamp = 1.f;
-		resampleEdit->setText("1.0");
-	}
-	twoDParams->setResampRate(resamp);
-	*/
-	
-	
-	
 	int orientation = twoDParams->getOrientation();
 	int xcrd =0, ycrd = 1, zcrd = 2;
 	if (orientation < 2) {ycrd = 2; zcrd = 1;}
@@ -909,6 +901,19 @@ guiSetNumRefinements(int n){
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 	
+void TwoDImageEventRouter::
+guiSetOpacitySlider(){
+	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
+	confirmText(false);
+	float sliderpos = (float)(opacitySlider->value())/256.f;
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move opacity slider");
+	opacityEdit->setText(QString::number(sliderpos));
+	pParams->setOpacMult(sliderpos);
+	PanelCommand::captureEnd(cmd, pParams);
+	//Must rebuild all textures:
+	pParams->setImagesDirty();
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+}
 //Set slider position, based on text change. 
 //Requirement is that center is inside full domain.
 //Should not change values in params unless the text is invalid.

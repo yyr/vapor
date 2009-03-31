@@ -95,9 +95,6 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* name): TwoD
 
 
 TwoDDataEventRouter::~TwoDDataEventRouter(){
-	if (savedCommand) delete savedCommand;
-	
-	
 }
 /**********************************************************
  * Whenever a new TwoDDatatab is created it must be hooked up here

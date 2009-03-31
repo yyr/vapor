@@ -606,6 +606,17 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	}
 
 	TIFFClose(tif);
+	//apply opacity multiplier
+	if (opacityMultiplier < 1){
+		for (int i = 0; i < w*h; i++){
+			unsigned int rgba = texture[i];
+			//mask the alpha
+			int alpha = (0xff000000 & texture[i])>>24;
+			alpha = (int)(alpha*opacityMultiplier);
+			alpha <<= 24;
+			texture[i] = ((rgba&0xffffff) | alpha);
+		}
+	}
 	return (unsigned char*) texture;
 }
 void TwoDImageParams::setupImageNums(TIFF* tif){

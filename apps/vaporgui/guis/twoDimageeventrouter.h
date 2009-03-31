@@ -135,6 +135,7 @@ protected slots:
 	void setTwoDYSize();
 	void setTwoDEnabled(bool on, int instance);
 	void guiSetNumRefinements(int numtrans);
+	void guiSetOpacitySlider();
 	
 protected:
 	
