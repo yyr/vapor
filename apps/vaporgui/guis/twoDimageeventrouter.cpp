@@ -171,9 +171,40 @@ void TwoDImageEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
+	Session* ses = Session::getInstance();
+	ses->blockRecording();
+    
 	
+	int orientation = twoDParams->getOrientation();
 	
-	int orientation = 2; //x-y aligned
+	orientationCombo->setCurrentItem(orientation);
+	geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+	placementCombo->setCurrentItem(twoDParams->getImagePlacement());
+	//Force consistent settings, if there is a dataset
+	if (ds->getDataMgr()){
+		
+		if ((ds->getProjectionString().size() > 0) && orientation == 2){
+			geoRefCheckbox->setEnabled(true);
+		} else {
+			geoRefCheckbox->setEnabled(false);
+			geoRefCheckbox->setChecked(false);
+			twoDParams->setGeoreferenced(false);
+		}
+		bool georef = twoDParams->isGeoreferenced();
+		if (georef){
+			cropCheckbox->setEnabled(true);
+			fitToImageButton->setEnabled(true);
+			placementCombo->setEnabled(false);
+			placementCombo->setCurrentItem(0);//upright
+			twoDParams->setImagePlacement(0);
+		} else {
+			cropCheckbox->setEnabled(false);
+			fitToImageButton->setEnabled(false);
+			placementCombo->setEnabled(true);
+		}
+	}
+
+
 	//set up the cursor position
 	mapCursor();
 	const float* selectedPoint = twoDParams->getSelectedPoint();
@@ -199,19 +230,13 @@ void TwoDImageEventRouter::updateTab(){
 	attachSeedCheckbox->setChecked(seedAttached);
 	
 	filenameEdit->setText(twoDParams->getImageFileName().c_str());
-	orientation = twoDParams->getOrientation();
-	orientationCombo->setEnabled(true);
 	
-	orientationCombo->setCurrentItem(orientation);
-	//resampleEdit->setText(QString::number(twoDParams->getResampRate()));
 	float opacityMult = twoDParams->getOpacMult();
 	opacityEdit->setText(QString::number(opacityMult));
 	opacitySlider->setValue((int)(opacityMult*256.f));
 	guiSetTextChanged(false);
-	if (geoRefCheckbox->isChecked() != twoDParams->isGeoreferenced()){
-		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
-	}
-	placementCombo->setCurrentItem(twoDParams->getImagePlacement());
+	
+	
 	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDImageInstances(winnum) > 1);
 	
 	int numViz = vizMgr->getNumVisualizers();
@@ -230,25 +255,12 @@ void TwoDImageEventRouter::updateTab(){
 		}
 	}
 
-	
-	/*
-	if (twoDParams->isMappedToTerrain()) {
-		zCenterSlider->setEnabled(false);
-		zCenterEdit->setEnabled(false);
-	} else {
-		zCenterSlider->setEnabled(true);
-		zCenterEdit->setEnabled(true);
-	}
-	*/
 	//setup the texture:
 	
 	resetTextureSize(twoDParams);
 	
 	QString strn;
-	Session* ses = Session::getInstance();
-	ses->blockRecording();
-
-    
+	
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
 	const float* extents = ds->getExtents();
@@ -438,7 +450,10 @@ void TwoDImageEventRouter::guiSetOrientation(int val){
 	//undo/redo:
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set 2D orientation");
 	tParams->setOrientation(val);
-	if (val!=2) tParams->setGeoreferenced(false);
+	if (val!=2) {
+		tParams->setGeoreferenced(false);
+		tParams->setMappedToTerrain(false);
+	} 
 	PanelCommand::captureEnd(cmd, tParams); 
 	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
@@ -479,6 +494,11 @@ void TwoDImageEventRouter::guiSetGeoreferencing(bool val){
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "toggle georeferencing on/off");
 	tParams->setGeoreferenced(val);
+	if (val){
+		tParams->setImagePlacement(0);
+	} else {
+		tParams->setImageCrop(false);
+	}
 	PanelCommand::captureEnd(cmd, tParams); 
 	tParams->setImagesDirty();
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
