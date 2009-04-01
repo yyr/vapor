@@ -15,7 +15,7 @@
 //	Date:		July 2008
 //
 //	Description:  Implementation of GLTwoDWindow class: 
-//		This performs the opengl drawing of a texture in the twoD frame.
+//		This performs the opengl drawing of a texture in the twoD (data or image) frame.
 //
 
 #include "gltwoDwindow.h"

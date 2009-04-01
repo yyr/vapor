@@ -232,34 +232,31 @@ calcBoxCorners(float corners[8][3], float, float, int ){
 	
 }
 
-
+//Reorient the box.  Maintain the same relative size in the length and width
+//directions (relative to full domain size).
 void TwoDParams::setOrientation(int val){
-	//Determine current proportions in width and height, with previous orientation
-	float boxwidth, boxheight;
-	int widthIndex = 0;
-	int heightIndex = 1;
-	if (orientation != 2) {heightIndex = 2; }
-	if (orientation == 0) {widthIndex = 1;}
-	const float* extents = DataStatus::getInstance()->getExtents();
+	if (orientation == val) return;
+	float boxmin[3],boxmax[3],sizeRatio[3],newBoxSize[3], boxmid[3];
+	getBox(boxmin,boxmax);
+	const float * extents = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<3; i++){
+		sizeRatio[i] = (boxmax[i]-boxmin[i])/(extents[i+3]-extents[i]);
+		newBoxSize[i] = (boxmax[i]-boxmin[i]);
+		boxmid[i] = 0.5f*(boxmax[i]+boxmin[i]);
+	}
+	//change size in the dimension to maintain size ratio:
+	//Always set the boxsize to zero in the new orientation-direction:
+	newBoxSize[val] = 0.f;
+	//The relative size in the old direction becomes the relative size from the new direction
+	newBoxSize[orientation] = sizeRatio[val]*(extents[orientation+3]-extents[orientation]);
 	
-	boxwidth = (twoDMax[widthIndex] - twoDMin[widthIndex])/(extents[widthIndex+3]-extents[widthIndex]);
-	boxheight = (twoDMax[heightIndex] - twoDMin[heightIndex])/(extents[heightIndex+3]-extents[heightIndex]);
-	
-	//Use the new values to reset the box extents.
-	//Make them use the same height and width, relative to the extents.
+	for (int i = 0; i< 3; i++){
+		boxmin[i] = boxmid[i] -0.5f*newBoxSize[i];
+		boxmax[i] = boxmid[i] +0.5f*newBoxSize[i];
+	}
+	setBox(boxmin,boxmax);
 	orientation = val;
-	float boxmid = 0.5f*(twoDMax[orientation]+twoDMin[orientation]);
-	twoDMax[orientation]=twoDMin[orientation] = boxmid;
-	heightIndex = 1; 
-	widthIndex = 0;
-	if (orientation != 2) {heightIndex = 2; }
-	if (orientation == 0) {widthIndex = 1;}
-	boxmid = 0.5f*(twoDMax[widthIndex]+twoDMin[widthIndex]);
-	twoDMax[widthIndex] = boxmid + 0.5f*boxwidth*(extents[widthIndex+3]-extents[widthIndex]);
-	twoDMin[widthIndex] = boxmid - 0.5f*boxwidth*(extents[widthIndex+3]-extents[widthIndex]);
-	boxmid = 0.5f*(twoDMax[heightIndex]+twoDMin[heightIndex]);
-	twoDMax[heightIndex] = boxmid + 0.5f*boxheight*(extents[heightIndex+3]-extents[heightIndex]);
-	twoDMin[heightIndex] = boxmid - 0.5f*boxheight*(extents[heightIndex+3]-extents[heightIndex]);
+	return;
 	
 }
 void TwoDParams::

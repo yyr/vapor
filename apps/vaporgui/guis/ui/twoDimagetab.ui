@@ -1585,7 +1585,7 @@ orientation of the plane.</string>
                                                         </widget>
                                                         <widget class="QSlider">
                                                             <property name="name">
-                                                                <cstring>xSizeSlider</cstring>
+                                                                <cstring>widthSlider</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1632,7 +1632,7 @@ orientation of the plane.</string>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
-                                                                <cstring>xSizeEdit</cstring>
+                                                                <cstring>widthEdit</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1700,12 +1700,12 @@ orientation of the plane.</string>
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Height</string>
+                                                                <string>Length</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QSlider">
                                                             <property name="name">
-                                                                <cstring>ySizeSlider</cstring>
+                                                                <cstring>lengthSlider</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1731,7 +1731,7 @@ orientation of the plane.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the height of plane in scene</string>
+                                                                <string>Specify the length or height of image plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the size of the 2D
@@ -1744,7 +1744,7 @@ refinement level) in width or
 height by clicking on the bar
 of a slider to the left or right
 of the slider handle. The Width
-and Height sizes refer to the
+and Length sizes refer to the
 X and Y, X and Z, or Y and Z 
 sizes depending on the
 orientation of the plane.</string>
@@ -1752,7 +1752,7 @@ orientation of the plane.</string>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
-                                                                <cstring>ySizeEdit</cstring>
+                                                                <cstring>lengthEdit</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1778,7 +1778,7 @@ orientation of the plane.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the height of plane in scene</string>
+                                                                <string>Specify the length or height of image plane in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Manipulate the size of the 2D
@@ -1791,7 +1791,7 @@ refinement level) in width or
 height by clicking on the bar
 of a slider to the left or right
 of the slider handle. The Width
-and Height sizes refer to the
+and Length sizes refer to the
 X and Y, X and Z, or Y and Z 
 sizes depending on the
 orientation of the plane.</string>

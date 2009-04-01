@@ -90,6 +90,7 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 void EventRouter::performGuiChangeInstance(int newCurrent){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
+	if (winnum < 0) return;
 	int instance = vizMgr->getCurrentInstanceIndex(winnum,myParamsType);
 	if (instance == newCurrent) return;
 	Params* rParams = vizMgr->getParams(winnum,myParamsType);

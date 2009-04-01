@@ -132,6 +132,7 @@ public:
 				  int* actualRefLevel);
 
 	unsigned char* getCurrentTwoDTexture(int timestep) {
+		if (!twoDDataTextures) return 0;
 		return twoDDataTextures[timestep];
 		
 	}
@@ -146,6 +147,10 @@ public:
 	bool getImageCorners(int timestep, double cors[8]);
 	int getImagePlacement(){return imagePlacement;}
 	void setImagePlacement(int val){ imagePlacement = val;}
+
+	//Map a geo-ref point from the image into user coordinates
+	//Return false if the image and the scene are not both georeferenced.
+	bool mapGeorefPoint(int timestep, double pt[2]);
 	
 	
 protected:
@@ -170,7 +175,7 @@ protected:
 	//The elev grid is cached in the 
 	//renderer class
 	
-	float * imageExtents; //(4 floats for each time step)
+	float * imageExtents; //(4 floats for each time step), only for georeferenced images
 
 	int* imageNums;
 	

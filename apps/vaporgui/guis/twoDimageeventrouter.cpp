@@ -98,23 +98,23 @@ void
 TwoDImageEventRouter::hookUpTab()
 {
 	//Nudge sliders by clicking on slider bar:
-	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
+	connect (widthSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
 	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
-	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
+	connect (lengthSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
 	
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (widthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
+	connect (lengthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	
 	connect (xCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (yCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (zCenterEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	connect (xSizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
-	connect (ySizeEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (widthEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
+	connect (lengthEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	
 	connect (opacityEdit, SIGNAL(returnPressed()), this, SLOT(twoDReturnPressed()));
 	connect (opacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
@@ -132,8 +132,8 @@ TwoDImageEventRouter::hookUpTab()
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
-	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
-	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
+	connect (widthSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
+	connect (lengthSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
 	connect (opacitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetOpacitySlider()));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
@@ -370,8 +370,8 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	const float *extents = DataStatus::getInstance()->getExtents();
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
-	boxSize[xcrd] = xSizeEdit->text().toFloat();
-	boxSize[ycrd] = ySizeEdit->text().toFloat();
+	boxSize[xcrd] = widthEdit->text().toFloat();
+	boxSize[ycrd] = lengthEdit->text().toFloat();
 	boxSize[zcrd] = 0;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
@@ -446,9 +446,12 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 void TwoDImageEventRouter::guiSetOrientation(int val){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
-	//If this is triggered by variable selection, don't catch the
-	//undo/redo:
+	int prevOrientation = tParams->getOrientation();
+	if (prevOrientation == val) return;
+	
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "set 2D orientation");
+	//Note that the twodparams will readjust the box size when it is reoriented.
+	
 	tParams->setOrientation(val);
 	if (val!=2) {
 		tParams->setGeoreferenced(false);
@@ -643,12 +646,12 @@ setTwoDZCenter(){
 void TwoDImageEventRouter::
 setTwoDXSize(){
 	guiSetXSize(
-		xSizeSlider->value());
+		widthSlider->value());
 }
 void TwoDImageEventRouter::
 setTwoDYSize(){
 	guiSetYSize(
-		ySizeSlider->value());
+		lengthSlider->value());
 }
 
 
@@ -752,7 +755,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 		TwoDImageRenderer* myRenderer = new TwoDImageRenderer (viz->getGLWindow(), pParams);
 		viz->getGLWindow()->prependRenderer(pParams,myRenderer);
 
-		setTwoDDirty(pParams);
+		pParams->setImagesDirty();
 		return;
 	}
 	
@@ -776,15 +779,11 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle twoDImage enabled",instance);
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
-	
-	//Need to rerender the texture:
-	pParams->setTwoDDirty();
+	//Force a rerender
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	//and refresh the gui
 	updateTab();
 	
-	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
-	update();
 	guiSetTextChanged(false);
 }
 
@@ -983,11 +982,11 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 	switch(coord) {
 		case 0:
 			
-			oldSliderSize = xSizeSlider->value();
+			oldSliderSize = widthSlider->value();
 			
 			oldSliderCenter = xCenterSlider->value();
 			if (oldSliderSize != sliderSize){
-				xSizeSlider->setValue(sliderSize);
+				widthSlider->setValue(sliderSize);
 			}
 			
 			if (oldSliderCenter != sliderCenter)
@@ -997,10 +996,10 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 			lastXCenterSlider = sliderCenter;
 			break;
 		case 1:
-			oldSliderSize = ySizeSlider->value();
+			oldSliderSize = lengthSlider->value();
 			oldSliderCenter = yCenterSlider->value();
 			if (oldSliderSize != sliderSize)
-				ySizeSlider->setValue(sliderSize);
+				lengthSlider->setValue(sliderSize);
 			
 			if (oldSliderCenter != sliderCenter)
 				yCenterSlider->setValue(sliderCenter);
@@ -1052,12 +1051,12 @@ sliderToText(TwoDImageParams* pParams, int coord, int slideCenter, int slideSize
 	
 	switch(coord) {
 		case 0:
-			xSizeEdit->setText(QString::number(newSize,'g',7));
+			widthEdit->setText(QString::number(newSize,'g',7));
 			xCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedXLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 1:
-			ySizeEdit->setText(QString::number(newSize,'g',7));
+			lengthEdit->setText(QString::number(newSize,'g',7));
 			yCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedYLabel->setText(QString::number(selectedPoint[coord]));
 			break;
@@ -1123,12 +1122,12 @@ void TwoDImageEventRouter::
 setXCenter(TwoDImageParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
-	sliderToText(pParams,0, sliderval, xSizeSlider->value());
+	sliderToText(pParams,0, sliderval, widthSlider->value());
 	setTwoDDirty(pParams);
 }
 void TwoDImageEventRouter::
 setYCenter(TwoDImageParams* pParams,int sliderval){
-	sliderToText(pParams,1, sliderval, ySizeSlider->value());
+	sliderToText(pParams,1, sliderval, lengthSlider->value());
 	setTwoDDirty(pParams);
 }
 void TwoDImageEventRouter::
@@ -1202,7 +1201,6 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	if (newWin || (formerParams->isEnabled() != pParams->isEnabled())){
 		updateRenderer(pParams, wasEnabled,  newWin);
 	}
-	setDatarangeDirty(pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
@@ -1250,7 +1248,7 @@ void TwoDImageEventRouter::guiNudgeXSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastXSizeSlider != newSliderPos){
 		lastXSizeSlider = newSliderPos;
-		xSizeSlider->setValue(newSliderPos);
+		widthSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
@@ -1431,7 +1429,7 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
 	if(lastYSizeSlider != newSliderPos){
 		lastYSizeSlider = newSliderPos;
-		ySizeSlider->setValue(newSliderPos);
+		lengthSlider->setValue(newSliderPos);
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
@@ -1458,25 +1456,32 @@ adjustBoxSize(TwoDImageParams* pParams){
 		if (boxmin[ycrd]> boxmax[ycrd]) boxmax[ycrd] = boxmin[ycrd];
 	}
 	pParams->setBox(boxmin, boxmax);
-	xSizeEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
-	ySizeEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
+	widthEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
+	lengthEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
 	//If the box is bigger than the extents, just put the sliders at the
 	//max value
 	float xsize = (boxmax[xcrd]-boxmin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
 	float ysize = (boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
 	if (xsize > 1.f) xsize = 1.f;
 	if (ysize > 1.f) ysize = 1.f;
-	xSizeSlider->setValue((int)(256.f*xsize));
-	ySizeSlider->setValue((int)(256.f*ysize));
+	widthSlider->setValue((int)(256.f*xsize));
+	lengthSlider->setValue((int)(256.f*ysize));
 	guiSetTextChanged(false);
 	return;
 	
 }
 void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
-	//setup the texture:
-	float voxDims[2];
-	twoDParams->getTwoDVoxelExtents(voxDims);
-	twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+	//setup the texture size.  If the image has been read, get the dimensions 
+	//from the image:
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if (twoDParams->getCurrentTwoDTexture(timestep)){
+		int txsize[2];
+		twoDParams->getTextureSize(txsize, timestep);
+		twoDTextureFrame->setTextureSize((float)txsize[0],(float)txsize[1]);
+		return;
+	}
+	//Otherwise just do a square
+	twoDTextureFrame->setTextureSize(1.f,1.f);
 }
 
 
@@ -1485,32 +1490,59 @@ void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
 void TwoDImageEventRouter::mapCursor(){
+	//If the scene and image are georeferenced we do this differently than
+	//if not.
+	
 	//Get the transform 
 	TwoDImageParams* tParams = VizWinMgr::getInstance()->getActiveTwoDImageParams();
 	if(!DataStatus::getInstance()->getDataMgr()) return;
-	float twoDCoord[3];
-	float a[2],b[2],constVal[2];
-	int mapDims[3];
-	tParams->build2DTransform(a,b,constVal,mapDims);
-	const float* cursorCoords = tParams->getCursorCoords();
-	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
-	//x is reversed because we are looking from the opposite direction 
-	twoDCoord[0] = -cursorCoords[0];
-	twoDCoord[1] = cursorCoords[1];
-	twoDCoord[2] = 0.f;
 	float selectPoint[3];
-	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
-	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
-	selectPoint[mapDims[2]] = constVal[0];
+	const float* cursorCoords = tParams->getCursorCoords();
+	
+	if (tParams->isGeoreferenced()){
+		
+		double mappt[2];
+		mappt[0] = -cursorCoords[0];
+		mappt[1] = cursorCoords[1];
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		if (tParams->mapGeorefPoint(timestep, mappt)) {
+			selectPoint[0] = mappt[0];
+			selectPoint[1] = mappt[1];
+			selectPoint[2] = tParams->getTwoDMin(2);
+		}
+		else
+			for (int i = 0; i< 3; i++) selectPoint[i] = 0.f;
+	}
+		
+	else { //map linearly into volume
+		float twoDCoord[3];
+		float a[2],b[2],constVal[2];
+		int mapDims[3];
+		tParams->build2DTransform(a,b,constVal,mapDims);
+		
+		//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
+		//x is reversed because we are looking from the opposite direction 
+		twoDCoord[0] = -cursorCoords[0];
+		twoDCoord[1] = cursorCoords[1];
+		twoDCoord[2] = 0.f;
+	
+		selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
+		selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
+		selectPoint[mapDims[2]] = constVal[0];
+
+	}
+
+
+
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
-		//mapDims are just 0,1,2
-		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
+		const float* extents = DataStatus::getInstance()->getExtents();
 		int varnum = DataStatus::getInstance()->getSessionVariableNum2D("HGT");
 		if (varnum >= 0){
 			float val = calcCurrentValue(tParams,selectPoint,&varnum, 1);
-			if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getTwoDMin(2);
+			if (val != OUT_OF_BOUNDS){
+				selectPoint[2] = val+(tParams->getTwoDMin(2)-extents[2]);
+			}
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);

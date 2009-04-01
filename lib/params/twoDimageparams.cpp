@@ -753,3 +753,56 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 	return true;
 	
 }
+
+//Map a single point into user coordinates. 
+//Input values are using [-1,1] as coordinates in image
+bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
+
+	//obtain the extents of the image in the projected space.
+	//the point pt is relative to these extents
+	const float* imgExts = getCurrentTwoDImageExtents(timestep);
+	if (!imgExts) return false;
+	//Set up proj.4 to convert from image space to VDC coords
+	projPJ dst_proj;
+	projPJ src_proj; 
+	
+	src_proj = pj_init_plus(getImageProjectionString().c_str());
+	dst_proj = pj_init_plus(DataStatus::getProjectionString().c_str());
+	bool doProj = (src_proj != 0 && dst_proj != 0);
+	if (!doProj) return false;
+
+	//If a projection string is latlon, the coordinates are in Radians!
+	bool latlonSrc = pj_is_latlong(src_proj);
+	bool latlonDst = pj_is_latlong(dst_proj);
+
+	static const double RAD2DEG = 180./M_PI;
+	static const double DEG2RAD = M_PI/180.0;
+	
+	//map to (0,1), then use convex combination: 
+	pt[0] = (1.+pt[0])*0.5;
+	pt[1] = (1.+pt[1])*0.5;
+	pt[0] = imgExts[0]*(1.-pt[0]) + pt[0]*imgExts[2];
+	pt[1] = imgExts[1]*(1.-pt[1]) + pt[1]*imgExts[3];
+
+	if (latlonSrc){ //need to convert degrees to radians, image exts are in degrees
+		for (int i = 0; i<2; i++) pt[i] *= DEG2RAD;
+	}
+	
+	//apply proj4 to transform the point (in place):
+	int rc = pj_transform(src_proj,dst_proj,1,2, pt,pt+1, 0);
+
+	if (rc){
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
+			pj_strerrno(rc));
+		return false;
+	}
+	if (latlonDst)  //results are in radians, convert to degrees
+		for (int i = 0; i<2; i++) pt[i] *= RAD2DEG;
+	
+	//Now pt is in projection space.  subtract offsets:
+	const float* exts = DataStatus::getExtents(timestep);
+	const float* globExts = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<2; i++) pt[i] -= (exts[i] - globExts[i]);
+	return true;
+	
+}
