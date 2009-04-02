@@ -60,7 +60,6 @@ int WRF::GetProjectionString(int ncid, string& projString){
 
 		case(1): //Lambert
 			
-			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "MOAD_CEN_LAT", &lat0 ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT1", &lat1 ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT2", &lat2 ) );
@@ -69,11 +68,6 @@ int WRF::GetProjectionString(int ncid, string& projString){
 			projString += " +lon_0=";
 			oss.str(empty);
 			oss << (double)lon0;
-			projString += oss.str();
-			
-			projString += " +lat_0=";
-			oss.str(empty);
-			oss << (double)lat0;
 			projString += oss.str();
 
 			projString += " +lat_1=";
@@ -91,11 +85,10 @@ int WRF::GetProjectionString(int ncid, string& projString){
 		case(2): //Polar stereographic
 			projString = "+proj=ups";
 			//Determine whether north or south pole (cen_lat is +90 or -90)
-			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "MOAD_CEN_LAT", &lat0 ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "CEN_LAT", &lat0 ) );
 			if (lat0 < 0.)	
 				projString += " +south";
-			else 
-				projString += " +north";
+			
 			projString += " +ellps=sphere";
 			break;
 		case(3): //Mercator
@@ -117,7 +110,7 @@ int WRF::GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
-		case(6): //cassini
+		case(6): //cassini or rotated lat/lon
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
 			projString = "+proj=cass";
 
