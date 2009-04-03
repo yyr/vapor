@@ -4,7 +4,7 @@ include ${TOP}/make/config/prebase.mk
 
 
 PROGRAM = tiff2geotiff
-FILES = tiff2geotiff getopt
+FILES = tiff2geotiff geotiff_proj4 getopt
   
 ifdef TIFF_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(TIFF_LIB_PATH)

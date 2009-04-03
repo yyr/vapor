@@ -8,7 +8,7 @@
  * Copyright (c) 1991-1995 Silicon Graphics, Inc.
  *
  * and a lot of legal stuff denying liability for anything.
- * This version modified (A. Norton) to enable specifying a file of lon-lat extents
+ * This version modified (by A. Norton) to enable specifying a file of lon-lat extents
  * and timesteps that can be inserted to georeference and date the 
  * separate directories in the output geotiff file.
  */
@@ -75,7 +75,7 @@ static  void ApplyWorldFile(const char *worldfile, TIFF *out);
 static	int tiffcp(TIFF*, TIFF*);
 static	int processCompressOptions(char*);
 static	void usage(void);
-
+extern int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 );
 
 int
 main(int argc, char* argv[])
@@ -290,9 +290,9 @@ static void InstallGeoTIFF(TIFF *out)
     }
     else if( proj4_string )
     {
-        if( !GTIFSetFromProj4(gtif,proj4_string) )
+        if( !GTIFSetFromProj4_WRF(gtif,proj4_string) )
         {
-            fprintf(stderr,"Failure in GTIFSetFromProj4\n");
+            fprintf(stderr,"Failure in GTIFSetFromProj4_WRF\n");
             exit (-1);
         }
 		if (timeLonLatFile){
@@ -307,7 +307,8 @@ static void InstallGeoTIFF(TIFF *out)
 			dirnum++;
 			if (rc != 5){
 				fprintf(stderr, "Failed to read line %d of time-lon-lat file\n",dirnum);
-				exit (-1);
+				if (rc == 0) fprintf(stderr, "time-lon-lat file has fewer entries than images in tiff file\n");
+				exit (-3);
 			} else { //convert the latlon and time and put into geotiff
 				
 				//insert time stamp from file
