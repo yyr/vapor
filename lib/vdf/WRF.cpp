@@ -84,16 +84,21 @@ int WRF::GetProjectionString(int ncid, string& projString){
 			break;
 		case(2): //Polar stereographic (pure north or south)
 			projString = "+proj=stere";
-			//Determine whether north or south pole (cen_lat is pos or neg)
+			//Determine whether north or south pole (lat_ts is pos or neg)
 			
-			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "CEN_LAT", &lat0 ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "TRUELAT1", &latts ) );
 		
-			if (lat0 < 0.) lat0 = -90.0;
+			if (latts < 0.) lat0 = -90.0;
 			else lat0 = 90.0;
 
 			projString += " +lat_0=";
 			oss.str(empty);
 			oss << (double)lat0;
+			projString += oss.str();
+
+			projString += " +lat_ts=";
+			oss.str(empty);
+			oss << (double)latts;
 			projString += oss.str();
 
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
@@ -124,7 +129,7 @@ int WRF::GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
-		case(6): //cassini or rotated lat/lon
+		case(6): //cassini or rotated lat/lon  NOT RIGHT:
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
 			projString = "+proj=cass";
 
