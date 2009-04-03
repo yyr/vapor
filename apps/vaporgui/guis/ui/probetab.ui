@@ -1879,7 +1879,82 @@ same as the X, Y, and Z axes.</string>
                                                                                 <cstring>textLabel9_2_2</cstring>
                                                                             </property>
                                                                             <property name="text">
-                                                                                <string>Min/max longitude</string>
+                                                                                <string>Upper-right lon/lat</string>
+                                                                            </property>
+                                                                            <property name="alignment">
+                                                                                <set>AlignCenter</set>
+                                                                            </property>
+                                                                        </widget>
+                                                                        <widget class="QLabel">
+                                                                            <property name="name">
+                                                                                <cstring>maxLonLabel</cstring>
+                                                                            </property>
+                                                                            <property name="minimumSize">
+                                                                                <size>
+                                                                                    <width>70</width>
+                                                                                    <height>0</height>
+                                                                                </size>
+                                                                            </property>
+                                                                            <property name="paletteBackgroundColor">
+                                                                                <color>
+                                                                                    <red>209</red>
+                                                                                    <green>207</green>
+                                                                                    <blue>190</blue>
+                                                                                </color>
+                                                                            </property>
+                                                                            <property name="text">
+                                                                                <string>1.2345e5</string>
+                                                                            </property>
+                                                                            <property name="alignment">
+                                                                                <set>AlignCenter</set>
+                                                                            </property>
+                                                                            <property name="toolTip" stdset="0">
+                                                                                <string>Longitude and latitude of upper-right corner of probe</string>
+                                                                            </property>
+                                                                        </widget>
+                                                                        <widget class="QLabel">
+                                                                            <property name="name">
+                                                                                <cstring>maxLatLabel</cstring>
+                                                                            </property>
+                                                                            <property name="minimumSize">
+                                                                                <size>
+                                                                                    <width>70</width>
+                                                                                    <height>0</height>
+                                                                                </size>
+                                                                            </property>
+                                                                            <property name="paletteBackgroundColor">
+                                                                                <color>
+                                                                                    <red>209</red>
+                                                                                    <green>207</green>
+                                                                                    <blue>190</blue>
+                                                                                </color>
+                                                                            </property>
+                                                                            <property name="text">
+                                                                                <string>1.2345e5</string>
+                                                                            </property>
+                                                                            <property name="alignment">
+                                                                                <set>AlignCenter</set>
+                                                                            </property>
+                                                                            <property name="toolTip" stdset="0">
+                                                                                <string>Longitude and latitude of upper-right corner of probe</string>
+                                                                            </property>
+                                                                        </widget>
+                                                                    </hbox>
+                                                                </widget>
+                                                                <widget class="QLayoutWidget">
+                                                                    <property name="name">
+                                                                        <cstring>layout55_2_2</cstring>
+                                                                    </property>
+                                                                    <hbox>
+                                                                        <property name="name">
+                                                                            <cstring>unnamed</cstring>
+                                                                        </property>
+                                                                        <widget class="QLabel">
+                                                                            <property name="name">
+                                                                                <cstring>textLabel9_2_2_2</cstring>
+                                                                            </property>
+                                                                            <property name="text">
+                                                                                <string>Lower-left lon/lat</string>
                                                                             </property>
                                                                             <property name="alignment">
                                                                                 <set>AlignCenter</set>
@@ -1909,55 +1984,7 @@ same as the X, Y, and Z axes.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Min and max longitude of horizontal probe</string>
-                                                                            </property>
-                                                                        </widget>
-                                                                        <widget class="QLabel">
-                                                                            <property name="name">
-                                                                                <cstring>maxLonLabel</cstring>
-                                                                            </property>
-                                                                            <property name="minimumSize">
-                                                                                <size>
-                                                                                    <width>70</width>
-                                                                                    <height>0</height>
-                                                                                </size>
-                                                                            </property>
-                                                                            <property name="paletteBackgroundColor">
-                                                                                <color>
-                                                                                    <red>209</red>
-                                                                                    <green>207</green>
-                                                                                    <blue>190</blue>
-                                                                                </color>
-                                                                            </property>
-                                                                            <property name="text">
-                                                                                <string>1.2345e5</string>
-                                                                            </property>
-                                                                            <property name="alignment">
-                                                                                <set>AlignCenter</set>
-                                                                            </property>
-                                                                            <property name="toolTip" stdset="0">
-                                                                                <string>Min and max longitude of horizontal probe</string>
-                                                                            </property>
-                                                                        </widget>
-                                                                    </hbox>
-                                                                </widget>
-                                                                <widget class="QLayoutWidget">
-                                                                    <property name="name">
-                                                                        <cstring>layout55_2_2</cstring>
-                                                                    </property>
-                                                                    <hbox>
-                                                                        <property name="name">
-                                                                            <cstring>unnamed</cstring>
-                                                                        </property>
-                                                                        <widget class="QLabel">
-                                                                            <property name="name">
-                                                                                <cstring>textLabel9_2_2_2</cstring>
-                                                                            </property>
-                                                                            <property name="text">
-                                                                                <string>Min/max latitude</string>
-                                                                            </property>
-                                                                            <property name="alignment">
-                                                                                <set>AlignCenter</set>
+                                                                                <string>longitude and latitude of lower-left corner of probe</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel">
@@ -1984,34 +2011,7 @@ same as the X, Y, and Z axes.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Min and max latitude of horizontal probe</string>
-                                                                            </property>
-                                                                        </widget>
-                                                                        <widget class="QLabel">
-                                                                            <property name="name">
-                                                                                <cstring>maxLatLabel</cstring>
-                                                                            </property>
-                                                                            <property name="minimumSize">
-                                                                                <size>
-                                                                                    <width>70</width>
-                                                                                    <height>0</height>
-                                                                                </size>
-                                                                            </property>
-                                                                            <property name="paletteBackgroundColor">
-                                                                                <color>
-                                                                                    <red>209</red>
-                                                                                    <green>207</green>
-                                                                                    <blue>190</blue>
-                                                                                </color>
-                                                                            </property>
-                                                                            <property name="text">
-                                                                                <string>1.2345e5</string>
-                                                                            </property>
-                                                                            <property name="alignment">
-                                                                                <set>AlignCenter</set>
-                                                                            </property>
-                                                                            <property name="toolTip" stdset="0">
-                                                                                <string>Min and max latitude of horizontal probe</string>
+                                                                                <string>longitude and latitude of lower-left corner of probe</string>
                                                                             </property>
                                                                         </widget>
                                                                     </hbox>
