@@ -82,13 +82,27 @@ int WRF::GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
-		case(2): //Polar stereographic
-			projString = "+proj=ups";
-			//Determine whether north or south pole (cen_lat is +90 or -90)
-			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "CEN_LAT", &lat0 ) );
-			if (lat0 < 0.)	
-				projString += " +south";
+		case(2): //Polar stereographic (pure north or south)
+			projString = "+proj=stere";
+			//Determine whether north or south pole (cen_lat is pos or neg)
 			
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "CEN_LAT", &lat0 ) );
+		
+			if (lat0 < 0.) lat0 = -90.0;
+			else lat0 = 90.0;
+
+			projString += " +lat_0=";
+			oss.str(empty);
+			oss << (double)lat0;
+			projString += oss.str();
+
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
+			
+			projString += " +lon_0=";
+			oss.str(empty);
+			oss << (double)lon0;
+			projString += oss.str();
+
 			projString += " +ellps=sphere";
 			break;
 		case(3): //Mercator

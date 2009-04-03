@@ -29,6 +29,10 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.1  2009/04/03 18:00:05  alannorton
+ * Added modified version of geotiff_proj4 because the library version did
+ * not support mercator or polar stereographic projections.
+ *
  * Revision 1.25  2008/05/21 04:25:01  fwarmerdam
  * avoid warnings.
  *
@@ -417,12 +421,10 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
             GTIFKeySet(gtif, ProjFalseNorthingGeoKey, TYPE_DOUBLE, 1,
                        0.0 );
     }
-	/* For polar stereo possibly only handle pure north or south projections*/
-	else if (EQUAL(value,"ups") )
+	/* For polar stereo only handle pure north or south projections*/
+	else if (EQUAL(value,"stere") )
 	{
 		
-        const char *south = OSR_GSV(papszNV,"south");
-
 		GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT, 1,
                    ModelTypeProjected);
 		GTIFKeySet(gtif, ProjectedCSTypeGeoKey, TYPE_SHORT, 1,
@@ -432,14 +434,13 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 		GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1, 
 		   CT_PolarStereographic );
 		
-		/* latitude is -90 if "+south" is specified  */
-
-		if( south != NULL )
+		/* if lat_0 >= 0 make it a north projection*/
+		if (OSR_GDV( papszNV, "lat_0", 90.0 ) >= 0.0)
 			GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
-                   -90.0 );
+                   90.0 );
         else
 			GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
-                   OSR_GDV( papszNV, "lat_0", 90.0 ) );
+                   -90.0);
 		GTIFKeySet(gtif, ProjStraightVertPoleLongGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "lon_0", 0.0 ) );
 		GTIFKeySet(gtif, ProjScaleAtNatOriginGeoKey, TYPE_DOUBLE, 1,
@@ -449,7 +450,6 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
         GTIFKeySet(gtif, ProjFalseNorthingGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "y_0", 0.0 ) );
         
-
 	}
     else if( EQUAL(value,"lcc") 
              && OSR_GDV(papszNV, "lat_0", 0.0 ) 
@@ -483,7 +483,7 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 
     else if( EQUAL(value,"lcc") 
              && OSR_GDV(papszNV, "lat_0", 0.0 ) 
-             == OSR_GDV(papszNV, "lat_1", 0.0 ) )
+             != OSR_GDV(papszNV, "lat_1", 0.0 ) )
     {
 	GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT, 1,
                    ModelTypeProjected);
