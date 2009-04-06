@@ -323,7 +323,7 @@ static void InstallGeoTIFF(TIFF *out)
 				if (!p  && !ignore){
 					//Invalid string. Get the error code:
 					int *pjerrnum = pj_get_errno_ref();
-					fprintf(stderr, "Invalid geo-referencing in WRF output\n %s\n",
+					fprintf(stderr, "Invalid Proj4 string; message:\n %s\n",
 					pj_strerrno(*pjerrnum));
 				}
 				if (p){

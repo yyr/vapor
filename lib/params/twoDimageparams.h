@@ -142,6 +142,7 @@ public:
 	}
 	
 	std::string& getImageProjectionString() {return projDefinitionString;}
+	void setImageProjectionString(const char* str){projDefinitionString = str;}
 	//Determine the corners of the image in local coordinates
 	//Only available when the renderer is enabled.
 	bool getImageCorners(int timestep, double cors[8]);

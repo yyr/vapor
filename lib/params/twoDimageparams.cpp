@@ -520,7 +520,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
- 
+	static const basic_string <char>::size_type npos = -1;
+
 	//Initially set imgExts to the TwoDImage extents
 	imgExts[0] = twoDMin[0];
 	imgExts[1] = twoDMin[1];
@@ -551,18 +552,31 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
 		int rc1 = GTIFGetDefn(gtifHandle,gtifDef);
-		char* proj4String = GTIFGetProj4Defn(gtifDef);
-		qWarning("proj4 string: %s",proj4String);
-		projDefinitionString = proj4String;
+		const char* proj4String = GTIFGetProj4Defn(gtifDef);
+		const char* newString;
+		// If there's no "ellps=" in the string, force it to be spherical,
+		// This avoids a bug in the geotiff routines
+		std::string p4String(proj4String);
+		if (npos == p4String.find("ellps=")){
+			p4String += " +ellps=sphere";
+			newString = p4String.c_str();
+		} else {
+			newString = proj4String;
+		}
+
+		qWarning("proj4 string: %s",newString);
+		
+		setImageProjectionString(newString);
+
 		//Check it out..
-		projPJ p = pj_init_plus(proj4String);
+		projPJ p = pj_init_plus(newString);
 		int gotFields = false;
 		double* padfTiePoints, *modelPixelScale;
 		if (p) pj_free(p);
 		if (!p && isGeoreferenced()){
 			//Invalid string. Get the error code:
 			int *pjerrnum = pj_get_errno_ref();
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not properly geo-referenced\n %s\n",
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Invalid proj4 string:\n%s \nerror: %s\n",
 				pj_strerrno(*pjerrnum));
 		} else if (p && isGeoreferenced()) {
 

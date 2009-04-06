@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.2  2009/04/03 20:56:13  alannorton
+ * Changes to polar stereo projection parameters
+ *
  * Revision 1.1  2009/04/03 18:00:05  alannorton
  * Added modified version of geotiff_proj4 because the library version did
  * not support mercator or polar stereographic projections.
@@ -348,7 +351,7 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 		GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1, 
 		   CT_Mercator );
 		GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
-                   OSR_GDV( papszNV, "lat_0", 0.0 ) );
+                   OSR_GDV( papszNV, "lat_ts", 0.0 ) );
 		GTIFKeySet(gtif, ProjNatOriginLongGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "lon_0", 0.0 ) );
 		GTIFKeySet(gtif, ProjScaleAtNatOriginGeoKey, TYPE_DOUBLE, 1,
@@ -357,6 +360,10 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
                    OSR_GDV( papszNV, "x_0", 0.0 ) );
         GTIFKeySet(gtif, ProjFalseNorthingGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "y_0", 0.0 ) );
+
+		//specify lat_ts as standard parallel 1 (default 0? ????)
+		GTIFKeySet(gtif, ProjStdParallel1GeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "lat_0", 0.0 ) );
         
 	}
     else if( EQUAL(value,"tmerc") )
@@ -434,13 +441,10 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 		GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1, 
 		   CT_PolarStereographic );
 		
-		/* if lat_0 >= 0 make it a north projection*/
-		if (OSR_GDV( papszNV, "lat_0", 90.0 ) >= 0.0)
-			GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
-                   90.0 );
-        else
-			GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
-                   -90.0);
+
+		//specify lat_ts as natural origin latitude
+		GTIFKeySet(gtif, ProjNatOriginLatGeoKey, TYPE_DOUBLE, 1,
+                   OSR_GDV( papszNV, "lat_ts", 90.0 ) );
 		GTIFKeySet(gtif, ProjStraightVertPoleLongGeoKey, TYPE_DOUBLE, 1,
                    OSR_GDV( papszNV, "lon_0", 0.0 ) );
 		GTIFKeySet(gtif, ProjScaleAtNatOriginGeoKey, TYPE_DOUBLE, 1,
