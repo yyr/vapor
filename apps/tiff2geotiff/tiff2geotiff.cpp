@@ -303,7 +303,7 @@ static void InstallGeoTIFF(TIFF *out)
 			double modelPixelScale[3] = {0.,0.,0.};
 			double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
 			
-			int rc = fscanf(timeLonLatFile,"%19s %f %f %f %f",
+			int rc = fscanf(timeLonLatFile,"%19s %f %f %f %f %f %f %f %f",
 				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3,
 				relPos, relPos+1, relPos+2, relPos+3);
 			dirnum++;
@@ -360,13 +360,14 @@ static void InstallGeoTIFF(TIFF *out)
 					// then the page corners are at:
 					// LOWER = (X0*R1 - X1*R0)/(R1-R0)
 					// UPPER = LOWER + (X1-X0)/(R1-R0)
+					
 					// When dealing with x coordinates,
 					// R0 and R1 are relPos[0] and [2] , X0 and X1 are dbextents[0] and [2]
 					// similarly the y coordinates use the [1] and [3] indices
 					double newDBExtents[4];
 					newDBExtents[0] = (dbextents[0]*relPos[2] - dbextents[2]*relPos[0])/(relPos[2]-relPos[0]);
 					newDBExtents[2] = newDBExtents[0] + (dbextents[2]-dbextents[0])/(relPos[2]-relPos[0]);
-					newDBExtents[1] = (dbextents[0]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
+					newDBExtents[1] = (dbextents[1]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
 					newDBExtents[3] = newDBExtents[1] + (dbextents[3]-dbextents[1])/(relPos[3]-relPos[1]);
 					// calculate scale and model tie point
 					modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.);
