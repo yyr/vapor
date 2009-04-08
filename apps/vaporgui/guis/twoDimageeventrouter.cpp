@@ -422,7 +422,7 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "select image file");
 	QString filename = QFileDialog::getOpenFileName(
 		Session::getInstance()->getJpegDirectory().c_str(),
-        "TIFF files (*.tiff *.tif)",
+        "TIFF files (*.tiff *.tif *.gtif)",
         this,
         "Specify image file Dialog",
         "Specify file name for loading image into 2D panel" );

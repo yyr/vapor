@@ -46,6 +46,7 @@
 #include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 #include "vapor/WRF.h"
+#include "sys/stat.h"
 //tiff stuff:
 
 #include "geo_normalize.h"
@@ -528,6 +529,14 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	imgExts[2] = twoDMax[0];
 	imgExts[3] = twoDMax[1];
 	projDefinitionString = "";
+	//Check for a valid file name (avoid Linux crash):
+	struct STAT64 statbuf;
+	if (STAT64(imageFileName.c_str(), &statbuf) < 0) {
+		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 
+			"Invalid tiff file: %s\n",
+			imageFileName.c_str());
+		return 0;
+	}
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
 
 	if (!tif) {
