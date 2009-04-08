@@ -253,8 +253,6 @@ restart(){
 bool TwoDImageParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
 	
-	static int parsedVarNum = -1;
-	
 	if (StrCmpNoCase(tagString, _twoDImageParamsTag) == 0) {
 		//Set defaults 
 		resampRate = 1.f;
@@ -263,7 +261,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		cropImage = false;
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
-		int newNumVariables = 0;
+		
 		imagePlacement = 0;
 
 		

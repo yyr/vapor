@@ -298,14 +298,16 @@ static void InstallGeoTIFF(TIFF *out)
 		if (timeLonLatFile){
 			//get next timestamp and latlon extents from timeLonLatFile
 			float lonlat[4];
+			float relPos[4];
 			char timestamp[20];
 			double modelPixelScale[3] = {0.,0.,0.};
 			double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
 			
 			int rc = fscanf(timeLonLatFile,"%19s %f %f %f %f",
-				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3);
+				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3,
+				relPos, relPos+1, relPos+2, relPos+3);
 			dirnum++;
-			if (rc != 5){
+			if (rc != 9){
 				fprintf(stderr, "Failed to read line %d of time-lon-lat file\n",dirnum);
 				if (rc == 0) fprintf(stderr, "time-lon-lat file has fewer entries than images in tiff file\n");
 				exit (-3);
@@ -351,12 +353,29 @@ static void InstallGeoTIFF(TIFF *out)
 							exit(-1);
 						}
 					}
+					//Now the extents in projection space must be scaled, to 
+					// allow for the corners being in the interior of the page.
+					// If R0 and R1 are the relative positions of the plot corners
+					// in the page, and X0 and X1 are the x-coords of the plot corners
+					// then the page corners are at:
+					// LOWER = (X0*R1 - X1*R0)/(R1-R0)
+					// UPPER = LOWER + (X1-X0)/(R1-R0)
+					// When dealing with x coordinates,
+					// R0 and R1 are relPos[0] and [2] , X0 and X1 are dbextents[0] and [2]
+					// similarly the y coordinates use the [1] and [3] indices
+					double newDBExtents[4];
+					newDBExtents[0] = (dbextents[0]*relPos[2] - dbextents[2]*relPos[0])/(relPos[2]-relPos[0]);
+					newDBExtents[2] = newDBExtents[0] + (dbextents[2]-dbextents[0])/(relPos[2]-relPos[0]);
+					newDBExtents[1] = (dbextents[0]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
+					newDBExtents[3] = newDBExtents[1] + (dbextents[3]-dbextents[1])/(relPos[3]-relPos[1]);
 					// calculate scale and model tie point
-					modelPixelScale[0] = (dbextents[2]-dbextents[0])/((double)currentImageWidth-1.);
-					modelPixelScale[1] = (dbextents[3]-dbextents[1])/((double)currentImageHeight-1.);
+					modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.);
+					modelPixelScale[1] = (newDBExtents[3]-newDBExtents[1])/((double)currentImageHeight-1.);
 
-					tiePoint[3] = dbextents[0];
-					tiePoint[4] = dbextents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
+					tiePoint[3] = newDBExtents[0];
+					//Following is just dbextents[1] + dbextents[3]-dbextents[1] = dbextents[3].
+					//tiePoint[4] = dbextents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
+					tiePoint[4] = newDBExtents[3];
 					TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
 					TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
 				}
@@ -460,8 +479,11 @@ char* stuff[] = {
 " -4 proj4_str	install GeoTIFF metadata from proj4 string",
 " -e file	install positioning info from ESRI Worldfile <file>",
 " -a		append to output instead of overwriting",
-" -m file	specify file with multiple timestamps and lon-lat extents;",
-"			each line of file has timestamp and 4 lon/lat corners; requires option -4",
+" -m file	specify file with multiple timestamps and image placement info:",
+"			Each line of file has date/timestamp, and 8 floats;",
+"			first four are lon/lat corners of plot area,",
+"			second four are relative positions of plot corners in page."
+"			This option requires option -4",
 " -o offset	set initial directory offset",
 " -p contig	pack samples contiguously (e.g. RGBRGB...)",
 " -p separate	store samples separately (e.g. RRR...GGG...BBB...)",
