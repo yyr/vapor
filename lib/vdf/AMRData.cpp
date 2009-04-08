@@ -762,6 +762,7 @@ void AMRData::regrid_branch(
 ) const {
 
 	const size_t xyz[3] = {x,y,z};
+	size_t minl[3], maxl[3]; 	// bounds adjusted for current level
 
 	const AMRTreeBranch	*tbranch = _tree->GetBranch(xyz);
 
@@ -783,6 +784,13 @@ void AMRData::regrid_branch(
 		// Process each cell at the current level, checking to see
 		// if the cell has children, and if so, refining the cell
 		//
+
+		minl[0] = min[0] >> (reflevel - (level+1));
+		minl[1] = min[1] >> (reflevel - (level+1));
+		minl[2] = min[2] >> (reflevel - (level+1));
+		maxl[0] = (max[0]+1) >> (reflevel - (level+1));
+		maxl[1] = (max[1]+1) >> (reflevel - (level+1));
+		maxl[2] = (max[2]+1) >> (reflevel - (level+1));
 		for(int i=0; i<cptr0->size(); i++) {
 
 
@@ -802,14 +810,9 @@ void AMRData::regrid_branch(
 					unsigned int xyz[3];
 					tbranch->GetCellLocation(child+j, xyz);
 
-					xyz[0] = xyz[0] << (reflevel - (level+1));
-					xyz[1] = xyz[1] << (reflevel - (level+1));
-					xyz[2] = xyz[2] << (reflevel - (level+1));
-
-		
-					if ((xyz[0] >= min[0]) && (xyz[0] <= max[0]) &&
-						(xyz[1] >= min[1]) && (xyz[1] <= max[1]) &&
-						(xyz[2] >= min[2]) && (xyz[2] <= max[2])) {
+					if ((xyz[0] >= minl[0]) && (xyz[0] <= maxl[0]) &&
+						(xyz[1] >= minl[1]) && (xyz[1] <= maxl[1]) &&
+						(xyz[2] >= minl[2]) && (xyz[2] <= maxl[2])) {
 
 						// The child cell overlaps the region of interest
 						//
@@ -903,8 +906,6 @@ void AMRData::regrid_cell(
 		}
 	}
 
-
-
 	int cx, cy, cz;	
 	int srcidx, dstidx;
 
@@ -954,13 +955,13 @@ void AMRData::regrid_cell(
 	double zstart = 0;
 
 	if (xyz[0] > min[0]) xstart = 0.0;
-	else xstart = xdelta * (min[0]-xyz[0]*_cellDim[0]);
+	else xstart = xdelta * ((min[0]-xyz[0])*_cellDim[0]);
 
 	if (xyz[1] > min[1]) ystart = 0.0;
-	else ystart = ydelta * (min[1]-xyz[1]*_cellDim[1]);
+	else ystart = ydelta * ((min[1]-xyz[1])*_cellDim[1]);
 
 	if (xyz[2] > min[2]) zstart = 0.0;
-	else zstart = zdelta * (min[2]-xyz[2]*_cellDim[2]);
+	else zstart = zdelta * ((min[2]-xyz[2])*_cellDim[2]);
 
 	double xw0, xw1, yw0, yw1, zw0, zw1;
 	double xx, yy, zz;
@@ -985,7 +986,6 @@ void AMRData::regrid_cell(
 				srcidx = cz * _cellDim[1]*_cellDim[0] + cy*_cellDim[0] + cx;
 				dstidx = gz * ny*nx + gy*nx+ gx;
 
-
 		double p0 = cell_data[srcidx];
 		double p1 = cell_data[srcidx+1];
 		double p2 = cell_data[srcidx+_cellDim[0]];
@@ -999,8 +999,6 @@ void AMRData::regrid_cell(
 					yw1 * (xw0 * p2 + xw1 * p3))) + 
 					(zw1 * (yw0 * (xw0 * p4 + xw1 * p5) + 
 					yw1 * (xw0 * p6 + xw1 * p7)));
-	
-
 			}
 		
 		}

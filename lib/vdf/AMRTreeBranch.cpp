@@ -240,8 +240,7 @@ int	AMRTreeBranch::GetCellLocation(
 ) const {
 
 	SetDiagMsg(
-		"AMRTreeBranch::GetCellLocation(%u, [%u,%u,%u])", 
-		cellid, xyz[0],xyz[1],xyz[2]
+		"AMRTreeBranch::GetCellLocation(%u)", cellid
 	);
 
 	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
