@@ -99,6 +99,7 @@ public:
 	PathLineData* getUnsteadyCache() {return unsteadyFlowCache;}
 	FlowLineData* getSteadyCache(int timeStep) {return steadyFlowCache[timeStep];}
 
+	void captureFlow(int timestep);
 
 protected:
 

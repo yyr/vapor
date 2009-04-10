@@ -265,14 +265,14 @@ mousePressEvent(QMouseEvent* e){
 		//In region mode,first check for clicks on selected region
 		case GLWindow::regionMode :
 			if (buttonNum > 0){
-				
+				int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 				int faceNum;
 				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
 				TranslateStretchManip* regionManip = myGLWindow->getRegionManip();
 				regionManip->setParams(rParams);
-				rParams->calcStretchedBoxExtentsInCube(boxExtents);
+				rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
 				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					//Set up for sliding:
@@ -306,7 +306,7 @@ mousePressEvent(QMouseEvent* e){
 				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
 				TranslateStretchManip* flowManip = myGLWindow->getFlowManip();
 				flowManip->setParams(fParams);
-				fParams->calcStretchedBoxExtentsInCube(boxExtents);
+				fParams->calcStretchedBoxExtentsInCube(boxExtents, -1);
 				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					//Set up for sliding:
@@ -339,7 +339,7 @@ mousePressEvent(QMouseEvent* e){
 				TwoDDataParams* tParams = myWinMgr->getTwoDDataParams(myWindowNum);
 				TranslateStretchManip* twoDDataManip = myGLWindow->getTwoDDataManip();
 				twoDDataManip->setParams(tParams);
-				tParams->calcStretchedBoxExtentsInCube(boxExtents);
+				tParams->calcStretchedBoxExtentsInCube(boxExtents,-1);
 				int handleNum = twoDDataManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					//Do nothing if grabbing orthog direction with right mouse:
@@ -378,7 +378,7 @@ mousePressEvent(QMouseEvent* e){
 				TwoDImageParams* tParams = myWinMgr->getTwoDImageParams(myWindowNum);
 				TranslateStretchManip* twoDImageManip = myGLWindow->getTwoDImageManip();
 				twoDImageManip->setParams(tParams);
-				tParams->calcStretchedBoxExtentsInCube(boxExtents);
+				tParams->calcStretchedBoxExtentsInCube(boxExtents,-1);
 				int handleNum = twoDImageManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					//Do nothing if grabbing orthogonal plane with right mouse:
@@ -912,13 +912,14 @@ setGlobalViewpoint(bool setGlobal){
 int VizWin::
 pointOverCube(RegionParams* rParams, float screenCoords[2]){
 	//First get the cube corners into an array of floats
-	
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	float corners[24];
 	float mincrd[3];
 	float maxcrd[3];
+	float* regExts = rParams->getRegionExtents(timestep);
 	for (int i = 0; i<3; i++){
-		mincrd[i] = rParams->getRegionMin(i);
-		maxcrd[i] = rParams->getRegionMax(i);
+		mincrd[i] = regExts[i];
+		maxcrd[i] = regExts[i+3];
 	}
 	//Specify corners in counterclockwise order 
 	//(appearing from front, i.e. pos z axis) 

@@ -111,13 +111,13 @@ public:
 		return twoDDataTextures[timestep];
 	}
 	
-	virtual void getBox(float boxmin[], float boxmax[]){
+	virtual void getBox(float boxmin[], float boxmax[], int = -1 ){
 		for (int i = 0; i< 3; i++){
 			boxmin[i]=twoDMin[i];
 			boxmax[i]=twoDMax[i];
 		}
 	}
-	virtual void setBox(const float boxMin[], const float boxMax[]){
+	virtual void setBox(const float boxMin[], const float boxMax[], int = -1){
 		for (int i = 0; i< 3; i++){
 			twoDMin[i] = boxMin[i];
 			twoDMax[i] = boxMax[i];
@@ -138,7 +138,7 @@ public:
 	bool isMappedToTerrain() {return mapToTerrain;}
 	void setMappedToTerrain(bool val) {mapToTerrain = val;}
 	//override parent version for 2D box corners:
-	virtual void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	virtual void calcBoxCorners(float corners[8][3], float extraThickness, int timestep=-1, float rotation = 0.f, int axis = -1);
 	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
 	//Mapping [-1,1]X[-1,1] into 3D volume.
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);

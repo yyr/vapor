@@ -87,7 +87,9 @@ public:
 
 	
 protected slots:
-	
+	void guiLoadRegionExtents();
+	void saveRegionExtents();
+	void guiAdjustExtents();
 	void setRegionTabTextChanged(const QString& qs);
 	void regionReturnPressed();
 	void guiSetMaxSize();

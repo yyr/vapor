@@ -101,9 +101,9 @@ float RenderParams::getMaxOpacMapBound(){
 }
 
 //For params subclasses that have a box:
-void Params::calcStretchedBoxExtentsInCube(float* extents){
+void Params::calcStretchedBoxExtentsInCube(float* extents, int timestep){
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax);
+	getBox(boxMin, boxMax, timestep);
 	float maxSize = 1.f;
 	if (!DataStatus::getInstance()){
 		for (int i = 0; i<3; i++){
@@ -121,10 +121,10 @@ void Params::calcStretchedBoxExtentsInCube(float* extents){
 	}
 }
 //For params subclasses that have a box, do the same in (unstretched) world coords
-void Params::calcBoxExtents(float* extents){
+void Params::calcBoxExtents(float* extents, int timestep){
 	
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax);
+	getBox(boxMin, boxMax, timestep);
 	
 	for (int i = 0; i<3; i++){
 		extents[i] = boxMin[i];
@@ -132,10 +132,10 @@ void Params::calcBoxExtents(float* extents){
 	}
 }
 //For params subclasses that have a box, do the same in stretched world coords
-void Params::calcStretchedBoxExtents(float* extents){
+void Params::calcStretchedBoxExtents(float* extents, int timestep){
 	
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax);
+	getBox(boxMin, boxMax, timestep);
 	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
 	
 	for (int i = 0; i<3; i++){
@@ -146,9 +146,9 @@ void Params::calcStretchedBoxExtents(float* extents){
 //Following calculates box corners in world space.  Does not use
 //stretching.
 void Params::
-calcBoxCorners(float corners[8][3], float extraThickness, float rotation, int axis){
+calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation, int axis){
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix, extraThickness, rotation, axis);
+	buildCoordTransform(transformMatrix, extraThickness, timestep, rotation, axis);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front
@@ -183,7 +183,7 @@ calcBoxCorners(float corners[8][3], float extraThickness, float rotation, int ax
 //Optional rotation and axis parameters modify theta and phi
 //by rotation about axis.  Rotation is in degrees!
 void Params::
-buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation, int axis){
+buildCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation, int axis){
 	//Note:  transformMatrix is a 3x4 matrix that converts Box coords
 	// in the range [-1,1] to float coords in the volume.
 	//The last column of the matrix is the translation
@@ -221,7 +221,7 @@ buildCoordTransform(float transformMatrix[12], float extraThickness, float rotat
 	
 	float boxSize[3];
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax);
+	getBox(boxMin, boxMax, timestep);
 
 	for (int i = 0; i< 3; i++) {
 		boxMin[i] -= extraThickness;
@@ -362,22 +362,22 @@ void Params::convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, i
 	return;
 }
 	
-void Params::getStretchedBox(float boxmin[3], float boxmax[3]){
+void Params::getStretchedBox(float boxmin[3], float boxmax[3], int timestep){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	getBox(boxmin,boxmax);
+	getBox(boxmin,boxmax, timestep);
 	for (int i = 0; i< 3; i++){
 		boxmin[i] *= stretch[i];
 		boxmax[i] *= stretch[i];
 	}
 }
-void Params::setStretchedBox(const float boxmin[3], const float boxmax[3]){
+void Params::setStretchedBox(const float boxmin[3], const float boxmax[3], int timestep){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	float newBoxmin[3], newBoxmax[3];
 	for (int i = 0; i< 3; i++){
 		newBoxmin[i] = boxmin[i]/stretch[i];
 		newBoxmax[i] = boxmax[i]/stretch[i];
 	}
-	setBox(newBoxmin, newBoxmax);
+	setBox(newBoxmin, newBoxmax, timestep);
 }
 
 //Following methods adapted from ParamsBase.cpp

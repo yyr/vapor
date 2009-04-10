@@ -308,28 +308,39 @@ public:
 	float getPixelSize();
 	bool viewerCoordsChanged() {return newViewerCoords;}
 	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
-	bool isCapturing() {return (capturing != 0);}
-	bool isSingleCapturing() {return (capturing == 1);}
-	void startCapture(QString& name, int startNum) {
-		capturing = 2;
-		captureNum = startNum;
-		captureName = name;
-		newCapture = true;
+	bool isCapturingImage() {return (capturingImage != 0);}
+	bool isCapturingFlow() {return (capturingFlow);}
+	bool isSingleCapturingImage() {return (capturingImage == 1);}
+	void startImageCapture(QString& name, int startNum) {
+		capturingImage = 2;
+		captureNumImage = startNum;
+		captureNameImage = name;
+		newCaptureImage = true;
 		updateGL();
 	}
-	void singleCapture(QString& name){
-		capturing = 1;
-		captureName = name;
-		newCapture = true;
+	void startFlowCapture(QString& name) {
+		capturingFlow = true;
+		captureNameFlow = name;
 		updateGL();
 	}
-	bool captureIsNew() { return newCapture;}
-	void setCaptureNew(bool isNew){ newCapture = isNew;}
-	void stopCapture() {capturing = 0;}
+	void singleCaptureImage(QString& name){
+		capturingImage = 1;
+		captureNameImage = name;
+		newCaptureImage = true;
+		updateGL();
+	}
+	bool captureIsNewImage() { return newCaptureImage;}
+	
+	void setCaptureNewImage(bool isNew){ newCaptureImage = isNew;}
+	
+	void stopImageCapture() {capturingImage = 0;}
+	void stopFlowCapture() {capturingFlow = false;}
 	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
 	void doFrameCapture();
+	QString& getFlowFilename(){return captureNameFlow;}
+	
 
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
 	TranslateStretchManip* getTwoDDataManip() {return myTwoDDataManip;}
@@ -488,11 +499,13 @@ protected:
 	//Used for frame capture:
 	bool renderNew;
 	//Moved over from vizwin:
-	int capturing;
-	int captureNum;
+	int capturingImage;
+	int captureNumImage;
+	bool capturingFlow;
 	//Flag to set indicating start of capture sequence.
-	bool newCapture;
-	QString captureName;
+	bool newCaptureImage;
+	QString captureNameImage;
+	QString captureNameFlow;
 	//Set the following to force a call to resizeGL at the next call to
 	//updateGL.
 	bool needsResize;

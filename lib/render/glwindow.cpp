@@ -152,8 +152,10 @@ GLWindow::GLWindow( CustomContext* ctx, QWidget* parent, const char* name, int w
 	setDirtyBit(ViewportBit, true);
 	setDirtyBit(ProjMatrixBit, true);
 
-	capturing = false;
-	newCapture = false;
+	capturingFlow = false;
+	
+	capturingImage = false;
+	newCaptureImage = false;
 
 	//Create Manips:
 	
@@ -304,14 +306,14 @@ void GLWindow::paintGL()
 	
 	//Modified 2/28/06:  Go ahead and "render" even if no active renderers:
 	
-	//If we are doing the first capture of a sequence then set the
+	//If we are doing the first capture of an image sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured
 	//if they really are new.
 	//
-	renderNew = captureIsNew();
+	renderNew = captureIsNewImage();
 	if (renderNew) previousTimeStep = -1; //reset saved time step
-	setCaptureNew(false);
+	setCaptureNewImage(false);
 
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
@@ -351,7 +353,7 @@ void GLWindow::paintGL()
 		previousTimeStep = timeStep;
 	}
 	
-    getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
+    getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents,timeStep);
     DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
 	//Make the depth buffer writable
@@ -1308,21 +1310,21 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	RegionParams* myRegionParams = getActiveRegionParams();
-	topPlane[3] = myRegionParams->getRegionMax(1)*scales[1];
-	botPlane[3] = -myRegionParams->getRegionMin(1)*scales[1];
-	leftPlane[3] = -myRegionParams->getRegionMin(0)*scales[0];
-	rightPlane[3] = myRegionParams->getRegionMax(0)*scales[0];
-	frontPlane[3] = myRegionParams->getRegionMax(2)*scales[2];
-	backPlane[3] = -myRegionParams->getRegionMin(2)*scales[2];
+	float *regExts = myRegionParams->getRegionExtents(timeStep);
+	topPlane[3] = regExts[4]*scales[1];
+	botPlane[3] = -regExts[1]*scales[1];
+	leftPlane[3] = -regExts[0]*scales[0];
+	rightPlane[3] = regExts[3]*scales[0];
+	frontPlane[3] = regExts[5]*scales[2];
+	backPlane[3] = -regExts[2]*scales[2];
 
 	//Calculate x and y stretch factors, translation factors for texture mapping:
 	const float* extents = DataStatus::getInstance()->getExtents();
-	float stretchX = (myRegionParams->getRegionMax(0)-myRegionParams->getRegionMin(0))/
-		(extents[3]-extents[0]);
-	float stretchY = (myRegionParams->getRegionMax(1)-myRegionParams->getRegionMin(1))/
-		(extents[4]-extents[1]);
-	float transX = myRegionParams->getRegionMin(0)/(extents[3]-extents[0]);
-	float transY = myRegionParams->getRegionMin(1)/(extents[4]-extents[1]);
+	
+	float stretchX = (regExts[3]-regExts[0])/(extents[3]-extents[0]);
+	float stretchY = (regExts[4]-regExts[1])/(extents[4]-extents[1]);
+	float transX = regExts[0]/(extents[3]-extents[0]);
+	float transY = regExts[1]/(extents[4]-extents[1]);
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -1535,9 +1537,10 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	//Initialize regmin, origregmin to full region extents:
 	RegionParams* rParams = getActiveRegionParams();
+	float* exts = rParams->getRegionExtents(timeStep);
 	for (int i = 0; i< 3; i++){
-		regMin[i] = rParams->getRegionMin(i);
-		regMax[i] = rParams->getRegionMax(i);
+		regMin[i] = exts[i];
+		regMax[i] = exts[i+3];
 		regMinOrig[i] = regMin[i];
 		regMaxOrig[i] = regMax[i];
 	}
@@ -1585,7 +1588,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		else { //setup for just doing flat plane:
 			
 			size_t bbmin[3], bbmax[3];
-			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, bbmin, bbmax);
+			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, bbmin, bbmax,timeStep);
 		}
 	} else {
 		
@@ -2228,22 +2231,22 @@ vizIsDirty(DirtyBitType t) {
 }
 void GLWindow::
 doFrameCapture(){
-	if (capturing == 0) return;
+	if (capturingImage == 0) return;
 	//Create a string consisting of captureName, followed by nnnn (framenum), 
 	//followed by .jpg
 	QString filename;
-	if (capturing == 2){
-		filename = captureName;
-		filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+	if (capturingImage == 2){
+		filename = captureNameImage;
+		filename += (QString("%1").arg(captureNumImage)).rightJustify(4,'0');
 		filename +=  ".jpg";
 	} //Otherwise we are just capturing one frame:
-	else filename = captureName;
+	else filename = captureNameImage;
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
 		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
-		capturing = 0;
+		capturingImage = 0;
 		return;
 	}
 	//Get the image buffer 
@@ -2252,7 +2255,7 @@ doFrameCapture(){
 	if(!getPixelData(buf)){
 		//Error!
 		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; error obtaining GL data");
-		capturing = 0;
+		capturingImage = 0;
 		delete buf;
 		return;
 	}
@@ -2272,13 +2275,13 @@ doFrameCapture(){
 		//Error!
 		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
 			filename.ascii());
-		capturing = 0;
+		capturingImage = 0;
 		delete buf;
 		return;
 	}
 	//If just capturing single frame, turn it off, otherwise advance frame number
-	if(capturing > 1) captureNum++;
-	else capturing = 0;
+	if(capturingImage > 1) captureNumImage++;
+	else capturingImage = 0;
 	delete buf;
 }
 
@@ -2438,7 +2441,8 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 	if (handleNum > 2) handleNum = handleNum-3;
 	else handleNum = 2 - handleNum;
 	float boxExtents[6];
-	manipParams->calcStretchedBoxExtentsInCube(boxExtents);
+	int timestep = currentAnimationParams->getCurrentFrameNumber();
+	manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
 	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
 	// project the boxCtr and one more point, to get a direction vector
 	

@@ -23,6 +23,7 @@
 #include "params.h"
 #include "probeparams.h"
 #include "viewpointparams.h"
+#include "animationparams.h"
 #include "glwindow.h"
 #include "glutil.h"
 #include "datastatus.h"
@@ -32,20 +33,7 @@ const float Manip::unselectedFaceColor[4] = {0.8f,0.2f,0.0f,0.8f};
 // Manip Methods
 //Obtain the vertices of the box, in the unit cube, put them into an array
 //
-/*
-void Manip::
-getBoxVertices(float vertices[8][3]){
-	float extents[6];
-	getParams()->calcStretchedBoxExtentsInCube(extents);
-	for (int vert = 0; vert< 8; vert++){
-		for (int i = 0; i< 3; i++){
-			if ((vert>>i)&1) vertices[vert][i] = extents[i+3];
-			else vertices[vert][i] = extents[i];
-		}
-	}
-	
-}
-*/
+
 //Methods for TranslateStretchManip:
 //
 
@@ -317,7 +305,8 @@ rayHandleIntersect(float ray[3], float cameraPos[3], int handleNum, int faceNum,
 	double val;
 	float handleExtents[6];
 	float boxExtents[6];
-	myParams->calcBoxExtents(boxExtents);
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	myParams->calcBoxExtents(boxExtents,timestep);
 	makeHandleExtents(handleNum, handleExtents, 0, boxExtents);
 	int coord;
 	
@@ -366,7 +355,8 @@ void TranslateStretchManip::render(){
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//Without any rotation applied:
-	myParams->calcStretchedBoxExtentsInCube(extents);
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	myParams->calcStretchedBoxExtentsInCube(extents, timestep);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
 
@@ -415,8 +405,8 @@ void TranslateStretchManip::render(){
 
 void TranslateStretchManip::drawBoxFaces(){
 	float corners[8][3];
-	
-	myParams->calcBoxCorners(corners, 0.f);
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	myParams->calcBoxCorners(corners, 0.f, timestep);
 	
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
@@ -494,12 +484,13 @@ void TranslateStretchManip::
 mouseRelease(float /*screenCoords*/[2]){
 	//Need to commit to latest drag position
 	//Are we dragging?
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
 	if (selectedHandle >= 0){
 		float boxMin[3], boxMax[3];
 		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
 		//Convert dragDistance to world coords:
 		float dist = dragDistance*ViewpointParams::getMaxStretchedCubeSide();
-		myParams->getStretchedBox(boxMin,boxMax);
+		myParams->getStretchedBox(boxMin,boxMax,timestep);
 		//Check if we are stretching.  If so, only move coords associated with
 		//handle:
 		if (isStretching){
@@ -513,7 +504,7 @@ mouseRelease(float /*screenCoords*/[2]){
 			boxMax[axis]+=dist;
 		}
 
-		myParams->setStretchedBox(boxMin, boxMax);
+		myParams->setStretchedBox(boxMin, boxMax, timestep);
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -592,7 +583,8 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
 	const float* extents = DataStatus::getInstance()->getStretchedExtents();
-	myParams->calcStretchedBoxExtents(boxExtents);
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	myParams->calcStretchedBoxExtents(boxExtents, timestep);
 	
 	if (isStretching){ //don't push through opposite face ..
 		//Depends on whether we are pushing the "low" or "high" handle
@@ -687,7 +679,7 @@ void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
 	Permuter* myPermuter = 0;
 	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
-	myParams->calcBoxCorners(corners, 0.f, tempRotation, tempRotAxis);
+	myParams->calcBoxCorners(corners, 0.f, -1, tempRotation, tempRotAxis);
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.
@@ -844,7 +836,7 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
 	const float* extents = DataStatus::getInstance()->getStretchedExtents();
-	myParams->calcStretchedBoxExtents(boxExtents);
+	myParams->calcStretchedBoxExtents(boxExtents, -1);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (isStretching){ //don't push through opposite face ..
 		dragDistance = constrainStretch(dragDistance);
@@ -877,7 +869,7 @@ void TranslateRotateManip::render(){
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//With any rotation applied:
-	//myParams->calcBoxExtentsInCube(extents);
+	
 	myParams->calcContainingStretchedBoxExtentsInCube(extents);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
@@ -932,7 +924,7 @@ mouseRelease(float /*screenCoords*/[2]){
 		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
 		//Convert dragDistance to world coords:
 		float dist = dragDistance*ViewpointParams::getMaxStretchedCubeSide();
-		myParams->getStretchedBox(boxMin,boxMax);
+		myParams->getStretchedBox(boxMin,boxMax,-1);
 		//Check if we are stretching.  If so, need to decide what
 		//coords are associated with handle.  Only those are to be
 		//translated.
@@ -975,7 +967,7 @@ mouseRelease(float /*screenCoords*/[2]){
 			boxMax[axis]+=dist;
 		}
 
-		myParams->setStretchedBox(boxMin, boxMax);
+		myParams->setStretchedBox(boxMin, boxMax, -1);
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -986,7 +978,7 @@ mouseRelease(float /*screenCoords*/[2]){
 float TranslateRotateManip::constrainStretch(float currentDist){
 	float dist = currentDist/ViewpointParams::getMaxStretchedCubeSide();
 	float boxMin[3],boxMax[3];
-	myParams->getStretchedBox(boxMin,boxMax);
+	myParams->getStretchedBox(boxMin,boxMax,-1);
 	
 	Permuter* myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
 	//Based on the angles (phi and theta) the user is grabbing 

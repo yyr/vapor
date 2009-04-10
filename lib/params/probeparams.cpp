@@ -938,7 +938,7 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
 	//Note that this is just a floating point version of getBoundingBox(), below.
 	float transformMatrix[12];
 	//Set up to transform from probe (coords [-1,1]) into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 	const float* extents = DataStatus::getInstance()->getExtents();
 
 	//Calculate the normal vector to the probe plane:
@@ -991,7 +991,7 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 	size_t dataSize[3];
 	const float* extents = ds->getExtents();
 	//Start by initializing extents, and variables that will be min,max
@@ -1087,7 +1087,7 @@ void ProbeParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	//obtained by mapping all 8 corners into the space.
 	//It will not necessarily fit inside the unit cube.
 	float corners[8][3];
-	calcBoxCorners(corners, 0.f);
+	calcBoxCorners(corners, 0.f, -1);
 	
 	float boxMin[3],boxMax[3];
 	int crd, cor;
@@ -1190,7 +1190,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1339,7 +1339,7 @@ void ProbeParams::adjustTextureSize(int sz[2]){
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 	
 	for (int cornum = 0; cornum < 4; cornum++){
 		// coords relative to (-1,1)
@@ -1396,7 +1396,7 @@ getProbeVoxelExtents(float voxdims[2]){
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 	
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1435,7 +1435,7 @@ void ProbeParams::getRotatedBoxDims(float boxdims[3]){
 	//cor(1)-cor[0] is x side
 	//cor[2] - cor[0] is y side
 	//cor[4] - cor[0] is z side
-	calcBoxCorners(corners, 0.f);
+	calcBoxCorners(corners, 0.f, -1);
 	
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
@@ -1477,14 +1477,14 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 
 	//Modify box size so it appears to have same dimensions:
 	float boxmin[3],boxmax[3];
-	getBox(boxmin, boxmax);
+	getBox(boxmin, boxmax, -1);
 	for (int i = 0; i< 3; i++){
 		float boxmid = (boxmax[i]+boxmin[i])*0.5;
 		float boxlen = (boxmax[i] - boxmin[i]);
 		boxmax[i] = boxmid + 0.5f*boxlen*changeSize[i];
 		boxmin[i] = boxmid - 0.5f*boxlen*changeSize[i];
 	}
-	setBox(boxmin, boxmax);
+	setBox(boxmin, boxmax, -1);
 }
 //Advect the point (x,y) in the probe to the point (*px, *py)
 //Requres that buildIBFVFields be called first!
@@ -1564,7 +1564,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	}
 	//Set up to transform from probe into volume:
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix, 0.f);
+	buildCoordTransform(transformMatrix, 0.f, -1);
 
 	//Get the 3x3 rotation matrix:
 	float rotMatrix[9], invMatrix[9];

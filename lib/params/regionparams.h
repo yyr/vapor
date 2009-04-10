@@ -24,6 +24,7 @@
 
 #include <qwidget.h>
 #include <vector>
+#include <map>
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "vapor/MyBase.h"
@@ -49,7 +50,7 @@ public:
 	//following method gets voxel coords of region, but doesn't verify the existens
 	//of data in the region
 	//
-	void getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3]);
+	void getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3], int timestep);
 	
 	//New version of above, to supply available region bounds when not full
 	//Must specify the variable(s) that is/are being rendered.
@@ -74,12 +75,14 @@ public:
 	
 	float calcCurrentValue(RenderParams* rp, int sessionVarNum, const float point[3], int numRefinements, int timeStep);
 
-	float getRegionMin(int coord){ return regionMin[coord];}
-	float getRegionMax(int coord){ return regionMax[coord];}
-	float* getRegionMin() {return regionMin;}
-	float* getRegionMax() {return regionMax;}
-	float getRegionCenter(int indx) {
-		return (0.5f*(regionMin[indx]+regionMax[indx]));
+	float getRegionMin(int coord, int timestep){ return *(getRegionExtents(timestep)+coord);}
+	float getRegionMax(int coord, int timestep){ return *(getRegionExtents(timestep)+3+coord);}
+	float* getRegionExtents(int timestep);
+	float* getRegionMin(int timestep) {return getRegionExtents(timestep);}
+	float* getRegionMax(int timestep){ return (getRegionExtents(timestep)+3);}
+
+	float getRegionCenter(int indx, int timestep) {
+		return (0.5f*(getRegionMin(indx,timestep)+getRegionMax(indx,timestep)));
 	}
 	static int getFullGridHeight(){ return fullHeight;}
 	static void setFullGridHeight(size_t val);//will purge if necessary
@@ -98,49 +101,61 @@ public:
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	//See if the proposed number of transformations is OK.  Return a valid value
-	int validateNumTrans(int n);
+	int validateNumTrans(int n, int timestep);
 
-	virtual void setBox(const float boxmin[], const float boxmax[]){
+	virtual void setBox(const float boxmin[], const float boxmax[], int timestep){
+		float* extents = getRegionExtents(timestep);
 		for(int i = 0; i<3; i++){
 			//Don't check max>min until min is set:
-			setRegionMin(i, boxmin[i],false);
-			setRegionMax(i, boxmax[i],true);
+			extents[i] = boxmin[i];
+			extents[i+3] = boxmax[i];
+			if (extents[i+3] < extents[i]) extents[i+3] = extents[i];
 		}
 	}
-	virtual void getBox(float boxMin[], float boxMax[]){
+	virtual void getBox(float boxMin[], float boxMax[], int timestep){
+		float* extents = getRegionExtents(timestep);
 		for (int i = 0; i< 3; i++){
-			boxMin[i] = getRegionMin(i);
-			boxMax[i] = getRegionMax(i);
+			boxMin[i] = extents[i];
+			boxMax[i] = extents[i+3];
 		}
 	}
+	
 	//Methods to set the region max and min from a float value.
 	//public so accessible from router
 	//
-	void setRegionMin(int coord, float minval, bool checkMax=true);
-	void setRegionMax(int coord, float maxval, bool checkMin=true);
+	void setRegionMin(int coord, float minval, int timestep, bool checkMax=true);
+	void setRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
 	void setInfoNumRefinements(int n){infoNumRefinements = n;}
 	void setInfoTimeStep(int n) {infoTimeStep = n;}
 	void setInfoVarNum(int n) {infoVarNum = n;}
-		
+	std::map<int,float*>& getExtentsMapping(){ return extentsMap;}
+	void clearRegionsMap();
+	bool extentsAreVarying(){ return extentsMap.size()>0;}
+
 protected:
 	static const string _regionMinTag;
 	static const string _regionMaxTag;
 	static const string _regionCenterTag;
 	static const string _regionSizeTag;
+	static const string _regionAtTimeTag;
+	static const string _regionListTag;
 	static const string _maxSizeAttr;
 	static const string _numTransAttr;
 	static const string _fullHeightAttr;
+	static const string _timestepAttr;
+	static const string _extentsAttr;
 	
 	//Methods to make sliders and text valid and consistent for region:
 
 	int infoNumRefinements, infoVarNum, infoTimeStep;
 
 	//Actual region bounds
-	float regionMax[3],regionMin[3];
+	float defaultRegionExtents[6];
 	//Full grid height for layered data.  0 otherwise.
 	static size_t fullHeight;
 	
-	//RegionTab* myRegionTab;
+	//Extents map specifies extents for eacy timestep
+	std::map<int, float*> extentsMap;
 	
 };
 

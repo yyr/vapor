@@ -105,7 +105,7 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	//obtained by mapping all 8 corners into the space.
 	//It will not necessarily fit inside the unit cube.
 	float corners[8][3];
-	calcBoxCorners(corners, 0.f);
+	calcBoxCorners(corners, 0.f, -1);
 	
 	float boxMin[3],boxMax[3];
 	int crd, cor;
@@ -173,7 +173,7 @@ void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int m
 //Following overrides version in Param for 2D
 //Does not support rotation or thickness
 void TwoDParams::
-calcBoxCorners(float corners[8][3], float, float, int ){
+calcBoxCorners(float corners[8][3], float, int, float, int ){
 	
 	float a[2],b[2],constValue[2];
 	int mapDims[3];
@@ -237,7 +237,7 @@ calcBoxCorners(float corners[8][3], float, float, int ){
 void TwoDParams::setOrientation(int val){
 	if (orientation == val) return;
 	float boxmin[3],boxmax[3],sizeRatio[3],newBoxSize[3], boxmid[3];
-	getBox(boxmin,boxmax);
+	getBox(boxmin,boxmax,0);
 	const float * extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3; i++){
 		sizeRatio[i] = (boxmax[i]-boxmin[i])/(extents[i+3]-extents[i]);
@@ -254,7 +254,7 @@ void TwoDParams::setOrientation(int val){
 		boxmin[i] = boxmid[i] -0.5f*newBoxSize[i];
 		boxmax[i] = boxmid[i] +0.5f*newBoxSize[i];
 	}
-	setBox(boxmin,boxmax);
+	setBox(boxmin,boxmax,0);
 	orientation = val;
 	return;
 	

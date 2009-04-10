@@ -20,7 +20,7 @@ namespace VAPoR {
     
   public:
     BBox();
-    BBox(RegionParams& params);
+    BBox(RegionParams& params, int timestep);
     BBox(const Point3d& min, const Point3d& max);
     BBox(const BBox&);
 

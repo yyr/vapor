@@ -60,7 +60,6 @@ TwoDRenderer::~TwoDRenderer()
 }
 
 
-
 /*
   Set up the OpenGL rendering state, 
 */

@@ -2769,8 +2769,9 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 				if (levelAtTime >= 0) availRefLevel = levelAtTime;
 			}
 		}
-
-		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
+		//Start with the extents at the start timestep:
+		int ts = getTimestepSample(0);
+		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim, ts);
 		
 		//Intersect the regions for the timesteps with field data:
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){

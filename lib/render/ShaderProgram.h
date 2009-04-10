@@ -19,6 +19,10 @@
 #include <string>
 #include <list>
 
+#ifdef WIN32
+#pragma warning(disable : 4251)
+#endif
+
 namespace VAPoR {
 
 class RENDER_API ShaderProgram

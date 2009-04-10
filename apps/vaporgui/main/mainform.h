@@ -89,10 +89,11 @@ public:
 	QPopupMenu *Edit;
     QPopupMenu *Data;
     QPopupMenu *viewMenu;
+	QPopupMenu *captureMenu;
     
-    QPopupMenu *Script;
+    //QPopupMenu *Script;
     QPopupMenu *Rendering;
-    QPopupMenu *Animation;
+    //QPopupMenu *Animation;
     QPopupMenu *helpMenu;
     QToolBar *modeToolBar;
 	QToolBar *vizToolBar;
@@ -132,12 +133,16 @@ public:
     
    //View menu
     QAction* viewLaunch_visualizerAction;
-	QAction* viewStartCaptureAction;
-	QAction* viewEndCaptureAction;
-	QAction* viewSingleCaptureAction;
+
+   // Capture menu
+	QAction* captureStartJpegCaptureAction;
+	QAction* captureEndJpegCaptureAction;
+	QAction* captureSingleJpegCaptureAction;
+	QAction* captureStartFlowCaptureAction;
+	QAction* captureEndFlowCaptureAction;
 
     //Script menu
-   
+   /*
     QAction* scriptIDL_scriptAction;
     QAction* scriptMatlab_scriptAction;
     QAction* scriptBatchAction;
@@ -145,7 +150,7 @@ public:
     //Animation menu
     QAction* animationKeyframingAction;
 	QAction* exportAnimationScriptAction;
-    
+    */
     
 	//Toolbars:
 	QActionGroup* mouseModeActions;
@@ -218,9 +223,11 @@ public slots:
     virtual void launchVisualizer();
 	virtual void launchVizFeaturesPanel();
 	virtual void launchPreferencesPanel();
-	virtual void startCapture();
-	virtual void endCapture();
-	virtual void captureSingle();
+	virtual void startJpegCapture();
+	virtual void endJpegCapture();
+	virtual void captureSingleJpeg();
+	virtual void startFlowCapture();
+	virtual void endFlowCapture();
   
     virtual void viewpoint();
     virtual void region();
@@ -279,7 +286,7 @@ protected:
 
 protected slots:
     virtual void languageChange();
-	void initViewMenu();
+	void initCaptureMenu();
 	void setInteractiveRefLevel(int);
 
 };

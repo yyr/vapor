@@ -34,12 +34,12 @@ BBox::BBox() :
 // Construct box from RegionParams extents. 
 // Assumes the bounding box is axis-aligned. 
 //----------------------------------------------------------------------------
-BBox::BBox(RegionParams &regionParams) 
+BBox::BBox(RegionParams &regionParams, int timestep) 
 {
   
   float extents[6];
   
-  regionParams.calcStretchedBoxExtentsInCube(extents);
+  regionParams.calcStretchedBoxExtentsInCube(extents, timestep);
   
   _minIndex = 0;
   _maxIndex = 7;

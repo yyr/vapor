@@ -345,7 +345,7 @@ void ProbeEventRouter::updateTab(){
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
 	const float* extents = ds->getExtents();
-	probeParams->getBox(boxmin, boxmax);
+	probeParams->getBox(boxmin, boxmax, -1);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
@@ -356,7 +356,7 @@ void ProbeEventRouter::updateTab(){
 
 	//Calculate extents of the containing box
 	float corners[8][3];
-	probeParams->calcBoxCorners(corners, 0.f);
+	probeParams->calcBoxCorners(corners, 0.f, -1);
 	double dboxmin[3], dboxmax[3];
 	size_t gridMin[3],gridMax[3];
 	for (int i = 0; i< 3; i++){
@@ -543,7 +543,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	probeParams->getBox(boxmin, boxmax);
+	probeParams->getBox(boxmin, boxmax, -1);
 	const float* extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3;i++){
 		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
@@ -551,7 +551,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
-	probeParams->setBox(boxmin,boxmax);
+	probeParams->setBox(boxmin,boxmax, -1);
 	adjustBoxSize(probeParams);
 	//set the center sliders:
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
@@ -904,8 +904,8 @@ probeAddSeed(){
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPoint());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
-	
-	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
+	int ts = ap->getCurrentFrameNumber();
+	pt.set1Val(3,(float)ts);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	//Check that it's OK:
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
@@ -919,7 +919,7 @@ probeAddSeed(){
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float boxMin[3], boxMax[3];
-	rParams->getBox(boxMin, boxMax);
+	rParams->getBox(boxMin, boxMax,ts);
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
@@ -1046,17 +1046,18 @@ sessionLoadTF(QString* name){
 void ProbeEventRouter::
 guiCopyRegionToProbe(){
 	confirmText(false);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
 	if (pParams->isPlanar()){//maybe need to turn off planar:
-		if (rParams->getRegionMin(2) < rParams->getRegionMax(2)){
+		if (rParams->getRegionMin(2,timestep) < rParams->getRegionMax(2,timestep)){
 			pParams->setPlanar(false);
 		}
 	}
 	for (int i = 0; i< 3; i++){
-		pParams->setProbeMin(i, rParams->getRegionMin(i));
-		pParams->setProbeMax(i, rParams->getRegionMax(i));
+		pParams->setProbeMin(i, rParams->getRegionMin(i,timestep));
+		pParams->setProbeMax(i, rParams->getRegionMax(i,timestep));
 	}
 	//Note:  the probe may not fit in the region.  
 	updateTab();
@@ -1324,7 +1325,7 @@ void ProbeEventRouter::guiCenterProbe(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe to Selected Point");
 	const float* selectedPoint = pParams->getSelectedPoint();
 	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
+	pParams->getBox(probeMin,probeMax,-1);
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], probeMax[i]-probeMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1956,7 +1957,7 @@ refreshHistogram(RenderParams* p){
 	float vec1[3], vec2[3];
 
 	//Get box that is slightly fattened, to ensure nondegenerate normals
-	pParams->calcBoxCorners(corner, 0.5*voxSize);
+	pParams->calcBoxCorners(corner, 0.5*voxSize, -1);
 	//The first 6 corners are reference points for testing
 	//the 6 normal vectors are outward pointing from these points
 	//Normals are calculated as if cube were axis aligned but this is of 
@@ -2508,7 +2509,7 @@ adjustBoxSize(ProbeParams* pParams){
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
 	if (!Session::getInstance()->getDataMgr()) return;
-	pParams->getBox(boxmin, boxmax);
+	pParams->getBox(boxmin, boxmax, -1);
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180.,pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 	//Apply rotation matrix inverted to full domain size
@@ -2550,7 +2551,7 @@ adjustBoxSize(ProbeParams* pParams){
 		}
 	}
 	
-	pParams->setBox(boxmin, boxmax);
+	pParams->setBox(boxmin, boxmax, -1);
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
@@ -2661,7 +2662,7 @@ void ProbeEventRouter::mapCursor(){
 	float probeCoord[3];
 	float selectPoint[3];
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	pParams->buildCoordTransform(transformMatrix, 0.f);
+	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
 	//The cursor sits in the z=0 plane of the probe box coord system.
 	//x is reversed because we are looking from the opposite direction (?)
 	const float* cursorCoords = pParams->getCursorCoords();

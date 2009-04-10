@@ -590,7 +590,7 @@ void FlowEventRouter::updateTab(){
 	randomSeedEdit->setEnabled(fParams->isRandom()&&fParams->rakeEnabled());
 
 	float seedBoxMin[3],seedBoxMax[3];
-	fParams->getBox(seedBoxMin,seedBoxMax);
+	fParams->getBox(seedBoxMin,seedBoxMax, -1);
 	for (int i = 0; i< 3; i++){
 		textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
@@ -1571,7 +1571,7 @@ guiCenterRake(const float* coords){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "move rake center");
 	const float* fullExtent = DataStatus::getInstance()->getExtents();
 	float seedBoxMin[3],seedBoxMax[3];
-	fParams->getBox(seedBoxMin, seedBoxMax);
+	fParams->getBox(seedBoxMin, seedBoxMax, -1);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
 		float regMin = fullExtent[i];
@@ -1584,7 +1584,7 @@ guiCenterRake(const float* coords){
 		seedBoxMax[i] = coord + 0.5f*boxSize;
 		seedBoxMin[i] = coord - 0.5f*boxSize;
 	}
-	fParams->setBox(seedBoxMin, seedBoxMax);
+	fParams->setBox(seedBoxMin, seedBoxMax, -1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1701,15 +1701,16 @@ guiSetOpacityScale(int val){
 void FlowEventRouter::
 guiSetRakeToRegion(){
 	confirmText(false);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "move rake to region");
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float seedBoxMin[3],seedBoxMax[3];
 	for (int i = 0; i< 3; i++){
-		seedBoxMin[i] = rParams->getRegionMin(i);
-		seedBoxMax[i] = rParams->getRegionMax(i);
+		seedBoxMin[i] = rParams->getRegionMin(i,timestep);
+		seedBoxMax[i] = rParams->getRegionMax(i,timestep);
 	}
-	fParams->setBox(seedBoxMin,seedBoxMax);
+	fParams->setBox(seedBoxMin,seedBoxMax, -1);
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1780,7 +1781,8 @@ guiSetNumRefinements(int n){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	if (fParams->getNumRefinements() == n) return;
 	confirmText(false);
-	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n,timestep);
 	if (newNumTrans != n) {
 		MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current region, data cache size");
 		refinementCombo->setCurrentItem(newNumTrans);

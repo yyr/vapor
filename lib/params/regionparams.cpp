@@ -55,8 +55,13 @@ const string RegionParams::_regionCenterTag = "RegionCenter";
 const string RegionParams::_regionSizeTag = "RegionSize";
 const string RegionParams::_maxSizeAttr = "MaxSizeSlider";
 const string RegionParams::_numTransAttr = "NumTrans";
+const string RegionParams::_timestepAttr = "TimeStep";
+const string RegionParams::_extentsAttr = "Extents";
 const string RegionParams::_regionMinTag = "RegionMin";
 const string RegionParams::_regionMaxTag = "RegionMax";
+const string RegionParams::_regionAtTimeTag = "RegionAtTime";
+const string RegionParams::_regionListTag = "RegionList";
+
 const string RegionParams::_fullHeightAttr = "FullGridHeight";
 size_t RegionParams::fullHeight = 0;
 
@@ -67,15 +72,29 @@ RegionParams::RegionParams(int winnum): Params(winnum){
 }
 Params* RegionParams::
 deepCopy(){
-	//Just make a shallow copy, since there's nothing (yet) extra
+	//Just make a shallow copy, but duplicate the extentsMap
 	//
 	RegionParams* p = new RegionParams(*this);
-	
+	p->extentsMap.clear();
+	if (extentsMap.size() > 0){
+		//Iterate over extents map, copy all the extents
+		map <int, float*> :: iterator eIter;
+		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
+			float *exts = eIter->second;
+			int ts = eIter->first;
+			float *extsCopy = new float[6];
+			for (int i = 0; i< 6; i++){
+				extsCopy[i] = exts[i];
+			}
+			p->extentsMap[ts] = extsCopy;
+		}
+		
+	}
 	return (Params*)(p);
 }
 
 RegionParams::~RegionParams(){
-	
+	clearRegionsMap();
 }
 
 
@@ -85,14 +104,14 @@ RegionParams::~RegionParams(){
 
 //See if the number of trans is ok.  If not, return an OK value
 int RegionParams::
-validateNumTrans(int n){
+validateNumTrans(int n, int timestep){
 	//if we have a dataMgr, see if we can really handle this new numtrans:
 	if (!DataStatus::getInstance()) return n;
 	
 	
 	size_t min_dim[3], max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	getRegionVoxelCoords(n,min_dim,max_dim,min_bdim,max_bdim);
+	getRegionVoxelCoords(n,min_dim,max_dim,min_bdim,max_bdim, timestep);
 	
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
@@ -127,11 +146,11 @@ restart(){
 	
 	for (int i = 0; i< 3; i++){
 		if (ds){
-			regionMin[i] = fullDataExtents[i];
-			regionMax[i] = fullDataExtents[i+3];
+			defaultRegionExtents[i] = fullDataExtents[i];
+			defaultRegionExtents[i+3] = fullDataExtents[i+3];
 		} else {
-			regionMin[i] = 0.f;
-			regionMax[i] = 1.f;
+			defaultRegionExtents[i] = 0.f;
+			defaultRegionExtents[i+3] = 1.f;
 		}
 
 	}
@@ -146,25 +165,37 @@ reinit(bool doOverride){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	bool isLayered = DataStatus::getInstance()->dataIsLayered();
 	if (doOverride) {
-		for (i = 0; i< 3; i++) {
-			regionMin[i] = extents[i];
-			regionMax[i] = extents[i+3];
+		for (i = 0; i< 6; i++) {
+			defaultRegionExtents[i] = extents[i];
 		}
+		clearRegionsMap();
 		if (isLayered) setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
 		else fullHeight = 0;
 	} else {
 		//Just force them to fit in current volume 
 		for (i = 0; i< 3; i++) {
-			if (regionMin[i] > regionMax[i]) 
-				regionMax[i] = regionMin[i];
-			if (regionMin[i] > extents[i+3])
-				regionMin[i] = extents[i+3];
-			if (regionMin[i] < extents[i])
-				regionMin[i] = extents[i];
-			if (regionMax[i] > extents[i+3])
-				regionMax[i] = extents[i+3];
-			if (regionMax[i] < extents[i])
-				regionMax[i] = extents[i];
+			if (defaultRegionExtents[i] > defaultRegionExtents[i+3]) 
+				defaultRegionExtents[i+3] = defaultRegionExtents[i];
+			if (defaultRegionExtents[i] > extents[i+3])
+				defaultRegionExtents[i] = extents[i+3];
+			if (defaultRegionExtents[i] < extents[i])
+				defaultRegionExtents[i] = extents[i];
+			if (defaultRegionExtents[i+3] > extents[i+3])
+				defaultRegionExtents[i+3] = extents[i+3];
+			if (defaultRegionExtents[i+3] < extents[i])
+				defaultRegionExtents[i+3] = extents[i];
+		}
+		if (extentsMap.size() > 0){
+			//Iterate over extents map, make every region fit:
+			map <int, float*> :: iterator eIter;
+			for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
+				float *exts = eIter->second;
+				for (int i = 0; i< 3; i++){
+					if (exts[i] < extents[i]) exts[i] = extents[i];
+					if (exts[i+3] > extents[i+3]) exts[i+3] = extents[i+3];
+				}
+			}
+
 		}
 		//If layered data is being read into a session that was not
 		//set for layered data, then the fullheight may need to be
@@ -176,7 +207,7 @@ reinit(bool doOverride){
 	return true;	
 }
 
-void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
+void RegionParams::setRegionMin(int coord, float minval, int timestep, bool checkMax){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
 	if (ds && ds->getDataMgr()){
@@ -184,10 +215,11 @@ void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 		if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
 		if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
 	}
-	if (checkMax) {if (minval > regionMax[coord]) minval = regionMax[coord];}
-	regionMin[coord] = minval;
+	float * exts = getRegionExtents(timestep);
+	if (checkMax) {if (minval > exts[coord+3]) minval = exts[coord+3];}
+	exts[coord] = minval;
 }
-void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
+void RegionParams::setRegionMax(int coord, float maxval, int timestep, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
 	if (ds && ds->getDataMgr()){
@@ -195,8 +227,9 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 		if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
 		if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
 	}
-	if (checkMin){if (maxval < regionMin[coord]) maxval = regionMin[coord];}
-	regionMax[coord] = maxval;
+	float* exts = getRegionExtents(timestep);
+	if (checkMin){if (maxval < exts[coord]) maxval = exts[coord];}
+	exts[coord+3] = maxval;
 }
 
 
@@ -278,9 +311,10 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 
 	double userMinCoords[3];
 	double userMaxCoords[3];
+	float* regExts = getRegionExtents(timestep);
 	for (i = 0; i<3; i++){
-		userMinCoords[i] = (double)regionMin[i];
-		userMaxCoords[i] = (double)regionMax[i];
+		userMinCoords[i] = (double)regExts[i];;
+		userMaxCoords[i] = (double)regExts[i+3];
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
 
@@ -449,7 +483,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 }
 void RegionParams::
 getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3]){
+		size_t min_bdim[3], size_t max_bdim[3], int timestep){
 	int i;
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -464,16 +498,19 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	double userMinCoords[3];
 	double userMaxCoords[3];
+	float* regExts = getRegionExtents(timestep);
 	for (i = 0; i<3; i++){
-		userMinCoords[i] = (double)regionMin[i];
-		userMaxCoords[i] = (double)regionMax[i];
+		userMinCoords[i] = (double)regExts[i];
+		userMaxCoords[i] = (double)regExts[i+3];
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
-	size_t timestep = DataStatus::getInstance()->getMinTimestep();
-	myReader->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
-	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
-	myReader->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
-	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
+
+	size_t ts = DataStatus::getInstance()->getMinTimestep();
+	myReader->MapUserToBlk(ts, userMinCoords, min_bdim, numxforms);
+	myReader->MapUserToVox(ts, userMinCoords, min_dim, numxforms);
+	myReader->MapUserToBlk(ts, userMaxCoords, max_bdim, numxforms);
+	myReader->MapUserToVox(ts, userMaxCoords, max_dim, numxforms);
+
 	
 	return;
 }
@@ -482,6 +519,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 bool RegionParams::
 elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, const char **attrs){
 	if (StrCmpNoCase(tagString, _regionParamsTag) == 0) {
+		clearRegionsMap();
 		//If it's a region tag, save 4 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -533,6 +571,29 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 		state->data_type = value;
 		return true;  
 	}
+	else if (StrCmpNoCase(tagString, _regionAtTimeTag) == 0) {
+		//Attributes are timestep and extents
+		int tstep = -1;
+		float* exts = new float[6];
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+		
+			if (StrCmpNoCase(attribName, _timestepAttr) == 0) {
+				ist >> tstep;
+			}
+			else if (StrCmpNoCase(attribName, _extentsAttr) == 0) {
+				
+				ist >> exts[0];ist >> exts[1];ist >> exts[2];ist >> exts[3];ist >> exts[4];ist >> exts[5];
+			}
+			
+		}
+		extentsMap[tstep] = exts;
+		return true;
+	}
 	else return false;
 }
 bool RegionParams::
@@ -546,15 +607,17 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	} 
 	else if (StrCmpNoCase(tag, _regionMinTag) == 0){
 		vector<double> bound = pm->getDoubleData();
-		regionMin[0] = bound[0];
-		regionMin[1] = bound[1];
-		regionMin[2] = bound[2];
+		defaultRegionExtents[0] = bound[0];
+		defaultRegionExtents[1] = bound[1];
+		defaultRegionExtents[2] = bound[2];
 		return true;
 	} else if (StrCmpNoCase(tag, _regionMaxTag) == 0){
 		vector<double> bound = pm->getDoubleData();
-		regionMax[0] = bound[0];
-		regionMax[1] = bound[1];
-		regionMax[2] = bound[2];
+		defaultRegionExtents[3] = bound[0];
+		defaultRegionExtents[4] = bound[1];
+		defaultRegionExtents[5] = bound[2];
+		return true;
+	} else if (StrCmpNoCase(tag, _regionAtTimeTag) == 0){
 		return true;
 	} 
 	// no longer support these...
@@ -600,8 +663,8 @@ buildNode(){
 	else 
 		oss << "false";
 	attrs[_localAttr] = oss.str();
-
-	XmlNode* regionNode = new XmlNode(_regionParamsTag, attrs, 2);
+	int numchildren = 2 + extentsMap.size();
+	XmlNode* regionNode = new XmlNode(_regionParamsTag, attrs, numchildren);
 
 	//Now add children:  
 	
@@ -609,15 +672,44 @@ buildNode(){
 	int i;
 	bounds.clear();
 	for (i = 0; i< 3; i++){
-		bounds.push_back((double) regionMin[i]);
+		bounds.push_back((double) defaultRegionExtents[i]);
 	}
 	regionNode->SetElementDouble(_regionMinTag,bounds);
 	bounds.clear();
 	for (i = 0; i< 3; i++){
-		bounds.push_back((double) regionMax[i]);
+		bounds.push_back((double) defaultRegionExtents[i+3]);
 	}
 	regionNode->SetElementDouble(_regionMaxTag,bounds);
+
+	if (extentsMap.size() > 0){
 		
+
+		//Add a node for each region in the list, having the extents as an attribute:
+		//Iterate over the extents map:
+		map <int, float*> :: iterator eIter;
+		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
+			
+			attrs.clear();
+			oss.str(empty);
+			float *exts = eIter->second;
+			int ts = eIter->first;
+			oss << (long) ts;
+			attrs[_timestepAttr] = oss.str();
+			oss.str(empty);
+			oss << (double) exts[0]<< " " <<
+				(double) exts[1]<< " " <<
+				(double) exts[2]<< " " <<
+				(double) exts[3]<< " " <<
+				(double) exts[4]<< " " <<
+				(double) exts[5];
+			attrs[_extentsAttr] = oss.str();
+			
+			XmlNode* regionTimeNode = new XmlNode(_regionAtTimeTag, attrs, 0);
+			regionNode->AddChild(regionTimeNode);
+		}
+		//regionNode->AddChild(regionListNode);
+	}
+
 	return regionNode;
 }
 //Static method to find how many megabytes are needed for a dataset.
@@ -727,4 +819,23 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	min_coord[2] = 0;
 	max_coord[2] = (fullHeight >> (maxRefLevel -minRefLevel)) -1;
 	return rc;
+}
+float* RegionParams::getRegionExtents(int timestep){
+	if (extentsMap.size() == 0) return defaultRegionExtents;
+	map <int, float*> :: const_iterator extsIter;
+	extsIter = extentsMap.find( timestep);
+	if ( extsIter == extentsMap.end()) return defaultRegionExtents;
+	return  extsIter->second;
+}
+
+void RegionParams::clearRegionsMap(){
+	if (extentsMap.size() > 0){
+		//Iterate over extents map, make every region fit:
+		map <int, float*> :: iterator eIter;
+		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
+			float *exts = eIter->second;
+			delete exts;
+		}
+		extentsMap.clear();
+	}
 }

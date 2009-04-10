@@ -526,7 +526,8 @@ closeEvent()
  **************************************************************************/
 bool VizWinMgr::
 cameraBeyondRegionCenter(int coord, int vizWinNum){
-	float regionMid = getRegionParams(vizWinNum)->getRegionCenter(coord);
+	int timestep = getActiveAnimationParams()->getCurrentFrameNumber();
+	float regionMid = getRegionParams(vizWinNum)->getRegionCenter(coord,timestep);
 	float cameraPos = getViewpointParams(vizWinNum)->getCameraPos(coord);
 	return( regionMid < cameraPos);
 		

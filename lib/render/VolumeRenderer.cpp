@@ -373,12 +373,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		const GLint* viewport = myGLWindow->getViewport();
 		_driver->Resize(viewport[2], viewport[3]);
 	}
-	if (myGLWindow->projMatrixIsDirty()) {
+	//If the extents are varying, we need to change the clipping planes whenever
+	//the time step changes.
+	if (myGLWindow->projMatrixIsDirty()||
+		(myGLWindow->animationIsDirty() && myRegionParams->extentsAreVarying())) {
 		GLfloat nearplane, farplane;
 		myGLWindow->getNearFarClippingPlanes(&nearplane, &farplane);
 		_driver->SetNearFar(nearplane, farplane);
 		
 		_driver->calculateSampling();
+		//set clut dirty to force recalc of sampling rate
+		setClutDirty();
 	}
 	
   
@@ -493,7 +498,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	//
 	if (myGLWindow->regionIsDirty() || forceReload
 		|| datarangeIsDirty() || myGLWindow->dvrRegionIsNavigating()
-		|| myGLWindow->animationIsDirty() || 1) 
+		|| myGLWindow->animationIsDirty()) 
 	{
 		//Check if the region/resolution is too big:
 		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
@@ -588,12 +593,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			data_roi[4] = (int)max_dim[1];
 			data_roi[5] = (int)max_dim[2];
 
-			extents[0] = myRegionParams->getRegionMin(0);
-			extents[1] = myRegionParams->getRegionMin(1);
-			extents[2] = myRegionParams->getRegionMin(2);
-			extents[3] = myRegionParams->getRegionMax(0);
-			extents[4] = myRegionParams->getRegionMax(1);
-			extents[5] = myRegionParams->getRegionMax(2);
+			float* exts = myRegionParams->getRegionExtents(timeStep);
+			for (int k = 0; i< 6; k++) extents[k] = exts[k];
 
 			clip[0] = !(periodic[0] &&
 						FLTEQ(extents[0], metadata->GetExtents()[0]) &&

@@ -406,6 +406,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		delete savedCommand;
 		savedCommand = 0;
 	}
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center sub-region view");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
@@ -416,14 +417,14 @@ guiCenterSubRegion(RegionParams* rParams){
 	float regionSideVector[3], compVec[3], projvec[3];
 	float maxProj = -1.f;
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const float* regExts = rParams->getRegionExtents(timestep);
 	for (int i = 0; i< 3; i++){
 		//Make a vector that points along side(i) of subregion,
 		
 		for (int j = 0; j<3; j++){
 			regionSideVector[j] = 0.f;
 			if (j == i) {
-				regionSideVector[j] = rParams->getRegionMax(j) - rParams->getRegionMin(j);
-				
+				regionSideVector[j] = regExts[j+3] - regExts[j];
 			}
 		}
 		//Now find its component orthogonal to view direction:
@@ -441,9 +442,11 @@ guiCenterSubRegion(RegionParams* rParams){
 	//at the center
 	
 	for (int i = 0; i<3; i++){
-		float camPosCrd = rParams->getRegionCenter(i) -(2.5*maxProj*currentViewpoint->getViewDir(i)/stretch[i]);
+
+		float camPosCrd = rParams->getRegionCenter(i,timestep) -(2.5*maxProj*currentViewpoint->getViewDir(i)/stretch[i]);
 		currentViewpoint->setCameraPosLocal(i, camPosCrd);
-		currentViewpoint->setRotationCenterLocal(i,rParams->getRegionCenter(i));
+		currentViewpoint->setRotationCenterLocal(i,rParams->getRegionCenter(i, timestep));
+
 	}
 	
 	//modify near/far distance as needed:

@@ -142,31 +142,32 @@ Params(int winNum) : ParamsBase() {
 	//Following methods are redefined by params that control a box (region), such
 	//as regionParams, probeParams, flowParams:
 	//Set the box by copying the arrays provided as arguments.
-	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3]) {assert(0);}
-	void setStretchedBox(const float[3], const float[3]);
+	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3], int /*timestep*/) {assert(0);}
+	void setStretchedBox(const float[3], const float[3], int);
 	//Make a box by copying values to the arguments
-	virtual void getBox(float /*boxMin*/[3], float /*boxMax*/[3]) {assert( 0);}
+	virtual void getBox(float /*boxMin*/[3], float /*boxMax*/[3], int /*timestep*/) {assert( 0);}
 
-	void getStretchedBox(float boxmin[3], float boxmax[3]);
+	void getStretchedBox(float boxmin[3], float boxmax[3], int timestep);
 	//Box orientation:
 	virtual float getPhi() {return 0.f;}
 	virtual float getTheta() {return 0.f;}
 	virtual float getPsi() {return 0.f;}
 	
 	//Determine the box extents in the unit cube.
-	void calcStretchedBoxExtentsInCube(float* extents);
-	//Extension that allows container of rotated box to be larger:
+	void calcStretchedBoxExtentsInCube(float* extents, int timestep);
+	//Extension that allows container of rotated box to be larger.
+	//Not used by region params
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents) 
-		{return calcStretchedBoxExtentsInCube(extents);}
-	void calcStretchedBoxExtents(float* extents);
-	void calcBoxExtents(float* extents);
+		{return calcStretchedBoxExtentsInCube(extents, -1);}
+	void calcStretchedBoxExtents(float* extents, int timestep);
+	void calcBoxExtents(float* extents, int timestep);
 	//Calculate the box in world coords, using any theta or phi
-	virtual void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	virtual void calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 	//void calcStretchedBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
 	
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
-	void buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation = 0.f, int axis = -1);
+	void buildCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 
 
 	

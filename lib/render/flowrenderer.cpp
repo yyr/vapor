@@ -169,11 +169,21 @@ void FlowRenderer::paintGL()
 	}
 	//OK, now render the cache.  The rgba's were rebuilt too.
 	if (flowType != 1){
-		if (steadyFlowCache && steadyFlowCache[currentFrameNum])
+		if (steadyFlowCache && steadyFlowCache[currentFrameNum]){
 			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
+		}
 	} else { 
 		if (unsteadyFlowCache)
 			renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
+	}
+	//Capture the flow, if capture is on,  
+	//Ignore whether the current flow has previously been captured.
+	if (myGLWindow->isCapturingFlow()){
+		//Capture only steady or fla flow.
+		// FLA only captures seeds.
+		if (flowType != 1){
+			captureFlow(currentFrameNum);
+		}
 	}
 		
 	if (didRemap) {
@@ -240,12 +250,13 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
-	topPlane[3] = myRegionParams->getRegionMax(1)*scales[1];
-	botPlane[3] = -myRegionParams->getRegionMin(1)*scales[1];
-	leftPlane[3] = -myRegionParams->getRegionMin(0)*scales[0];
-	rightPlane[3] = myRegionParams->getRegionMax(0)*scales[0];
-	frontPlane[3] = myRegionParams->getRegionMax(2)*scales[2];
-	backPlane[3] = -myRegionParams->getRegionMin(2)*scales[2];
+	const float* regExts = myRegionParams->getRegionExtents(currentFrameNum);
+	topPlane[3] = regExts[4]*scales[1];
+	botPlane[3] = -regExts[1]*scales[1];
+	leftPlane[3] = -regExts[0]*scales[0];
+	rightPlane[3] = regExts[3]*scales[0];
+	frontPlane[3] = regExts[4]*scales[2];
+	backPlane[3] = -regExts[2]*scales[2];
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -817,7 +828,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	
 	
 	int numRefs = myFlowParams->getNumRefinements();
-	int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numRefs);
+	int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(timeStep), rParams->getRegionMax(timeStep), numRefs);
 	
 	//3 variables are needed for
 	//steady integration, 6 are needed for unsteady integration.
@@ -1991,4 +2002,65 @@ setDirtyNeedsRefresh(FlowParams* fParams) {
 	}
 	return isDirty;
 }
+//Capture the flow lines for steady flow, or seeds for FLA
+void FlowRenderer::
+captureFlow(int timestep){
+	FlowLineData* flowData = getSteadyCache(timestep);
+	if (!flowData) return;
+	//Construct the filename by adjoining the time step
+	QString saveFilename = myGLWindow->getFlowFilename();
+	FlowParams* fParams = (FlowParams*)getRenderParams();
+	int flowType = fParams->getFlowType();
+	saveFilename += (QString("%1").arg(timestep)).rightJustify(4,'0');
+	saveFilename +=  ".txt";
+	FILE* saveFile = fopen(saveFilename.ascii(),"w");
+	if (!saveFile){
+		MyBase::SetErrMsg(VAPOR_ERROR_FLOW_SAVE,"Unable to write to file %s",
+			saveFilename.ascii());
+		myGLWindow->stopFlowCapture();
+		return;
+	}
 
+	for (int i = 0; i<flowData->getNumLines(); i++){
+		//Determine the seed position in the flow
+		//If it's steady, find the start and end position.
+		int seedPos = flowData->getSeedPosition();
+		int startPos = flowData->getStartIndex(i);
+		int endPos = flowData->getEndIndex(i);
+		//Move start and end position if END_FLOW_FLAG
+		//or STATIONARY_STREAM_FLAG
+		if (seedPos > 0 && startPos > 0 &&
+			((flowData->getFlowPoint(i,startPos-1)[0] == END_FLOW_FLAG)
+			||(flowData->getFlowPoint(i,startPos-1)[0] == STATIONARY_STREAM_FLAG))) startPos--;
+		if (seedPos < flowData->getMaxPoints()-1 && 
+			endPos < flowData->getMaxPoints()-1 &&
+			((flowData->getFlowPoint(i,endPos+1)[0] == END_FLOW_FLAG)
+			||(flowData->getFlowPoint(i,endPos+1)[0] == STATIONARY_STREAM_FLAG))) endPos++;
+		//Write header line for this flowline:
+		if (flowType == 0){
+			fprintf(saveFile,"%d %d %d\n",timestep, 
+				endPos-startPos+1, seedPos - startPos);
+			//then write the points of the flow line
+			for (int j = startPos; j<= endPos; j++){
+				float* point = flowData->getFlowPoint(i,j);
+				int rc = fprintf(saveFile,"%9g %9g %9g\n",
+					point[0],point[1],point[2]);
+				if (rc <= 0){
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW_SAVE,"Unable to write stream line\nfor time step %d",timestep);
+					return;
+				}
+			}
+		} else { //Write just one FLA seed:
+			float* point = flowData->getFlowPoint(i, seedPos);
+			int rc = fprintf(saveFile,"%9g %9g %9g\n",
+					point[0],point[1],point[2]);
+			if (rc <= 0){
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_SAVE,"Unable to write FLA seed\nfor time step %d",timestep);
+				return;
+			}
+		}
+	}
+	//Done with writing flow lines:
+	fclose(saveFile);
+	return;
+}

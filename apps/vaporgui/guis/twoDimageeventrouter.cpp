@@ -619,7 +619,7 @@ twoDAddSeed(){
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float boxMin[3], boxMax[3];
-	rParams->getBox(boxMin, boxMax);
+	rParams->getBox(boxMin, boxMax,-1);
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
@@ -662,11 +662,12 @@ guiCopyRegionToTwoD(){
 	confirmText(false);
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to twoDImage");
 	
 	for (int i = 0; i< 3; i++){
-		pParams->setTwoDMin(i, rParams->getRegionMin(i));
-		pParams->setTwoDMax(i, rParams->getRegionMax(i));
+		pParams->setTwoDMin(i, rParams->getRegionMin(i,timestep));
+		pParams->setTwoDMax(i, rParams->getRegionMax(i,timestep));
 	}
 	
 	updateTab();
@@ -817,14 +818,14 @@ void TwoDImageEventRouter::guiCenterProbe(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
 	const float* selectedPoint = tParams->getSelectedPoint();
 	float pMin[3],pMax[3];
-	pParams->getBox(pMin,pMax);
+	pParams->getBox(pMin,pMax,-1);
 	//Move center so it coincides with the selected point
 	for (int i = 0; i<3; i++){
 		float diff = (pMax[i]-pMin[i])*0.5;
 		pMin[i] = selectedPoint[i] - diff;
 		pMax[i] = selectedPoint[i] + diff; 
 	}
-	pParams->setBox(pMin,pMax);
+	pParams->setBox(pMin,pMax,-1);
 		
 	PanelCommand::captureEnd(cmd, pParams);
 	

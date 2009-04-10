@@ -196,13 +196,13 @@ public:
 	void setPsi(float ps) {psi = ps;}
 	bool isPlanar() {return planar;}
 	void setPlanar(bool val) {planar = val;}
-	virtual void getBox(float boxmin[], float boxmax[]){
+	virtual void getBox(float boxmin[], float boxmax[], int){
 		for (int i = 0; i< 3; i++){
 			boxmin[i]=probeMin[i];
 			boxmax[i]=probeMax[i];
 		}
 	}
-	virtual void setBox(const float boxMin[], const float boxMax[]){
+	virtual void setBox(const float boxMin[], const float boxMax[], int){
 		for (int i = 0; i< 3; i++){
 			probeMin[i] = boxMin[i];
 			probeMax[i] = boxMax[i];

@@ -225,13 +225,13 @@ public:
 	virtual MapperFunction* getMapperFunc() {return mapperFunction;}
 
 
-	virtual void getBox(float boxmin[], float boxmax[]){
+	virtual void getBox(float boxmin[], float boxmax[], int){
 		for (int i = 0; i< 3; i++){
 			boxmin[i] = seedBoxMin[i];
 			boxmax[i] = seedBoxMax[i];
 		}
 	}
-	virtual void setBox(const float boxMin[], const float boxMax[]){
+	virtual void setBox(const float boxMin[], const float boxMax[], int){
 		for (int i = 0; i< 3; i++){
 			seedBoxMin[i] = boxMin[i];
 			seedBoxMax[i] = boxMax[i];

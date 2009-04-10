@@ -69,6 +69,7 @@
 #include "viewpointeventrouter.h"
 #include "regioneventrouter.h"
 #include "vizwinmgr.h"
+#include "flowparams.h"
 #include "animationeventrouter.h"
 #include "session.h"
 #include "messagereporter.h"
@@ -237,10 +238,11 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     
     
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
-	viewStartCaptureAction = new QAction( this, "viewStartCaptureAction" );
-	viewEndCaptureAction = new QAction( this, "viewEndCaptureAction" );
-	viewSingleCaptureAction = new QAction(this, "viewCaptureSingleAction");
+	captureStartJpegCaptureAction = new QAction( this, "captureStartCaptureJpegAction" );
+	captureEndJpegCaptureAction = new QAction( this, "captureEndCaptureJpegAction" );
+	captureSingleJpegCaptureAction = new QAction(this, "captureCaptureSingleJpegAction");
 	
+	/* no script or animation entries:
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
 	scriptIDL_scriptAction->setEnabled(false);
     scriptMatlab_scriptAction = new QAction( this, "scriptMatlab_scriptAction" );
@@ -252,6 +254,12 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	animationKeyframingAction->setEnabled(false);
 	exportAnimationScriptAction = new QAction(this, "exportAnimationScriptAction");
 	exportAnimationScriptAction->setEnabled(false);
+	*/
+	captureStartJpegCaptureAction = new QAction( this, "jpegStartCaptureAction" );
+	captureEndJpegCaptureAction = new QAction( this, "jpegEndCaptureAction" );
+	captureSingleJpegCaptureAction = new QAction(this, "jpegCaptureSingleAction");
+	captureStartFlowCaptureAction = new QAction( this, "flowStartCaptureAction" );
+	captureEndFlowCaptureAction = new QAction( this, "flowEndCaptureAction" );
 
 	//Create an exclusive action group for the mouse mode toolbars:
 	mouseModeActions = new QActionGroup(this, "mouse action group", true);
@@ -418,35 +426,43 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     Main_Form->insertItem( QString(""), Data, 3 );
 
     viewMenu = new QPopupMenu(this);
-	//Note that the ordering of the following 4 is significant, so that image
-	//capture actions correctly activate each other.
+	
 	viewLaunch_visualizerAction->addTo(viewMenu);
-	viewSingleCaptureAction->addTo(viewMenu);
-	viewStartCaptureAction->addTo(viewMenu);
-	viewEndCaptureAction->addTo(viewMenu); 
+	//SingleCaptureAction->addTo(viewMenu);
+	//viewStartCaptureAction->addTo(viewMenu);
+	//viewEndCaptureAction->addTo(viewMenu); 
 	
     Main_Form->insertItem( QString(""), viewMenu, 4 );
 
-    Script = new QPopupMenu( this );
-    scriptIDL_scriptAction->addTo( Script );
+	//Note that the ordering of the following 4 is significant, so that image
+	//capture actions correctly activate each other.
+    captureMenu = new QPopupMenu( this );
+    captureSingleJpegCaptureAction->addTo( captureMenu );
+	captureStartJpegCaptureAction->addTo( captureMenu );
+	captureEndJpegCaptureAction->addTo( captureMenu );
+	captureStartFlowCaptureAction->addTo( captureMenu );
+	captureEndFlowCaptureAction->addTo( captureMenu );
+
+	Main_Form->insertItem( QString(""), captureMenu, 5 );
+	/*
     scriptMatlab_scriptAction->addTo( Script );
     scriptBatchAction->addTo(Script);
     Main_Form->insertItem( QString(""), Script, 5 );
-
+*/
     
-
+/*
     Animation = new QPopupMenu( this );
     animationKeyframingAction->addTo( Animation );
 	exportAnimationScriptAction->addTo(Animation);
     Main_Form->insertItem( QString(""), Animation, 6 );
-    
+    */
     helpMenu = new QPopupMenu( this );
     //helpContentsAction->addTo( helpMenu );
     //helpIndexAction->addTo( helpMenu );
 	whatsThisAction->addTo(helpMenu);
     helpMenu->insertSeparator();
     helpAboutAction->addTo( helpMenu );
-    Main_Form->insertItem( QString(""), helpMenu, 7 );
+    Main_Form->insertItem( QString(""), helpMenu, 6 );
     
 
 
@@ -485,14 +501,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
     
-	connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(initViewMenu()));
+	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
 	
-	connect( viewStartCaptureAction, SIGNAL( activated() ), this, SLOT( startCapture() ) );
-	connect( viewEndCaptureAction, SIGNAL( activated() ), this, SLOT( endCapture() ) );
-	connect (viewSingleCaptureAction, SIGNAL(activated()), this, SLOT (captureSingle()));
+	connect( captureStartJpegCaptureAction, SIGNAL( activated() ), this, SLOT( startJpegCapture() ) );
+	connect( captureEndJpegCaptureAction, SIGNAL( activated() ), this, SLOT( endJpegCapture() ) );
+	connect (captureSingleJpegCaptureAction, SIGNAL(activated()), this, SLOT (captureSingleJpeg()));
+	connect( captureStartFlowCaptureAction, SIGNAL( activated() ), this, SLOT( startFlowCapture() ) );
+	connect( captureEndFlowCaptureAction, SIGNAL( activated() ), this, SLOT( endFlowCapture() ) );
     
-	connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
+	//connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
@@ -683,18 +701,27 @@ void MainForm::languageChange()
 	editPreferencesAction->setMenuText(tr("Edit User Preferences"));
 	editPreferencesAction->setToolTip(tr("View or change various user preference settings"));
 
-	viewStartCaptureAction->setText( tr( "Begin image capture sequence " ) );
-    viewStartCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
-	viewStartCaptureAction->setToolTip("Begin saving jpeg image files rendered in current active visualizer");
+	captureStartJpegCaptureAction->setText( tr( "Begin image capture sequence " ) );
+    captureStartJpegCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
+	captureStartJpegCaptureAction->setToolTip("Begin saving jpeg image files rendered in current active visualizer");
 	
-	viewEndCaptureAction->setText( tr( "End image capture" ) );
-    viewEndCaptureAction->setMenuText( tr( "&End Image Capture" ) );
-	viewEndCaptureAction->setToolTip("End capture of image files in current active visualizer");
+	captureEndJpegCaptureAction->setText( tr( "End image capture" ) );
+    captureEndJpegCaptureAction->setMenuText( tr( "&End Image Capture" ) );
+	captureEndJpegCaptureAction->setToolTip("End capture of image files in current active visualizer");
 
-	viewSingleCaptureAction->setText( tr( "Single image capture" ) );
-    viewSingleCaptureAction->setMenuText( tr( "&Single Image Capture" ) );
-	viewSingleCaptureAction->setToolTip("Capture one image from current active visualizer");
+	captureSingleJpegCaptureAction->setText( tr( "Single image capture" ) );
+    captureSingleJpegCaptureAction->setMenuText( tr( "&Single Image Capture" ) );
+	captureSingleJpegCaptureAction->setToolTip("Capture one image from current active visualizer");
 
+	captureStartFlowCaptureAction->setText( tr( "Begin flow capture sequence " ) );
+    captureStartFlowCaptureAction->setMenuText( tr( "&Begin flow capture sequence " ) );
+	captureStartFlowCaptureAction->setToolTip("Begin saving flow lines in current active visualizer");
+	
+	captureEndFlowCaptureAction->setText( tr( "End flow capture" ) );
+    captureEndFlowCaptureAction->setMenuText( tr( "&End Flow Capture" ) );
+	captureEndFlowCaptureAction->setToolTip("End capture of flow lines in current active visualizer");
+
+	/*
     scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
     scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
 	scriptIDL_scriptAction->setToolTip("Launch an IDL script");
@@ -711,7 +738,7 @@ void MainForm::languageChange()
 	exportAnimationScriptAction->setText( tr( "Export Animation Script" ) );
     exportAnimationScriptAction->setMenuText( tr( "Export Animation Script" ) );
 	exportAnimationScriptAction->setToolTip("Export current animation settings as a script");
-
+*/
    
     vizToolBar->setLabel( tr( "VizTools" ) );
 	modeToolBar->setLabel( tr( "Mouse Modes" ) );
@@ -724,12 +751,13 @@ void MainForm::languageChange()
     if (Main_Form->findItem(4))
         Main_Form->findItem(4)->setText( tr( "&View" ) );
     if (Main_Form->findItem(5))
-        Main_Form->findItem(5)->setText( tr( "&Script" ) );
-   
+        Main_Form->findItem(5)->setText( tr( "&Capture" ) );
+   /*
     if (Main_Form->findItem(6))
         Main_Form->findItem(6)->setText( tr( "&Animation" ) );
-    if (Main_Form->findItem(7))
-        Main_Form->findItem(7)->setText( tr( "&Help" ) );
+		*/
+    if (Main_Form->findItem(6))
+        Main_Form->findItem(6)->setText( tr( "&Help" ) );
 }
 
 
@@ -1522,7 +1550,7 @@ void MainForm::setRegionSelect(bool on)
 }
 
 //Enable or disable the View menu options:
-void MainForm::initViewMenu(){
+void MainForm::initCaptureMenu(){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* viz = vizWinMgr->getActiveVisualizer();
 	int winNum = vizWinMgr->getActiveViz();
@@ -1532,31 +1560,48 @@ void MainForm::initViewMenu(){
 	//pos2 is start sequence capture,
 	//pos3 is end sequence
 	//pos1 is single capture
-	int pos1 = viewMenu->idAt(1);
-	int pos2 = viewMenu->idAt(2);
-	int pos3 = viewMenu->idAt(3);
-	if (!viz || viz->getGLWindow()->isCapturing()) {
-		viewStartCaptureAction->setMenuText( "&Begin image capture sequence"  );
-		viewMenu->setItemEnabled(pos2, false);
-		viewSingleCaptureAction->setMenuText("Capture single image");
-		viewMenu->setItemEnabled(pos1, false);
+	//Similar for pos4 = start flow capture
+	//pos5 = end flow capture
+	int pos1 = captureMenu->idAt(0);
+	int pos2 = captureMenu->idAt(1);
+	int pos3 = captureMenu->idAt(2);
+	int pos4 = captureMenu->idAt(3);
+	int pos5 = captureMenu->idAt(4);
+	if (!viz || viz->getGLWindow()->isCapturingImage()) {
+		captureStartJpegCaptureAction->setMenuText( "&Begin image capture sequence"  );
+		captureMenu->setItemEnabled(pos2, false);
+		captureSingleJpegCaptureAction->setMenuText("Capture single image");
+		captureMenu->setItemEnabled(pos1, false);
+	} else {// there is a visualizer, but it's not capturing images
+		captureStartJpegCaptureAction->setMenuText( "&Begin image capture sequence in "+(vizName) );
+		captureMenu->setItemEnabled(pos2,true);
+		captureSingleJpegCaptureAction->setMenuText("Capture single image of "+(vizName) );
+		captureMenu->setItemEnabled(pos1,true);
 	}
-	else {// there is a visualizer, but it's not capturing
-		viewStartCaptureAction->setMenuText( "&Begin image capture sequence in "+(vizName) );
-		viewMenu->setItemEnabled(pos2,true);
-		viewSingleCaptureAction->setMenuText("Capture single image of "+(vizName) );
-		viewMenu->setItemEnabled(pos1,true);
+	//Likewise for flow:
+	if (!viz || viz->getGLWindow()->isCapturingFlow()) {
+		captureStartFlowCaptureAction->setMenuText( "&Begin flow capture sequence"  );
+		captureMenu->setItemEnabled(pos4, false);
+	} else {// there is a visualizer, but it's not capturing flow
+		captureStartFlowCaptureAction->setMenuText( "&Begin flow capture sequence in "+(vizName) );
+		captureMenu->setItemEnabled(pos4,true);
 	}
 	
 	//disable the end capture if no viz, or if active viz is not capturing
 	GLWindow* glWin = viz->getGLWindow();
-	if (!viz || !glWin->isCapturing()){
-		viewEndCaptureAction->setMenuText( "End capture sequence" );
-		viewMenu->setItemEnabled(pos3, false);
+	if (!viz || !glWin->isCapturingImage()){
+		captureEndJpegCaptureAction->setMenuText( "End image capture sequence" );
+		captureMenu->setItemEnabled(pos3, false);
+	} else {
+		captureEndJpegCaptureAction->setMenuText("End image capture sequence in " +(vizName) );
+		captureMenu->setItemEnabled(pos3, true);
 	}
-	else {
-		viewEndCaptureAction->setMenuText("End capture sequence in " +(vizName) );
-		viewMenu->setItemEnabled(pos3, true);
+	if (!viz || !glWin->isCapturingFlow()){
+		captureEndFlowCaptureAction->setMenuText( "End flow capture sequence" );
+		captureMenu->setItemEnabled(pos5, false);
+	} else {
+		captureEndFlowCaptureAction->setMenuText("End flow capture sequence in " +(vizName) );
+		captureMenu->setItemEnabled(pos5, true);
 	}
 	
 }
@@ -1581,7 +1626,7 @@ void MainForm::exportToIDL(){
 //Begin capturing images.
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
-void MainForm::startCapture() {
+void MainForm::startJpegCapture() {
 	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
@@ -1616,7 +1661,7 @@ void MainForm::startCapture() {
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
-		viz->getGLWindow()->startCapture(filePath,startFileNum);
+		viz->getGLWindow()->startImageCapture(filePath,startFileNum);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
 			filePath.ascii());
@@ -1626,12 +1671,65 @@ void MainForm::startCapture() {
 	}
 	delete fileInfo;
 }
+//Begin capturing flow.
+//Launch a file save dialog to specify the names
+//Then start file saving mode.
+void MainForm::startFlowCapture() {
+	//Check first that we are not capturing unsteady flow:
+	FlowParams* fparams = VizWinMgr::getActiveFlowParams();
+	if (fparams->getFlowType() == 1){
+		MessageReporter::errorMsg(" Unsteady flow lines may only be captured from flow panel");
+		return;
+	}
+	QFileDialog fileDialog(Session::getInstance()->getFlowDirectory().c_str(),
+		"text files (*.txt)",
+		this,
+		"Start flow capture dialog",
+		true);  //modal
+	fileDialog.move(pos());
+	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setCaption("Specify first file name for flow capture sequence");
+	
+	fileDialog.resize(450,450);
+	if (fileDialog.exec() != QDialog::Accepted) return;
+	
+	//Extract the path, and the root name, from the returned string.
+	QString s = fileDialog.selectedFile();
+	QFileInfo* fileInfo = new QFileInfo(s);
+	//Save the path for future captures
+	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
+	QString fileBaseName = fileInfo->baseName(true);
+	//See if it ends with digits
+	int posn;
+	for (posn = fileBaseName.length()-1; posn >=0; posn--){
+		if (!fileBaseName.at(posn).isDigit()) break;
+	}
+	unsigned int lastDigitPos = posn+1;
+	if (lastDigitPos < fileBaseName.length()) {
+		fileBaseName.truncate(lastDigitPos);
+	}
+	
+	QString filePath = fileInfo->dirPath(true) + "/" + fileBaseName;
+	//Determine the active window:
+	//Turn on "flow capture mode" in the current active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (viz) {
+		viz->getGLWindow()->startFlowCapture(filePath);
+		//Provide a popup stating the capture parameters in effect.
+		MessageReporter::infoMsg("Flow Capture Activated \n Flow is being captured to %s",
+			filePath.ascii());
+		
+	} else {
+		MessageReporter::errorMsg("Flow Capture Error;\nNo active visualizer for capturing images");
+	}
+	delete fileInfo;
+}
 
 //Capture just one image
 //Launch a file save dialog to specify the names
 //Then put jpeg in it.
 //
-void MainForm::captureSingle() {
+void MainForm::captureSingleJpeg() {
 	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
@@ -1655,7 +1753,7 @@ void MainForm::captureSingle() {
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
-		viz->getGLWindow()->singleCapture(filename);
+		viz->getGLWindow()->singleCaptureImage(filename);
 		//Provide a message stating the capture in effect.
 		MessageReporter::infoMsg("Single Image is captured to %s",
 			filename.ascii());
@@ -1664,12 +1762,22 @@ void MainForm::captureSingle() {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing image");
 	}
 }
-void MainForm::endCapture(){
+void MainForm::endJpegCapture(){
 	//Turn off capture mode for the current active visualizer (if it is on!)
 	//Otherwise indicate that the visualizer is not capturing.
 	GLWindow* glWin = VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow();
 
-	if (glWin && glWin->isCapturing()) glWin->stopCapture();
+	if (glWin && glWin->isCapturingImage()) glWin->stopImageCapture();
+	else {
+		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
+	}
+}
+void MainForm::endFlowCapture(){
+	//Turn off capture mode for the current active visualizer (if it is on!)
+	//Otherwise indicate that the visualizer is not capturing.
+	GLWindow* glWin = VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow();
+
+	if (glWin && glWin->isCapturingFlow()) glWin->stopFlowCapture();
 	else {
 		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
 	}
