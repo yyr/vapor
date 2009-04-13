@@ -1204,6 +1204,7 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	if (newWin || (formerParams->isEnabled() != pParams->isEnabled())){
 		updateRenderer(pParams, wasEnabled,  newWin);
 	}
+	pParams->setImagesDirty();
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }

@@ -2259,6 +2259,22 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	p->setAllBypass(false);
 	vw->updateGL();
 }
+//Set all the twoD (data and image) renderers dirty,
+//So they will all reconstruct their terrain mappings
+void VizWinMgr::setAllTwoDElevDirty(){
+	for (int i = 0; i<MAXVIZWINS; i++){
+		if (vizWin[i]){
+			for (int j = 0; j< twoDDataParamsInstances[i].size(); j++){
+				TwoDDataParams* dParams = twoDDataParamsInstances[i][j];
+				dParams->setElevGridDirty(true);
+			}
+			for (int j = 0; j< twoDImageParamsInstances[i].size(); j++){
+				TwoDImageParams* dParams = twoDImageParamsInstances[i][j];
+				dParams->setElevGridDirty(true);
+			}
+		}
+	}
+}
 void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());

@@ -750,6 +750,7 @@ applyToViz(int vizNum){
 		ds->stretchExtents(stretch);
 		
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		vizMgr->setAllTwoDElevDirty();
 		int timestep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 		//Set the region dirty bit in every window:
 		bool firstShared = false;

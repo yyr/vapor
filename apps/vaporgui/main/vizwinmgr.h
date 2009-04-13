@@ -411,6 +411,9 @@ public:
 	void setFlowDataDirty(FlowParams* p, bool doInterrupt = true);
 	
 	bool flowDataIsDirty(FlowParams* p);
+
+	//Force reconstructing of all elevation grids
+	void setAllTwoDElevDirty();
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.
 	//
@@ -448,6 +451,8 @@ public:
 
 	//General function for all dirty bit setting:
 	void setVizDirty(Params* p, DirtyBitType bittype, bool bit = true, bool refresh = true);
+
+
 	Params* getCorrespondingGlobalParams(Params* p) {
 		return getGlobalParams(p->getParamType());
 	}
