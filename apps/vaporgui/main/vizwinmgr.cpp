@@ -2095,7 +2095,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				vizWin[parsingVizNum]->getGLWindow()->setActiveTwoDImageParams(pParams);
 			return true;
 			
-		} else if (StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0){
+		} else if (StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0 ||
+			StrCmpNoCase(tag, Params::_twoDParamsTag) == 0){
 			parsingTwoDDataInstance++;
 			TwoDDataParams* pParams;
 			if (parsingTwoDDataInstance > 0){
