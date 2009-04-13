@@ -96,7 +96,8 @@
 #include "images/cascade.xpm"
 #include "images/tiles.xpm"
 #include "images/probe.xpm"
-#include "images/twoD.xpm"
+#include "images/twoDData.xpm"
+#include "images/twoDImage.xpm"
 #include "images/rake.xpm"
 #include "images/wheel.xpm"
 #include "images/cube.xpm"
@@ -287,14 +288,15 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	probeAction->setOn(false);
 
 	
-	QPixmap* twoDIcon = new QPixmap(twoD);
-	twoDDataAction = new QAction("2D Planar Mode", *twoDIcon,
-		"&twoD", CTRL+Key_2, mouseModeActions);
+	QPixmap* twoDDataIcon = new QPixmap(twoDData);
+	twoDDataAction = new QAction("2D Data Mode", *twoDDataIcon,
+		"&twoDData", CTRL+Key_D, mouseModeActions);
 	twoDDataAction->setToggleAction(true);
 	twoDDataAction->setOn(false);
 
-	twoDImageAction = new QAction("2D Planar Mode", *twoDIcon,
-		"&twoD", CTRL+Key_2, mouseModeActions);
+	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
+	twoDImageAction = new QAction("2D Image Mode", *twoDImageIcon,
+		"&twoDImage", CTRL+Key_I, mouseModeActions);
 	twoDImageAction->setToggleAction(true);
 	twoDImageAction->setOn(false);
 

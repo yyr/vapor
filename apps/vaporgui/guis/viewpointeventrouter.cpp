@@ -309,6 +309,7 @@ void ViewpointEventRouter::updateTab(){
 	int nLights = vpParams->getNumLights();
 	numLights->setText(strng.setNum(nLights));
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	latLonCheckbox->setChecked(vpParams->isLatLon());
 	//In latlon mode convert the latlon or vice versa:
 	bool showlatlon = false;
@@ -327,6 +328,10 @@ void ViewpointEventRouter::updateTab(){
 		rotCenterLat->setText(QString::number(vpParams->getRotCenterLatLon()[0]));
 		rotCenterLon->setText(QString::number(vpParams->getRotCenterLatLon()[1]));
 	}
+	if (DataStatus::getProjectionString().size() > 0)
+		latLonFrame->show();
+	else 
+		latLonFrame->hide();
 	//Always display the current values of the campos and rotcenter
 		
 	camPos0->setText(strng.setNum(currentViewpoint->getCameraPosLocal(0), 'g', 3));
