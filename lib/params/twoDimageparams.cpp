@@ -572,7 +572,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		}
 
 		qWarning("proj4 string: %s",newString);
-		
+		MyBase::SetDiagMsg("proj4 string: %s in image file %s",newString,imageFileName.c_str());
 		setImageProjectionString(newString);
 
 		//Check it out..
@@ -647,6 +647,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	int rc;
 	char* timePtr = 0;
 	int dircount = 0;
+	int numDiffImages = 0;
 	TIME64_T wrfTime;
 	//Check if the first time step has a time stamp
 	
@@ -700,17 +701,27 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 			}
 			imageNums[i] = bestpos;
 		}
+		//Count the number of different images that are referenced:
+		
+		for (int i = 0; i< maxTimestep; i++){
+			if (imageNums[i] != imageNums[i+1]) numDiffImages++;
+		}
+
 	}
 	
 	if (timesOK){
-		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
+		//Issue a warning if there is only one image used
+		if (dircount > 1 && numDiffImages == 0)
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"%d images found in %s, but only 1 was matched to time stamps ", dircount, imageFileName.c_str());
+		else
+			MyBase::SetDiagMsg("%d images (%d mapped to time steps) in %s\n", dircount, numDiffImages+1, imageFileName.c_str());
 		return;
 	} else { //Don't use time stamps, just count the images:
 		dircount = 0;
 		do {
 			dircount++;
 		} while (TIFFReadDirectory(tif));
-		qWarning("%d directories in %s\n", dircount, imageFileName.c_str());
+		MyBase::SetDiagMsg("%d images, unmatched to time stamps in %s\n", dircount, imageFileName.c_str());
 		for (int i = 0; i<= maxTimestep; i++){
 			imageNums[i] = Min(dircount-1,i);
 		}

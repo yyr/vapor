@@ -344,8 +344,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 			}
 		}
 	}
-	qWarning("min,max coords: %f %f %f %f %f %f",
-		minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
+	//qWarning("min,max coords: %f %f %f %f %f %f",
+	//	minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
 	//Now calculate normals:
 	calcElevGridNormals(timeStep);
 	return true;

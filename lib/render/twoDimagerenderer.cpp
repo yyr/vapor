@@ -251,7 +251,9 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	int gridsize[2];
 	for (int i = 0; i<2; i++){
 		gridsize[i] = (int)(ds->getFullSizeAtLevel(refLevel,i)*
-			(displayCorners[i+4]-displayCorners[i])/(extents[i+3]-extents[i])+0.5f);
+			abs(displayCorners[i+4]-displayCorners[i])/(extents[i+3]-extents[i])+0.5f);
+		//No sense in making the grid bigger than display size
+		if (gridsize[i] > 1000) gridsize[i] = 1000;
 	}
 	
 	// intersect the twoD box with the imageExtents.  This will
@@ -261,10 +263,6 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	// decide it's more efficient to construct a smaller one.
 	// Need to determine the approximate size of the image, to decide
 	// how large a grid to use. 
-
-	
-
-	
 
 	int maxx, maxy;
 	maxXElev[timeStep] = maxx = gridsize[0] +1;
@@ -524,8 +522,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		}
 	}
 
-	qWarning("min,max coords: %f %f %f %f %f %f",
-	 minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
+	//qWarning("min,max coords: %f %f %f %f %f %f",
+	// minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
 	
 	//Now calculate normals.  For now, just do it as if the points were
 	//on a regular grid:
