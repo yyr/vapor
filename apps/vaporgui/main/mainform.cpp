@@ -282,7 +282,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	regionSelectAction->setOn(false);
 	
 	QPixmap* probeIcon = new QPixmap(probe);
-	probeAction = new QAction("Data Probe Mode", *probeIcon,
+	probeAction = new QAction("Data Probe and Contour Mode", *probeIcon,
 		"&Probe", CTRL+Key_P, mouseModeActions);
 	probeAction->setToggleAction(true);
 	probeAction->setOn(false);
@@ -336,6 +336,11 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
     // toolbars for mouse modes and visualizers
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
+	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
+		"that can be used to control the location and position of objects in "+
+		"the 3D scene, by dragging with the mouse in the scene.  These include "+
+		"navigation, region, rake, probe, 2DData, and 2DImage tools.";
+	QWhatsThis::add(modeToolBar, qws);
 	vizToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar->setOffset(1500);
 	vizToolBar->setVerticallyStretchable(false);

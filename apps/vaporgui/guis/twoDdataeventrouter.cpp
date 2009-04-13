@@ -512,10 +512,12 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	dParams->setMappedToTerrain(mode);
 	
-	//Set box bottom and top z-coord to average:
-	float avg = 0.5f*(dParams->getTwoDMax(2)+dParams->getTwoDMin(2));
-	dParams->setTwoDMin(2,avg);
-	dParams->setTwoDMax(2,avg);
+	//Set box bottom and top to bottom of domain
+	float extents[6];
+	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
+
+	dParams->setTwoDMin(2,extents[2]);
+	dParams->setTwoDMax(2,extents[2]);
 	
 	
 	//Reposition cursor:
