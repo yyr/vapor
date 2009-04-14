@@ -406,7 +406,8 @@ void TwoDDataEventRouter::updateTab(){
 		applyTerrainCheckbox->setChecked(false);
 	} else {
 		bool terrainMap = twoDParams->isMappedToTerrain();
-		applyTerrainCheckbox->setChecked(terrainMap);
+		if (terrainMap != applyTerrainCheckbox->isChecked())
+			applyTerrainCheckbox->setChecked(terrainMap);
 		applyTerrainCheckbox->setEnabled(true);
 	}
 	twoDTextureFrame->setParams(twoDParams, true);
@@ -1099,7 +1100,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide TwoDData X center");
 	setXCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setTwoDDirty(pParams);
+	
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
@@ -1111,7 +1112,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide TwoDData Y center");
 	setYCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setTwoDDirty(pParams);
+	
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	
@@ -1123,7 +1124,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide TwoDData Z center");
 	setZCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setTwoDDirty(pParams);
+	
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
@@ -1138,7 +1139,7 @@ guiSetXSize(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	//setup the texture:
 	resetTextureSize(pParams);
-	setTwoDDirty(pParams);
+	
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
@@ -1391,29 +1392,29 @@ setXCenter(TwoDDataParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(pParams,0, sliderval, xSizeSlider->value());
-	setTwoDDirty(pParams);
+	
 }
 void TwoDDataEventRouter::
 setYCenter(TwoDDataParams* pParams,int sliderval){
 	sliderToText(pParams,1, sliderval, ySizeSlider->value());
-	setTwoDDirty(pParams);
+	
 }
 void TwoDDataEventRouter::
 setZCenter(TwoDDataParams* pParams,int sliderval){
 	sliderToText(pParams,2, sliderval, 0);
-	setTwoDDirty(pParams);
+	
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void TwoDDataEventRouter::
 setXSize(TwoDDataParams* pParams,int sliderval){
 	sliderToText(pParams,0, xCenterSlider->value(),sliderval);
-	setTwoDDirty(pParams);
+	
 }
 void TwoDDataEventRouter::
 setYSize(TwoDDataParams* pParams,int sliderval){
 	sliderToText(pParams,1, yCenterSlider->value(),sliderval);
-	setTwoDDirty(pParams);
+	
 }
 
 //Save undo/redo state when user clicks cursor

@@ -825,7 +825,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 }
 
 
-//Clear out the cache.  But in image mode, don't clear out the textures,
+//Clear out the cache.  
 //just delete the elevation grid
 void TwoDDataParams::setTwoDDirty(){
 	

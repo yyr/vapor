@@ -1406,7 +1406,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe X center");
 	setXCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	
@@ -1418,7 +1418,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Y center");
 	setYCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	
@@ -1430,7 +1430,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Z center");
 	setZCenter(pParams,sliderval);
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
@@ -1445,7 +1445,7 @@ guiSetXSize(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	//setup the texture:
 	resetTextureSize(pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
@@ -1459,7 +1459,7 @@ guiSetYSize(int sliderval){
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	resetTextureSize(pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
@@ -1472,7 +1472,7 @@ guiSetZSize(int sliderval){
 	setZSize(pParams,sliderval);
 	
 	PanelCommand::captureEnd(cmd, pParams);
-	setProbeDirty(pParams);
+	
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 

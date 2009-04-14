@@ -441,7 +441,7 @@ buildNode() {
 
 
 
-//Clear out the cache.  But in image mode, don't clear out the textures,
+//Clear out the cache.  But don't clear out the textures,
 //just delete the elevation grid
 void TwoDImageParams::setTwoDDirty(){
 		setElevGridDirty(true);
