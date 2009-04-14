@@ -255,7 +255,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	botPlane[3] = -regExts[1]*scales[1];
 	leftPlane[3] = -regExts[0]*scales[0];
 	rightPlane[3] = regExts[3]*scales[0];
-	frontPlane[3] = regExts[4]*scales[2];
+	frontPlane[3] = regExts[5]*scales[2];
 	backPlane[3] = -regExts[2]*scales[2];
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
