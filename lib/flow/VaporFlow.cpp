@@ -620,18 +620,23 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 			totalSeeds--;
 			continue;
 		}
-		for (int j = 0; j< 3; j++){
+		int j; 
+		for (j = 0; j< 3; j++){
 			if (seedPtr[3*i+j] < regMin[j] || seedPtr[3*i+j] > regMax[j]){
 				break;
 			}
 		}
-		seedsInRegion++;
+		if(j==3) seedsInRegion++;
 	}
-		
-	if (seedsInRegion < totalSeeds){
+	if (seedsInRegion == 0){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-			" %d Steady flow lines have left region\nat timestep %d:",
-			numSeeds - seedsInRegion, steadyStartTimeStep);
+			" No seed points are in region at timestep %d",
+			steadyStartTimeStep);
+		return false;
+	} else if (seedsInRegion < totalSeeds){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+			"Only %d of %d seeds are in region\nat timestep %d:",
+			seedsInRegion, numSeeds, steadyStartTimeStep);
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
