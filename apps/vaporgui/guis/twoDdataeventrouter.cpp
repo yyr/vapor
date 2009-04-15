@@ -513,12 +513,14 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	dParams->setMappedToTerrain(mode);
 	
-	//Set box bottom and top to bottom of domain
-	float extents[6];
-	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
+	//If setting to terrain, set box bottom and top to bottom of domain
+	if (mode){
+		float extents[6];
+		DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
 
-	dParams->setTwoDMin(2,extents[2]);
-	dParams->setTwoDMax(2,extents[2]);
+		dParams->setTwoDMin(2,extents[2]);
+		dParams->setTwoDMax(2,extents[2]);
+	}
 	
 	
 	//Reposition cursor:

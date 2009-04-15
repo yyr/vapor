@@ -483,7 +483,7 @@ char* stuff[] = {
 " -m file	specify file with multiple timestamps and image placement info:",
 "			Each line of file has date/timestamp, and 8 floats;",
 "			first four are lon/lat corners of plot area,",
-"			second four are relative positions of plot corners in page."
+"			second four are relative positions of plot corners in page.",
 "			This option requires option -4",
 " -o offset	set initial directory offset",
 " -p contig	pack samples contiguously (e.g. RGBRGB...)",

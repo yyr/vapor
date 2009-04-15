@@ -535,12 +535,14 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	if(mode) dParams->setOrientation(2);
 	dParams->setMappedToTerrain(mode);
 	
-	//Set box bottom and top to bottom of domain
-	float extents[6];
-	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
+	//Set box bottom and top to bottom of domain, if we are applying to terrain
+	if (mode){
+		float extents[6];
+		DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
 
-	dParams->setTwoDMin(2,extents[2]);
-	dParams->setTwoDMax(2,extents[2]);
+		dParams->setTwoDMin(2,extents[2]);
+		dParams->setTwoDMax(2,extents[2]);
+	}
 	
 	//Reposition cursor:
 	mapCursor();

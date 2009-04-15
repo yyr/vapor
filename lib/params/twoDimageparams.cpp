@@ -528,7 +528,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	char emsg[1000];
 	int ok = TIFFRGBAImageOK(tif,emsg);
 	if (!ok){
-		MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Unable to process tiff file:\n %s\n, error message: %s",
+		MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Unable to process tiff file:\n %s\nError message: %s",
 				imageFileName.c_str(),emsg);
 		return 0;
 	} 
@@ -593,7 +593,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			//Invalid string. Get the error code:
 			int *pjerrnum = pj_get_errno_ref();
 			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Invalid proj4 string:\n%s \nerror: %s\n",
-				pj_strerrno(*pjerrnum));
+				newString, pj_strerrno(*pjerrnum));
 		} else if (p && isGeoreferenced()) {
 
 			//ModelTiepointTag and modelpixelscale needed to calculate image corners
