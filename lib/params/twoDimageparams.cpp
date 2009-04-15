@@ -122,8 +122,6 @@ reinit(bool doOverride){
 	const float* extents = ds->getExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
-	
-	
 	//Either set the twoD bounds to default (full) size in the center of the domain, or 
 	//try to use the previous bounds:
 	if (doOverride){
@@ -240,13 +238,7 @@ restart(){
 		else twoDMax[i] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
-	
-	
 }
-
-
-
-
 
 //Handlers for Expat parsing.
 //
@@ -261,10 +253,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		cropImage = false;
 		imageFileName = "";
 		orientation = 2; //X-Y aligned
-		
 		imagePlacement = 0;
 
-		
 		//If it's a TwoDImage tag, obtain 12 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -439,8 +429,6 @@ buildNode() {
 	return twoDNode;
 }
 
-
-
 //Clear out the cache.  But don't clear out the textures,
 //just delete the elevation grid
 void TwoDImageParams::setTwoDDirty(){
@@ -448,7 +436,7 @@ void TwoDImageParams::setTwoDDirty(){
 		setAllBypass(false);
 		return;
 }
-//In image mode, need to clear out cached info obtained from image file
+//clear out cached images
 void TwoDImageParams::setImagesDirty(){
 	if (twoDDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
@@ -465,7 +453,6 @@ void TwoDImageParams::setImagesDirty(){
 		if (imageNums) delete imageNums;
 		imageNums = 0;
 	}
-	
 	setElevGridDirty(true);
 	setAllBypass(false);
 }
@@ -496,30 +483,25 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	//If a map projection is undefined, invalid imageExts are returned
 	// (i.e. imgExts[2]<imgExts[0])
 	
-		int wid, ht;
-		float imgExts[4];
-		int imgSize[2];
-		unsigned char* img = readTextureImage(ts, &wid, &ht, imgExts);
-		if (doCache && img) {
-			
-			imgSize[0] = wid;
-			imgSize[1] = ht;
-			setTwoDTexture(img,ts, imgSize, imgExts);
-		}
-		return img;
+	int wid, ht;
+	float imgExts[4];
+	int imgSize[2];
+	unsigned char* img = readTextureImage(ts, &wid, &ht, imgExts);
+	if (doCache && img) {
+		
+		imgSize[0] = wid;
+		imgSize[1] = ht;
+		setTwoDTexture(img,ts, imgSize, imgExts);
+	}
+	return img;
 }
-
-
-
-
-	
 
 //Get texture from image file, set it in the cache
 
 unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
-	static const basic_string <char>::size_type npos = -1;
+	static const basic_string <char>::size_type npos = (size_t)-1;
 
 	//Initially set imgExts to the TwoDImage extents
 	imgExts[0] = twoDMin[0];
@@ -527,7 +509,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	imgExts[2] = twoDMax[0];
 	imgExts[3] = twoDMax[1];
 	projDefinitionString = "";
-	//Check for a valid file name (avoid Linux crash):
+	//Check for a valid file name (this avoids Linux crash):
 	struct STAT64 statbuf;
 	if (STAT64(imageFileName.c_str(), &statbuf) < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 
@@ -536,13 +518,20 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		return 0;
 	}
     TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
-
+	
 	if (!tif) {
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 
 			"Unable to open tiff file: %s\n",
 			imageFileName.c_str());
 		return 0;
 	}
+	char emsg[1000];
+	int ok = TIFFRGBAImageOK(tif,emsg);
+	if (!ok){
+		MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Unable to process tiff file:\n %s\n, error message: %s",
+				imageFileName.c_str(),emsg);
+		return 0;
+	} 
 	//Set the tif directory to the one associated with the
 	//current frame num.
 	if (!imageNums) setupImageNums(tif);
@@ -553,8 +542,28 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	uint32 w, h;
 	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-	
 
+	//Read pixels, whether or not we are georeferenced:
+	size_t npixels = w * h;
+	uint32* texture = new uint32[npixels];
+	if (texture != NULL) {
+		
+		if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
+			
+			*wid = w;
+			*ht = h;
+			//May need to resample here!
+		}
+		else {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
+				imageFileName.c_str());
+			delete texture;
+			return 0;
+		}
+	}
+	
+	
+	//Check for georeferencing:
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
@@ -608,27 +617,11 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			}
 		}
 	}
-	//Following is valid whether or not we are georeferenced:
-	size_t npixels = w * h;
 	
-	uint32* texture = new unsigned int[npixels];
-	if (texture != NULL) {
-		if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
-			*wid = w;
-			*ht = h;
-			//May need to resample here!
-		}
-		else {
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
-				imageFileName.c_str());
-			delete texture;
-			texture = 0;
-		}
-	}
 
 	TIFFClose(tif);
 	//apply opacity multiplier
-	if (opacityMultiplier < 1){
+	if (texture && opacityMultiplier < 1){
 		for (int i = 0; i < w*h; i++){
 			unsigned int rgba = texture[i];
 			//mask the alpha
