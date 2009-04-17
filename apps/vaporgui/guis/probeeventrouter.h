@@ -145,11 +145,13 @@ protected slots:
 	void guiReleaseYWheel(int);
 	void guiReleaseZWheel(int);
 	void guiRotate90(int);
+	void guiFitToRegion();
+	void guiFitToDomain();
 
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void guiAxisAlign();
+	void guiAxisAlign(int);
 	void guiTogglePlanar(bool);
 	
 	void guiCopyInstanceTo(int toViz);
@@ -192,6 +194,7 @@ protected slots:
 	
 	
 protected:
+	void setProbeToExtents(const float* extents, ProbeParams* pparams);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
 	bool capturingIBFV;

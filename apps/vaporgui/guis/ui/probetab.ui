@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>451</width>
-            <height>2240</height>
+            <height>2290</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout108</cstring>
+                <cstring>layout67</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -306,7 +306,7 @@ create new Probe/Contour instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>22</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout107</cstring>
+                                <cstring>layout66</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -576,7 +576,7 @@ probe volume.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout106</cstring>
+                                                <cstring>layout65</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -2039,7 +2039,7 @@ same as the X, Y, and Z axes.</string>
                                                 </spacer>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout48</cstring>
+                                                        <cstring>layout61</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -2047,7 +2047,7 @@ same as the X, Y, and Z axes.</string>
                                                         </property>
                                                         <widget class="QLayoutWidget">
                                                             <property name="name">
-                                                                <cstring>layout47</cstring>
+                                                                <cstring>layout60</cstring>
                                                             </property>
                                                             <vbox>
                                                                 <property name="name">
@@ -2064,22 +2064,7 @@ same as the X, Y, and Z axes.</string>
                                                                         <set>AlignCenter</set>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
-                                                                        <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                        <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QLayoutWidget">
@@ -2110,22 +2095,7 @@ selected axis.</string>
                                                                                 <string>theta (rotation angle from +X axis)of probe normal vector</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLineEdit" row="1" column="2">
@@ -2148,22 +2118,7 @@ selected axis.</string>
                                                                                 <string>Psi angle (Rotation around axis determined by phi, theta)</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel" row="0" column="0">
@@ -2177,22 +2132,7 @@ selected axis.</string>
                                                                                 <set>WordBreak|AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLineEdit" row="1" column="1">
@@ -2215,22 +2155,7 @@ selected axis.</string>
                                                                                 <string>Phi angle (angle from +Z) of probe normal vector</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel" row="0" column="2">
@@ -2244,22 +2169,7 @@ selected axis.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QLabel" row="0" column="1">
@@ -2273,67 +2183,79 @@ selected axis.</string>
                                                                                 <set>WordBreak|AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                     </grid>
                                                                 </widget>
                                                                 <widget class="QLayoutWidget">
                                                                     <property name="name">
-                                                                        <cstring>layout45</cstring>
+                                                                        <cstring>layout59</cstring>
                                                                     </property>
                                                                     <hbox>
                                                                         <property name="name">
                                                                             <cstring>unnamed</cstring>
                                                                         </property>
-                                                                        <widget class="QPushButton">
+                                                                        <widget class="QComboBox">
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>Axis Align</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>Nearest Axis</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>+ X</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>+ Y</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>+ Z</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>- X</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>- Y</string>
+                                                                                </property>
+                                                                            </item>
+                                                                            <item>
+                                                                                <property name="text">
+                                                                                    <string>- Z</string>
+                                                                                </property>
+                                                                            </item>
                                                                             <property name="name">
-                                                                                <cstring>axisAlignButton</cstring>
+                                                                                <cstring>axisAlignCombo</cstring>
                                                                             </property>
                                                                             <property name="maximumSize">
                                                                                 <size>
-                                                                                    <width>65</width>
+                                                                                    <width>100</width>
                                                                                     <height>32767</height>
                                                                                 </size>
                                                                             </property>
-                                                                            <property name="text">
-                                                                                <string>Axis-Align</string>
+                                                                            <property name="font">
+                                                                                <font>
+                                                                                    <pointsize>9</pointsize>
+                                                                                </font>
                                                                             </property>
                                                                             <property name="toolTip" stdset="0">
-                                                                                <string>Click to rotate probe/contour plane to nearest axis alignment.</string>
+                                                                                <string>Align probe with a coordinate axis</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QComboBox">
@@ -2390,22 +2312,7 @@ selected axis.</string>
                                                                                 <string>Rotate probe 90 degrees about its center using selected axis direction</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                     </hbox>
@@ -2431,22 +2338,7 @@ selected axis.</string>
                                                                         <set>AlignCenter</set>
                                                                     </property>
                                                                     <property name="whatsThis" stdset="0">
-                                                                        <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                        <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                     </property>
                                                                 </widget>
                                                                 <widget class="QLayoutWidget">
@@ -2463,7 +2355,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>30</width>
+                                                                                    <width>20</width>
                                                                                     <height>0</height>
                                                                                 </size>
                                                                             </property>
@@ -2474,22 +2366,7 @@ selected axis.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QThumbWheel">
@@ -2498,7 +2375,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>150</width>
+                                                                                    <width>140</width>
                                                                                     <height>20</height>
                                                                                 </size>
                                                                             </property>
@@ -2506,22 +2383,7 @@ selected axis.</string>
                                                                                 <string>Rotate About X-Axis</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                     </hbox>
@@ -2540,7 +2402,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>29</width>
+                                                                                    <width>20</width>
                                                                                     <height>0</height>
                                                                                 </size>
                                                                             </property>
@@ -2551,22 +2413,7 @@ selected axis.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QThumbWheel">
@@ -2575,7 +2422,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>150</width>
+                                                                                    <width>140</width>
                                                                                     <height>20</height>
                                                                                 </size>
                                                                             </property>
@@ -2583,22 +2430,7 @@ selected axis.</string>
                                                                                 <string>Rotate about Y-Axis</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                     </hbox>
@@ -2617,7 +2449,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>30</width>
+                                                                                    <width>20</width>
                                                                                     <height>0</height>
                                                                                 </size>
                                                                             </property>
@@ -2628,22 +2460,7 @@ selected axis.</string>
                                                                                 <set>AlignCenter</set>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                         <widget class="QThumbWheel">
@@ -2652,7 +2469,7 @@ selected axis.</string>
                                                                             </property>
                                                                             <property name="minimumSize">
                                                                                 <size>
-                                                                                    <width>150</width>
+                                                                                    <width>140</width>
                                                                                     <height>20</height>
                                                                                 </size>
                                                                             </property>
@@ -2660,28 +2477,113 @@ selected axis.</string>
                                                                                 <string>Rotate about Z-axis</string>
                                                                             </property>
                                                                             <property name="whatsThis" stdset="0">
-                                                                                <string>The orientation of the probe is controlled
-by three angles, theta, phi, and psi.  Theta
-and phi are spherical angles determining
-the direction of the plane normal to the
-center plane (contour plane) of the probe.
-Psi determines the angle of rotation about
-the normal vector.  The orientation can be
-controlled by dragging the X, Y, and Z 
-thumb wheels, and by typing angles
-(in degrees) into the text boxes.
-Clicking on the "Axis-Align" button
-will reset the orientation to the nearest
-axis alignment.  Clicking on the 
-"90 deg rotate" selector rotates the
-probe 90 degrees about the
-selected axis.</string>
+                                                                                <string>The orientation of the probe is controlled by three angles, theta, phi, and psi.  Theta and phi are spherical angles determining the direction of the plane normal to the center plane (contour plane) of the probe.  Psi determines the angle of rotation about the normal vector.  The orientation can be controlled by dragging the X, Y, and Z thumb wheels, or by typing angles (in degrees) into the text boxes. Clicking on the "Axis-Align" selector will reset the orientation to the nearest axis or a selected axis alignment.  Clicking on the  "90 deg rotate" selector rotates the probe 90 degrees about the selected axis.</string>
                                                                             </property>
                                                                         </widget>
                                                                     </hbox>
                                                                 </widget>
                                                             </vbox>
                                                         </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer57_2</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Vertical</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>20</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout58</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer55_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>21</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>fitRegionButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Fit To Region</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Adjust probe to fit within current region</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer54_3</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>21</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>fitDomainButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Fit to Domain</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Adjust probe to fit within current data domain</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer56</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
                                                     </hbox>
                                                 </widget>
                                             </vbox>

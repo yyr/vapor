@@ -158,7 +158,9 @@ ProbeEventRouter::hookUpTab()
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
-	connect (axisAlignButton, SIGNAL(clicked()), this, SLOT(guiAxisAlign()));
+	connect (axisAlignCombo, SIGNAL(activated(int)), this, SLOT(guiAxisAlign(int)));
+	connect (fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
+	connect (fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitToDomain()));
 	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
 	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
 	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
@@ -953,23 +955,63 @@ guiTogglePlanar(bool isOn){
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
-guiAxisAlign(){
+guiAxisAlign(int choice){
+	if (choice == 0) return;
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "axis-align probe");
-	float theta = pParams->getTheta();
-	//convert to closest number of quarter-turns
-	int angleInt = (int)(((theta+180.)/90.)+0.5) - 2;
-	theta = angleInt*90.;
-	float psi = pParams->getPsi();
-	angleInt = (int)(((psi+180.)/90.)+0.5) - 2;
-	psi = angleInt*90.;
-	float phi = pParams->getPhi();
-	angleInt = (int)((phi/90.)+0.5);
-	phi = angleInt*90.;
-	pParams->setPhi(phi);
-	pParams->setPsi(psi);
-	pParams->setTheta(theta);
+	switch (choice) {
+		case (1) : //nearest axis
+			{ //align to nearest axis
+				float theta = pParams->getTheta();
+				//convert to closest number of quarter-turns
+				int angleInt = (int)(((theta+180.)/90.)+0.5) - 2;
+				theta = angleInt*90.;
+				float psi = pParams->getPsi();
+				angleInt = (int)(((psi+180.)/90.)+0.5) - 2;
+				psi = angleInt*90.;
+				float phi = pParams->getPhi();
+				angleInt = (int)(((phi+180)/90.)+0.5) - 2;
+				phi = angleInt*90.;
+				pParams->setPhi(phi);
+				pParams->setPsi(psi);
+				pParams->setTheta(theta);
+			}
+			break;
+		case (2) : //+x
+			pParams->setPsi(0.f);
+			pParams->setTheta(0.f);
+			pParams->setPhi(-90.f);
+			break;
+		case (3) : //+y
+			pParams->setPsi(180.f);
+			pParams->setTheta(90.f);
+			pParams->setPhi(-90.f);
+			break;
+		case (4) : //+z
+			pParams->setPsi(0.f);
+			pParams->setTheta(0.f);
+			pParams->setPhi(180.f);
+			break;
+		case (5) : //-x
+			pParams->setPsi(0.f);
+			pParams->setTheta(0.f);
+			pParams->setPhi(90.f);
+			break;
+		case (6) : //-y
+			pParams->setPsi(180.f);
+			pParams->setTheta(90.f);
+			pParams->setPhi(90.f);
+			break;
+		case (7) : //-z
+			pParams->setPsi(0.f);
+			pParams->setTheta(0.f);
+			pParams->setPhi(0.f);
+			break;
+		default:
+			assert(0);
+	}
+	axisAlignCombo->setCurrentItem(0);
 	//Force a redraw, update tab
 	updateTab();
 	setProbeDirty(pParams);
@@ -1040,6 +1082,27 @@ sessionLoadTF(QString* name){
 	PanelCommand::captureEnd(cmd, dParams);
 	setDatarangeDirty(dParams);
 	setEditorDirty();
+}
+//Fit to domain extents
+void ProbeEventRouter::
+guiFitToDomain(){
+	confirmText(false);
+	//int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to domain");
+
+	const float* extents = DataStatus::getInstance()->getExtents();
+
+	setProbeToExtents(extents,pParams);
+	
+	updateTab();
+	setProbeDirty(pParams);
+	
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	
 }
 
 //Make region match probe.  Responds to button in region panel
@@ -2688,4 +2751,147 @@ void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 		rightMappingBound->setText("1.0");
 	}
 }
- 
+//Fit to domain extents
+void ProbeEventRouter::
+guiFitToRegion(){
+	confirmText(false);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to region");
+	float extents[6];
+	rParams->getBox(extents,extents+3,timestep);
+	setProbeToExtents(extents,pParams);
+	updateTab();
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	
+}
+void ProbeEventRouter::
+setProbeToExtents(const float extents[6], ProbeParams* pParams){
+	//For each axis of probe, find the line segment it maps to.
+	float transformMatrix[12];
+	//Set up to transform from probe (coords [-1,1]) into volume:
+	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
+
+	float rotMatrix[9];
+	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
+
+	const float corEnd[3][3] = {1., 0., 0., 0., 1., 0.,0., 0., 1.}; 
+	const float corBegin[3][3] = {-1., 0., 0., 0., -1., 0.,0., 0., -1.}; 
+	const float zerovec[3] = {0.f,0.f,0.f};
+	const float unitVec[3][3] = {1.f,0.f,0.f,0.f,1.f,0.f,0.f,0.f,1.f};
+	float mappedDirs[3][3];
+	float newBoxMax[3],newBoxMin[3];
+
+	//Calculate directions of probe mapped into user space:
+	for (int i = 0; i< 3; i++)
+		vtransform3(unitVec[i], rotMatrix, mappedDirs[i]);
+
+	//calculate end points of each axis of probe:
+	float axisStart[3][3];
+	float axisEnd[3][3];
+
+	float probeCenter[3];
+	vtransform(zerovec,transformMatrix,probeCenter);
+	//Get positions of endpoints and probe center
+	for (int axis = 0; axis < 3; axis++){
+		vtransform(corBegin[axis],transformMatrix,axisStart[axis]);
+		vtransform(corEnd[axis],transformMatrix,axisEnd[axis]);
+	}
+
+	//Determine the center offset of the probe in user coordinates.  This is how far the
+	//probe needs to move in user space.
+	float centerOffset[3];
+	for (int i = 0; i<3; i++){
+		centerOffset[i] = (0.5f*(extents[i+3]+extents[i]) - probeCenter[i]);
+	}
+	//Next find the region axis that is most closely aligned with each probe axis, as 
+	//well as the magnification factor along each axis, in going from block coords
+	//to user coords. 
+	int align[3] = {-1,-1,-1};
+	
+	//The axisMagFactor, when multiplied by the box coord dist along an axis, yields the
+	//user coord distance along that axis.  It can be negative.
+	
+	float axisMagFactor[3]; 
+	
+	vzero(axisMagFactor);
+	for (int probeDim = 0; probeDim< 3; probeDim++){
+		float vectDir[3];
+		//see which axis is closest to the probe axis in user space
+		float maxAlign = -1.f;
+		int alignDir = -1;
+		for (int axis = 0; axis < 3; axis++){
+			float axisAlignment = vdot(unitVec[axis],mappedDirs[probeDim]);
+			if (abs(axisAlignment) > maxAlign){
+				//Don't pick max it it's already taken:
+				if (!((probeDim > 0 && axis == align[0]) ||
+						(probeDim > 1 && axis == align[1]))){
+					maxAlign = abs(axisAlignment);
+					alignDir = axis;
+				}
+			}
+		}
+		align[probeDim] = alignDir;
+
+		//Calculate direction vector of each probe axis mapped into user space:
+
+		vsub(axisEnd[probeDim],axisStart[probeDim],vectDir);
+		float vmg = vlength(vectDir);
+		//It can easily occur that vectDir is zero.  This happens if the probe axis is of zero length in
+		//user space, e.g. the z-axis of a 2d probe.  The probe could also be degenerate (1 dim or 0 dim)
+		
+		if (vmg > 0.f){
+			//Determine the offset and magnification in user space, along each probe axis, 
+			//needed to make the probe full in the user coord domain.  Ignore all directions except the 
+			//best aligned (this will result in some error if probe is rotated)
+			axisMagFactor[probeDim] = 
+					(extents[alignDir+3]-extents[alignDir])/vectDir[alignDir];
+
+			//Next, determine the translation and magnification in box coords required to make the probe match the full domain
+			//First, find translation needed to make the probe center map to the domain center.  This is equal in each coord to
+			// ((desired center in user coords)-(current center in user coords))/(mag factor on axis).
+			// however, if the mag factor on an axis is 0, we shall handle that translation specially later. 
+			// if the direction vector (vectDir) is negative, the probe orientation is reversed, so the centerOffset gets negated
+			
+			//New center in user coordinates is 
+			//0.5f*(extents[i+3]+extents[i])
+			//To convert (any user coord) to (current) box coordinates, 
+			//subtract current user coord center (i.e. probe center) , then divide by .5*vectDir : 
+			float newBoxCenter = centerOffset[alignDir]/(0.5f*vectDir[alignDir]);
+			//The new box size is multiplied by abs(axisMagFactor), so it goes from center - abs(axisMagFactor) to center + abs(axisMagFactor)
+			newBoxMin[probeDim] = newBoxCenter - abs(axisMagFactor[probeDim]);
+			newBoxMax[probeDim] = newBoxCenter + abs(axisMagFactor[probeDim]);
+		} 
+
+	}
+		
+		
+	//Now reset the probe based on the new box min/max
+	float probeMin[3],probeMax[3];
+	pParams->getBox(probeMin,probeMax,-1);
+	for (int probeDim = 0; probeDim<3; probeDim++){
+		if (axisMagFactor[probeDim] != 0.f) {
+			//-1,1 linearly map to probeMin and probeMax, by the mapping
+			// x -> ax+b where a = (pmax - pmin)/2, b= (pmax+pmin)/2
+			//use this map to specify new values, by mapping newBoxMin, newBoxMax
+			float a = 0.5f*(probeMax[align[probeDim]]-probeMin[align[probeDim]]);
+			float b = 0.5f*(probeMax[align[probeDim]]+probeMin[align[probeDim]]);
+			probeMin[align[probeDim]] = a*newBoxMin[probeDim]+b;
+			probeMax[align[probeDim]] = a*newBoxMax[probeDim]+b;
+		} else {
+			//make sure the probe bounds are in domain
+			if (probeMin[align[probeDim]] < extents[align[probeDim]])
+				probeMin[align[probeDim]] = extents[align[probeDim]];
+			if (probeMax[align[probeDim]] > extents[align[probeDim]+3])
+				probeMax[align[probeDim]] = extents[align[probeDim]+3];
+		}
+	}
+	pParams->setBox(probeMin,probeMax,-1);
+	return;
+}
+
+
