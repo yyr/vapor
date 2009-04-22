@@ -143,7 +143,7 @@ void AMRData::_AMRData(
 		// node in the tree, both leaf and non-leaf, contains data. The
 		// non-leaf data are approximations of the leaf data
 		//
-		int nnodes = tbranch->GetNumNodes(_maxRefinementLevel);
+		int nnodes = tbranch->GetNumCells();
 		size = _cellDim[0] * _cellDim[1] * _cellDim[2] * nnodes;
 
 		_treeData[index] = new(nothrow) float[size];
@@ -275,7 +275,7 @@ int AMRData::SetRegion(
 		// node in the tree, both leaf and non-leaf, contains data. The
 		// non-leaf data are approximations of the leaf data
 		//
-		int nnodes = tbranch->GetNumNodes(_maxRefinementLevel);
+		int nnodes = tbranch->GetNumCells();
 
 		if (_treeDataMemSize[index] < nnodes) {
 
@@ -338,7 +338,7 @@ int AMRData::WriteNCDF(
 	//
 	int node_dim;
 
-	AMRTree::CellID num_nodes_total = _tree->GetNumNodes(_bmin, _bmax, reflevel);
+	AMRTree::cid_t num_nodes_total = _tree->GetNumCells(_bmin, _bmax, reflevel);
 
 	rc = nc_def_dim(ncid, _numNodeToken.c_str(), num_nodes_total, &node_dim);
 	NC_ERR_WRITE(rc,path)
@@ -412,7 +412,7 @@ int AMRData::WriteNCDF(
 
 		const AMRTreeBranch *tbranch = _tree->GetBranch(xyz);
 
-		branch_nodes = tbranch->GetNumNodes(reflevel);
+		branch_nodes = tbranch->GetNumCells(reflevel);
 
 		const float *data = _treeData[index];
 
@@ -582,7 +582,7 @@ int AMRData::ReadNCDF(
 
 		const AMRTreeBranch *tbranch = _tree->GetBranch(xyz);
 
-		file_branch_nodes = tbranch->GetNumNodes(file_reflevel);
+		file_branch_nodes = tbranch->GetNumCells(file_reflevel);
 
 
 		//
@@ -593,7 +593,7 @@ int AMRData::ReadNCDF(
 			z >= _bmin[2] && z <= _bmax[2]) {
 
 			int index = z*base_dim[0]*base_dim[1] + y*base_dim[0] + x;
-			branch_nodes = tbranch->GetNumNodes(reflevel);
+			branch_nodes = tbranch->GetNumCells(reflevel);
 
 			float *data = _treeData[index];
 
@@ -620,12 +620,12 @@ int AMRData::ReadNCDF(
 
 }
 
-const float	*AMRData::GetBlock(
-	AMRTree::CellID	cellid
+float	*AMRData::GetBlock(
+	AMRTree::cid_t	cellid
 ) const {
 
-    AMRTreeBranch::UInt32 baseblockidx;
-    AMRTreeBranch::UInt32 nodeidx;
+    AMRTreeBranch::cid_t baseblockidx;
+    AMRTreeBranch::cid_t nodeidx;
 
 	_tree->DecodeCellID(cellid, &baseblockidx, &nodeidx);
 
@@ -769,17 +769,17 @@ void AMRData::regrid_branch(
 
 	// Vectors of cell ids 
 	//
-	vector <AMRTreeBranch::UInt32> cellidbuf0;
-	vector <AMRTreeBranch::UInt32> cellidbuf1;
-	vector <AMRTreeBranch::UInt32> *cptr0 = &cellidbuf0;
-	vector <AMRTreeBranch::UInt32> *cptr1 = &cellidbuf1;
-	vector <AMRTreeBranch::UInt32> *ctmpptr = NULL;
+	vector <AMRTreeBranch::cid_t> cellidbuf0;
+	vector <AMRTreeBranch::cid_t> cellidbuf1;
+	vector <AMRTreeBranch::cid_t> *cptr0 = &cellidbuf0;
+	vector <AMRTreeBranch::cid_t> *cptr1 = &cellidbuf1;
+	vector <AMRTreeBranch::cid_t> *ctmpptr = NULL;
 
 	cptr0->push_back(0);	// Root cell;
 
 	int	level = 0;
 	while ((*cptr0).size()) {
-		AMRTreeBranch::UInt32	cellid;
+		AMRTreeBranch::cid_t	cellid;
 
 		// Process each cell at the current level, checking to see
 		// if the cell has children, and if so, refining the cell
@@ -798,17 +798,18 @@ void AMRData::regrid_branch(
 
 			if (tbranch->HasChildren(cellid) && tbranch->GetCellLevel(cellid) < reflevel) {
 
-				AMRTreeBranch::UInt32	child;
+				AMRTreeBranch::cid_t	child;
 
 				child = tbranch->GetCellChildren(cellid);
-				assert(child != AMRTreeBranch::AMR_ERROR);
+				assert(child >= 0);
 
 				// See which, if any, of the children overlap
 				// the desired reigon.
 				//
 				for (int j=0; j<8; j++) {
-					unsigned int xyz[3];
-					tbranch->GetCellLocation(child+j, xyz);
+					size_t xyz[3];
+					int level;
+					tbranch->GetCellLocation(child+j, xyz, &level);
 
 					if ((xyz[0] >= minl[0]) && (xyz[0] <= maxl[0]) &&
 						(xyz[1] >= minl[1]) && (xyz[1] <= maxl[1]) &&
@@ -849,7 +850,7 @@ void AMRData::regrid_branch(
 void AMRData::regrid_cell(
 	const AMRTreeBranch	*tbranch,
 	const float *branch_data,
-	AMRTreeBranch::UInt32 cellid,
+	AMRTreeBranch::cid_t cellid,
 	const size_t min[3],
 	const size_t max[3],
 	int reflevel,
@@ -871,10 +872,9 @@ void AMRData::regrid_cell(
 	const float *cell_data = &branch_data[cellid*stride];
 
 	// location of cell in block coords at cell's refinment level
-	unsigned int xyz[3];	
-	tbranch->GetCellLocation(cellid, xyz);
-
-	int level = tbranch->GetCellLevel(cellid);
+	size_t xyz[3];	
+	int level;
+	tbranch->GetCellLocation(cellid, xyz, &level);
 
 	// difference between cell's refinement level and grid's
 	int	ldelta = reflevel - level;

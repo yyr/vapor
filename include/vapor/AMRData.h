@@ -226,8 +226,8 @@ public:
  //! \param[in] cellid The cell identifier of the block to be returned.
  //! \retval data A pointer to a block of field values
  //
- const float *GetBlock(
-	AMRTree::CellID cellid
+ float *GetBlock(
+	AMRTree::cid_t cellid
  ) const;
 
  //! Resample an AMR grid to a Cartesian grid
@@ -340,7 +340,7 @@ private:
  void regrid_cell(
 	const AMRTreeBranch *tbranch,
 	const float *branch_data,		// data associated with tbranch
-	AMRTreeBranch::UInt32 cellid,	// id of cell to be resampled.
+	AMRTreeBranch::cid_t cellid,	// id of cell to be resampled.
 	const size_t min[3],		// same is in regrid_branch
 	const size_t max[3],
 	int reflevel,

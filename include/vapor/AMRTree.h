@@ -63,17 +63,14 @@ class AMRTree : public VetsUtil::MyBase, public ParsedXml {
 
 public:
 
- typedef long long CellID;
 
+ typedef AMRTreeBranch::cid_t cid_t;
 
 
  //! Constructor for the AMRTree class.
  //!
  //! \param[in] basedim A three element array specifying the topological
  //! dimensions of the tree in base blocks
- //! \param[in] max_level The maximum refinment level permitted by
- //! tree. Optimal performance results are achieved if this value matches
- //! that of the tree once it is populated.
  //! \param[in] min A tree element array specifying the minimum XYZ extents
  //! of the tree in user-defined coordinates.
  //! \param[in] max A tree element array specifying the maximum XYZ extents
@@ -129,9 +126,9 @@ public:
  //! \sa AMRTreeBranch
  //
  void	DecodeCellID(
-	CellID cellid,
-	AMRTreeBranch::UInt32 *baseblockidx,
-	AMRTreeBranch::UInt32 *nodeidx
+	AMRTree::cid_t cellid,
+	AMRTree::cid_t *baseblockidx,
+	AMRTree::cid_t *nodeidx
  ) const;
 
  //! Delete a node from the tree 
@@ -141,7 +138,7 @@ public:
  //!
  //! \retval status Returns a non-negative value on success
  //
- int	DeleteCell(CellID cellid);
+ int	DeleteCell(AMRTree::cid_t cellid);
 
 
  //! Find a cell containing a point.
@@ -161,7 +158,45 @@ public:
  //! \retval cellid A valid cell id is returned if the tree contains
  //! the indicated point. Otherwise a negative integer is returned
  //
- CellID	FindCell(const double ucoord[3], int reflevel = -1) const;
+ AMRTree::cid_t	FindCell(const double ucoord[3], int reflevel = -1) const;
+
+ //! Return the topological coordinates of a cell within the tree.
+ //!
+ //! This method returns topological coordinates of a cell within
+ //! the tree, relative to the cell's refinement level. Each cell
+ //! in a tree has an i-j-k location for it's refinement level. The range
+ //! of i-j-k values runs from 0 to basedim * 2^j - 1, where 
+ //! \p basedim is the base dimension for the respective i-j-k axis
+ //! specified in the AMRTree() constructor, and \p j is the
+ //! refinement level. The base refinement level is zer0.
+ //! is relative to the branch's location.
+ //!
+ //! \param[in] cellid The cell id of the cell whose bounds are to be returned
+ //! \param[out] xyz The cell's location
+ //! \param[out] cellid The refinement level of the cell
+ //!
+ //! \retval status Returns a non-negative value on success. A negative
+ //! int is returned if \p cellid does not exist in the tree.
+ //!
+ int	GetCellLocation(
+	AMRTree::cid_t cellid, size_t xyz[3], int *reflevel
+ ) const;
+
+ //! Return the cellid for a cell with the given i-j-k coordinates
+ //!
+ //! This method returns the cellid for the cell indicated by
+ //! the i-j-k coordinates at a given refinement level.
+ //!
+ //! \param[in] xyz The cell's location
+ //! \param[in] reflevel The refinement level of the cell
+ //! \param[in] cellid The cell id of the cell whose bounds are to be returned
+ //!
+ //! \retval status Returns a non-negative value on success. A negative
+ //! int is returned \p xyz are invalid for refinement level.
+ //!
+ //! \sa GetCellLocation()
+ //!
+ AMRTree::cid_t	GetCellID(const size_t xyz[3], int reflevel) const;
 
  //! Get the dimensions of the base grid
  //!
@@ -183,26 +218,23 @@ public:
  //
  const AMRTreeBranch	*GetBranch(const size_t xyz[3]) const;
 
- //! Return the user coordinate bounds of a region
+ //! Return the user coordinate bounds of a cell
  //!
  //! This method returns the minimum and maximum extents of the
- //! indicated region. By default the region is the entire domain of
- //! the tree. The extents are provided in user coordinates as defined
+ //! indicated cell. The extents are in user coordinates as defined
  //! by the constructor for the class. The bounds for the root cell
  //! are guaranteed to be the same as those used to construct the class.
- //! If the parmater \p cellid is non negative, the bounds of the cell with
- //! cell id \cellid are returned.
- //!
+ //! 
  //! \param[in] cellid The cell id of the cell whose bounds are to be returned
- //! \param[out] minu A three element array to which the minimum cell
+ //! \param[out] minu A three element array to which the minimum cell 
  //! extents will be copied.
  //! \param[out] maxu A three element array to which the maximum cell
  //! extents will be copied.
  //! \retval status Returns a non-negative value on success
  //!
- int	GetBounds(double minu[3], double maxu[3], CellID cellid = -1) const;
-
-
+ int    GetCellBounds(  
+	cid_t cellid, double minu[3], double maxu[3]
+ ) const;
 
  //! Returns the cell id of the first child of a node
  //!
@@ -217,7 +249,7 @@ public:
  //! \retval cellid A valid cell id is returned if the branch contains
  //! the indicated point. Otherwise a negative value is returned.
  //
- CellID	GetCellChildren(CellID cellid) const;
+ AMRTree::cid_t	GetCellChildren(AMRTree::cid_t cellid) const;
 
 
  //! Return the refinement level of a cell
@@ -229,7 +261,7 @@ public:
  //! to be returned.
  //! \retval status Returns a non-negative value on success
  //
- int	GetCellLevel(CellID cellid) const;
+ int	GetCellLevel(AMRTree::cid_t cellid) const;
 
 
 
@@ -249,7 +281,9 @@ public:
  //! \retval cellid A valid cell id is returned if the branch contains
  //! the indicated point. Otherwise a negative value is returned
  //
- CellID	GetCellNeighbor(CellID cellid, int face) const;
+ AMRTree::cid_t	GetCellNeighbor(
+	AMRTree::cid_t cellid, int face
+ ) const;
 
 
  //! Returns the cell id of the parent of a child node
@@ -260,9 +294,9 @@ public:
  //! \param[in] cellid The cell id of the cell whose parent is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
+ //! the indicated point. Otherwise a negative int is returned.
  //
- CellID	GetCellParent(CellID cellid) const;
+ AMRTree::cid_t	GetCellParent(AMRTree::cid_t cellid) const;
 
  //! Returns the maximum refinement of the indicated subregion
  //!
@@ -288,7 +322,7 @@ public:
  //! refinement level is used if the argument is negative
  //!
  //!
- CellID GetNumNodes(
+ AMRTree::cid_t GetNumCells(
 	const size_t min [3], 
 	const size_t max[3], 
 	int reflevel = -1
@@ -306,7 +340,7 @@ public:
  //!
  //! \retval numnodes The number of nodes
  //
- CellID GetNumNodes(int reflevel = -1) const;
+ AMRTree::cid_t GetNumCells(int reflevel = -1) const;
 
 
  //! Refine a cell
@@ -318,7 +352,9 @@ public:
  //! \retval cellid A valid cell id is returned if the branch contains
  //! the indicated point. Otherwise a negative value is returned
  //!
- CellID	RefineCell(CellID cellid);
+ AMRTree::cid_t	RefineCell(AMRTree::cid_t cellid);
+
+ AMRTree::cid_t	GetNextCell(bool restart);
 
 
  int	MapUserToVoxel(
@@ -348,6 +384,9 @@ public:
 
 private:
 
+ cid_t _x_index;		// tree traversal index;
+ int _tbits;	// # bits used to encode base cell index
+ int _tbbits;	// # bits used to encode branch cell id 
  static const string _rootTag;
  static const string _minExtentsAttr;
  static const string _maxExtentsAttr;
@@ -375,6 +414,10 @@ private:
  );
 
  void _freeAMRTree();
+
+ void   _encode_cellid(
+    cid_t baseblockidx, cid_t nodeidx, cid_t *cellid
+ ) const;
 
  int paramesh_refine_baseblocks(
 	int index,

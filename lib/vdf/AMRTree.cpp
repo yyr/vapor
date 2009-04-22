@@ -37,6 +37,20 @@ const string AMRTree::_maxExtentsAttr = "MaxExtents";
 const string AMRTree::_baseDimAttr = "BaseDimension";
 const string AMRTree::_fileVersionAttr = "FileVersion";
 
+const int BitsPerByte = 8;
+
+
+// gets the right-adjusted N bits of quantity TARG
+// starting from bit position POSS
+//
+#define GETBITS(TARG,POSS,N) (((TARG) >> ((POSS)+1-(N))) & ~(~0ULL << (N)))
+
+// set N bits of quantity TARG starting from position
+// POSS to the right-most N bits in integer SRC
+//
+#define PUTBITS(TARG, POSS, N, SRC) \
+    (TARG) &= ~(~((~0ULL) << (N)) << (((POSS)+1) - (N))); \
+    (TARG) |= (((SRC) & ~((~0ULL) << (N))) << (((POSS)+1) - (N)))
 
 int AMRTree::_AMRTree(
 	const size_t basedim[3], 
@@ -44,7 +58,20 @@ int AMRTree::_AMRTree(
 	const double max[3]
 ) {
 
+	// Compute # bits used to encode branch and base cellids
+	//
+	size_t idsz = sizeof(cid_t);
+	assert(sizeof(size_t) >= idsz);
+	size_t t = basedim[0]*basedim[1]*basedim[2];
+	_tbits = 0;
+	while (t>0) {
+		t = t>>1;
+		_tbits++;
+	}
+	_tbbits = (idsz * BitsPerByte)-_tbits-1; // # bits available for branch id
+
 	_treeBranches = NULL;
+	_x_index = 0;
 
 	for(int i=0; i<3; i++) {
 		_baseDim[i] = basedim[i];
@@ -84,7 +111,7 @@ int AMRTree::_AMRTree(
 	for (int z = 0; z < _baseDim[2]; z++) {
 	for (int y = 0; y < _baseDim[1]; y++) {
 	for (int x = 0; x < _baseDim[0]; x++) {
-		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+		size_t	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
 		double bmin[3];
 		double bmax[3];
 		size_t location[3];
@@ -139,8 +166,6 @@ AMRTree::AMRTree(
 	if (_AMRTree(basedim, min, max) < 0) return;
 
 	_objIsInitialized = 1;
-#ifdef	DEAD
-#endif
 }
 
 AMRTree::AMRTree(
@@ -242,25 +267,25 @@ AMRTree::~AMRTree() {
 }
 
 void   AMRTree::DecodeCellID(
-    CellID cellid,
-    AMRTreeBranch::UInt32 *baseblockidx,
-    AMRTreeBranch::UInt32 *nodeidx
+    AMRTree::cid_t cellid,
+    AMRTree::cid_t *baseblockidx,
+    AMRTree::cid_t *nodeidx
 ) const {
 
     SetDiagMsg( "AMRTree::DecodeCellID(%lld,,)", cellid);
 
-	*nodeidx = GetBits64(cellid,31,32);
-	*baseblockidx = GetBits64(cellid,47,16);
+	*nodeidx = GETBITS((size_t) cellid,_tbbits - 1,_tbbits);
+	*baseblockidx = GETBITS((size_t) cellid,_tbits + _tbbits - 1,_tbits);
 }
 
-int	AMRTree::DeleteCell(CellID cellid) {
+int	AMRTree::DeleteCell(AMRTree::cid_t cellid) {
     SetDiagMsg( "AMRTree::DeleteCell(%lld)", cellid);
 
 	SetErrMsg("This function is not implemented");
 	return(-1);
 }
 
-AMRTree::CellID	AMRTree::FindCell(
+AMRTree::cid_t	AMRTree::FindCell(
 	const double ucoord[3], int reflevel
 ) const {
 
@@ -272,8 +297,7 @@ AMRTree::CellID	AMRTree::FindCell(
 	assert(_treeBranches != NULL);
 
 
-	unsigned long long	cellid = 0;
-	AMRTreeBranch::UInt32 tbid;
+	AMRTree::cid_t tbid, index, cellid;
 
 	for(int i =0; i<3; i++) {
 		if (ucoord[i] < _minBounds[i] || ucoord[i] > _maxBounds[i]) {
@@ -291,26 +315,87 @@ AMRTree::CellID	AMRTree::FindCell(
 	int y = (int) ((ucoord[1] - _minBounds[1]) / delta[1]);
 	int z = (int) ((ucoord[2] - _minBounds[2]) / delta[2]);
 
-	int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
 
 	tbid = _treeBranches[index]->FindCell(ucoord, reflevel);
-	if (tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (tbid < 0) return(-1);
 
-	cellid = SetBits64(cellid, 31, 32, tbid);
-	cellid = SetBits64(cellid, 47, 16, index);
+	_encode_cellid(index, tbid, &cellid);
 
-	return((CellID) cellid);
+	return(cellid);
 	
 }
 
-int	AMRTree::GetBounds(
-	double min[3], double max[3], CellID cellid
+int	AMRTree::GetCellLocation(
+	AMRTree::cid_t cellid, size_t xyz[3], int *reflevel
 ) const {
 
-    SetDiagMsg( "AMRTree::GetBounds(,,%lld)", cellid);
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
+	DecodeCellID(cellid, &index, &tbid);
 
-	SetErrMsg("This function is not implemented");
-	return(-1);
+	if (index >= _baseDim[0] * _baseDim[1] * _baseDim[2]) {
+		SetErrMsg("Invalid cell id : %lld\n", cellid);
+		return(-1);
+	}
+
+	return(_treeBranches[index]->GetCellLocation(tbid, xyz, reflevel));
+	
+}
+
+AMRTree::cid_t	AMRTree::GetCellID(
+	const size_t xyz[3], int reflevel
+) const {
+
+	if (reflevel < 0) reflevel = GetRefinementLevel();
+
+	size_t x = xyz[0];
+	size_t y = xyz[1];
+	size_t z = xyz[2];
+
+    for (int l=0; l<reflevel; l++) {
+		x = x >> 1;
+		y = y >> 1;
+		z = z >> 1;
+    }
+
+	AMRTree::cid_t  index;
+	AMRTree::cid_t	tbid;
+	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+	if (index >= _baseDim[0] * _baseDim[1] * _baseDim[2]) {
+		SetErrMsg("Invalid location (%d %d %d) : ", xyz[0], xyz[1], xyz[2]);
+		return(-1);
+	}
+
+	tbid = _treeBranches[index]->GetCellID(xyz, reflevel);
+	if (tbid < 0) return(-1);
+
+	AMRTree::cid_t	cellid;
+	_encode_cellid(index, tbid, &cellid);
+	return(cellid);
+}
+
+
+
+int    AMRTree::GetCellBounds(
+    cid_t cellid, double minu[3], double maxu[3]
+ ) const {
+
+    SetDiagMsg( "AMRTree::GetCellBounds(%lld,,)", cellid);
+	assert(_treeBranches != NULL);
+
+
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
+	DecodeCellID(cellid, &index, &tbid);
+
+	if (index >= _baseDim[0] * _baseDim[1] * _baseDim[2]) {
+		SetErrMsg("Invalid cell id : %lld\n", cellid);
+		return(-1);
+	}
+
+	return(_treeBranches[index]->GetCellBounds(tbid, minu, maxu));
+
 }
 
 const AMRTreeBranch    *AMRTree::GetBranch(const size_t xyz[3]) const {
@@ -323,8 +408,8 @@ const AMRTreeBranch    *AMRTree::GetBranch(const size_t xyz[3]) const {
 }
 
 
-AMRTree::CellID	AMRTree::GetCellChildren(
-	CellID cellid
+AMRTree::cid_t	AMRTree::GetCellChildren(
+	AMRTree::cid_t cellid
 ) const {
 
     SetDiagMsg( "AMRTree::GetCellChildren(%lld)", cellid);
@@ -332,8 +417,8 @@ AMRTree::CellID	AMRTree::GetCellChildren(
 	assert(_treeBranches != NULL);
 
 
-	AMRTreeBranch::UInt32	index;
-	AMRTreeBranch::UInt32	tbid;
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
 
 	DecodeCellID(cellid, &index, &tbid);
 
@@ -342,26 +427,24 @@ AMRTree::CellID	AMRTree::GetCellChildren(
 		return(-1);
 	}
 
-	AMRTreeBranch::UInt32 child_tbid = _treeBranches[index]->GetCellChildren(tbid);
-	if (child_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	AMRTree::cid_t child_tbid = _treeBranches[index]->GetCellChildren(tbid);
+	if (child_tbid < 0) return(-1);
 
-	CellID child_cellid = 0LL;
-	child_cellid = SetBits64(child_cellid, 31, 32, child_tbid);
-	child_cellid = SetBits64(child_cellid, 47, 16, index);
+	_encode_cellid(index, child_tbid, &cellid);
 
-	return((CellID) child_cellid);
+	return(cellid);
 
 }
 
-int	AMRTree::GetCellLevel(CellID cellid) const {
+int	AMRTree::GetCellLevel(AMRTree::cid_t cellid) const {
 
     SetDiagMsg( "AMRTree::GetCellLevel(%lld)", cellid);
 
 	assert(_treeBranches != NULL);
 
 
-	AMRTreeBranch::UInt32	index;
-	AMRTreeBranch::UInt32	tbid;
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
 
 	DecodeCellID(cellid, &index, &tbid);
 
@@ -371,14 +454,14 @@ int	AMRTree::GetCellLevel(CellID cellid) const {
 	}
 
 	int level = _treeBranches[index]->GetCellLevel(tbid);
-	if (level == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (level < 0) return(-1);
 
 	return(level);
 
 }
 
 
-AMRTree::CellID	AMRTree::GetCellNeighbor(CellID cellid, int face) const {
+AMRTree::cid_t	AMRTree::GetCellNeighbor(AMRTree::cid_t cellid, int face) const {
 
     SetDiagMsg( "AMRTree::GetCellNeighbor(%lld, %d)", cellid, face);
 
@@ -436,14 +519,14 @@ int	AMRTree::GetRefinementLevel() const {
 }
 
 
-AMRTree::CellID AMRTree::GetNumNodes(
+AMRTree::cid_t AMRTree::GetNumCells(
     const size_t min [3],
     const size_t max[3],
     int reflevel
 ) const {
 
     SetDiagMsg(
-		"AMRTree::GetNumNodes([%u,%u,%u], [%u,%u,%u], %d)",
+		"AMRTree::GetNumCells([%u,%u,%u], [%u,%u,%u], %d)",
 		min[0], min[1], min[2], max[0], max[1], max[2], reflevel
 	);
 
@@ -457,13 +540,13 @@ AMRTree::CellID AMRTree::GetNumNodes(
 		}
 	}
 
-	CellID nnodes = 0;
+	AMRTree::cid_t nnodes = 0;
 	for (int z = min[2]; z <= max[2]; z++) {
 	for (int y = min[1]; y <= max[1]; y++) {
 	for (int x = min[0]; x <= max[0]; x++) {
 
 		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
-		nnodes += _treeBranches[index]->GetNumNodes(reflevel);
+		nnodes += _treeBranches[index]->GetNumCells(reflevel);
 		
 	}
 	}
@@ -472,29 +555,29 @@ AMRTree::CellID AMRTree::GetNumNodes(
 	return(nnodes);
 }
 
-AMRTree::CellID AMRTree::GetNumNodes(
+AMRTree::cid_t AMRTree::GetNumCells(
     int reflevel
 ) const {
 
-    SetDiagMsg( "AMRTree::GetNumNodes(%d)", reflevel);
+    SetDiagMsg( "AMRTree::GetNumCells(%d)", reflevel);
 
 	size_t min[3] = {0,0,0};
 	size_t max[3] = {_baseDim[0]-1, _baseDim[1]-1, _baseDim[2]-1};
 
-	return(GetNumNodes(min, max, reflevel));
+	return(GetNumCells(min, max, reflevel));
 }
 
 
 
 
-AMRTree::CellID	AMRTree::GetCellParent(CellID cellid) const
+AMRTree::cid_t	AMRTree::GetCellParent(AMRTree::cid_t cellid) const
 {
     SetDiagMsg( "AMRTree::GetCellParent(%lld)", cellid);
 	assert(_treeBranches != NULL);
 
 
-	AMRTreeBranch::UInt32	index;
-	AMRTreeBranch::UInt32	tbid;
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
 
 	DecodeCellID(cellid, &index, &tbid);
 
@@ -503,26 +586,24 @@ AMRTree::CellID	AMRTree::GetCellParent(CellID cellid) const
 		return(-1);
 	}
 
-	AMRTreeBranch::UInt32 parent_tbid = _treeBranches[index]->GetCellParent(tbid);
-	if (parent_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	AMRTree::cid_t parent_tbid = _treeBranches[index]->GetCellParent(tbid);
+	if (parent_tbid < 0) return(-1);
 
-	CellID parent_cellid = 0LL;
-	parent_cellid = SetBits64(parent_cellid, 31, 32, parent_tbid);
-	parent_cellid = SetBits64(parent_cellid, 47, 16, index);
+	_encode_cellid(index, parent_tbid, &cellid);
 
-	return((CellID) parent_cellid);
+	return(cellid);
 
 }
 
-AMRTree::CellID	AMRTree::RefineCell(CellID cellid) {
+AMRTree::cid_t	AMRTree::RefineCell(AMRTree::cid_t cellid) {
 
     SetDiagMsg( "AMRTree::RefineCell(%lld)", cellid);
 
 	assert(_treeBranches != NULL);
 
 
-	AMRTreeBranch::UInt32	index;
-	AMRTreeBranch::UInt32	tbid;
+	AMRTree::cid_t	index;
+	AMRTree::cid_t	tbid;
 
 	DecodeCellID(cellid, &index, &tbid);
 
@@ -530,16 +611,49 @@ AMRTree::CellID	AMRTree::RefineCell(CellID cellid) {
 		SetErrMsg("Invalid cell id : %lld\n", cellid);
 		return(-1);
 	}
-
 	int child_tbid = _treeBranches[index]->RefineCell(tbid);
-	if (child_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (child_tbid < 0) return(-1);
 
-	CellID child_cellid = 0LL;
-	child_cellid = SetBits64(child_cellid, 31, 32, child_tbid);
-	child_cellid = SetBits64(child_cellid, 47, 16, index);
+	_encode_cellid(index, child_tbid, &cellid);
 
-	return((CellID) child_cellid);
+	return(cellid);
 
+}
+
+AMRTree::cid_t	AMRTree::GetNextCell(bool restart) {
+
+    SetDiagMsg( "AMRTree::GetNextCell(%d)", restart);
+
+	assert(_treeBranches != NULL);
+
+	cid_t	cellid;
+	cid_t	tbid;
+	bool tb_restart = false;	// tree branch restart;
+
+	if (restart) {
+		_x_index = 0;
+		tb_restart = true;
+	}
+
+	while (1) {
+
+		if (_x_index >= _baseDim[0] * _baseDim[1] * _baseDim[2]) return(-1);
+
+		tbid = _treeBranches[_x_index]->GetNextCell(tb_restart);
+
+		if (tbid >= 0) {
+			_encode_cellid(_x_index, tbid, &cellid);
+			return(cellid);	// we're done
+		}
+
+		tb_restart = false;
+		if (tbid < 0) { 
+			_x_index++;
+			tb_restart = true;
+		}
+	}
+
+	return(-1); // should never get here
 }
 
 
@@ -559,6 +673,17 @@ int	AMRTree::Write(
 	const string &path
 ) const {
     SetDiagMsg("AMRTree::Write(%s)", path.c_str());
+
+	for (int z = 0; z < _baseDim[2]; z++) {
+	for (int y = 0; y < _baseDim[1]; y++) {
+	for (int x = 0; x < _baseDim[0]; x++) {
+		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+
+		_treeBranches[index]->Update();
+	}
+	}
+	}
+
 
     ofstream fileout;
     fileout.open(path.c_str());
@@ -753,11 +878,11 @@ int	AMRTree::paramesh_refine_baseblocks(
 
 	// Vectors of cell ids 
 	//
-	vector <AMRTreeBranch::UInt32> cellidbuf0;
-	vector <AMRTreeBranch::UInt32> cellidbuf1;
-	vector <AMRTreeBranch::UInt32> *cptr0 = &cellidbuf0;
-	vector <AMRTreeBranch::UInt32> *cptr1 = &cellidbuf1;
-	vector <AMRTreeBranch::UInt32> *ctmpptr = NULL;
+	vector <AMRTreeBranch::cid_t> cellidbuf0;
+	vector <AMRTreeBranch::cid_t> cellidbuf1;
+	vector <AMRTreeBranch::cid_t> *cptr0 = &cellidbuf0;
+	vector <AMRTreeBranch::cid_t> *cptr1 = &cellidbuf1;
+	vector <AMRTreeBranch::cid_t> *ctmpptr = NULL;
 
 	gptr0->push_back(pid);
 	cptr0->push_back(_treeBranches[index]->GetRoot());
@@ -765,7 +890,7 @@ int	AMRTree::paramesh_refine_baseblocks(
 
 	while ((*gptr0).size()) {
 		int	gid;
-		AMRTreeBranch::UInt32 child;
+		AMRTreeBranch::cid_t child;
 
 		// Process each cell at the current level, checking to see
 		// if the cell has children, and if so, refining the cell
@@ -779,7 +904,7 @@ int	AMRTree::paramesh_refine_baseblocks(
 				child = _treeBranches[index]->RefineCell((*cptr0)[i]);
 
 
-				if (child == AMRTreeBranch::AMR_ERROR) return(-1);
+				if (child < 0) return(-1);
 
 				// Push all the children of this cell onto the list
 				// for subsequent processing. Note: ids referenced in
@@ -1069,3 +1194,14 @@ void	AMRTree::_endElementHandler2(ExpatParseMgr* pm,
 	}
 }
 
+void   AMRTree::_encode_cellid(
+    AMRTreeBranch::cid_t baseblockidx,
+    AMRTreeBranch::cid_t nodeidx,
+    AMRTreeBranch::cid_t *cellid
+) const {
+
+	size_t t = 0;
+	PUTBITS(t,_tbbits - 1,_tbbits, nodeidx);
+	PUTBITS(t,_tbits + _tbbits - 1,_tbits, baseblockidx);
+	*cellid = t;
+}

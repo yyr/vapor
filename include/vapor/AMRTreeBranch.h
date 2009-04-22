@@ -43,7 +43,7 @@ namespace VAPoR {
 //! structure. 
 //! In actuality, the tree data structure is simply an octree. There is
 //! not much particular about it with regard to AMR. The root of the
-//! tree has a single node. Nodes are refined by subdivision into 
+//! tree has a single node (cell). Nodes are refined by subdivision into 
 //! octants. Each node has an integer cell identifier.  
 //! Cell id's are ordered sequentially in a breath first traversal
 //! of the octree. The root node has id 0 (zero). The root's children
@@ -62,16 +62,11 @@ namespace VAPoR {
 //! No field data is stored with the AMRTreeBranch class.
 //
 
-#define GETBITS(TARG,POSS,N) \
-    ((N)<32 ? (((TARG) >> ((POSS)+1-(N))) & ~(~0ULL << (N))) : \
-    ((TARG) >> ((POSS)+1-(N))) )
-
-#define SETBITS(TARG, POSS, N, SRC) \
-        (TARG) &= ~(~((~0LL) << (N)) << (((POSS)+1) - (N))); \
-        (TARG) |= (((SRC) & ~((~0ULL) << (N))) << (((POSS)+1) - (N)))
 class AMRTreeBranch : public VetsUtil::MyBase {
 
 public:
+
+ typedef long cid_t;
 
  //
  // Tag names for data stored in the XML tree
@@ -89,10 +84,6 @@ public:
  static const string _maxExtentsAttr;	// max coord bounds of branch
  static const string _locationAttr;		// toplogical coords of branch
 
-
- static const unsigned int	AMR_ERROR = ~0U;
-
- typedef unsigned int UInt32;
 
  //! Constructor for the AMRTreeBranch class.
  //!
@@ -118,33 +109,39 @@ public:
 
  virtual ~AMRTreeBranch();
 
- //! Delete a node from the tree branch
+ void Update();
+
+ //! Delete a cell from the tree branch
  //!
- //! Deletes the indicated node from the tree branch
- //! \param[in] cellid Cell id of node to delete
+ //! Deletes the indicated cell from the tree branch
+ //! \param[in] cellid Cell id of cell to delete
  //!
  //! \retval status Returns a non-negative value on success
  //
- int	DeleteCell(UInt32 cellid);
+ int	DeleteCell(cid_t cellid);
 
  //! Find a cell containing a point.
  //!
  //! This method returns the cell id of the node containing a point.
  //! The coordinates of the point are specfied in the user coordinates
  //! defined by the during the branch's construction (it is assumed that
- //! the branch occupies Cartesian space and that all nodes are rectangular.
+ //! the branch occupies Cartesian space and that all cells are rectangular.
  //! By default, the leaf node containing the point is returned. However,
  //! an ancestor node may be returned by specifying limiting the refinement 
  //! level.
  //!
  //! \param[in] ucoord A three element array containing the coordintes
  //! of the point to be found. 
- //! \param[in] refinementlevel The refinement level of the cell to be
- //! returned. If -1, a leaf node is returned.
+ //! \param[in] ref_level The refinement level of the cell to be
+ //! returned. If -1, a leaf node (cell) is returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
+ //! the indicated point. Otherwise a negative int is returned.
  //
- UInt32	FindCell(const double ucoord[3], int refinementlevel = -1) const;
+ cid_t	FindCell(const double ucoord[3], int ref_level = -1) const;
+
+ bool ValidCell(cid_t cellid) const {
+	return(cellid < _octree->get_num_cells(_octree->get_max_level())); 
+ };
 
  //! Return the user coordinate bounds of a cell
  //!
@@ -161,7 +158,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //!
  int	GetCellBounds(
-	UInt32 cellid, double minu[3], double maxu[3]
+	cid_t cellid, double minu[3], double maxu[3]
  ) const;
 
  //! Return the topological coordinates of a cell within the branch.
@@ -172,16 +169,35 @@ public:
  //! of i-j-k values runs from \e min to \e max, where \e min is given by
  //! location * 2^j, where \e location is provided by the \p location
  //! parameter of the constructor and \e j is the refinement level
- //! of the cell. The value of \e max is \min + 2^j, where \e j is
+ //! of the cell. The value of \e max is \min + 2^j - 1, where \e j is
  //! again the cell's refinement level. Hence, the cell's location
  //! is relative to the branch's location.
  //!
  //! \param[in] cellid The cell id of the cell whose bounds are to be returned
- //! \param[out] maxu A three element integer array to which the cell 
- //! location will be copied
- //! \retval status Returns a non-negative value on success
+ //! \param[out] xyz The cell's location
+ //! \param[out] reflevel The refinment level of the cell
  //!
- int	GetCellLocation(UInt32 cellid, unsigned int xyz[3]) const;
+ //! \retval status Returns a non-negative value on success.  A negative
+ //! int is returned if \p cellid does not exist in the tree.
+ //!
+ int	GetCellLocation(cid_t cellid, size_t xyz[3],int *reflevel) const;
+
+
+ //! Return the cellid for a cell with the given i-j-k coordinates
+ //!
+ //! This method returns the cellid for the cell indicated by
+ //! the i-j-k coordinates at a given refinement level.
+ //!
+ //! \param[in] xyz The cell's location 
+ //! \param[in] reflevel The refinement level of the cell
+ //! \param[in] cellid The cell id of the cell whose bounds are to be returned
+ //!
+ //! \retval status Returns a non-negative value on success. A negative
+ //! int is returned \p xyz are invalid for refinement level.
+ //!
+ //! \sa GetCellLocation()
+ //!
+ AMRTreeBranch::cid_t    GetCellID(const size_t xyz[3], int reflevel) const;
 
  // Returns the cell id for the first of the eight children of the 
  // cell with cell id, 'cellid'. The cell ids for the remaining seven
@@ -199,9 +215,9 @@ public:
  //! \param[in] cellid The cell id of the cell whose first child is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
+ //! the indicated point. Otherwise a negative int is returned.
  //
- UInt32	GetCellChildren(UInt32 cellid) const;
+ cid_t	GetCellChildren(cid_t cellid) const;
 
  //! Return the refinement level of a cell
  //!
@@ -212,7 +228,7 @@ public:
  //! to be returned.
  //! \retval status Returns a non-negative value on success
  //
- int	GetCellLevel(UInt32 cellid) const;
+ int	GetCellLevel(cid_t cellid) const;
 
 
  //! Return the cell id of a cell's neighbor.
@@ -229,21 +245,21 @@ public:
  //! \param[in] face Indicates the cell's face adjacent to the desired
  //! neighbor.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
- UInt32	GetCellNeighbor(UInt32 cellid, int face) const;
+ //! the indicated point. Otherwise a negative int is returned.
+ cid_t	GetCellNeighbor(cid_t cellid, int face) const;
 
- //! Return number of nodes in the branch
+ //! Return number of cells in the branch
  //!
- //! Returns the total number of nodes in a branch, including parent nodes
+ //! Returns the total number of cells in a branch, including parent cells
  //!
- UInt32 GetNumNodes() const {return ((UInt32) _numNodes); };
+ cid_t GetNumCells() const;
 
- //! Return number of nodes in the branch
+ //! Return number of cells in the branch
  //!
- //! Returns the total number of nodes in a branch, including parent nodes,
+ //! Returns the total number of cells in a branch, including parent cells,
  //! up to and including the indicated refinement level.
  //!
- UInt32 GetNumNodes(int refinementlevel = -1) const;
+ cid_t GetNumCells(int ref_level) const;
 
  //! Returns the cell id of the parent of a child node
  //!
@@ -253,26 +269,26 @@ public:
  //! \param[in] cellid The cell id of the cell whose parent is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
+ //! the indicated point. Otherwise a negative int is returned.
  //
- UInt32	GetCellParent(UInt32 cellid) const;
+ cid_t	GetCellParent(cid_t cellid) const;
 
  //! Returns the maximum refinement level of any cell in this branch
  //
  int	GetRefinementLevel() const {
-	return ((int) (_rootNode->GetElementLong(_refinementLevelTag)[0]));
+	return ((int) (_octree->get_max_level()));
  };
 
  //! Returns the cellid root node
  //
- UInt32	GetRoot() const {return(0);};
+ cid_t	GetRoot() const {return(0);};
 
  //! Returns true if the cell with id \p cellid has children. 
  //! 
  //! Returns true or false indicated whether the specified cell
  //! has children or not.
  //
- int	HasChildren(UInt32 cellid) const;
+ int	HasChildren(cid_t cellid) const;
 
 
  //! Refine a cell
@@ -282,76 +298,99 @@ public:
  //!
  //! \param[in] cellid The cell id of the cell to be refined
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
+ //! the indicated point. Otherwise a negative int is returned.
  //!
  //
- AMRTreeBranch::UInt32	RefineCell(UInt32 cellid);
+ AMRTreeBranch::cid_t	RefineCell(cid_t cellid);
+
+ AMRTreeBranch::cid_t	GetNextCell(bool restart);
 
  int SetParentTable(const vector<long> &table);
 
 private:
 
+	//
+	// cell ids indicate the order in which the cell was added to the 
+	// tree via refinement. They also determine the octant that a cell 
+	// occupies by virtue of the fact that refinement generates 8 new
+	// cells, inserted into the tree in octant order. The root of the 
+	// tree always has id==0
+	//
+ class octree {
+ public:
+
+
+	octree();
+	void clear();
+	cid_t refine_cell(cid_t cellid);
+	cid_t get_parent(cid_t cellid) const;
+
+	//
+	// returns the cellid of the child in the first octant. The
+	// id's of the remaining children are numbered sequentially
+	//
+	cid_t get_children(cid_t cellid) const;
+
+	bool has_children(cid_t cellid) const;
+	// 
+	// Get id of next child in a breadth first traversal of 
+	// the tree. If 'restart' is true, traversal starts from the
+	// top of the tree, else traversal starts from the cell returned
+	// from the previous call. When the tree has been completely 
+	// treversed a negative number is returned.
+	//
+	cid_t get_next(bool restart);
+
+	// 
+	// Return the octant occupied by 'cellid'. Octants are numbered
+	// sequentially from 0 with X varying fastest, followed by y, than Z.
+	//
+	int get_octant(cid_t cellid) const;
+	int get_max_level() const {return(_max_level); };
+
+
+	// Get the cellid for the cell with the specified coordinates (if
+	// it exists). The cartesian coordinates are respective
+	// to the refinement level of the cell. Their range is from
+	// 0..(2^j)-1, where j is the refinment level. If no cell
+	// exists at (xyz, level) a negative int is returned.
+	//
+	cid_t get_cellid(const size_t xyz[3], int level) const;
+
+	int get_location(cid_t cellid, size_t xyz[3], int *level) const;
+
+	int get_level(cid_t cellid) const;
+
+	cid_t get_num_cells(int ref_level) const;
+
+ private:
+
+	vector <cid_t> _bft_next;
+	vector <cid_t>::iterator _bft_itr;
+	vector <cid_t> _bft_children;
+	vector <cid_t> _num_cells;
+	int _max_level;	// maximum refinment level in tree. Base level is 0
+
+	typedef struct {
+		cid_t parent;
+		cid_t child;	// id of first child. Remaining children have
+						// consecutivie ids
+	} _node_t;
+
+	vector <_node_t> _tree;	// interal octree representation.
+
+	void _init();
+ };
+
+
+ octree *_octree;
 
  size_t _location[3];    // Topological coords of branch  in blocks
  double _minBounds[3];  // Min domain extents expressed in user coordinates
  double _maxBounds[3];  // Max domain extents expressed in user coordinates
 
- // Offsets into parentTable array
- //
- //static const int YLOC = XLOC+1;	// X,Y,Z coordinates of cell's corner
- //static const int ZLOC = YLOC+1;
- //static const int CHILDMASK = ZLOC+1;	// 8-bit mask indicating which, 
- //static const int LEVEL = CHILDMASK+1;// refinement level of this parent cell
-				// if any, of the children of 
-				// this parent node
-				// are themselves parents
- //static const int SZ = LEVEL+1;	// Size of record;
-
- static const int XLOC;			
- static const int YLOC;
- static const int ZLOC;
- static const int CHILDMASK;
- static const int LEVEL;	
- static const int SZ;
-
- long long _numNodes;			// Number of nodes in tree
-
-
  XmlNode	*_rootNode;	// root of XML tree used to represent AMR tree
 
- // Return the offset for the first element in the _parentsCells
- // array that has the same level as the element 'idx'. 
- //
- int	get_start_of_level(int idx) const;
-
- // Return the offset for the last element in the _parentsCells
- // array that has the same level as the element 'idx'. 
- //
- int	get_end_of_level(int idx) const;
-
- // Return the cell id for the ith refined cell from the _parentCells
- // array, starting from the 'parentidx' element. The ith parent will
- // be at the same level as parentidx 
- //
- int get_ith_refined_cell(
-    int parentidx,
-    unsigned int ithcell
- ) const;
-
- // Return the count of refined cells from the _parentCells array
- // between the first cellid at offset 'parentidx' and the cell
- // with cellid, 'cellid', inclusive.
- //
- int get_refined_cell_count(
-    int parentidx,
-    unsigned int cellid
- ) const;
-
- unsigned int getbits(
-    unsigned int x, int p, int n
- ) {
-    return((x >> (p+1-n)) & ~(~0 << n));
- }
 
 };
 

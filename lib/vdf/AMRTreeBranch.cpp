@@ -7,14 +7,6 @@
 #include <map>
 #include <vapor/AMRTreeBranch.h>
 
-#ifdef	QUADTREE
-#define	NREGIONS	4
-#define NBITS	2
-#else
-#define	NREGIONS	8
-#define NBITS	3
-#endif
-
 using namespace VAPoR;
 using namespace VetsUtil;
 
@@ -28,13 +20,6 @@ const string AMRTreeBranch::_minExtentsAttr = "MinExtents";
 const string AMRTreeBranch::_maxExtentsAttr = "MaxExtents";
 const string AMRTreeBranch::_locationAttr = "Location";
 
-const int AMRTreeBranch::XLOC = 0;
-const int AMRTreeBranch::YLOC = 1;
-const int AMRTreeBranch::ZLOC = 2;
-const int AMRTreeBranch::CHILDMASK = 3;
-const int AMRTreeBranch::LEVEL = 4;
-const int AMRTreeBranch::SZ = 5;
-
 AMRTreeBranch::AMRTreeBranch(
 	XmlNode *parent,
 	const double min[3], 
@@ -46,8 +31,6 @@ AMRTreeBranch::AMRTreeBranch(
 		min[0],min[1],min[2], max[0],max[1],max[2], loc[0],loc[1],loc[2]
 	);
 	
-	_numNodes = 1;
-
     vector <long> refinement_level;
     vector <long> parent_table;
 
@@ -56,6 +39,7 @@ AMRTreeBranch::AMRTreeBranch(
 		_maxBounds[i] = max[i];
 		_location[i] = loc[i];
 	}
+
 	refinement_level.push_back(0);
 
 	ostringstream oss;
@@ -83,97 +67,116 @@ AMRTreeBranch::AMRTreeBranch(
 	// Current maximum refinement level of tree branch
 	//
 	_rootNode->SetElementLong(_parentTableTag, parent_table);
+
+	_octree = new octree();
 }
 
 AMRTreeBranch::~AMRTreeBranch() 
 {
 	SetDiagMsg("AMRTreeBranch::~AMRTreeBranch()");
+	if (_octree) delete _octree;
 }
 
-int	AMRTreeBranch::DeleteCell(UInt32 cellid) {
+void AMRTreeBranch::Update() {
+	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
+
+	parent_table.clear();
+	ref_level.clear();
+
+	ref_level.push_back(_octree->get_max_level());
+
+	bool first = true;
+	cid_t cellid;
+	while ((cellid = _octree->get_next(first)) >= 0) {
+		first = false;
+
+		if (_octree->has_children(cellid)) {
+			long flag = 0;
+			cid_t child = _octree->get_children(cellid);
+			for (int i=0; i<8; i++) {
+				if (_octree->has_children(child+i)) {
+					flag += 1 << i;
+				}
+			}
+			parent_table.push_back(flag);
+		}
+	}
+}
+
+int AMRTreeBranch::DeleteCell(cid_t cellid) {
 
 	SetDiagMsg("AMRTreeBranch::DeleteCell(%u)", cellid);
 
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
-	}
-
-	return(AMR_ERROR);
+	SetErrMsg("AMRTreeBranch::DeleteCell() not supported\n");
+	return(-1);
 }
 
-AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
+AMRTreeBranch::cid_t	AMRTreeBranch::FindCell(
 	const double ucoord[3], 
-	int refinementlevel
+	int ref_level
 ) const {
 
 	SetDiagMsg(
 		"AMRTreeBranch::FindCell([%f,%f,%f], %d)", 
-		ucoord[0],ucoord[1],ucoord[2], refinementlevel
+		ucoord[0],ucoord[1],ucoord[2], ref_level
 	);
-
-	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	UInt32 cellid;
 
 	for(int i =0; i<3; i++) {
 		if (ucoord[i] < _minBounds[i] || ucoord[i] > _maxBounds[i]) {
 			SetErrMsg("Point not contained in this tree branch\n");
-			return(AMR_ERROR);
+			return(-1);
 		}
+	}
+
+	if (ref_level < 0) ref_level = _octree->get_max_level();
+	if (ref_level > _octree->get_max_level()) {
+		SetErrMsg("Invalid refinement level : %d \n", ref_level);
+		return(-1);
 	}
 
 	// If the requested refinement level is 0, or if the root has no
 	// children, return the root cell id
 	//
-	if (refinementlevel == 0 || ! HasChildren(0)) return(0); // root cell;
+	if (ref_level == 0 || ! _octree->has_children(0)) return(0); 
 
-	if (refinementlevel > ref_level[0]) {
-		SetErrMsg("Invalid refinement level : %d \n", refinementlevel);
-		return(AMR_ERROR);
-	}
 
-	UInt32	cellidx = 0;	// internally root cell is -1, first child is 0
-	unsigned int parentidx;
 	unsigned int dim = 2;	// dimenion of branch, in cells at current level
 
-	for (int level = 1; level <= ref_level[0]; level++) {
+	cid_t	cellid = 0;
+	for (int level = 0; level < _octree->get_max_level(); level++) {
 
-		double deltax = _maxBounds[0] - _minBounds[0] / (double) dim;
-		double deltay = _maxBounds[1] - _minBounds[1] / (double) dim;
-		double deltaz = _maxBounds[2] - _minBounds[2] / (double) dim;
+		// We're done if the current cell has no children or
+		// we're at the specified refinement level
+		//
+		if (! _octree->has_children(cellid)) return(cellid);	
+		if (level == ref_level) return(cellid);
 
-		parentidx = cellidx >> NBITS;
+		double deltax = (_maxBounds[0] - _minBounds[0]) / (double) dim;
+		double deltay = (_maxBounds[1] - _minBounds[1]) / (double) dim;
+		double deltaz = (_maxBounds[2] - _minBounds[2]) / (double) dim;
 
-		vector<long>::const_iterator itr;
-		itr = parent_table.begin() + (parentidx*SZ);
+		size_t xyz[3];
+		_octree->get_location(cellid, xyz, &level);
 
-		if (((itr[XLOC] + 1) * deltax) < ucoord[0]) cellidx += 1;
-		if (((itr[YLOC] + 1) * deltay) < ucoord[1]) cellidx += 2;
-		if (((itr[ZLOC] + 1) * deltaz) < ucoord[2]) cellidx += 4;
+		int offset = 0;
+		
+		if (((xyz[0]+1) * deltax) < ucoord[0])  offset += 1;
+		if (((xyz[1]+1) * deltay) < ucoord[1])  offset += 2;
+		if (((xyz[2]+1) * deltaz) < ucoord[2])  offset += 4;
 
-		if (level == refinementlevel) return(cellidx+1);
-
-		if (! HasChildren(cellidx+1)) break;
-
-		cellid = GetCellChildren(cellidx+1);
-		if (cellid == AMR_ERROR) return (AMR_ERROR);
-
-		cellidx = cellid-1;
+		cellid = _octree->get_children(cellid) + offset;
 
 		dim *= 2;
 	}
 
-	if (refinementlevel == -1) return(cellidx+1);
-
 	SetErrMsg("Requested refinement level doesn't exist");
-	return(AMR_ERROR);
+	return(-1);
 
 }
 
 int	AMRTreeBranch::GetCellBounds(
-	UInt32 cellid, double minu[3], double maxu[3]
+	cid_t cellid, double minu[3], double maxu[3]
 ) const {
 
 	SetDiagMsg(
@@ -181,427 +184,187 @@ int	AMRTreeBranch::GetCellBounds(
 		cellid, minu[0],minu[1],minu[2], maxu[0],maxu[1],maxu[2]
 	);
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	size_t xyz[3];
+	int level;
 
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	int rc = _octree->get_location(cellid, xyz, &level);
+	if (rc < 0) {
+		SetErrMsg("Invalid cellid : %dl \n", cellid);
+		return(-1);
 	}
 
-	if (cellid == 0) {	// root cell
-		for (int i=0; i<3; i++) {
-			minu[i] = _minBounds[i];
-			maxu[i] = _maxBounds[i];
-		}
-		return(0);
+	unsigned int dim = 1 << level;
+
+	for (int i=0; i<3; i++) {
+		double delta = (_maxBounds[i] - _minBounds[i]) / (double) dim;
+		minu[i] = _minBounds[i] + (xyz[i] * delta);
+		maxu[i] = _minBounds[i] + ((xyz[i]+1) * delta);
 	}
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	int parentidx = cellidx >> NBITS;
-	assert((parentidx * SZ) < parent_table.size());
-
-	vector<long>::const_iterator itr;
-	itr = parent_table.begin() + (parentidx*SZ);
-
-	// calulate the location codes from the parent based on which
-	// of the parent's octants are being refined.
-	//
-	unsigned int xloc = (unsigned int) itr[XLOC] << 1;
-	unsigned int yloc = (unsigned int) itr[YLOC] << 1;
-	unsigned int zloc = (unsigned int) itr[ZLOC] << 1;
-	if (cellidx & (0x1 << 0)) xloc += 1;
-	if (cellidx & (0x1 << 1)) yloc += 1;
-	if (cellidx & (0x1 << 2)) zloc += 1;
-
-	int level = (int) itr[LEVEL] + 1;
-
-	double dim = 1.0;
-	for(int i = 0; i<level; i++, dim *= 2);
-
-	double deltax = _maxBounds[0] - _minBounds[0] / (double) dim;
-	double deltay = _maxBounds[1] - _minBounds[1] / (double) dim;
-	double deltaz = _maxBounds[2] - _minBounds[2] / (double) dim;
-
-	minu[0] = _minBounds[0] + (xloc * deltax);
-	minu[1] = _minBounds[1] + (yloc * deltay);
-	minu[2] = _minBounds[2] + (zloc * deltaz);
-
-	maxu[0] = minu[0] + deltax;
-	maxu[1] = minu[1] + deltay;
-	maxu[2] = minu[2] + deltaz;
 
 	return(0);
+
 }
 
 int	AMRTreeBranch::GetCellLocation(
-	UInt32 cellid, unsigned int xyz[3]
+	cid_t cellid, size_t xyz[3], int *ref_level
 ) const {
 
-	SetDiagMsg(
-		"AMRTreeBranch::GetCellLocation(%u)", cellid
-	);
+	size_t xyz_local[3];
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	int rc = _octree->get_location(cellid, xyz_local, ref_level);
+	if (rc < 0) {
+		SetErrMsg("Invalid cellid : %dl \n", cellid);
+		return(-1);
 	}
 
-	if (cellid == 0) {	// root cell
-		for (int i=0; i<3; i++) {
-			xyz[i] = (unsigned int) _location[i];
-		}
-		return(0);
+	for (int i=0; i<3; i++) {
+		xyz[i] = (_location[i] << *ref_level) + xyz_local[i];
 	}
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	int parentidx = cellidx >> NBITS;
-	assert((parentidx * SZ) < parent_table.size());
-
-	vector<long>::const_iterator itr;
-	itr = parent_table.begin() + (parentidx*SZ);
-
-	// calulate the location codes from the parent based on which
-	// of the parent's octants are being refined.
-	//
-	unsigned int xloc = (unsigned int) itr[XLOC] << 1;
-	unsigned int yloc = (unsigned int) itr[YLOC] << 1;
-	unsigned int zloc = (unsigned int) itr[ZLOC] << 1;
-	if (cellidx & (0x1 << 0)) xloc += 1;
-	if (cellidx & (0x1 << 1)) yloc += 1;
-	if (cellidx & (0x1 << 2)) zloc += 1;
-
-	int level = (int) itr[LEVEL] + 1;
-
-
-	// Combine the location codes of the cell, which are relative to
-	// the base cell, with the location of the base cell, adjusted for
-	// the requested level
-	//
-	xyz[0] = ((unsigned int) _location[0] << level) + xloc;
-	xyz[1] = ((unsigned int) _location[1] << level) + yloc;
-	xyz[2] = ((unsigned int) _location[2] << level) + zloc;
 
 	return(0);
 }
 
-AMRTreeBranch::UInt32	AMRTreeBranch::GetCellChildren(
-	UInt32 cellid
+AMRTreeBranch::cid_t	AMRTreeBranch::GetCellID(
+	const size_t xyz[3], int ref_level
+) const {
+
+	SetDiagMsg(
+		"AMRTreeBranch::GetCellID([%d,%d,%d], %d)", 
+		xyz[0],xyz[1],xyz[2], ref_level
+	);
+
+	if (ref_level < 0) ref_level = _octree->get_max_level();
+
+	size_t xyz_local[3];
+	for (int i=0; i<3; i++) {
+		xyz_local[i]  = xyz[i] - (_location[i] >> ref_level);
+	}
+
+	cid_t cellid = _octree->get_cellid(xyz_local, ref_level);
+	if (cellid < 0) {
+		SetErrMsg("Invalid location : %d %d %d\n", xyz[0], xyz[1], xyz[2]);
+		return(-1);
+	}
+
+	return(cellid);
+}
+
+AMRTreeBranch::cid_t	AMRTreeBranch::GetCellChildren(
+	cid_t cellid
 ) const {
 
 	SetDiagMsg("AMRTreeBranch::GetCellChildren(%u)", cellid);
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	cid_t child = _octree->get_children(cellid);
 
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	if (child < 0) {
+		SetErrMsg("Invalid cellid : %dl \n", cellid);
+		return(-1);
 	}
-
-	if (cellid == 0) return(0+1);	// root cell
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	int parentidx = cellidx >> NBITS;
-	assert((parentidx * SZ) < parent_table.size());
-
-	vector<long>::const_iterator itr;
-	itr = parent_table.begin() + (parentidx*SZ);
-
-
-	// octant indicates which octant of the parent cell this cell occupies
-	// 
-	unsigned int octant = GetBits64(cellidx, NBITS-1,NBITS);
-
-	if (! ((unsigned long) itr[CHILDMASK] & (0x1 << octant))) {
-		SetErrMsg("Invalid cell id %d : has no children\n", cellidx+1);
-		return(AMR_ERROR);
-	}
-
-	// find the first element in parent_table at the same refinement 
-	// level as the parent.
-	// 
-	int lstart = get_start_of_level(parentidx);
-
-	// Count the number of refined cells between the first at
-	// the parent's level and this cell. The count will give the 
-	// offset of *this* cell's entry in the parent_table array
-	// from the start of the next level.
-	// 
-	int count = get_refined_cell_count(lstart, cellidx);
-
-	// get start of next level where this cell will have an entry
-	lstart = get_end_of_level(parentidx);
-
-	lstart += count;
-
-	// First child's cell id given by offset of it's parent in
-	// parentCells array
-	//
-	return(((unsigned int) lstart << NBITS) + 1);
-
+	return(child);
 }
 
-int	AMRTreeBranch::GetCellLevel(UInt32 cellid) const {
+int	AMRTreeBranch::GetCellLevel(cid_t cellid) const {
 
 	SetDiagMsg("AMRTreeBranch::GetCellLevel(%u)", cellid);
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	int level = _octree->get_level(cellid);
 
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	if (level < 0) {
+		SetErrMsg("Invalid cellid : %dl \n", cellid);
+		return(-1);
 	}
-
-	if (cellid == 0) return(0);	// root level
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	int parentidx = cellidx >> NBITS;
-	assert((parentidx * SZ) < parent_table.size());
-
-	vector<long>::const_iterator itr;
-	itr = parent_table.begin() + (parentidx*SZ);
-
-	return(itr[LEVEL] + 1);
+	return(level);
 }
 
-	 
 
-AMRTreeBranch::UInt32	AMRTreeBranch::GetCellNeighbor(
-	UInt32 cellid, int face
+AMRTreeBranch::cid_t	AMRTreeBranch::GetCellNeighbor(
+	cid_t cellid, int face
 ) const {
 
 	SetDiagMsg("AMRTreeBranch::GetCellNeighbor(%u, %d)", cellid, face);
 
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
-	}
-
-	return(AMR_ERROR);
+	SetErrMsg("AMRTreeBranch::GetCellNeighbor() not supported");
+	return(-1);
 }
 
-AMRTreeBranch::UInt32	AMRTreeBranch::GetCellParent(
-	UInt32 cellid
+AMRTreeBranch::cid_t	AMRTreeBranch::GetCellParent(
+	cid_t cellid
 ) const {
 
-	SetDiagMsg("AMRTreeBranch::GetCellParent(%u)", cellid);
-
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	cid_t parent = _octree->get_parent(cellid);
+	if (cellid < 0) {
+		SetErrMsg("Invalid cellid : %dl \n", cellid);
+		return(-1);
 	}
 
-	if (cellid < 1) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
-	}
-
-	if (cellid < (NREGIONS+1)) return (0); // root cell
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	// parent's offset into the parent_table array. Note, this is 
-	// *not* the same as the parents cell id
-	//
-	int parentidx = cellidx >> NBITS;
-
-	// Get the offset in the parent_table array between the 
-	// parent and the first cell at the parent's level.
-	// 
-	int offset = parentidx - get_start_of_level(parentidx) + 1;
-
-	// Compute the parent's cell id by finding the parent's parent
-	// entry in the parentCell array.
-	//
-	return(get_ith_refined_cell(parentidx-1, offset) + 1);
-
+	return(parent);
 }
 
-AMRTreeBranch::UInt32 AMRTreeBranch::GetNumNodes(
-	int refinementlevel
+AMRTreeBranch::cid_t AMRTreeBranch::GetNumCells(
 ) const {
+	SetDiagMsg("AMRTreeBranch::GetNumCells()");
 
-	SetDiagMsg("AMRTreeBranch::GetNumNodes(%d)", refinementlevel);
+	return(GetNumCells((cid_t) -1));
+}
 
-	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+AMRTreeBranch::cid_t AMRTreeBranch::GetNumCells(
+	int ref_level
+) const {
+	SetDiagMsg("AMRTreeBranch::GetNumCells(%d)", ref_level);
 
-	if (refinementlevel < 0) refinementlevel = ref_level[0];
+	AMRTreeBranch::cid_t num;
 
-	if (refinementlevel > ref_level[0]) {
-		refinementlevel = ref_level[0];
+	if ((ref_level < 0) || ref_level > _octree->get_max_level()) {
+		ref_level = _octree->get_max_level();
 	}
 
-	UInt32 nnodes = 1;
-	for(int i = 0; i<parent_table.size(); i+=SZ) {
-
-		vector<long>::const_iterator itr;
-		itr = parent_table.begin() + i;
-
-//		if (itr[LEVEL] <= refinementlevel) nnodes += NREGIONS;
-		if (itr[LEVEL] < refinementlevel) nnodes += NREGIONS;
+	num = _octree->get_num_cells(ref_level);
+	if (num < 0) {
+		SetErrMsg("Invalid refinement level : %d \n", ref_level);
+		return(-1);
 	}
-	return(nnodes);
+
+	return(num);
 }
 		
 
 int	AMRTreeBranch::HasChildren(
-	UInt32 cellid
+	cid_t cellid
 ) const {
 
 	SetDiagMsg("AMRTreeBranch::HasChildren(%u)", cellid);
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	return(_octree->has_children(cellid));
 
-	if (cellid == 0) return(parent_table.size() > 0);	// root cell
-
-	// Internally the Id of the first child after the root node is 0
-	UInt32 cellidx = cellid -1;
-
-	int parentidx = cellidx >> NBITS;
-	if (parentidx*SZ >= parent_table.size()) return(0);
-
-	vector<long>::const_iterator itr;
-	itr = parent_table.begin() + (parentidx*SZ);
-
-
-	// octant indicates which octant of the parent cell this cell occupies
-	// 
-	unsigned int octant = GetBits64(cellidx, NBITS-1,NBITS);
-
-	if (itr[CHILDMASK] & (0x1 << octant)) return(1);
-
-	return(0);
 }
-
 
 
 //
 // It is an error to try and refine a cell that is already refined. I.e. 
 // cellid must refer to a leaf node.
 //
-AMRTreeBranch::UInt32	AMRTreeBranch::RefineCell(
-	UInt32 cellid
+AMRTreeBranch::cid_t	AMRTreeBranch::RefineCell(
+	cid_t cellid
 ) {
 
 	SetDiagMsg("AMRTreeBranch::RefineCell(%u)", cellid);
 
-	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	if (cellid >= _numNodes) {
-		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+	cid_t child = _octree->refine_cell(cellid);
+	if (child < 0) {
+		SetErrMsg("Invalid (or already refined) cell id %d\n", cellid);
+		return(-1);
 	}
+	return(child);
+}
 
-	vector <long> cell(SZ, 0);
-	cell.reserve(SZ);
-	vector<long>::iterator cellitr0 = cell.begin();
-	vector<long>::iterator cellitr1 = cell.end();
-	
-	vector<long>::iterator itr;
+AMRTreeBranch::cid_t	AMRTreeBranch::GetNextCell(
+	bool restart
+) {
 
-	// is this the root cell? Special handling required
-	//
-	if (cellid == 0) {
+	SetDiagMsg("AMRTreeBranch::GetNextCell(%d)", restart);
 
-
-		if (parent_table.size()) {
-			SetErrMsg("Can't refine cell %d\n : already refined", cellid);
-			return(AMR_ERROR);
-		}
-
-		// this is redundant
-		//
-		cell[XLOC] = 0;
-		cell[YLOC] = 0;
-		cell[ZLOC] = 0;
-		cell[CHILDMASK] = 0;	//no child of the children are refined yet
-		cell[LEVEL] = 0;		// refinement level of parent cell
-
-		itr = parent_table.begin();
-		parent_table.insert(itr, cellitr0, cellitr1);
-
-
-		ref_level[0] = 1;
-
-		_numNodes += NREGIONS;
-		return(0+1);	// First child of root cell
-		
-	}
-
-	UInt32 cellidx = cellid -1;
-
-
-	// Get the offset into the parentsCell array  for the parent of 
-	// this cell;
-	//
-	int parentidx = cellidx >> NBITS;
-	assert((parentidx * SZ) < parent_table.size());
-
-	unsigned int octant = GetBits64(cellidx, NBITS-1,NBITS);
-
-	itr = parent_table.begin() + (parentidx*SZ);
-
-	if ((unsigned int) itr[CHILDMASK] & (0x1 << octant)) {
-		SetErrMsg("Can't refine cell %d : already refined", cellidx+1);
-		return(AMR_ERROR);
-	} 
-
-	itr[CHILDMASK] = (unsigned int) itr[CHILDMASK] | (0x1 << octant);
-
-	// calulate the location codes from the parent based on which
-	// of the parent's octants are being refined.
-	//
-	cell[XLOC] = (unsigned int) itr[XLOC] << 1;
-	cell[YLOC] = (unsigned int) itr[YLOC] << 1;
-	cell[ZLOC] = (unsigned int) itr[ZLOC] << 1;
-
-	if (cellidx & (0x1 << 0)) cell[XLOC] += 1;	// X+1 octant
-	if (cellidx & (0x1 << 1)) cell[YLOC] += 1;	// Y+1 octant
-	if (cellidx & (0x1 << 2)) cell[ZLOC] += 1;	// Z+1 octant
-
-	cell[LEVEL] = itr[LEVEL] + 1;
-	cell[CHILDMASK] = 0;
-
-	if (cell[LEVEL] + 1 > ref_level[0]) {
-		ref_level[0] = cell[LEVEL] + 1;
-	}
-
-	// Get offset into parentCells to the first element at 
-	// the parent's level. Count refined cells between first 
-	// cell at this level and the refined cell we're about to add
-	//
-	int lstart = get_start_of_level(parentidx);
-	int count = get_refined_cell_count(lstart, cellidx);
-
-	// 
-	// Jump to next level and add an entry for the newly refined cell
-	//
-	lstart = get_end_of_level(parentidx);
-
-	lstart += count;
-
-	itr = parent_table.begin() + (lstart * SZ);
-	parent_table.insert(itr, cellitr0, cellitr1);
-
-	_numNodes += NREGIONS;
-
-	// First child's cell id given by offset of it's parent in
-	// parentCells array
-	//
-	return(((unsigned int) lstart << NBITS) + 1);
-
+	return(_octree->get_next(restart));
 }
 
 int AMRTreeBranch::SetParentTable(const vector <long> &table) {
@@ -611,124 +374,276 @@ int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
 	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
 
-	if (table.size() % SZ) {
-		SetErrMsg("Invalid parent table");
-		return(-1);
-	}
 
 	parent_table.clear();
 	parent_table.reserve(table.size());
+	ref_level.clear();
 
 	for(int i=0; i<table.size(); i++) {
 		parent_table.push_back(table[i]);
 	}
 
-	ref_level[0] = 0;
-	for(int parentidx=0; parentidx<(table.size()/SZ); parentidx++) {
+	_octree->clear();
+	if (table.size() == 0) return(0);	// we're done
 
-		long level = parent_table[parentidx*SZ+LEVEL];
-		if (level > ref_level[0]) ref_level[0] = level;
-	}
-	ref_level[0] += 1;
+	vector <cid_t> p1, p2;
+	p1.push_back(_octree->refine_cell(0));
 
-	int nparents = parent_table.size() / SZ;
+	vector <long> flags;
 
-	_numNodes = (nparents + 1) * NREGIONS;
-	return(0);
-}
+	vector <long>::const_iterator itr = table.begin();
 
-	
-
-int AMRTreeBranch::get_start_of_level(int parentidx) const {
-
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	assert(parentidx >= 0 && (parentidx * SZ) < parent_table.size());
-
-	int startidx = parentidx;
-
-	long level = parent_table[parentidx*SZ+LEVEL];
-
-	while (startidx>= 0 && parent_table[startidx*SZ+LEVEL] == level) {
-		startidx--;
-	}
-	startidx++;
-
-	return(startidx);
-}
-
-int AMRTreeBranch::get_end_of_level(int parentidx) const {
-
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	assert(parentidx >= 0 && (parentidx * SZ) < parent_table.size());
-
-	int startidx = parentidx;
-
-	long level = parent_table[parentidx*SZ+LEVEL];
-
-	while (startidx*SZ<parent_table.size() && parent_table[startidx*SZ+LEVEL] == level) {
-		startidx++;
-	}
-	startidx--;
-
-	return(startidx);
-}
-
-int AMRTreeBranch::get_ith_refined_cell(
-	int parentidx, 
-	unsigned int ithcell
-) const {
-
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-
-	assert(parentidx >= 0 && (parentidx * SZ) < parent_table.size());
-	
-	long level = parent_table[parentidx*SZ+LEVEL];
-
-	int	count = 0;
-	while (
-		level == parent_table[parentidx*SZ+LEVEL] && 
-		parentidx*SZ < parent_table.size()) {
-
-		for (int i = 0; i<NREGIONS; i++) {
-			if ((unsigned long) parent_table[parentidx*SZ+CHILDMASK] & (0x1 << i)) {
-				count++;
+	while (itr != table.end()) {
+		if (p1.size() == 0) {
+			SetErrMsg("Invalid table");
+			return(-1);
+		}
+		flags.clear();
+		for (int i=0; i<p1.size(); i++) {
+			if (itr == table.end()) {
+				SetErrMsg("Invalid table");
+				return(-1);
 			}
-			if (count == ithcell) {
-				return ((parentidx << (NBITS-1)) + i);
+			flags.push_back(*itr);
+			itr++;
+		}
+		p2.clear();
+		for (int i=0; i<flags.size(); i++) {
+			unsigned int flag = flags[i];
+			for (int j=0; j<8; j++) {
+				if (flag & 1<<j) { 
+					cid_t c = _octree->refine_cell(p1[i]+j);
+					assert(c>0);
+					p2.push_back(c);
+				}
 			}
 		}
-		parentidx++;
+		p1 = p2;
 	}
-	assert(level == parent_table[parentidx*SZ+LEVEL] && 
-		parentidx*SZ < parent_table.size());
+
+	ref_level.push_back(_octree->get_max_level());
 
 	return(0);
 }
 
-int AMRTreeBranch::get_refined_cell_count(
-	int parentidx, 
-	unsigned int cellidx
-) const {
+void AMRTreeBranch::octree::_init() {
+	_node_t node;
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
+	_tree.clear();
+	_num_cells.clear();
 
-	assert(parentidx >= 0 && (parentidx * SZ) < parent_table.size());
+	node.parent = -1;
+	node.child = -1;
+	_tree.push_back(node);
+	_num_cells.push_back(1);
 
-	int	idx1 = cellidx >> NBITS;
+	_bft_next.clear();
+	_bft_itr = _bft_next.begin();
+	_bft_children.clear();
+	_max_level = 0;
+}
 
-	assert((idx1 * SZ) < parent_table.size());
-	
-	unsigned int octant = GetBits64(cellidx, NBITS-1,NBITS);
+AMRTreeBranch::octree::octree() {
+	_init();
+}
 
-	unsigned int count = 0;
-	for (int i = parentidx; i<=idx1; i++) {
-		int jlast = i == idx1 ? octant : NREGIONS-1;
-		for (int j = 0; j<=jlast; j++) {
+void AMRTreeBranch::octree::clear() {
+	_init();
+}
 
-			if (parent_table[i*SZ+CHILDMASK] & (0x1 << j)) count++;
+AMRTreeBranch::cid_t AMRTreeBranch::octree::refine_cell(cid_t cellid) {
+	if (cellid > _tree.size()) return(-1);
+
+	_node_t pnode = _tree[cellid];
+
+	if (pnode.child >= 0) return(-1);	// cell already refined
+
+
+	pnode.child = _tree.size();
+	_tree[cellid] = pnode;
+
+	_node_t cnode;
+
+	cnode.parent = cellid;
+	cnode.child = -1;
+	for (int i=0; i<8; i++) {
+		_tree.push_back(cnode);
+	}
+
+	// Calculate new max refinement level  and update node count
+	//
+	cid_t	 parent = cellid;
+	int level = 1;	// level of new children 
+	while ((parent = get_parent(parent)) >= 0) level++;
+	if (level > _max_level) {
+		_max_level = level;
+		_num_cells.push_back(8);
+	}
+	else {
+		assert(_num_cells.size() > level);
+		_num_cells[level] += 8;
+	}
+
+	return(pnode.child);
+}
+		
+AMRTreeBranch::cid_t AMRTreeBranch::octree::get_parent(cid_t cellid) const {
+	if (cellid < 0 || cellid > _tree.size()) return(-1);
+
+	return (_tree[cellid].parent);
+}
+
+AMRTreeBranch::cid_t AMRTreeBranch::octree::get_children(cid_t cellid) const {
+	if (cellid < 0 || cellid > _tree.size()) return(-1);
+
+	return (_tree[cellid].child);
+}
+
+
+AMRTreeBranch::cid_t AMRTreeBranch::octree::get_next(bool restart) {
+
+	if (restart) {
+		_bft_next.clear();
+		_bft_next.push_back(0);
+		_bft_itr = _bft_next.begin();
+		_bft_children.clear();
+	}
+
+	if (_bft_itr == _bft_next.end()) {
+		_bft_next = _bft_children;
+		_bft_itr = _bft_next.begin();
+		_bft_children.clear();
+	}
+
+	if (_bft_itr == _bft_next.end()) return(-1); // we're done.
+
+	cid_t cellid = *_bft_itr;
+	_bft_itr++;
+
+	_node_t node = _tree[cellid];
+	if (node.child >= 0) {
+		for (int i=0; i<8; i++) {
+			_bft_children.push_back(node.child+i);
 		}
 	}
-	return(count);
+	return(cellid);
+}
+
+int AMRTreeBranch::octree::get_octant(cid_t cellid) const {
+
+	cid_t parent = get_parent(cellid);
+
+	if (parent < 0) return(-1);
+
+	return(cellid - _tree[parent].child);
+}
+
+AMRTreeBranch::cid_t AMRTreeBranch::octree::get_cellid(
+	const size_t xyz[3], int level
+) const {
+	if (level < 0) level = get_max_level();
+	if (level > get_max_level()) return(-1);
+
+	for (int i=0; i<3; i++) {
+		if ((xyz[i] >> level) != 0) return(-1);
+	}
+	if (level == 0) return(0);	// root node
+
+	cid_t cellid = 0;
+	for (int l=1; l<=level; l++) {
+		_node_t node = _tree[cellid];
+
+		if (node.child < 0) return(-1);	// no children
+		
+		size_t x = xyz[0] >> (level-l);
+		size_t y = xyz[1] >> (level-l);
+		size_t z = xyz[2] >> (level-l);
+
+		int offset = 0;
+		if (x%2) offset += 1;
+		if (y%2) offset += 2;
+		if (z%2) offset += 4;
+
+		cellid = node.child + offset;
+	}
+	return(cellid);
+}
+
+int AMRTreeBranch::octree::get_location(cid_t cellid, size_t xyz[3], int *level) const {
+
+	if (cellid < 0 || cellid >= _tree.size()) return(-1);
+
+	vector <cid_t> cellids;
+
+	xyz[0] = 0;
+	xyz[1] = 0;
+	xyz[2] = 0;
+	*level = 0;
+
+	if (cellid == 0) return(0);	// root node, we're done.
+
+	cellids.push_back(cellid);
+	cid_t parent = cellid;
+	while (parent != 0) {
+		_node_t node = _tree[parent];
+		cellids.push_back(node.parent);
+		parent = node.parent;
+		assert(parent >= 0);
+	}
+
+	parent = cellids.back();
+	cellids.pop_back();
+	while (cellids.size()) {
+		cid_t child = cellids.back();
+		cellids.pop_back();
+		_node_t node = _tree[parent];
+
+		cid_t offset = child - node.child;
+
+		*level = *level + 1;
+		xyz[0] = xyz[0] << 1;
+		if (offset % 2) xyz[0] += 1;
+		offset = offset >> 1;
+
+		xyz[1] = xyz[1] << 1;
+		if (offset % 2) xyz[1] += 1;
+		offset = offset >> 1;
+
+		xyz[2] = xyz[2] << 1;
+		if (offset % 2) xyz[2] += 1;
+		offset = offset >> 1;
+
+		parent = child;
+	}
+	return(0);
+}
+
+int AMRTreeBranch::octree::get_level(cid_t cellid) const {
+
+	if (cellid < 0 || cellid >= _tree.size()) return(-1);
+
+	cid_t	 parent = cellid;
+	int level = 0;
+	while ((parent = get_parent(parent)) >= 0) level++;
+
+	return(level);
+}
+
+AMRTreeBranch::cid_t AMRTreeBranch::octree::get_num_cells(int ref_level) const {
+
+	if (ref_level > _max_level) return(-1);
+
+	cid_t n = 0;
+	for (int i=0; i<_num_cells.size() && i <= ref_level; i++) n+= _num_cells[i];
+
+	return(n);
+}
+
+bool AMRTreeBranch::octree::has_children(cid_t cellid) const {
+
+	if (cellid < 0 || cellid >= _tree.size()) return(false);
+
+	_node_t node = _tree[cellid];
+
+	return(node.child >= 0);
 }
