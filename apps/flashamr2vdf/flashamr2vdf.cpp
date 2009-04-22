@@ -113,6 +113,7 @@ main(int argc, char **argv) {
 	metafile = argv[1]; // Path to a vdf file
 	flashfile = argv[2]; // Path to raw data file
 
+	MyBase::SetErrMsgFilePtr(stderr);
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	TIMER_START(t0);
