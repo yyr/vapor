@@ -5,6 +5,7 @@ include $(TOP)/make/config/prebase.mk
 SUBDIRS += idl
 SUBDIRS += quickstart
 SUBDIRS += WRFCaseStudy
+SUBDIRS += VDC
 
 include ${TOP}/make/config/base.mk
 
