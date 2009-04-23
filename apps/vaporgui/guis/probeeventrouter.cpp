@@ -93,7 +93,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	animationFlag = false;
 	myIBFVThread = 0;
 	capturingIBFV = false;
-	
+	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
 }
 
 
@@ -540,7 +540,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	boxSize[2] = zSizeEdit->text().toFloat();
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
+		//if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
 	}
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
@@ -2592,7 +2592,8 @@ adjustBoxSize(ProbeParams* pParams){
 
 	//For each j (axis) find max over i of (col(j))sub i /extent[i].
 	//This is the reciprocal of the max value of j box side.
-	/*
+	
+	//maxBoxSize is advisory, controls slider range
 	for (int axis = 0; axis<3; axis++){
 		float maxval = 0.;
 		for (int i = 0; i<3; i++){
@@ -2603,7 +2604,7 @@ adjustBoxSize(ProbeParams* pParams){
 		maxBoxSize[axis] = 1.f/maxval;
 	}
 	
-	
+	/*  This code has been eliminated.  Probe has no size or location limit
 	//Now make sure the probe box fits
 	bool boxOK = true;
 	float boxmid[3];
