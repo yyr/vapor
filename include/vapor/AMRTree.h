@@ -64,6 +64,8 @@ class AMRTree : public VetsUtil::MyBase, public ParsedXml {
 public:
 
 
+ // An unique identifier for each cell in the tree
+ //
  typedef AMRTreeBranch::cid_t cid_t;
 
 
@@ -84,6 +86,14 @@ public:
 	const double max[3]
  );
 
+ //! Construct a tree from a file
+ //!
+ //! This constructor initializes an AMRTree object class from
+ //! a file previously written by AMRTree::Write()
+ //!
+ //! \param[in] path Path name to file
+ //! \sa Write()
+ //!
  AMRTree(
 	const string &path
  );
@@ -110,6 +120,11 @@ public:
 	int paramesh_total_blocks
  );
 
+ //! Construct a simple tree
+ //!
+ //! Construct a tree with base dimensions 1x1x1 and min and max user
+ //! extents set to (0.0, 0.0, 0.0) and (1.0, 1.0, 1.0), respectively
+ //
  AMRTree();
 
  virtual ~AMRTree();
@@ -117,7 +132,9 @@ public:
  //! Decode an AMRTree cell id 
  //!
  //! Decode an AMRTree cell indentifier into a AMRTreeBranch cell id 
- //! and a base block index (branch index). 
+ //! and a base block index (branch index).  Branch indecies are numbered
+ //! from 0 to (basedim[0]*basedim[1]*basedim[2])-1, with the X base
+ //! blocks varying fastest, followed by Y, than Z. 
  //!
  //! \param[in] cellid The AMRTree cell id to decode
  //! \param[out] baseblockidx The decoded branch index
@@ -148,7 +165,7 @@ public:
  //! defined by the during the tree's construction (it is assumed that
  //! the tree occupies Cartesian space and that all nodes are rectangular.
  //! By default, the leaf node containing the point is returned. However,
- //! an ancestor node may be returned by specifying limiting the refinement
+ //! an ancestor node may be returned by limiting the refinement
  //! level.
  //!
  //! \param[in] ucoord A three element array containing the coordintes
@@ -189,7 +206,7 @@ public:
  //!
  //! \param[in] xyz The cell's location
  //! \param[in] reflevel The refinement level of the cell
- //! \param[in] cellid The cell id of the cell whose bounds are to be returned
+ //! \param[out] cellid The cell id of the cell at the specified location
  //!
  //! \retval status Returns a non-negative value on success. A negative
  //! int is returned \p xyz are invalid for refinement level.
@@ -222,8 +239,7 @@ public:
  //!
  //! This method returns the minimum and maximum extents of the
  //! indicated cell. The extents are in user coordinates as defined
- //! by the constructor for the class. The bounds for the root cell
- //! are guaranteed to be the same as those used to construct the class.
+ //! by the constructor for the class. 
  //! 
  //! \param[in] cellid The cell id of the cell whose bounds are to be returned
  //! \param[out] minu A three element array to which the minimum cell 
@@ -354,6 +370,21 @@ public:
  //!
  AMRTree::cid_t	RefineCell(AMRTree::cid_t cellid);
 
+ //! Return next node in a tree treversal
+ //!
+ //! Each time this method is called it returns the cellid for
+ //! the next node in a complete treversal of the tree. If \p restart
+ //! is true the first node in the tree is returned: the node with
+ //! topological coordinates (0,0,0), and refinement level zero. 
+ //! The order of the treversal is as follows: branches are treversed, 
+ //! one at a time in a top-to-bottom, breadth first manner. The branch with
+ //! branch id zero is treversed first, followed by branch id 1, and so on.
+ //! When the entire tree has been completely treversed a negative cell id
+ //! is returned.
+ //!
+ //! \param[in] restart If true, the treversal is restarted from the first
+ //! cell in the tree.
+ //!
  AMRTree::cid_t	GetNextCell(bool restart);
 
 

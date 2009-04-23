@@ -307,6 +307,41 @@ void AMRData::GetRegion(
 	*reflevel = _maxRefinementLevel;
 }
 
+void AMRData::Update() {
+
+	AMRTree::cid_t branch_nodes = 0;
+    const size_t *base_dim = _tree->GetBaseDim();
+	bool first = 1;
+	for (size_t z=_bmin[2]; z<=_bmax[2]; z++) {
+	for (size_t y=_bmin[1]; y<=_bmax[1]; y++) {
+	for (size_t x=_bmin[0]; x<=_bmax[0]; x++) {
+		
+
+		size_t xyz[3] = {x,y,z};
+		AMRTree::cid_t  index = z*base_dim[0]*base_dim[1] + y*base_dim[0] + x;
+
+		const AMRTreeBranch *tbranch = _tree->GetBranch(xyz);
+
+		branch_nodes = tbranch->GetNumCells(-1);
+
+		const float *data = _treeData[index];
+
+		if (first) {
+			_dataRange[0] = data[0];
+			_dataRange[1] = data[0];
+			first = false;
+		}
+
+		for (size_t i = 0; i<branch_nodes*_cellDim[2]*_cellDim[1]*_cellDim[0]; i++) {
+			if (data[i] < _dataRange[0]) _dataRange[0] = data[i];
+			if (data[i] > _dataRange[1]) _dataRange[1] = data[i];
+		}
+
+	}
+	}
+	}
+}
+
 //
 // IO size for netCDF
 //
@@ -315,7 +350,7 @@ void AMRData::GetRegion(
 int AMRData::WriteNCDF(
 	const string &path,
 	int reflevel
-) const {
+) {
 
 	int	ncid;
 	int rc;
@@ -389,6 +424,7 @@ int AMRData::WriteNCDF(
 	);
 	NC_ERR_WRITE(rc,path)
 
+	Update();	// update data range
 	rc = nc_put_att_float(
 		ncid,NC_GLOBAL,_scalarRangeToken.c_str(),NC_FLOAT, 2, _dataRange
 	);
@@ -720,7 +756,7 @@ int	AMRData::paramesh_copy_data(
 			for (int ii=0; ii<stride; ii++) {
 				dst[ii] = src[ii];
 				if (src[ii] < _dataRange[0]) _dataRange[0] = src[ii];
-				if (src[ii] > _dataRange[0]) _dataRange[1] = src[ii];
+				if (src[ii] > _dataRange[1]) _dataRange[1] = src[ii];
 			}
 			// memcpy(dst, src, stride*sizeof(src[0]));
 			dst += stride;

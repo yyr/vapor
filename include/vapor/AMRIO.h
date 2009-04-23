@@ -247,7 +247,7 @@ public:
  //!
  //! \param[in] tree A pointer to an AMR octree
  //! \sa OpenDataRead()
- int	VariableWrite(const AMRData *data);
+ int	VariableWrite(AMRData *data);
 
 
  //! Return the minimum data values for each block in the volume

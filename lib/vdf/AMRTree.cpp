@@ -349,6 +349,11 @@ AMRTree::cid_t	AMRTree::GetCellID(
 
 	if (reflevel < 0) reflevel = GetRefinementLevel();
 
+	if (reflevel > GetRefinementLevel()) {
+		SetErrMsg("Invalid cell refinement level : %d\n", reflevel);
+		return(-1);
+	}
+
 	size_t x = xyz[0];
 	size_t y = xyz[1];
 	size_t z = xyz[2];
@@ -611,6 +616,7 @@ AMRTree::cid_t	AMRTree::RefineCell(AMRTree::cid_t cellid) {
 		SetErrMsg("Invalid cell id : %lld\n", cellid);
 		return(-1);
 	}
+
 	int child_tbid = _treeBranches[index]->RefineCell(tbid);
 	if (child_tbid < 0) return(-1);
 

@@ -184,6 +184,14 @@ public:
  ) const;
 
  
+ //! Update the data range
+ //!
+ //! This method updates the data range and should be called
+ //! prior to calling GetDataRange() if the field values have 
+ //! been changed.
+ //!
+ //! \sa GetDataRange();
+ void Update();
 
  //! Save the object to a netCDF file
  //!
@@ -198,7 +206,7 @@ public:
  int    WriteNCDF(
     const string &path,
 	int reflevel = -1
- ) const;
+ );
 
  //! Read an AMR data object from a file
  //!

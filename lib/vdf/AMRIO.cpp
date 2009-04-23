@@ -344,7 +344,7 @@ int	AMRIO::VariableRead(AMRData *data) {
 }
 
 
-int	AMRIO::VariableWrite(const AMRData *data) {
+int	AMRIO::VariableWrite(AMRData *data) {
 
 	SetDiagMsg("AMRIO::VariableWrite()");
 

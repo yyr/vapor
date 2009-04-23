@@ -45,8 +45,8 @@ namespace VAPoR {
 //! not much particular about it with regard to AMR. The root of the
 //! tree has a single node (cell). Nodes are refined by subdivision into 
 //! octants. Each node has an integer cell identifier.  
-//! Cell id's are ordered sequentially in a breath first traversal
-//! of the octree. The root node has id 0 (zero). The root's children
+//! Cell id's are ordered sequentially based on creation.
+//! The root node has id 0 (zero). The root's children
 //! are numbered 1-8, with child #1 coresponding to the octant with lowest
 //! coordinate bounds and child #8 coresponding to the octant with the highest
 //! coordinate bounds. 
@@ -89,8 +89,6 @@ public:
  //!
  //! Contructs a root tree with no children. The refinement level is zero (0)
  //! \param[in] parent Parent node of XML tree
- //! \param[in] max_level The maximum refinement level permitted. The
- //! first level is 0 (zero).
  //! \param[in] min A three element array indicating the minimum X,Y,Z bounds 
  //! of the tree branch, specified in user coordinates.
  //! \param[in] max A three element array indicating the maximum X,Y,Z bounds 
@@ -199,10 +197,6 @@ public:
  //!
  AMRTreeBranch::cid_t    GetCellID(const size_t xyz[3], int reflevel) const;
 
- // Returns the cell id for the first of the eight children of the 
- // cell with cell id, 'cellid'. The cell ids for the remaining seven
- // children may be contructed by incrementing the returned id
- //
 
  //! Returns the cell id of the first child of a node
  //!
