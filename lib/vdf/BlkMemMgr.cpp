@@ -16,15 +16,15 @@ using namespace VAPoR;
 //
 //	Static member initialization
 //
-int BlkMemMgr::_page_aligned_req = 1;
-int BlkMemMgr::_mem_size_req = 32;
-int BlkMemMgr::_blk_size_req = 32*32*32;
+size_t BlkMemMgr::_page_aligned_req = 1;
+size_t BlkMemMgr::_mem_size_req = 32;
+size_t BlkMemMgr::_blk_size_req = 32*32*32;
 
-int BlkMemMgr::_page_aligned = 0;
-int BlkMemMgr::_mem_size = 0;
-int BlkMemMgr::_blk_size = 0;
+size_t BlkMemMgr::_page_aligned = 0;
+size_t BlkMemMgr::_mem_size = 0;
+size_t BlkMemMgr::_blk_size = 0;
 
-int *BlkMemMgr::_free_table = NULL;
+size_t *BlkMemMgr::_free_table = NULL;
 unsigned char   *BlkMemMgr::_blks = NULL;
 unsigned char   *BlkMemMgr::_blkptr = NULL;
 
@@ -34,7 +34,7 @@ int	BlkMemMgr::_Reinit()
 {
 	long page_size = 0;
 	size_t size = 0;
-	int	i;
+	size_t	i;
 
 	if (_free_table) delete [] _free_table;
 	if (_blks) delete [] _blks;
@@ -49,7 +49,7 @@ int	BlkMemMgr::_Reinit()
 
 	if (_mem_size == 0 || _blk_size == 0) return(0);
 
-	_free_table = new(nothrow) int[_mem_size];
+	_free_table = new(nothrow) size_t[_mem_size];
 	if (! _free_table) {
 		SetErrMsg("Memory allocation of %lu ints failed", _mem_size);
 		return(-1);
@@ -108,8 +108,8 @@ int	BlkMemMgr::_Reinit()
 }
 
 void	BlkMemMgr::RequestMemSize(
-	unsigned int blk_size, 
-	unsigned int num_blks, 
+	size_t blk_size, 
+	size_t num_blks, 
 	int page_aligned
 ) {
 
@@ -168,18 +168,18 @@ BlkMemMgr::~BlkMemMgr() {
 }
 
 void	*BlkMemMgr::Alloc(
-	unsigned int n
+	size_t n
 ) {
-	int	i,j;
-	int	index = -1;
+	size_t	i,j;
+	long long	index = -1;
 
 	SetDiagMsg("BlkMemMgr::Alloc(%d)", n);
 
 	i = 0;
 	while(i<_mem_size && index == -1) { 
 		if (_free_table[i] == 0) {
-			for(j=0; j<(int)n && i+j<_mem_size && _free_table[i+j]==0; j++);
-			if (j>=(int) n) index = i;
+			for(j=0; j<n && i+j<_mem_size && _free_table[i+j]==0; j++);
+			if (j>=n) index = i;
 			i += j;
 		}
 		else {

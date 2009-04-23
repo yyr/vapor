@@ -39,7 +39,7 @@ public:
  //! \param[in] num_blks Size of memory region requested in blocks
  //! \retval ptr A pointer to the requested memory pool
  //
- void	*Alloc(unsigned int num_blks);
+ void	*Alloc(size_t num_blks);
 
  //! Free memory
  //
@@ -65,19 +65,19 @@ public:
  //! will be page aligned
  //
  static void RequestMemSize(
-	unsigned int blk_size, unsigned int num_blks, int page_aligned = 1
+	size_t blk_size, size_t num_blks, int page_aligned = 1
  );
 
 private:
- static int	_page_aligned_req;	// requested page align memory (boolean)
- static int	_mem_size_req;	// requested size of mem in blocks
- static int	_blk_size_req;	// requested size of block in bytes
+ static size_t	_page_aligned_req;	// requested page align memory (boolean)
+ static size_t	_mem_size_req;	// requested size of mem in blocks
+ static size_t	_blk_size_req;	// requested size of block in bytes
 
- static int	_page_aligned;	// page align memory (boolean)
- static int	_mem_size;	// size of mem in blocks
- static int	_blk_size;	// size of block in bytes
+ static size_t	_page_aligned;	// page align memory (boolean)
+ static size_t	_mem_size;	// size of mem in blocks
+ static size_t	_blk_size;	// size of block in bytes
 
- static int	*_free_table;	// free block table
+ static size_t	*_free_table;	// free block table
  static unsigned char	*_blks;	// memory pool
  static unsigned char	*_blkptr;	// page-aligned memory pool
  static int _ref_count;	// # instances of object.
