@@ -236,6 +236,7 @@ reinit(bool doOverride){
 		for (int i = 0; i<3; i++){
 			if (probeMax[i] - probeMin[i] > maxExtents)
 				probeMax[i] = probeMin[i] + maxExtents;
+			/*  Eliminate previous constraint:  probe was to have center in the domain:
 			float center = 0.5f*(probeMin[i]+probeMax[i]);
 			if (center < extents[i]) {
 				probeMin[i] += (extents[i]-center);
@@ -245,6 +246,7 @@ reinit(bool doOverride){
 				probeMin[i] += (extents[i+3]-center);
 				probeMax[i] += (extents[i+3]-center);
 			}
+			*/
 			if(probeMax[i] < probeMin[i]) 
 				probeMax[i] = probeMin[i];
 		}
@@ -932,7 +934,7 @@ void ProbeParams::setMinOpacMapBound(float val){
 void ProbeParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
-void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
+void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inDomain){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space.
 	//Note that this is just a floating point version of getBoundingBox(), below.
@@ -967,10 +969,13 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
 			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
 		// calculate the mapping of this corner,
 		vtransform(startVec, transformMatrix, resultVec);
-		// force mapped corner to lie in the full extents, and then force box to contain the corner:
+		// force mapped corner to lie in the full extents, if inDomain is true..
+		//and then force box to contain the corner:
 		for (int i = 0; i<3; i++) {
-			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
-			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+			if (inDomain){
+				if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
+				if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+			}
 			if (resultVec[i] < regMin[i]) regMin[i] = resultVec[i];
 			if (resultVec[i] > regMax[i]) regMax[i] = resultVec[i];
 		}
@@ -1460,6 +1465,7 @@ void ProbeParams::getRotatedBoxDims(float boxdims[3]){
 	}
 }
 void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
+	
 	//Find the change in box side lengths before and after rotation
 	float beforeRot[3],afterRot[3]; 
 	float changeSize[3] = {1.f,1.f,1.f};
@@ -1470,7 +1476,12 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 	setTheta(newTheta);
 	setPhi(newPhi);
 	setPsi(newPsi);
+	return;
+
+	//Previously, the probe size was modified.  This has been eliminated:
+	/*
 	getRotatedBoxDims(afterRot);
+
 	for (int i = 0; i<3; i++){
 		if (afterRot[i]> 0.f) changeSize[i] = beforeRot[i]/afterRot[i];
 	}
@@ -1485,6 +1496,7 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 		boxmin[i] = boxmid - 0.5f*boxlen*changeSize[i];
 	}
 	setBox(boxmin, boxmax, -1);
+	*/
 }
 //Advect the point (x,y) in the probe to the point (*px, *py)
 //Requres that buildIBFVFields be called first!

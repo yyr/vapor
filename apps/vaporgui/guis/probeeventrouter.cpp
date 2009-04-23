@@ -548,8 +548,9 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	probeParams->getBox(boxmin, boxmax, -1);
 	const float* extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3;i++){
-		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		//No longer constrain the box to have center in the domain:
+		//if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
+		//if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
@@ -2591,6 +2592,7 @@ adjustBoxSize(ProbeParams* pParams){
 
 	//For each j (axis) find max over i of (col(j))sub i /extent[i].
 	//This is the reciprocal of the max value of j box side.
+	/*
 	for (int axis = 0; axis<3; axis++){
 		float maxval = 0.;
 		for (int i = 0; i<3; i++){
@@ -2615,6 +2617,7 @@ adjustBoxSize(ProbeParams* pParams){
 	}
 	
 	pParams->setBox(boxmin, boxmax, -1);
+	*/
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
@@ -2771,56 +2774,24 @@ guiFitToRegion(){
 }
 void ProbeEventRouter::
 setProbeToExtents(const float extents[6], ProbeParams* pParams){
-	//For each axis of probe, find the line segment it maps to.
-	float transformMatrix[12];
-	//Set up to transform from probe (coords [-1,1]) into volume:
-	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
-
+	
+	//  Construct transformation for a probe that maps to region, as follows:
+	//a.  get current rotation matrix
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 
-	const float corEnd[3][3] = {1., 0., 0., 0., 1., 0.,0., 0., 1.}; 
-	const float corBegin[3][3] = {-1., 0., 0., 0., -1., 0.,0., 0., -1.}; 
-	const float zerovec[3] = {0.f,0.f,0.f};
+	//Calculate directions of probe mapped into user space, so we can determine
+	//closest axes or rotated probe
 	const float unitVec[3][3] = {1.f,0.f,0.f,0.f,1.f,0.f,0.f,0.f,1.f};
 	float mappedDirs[3][3];
-	float newBoxMax[3],newBoxMin[3];
-
-	//Calculate directions of probe mapped into user space:
 	for (int i = 0; i< 3; i++)
 		vtransform3(unitVec[i], rotMatrix, mappedDirs[i]);
 
-	//calculate end points of each axis of probe:
-	float axisStart[3][3];
-	float axisEnd[3][3];
-
-	float probeCenter[3];
-	vtransform(zerovec,transformMatrix,probeCenter);
-	//Get positions of endpoints and probe center
-	for (int axis = 0; axis < 3; axis++){
-		vtransform(corBegin[axis],transformMatrix,axisStart[axis]);
-		vtransform(corEnd[axis],transformMatrix,axisEnd[axis]);
-	}
-
-	//Determine the center offset of the probe in user coordinates.  This is how far the
-	//probe needs to move in user space.
-	float centerOffset[3];
-	for (int i = 0; i<3; i++){
-		centerOffset[i] = (0.5f*(extents[i+3]+extents[i]) - probeCenter[i]);
-	}
-	//Next find the region axis that is most closely aligned with each probe axis, as 
-	//well as the magnification factor along each axis, in going from block coords
-	//to user coords. 
+	//b.  Find nearest axis-aligned rotation  to current rotation, 
+	//by finding unit vectors closest to probe axes:
 	int align[3] = {-1,-1,-1};
 	
-	//The axisMagFactor, when multiplied by the box coord dist along an axis, yields the
-	//user coord distance along that axis.  It can be negative.
-	
-	float axisMagFactor[3]; 
-	
-	vzero(axisMagFactor);
 	for (int probeDim = 0; probeDim< 3; probeDim++){
-		float vectDir[3];
 		//see which axis is closest to the probe axis in user space
 		float maxAlign = -1.f;
 		int alignDir = -1;
@@ -2836,61 +2807,74 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 			}
 		}
 		align[probeDim] = alignDir;
-
-		//Calculate direction vector of each probe axis mapped into user space:
-
-		vsub(axisEnd[probeDim],axisStart[probeDim],vectDir);
-		float vmg = vlength(vectDir);
-		//It can easily occur that vectDir is zero.  This happens if the probe axis is of zero length in
-		//user space, e.g. the z-axis of a 2d probe.  The probe could also be degenerate (1 dim or 0 dim)
-		
-		if (vmg > 0.f){
-			//Determine the offset and magnification in user space, along each probe axis, 
-			//needed to make the probe full in the user coord domain.  Ignore all directions except the 
-			//best aligned (this will result in some error if probe is rotated)
-			axisMagFactor[probeDim] = 
-					(extents[alignDir+3]-extents[alignDir])/vectDir[alignDir];
-
-			//Next, determine the translation and magnification in box coords required to make the probe match the full domain
-			//First, find translation needed to make the probe center map to the domain center.  This is equal in each coord to
-			// ((desired center in user coords)-(current center in user coords))/(mag factor on axis).
-			// however, if the mag factor on an axis is 0, we shall handle that translation specially later. 
-			// if the direction vector (vectDir) is negative, the probe orientation is reversed, so the centerOffset gets negated
-			
-			//New center in user coordinates is 
-			//0.5f*(extents[i+3]+extents[i])
-			//To convert (any user coord) to (current) box coordinates, 
-			//subtract current user coord center (i.e. probe center) , then divide by .5*vectDir : 
-			float newBoxCenter = centerOffset[alignDir]/(0.5f*vectDir[alignDir]);
-			//The new box size is multiplied by abs(axisMagFactor), so it goes from center - abs(axisMagFactor) to center + abs(axisMagFactor)
-			newBoxMin[probeDim] = newBoxCenter - abs(axisMagFactor[probeDim]);
-			newBoxMax[probeDim] = newBoxCenter + abs(axisMagFactor[probeDim]);
-		} 
-
 	}
+
+	//c.  Find scale S and translation T that takes [-1,1]cube to region extents
+	float newScale[3], newCenter[3];
+	for (int i = 0; i< 3; i++){
+		//d.  permute diagonal entries in S based on value of align 
 		
+		int forTrans = align[i];
+		newScale[i] = extents[forTrans+3]-extents[forTrans];
+		newCenter[i] = 0.5f*(extents[i+3]+extents[i]);
+	}
+
+
+	
+	//If the probe is not planar, we are done. 
+	if (pParams->isPlanar()){
 		
-	//Now reset the probe based on the new box min/max
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax,-1);
-	for (int probeDim = 0; probeDim<3; probeDim++){
-		if (axisMagFactor[probeDim] != 0.f) {
-			//-1,1 linearly map to probeMin and probeMax, by the mapping
-			// x -> ax+b where a = (pmax - pmin)/2, b= (pmax+pmin)/2
-			//use this map to specify new values, by mapping newBoxMin, newBoxMax
-			float a = 0.5f*(probeMax[align[probeDim]]-probeMin[align[probeDim]]);
-			float b = 0.5f*(probeMax[align[probeDim]]+probeMin[align[probeDim]]);
-			probeMin[align[probeDim]] = a*newBoxMin[probeDim]+b;
-			probeMax[align[probeDim]] = a*newBoxMax[probeDim]+b;
-		} else {
-			//make sure the probe bounds are in domain
-			if (probeMin[align[probeDim]] < extents[align[probeDim]])
-				probeMin[align[probeDim]] = extents[align[probeDim]];
-			if (probeMax[align[probeDim]] > extents[align[probeDim]+3])
-				probeMax[align[probeDim]] = extents[align[probeDim]+3];
+		//If the probe is planar, determine which axis (i) the z-axis is mapped to 
+		float boxmin[3],boxmax[3];
+		//get box in user coords
+		pParams->getBox(boxmin,boxmax,-1);
+		int zdir = align[2];
+
+
+
+	
+		//Modify the i-coordinate of the translation T so that it makes the probe center have i-coordinate
+		//closest to the i-coordinate of P.
+		//The z-coord of box center must be moved as little as possible from the previous box center
+		//so as to still fit inside the region.
+		//Determine if the z-coord of previous box center is inside region; if so, don't move box z crd
+		if((boxmin[zdir]+boxmax[zdir])*0.5f < extents[zdir])
+			newCenter[zdir] = extents[zdir];
+		else if((boxmin[zdir]+boxmax[zdir])*0.5f > extents[zdir+3])
+			newCenter[zdir] = extents[zdir+3];
+		else { // the previous center is inside the new region, make it the new center:
+			newCenter[zdir] = (boxmin[zdir]+boxmax[zdir])*0.5f;
 		}
+		newScale[2] = 0.f;
+			
 	}
-	pParams->setBox(probeMin,probeMax,-1);
+	//Now use these values to modify probe position and size (but not rotation)
+	float probeMin[3],probeMax[3];
+	for (int i = 0; i< 3; i++){
+		probeMin[i] = newCenter[i]-0.5f*newScale[i];
+		probeMax[i] = newCenter[i]+0.5f*newScale[i];
+	}
+	
+	
+	pParams->setBox(probeMin, probeMax, -1);
+	//Check to make sure the transformed probe is no bigger than the region.  If
+	//it is bigger, scale it down appropriately.
+	float regMin[3],regMax[3];
+	pParams->getContainingRegion(regMin,regMax,false);
+	float maxRatio = 1.f;
+	for (int i = 0; i< 3; i++){
+		if ((extents[i+3] - extents[i] ) <= 0.f ) continue;
+		float sizeRatio = (regMax[i] - regMin[i])/(extents[i+3] - extents[i]);
+		if (sizeRatio > maxRatio) maxRatio = sizeRatio;
+	}
+	if (maxRatio > 1.f){
+		for (int i = 0; i< 3; i++){
+			newScale[i] = newScale[i]/maxRatio;
+			probeMin[i] = newCenter[i]-0.5f*newScale[i];
+			probeMax[i] = newCenter[i]+0.5f*newScale[i];
+		}
+		pParams->setBox(probeMin, probeMax, -1);
+	}
 	return;
 }
 

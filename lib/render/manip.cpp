@@ -831,7 +831,8 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	}
 	
 	
-	//Make sure the displacement is OK.  Not allowed to
+	//Make sure the displacement is OK.  
+	//Not allowed to
 	//slide or stretch box center out of full domain box.
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
@@ -841,13 +842,15 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	if (isStretching){ //don't push through opposite face ..
 		dragDistance = constrainStretch(dragDistance);
 	} else { //sliding, not stretching
-		//Don't slide the center out of the full domain:
+		//Previous constraint: Don't slide the center out of the full domain:
+		/*  Constraint removed...
 		if (dragDistance + boxCenter < extents[coord]) {
 			dragDistance = extents[coord] - boxCenter;
 		}
 		if (dragDistance + boxCenter > extents[coord+3]){
 			dragDistance = extents[coord+3] - boxCenter;
 		} 
+		*/
 	}
 
 	//now convert from stretched world to cube coords:

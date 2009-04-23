@@ -2532,11 +2532,20 @@ same as the X, Y, and Z axes.</string>
                                                             <property name="name">
                                                                 <cstring>fitRegionButton</cstring>
                                                             </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>150</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="text">
                                                                 <string>Fit To Region</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Adjust probe to fit within current region</string>
+                                                                <string>Move probe to fit over current region</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons translates and stretches the probe so as to match the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe is not axis-aligned, then the fit is only approximate.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -2560,11 +2569,20 @@ same as the X, Y, and Z axes.</string>
                                                             <property name="name">
                                                                 <cstring>fitDomainButton</cstring>
                                                             </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>150</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="text">
                                                                 <string>Fit to Domain</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Adjust probe to fit within current data domain</string>
+                                                                <string>Move probe to fit over full data domain</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons translates and stretches the probe so as to match the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe is not axis-aligned, then the fit is only approximate.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

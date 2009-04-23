@@ -63,7 +63,6 @@
 #include <sstream>
 
 #include "params.h"
-#include "twoDtab.h"
 #include "vaporinternal/jpegapi.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
