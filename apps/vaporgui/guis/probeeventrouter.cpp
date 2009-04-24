@@ -2783,7 +2783,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 
 	//Calculate directions of probe mapped into user space, so we can determine
 	//closest axes or rotated probe
-	const float unitVec[3][3] = {1.f,0.f,0.f,0.f,1.f,0.f,0.f,0.f,1.f};
+	const float unitVec[3][3] = {{1.f,0.f,0.f},{0.f,1.f,0.f},{0.f,0.f,1.f}};
 	float mappedDirs[3][3];
 	for (int i = 0; i< 3; i++)
 		vtransform3(unitVec[i], rotMatrix, mappedDirs[i]);
