@@ -2812,70 +2812,87 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 
 	//c.  Find scale S and translation T that takes [-1,1]cube to region extents
 	float newScale[3], newCenter[3];
+	float boxmin[3],boxmax[3];
+		//get box in user coords
+	pParams->getBox(boxmin,boxmax,-1);
 	for (int i = 0; i< 3; i++){
 		//d.  permute diagonal entries in S based on value of align 
 		
 		int forTrans = align[i];
 		newScale[i] = extents[forTrans+3]-extents[forTrans];
-		newCenter[i] = 0.5f*(extents[i+3]+extents[i]);
+		//Initialize center where it already is:
+		newCenter[i] = (boxmin[i]+boxmax[i])*0.5f;
 	}
 
-
-	
 	//If the probe is not planar, we are done. 
-	if (pParams->isPlanar()){
-		
-		//If the probe is planar, determine which axis (i) the z-axis is mapped to 
-		float boxmin[3],boxmax[3];
-		//get box in user coords
-		pParams->getBox(boxmin,boxmax,-1);
-		int zdir = align[2];
+	if (pParams->isPlanar())
+		newScale[2] = 0.f;	
 
-
-
-	
-		//Modify the i-coordinate of the translation T so that it makes the probe center have i-coordinate
-		//closest to the i-coordinate of P.
-		//The z-coord of box center must be moved as little as possible from the previous box center
-		//so as to still fit inside the region.
-		//Determine if the z-coord of previous box center is inside region; if so, don't move box z crd
-		if((boxmin[zdir]+boxmax[zdir])*0.5f < extents[zdir])
-			newCenter[zdir] = extents[zdir];
-		else if((boxmin[zdir]+boxmax[zdir])*0.5f > extents[zdir+3])
-			newCenter[zdir] = extents[zdir+3];
-		else { // the previous center is inside the new region, make it the new center:
-			newCenter[zdir] = (boxmin[zdir]+boxmax[zdir])*0.5f;
-		}
-		newScale[2] = 0.f;
-			
-	}
-	//Now use these values to modify probe position and size (but not rotation)
+	//Now use these values to modify probe size (but not rotation)
 	float probeMin[3],probeMax[3];
 	for (int i = 0; i< 3; i++){
 		probeMin[i] = newCenter[i]-0.5f*newScale[i];
 		probeMax[i] = newCenter[i]+0.5f*newScale[i];
 	}
+	pParams->setBox(probeMin, probeMax, -1);
 	
+	//For each axis of probe, (except z-axis of planar probe)
+	//See how far the end of the axis is from the probe boundary.  Adjust the 
+	//scaling in that dimension appropriately:
+	float transformMatrix[12];
+	//Set up to transform from probe (coords [-1,1]) into volume:
+	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
+	for (int i = 0; i< 3; i++){
+		
+		if(i != 2 || ! pParams->isPlanar()) {
+			vtransform(unitVec[i], transformMatrix, mappedDirs[i]);
+			//look at each coord of mappedDirs, compare it to extents:
+			float maxRatio = -1.f;
+			for(int k = 0; k<3; k++){
+				float fullRatio = 2.f*abs(mappedDirs[i][k]-newCenter[k])/(extents[k+3]-extents[k]);
+				if (fullRatio > maxRatio) maxRatio = fullRatio;
+			}
+			//Now stretch it to maxRatio
+			newScale[i] /= maxRatio;
+			probeMin[i] = newCenter[i]-0.5f*newScale[i];
+			probeMax[i] = newCenter[i]+0.5f*newScale[i];
+		}
+		
+	}
 	
 	pParams->setBox(probeMin, probeMax, -1);
 	//Check to make sure the transformed probe is no bigger than the region.  If
 	//it is bigger, scale it down appropriately.
 	float regMin[3],regMax[3];
 	pParams->getContainingRegion(regMin,regMax,false);
+	
 	float maxRatio = 1.f;
+	
 	for (int i = 0; i< 3; i++){
 		if ((extents[i+3] - extents[i] ) <= 0.f ) continue;
 		float sizeRatio = (regMax[i] - regMin[i])/(extents[i+3] - extents[i]);
 		if (sizeRatio > maxRatio) maxRatio = sizeRatio;
 	}
-	if (maxRatio > 1.f){
+	if (maxRatio != 1.f){
 		for (int i = 0; i< 3; i++){
+			
 			newScale[i] = newScale[i]/maxRatio;
 			probeMin[i] = newCenter[i]-0.5f*newScale[i];
 			probeMax[i] = newCenter[i]+0.5f*newScale[i];
 		}
 		pParams->setBox(probeMin, probeMax, -1);
 	}
+	//Check to see if it should be centered better:
+	pParams->getContainingRegion(regMin,regMax,false);
+	for (int i = 0; i<3; i++){
+		if (regMax[i] > extents[i+3])
+			newCenter[i] -= (regMax[i] - extents[i+3]);
+		if (regMin[i] < extents[i])
+			newCenter[i] += (extents[i]-regMin[i]);
+		probeMin[i] = newCenter[i]-0.5f*newScale[i];
+		probeMax[i] = newCenter[i]+0.5f*newScale[i];
+	}
+	pParams->setBox(probeMin, probeMax, -1);
 	return;
 }
 
