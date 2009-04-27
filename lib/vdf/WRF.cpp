@@ -51,7 +51,9 @@ int WRF::GetProjectionString(int ncid, string& projString){
 	ostringstream oss;
 	float lat0,lat1,lat2,lon0,latts;
 	int projNum;
-	NC_ERR_READ( nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) );
+
+	if (nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) != NC_NOERR) return -1;
+	
 	switch (projNum){
 		case(0): //Lat Lon
 			projString = "+proj=latlong";
@@ -142,7 +144,7 @@ int WRF::GetProjectionString(int ncid, string& projString){
 			break;
 		default:
 
-			cerr << "Unknown MAP_PROJ value " <<  projNum <<  endl;
+			cerr << "Unsupported MAP_PROJ value " <<  projNum <<  endl;
 			return -1;
 
 	}
@@ -150,7 +152,7 @@ int WRF::GetProjectionString(int ncid, string& projString){
 	
 }
 
-// Gets info about a 3D variable and stores that info in thisVar.
+// Gets info about a  variable and stores that info in thisVar.
 int	WRF::GetVarInfo(
 	int ncid, // ID of the file we're reading
 	const char *name,
@@ -452,8 +454,8 @@ int WRF::EpochToWRFTimeStr(
 int WRF::OpenWrfGetMeta(
 	const char * wrfName, // Name of the WRF file (in)
 	const atypVarNames_t &atypnames,
-	float & dx, // Place to put DX attribute (out)
-	float & dy, // Place to put DY attribute (out)
+	float & dx, // Place to put DX attribute (out) (-1 if it's not there)
+	float & dy, // Place to put DY attribute (out) (-1 if it's not there)
 	float * vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
@@ -540,9 +542,11 @@ int WRF::OpenWrfGetMeta(
 	}
 
 
-	// Get DX and DY
-	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx ) );
-	NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy ) );
+	// Get DX and DY, set to -1 if they aren't there.
+	int ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx );
+	if (ncrc != NC_NOERR) dx = -1.f;
+	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy );
+	if (ncrc != NC_NOERR) dy = -1.f;
 
 	//Build the projection string, 
 	//If we can't, the projection string is length 0
@@ -719,12 +723,12 @@ int WRF::OpenWrfGetMeta(
 	varInfo timeInfo; // structs for variable information
 
 	varInfo latInfo, lonInfo;
-	if (GetVarInfo(ncid, "XLAT", ncdims, latInfo)< 0) return -1;
-	if (GetVarInfo(ncid, "XLONG", ncdims, lonInfo)< 0) return -1;
+	bool haveLatLon = false;
+	//Check to make sure we have the XLAT and XLONG variables
+	int vid;
+	haveLatLon = ( NC_NOERR == nc_inq_varid(ncid, "XLAT", &vid));
 
-	assert((latInfo.dimids[1] ==  snId) && (latInfo.dimids[2] ==  weId) &&
-		(latInfo.dimids[0] == timeId));
-			
+	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
 
 	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
 	if (timeInfo.ndimids != 2) {
@@ -739,8 +743,15 @@ int WRF::OpenWrfGetMeta(
 	}
 	nc_status = nc_get_var_text(ncid, timeInfo.varid, buf);
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
-		float * latlonexts = new float[4];
-		if (GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0) return -1;
+		//Try to get corner coords if we can.
+		//Not needed for wrf2vdf
+		float * latlonexts = 0;
+		if (haveLatLon){ 
+			latlonexts = new float[4];
+			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0))
+				latlonexts = 0;
+		}
+			 
 		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		TIME64_T seconds;
 

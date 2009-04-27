@@ -142,6 +142,11 @@ int	GetWRFMetadata(
 			MyBase::SetErrCode(0);
 			continue;
 		}
+		if (dx < 0.f || dy < 0.f) {
+			cerr << "Error: DX and DY attributes not found in " << files[i] << ", skipping" << endl;
+			MyBase::SetErrCode(0);
+			continue;
+		}
 		if (first) {
 			_dx = dx;
 			_dy = dy;

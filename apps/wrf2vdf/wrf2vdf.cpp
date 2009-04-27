@@ -1481,6 +1481,10 @@ int	main(int argc, char **argv) {
 		metafile, vdf_vars, vdf_timestamps, wrfNames, vdf_dims, vdf_extents
 	);
 	if (rc < 0) exit(1);
+	//Calculate DX and DY from vdf metadata
+	float DX,DY;
+	DX = (vdf_extents[3]-vdf_extents[0])/(float)(vdf_dims[0]-1);
+	DY = (vdf_extents[4]-vdf_extents[1])/(float)(vdf_dims[1]-1);
 
 	for (vector<string>::iterator itr = opt.varnames.begin(); itr!=opt.varnames.end(); itr++) {
 		if (find(vdf_vars.begin(),vdf_vars.end(),*itr)==vdf_vars.end()) {
@@ -1508,7 +1512,7 @@ int	main(int argc, char **argv) {
 		vector <string> copy_vars;		// list of vars to copy
 		int ncid;
 
-		float dx, dy; // Needed for vorticity calculation
+		float dx, dy; // Not really needed for vorticity calculation, since its in metadata
 
 		// time steps to copy to in VDC
 		vector <long> copy_vdf_timesteps;
@@ -1521,6 +1525,8 @@ int	main(int argc, char **argv) {
 			cerr << "Skipping file " << argv[arg] << endl;
 			continue;
 		}
+		if (dx < 0.f) dx = DX;
+		if (dy < 0.f) dy = DY;
 
 		if (
 			vdf_dims[0] != wrf_dims[0] || 
