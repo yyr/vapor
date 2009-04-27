@@ -2604,21 +2604,7 @@ adjustBoxSize(ProbeParams* pParams){
 		maxBoxSize[axis] = 1.f/maxval;
 	}
 	
-	/*  This code has been eliminated.  Probe has no size or location limit
-	//Now make sure the probe box fits
-	bool boxOK = true;
-	float boxmid[3];
-	for (int i = 0; i<3; i++){
-		if ((boxmax[i]-boxmin[i]) > maxBoxSize[i]){
-			boxOK = false;
-			boxmid[i] = 0.5f*(boxmax[i]+boxmin[i]);
-			boxmin[i] = boxmid[i] - 0.5f* maxBoxSize[i];
-			boxmax[i] = boxmid[i] + 0.5f*maxBoxSize[i];
-		}
-	}
 	
-	pParams->setBox(boxmin, boxmax, -1);
-	*/
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));

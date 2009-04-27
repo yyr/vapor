@@ -228,25 +228,15 @@ reinit(bool doOverride){
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
 	} else {
-		//Force the probe size to be no larger than the domain extents, and 
-		//force the probe center to be inside the domain.  Note that
+		//Force the probe size to be no larger than the domain extents, Note that
 		//because of rotation, the probe max/min may not correspond
 		//to the same extents.
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (int i = 0; i<3; i++){
 			if (probeMax[i] - probeMin[i] > maxExtents)
 				probeMax[i] = probeMin[i] + maxExtents;
-			/*  Eliminate previous constraint:  probe was to have center in the domain:
-			float center = 0.5f*(probeMin[i]+probeMax[i]);
-			if (center < extents[i]) {
-				probeMin[i] += (extents[i]-center);
-				probeMax[i] += (extents[i]-center);
-			}
-			if (center > extents[i+3]) {
-				probeMin[i] += (extents[i+3]-center);
-				probeMax[i] += (extents[i+3]-center);
-			}
-			*/
+			//  Eliminate previous constraint:  probe was to have center in the domain:
+			
 			if(probeMax[i] < probeMin[i]) 
 				probeMax[i] = probeMin[i];
 		}
@@ -1466,10 +1456,6 @@ void ProbeParams::getRotatedBoxDims(float boxdims[3]){
 }
 void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 	
-	//Find the change in box side lengths before and after rotation
-	float beforeRot[3],afterRot[3]; 
-	float changeSize[3] = {1.f,1.f,1.f};
-	getRotatedBoxDims(beforeRot);
 	//Now finalize the rotation
 	float newTheta, newPhi, newPsi;
 	convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, axis, rotVal);
@@ -1478,25 +1464,6 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 	setPsi(newPsi);
 	return;
 
-	//Previously, the probe size was modified.  This has been eliminated:
-	/*
-	getRotatedBoxDims(afterRot);
-
-	for (int i = 0; i<3; i++){
-		if (afterRot[i]> 0.f) changeSize[i] = beforeRot[i]/afterRot[i];
-	}
-
-	//Modify box size so it appears to have same dimensions:
-	float boxmin[3],boxmax[3];
-	getBox(boxmin, boxmax, -1);
-	for (int i = 0; i< 3; i++){
-		float boxmid = (boxmax[i]+boxmin[i])*0.5;
-		float boxlen = (boxmax[i] - boxmin[i]);
-		boxmax[i] = boxmid + 0.5f*boxlen*changeSize[i];
-		boxmin[i] = boxmid - 0.5f*boxlen*changeSize[i];
-	}
-	setBox(boxmin, boxmax, -1);
-	*/
 }
 //Advect the point (x,y) in the probe to the point (*px, *py)
 //Requres that buildIBFVFields be called first!
