@@ -1,12 +1,11 @@
 
-;   AddWRFDiv.pro
+;   AddDivVDF.pro
 ;
-;   Utility to read three variables from a WRF VDF, calculate their divergence 
+;   Utility to read three variables from a VDF, calculate their divergence 
 ;   and put it back into the VDF.
 ;   All three variables must be present at full resolution.
 ;
-;   The .pro files deriv_findiff.pro and wrf_div_findiff.pro 
-;   and elev_deriv.pro must be in the
+;   The .pro files deriv_findiff.pro and div_findiff.pro must be in the
 ;   directory from which you started idl.
 ;
 ;   The vdf file is replaced.  The previous vdf file is saved, with
@@ -16,7 +15,7 @@
 ;   vdffile = file path of the metadata file
 ;   varx, vary, varz = the 3 variables defining the field 
 ;       whose divergence is being calculated
-;   divVar = the name for the divergence variable being calculated 
+;   divvar = the name for the divergence variable being calculated 
 ;   tsstart = the time step to start with (or the only time step)
 ;   tsmax = (keyword parameter) the time step to stop with (don't specify
 ;           if you only want the one time step, tsstart)
@@ -25,7 +24,7 @@
 ;            you only want the one time step, tsstart)
 ;
 
-PRO AddWRFDiv, vdffile,varx,vary,varz,divvar,tsstart, $
+PRO AddDivVDF, vdffile,varx,vary,varz,divvar,tsstart, $
                 TSMAX=tsmax,TSIVAL=tsival
 
 
@@ -53,10 +52,6 @@ vdf_write,mfd,savedvdffile
 ;   Add the new variable name to the current variable names:
 ;
 
-;
-;   How many variable names?
-;
- 
 varnames = vdf_getvarnames(mfd)
 varnames2d = vdf_getvariables2DXY(mfd)
 have2dvars = n_elements(varnames2d)
@@ -101,7 +96,6 @@ print, "Working on time step ", timestep
 dfdx = vdc_bufreadcreate(mfd)
 dfdy = vdc_bufreadcreate(mfd)
 dfdz = vdc_bufreadcreate(mfd)
-dfde = vdc_bufreadcreate(mfd)
 dfddiv = vdc_bufwritecreate(mfd)
 
 ;
@@ -120,7 +114,6 @@ dim = vdc_getdim(dfdx, reflevel)
 srcx = fltarr(dim[0],dim[1],dim[2])
 srcy = fltarr(dim[0],dim[1],dim[2])
 srcz = fltarr(dim[0],dim[1],dim[2])
-srce = fltarr(dim[0],dim[1],dim[2])
 
 divarray = fltarr(dim[0],dim[1],dim[2])
 
@@ -131,8 +124,7 @@ divarray = fltarr(dim[0],dim[1],dim[2])
 vdc_openvarread, dfdx, timestep, varx, reflevel
 vdc_openvarread, dfdy, timestep, vary, reflevel
 vdc_openvarread, dfdz, timestep, varz, reflevel
-vdc_openvarread, dfde, timestep, 'ELEVATION', reflevel
-vdc_openvarwrite, dfddiv, timestep, divvar, reflevel
+vdc_openvarwrite, dfddiv, timestep,divvar , reflevel
 
 ;
 ;   Read the volume one slice at a time
@@ -140,42 +132,35 @@ vdc_openvarwrite, dfddiv, timestep, divvar, reflevel
 slcx = fltarr(dim[0],dim[1])
 slcy = fltarr(dim[0],dim[1])
 slcz = fltarr(dim[0],dim[1])
-slce = fltarr(dim[0],dim[1])
 
 ;   Determine the grid spacing
 
 extents = VDF_GETEXTENTS(mfd)
 deltax = (extents[3] - extents[0])/FLOAT(dim[0])
 deltay = (extents[4] - extents[1])/FLOAT(dim[1])
+deltaz = (extents[5] - extents[2])/FLOAT(dim[2])
 
 FOR z = 0, dim[2]-1 DO BEGIN
     vdc_bufreadslice, dfdx, slcx
     ; copy to 3d array
     srcx[*,*,z] = slcx
     vdc_bufreadslice, dfdy, slcy
-    ; copy to 3d array
     srcy[*,*,z] = slcy
     vdc_bufreadslice, dfdz, slcz
-    ; copy to 3d array
     srcz[*,*,z] = slcz
-    vdc_bufreadslice, dfde, slce
-    ; copy to 3d array
-    srce[*,*,z] = slce
-
     ;  Report every 100 reads:
-    IF ((z MOD 100) EQ 0) THEN print,'reading slice ',z
+    IF ((z MOD 100) EQ 0) THEN print,'reading x  slice ',z
 ENDFOR
 vdc_closevar, dfdx
-vdc_closevar, dfdy
-vdc_closevar, dfdz
-vdc_closevar, dfde
 vdc_bufreaddestroy, dfdx
+
+vdc_closevar, dfdy
 vdc_bufreaddestroy, dfdy
+vdc_closevar, dfdz
 vdc_bufreaddestroy, dfdz
-vdc_bufreaddestroy, dfde
 
 ;  Now perform the divergence on the data
-wrf_div_findiff,srcx,srcy,srcz,divarray,deltax,deltay,srce
+div_findiff,srcx,srcy,srcz,divarray,deltax,deltay,deltaz
 
 print,'performed the divergence on ',varx,' ', vary,' ', varz
 
