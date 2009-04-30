@@ -104,6 +104,8 @@ public:
  //! a Paramesh block structured AMR grid stored in an HDF5 file.
  //! The arguments to this constructor are read directly from HDF5
  //!
+ //! \param[in] basedim A three element array specifying the topological
+ //! dimensions of the tree in base blocks
  //! \param[in] paramesh_gids An array of Paramesh global identifiers
  //! \param[in] paramesh_bboxs An array of Paramesh bounding boxes
  //! \param[in] paramesh_refine_levels An array of Paramesh refinement levels
@@ -114,6 +116,7 @@ public:
  //! \sa http://flash.uchicago.edu/website/home/
  //
  AMRTree(
+	const size_t basedim[3], 
 	const int paramesh_gids[][15],
 	const float paramesh_bboxs [][3][2],
 	const int paramesh_refine_levels[],
@@ -408,8 +411,9 @@ public:
 
  int _parameshGetBaseBlocks(
 	vector <int> &baseblocks,
-	size_t basedim[3],
+	const size_t basedim[3],
 	const int gids[][15],
+	const float bboxs [][3][2],
 	int totalblocks
  ) const;
 

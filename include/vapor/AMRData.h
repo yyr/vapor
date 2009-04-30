@@ -130,6 +130,7 @@ public:
  //! \param[in] cell_dim A three-element array specifying the topological
  //! dimensions, in voxels, of all blocks in the grid
  //! \param[in] paramesh_gids A paramesh global identifier array
+ //! \param[in] paramesh_bboxs An array of Paramesh bounding boxes
  //! \param[in] paramesh_unk A paramesh dependent data array
  //! \param[in] paramesh_total_blocks Total number of nodes (both leaf and
  //! \param[in] reflevel The maximum refinement level of the grid.
@@ -143,6 +144,7 @@ public:
 	const AMRTree *tree,
 	const size_t cell_dim[3],
 	const int paramesh_gids[][15],
+	const float paramesh_bboxs [][3][2],
 	const float paramesh_unk[],
 	int total_blocks,
 	int reflevel = -1
