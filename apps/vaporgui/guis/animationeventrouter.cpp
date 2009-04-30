@@ -641,4 +641,12 @@ void AnimationEventRouter::guiRebuildList(){
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
+void AnimationEventRouter::guiSetTimestep(int framenum){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current time step");
+	aParams->setCurrentFrameNumber(framenum);
+	PanelCommand::captureEnd(cmd, aParams);
+	VizWinMgr::getInstance()->animationParamsChanged(aParams);
+	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+}
  

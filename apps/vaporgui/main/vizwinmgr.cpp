@@ -1021,6 +1021,7 @@ animationParamsChanged(AnimationParams* aParams){
 			ac->paramsChanged(i);
 		}
 	}
+	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentFrameNumber());
 }
 //Set the viewer coords changed flag for all vizwin's using these params:
 void VizWinMgr::

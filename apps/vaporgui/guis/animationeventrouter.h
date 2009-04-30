@@ -57,7 +57,15 @@ public:
 	void guiSetPlay(int direction);
 	virtual void guiSetLocal(Params* p, bool lg);
 	void guiToggleReplay(bool replay);
+	void guiSetTimestep(int framenum);
 
+public slots:
+	void animationPauseClick();
+	void animationPlayReverseClick();
+	void animationPlayForwardClick();
+	void animationStepForwardClick();
+	void animationStepReverseClick();
+	
 protected:
 	void setSliders (AnimationParams* a);
 
@@ -85,14 +93,10 @@ protected slots:
 	//Animation slots:
 	void animationSetFrameStep();
 	void animationSetPosition();
-	void animationPauseClick();
-	void animationPlayReverseClick();
-	void animationPlayForwardClick();
+	
 	void animationReplayClick();
 	void animationToBeginClick();
 	void animationToEndClick();
-	void animationStepForwardClick();
-	void animationStepReverseClick();
 	
 
 };

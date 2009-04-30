@@ -47,6 +47,7 @@ class QDockWindow;
 class QLabel;
 class QComboBox;
 class QSpinBox;
+class QLineEdit;
 
 
 namespace VAPoR{
@@ -97,7 +98,7 @@ public:
     QPopupMenu *helpMenu;
     QToolBar *modeToolBar;
 	QToolBar *vizToolBar;
-	QToolBar *vcrToolBar;
+	QToolBar *animationToolbar;
    //File menu:
 	//
     QAction* fileOpenAction;
@@ -169,6 +170,13 @@ public:
 	QAction* viewAllAction;
 	QAction* viewRegionAction;
 
+	QAction* playForwardAction;
+	QAction* playBackwardAction;
+	QAction* stepForwardAction;
+	QAction* stepBackAction;
+	QAction* pauseAction;
+	QLineEdit* timestepEdit;
+
 	QComboBox* alignViewCombo;
 	QSpinBox* interactiveRefinementSpin;
 
@@ -192,6 +200,7 @@ public:
 	QApplication* getApp() {return theApp;}
 	
 	void setInteractiveRefinementSpin(int);
+	void setCurrentTimestep(int tstep);
 
 	
 	
@@ -248,6 +257,14 @@ public slots:
 	virtual void setRake(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
+
+	//animation toolbar:
+	virtual void playForward();
+	virtual void playBackward();
+	virtual void pauseClick();
+	virtual void stepForward();
+	virtual void stepBack();
+	virtual void setTimestep();
 
 	//Whenever the UndoRedo menu is displayed, need to supply the right text:
 	//

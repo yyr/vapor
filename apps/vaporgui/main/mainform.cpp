@@ -107,6 +107,11 @@
 #include "images/sethome.xpm" 
 #include "images/eye.xpm"
 #include "images/magnify.xpm"
+#include "images/playreverse.xpm"
+#include "images/playforward.xpm" 
+#include "images/pause.xpm"
+#include "images/stepfwd.xpm"
+#include "images/stepback.xpm"
 
 /*
  *  Constructs a MainForm as a child of 'parent', with the
@@ -334,6 +339,25 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
 		"C&ascade", CTRL+Key_A, this);
 
+
+	//Create actions for each animation control button:
+	QPixmap* playForwardIcon = new QPixmap(playforward);
+	playForwardAction = new QAction("Play forward", *playForwardIcon,
+		"P&lay", CTRL+Key_P, this);
+	QPixmap* playBackwardIcon = new QPixmap(playreverse);
+	playBackwardAction = new QAction("Play backward", *playBackwardIcon,
+		"B&ack", CTRL+Key_P, this);
+	QPixmap* pauseIcon = new QPixmap(pause);
+	pauseAction = new QAction("Stop animation", *pauseIcon,
+		"S&top", CTRL+Key_S, this);
+	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
+	stepForwardAction = new QAction("Step forward", *stepForwardIcon,
+		"F&orwardStep", CTRL+Key_F, this);
+	QPixmap* stepBackIcon = new QPixmap(stepback);
+	stepBackAction = new QAction("Step back", *stepBackIcon,
+		"b&Ack step", CTRL+Key_A, this);
+
+
     // toolbars for mouse modes and visualizers
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
 	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
@@ -341,15 +365,29 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		"the 3D scene, by dragging with the mouse in the scene.  These include "+
 		"navigation, region, rake, probe, 2DData, and 2DImage tools.";
 	QWhatsThis::add(modeToolBar, qws);
+	
+
+	//animation toolbar:
+	animationToolbar = new QToolBar("animation control", this, DockTop);
+	
+	QString qat = QString("The animation toolbar enables control of the time steps ")+
+		"in the current active visualizer.  Additional controls are available in"+
+		"the animation tab ";
+	QWhatsThis::add(animationToolbar, qat);
+	animationToolbar->setVerticallyStretchable(false);
+	
 	vizToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar->setOffset(1500);
 	vizToolBar->setVerticallyStretchable(false);
+	
 	QDockArea* dkArea = leftDock();
 	dkArea->setAcceptDockWindow(vizToolBar, false);
 	dkArea->setAcceptDockWindow(modeToolBar, false);
+	dkArea->setAcceptDockWindow(animationToolbar, false);
 	dkArea = rightDock();
 	dkArea->setAcceptDockWindow(vizToolBar, false);
 	dkArea->setAcceptDockWindow(modeToolBar, false);
+	dkArea->setAcceptDockWindow(animationToolbar, false);
 	
 
 	//Add a QComboBox to toolbar to select window
@@ -369,6 +407,19 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	sethomeAction->addTo(vizToolBar);
 	viewRegionAction->addTo(vizToolBar);
 	viewAllAction->addTo(vizToolBar);
+
+	
+	timestepEdit = new QLineEdit(" 1 ", "xxxxx", animationToolbar);
+	timestepEdit->setAlignment(Qt::AlignHCenter);
+	timestepEdit->setMaximumWidth(40);
+	QToolTip::add(timestepEdit, "Edit/Display current time step");
+	playBackwardAction->addTo(animationToolbar);
+	stepBackAction->addTo(animationToolbar);
+	pauseAction->addTo(animationToolbar);
+	stepForwardAction->addTo(animationToolbar);
+	playForwardAction->addTo(animationToolbar);
+	
+	
 
 	alignViewCombo = new QComboBox(vizToolBar);
 	alignViewCombo->insertItem("Align View");
@@ -539,6 +590,12 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
  
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
  
+	connect (playForwardAction, SIGNAL(activated()), this, SLOT(playForward()));
+	connect (playBackwardAction, SIGNAL(activated()), this, SLOT(playBackward()));
+	connect (pauseAction, SIGNAL(activated()), this, SLOT(pauseClick()));
+	connect (stepForwardAction, SIGNAL(activated()), this, SLOT(stepForward()));
+	connect (stepBackAction, SIGNAL(activated()), this, SLOT(stepBack()));
+	connect (timestepEdit, SIGNAL(returnPressed()),this, SLOT(setTimestep()));
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
 	
 	//These need to be installed to set the tab pointers in the
@@ -1804,3 +1861,36 @@ void MainForm::setInteractiveRefinementSpin(int val){
 	if(interactiveRefinementSpin)interactiveRefinementSpin->setValue(val);
 }
 	
+void MainForm::pauseClick(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	aRouter->animationPauseClick();
+}
+void MainForm::playForward(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	aRouter->animationPlayForwardClick();
+}
+void MainForm::playBackward(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	aRouter->animationPlayReverseClick();
+}
+void MainForm::stepBack(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	aRouter->animationStepReverseClick();
+}	
+void MainForm::stepForward(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	aRouter->animationStepForwardClick();
+}	
+//Respond to a change in the text in the animation toolbar
+void MainForm::setTimestep(){
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	int tstep = timestepEdit->text().toInt();
+	if (tstep < (int) DataStatus::getInstance()->getMinTimestep()) tstep = DataStatus::getInstance()->getMinTimestep();
+	if (tstep > (int) DataStatus::getInstance()->getMaxTimestep()) tstep = DataStatus::getInstance()->getMaxTimestep();
+	aRouter->guiSetTimestep(tstep);
+}
+//Set the timestep in the animation toolbar:
+void MainForm::setCurrentTimestep(int tstep){
+	timestepEdit->setText(QString::number(tstep));
+	update();
+}
