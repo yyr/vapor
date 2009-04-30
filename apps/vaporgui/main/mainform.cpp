@@ -109,7 +109,7 @@
 #include "images/magnify.xpm"
 #include "images/playreverse.xpm"
 #include "images/playforward.xpm" 
-#include "images/pause.xpm"
+#include "images/pauseimage.xpm"
 #include "images/stepfwd.xpm"
 #include "images/stepback.xpm"
 
@@ -347,7 +347,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
 	playBackwardAction = new QAction("Play backward", *playBackwardIcon,
 		"B&ack", CTRL+Key_P, this);
-	QPixmap* pauseIcon = new QPixmap(pause);
+	QPixmap* pauseIcon = new QPixmap(pauseimage);
 	pauseAction = new QAction("Stop animation", *pauseIcon,
 		"S&top", CTRL+Key_S, this);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
