@@ -85,17 +85,12 @@ void AMRData::_AMRData(
 		return;
 	}
 		
-    if (! IsPowerOfTwo(cell_dim[0])) {
-        SetErrMsg("Block dimension is not a power of two");
-        return;
-    }
-
 	_dataRange[0] = _dataRange[1] = 0.0;
 
 	const size_t *bdim = tree->GetBaseDim();
 
 	for(int i=0; i<3; i++) {
-		if ((min[i] >= bdim[i]) || (max[i] >= bdim[i]) || (min[i]>max[i])){
+		if ((min[i] >= bdim[i]) || (max[i] > bdim[i]) || (min[i]>max[i])){
 			SetErrMsg("Block coordinates invalid");
 			return;
 		}
@@ -186,6 +181,7 @@ AMRData::AMRData(
 	const AMRTree *tree,
 	const size_t cell_dim[3],
 	const int paramesh_gids[][15],
+	const float paramesh_bboxs [][3][2],
 	const float paramesh_unk[],
 	int	total_blocks,
 	int reflevel
@@ -203,9 +199,7 @@ AMRData::AMRData(
 
 	baseblocks.reserve(bdim[0]*bdim[1]*bdim[2]);
 
-	size_t dummy[3];
-
-	if (tree->_parameshGetBaseBlocks(baseblocks,dummy,paramesh_gids,total_blocks)<0)return;
+	if (tree->_parameshGetBaseBlocks(baseblocks,bdim,paramesh_gids,paramesh_bboxs, total_blocks)<0)return;
 
 	_dataRange[0] = _dataRange[1] = paramesh_unk[0];
 	for(int i =0; i<baseblocks.size(); i++) {
@@ -585,7 +579,7 @@ int AMRData::ReadNCDF(
 	for (int i=0; i<3; i++) {
 		if ((file_bmin[i] > base_dim[i]-1) ||
 			(file_bmax[i] > base_dim[i]-1) ||
-			(file_bmin[i] > file_bmax[i]-1)) {
+			(file_bmin[i] > file_bmax[i])) {
 
 			SetErrMsg("Data file doesn't match AMR tree");
 			return(-1);

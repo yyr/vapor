@@ -193,24 +193,25 @@ AMRTree::AMRTree(
 }
 
 AMRTree::AMRTree(
+	const size_t basedim[3], 
 	const int	paramesh_gids[][15],
 	const float paramesh_bboxs [][3][2],
 	const int paramesh_refine_levels[],
 	int total_blocks
-	
 ) {
     SetDiagMsg( "AMRTree::AMRTree(,,,%d)", total_blocks);
 
 	_objIsInitialized = 0;
 
-	size_t basedim[3];
 	vector <int> baseblocks;
 
 
 	// Compute the dimension of the volue in base blocks and identify all of
 	// the base blocks
 	//
-	if (_parameshGetBaseBlocks(baseblocks,basedim,paramesh_gids,total_blocks)<0)return;
+	if (_parameshGetBaseBlocks(
+		baseblocks,basedim,paramesh_gids,paramesh_bboxs, total_blocks
+		)<0)return;
 
 	double min[3];
 	double max[3];
@@ -724,10 +725,26 @@ int	AMRTree::Read(
 	return(0);
 }
 
+typedef struct {
+	int gid;
+	float x;
+	float y;
+	float z;
+} tmp_struct_t;
+
+bool block_cmp(tmp_struct_t a, tmp_struct_t b) {
+	if (a.z < b.z) return (true);
+	else if (a.z == b.z && a.y < b.y) return (true);
+	else if (a.z == b.z && a.y == b.y && a.x < b.x) return (true);
+
+	return(false);
+}
+
 int	AMRTree::_parameshGetBaseBlocks(
 	vector <int> &baseblocks,
-	size_t basedim[3],
+	const size_t basedim[3],
 	const int	gids[][15],
+	const float paramesh_bboxs [][3][2],
 	int	totalblocks
 ) const {
 	vector <int> tmpbb;	// base blocks
@@ -735,65 +752,11 @@ int	AMRTree::_parameshGetBaseBlocks(
 	// base blocks are ones with no parents
 	//
 	for (int i=0; i<totalblocks; i++) {
-		if (gids[i][6] == -1) {
+		if (gids[i][6] < 0) {
 			tmpbb.push_back(i);
 		}
 	}
 
-	//
-	// find the first base block - the boundary corner block 
-	// with the smallest integer coordinates
-	//
-	int	firstblk = -1;
-	for (int i=0; i<tmpbb.size() && firstblk == -1; i++) {
-		if ((gids[tmpbb[i]][0] <= -20) &&
-			(gids[tmpbb[i]][2] <= -20) &&
-			(gids[tmpbb[i]][4] <= -20)) {
-
-			firstblk = tmpbb[i];
-		}
-	}
-	if (firstblk == -1) {
-		SetErrMsg("Invalid Paramesh gids record");
-		return(-1);
-	}
-
-
-	// Compute the XYZ dimensions of the volume in base blocks
-	//
-	int	nbr; // id of block's neighbor
-	int	idx = 0; // current block index;
-
-	basedim[0] = 1;
-	idx = firstblk;
-	while (1) {
-		// If X+1 neighbor is boundary, quit
-		//
-		if ((nbr = gids[idx][1]) <= -20) break;
-		idx = nbr-1; // elements in gids are off by 1
-		basedim[0]++;
-	}
-
-	basedim[1] = 1;
-	idx = firstblk;
-	while (1) {
-		// If Y+1 neighbor is boundary, quit
-		//
-		if ((nbr = gids[idx][3]) <= -20) break;
-		idx = nbr-1;
-		basedim[1]++;
-	}
-
-	basedim[2] = 1;
-	idx = firstblk;
-	while (1) {
-		// If Z+1 neighbor is boundary, quit
-		//
-		if ((nbr = gids[idx][5]) <= -20) break;
-		idx = nbr-1;
-		basedim[2]++;
-	}
-		
 	// Sanity check
 	//
 	if (tmpbb.size() != (basedim[0]*basedim[1]*basedim[2])) {
@@ -801,66 +764,26 @@ int	AMRTree::_parameshGetBaseBlocks(
 		return(-1);
 	}
 
-	// 
-	// Now order all the blocks
+
+	vector <tmp_struct_t> bblocks;
+	for (size_t i=0; i<tmpbb.size(); i++) {
+		tmp_struct_t bblock;
+		bblock.gid = tmpbb[i];
+		bblock.x = paramesh_bboxs[tmpbb[i]][0][0];
+		bblock.y = paramesh_bboxs[tmpbb[i]][1][0];
+		bblock.z = paramesh_bboxs[tmpbb[i]][2][0];
+		bblocks.push_back(bblock);
+	}
+
+	// Sort base blocks so they're in X-Y-Z order
 	//
-	baseblocks.push_back(firstblk);
+	sort(bblocks.begin(), bblocks.end(), block_cmp); 
 
-	int	err = 0;
-	int	ii;
-
-	idx = 0;
-	for(int z=0; z<basedim[2] && !err; z++) {
-
-		for(int y=0; y<basedim[1] && !err; y++) {
-
-			for(int x=0; x<basedim[0] && !err; x++) {
-
-				nbr = gids[baseblocks[idx]][1];	// X+1 neighbor
-				if (x < basedim[0]-1) {
-					nbr--;	// elements in gids are off by 1
-
-					for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
-
-					if (nbr != tmpbb[ii]) err = 1;
-					baseblocks.push_back(tmpbb[ii]);
-				}
-				else if (nbr > -20) err = 1;
-				idx++;
-				
-			}
-			if (err) break;
-			nbr = gids[baseblocks[idx-basedim[0]]][3]; // Y+1 neighbor
-			if (y < basedim[1]-1) {
-				nbr--;	// elements in gids are off by 1
-
-				for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
-
-				if (nbr != tmpbb[ii]) err = 1;
-				baseblocks.push_back(tmpbb[ii]);
-			}
-			else if (nbr > -20) err = 1;
-
-		}
-		if (err) break;
-		nbr = gids[baseblocks[idx-(basedim[0]*basedim[1])]][5]; // Z+1 neighbor
-		if (z < basedim[2]-1) {
-			nbr--;	// elements in gids are off by 1
-
-			for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
-
-			if (nbr != tmpbb[ii]) err = 1;
-			baseblocks.push_back(tmpbb[ii]);
-		}
-		else if (nbr > -20) err = 1;
+	baseblocks.clear();
+	for (size_t i=0; i<bblocks.size(); i++) {
+		baseblocks.push_back(bblocks[i].gid);
 	}
-
-
-	if (err) {
-		SetErrMsg("Invalid Paramesh gids record");
-		return(-1);
-	}
-
+		
 	return(0);
 }
 			

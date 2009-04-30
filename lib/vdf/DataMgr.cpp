@@ -763,7 +763,7 @@ int DataMgr::GetDataRange(
 		//
 		const size_t *bs = _metadata->GetBlockSize();
 		size_t minbase[3] = {0,0,0};
-		size_t maxbase[3] = {1,1,1};
+		size_t maxbase[3] = {0,0,0};
 		AMRData amrdata(&amrtree, bs, minbase, maxbase, 0);
 
 		if (AMRData::GetErrCode() != 0)  return(-1);

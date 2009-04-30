@@ -68,11 +68,14 @@ int	BlkMemMgr::_Reinit()
 			return(-1);
 		}
 
-		if ((_blk_size % page_size) && (page_size % _blk_size)) {
-			SetErrMsg("Can't align pages");
-			if (_free_table) delete [] _free_table;
-			return(-1);
-		}
+//
+// No longer abort if can't get page-aligned memory
+//
+//		if ((_blk_size % page_size) && (page_size % _blk_size)) {
+//			SetErrMsg("Can't align pages");
+//			if (_free_table) delete [] _free_table;
+//			return(-1);
+//		}
 #endif
 	}
 

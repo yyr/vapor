@@ -117,12 +117,12 @@ int Metadata::_init(
 		return(-1);
 	}
 
-	for(int i=0; i<3; i++) {
-		if (! IsPowerOfTwo((int)bs[i])) {
-			SetErrMsg("Block dimension is not a power of two: bs=%d", bs[i]);
-			return(-1);
-		}
-	}
+//	for(int i=0; i<3; i++) {
+//		if (! IsPowerOfTwo((int)bs[i])) {
+//			SetErrMsg("Block dimension is not a power of two: bs=%d", bs[i]);
+//			return(-1);
+//		}
+//	}
 
 	_emptyDoubleVec.clear();
 	_emptyLongVec.clear();
