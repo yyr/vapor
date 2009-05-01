@@ -6,6 +6,7 @@ SUBDIRS += idl
 SUBDIRS += quickstart
 SUBDIRS += WRFCaseStudy
 SUBDIRS += VDC
+SUBDIRS += NCL
 
 include ${TOP}/make/config/base.mk
 
