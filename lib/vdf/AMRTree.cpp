@@ -27,6 +27,7 @@
 #include <cmath>
 #include <cassert>
 #include <vapor/AMRTree.h>
+#include <algorithm>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -777,7 +778,7 @@ int	AMRTree::_parameshGetBaseBlocks(
 
 	// Sort base blocks so they're in X-Y-Z order
 	//
-	sort(bblocks.begin(), bblocks.end(), block_cmp); 
+	std::sort(bblocks.begin(), bblocks.end(), block_cmp); 
 
 	baseblocks.clear();
 	for (size_t i=0; i<bblocks.size(); i++) {

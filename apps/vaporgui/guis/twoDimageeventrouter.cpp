@@ -161,8 +161,7 @@ void TwoDImageEventRouter::updateTab(){
 	notNudgingSliders = true;  //don't generate nudge events
 
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()
-		&& ds->getNumMetadataVariables2D()>0) 
+	if (ds->getDataMgr()) 
 			instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);

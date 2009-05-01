@@ -1795,7 +1795,7 @@ void MainForm::startFlowCapture() {
 //
 void MainForm::captureSingleJpeg() {
 	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)",
+		"Jpeg or Tiff images (*.jpg *.tif)",
 		this,
 		"Start image capture dialog",
 		true);  //modal

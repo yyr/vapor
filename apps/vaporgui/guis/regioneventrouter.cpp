@@ -277,8 +277,8 @@ void RegionEventRouter::updateTab(){
 		boxLatLon[1] = regionMin[1];
 		boxLatLon[2] = regionMax[0];
 		boxLatLon[3] = regionMax[1];
-		int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+		int timeStep = timestepSpin->value();
+		if (DataStatus::convertToLatLon(timeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -780,8 +780,8 @@ void RegionEventRouter::guiSetTimeStep(int n){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set time step");
 	rParams->setInfoTimeStep(n);
-	refreshRegionInfo(rParams);
 	PanelCommand::captureEnd(cmd, rParams);
+	updateTab();
 }
 void RegionEventRouter::
 guiSetNumRefinements(int n){

@@ -43,6 +43,7 @@
 #include <qpixmap.h>
 #include <qimage.h>
 #include <qmutex.h>
+#include "tiffio.h"
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 #include "common.h"
@@ -2241,13 +2242,25 @@ doFrameCapture(){
 		filename +=  ".jpg";
 	} //Otherwise we are just capturing one frame:
 	else filename = captureNameImage;
-	if (!filename.endsWith(".jpg")) filename += ".jpg";
-	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.ascii(), "wb");
-	if (!jpegFile) {
-		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
-		capturingImage = 0;
-		return;
+	if (!(filename.endsWith(".jpg"))&&!(filename.endsWith(".tif"))) filename += ".jpg";
+	
+	FILE* jpegFile;
+	TIFF* tiffFile;
+	if (filename.endsWith(".tif")){
+		tiffFile = TIFFOpen(filename, "wb");
+		if (!tiffFile) {
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",filename.ascii());
+			capturingImage = 0;
+			return;
+		}
+	} else {
+		// open the jpeg file:
+		jpegFile = fopen(filename.ascii(), "wb");
+		if (!jpegFile) {
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+			capturingImage = 0;
+			return;
+		}
 	}
 	//Get the image buffer 
 	unsigned char* buf = new unsigned char[3*width()*height()];
@@ -2267,22 +2280,45 @@ doFrameCapture(){
 	if (timeAnnotType && timeAnnotLabel){
 		addTimeToBuffer(buf);
 	}
-	//Now call the Jpeg library to compress and write the file
+	//Now call the Jpeg or tiff library to compress and write the file
 	//
-	int quality = getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, width(), height(), buf, quality);
-	if (rc){
-		//Error!
-		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
-			filename.ascii());
-		capturingImage = 0;
-		delete buf;
-		return;
+	if (filename.endsWith(".jpg")){
+		int quality = getJpegQuality();
+		int rc = write_JPEG_file(jpegFile, width(), height(), buf, quality);
+		if (rc){
+			//Error!
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
+				filename.ascii());
+			capturingImage = 0;
+			delete buf;
+			return;
+		}
+	} else { //capture the tiff file, one scanline at a time
+		uint32 imagelength = (uint32) height();
+		uint32 imagewidth = (uint32) width();
+		TIFFSetField(tiffFile, TIFFTAG_IMAGELENGTH, imagelength);
+		TIFFSetField(tiffFile, TIFFTAG_IMAGEWIDTH, imagewidth);
+		TIFFSetField(tiffFile, TIFFTAG_PLANARCONFIG, 1);
+		TIFFSetField(tiffFile, TIFFTAG_SAMPLESPERPIXEL, 3);
+		TIFFSetField(tiffFile, TIFFTAG_ROWSPERSTRIP, 8);
+		TIFFSetField(tiffFile, TIFFTAG_BITSPERSAMPLE, 8);
+		TIFFSetField(tiffFile, TIFFTAG_PHOTOMETRIC, 2);
+		for (int row = 0; row < imagelength; row++){
+			int rc = TIFFWriteScanline(tiffFile, buf+row*3*imagewidth, row);
+			if (rc != 1){
+				SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing tiff file %s",
+				filename.ascii());
+				break;
+			}
+		}
+		TIFFClose(tiffFile);
 	}
+
 	//If just capturing single frame, turn it off, otherwise advance frame number
 	if(capturingImage > 1) captureNumImage++;
 	else capturingImage = 0;
 	delete buf;
+	
 }
 
 float GLWindow::getPixelSize(){
