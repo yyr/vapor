@@ -368,7 +368,7 @@ endif
 LDFLAGS += $(MAKEFILE_LDFLAGS)
 
 dep: $(DEPS)
-	$(MAKE) $(PARALLELMAKEFLAGS) recurse INCLUDEDEPS=1
+	$(MAKE) -f $(word 1, $(MAKEFILE_LIST)) recurse INCLUDEDEPS=1
 
 headers: $(HEADER_FILES)
 ifdef SUBDIRS
