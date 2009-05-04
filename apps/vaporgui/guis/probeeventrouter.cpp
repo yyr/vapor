@@ -641,6 +641,7 @@ rotateXWheel(int val){
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+
 	manip->setTempRotation((float)val/10.f, 0);
 	viz->updateGL();
 	

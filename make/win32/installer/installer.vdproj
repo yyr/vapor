@@ -225,6 +225,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_374692AF2F14411F980EFF841A6FEBBC"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3902F569CFA142668353B1C83FDCB732"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1799,6 +1805,26 @@
             "TargetName" = "8:WRFFigure5.1.vss"
             "Tag" = "8:"
             "Folder" = "8:_466D2BF761CF482D96ACD7B57CD29B01"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{A582A373-4685-4296-BEFE-614B80A702C3}:_374692AF2F14411F980EFF841A6FEBBC"
+            {
+            "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf2geotiff.ncl"
+            "TargetName" = "8:wrf2geotiff.ncl"
+            "Tag" = "8:"
+            "Folder" = "8:_7F108BF15227471FA2BE5357227382FC"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4024,6 +4050,17 @@
                                             "Condition" = "8:"
                                             "Transitive" = "11:FALSE"
                                             "Property" = "8:_EFF458650A37469C8F1B251959D52E27"
+                                                "Folders"
+                                                {
+                                                }
+                                            }
+                                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_7F108BF15227471FA2BE5357227382FC"
+                                            {
+                                            "Name" = "8:NCL"
+                                            "AlwaysCreate" = "11:FALSE"
+                                            "Condition" = "8:"
+                                            "Transitive" = "11:FALSE"
+                                            "Property" = "8:_93612FD6B5B3467682714A0219149371"
                                                 "Folders"
                                                 {
                                                 }
