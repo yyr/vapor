@@ -141,10 +141,10 @@ AMRTreeBranch::cid_t	AMRTreeBranch::FindCell(
 	if (ref_level == 0 || ! _octree->has_children(0)) return(0); 
 
 
-	unsigned int dim = 2;	// dimenion of branch, in cells at current level
-
 	cid_t	cellid = 0;
-	for (int level = 0; level < _octree->get_max_level(); level++) {
+	double minbnd[] = {_minBounds[0], _minBounds[1], _minBounds[2]};
+	double maxbnd[] = {_maxBounds[0], _maxBounds[1], _maxBounds[2]};
+	for (int level = 0; level <= _octree->get_max_level(); level++) {
 
 		// We're done if the current cell has no children or
 		// we're at the specified refinement level
@@ -152,22 +152,21 @@ AMRTreeBranch::cid_t	AMRTreeBranch::FindCell(
 		if (! _octree->has_children(cellid)) return(cellid);	
 		if (level == ref_level) return(cellid);
 
-		double deltax = (_maxBounds[0] - _minBounds[0]) / (double) dim;
-		double deltay = (_maxBounds[1] - _minBounds[1]) / (double) dim;
-		double deltaz = (_maxBounds[2] - _minBounds[2]) / (double) dim;
+		//
+		// Find the child that contains the desired point
+		//
+		unsigned child = 0;
+		for (int i=0; i<3; i++) {
+			if (ucoord[i] < ((maxbnd[i] - minbnd[i]) / 2.0)) {
+				maxbnd[i] = (maxbnd[i] - minbnd[i]) / 2.0;
+			}
+			else {
+				minbnd[i] = (maxbnd[i] - minbnd[i]) / 2.0;
+				child += (1<<i);
+			}
+		}
 
-		size_t xyz[3];
-		_octree->get_location(cellid, xyz, &level);
-
-		int offset = 0;
-		
-		if (((xyz[0]+1) * deltax) < ucoord[0])  offset += 1;
-		if (((xyz[1]+1) * deltay) < ucoord[1])  offset += 2;
-		if (((xyz[2]+1) * deltaz) < ucoord[2])  offset += 4;
-
-		cellid = _octree->get_children(cellid) + offset;
-
-		dim *= 2;
+		cellid = _octree->get_children(cellid) + child;
 	}
 
 	SetErrMsg("Requested refinement level doesn't exist");
