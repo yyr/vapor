@@ -81,7 +81,7 @@
 
 
 using namespace VAPoR;
-
+const float ProbeEventRouter::thumbSpeedFactor = 0.045f;  //rotates 45 degrees at full thumbwheel width
 
 ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(parent, name), EventRouter(){
 	myParamsType = Params::ProbeParamsType;
@@ -167,6 +167,10 @@ ProbeEventRouter::hookUpTab()
 	connect (xThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseXWheel(int)));
 	connect (yThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseYWheel(int)));
 	connect (zThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseZWheel(int)));
+	connect (xThumbWheel, SIGNAL(pressed()), this, SLOT(pressXWheel()));
+	connect (yThumbWheel, SIGNAL(pressed()), this, SLOT(pressYWheel()));
+	connect (zThumbWheel, SIGNAL(pressed()), this, SLOT(pressZWheel()));
+	
 	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
@@ -588,6 +592,222 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
+void ProbeEventRouter::pressXWheel(){
+	//Figure out the starting direction of z axis
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	renormalizedRotate = false;
+	if (stretch[1] == stretch[2]) return;
+	float rotMatrix[9];
+	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
+	//The starting rotation is obtained by projecting the z-axis of probe
+	//to the Y-Z plane.  The z-axis of probe is just the last column of the
+	//rotation matrix.
+	float startRotateVector[3];
+	startRotateVector[0] = 0;
+	startRotateVector[1] = rotMatrix[5];
+	startRotateVector[2] = rotMatrix[8];
+	if (startRotateVector[2] == 0.f) return;
+	
+	//Calculate initial angle in viewer (stretched) space
+	startRotateViewAngle = atan((startRotateVector[1]/startRotateVector[2])*(stretch[2]/stretch[1]));
+	//To determine whether to use the principal value of the arctangent, need to know
+	//whether the z axis of the probe points in the positive or negative z direction
+	if (rotMatrix[8] < 0.f) startRotateViewAngle += M_PI;
+	startRotateActualAngle = atan(startRotateVector[1]/startRotateVector[2]);
+	if (rotMatrix[8] < 0.f) startRotateActualAngle += M_PI;
+	
+	renormalizedRotate = true;
+	
+}
+void ProbeEventRouter::pressYWheel(){
+	//Figure out the starting direction of z axis
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	renormalizedRotate = false;
+	if (stretch[0] == stretch[2]) return;
+	float rotMatrix[9];
+	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
+	//The starting rotation is obtained by projecting the z-axis of probe
+	//to the X-Z plane.  The z-axis of probe is just the last column of the
+	//rotation matrix.
+	float startRotateVector[3];
+	startRotateVector[0] = rotMatrix[2];
+	startRotateVector[1] = 0.f;
+	startRotateVector[2] = rotMatrix[8];
+	if (startRotateVector[2] == 0.f) return;
+	
+	//Calculate initial angle in viewer (stretched) space
+	startRotateViewAngle = atan((startRotateVector[0]/startRotateVector[2])*(stretch[2]/stretch[0]));
+	//To determine whether to use the principal value of the arctangent, need to know
+	//whether the z axis of the probe points in the positive or negative z direction
+	if (rotMatrix[8] < 0.f) startRotateViewAngle += M_PI;
+	
+	startRotateActualAngle = atan(startRotateVector[0]/startRotateVector[2]);
+	if (rotMatrix[8] < 0.f) startRotateActualAngle += M_PI;
+	
+	renormalizedRotate = true;
+
+}
+void ProbeEventRouter::pressZWheel(){
+	//Figure out the starting direction of z axis
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	renormalizedRotate = false;
+	if (stretch[1] == stretch[0]) return;
+	float rotMatrix[9];
+	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
+	//The starting rotation is obtained by projecting the z-axis of probe
+	//to the X-Y plane.  The z-axis of probe is just the last column of the
+	//rotation matrix.
+	float startRotateVector[3];
+	startRotateVector[0] = rotMatrix[2];
+	startRotateVector[1] = rotMatrix[5];
+	startRotateVector[2] = 0.f;
+	if (startRotateVector[1] == 0.f) return;
+	
+	//Calculate initial angle in viewer (stretched) space
+	startRotateViewAngle = atan((startRotateVector[0]/startRotateVector[1])*(stretch[1]/stretch[0]));
+	//To determine whether to use the principal value of the arctangent, need to know
+	//whether the z axis of the probe points in the positive or negative z direction
+	if (rotMatrix[5] < 0.f) startRotateViewAngle += M_PI;
+	startRotateActualAngle = atan(startRotateVector[0]/startRotateVector[1]);
+	if (rotMatrix[5] < 0.f) startRotateActualAngle += M_PI;
+	
+	renormalizedRotate = true;
+
+}
+void ProbeEventRouter::
+rotateXWheel(int val){
+	
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	
+	if(!renormalizedRotate) manip->setTempRotation((float)val*thumbSpeedFactor, 0);
+	else {
+		
+		double newrot = convertRotStretchedToActual(0,-startRotateViewAngle*180./M_PI+thumbSpeedFactor*(float)val);
+		double angleChangeDg = newrot + startRotateActualAngle*180./M_PI;
+		manip->setTempRotation((float)angleChangeDg, 0);
+	}
+	viz->updateGL();
+	
+}
+void ProbeEventRouter::
+rotateYWheel(int val){
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	
+	if(!renormalizedRotate) manip->setTempRotation(-(float)val*thumbSpeedFactor, 1);
+	else {
+		
+		double newrot = convertRotStretchedToActual(1,-startRotateViewAngle*180./M_PI-thumbSpeedFactor*(float)val);
+		double angleChangeDg = newrot + startRotateActualAngle*180./M_PI;
+		manip->setTempRotation((float)angleChangeDg, 1);
+	}
+	viz->updateGL();
+	
+}
+void ProbeEventRouter::
+rotateZWheel(int val){
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	
+	if(!renormalizedRotate) manip->setTempRotation((float)val*thumbSpeedFactor, 2);
+	else {
+		
+		double newrot = convertRotStretchedToActual(2,-startRotateViewAngle*180./M_PI+thumbSpeedFactor*(float)val);
+		double angleChangeDg = newrot + startRotateActualAngle*180./M_PI;
+		manip->setTempRotation((float)angleChangeDg, 2);
+	}
+	viz->updateGL();
+	
+}
+void ProbeEventRouter::
+guiReleaseXWheel(int val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	float finalRotate = (float)val*thumbSpeedFactor;
+	if(renormalizedRotate) {
+	
+		float angleChangeDegView = (float)val*thumbSpeedFactor;
+		double newrot2 = convertRotStretchedToActual(0,-startRotateViewAngle*180./M_PI+angleChangeDegView);
+		double angleChangeDg = newrot2 + startRotateActualAngle*180./M_PI;
+		finalRotate = angleChangeDg;
+	}
+	//apply rotation:
+	pParams->rotateAndRenormalizeBox(0, finalRotate);
+
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 0);
+
+	updateTab();
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
+void ProbeEventRouter::
+guiReleaseYWheel(int val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	float finalRotate = -(float)val*thumbSpeedFactor;
+	if(renormalizedRotate) {
+	
+		float angleChangeDegView = -(float)val*thumbSpeedFactor;
+		double newrot2 = convertRotStretchedToActual(1,-startRotateViewAngle*180./M_PI+angleChangeDegView);
+		double angleChangeDg = newrot2 + startRotateActualAngle*180./M_PI;
+		finalRotate = angleChangeDg;
+	}
+	//apply rotation:
+	pParams->rotateAndRenormalizeBox(1, finalRotate);
+
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 1);
+
+	updateTab();
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	
+}
+void ProbeEventRouter::
+guiReleaseZWheel(int val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	float finalRotate = (float)val*thumbSpeedFactor;
+	if(renormalizedRotate) {
+	
+		float angleChangeDegView = (float)val*thumbSpeedFactor;
+		double newrot2 = convertRotStretchedToActual(2,-startRotateViewAngle*180./M_PI+angleChangeDegView);
+		double angleChangeDg = newrot2 + startRotateActualAngle*180./M_PI;
+		finalRotate = angleChangeDg;
+	}
+	//apply rotation:
+	pParams->rotateAndRenormalizeBox(2, finalRotate);
+
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 2);
+
+	updateTab();
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
 void ProbeEventRouter::guiSetProbeType(int t){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
@@ -635,90 +855,7 @@ void ProbeEventRouter::ibfvPause(){
 	myIBFVThread = 0;
 }
 
-void ProbeEventRouter::
-rotateXWheel(int val){
-	
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
 
-	manip->setTempRotation((float)val/10.f, 0);
-	viz->updateGL();
-	
-}
-void ProbeEventRouter::
-rotateYWheel(int val){
-	
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(-(float)val/10.f, 1);
-	viz->updateGL();
-}
-void ProbeEventRouter::
-rotateZWheel(int val){
-	//Find the current manip in the active visualizer
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation((float)val/10.f, 2);
-	viz->updateGL();
-}
-void ProbeEventRouter::
-guiReleaseXWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(0, (float)val/10.f);
-
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 0);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiReleaseYWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(1, -(float)val/10.f);
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 1);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
-void ProbeEventRouter::
-guiReleaseZWheel(int val){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Renormalize and apply rotation:
-	pParams->rotateAndRenormalizeBox(2, (float)val/10.f);
-	//Reset the manip:
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
-	manip->setTempRotation(0.f, 2);
-	
-	updateTab();
-	setProbeDirty(pParams);
-	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-}
 void ProbeEventRouter::
 guiReleaseAlphaSlider(){
 	confirmText(false);
@@ -2881,6 +3018,24 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	}
 	pParams->setBox(probeMin, probeMax, -1);
 	return;
+}
+//Angle conversions (in degrees)
+double ProbeEventRouter::convertRotStretchedToActual(int axis, double angle){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	double retval;
+	switch (axis){
+		case 0:
+			retval =  (180./M_PI)*atan((stretch[1]/stretch[2])*tan(angle*M_PI/180.f));
+			break;
+		case 1:
+			retval = (180./M_PI)*atan((stretch[0]/stretch[2])*tan(angle*M_PI/180.f));
+			break;
+		case 2:
+			retval =  (180./M_PI)*atan((stretch[0]/stretch[1])*tan(angle*M_PI/180.f));
+			break;
+	}
+	if (abs(angle) > 90.) retval += 180.;
+	return retval;
 }
 
 

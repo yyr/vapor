@@ -73,6 +73,7 @@ public slots:
 signals:
     void 	valueChanged( int value );
 	void	released(int value);
+	void	pressed();
 
 protected:
     void 	valueChange();

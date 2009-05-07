@@ -168,6 +168,7 @@ void QThumbWheel::mousePressEvent( QMouseEvent *e )
 	mousePressed = TRUE;
 	pressedAt = valueFromPosition( e->pos() );
 	mousePressedAtValue = value();
+	emit pressed();
     }
 }
 

@@ -138,6 +138,9 @@ protected slots:
 	void guiToggleColorMerge(bool);
 	
 	//Handle thumbwheel events:
+	void pressXWheel();
+	void pressYWheel();
+	void pressZWheel();
 	void rotateXWheel(int);
 	void rotateYWheel(int);
 	void rotateZWheel(int);
@@ -197,12 +200,17 @@ protected:
 	void setProbeToExtents(const float* extents, ProbeParams* pparams);
 	void mapCursor();
 	void updateBoundsText(RenderParams*);
-	bool capturingIBFV;
+	//Convert rotation about axis between actual and viewed in stretched coords:
+	double convertRotStretchedToActual(int axis, double angle);
+
+	
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);
 	void resetTextureSize(ProbeParams*);
 	virtual void setDatarangeDirty(RenderParams*);
 	QString getMappedVariableNames(int* numvars);
+	static const float thumbSpeedFactor;
+	bool capturingIBFV;
 	bool seedAttached;
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without
@@ -218,6 +226,9 @@ protected:
 	float maxBoxSize[3];
 	bool animationFlag;
 	QThread* myIBFVThread;
+	float startRotateActualAngle;
+	float startRotateViewAngle;
+	bool renormalizedRotate;
 };
 
 };
