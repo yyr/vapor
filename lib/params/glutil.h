@@ -119,6 +119,7 @@ PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix);
 
 //Determine the psi, phi, theta from a rotation matrix:
 PARAMS_API void getRotAngles(float* theta, float* phi, float* psi, const float* matrix);
+PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]);
 
 PARAMS_API void	qnormal (float *q);
 PARAMS_API void	qmult (const float *q1, const float *q2, float *dest);
@@ -133,6 +134,8 @@ inline void vset(float* a, const float x, const float y, const float z){a[0] = x
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
 inline float vlength(const float*a) {return sqrt(vdot(a,a));}
+inline float vdist(const float* a, const float*b) {
+	return (sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))); }
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vcopy(const double* a, double* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}

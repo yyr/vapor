@@ -148,8 +148,10 @@ protected slots:
 	void guiReleaseYWheel(int);
 	void guiReleaseZWheel(int);
 	void guiRotate90(int);
-	void guiFitToRegion();
-	void guiFitToDomain();
+	void guiFitRegion();
+	void guiFitDomain();
+	void guiCropToRegion();
+	void guiCropToDomain();
 
 	void guiChangeInstance(int);
 	void guiNewInstance();
@@ -202,7 +204,6 @@ protected:
 	void updateBoundsText(RenderParams*);
 	//Convert rotation about axis between actual and viewed in stretched coords:
 	double convertRotStretchedToActual(int axis, double angle);
-
 	
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);

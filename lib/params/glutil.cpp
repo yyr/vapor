@@ -1009,6 +1009,52 @@ void getRotAngles(float* theta, float* phi, float* psi, const float* matrix){
 	*psi = tempPsi;
 	return;
 }
+//Intersect a ray with an axis-aligned box. 
+//Ray is specified by start point and direction vector.
+//Box is specified by 6 floats (extents)
+//Return value is number of intersections found,
+//Results are specified as floats, increasing order, indicating the position R on the ray where
+//intersection = rayStart+R*rayDir.
+int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]){
+	//Loop over axes of cube.  Intersect faces with the ray, then test if it's inside box extents:
+	int numfound = 0;
+	for (int axis = 0; axis < 3; axis++){
+		
+		//Points along ray are rayStart+t*rayDir.  
+		//To intersect face, rayStart+t*rayDir has axis coordinate equal to boxExts[axis] or boxExts[axis+3]
+		//so that t = (boxExts[axis+(0 or 3)] - rayStart[axis])/rayDir[axis];
+		if (rayDir[axis] == 0.f ) continue; //Plane is parallel to ray
+		//check front and back intersections:
+		for (int frontBack = 0; frontBack < 4; frontBack+=3){
+			float t = (boxExts[axis+frontBack] - rayStart[axis])/rayDir[axis];
+			//Check to see if point is within other two box bounds
+			float intersectPoint[3];
+			for (int j = 0; j< 3; j++) {
+				intersectPoint[j] = rayStart[j]+t*rayDir[j];
+			}
+			bool pointOK = true;
+			for (int otherCoord = 0; otherCoord < 3; otherCoord++){
+				if (otherCoord == axis) continue;
+				if (intersectPoint[otherCoord] < boxExts[otherCoord]) {pointOK = false; break;}
+				if (intersectPoint[otherCoord] > boxExts[otherCoord+3]) {pointOK = false; break;}
+			}
+			if (pointOK){
+				//Found an intersection!
+				results[numfound++] = t;
+				//order the points in increasing t:
+				if (numfound == 2 && (results[1] < results[0])){
+					float temp = results[0];
+					results[0] = results[1];
+					results[1] = temp;
+				}
+				if (numfound == 2) return numfound;
+			}
+			
+		}
+	}
+	return numfound;
+
+}
 
 #define DEAD
 #ifdef	DEAD

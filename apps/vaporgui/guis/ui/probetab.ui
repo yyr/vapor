@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout67</cstring>
+                <cstring>layout120</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -306,7 +306,7 @@ create new Probe/Contour instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout66</cstring>
+                                <cstring>layout119</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -576,7 +576,7 @@ probe volume.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout65</cstring>
+                                                <cstring>layout118</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -2505,7 +2505,7 @@ same as the X, Y, and Z axes.</string>
                                                 </spacer>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout58</cstring>
+                                                        <cstring>layout117</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -2523,7 +2523,7 @@ same as the X, Y, and Z axes.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>17</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -2534,55 +2534,82 @@ same as the X, Y, and Z axes.</string>
                                                             </property>
                                                             <property name="minimumSize">
                                                                 <size>
-                                                                    <width>150</width>
+                                                                    <width>60</width>
                                                                     <height>0</height>
                                                                 </size>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Fit To Region</string>
+                                                                <string>Fit to
+Region</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Move probe to fit over current region</string>
+                                                                <string>Extend probe to fit over current region</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons translates and stretches the probe so as to match the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe is not axis-aligned, then the fit is only approximate.</string>
+                                                                <string>Clicking the "Region Fill" or "Domain Fill" buttons extends the probe so as to include the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated to the region or domain extents.</string>
                                                             </property>
                                                         </widget>
-                                                        <spacer>
+                                                        <widget class="QPushButton">
                                                             <property name="name">
-                                                                <cstring>spacer54_3</cstring>
+                                                                <cstring>cropRegionButton</cstring>
                                                             </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
+                                                            <property name="minimumSize">
                                                                 <size>
-                                                                    <width>21</width>
-                                                                    <height>20</height>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
                                                                 </size>
                                                             </property>
-                                                        </spacer>
+                                                            <property name="text">
+                                                                <string>Crop to
+Region</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Crop probe to fit insidecurrent region</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe plane fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
+                                                            </property>
+                                                        </widget>
                                                         <widget class="QPushButton">
                                                             <property name="name">
                                                                 <cstring>fitDomainButton</cstring>
                                                             </property>
                                                             <property name="minimumSize">
                                                                 <size>
-                                                                    <width>150</width>
+                                                                    <width>70</width>
                                                                     <height>0</height>
                                                                 </size>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Fit to Domain</string>
+                                                                <string>Fit to
+Domain</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Move probe to fit over full data domain</string>
+                                                                <string>Extend probe to fit over full data domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons translates and stretches the probe so as to match the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe is not axis-aligned, then the fit is only approximate.</string>
+                                                                <string>Clicking the "Region Fill" or "Domain Fill" buttons extends the probe so as to include the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated to the region or domain extents.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>cropDomainButton</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>70</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Crop to 
+Domain</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Crop probe to fit inside data domain</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe plane fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -2597,7 +2624,7 @@ same as the X, Y, and Z axes.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>31</width>
+                                                                    <width>27</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>

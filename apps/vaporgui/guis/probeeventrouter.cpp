@@ -159,8 +159,10 @@ ProbeEventRouter::hookUpTab()
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
 	connect (axisAlignCombo, SIGNAL(activated(int)), this, SLOT(guiAxisAlign(int)));
-	connect (fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
-	connect (fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitToDomain()));
+	connect (fitRegionButton, SIGNAL(clicked()), this, SLOT(guiFitRegion()));
+	connect (fitDomainButton, SIGNAL(clicked()), this, SLOT(guiFitDomain()));
+	connect (cropRegionButton, SIGNAL(clicked()), this, SLOT(guiCropToRegion()));
+	connect (cropDomainButton, SIGNAL(clicked()), this, SLOT(guiCropToDomain()));
 	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
 	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
 	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
@@ -1224,7 +1226,7 @@ sessionLoadTF(QString* name){
 }
 //Fit to domain extents
 void ProbeEventRouter::
-guiFitToDomain(){
+guiFitDomain(){
 	confirmText(false);
 	//int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	
@@ -2879,9 +2881,49 @@ void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 		rightMappingBound->setText("1.0");
 	}
 }
-//Fit to domain extents
 void ProbeEventRouter::
-guiFitToRegion(){
+guiCropToRegion(){
+	confirmText(false);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to region");
+	float extents[6];
+	rParams->getBox(extents,extents+3,timestep);
+
+	if (pParams->cropToBox(extents)){
+		updateTab();
+		setProbeDirty(pParams);
+		PanelCommand::captureEnd(cmd,pParams);
+		probeTextureFrame->update();
+		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	} else {
+		MessageReporter::warningMsg(" Probe cannot be cropped to region");
+		delete cmd;
+	}
+}
+void ProbeEventRouter::
+guiCropToDomain(){
+	confirmText(false);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to domain");
+	const float *extents = DataStatus::getExtents(timestep);
+
+	if (pParams->cropToBox(extents)){
+		updateTab();
+		setProbeDirty(pParams);
+		PanelCommand::captureEnd(cmd,pParams);
+		probeTextureFrame->update();
+		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	} else {
+		MessageReporter::warningMsg(" Probe cannot be cropped to domain");
+		delete cmd;
+	}
+}
+//Fill to domain extents
+void ProbeEventRouter::
+guiFitRegion(){
 	confirmText(false);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -2900,6 +2942,9 @@ guiFitToRegion(){
 void ProbeEventRouter::
 setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	
+	//First try to fit to extents.  If we fail, then move probe to fit in domain.
+	bool success = pParams->fitToBox(extents);
+	if (success) return;
 	//  Construct transformation for a probe that maps to region, as follows:
 	//a.  get current rotation matrix
 	float rotMatrix[9];

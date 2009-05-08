@@ -161,6 +161,10 @@ public:
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
+
+	bool cropToBox(const float boxExts[6]);
+	bool fitToBox(const float boxExts[6]);
+	int interceptBox(const float boxExts[6], float intercept[6][3]);
 	
 	void setProbeTexture(unsigned char* tex, int timestep, int textureType){ 
 		unsigned char** textureArray = (textureType == 0) ? probeDataTextures : probeIBFVTextures;

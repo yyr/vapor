@@ -1770,6 +1770,322 @@ void ProbeParams::projToPlane(float vecField[3], float invRotMtrx[9], float* U, 
 	*V = projVec[1]*ibfvYScale;
 }
 
+//Clip the probe to the specified box extents
+//Return false (and make no change) if the probe rectangle does not have a positive (rectangular)
+//intersection in the box.
+bool ProbeParams::cropToBox(const float boxExts[6]){
 
 
+	//First find the intersection of the box with the smallest box containing the probe:
+	float regMin[3],regMax[3];
+	float boxIntersection[6];
+	getContainingRegion(regMin, regMax, false);
+	for (int i = 0; i< 3; i++){
+		boxIntersection[i] = Max(regMin[i],boxExts[i]);
+		boxIntersection[i+3] = Min(regMax[i],boxExts[i+3]);
+		if (boxIntersection[i] > boxIntersection[i+3]) return false;
+	}
+	//Now try to fit the probe to the new box:
+	return (fitToBox(boxIntersection));
 
+/*
+	//For both X-direction and Y-direction, intersect the two edges of the probe plane with the box.
+	//Both of the edges must intersect the box in 2 points that lie in the rectangle, and
+	//they must have a common nonzero interval of intersection.
+
+	//1 - get the raystart and raydir of the two X-sides of probe
+	float rayStart1x[3], rayStart2x[3],rayDirx[3], rayEnd1x[3],rayEnd2x[3];
+	float rayStart1y[3], rayStart2y[3],rayDiry[3], rayEnd1y[3],rayEnd2y[3];
+	float result1x[2],result2x[2],result1y[2],result2y[2];
+	float transformMatrix[12];
+	//Set up to transform from probe (coords [-1,1]) into volume:
+	buildCoordTransform(transformMatrix, 0.f, -1);
+	float vec00[3] = {-1.f,-1.f,0.f};
+	float vec01[3] = {-1.f,1.f,0.f};
+	float vec10[3] = {1.f,-1.f,0.f};
+	float vec11[3] = {1.f,1.f,0.f};
+	
+	//Construct two rays starting at the probe corner whose parameter interval (0,1) maps to the y - extents 
+	vtransform(vec00, transformMatrix, rayStart1x);
+	vtransform(vec10, transformMatrix, rayStart2x);
+	vtransform(vec01, transformMatrix, rayEnd1x);
+	vtransform(vec11, transformMatrix, rayEnd2x);
+	vsub(rayEnd1x,rayStart1x, rayDirx);
+	
+	if (vlength(rayDirx) == 0.f) return false;
+	
+	int numpts = rayBoxIntersect(rayStart1x,rayDirx,boxExts, result1x);
+	if (numpts < 2) return false;
+	numpts = rayBoxIntersect(rayStart2x,rayDirx,boxExts, result2x);
+	if (numpts < 2) return false;
+	if (result1x[0] < 0.f) result1x[0] = 0.f;
+	if (result2x[0] < 0.f) result2x[0] = 0.f;
+	if (result1x[1] > 1.f) result1x[1] = 1.f;
+	if (result2x[1] > 1.f) result2x[1] = 1.f;
+	//Find the common intersection, put into results1
+	if (result1x[0] < result2x[0]) result1x[0] =  result2x[0];
+	if (result1x[1] > result2x[1]) result1x[1] =  result2x[1];
+	if (result1x[0] >= result1x[1]) return false;
+
+	//OK we have a common interval in the x direction.  Try the same for the y direction:
+
+	//get two rays starting at the probe corner whose parameter interval (0,1) maps to the x - extents 
+	
+	vtransform(vec00, transformMatrix, rayStart1y);
+	vtransform(vec01, transformMatrix, rayStart2y);
+	vtransform(vec01, transformMatrix, rayEnd1y);
+	vtransform(vec11, transformMatrix, rayEnd2y);
+	vsub(rayEnd1y,rayStart1y, rayDiry);
+	
+	if (vlength(rayDiry) == 0.f) return false;
+	
+	numpts = rayBoxIntersect(rayStart1y,rayDiry,boxExts, result1y);
+	if (numpts < 2) return false;
+	numpts = rayBoxIntersect(rayStart2y,rayDiry,boxExts, result2y);
+	if (numpts < 2) return false;
+	if (result1y[0] < 0.f) result1y[0] = 0.f;
+	if (result2y[0] < 0.f) result2y[0] = 0.f;
+	if (result1y[1] > 1.f) result1y[1] = 1.f;
+	if (result2y[1] > 1.f) result2y[1] = 1.f;
+	//Find the common intersection, put into results1
+	if (result1y[0] < result2y[0]) result1x[0] =  result2x[0];
+	if (result1y[1] > result2y[1]) result1x[1] =  result2x[1];
+	if (result1y[0] >= result1y[1]) return false;
+
+	//Now we have two intervals. Get the four corner points.  Center will be their average:
+	//Probe x and y sizes are max - min 
+	float probeMid[3];
+	float probeSizeX,probeSizeY;
+	float cor00[3],cor01[3],cor10[3],cor11[3];
+	for (int i = 0; i<3; i++){
+
+		cor00[i] = rayStart1x[i]+rayDirx[i]*result1x[0];
+		cor01[i] = (rayStart2x[i]+rayDirx[i]*result1x[1]);
+		cor10[i] = (rayStart1y[i]+rayDiry[i]*result1y[0]);
+		cor11[i] = (rayStart2y[i]+rayDiry[i]*result1y[1]);
+		probeMid[i] = (cor00[i]+cor01[i]+cor10[i]+cor11[i])/4.f;
+	}
+	float vec[3];
+	vsub(cor10, cor00, vec);
+	probeSizeX = vlength(vec);
+	vsub(cor11, cor01, vec);
+	probeSizeY = vlength(vec);
+
+	//Now apply this to the x and y extents of probe:
+	probeMin[0] = probeMid[0] - probeSizeX;
+	probeMax[0] = probeMid[0] + probeSizeX;
+	probeMin[1] = probeMid[1] - probeSizeY;
+	probeMax[1] = probeMid[1] + probeSizeY;
+	
+	return true;
+	*/
+}
+
+//Find probe extents that are maximal and fit in box
+bool ProbeParams::fitToBox(const float boxExts[6]){
+
+	//First, find a point in the probe that lies in the box.   Do this by finding the intersections
+	//of the box with the probe plane and averaging the resulting points:
+	float startPoint[3];
+	float interceptPoints[6][3];
+	int numintercept = interceptBox(boxExts, interceptPoints);
+	if (numintercept < 3) return false;
+	vzero(startPoint);
+	for (int i = 0; i<numintercept; i++){
+		for (int j = 0; j< 3; j++){
+			startPoint[j] += interceptPoints[i][j]*(1.f/(float)numintercept);
+		}
+	}
+
+	//find a smaller rectangle that fits in box.  Take 4 probe-axis-aligned rays
+	//from the startPoint.  Find the distance to box of each.  Take 0.7 times shortest distance.
+
+	float transformMatrix[12];
+	float cor[4][3], cor2[4][3];
+	float probeCenter[3];
+	buildCoordTransform(transformMatrix, 0.f, -1);
+	float rotMatrix[9];
+	getRotationMatrix(getTheta()*M_PI/180., getPhi()*M_PI/180., getPsi()*M_PI/180., rotMatrix);
+
+
+	//determine the probe x- and y- direction vectors
+	float vecx[3] = { 1.f, 0.f,0.f};
+	float vecy[3] = { 0.f, 1.f,0.f};
+	float vmid[3] = { 0.f,0.f,0.f};
+	
+	//Direction vectors:
+	float dir[4][3];
+	//Intersection parameters
+	float result[4][2];
+	//Construct two rays starting at the probe corner whose parameter interval (0,1) maps to the y - extents 
+	vtransform(vmid, transformMatrix, probeCenter);
+	vtransform3(vecx, rotMatrix, dir[0]);
+	vtransform3(vecy, rotMatrix, dir[1]);
+
+	vsub(dir[0], vmid, dir[0]);
+	vsub(dir[1], vmid, dir[1]);
+	vnormal(dir[0]);
+	vnormal(dir[1]);
+	//also negate:
+	vmult(dir[0], -1.f, dir[2]);
+	vmult(dir[1], -1.f, dir[3]);
+
+	//Intersect with each line
+	int numpts;
+	for (int i = 0; i<4; i++){
+		numpts = rayBoxIntersect(startPoint,dir[i], boxExts,result[i]);
+		if (numpts < 2 || result[i][1] < 0.f) return false; 
+	}
+	
+	//Find the closest intersection:
+	float mindist = 1.e30f;
+	for (int i = 0; i<4; i++){
+		float distvec[3];
+		for (int j = 0; j<3; j++){
+			distvec[j] = result[i][1]*dir[i][j];
+		}
+		float dist = vlength(distvec);
+		if (dist<mindist) mindist = dist;
+	}
+	//Now know corners of square that fits.  Obtained by going diagonally from startPoint
+	for (int i = 0; i< 4; i++){
+		//start with cor[i] pointing diagonally 
+		vadd(dir[i],dir[(i+1)%4], cor[i]);
+		//force the corner to be distance mindist*.7 from startpoint, so it's guaranteed
+		//to be inside the diamond
+		float len = vlength(cor[i]);
+		vmult(cor[i], mindist/len, cor[i]);
+		vadd(startPoint, cor[i], cor[i]);
+	}
+
+	
+	//Intersect top and bottom of the square with the box, get two horizontal intervals, take their
+	//intersection.  
+	numpts = rayBoxIntersect(cor[1],dir[0], boxExts,result[0]);
+	assert(numpts >= 2);
+	numpts = rayBoxIntersect(cor[2],dir[0], boxExts,result[1]);
+	assert(numpts >= 2);
+
+	float leftEdge = Max(result[0][0],result[1][0]);
+	float rightEdge = Min(result[0][1],result[1][1]);
+
+	//Nudge slightly, so we aren't right on edge--
+	leftEdge *= 0.9999;
+	rightEdge *= 0.9999;
+
+	assert (leftEdge <= 0.f && rightEdge >= vdist(cor[0],cor[1]));
+	//Right edge should be bigger than dist(cor0,cor1)
+	//top left:
+	vmult(dir[0],leftEdge, cor2[1]);
+	vadd(cor2[1],cor[1],cor2[1]);
+	//Top right:
+	vmult(dir[0],rightEdge, cor2[0]);
+	vadd(cor2[0],cor[1],cor2[0]);
+	//bot left:
+	vmult(dir[0],leftEdge, cor2[2]);
+	vadd(cor2[2],cor[2],cor2[2]);
+	//bot right:
+	vmult(dir[0],rightEdge, cor2[3]);
+	vadd(cor2[3],cor[2],cor2[3]);
+	
+
+	//Similar to the above, extend the left and right sides to go up and down:
+
+	
+	numpts = rayBoxIntersect(cor2[2],dir[1], boxExts,result[0]);
+	assert(numpts >= 2);
+	numpts = rayBoxIntersect(cor2[3],dir[1], boxExts,result[1]);
+	assert(numpts >= 2);
+
+	float botEdge = Max(result[0][0],result[1][0]);
+	float topEdge = Min(result[0][1],result[1][1]);
+
+	assert(botEdge <= 0.f && topEdge >= vdist(cor2[2],cor2[1]));
+	//put new corners back in cor array:
+	//bot left:
+	vmult(dir[1],botEdge, cor[2]);
+	vadd(cor[2],cor2[2],cor[2]);
+	//bot right:
+	vmult(dir[1],botEdge, cor[3]);
+	vadd(cor[3],cor2[3],cor[3]);
+	//top right
+	vmult(dir[1],topEdge, cor[0]);
+	vadd(cor[0],cor2[3],cor[0]);
+	//top left
+	vmult(dir[1],topEdge, cor[1]);
+	vadd(cor[1],cor2[2],cor[1]);
+
+	//Now cor should be the final rectangle corners.
+	//  Make the probe center be their average:
+	vzero(probeCenter);
+	for (int i = 0; i< 4; i++){
+		vadd(probeCenter, cor[i],probeCenter);
+	}
+	vmult(probeCenter, 0.25f, probeCenter);
+
+	//find the width and height of the probe:
+	
+	float ht = vdist(cor[1],cor[2]);
+
+	float wid = vdist(cor[0],cor[1]);
+
+	float depth = abs(probeMax[2]-probeMin[2]);
+	probeMin[0] = probeCenter[0] - 0.5f*wid;
+	probeMax[0] = probeCenter[0] + 0.5f*wid;
+	probeMin[1] = probeCenter[1] - 0.5f*ht;
+	probeMax[1] = probeCenter[1] + 0.5f*ht;
+	probeMin[2] = probeCenter[2] - 0.5f*depth;
+	probeMax[2] = probeCenter[2] + 0.5f*depth;
+
+	return true;
+}
+
+//Calculate up to six intersections of box edges with probe plane, return the number found.
+//Up to 6 intersection points are placed in intercept array
+int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
+	int numfound = 0;
+	//Get the equation of the probe plane
+	float transformMatrix[12];
+	float vecz[3] = {0.f,0.f,1.f};
+	float vec0[3] = {0.f,0.f,0.f};
+	float probeNormal[3], probeCenter[3];
+	buildCoordTransform(transformMatrix, 0.01f, -1);
+	vtransform(vecz, transformMatrix, probeNormal);
+	vtransform(vec0, transformMatrix, probeCenter);
+	vsub(probeNormal, probeCenter, probeNormal);
+	vnormal(probeNormal);
+	//The equation of the probe plane is dot(V, probeNormal) = dst:
+	float dst = vdot(probeNormal, probeCenter);
+	//Now intersect the plane with all 6 edges of box.
+	//each edge is defined by two equations of the form
+	// x = boxExts[0] or boxExts[3]; y = boxExts[1] or boxExts[4]; z = boxExts[2] or boxExts[5]
+	for (int edge = 0; edge < 12; edge++){
+		//edge%3 is the coordinate that varies;
+		//equation holds (edge+1)%3 to low or high value, based on (edge/3)%2
+		//holds (edge+2) to low or high value based on (edge/6) 
+		//Thus equations associated with edge are:
+		//vcoord = edge%3, coord1 is (edge+1)%3, coord2 is (edge+2)%3;
+		// boxExts[vcoord] <= pt[vcoord] <= boxExts[vcoord+3]
+		// pt[coord1] = boxExts[coord1+3*((edge/3)%2)]
+		// pt[coord2] = boxExts[coord2+3*((edge/6))]
+		int vcoord = edge%3;
+		int coord1 = (edge+1)%3;
+		int coord2 = (edge+2)%3;
+		float rhs = dst -boxExts[coord1 + 3*((edge/3)%2)]*probeNormal[coord1] - boxExts[coord2+3*(edge/6)]*probeNormal[coord2];
+		// and the equation is V*probeNormal[vcoord] = rhs
+		//Question is whether the other (vcoord) coordinate of the intersection point lies between
+		//boxExts[vcoord] and boxExts[vcoord+3]
+		
+		if (probeNormal[vcoord] == 0.f) continue;
+		if (rhs/probeNormal[vcoord] < boxExts[vcoord]) continue;
+		if (rhs/probeNormal[vcoord] > boxExts[vcoord+3]) continue;
+		//Intersection found!
+		intercept[numfound][coord1] = boxExts[coord1 + 3*((edge/3)%2)];
+		intercept[numfound][coord2] = boxExts[coord2 + 3*(edge/6)];
+		intercept[numfound][vcoord] = rhs/probeNormal[vcoord];
+		numfound++;
+		if (numfound == 6) return numfound;
+	}
+	return numfound;
+	
+}
