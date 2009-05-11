@@ -95,7 +95,7 @@ foreach fullpath ($InstDest/VAPOR.app/Contents/SharedSupport/$version_app/palett
 		/bin/rm /usr/local/share/$version_app/palettes/$file
 	endif
 
-	ln -s $InstDest/VAPOR.app/Contents/SharedSupport/palettes/$file /usr/local/share/$version_app/palettes/$file
+	ln -s $InstDest/VAPOR.app/Contents/SharedSupport/$version_app/palettes/$file /usr/local/share/$version_app/palettes/$file
 	if ($status != 0) exit 1
 end
 
