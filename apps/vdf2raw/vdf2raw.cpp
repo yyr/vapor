@@ -297,8 +297,10 @@ void	process_region(
 
 		if (is3D){
 			wbreader3D->MapVoxToBlk(min,bmin);
+			wbreader3D->MapVoxToBlk(max,bmax);
 		} else {
 			wbreader2D->MapVoxToBlk(min,bmin);
+			wbreader2D->MapVoxToBlk(max,bmax);
 		}
 
 		size_t bdim[3] = {
