@@ -1780,6 +1780,14 @@ bool ProbeParams::cropToBox(const float boxExts[6]){
 	float regMin[3],regMax[3];
 	float boxIntersection[6];
 	getContainingRegion(regMin, regMax, false);
+	//Check if it's already in box, if so do nothing:
+	bool inbox = true;
+	for (int i = 0; i< 3; i++){
+		if (regMin[i] > boxExts[i]) inbox = false;
+		if (regMax[i] < boxExts[i+3]) inbox = false;
+		if (!inbox) break;
+	}
+	if (inbox) return true;
 	for (int i = 0; i< 3; i++){
 		boxIntersection[i] = Max(regMin[i],boxExts[i]);
 		boxIntersection[i+3] = Min(regMax[i],boxExts[i+3]);
@@ -1884,11 +1892,33 @@ bool ProbeParams::cropToBox(const float boxExts[6]){
 //Find probe extents that are maximal and fit in box
 bool ProbeParams::fitToBox(const float boxExts[6]){
 
-	//First, find a point in the probe that lies in the box.   Do this by finding the intersections
+	//Increase the box if it is flat:
+	float modBoxExts[6];
+	for (int i = 0; i<3; i++){
+		modBoxExts[i] = boxExts[i];
+		modBoxExts[i+3] = boxExts[i+3];
+		if (boxExts[i] >= boxExts[i+3]){
+			if (boxExts[i] > 0.f){
+				modBoxExts[i] = boxExts[i]*0.99999f;
+				modBoxExts[i+3] = boxExts[i]*1.00001f;
+			}
+			else if (boxExts[i] < 0.f) {
+				modBoxExts[i] = boxExts[i]*1.00001f;
+				modBoxExts[i+3] = boxExts[i]*0.99999f;
+			}
+			else {
+				modBoxExts[i] = -1.e-20f;
+				modBoxExts[i+3] = 1.e-20f;
+			}
+		}
+	}
+		
+			
+	//find a point in the probe that lies in the box.   Do this by finding the intersections
 	//of the box with the probe plane and averaging the resulting points:
 	float startPoint[3];
 	float interceptPoints[6][3];
-	int numintercept = interceptBox(boxExts, interceptPoints);
+	int numintercept = interceptBox(modBoxExts, interceptPoints);
 	if (numintercept < 3) return false;
 	vzero(startPoint);
 	for (int i = 0; i<numintercept; i++){
@@ -1933,7 +1963,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	//Intersect with each line
 	int numpts;
 	for (int i = 0; i<4; i++){
-		numpts = rayBoxIntersect(startPoint,dir[i], boxExts,result[i]);
+		numpts = rayBoxIntersect(startPoint,dir[i], modBoxExts,result[i]);
 		if (numpts < 2 || result[i][1] < 0.f) return false; 
 	}
 	
@@ -1961,9 +1991,9 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	
 	//Intersect top and bottom of the square with the box, get two horizontal intervals, take their
 	//intersection.  
-	numpts = rayBoxIntersect(cor[1],dir[0], boxExts,result[0]);
+	numpts = rayBoxIntersect(cor[1],dir[0], modBoxExts,result[0]);
 	assert(numpts >= 2);
-	numpts = rayBoxIntersect(cor[2],dir[0], boxExts,result[1]);
+	numpts = rayBoxIntersect(cor[2],dir[0], modBoxExts,result[1]);
 	assert(numpts >= 2);
 
 	float leftEdge = Max(result[0][0],result[1][0]);
@@ -1973,7 +2003,8 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	leftEdge *= 0.9999;
 	rightEdge *= 0.9999;
 
-	assert (leftEdge <= 0.f && rightEdge >= vdist(cor[0],cor[1]));
+	float foo = 0.99f*vdist(cor[0],cor[1]);
+	assert (leftEdge <= 0.03f && rightEdge >= 0.97*vdist(cor[0],cor[1]));
 	//Right edge should be bigger than dist(cor0,cor1)
 	//top left:
 	vmult(dir[0],leftEdge, cor2[1]);
@@ -1992,15 +2023,15 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	//Similar to the above, extend the left and right sides to go up and down:
 
 	
-	numpts = rayBoxIntersect(cor2[2],dir[1], boxExts,result[0]);
+	numpts = rayBoxIntersect(cor2[2],dir[1], modBoxExts,result[0]);
 	assert(numpts >= 2);
-	numpts = rayBoxIntersect(cor2[3],dir[1], boxExts,result[1]);
+	numpts = rayBoxIntersect(cor2[3],dir[1], modBoxExts,result[1]);
 	assert(numpts >= 2);
 
 	float botEdge = Max(result[0][0],result[1][0]);
 	float topEdge = Min(result[0][1],result[1][1]);
-
-	assert(botEdge <= 0.f && topEdge >= vdist(cor2[2],cor2[1]));
+	foo = 0.97f*vdist(cor2[0],cor2[1]);
+	assert(botEdge <= 0.03f && topEdge >= 0.97*vdist(cor2[2],cor2[1]));
 	//put new corners back in cor array:
 	//bot left:
 	vmult(dir[1],botEdge, cor[2]);

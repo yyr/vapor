@@ -2543,10 +2543,10 @@ same as the X, Y, and Z axes.</string>
 Region</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Extend probe to fit over current region</string>
+                                                                <string>Modify probe to fit within current region</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Region Fill" or "Domain Fill" buttons extends the probe so as to include the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated to the region or domain extents.</string>
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to be as large as possible while fitting inside the extents of the region or the domain, not changing the center plane of the probe.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -2585,10 +2585,10 @@ Region</string>
 Domain</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Extend probe to fit over full data domain</string>
+                                                                <string>Modify probe to fit inside full data domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Region Fill" or "Domain Fill" buttons extends the probe so as to include the extents of the region or the domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated to the region or domain extents.</string>
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to be as large as possible while fitting inside the extents of the region or the domain, not changing the center plane of the probe.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">

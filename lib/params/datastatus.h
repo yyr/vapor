@@ -218,8 +218,11 @@ public:
 	//Used for georeferencing and moving region:
 	static const std::string getProjectionString() {return projString;}
 	static const float* getExtents(int timestep){ 
-		return timeVaryingExtents[timestep];
+		if (timeVaryingExtents[timestep] != 0) return timeVaryingExtents[timestep];
+	else 
+		return getInstance()->getExtents();
 	}
+
 
 
 	//Get/set methods for global vizfeatures

@@ -2942,7 +2942,7 @@ guiFitRegion(){
 void ProbeEventRouter::
 setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	
-	//First try to fit to extents.  If we fail, then move probe to fit in domain.
+	//First try to fit to extents.  If we fail, then move probe to fit 
 	bool success = pParams->fitToBox(extents);
 	if (success) return;
 	//  Construct transformation for a probe that maps to region, as follows:

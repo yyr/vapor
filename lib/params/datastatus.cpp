@@ -141,7 +141,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int i = 0; i<numTS; i++){
 		
 		const vector<double>& mdexts = currentMetadata->GetTSExtents(i);
-		if (mdexts.size() < 6) continue;
+		if (mdexts.size() < 6) {
+			timeVaryingExtents.push_back(0);
+			continue;
+		}
 		float* tsexts = new float[6];
 		for (int j = 0; j< 6; j++){ tsexts[j] = mdexts[j];}
 		timeVaryingExtents.push_back(tsexts);
