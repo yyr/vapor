@@ -17,8 +17,9 @@
 //
 //	Date:		Thu Jan 5 12:10:07 MST 2006
 //
-//	Description:	Convert a single time step from a FLASH AMR data 
-//					set to a VDC
+//	Description:	Convert a sequence of FLASH AMR data files
+//					to a VDC. The AMR files are assumed to represent
+//					a single simulation.
 //
 //
 #include <iostream>
@@ -44,19 +45,20 @@ using namespace VAPoR;
 //	Command line argument stuff
 //
 struct {
-	int	ts;
 	vector <string> varnames;
 	int level;
+	int ts;
+	OptionParser::Boolean_T	rmap;
 	OptionParser::Boolean_T	help;
-	OptionParser::Boolean_T	tree;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varnames",1, 	"var1",	"Name of variable"},
+	{"varnames",1, 	"",	"Colon delimited list of variable names in Flash file to convert. The default is to convert variables in the set intersection of those variables found in the VDF file and those in the Flash file."},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"ts",	1, 	"-1",	"Time step of first file. If this option is present the UserTime .vdf metadata element is ignored."},
+	{"rmap",	0,	"",	"Include the derived \"refine_level\" variable"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -65,9 +67,10 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 
 OptionParser::Option_T	get_options[] = {
-	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
+	{"rmap", VetsUtil::CvtToBoolean, &opt.rmap, sizeof(opt.rmap)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -77,11 +80,11 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
 	OptionParser op;
-    const char  *metafile;
-    const char  *flashfile;
+    string metafile;
+    string flashfile;
 	double	timer = 0.0;
 	double	read_timer = 0.0;
 
@@ -104,146 +107,288 @@ main(int argc, char **argv) {
 		exit(0);
 	}
 
-	if (argc != 3) {
-		cerr << "Usage : " << ProgName << " [options] metafile flashfile " << endl; 
+	if (argc < 3) {
+		cerr << "Usage : " << ProgName << " [options] metafile flashfiles... " << endl; 
 		op.PrintOptionHelp(stderr);
 		exit(1);
 	}
+	argc--;
+	argv++;
 
-	metafile = argv[1]; // Path to a vdf file
-	flashfile = argv[2]; // Path to raw data file
+	metafile = argv[0]; // Path to a vdf file
+	argc--;
+	argv++;
+
 
 	MyBase::SetErrMsgFilePtr(stderr);
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	TIMER_START(t0);
 
 	// Create an AMRIO object to write the AMR grid to the VDC
 	//
-	AMRIO amrio(metafile, 0);
+	AMRIO amrio(metafile.c_str(), 0);
 	if (amrio.GetErrCode() != 0) {
 		cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
 		exit(1);
 	}
+	const Metadata *metadata = amrio.GetMetadata();
 
 
-	FlashHDFFile	hdffile((char *) flashfile);
+	// Get user times from VDF file. Convert to 32bit for comparison
+	// with 32bit Flash data. Ugh!
+	//
+	vector <float> vdf_usertimes;	
+	for (size_t t=0; t<metadata->GetNumTimeSteps(); t++) {
+		const vector <double> &usertime = metadata->GetTSUserTime(t); 
+		assert(usertime.size() == 1);	// sanity check
+		vdf_usertimes.push_back(usertime[0]);
+	}
 
-	assert(hdffile.GetNumberOfDimensions() == 3);
+	vector <string> vdf_vars3d = metadata->GetVariables3D();
+		
+	int mem_size = 0;
+	int *gids = NULL;
+	float *bboxes = NULL;
+	int *refine_levels = NULL;
+	float *variable = NULL;
+	for (int arg = 0; arg<argc; arg++) {
+		int rc;
+		size_t ts;
 
-	int total_blocks =  hdffile.GetNumberOfBlocks();
+		TIMER_START(t0);
 
+		flashfile = argv[arg]; // Path to raw data file
 
-	int *gids = new int[total_blocks * 15];
-	assert (gids != NULL);
+		if (! opt.quiet) {
+			cout << "Processing file " << flashfile << endl;
+		}
 
-	hdffile.GetGlobalIds(gids);
+		FlashHDFFile	hdffile;
+		rc = hdffile.Open(flashfile.c_str());
+		if (rc<0) exit(1);
 
-	float *bboxes = new float[total_blocks * 3 * 2];
-	assert (bboxes != NULL);
+		float ut = hdffile.GetUserTime();
+		vector <float>::iterator itr;
 
-	hdffile.GetBoundingBoxes(bboxes);
-
-	int *refine_levels = new int[total_blocks];
-	assert (refine_levels != NULL);
-
-	hdffile.GetRefineLevels(refine_levels);
+		// 
+		// Map Flash user time to user time found in the .vdf file. The
+		// user time will determine the time step
+		//
 	
-	
-	if (! opt.quiet) {
-		cout << "Reading tree\n";
-	}
-	TIMER_START(t1);
+		if (opt.ts < 0 ) {
+			itr = find(vdf_usertimes.begin(), vdf_usertimes.end(), ut);
+			if (itr == vdf_usertimes.end()) {
+				cerr << ProgName << " : no matching user time found for file "<< endl;
+				cerr << "skipping file..." << endl; 
+				hdffile.Close();
+				continue;
+			}
+			ts = itr - vdf_usertimes.begin();
+		}
+		else {
+			ts = arg + opt.ts;
+		}
 
-	AMRTree tree(
-		(int (*)[15]) gids, (float (*)[3][2]) bboxes, 
-		refine_levels, total_blocks
-	);
-	if (AMRData::GetErrCode()) {
-		cerr << ProgName << " : " << AMRData::GetErrMsg() << endl; 
-		exit(1);
-	}
+		if (hdffile.GetNumberOfDimensions() != 3) {
+			cerr << ProgName << " : wrong number of dimensions" << endl;
+			hdffile.Close();
+			continue;
+		}
 
-	TIMER_STOP(t1, read_timer);
+		int dim[3];
+		hdffile.GetCellDimensions(dim);
 
-    //
-    // Open a tree for writing at the indicated time step
-    //
-	if (! opt.quiet) {
-		cout << "Writing tree\n";
-	}
-    if (amrio.OpenTreeWrite(opt.ts) < 0) {
-        cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
-        exit(1);
-    }
+		int total_blocks =  hdffile.GetNumberOfBlocks();
 
-    if (amrio.TreeWrite(&tree) < 0) {
-        cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
-        exit(1);
-    }
+		if (total_blocks > mem_size) {
+			mem_size = total_blocks;
 
-    if (amrio.CloseTree() < 0) {
-        cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
-        exit(1);
-    }
+			if (gids) delete [] gids;
+			gids = new int[total_blocks * 15];
+			assert (gids != NULL);
 
-	int dim[3];
-	hdffile.GetCellDimensions(dim);
+			if (bboxes) delete [] bboxes;
+			bboxes = new float[total_blocks * 3 * 2];
+			assert (bboxes != NULL);
 
-	float *variable = new float[total_blocks * dim[0] * dim[1] * dim[2]];
-	assert (variable != NULL);
+			if (refine_levels) delete [] refine_levels;
+			refine_levels = new int[total_blocks];
+			assert (refine_levels != NULL);
 
-	const size_t celldim[3] = {dim[0], dim[1], dim[2]};
-	for (int i=0; i<opt.varnames.size(); i++) {
+			if (variable) delete [] variable;
+			variable = new float[total_blocks * dim[0] * dim[1] * dim[2]];
+			assert (variable != NULL);
+		}
 
+		hdffile.GetGlobalIds(gids, total_blocks);
+
+		hdffile.GetBoundingBoxes(bboxes, total_blocks);
+
+		hdffile.GetRefineLevels(refine_levels, total_blocks);
+
+		int bdim[3];
+		hdffile.GetBaseDimensions(bdim);
+		const size_t bdim_sz[3] = {bdim[0], bdim[1], bdim[2]};
+		
+		
+		if (! opt.quiet) {
+			cout << "	Processing tree (" << total_blocks << " total blocks)\n";
+		}
 		TIMER_START(t1);
 
-		if (! opt.quiet) {
-			cout << "Reading variable " << opt.varnames[i] << endl;
-		}
-		hdffile.GetScalarVariable(
-			(char *) opt.varnames[i].c_str(), 0, total_blocks, variable
+		AMRTree tree(
+			bdim_sz, (int (*)[15]) gids, (const float (*)[3][2]) bboxes, 
+			refine_levels, total_blocks
 		);
-
-		TIMER_STOP(t1, read_timer);
-
-
-		AMRData amrdata(
-			&tree, celldim, (int (*)[15]) gids, variable, total_blocks,
-			opt.level
-		);
-
-		if (! opt.quiet) {
-			const float *range = amrio.GetDataRange();
-			cout << "min and max values of data output: "<< range[0] << 
-				" " << range[1] << endl;
-		}
-
 		if (AMRData::GetErrCode()) {
 			cerr << ProgName << " : " << AMRData::GetErrMsg() << endl; 
 			exit(1);
 		}
 
-		if (! opt.quiet) {
-			cout << "Writing variable " << opt.varnames[i] << endl;
-		}
+		TIMER_STOP(t1, read_timer);
 
-		if (amrio.OpenVariableWrite(opt.ts, opt.varnames[i].c_str(), opt.level) < 0) {
+		//
+		// Open a tree for writing at the indicated time step
+		//
+		if (amrio.OpenTreeWrite(ts) < 0) {
 			cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
 			exit(1);
 		}
 
-		if (amrio.VariableWrite(&amrdata) < 0) {
+		if (amrio.TreeWrite(&tree) < 0) {
 			cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
 			exit(1);
 		}
 
-		if (amrio.CloseVariable() < 0) {
+		if (amrio.CloseTree() < 0) {
 			cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
 			exit(1);
 		}
+
+
+		const size_t celldim[3] = {dim[0], dim[1], dim[2]};
+
+		// 
+		// If a list of variable names was provided on the command line
+		// us them. Otherwise generate a variable list from the 
+		// intersection of the variables found in the .vdf and flash files
+		//
+		vector <string> varnames;
+		if (opt.varnames.size() && (opt.varnames[0].compare("") != 0)) {
+			varnames = opt.varnames;
+		}
+		else {
+			vector <string>::iterator itr; 
+			vector <string> flash_varnames;
+			hdffile.GetVariableNames(flash_varnames);
+			for (int i=0; i<vdf_vars3d.size(); i++) {
+				itr = find(
+					flash_varnames.begin(), flash_varnames.end(), 
+					vdf_vars3d[i]
+				);
+				if (itr != flash_varnames.end()) varnames.push_back(*itr); 
+			}
+		}
+
+		if (opt.rmap) {
+			vector <string>::iterator itr; 
+			itr = find(vdf_vars3d.begin(), vdf_vars3d.end(), "refine_level");
+			if (itr != vdf_vars3d.end()) varnames.push_back(*itr); 
+		}
+
+		for (int i=0; i<varnames.size(); i++) {
+
+			TIMER_START(t1);
+
+			if (! opt.quiet) {
+				cout << "	Processing variable " << varnames[i] << endl;
+			}
+
+			//
+			// If the current variable is "refine_level" we need 
+			// to derive it. Otherwise, read the variable direcly
+			// from the hdf file
+			// 
+			if (varnames[i].compare("refine_level") == 0) {
+				AMRTree::cid_t cid;
+				int sz = celldim[0]*celldim[1]*celldim[2];
+				int index;
+				
+				for (int idx=0; idx<total_blocks; idx++) {
+
+					const float *b = &bboxes[idx*6];
+					double ucoord[3];
+
+					float deltax = (b[1]-b[0]) / (float) celldim[0];
+					float deltay = (b[3]-b[2]) / (float) celldim[1];
+					float deltaz = (b[5]-b[4]) / (float) celldim[2];
+
+					for (int kk=0; kk<celldim[2]; kk++) {
+					for (int jj=0; jj<celldim[1]; jj++) {
+					for (int ii=0; ii<celldim[0]; ii++) {
+						ucoord[0] = b[0] + (0.5*deltax) + (ii*deltax);
+						ucoord[1] = b[2] + (0.5*deltay) + (ii*deltay);
+						ucoord[2] = b[4] + (0.5*deltaz) + (ii*deltaz);
+						cid = tree.FindCell(ucoord, opt.level);
+						index = idx*sz + kk*celldim[0]*celldim[1] + jj*celldim[0] + ii;
+
+						//variable[idx*sz+k] = refine_levels[idx];
+						variable[index] = tree.GetCellLevel(cid) + 1;
+					}
+					}
+					}
+				}
+			}
+			else {
+				hdffile.GetScalarVariable(
+					(char *) varnames[i].c_str(), 0, total_blocks, variable
+				);
+			}
+
+			TIMER_STOP(t1, read_timer);
+
+
+			//
+			// Create an AMR data structure with the current variable
+			//
+			AMRData amrdata(
+				&tree, celldim, (int (*)[15]) gids, (float (*)[3][2]) bboxes,
+				variable, total_blocks, opt.level
+			);
+
+			if (! opt.quiet) {
+				const float *range = amrdata.GetDataRange();
+				cout << "	min and max values of data output: "<< range[0] << 
+					" " << range[1] << endl;
+			}
+
+			if (AMRData::GetErrCode()) {
+				cerr << ProgName << " : " << AMRData::GetErrMsg() << endl; 
+				exit(1);
+			}
+
+			if (amrio.OpenVariableWrite(ts, varnames[i].c_str(), opt.level) < 0) {
+				cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
+				exit(1);
+			}
+
+			if (amrio.VariableWrite(&amrdata) < 0) {
+				cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
+				exit(1);
+			}
+
+			if (amrio.CloseVariable() < 0) {
+				cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
+				exit(1);
+			}
+		}
+		TIMER_STOP(t0, timer);
+
+
+
+		hdffile.Close();
+			
 	}
-	TIMER_STOP(t0, timer);
 
 	if (! opt.quiet) {
 		float   write_timer = amrio.GetWriteTimer();
@@ -253,8 +398,5 @@ main(int argc, char **argv) {
 		fprintf(stdout, "total transform time : %f\n", timer);
 	}
 
-
 	exit (0);
-		
 }
-

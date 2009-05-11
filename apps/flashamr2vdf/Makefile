@@ -1,25 +1,25 @@
-TOP = ../..
+PROGRAMS = flashamr2vdf flashvdfcreate
 
-include ${TOP}/make/config/prebase.mk
+all:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i all; done
 
-PROGRAM = flashamr2vdf
-FILES = flashamr2vdf flashhdf5
+dep:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i all; done
 
+clean:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i clean; done
 
-ifdef   HDF5_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(HDF5_INC_PATH)
-endif
+install:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i install; done
 
-ifdef HDF5_LIB_PATH
-ifeq ($(ARCH),WIN32)
-MAKEFILE_LDFLAGS += /LIBPATH:$(HDF5_LIB_PATH)
-else
-MAKEFILE_LDFLAGS += -L$(HDF5_LIB_PATH)
-endif
-endif
+install-dep:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i install-dep; done
 
+clobber:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i clobber; done
 
-LIBRARIES = common vdf hdf5 netcdf $(EXPAT_LIB)
+headers:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i headers; done
 
-
-include ${TOP}/make/config/base.mk
+doc:
+	for i in $(PROGRAMS); do $(MAKE) -f Makefile.$$i doc; done
