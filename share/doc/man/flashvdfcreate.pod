@@ -1,0 +1,79 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+flashvdfcreate - Generate a VDF metadata file for a Flash AMR data set
+
+=head1 SYNOPSIS
+
+B<flashvdfcreate> [options] I<flash_hdf_file...> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<flashvdfcreate> generates a .vdf metafile that will define a VAPOR
+Data Collection (VDC) suitable for containing Flash AMR simulation
+outputs. One or more Flash AMR hdf5 files are used as templates for
+generating I<vdffile>.  Versions 2 and 3 of Flash are supported.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -numts E<lt>numberE<gt>
+
+Maximum number of VDC time steps. By default the number of time 
+steps defined in I<vdffile> is the number of Flash files provided
+on the command line. This option can be used increase that number. 
+Note, however, that the associated UserTime for time steps created in this
+manner is calculated as I<ts * deltat>, where <ts> is the offset from
+0 to I<numts - 1>, and I<deltat> is as described  below.
+
+=item -deltat E<lt>numberE<gt>
+
+Time between successive time steps in user-defnied units.  This option 
+specifies a uniform, floating point sampling interval between successive 
+time steps. The option is ignored if the I<-numts> option is not present.
+
+=item -vars3d E<lt>varsE<gt>
+
+A colon-delimited list of names of 3D variables (as they appear in the
+Flash file) to include in the .vdf file. 
+
+=item -level E<lt>levelE<gt>
+
+The maximum refinement level allowed in the AMR hierarchy. By default 
+the maximum refinement level is determined by the Flash B<lrefine_max>
+parameter. This option, if present, will limit the maximum refinement
+to B<level>.
+
+=item -comment E<lt>stringE<gt>
+
+A comment to be placed in the .vdf file.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+    flashvdfcreate -vars3d velx:vely:velz flash1 flash2 flash3 mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<velx>,
+B<vely>, and B<velz> variable names for three time steps found in the Flash
+hdf4 files B<flash1>, B<flash2>, and B<flash3>.
+
+=head1 SEE ALSO
+
+flashamr2vdf
+
+=head1 HISTORY
+
+Last updated on $Date$

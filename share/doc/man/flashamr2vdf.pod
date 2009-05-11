@@ -1,0 +1,81 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+flashamr2vdf - Transform Flash AMR hdf5 data into a VDC
+
+=head1 SYNOPSIS
+
+B<flashamr2vdf> [options] I<vdffile> I<flash_hdf_file...> 
+
+=head1 DESCRIPTION
+
+B<flashamr2vdf> reads 3D variables from one ore more Flash hdf5 files,
+and stores it in the VAPOR Data Collection (VDC) associated with the
+.vdf file I<vdffile>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -varnames E<lt>varsE<gt>
+
+Variables to convert.  A colon delimited list of the 3D variables
+you wish to transform, as their names appear in the .vdf file, I<vdffile>.
+The default is all 3D variables defined in
+both the .vdf file and the Flash hdf5 file.
+
+=item -level E<lt>level<gt>
+
+Specify the maximum AMR hierarchy refinement level saved. By default
+the maximum refinement level is determined by the contents of the 
+.vdf file. This option may be used to limit the maximum refinement 
+level stored in the VDC.
+
+=item -ts E<lt>ts<gt>
+
+Specify the time step offset for the first Flash file found on 
+the command line. The time step offset for subsequent Flash files
+are determined by incrementing the value of I<ts>.  By default 
+the time step of a Flash file is determined by matching the value
+of the B<time> parameter found in the file with the values of the
+.vdf metafile's b<UserTime> parameter.
+
+
+=item -rmap 
+
+Include the special derived variable, B<refine_level>. This variable
+is created by assigning to each cell sample the refinment level of the
+maximimally refined cell containing the sample point.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=item -quiet 
+
+Operate quietly, only reporting fatal errors.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+    flashamr2vdf mydata.vdf flash1 flash2 flash3
+
+transforms all of the variables at the three time steps found in the
+Flash hdf5 files B<flash1>, B<flash2>, and B<flash3> that
+match the variable names and time stamps found in B<mydata.vdf>.
+
+=head1 SEE ALSO
+
+flashvdfcreate, ncdf2vdf, raw2vdf 
+
+=head1 HISTORY
+
+Last updated on $Date$
