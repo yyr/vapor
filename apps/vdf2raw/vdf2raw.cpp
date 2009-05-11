@@ -34,7 +34,7 @@ struct opt_t {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"level",1, "0","Multiresolution refinement level. Zero implies coarsest resolution"},
+	{"level",1, "-1","Multiresolution refinement level. Zero implies coarsest resolution"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
