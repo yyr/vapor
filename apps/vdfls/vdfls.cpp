@@ -65,6 +65,7 @@ class VarFileInfo {
 	const string &GetPath(int j) const;
 	bool Empty() const;
 	void Clear();
+	VDFIOBase::VarType_T vartype;
  private:
 	struct STAT64 _emptyStat;
 	string _emptyPath;
@@ -153,6 +154,7 @@ int getStats(
 			
 
 			VarFileInfo vfi;
+			vfi.vartype = VDFIOBase::GetVarType(metadata, varname);
 			for (int j=0; j<numTransforms+1; j++) {
 				string path;
 				string relpath;
@@ -205,13 +207,16 @@ void print_mode(mode_t st_mode) {
 }
 #endif
 
-void print_dim(WaveletBlock3DIO *wb, int j) {
+void print_dim(WaveletBlock3DIO *wb, int j, VDFIOBase::VarType_T vartype) {
 
 	ostringstream oss;
 	size_t dim[3];
 
 	// Find max width of field to output
 	wb->GetDim(dim, -1);
+	if (vartype == VDFIOBase::VAR2D_XY) dim[2] = 1;
+	if (vartype == VDFIOBase::VAR2D_XZ) dim[1] = 1;
+	if (vartype == VDFIOBase::VAR2D_YZ) dim[0] = 1;
 	oss << dim[0] << "x" << dim[1] << "x" << dim[2];
 	int w = oss.str().length()+1;
 	string empty;
@@ -219,6 +224,9 @@ void print_dim(WaveletBlock3DIO *wb, int j) {
 	
 
 	wb->GetDim(dim, j);
+	if (vartype == VDFIOBase::VAR2D_XY) dim[2] = 1;
+	if (vartype == VDFIOBase::VAR2D_XZ) dim[1] = 1;
+	if (vartype == VDFIOBase::VAR2D_YZ) dim[0] = 1;
 	oss << dim[0] << "x" << dim[1] << "x" << dim[2];
 
 	cout.setf(ios::right);
@@ -253,7 +261,7 @@ void PrintVariable(WaveletBlock3DIO *wb, const VarFileInfo &vfi, int j) {
 			cout << statref.st_size;
 			cout.setf(ios::left);
 			cout << " ";
-			print_dim(wb, j);
+			print_dim(wb, j, vfi.vartype);
 			cout << " ";
 			print_time(statref.st_mtime);
 			cout << " ";
