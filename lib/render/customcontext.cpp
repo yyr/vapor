@@ -22,7 +22,23 @@
 using namespace VAPoR;
 #ifdef WIN32
 int CustomContext::choosePixelFormat(void*p, HDC pdc){
-	//Nothing special for windows.
+	
+    {
+        PIXELFORMATDESCRIPTOR *pfd = (PIXELFORMATDESCRIPTOR *)p;
+        int pfiMax = DescribePixelFormat(pdc, 0, 0, NULL);
+        int pfi;
+        for (pfi = 1; pfi <= pfiMax; pfi++) {
+            DescribePixelFormat(pdc, pfi, sizeof(PIXELFORMATDESCRIPTOR), pfd);
+			if (!(pfd->dwFlags & PFD_DOUBLEBUFFER)) continue;
+			if (!(pfd->dwFlags & PFD_SUPPORT_OPENGL)) continue;
+			if (!(pfd->dwFlags & PFD_DRAW_TO_WINDOW)) continue;
+            if (pfd->cAuxBuffers > 0)
+                return pfi;
+	}
+        pfi = QGLContext::choosePixelFormat(pfd, pdc);
+        qWarning("aux buffer unavailable");
+        return pfi;
+    }
 
 	return QGLContext::choosePixelFormat(p,pdc);
 }

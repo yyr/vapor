@@ -294,13 +294,13 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	
 	QPixmap* twoDDataIcon = new QPixmap(twoDData);
-	twoDDataAction = new QAction("2D Data Mode", *twoDDataIcon,
+	twoDDataAction = new QAction("2D Mode", *twoDDataIcon,
 		"&twoDData", CTRL+Key_D, mouseModeActions);
 	twoDDataAction->setToggleAction(true);
 	twoDDataAction->setOn(false);
 
 	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
-	twoDImageAction = new QAction("2D Image Mode", *twoDImageIcon,
+	twoDImageAction = new QAction("Image Mode", *twoDImageIcon,
 		"&twoDImage", CTRL+Key_I, mouseModeActions);
 	twoDImageAction->setToggleAction(true);
 	twoDImageAction->setOn(false);
@@ -363,7 +363,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
 		"that can be used to control the location and position of objects in "+
 		"the 3D scene, by dragging with the mouse in the scene.  These include "+
-		"navigation, region, rake, probe, 2DData, and 2DImage tools.";
+		"navigation, region, rake, probe, 2D, and Image tools.";
 	QWhatsThis::add(modeToolBar, qws);
 	
 

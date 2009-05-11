@@ -170,9 +170,10 @@ void GLProbeWindow::paintGL()
 			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false);
 		}
 	}
-	myParams->getTextureSize(imgSize);
+	
 	
 	if(probeTexture) {
+		myParams->getTextureSize(imgSize);
 		glEnable(GL_TEXTURE_2D);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {

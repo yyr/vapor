@@ -63,7 +63,7 @@ QString& Params::paramName(Params::ParamType type){
 	switch (type){
 		
 		case(ViewpointParamsType):
-			return *(new QString("Viewpoint"));
+			return *(new QString("View"));
 		case(RegionParamsType):
 			return *(new QString("Region"));
 		
@@ -76,9 +76,9 @@ QString& Params::paramName(Params::ParamType type){
 		case(ProbeParamsType):
 			return *(new QString("Probe"));
 		case(TwoDImageParamsType):
-			return *(new QString("2DImage"));
+			return *(new QString("Image"));
 		case(TwoDDataParamsType):
-			return *(new QString("2DData"));
+			return *(new QString("2D"));
 		case(AnimationParamsType):
 			return *(new QString("Animation"));
 		case (UnknownParamsType):

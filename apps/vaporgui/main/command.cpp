@@ -113,9 +113,9 @@ modeName(GLWindow::mouseModeType t){
 		case GLWindow::rakeMode:
 			return " rake-set ";
 		case GLWindow::twoDDataMode:
-			return " 2d data planar-set ";
+			return " 2d planar-set ";
 		case GLWindow::twoDImageMode:
-			return " 2d image planar-set ";
+			return " image planar-set ";
 		case GLWindow::lightMode:
 			return " light-move ";
 		default:  
@@ -236,9 +236,9 @@ tabName(Params::ParamType t){
 		case Params::ProbeParamsType:
 			return " probe ";
 		case Params::TwoDDataParamsType:
-			return "2DData";
+			return " 2D ";
 		case Params::TwoDImageParamsType:
-			return "2DImage";
+			return " Image ";
 		default:  
 			assert(0);
 			return 0;
