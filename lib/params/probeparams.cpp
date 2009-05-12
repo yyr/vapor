@@ -1783,8 +1783,8 @@ bool ProbeParams::cropToBox(const float boxExts[6]){
 	//Check if it's already in box, if so do nothing:
 	bool inbox = true;
 	for (int i = 0; i< 3; i++){
-		if (regMin[i] > boxExts[i]) inbox = false;
-		if (regMax[i] < boxExts[i+3]) inbox = false;
+		if (regMin[i] < boxExts[i]) inbox = false;
+		if (regMax[i] > boxExts[i+3]) inbox = false;
 		if (!inbox) break;
 	}
 	if (inbox) return true;

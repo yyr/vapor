@@ -2898,17 +2898,17 @@ guiCropToRegion(){
 		probeTextureFrame->update();
 		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	} else {
-		MessageReporter::warningMsg(" Probe cannot be cropped to region");
+		MessageReporter::warningMsg(" Probe cannot be cropped to region, insufficient overlap");
 		delete cmd;
 	}
 }
 void ProbeEventRouter::
 guiCropToDomain(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to domain");
-	const float *extents = DataStatus::getExtents(timestep);
+	const float *extents = DataStatus::getInstance()->getExtents();
 
 	if (pParams->cropToBox(extents)){
 		updateTab();
@@ -2917,7 +2917,7 @@ guiCropToDomain(){
 		probeTextureFrame->update();
 		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	} else {
-		MessageReporter::warningMsg(" Probe cannot be cropped to domain");
+		MessageReporter::warningMsg(" Probe cannot be cropped to domain, insufficient overlap");
 		delete cmd;
 	}
 }
