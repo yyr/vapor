@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>442</width>
+            <width>435</width>
             <height>965</height>
         </rect>
     </property>
@@ -341,7 +341,7 @@ share the same region settings.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>150</width>
+                                                    <width>120</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -432,7 +432,7 @@ share the same region settings.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>150</width>
+                                                    <width>120</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -523,7 +523,7 @@ share the same region settings.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>150</width>
+                                                    <width>120</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -811,7 +811,7 @@ share the same region settings.</string>
                                     </property>
                                     <property name="minimumSize">
                                         <size>
-                                            <width>150</width>
+                                            <width>120</width>
                                             <height>0</height>
                                         </size>
                                     </property>
@@ -845,7 +845,7 @@ share the same region settings.</string>
                                     </property>
                                     <property name="minimumSize">
                                         <size>
-                                            <width>150</width>
+                                            <width>120</width>
                                             <height>0</height>
                                         </size>
                                     </property>
@@ -879,7 +879,7 @@ share the same region settings.</string>
                                     </property>
                                     <property name="minimumSize">
                                         <size>
-                                            <width>150</width>
+                                            <width>120</width>
                                             <height>0</height>
                                         </size>
                                     </property>
@@ -1802,6 +1802,12 @@ available.</string>
                                             <property name="name">
                                                 <cstring>variableCombo</cstring>
                                             </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>90</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify a variable for region information</string>
                                             </property>
@@ -2134,6 +2140,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minXFullLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2155,6 +2167,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minYFullLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2175,6 +2193,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>minZFullLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -2218,6 +2242,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxXFullLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2239,6 +2269,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxYFullLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2259,6 +2295,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>maxZFullLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -2514,6 +2556,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minVarXLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2535,6 +2583,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minVarYLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2555,6 +2609,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>minVarZLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -2601,6 +2661,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxVarXLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2622,6 +2688,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxVarYLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2642,6 +2714,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>maxVarZLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -2894,6 +2972,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minXSelectedLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2915,6 +2999,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>minYSelectedLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -2935,6 +3025,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>minZSelectedLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -2984,6 +3080,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxXSelectedLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -3005,6 +3107,12 @@ available.</string>
                                                                             <property name="name">
                                                                                 <cstring>maxYSelectedLabel</cstring>
                                                                             </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
+                                                                            </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
                                                                                     <red>216</red>
@@ -3025,6 +3133,12 @@ available.</string>
                                                                         <widget class="QLabel">
                                                                             <property name="name">
                                                                                 <cstring>maxZSelectedLabel</cstring>
+                                                                            </property>
+                                                                            <property name="maximumSize">
+                                                                                <size>
+                                                                                    <width>80</width>
+                                                                                    <height>32767</height>
+                                                                                </size>
                                                                             </property>
                                                                             <property name="paletteBackgroundColor">
                                                                                 <color>
@@ -3266,6 +3380,12 @@ available.</string>
                                                                     <height>0</height>
                                                                 </size>
                                                             </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>100</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="paletteBackgroundColor">
                                                                 <color>
                                                                     <red>209</red>
@@ -3291,6 +3411,12 @@ available.</string>
                                                                 <size>
                                                                     <width>70</width>
                                                                     <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>100</width>
+                                                                    <height>32767</height>
                                                                 </size>
                                                             </property>
                                                             <property name="paletteBackgroundColor">
@@ -3341,6 +3467,12 @@ available.</string>
                                                                     <height>0</height>
                                                                 </size>
                                                             </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>100</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="paletteBackgroundColor">
                                                                 <color>
                                                                     <red>209</red>
@@ -3366,6 +3498,12 @@ available.</string>
                                                                 <size>
                                                                     <width>70</width>
                                                                     <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>100</width>
+                                                                    <height>32767</height>
                                                                 </size>
                                                             </property>
                                                             <property name="paletteBackgroundColor">
