@@ -1804,7 +1804,7 @@ available.</string>
                                             </property>
                                             <property name="maximumSize">
                                                 <size>
-                                                    <width>90</width>
+                                                    <width>100</width>
                                                     <height>32767</height>
                                                 </size>
                                             </property>

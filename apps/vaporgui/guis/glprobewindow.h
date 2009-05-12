@@ -40,7 +40,7 @@ class GLProbeWindow : public QGLWidget
 
 public:
 
-    GLProbeWindow( CustomContext* ctx, QWidget* parent, const char* name, ProbeFrame*  );
+    GLProbeWindow( QGLFormat& fmt , QWidget* parent, const char* name, ProbeFrame*  );
     ~GLProbeWindow();
 	
 	void setTextureSize(float horiz, float vert);

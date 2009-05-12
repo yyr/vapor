@@ -71,7 +71,7 @@ class RENDER_API GLWindow : public MyBase, public QGLWidget
 
 public:
 	typedef void (*ErrMsgReleaseCB_T)(void);
-    GLWindow( CustomContext* ctx, QWidget* parent, const char* name, int winnum);
+    GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int winnum);
     ~GLWindow();
 	Trackball* myTBall;
 	

@@ -42,9 +42,9 @@ ProbeFrame::ProbeFrame( QWidget * parent, const char * name, WFlags f ) :
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
 	//QGLContext* ctx = new QGLContext(fmt);
-	CustomContext* ctx = new CustomContext(fmt);
+	//CustomContext* ctx = new CustomContext(fmt);
 	//ctx->create();
-    glProbeWindow = new GLProbeWindow(ctx, this, "glprobewindow", this);
+    glProbeWindow = new GLProbeWindow(fmt, this, "glprobewindow", this);
 	if (!(fmt.directRendering() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}

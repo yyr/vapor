@@ -37,8 +37,8 @@
 using namespace VAPoR;
 
 
-GLProbeWindow::GLProbeWindow( CustomContext* ctx, QWidget* parent, const char* name, ProbeFrame* pf ) : 
-	QGLWidget(ctx, parent, name) {
+GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* name, ProbeFrame* pf ) : 
+	QGLWidget(fmt, parent, name) {
 
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");

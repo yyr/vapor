@@ -61,8 +61,8 @@ bool GLWindow::nowPainting = false;
 
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 100;
-GLWindow::GLWindow( CustomContext* ctx, QWidget* parent, const char* name, int windowNum )
-: QGLWidget(ctx, parent, name)
+GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
+: QGLWidget(fmt, parent, name)
 
 {
 	//QPaintDevice* dev = (QPaintDevice*) this;
