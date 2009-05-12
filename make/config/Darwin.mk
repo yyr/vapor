@@ -49,5 +49,6 @@ PYTHON = python
 INSTALL_EXEC = /usr/bin/install -m 0755
 INSTALL_NONEXEC = /usr/bin/install -m 0644
 
-CLD_EXCLUDE_LIBS =  -exclude ^/usr -exclude ^/System
-CLD_INCLUDE_LIBS =  -include libexpat -include libXinerama
+CLD_EXCLUDE_LIBS =  -exclude ^/usr/lib -exclude ^/usr/X11 -exclude ^/System
+#CLD_INCLUDE_LIBS =  -include libexpat -include libXinerama
+CLD_INCLUDE_LIBS =  -include libexpat 
