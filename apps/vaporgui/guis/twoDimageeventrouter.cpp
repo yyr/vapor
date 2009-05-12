@@ -930,8 +930,9 @@ guiSetOpacitySlider(){
 	confirmText(false);
 	float sliderpos = (float)(opacitySlider->value())/256.f;
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move opacity slider");
-	opacityEdit->setText(QString::number(sliderpos));
 	pParams->setOpacMult(sliderpos);
+	opacityEdit->setText(QString::number(sliderpos));
+	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Must rebuild all textures:
 	pParams->setImagesDirty();
