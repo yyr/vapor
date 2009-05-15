@@ -54,6 +54,7 @@ protected:
 protected:
 
   float            *_colormap;
+  GLint            _colormapsize;
 };
 
 };

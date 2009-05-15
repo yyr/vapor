@@ -22,9 +22,29 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRLookup::DVRLookup(GLenum type, int nthreads, Renderer* ren) :
-  DVRTexture3d(GL_RGB8, GL_COLOR_INDEX, type, nthreads, ren),
+  DVRTexture3d(GL_RGBA, GL_COLOR_INDEX, type, nthreads, ren),
   _colormap(NULL)
 {
+
+	switch (type) {
+	case GL_UNSIGNED_BYTE:
+	case GL_BYTE:
+		_colormapsize = 256;
+	break;
+	case GL_UNSIGNED_SHORT:
+	case GL_SHORT:
+		_colormapsize = 256*256;
+	break;
+	case GL_UNSIGNED_INT:
+	case GL_INT:
+	case GL_FLOAT:
+		_colormapsize = 256*256*256*256;
+	break;
+		default:
+		assert(type == GL_UNSIGNED_BYTE);
+	break;
+	}
+
   
   if (GLEW_NV_fragment_program)
   {
@@ -64,10 +84,10 @@ int DVRLookup::SetRegion(void *data,
   //
   // Construct the color mapping
   //
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, _colormapsize, _colormap+0*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, _colormapsize, _colormap+1*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, _colormapsize, _colormap+2*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, _colormapsize, _colormap+3*_colormapsize);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   //
@@ -122,21 +142,23 @@ int DVRLookup::Render(const float matrix[16])
 //----------------------------------------------------------------------------
 void DVRLookup::SetCLUT(const float ctab[256][4]) 
 {
-  for (int i=0; i<256; i++)
-  {
-    _colormap[i+0*256] = ctab[i][0];
-    _colormap[i+1*256] = ctab[i][1];
-    _colormap[i+2*256] = ctab[i][2];
-    _colormap[i+3*256] = ctab[i][3];
-  }
+	for (int i=0; i<256; i++) {
+		int len = _colormapsize / 256;
+		for (int j=0; j<len; j++) {
+			_colormap[i*len + j + (0*_colormapsize)] = ctab[i][0];
+			_colormap[i*len + j + (1*_colormapsize)] = ctab[i][1];
+			_colormap[i*len + j + (2*_colormapsize)] = ctab[i][2];
+			_colormap[i*len + j + (3*_colormapsize)] = ctab[i][3];
+		}
+	}
 
   //
   // Construct the color mapping
   //
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, _colormapsize, _colormap+0*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, _colormapsize, _colormap+1*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, _colormapsize, _colormap+2*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, _colormapsize, _colormap+3*_colormapsize);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   //
@@ -183,19 +205,23 @@ void DVRLookup::SetOLUT(const float atab[256][4], const int numRefinements)
       opac = 1.0;
     }
 
-    _colormap[i+0*256] = atab[i][0];
-    _colormap[i+1*256] = atab[i][1];
-    _colormap[i+2*256] = atab[i][2];
-    _colormap[i+3*256] = opac;
+	int len = _colormapsize / 256;
+	for (int j=0; j<len; j++) {
+		_colormap[i*len + j + (0*_colormapsize)] = atab[i][0];
+		_colormap[i*len + j + (1*_colormapsize)] = atab[i][1];
+		_colormap[i*len + j + (2*_colormapsize)] = atab[i][2];
+		_colormap[i*len + j + (3*_colormapsize)] = opac;
+	}
   }
+
 
   //
   // Construct the color mapping
   //
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, _colormapsize, _colormap+0*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, _colormapsize, _colormap+1*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, _colormapsize, _colormap+2*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, _colormapsize, _colormap+3*_colormapsize);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   //
@@ -223,12 +249,12 @@ void DVRLookup::initColormap()
   //
   // Create the colormap table
   //
-  _colormap = new float[256*4];
+  _colormap = new float[_colormapsize*4];
 
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, _colormapsize, _colormap+0*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, _colormapsize, _colormap+1*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, _colormapsize, _colormap+2*_colormapsize);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, _colormapsize, _colormap+3*_colormapsize);
 
   glFlush();
 }
