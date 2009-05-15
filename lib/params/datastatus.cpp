@@ -156,20 +156,22 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//mapping of metadata var nums into session var nums:
 	removeMetadataVars();
 	
-	int numVars = currentMetadata->GetVariables3D().size();
-	if (numVars == 0) return false;
-	numMetadataVariables = numVars;
+	int num3dVars = currentMetadata->GetVariables3D().size();
+	
+	numMetadataVariables = num3dVars;
 	mapMetadataVars = new int[numMetadataVariables];
 
 	numOriented2DVars[0] = currentMetadata->GetVariables2DXY().size();
 	numOriented2DVars[1] = currentMetadata->GetVariables2DYZ().size();
 	numOriented2DVars[2] = currentMetadata->GetVariables2DXZ().size();
 
+	int numVars = num3dVars + numOriented2DVars[0];
+	if (numVars <=0) return false;
 	int numMetaVars2D = numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2];
 	numMetadataVariables2D = numMetaVars2D;
 	mapMetadataVars2D = new int[numMetadataVariables2D];
 	
-	for (int i = 0; i<numVars; i++){
+	for (int i = 0; i<num3dVars; i++){
 		bool match = false;
 		for (int j = 0; j< getNumSessionVariables(); j++){
 			if (getVariableName(j) == currentMetadata->GetVariables3D()[i]){

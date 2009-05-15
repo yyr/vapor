@@ -38,18 +38,20 @@ public:
 	virtual void	initializeGL();
     virtual void		paintGL();
 
-	//Method that uses OpenGL to construct an IBFV texture of specified size.
+	//Methods that use OpenGL to construct IBFV texture of specified size.
 	//Should be called within an OpenGL rendering context.
-	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep);
+	//Static so they can be called either from the proberenderer or from
+	//the probe gl window.
+	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep, GLuint fbid, GLuint texid);
+	static unsigned char* getNextIBFVTexture(ProbeParams*, int tstep, int frameNum, bool starting, int* listNum, GLuint fbid, GLuint texid);
+	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache, GLuint fbid, GLuint texid);
 	
-	static unsigned char* getNextIBFVTexture(ProbeParams*, int tstep, int frameNum, bool starting, int* listNum);
-
-	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache);
 protected:
 	GLuint _probeid;
+	GLuint _framebufferid;
 	static int makeIBFVPatterns(ProbeParams*, int prevListNum);
-	//static void getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy);
-	static void pushState(int width, int height);
+	
+	static void pushState(int width, int height, GLuint fbid, GLuint texid);
 	static void popState();
 	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum, int listNum);
 	

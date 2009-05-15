@@ -35,6 +35,7 @@
 
 using namespace VAPoR;
 
+
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 :Renderer(glw, pParams, "ProbeRenderer")
 {
@@ -68,11 +69,11 @@ void ProbeRenderer::paintGL()
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum, true, _framebufferid, _probeid);
 		QApplication::restoreOverrideCursor();
 		myGLWindow->setRenderNew();
 	} else { //existing texture is OK:
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true, _framebufferid, _probeid);
 	}
 	int imgSize[2];
 	myProbeParams->getTextureSize(imgSize);
@@ -98,11 +99,7 @@ void ProbeRenderer::paintGL()
 		glDepthMask(GL_TRUE);
 		
 	} else {
-		
 		return;
-		//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
-		glDepthMask(GL_FALSE);
-		glColor4f(.8f,.8f,0.f,0.2f);
 	}
 
 	float corners[8][3];
@@ -147,14 +144,13 @@ void ProbeRenderer::initializeGL()
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 	glGenTextures(1, &_probeid);
 	glBindTexture(GL_TEXTURE_2D, _probeid);
-	int val;
-	glGetIntegerv(GL_AUX_BUFFERS, &val);
-	if (val < 1) {
-		MyBase::SetErrMsg(VAPOR_ERROR_GL_RENDERING,
-			" No Aux buffer available.\nFlow images will not display properly in the probe");
-	} 
+	glGenFramebuffersEXT(1, &_framebufferid);
+		
+	
+	//glBindTexture(GL_TEXTURE_2D, _probetex);
 	initialized = true;
 }
+
 // IBFV constants:
 
 //Number of different spot noise patterns
@@ -165,7 +161,7 @@ void ProbeRenderer::initializeGL()
 //It can be called from probeRenderer, or from glProbeWindow.
 //Every time it's called it generates a new list of patterns.
 
-unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
+unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep, GLuint fbid, GLuint texid){
 	
 	
 	int txsize[2];
@@ -179,7 +175,7 @@ unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
 	
 	listNum = makeIBFVPatterns(pParams, listNum);
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
-	pushState(wid,ht);
+	pushState(wid,ht, fbid, texid);
 	
 	glClearColor(0,0,0,0);
 	glClearDepth(0);
@@ -267,15 +263,7 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
 }
 
 //Set up the gl state for doing the ibfv in the aux buffer.
-void ProbeRenderer::pushState(int wid, int ht){
-	//int val;
-	//We need 2 draw buffers
-	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
-	//assert(val > 1);
-	//We need an aux buffer
-	
-	glDrawBuffer(GL_AUX0);
-	glReadBuffer(GL_AUX0);
+void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint texid){
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -320,10 +308,61 @@ void ProbeRenderer::pushState(int wid, int ht){
 	glPixelZoom(1.0,1.0);
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_STENCIL_TEST);
+
+	// List of acceptable frame buffer object internal types 
+	//
+	GLint colorInternalFormats[] = {
+		GL_RGBA, GL_RGBA16F_ARB, GL_RGBA16, GL_RGBA16, GL_RGBA8
+	};
+	GLenum colorInternalTypes[] = {
+		GL_UNSIGNED_BYTE, GL_FLOAT, GL_INT, GL_INT, GL_UNSIGNED_BYTE 
+	};
+	int num_color_fmts = 
+		sizeof(colorInternalFormats)/sizeof(colorInternalFormats[0]);
+
+	GLint _colorInternalFormat;
+	GLenum _colorInternalType;
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,fbid);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Try to find a supported format.  Is this really necessary?
+	//
+	GLenum status;
+	for (int i=0; i<num_color_fmts; i++) {
+		glTexImage2D(
+			GL_TEXTURE_2D, 0,colorInternalFormats[i], 
+			viewport[2], viewport[3], 0, GL_RGBA, colorInternalTypes[i], NULL
+		);
+		glFramebufferTexture2DEXT(
+			GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
+			texid, 0
+		);
+		status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+		if (status == GL_FRAMEBUFFER_COMPLETE_EXT) {
+			_colorInternalFormat = colorInternalFormats[i];
+			_colorInternalType = colorInternalTypes[i];
+			break;
+		}
+	}
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		//myRenderer->setAllBypass(true);
+		SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,
+			"Failed to create OpenGL color framebuffer_object : %d", status
+		);
+	}
 	printOpenGLError();
 }
 void ProbeRenderer::popState(){
 	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
 	glPopAttrib();
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
@@ -342,7 +381,8 @@ void ProbeRenderer::popState(){
 //frameNum is the number in the ibfv animation sequence.
 //
 
-unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
+unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep, 
+	int frameNum, bool isStarting, int* listNum, GLuint fbid, GLuint texid){
 	
 	int sz[2];
 	if (pParams->doBypass(tstep)) return 0;
@@ -363,7 +403,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int tstep
 	assert(wid == 256 && ht == 256);
 
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
-	pushState(wid,ht);
+	pushState(wid,ht, fbid, texid);
 
 	if(isStarting) {
 		*listNum = makeIBFVPatterns(pParams, *listNum);
@@ -455,7 +495,8 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 						0, 0, txsize[0], txsize[1], 0);
 }
 //Static method to calculate the probe texture whether IBFV or data or both
-unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum,  bool doCache){
+unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, 
+		int frameNum, bool doCache, GLuint fbid, GLuint texid){
 	if (!pParams->probeIsDirty(frameNum)) 
 		return pParams->getCurrentProbeTexture(frameNum, pParams->getProbeType());
 	if (pParams->doBypass(frameNum)) return 0;
@@ -471,7 +512,7 @@ unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum
 		pParams->setProbeTexture(dataTex,frameNum,0);
 		if (!dataTex) pParams->setBypass(frameNum);
 	}
-	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
+	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum, fbid, texid);
 	if (!probeTex) pParams->setBypass(frameNum);
 	if (doCache){
 		pParams->setProbeTexture(probeTex, frameNum, 1);

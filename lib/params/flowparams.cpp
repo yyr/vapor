@@ -392,6 +392,7 @@ reinit(bool doOverride){
 	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
 	
+	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
 	//Rebuild map bounds arrays:
 	if(minOpacBounds) delete minOpacBounds;
 	minOpacBounds = new float[newNumComboVariables+4];
