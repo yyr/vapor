@@ -41,4 +41,8 @@ ifdef	PROJ_INC_PATH
 MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
 endif
 
+ifdef   GTIFF_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
+endif
+
 include ${TOP}/make/config/base.mk

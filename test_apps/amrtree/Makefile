@@ -6,10 +6,7 @@ PROGRAM = test_amrtree
 FILES = test_amrtree
 
 
-LIBRARIES = common vdf
-
-MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
-MAKEFILE_LDFLAGS += $(EXPATLIB)
+LIBRARIES =  vdf common netcdf $(EXPAT_LIB)
 
 include ${TOP}/make/config/base.mk
 

@@ -8,7 +8,7 @@ FILES = asciitf2vtf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = params flow vdf common netcdf tiff geotiff $(EXPAT_LIB) $(QT_LIB) 
+LIBRARIES = params flow vdf common netcdf tiff geotiff proj $(EXPAT_LIB) $(QT_LIB) 
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
@@ -21,8 +21,13 @@ endif
 ifdef TIFF_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(TIFF_LIB_PATH)
 endif
+
 ifdef GTIFF_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(GTIFF_LIB_PATH)
+endif
+
+ifdef PROJ_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(PROJ_LIB_PATH)
 endif
 
 

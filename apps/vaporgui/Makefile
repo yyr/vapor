@@ -21,7 +21,19 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
+ifdef   TIFF_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(TIFF_INC_PATH)
+endif
+
+ifdef   GTIFF_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
+endif
+
+ifdef   PROJ_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
+endif
+
+MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
 LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB) $(QT_LIB) GLEW tiff geotiff proj 
 

@@ -74,18 +74,41 @@ QTDIR =
 #
 QT_LIB_PATH = 
 
-
-# Set to 1 if you have SGI Volumizer installed on your system and you would
-# like to compile vapor's Volumizer rendering engine. Volumizer is a 
-# licensed product available, for fee, from www.sgi.com. Volumizer is NOT
-# required by vapor.
+# Set TIFF_INC_PATH to the directory where 'tiff.h' may be found if not
+# in a standard location. tiff.h is part of libtiff - TIFF 
+# Library and Utilities, available from http://www.libtiff.org
 #
-BUILD_VOLUMIZER = 0
+TIFF_INC_PATH=
 
-# Set VOLUMIZER_ROOT to the root of the volumizer directory
-# (Only needed if BUILD_VOLUMIZER is 1)
+# Set TIFF_LIB_PATH to the directory where 'libtiff.*' may be found 
+# if not in a standard location.  libtiff.* is part of libtiff - TIFF 
+# Library and Utilities, available from http://www.libtiff.org
 #
-VOLUMIZER_ROOT = 
+TIFF_LIB_PATH=
+
+# Set PROJ_INC_PATH to the directory where 'proj_api.h' may be found if not
+# in a standard location. proj_api.h is part of the PROJ.4 Cartographics
+# Projections Library, available from http://trac.osgeo.org/proj
+#
+PROJ_INC_PATH=
+
+# Set PROJ_LIB_PATH to the directory where 'libproj.*' may be found if not
+# in a standard location. libproj.* is part of the PROJ.4 Cartographics
+# Projections Library, available from http://trac.osgeo.org/proj
+#
+PROJ_LIB_PATH=
+
+# Set GTIFF_INC_PATH to the directory where 'geotiff.h' may be found if not
+# in a standard location. geotiff.h is part of the GeoTIFF library,
+# available from: http://trac.osgeo.org/geotiff/
+#
+GTIFF_INC_PATH=
+
+# Set GTIFF_LIB_PATH to the directory where 'libgeotiff.*' may be found 
+# if not in a standard location. libgeotiff.* is part of the GeoTIFF library,
+# available from: http://trac.osgeo.org/geotiff/
+#
+GTIFF_LIB_PATH=
 
 
 # Set to 1 if you have IDL installed on your system and you would

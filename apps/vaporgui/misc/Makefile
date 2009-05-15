@@ -20,8 +20,20 @@ ifeq ($(BUILD_VOLUMIZER), 1)
 MAKEFILE_CXXFLAGS += -DVOLUMIZER
 endif
 
+ifdef   TIFF_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(TIFF_INC_PATH)
+endif
 
-MAKEFILE_INCLUDE_DIRS := -I../guis -I../main -I../../../lib/params -I../../../lib/render 
+ifdef   GTIFF_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
+endif
+
+ifdef   PROJ_INC_PATH
+MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
+endif
+
+
+MAKEFILE_INCLUDE_DIRS += -I../guis -I../main -I../../../lib/params -I../../../lib/render 
 
 
 ifeq ($(ARCH),WIN32) 
