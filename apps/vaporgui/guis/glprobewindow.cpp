@@ -151,34 +151,31 @@ void GLProbeWindow::paintGL()
 			if (animationStarting) currentAnimationTimestep = timestep;
 			if (currentAnimationTimestep == timestep){
 				probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, timestep, animatingFrameNum, animationStarting,
-					&patternListNum);
+					&patternListNum, _fbid, _texid);
 				if(probeTexture) animationStarting = false;
 				else return; //failure to build texture
 			} else {
 				return;// timestep changed!
 			}
 		} else { //not animated.  Calculate it if necessary
-			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, false,_fbid, _texid);
 		}
 		myParams->adjustTextureSize(imgSize);
 	} else if(myParams ){//data probe
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false, _fbid, _texid);
 			QApplication::restoreOverrideCursor();
 		} else {
-			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,false, _fbid, _texid);
 		}
 	}
-	
-	
 	if(probeTexture) {
 		myParams->getTextureSize(imgSize);
 		glEnable(GL_TEXTURE_2D);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
 		return;
-		//glColor4f(0.,0.,0.,0.);
 	}
 
 	glBegin(GL_QUADS);
@@ -188,7 +185,7 @@ void GLProbeWindow::paintGL()
 	glTexCoord2f(1.f,1.f); glVertex2f(-rectLeft,rectTop);
 	glTexCoord2f(1.f, 0.f); glVertex2f(-rectLeft, -rectTop);
 	glEnd();
-	//glFlush();
+	
 	if (probeTexture) glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	
@@ -228,13 +225,13 @@ void GLProbeWindow::initializeGL()
 	printOpenGLErrorMsg("GLProbeWindow");
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
-	
+	glGenTextures(1, &_texid);
+	glBindTexture(GL_TEXTURE_2D, _texid);
+	glGenFramebuffersEXT(1, &_fbid);
 	qglClearColor( QColor(233,236,216) ); 		// same as frame
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glDisable(GL_LIGHTING);
-	//glGenTextures(1, &texName);
-	//glBindTexture(GL_TEXTURE_2D, texName);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	capturing = false;
@@ -261,18 +258,8 @@ getPixelData(int minx, int miny, int sizex, int sizey, unsigned char* data){
 	 // Must clear previous errors first.
 	while(glGetError() != GL_NO_ERROR);
 
-	//if (front)
-	//
-	//glReadBuffer(GL_FRONT);
-	//
-	//else
-	//  {
 	glReadBuffer(GL_BACK_LEFT);
-	//  }
 	glDisable( GL_SCISSOR_TEST );
-
-
- 
 	// Turn off texturing in case it is on - some drivers have a problem
 	// getting / setting pixels with texturing enabled.
 	glDisable( GL_TEXTURE_2D );
