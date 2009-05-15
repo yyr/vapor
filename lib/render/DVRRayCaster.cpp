@@ -600,7 +600,7 @@ int DVRRayCaster::initTextures()
 	int num_depth_fmts = 
 		sizeof(depthInternalFormats)/sizeof(depthInternalFormats[0]);
 
-	DVRShader::initTextures();
+	if (DVRShader::initTextures() < 0) return(-1);
 
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -686,7 +686,7 @@ int DVRRayCaster::initTextures()
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	printOpenGLError();
+	if (printOpenGLError() != 0) return(-1);
 	return(0);
 }
 
