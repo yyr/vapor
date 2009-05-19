@@ -564,6 +564,8 @@ clobber:: clean
 ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i clobber; done
 endif
+	@$(ECHO) "Removing dependency files (if any)"
+	@if test -d $(DEPDIR); then $(RM) $(DEPDIR)/*.depend; fi
 ifdef LIBRARY
 	@$(ECHO) "Removing $(LIB_TARGET) for $(PLATFORM)."
 	@$(RM) $(LIB_TARGET) $(QTTEMPS)
@@ -573,8 +575,6 @@ ifdef PROGRAM
 	@$(RM) $(PROGRAM)
 	@$(RM) $(BINDIR)/$(PROGRAM) $(QTTEMPS)
 endif
-	@$(ECHO) "Removing dependency files (if any)"
-	@$(RM) $(DEPDIR)/*.depend
 ifdef	HEADER_FILES
 	@$(ECHO) "Removing links to header files"
 	@$(RM) $(HEADER_FILES)
