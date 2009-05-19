@@ -37,12 +37,6 @@ endif
 ifeq ($(ARCH),Darwin)
 MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
-
-LIBRARIES += qt-mt
-
-ifdef   QT_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
-endif
 endif
 
 include ${TOP}/make/config/base.mk
