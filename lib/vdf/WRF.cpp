@@ -730,6 +730,12 @@ int WRF::OpenWrfGetMeta(
 
 	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
 
+	if (haveLatLon){
+		if(GetVarInfo(ncid, "XLAT", ncdims, latInfo) < 0) haveLatLon = false;
+		if(GetVarInfo(ncid, "XLONG", ncdims, lonInfo) < 0) haveLatLon = false;
+	}
+
+
 	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
 	if (timeInfo.ndimids != 2) {
 		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
