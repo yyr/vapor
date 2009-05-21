@@ -18,6 +18,7 @@
 //		This extents the QGLContext, so that we can request
 //		the context to have an Aux Buffer (not present in Mac OS10.5.6)
 //
+#include <cassert>
 #include "customcontext.h"
 using namespace VAPoR;
 #ifdef WIN32
