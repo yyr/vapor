@@ -21,6 +21,14 @@ install-dep:: install
 	@sed -e s#ARCH#$(ARCH)# -e  s#VERSION_APP#$(VERSION_APP)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
 	@chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh
 
+
+ifeq ($(ARCH), Linux)
+shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so $(INSTALL_LIBDIR)/lib*.so.*)
+install-dep:: 
+	@$(ECHO) "Removing rpaths from shared libraries..."
+	@for i in $(shlibs); do echo "	$$i"; /usr/bin/chrpath -d $$i; done
+endif
+
 MAC_BUNDLE_DIR = /tmp/vapor-macbundle
 
 macbundle:: install-dep macbundle-scripts

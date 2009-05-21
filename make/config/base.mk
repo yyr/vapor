@@ -152,8 +152,8 @@ HEADER_FILES    := $(addsuffix .h, $(HEADER_FILES))
 ifdef LIBRARY
 ifdef SHARED
 	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
-	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR)
-	LIB_REALNAME = $(LIB_SONAME).$(VERSION_MINOR).$(VERSION_RELEASE)
+	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+	LIB_REALNAME = $(LIB_SONAME)
 	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIB_REALNAME))
 else
 	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(LIBSUFFIX))
@@ -195,15 +195,6 @@ include $(DEPS)
 endif
 endif
 
-
-PRINT_COMMAND := lpr
-
-
-ifdef LESSWARN
-WARN_STRING = (NOWARN)
-else
-CFLAGS += $(FULLWARN)
-endif
 
 ifeq ($(RELEASE), 1)
 CFLAGS += $(C_RELEASE_FLAGS)
@@ -248,7 +239,6 @@ endif
 
 ifdef WINDOWS
 LDFLAGS += /incremental:no 
-#LDFLAGS += /pdb:none
 ifeq ($(RELEASE), 0)
 LDFLAGS += /debug
 endif
@@ -328,10 +318,8 @@ ifneq ($(BUILDDIR), dummy_builddir)
 endif
 
 ifdef WINDOWS
-#LIBRARIES := $(foreach lib,$(LIBRARIES),$(TOP)/targets/$(PLATFORM)/bin/$(LIBPREFIX)$(lib)$(LIBSUFFIX))
 LIBRARIES := $(foreach lib,$(LIBRARIES),$(lib)$(LIBSUFFIX))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(PLATFORM)/lib/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(LIBSUFFIX))
-#LIBRARIES := $(LIBRARIES:$(DLLSUFFIX)=$(LIBSUFFIX))
 STATICLIBRARIES :=
 
 LDFLAGS += "/LIBPATH:$(DSO_DIR)" 
@@ -341,7 +329,6 @@ else
 STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(PLATFORM)/lib$(lib)$(LIBSUFFIX)))
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),-l$(SHORT_TARGET_NAME)_$(lib)_copy)
-P_LIB_FILES := $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/lib/$(PLATFORM)/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(DLLSUFFIX) )
 
 LDFLAGS += -L$(DSO_DIR) 
 
@@ -398,9 +385,6 @@ ifdef WINDOWS
 	@$(CR_CXX) $(OBJS) /Fe$(PROG_TARGET)$(EXESUFFIX) $(LIBRARIES) $(LDFLAGS)
 else
 ifdef BINUTIL_LINK_HACK
-ifdef PERSONAL_LIBRARIES
-	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(PROGRAM) $(TOP)/built/$(PROGRAM)/$(PLATFORM) $(P_LIB_FILES)
-endif
 endif
 	$(CR_CXX) $(OBJS) -o $(PROG_TARGET)$(EXESUFFIX) $(LDFLAGS) $(LIBRARIES)
 endif
@@ -418,14 +402,8 @@ else
 endif #shared
 else #windows
 ifdef SHARED
-ifdef BINUTIL_LINK_HACK
-ifdef PERSONAL_LIBRARIES
-	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(SHORT_TARGET_NAME) $(TOP)/built/$(SHORT_TARGET_NAME)/$(PLATFORM) $(P_LIB_FILES)
-endif
-endif
 	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LDFLAGS) $(LIBRARIES)
 	cd $(DSO_DIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
-	cd $(DSO_DIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
 else #shared
 	$(AR) $(ARCREATEFLAGS) $@ $(OBJS)
 	$(RANLIB) $@
@@ -630,7 +608,7 @@ ifdef LIBRARY
 	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
 ifdef SHARED
 	cd $(INSTALL_LIBDIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
-	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
+#	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
 endif #SHARED
 install-dep:: install
 else
