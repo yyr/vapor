@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.3  2009/04/06 22:12:03  alannorton
+ * Modifications to geotiff to fix polar stereo and mercator projections.
+ *
  * Revision 1.2  2009/04/03 20:56:13  alannorton
  * Changes to polar stereo projection parameters
  *
@@ -280,7 +283,7 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 
     if( value == NULL )
     {
-        /* nothing */;
+        nSpheroid = Ellipse_Sphere;
     }
     else if( EQUAL(value,"WGS84") )
         nSpheroid = Ellipse_WGS_84;
@@ -337,6 +340,14 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 
     else if( EQUAL(value,"longlat") || EQUAL(value,"latlong") )
     {
+		
+		GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT, 1,
+                   ModelTypeGeographic);
+		GTIFKeySet(gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1,
+                   RasterPixelIsArea);
+		GTIFKeySet(gtif, GeogAngularUnitsGeoKey, TYPE_SHORT, 1,
+                   Angular_Degree);
+				   
     }
 	/* Handle just the WRF-required mercator tags:*/
 	else if( EQUAL(value, "merc"))

@@ -65,6 +65,7 @@ static	uint16 defpredictor = (uint16) -1;
 static 	char *geofile=(char *)0;
 static  char *timeLonLatName=(char*)0;
 static FILE* timeLonLatFile= (FILE*)0;
+static float lonLatExts[4] = { 999.f, 999.f, 999.f, 999.f};
 static uint32 currentImageWidth;
 static uint32 currentImageHeight;
 
@@ -75,6 +76,7 @@ static  void ApplyWorldFile(const char *worldfile, TIFF *out);
 static	int tiffcp(TIFF*, TIFF*);
 static	int processCompressOptions(char*);
 static	void usage(void);
+static int applyCorners(float cors[4], float relpos[4], TIFF* out);
 extern int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 );
 
 int
@@ -93,7 +95,7 @@ main(int argc, char* argv[])
 	extern int optind;
 	extern char* optarg;
 
-	while ((c = getopt(argc, argv, "c:f:l:m:o:p:r:w:e:g:4:aistd")) != -1)
+	while ((c = getopt(argc, argv, "c:f:l:m:n:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
 		case 'a':		/* append to output */
 			mode = "a";
@@ -105,9 +107,9 @@ main(int argc, char* argv[])
 			if (!processCompressOptions(optarg))
 				usage();
 			break;
-                case 'e':
-                        worldfile = optarg;
-                        break;
+        case 'e':
+                worldfile = optarg;
+                break;
 		case 'f':		/* fill order */
 			if (streq(optarg, "lsb2msb"))
 				deffillorder = FILLORDER_LSB2MSB;
@@ -130,6 +132,17 @@ main(int argc, char* argv[])
 				exit (-1);
 			}
 			break;
+		case 'n': /* single latlong extents, requires option 4 */
+			{
+				int retval = sscanf(optarg,"%f %f %f %f",
+					lonLatExts,lonLatExts+1,lonLatExts+2,lonLatExts+3);
+				if (retval != 4) {
+					fprintf(stderr,"Four lon/lat extent values required\n");
+					exit (-1);
+				}
+			}
+			break;
+		
 		case '4':	       
 			proj4_string = optarg;
 			break;
@@ -300,8 +313,8 @@ static void InstallGeoTIFF(TIFF *out)
 			float lonlat[4];
 			float relPos[4];
 			char timestamp[20];
-			double modelPixelScale[3] = {0.,0.,0.};
-			double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
+			//double modelPixelScale[3] = {0.,0.,0.};
+			//double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
 			
 			int rc = fscanf(timeLonLatFile,"%19s %f %f %f %f %f %f %f %f",
 				timestamp, lonlat, lonlat+1, lonlat+2, lonlat+3,
@@ -316,8 +329,12 @@ static void InstallGeoTIFF(TIFF *out)
 				//insert time stamp from file
 				TIFFSetField(out, TIFFTAG_DATETIME,timestamp);
 
+
 				//Use proj4 to calculate the corner coordinates of the
 				//image from the lonlat extents
+				int rc = applyCorners(lonlat, relPos, out);
+				if (rc) exit (rc);
+				/*
 				//
 				void* p;
 				p = pj_init_plus(proj4_string);
@@ -380,13 +397,88 @@ static void InstallGeoTIFF(TIFF *out)
 					TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
 					TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
 				}
-					
-			}
+					*/
+			} 
+		} else if (lonLatExts[0] != 999.f){
+				//Use proj4 to calculate the corner coordinates of the
+				//image from the lonlat extents
+			float relpos[4] = {0.f, 0.f, 1.f,1.f};
+			int rc = applyCorners(lonLatExts, relpos, out);
+			if (rc) exit (rc);
 		}
 	}
     GTIFWriteKeys(gtif);
     GTIFFree(gtif);
     return;
+}
+//
+static int applyCorners(float lonlat[4], float relPos[4], TIFF* out){
+	void* p;
+	double modelPixelScale[3] = {0.,0.,0.};
+	double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
+	p = pj_init_plus(proj4_string);
+		
+	if (!p  && !ignore){
+		//Invalid string. Get the error code:
+		int *pjerrnum = pj_get_errno_ref();
+		fprintf(stderr, "Invalid Proj4 string; message:\n %s\n",
+		pj_strerrno(*pjerrnum));
+		return -1;
+	}
+	if (p){
+		//reproject latlon to specified coord projection.
+		//unless it's already a lat/lon projection
+		double dbextents[4];
+		if ( pj_is_latlong(p)) {
+			for (int j = 0; j<4; j++) 
+			{
+				dbextents[j] = lonlat[j];
+			}
+		} else {
+			//Must convert to radians:
+			const double DEG2RAD = 3.141592653589793/180.;
+			const char* latLongProjString = "+proj=latlong +ellps=sphere";
+			projPJ latlon_p = pj_init_plus(latLongProjString);
+			//convert to radians...
+			for (int j = 0; j<4; j++) dbextents[j] = lonlat[j]*DEG2RAD;
+			//convert the latlons to coordinates in the projection.
+			int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
+			if (rc && !ignore){
+				int *pjerrnum = pj_get_errno_ref();
+				fprintf(stderr, "Error converting lonlat to projection\n %s\n",
+					pj_strerrno(*pjerrnum));
+				return (-1);
+			}
+		}
+		//Now the extents in projection space must be scaled, to 
+		// allow for the corners being in the interior of the page.
+		// If R0 and R1 are the relative positions of the plot corners
+		// in the page, and X0 and X1 are the x-coords of the plot corners
+		// then the page corners are at:
+		// LOWER = (X0*R1 - X1*R0)/(R1-R0)
+		// UPPER = LOWER + (X1-X0)/(R1-R0)
+		
+		// When dealing with x coordinates,
+		// R0 and R1 are relPos[0] and [2] , X0 and X1 are dbextents[0] and [2]
+		// similarly the y coordinates use the [1] and [3] indices
+		double newDBExtents[4];
+		newDBExtents[0] = (dbextents[0]*relPos[2] - dbextents[2]*relPos[0])/(relPos[2]-relPos[0]);
+		newDBExtents[2] = newDBExtents[0] + (dbextents[2]-dbextents[0])/(relPos[2]-relPos[0]);
+		newDBExtents[1] = (dbextents[1]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
+		newDBExtents[3] = newDBExtents[1] + (dbextents[3]-dbextents[1])/(relPos[3]-relPos[1]);
+		// calculate scale and model tie point
+		modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.);
+		modelPixelScale[1] = (newDBExtents[3]-newDBExtents[1])/((double)currentImageHeight-1.);
+
+		tiePoint[3] = newDBExtents[0];
+		//Following is just dbextents[1] + dbextents[3]-dbextents[1] = dbextents[3].
+		//tiePoint[4] = dbextents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
+		tiePoint[4] = newDBExtents[3];
+		TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
+		TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
+	}
+	return 0;
+		
 }
 
 static void CopyGeoTIFF(TIFF * in, TIFF *out)
@@ -480,11 +572,16 @@ char* stuff[] = {
 " -4 proj4_str	install GeoTIFF metadata from proj4 string",
 " -e file	install positioning info from ESRI Worldfile <file>",
 " -a		append to output instead of overwriting",
-" -m file	specify file with multiple timestamps and image placement info:",
+" -m file	specify filename with multiple timestamps and image placement info:",
 "			Each line of file has date/timestamp, and 8 floats;",
 "			first four are lon/lat corners of plot area,",
 "			second four are relative positions of plot corners in page.",
 "			This option requires option -4",
+" -n LonLatExtents install longitude/latitude extents.",
+"			Four lon and lat values must be provided in quotes as:",
+"			llx lly urx ury",
+"			This option requires option -4",
+"			Option '-m' overrides this option",
 " -o offset	set initial directory offset",
 " -p contig	pack samples contiguously (e.g. RGBRGB...)",
 " -p separate	store samples separately (e.g. RRR...GGG...BBB...)",
