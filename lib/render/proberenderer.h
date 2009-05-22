@@ -41,18 +41,17 @@ public:
 	//Methods that use OpenGL to construct IBFV texture of specified size.
 	//Should be called within an OpenGL rendering context.
 	//Static so they can be called either from the proberenderer or from
-	//the probe gl window.
-	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep, GLuint fbid, GLuint texid);
-	static unsigned char* getNextIBFVTexture(ProbeParams*, int tstep, int frameNum, bool starting, int* listNum, GLuint fbid, GLuint texid);
-	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache, GLuint fbid, GLuint texid);
+	//the probe gl window, passing in appropriate state variables.
+	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep, GLuint fbid, GLuint fbtexid);
+	static unsigned char* getNextIBFVTexture(ProbeParams*, int tstep, int frameNum, bool starting, int* listNum, GLuint fbid, GLuint fbtexid);
+	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache, GLuint fbid, GLuint fbtexid);
+	static void pushState(int width, int height, GLuint fbid, GLuint fbtexid, bool first);
+	static void popState();
 	
 protected:
-	GLuint _probeid;
+	GLuint _probeTexid, _fbTexid;
 	GLuint _framebufferid;
 	static int makeIBFVPatterns(ProbeParams*, int prevListNum);
-	
-	static void pushState(int width, int height, GLuint fbid, GLuint texid);
-	static void popState();
 	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum, int listNum);
 	
 	

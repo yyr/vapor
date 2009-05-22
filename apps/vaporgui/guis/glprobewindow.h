@@ -83,7 +83,7 @@ protected:
 	int captureNum;
 	QString captureName;
 	bool capturing;
-	GLuint _texid, _fbid;
+	GLuint _probeTexid, _fbid, _fbTexid;
 	
 
 };
