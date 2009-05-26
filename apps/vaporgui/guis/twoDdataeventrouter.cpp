@@ -196,7 +196,10 @@ void TwoDDataEventRouter::updateTab(){
 	if (ds->getDataMgr()
 		&& ds->getNumMetadataVariables2D()>0) 
 			instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
+	else {
+		instanceTable->setEnabled(false);
+		return;
+	}
 	instanceTable->rebuild(this);
 	
 	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();

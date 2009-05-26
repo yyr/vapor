@@ -163,7 +163,9 @@ void TwoDImageEventRouter::updateTab(){
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()) 
 			instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
+	else {
+		instanceTable->setEnabled(false);
+	}
 	instanceTable->rebuild(this);
 	
 	TwoDImageParams* twoDParams = VizWinMgr::getActiveTwoDImageParams();
@@ -177,11 +179,10 @@ void TwoDImageEventRouter::updateTab(){
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentItem(orientation);
-	geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+	
 	placementCombo->setCurrentItem(twoDParams->getImagePlacement());
 	//Force consistent settings, if there is a dataset
 	if (ds->getDataMgr()){
-		
 		if ((ds->getProjectionString().size() > 0) && orientation == 2){
 			geoRefCheckbox->setEnabled(true);
 		} else {
@@ -191,12 +192,14 @@ void TwoDImageEventRouter::updateTab(){
 		}
 		bool georef = twoDParams->isGeoreferenced();
 		if (georef){
+			
 			cropCheckbox->setEnabled(true);
 			fitToImageButton->setEnabled(true);
 			placementCombo->setEnabled(false);
 			placementCombo->setCurrentItem(0);//upright
 			twoDParams->setImagePlacement(0);
 		} else {
+			geoRefCheckbox->setChecked(false);
 			cropCheckbox->setEnabled(false);
 			fitToImageButton->setEnabled(false);
 			placementCombo->setEnabled(true);
@@ -326,7 +329,7 @@ void TwoDImageEventRouter::updateTab(){
 	if (orientation != 2) {
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
-	} else {
+	} else if (ds->getDataMgr()){ // only enable if data mgr is there
 		bool terrainMap = twoDParams->isMappedToTerrain();
 		if(applyTerrainCheckbox->isChecked() != terrainMap)
 			applyTerrainCheckbox->setChecked(terrainMap);
