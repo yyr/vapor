@@ -464,7 +464,7 @@ FlashHDFFile::GetScalarVariable(
 	flash_var_name[4] = '\0';
  
     int rank;
-    hsize_t dimens_4d[4];
+    hsize_t dimens_4d[5];
     hid_t ierr;
     
     hid_t dataspace, memspace, dataset;
