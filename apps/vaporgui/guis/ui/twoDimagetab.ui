@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>1234</height>
+            <height>1327</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout119</cstring>
+                <cstring>layout37</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -329,7 +329,7 @@ create new 2D planar instances.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout118</cstring>
+                                <cstring>layout36</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -542,7 +542,7 @@ create new 2D planar instances.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout117</cstring>
+                                                <cstring>layout35</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -800,7 +800,7 @@ create new 2D planar instances.</string>
                                                 </spacer>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout113</cstring>
+                                                        <cstring>layout34</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -818,110 +818,7 @@ create new 2D planar instances.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>16</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
-                                                        <widget class="QPushButton">
-                                                            <property name="name">
-                                                                <cstring>fitToImageButton</cstring>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Fit box to Image</string>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Click to fit the 2D extents to current image</string>
-                                                            </property>
-                                                            <property name="whatsThis" stdset="0">
-                                                                <string>When georeferencing is enabled, click on this button to set the 2D extents to be the smallest rectangle containing the four corners of the image.</string>
-                                                            </property>
-                                                        </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer163</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>16</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
-                                                        <widget class="QCheckBox">
-                                                            <property name="name">
-                                                                <cstring>applyTerrainCheckbox</cstring>
-                                                            </property>
-                                                            <property name="text">
-                                                                <string>Apply image to terrain</string>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Check to display image on terrain surface</string>
-                                                            </property>
-                                                        </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer166</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>16</width>
-                                                                    <height>20</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
-                                                    </hbox>
-                                                </widget>
-                                                <spacer>
-                                                    <property name="name">
-                                                        <cstring>spacer168</cstring>
-                                                    </property>
-                                                    <property name="orientation">
-                                                        <enum>Vertical</enum>
-                                                    </property>
-                                                    <property name="sizeType">
-                                                        <enum>Expanding</enum>
-                                                    </property>
-                                                    <property name="sizeHint">
-                                                        <size>
-                                                            <width>20</width>
-                                                            <height>16</height>
-                                                        </size>
-                                                    </property>
-                                                </spacer>
-                                                <widget class="QLayoutWidget">
-                                                    <property name="name">
-                                                        <cstring>layout116</cstring>
-                                                    </property>
-                                                    <hbox>
-                                                        <property name="name">
-                                                            <cstring>unnamed</cstring>
-                                                        </property>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer59_2</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>16</width>
+                                                                    <width>32</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -985,7 +882,79 @@ create new 2D planar instances.</string>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer164</cstring>
+                                                                <cstring>spacer163</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QCheckBox">
+                                                            <property name="name">
+                                                                <cstring>applyTerrainCheckbox</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Apply image to terrain</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Check to display image on terrain surface</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer166</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>32</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer168</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Vertical</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>20</width>
+                                                            <height>16</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout33</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer59_2</cstring>
                                                             </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
@@ -1834,6 +1803,109 @@ orientation of the plane.</string>
                                         <size>
                                             <width>20</width>
                                             <height>16</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout32</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer43</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>fitToRegionButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Fit box to current region</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set the image box to the current region</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer44</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>fitToImageButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Fit box to Image</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Click to fit the 2D extents to current image</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When georeferencing is enabled, click on this button to set the 2D extents to be the smallest rectangle containing the four corners of the image.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer42</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer45</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
                                         </size>
                                     </property>
                                 </spacer>

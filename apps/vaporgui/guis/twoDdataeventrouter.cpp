@@ -181,7 +181,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
-	
+	connect (fitToRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
 }
 //Insert values from params into tab panel
 //
@@ -1163,7 +1163,30 @@ guiSetYSize(int sliderval){
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
+void TwoDDataEventRouter::guiFitToRegion(){
+	confirmText(false);
+	TwoDDataParams* tParams = VizWinMgr::getActiveTwoDDataParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "Fit 2D data to region");
+	//Just match the first two dimensions:
+	for (int i = 0; i<2; i++){
+		tParams->setTwoDMin(i, rParams->getRegionMin(i,ts));
+		tParams->setTwoDMax(i, rParams->getRegionMax(i,ts));
+	}
+	if (tParams->getTwoDMin(2) < rParams->getRegionMin(2,ts)) 
+		tParams->setTwoDMin(2,rParams->getRegionMin(2,ts));
+	if (tParams->getTwoDMin(2) > rParams->getRegionMax(2,ts)) 
+		tParams->setTwoDMin(2, rParams->getRegionMax(2,ts));
 
+	tParams->setTwoDMax(2,tParams->getTwoDMin(2));
+
+	PanelCommand::captureEnd(cmd, tParams);
+	setTwoDDirty(tParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+
+}
 
 void TwoDDataEventRouter::
 guiSetNumRefinements(int n){

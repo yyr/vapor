@@ -98,6 +98,7 @@ public:
 
 protected slots:
 
+	void guiFitToRegion();
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();

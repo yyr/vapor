@@ -148,6 +148,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (cropCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetCrop(bool)));
 	connect (fitToImageButton, SIGNAL(clicked()), this, SLOT(guiFitToImage()));
 	connect (placementCombo, SIGNAL(activated(int)), this, SLOT(guiSetPlacement(int)));
+	connect (fitToRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
 
 	
 }
@@ -1442,7 +1443,33 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
+void TwoDImageEventRouter::guiFitToRegion(){
+	confirmText(false);
+	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int orientation = tParams->getOrientation();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "Fit image box to region");
+	//match the non-orientation dimensions
+	for (int i = 0; i<3; i++){
+		if (i == orientation) continue;
+		tParams->setTwoDMin(i, rParams->getRegionMin(i,ts));
+		tParams->setTwoDMax(i, rParams->getRegionMax(i,ts));
+	}
+	if (tParams->getTwoDMin(orientation) < rParams->getRegionMin(orientation,ts)) 
+		tParams->setTwoDMin(orientation,rParams->getRegionMin(orientation,ts));
+	if (tParams->getTwoDMin(orientation) > rParams->getRegionMax(orientation,ts)) 
+		tParams->setTwoDMin(orientation, rParams->getRegionMax(orientation,ts));
 
+
+	tParams->setTwoDMax(orientation,tParams->getTwoDMin(orientation));
+
+	PanelCommand::captureEnd(cmd, tParams);
+	setTwoDDirty(tParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+
+}
 void TwoDImageEventRouter::
 adjustBoxSize(TwoDImageParams* pParams){
 	//Determine the max x, y, z sizes of twoD slice, and make sure it fits.
