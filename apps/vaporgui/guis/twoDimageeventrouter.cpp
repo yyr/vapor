@@ -1042,7 +1042,7 @@ void TwoDImageEventRouter::
 sliderToText(TwoDImageParams* pParams, int coord, int slideCenter, int slideSize){
 	//Determine which coordinate of box is being slid:
 	int orientation = pParams->getOrientation();
-	if (orientation < coord) coord++;
+	if (orientation <= coord) coord++;
 	const float* extents = DataStatus::getInstance()->getExtents();
 	
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
@@ -1474,6 +1474,7 @@ void TwoDImageEventRouter::
 adjustBoxSize(TwoDImageParams* pParams){
 	//Determine the max x, y, z sizes of twoD slice, and make sure it fits.
 	int orientation = pParams->getOrientation();
+	//Determine the axes associated with width and length
 	int xcrd = 0, ycrd = 1;
 	if (orientation < 2) ycrd++;
 	if (orientation < 1) xcrd++;
@@ -1486,10 +1487,17 @@ adjustBoxSize(TwoDImageParams* pParams){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	//In image mode, just make box have nonnegative extent
 
-	for (int i = 0; i< 3; i++) {
-		if (boxmin[xcrd]> boxmax[xcrd]) boxmax[xcrd] = boxmin[xcrd];
-		if (boxmin[ycrd]> boxmax[ycrd]) boxmax[ycrd] = boxmin[ycrd];
+	
+	if (boxmin[xcrd]> boxmax[xcrd]) boxmax[xcrd] = boxmin[xcrd];
+	if (boxmin[ycrd]> boxmax[ycrd]) boxmax[ycrd] = boxmin[ycrd];
+
+	//Set the box to have size 0 in the orientation coordinate:
+
+	if (boxmin[orientation] != boxmax[orientation]){
+		float mid = 0.5f*(boxmin[orientation]+boxmax[orientation]);
+		boxmin[orientation] = boxmax[orientation] = mid;
 	}
+	
 	pParams->setBox(boxmin, boxmax);
 	widthEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
 	lengthEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
