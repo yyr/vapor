@@ -592,8 +592,8 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 		if (!p && isGeoreferenced()){
 			//Invalid string. Get the error code:
 			int *pjerrnum = pj_get_errno_ref();
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Invalid proj4 string:\n%s \nerror: %s\n",
-				newString, pj_strerrno(*pjerrnum));
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image at timestep %d is not properly georeferenced,\nand will not be displayed in georeferenced mode. \nError message:\n %s\n",
+				timestep, pj_strerrno(*pjerrnum));
 		} else if (p && isGeoreferenced()) {
 
 			//ModelTiepointTag and modelpixelscale needed to calculate image corners
