@@ -42,7 +42,7 @@ endif
 LIBSUFFIX = .a
 OBJSUFFIX = .o
 MV = mv
-SHARED_LDFLAGS += -dynamiclib -undefined dynamic_lookup
+SHARED_LDFLAGS += -dynamiclib -current_version $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE) -compatibility_version $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE) -undefined dynamic_lookup
 PERL = perl
 PYTHON = python
 
