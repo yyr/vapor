@@ -1164,7 +1164,7 @@ int FlashHDFFile::_GetRealRunParams()
 			_real_run_params.min[0] = run_params[i].value;
 		} else if (s.compare("xmax") == 0) {
 			_real_run_params.max[0] = run_params[i].value;
-		} else if (s.compare("xmin") == 0) {
+		} else if (s.compare("ymin") == 0) {
 			_real_run_params.min[1] = run_params[i].value;
 		} else if (s.compare("ymax") == 0) {
 			_real_run_params.max[1] = run_params[i].value;
