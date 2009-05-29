@@ -187,22 +187,27 @@ TwoDDataEventRouter::hookUpTab()
 //
 void TwoDDataEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-	if (!isEnabled()) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (isEnabled() && ds->getDataMgr()) 
+			instanceTable->setEnabled(true);
+	else {
+		instanceTable->setEnabled(false);
+	}
+	instanceTable->rebuild(this);
+	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();
+	
+	if (!isEnabled()) {
+		transferFunctionFrame->setMapperFunction(0); 
+		return;
+	}
 	if (GLWindow::isRendering()) return;
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 
-	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()
-		&& ds->getNumMetadataVariables2D()>0) 
-			instanceTable->setEnabled(true);
-	else {
-		instanceTable->setEnabled(false);
-		return;
-	}
+	
 	instanceTable->rebuild(this);
 	
-	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
