@@ -188,18 +188,15 @@ unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep, 
 	glClearDepth(0);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
-
-	
 	float alpha = pParams->getAlpha();
 	int numSetupFrames = alpha > 0.f ? (int)(4./alpha) : 100;
 	
-	for(int iframe = 0; iframe <= numSetupFrames; iframe++){//Calc image in back buffer:
-		
+	for(int iframe = 0; iframe <= numSetupFrames; iframe++){
+		glDisable(GL_BLEND);
+		glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 		stepIBFVTexture(pParams, tstep, iframe, listNum);
-		
 	}
 	
-
     //save in image buffer
 	glReadPixels(0,0,wid, ht, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 	popState();
