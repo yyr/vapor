@@ -379,7 +379,6 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	boxSize[zcrd] = 0;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		if (boxSize[i] > (extents[i+3]-extents[i])) boxSize[i] = (extents[i+3]-extents[i]);
 	}
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
@@ -1039,38 +1038,38 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 //Set text when a slider changes.
 //
 void TwoDImageEventRouter::
-sliderToText(TwoDImageParams* pParams, int coord, int slideCenter, int slideSize){
+sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	//Determine which coordinate of box is being slid:
-	int orientation = pParams->getOrientation();
-	if (orientation <= coord) coord++;
-	const float* extents = DataStatus::getInstance()->getExtents();
-	
-	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
-	float newSize = (extents[coord+3]-extents[coord])*(float)slideSize/256.f;
-	//If it's not inside the domain, move the center:
-	if ((newCenter - 0.5*newSize) < extents[coord]) newCenter = extents[coord]+0.5*newSize;
-	if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
 
-	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
-	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
-	adjustBoxSize(pParams);
+	int orientation = pParams->getOrientation();
+	//There are only two size sliders...
+	if (isSize && orientation <= coord) coord++;
+	const float* extents = DataStatus::getInstance()->getExtents();
+	float center = 0.5f*(pParams->getTwoDMin(coord)+pParams->getTwoDMax(coord));
+	float size = pParams->getTwoDMax(coord)- pParams->getTwoDMin(coord);
+	if (isSize) 
+		size = (extents[coord+3]-extents[coord])*(float)sliderVal/256.f;
+	else 
+		center = extents[coord] + ((float)sliderVal)*(extents[coord+3]-extents[coord])/256.f;
+	
+	pParams->setTwoDMin(coord, center-0.5f*size);
+	pParams->setTwoDMax(coord, center+0.5f*size);
+	if (isSize) adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
 	const float* selectedPoint = pParams->getSelectedPoint();
 	
 	switch(coord) {
 		case 0:
-			widthEdit->setText(QString::number(newSize,'g',7));
-			xCenterEdit->setText(QString::number(newCenter,'g',7));
+			if (!isSize)xCenterEdit->setText(QString::number(center,'g',7));
 			selectedXLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 1:
-			lengthEdit->setText(QString::number(newSize,'g',7));
-			yCenterEdit->setText(QString::number(newCenter,'g',7));
+			if (!isSize)yCenterEdit->setText(QString::number(center,'g',7));
 			selectedYLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 2:
-			zCenterEdit->setText(QString::number(newCenter,'g',7));
+			if (!isSize)zCenterEdit->setText(QString::number(center,'g',7));
 			selectedZLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		default:
@@ -1131,29 +1130,29 @@ void TwoDImageEventRouter::
 setXCenter(TwoDImageParams* pParams,int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
-	sliderToText(pParams,0, sliderval, widthSlider->value());
+	sliderToText(pParams,0, sliderval, false);
 	
 }
 void TwoDImageEventRouter::
 setYCenter(TwoDImageParams* pParams,int sliderval){
-	sliderToText(pParams,1, sliderval, lengthSlider->value());
+	sliderToText(pParams,1, sliderval, false);
 	
 }
 void TwoDImageEventRouter::
 setZCenter(TwoDImageParams* pParams,int sliderval){
-	sliderToText(pParams,2, sliderval, 0);
+	sliderToText(pParams,2, sliderval, false);
 	
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void TwoDImageEventRouter::
 setXSize(TwoDImageParams* pParams,int sliderval){
-	sliderToText(pParams,0, xCenterSlider->value(),sliderval);
+	sliderToText(pParams,0, sliderval,true);
 	
 }
 void TwoDImageEventRouter::
 setYSize(TwoDImageParams* pParams,int sliderval){
-	sliderToText(pParams,1, yCenterSlider->value(),sliderval);
+	sliderToText(pParams,1, sliderval,true);
 }
 
 //Save undo/redo state when user clicks cursor

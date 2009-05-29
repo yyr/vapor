@@ -62,7 +62,7 @@ public:
 	virtual void refreshTab();
 	//void sessionLoadTF(QString* name);
 	
-	void sliderToText(TwoDImageParams* pParams, int coord, int slideCenter, int slideSize);
+	void sliderToText(TwoDImageParams* pParams, int coord, int sliderval, bool isSizeSlider);
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
