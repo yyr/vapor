@@ -320,7 +320,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	int prevActiveViz = activeViz;
 	bool brandNew = true;
 	int numVizWins = 0;
-	if (useWindowNum != -1) {
+	if (useWindowNum != -1 && newNum == -1) {
 		assert(!vizWin[useWindowNum]);
 		brandNew = false;
 	}
@@ -366,6 +366,10 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 
 	vizWin[useWindowNum]->setFocusPolicy(QWidget::ClickFocus);
 
+	//Following seems to be unnecessary on windows and irix:
+	activeViz = useWindowNum;
+	setActiveViz(useWindowNum);
+
 	vizWin[useWindowNum]->showMaximized();
 	maximize(useWindowNum);
 	//Tile if more than one visualizer:
@@ -373,9 +377,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 
 	//Set non-renderer tabbed panels to use global parameters:
 	
-	//Following seems to be unnecessary on windows and irix:
-	activeViz = useWindowNum;
-	setActiveViz(useWindowNum);
+	
 	emit activateViz(useWindowNum);
 	vizWin[useWindowNum]->show();
 

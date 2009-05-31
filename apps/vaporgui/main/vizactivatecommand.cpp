@@ -112,8 +112,9 @@ void VizActivateCommand::unDo(){
 			//visualizer number.  First setup the params needed.
 			//Reset all the applicable params.  The "previous" params
 			//are those from the "currentActiveViznum"
-			
-			newWinNum = vizWinMgr->launchVisualizer(lastActiveViznum, windowName);
+			//Using an argument of -2 so that launchVisualizer will
+			//recreate params for this visualizer
+			newWinNum = vizWinMgr->launchVisualizer(lastActiveViznum, windowName,-2);
 			vizWinMgr->getVizWin(newWinNum)->setBackgroundColor(backgroundColor);
 			// make them current, in the correct order:
 			if (animationParams) {
