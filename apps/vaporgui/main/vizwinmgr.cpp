@@ -2188,6 +2188,9 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 			//need to pop the parse stack
 			ParsedXml* px = pm->popClassStack();
 			bool ok = px->elementEndHandler(pm, depth, tag);
+			//If there are multiple visualizers, show them all:
+			//Tile if more than one visualizer:
+			if(getNumVisualizers() > 1) fitSpace();
 			return ok;
 			}
 		case (2):
