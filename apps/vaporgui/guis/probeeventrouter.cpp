@@ -2706,9 +2706,12 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 }
+//The following adjusts the sliders associated with box size.
+//Each slider range is the maximum of 
+//(1) the domain size in the current direction
+//(2) the current value of domain size.
 void ProbeEventRouter::
 adjustBoxSize(ProbeParams* pParams){
-	//Determine the max x, y, z sizes of probe:
 	
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
@@ -2721,29 +2724,37 @@ adjustBoxSize(ProbeParams* pParams){
 	float extentSize[3];
 	for (int i= 0; i<3; i++) extentSize[i] = (extents[i+3]-extents[i]);
 	
-	//Transform each side of box by rotMatrix.   Effectively that amounts
-	//to multiplying each column of rotMatrix by the box side
-	//If it projects longer (in any dimension) than extents,
-	//then that side must be shrunk appropriately
-	//In other words, the max box is obtained by taking a column and multiplying it
-	//by the max extents in that dimension.
-	//The largest box size is obtained by finding the minimum of
-	//extentSize[i]/norm(col(i))
+	//Determine the size of the domain in the direction associated with each
+	//axis of the probe.  To do this, find a unit vector in that direction.
+	//The domain size in that direction is the dot product of that vector
+	//with the vector that has components the domain sizes in each dimension.
 
-	//For each j (axis) find max over i of (col(j))sub i /extent[i].
-	//This is the reciprocal of the max value of j box side.
+
+	float domSize[3];
 	
-	//maxBoxSize is advisory, controls slider range
-	for (int axis = 0; axis<3; axis++){
-		float maxval = 0.;
-		for (int i = 0; i<3; i++){
-			if ((abs(rotMatrix[3*i+axis])/extentSize[i])> maxval)
-				maxval = (abs(rotMatrix[3*i+axis])/extentSize[i]);
+	for (int i = 0; i<3; i++){
+		//create unit vec along axis:
+		float axis[3];
+		for (int j = 0; j<3; j++) axis[j] = 0.f;
+		axis[i] = 1.f;
+		float boxDir[3];
+		vtransform3(axis, rotMatrix, boxDir);
+		//Make each component positive...
+		for (int j = 0; j< 3; j++) { boxDir[j] = abs(boxDir[j]);}
+		//normalize this direction vector:
+		float vlen = vlength(boxDir);
+		if (vlen > 0.f) {
+			vnormal(boxDir);
+			domSize[i] = vdot(boxDir,extentSize);
+		} else {
+			domSize[i] = 0.f;
 		}
-		assert(maxval > 0.f);
-		maxBoxSize[axis] = 1.f/maxval;
+		maxBoxSize[i] = domSize[i];
+		if (maxBoxSize[i] < (pParams->getProbeMax(i)-pParams->getProbeMin(i))){
+			maxBoxSize[i] = (pParams->getProbeMax(i)-pParams->getProbeMin(i));
+		}
+		if (maxBoxSize[i] <= 0.f) maxBoxSize[i] = 1.f;
 	}
-	
 	
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));

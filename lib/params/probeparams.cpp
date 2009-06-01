@@ -1912,8 +1912,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	leftEdge *= 0.9999;
 	rightEdge *= 0.9999;
 
-	float foo = 0.99f*vdist(cor[0],cor[1]);
-	assert (leftEdge <= 0.03f && rightEdge >= 0.97*vdist(cor[0],cor[1]));
+	//assert (leftEdge <= 0.03f && rightEdge >= 0.97*vdist(cor[0],cor[1]));
 	//Right edge should be bigger than dist(cor0,cor1)
 	//top left:
 	vmult(dir[0],leftEdge, cor2[1]);
@@ -1939,8 +1938,8 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 
 	float botEdge = Max(result[0][0],result[1][0]);
 	float topEdge = Min(result[0][1],result[1][1]);
-	foo = 0.97f*vdist(cor2[0],cor2[1]);
-	assert(botEdge <= 0.03f && topEdge >= 0.97*vdist(cor2[2],cor2[1]));
+	
+	//assert(botEdge <= 0.03f && topEdge >= 0.97*vdist(cor2[2],cor2[1]));
 	//put new corners back in cor array:
 	//bot left:
 	vmult(dir[1],botEdge, cor[2]);
@@ -1985,14 +1984,17 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	int numfound = 0;
 	//Get the equation of the probe plane
-	float transformMatrix[12];
-	float vecz[3] = {0.f,0.f,1.f};
-	float vec0[3] = {0.f,0.f,0.f};
+	//First, find normal to plane:
+	float rotMatrix[9];
+	const float vecz[3] = {0.f,0.f,1.f};
+	const float vec0[3] = {0.f,0.f,0.f};
 	float probeNormal[3], probeCenter[3];
+	getRotationMatrix(getTheta()*M_PI/180., getPhi()*M_PI/180., getPsi()*M_PI/180., rotMatrix);
+	vtransform3(vecz, rotMatrix, probeNormal);
+	float transformMatrix[12];
+	
 	buildCoordTransform(transformMatrix, 0.01f, -1);
-	vtransform(vecz, transformMatrix, probeNormal);
 	vtransform(vec0, transformMatrix, probeCenter);
-	vsub(probeNormal, probeCenter, probeNormal);
 	vnormal(probeNormal);
 	//The equation of the probe plane is dot(V, probeNormal) = dst:
 	float dst = vdot(probeNormal, probeCenter);
