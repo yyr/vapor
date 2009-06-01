@@ -2190,7 +2190,12 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 			bool ok = px->elementEndHandler(pm, depth, tag);
 			//If there are multiple visualizers, show them all:
 			//Tile if more than one visualizer:
-			if(getNumVisualizers() > 1) fitSpace();
+			if(getNumVisualizers() > 1) {
+				//Make the last one active, since the vizwin will
+				//try to do this anyway...
+				setActiveViz(getNumVisualizers()-1);
+				fitSpace();
+			}
 			return ok;
 			}
 		case (2):
