@@ -315,12 +315,16 @@ dvrLoadInstalledTF(){
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
 	setEditorDirty();
+	setDatarangeDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 void DvrEventRouter::
 dvrLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
 	loadTF(dParams,dParams->getSessionVarNum());
+	setDatarangeDirty(dParams);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 //Respond to user request to load/save TF
 //Assumes name is valid
