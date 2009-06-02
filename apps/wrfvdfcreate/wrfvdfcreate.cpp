@@ -669,7 +669,10 @@ int	main(int argc, char **argv) {
 		}
 	}
 	
-    // Set the user time for each time step
+    // Set the user time for each time step.
+	// In the meantime note the min/max latitude and longitude extents
+	float minLat = 1000.f, minLon = 1000.f, maxLat = -1000.f, maxLon = -1000.f;
+	
     for ( size_t t = 0 ; t < tStepExtents.size() ; t++ )
     {
 		vector<double> tsNow(1, (double) tStepExtents[t].first);
@@ -685,6 +688,13 @@ int	main(int argc, char **argv) {
         if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
             exit( 1 );
         }
+		float* exts = tStepExtents[t].second;
+		if (exts){
+			if (exts[0] < minLon) minLon = exts[0];
+			if (exts[1] < minLat) minLat = exts[1];
+			if (exts[2] > maxLon) maxLon = exts[2];
+			if (exts[3] > maxLat) maxLat = exts[3];
+		}
     }
 
 	// Specify the atypical var names for dependent variables
@@ -722,12 +732,17 @@ int	main(int argc, char **argv) {
 		}
 		cout << endl;
 
-		cout << "\tExtents : ";
+		cout << "\tCoordinate extents : ";
 		const vector <double> extptr = file->GetExtents();
 		for(int i=0; i<6; i++) {
 			cout << extptr[i] << " ";
 		}
 		cout << endl;
+		if (minLon < 1000.f){
+			cout << "\tMin and Max Longitude: " << minLon << " " << maxLon << endl;
+			cout << "\tMin and Max Latitude: " << minLat << " " << maxLat << endl;
+		}
+		
 	}
 
 	exit(0);
