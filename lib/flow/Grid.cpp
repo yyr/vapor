@@ -308,7 +308,7 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 		return -1;
 
 	//Convert physical coords if boundaries are periodic:
-	float realPhyCoord[3];
+	double realPhyCoord[3];
 	for (int i = 0; i<3; i++){
 		realPhyCoord[i] = pInfo.phyCoord[i];
 		if (periodicDim[i]){
