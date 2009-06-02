@@ -271,7 +271,6 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 void GLWindow::paintGL()
 {
 	printOpenGLError();
-	static int previousTimeStep = -1;
 	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
@@ -503,7 +502,7 @@ void GLWindow::draw3DCursor(const float position[3]){
 void GLWindow::initializeGL()
 {
 	printOpenGLError();
-    
+    previousTimeStep = -1;
 	glewInit();
 	//Check to see if we are using MESA:
 	if (GetVendor() == MESA){

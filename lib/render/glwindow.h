@@ -400,6 +400,7 @@ public:
 
 protected:
 	int winNum;
+	int previousTimeStep;
 	static int jpegQuality;
 	//Following flag is set whenever there is mouse navigation, so that we can use 
 	//the new viewer position
