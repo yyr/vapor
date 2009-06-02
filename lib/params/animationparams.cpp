@@ -102,7 +102,7 @@ reinit(bool doOverride){
 		}
 		if (varnum < numvars) break;
 	}
-	minFrame = i;
+	minFrame = i-1;
 	//Find the last framenum with data:
 	for (i = maxFrame; i>= minFrame; i--){
 		int varnum;
@@ -112,7 +112,7 @@ reinit(bool doOverride){
 		if (varnum < numvars) break;
 	}
 	
-	maxFrame = i;
+	maxFrame = i+1;
 	//force start & end to be consistent:
 	if (doOverride){
 		startFrame = minFrame;

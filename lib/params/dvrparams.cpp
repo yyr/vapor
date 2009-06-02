@@ -550,10 +550,12 @@ buildNode() {
 	attrs[_numTransformsAttr] = oss.str();
 
 	//convert the active variable num to a name:
-	string varName = DataStatus::getInstance()->getVariableName(varNum);
-	oss.str(empty);
-	oss << varName;
-	attrs[_activeVariableNameAttr] = oss.str();
+	if (varNum >=0){
+		string varName = DataStatus::getInstance()->getVariableName(varNum);
+		oss.str(empty);
+		oss << varName;
+		attrs[_activeVariableNameAttr] = oss.str();
+	}
 
 	oss.str(empty);
 	if (editMode)

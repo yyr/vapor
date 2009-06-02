@@ -1379,6 +1379,7 @@ XmlNode* FlowParams::
 buildNode() {
 	DataStatus* ds;
 	ds = DataStatus::getInstance();
+	if (numComboVariables <= 0) return 0;
 	//Construct the flow node
 	string empty;
 	std::map <string, string> attrs;
@@ -1975,6 +1976,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			string attribName = *attrs;
 			attrs++;
 			string value = *attrs;
+			if (value.size() == 0) return true;
 			attrs++;
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _geometryTypeAttr) == 0) {

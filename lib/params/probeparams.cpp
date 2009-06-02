@@ -784,6 +784,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 XmlNode* ProbeParams::
 buildNode() {
 	//Construct the probe node
+	if (numVariables <= 0) return 0;
 	string empty;
 	std::map <string, string> attrs;
 	attrs.clear();
