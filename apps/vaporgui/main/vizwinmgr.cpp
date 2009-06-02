@@ -599,6 +599,9 @@ setActiveViz(int vizNum){
 		//Determine if the local viewpoint dialog applies, update the tab dialog
 		//appropriately
 		updateActiveParams();
+		//Set the animation toolbar to the correct timestep:
+		int currentFrame = getActiveAnimationParams()->getCurrentFrameNumber();
+		MainForm::getInstance()->setCurrentTimestep(currentFrame);
 		//Tell the glwindows who is active
 		GLWindow::setActiveWinNum(vizNum);
 		//Determine if the active viz is sharing the region

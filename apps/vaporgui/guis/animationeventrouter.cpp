@@ -161,6 +161,8 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	if (currentFrame < startFrame) currentFrame = startFrame;
 	if (currentFrame > endFrame) currentFrame = endFrame;
 	currentFrameEdit->setText(strn.setNum(currentFrame));
+	MainForm::getInstance()->setCurrentTimestep(currentFrame);
+
 	aParams->setCurrentFrameNumber(currentFrame);
 	
 	int frameStepSize = frameStepEdit->text().toInt();
@@ -389,6 +391,7 @@ guiJumpToBegin(){
 	int startFrame = aParams->getStartFrameNumber();
 	aParams->setCurrentFrameNumber(startFrame);
 	currentFrameEdit->setText(QString::number(startFrame));
+	MainForm::getInstance()->setCurrentTimestep(startFrame);
 	setSliders(aParams);
 	PanelCommand::captureEnd(cmd, aParams);
 	guiSetTextChanged(false);
@@ -405,6 +408,7 @@ guiJumpToEnd(){
 	int endFrame = aParams->getEndFrameNumber();
 	aParams->setCurrentFrameNumber(endFrame);
 	currentFrameEdit->setText(QString::number(endFrame));
+	MainForm::getInstance()->setCurrentTimestep(endFrame);
 	setSliders(aParams);
 	PanelCommand::captureEnd(cmd, aParams);
 	guiSetTextChanged(false);
@@ -438,6 +442,7 @@ void AnimationEventRouter::guiSetPosition(int position){
 	aParams->setCurrentFrameNumber(newFrameNum);
 	int currentFrame = aParams->getCurrentFrameNumber();
 	currentFrameEdit->setText(QString::number(currentFrame));
+	MainForm::getInstance()->setCurrentTimestep(currentFrame);
 	PanelCommand::captureEnd(cmd, aParams);
 	guiSetTextChanged(false);
 	updateTab();
@@ -500,6 +505,7 @@ void AnimationEventRouter::guiSingleStep(bool forward){
 		cmd = PanelCommand::captureStart(aParams,"Single-step reverse");
 	}
 	currentFrameEdit->setText(QString::number(nextFrame));
+	MainForm::getInstance()->setCurrentTimestep(nextFrame);
 	aParams->setCurrentFrameNumber(nextFrame);
 	setSliders(aParams);
 	guiSetTextChanged(false);
