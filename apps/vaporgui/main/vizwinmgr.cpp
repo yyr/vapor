@@ -2136,8 +2136,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			//That parser will "pop" back to session when done.
 			pm->pushClassStack(vpParams[parsingVizNum]);
 			vpParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
-			if (vpParams[parsingVizNum]->isLocal())
+			if (vpParams[parsingVizNum]->isLocal()){
+				//Necessary to reset trackball here, since
+				//It was not set to local in the constructor.
 				vizWin[parsingVizNum]->getGLWindow()->setActiveViewpointParams(vpParams[parsingVizNum]);
+				vizWin[parsingVizNum]->setGlobalViewpoint(false);
+			}
 			else 
 				vizWin[parsingVizNum]->getGLWindow()->setActiveViewpointParams(globalVPParams);
 			return true;
