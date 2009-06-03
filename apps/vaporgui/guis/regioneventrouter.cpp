@@ -558,34 +558,34 @@ refreshRegionInfo(RegionParams* rParams){
 	
 	const float* fullDataExtents = ses->getExtents();
 
-	fullMinXLabel->setText(QString::number(fullDataExtents[0], 'g', 5));
-	fullMinYLabel->setText(QString::number(fullDataExtents[1], 'g', 5));
-	fullMinZLabel->setText(QString::number(fullDataExtents[2], 'g', 5));
-	fullMaxXLabel->setText(QString::number(fullDataExtents[3], 'g', 5));
-	fullMaxYLabel->setText(QString::number(fullDataExtents[4], 'g', 5));
-	fullMaxZLabel->setText(QString::number(fullDataExtents[5], 'g', 5));
-	fullSizeXLabel->setText(QString::number(fullDataExtents[3]-fullDataExtents[0], 'g', 5));
-	fullSizeYLabel->setText(QString::number(fullDataExtents[4]-fullDataExtents[1], 'g', 5));
-	fullSizeZLabel->setText(QString::number(fullDataExtents[5]-fullDataExtents[2], 'g', 5));
+	fullMinXLabel->setText(QString::number(fullDataExtents[0], 'g',4));
+	fullMinYLabel->setText(QString::number(fullDataExtents[1], 'g',4));
+	fullMinZLabel->setText(QString::number(fullDataExtents[2], 'g',4));
+	fullMaxXLabel->setText(QString::number(fullDataExtents[3], 'g',4));
+	fullMaxYLabel->setText(QString::number(fullDataExtents[4], 'g',4));
+	fullMaxZLabel->setText(QString::number(fullDataExtents[5], 'g',4));
+	fullSizeXLabel->setText(QString::number(fullDataExtents[3]-fullDataExtents[0], 'g',4));
+	fullSizeYLabel->setText(QString::number(fullDataExtents[4]-fullDataExtents[1], 'g',4));
+	fullSizeZLabel->setText(QString::number(fullDataExtents[5]-fullDataExtents[2], 'g',4));
 
-	minXFullLabel->setText(QString::number(fullDataExtents[0],'g',5));
-	minYFullLabel->setText(QString::number(fullDataExtents[1],'g',5));
-	minZFullLabel->setText(QString::number(fullDataExtents[2],'g',5));
-	maxXFullLabel->setText(QString::number(fullDataExtents[3],'g',5));
-	maxYFullLabel->setText(QString::number(fullDataExtents[4],'g',5));
-	maxZFullLabel->setText(QString::number(fullDataExtents[5],'g',5));
+	minXFullLabel->setText(QString::number(fullDataExtents[0],'g',4));
+	minYFullLabel->setText(QString::number(fullDataExtents[1],'g',4));
+	minZFullLabel->setText(QString::number(fullDataExtents[2],'g',4));
+	maxXFullLabel->setText(QString::number(fullDataExtents[3],'g',4));
+	maxYFullLabel->setText(QString::number(fullDataExtents[4],'g',4));
+	maxZFullLabel->setText(QString::number(fullDataExtents[5],'g',4));
 	
 	//For now, the min and max var extents are the whole thing:
 
 	float* regionMin = rParams->getRegionMin(timeStep);
 	float* regionMax = rParams->getRegionMax(timeStep);
 
-	minXSelectedLabel->setText(QString::number(regionMin[0],'g',5));
-	minYSelectedLabel->setText(QString::number(regionMin[1],'g',5));
-	minZSelectedLabel->setText(QString::number(regionMin[2],'g',5));
-	maxXSelectedLabel->setText(QString::number(regionMax[0],'g',5));
-	maxYSelectedLabel->setText(QString::number(regionMax[1],'g',5));
-	maxZSelectedLabel->setText(QString::number(regionMax[2],'g',5));
+	minXSelectedLabel->setText(QString::number(regionMin[0],'g',4));
+	minYSelectedLabel->setText(QString::number(regionMin[1],'g',4));
+	minZSelectedLabel->setText(QString::number(regionMin[2],'g',4));
+	maxXSelectedLabel->setText(QString::number(regionMax[0],'g',4));
+	maxYSelectedLabel->setText(QString::number(regionMax[1],'g',4));
+	maxZSelectedLabel->setText(QString::number(regionMax[2],'g',4));
 
 
 	//Now produce the corresponding voxel coords:
@@ -648,12 +648,12 @@ refreshRegionInfo(RegionParams* rParams){
 			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = fullDataExtents[k+3];
 		}
 		//Calculate fraction of extents:
-		minVarXLabel->setText(QString::number(var_ext[0],'g',5));
-		minVarYLabel->setText(QString::number(var_ext[1],'g',5));
-		minVarZLabel->setText(QString::number(var_ext[2],'g',5));
-		maxVarXLabel->setText(QString::number(var_ext[3],'g',5));
-		maxVarYLabel->setText(QString::number(var_ext[4],'g',5));
-		maxVarZLabel->setText(QString::number(var_ext[5],'g',5));
+		minVarXLabel->setText(QString::number(var_ext[0],'g'));
+		minVarYLabel->setText(QString::number(var_ext[1],'g'));
+		minVarZLabel->setText(QString::number(var_ext[2],'g'));
+		maxVarXLabel->setText(QString::number(var_ext[3],'g'));
+		maxVarYLabel->setText(QString::number(var_ext[4],'g'));
+		maxVarZLabel->setText(QString::number(var_ext[5],'g'));
 	} else {
 		minXVoxVarLabel->setText("");
 		minYVoxVarLabel->setText("");
