@@ -309,9 +309,9 @@ void GLWindow::paintGL()
 	//If we are doing the first capture of an image sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured
-	//if they really are new.
+	//if they really are new, or if we are spinning.
 	//
-	renderNew = captureIsNewImage();
+	renderNew = (captureIsNewImage()|| isSpinning);
 	if (renderNew) previousTimeStep = -1; //reset saved time step
 	setCaptureNewImage(false);
 
@@ -456,7 +456,8 @@ void GLWindow::paintGL()
 	}
 	
 	//Capture the back-buffer image, if not navigating:
-	if (renderNew && !mouseDownHere) doFrameCapture();
+	if (renderNew && !mouseDownHere) 
+		doFrameCapture();
 
 	glPopMatrix();
 	swapBuffers();
