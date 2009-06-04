@@ -80,7 +80,7 @@ class TabManager : public QTabWidget{
 		}
 		//Make the visible tab scroll to top.
 		void scrollFrontToTop();
-		virtual QSize sizeHint() const { return QSize(430, 800);}
+		virtual QSize sizeHint() const { return QSize(460, 800);}
 	public slots:
 		void newFrontTab(QWidget*);
 		void tabScrolled();
