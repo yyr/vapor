@@ -177,6 +177,8 @@ double det3x3(
 	double b1, double b2, double b3,
 	double c1, double c2, double c3
 );
+// ran1 function declaration (from numerical recipes in C)
+double ran1(long *);
 
 void	ViewMatrix (GLfloat *m);
 int	ViewAxis (int *direction);

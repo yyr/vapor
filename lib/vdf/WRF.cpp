@@ -594,6 +594,12 @@ int WRF::OpenWrfGetMeta(
 		char name[NC_MAX_NAME+1];
 		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
 		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
+#ifdef WIN32
+//On windows, CON is not a valid vapor variable name because windows does
+//not permit CON to be directory name
+// CON is a 2D variable, "orographic convexity"
+		if (strcmp(name, "CON") == 0) continue;
+#endif
 
 		if ((varinfo.ndimids == 4) && 
 			(varinfo.dimids[0] ==  timeId) &&
