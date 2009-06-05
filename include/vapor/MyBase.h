@@ -333,7 +333,10 @@ private:
 	 return ((X)>0)?((int)(X+0.5)):((int)(X-0.5));
  }
 #endif
+ // ran1 function declaration (from numerical recipes in C)
+COMMON_API double ran1(long *);
 };
+
 
 // 
 // Handle OS differences in 64-bit IO operators

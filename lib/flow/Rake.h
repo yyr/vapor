@@ -19,6 +19,7 @@
 
 namespace VAPoR
 {
+	
 	class FieldData;
 	class VaporFlow;
 	enum RakeDim
@@ -28,6 +29,9 @@ namespace VAPoR
 		PLANE,
 		SOLID
 	};
+	//ordering C functions used for quicksorting
+	int  compLT(const void* val1, const void* val2); 
+	int  compGT(const void* val1, const void* val2); 
 
 	class FLOW_API SeedGenerator : public VetsUtil::MyBase
 	{
@@ -67,8 +71,29 @@ namespace VAPoR
 		virtual void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, int stride = 3) = 0;
 		virtual bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, 
 			const size_t numSeeds[3], const float minrake[3], const float maxrake[3], float* pSeed, unsigned int randSeed, int stride = 3) = 0;
+	
+	
+	//Internal classes to qsort list of points
+	//PointSorter is basically an array of 4-tuples.  The
+	//first of the four is the sort key, the other three are point coordinates.
+	class PointSorter {
+		public:
+			PointSorter(int numPoints);
+			~PointSorter();
+			void sortPoints(int first, int last, bool increasing);
+			void setPoint(int index, float key, float* point){
+				pointHolder[4*index] = key;
+				pointHolder[4*index+1] = *point;
+				pointHolder[4*index+2] = *(point+1);
+				pointHolder[4*index+3] = *(point+2);
+			}
+			float getPoint(int index, int crd){return pointHolder[4*index+1+crd];}
+			float getKey(int index) {return pointHolder[4*index];}
+			bool isValid(){return (pointHolder != 0);}
+		private:
+			float* pointHolder;
+		};
 	};
-
 	class FLOW_API PointRake : public Rake
 	{
 	public:

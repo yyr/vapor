@@ -3,6 +3,10 @@
 #include "vapor/VaporFlow.h"
 #include "vapor/errorcodes.h"
 #include "Field.h"
+#include <search.h>
+#include <stdlib.h>
+//Limit to the number of megabytes used for sorting biased seeds
+#define MAX_SORT_MBYTES 1.f
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -195,41 +199,70 @@ bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldDa
 		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed, int stride)
 {
 	int totalNum;
-
-	// initialize random number generator
-	srand(randomSeed);
+	//Note:  The following code is more or less replicated in solid rake and plane rake.
+	// initialize random number generator with a negative value
+	long rseed = randomSeed;
+	if(rseed > 0) rseed = -rseed;
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	
-	//Repeatedly try to find seeds. Try at most 100000 times
-	int seedCount = 0;
-	for (int i = 0; i< 100000; i++) 
-	{
-		float alpha, point[3];
-		alpha = (float)rand()/(float)RAND_MAX;
+	// Generate biased seeds by selecting largest or smallest seeds from
+	// a number of trials determined by the seed bias
+	// Number of trials is 2**abs(bias) per seed point output
+	int numTrials = (int)(totalNum*pow(2.f,abs(bias)));
+	//We shall allocate a PointSorter that holds at most totalNum+MAX_SORT_MBYTES/16 seeds
+	//since each seed occupies 16 bytes
+	int seedSorterSize = totalNum + numTrials;
+	if (seedSorterSize > (totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f)))
+		seedSorterSize = totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f);
+	//We need to have at least twice as much space as seeds:
+	if (seedSorterSize < totalNum*2) return false;
+	PointSorter* seedSorter = new PointSorter(seedSorterSize);
+	if (!seedSorter->isValid()) return false;
 
-		float randomTest = (float)rand()/(float)RAND_MAX;
+	int insertionPosn = 0;
+	int startInsertPosn = 0;
+	int numPointsToInsert = totalNum + numTrials;
+	int totalPointsInserted = 0;
+	while(1){ //outer loop fills seedSorter and sorts seeds
+		insertionPosn = startInsertPosn;
+		while(1) { //Inner loop fills seedSorter
+			//Fill up the array from insertion point to seedSorterSize
+			float alpha, point[3];
+			alpha = (float)ran1(&rseed);
 		
-		point[0] = Lerp(min[0], max[0], alpha);
-		point[1] = Lerp(min[1], max[1], alpha);
-		point[2] = Lerp(min[2], max[2], alpha);
+			point[0] = Lerp(min[0], max[0], alpha);
+			point[1] = Lerp(min[1], max[1], alpha);
+			point[2] = Lerp(min[2], max[2], alpha);
 		
 		
-		float mag = fData->getFieldMag(point);
-		//Now test if it's OK.
-		float ratio = (mag-fieldMin)/(fieldMax-fieldMin);
-		float acceptProb = pow(ratio,bias);
-		//The probability that we accept this point is acceptProb;
-		//The value of randomTest is <= P with probability P.
-		if (randomTest <= acceptProb) { //Accept this point.
-			pSeed[stride*seedCount] = point[0];
-			pSeed[stride*seedCount+1] = point[1];
-			pSeed[stride*seedCount+2] = point[2];
-			seedCount++;
-			if (seedCount >= totalNum) break;
+		
+			float mag = fData->getFieldMag(point);
+			if (mag < 0.f) continue;  //Point is out of range
+			//Insert the point:
+			seedSorter->setPoint(insertionPosn++,mag,point);
+			totalPointsInserted++;
+			if(insertionPosn >= seedSorterSize || totalPointsInserted >= numPointsToInsert) break;
 		}
+		//OK, now sort the seeds in the sorter:
+		int endPosn = Min(seedSorterSize-1, insertionPosn-1);
+		
+		seedSorter->sortPoints(0, endPosn, (bias < 0.f));
+		//After the first sort, we insert following the totalNum points
+		startInsertPosn = totalNum;
+		//test for completion:
+		if (totalPointsInserted >= numPointsToInsert) break;
 	}
-	return (seedCount >= totalNum);
+	//Now the desired seeds are in the first totalNum positions:
+	
+	for (int i = 0; i< totalNum; i++){
+		pSeed[stride*i] = seedSorter->getPoint(i,0);
+		pSeed[stride*i+1] = seedSorter->getPoint(i,1);
+		pSeed[stride*i+2] = seedSorter->getPoint(i,2);
+	}
+	delete seedSorter;
+	return true;
+	
 }
 
 
@@ -331,39 +364,68 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 		}
 	}
 
-	// initialize random number generator
-	srand(randomSeed);
+	//Note:  The following code is more or less replicated in solid rake and line rake.
+	// initialize random number generator with a negative value
+	long rseed = randomSeed;
+	if(rseed > 0) rseed = -rseed;
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
-	//Repeatedly try to find seeds. Try at most 100000 times
-	int seedCount = 0;
-	for (int i = 0; i< 100000; i++) 
-	{
-		float coeff[2], point[3];
-		coeff[0] = (float)rand()/(float)RAND_MAX;
-		coeff[1] = (float)rand()/(float)RAND_MAX;
+	
+	// Generate biased seeds by selecting largest or smallest seeds from
+	// a number of trials determined by the seed bias
+	// Number of trials is 2**abs(bias) per seed point output
+	int numTrials = (int)(totalNum*pow(2.f,abs(bias)));
+	//We shall allocate a PointSorter that holds at most totalNum+MAX_SORT_MBYTES/16 seeds
+	//since each seed occupies 16 bytes
+	int seedSorterSize = totalNum + numTrials;
+	if (seedSorterSize > (totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f)))
+		seedSorterSize = totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f);
+	//We need to have at least twice as much space as seeds:
+	if (seedSorterSize < totalNum*2) return false;
+	PointSorter* seedSorter = new PointSorter(seedSorterSize);
+	if (!seedSorter->isValid()) return false;
 
-		float randomTest = (float)rand()/(float)RAND_MAX;
+	int insertionPosn = 0;
+	int startInsertPosn = 0;
+	int numPointsToInsert = totalNum + numTrials;
+	int totalPointsInserted = 0;
+	while(1){ //outer loop fills seedSorter and sorts seeds
+		insertionPosn = startInsertPosn;
+		while(1) { //Inner loop fills seedSorter
+			//Fill up the array from insertion point to seedSorterSize
+			float coeff[2], point[3];
+			coeff[0] = (float)ran1(&rseed);
+			coeff[1] = (float)ran1(&rseed);
 		
-		point[0] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
-		point[1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
-		point[2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
+			point[0] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+			point[1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+			point[2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 		
-		float mag = fData->getFieldMag(point);
-		//Now test if it's OK.
-		float ratio = (mag-fieldMin)/(fieldMax-fieldMin);
-		float acceptProb = pow(ratio,bias);
-		//The probability that we accept this point is acceptProb;
-		//The value of randomTest is <= P with probability P.
-		if (randomTest <= acceptProb) { //Accept this point.
-			pSeed[stride*seedCount] = point[0];
-			pSeed[stride*seedCount+1] = point[1];
-			pSeed[stride*seedCount+2] = point[2];
-			seedCount++;
-			if (seedCount >= totalNum) break;
+			float mag = fData->getFieldMag(point);
+			if (mag < 0.f) continue;  //Point is out of range
+			//Insert the point:
+			seedSorter->setPoint(insertionPosn++,mag,point);
+			totalPointsInserted++;
+			if(insertionPosn >= seedSorterSize || totalPointsInserted >= numPointsToInsert) break;
 		}
+		//OK, now sort the seeds in the sorter:
+		int endPosn = Min(seedSorterSize-1, insertionPosn-1);
+		
+		seedSorter->sortPoints(0, endPosn, (bias < 0.f));
+		//After the first sort, we insert following the totalNum points
+		startInsertPosn = totalNum;
+		//test for completion:
+		if (totalPointsInserted >= numPointsToInsert) break;
 	}
-	return (seedCount >= totalNum);
+	//Now the desired seeds are in the first totalNum positions:
+	
+	for (int i = 0; i< totalNum; i++){
+		pSeed[stride*i] = seedSorter->getPoint(i,0);
+		pSeed[stride*i+1] = seedSorter->getPoint(i,1);
+		pSeed[stride*i+2] = seedSorter->getPoint(i,2);
+	}
+	delete seedSorter;
+	return true;
 }
 void PlaneRake::GenSeedRegular(const size_t numSeeds[3], 
 							  const float min[3], 
@@ -505,62 +567,84 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	hlh[0] = hhh[0];	hlh[1] = lll[1];	hlh[2] = hhh[2];
 	lhh[0] = lll[0];	lhh[1] = hhh[1];	lhh[2] = hhh[2];
 
-	// initialize random number generator
-	srand(RAND_MAX-randomSeed);
+	//Note:  The following code is more or less replicated in plane rake and line rake.
+	// initialize random number generator with a negative value
+	long rseed = randomSeed;
+	if(rseed > 0) rseed = -rseed;
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
-	//Repeatedly try to find seeds. Try at most 500000 times
-	int seedCount = 0;
-	int trials;
-	for (trials = 0; trials< 500000; trials++) 
-	{
-		
-		float coeff[3], point[3];
-		float randomTest = 0.f;
-		//A value of 0.f or 1.f is unacceptable...
-		while(randomTest == 1.f || randomTest == 0.f) randomTest = (float)rand()/(float)RAND_MAX;
 	
+	// Generate biased seeds by selecting largest or smallest seeds from
+	// a number of trials determined by the seed bias
+	// Number of trials is 2**abs(bias) per seed point output
+	int numTrials = (int)(totalNum*pow(2.f,abs(bias)));
+	//We shall allocate a PointSorter that holds at most totalNum+MAX_SORT_MBYTES/16 seeds
+	//since each seed occupies 16 bytes
+	int seedSorterSize = totalNum + numTrials;
+	if (seedSorterSize > (totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f)))
+		seedSorterSize = totalNum + (int)(MAX_SORT_MBYTES*1.e06f/16.f);
+	//We need to have at least twice as much space as seeds:
+	if (seedSorterSize < totalNum*2) return false;
+	PointSorter* seedSorter = new PointSorter(seedSorterSize);
+	if (!seedSorter->isValid()) return false;
 
-		coeff[0] = (float)rand()/(float)RAND_MAX;
-		coeff[1] = (float)rand()/(float)RAND_MAX;
-		coeff[2] = (float)rand()/(float)RAND_MAX;
-
-		
-		
-		point[0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
-		point[1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
-		point[2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
-
-		float mag = fData->getFieldMag(point);
-		if (mag < 0.f) continue;  //Point is out of range
-		//Now test if it's OK.
-		float ratio, acceptProb;
-		if (bias > 0.f){
-			//Note:  mag can be less than fieldMin, because it is
-			//the norm of an interpolated position
-			if (mag <= fieldMin) {ratio = 0.f; acceptProb = 0.f;}
-			else {
-				ratio = (mag-fieldMin)/(fieldMax-fieldMin);
-				acceptProb = pow(ratio,bias);
-			}
-		} else {
-			ratio = (fieldMax - mag)/(fieldMax-fieldMin);
-			acceptProb = pow(ratio,-bias);
-		}
-		
-		assert (ratio >= 0.f && ratio <= 1.f);
+	//This works by putting seeds into the seedSorter, then sorting them
+	//so that the largest (or smallest) keys (magnitude) go to the start.
+	//The seedSorter is repeatedly filled and sorted, keeping the largest mag point
+	//until the desired number of random seeds has been generated.
+	//Repeatedly:  
+	//   1.  Insert seeds 
+	//		(first time insert from beginning, after that insert from position
+	//      totalNum+1 to end
+	//   2.  Sort all the points in the array, decreasing for pos bias, increasing for neg bias
+	//   3.  Test if we are done, if so exit loop 
+	int insertionPosn = 0;
+	int startInsertPosn = 0;
+	int numPointsToInsert = totalNum + numTrials;
+	int totalPointsInserted = 0;
+	while(1){ //outer loop fills seedSorter and sorts seeds
+		insertionPosn = startInsertPosn;
+		while(1) { //Inner loop fills seedSorter
+			//Fill up the array from insertion point to seedSorterSize
+			float coeff[3], point[3];
+			float randomTest = 0.f;
 			
-		//The probability that we accept this point is acceptProb;
-		//The value of randomTest is <= P with probability P.
-		if (randomTest <= acceptProb) { //Accept this point.
-			pSeed[stride*seedCount] = point[0];
-			pSeed[stride*seedCount+1] = point[1];
-			pSeed[stride*seedCount+2] = point[2];
-			seedCount++;
-			if (seedCount >= totalNum) break;
+		
+			coeff[0] = (float)ran1(&rseed);
+			coeff[1] = (float)ran1(&rseed);
+			coeff[2] = (float)ran1(&rseed);
+			assert(coeff[0] > 0.f && coeff[0] < 1.f);
+
+			point[0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
+			point[1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
+			point[2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
+
+			float mag = fData->getFieldMag(point);
+			if (mag < 0.f) continue;  //Point is out of range
+			//Insert the point:
+			seedSorter->setPoint(insertionPosn++,mag,point);
+			totalPointsInserted++;
+			if(insertionPosn >= seedSorterSize || totalPointsInserted >= numPointsToInsert) break;
 		}
+		//OK, now sort the seeds in the sorter:
+		int endPosn = Min(seedSorterSize-1, insertionPosn-1);
+		
+		seedSorter->sortPoints(0, endPosn, (bias < 0.f));
+		//After the first sort, we insert following the totalNum points
+		startInsertPosn = totalNum;
+		//test for completion:
+		if (totalPointsInserted >= numPointsToInsert) break;
 	}
-	return (seedCount >= totalNum);
+	//Now the desired seeds are in the first totalNum positions:
+	
+	for (int i = 0; i< totalNum; i++){
+		pSeed[stride*i] = seedSorter->getPoint(i,0);
+		pSeed[stride*i+1] = seedSorter->getPoint(i,1);
+		pSeed[stride*i+2] = seedSorter->getPoint(i,2);
+	}
+	delete seedSorter;
+	return true;
+
 }
 
 void SolidRake::GenSeedRegular(const size_t numSeeds[3], 
@@ -609,4 +693,29 @@ void SolidRake::GenSeedRegular(const size_t numSeeds[3],
 				pSeed[index+2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 				index += stride;
 			}
+}
+
+Rake::PointSorter::PointSorter(int numPoints){
+	pointHolder = new float[numPoints*4];
+}
+Rake::PointSorter::~PointSorter(){
+	delete [] pointHolder;
+}
+void Rake::PointSorter::sortPoints(int first, int last, bool increasing){
+	if (increasing)
+		qsort(pointHolder+4*first,last-first+1,16,compLT);
+	else
+		qsort(pointHolder+4*first,last-first+1,16,compGT);
+	
+}
+//ordering C functions used for quicksorting
+int  VAPoR::compLT(const void* val1, const void* val2) { 
+	if (*((float*)val1) < (*((float*)val2))) return -1;
+	if (*((float*)val1) > (*((float*)val2))) return 1;
+	return 0;
+}
+int  VAPoR::compGT(const void* val1, const void* val2) { 
+	if (*((float*)val1) > (*((float*)val2))) return -1;
+	if (*((float*)val1) < (*((float*)val2))) return 1;
+	return 0;
 }
