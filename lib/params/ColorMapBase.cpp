@@ -446,7 +446,7 @@ void ColorMapBase::deleteControlPoint(int index)
 //---------------------------------------------------------------------------- 
 void ColorMapBase::move(int index, float delta)
 {
-  if (index >= 0 && index < _controlPoints.size())
+  if (index > 0 && index < _controlPoints.size()-1)
   {
     vector<ControlPoint*>::iterator iter = _controlPoints.begin()+index;
 
@@ -468,11 +468,14 @@ void ColorMapBase::move(int index, float delta)
 
     float value = cp->value() + ndx;
 
-    if (value < minVal)
+	if (value < 0.005) 
+		value = 0.005;
+	
+    if (value <= minVal)
     {
       value = minVal;
     }
-    else if (value > maxVal)
+    else if (value >= maxVal)
     {
       value = maxVal;
     }
