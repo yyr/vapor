@@ -2479,6 +2479,8 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
 	if (notNudgingSliders) return;
@@ -2524,6 +2526,8 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
 	if (notNudgingSliders) return;
@@ -2569,6 +2573,8 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeZCenter(int val) {
 	if (notNudgingSliders) return;
@@ -2614,6 +2620,8 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
@@ -2660,6 +2668,8 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
 	if (notNudgingSliders) return;
@@ -2705,6 +2715,8 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 //The following adjusts the sliders associated with box size.
 //Each slider range is the maximum of 

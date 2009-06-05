@@ -1781,6 +1781,8 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	if (notNudgingSliders) return;
@@ -1826,6 +1828,8 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	if (notNudgingSliders) return;
@@ -1871,6 +1875,8 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	if (notNudgingSliders) return;
@@ -1916,6 +1922,8 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 
 void TwoDDataEventRouter::guiNudgeYSize(int val) {
@@ -1962,6 +1970,8 @@ void TwoDDataEventRouter::guiNudgeYSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+	setTwoDDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 
 void TwoDDataEventRouter::
