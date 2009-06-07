@@ -96,23 +96,17 @@ reinit(bool doOverride){
 	//Find the first framenum with data:
 	int i;
 	for (i = minFrame; i<= maxFrame; i++){
-		int varnum;
-		for (varnum = 0; varnum<numvars; varnum++){
-			if(DataStatus::getInstance()->dataIsPresent(varnum, i)) break;
-		}
-		if (varnum < numvars) break;
+		
+		if(DataStatus::getInstance()->dataIsPresent(i)) break;
+
 	}
-	if(i > minFrame) minFrame = i;
+	if(i <= maxFrame) minFrame = i;
 	//Find the last framenum with data:
 	for (i = maxFrame; i>= minFrame; i--){
-		int varnum;
-		for (varnum = 0; varnum<numvars; varnum++){
-			if(DataStatus::getInstance()->dataIsPresent(varnum, i)) break;
-		}
-		if (varnum < numvars) break;
+		if(DataStatus::getInstance()->dataIsPresent(i)) break;
 	}
 	
-	if(i < maxFrame) maxFrame = i;
+	if(i >= minFrame) maxFrame = i;
 	//force start & end to be consistent:
 	if (doOverride){
 		startFrame = minFrame;
