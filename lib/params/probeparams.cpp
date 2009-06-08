@@ -140,10 +140,12 @@ deepRCopy(){
 	}
 
 	//Clone the Transfer Functions
-	newParams->transFunc = new TransferFunction*[numVariables];
-	for (int i = 0; i<numVariables; i++){
-		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
-	}
+	if (numVariables > 0){
+		newParams->transFunc = new TransferFunction*[numVariables];
+		for (int i = 0; i<numVariables; i++){
+			newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
+		}
+	} else newParams->transFunc = 0;
 	//Probe texture must be recreated when needed
 	newParams->probeDataTextures = 0;
 	newParams->probeIBFVTextures = 0;
@@ -263,6 +265,7 @@ reinit(bool doOverride){
 			delete transFunc[i];
 		}
 		delete transFunc;
+		transFunc = 0;
 		numVariables = 0;
 		return false;
 	}

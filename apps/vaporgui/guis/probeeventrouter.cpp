@@ -236,13 +236,13 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
-	if (!isEnabled()) return;
+	
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
 	notNudgingSliders = true;  //don't generate nudge events
 
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()) instanceTable->setEnabled(true);
+	if (ds->getDataMgr() && ds->dataIsPresent3D() ) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 	
@@ -967,6 +967,7 @@ void ProbeEventRouter::
 refreshProbeHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
+	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
@@ -1014,11 +1015,13 @@ probeLoadInstalledTF(){
 //dialog, then sends the result to the Probe params
 void ProbeEventRouter::
 probeSaveTF(void){
+	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
 	saveTF(dParams);
 }
 void ProbeEventRouter::
 probeLoadTF(void){
+	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
 	loadTF(pParams, pParams->getSessionVarNum());
 	updateClut(pParams);
@@ -1281,7 +1284,7 @@ guiCopyRegionToProbe(){
 void ProbeEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	if (!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
 
 	numVariables = DataStatus::getInstance()->getNumSessionVariables();
@@ -1562,6 +1565,7 @@ void ProbeEventRouter::
 guiChangeVariables(){
 	//Don't react if the listbox is being reset programmatically:
 	if (ignoreListboxChanges) return;
+	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change probe-selected variable(s)");

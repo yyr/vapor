@@ -406,7 +406,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		// Now set the values obtained from attribute parsing.
 		//Need to match up the varName with the varNum!!
-		setVarNum(DataStatus::getInstance()->mergeVariableName(activeVarName));
+		if(activeVarName != "")setVarNum(DataStatus::getInstance()->mergeVariableName(activeVarName));
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
 		if (minColorEditBounds) delete minColorEditBounds;
@@ -419,7 +419,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		maxOpacEditBounds = new float[numVars];
 		
 		//Setup with default values, in case not specified:
-		for (i = 0; i< newNumVariables; i++){
+		for (i = 0; i< numVars; i++){
 			minColorEditBounds[i] = 0.f;
 			maxColorEditBounds[i] = 1.f;
 		}

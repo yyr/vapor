@@ -254,6 +254,8 @@ public:
 
 
 	static void addVarName(const std::string newName) {
+		for (int i = 0; i<variableNames.size(); i++)
+			if (variableNames[i] == newName) return;
 		variableNames.push_back(newName);
 		aboveValues.push_back(VetsUtil::ABOVE_GRID);
 		belowValues.push_back(VetsUtil::BELOW_GRID);
@@ -261,6 +263,8 @@ public:
 		extendDown.push_back(true);
 	}
 	static void addVarName2D(const std::string newName) {
+		for (int i = 0; i<variableNames2D.size(); i++)
+			if (variableNames2D[i] == newName) return;
 		variableNames2D.push_back(newName);
 	}
 	//Set outside values for an existing session variable 

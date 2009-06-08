@@ -2546,7 +2546,7 @@ Region</string>
                                                                 <string>Modify probe to fit within current region</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to be as large as possible while fitting inside the extents of the region or the domain, not changing the center plane of the probe.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to make its center planar slice as large as possible while fitting inside the extents of the region or the domain, while retaining the 3D plane on which the probe is positioned.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -2567,7 +2567,7 @@ Region</string>
                                                                 <string>Crop probe to fit insidecurrent region</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe plane fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
+                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe center planar slice fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -2588,7 +2588,7 @@ Domain</string>
                                                                 <string>Modify probe to fit inside full data domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to be as large as possible while fitting inside the extents of the region or the domain, not changing the center plane of the probe.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
+                                                                <string>Clicking the "Fit to Region" or "Fit to Domain" buttons modifies the probe so as to make its center planar slice as large as possible while fitting inside the extents of the region or the domain, while retaining the 3D plane on which the probe is positioned.  The probe orientation is not changed, and, if the probe is planar, the probe remains planar.  If the probe plane does not intersect the region or domain extents, the probe is translated into the region or domain extents.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -2609,7 +2609,7 @@ Domain</string>
                                                                 <string>Crop probe to fit inside data domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe plane fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
+                                                                <string>Clicking the "Region Crop" or "Domain Crop" buttons reduces the probe so that the probe center planar slice fits within the current region or the full data domain.  The probe orientation is not changed, and, if it is planar, the probe remains planar.  If the probe plane does not intersect the region or domain, then nothing is changed.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

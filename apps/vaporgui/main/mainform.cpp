@@ -409,7 +409,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	viewAllAction->addTo(vizToolBar);
 
 	
-	timestepEdit = new QLineEdit(" 1 ", "xxxxx", animationToolbar);
+	timestepEdit = new QLineEdit(" 0 ", "xxxxx", animationToolbar);
 	timestepEdit->setAlignment(Qt::AlignHCenter);
 	timestepEdit->setMaximumWidth(40);
 	QToolTip::add(timestepEdit, "Edit/Display current time step");

@@ -627,7 +627,7 @@ setActiveViz(int vizNum){
 //Viz window
 void VizWinMgr::
 updateActiveParams(){
-	if (activeViz < 0) return;
+	if (activeViz < 0 ||!getVizWin(activeViz)) return;
 	viewpointEventRouter->updateTab();
 	regionEventRouter->updateTab();
 	dvrEventRouter->updateTab();
