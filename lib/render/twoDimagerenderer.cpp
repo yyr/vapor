@@ -111,9 +111,7 @@ void TwoDImageRenderer::paintGL()
 	} else {
 		
 		return;
-		//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
-		glDepthMask(GL_FALSE);
-		glColor4f(.8f,.8f,0.f,0.2f);
+		
 	}
 	//Draw elevation grid if we are mapped to terrain, or if
 	//It's in georeferenced image mode:

@@ -193,18 +193,22 @@ void TwoDImageEventRouter::updateTab(){
 		}
 		bool georef = twoDParams->isGeoreferenced();
 		if (georef){
-			
 			cropCheckbox->setEnabled(true);
 			fitToImageButton->setEnabled(true);
-			placementCombo->setEnabled(false);
-			placementCombo->setCurrentItem(0);//upright
-			twoDParams->setImagePlacement(0);
 		} else {
 			geoRefCheckbox->setChecked(false);
 			cropCheckbox->setEnabled(false);
 			fitToImageButton->setEnabled(false);
+		}
+		//placement combo is disabled if either mapped to terrain or georef:
+		if (twoDParams->isMappedToTerrain() || georef){
+			placementCombo->setEnabled(false);
+			placementCombo->setCurrentItem(0);//upright
+			twoDParams->setImagePlacement(0);
+		} else {
 			placementCombo->setEnabled(true);
 		}
+
 	}
 
 
@@ -502,8 +506,11 @@ void TwoDImageEventRouter::guiSetGeoreferencing(bool val){
 	tParams->setGeoreferenced(val);
 	if (val){
 		tParams->setImagePlacement(0);
+		placementCombo->setEnabled(false);
 	} else {
 		tParams->setImageCrop(false);
+		if (!tParams->isGeoreferenced())
+			placementCombo->setEnabled(true);
 	}
 	PanelCommand::captureEnd(cmd, tParams); 
 	tParams->setImagesDirty();
@@ -534,7 +541,13 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	confirmText(false);
 	TwoDImageParams* dParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
-	if(mode) dParams->setOrientation(2);
+	if(mode) {
+		dParams->setOrientation(2);
+		dParams->setImagePlacement(0);
+		placementCombo->setEnabled(false);
+	} else if (!dParams->isGeoreferenced()){
+		placementCombo->setEnabled(true);
+	}
 	dParams->setMappedToTerrain(mode);
 	
 	//Set box bottom and top to bottom of domain, if we are applying to terrain

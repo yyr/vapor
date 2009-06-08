@@ -877,7 +877,7 @@ create new 2D planar instances.</string>
                                                                 <string>specify non-georeferenced image placement</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>When georeferencing is not used, the image is placed to fit in the 2D extents.  The placement within the extents can be rotated a multiple of 90 degrees, or the image may be inverted with or without a rotation.</string>
+                                                                <string>When georeferencing is not used, the image is placed to fit in the 2D extents.  The placement within the extents can be rotated a multiple of 90 degrees, or the image may be inverted with or without a rotation.  These options are not available when the image is applied to the terrain.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
