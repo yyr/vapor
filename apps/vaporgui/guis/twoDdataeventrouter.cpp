@@ -408,15 +408,22 @@ void TwoDDataEventRouter::updateTab(){
 		}
 	}
 	
-	//Only allow terrain map with horizontal orientation
+	//Only allow terrain map with horizontal orientation, and if
+	//HGT variable is there
 	if (orientation != 2) {
 		applyTerrainCheckbox->setEnabled(false);
 		applyTerrainCheckbox->setChecked(false);
 	} else {
-		bool terrainMap = twoDParams->isMappedToTerrain();
-		if (terrainMap != applyTerrainCheckbox->isChecked())
-			applyTerrainCheckbox->setChecked(terrainMap);
-		applyTerrainCheckbox->setEnabled(true);
+		int varnum = ds->getSessionVariableNum2D("HGT");
+		if (varnum < 0 || !ds->dataIsPresent2D(varnum)){
+			applyTerrainCheckbox->setEnabled(false);
+			applyTerrainCheckbox->setChecked(false);
+		} else {
+			bool terrainMap = twoDParams->isMappedToTerrain();
+			if (terrainMap != applyTerrainCheckbox->isChecked())
+				applyTerrainCheckbox->setChecked(terrainMap);
+			applyTerrainCheckbox->setEnabled(true);
+		}
 	}
 	twoDTextureFrame->setParams(twoDParams, true);
 	

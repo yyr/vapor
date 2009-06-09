@@ -184,8 +184,24 @@ void TwoDImageEventRouter::updateTab(){
 	placementCombo->setCurrentItem(twoDParams->getImagePlacement());
 	//Force consistent settings, if there is a dataset
 	if (ds->getDataMgr()){
+		//See if we can do terrain mapping
+		if(orientation == 2){
+			int varnum = DataStatus::getSessionVariableNum2D("HGT");
+			if (varnum < 0 || !ds->dataIsPresent2D(varnum)){
+				applyTerrainCheckbox->setEnabled(false);
+				applyTerrainCheckbox->setChecked(false);
+				twoDParams->setMappedToTerrain(false);
+			} else {
+				applyTerrainCheckbox->setEnabled(true);
+				applyTerrainCheckbox->setChecked(twoDParams->isMappedToTerrain());
+			}
+		} else {
+			applyTerrainCheckbox->setChecked(false);
+			applyTerrainCheckbox->setEnabled(false);
+		}
 		if ((ds->getProjectionString().size() > 0) && orientation == 2){
 			geoRefCheckbox->setEnabled(true);
+			geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
 		} else {
 			geoRefCheckbox->setEnabled(false);
 			geoRefCheckbox->setChecked(false);
@@ -196,7 +212,6 @@ void TwoDImageEventRouter::updateTab(){
 			cropCheckbox->setEnabled(true);
 			fitToImageButton->setEnabled(true);
 		} else {
-			geoRefCheckbox->setChecked(false);
 			cropCheckbox->setEnabled(false);
 			fitToImageButton->setEnabled(false);
 		}
@@ -331,15 +346,7 @@ void TwoDImageEventRouter::updateTab(){
 	}
 	
 	//Only allow terrain map with horizontal orientation
-	if (orientation != 2) {
-		applyTerrainCheckbox->setEnabled(false);
-		applyTerrainCheckbox->setChecked(false);
-	} else if (ds->getDataMgr()){ // only enable if data mgr is there
-		bool terrainMap = twoDParams->isMappedToTerrain();
-		if(applyTerrainCheckbox->isChecked() != terrainMap)
-			applyTerrainCheckbox->setChecked(terrainMap);
-		applyTerrainCheckbox->setEnabled(true);
-	}
+	
 	twoDTextureFrame->setParams(twoDParams, false);
 	
 	vizMgr->getTabManager()->update();

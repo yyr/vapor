@@ -307,6 +307,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		myReader->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
 
 		int varnum = DataStatus::getSessionVariableNum2D("HGT");
+		
 		//Try to get requested refinement level or the nearest acceptable level:
 		int refLevel1 = RegionParams::shrinkToAvailableVoxelCoords(refLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				timeStep, &varnum, 1, regMin, regMax, true);

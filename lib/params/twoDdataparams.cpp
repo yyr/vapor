@@ -659,6 +659,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 XmlNode* TwoDDataParams::
 buildNode() {
 	//Construct the twoD node
+	if (numVariables <= 0) return 0;
 	string empty;
 	std::map <string, string> attrs;
 	attrs.clear();

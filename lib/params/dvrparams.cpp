@@ -530,6 +530,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 XmlNode* DvrParams::
 buildNode() {
 	//Construct the dvr node
+	if (numVariables <= 0) return 0;
 	string empty;
 	std::map <string, string> attrs;
 	attrs.clear();
