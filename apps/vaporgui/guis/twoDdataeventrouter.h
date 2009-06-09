@@ -44,6 +44,7 @@ public:
 	TwoDDataEventRouter(QWidget* parent, const char* name);
 	virtual ~TwoDDataEventRouter();
 
+	virtual void refreshGLWindow();
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		setTwoDDirty((TwoDDataParams*)p);

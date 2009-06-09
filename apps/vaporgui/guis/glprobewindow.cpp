@@ -47,7 +47,7 @@ GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* name,
 		strng += "Be sure to use 'vglrun' if you are in a VirtualGL session.";
 		Params::BailOut(strng.ascii(),__FILE__,__LINE__);
 	}
-
+	rendering = false;
 	horizTexSize = 1.f;
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
@@ -126,8 +126,11 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 
 void GLProbeWindow::paintGL()
 {
-	printOpenGLErrorMsg("GLProbeWindow");
 	if (GLWindow::isRendering()) return;
+	if(rendering) return;
+	rendering = true;
+	printOpenGLErrorMsg("GLProbeWindow");
+
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
@@ -138,8 +141,8 @@ void GLProbeWindow::paintGL()
 	glPolygonMode(GL_FRONT,GL_FILL);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-	if (!myParams->isEnabled()) {return;}
-	if (myParams->doBypass(timestep)) return;
+	if (!myParams->isEnabled()) {rendering = false; return;}
+	if (myParams->doBypass(timestep)) {rendering = false; return;}
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
@@ -154,8 +157,9 @@ void GLProbeWindow::paintGL()
 				probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, timestep, animatingFrameNum, animationStarting,
 					&patternListNum, _fbid, _fbTexid);
 				if(probeTexture) animationStarting = false;
-				else return; //failure to build texture
+				else {rendering = false; return; }//failure to build texture
 			} else {
+				rendering = false;
 				return;// timestep changed!
 			}
 		} else { //not animated.  Calculate it if necessary
@@ -176,6 +180,7 @@ void GLProbeWindow::paintGL()
 		glEnable(GL_TEXTURE_2D);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
+		rendering = false;
 		return;
 	}
 
@@ -215,6 +220,7 @@ void GLProbeWindow::paintGL()
 		delete probeTexture;
 	}
 	printOpenGLErrorMsg("GLProbeWindow");
+	rendering = false;
 }
 
 //

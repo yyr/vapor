@@ -51,7 +51,7 @@ public:
 	void setCapturing(bool doCapture){capturing = doCapture;}
 	void setCaptureNum(int num) {captureNum = num;}
 
-	
+	bool isRendering() {return rendering;}
 
 
 protected:
@@ -84,6 +84,7 @@ protected:
 	QString captureName;
 	bool capturing;
 	GLuint _probeTexid, _fbid, _fbTexid;
+	bool rendering;
 	
 
 };

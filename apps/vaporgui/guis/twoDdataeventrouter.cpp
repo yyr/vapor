@@ -2132,3 +2132,8 @@ twoDAttachSeed(bool attach){
 	guiAttachSeed(attach, fParams);
 }
 
+void TwoDDataEventRouter::refreshGLWindow()
+{
+	if (twoDTextureFrame->getGLWindow()->isRendering()) return;
+	twoDTextureFrame->getGLWindow()->updateGL();
+}

@@ -3109,5 +3109,9 @@ double ProbeEventRouter::convertRotStretchedToActual(int axis, double angle){
 	if (abs(angle) > 90.) retval += 180.;
 	return retval;
 }
-
+void ProbeEventRouter::refreshGLWindow()
+{
+	if (probeTextureFrame->getGLWindow()->isRendering()) return;
+	probeTextureFrame->getGLWindow()->updateGL();
+}
 

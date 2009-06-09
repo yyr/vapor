@@ -49,6 +49,8 @@ public:
 			if (histogramList[i]) delete histogramList[i];
 		if (histogramList) delete histogramList;
 	}
+	//Refresh the displayed texture, if there is one..
+	virtual void refreshGLWindow(){}
 	//Connect signals and slots from tab
 	virtual void hookUpTab() = 0;
 	//Set all the fields in the tab based on current params

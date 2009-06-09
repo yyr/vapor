@@ -35,6 +35,7 @@ namespace VAPoR {
 class ProbeParams;
 class XmlNode;
 class PanelCommand;
+
 class ProbeEventRouter : public ProbeTab, public EventRouter {
 	Q_OBJECT
 public: 
@@ -42,6 +43,7 @@ public:
 	ProbeEventRouter(QWidget* parent, const char* name);
 	virtual ~ProbeEventRouter();
 
+	virtual void refreshGLWindow();
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		setProbeDirty((ProbeParams*)p);

@@ -55,6 +55,8 @@ public:
 	void setCaptureName(QString& name){glProbeWindow->setCaptureName(name);}
 	void setCapturing(bool doCapture){glProbeWindow->setCapturing(doCapture);}
 	void setCaptureNum(int num) {glProbeWindow->setCaptureNum(num);}
+	GLProbeWindow* getGLWindow(){ return glProbeWindow;}
+
 	
 	
 

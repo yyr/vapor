@@ -64,7 +64,7 @@ void TwoDFrame::paintEvent(QPaintEvent* ){
 	//}
 	//Defer to the glTwoDWindow (do a GL draw)
 	if (GLWindow::isRendering()) return;
-	glTwoDWindow->updateGL();
+	if(!glTwoDWindow->isRendering())glTwoDWindow->updateGL();
 }
 
 void TwoDFrame::mousePressEvent( QMouseEvent * e){

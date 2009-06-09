@@ -16,7 +16,9 @@
 //
 //	Description:	Implements the AnimationController class
 //		
+#include <GL/glew.h>
 #include "mainform.h"
+#include "tabmanager.h"
 #include <qapplication.h>
 #include <qwaitcondition.h>
 #include <qthread.h>
@@ -29,6 +31,8 @@
 #include "vizwin.h"
 #include "messagereporter.h"
 #include "animationeventrouter.h"
+#include "eventrouter.h"
+
 using namespace VAPoR;
 
 //Initialize the singleton to 0:

@@ -46,7 +46,7 @@ public:
 	void mapPixelToTwoDCoords(int ix, int iy, float* x, float* y);
 
 	void setWindowType(bool isData){isDataWindow = isData;}
-
+	bool isRendering() {return rendering;}
 
 protected:
 
@@ -60,7 +60,7 @@ protected:
 	void paintEvent(QPaintEvent* event){
 		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
 	}
-
+	
 	bool getPixelData(int minx, int miny, int sizex, int sizey,unsigned char* pixData);
 	
 	//Size of twoD in world coords.
@@ -69,6 +69,7 @@ protected:
 	float rectLeft, rectTop;
 	TwoDFrame* twoDFrame;
 	bool isDataWindow;  //true if it's a data window
+	bool rendering;
 
 };
 };

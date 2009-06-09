@@ -56,7 +56,7 @@ public:
 	void initTypes();
 	DvrEventRouter(QWidget* parent, const char* name);
 	virtual ~DvrEventRouter();
-
+	
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		VizWinMgr::getInstance()->setClutDirty((DvrParams*)p);

@@ -46,7 +46,7 @@ GLTwoDWindow::GLTwoDWindow( const QGLFormat& fmt, QWidget* parent, const char* n
 		strng += "Be sure to use 'vlgrun' if you are in a VirtualGL session.";
 		Params::BailOut(strng.ascii(),__FILE__,__LINE__);
 	}
-
+	rendering = false;
 	horizTexSize = 1.f;
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
@@ -119,8 +119,12 @@ void GLTwoDWindow::setTextureSize(float horiz, float vert){
 
 void GLTwoDWindow::paintGL()
 {
-	printOpenGLErrorMsg("GLTwoDWindow");
 	if (GLWindow::isRendering()) return;
+	if (rendering) return;
+	
+	rendering = true;
+	printOpenGLErrorMsg("GLTwoDWindow");
+	
 	TwoDParams* myParams;
 	if (isDataWindow) myParams = VizWinMgr::getActiveTwoDDataParams();
 	else myParams = VizWinMgr::getActiveTwoDImageParams();
@@ -132,8 +136,8 @@ void GLTwoDWindow::paintGL()
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	if (myParams->doBypass(timestep)) return;
-	if (!myParams->isEnabled()) {return;}
+	if (myParams->doBypass(timestep)) {rendering = false; return;}
+	if (!myParams->isEnabled()) {rendering = false; return;}
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
@@ -157,8 +161,8 @@ void GLTwoDWindow::paintGL()
 		glEnable(GL_TEXTURE_2D);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTexture);
 	} else {
+		rendering = false;
 		return;
-		//glColor4f(0.,0.,0.,0.);
 	}
 
 	glBegin(GL_QUADS);
@@ -188,6 +192,7 @@ void GLTwoDWindow::paintGL()
 		glEnd();
 	}
 	printOpenGLErrorMsg("GLTwoDWindow");
+	rendering = false;
 }
 
 //

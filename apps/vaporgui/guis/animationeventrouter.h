@@ -69,7 +69,7 @@ public slots:
 protected:
 	void setSliders (AnimationParams* a);
 
-	
+	void refreshFrontTab();
 	void guiJumpToBegin();
 	void guiJumpToEnd();
 	void guiSetPosition(int sliderposition);

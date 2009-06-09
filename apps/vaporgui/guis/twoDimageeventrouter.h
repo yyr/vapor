@@ -44,12 +44,7 @@ public:
 	TwoDImageEventRouter(QWidget* parent, const char* name);
 	virtual ~TwoDImageEventRouter();
 
-	//virtual void updateMapBounds(RenderParams* p);
-	/*
-	virtual void updateClut(RenderParams* p){
-		setTwoDDirty((TwoDImageParams*)p);
-		VizWinMgr::getInstance()->setVizDirty(p,TwoDTextureBit,true);
-	}*/
+	virtual void refreshGLWindow();
 	
 	//Connect signals and slots from tab
 	

@@ -381,6 +381,9 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	else if (!direction) VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	updateTab();
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+	if (direction == 0){ //refresh front tab image on stop play ...
+		refreshFrontTab();
+	}
 	
 }
 void AnimationEventRouter::
@@ -398,7 +401,7 @@ guiJumpToBegin(){
 	update();
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
-	
+	refreshFrontTab();
 }
 void AnimationEventRouter::
 guiJumpToEnd(){
@@ -415,6 +418,7 @@ guiJumpToEnd(){
 	update();
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+	refreshFrontTab();
 }
 
 
@@ -448,6 +452,7 @@ void AnimationEventRouter::guiSetPosition(int position){
 	updateTab();
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+	refreshFrontTab();
 }
 //Respond to release of stepsize slider.  Max range of slider is end - start
 void AnimationEventRouter::guiSetFrameStep(int stepsize){
@@ -513,6 +518,7 @@ void AnimationEventRouter::guiSingleStep(bool forward){
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	update();
+	refreshFrontTab();
 }
 //Set the position slider consistent with latest value of currentPosition, frameStep, and bounds
 void AnimationEventRouter::
@@ -654,5 +660,14 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
+	refreshFrontTab();
 }
- 
+void AnimationEventRouter::refreshFrontTab(){
+	TabManager* tmgr = MainForm::getInstance()->getTabManager();
+	EventRouter* eRouter = tmgr->getFrontEventRouter();
+	if (eRouter->getParamsType() == Params::TwoDDataParamsType ||
+			eRouter->getParamsType() == Params::TwoDImageParamsType ||
+			eRouter->getParamsType() == Params::ProbeParamsType ){
+		eRouter->refreshGLWindow();
+	}
+}

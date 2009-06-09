@@ -41,6 +41,7 @@ public:
 	TwoDFrame( QWidget * parent = 0, const char * name = 0, WFlags f = 0 );
 	~TwoDFrame();
 	void setGLWindow(VAPoR::GLTwoDWindow* w){glTwoDWindow = w;}
+	GLTwoDWindow* getGLWindow(){return glTwoDWindow;}
 	void setTextureSize(float h, float v){
 		glTwoDWindow->setTextureSize(h,v);
 	}
