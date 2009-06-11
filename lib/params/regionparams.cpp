@@ -202,6 +202,7 @@ reinit(bool doOverride){
 		//set to default
 		if (isLayered && fullHeight == 0)
 			setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
+		else if(isLayered) setFullGridHeight(fullHeight);
 	}
 	
 	return true;	
