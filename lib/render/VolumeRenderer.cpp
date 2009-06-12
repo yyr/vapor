@@ -398,10 +398,13 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	{
 		numxforms = Min(currentRenderParams->getNumRefinements(),
 			DataStatus::getInteractiveRefinementLevel());
-		_driver->SetRenderFast(true);
+		if (numxforms < currentRenderParams->getNumRefinements()){
+			_driver->SetRenderFast(true);
 
-		// Need update sampling rate & opacity correction 
-		setClutDirty(); 
+			// Need update sampling rate & opacity correction 
+			setClutDirty(); 
+			myGLWindow->setDvrRegionNavigating(true);
+		}
 	} else {
 
 		numxforms = currentRenderParams->getNumRefinements();
