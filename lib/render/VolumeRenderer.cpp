@@ -597,7 +597,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			data_roi[5] = (int)max_dim[2];
 
 			float* exts = myRegionParams->getRegionExtents(timeStep);
-			for (int k = 0; i< 6; k++) extents[k] = exts[k];
+			for (int k = 0; k< 6; k++) extents[k] = exts[k];
 
 			clip[0] = !(periodic[0] &&
 						FLTEQ(extents[0], metadata->GetExtents()[0]) &&
