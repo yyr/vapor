@@ -402,6 +402,14 @@ unsigned char	*DataMgr::GetRegionUInt8(
 			min, max, lock
 		);
 	}
+	else {
+		// set_quantization_range() will free the variable if 
+		// the range is dirty, but we have to explicity free the two-field
+		// 'varname', which has two sets of data ranges.
+		//  
+		free_var(varname, 0);
+	}
+
 	if (ublks) return(ublks);
 
 	// Interleaved array is not in cache so we'll need to
@@ -521,6 +529,14 @@ unsigned char	*DataMgr::GetRegionUInt16(
 			min, max, lock
 		);
 	}
+	else {
+		// set_quantization_range() will free the variable if 
+		// the range is dirty, but we have to explicity free the two-field
+		// 'varname', which has two sets of data ranges.
+		//  
+		free_var(varname, 0);
+	}
+
 	if (ublks) return(ublks);
 
 	// Interleaved array is not in cache so we'll need to
