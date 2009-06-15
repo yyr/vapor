@@ -2,7 +2,7 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-NCL_EXAMPLES = wrf2geotiff.ncl 
+NCL_EXAMPLES = wrf2geotiff.ncl wrf_cloud.ncl wrf_EtaLevels.ncl wrf_pv.ncl wrf_Surface1.ncl WrfTestScripts.Notes 
 
 INSTALL_NCL_EX_DIR = $(INSTALL_SHAREDIR)/examples/NCL
 
