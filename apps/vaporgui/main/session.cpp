@@ -34,6 +34,7 @@
 #include <qcursor.h>
 #include <qaction.h>
 #include <qcheckbox.h>
+#include <qlineedit.h>
 #include <cassert>
 #include <cstring>
 #include <iostream>
@@ -354,6 +355,8 @@ loadFromFile(ifstream& ifs){
 	parseMgr->parse(ifs);
 	delete parseMgr;
 
+	//set the animation toolbar to agree with the animation panel
+	MainForm::getInstance()->timestepEdit->setText(QString::number(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber()));
 	//Reopen the logfile
 	MessageReporter::getInstance()->reset(currentLogfileName.c_str());
 	//We should return pointer to 0 when done!
@@ -903,6 +906,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//That way we know the next session save will also need to save metadata
 	//If we failed to merge or load, the metadataSaved flag does not change.
 	metadataSaved = !doMerge;
+	MainForm::getInstance()->timestepEdit->setText(QString::number(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber()));
 	return true;
 }
 

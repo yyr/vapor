@@ -1127,11 +1127,12 @@ void MainForm::loadData()
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
-		if (fInfo.isReadable() && fInfo.isFile())
+		if (fInfo.isReadable() && fInfo.isFile()){
 			Session::getInstance()->resetMetadata(filename.ascii(), true);
+			
+		}
 		else MessageReporter::errorMsg("Unable to read metadata file \n%s", filename.ascii());
 	}
-	
 }
 //Merge/Import data into current session
 //

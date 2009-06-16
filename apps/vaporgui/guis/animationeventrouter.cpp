@@ -316,11 +316,11 @@ animationPlayReverseClick(){
 }
 void AnimationEventRouter::
 animationPlayForwardClick(){
-	if (!playForwardButton->isDown()){
-		playForwardButton->setDown(true);
-		playReverseButton->setDown(false);
-		guiSetPlay(1);
-	}
+	
+	playForwardButton->setDown(true);
+	playReverseButton->setDown(false);
+	guiSetPlay(1);
+	
 }
 void AnimationEventRouter::
 animationReplayClick(){
@@ -377,8 +377,8 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	int previousDirection = aParams->getPlayDirection();
 	aParams->setPlayDirection(direction);
 	PanelCommand::captureEnd(cmd, aParams);
-	if (direction && !previousDirection) VizWinMgr::getInstance()->startPlay(aParams);
-	else if (!direction) VizWinMgr::getInstance()->animationParamsChanged(aParams);
+	if (direction) VizWinMgr::getInstance()->startPlay(aParams);
+	else VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	updateTab();
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	if (direction == 0){ //refresh front tab image on stop play ...
