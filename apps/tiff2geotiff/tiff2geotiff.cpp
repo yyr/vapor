@@ -64,7 +64,9 @@ static	uint16 defcompression = (uint16) -1;
 static	uint16 defpredictor = (uint16) -1;
 static 	char *geofile=(char *)0;
 static  char *timeLonLatName=(char*)0;
+static  char *timeName=(char*)0;
 static FILE* timeLonLatFile= (FILE*)0;
+static FILE* timeFile= (FILE*)0;
 static float lonLatExts[4] = { 999.f, 999.f, 999.f, 999.f};
 static uint32 currentImageWidth;
 static uint32 currentImageHeight;
@@ -95,7 +97,7 @@ main(int argc, char* argv[])
 	extern int optind;
 	extern char* optarg;
 
-	while ((c = getopt(argc, argv, "c:f:l:m:n:o:p:r:w:e:g:4:aistd")) != -1)
+	while ((c = getopt(argc, argv, "c:f:l:m:M:n:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
 		case 'a':		/* append to output */
 			mode = "a";
@@ -129,6 +131,14 @@ main(int argc, char* argv[])
 			timeLonLatFile = fopen(timeLonLatName,"r");
 			if (!timeLonLatFile){
 				fprintf(stderr,"Failure to open %s\n",timeLonLatName);
+				exit (-1);
+			}
+			break;
+		case 'M':     /*multiple timestamps file */
+			timeName = optarg;
+			timeFile = fopen(timeName,"r");
+			if (!timeFile){
+				fprintf(stderr,"Failure to open %s\n",timeName);
 				exit (-1);
 			}
 			break;
@@ -407,6 +417,24 @@ static void InstallGeoTIFF(TIFF *out)
 			if (rc) exit (rc);
 		}
 	}
+	else if (timeFile) {
+                        //get next timestamp from timeFile
+                        char timestamp[20];
+                        int rc = fscanf(timeFile,"%19s", timestamp);
+                        dirnum++;
+                        if (rc != 1){
+                                fprintf(stderr, "Failed to read line %d of timestamp file\n",dirnum);
+                                if (rc == 0) fprintf(stderr, "timestampe file has fewer entries than images in tiff file\n");
+                                exit (-3);
+                        } else { // put timestamp into tiff
+
+                                //insert time stamp from file
+                                TIFFSetField(out, TIFFTAG_DATETIME,timestamp);
+                        }
+
+
+
+        }
     GTIFWriteKeys(gtif);
     GTIFFree(gtif);
     return;
@@ -577,6 +605,10 @@ char* stuff[] = {
 "			first four are lon/lat corners of plot area,",
 "			second four are relative positions of plot corners in page.",
 "			This option requires option -4",
+" -M file      specify filename with multiple timestamps, w/o georeferencing:",
+"			Each line of file has date/timestamp only",
+"			This option does NOT require option -4",
+"			Is overridden by -m and -4 if given together.",
 " -n llx lly urx ury",
 "			Install longitude/latitude extents;",
 "			Four lon and lat values must be provided in the order:",
