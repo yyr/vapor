@@ -1,7 +1,7 @@
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
 
 ; Set this to true to save intermediate files...
-_wrf2geotiff_DEBUG = True
+_wrf2geotiff_DEBUG = False
 
 ; Some symbolic constants (hopefully these don't collide with anything else!)
 _wrf2geotiff_LANDSCAPE = 6
