@@ -415,6 +415,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 			// Need update sampling rate & opacity correction
 			setClutDirty();
+			//And force rerender
+			myGLWindow->setDvrRegionNavigating(true);
 		}
 	}
 
