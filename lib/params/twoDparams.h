@@ -45,9 +45,8 @@ public:
 	virtual RenderParams* deepRCopy() = 0;
 	Params* deepCopy() {return (Params*)deepRCopy();}
 	
-	bool twoDIsDirty(int timestep) {
-		return (!twoDDataTextures || twoDDataTextures[timestep] == 0);
-	}
+	virtual bool twoDIsDirty(int timestep)= 0;
+		
 	bool elevGridIsDirty() { 
 		return elevGridDirty;
 	}
@@ -68,7 +67,7 @@ public:
 	void setOrientation(int val);
 	int getOrientation() {return orientation;}
 	
-	void getTextureSize(int sze[2], int timestep) {sze[0] = textureSizes[2*timestep]; sze[1] = textureSizes[2*timestep+1];}
+	virtual void getTextureSize(int sze[2], int timestep) = 0;
 	
 	void getTwoDVoxelExtents(float voxdims[2]);
 	
@@ -107,9 +106,7 @@ public:
 		float imExts[4] = 0 ) = 0;
 	virtual unsigned char* calcTwoDDataTexture(int timestep, int wid, int ht)= 0;
 
-	unsigned char* getCurrentTwoDTexture(int timestep) {
-		return twoDDataTextures[timestep];
-	}
+	virtual unsigned char* getCurrentTwoDTexture(int timestep)= 0; 
 	
 	virtual void getBox(float boxmin[], float boxmax[], int = -1 ){
 		for (int i = 0; i< 3; i++){

@@ -70,6 +70,7 @@ TwoDImageParams::TwoDImageParams(int winnum) : TwoDParams(winnum){
 	imageNums = 0;
 	twoDDataTextures = 0;
 	maxTimestep = 1;
+	cachedTimestep = -1;
 	restart();
 	
 }
@@ -439,12 +440,12 @@ void TwoDImageParams::setTwoDDirty(){
 //clear out cached images
 void TwoDImageParams::setImagesDirty(){
 	if (twoDDataTextures){
-		for (int i = 0; i<=maxTimestep; i++){
-			if (twoDDataTextures[i]) {
-				delete twoDDataTextures[i];
-				twoDDataTextures[i] = 0;
-			}
+		
+		if (twoDDataTextures[0]) {
+			delete twoDDataTextures[0];
+			twoDDataTextures[0] = 0;
 		}
+		
 		twoDDataTextures = 0;
 		delete imageExtents;
 		delete textureSizes;
@@ -455,6 +456,7 @@ void TwoDImageParams::setImagesDirty(){
 	}
 	setElevGridDirty(true);
 	setAllBypass(false);
+	cachedTimestep = -1;
 }
 
 
@@ -502,7 +504,7 @@ unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	static const basic_string <char>::size_type npos = (size_t)-1;
-
+	
 	//Initially set imgExts to the TwoDImage extents
 	imgExts[0] = twoDMin[0];
 	imgExts[1] = twoDMin[1];
@@ -517,7 +519,8 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			imageFileName.c_str());
 		return 0;
 	}
-    TIFF* tif = XTIFFOpen(imageFileName.c_str(), "r");
+	//Not using memory-mapped IO (m) is reputed to help plug leaks (but doesn't do any good on windows for me)
+    TIFF* tif = XTIFFOpen(imageFileName.c_str(), "rm");
 	
 	if (!tif) {
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, 

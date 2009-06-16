@@ -49,10 +49,11 @@ public:
 	virtual RenderParams* deepRCopy();
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
-	bool twoDIsDirty(int timestep) {
+	virtual bool twoDIsDirty(int timestep) {
 		return (!twoDDataTextures || twoDDataTextures[timestep] == 0);
 	}
 	
+	virtual void getTextureSize(int sze[2], int timestep) {sze[0] = textureSizes[2*timestep]; sze[1] = textureSizes[2*timestep+1];}
 	
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
@@ -176,7 +177,7 @@ public:
 				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
 				  int* actualRefLevel);
 
-	unsigned char* getCurrentTwoDTexture(int timestep) {
+	virtual unsigned char* getCurrentTwoDTexture(int timestep) {
 		return twoDDataTextures[timestep];
 		
 	}

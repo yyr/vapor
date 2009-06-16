@@ -46,6 +46,7 @@ TwoDRenderer::TwoDRenderer(GLWindow* glw, TwoDParams* pParams )
 	elevVert = 0;
 	elevNorm = 0;
 	numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
+	lastTwoDTexture = 0;
 }
 
 
@@ -69,7 +70,6 @@ void TwoDRenderer::initializeGL()
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 	glGenTextures(1, &_twoDid);
-	glBindTexture(GL_TEXTURE_2D, _twoDid);
 	initialized = true;
 }
 //Static method to calculate the twoD texture 
@@ -177,17 +177,14 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 		glColor3fv(elevGridColor);
 	}
 	
-	//texture is always enabled
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//texture is already bound
+	
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	//Put an identity on the Texture matrix stack.
 	glLoadIdentity();
 	
 	glMatrixMode(GL_MODELVIEW);
-	glBindTexture(GL_TEXTURE_2D, _twoDid);
 	
 	
 	//Now we can just traverse the elev grid, one row at a time.
