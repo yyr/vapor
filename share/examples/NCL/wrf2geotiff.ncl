@@ -1,7 +1,7 @@
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
 
 ; Set this to true to save intermediate files...
-_wrf2geotiff_DEBUG = False
+_wrf2geotiff_DEBUG = True
 
 ; Some symbolic constants (hopefully these don't collide with anything else!)
 _wrf2geotiff_LANDSCAPE = 6
@@ -53,6 +53,8 @@ begin
         end getvalues
     end if
     tcVar@plotFilename = filename
+    tcVar@outputScale = 2   ; default scaling factor for tiff images made from postscript versions
+    tcVar@disableGeoTags = False
 
     ; array attributes...
     tcVar@times = new(_wrf2geotiff_GROWSIZE, string)
@@ -235,9 +237,12 @@ begin
        dc(3) = dc(2)
   end if
   end if       
-  print(vp)
-  print(dc)
-  print(orient)
+
+  if (_wrf2geotiff_DEBUG .eq. True) then
+      print(vp)
+      print(dc)
+      print(orient)
+  end if
 
   dvp = new(4,float)
   if (orient .eq. 0) then
@@ -252,7 +257,9 @@ begin
       dvp(3) = dc(0) + vp(1) * (dc(2) - dc(0))
   end if
 
-;  print(dvp)
+  if (_wrf2geotiff_DEBUG .eq. True) then
+      print(dvp)
+  end if
   dvp@orientation = orient
    
   return (dvp)
@@ -327,6 +334,32 @@ begin
    tcVar@numPlots = plotNum + 1
 end
 
+; ------------------------------------------------------------------------------
+;
+; wrf2geotiff_setOutputScale()
+;
+; Called by client code to change the default scale-factor for the tiff images.
+; The default is 2-times the resolution of the postscript image. 
+;
+undef("wrf2geotiff_setOutputScale")
+procedure wrf2geotiff_setOutputScale(tcVar, scaleFactor:float)
+begin
+    tcVar@outputScale = scaleFactor 
+end
+
+; ------------------------------------------------------------------------------
+;
+; wrf2geotiff_disableGeoTags()
+;
+; Called by client code to disable writing of geotags in the tiff image; only timestamps
+; are written. This is useful for plots that are vertical cross-sections through the data.
+;
+undef("wrf2geotiff_disableGeoTags")
+procedure wrf2geotiff_disableGeoTags(tcVar)
+begin
+    tcVar@disableGeoTags = True
+end
+
 ; --------------------------------------------------------------------
 ;
 ; wrf2geotiff_close()
@@ -352,6 +385,7 @@ begin
     end if 
 
    plotFile = tcVar@plotFilename
+   outputScale = tcVar@outputScale
 
    ; generate a filename root for a set of tmp files, based on the workstation ID...
    getvalues wks
@@ -391,17 +425,19 @@ begin
           rotation = -90
       end if
 
-      density = 2   ; hardcoded for now, until we get better use-case/understanding
-
       cropStr = ""
       if (tcVar@cropFrame(i) .eq.True) then
-          w = (tcVar@pageMaxX(i) - tcVar@pageMinX(i)) * density
-          h = (tcVar@pageMaxY(i) - tcVar@pageMinY(i)) * density
-          x = tcVar@pageMinX(i) * density
-          y = (_wrf2geotiff_PSMAXY - tcVar@pageMaxY(i)) * density
+          w = (tcVar@pageMaxX(i) - tcVar@pageMinX(i)) * outputScale
+          h = (tcVar@pageMaxY(i) - tcVar@pageMinY(i)) * outputScale
+          x = tcVar@pageMinX(i) * outputScale
+          y = (_wrf2geotiff_PSMAXY - tcVar@pageMaxY(i)) * outputScale
           cropStr = " -crop " + w + "x" + h + "+" + x + "+" + y + " "
       end if
-      cmd = "convert  -depth 8 -rotate " + rotation + cropStr + " -density " + (72*density) + " "
+
+      ; Note the ordering of the -density and -crop arguments is important in older versions
+      ; of Imagemagick (e.g., 6.0.7 04/20/08).  As of vers. 6.2.8 06/10/08, the ordering does not
+      ; matter.
+      cmd = "convert  -depth 8 -rotate " + rotation + " -density " + (72*outputScale) + " " + cropStr + " " 
       cmd = cmd +  " " + tmpfile + ".ps tiff:" + tmpfile + ".tif"
       print(cmd)
       system(cmd)
@@ -419,10 +455,13 @@ begin
          pageTY = tcVar@pageMaxY(i) / _wrf2geotiff_PSMAXY
       end if 
 
-      outStrings(i) = tcVar@times(i) + " " + tcVar@minLon(i) + " " + tcVar@minLat(i) + " " + \
-         tcVar@maxLon(i) + " " + tcVar@maxLat(i) + " " + pageLX + " " + pageBY + " " + \
-         pageRX + " " + pageTY
-
+      if (tcVar@disableGeoTags) then
+          outStrings(i) = tcVar@times(i)
+      else
+          outStrings(i) = tcVar@times(i) + " " + tcVar@minLon(i) + " " + tcVar@minLat(i) + " " + \
+             tcVar@maxLon(i) + " " + tcVar@maxLat(i) + " " + pageLX + " " + pageBY + " " + \
+             pageRX + " " + pageTY
+      end if
    end do
 
    ; need a filename root for naming several files in the following...
@@ -449,10 +488,14 @@ begin
    asciiwrite(dataFile, outStrings)
    
    ; call a custom utility to create a geotiff...
-   
-   proj4String = _wrf2geotiff_validateProj4String(tcVar)
-   cmd = "tiff2geotiff -4 " + proj4String + " -m " + dataFile + " " + \
-       multiTiff + " " + multiGTiff
+
+   if (tcVar@disableGeoTags) then
+       cmd = "tiff2geotiff  -M " + dataFile + " " + multiTiff + " " + multiGTiff
+   else
+       proj4String = _wrf2geotiff_validateProj4String(tcVar)
+       cmd = "tiff2geotiff -4 " + proj4String + " -m " + dataFile + " " + \
+           multiTiff + " " + multiGTiff
+   end if
    print(cmd)
    system(cmd)
 
