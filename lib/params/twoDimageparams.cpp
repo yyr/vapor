@@ -653,6 +653,13 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 			} else {
 				//determine seconds from the time stamp in the tiff
 				string tifftime(timePtr);
+				//convert tifftags to use WRF style date/time strings
+				//For some reason, windows std::string.replace() doesn't let you modify 
+				//the string in-place.
+				string mod1 = tifftime.replace(4,1,"-");
+				string mod2 = mod1.replace(7,1,"-");
+				tifftime = mod2.replace(10,1,"_");
+				
 				TIME64_T seconds = 0;
 				rc = WRF::WRFTimeStrToEpoch(tifftime, &seconds);
 				if (rc) {

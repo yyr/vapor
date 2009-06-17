@@ -211,9 +211,11 @@ void TwoDImageEventRouter::updateTab(){
 		if (georef){
 			cropCheckbox->setEnabled(true);
 			fitToImageButton->setEnabled(true);
+			cropCheckbox->setChecked(twoDParams->imageCrop());
 		} else {
 			cropCheckbox->setEnabled(false);
 			fitToImageButton->setEnabled(false);
+			cropCheckbox->setChecked(true);
 		}
 		//placement combo is disabled if either mapped to terrain or georef:
 		if (twoDParams->isMappedToTerrain() || georef){
