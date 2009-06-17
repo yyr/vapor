@@ -156,6 +156,7 @@ public:
 	//Map a geo-ref point from the image into user coordinates
 	//Return false if the image and the scene are not both georeferenced.
 	bool mapGeorefPoint(int timestep, double pt[2]);
+	bool isSingleImage() {return singleImage;}
 	
 	
 protected:
@@ -192,6 +193,7 @@ protected:
 	int imagePlacement;
 	std::string projDefinitionString;
 	int cachedTimestep;
+	bool singleImage;  //indicates there is only one image for all timesteps
 	
 };
 };

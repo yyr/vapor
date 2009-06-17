@@ -71,6 +71,7 @@ void TwoDRenderer::initializeGL()
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 	glGenTextures(1, &_twoDid);
 	initialized = true;
+	lastTwoDTexture = 0;
 }
 //Static method to calculate the twoD texture 
 unsigned char* TwoDRenderer::getTwoDTexture(TwoDParams* pParams, int frameNum,  bool doCache){

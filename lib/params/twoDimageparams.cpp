@@ -78,9 +78,9 @@ TwoDImageParams::~TwoDImageParams(){
 	
 	
 	if (twoDDataTextures) {
-		for (int i = 0; i<= maxTimestep; i++){
-			if (twoDDataTextures[i]) delete twoDDataTextures[i];
-		}
+		
+		if (twoDDataTextures[0]) delete twoDDataTextures[0];
+		
 		delete twoDDataTextures;
 		delete textureSizes;
 		if (imageExtents){
@@ -140,23 +140,9 @@ reinit(bool doOverride){
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
 	} else {
-		//Force the twoD size to be no larger than the domain extents, and 
-		//force the twoD center to be inside the domain.  Note that
-		//because of rotation, the twoD max/min may not correspond
-		//to the same extents.
-		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
+		//Just force the mins to be less than the max's
+		//There is no constraint on size or position
 		for (int i = 0; i<3; i++){
-			if (twoDMax[i] - twoDMin[i] > maxExtents)
-				twoDMax[i] = twoDMin[i] + maxExtents;
-			float center = 0.5f*(twoDMin[i]+twoDMax[i]);
-			if (center < extents[i]) {
-				twoDMin[i] += (extents[i]-center);
-				twoDMax[i] += (extents[i]-center);
-			}
-			if (center > extents[i+3]) {
-				twoDMin[i] += (extents[i+3]-center);
-				twoDMax[i] += (extents[i+3]-center);
-			}
 			if(twoDMax[i] < twoDMin[i]) 
 				twoDMax[i] = twoDMin[i];
 		}
@@ -181,6 +167,8 @@ reinit(bool doOverride){
 	// set up the texture cache
 	setTwoDDirty();
 	if (twoDDataTextures) {
+		if (twoDDataTextures[0])
+			delete twoDDataTextures[0];
 		delete twoDDataTextures;
 		delete imageExtents;
 		delete textureSizes;
@@ -201,13 +189,14 @@ void TwoDImageParams::
 restart(){
 	
 	imagePlacement = 0;
-	
+	singleImage = false;
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
 	orientation = 2;
 	setTwoDDirty();
 	if (twoDDataTextures) {
+		if (twoDDataTextures[0]) delete twoDDataTextures[0];
 		delete twoDDataTextures;
 		delete imageExtents;
 		delete textureSizes;
@@ -440,7 +429,6 @@ void TwoDImageParams::setTwoDDirty(){
 //clear out cached images
 void TwoDImageParams::setImagesDirty(){
 	if (twoDDataTextures){
-		
 		if (twoDDataTextures[0]) {
 			delete twoDDataTextures[0];
 			twoDDataTextures[0] = 0;
@@ -457,6 +445,7 @@ void TwoDImageParams::setImagesDirty(){
 	setElevGridDirty(true);
 	setAllBypass(false);
 	cachedTimestep = -1;
+	singleImage = false;
 }
 
 
@@ -472,6 +461,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	if (!ds->getDataMgr()) return 0;
 	if (doBypass(ts)) return 0;
 	
+	if(isSingleImage() && getCurrentTwoDTexture(0)) return getCurrentTwoDTexture(0);
 	//if width and height are 0, then the image will
 	//be of the size specified in the 2D params, and the result
 	//will be placed in the cache. Otherwise we are just needing
@@ -640,6 +630,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	//Initialize to zeroes
 	imageNums = new int[maxTimestep + 1];
 	for (int i = 0; i<=maxTimestep; i++) imageNums[i] = 0;
+	singleImage = false;
 	int rc;
 	char* timePtr = 0;
 	int dircount = 0;
@@ -702,7 +693,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 		for (int i = 0; i< maxTimestep; i++){
 			if (imageNums[i] != imageNums[i+1]) numDiffImages++;
 		}
-
+		if (numDiffImages == 0) singleImage = true;
 	}
 	
 	if (timesOK){
@@ -721,6 +712,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 		for (int i = 0; i<= maxTimestep; i++){
 			imageNums[i] = Min(dircount-1,i);
 		}
+		if(dircount<2) singleImage = true;
 	}
 		
 	return;

@@ -127,6 +127,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->setActiveIsoParams(myWinMgr->getIsoParams(myWindowNum));
 	myGLWindow->setActiveFlowParams(myWinMgr->getFlowParams(myWindowNum));
 	myGLWindow->setActiveProbeParams(myWinMgr->getProbeParams(myWindowNum));
+	myGLWindow->setActiveTwoDImageParams(myWinMgr->getTwoDImageParams(myWindowNum));
+	myGLWindow->setActiveTwoDDataParams(myWinMgr->getTwoDDataParams(myWindowNum));
 	myGLWindow->setPreRenderCB(preRenderSetup);
 	myGLWindow->setPostRenderCB(endRender);
 
