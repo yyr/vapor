@@ -187,7 +187,7 @@ void TwoDImageEventRouter::updateTab(){
 		//See if we can do terrain mapping
 		if(orientation == 2){
 			int varnum = DataStatus::getSessionVariableNum2D("HGT");
-			if (varnum < 0 || !ds->dataIsPresent2D(varnum)){
+			if (varnum < 0 || !ds->dataIsPresent2D(varnum, currentTimeStep)){
 				applyTerrainCheckbox->setEnabled(false);
 				applyTerrainCheckbox->setChecked(false);
 				twoDParams->setMappedToTerrain(false);

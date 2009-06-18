@@ -415,7 +415,7 @@ void TwoDDataEventRouter::updateTab(){
 		applyTerrainCheckbox->setChecked(false);
 	} else {
 		int varnum = ds->getSessionVariableNum2D("HGT");
-		if (varnum < 0 || !ds->dataIsPresent2D(varnum)){
+		if (varnum < 0 || !ds->dataIsPresent2D(varnum,currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
 			applyTerrainCheckbox->setChecked(false);
 		} else {

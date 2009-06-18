@@ -1672,7 +1672,7 @@ guiSetEnabled(bool on, int instance){
 	//Check that the flow variables are extended by zero below the grid,
 	//if the data is layered:
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->dataIsLayered() && !flowVarsZeroBelow()){
+	if (on && ds->dataIsLayered() && !flowVarsZeroBelow()){
 		MessageReporter::warningMsg("Note that flow variables are not set\nto zero below the terrain.\n%s",
 			"The value below the terrain can be set\nin the Edit Visualizer Features panel.");
 	}

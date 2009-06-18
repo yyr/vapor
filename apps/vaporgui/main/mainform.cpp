@@ -603,8 +603,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	Session::getInstance()->blockRecording();
 	
 
-	animationParams();
+	//the following determines the tab ordering from left to right:
 	viewpoint();
+	animationParams();
 	region();
 	launchTwoDDataTab();
 	launchTwoDImageTab();
