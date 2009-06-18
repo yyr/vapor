@@ -139,7 +139,8 @@ public:
 	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
 	//Mapping [-1,1]X[-1,1] into 3D volume.
 	void build2DTransform(float a[2],float b[2], float* constVal, int mappedDims[3]);
-	
+	void setLastTwoDTexture(unsigned char* tex) {lastTwoDTexture = tex;}
+	unsigned char* getLastTwoDTexture() {return lastTwoDTexture;}
 protected:
 	
 	static const string _geometryTag;
@@ -181,6 +182,7 @@ protected:
 	float verticalDisplacement;
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
+	unsigned char* lastTwoDTexture;
 	
 };
 };

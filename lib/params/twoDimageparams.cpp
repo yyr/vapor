@@ -446,6 +446,7 @@ void TwoDImageParams::setImagesDirty(){
 	setAllBypass(false);
 	cachedTimestep = -1;
 	singleImage = false;
+	lastTwoDTexture = 0;
 }
 
 

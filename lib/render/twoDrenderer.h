@@ -53,8 +53,6 @@ protected:
 	void drawElevationGrid(size_t timestep);
 	virtual bool rebuildElevationGrid(size_t timestep)=0;
 	void calcElevGridNormals(size_t timestep);
-	unsigned char* lastTwoDTexture;
-	
 
 };
 };

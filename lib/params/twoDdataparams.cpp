@@ -842,6 +842,7 @@ void TwoDDataParams::setTwoDDirty(){
 	
 	setElevGridDirty(true);
 	setAllBypass(false);
+	lastTwoDTexture = 0;
 }
 
 //Calculate the twoD texture (if it needs refreshing).

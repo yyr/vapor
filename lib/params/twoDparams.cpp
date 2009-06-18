@@ -68,7 +68,7 @@ const string TwoDParams::_orientationAttr = "Orientation";
 
 TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
 	
-	
+	lastTwoDTexture = 0;
 
 }
 TwoDParams::~TwoDParams(){

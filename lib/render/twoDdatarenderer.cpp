@@ -96,7 +96,7 @@ void TwoDDataRenderer::paintGL()
 		glMatrixMode(GL_MODELVIEW);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		//Bind if the image changed
-		if (lastTwoDTexture != twoDTex){
+		if (myTwoDParams->getLastTwoDTexture() != twoDTex){
 			glDeleteTextures(1,&_twoDid);
 		}
 		glBindTexture(GL_TEXTURE_2D, _twoDid);
@@ -105,12 +105,12 @@ void TwoDDataRenderer::paintGL()
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
-		if(lastTwoDTexture != twoDTex) {//need to reset the texture object; otherwise no change needed
+		if(myTwoDParams->getLastTwoDTexture() != twoDTex) {//need to reset the texture object; otherwise no change needed
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTex);
 		}
-		lastTwoDTexture = twoDTex;
+		myTwoDParams->setLastTwoDTexture(twoDTex);
 		//Do write to the z buffer
 		glDepthMask(GL_TRUE);
 		
