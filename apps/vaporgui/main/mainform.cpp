@@ -706,7 +706,7 @@ void MainForm::languageChange()
 
 	editUndoAction->setText( tr( "&Foo" ) );
     editUndoAction->setMenuText( tr( "&Undo" ) );
-    editUndoAction->setAccel( tr( "Ctrl+U" ) );
+    editUndoAction->setAccel( tr( "Ctrl+Z" ) );
 	editUndoAction->setToolTip("Undo the most recent session state change");
 	editRedoAction->setText( tr( "&Redo" ) );
     editRedoAction->setMenuText( tr( "&Redo" ) );

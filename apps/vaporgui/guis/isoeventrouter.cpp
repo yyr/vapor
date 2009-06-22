@@ -265,11 +265,7 @@ void IsoEventRouter::updateTab(){
 	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
 	TFHistoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
 	isoValueEdit->setText(QString::number(isoParams->GetIsoValue()));
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	if(pParams->isEnabled()){
-		const float* selectedpoint = pParams->getSelectedPoint();
-		isoParams->SetSelectedPoint(selectedpoint);
-	}
+	
 	const vector<double>& coords = isoParams->GetSelectedPoint();
 	const float* bnds = isoParams->GetHistoBounds();
 	const float* clr = isoParams->GetConstantColor();

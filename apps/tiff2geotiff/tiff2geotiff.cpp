@@ -344,70 +344,7 @@ static void InstallGeoTIFF(TIFF *out)
 				//image from the lonlat extents
 				int rc = applyCorners(lonlat, relPos, out);
 				if (rc) exit (rc);
-				/*
-				//
-				void* p;
-				p = pj_init_plus(proj4_string);
-		
-				if (!p  && !ignore){
-					//Invalid string. Get the error code:
-					int *pjerrnum = pj_get_errno_ref();
-					fprintf(stderr, "Invalid Proj4 string; message:\n %s\n",
-					pj_strerrno(*pjerrnum));
-				}
-				if (p){
-					//reproject latlon to specified coord projection.
-					//unless it's already a lat/lon projection
-					double dbextents[4];
-					if ( pj_is_latlong(p)) {
-						for (int j = 0; j<4; j++) 
-						{
-							dbextents[j] = lonlat[j];
-						}
-					} else {
-						//Must convert to radians:
-						const double DEG2RAD = 3.141592653589793/180.;
-						const char* latLongProjString = "+proj=latlong +ellps=sphere";
-						projPJ latlon_p = pj_init_plus(latLongProjString);
-						//convert to radians...
-						for (int j = 0; j<4; j++) dbextents[j] = lonlat[j]*DEG2RAD;
-						//convert the latlons to coordinates in the projection.
-						int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
-						if (rc && !ignore){
-							int *pjerrnum = pj_get_errno_ref();
-							fprintf(stderr, "Error converting lonlat to projection\n %s\n",
-								pj_strerrno(*pjerrnum));
-							exit(-1);
-						}
-					}
-					//Now the extents in projection space must be scaled, to 
-					// allow for the corners being in the interior of the page.
-					// If R0 and R1 are the relative positions of the plot corners
-					// in the page, and X0 and X1 are the x-coords of the plot corners
-					// then the page corners are at:
-					// LOWER = (X0*R1 - X1*R0)/(R1-R0)
-					// UPPER = LOWER + (X1-X0)/(R1-R0)
-					
-					// When dealing with x coordinates,
-					// R0 and R1 are relPos[0] and [2] , X0 and X1 are dbextents[0] and [2]
-					// similarly the y coordinates use the [1] and [3] indices
-					double newDBExtents[4];
-					newDBExtents[0] = (dbextents[0]*relPos[2] - dbextents[2]*relPos[0])/(relPos[2]-relPos[0]);
-					newDBExtents[2] = newDBExtents[0] + (dbextents[2]-dbextents[0])/(relPos[2]-relPos[0]);
-					newDBExtents[1] = (dbextents[1]*relPos[3] - dbextents[3]*relPos[1])/(relPos[3]-relPos[1]);
-					newDBExtents[3] = newDBExtents[1] + (dbextents[3]-dbextents[1])/(relPos[3]-relPos[1]);
-					// calculate scale and model tie point
-					modelPixelScale[0] = (newDBExtents[2]-newDBExtents[0])/((double)currentImageWidth-1.);
-					modelPixelScale[1] = (newDBExtents[3]-newDBExtents[1])/((double)currentImageHeight-1.);
-
-					tiePoint[3] = newDBExtents[0];
-					//Following is just dbextents[1] + dbextents[3]-dbextents[1] = dbextents[3].
-					//tiePoint[4] = dbextents[1] + ((double)currentImageHeight -1.)*modelPixelScale[1];
-					tiePoint[4] = newDBExtents[3];
-					TIFFSetField(out, GTIFF_TIEPOINTS, 6, tiePoint);
-					TIFFSetField(out, GTIFF_PIXELSCALE, 3, modelPixelScale);
-				}
-					*/
+				
 			} 
 		} else if (lonLatExts[0] != 999.f){
 				//Use proj4 to calculate the corner coordinates of the
@@ -600,18 +537,18 @@ char* stuff[] = {
 " -4 proj4_str	install GeoTIFF metadata from proj4 string",
 " -e file	install positioning info from ESRI Worldfile <file>",
 " -a		append to output instead of overwriting",
-" -m file	specify filename with multiple timestamps and image placement info:",
+" -m file	Specify filename with multiple timestamps and image placement info:",
 "			Each line of file has date/timestamp, and 8 floats;",
 "			first four are lon/lat corners of plot area,",
 "			second four are relative positions of plot corners in page.",
 "			This option requires option -4",
-" -M file      specify filename with multiple timestamps, w/o georeferencing:",
+" -M file   Specify filename with multiple timestamps, w/o georeferencing:",
 "			Each line of file has date/timestamp only",
 "			This option does NOT require option -4",
 "			Is overridden by -m and -4 if given together.",
 " -n llx lly urx ury",
 "			Install longitude/latitude extents;",
-"			Four lon and lat values must be provided in the order:",
+"			Four lon and lat values must in quotes in the order:",
 "			lower-left longitude, lower-left latitude,",
 "			upper-right longitute, upper-right latitude",
 "			This option requires option -4",
