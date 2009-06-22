@@ -519,6 +519,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			imageFileName.c_str());
 		return 0;
 	}
+	
 	char emsg[1000];
 	int ok = TIFFRGBAImageOK(tif,emsg);
 	if (!ok){
@@ -526,6 +527,18 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 				imageFileName.c_str(),emsg);
 		return 0;
 	} 
+	//Check compression.  Some compressions, e.g. jpeg, cause crash on Linux
+	short compr = 1;
+	int rc = TIFFGetField(tif, TIFFTAG_COMPRESSION, &compr);
+	if (rc){
+		if (compr != COMPRESSION_NONE &&
+			compr != COMPRESSION_LZW &&
+			compr != COMPRESSION_CCITTRLE){
+				MyBase::SetErrMsg(VAPOR_ERROR_TWO_D,
+					"Unsupported Tiff compression");
+				return 0;
+			}
+	}
 	//Set the tif directory to the one associated with the
 	//current frame num.
 	if (!imageNums) setupImageNums(tif);

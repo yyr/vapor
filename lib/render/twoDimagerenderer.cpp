@@ -106,7 +106,7 @@ void TwoDImageRenderer::paintGL()
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
-		//This state should be saved in the texture object, but that doesn't always work...
+		
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTex);
