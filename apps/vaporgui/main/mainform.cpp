@@ -90,6 +90,25 @@
 #include "userpreferences.h"
 
 #include "vapor/Version.h"
+//Following shortcuts are provided:
+// CTRL_N: new session
+// CTRL_O: open session
+// CTRL_S: Save current session
+// CTRL_D: load data into current session
+// CTRL_Z: Undo
+// CTRL_Y: Redo
+// CTRL_R: Region mode
+// CTRL_2: 2D mode
+// CTRL_I: Image mode
+// CTRL_K: Rake mode
+// CTRL_P: Play forward
+// CTRL_B: Play backward
+// CTRL_F: Step forward
+// CTRL_E: Stop (End) play
+// CTRL_T: Tile windows
+// CTRL_V: View all
+// CTRL_H: Home viewpoint
+
 
 //The following are pixmaps that are used in gui:
 #include "images/vapor-icon-32.xpm"
@@ -276,7 +295,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
 	}
 	navigationAction = new QAction("Navigation Mode", *wheelIcon,
-		"&Navigation", CTRL+Key_N, mouseModeActions);
+		"&Navigation", 0, mouseModeActions);
 	navigationAction->setToggleAction(true);
 	navigationAction->setOn(true);
 
@@ -288,14 +307,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	QPixmap* probeIcon = new QPixmap(probe);
 	probeAction = new QAction("Data Probe and Contour Mode", *probeIcon,
-		"&Probe", CTRL+Key_P, mouseModeActions);
+		"&Probe", 0, mouseModeActions);
 	probeAction->setToggleAction(true);
 	probeAction->setOn(false);
 
 	
 	QPixmap* twoDDataIcon = new QPixmap(twoDData);
 	twoDDataAction = new QAction("2D Mode", *twoDDataIcon,
-		"&twoDData", CTRL+Key_D, mouseModeActions);
+		"&twoDData", CTRL+Key_2, mouseModeActions);
 	twoDDataAction->setToggleAction(true);
 	twoDDataAction->setOn(false);
 
@@ -323,13 +342,13 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		"&Home", CTRL+Key_H, this);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
 	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
-		"&SetHome", CTRL+Key_S, this);
+		"SetHome", 0, this);
 	QPixmap* eyeIcon = new QPixmap(eye);
 	viewAllAction = new QAction("View All", *eyeIcon,
 		"&ViewAll", CTRL+Key_V, this);
 	QPixmap* magnifyIcon = new QPixmap(magnify);
 	viewRegionAction = new QAction("View Region", *magnifyIcon,
-		"&ViewRegion", CTRL+Key_R, this);
+		"ViewRegion", 0, this);
 
 	QPixmap* tileIcon = new QPixmap(tiles);
 	tileAction = new QAction("Tile Windows", *tileIcon,
@@ -337,25 +356,25 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	QPixmap* cascadeIcon = new QPixmap(cascade);
 	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
-		"C&ascade", CTRL+Key_A, this);
+		"Cascade", 0, this);
 
 
 	//Create actions for each animation control button:
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playForwardAction = new QAction("Play forward", *playForwardIcon,
-		"P&lay", CTRL+Key_P, this);
+		"&Play", CTRL+Key_P, this);
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
 	playBackwardAction = new QAction("Play backward", *playBackwardIcon,
-		"B&ack", CTRL+Key_P, this);
+		"&Back", CTRL+Key_B, this);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
 	pauseAction = new QAction("Stop animation", *pauseIcon,
-		"S&top", CTRL+Key_S, this);
+		"&End play", CTRL+Key_E, this);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
 	stepForwardAction = new QAction("Step forward", *stepForwardIcon,
-		"F&orwardStep", CTRL+Key_F, this);
+		"&ForwardStep", CTRL+Key_F, this);
 	QPixmap* stepBackIcon = new QPixmap(stepback);
 	stepBackAction = new QAction("Step back", *stepBackIcon,
-		"b&Ack step", CTRL+Key_A, this);
+		"Step back", 0, this);
 
 
     // toolbars for mouse modes and visualizers
@@ -677,6 +696,7 @@ void MainForm::languageChange()
     fileNew_SessionAction->setText( tr( "New Session" ) );
     fileNew_SessionAction->setMenuText( tr( "New Session" ) );
 	fileNew_SessionAction->setToolTip("Restart the session with default settings");
+	fileNew_SessionAction->setAccel( tr( "Ctrl+N" ) );
     
     fileOpenAction->setText( tr( "&Open Session" ) );
     fileOpenAction->setMenuText( tr( "&Open Session" ) );
@@ -740,11 +760,13 @@ void MainForm::languageChange()
     dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
 	dataConfigure_MetafileAction->setToolTip("Launch a tool to construct the metafile associated with a dataset");
     dataLoad_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
-    dataLoad_MetafileAction->setMenuText( tr( "&Load a Dataset into Current Session" ) );
+    dataLoad_MetafileAction->setMenuText( tr( "Load a &Dataset into Current Session" ) );
 	dataLoad_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
+	dataLoad_MetafileAction->setAccel(tr("Ctrl+D"));
 	dataLoad_DefaultMetafileAction->setText( tr( "Load a Dataset into &Default Session" ) );
     dataLoad_DefaultMetafileAction->setMenuText( tr( "Load a Dataset into &Default Session" ) );
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
+	
 	dataMerge_MetafileAction->setText( tr( "Merge (Import) a Dataset into Current Session" ) );
     dataMerge_MetafileAction->setMenuText( tr( "&Merge (Import) a Dataset into Current Session" ) );
 	dataMerge_MetafileAction->setToolTip("Specify a data set to be merged into current session");
