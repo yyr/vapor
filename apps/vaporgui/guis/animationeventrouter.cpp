@@ -374,7 +374,7 @@ void AnimationEventRouter::guiSetPlay(int direction){
 		default:
 			assert(0);
 	}
-	int previousDirection = aParams->getPlayDirection();
+	
 	aParams->setPlayDirection(direction);
 	PanelCommand::captureEnd(cmd, aParams);
 	if (direction) VizWinMgr::getInstance()->startPlay(aParams);

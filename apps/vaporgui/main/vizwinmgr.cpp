@@ -1009,21 +1009,35 @@ refreshTwoDData(TwoDDataParams* pParams){
 
 //set the changed bits for each of the visualizers associated with the
 //specified animationParams, preventing them from updating the frame counter.
+//Also set the lat/lon or local coordinates in the viewpoint params
 //
 void VizWinMgr::
 animationParamsChanged(AnimationParams* aParams){
 	AnimationController* ac = AnimationController::getInstance();
 	int vizNum = aParams->getVizNum();
+	ViewpointParams* vpp = 0;
 	if (vizNum>=0) {
 		ac->paramsChanged(vizNum);
+		vpp = getViewpointParams(vizNum);
+		if (vpp->isLatLon())
+			vpp->convertFromLatLon(aParams->getCurrentFrameNumber());
+		else 
+			vpp->convertToLatLon(aParams->getCurrentFrameNumber());
 	}
 	//If another viz is using these animation params, set their region dirty, too
+	//and set their latlon or local coords
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != vizNum)  &&
-				((!animationParams[i])||!animationParams[i]->isLocal())
-			){
+			((!animationParams[i])||!animationParams[i]->isLocal())){
 			ac->paramsChanged(i);
+			ViewpointParams* vp2 = getViewpointParams(i);
+			if (vp2!= vpp){
+				if (vp2->isLatLon())
+					vp2->convertFromLatLon(aParams->getCurrentFrameNumber());
+				else 
+					vp2->convertToLatLon(aParams->getCurrentFrameNumber());
+			}
 		}
 	}
 	MainForm::getInstance()->setCurrentTimestep(aParams->getCurrentFrameNumber());

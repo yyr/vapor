@@ -690,6 +690,13 @@ useHomeViewpoint(){
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Use Home Viewpoint");
 	Viewpoint* homeViewpoint = vpParams->getHomeViewpoint();
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
+	//Convert to latlong if necessary
+	if (vpParams->isLatLon()){
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		assert (timestep >= 0);
+		//Convert the latlon coordinates for this time step:
+		vpParams->convertToLatLon(timestep);
+	}
 	updateTab();
 	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd, vpParams);
