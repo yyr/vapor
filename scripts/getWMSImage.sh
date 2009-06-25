@@ -39,8 +39,32 @@ host="http://www.nasa.network.com/wms"
 amp="&"
 decLLRegEx=^[\-+]?[0-9]+[\.]?[0-9]*$
 
+printUsage() {
+      echo "Usage: " $0 "{optional parameters} minLon minLat maxLon maxLat"
+      echo "Optional parameters:"
+      echo "    -r xres yres"
+      echo "          resolution of requested image; default is " ${xres}"x"${yres}
+      echo "    -o imageFilename"
+      echo "          name for the requested image file; default is named after requested image layer"
+      echo "    -s URL"
+      echo "          expert usage: URL for WMS server"
+      echo "    -l layername"
+      echo "          with default WMS server, specify \"BMNG\" (default) or \"Landsat\";"
+      echo "          expert usage: image-layer name to fetch"
+      echo "    -f format"
+      echo "          expert usage: image format; default is \"tiff\""
+      echo "    -h"
+      echo "          this text"
+}
+
+if [ $# -lt 4 ]
+then
+    printUsage
+    exit 1
+fi
+
 # parse command-line options...
-while [ $# -gt 0 ]
+while [ $# -gt 4 ]
 do
   case $1 in
 
@@ -67,7 +91,7 @@ do
       shift; shift
       ;;
 
-  -h) host=$2
+  -s) host=$2
       shift
       ;;
 
@@ -83,71 +107,37 @@ do
       shift
       ;;
 
-  --help)
-      echo "Usage: " $0 " {optional parameters}"
-      echo "Optional parameters:"
-      echo "    -r xres yres"
-      echo "          resolution of requested image; default is " ${xres}"x"${yres}
-      echo "    -e minLon minlat maxLon maxLat"
-      echo "          bounding box of image;"
-      echo "          user will be interactively prompted for these values if not specified on the commandline" 
-      echo "    -o imageFilename"
-      echo "          name for the requested image file; default is named after requested image layer"
-      echo "    -h URL"
-      echo "          expert usage: URL for WMS server"
-      echo "    -l layername"
-      echo "          with default WMS server, specify \"BMNG\" (default) or \"Landsat\";"
-      echo "          expert usage: image-layer name to fetch"
-      echo "    -f format"
-      echo "          expert usage: image format; default is \"tiff\""
-      echo "    --help"
-      echo "          this text"
+  *)
+      printUsage
       exit 0
   esac
   shift
 done
 
-if [ "${minLon}" = "" ] || [ "${minLat}" = "" ] || [ "${maxLon}" = "" ] || [ "${maxLat}" = "" ] ; then
-    minLon=""; maxLon=""; minLat=""; maxLat=""
-    echo "Enter bounds for image:"
-    until [ "${minLon}" != "" ]
-    do
-        echo -n "  minimum longitude: "
-        read minLon
-        if ! [[ ${minLon} =~ ${decLLRegEx} ]] ; then
-            echo "invalid...enter as (signed) decimal value"
-            minLon=""
-        fi
-    done
-    until [ "${maxLon}" != "" ]
-    do
-        echo -n "  maximum longitude: "
-        read maxLon
-        if ! [[ ${maxLon} =~ ${decLLRegEx} ]] ; then
-            echo "invalid...enter as (signed) decimal value"  
-            maxLon="" 
-        fi
-    done
-    until [ "${minLat}" != "" ]
-    do
-        echo -n "  minimum latitude: "
-        read minLat
-        if ! [[ ${minLat} =~ ${decLLRegEx} ]] ; then
-            echo "invalid...enter as (signed) decimal value"
-            minLat=""
-        fi
-    done
-    until [ "${maxLat}" != "" ]
-    do
-        echo -n "  maximum latitude: "
-        read maxLat
-        if ! [[ ${maxLat} =~ ${decLLRegEx} ]] ; then
-            echo "invalid...enter as (signed) decimal value"
-            maxLat=""
-        fi
-    done
-fi
+# remaining parameters form a possible bounding box?
+for i in $1 $2 $3 $4
+do
+    if ! [[ $i =~ ${decLLRegEx} ]] ; then
+        echo $i " is not a valid decimal lon/lat string"
+        exit 1
+    fi
+done
+minLon=$1
+minLat=$2
+maxLon=$3
+maxLat=$4
 
+# further test bounds for sanity...
+if [ ${minLon} -lt -180 ] || [ ${minLon} -ge ${maxLon} ] || [ ${maxLon} -gt 180 ] || \
+   [ ${minLat} -lt -90  ] || [ ${minLat} -ge ${maxLat} ] || [ ${maxLat} -gt 90 ]
+then
+    echo "Invalid bounding box:"
+    echo "  longitudes must range from -180 to 180"
+    echo "  latitudes must range from -90 to 90"
+    echo "  minimum values must be less than maximums"
+    exit 1
+fi
+ 
 # We recognize two special layer names from the NASA WMS server...
 wmsLayer=${layer}
 if [ "${layer}" = "BMNG" ] ; then
