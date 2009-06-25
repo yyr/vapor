@@ -57,9 +57,18 @@ vdf_write,mfd,savedvdffile
 ;   How many variable names?
 ;
  
-varnames = vdf_getvarnames(mfd)
-varnames2d = vdf_getvariables2DXY(mfd)
-have2dvars = n_elements(varnames2d)
+nvarnames3d = 0
+if (n_elements(vdf_getvariables3d(mfd)) ne 0) then begin
+        varnames = vdf_getvariables3d(mfd)
+        nvarnames3d = n_elements(varnames)
+endif
+
+nvarnames2dxy = 0
+if (n_elements(vdf_getvariables2dxy(mfd)) ne 0) then begin
+        varnames2dxy = vdf_getvariables2dxy(mfd)
+        nvarnames2dxy = n_elements(varnames2dxy)
+endif
+
 numvarsarray = size(varnames)
 numvars = 1 + numvarsarray[1]
 newvarnames = strarr(numvars)
@@ -72,7 +81,7 @@ ENDFOR
 
 IF (isinvariables EQ 0) THEN newvarnames[numvars-1] = divvar ELSE newvarnames = varnames
 
-print,'The variable names in the vdf will be: ',newvarnames
+print,'The 3D variable names in the vdf will be: ',newvarnames
 
 ;
 ;   reset the varnames in mfd to the new value:
@@ -81,7 +90,7 @@ print,'The variable names in the vdf will be: ',newvarnames
 ;
 if (isinvariables EQ 0) THEN BEGIN
 	vdf_setvarnames,mfd,newvarnames
-	if (have2dvars) THEN vdf_setvariables2DXY,mfd,varnames2d
+	if (nvarnames2dxy gt 0) THEN vdf_setvariables2DXY,mfd,varnames2dxy
 ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
