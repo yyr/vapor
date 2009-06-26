@@ -139,7 +139,7 @@ IsoEventRouter::hookUpTab()
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isoLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(isoSaveTF()));
 	
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (isoOpacityScale()));
+	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacityScale(int)));
 	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (TFnavigateButton, SIGNAL(toggled(bool)), this, SLOT(setTFNavigateMode(bool)));
@@ -426,9 +426,6 @@ sessionLoadTF(QString* name){
 	setEditorDirty();
 }
 
-void IsoEventRouter::isoOpacityScale(){
-	guiSetOpacityScale(opacityScaleSlider->value());
-}
 //Respond to a change in opacity scale factor
 void IsoEventRouter::
 guiSetOpacityScale(int val){

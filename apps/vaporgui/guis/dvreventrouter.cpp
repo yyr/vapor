@@ -122,7 +122,7 @@ DvrEventRouter::hookUpTab()
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (dvrOpacityScale()));
+	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacityScale(int)));
 	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
@@ -286,14 +286,7 @@ refreshHisto(){
 		setEditorDirty();
 	}
 }
-/*
- * Respond to a slider release
- */
-void DvrEventRouter::
-dvrOpacityScale() {
-	guiSetOpacityScale(
-		opacityScaleSlider->value());
-}
+
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the DVR params
 void DvrEventRouter::

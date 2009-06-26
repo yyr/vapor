@@ -76,7 +76,7 @@ public:
 	//
 	
 	virtual void guiSetEnabled(bool value, int instance);
-	void guiSetOpacityScale(int val);
+	
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	DvrParams::DvrType getType(int num) {return typemap[num];}
 
@@ -93,6 +93,7 @@ public slots:
 	//
 	virtual void guiStartChangeMapFcn(QString s);
 	virtual void guiEndChangeMapFcn();
+	void guiSetOpacityScale(int val);
 
 	void setBindButtons(bool canBind);
 
@@ -120,8 +121,6 @@ protected slots:
 	void setDvrEnabled(bool on, int instance);
 	void setDvrEditMode(bool);
 	void setDvrNavigateMode(bool);
-	
-	void dvrOpacityScale();
 	
 	void dvrLoadTF();
 	void dvrLoadInstalledTF();

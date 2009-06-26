@@ -134,19 +134,12 @@ protected slots:
 	void guiCheckPeriodicY(bool periodic);
 	void guiCheckPeriodicZ(bool periodic);
 	void guiSetAutoRefresh(bool isOn);
-	void setFlowXCenter();
-	void setFlowYCenter();
-	void setFlowZCenter();
-	void setFlowXSize();
-	void setFlowYSize();
-	void setFlowZSize();
-	void setFlowSteadySamples1();
-	void setFlowSteadySamples2();
-	void setBiasFromSlider1();
-	void setBiasFromSlider2();
-	void setBiasFromSlider3();
+	
+	
+	void setBiasFromSlider1(int);
+	void setBiasFromSlider2(int);
+	void setBiasFromSlider3(int);
 
-	void setFlowUnsteadySamples();
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);
@@ -160,11 +153,20 @@ protected slots:
 	void guiLoadSeeds();
 	void saveFlowLines();
 	void saveSeeds();
-	void setFlowSmoothness();
-	void setSteadyLength();
-	void flowOpacityScale();
+	
 	void guiToggleAutoScale(bool isOn);
 	void guiToggleTimestepSample(bool isOn);
+	void guiSetOpacityScale( int scale);
+	void guiSetXCenter(int sliderval);
+	void guiSetYCenter(int sliderval);
+	void guiSetZCenter(int sliderval);
+	void guiSetXSize(int sliderval);
+	void guiSetYSize(int sliderval);
+	void guiSetZSize(int sliderval);
+	void guiSetSteadyLength(int sliderpos);
+	void guiSetSmoothness(int sliderpos);
+	void guiSetSteadySamples(int sliderVal);
+	void guiSetUnsteadySamples(int sliderVal);
 
 protected:
 	bool flowVarsZeroBelow();  //Test if the flow variables are zero below terrain
@@ -177,23 +179,16 @@ protected:
 	void setYSize(FlowParams*,int sliderval);
 	void setZSize(FlowParams*,int sliderval);
 	void guiSetEditMode(bool val); //edit versus navigate mode
-	void guiSetOpacityScale( int scale);
-	void guiSetSteadyLength(int sliderpos);
-	void guiSetSmoothness(int sliderpos);
+	
+	
 
 	//Methods that record changes in the history are preceded by 'gui'
 	//
 	virtual void guiSetEnabled(bool, int);
 	
-	void guiSetXCenter(int sliderval);
-	void guiSetYCenter(int sliderval);
-	void guiSetZCenter(int sliderval);
-	void guiSetXSize(int sliderval);
-	void guiSetYSize(int sliderval);
-	void guiSetZSize(int sliderval);
+	
 	void guiSetConstantColor(QColor& newColor);
-	void guiSetSteadySamples(int sliderVal);
-	void guiSetUnsteadySamples(int sliderVal);
+	
 	void guiSetSeedDistBias(float biasVal);
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
 	void setFlowDataChanged(bool on){flowDataChanged = on;}

@@ -72,8 +72,6 @@ protected:
 	void refreshFrontTab();
 	void guiJumpToBegin();
 	void guiJumpToEnd();
-	void guiSetPosition(int sliderposition);
-	void guiSetFrameStep(int sliderposition);
 	
 	void guiSingleStep(bool forward);
 	//Need to do more than Params::guiSetLocal():
@@ -83,6 +81,9 @@ protected:
 	void populateTimestepTable();
 	
 protected slots:
+	void guiSetPosition(int sliderposition);
+	void guiSetFrameStep(int sliderposition);
+	
 	void guiToggleTimestepSample(bool on);
 	void timestepChanged(int row, int col);
 	void addSample();
@@ -91,8 +92,6 @@ protected slots:
 	void setAtabTextChanged(const QString& qs);
 	void animationReturnPressed();
 	//Animation slots:
-	void animationSetFrameStep();
-	void animationSetPosition();
 	
 	void animationReplayClick();
 	void animationToBeginClick();

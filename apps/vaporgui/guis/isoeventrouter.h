@@ -71,10 +71,11 @@ public:
 	virtual void reinitTab(bool doOverride);
 	virtual void refreshTab();
 	void guiSetConstantColor(QColor& c);
-	void guiSetOpacityScale(int val);
+	
 	void sessionLoadTF(QString* name);
 	
 protected slots:
+	void guiSetOpacityScale(int val);
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
@@ -104,7 +105,6 @@ protected slots:
 	void guiPassThruPoint();
 	void guiStartChangeIsoSelection(QString);
 	void guiEndChangeIsoSelection();
-	void isoOpacityScale();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 	void setTFEditMode(bool);

@@ -154,22 +154,23 @@ FlowEventRouter::hookUpTab()
 	connect (zSeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboPriorityVarNum(int)));
 	
 	connect (rakeListCombo,SIGNAL(activated(int)),this, SLOT(guiSetRakeList(int)));
-	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
-	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
-	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZCenter()));
-	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXSize()));
-	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
-	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
-
-	connect (biasSlider1, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider1()));
-	connect (biasSlider2, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider2()));
-	connect (biasSlider3, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider3()));
-	connect (steadyLengthSlider, SIGNAL(sliderReleased()), this, SLOT (setSteadyLength()));
-	connect (smoothnessSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowSmoothness()));
-	connect (steadySamplesSlider1, SIGNAL(sliderReleased()), this, SLOT(setFlowSteadySamples1()));
-	connect (steadySamplesSlider2, SIGNAL(sliderReleased()), this, SLOT(setFlowSteadySamples2()));
+	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXCenter(int)));
+	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYCenter(int)));
+	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZCenter(int)));
 	
-	connect (unsteadySamplesSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowUnsteadySamples()));
+	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXSize(int)));
+	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYSize(int)));
+	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
+
+	connect (biasSlider1, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider1(int)));
+	connect (biasSlider2, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider2(int)));
+	connect (biasSlider3, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider3(int)));
+	connect (steadyLengthSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetSteadyLength(int)));
+	connect (smoothnessSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetSmoothness(int)));
+	connect (steadySamplesSlider1, SIGNAL(valueChanged(int)), this, SLOT(guiSetSteadySamples(int)));
+	connect (steadySamplesSlider2, SIGNAL(valueChanged(int)), this, SLOT(guiSetSteadySamples(int)));
+	
+	connect (unsteadySamplesSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetUnsteadySamples(int)));
 	
 	connect (geometryCombo, SIGNAL(activated(int)),SLOT(guiSetFlowGeometry(int)));
 	connect (constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
@@ -281,8 +282,7 @@ FlowEventRouter::hookUpTab()
 	connect (maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (flowOpacityScale()));
-	
+	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacityScale(int)));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
 
@@ -1293,13 +1293,6 @@ void FlowEventRouter::setFlowTabFlowTextChanged(const QString&){
 	guiSetTextChanged(true);
 }
 
-/*
- * Respond to a slider release
- */
-void FlowEventRouter::
-flowOpacityScale() {
-	guiSetOpacityScale(opacityScaleSlider->value());
-}
 
 void FlowEventRouter::setFlowTabGraphicsTextChanged(const QString&){
 	setFlowGraphicsChanged(true);
@@ -1330,83 +1323,29 @@ setFlowEnabled(bool val, int instance){
 	updateRenderer(myFlowParams, !val, false);
 }
 
-
 void FlowEventRouter::
-setFlowXCenter(){
-	guiSetXCenter(
-		xCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowYCenter(){
-	guiSetYCenter(
-		yCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowZCenter(){
-	guiSetZCenter(
-		zCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowXSize(){
-	guiSetXSize(
-		xSizeSlider->value());
-}
-void FlowEventRouter::
-setFlowYSize(){
-	guiSetYSize(
-		ySizeSlider->value());
-}
-void FlowEventRouter::
-setFlowZSize(){
-	guiSetZSize(
-		zSizeSlider->value());
-}
-void FlowEventRouter::
-setFlowSteadySamples1(){
-	int sliderPos = steadySamplesSlider1->value();
-	guiSetSteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setFlowSteadySamples2(){
-	int sliderPos = steadySamplesSlider2->value();
-	guiSetSteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setBiasFromSlider1(){
-	int sliderPos = biasSlider1->value();
-	float biasVal = 15.f*sliderPos/128.f;
+setBiasFromSlider1(int val){
+	
+	float biasVal = 15.f*val/128.f;
 	biasEdit1->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
 void FlowEventRouter::
-setBiasFromSlider2(){
-	int sliderPos = biasSlider2->value();
-	float biasVal = 15.f*sliderPos/128.f;
+setBiasFromSlider2(int val){
+	
+	float biasVal = 15.f*val/128.f;
 	biasEdit2->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
 void FlowEventRouter::
-setBiasFromSlider3(){
-	int sliderPos = biasSlider3->value();
-	float biasVal = 15.f*sliderPos/128.f;
+setBiasFromSlider3(int val){
+	
+	float biasVal = 15.f*val/128.f;
 	biasEdit3->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
-void FlowEventRouter::
-setFlowSmoothness(){
-	int sliderPos = smoothnessSlider->value();
-	guiSetSmoothness(sliderPos);
-}
-void FlowEventRouter::
-setFlowUnsteadySamples(){
-	int sliderPos = unsteadySamplesSlider->value();
-	guiSetUnsteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setSteadyLength(){
-	int sliderPos = steadyLengthSlider->value();
-	guiSetSteadyLength(sliderPos);
-}
+
+
 /*
  * Respond to user clicking the color button
  */

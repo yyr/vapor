@@ -75,7 +75,7 @@ void QThumbWheel::init()
     rat = 100.0;
     setFrameStyle( WinPanel | Sunken );
     setMargin( 2 );
-    setFocusPolicy( WheelFocus );
+    //setFocusPolicy( WheelFocus );
 }
 
 void QThumbWheel::setOrientation( Orientation orientation )
@@ -205,9 +205,11 @@ void QThumbWheel::mouseMoveEvent( QMouseEvent *e )
 
 void QThumbWheel::wheelEvent( QWheelEvent *e )
 {
-    int step = ( e->state() & ControlButton ) ? lineStep() : pageStep();
-    setValue( value() - e->delta()*step/120 );
-    e->accept();
+   // int step = ( e->state() & ControlButton ) ? lineStep() : pageStep();
+   // setValue( value() - e->delta()*step/120 );
+   // e->accept();
+	//Don't respond!
+	e->ignore();
 }
 
 /*!\reimp

@@ -3127,6 +3127,9 @@ available from the right mouse button.</string>
                                                                     <property name="value">
                                                                         <number>0</number>
                                                                     </property>
+                                                                    <property name="tracking">
+                                                                        <bool>false</bool>
+                                                                    </property>
                                                                     <property name="orientation">
                                                                         <enum>Vertical</enum>
                                                                     </property>

@@ -140,23 +140,17 @@ TwoDDataEventRouter::hookUpTab()
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
-	
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(twoDLoadTF()));
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(twoDLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(twoDSaveTF()));
-	
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
-
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setTwoDTabTextChanged(const QString&)));
-
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (twoDOpacityScale()));
+	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacityScale(int)));
 	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDNavigateMode(bool)));
-	
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setTwoDEditMode(bool)));
-	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshTwoDHisto()));
 	
 	// Transfer function controls:
@@ -607,13 +601,7 @@ refreshTwoDHisto(){
 	}
 	setEditorDirty();
 }
-/*
- * Respond to a slider release
- */
-void TwoDDataEventRouter::
-twoDOpacityScale() {
-	guiSetOpacityScale(opacityScaleSlider->value());
-}
+
 void TwoDDataEventRouter::
 twoDLoadInstalledTF(){
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);

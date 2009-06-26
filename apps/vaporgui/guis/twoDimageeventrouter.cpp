@@ -134,7 +134,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
 	connect (widthSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXSize()));
 	connect (lengthSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYSize()));
-	connect (opacitySlider, SIGNAL(sliderReleased()), this, SLOT (guiSetOpacitySlider()));
+	connect (opacitySlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetOpacitySlider(int)));
 
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
@@ -950,10 +950,10 @@ guiSetNumRefinements(int n){
 }
 	
 void TwoDImageEventRouter::
-guiSetOpacitySlider(){
+guiSetOpacitySlider(int val){
 	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
 	confirmText(false);
-	float sliderpos = (float)(opacitySlider->value())/256.f;
+	float sliderpos = val/256.f;
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move opacity slider");
 	pParams->setOpacMult(sliderpos);
 	opacityEdit->setText(QString::number(sliderpos));

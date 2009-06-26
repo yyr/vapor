@@ -360,6 +360,9 @@ share the same region settings.</string>
                                             <property name="value">
                                                 <number>120</number>
                                             </property>
+                                            <property name="tracking">
+                                                <bool>false</bool>
+                                            </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
                                             </property>
@@ -457,6 +460,9 @@ share the same region settings.</string>
                                             <property name="value">
                                                 <number>120</number>
                                             </property>
+                                            <property name="tracking">
+                                                <bool>false</bool>
+                                            </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
                                             </property>
@@ -553,6 +559,9 @@ share the same region settings.</string>
                                             </property>
                                             <property name="value">
                                                 <number>120</number>
+                                            </property>
+                                            <property name="tracking">
+                                                <bool>false</bool>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -848,6 +857,9 @@ share the same region settings.</string>
                                     <property name="value">
                                         <number>120</number>
                                     </property>
+                                    <property name="tracking">
+                                        <bool>false</bool>
+                                    </property>
                                     <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
@@ -888,6 +900,9 @@ share the same region settings.</string>
                                     <property name="value">
                                         <number>120</number>
                                     </property>
+                                    <property name="tracking">
+                                        <bool>false</bool>
+                                    </property>
                                     <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
@@ -927,6 +942,9 @@ share the same region settings.</string>
                                     </property>
                                     <property name="value">
                                         <number>120</number>
+                                    </property>
+                                    <property name="tracking">
+                                        <bool>false</bool>
                                     </property>
                                     <property name="orientation">
                                         <enum>Horizontal</enum>

@@ -83,7 +83,7 @@ public:
 	void guiSetXCenter(int sliderVal);
 	void guiSetYCenter(int sliderVal);
 	void guiSetZCenter(int sliderVal);
-	void guiSetOpacityScale(int val);
+	
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	
 	void guiSetYSize(int sliderval);
@@ -96,6 +96,7 @@ public slots:
     //
 	//respond to changes in TF (for undo/redo):
 	//
+	void guiSetOpacityScale(int val);
 	virtual void guiStartChangeMapFcn(QString qs);
 	virtual void guiEndChangeMapFcn();
 
@@ -140,7 +141,6 @@ protected slots:
 	void setTwoDEditMode(bool);
 	void setTwoDNavigateMode(bool);
 	
-	void twoDOpacityScale();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 	void twoDLoadTF();

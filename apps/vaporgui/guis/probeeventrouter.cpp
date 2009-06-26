@@ -94,6 +94,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	myIBFVThread = 0;
 	capturingIBFV = false;
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
+	
 }
 
 
@@ -193,8 +194,7 @@ ProbeEventRouter::hookUpTab()
 	connect (captureFlowButton, SIGNAL(clicked()), this, SLOT(toggleFlowImageCapture()));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-
-	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (probeOpacityScale()));
+	connect (opacityScaleSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetOpacityScale(int)));
 	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setProbeNavigateMode(bool)));
@@ -979,13 +979,7 @@ refreshProbeHisto(){
 	}
 	setEditorDirty();
 }
-/*
- * Respond to a slider release
- */
-void ProbeEventRouter::
-probeOpacityScale() {
-	guiSetOpacityScale(opacityScaleSlider->value());
-}
+
 void ProbeEventRouter::
 probeLoadInstalledTF(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
@@ -1470,9 +1464,11 @@ guiSetEnabled(bool value, int instance){
 void ProbeEventRouter::
 guiSetOpacityScale(int val){
 	ProbeParams* pp = VizWinMgr::getActiveProbeParams();
+	float newscale = ((float)(256-val))/256.f;
+	if (abs(pp->getOpacityScale() - newscale) < 1./512.) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
-	pp->setOpacityScale( ((float)(256-val))/256.f);
+	pp->setOpacityScale( newscale);
 	float sliderVal = pp->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	

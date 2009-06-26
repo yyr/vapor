@@ -203,7 +203,7 @@ public:
 		 return (fullHeight >> (numTransforms - lev));
 	}
 	float getVoxelSize(int lev, int dim){
-		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim));
+		return ((extents[dim+3]-extents[dim])/(float)getFullSizeAtLevel(lev,dim));
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){

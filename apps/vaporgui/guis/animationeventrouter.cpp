@@ -102,10 +102,8 @@ AnimationEventRouter::hookUpTab()
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 
-	//Sliders only do anything when released
-	connect (frameStepSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetFrameStep()));
-	connect (animationSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetPosition()));
-
+	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
+	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetPosition(int)));
 	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	connect (timestepSampleTable, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged(int,int)));
 	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
@@ -203,7 +201,7 @@ void AnimationEventRouter::updateTab(){
 	int currentFrame = aParams->getCurrentFrameNumber();
 	
 	if (endFrame > startFrame)
-		sliderVal = 1000.f*(float)(currentFrame-startFrame)/(float)(endFrame-startFrame);
+		sliderVal = 0.5f+ 1000.f*(float)(currentFrame-startFrame)/(float)(endFrame-startFrame);
 	animationSlider->setValue((int)sliderVal);
 	
 	
@@ -288,16 +286,9 @@ animationReturnPressed(void){
 	confirmText(true);
 }
 
-//Respond to release of frame-step slider
-void AnimationEventRouter::
-animationSetFrameStep(){
-	guiSetFrameStep(frameStepSlider->value());
-}
-//Respond to release of animation position slider
-void AnimationEventRouter::
-animationSetPosition(){
-	guiSetPosition(animationSlider->value());
-}
+
+
+
 //Respond to pause button press.
 
 void AnimationEventRouter::
@@ -426,10 +417,12 @@ guiJumpToEnd(){
 void AnimationEventRouter::guiSetPosition(int position){
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current frame number");
+	
 	int startFrame = aParams->getStartFrameNumber();
 	int endFrame = aParams->getEndFrameNumber();
-	int newFrameNum = startFrame + (int)((float)(endFrame - startFrame)*(float)position/1000.f);
+	int newFrameNum = startFrame + (int)((float)(endFrame - startFrame)*(float)position/1000.f + 0.5f);
+	if(newFrameNum == aParams->getCurrentFrameNumber()) return;
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current frame number");
 	//Find the nearest valid frame number:
 	DataStatus* ds = DataStatus::getInstance();
 	int maxdist = ds->getMaxTimestep()-ds->getMinTimestep();
@@ -546,6 +539,8 @@ void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newPa
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	vwm->setAnimationParams(vizNum, aParams);
 	updateTab();
+	VizWinMgr::getInstance()->animationParamsChanged(aParams);
+	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 }
 void AnimationEventRouter::
 guiToggleTimestepSample(bool on){
