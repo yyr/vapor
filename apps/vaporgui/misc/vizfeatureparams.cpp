@@ -235,6 +235,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(toggled(bool)), this, SLOT(checkSurface(bool)));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->applyButton2, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
@@ -540,15 +541,7 @@ setDialog(){
 	vizFeatureDlg->imageRotationCombo->setCurrentItem(surfaceRotation/90);
 	surfaceImageFilename = vizWin->getTextureFile();
 	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
-	/* Removed so we can put terrain in unlayered models:
-	vizFeatureDlg->displacementEdit->setEnabled(isLayered);
-	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
-	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
-	vizFeatureDlg->surfaceColorButton->setEnabled(isLayered);
-	vizFeatureDlg->imageCheckbox->setEnabled(isLayered);
-	vizFeatureDlg->imageRotationCombo->setEnabled(isLayered);
-	vizFeatureDlg->imageUpDownCombo->setEnabled(isLayered);
-	*/
+	
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
@@ -893,4 +886,9 @@ imageToggled(bool onOff){
 		dialogChanged = true;
 	}
 
+}
+void VizFeatureParams::checkSurface(bool on){
+	if (!on) return;
+	MessageReporter::warningMsg("Note: Improved terrain mapping capabilities are available\n%s",
+		"in the Image panel and in the 2D Data panel.");
 }

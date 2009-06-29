@@ -87,6 +87,7 @@ protected slots:
 	void setVariableNum(int);
 	void setOutsideVal();
 	void changeOutsideVal(const QString&);
+	void checkSurface(bool);
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)

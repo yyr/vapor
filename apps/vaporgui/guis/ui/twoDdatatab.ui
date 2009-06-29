@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>452</width>
+            <width>454</width>
             <height>1845</height>
         </rect>
     </property>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout79</cstring>
+                <cstring>layout239</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -329,7 +329,7 @@ create new 2D planar instances.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout78</cstring>
+                                <cstring>layout238</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1468,7 +1468,7 @@ orientation of the plane.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>21</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2918,7 +2918,7 @@ change the selection in the 2D plane</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout65</cstring>
+                                                <cstring>layout237</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -3337,7 +3337,7 @@ specified range.</string>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout166</cstring>
+                                                        <cstring>layout70</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -3345,7 +3345,7 @@ specified range.</string>
                                                         </property>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer43</cstring>
+                                                                <cstring>spacer43_2</cstring>
                                                             </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
@@ -3355,7 +3355,7 @@ specified range.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>47</width>
+                                                                    <width>20</width>
                                                                     <height>21</height>
                                                                 </size>
                                                             </property>
@@ -3365,7 +3365,7 @@ specified range.</string>
                                                                 <cstring>ColorBindButton</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Bind Color to Opacity</string>
+                                                                <string>Bind Color-&gt;Opacity</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Move selected color to same x coord as selected opacity </string>
@@ -3383,7 +3383,7 @@ depending on which button is clicked.</string>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer27</cstring>
+                                                                <cstring>spacer27_2</cstring>
                                                             </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
@@ -3393,7 +3393,7 @@ depending on which button is clicked.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>16</width>
+                                                                    <width>22</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -3403,7 +3403,7 @@ depending on which button is clicked.</string>
                                                                 <cstring>OpacityBindButton</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Bind Opacity to Color</string>
+                                                                <string>Bind Opacity-&gt;Color</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Move selected opacity to same x coord as selected color</string>
@@ -3421,7 +3421,38 @@ depending on which button is clicked.</string>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer44</cstring>
+                                                                <cstring>spacer97_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>21</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>fitDataButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Fit Data</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Fit TF domain bounds to data bounds</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Click this button to set the current transfer function editor domain bounds to the bounds of the variable at the current time step.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer44_2</cstring>
                                                             </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>

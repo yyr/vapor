@@ -129,6 +129,7 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiFitTFToData();
 	void guiNudgeXSize(int);
 	void guiNudgeXCenter(int);
 	void guiNudgeYSize(int);

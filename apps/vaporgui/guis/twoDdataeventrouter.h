@@ -103,6 +103,7 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiFitTFToData();
 	void guiFitToRegion();
 	void guiChangeInstance(int);
 	void guiNewInstance();

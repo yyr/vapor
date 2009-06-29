@@ -156,7 +156,7 @@ DvrEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setDvrEnabled(bool,int)));
-
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
 
 #ifdef BENCHMARKING
     connect(benchmarkButton, SIGNAL(clicked()),
@@ -490,6 +490,7 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
+	setBindButtons(false);
 	updateTab();
 }
 //Change mouse mode to specified value
@@ -1262,4 +1263,28 @@ void DvrEventRouter::refreshTab(){
 	bigDVRFrame->hide();
 	bigDVRFrame->show();
 }
-
+void DvrEventRouter::guiFitTFToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	DvrParams* pParams = VizWinMgr::getActiveDvrParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
+	//Get bounds from DataStatus:
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int sesvarnum = pParams->getSessionVarNum();
+	float minBound = ds->getDataMin(sesvarnum,ts);
+	float maxBound = ds->getDataMax(sesvarnum,ts);
+	
+	if (minBound > maxBound){ //no data
+		maxBound = 1.f;
+		minBound = 0.f;
+	}
+	
+	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	PanelCommand::captureEnd(cmd, pParams);
+	setDatarangeDirty(pParams);
+	updateTab();
+	
+}

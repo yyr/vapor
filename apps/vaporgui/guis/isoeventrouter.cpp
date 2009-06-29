@@ -181,7 +181,7 @@ IsoEventRouter::hookUpTab()
             this, SLOT(guiStartChangeIsoSelection(QString)));
     connect(isoSelectionFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeIsoSelection()));
-
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
 }
 //Insert values from params into tab panel
 //
@@ -732,6 +732,7 @@ reinitTab(bool doOverride){
 	}
 	
 	isoSelectionFrame->updateParams();
+	setBindButtons(false);
 	updateTab();
 }
 
@@ -1232,4 +1233,29 @@ void IsoEventRouter::refreshTab(){
 	Isovalue_Frame->show();
 	mappingFrame->hide();
 	mappingFrame->show();
+}
+void IsoEventRouter::guiFitTFToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	ParamsIso* pParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
+	//Get bounds from DataStatus:
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int sesvarnum = pParams->GetMapVariableNum();
+	float minBound = ds->getDataMin(sesvarnum,ts);
+	float maxBound = ds->getDataMax(sesvarnum,ts);
+	
+	if (minBound > maxBound){ //no data
+		maxBound = 1.f;
+		minBound = 0.f;
+	}
+	
+	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	PanelCommand::captureEnd(cmd, pParams);
+	setDatarangeDirty(pParams);
+	updateTab();
+	
 }

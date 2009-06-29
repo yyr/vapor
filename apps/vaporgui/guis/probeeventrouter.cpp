@@ -230,7 +230,7 @@ ProbeEventRouter::hookUpTab()
 	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXIBFVComboVarNum(int)));
 	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYIBFVComboVarNum(int)));
 	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZIBFVComboVarNum(int)));
-	
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
 }
 //Insert values from params into tab panel
 //
@@ -1332,6 +1332,7 @@ reinitTab(bool doOverride){
 		ySteadyVarCombo->insertItem(text);
 		zSteadyVarCombo->insertItem(text);
 	}
+	setBindButtons(false);
 	updateTab();
 }
 //Change mouse mode to specified value
@@ -3110,4 +3111,50 @@ void ProbeEventRouter::refreshGLWindow()
 	if (probeTextureFrame->getGLWindow()->isRendering()) return;
 	probeTextureFrame->getGLWindow()->updateGL();
 }
-
+void ProbeEventRouter::guiFitTFToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
+	//Get bounds from DataStatus:
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	float minBound = 1.e30f;
+	float maxBound = -1.e30f;
+	//loop over selected variables to calc min/max bound
+	bool multVars = (pParams->getNumVariablesSelected() > 1);
+	float sumsqvals = 0;
+	
+	for (int i = 0; i<ds->getNumSessionVariables(); i++){
+		if (pParams->variableIsSelected(i) && ds->dataIsPresent(i,ts)){
+			float minval = ds->getDataMin(i, ts);
+			float maxval = ds->getDataMax(i, ts);
+			if (multVars){
+				float mxval = Max(abs(maxval),abs(minval));
+				float mnval = Min(abs(maxval),abs(minval));
+				sumsqvals += mxval*mxval;
+				minval = mnval*mnval;
+			} 
+			if (minval < minBound) minBound = minval;
+			if (maxval > maxBound) maxBound = maxval;
+		
+		}
+	}
+	if (multVars){
+		minBound = sqrt(minBound);  //sqrt of smallest min*min
+		maxBound = sqrt(sumsqvals); //sqrt of rms of max's
+	}
+	if (minBound > maxBound){ //no data
+		maxBound = 1.f;
+		minBound = 0.f;
+	}
+	
+	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	PanelCommand::captureEnd(cmd, pParams);
+	setDatarangeDirty(pParams);
+	updateTab();
+	
+}

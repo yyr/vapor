@@ -98,6 +98,7 @@ public slots:
 	void setBindButtons(bool canBind);
 
 protected slots:
+	void guiFitTFToData();
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();

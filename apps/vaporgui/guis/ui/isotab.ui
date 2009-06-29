@@ -47,7 +47,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout275</cstring>
+                <cstring>layout72</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -309,7 +309,7 @@ create new isosurface instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>50</height>
                         </size>
                     </property>
                 </spacer>
@@ -1328,7 +1328,7 @@ specified range.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>50</height>
                         </size>
                     </property>
                 </spacer>
@@ -1351,7 +1351,7 @@ specified range.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout273</cstring>
+                                <cstring>layout71</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2130,7 +2130,7 @@ specified range.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout166</cstring>
+                                        <cstring>layout70</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -2148,7 +2148,7 @@ specified range.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>47</width>
+                                                    <width>20</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -2158,7 +2158,7 @@ specified range.</string>
                                                 <cstring>ColorBindButton</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Bind Color to Opacity</string>
+                                                <string>Bind Color-&gt;Opacity</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Move selected color to same x coord as selected opacity </string>
@@ -2186,7 +2186,7 @@ depending on which button is clicked.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>16</width>
+                                                    <width>22</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -2196,7 +2196,7 @@ depending on which button is clicked.</string>
                                                 <cstring>OpacityBindButton</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Bind Opacity to Color</string>
+                                                <string>Bind Opacity-&gt;Color</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Move selected opacity to same x coord as selected color</string>
@@ -2210,6 +2210,37 @@ points to coincide.  Either the opacity
 control point is moved to position of
 the color control point, or vice-versa,
 depending on which button is clicked.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer97</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>fitDataButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Fit Data</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Fit TF domain bounds to data bounds</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Click this button to set the current transfer function editor domain bounds to the bounds of the variable at the current time step.</string>
                                             </property>
                                         </widget>
                                         <spacer>

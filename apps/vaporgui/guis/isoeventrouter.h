@@ -75,6 +75,7 @@ public:
 	void sessionLoadTF(QString* name);
 	
 protected slots:
+	void guiFitTFToData();
 	void guiSetOpacityScale(int val);
 	void guiChangeInstance(int);
 	void guiNewInstance();

@@ -176,6 +176,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (fitToRegionButton, SIGNAL(clicked()), this, SLOT(guiFitToRegion()));
+	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
 }
 //Insert values from params into tab panel
 //
@@ -801,7 +802,7 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	
+	setBindButtons(false);
 	updateTab();
 }
 //Change mouse mode to specified value
@@ -2131,4 +2132,50 @@ void TwoDDataEventRouter::refreshGLWindow()
 {
 	if (twoDTextureFrame->getGLWindow()->isRendering()) return;
 	twoDTextureFrame->getGLWindow()->updateGL();
+}
+void TwoDDataEventRouter::guiFitTFToData(){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	confirmText(false);
+	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
+	//Get bounds from DataStatus:
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	float minBound = 1.e30f;
+	float maxBound = -1.e30f;
+	//loop over selected variables to calc min/max bound
+	bool multVars = (pParams->getNumVariablesSelected() > 1);
+	float sumsqvals = 0.f;
+	
+	for (int i = 0; i<ds->getNumSessionVariables2D(); i++){
+		if (pParams->variableIsSelected(i) && ds->dataIsPresent2D(i,ts)){
+			float minval = ds->getDataMin2D(i, ts);
+			float maxval = ds->getDataMax2D(i, ts);
+			if (multVars){
+				float mxval = Max(abs(maxval),abs(minval));
+				float mnval = Min(abs(maxval),abs(minval));
+				sumsqvals += mxval*mxval;
+				minval = mnval*mnval;
+			} 
+			if (minval < minBound) minBound = minval;
+			if (maxval > maxBound) maxBound = maxval;
+		}
+	}
+	if (multVars){
+		minBound = sqrt(minBound);  //sqrt of smallest min*min
+		maxBound = sqrt(sumsqvals); //sqrt of rms of max's
+	}
+	if (minBound > maxBound){ //no data
+		maxBound = 1.f;
+		minBound = 0.f;
+	}
+	
+	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	PanelCommand::captureEnd(cmd, pParams);
+	setDatarangeDirty(pParams);
+	updateTab();
+	
 }
