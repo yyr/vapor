@@ -243,6 +243,14 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	//scale:
 	sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
 	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
+#ifdef Darwin
+//Workaround for Mac OpenGL shading strangeness on large scale factors
+//The shading darkens when the scale gets to about 2e5 in size, so we boost the normals
+//by boosting the sceneScaleFactor
+	float corrFactor = 1.f/(2.e5f*sceneScaleFactor); 
+	if (corrFactor < 1.f) corrFactor = 1.f;
+	sceneScaleFactor *= corrFactor;
+#endif
 
 	//translate to put origin at corner:
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
