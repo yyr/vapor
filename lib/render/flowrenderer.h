@@ -198,9 +198,6 @@ protected:
 	//save the periodic extents (slightly different than extents)
 	float periodicExtents[6];
 	VaporFlow* myFlowLib;
-	//Scale factor used in scene rendering, must apply to normals
-	float sceneScaleFactor;
-
 
 
 };

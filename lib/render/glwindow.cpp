@@ -301,6 +301,8 @@ void GLWindow::paintGL()
 		printOpenGLError();
 		return;
 	}
+	//automatically renormalize normals
+	glEnable(GL_NORMALIZE);
 
     bool sphericalTransform = (dataStatus && dataStatus->sphericalTransform());
 	
@@ -477,7 +479,7 @@ void GLWindow::paintGL()
 	}
 
 	postRenderCB(winNum, isControlled);
-	
+	glDisable(GL_NORMALIZE);
 	printOpenGLError();
 }
 //Draw a 3D cursor at specified world coords
@@ -523,6 +525,7 @@ void GLWindow::initializeGL()
 	glBindTexture(GL_TEXTURE_2D, _elevTexid);
 	nowPainting = false;
 	printOpenGLError();
+	
     
 }
 

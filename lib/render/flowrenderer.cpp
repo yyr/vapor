@@ -122,7 +122,7 @@ void FlowRenderer::paintGL()
 	//If the regionValid flag is off, need a change before we try to render again..
 	if (!regionValid()) return;
 	
-
+	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//If the region is dirty, always need to rebuild:
@@ -194,6 +194,7 @@ void FlowRenderer::paintGL()
 		setFlowMapClean(timeStep);
 		myGLWindow->setRenderNew();
 	}
+	
 }
 //New version of rendering, uses FlowLineData, used on both steady and unsteady flow.
 void FlowRenderer::
@@ -241,16 +242,9 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	glPushMatrix();
 	
 	//scale:
-	sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
+	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
 	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-#ifdef Darwin
-//Workaround for Mac OpenGL shading strangeness on large scale factors
-//The shading darkens when the scale gets to about 2e5 in size, so we boost the normals
-//by boosting the sceneScaleFactor
-	float corrFactor = 1.f/(2.e5f*sceneScaleFactor); 
-	if (corrFactor < 1.f) corrFactor = 1.f;
-	sceneScaleFactor *= corrFactor;
-#endif
+
 
 	//translate to put origin at corner:
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
@@ -450,7 +444,7 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 	float nextVertex[18];
 	float testVec[3];
 	float testVec2[3];
-	float normalizedNormal[3];
+	
 	int i;
 	//Calculate nextPoint and vertexPoint, for arrowhead
 	
@@ -478,9 +472,9 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		if (isLit) glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
 		else glColor4fv(nextRGBA);
 	}
-	for (i = 0; i<3; i++){ normalizedNormal[i] = dirVec[i]*sceneScaleFactor;}
+	
 	glBegin(GL_POLYGON);
-	glNormal3fv(normalizedNormal);
+	glNormal3fv(dirVec);
 	for (int k = 0; k<6; k++){
 		glVertex3fv(startVertex+3*k);
 	}
@@ -500,9 +494,6 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		//add to current point
 		vadd(nextVertex+3*i, nextPoint, nextVertex+3*i);
 					
-		//renormalize normal vectors:
-		vscale(nextNormal+3*i, sceneScaleFactor);
-		vscale(startNormal+3*i, sceneScaleFactor);
 	}
 	
 	
@@ -570,16 +561,14 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		for (int k = 0; k<3; k++){
 			startNormal[3*i+k] = 0.5*startNormal[3*i+k] + 0.5*dirVec[k];
 		}
-		vscale(startNormal+3*i, sceneScaleFactor);
 	}
 	
 	//Create a triangle fan from these 6 vertices.  Continue to use
 	//previous color settings
 	
-	vcopy(dirVec,normalizedNormal);
-	vscale(normalizedNormal, sceneScaleFactor);
+	
 	glBegin(GL_TRIANGLE_FAN);
-	glNormal3fv(normalizedNormal);
+	glNormal3fv(dirVec);
 	glVertex3fv(vertexPoint);
 	for (i = 0; i< 6; i++){
 		glNormal3fv(startNormal+3*i);
@@ -627,8 +616,7 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 			//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
 		vcopy(currentNormal+3*i, normalA+3*i);
 		vcopy(prevNormal+3*i, normalB+3*i);
-		vscale(normalA+3*i, sceneScaleFactor);
-		vscale(normalB+3*i, sceneScaleFactor);
+		
 	}
 	
 	if (!constMap){
@@ -698,7 +686,6 @@ void FlowRenderer::renderStationary(float* point){
 		-0.5f,-.5f,-.707f,
 		0.5f,-.5f,-.707f };
 		
-	for (int i = 0; i<24; i++) normalVecs[i] *= sceneScaleFactor;
 
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, stationaryColor);
@@ -1345,7 +1332,7 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 					if (len == 0.f){//  0 projection, take normvec = 0,0,1
 						vset(normVec, 0.,0.,1.);
 					} 
-					vscale(normVec,sceneScaleFactor);
+					
 					glNormal3fv(normVec);
 					//only call mapPeriodicCycle to translate, or detect leaving the region, after the first point
 					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
@@ -1475,7 +1462,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	float len;
 	float testVec[3];
 	float testVec2[3];
-	float normalizedNormal[3];
+	
 	//Vectors to hold the start and end arrow coordinates.
 	//They may be translated due to periodic boundary conditions.
 	float startPoint[3], endPoint[3];
@@ -1599,9 +1586,9 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				vadd(evenVertex+3*i, flowLineData->getFlowPoint(tubeNum, tubeStartIndex), evenVertex+3*i);
 			}
 			//Draw a  starting cap on the cylinder:
-			for (int i = 0; i<3; i++){ normalizedNormal[i] = evenA[i]*sceneScaleFactor;}
+			
 			glBegin(GL_POLYGON);
-			glNormal3fv(normalizedNormal);
+			glNormal3fv(evenA);
 			for (int k = 0; k<6; k++){
 				glVertex3fv(evenVertex+3*k);
 			}
@@ -1749,9 +1736,9 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				else
 					glColor4fv(nextRGBA);
 			}
-			for (int i = 0; i<3; i++){ normalizedNormal[i] = currentA[i]*sceneScaleFactor;}
+			
 			glBegin(GL_POLYGON);
-			glNormal3fv(normalizedNormal);
+			glNormal3fv(currentA);
 			for (int ka = 5; ka>=0; ka--){
 				glVertex3fv(currentVertex+3*ka);
 			}
