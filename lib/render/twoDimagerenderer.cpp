@@ -333,7 +333,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		min_bdim[2] = max_bdim[2] = 0;
 		//Then, ask the Datamgr to retrieve the HGT data
 		
-		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, min_bdim, max_bdim, 0);
+		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel1, min_bdim, max_bdim, 0);
 		
 		if (!hgtData) {
 			setBypass(timeStep);
@@ -341,7 +341,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
 					timeStep);
 			}
-			ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
+			ds->setDataMissing2D(timeStep, refLevel1, ds->getSessionVariableNum2D(std::string("HGT")));
 			return false;
 		}
 

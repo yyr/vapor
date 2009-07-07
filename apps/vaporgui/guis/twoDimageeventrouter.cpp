@@ -176,7 +176,7 @@ void TwoDImageEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
     
-	
+	refinementCombo->setCurrentItem(twoDParams->getNumRefinements());
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentItem(orientation);
