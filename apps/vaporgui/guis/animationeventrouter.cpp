@@ -516,6 +516,7 @@ void AnimationEventRouter::guiSingleStep(bool forward){
 //Set the position slider consistent with latest value of currentPosition, frameStep, and bounds
 void AnimationEventRouter::
 setSliders(AnimationParams* aParams){
+	guiSetTextChanged(false);//don't trigger text changed event when move slider
 	int sliderPosition = animationSlider->value();
 	int currentFrame = aParams->getCurrentFrameNumber();
 	int startFrame = aParams->getStartFrameNumber();

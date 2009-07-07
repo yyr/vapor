@@ -1909,8 +1909,10 @@ void MainForm::stepForward(){
 void MainForm::setTimestep(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
 	int tstep = timestepEdit->text().toInt();
-	if (tstep < (int) DataStatus::getInstance()->getMinTimestep()) tstep = DataStatus::getInstance()->getMinTimestep();
-	if (tstep > (int) DataStatus::getInstance()->getMaxTimestep()) tstep = DataStatus::getInstance()->getMaxTimestep();
+	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
+
+	if (tstep < aParams->getStartFrameNumber()) tstep = aParams->getStartFrameNumber();
+	if (tstep > aParams->getEndFrameNumber()) tstep = aParams->getEndFrameNumber();
 	aRouter->guiSetTimestep(tstep);
 }
 //Set the timestep in the animation toolbar:
