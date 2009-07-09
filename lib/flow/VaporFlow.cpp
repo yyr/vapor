@@ -1385,11 +1385,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 		}
 	}
 	
-	//const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	//myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
-	//myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
-	//myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
-	//myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
+	
 	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
 	
 	float **pUData, **pVData, **pWData;

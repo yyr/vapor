@@ -506,11 +506,10 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
 
-	size_t ts = DataStatus::getInstance()->getMinTimestep();
-	myReader->MapUserToBlk(ts, userMinCoords, min_bdim, numxforms);
-	myReader->MapUserToVox(ts, userMinCoords, min_dim, numxforms);
-	myReader->MapUserToBlk(ts, userMaxCoords, max_bdim, numxforms);
-	myReader->MapUserToVox(ts, userMaxCoords, max_dim, numxforms);
+	myReader->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
+	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
+	myReader->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
+	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
 
 	
 	return;
