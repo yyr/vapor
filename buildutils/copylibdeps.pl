@@ -104,7 +104,7 @@ LINE:	foreach $line (@lines) {
 		}
 		next LINE if (! defined($lib));
 		if ($lib =~ "not found") {
-			printf STDERR "$ProgName: Command \"$cmd\" failed - library not found\n";
+			printf STDERR "$ProgName: Command \"$cmd\" failed - library $lib not found\n";
 			exit(1);
 		}
 
@@ -120,7 +120,7 @@ LINE:	foreach $line (@lines) {
 		next LINE if (($Arch eq "Darwin") && !($lib =~ /dylib/));
 
 		if (! -f $lib) {
-			printf STDERR "$ProgName: Command \"$cmd\" failed - library not found\n";
+			printf STDERR "$ProgName: Command \"$cmd\" failed - library $lib not found\n";
 			exit(1);
 		}
 
