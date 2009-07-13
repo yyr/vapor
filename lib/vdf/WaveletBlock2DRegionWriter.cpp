@@ -861,7 +861,7 @@ void WaveletBlock2DRegionWriter::compute_minmax(
 		return;
 	}
 
-	size_t bs[2];
+	size_t bs[2] = {0,0};
 	switch (_vtype) {
 	case VAR2D_XY:
 		bs[0] = _bs[0]; bs[1] = _bs[1];

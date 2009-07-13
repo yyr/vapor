@@ -44,7 +44,7 @@ using namespace VAPoR;
 //
 //	Command line argument stuff
 //
-struct {
+struct opt_t {
 	vector <string> varnames;
 	int level;
 	int ts;

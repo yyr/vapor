@@ -29,6 +29,10 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.4  2009/05/22 22:25:54  alannorton
+ * Added capability of handling lat/long projection, added option of specifying
+ * corners as a command line argument.
+ *
  * Revision 1.3  2009/04/06 22:12:03  alannorton
  * Modifications to geotiff to fix polar stereo and mercator projections.
  *
@@ -271,7 +275,7 @@ int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 )
 {
     char **papszNV = OSRProj4Tokenize( proj4 );
     short nSpheroid = KvUserDefined;
-    double dfSemiMajor, dfSemiMinor=0.0, dfInvFlattening=0.0;
+    double dfSemiMajor=0.0, dfSemiMinor=0.0, dfInvFlattening=0.0;
     int	   nDatum = KvUserDefined;
     int    nGCS = KvUserDefined;    
     const char  *value;

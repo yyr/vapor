@@ -2247,8 +2247,8 @@ doFrameCapture(){
 	else filename = captureNameImage;
 	if (!(filename.endsWith(".jpg"))&&!(filename.endsWith(".tif"))) filename += ".jpg";
 	
-	FILE* jpegFile;
-	TIFF* tiffFile;
+	FILE* jpegFile = NULL;
+	TIFF* tiffFile = NULL;
 	if (filename.endsWith(".tif")){
 		tiffFile = TIFFOpen(filename, "wb");
 		if (!tiffFile) {

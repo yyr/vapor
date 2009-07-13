@@ -837,9 +837,9 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	//slide or stretch box center out of full domain box.
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	//const float* extents = DataStatus::getInstance()->getStretchedExtents();
 	myParams->calcStretchedBoxExtents(boxExtents, -1);
-	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
+	//float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (isStretching){ //don't push through opposite face ..
 		dragDistance = constrainStretch(dragDistance);
 	} else { //sliding, not stretching

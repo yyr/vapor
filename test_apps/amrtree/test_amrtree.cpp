@@ -30,13 +30,13 @@ OptionParser::Option_T	get_options[] = {
 const char	*ProgName;
 
 
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
 	OptionParser op;
 	AMRTree	*tree;
 
 
-	MyBase::SetDiagMsgFilePtr(stderr);
+	MyBase::SetErrMsgFilePtr(stderr);
 	ProgName = Basename(argv[0]);
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -55,78 +55,72 @@ main(int argc, char **argv) {
 		exit(0);
 	}
 
-	if (argv[1]) {
-		tree = new AMRTree(argv[1]);
-		if (AMRTree::GetErrCode() != 0) {
-			fprintf(stderr, "AMRTree() : %s\n", AMRTree::GetErrMsg());
-			exit(1);
-		}
+	size_t basedim[3] = {2,2,2};
+	double min[3] = {4.0,4.0,4.0};
+	double max[3] = {8.0,8.0,8.0};
+
+	tree = new AMRTree(basedim, min, max);
+	if (AMRTree::GetErrCode() != 0) {
+		fprintf(stderr, "AMRTree() : %s\n", AMRTree::GetErrMsg());
+		exit(1);
 	}
-	else {
 
-		//size_t basedim[3] = {4,4,4};
-		size_t basedim[3] = {1,1,1};
-		double min[3] = {4.0,4.0,4.0};
-		double max[3] = {8.0,8.0,8.0};
+	AMRTreeBranch::cid_t bidx, nidx;
+	AMRTree::cid_t cellid  = tree->RefineCell(0);
+	tree->DecodeCellID(cellid, &bidx, &nidx);
 
-		tree = new AMRTree(basedim, min, max);
-		if (AMRTree::GetErrCode() != 0) {
-			fprintf(stderr, "AMRTree() : %s\n", AMRTree::GetErrMsg());
-			exit(1);
-		}
-
-
-		tree->RefineCell(0);
-
-		AMRTree::CellID cell0 = tree->GetCellChildren(0);
-		tree->RefineCell(cell0);
-		tree->RefineCell(cell0+1);
-		tree->RefineCell(cell0+2);
-		tree->RefineCell(cell0+3);
-
-		AMRTree::CellID cell7 = tree->GetCellChildren(cell0) + 3;
-		AMRTree::CellID cell10 = tree->GetCellChildren(cell0+1) + 2;
-		AMRTree::CellID cell13 = tree->GetCellChildren(cell0+2) + 1;
-		AMRTree::CellID cell16 = tree->GetCellChildren(cell0+3) + 0;
-
-		tree->RefineCell(cell7);
-		tree->RefineCell(cell10);
-		tree->RefineCell(cell10+1);
-		tree->RefineCell(cell13);
-		tree->RefineCell(cell13+2);
-		tree->RefineCell(cell16);
-		tree->RefineCell(cell16+1);
-		tree->RefineCell(cell16+3);
-
-		AMRTree::CellID cell23 = tree->GetCellChildren(cell7) + 3;
-		AMRTree::CellID cell37 = tree->GetCellChildren(cell13+2) + 1;
-		AMRTree::CellID cell44 = tree->GetCellChildren(cell16+1);
-		AMRTree::CellID cell48 = tree->GetCellChildren(cell16+3);
-		
-
-		tree->RefineCell(cell23);
-		tree->RefineCell(cell37);
-		tree->RefineCell(cell44);
-		tree->RefineCell(cell48);
-
+AMRTree::cid_t c0 = tree->RefineCell(cellid+0);
+AMRTree::cid_t c1 = tree->RefineCell(cellid+1);
+cerr << tree->RefineCell(c1) << endl;;
+cerr << tree->RefineCell(c0) << endl;;
+	for (int i = 0; i<30; i++) {
+		cellid = tree->RefineCell(cellid+3);
+		tree->DecodeCellID(cellid, &bidx, &nidx);
+		cerr << "child " << i << " " << nidx << endl;
 	}
+
+#ifdef	DEAD
+	AMRTree::cid_t c0, c0save;
+
+	c0 = tree->RefineCell(cellid+0);
+	c0save = c0;
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+1);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+2);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+3);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+4);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+5);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+	c0 = tree->RefineCell(cellid+6);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "second child " << nidx << endl;
+//	c0 = tree->RefineCell(cellid+7);
+//	tree->DecodeCellID(c0, &bidx, &nidx);
+//	cerr << "second child " << nidx << endl;
+
+	c0 = tree->RefineCell(c0save);
+	tree->DecodeCellID(c0, &bidx, &nidx);
+	cerr << "third child " << nidx << endl;
+
+	cellid  = tree->RefineCell(cellid);
+	tree->DecodeCellID(cellid, &bidx, &nidx);
+	cerr << "third child " << nidx << endl;
+#endif
 
 	tree->Write("tree.xml");
 
-	AMRTree::CellID cellid;
-
-	double ucoord[3] = {4.5, 4.5, 4.5};
-	cellid = tree->FindCell(ucoord);
-	if (cellid < 0) {
-		fprintf(stderr, "AMRTree::FindCell() : %s\n", AMRTree::GetErrMsg());
-		exit(1);
-	}
-	fprintf(
-		stdout, "Found cell %d at location [%f %f %f]\n", 
-		cellid, ucoord[0], ucoord[1], ucoord[2]
-	);
-
-		
+	AMRTree tree1("tree.xml");
+	tree1.Write("tree1.xml");
 
 	exit(0);
 }

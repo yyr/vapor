@@ -91,7 +91,7 @@ int	GetFlashMetadata(
 	double extents[6], _extents[6];
 	int _cell_dimensions[3], cell_dimensions[3];
 	int _base_dimensions[3], base_dimensions[3];
-	int _max_ref, max_ref;
+	int _max_ref = 0, max_ref;
 	float usertime;
 	
 	bool first = true;

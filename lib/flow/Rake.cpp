@@ -438,6 +438,7 @@ void PlaneRake::GenSeedRegular(const size_t numSeeds[3],
 	int iFor, jFor;
 	for(iFor = 0; iFor < 3; iFor++)
 	{
+		lh[iFor] = hl[iFor] = 0.0;
 		ll[iFor] = min[iFor];
 		hh[iFor] = max[iFor];
 	}
@@ -607,8 +608,6 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 		while(1) { //Inner loop fills seedSorter
 			//Fill up the array from insertion point to seedSorterSize
 			float coeff[3], point[3];
-			float randomTest = 0.f;
-			
 		
 			coeff[0] = (float)ran1(&rseed);
 			coeff[1] = (float)ran1(&rseed);

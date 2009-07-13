@@ -105,7 +105,7 @@ int	GetWRFMetadata(
 ) {
 	float _dx = 0.0;
 	float _dy = 0.0;
-	float _vertExts[2];
+	float _vertExts[2] = {0.0,0.0};
 	string _startDate;
 	string _mapProjection;
 	
@@ -114,7 +114,7 @@ int	GetWRFMetadata(
 	vector<string> _wrfVars2d; // Holds names of 2d variables in WRF file
 	
 	vector<pair<TIME64_T,float*> > _tStepExtents; //accumulate times/extents as obtained.
-	size_t _dimLens[3];
+	size_t _dimLens[3] = {0,0,0};
 	bool first = true;
 	bool success = false;
 

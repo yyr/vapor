@@ -74,7 +74,7 @@ const int NLevels = 2;
 //
 //	Command line argument stuff
 //
-struct {
+struct opt_t {
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 } opt;

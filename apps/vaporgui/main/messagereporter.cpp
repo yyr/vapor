@@ -195,7 +195,7 @@ writeLog(messagePriority t, const char* message){
 void MessageReporter::
 doPopup(messagePriority t, const char* message){
 	QString title;
-	QMessageBox::Icon msgIcon;
+	QMessageBox::Icon msgIcon = QMessageBox::Information;
 	static int count = 0;  //Use to slightly jitter the popups
 	
 	switch (t) {
@@ -241,7 +241,7 @@ doLastPopup(messagePriority t, const char* message){
 	int doContinue = 0;
 	// Now do as in doPopup, but include an OK and Continue button
 	QString title;
-	QMessageBox::Icon msgIcon;
+	QMessageBox::Icon msgIcon = QMessageBox::Information;
 	
 	switch (t) {
 		case Fatal :

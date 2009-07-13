@@ -278,8 +278,8 @@ void	process_volume(
 	}
 	
 	bool foundXDim = false, foundYDim = false, foundZDim = false;
-	int dimIDs[3];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
-	int dimIndex[3]; //specify which dimension (for this variable) is associated with x,y,z
+	int dimIDs[3] = {0,0,0};// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
+	int dimIndex[3] = {0,0,0}; //specify which dimension (for this variable) is associated with x,y,z
 	// Initialize the count and start arrays for extracting slices from the data:
 	count = new size_t[ndimids];
 	start = new size_t[ndimids];
@@ -309,7 +309,7 @@ void	process_volume(
 			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
 				opt.constDimValues[i],
 				opt.constDimNames[i].c_str(),
-				constDimLen);
+				(int) constDimLen);
 			exit(1);
 		}
 	}
@@ -432,7 +432,7 @@ void	process_volume(
 		fprintf(stderr, "variable is staggered in z\n");
 
 	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d %d\n",
-		outCount[dimIndex[0]],outCount[dimIndex[1]],outCount[dimIndex[2]]);
+		(int) outCount[dimIndex[0]],(int) outCount[dimIndex[1]],(int) outCount[dimIndex[2]]);
 	
 	//
 	// Translate the volume one slice at a time
@@ -684,7 +684,7 @@ void	process_slice(
 	
 	bool foundXDim = false, foundYDim = false;
 	int dimIDs[2];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
-	int dimIndex[2]; //specify which dimension (for this variable) is associated with x,y,z
+	int dimIndex[2] = {0,0}; //specify which dimension (for this variable) is associated with x,y,z
 	// Initialize the count and start arrays for extracting slices from the data:
 	count = new size_t[ndimids];
 	start = new size_t[ndimids];
@@ -714,7 +714,7 @@ void	process_slice(
 			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
 				opt.constDimValues[i],
 				opt.constDimNames[i].c_str(),
-				constDimLen);
+				(int) constDimLen);
 			exit(1);
 		}
 	}
@@ -817,7 +817,7 @@ void	process_slice(
 	
 
 	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d\n",
-		outCount[dimIndex[0]],outCount[dimIndex[1]]);
+		(int) outCount[dimIndex[0]],(int) outCount[dimIndex[1]]);
 	
 	//
 	// Translate the volume one slice at a time

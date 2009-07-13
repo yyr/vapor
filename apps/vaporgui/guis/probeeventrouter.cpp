@@ -3091,7 +3091,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 //Angle conversions (in degrees)
 double ProbeEventRouter::convertRotStretchedToActual(int axis, double angle){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	double retval;
+	double retval = 0.0;
 	switch (axis){
 		case 0:
 			retval =  (180./M_PI)*atan((stretch[1]/stretch[2])*tan(angle*M_PI/180.f));

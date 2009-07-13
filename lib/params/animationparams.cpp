@@ -92,7 +92,6 @@ reinit(bool doOverride){
 	minFrame = (int)DataStatus::getInstance()->getMinTimestep();
 	maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
 	//Narrow the range to the actual data limits:
-	int numvars = DataStatus::getInstance()->getNumSessionVariables();
 	//Find the first framenum with data:
 	int i;
 	for (i = minFrame; i<= maxFrame; i++){

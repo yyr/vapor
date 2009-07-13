@@ -299,7 +299,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
 	double regMin[3], regMax[3];
-	float* hgtData;
+	float* hgtData = NULL;
 	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f, minElev=0.f;
 	const size_t* bs = ds->getMetadata()->GetBlockSize();
 	
