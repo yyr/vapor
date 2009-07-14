@@ -56,7 +56,7 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 		{"TIMESEG", timeseg_dims, (void *) IDL_TYP_LONG, 0},
 		{NULL}
 	};
-	void	*s;
+	IDL_StructDefPtr s;
 
 	ImpExp  *impexp = new ImpExp();
 	myBaseErrChk();
