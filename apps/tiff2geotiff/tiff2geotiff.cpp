@@ -62,21 +62,21 @@ static	int quality = 75;		/* JPEG quality */
 static	int jpegcolormode = JPEGCOLORMODE_RGB;
 static	uint16 defcompression = (uint16) -1;
 static	uint16 defpredictor = (uint16) -1;
-static 	char *geofile=(char *)0;
-static  char *timeLonLatName=(char*)0;
-static  char *timeName=(char*)0;
+static 	const char *geofile=(char *)0;
+static  const char *timeLonLatName=(char*)0;
+static  const char *timeName=(char*)0;
 static FILE* timeLonLatFile= (FILE*)0;
 static FILE* timeFile= (FILE*)0;
 static float lonLatExts[4] = { 999.f, 999.f, 999.f, 999.f};
 static uint32 currentImageWidth;
 static uint32 currentImageHeight;
 
-static  char *proj4_string = (char *) 0;
-static  char *worldfile=(char *)0;
+static  const char *proj4_string = (char *) 0;
+static  const char *worldfile=(char *)0;
 static int dirnum = 0;
 static  void ApplyWorldFile(const char *worldfile, TIFF *out);
 static	int tiffcp(TIFF*, TIFF*);
-static	int processCompressOptions(char*);
+static	int processCompressOptions(const char*);
 static	void usage(void);
 static int applyCorners(float cors[4], float relpos[4], TIFF* out);
 extern int GTIFSetFromProj4_WRF( GTIF *gtif, const char *proj4 );
@@ -95,7 +95,7 @@ main(int argc, char* argv[])
 	const char* mode = "w";
 	int c;
 	extern int optind;
-	extern char* optarg;
+	extern const char* optarg;
 
 	while ((c = getopt(argc, argv, "c:f:l:m:M:n:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
@@ -477,7 +477,7 @@ static void CopyGeoTIFF(TIFF * in, TIFF *out)
 }
 
 static void
-processG3Options(char* cp)
+processG3Options(const char* cp)
 {
     if( (cp = strchr(cp, ':')) != NULL ) {
         if (defg3opts == (uint32) -1)
@@ -497,7 +497,7 @@ processG3Options(char* cp)
 }
 
 static int
-processCompressOptions(char* opt)
+processCompressOptions(const char* opt)
 {
     if (streq(opt, "none"))
         defcompression = COMPRESSION_NONE;

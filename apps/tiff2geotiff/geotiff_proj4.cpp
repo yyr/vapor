@@ -29,6 +29,10 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.5  2009/07/13 19:03:18  clynejp
+ *
+ * Ported to RHEL5
+ *
  * Revision 1.4  2009/05/22 22:25:54  alannorton
  * Added capability of handling lat/long projection, added option of specifying
  * corners as a command line argument.
@@ -203,7 +207,7 @@ static char **OSRProj4Tokenize( const char *pszFull )
 static const char *OSR_GSV( char **papszNV, const char * pszField )
 
 {
-    int field_len = strlen(pszField);
+    int field_len = (int)strlen(pszField);
     int i;
     
     if( !papszNV )
