@@ -97,7 +97,7 @@ public:
 	virtual ~VizFeatureCommand();
 	virtual void unDo();
 	virtual void reDo();
-	static VizFeatureCommand* captureStart(VizFeatureParams* p,  char* description, int vizNum);
+	static VizFeatureCommand* captureStart(VizFeatureParams* p,  const char* description, int vizNum);
 	static void captureEnd(VizFeatureCommand* pCom, VizFeatureParams *p);
 protected:
 	VizFeatureParams* previousFeatures;
@@ -114,7 +114,7 @@ public:
 	virtual ~PreferencesCommand();
 	virtual void unDo();
 	virtual void reDo();
-	static PreferencesCommand* captureStart(UserPreferences* p,  char* description);
+	static PreferencesCommand* captureStart(UserPreferences* p,  const char* description);
 	static void captureEnd(PreferencesCommand* pCom, UserPreferences *p);
 protected:
 	UserPreferences* previousPrefs;

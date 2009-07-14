@@ -276,7 +276,7 @@ void VizFeatureCommand::reDo(){
 }
 
 VizFeatureCommand* VizFeatureCommand::
-captureStart(VizFeatureParams* p, char* description, int viznum){
+captureStart(VizFeatureParams* p, const char* description, int viznum){
 	if (!Session::getInstance()->isRecording()) return 0;
 	VizFeatureCommand* cmd = new VizFeatureCommand(p, description, viznum);
 	return cmd;
@@ -318,7 +318,7 @@ void PreferencesCommand::reDo(){
 }
 
 PreferencesCommand* PreferencesCommand::
-captureStart(UserPreferences* p, char* description){
+captureStart(UserPreferences* p, const char* description){
 	if (!Session::getInstance()->isRecording()) return 0;
 	PreferencesCommand* cmd = new PreferencesCommand(p, description);
 	return cmd;

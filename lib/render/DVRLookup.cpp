@@ -33,12 +33,12 @@ DVRLookup::DVRLookup(GLenum type, int nthreads, Renderer* ren) :
 	break;
 	case GL_UNSIGNED_SHORT:
 	case GL_SHORT:
-		_colormapsize = 256*256;
+		_colormapsize = 256*2;
 	break;
 	case GL_UNSIGNED_INT:
 	case GL_INT:
 	case GL_FLOAT:
-		_colormapsize = 256*256*256*256;
+		_colormapsize = 256*4;
 	break;
 		default:
 		assert(type == GL_UNSIGNED_BYTE);

@@ -556,7 +556,7 @@ int WRF::OpenWrfGetMeta(
 	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
 
 	size_t attlen;
-	char *start_attr = "SIMULATION_START_DATE";
+	const char *start_attr = "SIMULATION_START_DATE";
 	int nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
 	if (nc_status == NC_ENOTATT) {
 		start_attr = "START_DATE";

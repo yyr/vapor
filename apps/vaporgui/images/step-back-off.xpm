@@ -1,5 +1,5 @@
 /* XPM */
-static char *step-back-off[] = {
+const static char *step-back-off[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 75 1",
 "  c #B3B6A3",

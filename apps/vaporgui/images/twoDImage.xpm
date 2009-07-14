@@ -1,5 +1,5 @@
 /* XPM */
-static char *twoDImage[] = {
+const static char *twoDImage[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 256 2",
 "   c #020401",

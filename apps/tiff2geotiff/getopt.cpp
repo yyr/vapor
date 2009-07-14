@@ -38,7 +38,7 @@ static char sccsid[] = "@(#)getopt.c	4.13 (Berkeley) 2/23/91";
 #include <stdio.h>
 #include <string.h>
 
-char* optarg = 0;
+const char* optarg = 0;
 int optind = 1;
 
 /*
@@ -52,9 +52,9 @@ int optind = 1;
 #define	EMSG	""
 
 int
-getopt(int nargc, char** nargv, char* ostr)
+getopt(int nargc, char** nargv, const char* ostr)
 {
-	static char *place = EMSG;		/* option letter processing */
+	const static char *place = EMSG;		/* option letter processing */
 	register char *oli;			/* option letter list index */
 	char *p;
 

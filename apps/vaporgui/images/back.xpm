@@ -1,7 +1,7 @@
 /* XPM */
 /* Drawn  by Mark Donohoe for the K Desktop Environment */
 /* See http://www.kde.org */
-static char*back[]={
+const static char*back[]={
 "16 16 5 1",
 "# c #000000",
 "a c #ffffff",

@@ -237,7 +237,7 @@ void Session::setDefaultPrefs(){
 	if (currentLogfileName != formerLogfileName)
 		MessageReporter::getInstance()->reset(currentLogfileName.c_str());
 	autoSaveSessionFilename = str1;
-	char* defaultDir = getenv("HOME");
+	const char* defaultDir = getenv("HOME");
 	if (!defaultDir) defaultDir = ".";
 	preferenceMetadataDir = defaultDir;
 	preferenceJpegDirectory = defaultDir;	

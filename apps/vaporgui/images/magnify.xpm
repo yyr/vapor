@@ -1,5 +1,5 @@
 /* XPM */
-static char *magnify[] = {
+const static char *magnify[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 165 2",
 "   c black",

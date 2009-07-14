@@ -613,9 +613,9 @@ twoDLoadInstalledTF(){
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	//Get the path from the environment:
 #ifdef WIN32
-	char *slash = "\\";
+	const char *slash = "\\";
 #else
-	char* slash = "/";
+	const char* slash = "/";
 #endif
 	string share = GetAppPath("vapor", "share");
 	QString installPath = (share + slash + "palettes").c_str();

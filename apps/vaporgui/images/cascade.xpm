@@ -1,5 +1,5 @@
 /* XPM */
-static char *cascade[] = {
+const static char *cascade[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 202 2",
 "   c #000100",

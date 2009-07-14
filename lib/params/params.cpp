@@ -323,7 +323,7 @@ const char* Params::parseCmdLine(const char *flag)
 
   return NULL;
 }
-void Params::BailOut(const char *errstr, char *fname, int lineno)
+void Params::BailOut(const char *errstr, const char *fname, int lineno)
 {
     /* Terminate program after printing an error message.
      * Use via the macros Verify and MemCheck.

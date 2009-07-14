@@ -1,5 +1,5 @@
 /* XPM */
-static char *rake[] = {
+const static char *rake[] = {
 /* columns rows colors chars-per-pixel */
 "26 23 82 1",
 "  c #040404",

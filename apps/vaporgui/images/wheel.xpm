@@ -1,5 +1,5 @@
 /* XPM */
-static char *wheel[] = {
+const static char *wheel[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 195 2",
 "   c black",

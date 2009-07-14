@@ -43,7 +43,7 @@
 #define	TRUE	1
 #define	FALSE	0
 
-int getopt(int nargc, char** nargv, char* ostr);
+int getopt(int nargc, char** nargv, const char* ostr);
 
 static  int outtiled = -1;
 static  uint32 tilewidth;
@@ -530,7 +530,7 @@ processCompressOptions(char* opt)
     return (1);
 }
 
-char* stuff[] = {
+const char* stuff[] = {
 "usage: tiff2geotiff [options] input... output",
 "where options are:",
 " -g file	install GeoTIFF metadata from <file>",

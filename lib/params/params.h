@@ -92,7 +92,7 @@ Params(int winNum) : ParamsBase() {
 		TwoDImageParamsType = 256
 	};
 	
-	static void	BailOut (const char *errstr, char *fname, int lineno);
+	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
 	static QString& paramName(ParamType);
 	static const string _dvrParamsTag;

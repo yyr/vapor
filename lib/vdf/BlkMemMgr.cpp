@@ -128,7 +128,7 @@ void	BlkMemMgr::RequestMemSize(
 	// If there are no instances of this object, re-initialized
 	// the static memory pool if needed
 	//
-	if (_ref_count == 0 && _mem_size_req == 0 || _blk_size_req == 0) {
+	if (_ref_count == 0 && (_mem_size_req == 0 || _blk_size_req == 0)) {
 		if (BlkMemMgr::_Reinit() < 0) return;
 	}
 }

@@ -829,7 +829,7 @@ double det2x2(double a, double b, double c, double d)
     return ans;
 }
 
-int printOglError(char *file, int line, const char *msg)
+int printOglError(const char *file, int line, const char *msg)
 {
   //
   // Returns 1 if an OpenGL error occurred, 0 otherwise.

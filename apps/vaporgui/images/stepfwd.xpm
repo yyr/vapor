@@ -1,5 +1,5 @@
 /* XPM */
-static char *stepfwd[] = {
+const static char *stepfwd[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 139 2",
 "   c #1D1F12",

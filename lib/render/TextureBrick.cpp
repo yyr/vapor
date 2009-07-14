@@ -282,7 +282,7 @@ void TextureBrick::load()
                  _nx, _ny, _nz, 0, _format, _type, _data);
   } 
   else { 
-    if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) {
+    if (_haveOwnership || ((_dnx==_nx && _dny==_ny) && (_dnz==_nz))) {
       glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
                  _nx, _ny, _nz, 0, _format, _type, _data);
 
@@ -314,7 +314,7 @@ void TextureBrick::reload()
                  _nx, _ny, _nz, 0, _format, _type, _data);
   } 
   else {
-	if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) {
+	if (_haveOwnership || ((_dnx==_nx && _dny==_ny) && (_dnz==_nz))) {
       glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
                     _format, _type, _data);
     }

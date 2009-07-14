@@ -309,9 +309,9 @@ loadInstalledTF(RenderParams* rParams, int varnum){
 	//Get the path from the environment:
 	string share = GetAppPath("vapor", "share");
 #ifdef WIN32
-	char *slash = "\\";
+	const char *slash = "\\";
 #else
-	char* slash = "/";
+	const char* slash = "/";
 #endif
 
 	QString installPath = (share + slash + "palettes").c_str();

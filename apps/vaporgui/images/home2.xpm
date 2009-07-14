@@ -1,7 +1,7 @@
 /* XPM */
 /* Drawn  by Mark Donohoe for the K Desktop Environment */
 /* See http://www.kde.org */
-static char*home2[]={
+const static char*home2[]={
 "16 16 4 1",
 "# c #000000",
 "a c #ffffff",

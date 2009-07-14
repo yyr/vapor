@@ -58,7 +58,7 @@ public:
  typedef struct  _OptDescRec {
     const char  *option;	
     int arg_count;		
-    char    *value;	
+    const char    *value;	
     const char  *help;
  } OptDescRec_T;
 
@@ -66,7 +66,7 @@ public:
  //  structure for returning the value of an option
  //
  typedef struct  _DPOption {
-    char	*option_name;   // the options name
+    const char	*option_name;   // the options name
 
 	//
 	// option type converter
@@ -78,8 +78,8 @@ public:
     } Option_T;
 
  typedef struct _EnvOpt {
-	char	*option;	// option name
-	char	*env_var;	// coresponding enviroment var
+	const char	*option;	// option name
+	const char	*env_var;	// coresponding enviroment var
  } EnvOpt_T;
 
  typedef int Boolean_T;

@@ -1,5 +1,5 @@
 /* XPM */
-static char *probe[] = {
+const static char *probe[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 128 2",
 "   c black",

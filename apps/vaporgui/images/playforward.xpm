@@ -1,5 +1,5 @@
 /* XPM */
-static char *playforward[] = {
+const static char *playforward[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 95 2",
 "   c black",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *capture-off[] = {
+const static char *capture-off[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 236 2",
 "   c black",

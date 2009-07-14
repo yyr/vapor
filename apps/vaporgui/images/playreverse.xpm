@@ -1,5 +1,5 @@
 /* XPM */
-static char *playreverse[] = {
+const static char *playreverse[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 95 2",
 "   c black",

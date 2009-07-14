@@ -1,5 +1,5 @@
 /* XPM */
-static char *pauseimage[] = {
+const static char *pauseimage[] = {
 /* columns rows colors chars-per-pixel */
 "24 21 38 1",
 "  c black",
