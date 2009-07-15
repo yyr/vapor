@@ -739,8 +739,8 @@ int	main(int argc, char **argv) {
 		}
 		cout << endl;
 		if (minLon < 1000.f){
-			cout << "\tMin and Max Longitude: " << minLon << " " << maxLon << endl;
-			cout << "\tMin and Max Latitude: " << minLat << " " << maxLat << endl;
+			cout << "\tMin Longitude and Latitude of lower-left corners: " << minLon << " " << minLat << endl;
+			cout << "\tMax Longitude and Latitude of upper-right corners: " << maxLon << " " << maxLat << endl;
 		}
 		
 	}
