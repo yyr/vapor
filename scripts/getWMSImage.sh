@@ -174,7 +174,8 @@ if  ( grep -s "ServiceException" ${tempFile} ); then
 fi
 
 if [ "${imageFormat}" = "image/tiff" ] ; then
-    tiff2geotiff -4 "+proj=longlat" -n "${minLon} ${maxLat} ${maxLon} ${minLat}" ${tempFile} ${imageFile}
+    echo "tiff2geotiff -4 +proj=longlat -n " ${minLon} ${minLat} ${maxLon} ${maxLat} ${tempFile} ${imageFile}
+    tiff2geotiff -4 "+proj=longlat" -n "${minLon} ${minLat} ${maxLon} ${maxLat}" ${tempFile} ${imageFile}
 else
     echo "gdal_translate -of Gtiff -a_srs EPSG:4326 -a_ullr " ${minLon} ${maxLat} ${maxLon} ${minLat} ${tempFile} ${imageFile}
     gdal_translate -of Gtiff -a_srs EPSG:4326 -a_ullr ${minLon} ${maxLat} ${maxLon} ${minLat} ${tempFile} ${imageFile}
