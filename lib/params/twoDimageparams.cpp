@@ -761,23 +761,50 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 	static const double DEG2RAD = M_PI/180.0;
 	
 
-	//copy x and y coords:
-	// 0,1,2,3 go to 0, 0, 2, 2 in x
-	// 0,1,2,3 go to 1, 3, 3, 1 in y
+	//In order to be sure that the image extents contain the full
+	//image, we take 4 sample points on each edge of the image
+	//and determine where they go in map projection space.  The
+	//image extents are defined to be the smallest rectangle in 
+	//projection space that contains all 16 sample points.
+	//We can't just take the corners because sometimes their convex hull
+	//in projection space does not contain the projected image.
+	//For example in a polar stereo projection, one may choose an image
+	//that goes around the earth from longitude -180 to 180.  The corners
+	//of this image would all lie on the international date line.
+
+	double interpPoints[32];
+	//interpolate 4 points on each edge of image
+	//First interpolate the y coordinate along left image edge,
+	//then interpolate x coordinate along top, etc.
 	for (int i = 0; i<4; i++){
-		displayCorners[2*i] = imgExts[2*(i/2)];
-		displayCorners[2*i+1] = imgExts[(1 + 2*((i+1)/2))%4];
+		double u = ((double)i)/4.;
+		//x coords are constant
+		interpPoints[2*i] = imgExts[0];
+		interpPoints[2*i+1] = (1.-u)*imgExts[1]+u*imgExts[3];
 	}
-	
-	//Convert image extents to Vapor coordinates, just to find
-	//size of region we are dealing with
+	for (int i = 0; i<4; i++){
+		double u = ((double)i)/4.;
+		//y coords are constant
+		interpPoints[8+2*i+1] = imgExts[3];
+		interpPoints[8+2*i] = (1.-u)*imgExts[0]+u*imgExts[2];
+	}
+	for (int i = 0; i<4; i++){
+		double u = ((double)i)/4.;
+		//x coords are constant
+		interpPoints[16+2*i] = imgExts[2];
+		interpPoints[16+2*i+1] = (1.-u)*imgExts[3]+u*imgExts[1];
+	}
+	for (int i = 0; i<4; i++){
+		double u = ((double)i)/4.;
+		//y coords are constant
+		interpPoints[24+2*i+1] = imgExts[1];
+		interpPoints[24+2*i] = (1.-u)*imgExts[2]+u*imgExts[0];
+	}
 	if (latlonSrc){ //need to convert degrees to radians, image exts are in degrees
-		for (int i = 0; i<8; i++) displayCorners[i] *= DEG2RAD;
+		for (int i = 0; i<32; i++) interpPoints[i] *= DEG2RAD;
 	}
-	
-	//The above are LL and UR coords.  
 	//apply proj4 to transform the four corners (in place):
-	int rc = pj_transform(src_proj,dst_proj,4,2, displayCorners,displayCorners+1, 0);
+	int rc = pj_transform(src_proj,dst_proj,16,2, interpPoints,interpPoints+1, 0);
 
 	if (rc){
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
@@ -785,14 +812,32 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 		return false;
 	}
 	if (latlonDst)  //results are in radians, convert to degrees
-		for (int i = 0; i<8; i++) displayCorners[i] *= RAD2DEG;
-	
+		for (int i = 0; i<32; i++) interpPoints[i] *= RAD2DEG;
+
+	//Now find the extents, by looking at min, max x and y in projected space:
+	double minx = 1.e30, miny = 1.e30;
+	double maxx = -1.e30, maxy = -1.e30;
+	for (int i = 0; i<16; i++){
+		if (minx > interpPoints[2*i]) minx = interpPoints[2*i];
+		if (miny > interpPoints[2*i+1]) miny = interpPoints[2*i+1];
+		if (maxx < interpPoints[2*i]) maxx = interpPoints[2*i];
+		if (maxy < interpPoints[2*i+1]) maxy = interpPoints[2*i+1];
+	}
+	displayCorners[0] = minx;
+	displayCorners[1] = miny;
+	displayCorners[2] = minx;
+	displayCorners[3] = maxy;
+	displayCorners[4] = maxx;
+	displayCorners[5] = maxy;
+	displayCorners[6] = maxx;
+	displayCorners[7] = miny;
+
+
 	//Now displayCorners are corners in projection space.  subtract offsets:
 	const float* exts = DataStatus::getExtents(timestep);
 	const float* globExts = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<8; i++) displayCorners[i] -= (exts[i%2] - globExts[i%2]);
 	return true;
-	
 }
 
 //Map a single point into user coordinates. 
