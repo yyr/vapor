@@ -361,7 +361,7 @@ static void InstallGeoTIFF(TIFF *out)
                         dirnum++;
                         if (rc != 1){
                                 fprintf(stderr, "Failed to read line %d of timestamp file\n",dirnum);
-                                if (rc == 0) fprintf(stderr, "timestampe file has fewer entries than images in tiff file\n");
+                                if (rc == 0) fprintf(stderr, "timestamp file has fewer entries than images in tiff file\n");
                                 exit (-3);
                         } else { // put timestamp into tiff
 
@@ -835,7 +835,7 @@ tiffcp(TIFF* in, TIFF* out)
 	}
 	cpOtherTags(in, out);
 
-	if (geofile || proj4_string )
+	if (geofile || proj4_string || timeFile)
             InstallGeoTIFF(out);
         else
             CopyGeoTIFF(in,out);

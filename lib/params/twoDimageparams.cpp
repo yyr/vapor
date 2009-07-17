@@ -574,7 +574,8 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
 		GTIF* gtifHandle = GTIFNew(tif);
 		GTIFDefn* gtifDef = new GTIFDefn();
-		int rc1 = GTIFGetDefn(gtifHandle,gtifDef);
+		//int rc1 = 
+		GTIFGetDefn(gtifHandle,gtifDef);
 		const char* proj4String = GTIFGetProj4Defn(gtifDef);
 		const char* newString;
 		// If there's no "ellps=" in the string, force it to be spherical,
@@ -718,12 +719,15 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	}
 	
 	if (timesOK){
-		//Issue a warning if there is only one image used
+		//Issue a warning if there is only one image used, or if there are more images than timesteps
 		if (dircount > 1 && numDiffImages == 0)
 			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"%d images found in %s, but only 1 was matched to time stamps ", dircount, imageFileName.c_str());
 		else
 			MyBase::SetDiagMsg("%d images (%d mapped to time steps) in %s\n", dircount, numDiffImages+1, imageFileName.c_str());
-		return;
+		if (dircount > maxTimestep +1) {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"Number of images %d in %s is greater than %d time steps in data.\n%s", dircount, imageFileName.c_str(),
+				maxTimestep+1, "Only one image will be displayed at each time step");
+		}
 	} else { //Don't use time stamps, just count the images:
 		dircount = 0;
 		do {
@@ -734,6 +738,10 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 			imageNums[i] = Min(dircount-1,i);
 		}
 		if(dircount<2) singleImage = true;
+		if (dircount > maxTimestep +1) {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"Number of images (%d) in %s is greater than %d time steps in data.\n%s", dircount, imageFileName.c_str(),
+				maxTimestep+1, "At most one image will be displayed per time step");
+		}
 	}
 		
 	return;
