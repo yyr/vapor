@@ -734,6 +734,10 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 			dircount++;
 		} while (TIFFReadDirectory(tif));
 		MyBase::SetDiagMsg("%d images, unmatched to time stamps in %s\n", dircount, imageFileName.c_str());
+		if (dircount > 1) {
+			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"Time stamps not found in file %s\n", imageFileName.c_str(),
+				"Images will be applied in time step order");
+		}
 		for (int i = 0; i<= maxTimestep; i++){
 			imageNums[i] = Min(dircount-1,i);
 		}
