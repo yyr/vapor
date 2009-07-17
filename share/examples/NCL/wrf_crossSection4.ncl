@@ -19,8 +19,12 @@ begin
 ; The WRF ARW input file.  
 ; This needs to have a ".nc" appended, so just do it.
   ;;a = addfile("./wrfout_d01_2000-01-24_12:00:00.nc","r")
-  a = addfile("./HurricaneIke/wrfout_d03_2008-09-14_19:00:00.nc","r")
-
+  wrffiles = systemfunc("ls ./HurricaneIKE/wrfout_d03_2008*")
+  numFiles = dimsizes(wrffiles)
+  do i=0,numFiles-1
+    wrffiles(i) = wrffiles(i) + ".nc"
+  end do
+  inpFiles = addfiles(wrffiles,"r")
 
 ; We generate plots, but what kind do we prefer?
 ; type = "x11"
@@ -47,6 +51,10 @@ begin
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   FirstTime = True
   FirstTimeMap = True
+
+do ifile=0, numFiles-1
+  a = inpFiles[ifile]
+
   times  = wrf_user_list_times(a)  ; get times in the file
   ntimes = dimsizes(times)         ; number of times in the file
 
@@ -228,6 +236,7 @@ begin
 
     FirstTimeMap = False
   end do        ; END OF TIME LOOP
+end do          ; END OF FILES LOOP
 
   wrf2geotiff_close(wrf2gtiff, wks)
 end
