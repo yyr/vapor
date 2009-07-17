@@ -85,9 +85,15 @@ do ifile=0, numFiles-1
 
 ;---------------------------------------------------------------
 
-    do ip = 1, 3      	; we are doing 3 plots
-			; all with the pivot point (plane) in the center of the domain
-			; at angles 0, 45 and 90
+;;; Original script made 3 cross-sectional slices per timestamp.
+;;; For use in Vapor, we want all plots across all files to be the same type.
+;;; Set "ip" appropriately to get the desired slice.
+;;;    do ip = 1, 3      	; we are doing 3 plots
+;;;			; all with the pivot point (plane) in the center of the domain
+;;;			; at angles 0, 45 and 90
+        ip=1  ; 90-degree slice
+        ;ip=2  ; 0-degree slice
+        ;ip=3  ; 45-degree slice
  ;  
  ;                   |
  ;       angle=0 is  |
@@ -208,9 +214,9 @@ do ifile=0, numFiles-1
           lnres = True
           lnres@gsLineThicknessF = 3.0
           lnres@gsLineColor = "Red"
-          do ii = 0,dimsX(0)-2
+;;;          do ii = 0,dimsX(0)-2
 ;;;            gsn_polyline(wks,plot,(/lon_plane(ii),lon_plane(ii+1)/),(/lat_plane(ii),lat_plane(ii+1)/),lnres)
-          end do
+;;;          end do
 ;;;          wrf2geotiff_write(wrf2gtiff, a, times(it), wks, plot, True)
 ;;;          frame(wks)
           delete(lon_plane)
@@ -230,7 +236,7 @@ do ifile=0, numFiles-1
         delete(rh_plane)
         delete(X_plane)
 
-    end do  ; make next cross section
+;;;    end do  ; make next cross section
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
