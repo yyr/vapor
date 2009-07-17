@@ -95,21 +95,24 @@ do ifile=0, numFiles-1
 
 
      ; Theta
-       opts = res
-       opts@cnLineColor         = "Red"
-       opts@ContourParameters   = (/ 5.0 /)
-       opts@gsnContourLineThicknessesScale = 2.0
-       contour = wrf_contour(a,wks,th(level,:,:),opts)
-       plot = wrf_map_overlays(a,wks,(/contour/),pltres,mpres0)
-       delete(opts)
+       ;opts = res
+       ;opts@cnLineColor         = "Red"
+       ;opts@cnInfoLabelOn       = False
+       ;opts@lbLabelsOn          = False
+       ;opts@ContourParameters   = (/ 5.0 /)
+       ;opts@gsnContourLineThicknessesScale = 2.0
+       ;contour = wrf_contour(a,wks,th(level,:,:),opts)
+       ;plot = wrf_map_overlays(a,wks,(/contour/),pltres,mpres0)
+       ;delete(opts)
    
      ; Qv
-       opts = res
-       opts@cnLineColor         = "Blue"
-       opts@cnFillOn            = True
-       contour = wrf_contour(a,wks,qv(level,:,:),opts)
-       plot = wrf_map_overlays(a,wks,(/contour/),pltres,mpres)
-       delete(opts)
+       ;opts = res
+       ;opts@cnLineColor         = "Blue"
+       ;opts@cnFillOn            = True
+       ;opts@lbLabelsOn          = False
+       ;contour = wrf_contour(a,wks,qv(level,:,:),opts)
+       ;plot = wrf_map_overlays(a,wks,(/contour/),pltres,mpres)
+       ;delete(opts)
    
      ; Wind Vectors and Speed
        opts = res
