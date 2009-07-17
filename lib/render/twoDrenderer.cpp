@@ -93,7 +93,10 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 		//Don't try to rebuild if we failed already..
 		if (doBypass(timeStep)) return;
 		
-		if(!rebuildElevationGrid(timeStep)) return;
+		if(!rebuildElevationGrid(timeStep)) {
+			setBypass(timeStep);
+			return;
+		}
 
 	}
 	int maxx = maxXElev[timeStep];

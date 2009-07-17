@@ -125,6 +125,8 @@ void TwoDImageRenderer::paintGL()
 	//It's in georeferenced image mode:
 	if (myTwoDImageParams->isGeoreferenced() || myTwoDImageParams->isMappedToTerrain()){
 		drawElevationGrid(currentFrameNum);
+		glDisable(GL_TEXTURE_2D);
+		disableFullClippingPlanes();
 		return;
 	}
 
