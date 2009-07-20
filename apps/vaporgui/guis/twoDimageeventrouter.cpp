@@ -257,8 +257,9 @@ void TwoDImageEventRouter::updateTab(){
 	
 	float opacityMult = twoDParams->getOpacMult();
 	opacityEdit->setText(QString::number(opacityMult));
-	opacitySlider->setValue((int)(opacityMult*256.f));
 	guiSetTextChanged(false);
+	opacitySlider->setValue((int)(opacityMult*256.f));
+	
 	
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDImageInstances(winnum) > 1);
@@ -296,7 +297,7 @@ void TwoDImageEventRouter::updateTab(){
 	xCenterEdit->setText(QString::number(boxCenter[0]));
 	yCenterEdit->setText(QString::number(boxCenter[1]));
 	zCenterEdit->setText(QString::number(boxCenter[2]));
-	
+	guiSetTextChanged(false);
 	//setup the size sliders 
 	adjustBoxSize(twoDParams);
 
@@ -1538,9 +1539,10 @@ adjustBoxSize(TwoDImageParams* pParams){
 	float ysize = (boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
 	if (xsize > 1.f) xsize = 1.f;
 	if (ysize > 1.f) ysize = 1.f;
+	guiSetTextChanged(false);
 	widthSlider->setValue((int)(256.f*xsize));
 	lengthSlider->setValue((int)(256.f*ysize));
-	guiSetTextChanged(false);
+	
 	return;
 	
 }

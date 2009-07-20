@@ -337,7 +337,7 @@ void ProbeEventRouter::updateTab(){
 		refinementCombo->setCurrentItem(numRefs);
 	
 	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
-
+	guiSetTextChanged(false);
 	//Check if planar:
 	bool isPlanar = probeParams->isPlanar();
 	if (isPlanar){
@@ -2773,13 +2773,15 @@ adjustBoxSize(ProbeParams* pParams){
 	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
 	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
 	zSizeEdit->setText(QString::number(boxmax[2]-boxmin[2]));
+	//Cancel any response to text events generated in this method, to prevent
+	//the sliders from triggering text change
+	//
+	guiSetTextChanged(false);
 	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(maxBoxSize[0])));
 	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(maxBoxSize[1])));
 	zSizeSlider->setValue((int)(256.f*(boxmax[2]-boxmin[2])/(maxBoxSize[2])));
 	
-	//Cancel any response to text events generated in this method:
-	//
-	guiSetTextChanged(false);
+	
 }
 void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
 	//setup the texture:

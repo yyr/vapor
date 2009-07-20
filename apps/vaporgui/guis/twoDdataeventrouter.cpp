@@ -294,7 +294,7 @@ void TwoDDataEventRouter::updateTab(){
 	ignoreListboxChanges = false;
 
 	updateBoundsText(twoDParams);
-	
+	guiSetTextChanged(false);
 	float sliderVal = twoDParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	
@@ -402,7 +402,7 @@ void TwoDDataEventRouter::updateTab(){
 			minMaxLonLatFrame->hide();
 		}
 	}
-	
+	guiSetTextChanged(false);
 	//Only allow terrain map with horizontal orientation, and if
 	//HGT variable is there
 	if (orientation != 2) {

@@ -440,6 +440,7 @@ void FlowEventRouter::updateTab(){
 				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasEdit1->setText(QString::number(biasVal));
+				guiSetTextChanged(false);
 				biasSlider1->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case (1) : //unsteady
@@ -452,10 +453,13 @@ void FlowEventRouter::updateTab(){
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
 				populateTimestepTables();
+				biasEdit2->setText(QString::number(biasVal));
+				guiSetTextChanged(false);
 				xSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(0));
 				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				biasEdit2->setText(QString::number(biasVal));
+				
+				
 				biasSlider2->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case(2) : //field line advection
@@ -487,10 +491,13 @@ void FlowEventRouter::updateTab(){
 				xSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(0));
 				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
 				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
-				biasEdit3->setText(QString::number(biasVal));
-				biasSlider3->setValue((int)(biasVal*128.f/15.f));
+				
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
+				guiSetTextChanged(false);
+				biasEdit3->setText(QString::number(biasVal));
+				biasSlider3->setValue((int)(biasVal*128.f/15.f));
+				
 				break;
 			default :
 				assert(0);
@@ -646,7 +653,7 @@ void FlowEventRouter::updateTab(){
 		unsteadyDirectionCombo->setEnabled(false);
 	}
 	
-	//Put all the setText messages here, so they won't trigger a textChanged message
+	//Put the rest of the setText messages here, will inhibit textChanged event
 	if (flowType != 1) {
 		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
 		steadyDirectionCombo->setCurrentItem(fParams->getSteadyDirection()+1);
