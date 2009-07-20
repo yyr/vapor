@@ -371,10 +371,10 @@ create new 2D planar instances.</string>
                                                 <set>AlignCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify Data or Image mode</string>
+                                                <string>Select the refinement level (resolution) to use when mapping image to terrain elevation.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Select data mode to map variables to the 2D plane.  Specify image mode to display an image on the plane.</string>
+                                                <string>This selector controls the refinement level of elevation grid data and the resolution of the grid used for image warping.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -418,10 +418,10 @@ create new 2D planar instances.</string>
                                                 <number>5</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Select the refinement level (resolution) of the current 2D data</string>
+                                                <string>Select the refinement level (resolution) to use when mapping image to terrain elevation.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When using a Data source, this selector controls the refinement level of the variable(s) data and the elevation grid data (when terrain-mapped).   When using an Image source and the orientation is X-Y, the selector controls the refinement level of elevation grid data and the grid used for image warping.</string>
+                                                <string>This selector controls the refinement level of elevation grid data and the resolution of the grid used for image warping.</string>
                                             </property>
                                         </widget>
                                         <spacer>
