@@ -26,8 +26,9 @@ using namespace VAPoR;
 		return(-1); \
 	} \
     }
-//Read the corner coordinates (in latitude and longitude) from the xlat,xlong variables
-int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo, float coords[4]){
+//Read 4 corner coordinates (in latitude and longitude) from the xlat,xlong variables.
+//Put the result in coords[], in order ll, ur, ul, lr; so first 2 are extents
+int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo, float coords[8]){
 	size_t coordIndex[3];
 	coordIndex[2] = 0;
 	coordIndex[1] = 0;
@@ -36,12 +37,29 @@ int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo,
 	if (rc<0) return rc;
 	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+1);
 	if (rc<0) return rc;
-	//set to xsize, ysize, ts
-	coordIndex[2] = latInfo.dimlens[2]-1;
-	coordIndex[1] = latInfo.dimlens[1]-1;
+	//set to ysize, xsize, ts
+	// dimlens contains time, south_north, west_east coords for both lat and lon
+	// following could use either latInfo.dimlens or lonInfo.dimlens
+	coordIndex[2] = lonInfo.dimlens[2]-1;//max west_east coord
+	coordIndex[1] = lonInfo.dimlens[1]-1;//max south_north coord
 	rc = nc_get_var1_float(ncid, lonInfo.varid, coordIndex,coords+2);
 	if (rc<0) return rc;
 	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+3);
+	if (rc<0) return rc;
+	//set to xsize, 0, ts
+	coordIndex[2] = lonInfo.dimlens[2]-1;
+	coordIndex[1] = 0;
+	rc = nc_get_var1_float(ncid, lonInfo.varid, coordIndex,coords+4);
+	if (rc<0) return rc;
+	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+5);
+	if (rc<0) return rc;
+	
+	//set to 0,ysize, ts
+	coordIndex[2] = 0;
+	coordIndex[1] = lonInfo.dimlens[1]-1;
+	rc = nc_get_var1_float(ncid, lonInfo.varid, coordIndex,coords+6);
+	if (rc<0) return rc;
+	rc = nc_get_var1_float(ncid, latInfo.varid, coordIndex,coords+7);
 	if (rc<0) return rc;
 	return 0;
 }
@@ -462,7 +480,7 @@ int WRF::OpenWrfGetMeta(
 	string &mapProjection, //PROJ4 projection string
 	vector<string> & wrfVars3d, 
 	vector<string> & wrfVars2d, 
-	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon extents (out)
+	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon corners (out)
 ) {
 	int ncid; // Holds netCDF file ID
 	int ndims; // Number of dimensions in netCDF
@@ -759,9 +777,11 @@ int WRF::OpenWrfGetMeta(
 		//Not needed for wrf2vdf
 		float * latlonexts = 0;
 		if (haveLatLon){ 
-			latlonexts = new float[4];
-			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0))
+			latlonexts = new float[8];
+			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0)){
+				delete latlonexts;
 				latlonexts = 0;
+			}
 		}
 			 
 		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);

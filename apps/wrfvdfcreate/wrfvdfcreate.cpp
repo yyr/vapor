@@ -109,7 +109,7 @@ int	GetWRFMetadata(
 	string _startDate;
 	string _mapProjection;
 	
-	vector<pair<TIME64_T,float*> > tsExtents; //one file's pairs of times and extents
+	vector<pair<TIME64_T,float*> > tsExtents; //one file's pairs of times and corners
 	vector<string> _wrfVars3d; // Holds names of 3d variables in WRF file
 	vector<string> _wrfVars2d; // Holds names of 2d variables in WRF file
 	
@@ -616,6 +616,7 @@ int	main(int argc, char **argv) {
 			for ( size_t t = 0 ; t < tStepExtents.size() ; t++ ){
 				float* exts = tStepExtents[t].second;
 				if (!exts) continue;
+				//exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
 				for (int j = 0; j<4; j++) dbextents[j] = exts[j]*DEG2RAD;
 				int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
 				if (rc && opt.quiet){
@@ -689,11 +690,13 @@ int	main(int argc, char **argv) {
             exit( 1 );
         }
 		float* exts = tStepExtents[t].second;
-		if (exts){
-			if (exts[0] < minLon) minLon = exts[0];
-			if (exts[1] < minLat) minLat = exts[1];
-			if (exts[2] > maxLon) maxLon = exts[2];
-			if (exts[3] > maxLat) maxLat = exts[3];
+		if (exts){ //Check all 4 corners for max and min longitude/latitude
+			for (int cor = 0; cor < 4; cor++){
+				if (exts[cor*2] < minLon) minLon = exts[cor*2];
+				if (exts[cor*2] > maxLon) maxLon = exts[cor*2];
+				if (exts[cor*2+1] < minLat) minLat = exts[cor*2+1];
+				if (exts[cor*2+1] > maxLat) maxLat = exts[cor*2+1];
+			}
 		}
     }
 
@@ -739,8 +742,8 @@ int	main(int argc, char **argv) {
 		}
 		cout << endl;
 		if (minLon < 1000.f){
-			cout << "\tMin Longitude and Latitude of lower-left corners: " << minLon << " " << minLat << endl;
-			cout << "\tMax Longitude and Latitude of upper-right corners: " << maxLon << " " << maxLat << endl;
+			cout << "\tMin Longitude and Latitude of domain corners: " << minLon << " " << minLat << endl;
+			cout << "\tMax Longitude and Latitude of domain corners: " << maxLon << " " << maxLat << endl;
 		}
 		
 	}
