@@ -835,6 +835,13 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 		if (maxx < interpPoints[2*i]) maxx = interpPoints[2*i];
 		if (maxy < interpPoints[2*i+1]) maxy = interpPoints[2*i+1];
 	}
+	if (minx < -1.e30 || miny < -1.e30 || maxx > 1.e30 || maxy > 1.e30){
+		MyBase::SetErrMsg(VAPOR_ERROR_GEOREFERENCE,
+			"Map projection error:  Image cannot be re-mapped to current projection space. \n%s",
+			"Image extents may be too great.");  
+		return false;
+	}
+
 	displayCorners[0] = minx;
 	displayCorners[1] = miny;
 	displayCorners[2] = minx;
