@@ -593,6 +593,14 @@ setTwoDEnabled(bool val, int instance){
 	TwoDImageParams* pParams = vizMgr->getTwoDImageParams(activeViz,instance);
 	//Make sure this is a change:
 	if (pParams->isEnabled() == val ) return;
+	//Make sure there is a file name specified:
+	if (val){
+		if (pParams->getImageFileName().size() == 0){
+			instanceTable->checkEnabledBox(false,instance);
+			MessageReporter::errorMsg(" No image file has been specified.\nImage display will not be enabled.");
+			return;
+		}
+	}
 
 	//If we are enabling, also make this the current instance:
 	if (val) {
