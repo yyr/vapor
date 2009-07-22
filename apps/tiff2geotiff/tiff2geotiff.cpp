@@ -355,23 +355,20 @@ static void InstallGeoTIFF(TIFF *out)
 		}
 	}
 	else if (timeFile) {
-                        //get next timestamp from timeFile
-                        char timestamp[20];
-                        int rc = fscanf(timeFile,"%19s", timestamp);
-                        dirnum++;
-                        if (rc != 1){
-                                fprintf(stderr, "Failed to read line %d of timestamp file\n",dirnum);
-                                if (rc == 0) fprintf(stderr, "timestamp file has fewer entries than images in tiff file\n");
-                                exit (-3);
-                        } else { // put timestamp into tiff
+		//get next timestamp from timeFile
+		char timestamp[20];
+		int rc = fscanf(timeFile,"%19s", timestamp);
+		dirnum++;
+		if (rc != 1){
+				fprintf(stderr, "Failed to read line %d of timestamp file\n",dirnum);
+				if (rc == 0) fprintf(stderr, "timestamp file has fewer entries than images in tiff file\n");
+				exit (-3);
+		} else { // put timestamp into tiff
 
-                                //insert time stamp from file
-                                TIFFSetField(out, TIFFTAG_DATETIME,timestamp);
-                        }
-
-
-
-        }
+				//insert time stamp from file
+				TIFFSetField(out, TIFFTAG_DATETIME,timestamp);
+		}
+    }
     GTIFWriteKeys(gtif);
     GTIFFree(gtif);
     return;
@@ -544,8 +541,7 @@ const char* stuff[] = {
 "			This option requires option -4",
 " -M file   Specify filename with multiple timestamps, w/o georeferencing:",
 "			Each line of file has date/timestamp only",
-"			This option does NOT require option -4",
-"			Is overridden by -m and -4 if given together.",
+"			Option -4 must not be specified.",
 " -n llx lly urx ury",
 "			Install longitude/latitude extents;",
 "			Four lon and lat values must in quotes in the order:",
