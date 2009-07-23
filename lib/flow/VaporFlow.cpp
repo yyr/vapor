@@ -622,6 +622,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		}
 		int j; 
 		for (j = 0; j< 3; j++){
+			if (regionPeriodicDim(j)) continue;
 			if (seedPtr[3*i+j] < regMin[j] || seedPtr[3*i+j] > regMax[j]){
 				break;
 			}
