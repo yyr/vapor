@@ -426,6 +426,7 @@ void FlowEventRouter::updateTab(){
 	if (showAdvanced){
 		float biasVal = fParams->getSeedDistBias();
 		switch (flowType){
+			int bval;
 			case (0) : //steady
 
 				advancedSteadyFrame->show();
@@ -441,7 +442,9 @@ void FlowEventRouter::updateTab(){
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasEdit1->setText(QString::number(biasVal));
 				guiSetTextChanged(false);
-				biasSlider1->setValue((int)(biasVal*128.f/15.f));
+				bval = biasSlider1->value();
+				if (bval != (int)(biasVal*128.f/15.f))
+					biasSlider1->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -459,8 +462,9 @@ void FlowEventRouter::updateTab(){
 				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				
-				
-				biasSlider2->setValue((int)(biasVal*128.f/15.f));
+				bval = biasSlider2->value();
+				if (bval != (int)(biasVal*128.f/15.f))
+					biasSlider2->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -494,9 +498,12 @@ void FlowEventRouter::updateTab(){
 				
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
-				guiSetTextChanged(false);
+				
 				biasEdit3->setText(QString::number(biasVal));
-				biasSlider3->setValue((int)(biasVal*128.f/15.f));
+				guiSetTextChanged(false);
+				bval = biasSlider3->value();
+				if (bval != (int)(biasVal*128.f/15.f))
+					biasSlider3->setValue((int)(biasVal*128.f/15.f));
 				
 				break;
 			default :
@@ -561,7 +568,8 @@ void FlowEventRouter::updateTab(){
 	float sliderVal = fParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	sliderVal = 256.f*(1.f -sliderVal);
-	opacityScaleSlider->setValue((int) sliderVal);
+	if (opacityScaleSlider->value() != (int) sliderVal)
+		opacityScaleSlider->setValue((int) sliderVal);
 	
 	//Determine if the renderer dirty flag is set:
 
@@ -634,19 +642,28 @@ void FlowEventRouter::updateTab(){
 	} 
 	if (autoScale){
 		float sampleRate = fParams->getSteadySmoothness();
-		smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
+		int sval = (int)(0.5f+256.0*(log10((float)sampleRate)+1.f)*0.25f);
+		if (smoothnessSlider->value() != sval)
+			smoothnessSlider->setValue(sval);
 		float flowlen = fParams->getSteadyFlowLength();
-		steadyLengthSlider->setValue((int)(256.0*(log10((float)flowlen)+2.f)*0.25f));
+		sval = (int)(0.5f+256.0*(log10((float)flowlen)+2.f)*0.25f);
+		if (sval != steadyLengthSlider->value())
+			steadyLengthSlider->setValue(sval);
 	}
 	if(flowType != 0) {
-		unsteadySamplesSlider->setValue((int)fParams->getObjectsPerTimestep());
+		if (unsteadySamplesSlider->value() != (int)fParams->getObjectsPerTimestep())
+			unsteadySamplesSlider->setValue((int)fParams->getObjectsPerTimestep());
 	} 
 	if (flowType == 0) {
-		steadySamplesSlider1->setValue((int)(256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333));
+		int sval = (int)(0.5f+ 256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333);
+		if (steadySamplesSlider1->value() != sval)
+			steadySamplesSlider1->setValue(sval);
 	
 	}
 	if (flowType == 2) {
-		steadySamplesSlider2->setValue((int)(256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333));
+		int sval = (int)(0.5f+256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333);
+		if (steadySamplesSlider2->value() != sval)
+			steadySamplesSlider2->setValue(sval);
 		//Set the combo to display "As Needed" and be disabled.
 		unsteadyDirectionCombo->changeItem(QString("As Needed"),0);
 		unsteadyDirectionCombo->setCurrentItem(0);
@@ -691,10 +708,13 @@ void FlowEventRouter::updateTab(){
 
 	if (autoScale){
 		float sampleRate = fParams->getSteadySmoothness();
-		
-		smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
+		int sval = (int)(0.5f+256.0*(log10((float)sampleRate)+1.f)*0.25f);
+		if (smoothnessSlider->value()!= sval)
+			smoothnessSlider->setValue(sval);
 		float flowlen = fParams->getSteadyFlowLength();
-		steadyLengthSlider->setValue((int)(256.0*(log10((float)flowlen)+2.f)*0.25f));
+		sval = (int)(0.5f+256.0*(log10((float)flowlen)+2.f)*0.25f);
+		if (steadyLengthSlider->value()!= sval)
+			steadyLengthSlider->setValue(sval);
 	}
 	if(flowType != 0) {
 		unsteadySamplesEdit->setText(QString::number(fParams->getObjectsPerTimestep()));
@@ -812,22 +832,28 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			if (showAdvanced){
 				seedDistBias = biasEdit1->text().toFloat();
 				if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-				biasSlider1->setValue((int)(seedDistBias*128.f/15.f));
+				int bval = (int)(seedDistBias*128.f/15.f);
+				if (biasSlider1->value() != bval)
+					biasSlider1->setValue(bval);
 			}
 			if (!autoscale && showAdvanced){
 				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
 					sampleRate = 2;
 					steadySamplesEdit1->setText(QString::number(sampleRate));
+					guiSetTextChanged(false);
 				}
-				
-				steadySamplesSlider1->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
+				int sval = (int)(0.5f+256.0*log10((float)sampleRate/2.f)*0.33333);
+				if (steadySamplesSlider1->value() != sval)
+					steadySamplesSlider1->setValue(sval);
+			
 				fParams->setObjectsPerFlowline(sampleRate);
 
 				float velocityScale = steadyScaleEdit1->text().toFloat();
 				if (velocityScale < 1.e-20f){
 					velocityScale = 1.e-20f;
 					steadyScaleEdit1->setText(QString::number(velocityScale));
+					guiSetTextChanged(false);
 				}
 				fParams->setSteadyScale(velocityScale);
 			}
@@ -836,14 +862,17 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			if (sampleRate < 1 || sampleRate > 256){
 				sampleRate = 1;
 				unsteadySamplesEdit->setText(QString::number(sampleRate));
+				guiSetTextChanged(false);
 			}
-			unsteadySamplesSlider->setValue(sampleRate);
+			if (unsteadySamplesSlider->value() != sampleRate)
+				unsteadySamplesSlider->setValue(sampleRate);
 			fParams->setObjectsPerTimestep(sampleRate);
 
 			float velocityScale = unsteadyScaleEdit->text().toFloat();
 			if (velocityScale < 1.e-20f){
 				velocityScale = 1.e-20f;
 				unsteadyScaleEdit->setText(QString::number(velocityScale));
+				guiSetTextChanged(false);
 			}
 			fParams->setUnsteadyScale(velocityScale);		
 		}
@@ -851,7 +880,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		if (flowType == 1  && showAdvanced){
 			seedDistBias = biasEdit2->text().toFloat();
 			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-			biasSlider2->setValue((int)(seedDistBias*128.f/15.f));
+			int bval = (int)(seedDistBias*128.f/15.f);
+			if (bval != biasSlider2->value())
+				biasSlider2->setValue(bval);
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -905,9 +936,14 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			if (changed){
 				smoothnessSamplesEdit->setText(QString::number(steadySmoothness));
 				steadyLengthEdit->setText(QString::number(len));
+				guiSetTextChanged(false);
 			}
-			smoothnessSlider->setValue((int)(256.0*(log10((float)steadySmoothness)+1.f)*0.25f));
-			steadyLengthSlider->setValue((int)(256.0*(log10((float)len)+2.f)*0.25f));
+			int sval = (int)(0.5f+256.0*(log10((float)steadySmoothness)+1.f)*0.25f);
+			if (sval != smoothnessSlider->value())
+				smoothnessSlider->setValue(sval);
+			sval = (int)(0.5f+256.0*(log10((float)len)+2.f)*0.25f);
+			if (steadyLengthSlider->value() != sval)
+				steadyLengthSlider->setValue(sval);
 			fParams->setSteadyFlowLength(len);
 			fParams->setSteadySmoothness(steadySmoothness);
 		}
@@ -928,7 +964,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			seedDistBias = biasEdit3->text().toFloat();
 			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-			biasSlider3->setValue((int)(seedDistBias*128.f/15.f));
+			int bval = (int)(seedDistBias*128.f/15.f);
+			if (bval != biasSlider3->value())
+				biasSlider3->setValue(bval);
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
@@ -947,14 +985,18 @@ void FlowEventRouter::confirmText(bool /*render*/){
 				if (sampleRate < 2 || sampleRate > 2000){
 					sampleRate = 2;
 					steadySamplesEdit2->setText(QString::number(sampleRate));
+					guiSetTextChanged(false);
 				}
-				steadySamplesSlider2->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
+				int sval = (int)(0.5f+256.0*log10((float)sampleRate/2.f)*0.33333);
+				if (sval != steadySamplesSlider2->value())
+					steadySamplesSlider2->setValue(sval);
 				fParams->setObjectsPerFlowline(sampleRate);
 
 				float velocityScale = steadyScaleEdit2->text().toFloat();
 				if (velocityScale < 1.e-20f){
 					velocityScale = 1.e-20f;
 					steadyScaleEdit2->setText(QString::number(velocityScale));
+					guiSetTextChanged(false);
 				}
 				fParams->setSteadyScale(velocityScale);
 			}
@@ -1903,7 +1945,7 @@ guiSetSteadySamples(int sliderPos){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady sampling rate");
 	float s = ((float)(sliderPos))/256.f;
-	int sampleRate = (int)(2.f*pow(10.f,3.f*s));
+	int sampleRate = (int)(0.5f+ 2.f*pow(10.f,3.f*s));
 	fParams->setObjectsPerFlowline(sampleRate);
 	steadySamplesEdit1->setText(QString::number(sampleRate));
 	steadySamplesEdit2->setText(QString::number(sampleRate));
@@ -1966,7 +2008,7 @@ guiSetSmoothness(int sliderPos){
 		changed = true;
 	}
 	if (changed) 
-		smoothnessSlider->setValue((int)(256.0*(log10(sfactor)+1.f)*0.25f));
+		smoothnessSlider->setValue((int)(0.5f+256.0*(log10(sfactor)+1.f)*0.25f));
 	fParams->setSteadySmoothness(sfactor);
 	smoothnessSamplesEdit->setText(QString::number(sfactor));
 	
@@ -2000,7 +2042,7 @@ guiSetSteadyLength(int sliderPos){
 	fParams->setSteadyFlowLength(len);
 	steadyLengthEdit->setText(QString::number(len));
 	if (changed) 
-		steadyLengthSlider->setValue((int)(256.0*(log10((float)len)+2.f)*0.25f));
+		steadyLengthSlider->setValue((int)(0.5f+256.0*(log10((float)len)+2.f)*0.25f));
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
