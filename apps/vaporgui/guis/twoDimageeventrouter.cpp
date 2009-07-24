@@ -442,7 +442,7 @@ void TwoDImageEventRouter::guiSelectImageFile(){
         "TIFF files (*.tiff *.tif *.gtif)",
         this,
         "Specify image file Dialog",
-        "Specify file name for loading image into 2D panel" );
+        "Specify image file name to load" );
 	//Check that user did specify a file:
 	if (filename.isNull()) {
 		delete cmd;
