@@ -55,7 +55,7 @@ printUsage() {
       echo "    -l layerName"
       echo "          arbitrary image-layer name to fetch"
       echo "    -f format"
-      echo "          expert usage: image format; default is \"image/tiff\""
+      echo "          image format; default is \"image/tiff\""
 }
 
 realValGT() {
