@@ -476,7 +476,7 @@ void DataStatus::calcDataRange(int varnum, int ts){
 					
 		if(rc<0){
 			//Post an error:
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in variable %s,\nat timestep %d \n Interval [0,1] assumed",
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d",
 				getVariableName(varnum).c_str(), ts);
 		}
 		else{
