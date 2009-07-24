@@ -46,16 +46,26 @@ printUsage() {
       echo "          resolution of requested image; default is " ${xres}"x"${yres}
       echo "    -o imageFilename"
       echo "          name for the requested image file; default is named after requested image layer"
-      echo "    -s URL"
-      echo "          expert usage: URL for WMS server"
       echo "    -l layername"
-      echo "          with default WMS server, specify \"BMNG\" (default) or \"Landsat\";"
-      echo "          expert usage: image-layer name to fetch"
+      echo "          \"BMNG\" (BlueMarble, the default) or \"Landsat\";"
+      echo ""
+      echo "Expert-only parameters (see documentation):"
+      echo "    -s URL"
+      echo "          URL for WMS server"
+      echo "    -l layerName"
+      echo "          arbitrary image-layer name to fetch"
       echo "    -f format"
-      echo "          expert usage: image format; default is \"tiff\""
-      echo "    -h"
-      echo "          this text"
+      echo "          expert usage: image format; default is \"image/tiff\""
 }
+
+realValGT() {
+    a=`bc <<EOF
+      $1 > $2
+EOF
+`
+    echo $a
+}
+
 
 if [ $# -lt 4 ]
 then
@@ -128,13 +138,19 @@ maxLon=$3
 maxLat=$4
 
 # further test bounds for sanity...
-if [ ${minLon} -lt -180 ] || [ ${minLon} -ge ${maxLon} ] || [ ${maxLon} -gt 180 ] || \
-   [ ${minLat} -lt -90  ] || [ ${minLat} -ge ${maxLat} ] || [ ${maxLat} -gt 90 ]
+if [ `realValGT -180 ${minLon}` -eq 1 ] || [ `realValGT ${maxLon} 180` -eq 1 ] || \
+   [ `realValGT ${minLon} ${maxLon}` -eq 1 ]
 then
     echo "Invalid bounding box:"
-    echo "  longitudes must range from -180 to 180"
-    echo "  latitudes must range from -90 to 90"
-    echo "  minimum values must be less than maximums"
+    echo "  longitudes must range from -180 to 180, with minLon < maxLon"
+    exit 1
+fi
+
+if [ `realValGT -90 ${minLat}` -eq 1 ] || [ `realValGT ${maxLat} 90` -eq 1 ] || \
+   [ `realValGT ${minLat} ${maxLat}` -eq 1 ]
+then
+    echo "Invalid bounding box:"
+    echo "  latitudes must range from -90 to 90, with minLat < maxLat"
     exit 1
 fi
  
@@ -173,13 +189,14 @@ if  ( grep -s "ServiceException" ${tempFile} ); then
     exit 1
 fi
 
-if [ "${imageFormat}" = "image/tiff" ] ; then
-    echo "tiff2geotiff -4 +proj=longlat -n " ${minLon} ${minLat} ${maxLon} ${maxLat} ${tempFile} ${imageFile}
-    tiff2geotiff -4 "+proj=longlat" -n "${minLon} ${minLat} ${maxLon} ${maxLat}" ${tempFile} ${imageFile}
-else
-    echo "gdal_translate -of Gtiff -a_srs EPSG:4326 -a_ullr " ${minLon} ${maxLat} ${maxLon} ${minLat} ${tempFile} ${imageFile}
-    gdal_translate -of Gtiff -a_srs EPSG:4326 -a_ullr ${minLon} ${maxLat} ${maxLon} ${minLat} ${tempFile} ${imageFile}
+if [ "${imageFormat}" != "image/tiff" ] ; then
+    echo "convert ${tempFile} ${tempFile}2"
+    convert ${tempFile} ${tempFile}2.tiff
+    rm ${tempFile}
+    mv ${tempFile}2.tiff ${tempFile}
 fi
+echo "tiff2geotiff -4 +proj=longlat -n " ${minLon} ${minLat} ${maxLon} ${maxLat} ${tempFile} ${imageFile}
+tiff2geotiff -4 "+proj=longlat" -n "${minLon} ${minLat} ${maxLon} ${maxLat}" ${tempFile} ${imageFile}
 
 if [ -f ${imageFile} ] ; then
     echo "Image filename is: " ${imageFile}
