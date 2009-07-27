@@ -3719,7 +3719,7 @@ change the selection in the probe</string>
                                                         <cstring>textLabel11</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Copy selected point to:</string>
+                                                        <string>Use selected point to set:</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignCenter</set>
