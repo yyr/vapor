@@ -36,7 +36,7 @@
   20.6191139221 -84.1432037354 
 </CameraLatLon>
 <CameraPosition Type="Double">
-  953813.875 1415576.875 4357.75537109 
+  953813.75 1415576.875 4357.75634766 
 </CameraPosition>
 <RotCenterLatLon Type="Double">
   31.8992710114 -83.7007751465 
@@ -45,10 +45,10 @@
   472499.875 945119.5625 1644.96557617 
 </RotationCenter>
 <UpVector Type="Double">
-  -0.228372350335 -0.361920446157 0.903803408146 
+  -0.22837138176 -0.361919760704 0.903802931309 
 </UpVector>
 <ViewDirection Type="Double">
-  -0.599868118763 -0.678874731064 -0.42342326045 
+  -0.599867999554 -0.678874611855 -0.42342337966 
 </ViewDirection>
 </Viewpoint>
 </CurrentViewpoint>
@@ -483,8 +483,8 @@
 </IsoControl>
 </Variable>
 </IsoPanelParameters>
-<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="1"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="200"  SteadyFlowDirection="0"  SteadyFlowLength="11.5478"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="QCLOUD QVAPOR U"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="1.87403e+006"  unsteadyScale="1" >
-<FlowSeeding GeneratorCountsByDimension="1 1 1"  RandomSeed="1"  RandomSeeding="false"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="939463 1.044e+006 3252.23"  SeedRegionMins="12919.9 13500.5 65.7585"  TotalGeneratorCount="50"  UseRake="false" >
+<FlowPanelParameters AdvectBeforePrioritize="false"  AutoRefresh="true"  AutoScale="true"  FlowType="0"  IntegrationAccuracy="0.5"  NumFLASamples="5"  NumTransforms="1"  NumVariables="7"  PeriodicDimensions="false false false "  PriorityBounds="0 1e+030"  PriorityVariableNames="U V W"  SamplingTimes="0 180 1"  SeedDistVariableNames="U V W"  SeedDistribBias="0"  Smoothness="200"  SteadyFlowDirection="0"  SteadyFlowLength="1.98096"  SteadyVariableNames="U V W"  UnsteadyFlowDirection="1"  UnsteadyVariableNames="QCLOUD QVAPOR U"  UseTimestepSampleList="false"  VisualizerNum="0"  steadyScale="321479"  unsteadyScale="1" >
+<FlowSeeding GeneratorCountsByDimension="1 1 1"  RandomSeed="1"  RandomSeeding="false"  SeedInjectionTimes="0 0 1"  SeedRegionMaxes="939440 1.04375e+006 3252"  SeedRegionMins="12940 13750 66"  TotalGeneratorCount="50"  UseRake="false" >
 <SeedPoint Position="391909 938091 604.473"  TimeStep="150" >
 </SeedPoint>
 <SeedPoint Position="393389 936611 842.599"  TimeStep="150" >
@@ -516,7 +516,7 @@
 <SeedPoint Position="399308 930692 961.661"  TimeStep="150" >
 </SeedPoint>
 </FlowSeeding>
-<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="1"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="0"  ObjectsPerFlowline="2309"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
+<FlowGeometry ArrowheadDiameter="2"  ColorMappedEntityIndex="1"  ConstantColorRGBValue="255 0 0"  ConstantOpacityValue="1"  DiamondDiameter="0"  DisplayInterval="-100 1"  GeometryType="0"  ObjectsPerFlowline="396"  ObjectsPerTimestep="1"  OpacityMappedEntityIndex="0"  OpacityScale="1"  ShapeDiameter="0.15" >
 <MapperFunction LeftColorBound="0"  LeftOpacityBound="0"  OpacityComposition="0"  RightColorBound="1"  RightOpacityBound="1" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
@@ -546,7 +546,7 @@
 </Variable>
 <Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="59.0605"  RightOpacityBound="59.0605"  VariableName="FieldMagnitude" >
 </Variable>
-<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="49"  RightOpacityBound="49"  VariableName="SeedIndex" >
+<Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="14"  RightOpacityBound="14"  VariableName="SeedIndex" >
 </Variable>
 <Variable LeftColorBound="0"  LeftOpacityBound="0"  RightColorBound="0"  RightOpacityBound="0"  VariableName="QCLOUD" >
 </Variable>
@@ -660,7 +660,7 @@
 </Colormap>
 </TransferFunction>
 </Variable>
-<Variable LeftEditBound="-0.0873267"  OpacityScale="1"  RightEditBound="0.0852899"  VariableName="W"  VariableSelected="true" >
+<Variable LeftEditBound="-0.08733"  OpacityScale="1"  RightEditBound="0.08529"  VariableName="W"  VariableSelected="true" >
 <TransferFunction LeftBound="-0.08733"  OpacityComposition="0"  RightBound="0.08529" >
 <OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
 <OpacityMapControlPoint Opacity="1"  Value="0" >
