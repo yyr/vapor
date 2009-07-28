@@ -102,13 +102,13 @@ RegionEventRouter::hookUpTab()
 	connect (ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	
-	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXCenter(int)));
-	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYCenter(int)));
-	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZCenter(int)));
+	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
+	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
+	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZCenter()));
 	
-	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetXSize(int)));
-	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetYSize(int)));
-	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
+	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXSize()));
+	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYSize()));
+	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZSize()));
 	
 	connect (setFullRegionButton, SIGNAL(clicked()), this, SLOT (guiSetMaxSize()));
 	connect (regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
@@ -169,6 +169,41 @@ void RegionEventRouter::
 regionReturnPressed(void){
 	confirmText(true);
 }
+
+
+/*
+ * Respond to a release of slider 
+ */
+void RegionEventRouter::
+setRegionXCenter(){
+	guiSetXCenter(xCenterSlider->value());
+}
+void RegionEventRouter::
+setRegionYCenter(){
+	guiSetYCenter(yCenterSlider->value());
+}
+void RegionEventRouter::
+setRegionZCenter(){
+	guiSetZCenter(zCenterSlider->value());
+}
+
+/*
+ * Respond to a slider release
+ */
+void RegionEventRouter::
+setRegionXSize(){
+	guiSetXSize(xSizeSlider->value());
+}
+void RegionEventRouter::
+setRegionYSize(){
+	guiSetYSize(ySizeSlider->value());
+}
+void RegionEventRouter::
+setRegionZSize(){
+	guiSetZSize(zSizeSlider->value());
+}
+
+
 
 void RegionEventRouter::copyRakeToRegion(){
 	guiCopyRakeToRegion();
