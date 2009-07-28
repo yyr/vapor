@@ -1,28 +1,6 @@
 #!/bin/bash
 #
 
-# First make sure we have the utilities we'll need...
-fetchProg=""
-nosave=`which curl 2>/dev/null`
-if  [ $? -eq 0 ]; then
-    fetchProg="curl -o"
-fi
-nosave=`which wget 2>/dev/null`
-if  [ $? -eq 0 ]; then
-    fetchProg="wget -O"
-fi
-if [ "$fetchProg" = "" ]; then
-    echo "Could not find \"wget\" or \"curl\"; an image can't be retrieved."
-    exit 1
-fi
-
-# need GDAL's gdal_translate program to convert to geotiff...
-#nosave=`which gdal_translate 2>/dev/null`
-#if ! [ $? -eq 0 ]; then
-#    echo "Could not find \"gdal_translate\"; needed to convert image into a geotiff."
-#    exit 1
-#fi
-
 
 # defaults
 minLon=""
@@ -30,14 +8,19 @@ maxLon=""
 minLat=""
 maxLat=""
 xres=1024
-yres=1024
+yres=768
 imageFile=""
 imageFormat="image/tiff"
-tempFile="tmpImage.tiff"
+tempFile="tmpImage"
 layer="bmng200406"
 host="http://www.nasa.network.com/wms"
 amp="&"
 decLLRegEx=^[\-+]?[0-9]+[\.]?[0-9]*$
+transparent="transparent=False"
+debugMode=0
+map=""
+compression="-c none"
+
 
 printUsage() {
       echo "Usage: " $0 "{optional parameters} minLon minLat maxLon maxLat"
@@ -46,8 +29,17 @@ printUsage() {
       echo "          resolution of requested image; default is " ${xres}"x"${yres}
       echo "    -o imageFilename"
       echo "          name for the requested image file; default is named after requested image layer"
-      echo "    -l layername"
-      echo "          \"BMNG\" (BlueMarble, the default) or \"Landsat\";"
+      echo "    -m map_name"
+      echo "          Requests a predefined map from a well-known server (overrides any expert options)."
+      echo "          Available map names:"
+      echo "              \"BMNG\"         (NASA BlueMarble, the default)"
+      echo "              \"landsat\"      (Landsat imagery)"
+      echo "              \"USstates\"     (US state boundaries)"
+      echo "              \"UScounties\"   (US state and county boundaries)"
+      echo "              \"world\"        (world political boundaries)"
+      echo "              \"rivers\"       (major rivers)"
+      echo "    -t"
+      echo "          request a transparent background"
       echo ""
       echo "Expert-only parameters (see documentation):"
       echo "    -s URL"
@@ -56,7 +48,13 @@ printUsage() {
       echo "          arbitrary image-layer name to fetch"
       echo "    -f format"
       echo "          image format; default is \"image/tiff\""
+      echo "    -z"
+      echo "          compress the resultant geotiff file"
+      echo "          (may not work on all platforms)"
+      echo "    -d"
+      echo "          debug mode; do not delete temporary files"
 }
+
 
 realValGT() {
     a=`bc <<EOF
@@ -66,6 +64,15 @@ EOF
     echo $a
 }
 
+realRange() {
+    a=`bc <<EOF
+       $2 - $1
+EOF
+`
+    echo $a
+}
+
+##########################
 
 if [ $# -lt 4 ]
 then
@@ -73,24 +80,35 @@ then
     exit 1
 fi
 
+# Make sure we have the utilities we'll need...
+fetchProg=""
+nosave=`which curl 2>/dev/null`
+if  [ $? -eq 0 ]; then
+    fetchProg="curl -w HTTP_RESPONSE:%{http_code}\n -L -o"
+fi
+
+nosave=`which wget 2>/dev/null`
+if  [ $? -eq 0 ]; then
+    fetchProg="wget -O"
+fi
+
+if [ "$fetchProg" = "" ]; then
+    echo "Could not find \"wget\" or \"curl\"; needed to retrieve requested images."
+    exit 1
+fi
+
+nosave=`which tiff2geotiff 2>/dev/null`
+if ! [ $? -eq 0 ]; then
+    echo "Could not find \"tiff2geotiff\"; needed to convert requested image into geotiff."
+    exit 1
+fi
+
+
 # parse command-line options...
+#
 while [ $# -gt 4 ]
 do
   case $1 in
-
-  -e) for i in $2 $3 $4 $5
-      do
-          if ! [[ $i =~ ${decLLRegEx} ]] ; then
-              echo $i " is not a valid decimal lon/lat string"
-              exit 1
-          fi
-      done
-      minLon=$2
-      minLat=$3
-      maxLon=$4
-      maxLat=$5
-      shift; shift; shift; shift
-      ;;
 
   -r) if ! ( [[ $2 =~ ^[0-9]+$ ]] && [[ $3 =~ ^[0-9]+$ ]]) ; then
           echo "bad resolution values given: " $2 " x " $3
@@ -113,8 +131,29 @@ do
       shift
       ;;
 
+  -m) map=$2
+      shift
+      ;;
+
   -f) imageFormat=$2
       shift
+      if [ "${imageFormat}" != "image/tiff" ] ; then
+          nosave=`which convert 2>/dev/null`
+          if ! [ $? -eq 0 ]; then
+              echo "Could not find Imagemagick's \"convert\" utility"
+              echo "    convert is required when requesting non-tiff images"
+              exit 1
+          fi
+      fi
+      ;;
+
+  -d) debugMode=1
+      ;;
+
+  -t) transparent="transparent=True"
+      ;;
+
+  -z) compression="-c lzw"
       ;;
 
   *)
@@ -125,6 +164,7 @@ do
 done
 
 # remaining parameters form a possible bounding box?
+#
 for i in $1 $2 $3 $4
 do
     if ! [[ $i =~ ${decLLRegEx} ]] ; then
@@ -138,6 +178,7 @@ maxLon=$3
 maxLat=$4
 
 # further test bounds for sanity...
+#
 if [ `realValGT -180 ${minLon}` -eq 1 ] || [ `realValGT ${maxLon} 180` -eq 1 ] || \
    [ `realValGT ${minLon} ${maxLon}` -eq 1 ]
 then
@@ -153,35 +194,89 @@ then
     echo "  latitudes must range from -90 to 90, with minLat < maxLat"
     exit 1
 fi
- 
-# We recognize two special layer names from the NASA WMS server...
+
 wmsLayer=${layer}
-if [ "${layer}" = "BMNG" ] ; then
+
+# Did the user specify a predefined map?
+#
+if [ "${map}" = "BMNG" ] ; then
     wmsLayer="bmng200406"
-elif [ "${layer}" = "Landsat" ] ; then
+    host="http://www.nasa.network.com/wms"
+    imageFormat="image/tiff"
+
+elif [ "${map}" = "landsat" ] ; then
     wmsLayer="esat"
+    host="http://www.nasa.network.com/wms"
+    imageFormat="image/tiff"
+
+elif [ "${map}" = "USstates" ] ; then
+    # these range vs. scale factors are empirically determined!
+    lonRange=`realRange ${minLon} ${maxLon}`
+    if [ `realValGT ${lonRange} 59` -eq 1 ] ; then        
+        wmsLayer="ATLAS_STATES_150"
+    elif [ `realValGT ${lonRange} 25` -eq 1 ] ; then
+        wmsLayer="ATLAS_STATES_075"
+    else
+        wmsLayer="ATLAS_STATES"
+    fi
+    host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
+    imageFormat="image/png"
+
+elif [ "${map}" = "UScounties" ] ; then
+    # these range vs. scale factors are empirically determined!
+    lonRange=`realRange ${minLon} ${maxLon}`
+    if [ `realValGT ${lonRange} 59` -eq 1 ] ; then        
+        wmsLayer="ATLAS_STATES_150"
+    elif [ `realValGT ${lonRange} 25` -eq 1 ] ; then
+        wmsLayer="ATLAS_STATES_075"
+    else
+        wmsLayer="ATLAS_STATES"
+    fi
+    wmsLayer="ATLAS_COUNTIES_2000,"${wmsLayer}
+    host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
+    imageFormat="image/png"
+
+elif [ "${map}" = "world" ] ; then 
+    wmsLayer="COASTLINES,NATIONAL"
+    host="http://viz.globe.gov/viz-bin/wmt.cgi"
+    imageFormat="image/png"
+
+elif [ "${map}" = "rivers" ] ; then
+    wmsLayer="RIVERS"
+    host="http://viz.globe.gov/viz-bin/wmt.cgi"
+    imageFormat="image/png"
+
+elif [ "${map}" != "" ] ; then
+    echo "unknown map name: " ${map}
+    exit 1
 fi
 
 # If no image filename specified, name it after the layer...
+#
 if [ "${imageFile}" = "" ] ; then
-    imageFile=${layer}.tiff
+    if [ "${map}" != "" ] ; then
+        imageFile=${map}.tiff
+    else
+        imageFile=${layer}.tiff
+    fi
 fi          
 
 echo "Extent:           " $minLon","$minLat " (LL)  " $maxLon","$maxLat "(UR)"
 echo "Image resolution: " $xres "X" $yres
 echo "Image filename:   " $imageFile
-echo "Image layer:      " $layer
+echo "Image layer:      " $wmsLayer
 echo "WMS URL:          " $host
 
 # compose the URL
-url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version=1.3"${amp}"layers="${wmsLayer}
+#
+url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version=1.1"${amp}"layers="${wmsLayer}
 url2="styles=default"${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
-url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"
+url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"${amp}${transparent}
 url=${url1}${amp}${url2}${amp}${url3}
 
-#echo $url
-#echo ${fetchProg}
-${fetchProg} ${tempFile} ${url} 
+cmd="${fetchProg} ${tempFile} ${url}"
+echo ${cmd}
+${cmd}
 
 if  ( grep -s "ServiceException" ${tempFile} ); then
     echo "Received WMS ServiceException:"
@@ -189,14 +284,27 @@ if  ( grep -s "ServiceException" ${tempFile} ); then
     exit 1
 fi
 
+# Need to convert non-tiffs into tiff;  this is where the dependency on
+# Imagemagick comes from
+#
 if [ "${imageFormat}" != "image/tiff" ] ; then
-    echo "convert ${tempFile} ${tempFile}2"
-    convert ${tempFile} ${tempFile}2.tiff
-    rm ${tempFile}
-    mv ${tempFile}2.tiff ${tempFile}
+    mv ${tempFile} ${tempFile}2
+    cmd="convert ${tempFile}2 tiff:${tempFile}"
+    echo ${cmd}
+    ${cmd}
+    if [ ${debugMode} -ne 1 ] ; then
+        rm ${tempFile}2
+    fi
 fi
-echo "tiff2geotiff -4 +proj=longlat -n " ${minLon} ${minLat} ${maxLon} ${maxLat} ${tempFile} ${imageFile}
-tiff2geotiff -4 "+proj=longlat" -n "${minLon} ${minLat} ${maxLon} ${maxLat}" ${tempFile} ${imageFile}
+
+# build this command in pieces -- the lon/lat min/max parameters need to appear
+# as one logical token on the command-line
+#
+cmd1="tiff2geotiff ${compression} -4 +proj=longlat -n"
+cmd2="${minLon} ${minLat} ${maxLon} ${maxLat}"
+cmd3="${tempFile} ${imageFile}"
+echo ${cmd1} ${cmd2} ${cmd3}
+${cmd1} "${cmd2}" ${cmd3}
 
 if [ -f ${imageFile} ] ; then
     echo "Image filename is: " ${imageFile}
@@ -204,4 +312,6 @@ else
     echo "Image fetch seems to have failed."
 fi
 
-rm -f ${tempFile}
+if [ ${debugMode} -ne 1 ] ; then 
+    rm -f ${tempFile}
+fi
