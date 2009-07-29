@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <string>
+
 
 /* GeoTIFF overrides */
 
@@ -316,11 +316,17 @@ static void InstallGeoTIFF(TIFF *out)
     else if( proj4_string )
     {
 		//Make sure ellps is in string:
-		std::string str(proj4_string);
+		int pos;
+		for (pos = 0; pos< (int)strlen(proj4_string)-6; pos++){
+			if(strncmp(proj4_string+pos,"+ellps",6) == 0) {pos = -1; break;}
+		}
 		p4string = proj4_string;
-		if (str.find("+ellps")>= str.size()){
-			str += " +ellps=sphere";
-			p4string = str.c_str();
+		if (pos >= 0){
+			char* newString = new char[strlen(proj4_string)+15];
+			strcpy(newString, proj4_string);
+			strcat(newString, " +ellps=sphere");
+			
+			p4string = newString;
 		}
 
         if( !GTIFSetFromProj4_WRF(gtif,p4string) )
