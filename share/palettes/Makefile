@@ -2,7 +2,7 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-TFS = farge_turb1.vtf grayscale.vtf reversedOpaque.vtf reversed.vtf
+TFS = farge_turb1.vtf grayscale.vtf reversedOpaque.vtf reversed.vtf default.vtf defaultOpaque.vtf
 
 
 INSTALL_PALETTE_DIR = $(INSTALL_SHAREDIR)/palettes
