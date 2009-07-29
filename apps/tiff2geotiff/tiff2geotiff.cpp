@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <string>
 
 /* GeoTIFF overrides */
 
@@ -72,6 +73,7 @@ static uint32 currentImageWidth;
 static uint32 currentImageHeight;
 
 static  const char *proj4_string = (char *) 0;
+static const char* p4string;
 static  const char *worldfile=(char *)0;
 static int dirnum = 0;
 static  void ApplyWorldFile(const char *worldfile, TIFF *out);
@@ -313,7 +315,15 @@ static void InstallGeoTIFF(TIFF *out)
     }
     else if( proj4_string )
     {
-        if( !GTIFSetFromProj4_WRF(gtif,proj4_string) )
+		//Make sure ellps is in string:
+		std::string str(proj4_string);
+		p4string = proj4_string;
+		if (str.find("+ellps")>= str.size()){
+			str += " +ellps=sphere";
+			p4string = str.c_str();
+		}
+
+        if( !GTIFSetFromProj4_WRF(gtif,p4string) )
         {
             fprintf(stderr,"Failure in GTIFSetFromProj4_WRF\n");
             exit (-1);
@@ -378,13 +388,15 @@ static int applyCorners(float lonlat[4], float relPos[4], TIFF* out){
 	void* p;
 	double modelPixelScale[3] = {0.,0.,0.};
 	double tiePoint[6] = {0.,0.,0.,0.,0.,0.};
-	p = pj_init_plus(proj4_string);
+	p = pj_init_plus(p4string);
 		
 	if (!p  && !ignore){
 		//Invalid string. Get the error code:
 		int *pjerrnum = pj_get_errno_ref();
-		fprintf(stderr, "Invalid Proj4 string; message:\n %s\n",
-		pj_strerrno(*pjerrnum));
+		fprintf(stderr, "Invalid Proj4 string %s; message:\n %s\n",
+			p4string,
+			pj_strerrno(*pjerrnum)
+		);
 		return -1;
 	}
 	if (p){
