@@ -137,14 +137,6 @@ do
 
   -f) imageFormat=$2
       shift
-      if [ "${imageFormat}" != "image/tiff" ] ; then
-          nosave=`which convert 2>/dev/null`
-          if ! [ $? -eq 0 ]; then
-              echo "Could not find Imagemagick's \"convert\" utility"
-              echo "    convert is required when requesting non-tiff images"
-              exit 1
-          fi
-      fi
       ;;
 
   -d) debugMode=1
@@ -249,6 +241,17 @@ elif [ "${map}" = "rivers" ] ; then
 elif [ "${map}" != "" ] ; then
     echo "unknown map name: " ${map}
     exit 1
+fi
+
+# If image-format is not tiff, we'll need the convert utility from 
+# Imagemagick...
+if [ "${imageFormat}" != "image/tiff" ] ; then
+    nosave=`which convert 2>/dev/null`
+    if ! [ $? -eq 0 ]; then
+        echo "Could not find Imagemagick's \"convert\" utility, which is required when requesting non-tiff images."
+        echo "See http://www.imagemagick.org"
+        exit 1
+    fi
 fi
 
 # If no image filename specified, name it after the layer...
