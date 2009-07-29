@@ -544,8 +544,11 @@ void FlowEventRouter::updateTab(){
 			}
 		}
 	}
-    opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
-    colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
+	if (fParams->getMapperFunc()){
+		fParams->getMapperFunc()->setParams(fParams);
+		opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
+		colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
+	}
 
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());

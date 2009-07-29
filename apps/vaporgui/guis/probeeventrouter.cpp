@@ -306,7 +306,10 @@ void ProbeEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
 
-    transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+	if (probeParams->getMapperFunc()){
+		probeParams->getMapperFunc()->setParams(probeParams);
+		transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+	}
     transferFunctionFrame->updateParams();
 	int numvars = 0;
 	QString varnames = getMappedVariableNames(&numvars);

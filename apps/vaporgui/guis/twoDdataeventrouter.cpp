@@ -238,7 +238,10 @@ void TwoDDataEventRouter::updateTab(){
 	//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
 	orientationCombo->setCurrentItem(orientation);
 	orientationCombo->setEnabled(false);
-	transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
+	if (twoDParams->getMapperFunc()){
+		twoDParams->getMapperFunc()->setParams(twoDParams);
+		transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
+	}
 	transferFunctionFrame->updateParams();
 	int numvars = 0;
 	QString varnames = getMappedVariableNames(&numvars);

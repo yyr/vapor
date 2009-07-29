@@ -387,10 +387,12 @@ void DvrEventRouter::updateTab(){
 	QString strn;
     
 
-	
-
-    transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
-    transferFunctionFrame->updateParams();
+	if (dvrParams->getMapperFunc()){
+		dvrParams->getMapperFunc()->setParams(dvrParams);
+		transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
+	}
+	transferFunctionFrame->updateParams();
+    
 
     if (session->getNumSessionVariables()&&DataStatus::getInstance()->getDataMgr())
     {

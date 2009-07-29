@@ -231,7 +231,7 @@ void IsoEventRouter::updateTab(){
 	
 	mapVariableCombo->setCurrentItem(mapComboVarNum);
 	//setup the transfer function editor:
-	if(mapComboVarNum > 0) {
+	if(mapComboVarNum > 0 && isoParams->getMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->getMapperFunc());
 		updateMapBounds(isoParams);
 	}
@@ -279,8 +279,9 @@ void IsoEventRouter::updateTab(){
 	
 	if(isoParams->getIsoControl()){
 		assert(isoParams->getIsoControl()->getParams() == isoParams);
+		isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	}
-	isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
+	
 	
     isoSelectionFrame->setVariableName(isoParams->GetIsoVariableName());
 	updateHistoBounds(isoParams);
