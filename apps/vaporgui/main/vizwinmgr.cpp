@@ -904,29 +904,44 @@ nameChanged(QString& name, int num){
 void VizWinMgr::
 home()
 {
+	VizWin* vw = getActiveVisualizer();
+	if (!vw) return;
+	vw->endSpin();
 	getViewpointRouter()->useHomeViewpoint();
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 sethome()
 {
+	VizWin* vw = getActiveVisualizer();
+	if (!vw) return;
+	vw->endSpin();
 	getViewpointRouter()->setHomeViewpoint();
 }
 void VizWinMgr::
 viewAll()
 {
+	VizWin* vw = getActiveVisualizer();
+	if (!vw) return;
+	vw->endSpin();
 	getViewpointRouter()->guiCenterFullRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 viewRegion()
 {
+	VizWin* vw = getActiveVisualizer();
+	if (!vw) return;
+	vw->endSpin();
 	getViewpointRouter()->guiCenterSubRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 alignView(int axis)
 {
+	VizWin* vw = getActiveVisualizer();
+	if (!vw) return;
+	vw->endSpin();
 	if (axis < 1) return;
 	//Always reset current item to first.
 	myMainWindow->alignViewCombo->setCurrentItem(0);
