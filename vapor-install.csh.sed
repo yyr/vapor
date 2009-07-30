@@ -3,36 +3,36 @@
 set arch = "ARCH"
 set version_app = "VERSION_APP"
 
+unset directory
+unset vapor_root
 set nocopy = 0
-if ($#argv && "$argv[1]" == "-nocopy") then
+while ($#argv && ! $?directory)
+	if ("$argv[1]" == "-nocopy") then
+		set nocopy = 1
+	else if ($#argv && "$argv[1]" == "-root") then
+		shift
+		set vapor_root = $argv[1]
+	else
+		set directory = $argv[1]
+		endif
 	shift
-	set nocopy = 1
-endif
+end
 
-if ($#argv && "$argv[1]" == "-root") then
-	shift
-	set vapor_root = $argv[1]
-	shift
-endif
-
-
-if ($#argv != 1) then
+if ($#argv || ! $?directory) then
 	echo "Usage: $0 [-nocopy] [-root <root>] directory"
 	exit (1)
 endif
 
-set directory = $argv[1]
+if ("$directory" !~ /*) then
+	echo "Installatin directory ($directory) must specify an absolute path"
+	exit (1)
+endif
+
+
 if (! $?vapor_root) set vapor_root = $directory
 
-
-
 echo directory = $directory
-#
-# If the directory name is not an absolute path then make it one.
-#
-if (`echo $directory | grep "^/"` == "") then
-	set directory = `(cd $directory; pwd)`
-endif
+
 
 if (! $nocopy) then
 	#
