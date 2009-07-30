@@ -475,8 +475,8 @@ begin
        outFilesRoot = charactertostring( chr(0:suffix(0)-1) )
    end if
 
-   multiTiff = outFilesRoot + ".tif"
-   multiGTiff = outFilesRoot + ".gtif"
+   multiTiff = outFilesRoot + "_temp.tif"
+   multiGTiff = outFilesRoot + ".tif"
    dataFile = outFilesRoot + ".dat"
 
    ; append all the intermediate tiff files into one multi-image tiff...
