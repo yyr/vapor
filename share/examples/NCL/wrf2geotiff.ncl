@@ -438,7 +438,7 @@ begin
       ; of Imagemagick (e.g., 6.0.7 04/20/08).  As of vers. 6.2.8 06/10/08, the ordering does not
       ; matter.
       cmd = "convert  -depth 8 -rotate " + rotation + " -density " + (72*outputScale) + " " + cropStr + " " 
-      cmd = cmd +  " " + tmpfile + ".ps tiff:" + tmpfile + ".tif"
+      cmd = cmd +  " " + tmpfile + ".ps tiff:" + tmpfile + ".tiff"
       print(cmd)
       system(cmd)
 
@@ -475,12 +475,12 @@ begin
        outFilesRoot = charactertostring( chr(0:suffix(0)-1) )
    end if
 
-   multiTiff = outFilesRoot + "_temp.tif"
-   multiGTiff = outFilesRoot + ".tif"
+   multiTiff = outFilesRoot + "_temp.tiff"
+   multiGTiff = outFilesRoot + ".tiff"
    dataFile = outFilesRoot + ".dat"
 
    ; append all the intermediate tiff files into one multi-image tiff...
-   cmd = "convert -adjoin " + tmpfileRoot + "[0-9]*.tif " + multiTiff
+   cmd = "convert -adjoin " + tmpfileRoot + "[0-9]*.tiff " + multiTiff
    print(cmd)
    system(cmd)
 
