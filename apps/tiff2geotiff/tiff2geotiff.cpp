@@ -97,7 +97,7 @@ main(int argc, char* argv[])
 	const char* mode = "w";
 	int c;
 	extern int optind;
-	extern const char* optarg;
+	extern const char* myoptarg;
 
 	while ((c = getopt(argc, argv, "c:f:l:m:M:n:o:p:r:w:e:g:4:aistd")) != -1)
 		switch (c) {
@@ -108,16 +108,16 @@ main(int argc, char* argv[])
                         convert_8_to_4 = 1;
 			break;
 		case 'c':		/* compression scheme */
-			if (!processCompressOptions(optarg))
+			if (!processCompressOptions(myoptarg))
 				usage();
 			break;
         case 'e':
-                worldfile = optarg;
+                worldfile = myoptarg;
                 break;
 		case 'f':		/* fill order */
-			if (streq(optarg, "lsb2msb"))
+			if (streq(myoptarg, "lsb2msb"))
 				deffillorder = FILLORDER_LSB2MSB;
-			else if (streq(optarg, "msb2lsb"))
+			else if (streq(myoptarg, "msb2lsb"))
 				deffillorder = FILLORDER_MSB2LSB;
 			else
 				usage();
@@ -126,10 +126,10 @@ main(int argc, char* argv[])
 			ignore = TRUE;
 			break;
 		case 'g':		/* GeoTIFF metadata file */
-			geofile = optarg;
+			geofile = myoptarg;
 			break;
 		case 'm':     /*multiple times and latlon extents file */
-			timeLonLatName = optarg;
+			timeLonLatName = myoptarg;
 			timeLonLatFile = fopen(timeLonLatName,"r");
 			if (!timeLonLatFile){
 				fprintf(stderr,"Failure to open %s\n",timeLonLatName);
@@ -137,7 +137,7 @@ main(int argc, char* argv[])
 			}
 			break;
 		case 'M':     /*multiple timestamps file */
-			timeName = optarg;
+			timeName = myoptarg;
 			timeFile = fopen(timeName,"r");
 			if (!timeFile){
 				fprintf(stderr,"Failure to open %s\n",timeName);
@@ -146,7 +146,7 @@ main(int argc, char* argv[])
 			break;
 		case 'n': /* single latlong extents, requires option 4 */
 			{
-				int retval = sscanf(optarg,"%f %f %f %f",
+				int retval = sscanf(myoptarg,"%f %f %f %f",
 					lonLatExts,lonLatExts+1,lonLatExts+2,lonLatExts+3);
 				if (retval != 4) {
 					fprintf(stderr,"Four lon/lat extent values required\n");
@@ -156,25 +156,25 @@ main(int argc, char* argv[])
 			break;
 		
 		case '4':	       
-			proj4_string = optarg;
+			proj4_string = myoptarg;
 			break;
 		case 'l':		/* tile length */
 			outtiled = TRUE;
-			deftilelength = atoi(optarg);
+			deftilelength = atoi(myoptarg);
 			break;
 		case 'o':		/* initial directory offset */
-			diroff = strtoul(optarg, NULL, 0);
+			diroff = strtoul(myoptarg, NULL, 0);
 			break;
 		case 'p':		/* planar configuration */
-			if (streq(optarg, "separate"))
+			if (streq(myoptarg, "separate"))
 				defconfig = PLANARCONFIG_SEPARATE;
-			else if (streq(optarg, "contig"))
+			else if (streq(myoptarg, "contig"))
 				defconfig = PLANARCONFIG_CONTIG;
 			else
 				usage();
 			break;
 		case 'r':		/* rows/strip */
-			defrowsperstrip = atoi(optarg);
+			defrowsperstrip = atoi(myoptarg);
 			break;
 		case 's':		/* generate stripped output */
 			outtiled = FALSE;
@@ -184,7 +184,7 @@ main(int argc, char* argv[])
 			break;
 		case 'w':		/* tile width */
 			outtiled = TRUE;
-			deftilewidth = atoi(optarg);
+			deftilewidth = atoi(myoptarg);
 			break;
 		case '?':
 			usage();

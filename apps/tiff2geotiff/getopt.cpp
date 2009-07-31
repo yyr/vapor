@@ -38,7 +38,7 @@ static char sccsid[] = "@(#)getopt.c	4.13 (Berkeley) 2/23/91";
 #include <stdio.h>
 #include <string.h>
 
-const char* optarg = 0;
+const char* myoptarg = 0;
 int optind = 1;
 
 /*
@@ -90,13 +90,13 @@ getopt(int nargc, char** nargv, const char* ostr)
 		return(BADCH);
 	}
 	if (*++oli != ':') {			/* don't need argument */
-		optarg = NULL;
+		myoptarg = NULL;
 		if (!*place)
 			++optind;
 	}
 	else {					/* need an argument */
 		if (*place)			/* no white space */
-			optarg = place;
+			myoptarg = place;
 		else if (nargc <= ++optind) {	/* no arg */
 			place = EMSG;
 			if (!(p = strrchr(*nargv, '/')))
@@ -110,7 +110,7 @@ getopt(int nargc, char** nargv, const char* ostr)
 			return(BADCH);
 		}
 	 	else				/* white space */
-			optarg = nargv[optind];
+			myoptarg = nargv[optind];
 		place = EMSG;
 		++optind;
 	}
