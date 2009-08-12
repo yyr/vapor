@@ -84,8 +84,12 @@ print,'The 3D variable names in the vdf will be: ',newvarnames
 ;   Note that by default all variable names are 3D
 ;
 if (isinvariables EQ 0) THEN BEGIN
-	vdf_setvarnames,mfd,newvarnames
-	if (nvarnames2dxy gt 0) THEN vdf_setvariables2DXY,mfd,varnames2d
+	if (nvarnames2dxy gt 0) THEN BEGIN
+		vdf_setvarnames,mfd,newvarnames
+		vdf_setvariables2DXY,mfd,varnames2d
+	ENDIF ELSE BEGIN
+		vdf_setvarnames,mfd,newvarnames
+	ENDELSE
 ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)

@@ -129,8 +129,12 @@ IF (repeatvariables EQ newnum) THEN newvarnames = varnames
 ;   Note that by default all variable names are 3D
 ;
 if (repeatvariables NE newnum) THEN BEGIN
-	vdf_setvarnames,mfd,newvarnames
-	if (nvarnames2dxy gt 0) THEN vdf_setvariables2DXY,mfd,varnames2dxy
+	if (nvarnames2dxy gt 0) THEN BEGIN 
+		vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
+		vdf_setvariables2DXY,mfd,varnames2dxy
+	ENDIF ELSE BEGIN
+		vdf_setvarnames,mfd,newvarnames
+	ENDELSE
 ENDIF
 
 reflevel = vdf_getnumtransforms(mfd)
