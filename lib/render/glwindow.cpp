@@ -2142,7 +2142,24 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 		update();
 	}
 }
-
+// Remove all renderers.  This is needed when we load new data into
+// an existing session
+void GLWindow::removeAllRenderers(){
+	for (int i = 0; i< getNumRenderers(); i++){
+		delete renderer[i];
+	}
+	setNumRenderers(0);
+	invalidateElevGrid();
+	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
+	if (timeAnnotLabel) delete timeAnnotLabel;
+	nowPainting = false;
+	numRenderers = 0;
+	for (int i = 0; i< MAXNUMRENDERERS; i++){
+		renderType[i] = Params::UnknownParamsType;
+		renderOrder[i] = 0;
+		renderer[i] = 0;
+	}
+}
 /* 
  * Remove renderer of specified renderParams
  */

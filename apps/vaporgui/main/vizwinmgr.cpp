@@ -1551,6 +1551,7 @@ reinitializeParams(bool doOverride){
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 		//setup near/far
 		if (vpParams[i] && rgParams[i]) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
+		if(!doOverride && vizWin[i]) vizWin[i]->getGLWindow()->removeAllRenderers();
 	}
 
     //

@@ -255,6 +255,7 @@ public:
 	void appendRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 10);}
 	void insertRenderer(RenderParams* p, Renderer* ren, int order);
 	bool removeRenderer(RenderParams* p);  //Return true if successful
+	void removeAllRenderers();
 	//Find a renderParams in renderer list, if it exists:
 	RenderParams* findARenderer(Params::ParamType renderertype);
 	
