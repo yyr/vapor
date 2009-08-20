@@ -1365,6 +1365,8 @@ void ProbeParams::adjustTextureSize(int sz[2]){
 	textureSize[1] = 1<<(VetsUtil::ILog2(ydist));
 	if (textureSize[0] < 256) textureSize[0] = 256;
 	if (textureSize[1] < 256) textureSize[1] = 256;
+	if (textureSize[0] > 2048) textureSize[0] = 2048;
+	if (textureSize[1] > 2048) textureSize[1] = 2048;
 	sz[0] = textureSize[0];
 	sz[1] = textureSize[1];
 	//For IBFV texture, the size is always 256, however
