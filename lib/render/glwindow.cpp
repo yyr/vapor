@@ -65,6 +65,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windo
 : QGLWidget(fmt, parent, name)
 
 {
+	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
 	//QPaintDevice* dev = (QPaintDevice*) this;
 	//CustomContext *cx = new CustomContext(fmt);
 	//setContext(cx);
@@ -174,7 +175,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windo
 	numElevTimesteps = 0;
 	_elevTexid = 0;
 	displacement = 0;
-	
+	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 
 
@@ -271,7 +272,7 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 void GLWindow::paintGL()
 {
 	printOpenGLError();
-	
+	MyBase::SetDiagMsg("GLWindow::paintGL()");
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
 	float maxFull[3] = {1.f,1.f,1.f};

@@ -90,7 +90,7 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* name): TwoD
 	numVariables = 0;
 	seedAttached = false;
 	notNudgingSliders = false;
-	
+	MessageReporter::infoMsg("TwoDDataEventRouter::TwoDDataEventRouter()");
 }
 
 

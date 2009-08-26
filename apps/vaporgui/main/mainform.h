@@ -271,6 +271,7 @@ public slots:
 	virtual void setupUndoRedoText();
 
 protected:
+	virtual void paintEvent(QPaintEvent* e);
 	static MainForm* theMainForm;
 	void resetModeButtons();
 	

@@ -92,6 +92,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): FlowTab(pare
 	flowGraphicsChanged = false;
 	showAdvanced = false;
 	showMapEditor = true;
+	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 }
 
 

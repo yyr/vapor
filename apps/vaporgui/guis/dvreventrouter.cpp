@@ -87,6 +87,7 @@ DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): Dvr(parent, na
 	savedCommand = 0;
     benchmark = DONE;
     benchmarkTimer = 0;
+	MessageReporter::infoMsg("DvrEventRouter::DvrEventRouter()");
 }
 
 
@@ -347,6 +348,7 @@ sessionLoadTF(QString* name){
 //
 void DvrEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	MessageReporter::infoMsg("DvrEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
 	Session *session = Session::getInstance();

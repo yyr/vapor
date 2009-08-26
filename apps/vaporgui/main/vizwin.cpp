@@ -79,7 +79,7 @@ using namespace VAPoR;
 VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : QMainWindow( (QWidget*)parent, name, fl )
 {
-	
+	MessageReporter::infoMsg("VizWin::VizWin() begin");
     if ( !name )
 		setName( "VizWin" );
     myParent = parent;
@@ -154,7 +154,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->myTBall = myTrackball;
 	setValuesFromGui(vpparms);
 	
-	
+	MessageReporter::infoMsg("VizWin::VizWin() end");
 	
 	
 }

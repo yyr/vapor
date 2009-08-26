@@ -85,6 +85,7 @@ using namespace VAPoR;
 
 TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* name): TwoDImageTab(parent, name), TwoDEventRouter(){
 	myParamsType = Params::TwoDImageParamsType;
+	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
 }
 
 

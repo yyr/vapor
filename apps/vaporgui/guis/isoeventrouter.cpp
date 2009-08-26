@@ -84,6 +84,7 @@ IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): IsoTab(parent,
 	isoSelectionFrame->setOpacityMapping(true);
 	isoSelectionFrame->setColorMapping(false);
 	isoSelectionFrame->setIsoSlider(true);
+	MessageReporter::infoMsg("IsoEventRouter::IsoEventRouter()");
 }
 
 

@@ -46,7 +46,7 @@ public:
 	
 	//Save to file.  can be saved from outside this dialog when directory changes.
 	//If filename not specified then save to default path/name 
-	void save(QString* filename = 0);
+	//void save(QString* filename = 0);
 	//When user requests save state, launch file save dialog:
 	void requestSave();
 	//Make these preferences apply to state

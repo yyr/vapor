@@ -52,6 +52,7 @@ QMutex MessageReporter::messageListMutex;
 MessageReporter::MessageReporter() {
 	MyBase::SetErrMsgCB(addErrorMessageCBFcn);
 	logFile = 0;
+	if (!Session::isInitialized()) return;
 	reset(Session::getInstance()->getLogfileName().c_str());
 	setDefaultPrefs();
 	
@@ -134,6 +135,7 @@ void MessageReporter::warningMsg(const char* format, ...){
 	
 }
 void MessageReporter::infoMsg(const char* format, ...){
+	if (!Session::isInitialized()) return;
 	getInstance();
 	va_list args;
 	va_start(args, format);

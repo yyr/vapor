@@ -1573,6 +1573,7 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 }
 bool UserPreferences::loadPreferences(const char* filename){
 
+	MessageReporter::infoMsg("Loading Preferences from %s", filename);
 	ifstream is;
 	is.open(filename);
 	if (!is){//Report error if you can't open the file
@@ -1596,6 +1597,7 @@ bool UserPreferences::loadPreferences(const char* filename){
 
 	delete userPrefs;
 	MessageReporter::getInstance()->reset(Session::getInstance()->getLogfileName().c_str());
+	MessageReporter::infoMsg("UserPreferences::loadPreferences() end");
 	return true;
 }
 void UserPreferences::setDefault(){
@@ -1723,7 +1725,11 @@ bool UserPreferences::loadDefault(){
 	
 	if (gotFile){ 
 		bool ok = loadPreferences(prefFile.c_str());
-		if (ok) return true;
+		if (ok) {
+			MessageReporter::infoMsg("Loaded default preferences from %s",
+				prefFile.c_str());
+			return true;
+		}
 	}
 	
 	//Set preferences to defaults:
@@ -1735,6 +1741,7 @@ bool UserPreferences::loadDefault(){
 	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
 	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
+	MessageReporter::infoMsg("Set user preferences to defaults");
 	return false;
 	
 

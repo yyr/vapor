@@ -207,8 +207,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	//Setup  the session (hence the viz window manager)
 	Session::getInstance();
-	
+	MessageReporter::infoMsg("MainForm::MainForm(): setup session");
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	
 	myVizMgr->createGlobalParams();
 	
 	
@@ -668,7 +669,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			Session::getInstance()->resetMetadata(fileName.ascii(), false);
 		}
 	}
-
+	MessageReporter::infoMsg("MainForm::MainForm() end");
 }
 
 /*
@@ -885,6 +886,7 @@ void MainForm::fileOpen()
 	if(Session::getInstance()->loadFromFile(is)){
 		Session::getInstance()->setSessionFilepath(filename.ascii());
 	}
+	MessageReporter::infoMsg("Loaded session file: \n%s", filename.ascii());
 }
 
 
@@ -1919,4 +1921,8 @@ void MainForm::setTimestep(){
 void MainForm::setCurrentTimestep(int tstep){
 	timestepEdit->setText(QString::number(tstep));
 	update();
+}
+void MainForm::paintEvent(QPaintEvent* e){
+	MessageReporter::infoMsg("MainForm::paintEvent");
+	QMainWindow::paintEvent(e);
 }

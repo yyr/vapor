@@ -53,6 +53,7 @@ using namespace VAPoR;
 ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* name): VizTab(parent, name), EventRouter(){
 	myParamsType = Params::ViewpointParamsType;
 	savedCommand = 0;
+	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
 }
 
 

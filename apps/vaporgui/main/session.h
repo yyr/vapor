@@ -146,7 +146,7 @@ public:
 	
 	DataMgr* getDataMgr() {return dataMgr;}
 	
-	
+	static bool isInitialized() { return (theSession != 0);}
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	
 	int getNumSessionVariables(){return DataStatus::getNumSessionVariables();}

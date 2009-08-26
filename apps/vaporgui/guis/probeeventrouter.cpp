@@ -94,6 +94,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	myIBFVThread = 0;
 	capturingIBFV = false;
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
+	MessageReporter::infoMsg("ProbeEventRouter::ProbeEventRouter()");
 	
 }
 
