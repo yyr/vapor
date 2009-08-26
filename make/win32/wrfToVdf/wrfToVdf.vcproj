@@ -88,6 +88,7 @@
 				OutputFile=".\..\..\..\targets\win32\bin\wrf2vdf.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"
