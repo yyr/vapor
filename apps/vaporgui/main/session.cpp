@@ -213,7 +213,8 @@ void Session::setDefaultPrefs(){
 #ifdef WIN32
 	//Use the user name in the log file name
 	char* tempDir = getenv("TEMP");
-	if (!tempDir) tempDir = "C:\\TEMP";
+	if (!tempDir) tempDir = getenv("HOMEDRIVE");
+	if (!tempDir) tempDir = "C:";
 	char buf2[50];
 	
 	DWORD size = 50;
