@@ -128,8 +128,16 @@ int	main(int argc, char **argv) {
 
 		vector <float> tmpvec = pvec;
 		sort(tmpvec.begin(), tmpvec.end());
+
+		// Apparently we need to set the min and max values in both
+		// the transfer function and colormap class. Setting the 
+		// cmap bounds is needed so that addControlPointAt() will
+		// correctly normalize the data value.
+		//
 		tf.setMinColorMapValue(tmpvec[0]);
 		tf.setMaxColorMapValue(tmpvec[tmpvec.size()-1]);
+		cmap->minValue(tmpvec[0]);
+		cmap->maxValue(tmpvec[tmpvec.size()-1]);
 
 		ColorMapBase::Color color;
 		for (int i=0; i<pvec.size(); i++) {
@@ -139,6 +147,12 @@ int	main(int argc, char **argv) {
 //			cmap->addNormControlPoint(pvec[i],  color);
 			cmap->addControlPointAt(pvec[i],  color);
 		}
+
+		//
+		// Ugh. now we need to normalize the data bounds.
+		//
+		cmap->minValue(0.0);
+		cmap->maxValue(1.0);
 
 		if (ferror(fp)) {
 			MyBase::SetErrMsg("Error parsing file %s", opt.cmap);
@@ -171,11 +185,15 @@ int	main(int argc, char **argv) {
 		sort(tmpvec.begin(), tmpvec.end());
 		tf.setMinOpacMapValue(tmpvec[0]);
 		tf.setMaxOpacMapValue(tmpvec[tmpvec.size()-1]);
+		omap->minValue(tmpvec[0]);
+		omap->maxValue(tmpvec[tmpvec.size()-1]);
 
 		for (int i=0; i<pvec.size(); i++) {
 //			omap->addNormControlPoint(pvec[i],  ovec[i]);
 			omap->addControlPoint(pvec[i],  ovec[i]);
 		}
+		omap->minValue(0.0);
+		omap->maxValue(1.0);
 
 		if (ferror(fp)) {
 			MyBase::SetErrMsg("Error parsing file %s", opt.omap);
