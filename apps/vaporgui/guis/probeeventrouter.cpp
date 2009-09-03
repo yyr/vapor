@@ -815,6 +815,14 @@ guiReleaseZWheel(int val){
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiSetProbeType(int t){
+	//Don't set to texture if not GL_2_0
+	if ((! GLEW_EXT_framebuffer_object)  && t == 1){
+		MessageReporter::warningMsg("Flow Image not supported on this system. \n%s",
+			"Updating graphics drivers may fix this problem.");
+		probeTypeCombo->setEnabled(false);
+		probeTypeCombo->setCurrentItem(0);
+		return;
+	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "change probe type");
@@ -948,6 +956,14 @@ setProbeEnabled(bool val, int instance){
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		performGuiChangeInstance(instance);
+		if (pParams->getProbeType() == 1 && !GLEW_EXT_framebuffer_object){
+			MessageReporter::warningMsg("Flow Image not supported on this system. \n%s",
+				"Updating graphics drivers may fix this problem.");
+			pParams->setProbeType(0);
+			probeTypeCombo->setEnabled(false);
+			probeTypeCombo->setCurrentItem(0);
+			return;
+		}
 	}
 	guiSetEnabled(val, instance);
 	//Make the change in enablement occur in the rendering window, 

@@ -235,7 +235,7 @@ void GLProbeWindow::initializeGL()
 	glGenTextures(1, &_fbTexid);
 	glGenTextures(1, &_probeTexid);
 	glBindTexture(GL_TEXTURE_2D, _probeTexid);
-	glGenFramebuffersEXT(1, &_fbid);
+	if(GLEW_EXT_framebuffer_object) glGenFramebuffersEXT(1, &_fbid);
 	qglClearColor( QColor(233,236,216) ); 		// same as frame
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -245,68 +245,7 @@ void GLProbeWindow::initializeGL()
 	capturing = false;
 	ProbeRenderer::pushState(256,256,_fbid, _fbTexid, true);
 	ProbeRenderer::popState();
-	return;
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	
-	
-	glEnable(GL_TEXTURE_2D);
-	
-	
-	// List of acceptable frame buffer object internal types 
-	//
-	GLint colorInternalFormats[] = {
-		GL_RGBA, GL_RGBA16F_ARB, GL_RGBA16, GL_RGBA16, GL_RGBA8
-	};
-	GLenum colorInternalTypes[] = {
-		GL_UNSIGNED_BYTE, GL_FLOAT, GL_INT, GL_INT, GL_UNSIGNED_BYTE 
-	};
-	int num_color_fmts = 
-		sizeof(colorInternalFormats)/sizeof(colorInternalFormats[0]);
-
-	GLint _colorInternalFormat;
-	GLenum _colorInternalType;
-	glBindTexture(GL_TEXTURE_2D, _fbTexid);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,_fbid);
-	
-	
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-		
-	
-	// Try to find a supported FBO format.  
-	//
-
-	GLenum status;
-	for (int i=0; i<num_color_fmts; i++) {
-		glTexImage2D(
-			GL_TEXTURE_2D, 0,colorInternalFormats[i], 
-			viewport[2], viewport[3], 0, GL_RGBA, colorInternalTypes[i], NULL
-		);
-		glFramebufferTexture2DEXT(
-			GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
-			_fbTexid, 0
-		);
-		status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-		if (status == GL_FRAMEBUFFER_COMPLETE_EXT) {
-			_colorInternalFormat = colorInternalFormats[i];
-			_colorInternalType = colorInternalTypes[i];
-			break;
-		}
-	}
-	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		//myRenderer->setAllBypass(true);
-		MessageReporter::errorMsg(
-			"Failed to create OpenGL color framebuffer_object : %d", status
-		);
-	}
-	
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
-	glPopAttrib();
-	
-	glDrawBuffer(GL_BACK_LEFT);
-	glReadBuffer(GL_BACK_LEFT);
 	printOpenGLErrorMsg("GLProbeWindow");
     
 }

@@ -91,7 +91,7 @@
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"

@@ -92,7 +92,7 @@
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"

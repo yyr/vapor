@@ -148,7 +148,7 @@ void ProbeRenderer::initializeGL()
 	glGenTextures(1, &_probeTexid);
 	glGenTextures(1, &_fbTexid);
 	glBindTexture(GL_TEXTURE_2D, _probeTexid);
-	glGenFramebuffersEXT(1, &_framebufferid);
+	if(GLEW_EXT_framebuffer_object) glGenFramebuffersEXT(1, &_framebufferid);
 		
 	
 	//glBindTexture(GL_TEXTURE_2D, _probetex);
@@ -324,7 +324,7 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 	GLenum _colorInternalType;
 	
 	if(first) glBindTexture(GL_TEXTURE_2D, fbtexid);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,fbid);
+	if(GLEW_EXT_framebuffer_object) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,fbid);
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -332,7 +332,7 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	if (first){
+	if (first && GLEW_EXT_framebuffer_object ){
 	// Try to find a supported format.  Is this really necessary?
 	//
 		GLenum status;
@@ -363,7 +363,7 @@ void ProbeRenderer::pushState(int wid, int ht, GLuint fbid, GLuint fbtexid, bool
 }
 void ProbeRenderer::popState(){
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
+	if(GLEW_EXT_framebuffer_object) glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
 	glPopAttrib();
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
