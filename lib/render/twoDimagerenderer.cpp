@@ -89,8 +89,6 @@ void TwoDImageRenderer::paintGL()
 	int imgWidth = imgSize[0];
 	int imgHeight = imgSize[1];
 	if (twoDTex){
-		if(myTwoDImageParams->imageCrop()) enableFullClippingPlanes();
-		else disableFullClippingPlanes();
 		
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
@@ -126,7 +124,6 @@ void TwoDImageRenderer::paintGL()
 	if (myTwoDImageParams->isGeoreferenced() || myTwoDImageParams->isMappedToTerrain()){
 		drawElevationGrid(currentFrameNum);
 		glDisable(GL_TEXTURE_2D);
-		disableFullClippingPlanes();
 		return;
 	}
 
@@ -192,7 +189,7 @@ void TwoDImageRenderer::paintGL()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	if (twoDTex) glDisable(GL_TEXTURE_2D);
-	disableFullClippingPlanes();
+	
 }
 
 bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){

@@ -26,6 +26,7 @@
 #include <sstream>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 #include <vapor/AMRTree.h>
 #include <algorithm>
 
