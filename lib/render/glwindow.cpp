@@ -2151,7 +2151,6 @@ void GLWindow::removeAllRenderers(){
 	}
 	setNumRenderers(0);
 	invalidateElevGrid();
-	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
 	if (timeAnnotLabel) delete timeAnnotLabel;
 	nowPainting = false;
 	numRenderers = 0;
