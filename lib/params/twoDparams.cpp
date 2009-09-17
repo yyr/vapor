@@ -34,6 +34,7 @@
 #include "glutil.h"
 #include "twoDparams.h"
 #include "regionparams.h"
+#include "viewpointparams.h"
 #include "params.h"
 #include "transferfunction.h"
 
@@ -273,4 +274,100 @@ getTwoDVoxelExtents(float voxdims[2]){
 	voxdims[0] = twoDMax[xcrd] - twoDMin[xcrd];
 	voxdims[1] = twoDMax[ycrd] - twoDMin[ycrd];
 	return;
+}
+
+float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, int){
+	//Intersect surface with camera ray.  If no intersection, just shoot ray from
+	//camera to surface center.
+	const float* camPos = vpParams->getCameraPos();
+	const float* camDir = vpParams->getViewDir();
+	//Solve for intersection with surface:
+	//If behind or parallel, make infinitely far (low priority in sorting)
+	if (camDir[orientation] == 0.f) return 1.e30f;
+	//if mapped to terrain, will need to add height to planar coordinate
+	float ht = 0.f;
+	if (orientation == 2 && isMappedToTerrain()){
+		DataStatus* ds = DataStatus::getInstance();
+		int hgtvar = ds->getSessionVariableNum2D("HGT");
+		if (hgtvar >= 0)
+			ht =  0.1f*ds->getDefaultDataMax2D(hgtvar);
+	}
+	//Find parameter T (position along ray) so that camPos+T*camDir intersects plane
+	float T = (twoDMin[orientation]+ ht - camPos[orientation])/camDir[orientation];
+	if (T < 0.f) return 1.e30f;  //intersection is behind camera
+
+	//Test if resulting point is inside twoD extents:
+	float hitPoint[3];
+	for (int i = 0; i<3; i++) hitPoint[i] = camPos[i]+T*camDir[i];
+
+	int i1 = (orientation+1)%3;
+	int i2 = (orientation+2)%3;
+
+	if (hitPoint[i1] >= twoDMin[i1] && hitPoint[i2] >= twoDMin[i2] &&
+		hitPoint[i1] <= twoDMax[i1] && hitPoint[i2] <= twoDMax[i2])
+	{
+		//OK, we are in:
+		return vdist(camPos, hitPoint);
+	}
+	//Otherwise, find distance to center:
+	for (int i = 0; i<3; i++){
+		hitPoint[i] = 0.5f*(twoDMin[i]+twoDMax[i]);
+	}
+	hitPoint[orientation] += ht;
+	return (vdist(camPos, hitPoint));
+
+	/*  Following code gets closest point.  Doesn't always help order geometry for transparency
+	const float* camPos = vpParams->getCameraPos();
+	float ht = 0.f;
+	if (orientation == 2 && isMappedToTerrain()){
+		DataStatus* ds = DataStatus::getInstance();
+		int hgtvar = ds->getSessionVariableNum2D("HGT");
+		if (hgtvar >= 0)
+			ht =  0.5f*ds->getDefaultDataMax2D(hgtvar);
+	}
+	//test if camera is in box extents
+	if (orientation == 2) {  //horizontal
+		if (camPos[0] >= twoDMin[0] && camPos[0] <= twoDMax[0] &&
+			camPos[1] >= twoDMin[1] && camPos[1] <= twoDMax[1]) 
+				return (abs(camPos[2]-twoDMin[2]-ht));
+	} else if (orientation == 1) { //XZ orientation
+		if (camPos[0] >= twoDMin[0] && camPos[0] <= twoDMax[0] &&
+			camPos[2] >= twoDMin[2] && camPos[2] <= twoDMax[2]) 
+				return (abs(camPos[1]-twoDMin[1]));
+	} else { //orientation = 0:
+		if (camPos[1] >= twoDMin[1] && camPos[1] <= twoDMax[1] &&
+			camPos[2] >= twoDMin[2] && camPos[2] <= twoDMax[2]) 
+				return (abs(camPos[0]-twoDMin[0]));
+	}
+	//Otherwise must find closest corner:
+	float minDist = 1.e30f;
+	float boxmin[3], boxmax[3];
+	getBox(boxmin, boxmax);
+	boxmin[2]+=ht;
+	boxmax[2]+=ht;
+	//Start by testing boxmin and boxmax.. they are always corners
+	float dist = vdist(camPos, boxmin);
+	if (minDist > dist) minDist = dist;
+	dist = vdist(camPos,boxmax);
+	if (minDist > dist) minDist = dist;
+	float corPoint[3];
+	//two combo's of boxmin and boxmax:
+	int firstcoord = 0;
+	int secondcoord = 1;
+	if (orientation == 0) {firstcoord++;secondcoord++;}
+	if (orientation == 1) {secondcoord++;}
+
+	corPoint[firstcoord] = boxmin[firstcoord];
+	corPoint[secondcoord] = boxmax[secondcoord];
+	corPoint[orientation] = boxmin[orientation];
+	dist = vdist(camPos,corPoint);
+	if (minDist > dist) minDist = dist;
+	corPoint[firstcoord] = boxmax[firstcoord];
+	corPoint[secondcoord] = boxmin[secondcoord];
+	corPoint[orientation] = boxmin[orientation];
+	dist = vdist(camPos,corPoint);
+	if (minDist > dist) minDist = dist;
+
+	return minDist;
+		*/
 }

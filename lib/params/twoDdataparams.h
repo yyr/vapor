@@ -66,6 +66,7 @@ public:
 		refreshCtab();
 		return ctab;
 	}
+	virtual bool isOpaque();
 	virtual bool imageCrop() {return true;}//always crop to extents
 	void setMinMapBound(float val)
 		{setMinColorMapBound(val);setMinOpacMapBound(val);}

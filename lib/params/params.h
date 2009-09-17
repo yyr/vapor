@@ -54,6 +54,8 @@ enum DirtyBitType {
 class XmlNode;
 class MapperFunction;
 class TransferFunction;
+class ViewpointParams;
+class RegionParams;
 
 class PARAMS_API Params : public MyBase, public ParamsBase {
 	
@@ -244,6 +246,10 @@ public:
 
 
 	virtual void hookupTF(TransferFunction* , int ) {assert(0);}
+
+	//Default implementation finds distance to region box:
+	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
+	virtual bool isOpaque() { assert(0); return true;}
 	//The following must be redefined by renderer params.  Parent version should never happen
 	virtual void setMinColorMapBound(float ) =0;
 	virtual void setMaxColorMapBound(float )=0;

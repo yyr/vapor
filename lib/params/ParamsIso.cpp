@@ -26,6 +26,7 @@
 #include "ParamsIso.h"
 #include "mapperfunction.h"
 #include "transferfunction.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -756,3 +757,12 @@ void ParamsIso::setOpacityScale(float val)
     transFunc[GetMapVariableNum()]->setOpacityScaleFactor(val);
   }
 }
+bool ParamsIso::isOpaque(){
+	if(GetMapVariableNum() < 0) {
+		if(GetConstantColor()[3] < 0.99f) return true;
+		else return false;
+	}
+	if(transFunc[GetMapVariableNum()]->isOpaque() && getOpacityScale() > 0.99f) return true;
+	return false;
+}
+

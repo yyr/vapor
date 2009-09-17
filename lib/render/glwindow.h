@@ -250,12 +250,15 @@ public:
 	
 	//Renderers can be added early or late, using a "render Order" parameter.
 	//The order is between 0 and 10; lower order gets rendered first.
+	//Sorted renderers get sorted before each render
 	//
+	void insertSortedRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 5);}
 	void prependRenderer(RenderParams* p, Renderer* ren) {insertRenderer(p, ren, 0);}
 	void appendRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 10);}
 	void insertRenderer(RenderParams* p, Renderer* ren, int order);
 	bool removeRenderer(RenderParams* p);  //Return true if successful
 	void removeAllRenderers();
+	void sortRenderers(int timestep);  //Sort all the pri 0 renderers
 	//Find a renderParams in renderer list, if it exists:
 	RenderParams* findARenderer(Params::ParamType renderertype);
 	

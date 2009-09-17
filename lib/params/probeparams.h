@@ -57,6 +57,7 @@ public:
 	virtual void setCurrentDatarange(float minval, float maxval){
 		currentDatarange[0] = minval; currentDatarange[1]=maxval;}
 
+	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
 	void setSelectedPoint(const float point[3]){
 		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
@@ -218,6 +219,7 @@ public:
 	void rotateAndRenormalizeBox(int axis, float rotVal);
 	virtual int getNumRefinements() {return numRefinements;}
 	virtual void hookupTF(TransferFunction* t, int index);
+	virtual bool isOpaque();
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 	virtual void setEnabled(bool value) {

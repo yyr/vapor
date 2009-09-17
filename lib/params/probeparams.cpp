@@ -35,6 +35,7 @@
 #include "glutil.h"
 #include "probeparams.h"
 #include "regionparams.h"
+#include "viewpointparams.h"
 #include "params.h"
 #include "transferfunction.h"
 
@@ -2036,4 +2037,101 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	}
 	return numfound;
 	
+}
+
+float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
+	//Intersect probe with ray from camera
+	//Rotate camPos and camDir to probe coordinate system,
+	//Find ray intersection with probe (if it intersects)
+	const float* camPos = vpp->getCameraPos();
+	const float* camDir = vpp->getViewDir();
+	float relCamPos[3], localCamPos[3], localCamDir[3];
+	float rotMatrix[9];
+	for (int i = 0; i<3; i++)
+		relCamPos[i] = camPos[i] - 0.5f*(probeMax[i]+probeMin[i]);
+	//Get the 3x3 rotation matrix and invert(transpose) it
+	
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+	//multiply camPos by transpose (inverse) of matrix, to
+	//get camera position, direction in rotated system, relative to probe center
+	vtransform3t(relCamPos,rotMatrix,localCamPos);
+	vtransform3t(camDir,rotMatrix,localCamDir);
+	//Now intersect ray with probe:
+	if (localCamDir[2] == 0.f) return 1.e30f;
+	
+	//Find parameter T (position along ray) so that camPos+T*camDir intersects xy plane
+	float T = -localCamPos[2]/localCamDir[2];
+	if (T < 0.f) return 1.e30f;  //intersection is behind camera
+
+	//Test if resulting point is inside translated probe extents:
+	float hitPoint[3];
+	for (int i = 0; i<3; i++) hitPoint[i] = localCamPos[i]+T*localCamDir[i];
+	float probeHWidth = 0.5f*(probeMax[0]-probeMin[0]);
+	float probeHHeight = 0.5f*(probeMax[1]-probeMin[1]);
+	//Test if localCamPos is in (x,y) bounds of probe:
+	if ( abs(hitPoint[0]) <= probeHWidth &&
+		abs(hitPoint[1]) <= probeHHeight ){
+		//We are in
+		return vdist(localCamPos, hitPoint);
+	}
+
+	//Otherwise, find distance to center, back in original system:
+	for (int i = 0; i<3; i++){
+		hitPoint[i] = 0.5f*(probeMin[i]+probeMax[i]);
+	}
+	
+	return (vdist(camPos, hitPoint));
+
+
+	/* following doesn't work very well:
+	//To get camera distance, find camera position relative to 
+	//probe center, then rotate by inverse of probe rotation to put into probe coord system.
+	//If x,y coords are inside probe x,y extents, then distance is the z-coordinate.
+	//If not, the distance is the distance to the closest edge of probe.
+	//Approximately, just take distance to closest corner.
+	const float* camPos = vpp->getCameraPos();
+	float relCamPos[3], localCamPos[3];
+	float rotMatrix[9];
+	for (int i = 0; i<3; i++)
+		relCamPos[i] = camPos[i] - 0.5f*(probeMax[i]+probeMin[i]);
+	//Get the 3x3 rotation matrix and invert(transpose) it
+	
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+	//multiply camPos by transpose (inverse) of matrix, to
+	//get camera position in rotated system, relative to probe center
+	vtransform3t(relCamPos,rotMatrix,localCamPos);
+	float probeHWidth = 0.5f*(probeMax[0]-probeMin[0]);
+	float probeHHeight = 0.5f*(probeMax[1]-probeMin[1]);
+	//Test if localCamPos is in (x,y) bounds of probe:
+	if ( abs(localCamPos[0])<= probeHWidth &&
+		abs(localCamPos[1])<= probeHHeight ){
+		//distance to plane is difference in z-coords:
+		return (abs(localCamPos[2]));
+	}
+	//Otherwise, find closest of 4 corners to camera
+	float minDist = 1.e30f;
+	float dist;
+	float cor[3];
+	cor[0] = -probeHWidth;
+	cor[1] = -probeHHeight;
+	cor[2] = 0.f;
+	
+	dist = vdist(localCamPos,cor); //test min, min
+	if (dist < minDist) minDist = dist;
+	cor[1] = probeHHeight;
+	dist = vdist(localCamPos,cor); //test min,max
+	if (dist < minDist) minDist = dist;
+	cor[0] = probeHWidth;
+	dist = vdist(localCamPos,cor); //test max,max
+	if (dist < minDist) minDist = dist;
+	cor[1] = -probeHHeight;
+	dist = vdist(localCamPos,cor); //test max,min
+	if (dist < minDist) minDist = dist;
+	return minDist;
+	*/
+
+}
+bool ProbeParams::isOpaque(){
+	if(getMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
+	return false;
 }

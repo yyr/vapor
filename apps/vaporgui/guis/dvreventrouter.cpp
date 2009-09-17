@@ -897,7 +897,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
                 SLOT(message(const QString &)));
 
 		
-		viz->getGLWindow()->appendRenderer(dParams, myDvr);
+		viz->getGLWindow()->insertSortedRenderer(dParams,myDvr);
 
 		//force the renderer to refresh region data  (why?)
 		

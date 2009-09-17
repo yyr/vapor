@@ -38,6 +38,8 @@ namespace VAPoR{
 class TransferFunction;
 class IsoControl;
 class MapperFunction;
+class RegionParams;
+class ViewpointParams;
 //
 //! \class ParamsIso
 //! \brief A class for managing (storing and retrieving) 
@@ -98,6 +100,9 @@ virtual void setMinColorMapBound(float val);
 virtual void setMaxColorMapBound(float val);
 virtual void setMinOpacMapBound(float val);
 virtual void setMaxOpacMapBound(float val);
+
+virtual bool isOpaque();
+
 
 void setMinMapEditBound(float val) {
 	setMinColorEditBound(val, GetMapVariableNum());

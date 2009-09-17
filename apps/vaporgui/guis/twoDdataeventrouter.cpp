@@ -523,14 +523,28 @@ void TwoDDataEventRouter::guiSetOrientation(int val){
 void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	confirmText(false);
 	TwoDDataParams* dParams = VizWinMgr::getActiveTwoDDataParams();
+	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
+	float extents[6];
+	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents);
+	if (dParams->isEnabled()) {
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		int viznum = vizMgr->getActiveViz();
+		float disp; 
+		if (mode) disp = extents[2];
+		else disp = dParams->getTwoDMin(2);
+		//Check that we aren't putting this on another planar surface:
+		if (vizMgr->findCoincident2DSurface(viznum, 2, 
+			disp, mode))
+		{
+			MessageReporter::warningMsg("This 2D data surface coincides with another enabled 2D surface.\n%s\n",
+					"Change the 2D data position in order to avoid rendering defects");
+		}
+	}
 	dParams->setMappedToTerrain(mode);
 	
 	//If setting to terrain, set box bottom and top to bottom of domain
 	if (mode){
-		float extents[6];
-		DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents );
-
 		dParams->setTwoDMin(2,extents[2]);
 		dParams->setTwoDMax(2,extents[2]);
 	}
@@ -570,6 +584,11 @@ setTwoDEnabled(bool val, int instance){
 
 	//If we are enabling, also make this the current instance:
 	if (val) {
+		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getTwoDMin(orientation),
+			pParams->isMappedToTerrain())){
+				MessageReporter::warningMsg("This 2D data surface coincides with another enabled 2D surface.\n%s\n",
+					"Change the 2D data position in order to avoid rendering defects");
+			}
 		performGuiChangeInstance(instance);
 	}
 	guiSetEnabled(val, instance);
@@ -868,7 +887,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 
 
 		TwoDDataRenderer* myRenderer = new TwoDDataRenderer (viz->getGLWindow(), pParams);
-		viz->getGLWindow()->prependRenderer(pParams,myRenderer);
+		viz->getGLWindow()->insertSortedRenderer(pParams,myRenderer);
 
 		setTwoDDirty(pParams);
 		return;

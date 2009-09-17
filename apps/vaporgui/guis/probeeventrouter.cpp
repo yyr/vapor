@@ -1415,7 +1415,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 
 
 		ProbeRenderer* myRenderer = new ProbeRenderer (viz->getGLWindow(), pParams);
-		viz->getGLWindow()->prependRenderer(pParams,myRenderer);
+		viz->getGLWindow()->insertSortedRenderer(pParams,myRenderer);
 
 		setProbeDirty(pParams);
 		return;

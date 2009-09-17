@@ -40,6 +40,7 @@
 
 #include "histo.h"
 #include "animationparams.h"
+#include "viewpointparams.h"
 
 #include <math.h>
 #include "vapor/Metadata.h"
@@ -1127,4 +1128,12 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 
 	return planarData;
 }
-				  
+
+bool TwoDDataParams::isOpaque(){
+	if(getTransFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
+	return false;
+}
+
+
+///
+  

@@ -397,6 +397,15 @@ void MapperFunctionBase::setOpaque()
     _opacityMaps[i]->setOpaque();
   }
 }
+bool MapperFunctionBase::isOpaque()
+{
+
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    if(!_opacityMaps[i]->isOpaque()) return false;
+  }
+  return true;
+}
 
 //----------------------------------------------------------------------------
 // Construct an XML node from the transfer function

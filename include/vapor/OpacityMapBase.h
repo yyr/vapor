@@ -118,6 +118,7 @@ public:
   double sinePhase() const   { return normSinePhase(_phase); } // Normalized
 
   void setOpaque();
+  bool isOpaque();
 
   static string xmlTag() { return _tag; }
 

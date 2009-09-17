@@ -89,6 +89,8 @@ public:
 		currentDatarange[0] = minval; currentDatarange[1] = maxval;}
     
 
+	virtual bool isOpaque();
+
 	float (&getClut())[256][4] {
 		refreshCtab();
 		return ctab;

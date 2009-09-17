@@ -460,6 +460,7 @@ public:
 		return getLocalParams(p->getParamType());
 	}
 	void setInteractiveNavigating(int level);
+	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
 
 public slots:
 	//arrange the viz windows:

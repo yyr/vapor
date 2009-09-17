@@ -49,6 +49,7 @@ public:
     void  hsvValue(float point, float* h, float* sat, float* val);
 
 	void setOpaque();
+	bool isOpaque();
 
     //
 	// Build a lookup table[numEntries][4]

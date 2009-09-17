@@ -32,6 +32,8 @@
 #include "ParamNode.h"
 #include "vapor/DataMgr.h"
 #include "vapor/errorcodes.h"
+#include "viewpointparams.h"
+#include "regionparams.h"
 
 
 using namespace VAPoR;
@@ -460,3 +462,146 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	return reg;
 }
 	
+//Default camera distance just finds distance to region box.
+float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
+
+	//Intersect region with camera ray.  If no intersection, just shoot ray from
+	//camera to region center.
+	const float* camPos = vpp->getCameraPos();
+	const float* camDir = vpp->getViewDir();
+	const float* regExts = rpp->getRegionExtents(timestep);
+	float hitPoint[3];
+	//Solve for intersections with 6 planar sides of region, find smallest.
+	float minDist = 1.e30f;
+	
+	for (int i = 0; i< 6; i++){
+		if (camDir[i%3] == 0.f) continue;
+		//Find parameter T (position along ray) so that camPos+T*camDir intersects plane
+		float T = (regExts[i] - camPos[i%3])/camDir[i%3];
+		if (T < 0.f) continue;
+		for (int k = 0; k<3; k++)
+			hitPoint[k] = camPos[k]+T*camDir[k];
+		// Check if hitpoint is inside face:
+		int i1 = (i+1)%3;
+		int i2 = (i+2)%3;
+		if (hitPoint[i1] >= regExts[i1] && hitPoint[i2] >= regExts[i2] &&
+			hitPoint[i1] <= regExts[i1+3] && hitPoint[i2] <= regExts[i2+3])
+		{
+			float dist = vdist(hitPoint, camPos);
+			minDist = Min(dist, minDist);
+		}
+	}
+	//Was there an intersection?
+
+	if (minDist < 1.e30f) return minDist;
+
+	//Otherwise, find ray that points to center, and intersect it with region
+	float rayDir[3];
+	for (int i = 0; i<3; i++){
+		rayDir[i] = 0.5f*(regExts[i]+regExts[i+3]) - camPos[i];
+	}
+	for (int i = 0; i< 6; i++){
+		if (rayDir[i%3] == 0.f) continue;
+		//Find parameter T (position along ray) so that camPos+T*rayDir intersects plane
+		float T = (regExts[i] - camPos[i%3])/rayDir[i%3];
+		if (T < 0.f) continue;
+		for (int k = 0; k<3; k++)
+			hitPoint[k] = camPos[i]+T*rayDir[i];
+		// Check if hitpoint is inside face:
+		int i1 = (i+1)%3;
+		int i2 = (i+2)%3;
+		if (hitPoint[i1] >= regExts[i1] && hitPoint[i2] >= regExts[i2] &&
+			hitPoint[i1] <= regExts[i1+3] && hitPoint[i2] <= regExts[i2+3])
+		{
+			float dist = vdist(hitPoint, camPos);
+			minDist = Min(dist, minDist);
+		}
+	}
+	return minDist;
+
+	/* Following strategy doesn't work very well
+	//Find distance of camera from current region
+	
+	
+	const float *camPos = vpp->getCameraPos();
+	const float* regExts = rpp->getRegionExtents(timestep);
+	//First see which side it's on:
+	//There are 6 tests, 3 for each dimension
+	bool inReg[6];
+	bool inDim[3];
+	int numIn = 0;
+	float testPoint[4][3];  
+	for (int i = 0; i<3; i++){
+		inReg[i] = (camPos[i] >= regExts[i]);
+		inReg[i+3] = (camPos[i] <= regExts[i+3]);
+		inDim[i] = (inReg[i]&&inReg[i+3]);
+		if (inDim[i]) numIn++;
+	}
+	//Test if camera is in box:
+	if (numIn == 3) return 0.f;
+
+	//Check the faces (numIn = 2)
+	if (numIn == 2) {
+		//Check for camera on face (out in only one dimension)
+		for (int k = 0; k< 3; k++){
+			if (!inDim[k]){ //camera is on k-face of box.  find 2 test points
+				//use other 2 (k1,k2) coords of camera, k- coord of box
+				int k1 = (k+1)%3;
+				int k2 = (k+2)%3;
+				testPoint[0][k1] = camPos[k1];
+				testPoint[0][k2] = camPos[k2];
+				testPoint[1][k1] = camPos[k1];
+				testPoint[1][k2] = camPos[k2];
+				testPoint[0][k] = regExts[k];
+				testPoint[1][k] = regExts[k+3];
+				float dist1 = vdist(camPos, testPoint[0]);
+				float dist2 = vdist(camPos, testPoint[1]);
+				return Min(dist1,dist2);
+			}
+		}
+	}
+	//If numIn = 1, the camera is in the slab between two side planes of the box
+	//Try the three slabs 
+	if (numIn == 1){
+		//Check each face (the dimension that's not in)
+		for (int k = 0; k<3; k++){
+			if (inDim[k]){//identify the unique in-dimension:
+				//get other 2 dimensions:
+				int k1 = (k+1)%3;
+				int k2 = (k+2)%3;
+				//Find 4 points that have same k-coord as camera, but
+				//have other 2 coordinates on box faces:
+				float minDist = 1.e30;
+				for(int i = 0; i<4; i++) {
+					// oddCrd goes 0,1,0,1 (*3)
+					// secondCrd goes 0,0,1,1 (*3)
+					int oddCrd = (i%2)*3;
+					int secondCrd = (i>>1)*3;
+					testPoint[i][k] = camPos[k];
+					testPoint[i][k1] = regExts[k1+oddCrd];
+					testPoint[i][k2] = regExts[k2+secondCrd];
+					float dist = vdist(camPos, testPoint[i]);
+					if (dist < minDist) minDist = dist;
+				}
+				return minDist;
+			}
+		}
+	}
+	//Final case:  corner point
+	assert(numIn == 0);
+	float minDist = 1.e30;
+	float pnt[3];
+	for (int i = 0; i<8; i++){
+		int i1 = (i%2)*3;
+		int i2 = ((i>>1)%2)*3;
+		int i3 = (i>>2)*3;
+		pnt[0] = regExts[i1];
+		pnt[1] = regExts[1+i2];
+		pnt[2] = regExts[2+i3];
+		float dist = vdist(camPos,pnt);
+		if (minDist > dist) minDist = dist;
+	}
+	return minDist;
+	*/
+
+}

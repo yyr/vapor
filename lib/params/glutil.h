@@ -96,6 +96,7 @@ PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
+PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);
 PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
 PARAMS_API void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);

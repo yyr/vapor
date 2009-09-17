@@ -669,7 +669,15 @@ void OpacityMapBase::setOpaque()
     cp->opacity(1.0);
   }
 }
-
+bool OpacityMapBase::isOpaque()
+{
+  for(int i=0; i<_controlPoints.size(); i++)
+  {
+    ControlPoint *cp = _controlPoints[i];
+    if (cp->opacity() < 1.0) return false;
+  }
+  return true;
+}
 
 //----------------------------------------------------------------------------
 //

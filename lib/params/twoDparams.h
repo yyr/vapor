@@ -36,6 +36,8 @@ class PanelCommand;
 class XmlNode;
 class FlowParams;
 class Histo;
+class ViewpointParams;
+class RegionParams;
 
 class PARAMS_API TwoDParams : public RenderParams {
 	
@@ -129,7 +131,7 @@ public:
 		enabled = value;
 		
 	}
-	
+	virtual float getCameraDistance(ViewpointParams* vp, RegionParams* rp, int timestep);
 	float getVerticalDisplacement(){return verticalDisplacement;}
 	void setVerticalDisplacement(float val) {verticalDisplacement = val;}
 	bool isMappedToTerrain() {return mapToTerrain;}

@@ -38,6 +38,7 @@
 
 #include "histo.h"
 #include "animationparams.h"
+#include "viewpointparams.h"
 
 #include <math.h>
 #include "vapor/Metadata.h"

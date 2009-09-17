@@ -2578,4 +2578,29 @@ void VizWinMgr::setInteractiveNavigating(int level){
 		if (vizWin[i]) vizWin[i]->setDirtyBit(DvrRegionBit, true);
 	}
 }
+//Determine (for error checking) if there are any enabled 2d renderers in the window that match
+//coordinate, terrain mapping
+bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coordinate, bool terrainMapped){
+	vector<TwoDDataParams*> dparams = twoDDataParamsInstances[vizwin];
+	vector<TwoDImageParams*> iparams = twoDImageParamsInstances[vizwin];
+	const float * extents = DataStatus::getInstance()->getExtents();
+	float tol = (extents[orientation+3]-extents[orientation])*0.003f;
+	for (int i = 0; i< dparams.size(); i++){
+		TwoDDataParams* p = dparams[i];
+		if (!p->isEnabled()) continue;
+		if (p->getOrientation() != orientation) continue;
+		if (p->isMappedToTerrain() != terrainMapped) continue;
+		if (abs(p->getTwoDMin(orientation) - coordinate)> tol) continue;
+		return true;
+	}
+	for (int i = 0; i< iparams.size(); i++){
+		TwoDImageParams* p = iparams[i];
+		if (!p->isEnabled()) continue;
+		if (p->getOrientation() != orientation) continue;
+		if (p->isMappedToTerrain() != terrainMapped) continue;
+		if (abs(p->getTwoDMin(orientation) - coordinate)> tol) continue;
+		return true;
+	}
+	return false;
+}
 

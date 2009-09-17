@@ -637,5 +637,9 @@ void DvrParams::setMinOpacMapBound(float val){
 void DvrParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
+bool DvrParams::isOpaque(){
+	if(getMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
+	return false;
+}
 
 
