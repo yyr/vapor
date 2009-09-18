@@ -188,7 +188,7 @@ reinit(bool doOverride){
 //
 void TwoDImageParams::
 restart(){
-	
+	transparentAlpha = false;
 	imagePlacement = 0;
 	singleImage = false;
 	mapToTerrain = false;
@@ -448,6 +448,7 @@ void TwoDImageParams::setImagesDirty(){
 	cachedTimestep = -1;
 	singleImage = false;
 	lastTwoDTexture = 0;
+	transparentAlpha = false;
 }
 
 
@@ -569,7 +570,16 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			return 0;
 		}
 	}
-	
+	//Check for nontrivial alpha:
+	if (!transparentAlpha){
+		for (int i = 0; i<npixels; i++){
+			//Check if leading byte is not 255
+			if (texture[i] < (255<<24)) {
+				transparentAlpha = true;
+				break;
+			}
+		}
+	}
 	
 	//Check for georeferencing:
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib

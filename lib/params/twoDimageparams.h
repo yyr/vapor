@@ -60,7 +60,7 @@ public:
 	virtual void setMaxOpacMapBound(float ){}
 	virtual MapperFunction* getMapperFunc(){return 0;}
 	//we need to check for alpha channel
-	virtual bool isOpaque() {return opacityMultiplier >= 0.99f;};
+	virtual bool isOpaque() {return (opacityMultiplier >= 0.99f && !transparentAlpha);}
 	//Variables specific to images:
 	bool isGeoreferenced() {return useGeoreferencing;}
 	void setGeoreferenced(bool val){useGeoreferencing = val;}
@@ -158,6 +158,7 @@ public:
 	//Return false if the image and the scene are not both georeferenced.
 	bool mapGeorefPoint(int timestep, double pt[2]);
 	bool isSingleImage() {return singleImage;}
+	bool hasTransparentAlpha() {return transparentAlpha;}
 	
 	
 protected:
@@ -195,6 +196,7 @@ protected:
 	std::string projDefinitionString;
 	int cachedTimestep;
 	bool singleImage;  //indicates there is only one image for all timesteps
+	bool transparentAlpha;
 	
 };
 };

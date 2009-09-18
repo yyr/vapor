@@ -66,9 +66,9 @@ class VolumeRenderer;
 class SpinThread;
 class CustomContext;
 
+
 class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
-
 public:
 	typedef void (*ErrMsgReleaseCB_T)(void);
     GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int winnum);
@@ -396,13 +396,21 @@ public:
 	bool stopSpin();
 	bool spinning(){return isSpinning;}
 
-	
-	
 	void clearRendererBypass(Params::ParamType t);
 	static bool isRendering(){return nowPainting;}
 	void setValuesFromGui(ViewpointParams* vpparams);
-
+	
 protected:
+	//Container for sorting renderer list:
+	class RenderListElt {
+		public:
+		Renderer* ren;
+		float camDist;
+		Params::ParamType renType;
+	};
+	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
+		return (ren1->camDist > ren2->camDist);
+	}
 	int winNum;
 	int previousTimeStep;
 	static int jpegQuality;

@@ -36,6 +36,8 @@
 #include "datastatus.h"
 #include "vapor/MyBase.h"
 
+#include <algorithm>
+#include <vector>
 #include <math.h>
 #include <qgl.h>
 #include <qlabel.h>
@@ -2609,20 +2611,18 @@ setValuesFromGui(ViewpointParams* vpparams){
 void GLWindow::
 sortRenderers(int timestep){
 	//Reorder the priority 5 renderers with their distance from camera
-	Renderer* sortedRenderers[MAXNUMRENDERERS];
-	float cameraDistance[MAXNUMRENDERERS];
-	Params::ParamType renType[MAXNUMRENDERERS];
+	
 	//Indices point to places in renderer list:
 	int start5Renderers = -1; //will point to where the priority 5 renderers start
 	int numOpaque5Renderers = 0; //count number of pri 5 renderers that are opaque
 	int numToSort = 0; //This will be num5Renderers - numOpaque5Renderers;
 	int num5Renderers = 0; //Count of all pri 5 renderers;
-	
+	std::vector<RenderListElt*> sortList;
 	for (int i = 0; i<numRenderers; i++){
 		if (renderOrder[i] < 5) continue;
 		if (renderOrder[i] > 5) break;//found renderer with higher order
 		if (start5Renderers < 0) start5Renderers = i;  //save first sorted renderer position
-		//Move all opaque renderers up to the start.  Put the rest into the list
+		//Move all opaque renderers up to the start.  Put the rest into the sort list
 		RenderParams* rParams = renderer[i]->getRenderParams();
 		if (rParams->isOpaque()){ //move it up
 			assert(start5Renderers+numOpaque5Renderers <= i);
@@ -2630,8 +2630,10 @@ sortRenderers(int timestep){
 			renderType[start5Renderers+numOpaque5Renderers] = renderType[i];
 			numOpaque5Renderers++;
 		} else { //Add it to the ones to sort:
-			sortedRenderers[numToSort] = renderer[i];
-			renType[numToSort] = renderType[i];
+			RenderListElt* newRenListElt = new RenderListElt();
+			newRenListElt->ren = renderer[i];
+			newRenListElt->renType = renderType[i];
+			sortList.push_back(newRenListElt);
 			numToSort++;
 		}
 		num5Renderers++;
@@ -2640,43 +2642,28 @@ sortRenderers(int timestep){
 		//No need to sort but may need to put transparent after opaque:
 		if (numToSort > 0){
 			int startSortPos = start5Renderers+numOpaque5Renderers;
-			renderer[startSortPos] = sortedRenderers[0];
-			renderType[startSortPos] = renType[0];
+			renderer[startSortPos] = sortList[0]->ren;
+			renderType[startSortPos] = sortList[0]->renType;
+			delete sortList[0];
 		}
 		return; 
 	}
 	for (int i = 0; i<numToSort; i++){
 		//Determine the camera distance of each renderer
-		RenderParams* rParams = sortedRenderers[i]->getRenderParams();
-		cameraDistance[i] = rParams->getCameraDistance(currentViewpointParams,currentRegionParams, timestep);
+		RenderParams* rParams = sortList[i]->ren->getRenderParams();
+		sortList[i]->camDist = rParams->getCameraDistance(currentViewpointParams,currentRegionParams, timestep);
 	}
-	//It should be a very short list; do a quick and dirty quadratic sort.
-	for (int i = 1; i<numToSort; i++){
-		//Compare all renderers below position i with renderer i
-		//Want surface furthest to camera to render first
-		for (int j = 0; j<i; j++){
-			// Since i > j, want distance[i] < distance[j]
-			if (cameraDistance[i] > cameraDistance[j]){
-				//swap i and j
-				float tempDist = cameraDistance[i];
-				Renderer* tempren = sortedRenderers[i];
-				Params::ParamType tempType = renType[i];
-				cameraDistance[i] = cameraDistance[j];
-				sortedRenderers[i] = sortedRenderers[j];
-				renType[i] = renType[j];
-				cameraDistance[j] = tempDist;
-				sortedRenderers[j] = tempren;
-				renType[j] = tempType;
-			}
-		}
-	}
+
+	sort(sortList.begin(), sortList.end(), renderPriority);
+	
 	//Now stuff the renderers, etc., back into numToSort positions of the
 	//renderer queue, starting at position = start5Renderers+numOpaque5Renderers;
 	//renderOrder remains unchanged
 	int startSortPos = start5Renderers+numOpaque5Renderers;
-	for (int i = 0; i<numToSort; i++){
-		renderer[i+startSortPos] = sortedRenderers[i];
-		renderType[i+startSortPos] = renType[i];
+	for (int i = 0; i<sortList.size(); i++){
+		renderer[i+startSortPos] = sortList[i]->ren;
+		renderType[i+startSortPos] = sortList[i]->renType;
+		delete sortList[i];
 	}
 	return;
 
