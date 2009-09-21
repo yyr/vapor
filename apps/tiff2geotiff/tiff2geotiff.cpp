@@ -519,7 +519,7 @@ processCompressOptions(const char* opt)
     else if (streq(opt, "packbits"))
         defcompression = COMPRESSION_PACKBITS;
     else if (strneq(opt, "jpeg", 4)) {
-        char* cp = strchr(opt, ':');
+        const char* cp = strchr(opt, ':');
         if (cp && isdigit(cp[1]))
             quality = atoi(cp+1);
         if (cp && strchr(cp, 'r'))
@@ -531,12 +531,12 @@ processCompressOptions(const char* opt)
     } else if (streq(opt, "g4"))
         defcompression = COMPRESSION_CCITTFAX4;
     else if (strneq(opt, "lzw", 3)) {
-        char* cp = strchr(opt, ':');
+        const char* cp = strchr(opt, ':');
         if (cp)
             defpredictor = atoi(cp+1);
         defcompression = COMPRESSION_LZW;
     } else if (strneq(opt, "zip", 3)) {
-        char* cp = strchr(opt, ':');
+        const char* cp = strchr(opt, ':');
         if (cp)
             defpredictor = atoi(cp+1);
         defcompression = COMPRESSION_DEFLATE;

@@ -21,7 +21,8 @@
 //
 //
 #include <iostream>
-#include <string>
+#include <cstring>
+#include <cstdio>
 #include <vector>
 #include <sstream>
 #include <algorithm>

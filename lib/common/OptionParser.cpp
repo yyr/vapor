@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
-#include <string>
+#include <cstring>
 #include "vapor/OptionParser.h"
 #include <cassert>
 #include <cctype>

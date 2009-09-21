@@ -35,6 +35,7 @@
 #define	_MyBase_h_
 
 #include <cmath>
+#include <cstdarg>
 #include <string>
 #include <cstring>
 #include <vector>

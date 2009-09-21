@@ -1,5 +1,6 @@
 #include <iostream>
-#include <string>
+#include <cstdio>
+#include <cstring>
 #include <vector>
 #include <sstream>
 #include <algorithm>
