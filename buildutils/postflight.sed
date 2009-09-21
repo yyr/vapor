@@ -22,7 +22,7 @@ if (! -d /usr/local/bin) then
 	if ($status != 0) exit 1
 endif
 
-foreach file ( asciitf2vtf ncdf2vdf raw2vdf vapor-setup.csh vapor-setup.sh vaporgui vaporversion vdf2raw vdfbkup.pl vdfcreate vdfls wrf2vdf wrfvdfcreate vdfedit)
+foreach file ( asciitf2vtf ncdf2vdf raw2vdf vapor-setup.csh vapor-setup.sh vaporgui vaporversion vdf2raw vdfbkup.pl vdfcreate vdfls wrf2vdf wrfvdfcreate vdfedit flashamr2vdf tiff2geotiff getWMSImage.sh)
 
 	if (-e  /usr/local/bin/$file || -l /usr/local/bin/$file) then
 		/bin/rm /usr/local/bin/$file
