@@ -551,35 +551,101 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	uint32 w, h;
 	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-
-	//Read pixels, whether or not we are georeferenced:
+	
 	size_t npixels = w * h;
+	*wid = w;
+	*ht = h;
 	uint32* texture = new uint32[npixels];
-	if (texture != NULL) {
+	//Check if this is a 2-component 8-bit image.  These are read by scanline since TIFFReadRGBAImage
+	//apparently does not know how to get the alpha channel
+	short nsamples, nbitspersample;
+	TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &nsamples);
+	TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &nbitspersample);
+	if (nsamples == 2 && nbitspersample == 8) {
 		
-		if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
+		tdata_t buf;
+		uint32 row;
+		short config;
+		short photometric;
+		TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
+		TIFFGetField(tif, TIFFTAG_PHOTOMETRIC,&photometric);
+		buf = _TIFFmalloc(TIFFScanlineSize(tif));
+		unsigned char* charArray = (unsigned char*)buf;
+		int scanlength = TIFFScanlineSize(tif)/2;
+		
+		if (config == PLANARCONFIG_CONTIG) {
 			
-			*wid = w;
-			*ht = h;
-			//May need to resample here!
-		}
-		else {
-			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
-				imageFileName.c_str());
-			delete texture;
-			return 0;
-		}
-	}
-	//Check for nontrivial alpha:
-	if (!transparentAlpha){
-		for (int i = 0; i<npixels; i++){
-			//Check if leading byte is not 255
-			if (texture[i] < (255<<24)) {
-				transparentAlpha = true;
-				break;
+			for (row = 0; row < h; row++){
+				int revrow = h-row-1;  //reverse, go bottom up
+				TIFFReadScanline(tif, buf, row);
+				for (int k = 0; k<scanlength; k++){
+					unsigned char greyval = charArray[2*k];
+					//If white is zero, reverse it:
+					if (!photometric) greyval = 255 - greyval;
+					unsigned char alphaval = charArray[2*k+1];
+					if (alphaval != 0xff) transparentAlpha = true;
+					texture[revrow*w+k] = alphaval<<24 | greyval<<16 | greyval <<8 | greyval;
+				}
+			}
+		} else if (config == PLANARCONFIG_SEPARATE) {
+			uint16 s;
+			//Note: following loop (adapted from tiff docs) has not been tested.  Are there tiff
+			//examples with separate alpha channel?
+			for (s = 0; s < nsamples; s++){
+				for (row = 0; row < h; row++){
+					TIFFReadScanline(tif, buf, row, s);
+					int revrow = h-row-1;  //reverse, go bottom up
+					if (!(s%2)){ //color
+						for (int k = 0; k<h; k++){
+							unsigned char greyval = charArray[k];
+							//If white is zero, reverse it:
+							if (!photometric) greyval = 255 - greyval;
+							texture[revrow*w+k] = greyval<<16 | greyval <<8 | greyval;
+						}
+					} else { // alpha
+						for (int k = 0; k<h; k++){
+							unsigned char alphaval = charArray[k];
+							if (alphaval != 0xff) transparentAlpha = true;
+							texture[revrow*w+k] = alphaval<<24 | (texture[revrow*w+k] && 0xffffff);
+						}
+					}
+				}
 			}
 		}
+		_TIFFfree(buf);
+	
+
+	} else {
+	//Read pixels, whether or not we are georeferenced:
+	
+		if (texture != NULL) {
+			
+			if (TIFFReadRGBAImage(tif, w, h, texture, 0)) {
+				
+				*wid = w;
+				*ht = h;
+				//May need to resample here!
+			}
+			else {
+				MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
+					imageFileName.c_str());
+				delete texture;
+				return 0;
+			}
+		}
+		//Check for nontrivial alpha:
+		if (!transparentAlpha){
+			for (int i = 0; i<npixels; i++){
+				//Check if leading byte is not 255
+				if (texture[i] < (255<<24)) {
+					transparentAlpha = true;
+					break;
+				}
+			}
+		}
+	
 	}
+	
 	
 	//Check for georeferencing:
 	if (DataStatus::getProjectionString().size() > 0){  //get a proj4 definition string if it exists, using geoTiff lib
