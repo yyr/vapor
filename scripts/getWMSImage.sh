@@ -20,6 +20,7 @@ transparent="transparent=False"
 debugMode=0
 map=""
 compression="-c none"
+depth=""
 
 
 printUsage() {
@@ -53,6 +54,8 @@ printUsage() {
       echo "          (may not work on all platforms)"
       echo "    -d"
       echo "          debug mode; do not delete temporary files"
+      echo "    -8"
+      echo "          force retrieved image to have 8-bits per sample-component"
 }
 
 
@@ -148,6 +151,9 @@ do
   -z) compression="-c lzw"
       ;;
 
+  -8) depth="-depth 8"
+      ;;
+
   *)
       printUsage
       exit 0
@@ -213,6 +219,7 @@ elif [ "${map}" = "USstates" ] ; then
     fi
     host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
     imageFormat="image/png"
+    depth="-depth 8"
 
 elif [ "${map}" = "UScounties" ] ; then
     # these range vs. scale factors are empirically determined!
@@ -227,6 +234,7 @@ elif [ "${map}" = "UScounties" ] ; then
     wmsLayer="ATLAS_COUNTIES_2000,"${wmsLayer}
     host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
     imageFormat="image/png"
+    depth="-depth 8"
 
 elif [ "${map}" = "world" ] ; then 
     wmsLayer="COASTLINES,NATIONAL"
@@ -292,7 +300,7 @@ fi
 #
 if [ "${imageFormat}" != "image/tiff" ] ; then
     mv ${tempFile} ${tempFile}2
-    cmd="convert ${tempFile}2 tiff:${tempFile}"
+    cmd="convert ${depth} ${tempFile}2 tiff:${tempFile}"
     echo ${cmd}
     ${cmd}
     if [ ${debugMode} -ne 1 ] ; then
