@@ -2584,7 +2584,7 @@ bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coord
 	vector<TwoDDataParams*> dparams = twoDDataParamsInstances[vizwin];
 	vector<TwoDImageParams*> iparams = twoDImageParamsInstances[vizwin];
 	const float * extents = DataStatus::getInstance()->getExtents();
-	float tol = (extents[orientation+3]-extents[orientation])*0.003f;
+	float tol = (extents[orientation+3]-extents[orientation])*0.0001f;
 	for (int i = 0; i< dparams.size(); i++){
 		TwoDDataParams* p = dparams[i];
 		if (!p->isEnabled()) continue;

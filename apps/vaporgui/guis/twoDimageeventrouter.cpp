@@ -565,7 +565,7 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 		if (vizMgr->findCoincident2DSurface(viznum, 2, 
 			disp, mode))
 		{
-			MessageReporter::warningMsg("This 2D data surface coincides with another enabled 2D surface.\n%s\n",
+			MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the 2D data position in order to avoid rendering defects");
 		}
 	}
@@ -622,7 +622,7 @@ setTwoDEnabled(bool val, int instance){
 		int orientation = pParams->getOrientation();
 		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getTwoDMin(orientation),
 			pParams->isMappedToTerrain())){
-				MessageReporter::warningMsg("This 2D image surface coincides with another enabled 2D surface.\n%s\n",
+				MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the image position in order to avoid rendering defects");
 			}
 		performGuiChangeInstance(instance);
