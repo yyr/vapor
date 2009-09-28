@@ -87,13 +87,17 @@ reset(const char* newLogFileName){
 	if((strlen(newLogFileName) > 0) && (strcmp(newLogFileName, "stderr") != 0) &&
 			!debug_set ){
 		logFile = fopen(newLogFileName, "w");
-		if (!logFile) {
+		int retcode = 0;
+		//turn off buffering
+		if (logFile) retcode = setvbuf(logFile, 0, _IONBF , 2);
+		if (!logFile || retcode) {
 			std::string s("VAPoR session log file cannot be opened:\n");
 			s += newLogFileName;
 			s += "\n Choose another log file from user preferences";
 			doPopup(Error,s.c_str());
 			return;
 		}
+		
 	} else {
 		logFile = stderr;
 	}
