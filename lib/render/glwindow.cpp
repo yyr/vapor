@@ -635,7 +635,7 @@ getPixelData(unsigned char* data){
 	//
 	//else
 	//  {
-	glReadBuffer(GL_BACK_LEFT);
+	glReadBuffer(GL_BACK);
 	//  }
 	glDisable( GL_SCISSOR_TEST );
 

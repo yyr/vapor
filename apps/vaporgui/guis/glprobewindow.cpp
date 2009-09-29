@@ -269,7 +269,7 @@ getPixelData(int minx, int miny, int sizex, int sizey, unsigned char* data){
 	 // Must clear previous errors first.
 	while(glGetError() != GL_NO_ERROR);
 
-	glReadBuffer(GL_BACK_LEFT);
+	glReadBuffer(GL_BACK);
 	glDisable( GL_SCISSOR_TEST );
 	// Turn off texturing in case it is on - some drivers have a problem
 	// getting / setting pixels with texturing enabled.

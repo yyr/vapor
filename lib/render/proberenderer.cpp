@@ -371,8 +371,8 @@ void ProbeRenderer::popState(){
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glDrawBuffer(GL_BACK_LEFT);
-	glReadBuffer(GL_BACK_LEFT);
+	glDrawBuffer(GL_BACK);
+	glReadBuffer(GL_BACK);
 	printOpenGLError();
 }
 
