@@ -9,6 +9,8 @@ minLat=""
 maxLat=""
 xres=1024
 yres=768
+styles="styles=default"
+version="1.1"
 imageFile=""
 imageFormat="image/tiff"
 tempFile="tmpImage"
@@ -16,7 +18,7 @@ layer="bmng200406"
 host="http://www.nasa.network.com/wms"
 amp="&"
 decLLRegEx=^[\-+]?[0-9]+[\.]?[0-9]*$
-transparent="transparent=False"
+transparent="transparent=FALSE"
 debugMode=0
 map=""
 compression="-c none"
@@ -54,8 +56,6 @@ printUsage() {
       echo "          (may not work on all platforms)"
       echo "    -d"
       echo "          debug mode; do not delete temporary files"
-      echo "    -8"
-      echo "          force retrieved image to have 8-bits per sample-component"
 }
 
 
@@ -145,7 +145,7 @@ do
   -d) debugMode=1
       ;;
 
-  -t) transparent="transparent=True"
+  -t) transparent="transparent=TRUE"
       ;;
 
   -z) compression="-c lzw"
@@ -237,9 +237,11 @@ elif [ "${map}" = "UScounties" ] ; then
     depth="-depth 8"
 
 elif [ "${map}" = "world" ] ; then 
-    wmsLayer="COASTLINES,NATIONAL"
-    host="http://viz.globe.gov/viz-bin/wmt.cgi"
+    wmsLayer="1:1"
+    host="http://columbo.nrlssc.navy.mil/ogcwms/servlet/WMSServlet/Earth_Satellite_Corp_Maps.wms"
     imageFormat="image/png"
+    version="1.1.0"
+    styles=""
 
 elif [ "${map}" = "rivers" ] ; then
     wmsLayer="RIVERS"
@@ -280,8 +282,8 @@ echo "WMS URL:          " $host
 
 # compose the URL
 #
-url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version=1.1"${amp}"layers="${wmsLayer}
-url2="styles=default"${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
+url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version="${version}${amp}"layers="${wmsLayer}
+url2=${styles}${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
 url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"${amp}${transparent}
 url=${url1}${amp}${url2}${amp}${url3}
 
