@@ -371,8 +371,11 @@ void ProbeRenderer::popState(){
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glDrawBuffer(GL_BACK);
-	glReadBuffer(GL_BACK);
+
+// This code appears superflous and chokes on Mac OGL drivers
+//
+//	glDrawBuffer(GL_BACK);
+//	glReadBuffer(GL_BACK);
 	printOpenGLError();
 }
 
