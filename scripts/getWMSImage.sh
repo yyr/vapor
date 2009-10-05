@@ -21,7 +21,7 @@ decLLRegEx=^[\-+]?[0-9]+[\.]?[0-9]*$
 transparent="transparent=FALSE"
 debugMode=0
 map=""
-compression="-c none"
+compression="-compress none"
 depth=""
 
 
@@ -148,7 +148,7 @@ do
   -t) transparent="transparent=TRUE"
       ;;
 
-  -z) compression="-c lzw"
+  -z) compression="-compress lzw"
       ;;
 
   -8) depth="-depth 8"
@@ -302,7 +302,7 @@ fi
 #
 if [ "${imageFormat}" != "image/tiff" ] ; then
     mv ${tempFile} ${tempFile}2
-    cmd="convert ${depth} ${tempFile}2 tiff:${tempFile}"
+    cmd="convert ${compression} ${depth} ${tempFile}2 tiff:${tempFile}"
     echo ${cmd}
     ${cmd}
     if [ ${debugMode} -ne 1 ] ; then
@@ -313,7 +313,7 @@ fi
 # build this command in pieces -- the lon/lat min/max parameters need to appear
 # as one logical token on the command-line
 #
-cmd1="tiff2geotiff ${compression} -4 +proj=longlat -n"
+cmd1="tiff2geotiff -4 +proj=longlat -n"
 cmd2="${minLon} ${minLat} ${maxLon} ${maxLat}"
 cmd3="${tempFile} ${imageFile}"
 echo ${cmd1} ${cmd2} ${cmd3}
