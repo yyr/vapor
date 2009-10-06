@@ -56,9 +56,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"usertimes",	1,	"",	"Path to a file containing a whitespace "
 		"delineated list of user times. If present, -numts "
 		"option is ignored."}, 
-	{"mapprojection",	1,	"",	"A whitespace "
-		"delineated list of GeoTiff +paramname=paramvalue pairs. vdfcreate "
-		"does not validate the string for correctness in any way"},
+	{"mapprojection",	1,	"",	"A whitespace delineated, quoted list "
+        "of PROJ key/value pairs of the form '+paramname=paramvalue'. "
+		"vdfcreate does not validate the string for correctness."},
 	{"coordsystem",	1,	"cartesian","Data coordinate system "
 		"(cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector "

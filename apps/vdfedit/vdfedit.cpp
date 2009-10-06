@@ -58,8 +58,8 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"mapprojection",1,	"",			"A whitespace "
-        "delineated list of GeoTiff +paramname=paramvalue pairs. vdfedit "
+	{"mapprojection",1,	"",			"A whitespace delineated, quoted list "
+        "of PROJ key/value pairs of the form '+paramname=paramvalue'.  vdfedit "
         "does not validate the string for correctness in any way"},
 	{"addvars3d",1,	"",			"Colon delimited list of 3D variables to be\n\t\t\t\tadded to the VDF file"},
 	{"addvars2dxy",1,	"",			"Colon delimited list of 2D XY-plane variables to be\n\t\t\t\tadded to the VDF file"},
