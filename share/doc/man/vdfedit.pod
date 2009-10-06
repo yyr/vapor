@@ -65,6 +65,15 @@ added. If I<n> is zero the file is unchanged.
 This option specifies the increment, I<delta>, between time steps
 to be used when calculating the B<UserTime> VDF keyword. I<delta> is a floating point number. The default value is 1.0.
 
+=item -mapprojection E<lt>"proj_string"E<gt>
+
+This option specifies a map projection using a PROJ projection string.  This
+string must be enclosed in quotes, and consists of several keyword/value pairs
+of the form "+key=value".  The full set of PROJ key/value pairs can be found at the
+PROJ wiki http://trac.osgeo.org/proj/wiki . For example, a longitude/latitude projection on
+a spherical earth is specified as "+proj=latlong +ellps=sphere".  B<VAPOR>
+supports Lambert conformal conic, Mercator, Longitude/Latitude, and polar stereographic projections.
+B<vdfedit> does not validate the PROJ string for correctness. 
 
 =item -help 
 
