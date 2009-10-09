@@ -515,6 +515,30 @@ void GLWindow::initializeGL()
 		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
 		
 	}
+
+	SetDiagMsg(
+		"OpenGL Capabilities : GLEW_VERSION_2_0 %s",
+		GLEW_VERSION_2_0 ? "ok" : "missing"
+	);
+	SetDiagMsg(
+		"OpenGL Capabilities : GLEW_EXT_framebuffer_object %s",
+		GLEW_EXT_framebuffer_object ? "ok" : "missing"
+	);
+	SetDiagMsg(
+		"OpenGL Capabilities : GLEW_ARB_vertex_buffer_object %s",
+		GLEW_ARB_vertex_buffer_object ? "ok" : "missing"
+	);
+	SetDiagMsg(
+		"OpenGL Capabilities : GLEW_ARB_multitexture %s",
+		GLEW_ARB_multitexture ? "ok" : "missing"
+	);
+	SetDiagMsg(
+		"OpenGL Capabilities : GLEW_ARB_shader_objects %s",
+		GLEW_ARB_shader_objects ? "ok" : "missing"
+	);
+
+
+
 	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
