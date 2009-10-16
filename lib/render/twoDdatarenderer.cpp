@@ -105,11 +105,12 @@ void TwoDDataRenderer::paintGL()
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
-		if(myTwoDParams->getLastTwoDTexture() != twoDTex) {//need to reset the texture object; otherwise no change needed
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTex);
-		}
+//		Following is done every render because of interference with Probe ibfv renderer
+//      We should fix this to use texture objects properly
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, twoDTex);
+//
 		myTwoDParams->setLastTwoDTexture(twoDTex);
 		//Do write to the z buffer
 		glDepthMask(GL_TRUE);
