@@ -46,8 +46,8 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"numts",	1, 	"1",			"Number of timesteps in the data set"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor "
 		"expressed in grid points (NXxNYxNZ)"},
-	{"level",	1, 	"0",			"Number of approximation levels. "
-		"0 => no approximations"},
+	{"level",	1, 	"0",		"Number of approximation levels in hierarchy. "
+		"0 => no approximations, 1 => one approximation, and so on"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
 	{"comment",	1,	"",				"Top-level comment to be included in VDF"},
