@@ -154,28 +154,7 @@ void TwoDDataRenderer::paintGL()
 
 bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	//Reconstruct the elevation grid.
-	//First, check that the cache is OK:
-	if (!elevVert){
-		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
-		elevVert = new float*[numElevTimesteps];
-		elevNorm = new float*[numElevTimesteps];
-		maxXElev = new int[numElevTimesteps];
-		maxYElev = new int[numElevTimesteps];
-		minXTex = new float[numElevTimesteps];
-		minYTex = new float[numElevTimesteps];
-		maxXTex = new float[numElevTimesteps];
-		maxYTex = new float[numElevTimesteps];
-		for (int i = 0; i< numElevTimesteps; i++){
-			elevVert[i] = 0;
-			elevNorm[i] = 0;
-			maxXElev[i] = 0;
-			maxYElev[i] = 0;
-			minXTex[i] = 0.f;
-			maxXTex[i] = 1.f;
-			minYTex[i] = 0.f;
-			maxYTex[i] = 1.f;
-		}
-	}
+	
 
 	//find the grid coordinate ranges
 	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
@@ -202,8 +181,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		origRegMax[i] = regMax[i];
 		//Test for empty box:
 		if (regMax[i] <= regMin[i]){
-			maxXElev[timeStep] = 0;
-			maxYElev[timeStep] = 0;
+			maxXElev = 0;
+			maxYElev = 0;
 			return false;
 		}
 
@@ -265,11 +244,16 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	//Then create arrays to hold the vertices and their normals:
 	//Make each size be grid size + 2. 
-	int maxx = maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
-	int maxy = maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
-	elevVert[timeStep] = new float[3*maxx*maxy];
-	elevNorm[timeStep] = new float[3*maxx*maxy];
-
+	int maxx = maxXElev = max_dim[0] - min_dim[0] +1;
+	int maxy = maxYElev = max_dim[1] - min_dim[1] +1;
+	if (elevVert) {
+		delete elevVert; 
+		delete elevNorm;
+	}
+	
+	elevVert = new float[3*maxx*maxy];
+	elevNorm = new float[3*maxx*maxy];
+	cachedTimeStep = timeStep;
 	float deltax = (regMax[0]-regMin[0])/(maxx-1); 
 	float deltay = (regMax[1]-regMin[1])/(maxy-1); 
 
@@ -277,35 +261,35 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	//map exactly to the original region bounds
 
 	if (regMin[0] < origRegMin[0] && regMax[0] > origRegMax[0]){
-		minXTex[timeStep] = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
-		maxXTex[timeStep] = minXTex[timeStep] + deltax*(maxx-3)/(origRegMax[0]-origRegMin[0]);
+		minXTex = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+		maxXTex = minXTex + deltax*(maxx-3)/(origRegMax[0]-origRegMin[0]);
 	} else if (regMin[0] < origRegMin[0]){
-		minXTex[timeStep] = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
-		maxXTex[timeStep] = 1.f;
+		minXTex = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+		maxXTex = 1.f;
 	} else if (regMax[0] > origRegMax[0]){
-		minXTex[timeStep] = 0.f;
-		maxXTex[timeStep] = deltax*(maxx-2)/(origRegMax[0]-origRegMin[0]);
+		minXTex = 0.f;
+		maxXTex = deltax*(maxx-2)/(origRegMax[0]-origRegMin[0]);
 	} else {
-		minXTex[timeStep] = 0.f;
-		maxXTex[timeStep] = 1.f;
+		minXTex = 0.f;
+		maxXTex = 1.f;
 	}
-	assert (maxXTex[timeStep] <= 1.f && maxXTex[timeStep] >= 0.f);
-	assert (minXTex[timeStep] <= 1.f && minXTex[timeStep] >= 0.f);
+	assert (maxXTex <= 1.f && maxXTex >= 0.f);
+	assert (minXTex <= 1.f && minXTex >= 0.f);
 	if (regMin[1] < origRegMin[1] && regMax[1] > origRegMax[1]){
-		minYTex[timeStep] = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
-		maxYTex[timeStep] =  minYTex[timeStep] + deltay*(maxy-3)/(origRegMax[1]-origRegMin[1]);
+		minYTex = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
+		maxYTex =  minYTex + deltay*(maxy-3)/(origRegMax[1]-origRegMin[1]);
 	} else if (regMin[1] < origRegMin[1]){
-		minYTex[timeStep] = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
-		maxYTex[timeStep] = 1.f;
+		minYTex = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
+		maxYTex = 1.f;
 	} else if (regMax[1] > origRegMax[1]){
-		minYTex[timeStep] = 0.f;
-		maxYTex[timeStep] = deltay*(maxy-2)/(origRegMax[1]-origRegMin[1]);
+		minYTex = 0.f;
+		maxYTex = deltay*(maxy-2)/(origRegMax[1]-origRegMin[1]);
 	} else {
-		minYTex[timeStep] = 0.f;
-		maxYTex[timeStep] = 1.f;
+		minYTex = 0.f;
+		maxYTex = 1.f;
 	}
-	assert (maxYTex[timeStep] <= 1.f && maxYTex[timeStep] >= 0.f);
-	assert (minYTex[timeStep] <= 1.f && minYTex[timeStep] >= 0.f);
+	assert (maxYTex <= 1.f && maxYTex >= 0.f);
+	assert (minYTex <= 1.f && minYTex >= 0.f);
 
 
 	//Then loop over all the vertices in the Elevation or HGT data. 
@@ -343,12 +327,12 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
 			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
 			//Convert and put results into elevation grid vertices:
-			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
+			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){
-				if( *(elevVert[timeStep] + pntPos+k) > maxvals[k])
-					maxvals[k] = *(elevVert[timeStep] + pntPos+k);
-				if( *(elevVert[timeStep] + pntPos+k) < minvals[k])
-					minvals[k] = *(elevVert[timeStep] + pntPos+k);
+				if( *(elevVert + pntPos+k) > maxvals[k])
+					maxvals[k] = *(elevVert + pntPos+k);
+				if( *(elevVert + pntPos+k) < minvals[k])
+					minvals[k] = *(elevVert + pntPos+k);
 			}
 		}
 	}

@@ -43,11 +43,14 @@ public:
 	
 protected:
 	GLuint _twoDid;
-	int numElevTimesteps;
-	//Cached elevation grid (one for each time step)
-	int *maxXElev, *maxYElev; // size for each time step
-	float** elevVert, **elevNorm;
-	float *maxXTex, *minXTex, *maxYTex, *minYTex;
+	
+	//cache elev grid is just for a single time step
+	//If cachedTimeStep is < 0 or not the current time step, then it's invalid.
+	int maxXElev, maxYElev;
+	int cachedTimeStep;
+	float *elevVert, *elevNorm;
+	float maxXTex, minXTex, maxYTex, minYTex;
+
 	
 	void invalidateElevGrid();
 	void drawElevationGrid(size_t timestep);

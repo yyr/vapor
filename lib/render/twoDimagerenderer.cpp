@@ -197,36 +197,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//It may or may not be terrain following.  
 	//The following code assumes horizontal orientation and a defined
 	//map projection.
-	//First, set up the cache if necessary:
-	if (!elevVert){
-		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
-		//Following arrays hold vertices and normals
-		elevVert = new float*[numElevTimesteps];
-		elevNorm = new float*[numElevTimesteps];
-		//maxXelev, maxYelev are the dimensions of the elevation grid
-		maxXElev = new int[numElevTimesteps];
-		maxYElev = new int[numElevTimesteps];
-		//minXTex, minYTex are min/max texture coordinates (between 0 and 1).
-		//tex coords will be uniformly spaced (only the vertex coords are moved)
-		minXTex = new float[numElevTimesteps];
-		minYTex = new float[numElevTimesteps];
-		maxXTex = new float[numElevTimesteps];
-		maxYTex = new float[numElevTimesteps];
-		for (int i = 0; i< numElevTimesteps; i++){
-			elevVert[i] = 0;
-			elevNorm[i] = 0;
-			maxXElev[i] = 0;
-			maxYElev[i] = 0;
-			minXTex[i] = 0.f;
-			maxXTex[i] = 1.f;
-			minYTex[i] = 0.f;
-			maxYTex[i] = 1.f;
-		}
-	}
 
 	//Specify the parameters that are needed to define the elevation grid:
-
-	
 
 	//Determine the grid size, the data extents, and the image size:
 	DataStatus* ds = DataStatus::getInstance();
@@ -270,17 +242,20 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	// how large a grid to use. 
 
 	int maxx, maxy;
-	maxXElev[timeStep] = maxx = gridsize[0] +1;
-	maxYElev[timeStep] = maxy = gridsize[1] +1;
-	
-	elevVert[timeStep] = new float[3*maxx*maxy];
-	elevNorm[timeStep] = new float[3*maxx*maxy];
-	
+	maxXElev = maxx = gridsize[0] +1;
+	maxYElev = maxy = gridsize[1] +1;
+	if (elevVert){
+		delete elevVert;
+		delete elevNorm;
+	}
+	elevVert = new float[3*maxx*maxy];
+	elevNorm = new float[3*maxx*maxy];
+	cachedTimeStep = timeStep;
 	//texture coordinate range goes from 0 to 1
-	minXTex[timeStep] = 0.f;
-	maxXTex[timeStep] = 1.f;
-	minYTex[timeStep] = 0.f;
-	maxYTex[timeStep] = 1.f;
+	minXTex = 0.f;
+	maxXTex = 1.f;
+	minYTex = 0.f;
+	maxYTex = 1.f;
 
 	
 	float minvals[3], maxvals[3];
@@ -379,7 +354,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		double* elevVertLine = new double[3*maxx];
 		float locCoords[3];
 		const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
-	
+		
 		for (int j = 0; j<maxy; j++){
 			
 			for (int i = 0; i<maxx; i++){
@@ -454,12 +429,12 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				}
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:
-				ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
+				ViewpointParams::worldToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
 				for (int k = 0; k< 3; k++){
-					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
-						maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
-					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
-						minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+					if( *(elevVert + 3*(i+j*maxx)+k) > maxvals[k])
+						maxvals[k] = *(elevVert + 3*(i+j*maxx)+k);
+					if( *(elevVert + 3*(i+j*maxx)+k) < minvals[k])
+						minvals[k] = *(elevVert + 3*(i+j*maxx)+k);
 				}
 			
 		
@@ -515,12 +490,12 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:
-				ViewpointParams::worldToStretchedCube(locCoords,elevVert[timeStep]+3*(i+j*maxx));
+				ViewpointParams::worldToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
 				for (int k = 0; k< 3; k++){
-					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) > maxvals[k])
-						maxvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
-					if( *(elevVert[timeStep] + 3*(i+j*maxx)+k) < minvals[k])
-						minvals[k] = *(elevVert[timeStep] + 3*(i+j*maxx)+k);
+					if( *(elevVert + 3*(i+j*maxx)+k) > maxvals[k])
+						maxvals[k] = *(elevVert + 3*(i+j*maxx)+k);
+					if( *(elevVert + 3*(i+j*maxx)+k) < minvals[k])
+						minvals[k] = *(elevVert + 3*(i+j*maxx)+k);
 				}
 			
 			}

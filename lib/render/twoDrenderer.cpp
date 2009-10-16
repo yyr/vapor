@@ -45,7 +45,7 @@ TwoDRenderer::TwoDRenderer(GLWindow* glw, TwoDParams* pParams )
 	maxXElev = maxYElev = 0;
 	elevVert = 0;
 	elevNorm = 0;
-	numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
+	cachedTimeStep = -1;
 	pParams->setLastTwoDTexture(0);
 }
 
@@ -89,7 +89,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	TwoDParams* tParams = (TwoDParams*)currentRenderParams;
 	//First, check if we have already constructed the elevation grid vertices.
 	//If not, rebuild them:
-	if (!elevVert || !elevVert[timeStep]) {
+	if (!elevVert || (timeStep!= cachedTimeStep)) {
 		//Don't try to rebuild if we failed already..
 		if (doBypass(timeStep)) return;
 		
@@ -99,13 +99,13 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 		}
 
 	}
-	int maxx = maxXElev[timeStep];
-	int maxy = maxYElev[timeStep];
+	int maxx = maxXElev;
+	int maxy = maxYElev;
 	if (maxx < 2 || maxy < 2) return;
-	float firstx = minXTex[timeStep];
-	float firsty = minYTex[timeStep];
-	float lastx = maxXTex[timeStep];
-	float lasty = maxYTex[timeStep];
+	float firstx = minXTex;
+	float firsty = minYTex;
+	float lastx = maxXTex;
+	float lasty = maxYTex;
 	//Establish clipping planes:
 	GLdouble topPlane[] = {0., -1., 0., 1.};
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
@@ -240,13 +240,13 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j).  Only send 2 at a time.
 			//
 
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxx));
+			glNormal3fv(elevNorm+3*(i+(j+1)*maxx));
 			glTexCoord2f(tcrdx,tcrdyp);
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxx));
+			glVertex3fv(elevVert+3*(i+(j+1)*maxx));
 			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxx));
+			glNormal3fv(elevNorm+3*(i+j*maxx));
 			glTexCoord2f(tcrdx,tcrdy);
-			glVertex3fv(elevVert[timeStep]+3*(i+j*maxx));
+			glVertex3fv(elevVert+3*(i+j*maxx));
 			
 		}
 		glEnd();
@@ -274,32 +274,16 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 }
 
 
-//Invalidate array.  Set pointers to zero before deleting so we
-//can't accidentally get trapped with bad pointer.
+//Invalidate elevation grid data  
 void TwoDRenderer::invalidateElevGrid(){
 	
 	if (elevVert){
-		for (int i = 0; i<numElevTimesteps; i++){
-			if (elevVert[i]){
-				float * elevPtr = elevVert[i];
-				elevVert[i] = 0;
-				delete elevPtr;
-				delete elevNorm[i];
-				elevNorm[i] = 0;
-			}
-		}
-		float ** tmpArray = elevVert;
+		delete elevVert;
+		delete elevNorm;	
 		elevVert = 0;
-		delete tmpArray;
-		delete elevNorm;
 		elevNorm = 0;
-		delete minXTex;
-		delete minYTex;
-		delete maxXTex;
-		delete maxYTex;
-		delete maxXElev;
-		delete maxYElev;
 	}
+	cachedTimeStep = -1;
 }
 
 //Once the elevation grid vertices are determined, calculate the normals.  Use the stretched
@@ -313,14 +297,14 @@ void TwoDRenderer::invalidateElevGrid(){
 //adjacent vertices will be miniscule
 void TwoDRenderer::calcElevGridNormals(size_t timeStep){
 	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
-	int maxx = maxXElev[timeStep];
-	int maxy = maxYElev[timeStep];
+	int maxx = maxXElev;
+	int maxy = maxYElev;
 	//Go over the grid of vertices, calculating normals
 	//by looking at adjacent x,y,z coords.
 	for (int j = 0; j < maxy; j++){
 		for (int i = 0; i< maxx; i++){
-			float* point = elevVert[timeStep]+3*(i+maxx*j);
-			float* norm = elevNorm[timeStep]+3*(i+maxx*j);
+			float* point = elevVert+3*(i+maxx*j);
+			float* norm = elevNorm+3*(i+maxx*j);
 			//do differences of right point vs left point,
 			//except at edges of grid just do differences
 			//between current point and adjacent point:
