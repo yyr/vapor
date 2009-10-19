@@ -275,7 +275,7 @@ getTwoDVoxelExtents(float voxdims[2]){
 	voxdims[1] = twoDMax[ycrd] - twoDMin[ycrd];
 	return;
 }
-
+//Find distance from camera to planar surface, in stretched coordinates
 float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, int){
 	//Intersect surface with camera ray.  If no intersection, just shoot ray from
 	//camera to surface center.
@@ -292,29 +292,43 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 		if (hgtvar >= 0)
 			ht =  0.1f*ds->getDefaultDataMax2D(hgtvar);
 	}
+	//Stretch coordinates of everything:
+	float cPos[3];
+	float tdmin[3];
+	float tdmax[3];
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++){
+		cPos[i] = stretch[i]*camPos[i];
+		tdmin[i] = twoDMin[i]*stretch[i];
+		tdmax[i] = twoDMax[i]*stretch[i];
+	}
+	
+	ht *= stretch[orientation];
+
+
 	//Find parameter T (position along ray) so that camPos+T*camDir intersects plane
-	float T = (twoDMin[orientation]+ ht - camPos[orientation])/camDir[orientation];
+	float T = (tdmin[orientation]+ ht - cPos[orientation])/camDir[orientation];
 	if (T < 0.f) return 1.e30f;  //intersection is behind camera
 
 	//Test if resulting point is inside twoD extents:
 	float hitPoint[3];
-	for (int i = 0; i<3; i++) hitPoint[i] = camPos[i]+T*camDir[i];
+	for (int i = 0; i<3; i++) hitPoint[i] = cPos[i]+T*camDir[i];
 
 	int i1 = (orientation+1)%3;
 	int i2 = (orientation+2)%3;
 
-	if (hitPoint[i1] >= twoDMin[i1] && hitPoint[i2] >= twoDMin[i2] &&
-		hitPoint[i1] <= twoDMax[i1] && hitPoint[i2] <= twoDMax[i2])
+	if (hitPoint[i1] >= tdmin[i1] && hitPoint[i2] >= tdmin[i2] &&
+		hitPoint[i1] <= tdmax[i1] && hitPoint[i2] <= tdmax[i2])
 	{
 		//OK, we are in:
-		return vdist(camPos, hitPoint);
+		return vdist(cPos, hitPoint);
 	}
 	//Otherwise, find distance to center:
 	for (int i = 0; i<3; i++){
-		hitPoint[i] = 0.5f*(twoDMin[i]+twoDMax[i]);
+		hitPoint[i] = 0.5f*(tdmin[i]+tdmax[i]);
 	}
-	hitPoint[orientation] += ht;
-	return (vdist(camPos, hitPoint));
+	hitPoint[orientation] += ht*stretch[orientation];
+	return (vdist(cPos, hitPoint));
 
 	/*  Following code gets closest point.  Doesn't always help order geometry for transparency
 	const float* camPos = vpParams->getCameraPos();

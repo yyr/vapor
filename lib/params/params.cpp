@@ -462,7 +462,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	return reg;
 }
 	
-//Default camera distance just finds distance to region box.
+//Default camera distance just finds distance to region box in stretched coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
 
 	//Intersect region with camera ray.  If no intersection, just shoot ray from
@@ -470,24 +470,34 @@ float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, i
 	const float* camPos = vpp->getCameraPos();
 	const float* camDir = vpp->getViewDir();
 	const float* regExts = rpp->getRegionExtents(timestep);
+
+	//Stretch everything:
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	float cPos[3], rExts[6];
+	for (int i = 0; i<3; i++){
+		cPos[i] = camPos[i]*stretch[i];
+		rExts[i] = regExts[i]*stretch[i];
+		rExts[i+3] = regExts[i+3]*stretch[i];
+	}
 	float hitPoint[3];
+	
 	//Solve for intersections with 6 planar sides of region, find smallest.
 	float minDist = 1.e30f;
 	
 	for (int i = 0; i< 6; i++){
 		if (camDir[i%3] == 0.f) continue;
 		//Find parameter T (position along ray) so that camPos+T*camDir intersects plane
-		float T = (regExts[i] - camPos[i%3])/camDir[i%3];
+		float T = (rExts[i] - cPos[i%3])/camDir[i%3];
 		if (T < 0.f) continue;
 		for (int k = 0; k<3; k++)
-			hitPoint[k] = camPos[k]+T*camDir[k];
+			hitPoint[k] = cPos[k]+T*camDir[k];
 		// Check if hitpoint is inside face:
 		int i1 = (i+1)%3;
 		int i2 = (i+2)%3;
-		if (hitPoint[i1] >= regExts[i1] && hitPoint[i2] >= regExts[i2] &&
-			hitPoint[i1] <= regExts[i1+3] && hitPoint[i2] <= regExts[i2+3])
+		if (hitPoint[i1] >= rExts[i1] && hitPoint[i2] >= rExts[i2] &&
+			hitPoint[i1] <= rExts[i1+3] && hitPoint[i2] <= rExts[i2+3])
 		{
-			float dist = vdist(hitPoint, camPos);
+			float dist = vdist(hitPoint, cPos);
 			minDist = Min(dist, minDist);
 		}
 	}
@@ -498,22 +508,22 @@ float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, i
 	//Otherwise, find ray that points to center, and intersect it with region
 	float rayDir[3];
 	for (int i = 0; i<3; i++){
-		rayDir[i] = 0.5f*(regExts[i]+regExts[i+3]) - camPos[i];
+		rayDir[i] = 0.5f*(rExts[i]+rExts[i+3]) - cPos[i];
 	}
 	for (int i = 0; i< 6; i++){
 		if (rayDir[i%3] == 0.f) continue;
 		//Find parameter T (position along ray) so that camPos+T*rayDir intersects plane
-		float T = (regExts[i] - camPos[i%3])/rayDir[i%3];
+		float T = (rExts[i] - cPos[i%3])/rayDir[i%3];
 		if (T < 0.f) continue;
 		for (int k = 0; k<3; k++)
-			hitPoint[k] = camPos[i]+T*rayDir[i];
+			hitPoint[k] = cPos[i]+T*rayDir[i];
 		// Check if hitpoint is inside face:
 		int i1 = (i+1)%3;
 		int i2 = (i+2)%3;
-		if (hitPoint[i1] >= regExts[i1] && hitPoint[i2] >= regExts[i2] &&
-			hitPoint[i1] <= regExts[i1+3] && hitPoint[i2] <= regExts[i2+3])
+		if (hitPoint[i1] >= rExts[i1] && hitPoint[i2] >= rExts[i2] &&
+			hitPoint[i1] <= rExts[i1+3] && hitPoint[i2] <= rExts[i2+3])
 		{
-			float dist = vdist(hitPoint, camPos);
+			float dist = vdist(hitPoint, cPos);
 			minDist = Min(dist, minDist);
 		}
 	}

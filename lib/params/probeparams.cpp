@@ -2038,7 +2038,7 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	return numfound;
 	
 }
-
+//Find camera distance to probe in stretched coordinates
 float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
 	//Intersect probe with ray from camera
 	//Rotate camPos and camDir to probe coordinate system,
@@ -2058,29 +2058,38 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	vtransform3t(camDir,rotMatrix,localCamDir);
 	//Now intersect ray with probe:
 	if (localCamDir[2] == 0.f) return 1.e30f;
+	//Apply stretch factors to camPos and probe dimensions
+	//and stretch everything:
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	float cPos[3], pMin[3],pMax[3];
+	for (int i = 0; i<3; i++){
+		cPos[i] = localCamPos[i]*stretch[i];
+		pMin[i] = probeMin[i]*stretch[i];
+		pMax[i] = probeMax[i]*stretch[i];
+	}
 	
 	//Find parameter T (position along ray) so that camPos+T*camDir intersects xy plane
-	float T = -localCamPos[2]/localCamDir[2];
+	float T = -cPos[2]/localCamDir[2];
 	if (T < 0.f) return 1.e30f;  //intersection is behind camera
 
 	//Test if resulting point is inside translated probe extents:
 	float hitPoint[3];
-	for (int i = 0; i<3; i++) hitPoint[i] = localCamPos[i]+T*localCamDir[i];
-	float probeHWidth = 0.5f*(probeMax[0]-probeMin[0]);
-	float probeHHeight = 0.5f*(probeMax[1]-probeMin[1]);
+	for (int i = 0; i<3; i++) hitPoint[i] = cPos[i]+T*localCamDir[i];
+	float probeHWidth = 0.5f*(pMax[0]-pMin[0]);
+	float probeHHeight = 0.5f*(pMax[1]-pMin[1]);
 	//Test if localCamPos is in (x,y) bounds of probe:
 	if ( abs(hitPoint[0]) <= probeHWidth &&
 		abs(hitPoint[1]) <= probeHHeight ){
 		//We are in
-		return vdist(localCamPos, hitPoint);
+		return vdist(cPos, hitPoint);
 	}
 
-	//Otherwise, find distance to center, back in original system:
+	//Otherwise, find distance to center, back in original system, stretched:
 	for (int i = 0; i<3; i++){
-		hitPoint[i] = 0.5f*(probeMin[i]+probeMax[i]);
+		hitPoint[i] = 0.5f*(pMin[i]+pMax[i]);
 	}
-	
-	return (vdist(camPos, hitPoint));
+	for (int i = 0; i<3; i++) cPos[i] = camPos[i]*stretch[i];
+	return (vdist(cPos, hitPoint));
 
 
 	/* following doesn't work very well:
