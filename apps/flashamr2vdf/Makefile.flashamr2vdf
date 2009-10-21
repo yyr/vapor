@@ -18,6 +18,7 @@ MAKEFILE_LDFLAGS += -L$(HDF5_LIB_PATH)
 endif
 endif
 
+MAKEFILE_CXXFLAGS += -DH5Dopen_vers=1
 
 LIBRARIES = common vdf hdf5 netcdf $(EXPAT_LIB)
 
