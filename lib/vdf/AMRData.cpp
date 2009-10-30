@@ -96,7 +96,10 @@ void AMRData::_AMRData(
 		}
     }
 
-	if (reflevel<0 || reflevel>tree->GetRefinementLevel(min,max)) {
+//	if (reflevel<0 || reflevel>tree->GetRefinementLevel(min,max)) {
+//		reflevel = tree->GetRefinementLevel(min, max);
+//	}
+	if (reflevel<0) {
 		reflevel = tree->GetRefinementLevel(min, max);
 	}
 
