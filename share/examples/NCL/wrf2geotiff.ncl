@@ -24,6 +24,7 @@ _wrf2geotiff_GROWSIZE = 10
 ;
 undef("wrf2geotiff_open")
 function wrf2geotiff_open(wks)
+local class
 begin
     if (_wrf2geotiff_DEBUG .eq. True) then
         print("wrf2geotiff_open")
@@ -82,6 +83,7 @@ end
 ;
 undef("_wrf2geotiff_growArrays")
 procedure _wrf2geotiff_growArrays(tcVar)
+local atts, i, currSize, newSize, tmp
 begin
   if (_wrf2geotiff_DEBUG .eq. True) then
       print("_wrf2geotiff_growArrays(): growing arrays sizes...")
@@ -111,11 +113,13 @@ end
 ;
 undef("_wrf2geotiff_getProj4Str")
 function _wrf2geotiff_getProj4Str(wrfFile)
+local proj, lon0, lat0, lat1, lat2, projStr, northSouth, stdLon, trueLat, poleLat
 begin
     proj = wrfFile@MAP_PROJ
 
     if (proj .eq. 1) then  ; Lambert Conformal
         lon0 = " +lon_0=" + wrfFile@STAND_LON
+        lat0 = " +lat_0=" + wrfFile@MOAD_CEN_LAT
         lat1 = " +lat_1=" + wrfFile@TRUELAT1
         lat2 = " +lat_2=" + wrfFile@TRUELAT2
         projStr = " +proj=lcc +ellps=sphere" + lon0 + lat0 + lat1 + lat2
@@ -170,6 +174,7 @@ end
 ;
 undef("_wrf2geotiff_validateProj4String")
 function _wrf2geotiff_validateProj4String(tcVar)
+local quote, proj4Str
 begin
    quote = inttochar(34)
    if (tcVar@numPlots .eq. 0) then
@@ -197,7 +202,6 @@ end
 ;
 undef("_wrf2geotiff_getDevVP")
 function _wrf2geotiff_getDevVP(wks:graphic,plot:graphic)
-
 local class, vp, dc, orient, dvp
 begin
 
@@ -274,6 +278,7 @@ end
 ;
 undef("wrf2geotiff_write")
 procedure wrf2geotiff_write(tcVar, wrfFile, time, wks:graphic, plot:graphic, crop:logical)
+local plotNum, currSizes, vp, xy, yf, width, height, xNDC, yNDC, xWorld, yWorld, slop
 begin
    if (_wrf2geotiff_DEBUG .eq. True) then
        print("wrf2geotiff_write")
@@ -378,6 +383,9 @@ end
 ;
 undef("wrf2geotiff_close")
 procedure wrf2geotiff_close(tcVar, wks:graphic)
+local plotFile, outputScale, wksId, tmpfile, tmpfileRoot, cmd, outStrings, quote, numPages, i, rotation, \
+      cropStr, w, h, x, y, pageLX, pageRX, pageTY, pageBY, \
+      outFilesRoot, suffix, plotFileLen, chr, multiTiff, multiGTiff, dataFile, proj4String
 begin
    if (_wrf2geotiff_DEBUG .eq. True) then
        print("wrf2geotiff_close")
@@ -466,7 +474,7 @@ begin
 
    ; need a filename root for naming several files in the following...
    outFilesRoot = plotFile
-   suffix = indStrSubset(changeCase(plotFile, "low"), ".ps") 
+   suffix = indStrSubset(str_lower(plotFile), ".ps") 
    ; furthermore, make sure our substring is indeed a suffix...
    plotFileLen = strlen(plotFile)
    if (.not.any(ismissing(suffix)) .and. ((plotFileLen-1) .eq. suffix(dimsizes(suffix)-1))) then
