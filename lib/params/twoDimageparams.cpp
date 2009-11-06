@@ -721,7 +721,13 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 void TwoDImageParams::setupImageNums(TIFF* tif){
 	//Initialize to zeroes
 	imageNums = new int[maxTimestep + 1];
-	for (int i = 0; i<=maxTimestep; i++) imageNums[i] = 0;
+	//Set up array to hold time differences:
+	TIME64_T *timeDifference = new TIME64_T[maxTimestep+1];
+	for (int i = 0; i<=maxTimestep; i++) {
+		imageNums[i] = 0;
+		timeDifference[i] = 0;
+	}
+	
 	singleImage = false;
 	int rc;
 	char* timePtr = 0;
@@ -786,6 +792,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 				if (minTimeDiff == 0) break;
 			}
 			imageNums[i] = bestpos;
+			timeDifference[i] = minTimeDiff;
 		}
 		//Count the number of different images that are referenced:
 		
@@ -796,7 +803,8 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	}
 	
 	if (timesOK){
-		//Issue a warning if there is only one image used, or if there are more images than timesteps
+		//Issue a warning if there is only one image used, or if there are more images than timesteps.
+		//Also if there are multiple images and some do not exactly match the times
 		if (dircount > 1 && numDiffImages == 0)
 			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"%d images found in %s, but only 1 was matched to time stamps ", dircount, imageFileName.c_str());
 		else
@@ -805,6 +813,20 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 			MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"Number of images %d in %s is greater than %d time steps in data.\n%s", dircount, imageFileName.c_str(),
 				maxTimestep+1, "Only one image will be displayed at each time step");
 		}
+		if (dircount > 1 && numDiffImages > 0){//look for time mismatches
+			int numUnmatched = 0;
+			TIME64_T maxDiff = 0;
+			for (int i = 0; i<maxTimestep; i++){
+				if (timeDifference[i] != 0) numUnmatched++;
+				if (timeDifference[i] > maxDiff) maxDiff = timeDifference[i];
+			}
+			if (maxDiff != 0){
+				MyBase::SetErrMsg(VAPOR_WARNING_TWO_D,"Time mismatch in images from %s.\n %d time steps do not match image times.\n Maximum mismatch is %d seconds", 
+					imageFileName.c_str(),
+					numUnmatched, maxDiff);
+			}
+		}
+
 	} else { //Don't use time stamps, just count the images:
 		dircount = 0;
 		do {
@@ -824,7 +846,7 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 				maxTimestep+1, "At most one image will be displayed per time step");
 		}
 	}
-		
+	delete [] timeDifference;
 	return;
 }
 //Determine the image corners (from lower-left, clockwise) in local coords.
