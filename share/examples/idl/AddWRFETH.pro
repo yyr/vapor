@@ -80,7 +80,7 @@ IF (repeatvariables EQ 0) THEN newvarnames[numvars-1] = 'ETH_'
 ;
 if (repeatvariables EQ 0) THEN BEGIN
 	if(nvarnames2dxy gt 0) THEN BEGIN 
-		vdf_setvarnames,mfd,newvarnames
+		vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
 		vdf_setvariables2dXY,mfd,varnames2dxy
 	ENDIF ELSE BEGIN
 		vdf_setvarnames,mfd,newvarnames

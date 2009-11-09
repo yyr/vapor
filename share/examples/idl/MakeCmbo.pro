@@ -102,7 +102,7 @@ print,'The 3D variable names in the vdf will be: ',newvarnames
 ;
 if (isinvariables EQ 0) THEN BEGIN
 	if(nvarnames2dxy gt 0) THEN BEGIN
-		vdf_setvarnames,mfd,newvarnames
+		vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
 		vdf_setvariables2dxy,mfd,varnames2dxy
 	ENDIF ELSE BEGIN
 		vdf_setvarnames,mfd,newvarnames

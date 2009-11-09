@@ -91,7 +91,7 @@ endif
 
 numvarsarray = size(varnames)
 numvars = newnum + numvarsarray[1]
-newvarnames = strarr(numvars)
+newvarnames = strarr(numvars+nvarnames2dxy)
 ;   Need to make sure these are not in the list!
 repeatvariables = 0
 print, 'numvars = ',numvars
@@ -126,9 +126,9 @@ ENDIF
 ;
 ;   reset the varnames in mfd to the new value:
 ;
-if (repeatvariables EQ 0) THEN BEGIN
+IF (repeatvariables EQ 0) THEN BEGIN
 	if(nvarnames2dxy gt 0) THEN BEGIN
-		vdf_setvarnames,mfd,newvarnames
+		vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
 		vdf_setvariables2dXY,mfd,varnames2dxy
 	ENDIF ELSE BEGIN
 		vdf_setvarnames,mfd,newvarnames
