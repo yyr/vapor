@@ -7,7 +7,6 @@
 
 #include <vapor/MyBase.h>
 #include <vapor/EasyThreads.h>
-#include <vapor/Metadata.h>
 
 #include "Lifting1D.h"
 

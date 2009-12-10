@@ -59,7 +59,7 @@ namespace VAPoR {
 //! \sa AMRTree
 //
 
-class AMRData : public VetsUtil::MyBase {
+class AMRData : public  VetsUtil::MyBase {
 
 public:
 
@@ -119,6 +119,10 @@ public:
 	int reflevel = -1
  );
 
+ AMRData(
+	const AMRTree *tree
+ );
+
  //! Constructor an AMRData object from a Paramesh (FLASH) AMR data set.
  //!
  //! Construct block structured AMR grid data object using a Paramesh
@@ -150,7 +154,7 @@ public:
 	int reflevel = -1
  );
 
- virtual ~AMRData();
+ virtual ~AMRData() {_AMRDataFree();};
 
  //! Change the spatial region of interest
  //!
@@ -226,6 +230,17 @@ public:
     const string &path,
 	int reflevel = -1
  );
+ int ReadNCDF(
+    const string &path,
+	const size_t bmin[3],
+	const size_t bmax[3],
+	int reflevel = -1
+ );
+
+ int ReadAttributesNCDF(
+	const string &path, size_t cell_dim[3], size_t min[3],  size_t max[3],
+	float data_range[2], int &reflevel, size_t &num_nodes
+ ) const;
 
 
  //! Get a block of data from the AMR grid
@@ -296,7 +311,6 @@ private:
  static const string _varToken;
  static const string _blockMinToken;
  static const string _blockMaxToken;
- static const string _cellDimToken;
  static const string _refinementLevelToken;
  static const string _scalarRangeToken;
 			
@@ -316,6 +330,8 @@ private:
 	const size_t max[3],
 	int reflevel = -1
  );
+
+ void	_AMRDataFree();
 
  int paramesh_copy_data(
 	int index,

@@ -17,45 +17,34 @@ void	WaveletBlock3DBufReader::_WaveletBlock3DBufReader()
 }
 
 WaveletBlock3DBufReader::WaveletBlock3DBufReader(
-	const Metadata *metadata,
-	unsigned int    nthreads
-) : WaveletBlock3DReader(metadata, nthreads) {
+	const MetadataVDC &metadata
+) : WaveletBlock3DReader(metadata) {
 
-	_objInitialized = 0;
 	if (WaveletBlock3DReader::GetErrCode()) return;
 
-	SetDiagMsg(
-		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(,%d)", nthreads
-	);
+	SetDiagMsg("WaveletBlock3DBufReader::WaveletBlock3DBufReader()");
 
 	_WaveletBlock3DBufReader();
-	_objInitialized = 1;
 }
 
 WaveletBlock3DBufReader::WaveletBlock3DBufReader(
-	const char	*metafile,
-	unsigned int    nthreads
-) : WaveletBlock3DReader(metafile, nthreads) {
+	const string &metafile
+) : WaveletBlock3DReader(metafile) {
 
-	_objInitialized = 0;
 	if (WaveletBlock3DReader::GetErrCode()) return;
 
 	SetDiagMsg(
-		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(%s,%d)", 
-		metafile, nthreads
+		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(%s)", metafile.c_str()
 	);
 
 	_WaveletBlock3DBufReader();
-	_objInitialized = 1;
 }
 
 WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 ) {
 	SetDiagMsg("WaveletBlock3DBufReader::~WaveletBlock3DBufReader()");
-	if (! _objInitialized) return;
 
 	WaveletBlock3DBufReader::CloseVariable();
-	_objInitialized = 0;
 }
 
 int	WaveletBlock3DBufReader::OpenVariableRead(
@@ -71,7 +60,7 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 		timestep, varname, reflevel
 	);
 
-	if (reflevel < 0) reflevel = _num_reflevels - 1;
+	if (reflevel < 0) reflevel = GetNumTransforms();
 
 	slice_cntr_c = 0;
 	is_open_c = 1;
@@ -84,8 +73,10 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 	// volume at the desired resolution.
 	//
 	size_t bdim[3];
-	VDFIOBase::GetDimBlk(bdim, reflevel);
-	size = bdim[0] * bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
+	GetDimBlk(bdim, reflevel);
+	const size_t *bs = GetBlockSize();
+
+	size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2] * 2;
 	buf_c = new float[size];
 	if (! buf_c) {
 		SetErrMsg("new float[%d] : %s", size, strerror(errno));
@@ -119,8 +110,10 @@ int	WaveletBlock3DBufReader::ReadSlice(
 
 	size_t bdim[3];
 	size_t dim[3];
-	VDFIOBase::GetDimBlk(bdim, _reflevel);
-	VDFIOBase::GetDim(dim, _reflevel);
+	GetDimBlk(bdim, _reflevel);
+	GetDim(dim, _reflevel);
+
+	const size_t *bs = GetBlockSize();
 
 
 	if (! is_open_c) {
@@ -132,7 +125,7 @@ int	WaveletBlock3DBufReader::ReadSlice(
 
 	// Read slabs as needed
 	//
-	if (slice_cntr_c % (_bs[2]*2) == 0) {	
+	if (slice_cntr_c % (bs[2]*2) == 0) {	
 		int	rc;
 
 		rc = ReadSlabs(buf_c, 1);
@@ -143,17 +136,17 @@ int	WaveletBlock3DBufReader::ReadSlice(
 	// Copy data to user space. If volume isn't padded along X axis we
 	// can perform a single copy
 	//
-	if ((bdim[0] % _bs[0]) == 0) {
+	if ((bdim[0] % bs[0]) == 0) {
 		size = dim[0] * dim[1] * sizeof(*bufptr_c);
 		memcpy(slice, bufptr_c, size);
 	}
 	else {
 		size = dim[0] * sizeof(*bufptr_c);
 		for(int y=0;y<(int)dim[1]; y++) {
-			memcpy(slice+(y*dim[0]), bufptr_c+(y*bdim[0]*_bs[0]), size);
+			memcpy(slice+(y*dim[0]), bufptr_c+(y*bdim[0]*bs[0]), size);
 		}
 	}
-	bufptr_c += bdim[0]*_bs[0] * bdim[1]*_bs[1];
+	bufptr_c += bdim[0]*bs[0] * bdim[1]*bs[1];
 	slice_cntr_c++;
 
 	return(0);

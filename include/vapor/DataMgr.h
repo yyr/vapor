@@ -9,9 +9,7 @@
 #include <list>
 #include <vapor/MyBase.h>
 #include "vapor/BlkMemMgr.h"
-#include "vapor/WaveletBlock2DRegionReader.h"
-#include "vapor/WaveletBlock3DRegionReader.h"
-#include "vapor/AMRIO.h"
+#include "vapor/Metadata.h"
 #include "vaporinternal/common.h"
 
 namespace VAPoR {
@@ -30,7 +28,7 @@ namespace VAPoR {
 //! interface are stored in a cache in main memory, where they may be
 //! be available for future access without reading from disk.
 //
-class VDF_API DataMgr : public VetsUtil::MyBase {
+class VDF_API DataMgr : public Metadata, public VetsUtil::MyBase {
 
 public:
 
@@ -48,30 +46,8 @@ public:
  //! \sa Metadata, WaveletBlock3DRegionReader, GetErrCode(), 
  //
  DataMgr(
-	const Metadata *metadata,
-	size_t mem_size,
-	unsigned int nthreads = 1
+	size_t mem_size
  );
-
- //! Constructor for the DataMgr class. 
- //!
- //! \param[in] metadata Path to a metadata file for which all 
- //! future class operations will apply
- //! \param[in] mem_size Size of memory cache to be created, specified 
- //! in MEGABYTES!!
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
- //! \note The success or failure of this constructor can be checked
- //! with the GetErrCode() method.
- //! 
- //! \sa Metadata, WaveletBlock3DRegionReader, GetErrCode(), 
- //
- DataMgr(
-	const char	*metafile,
-	size_t mem_size,
-	unsigned int nthreads = 1
- );
-
 
  virtual ~DataMgr(); 
 
@@ -351,41 +327,134 @@ public:
     size_t max[3]
  );
 
- 
- //! Return the WaveletBlock3DRegionReader class object associated
- //! with this class instance.
- //!
- //! The WaveletBlock3DRegionReader object instance used to by GetRegion()
- //! methods to read a region from disk - when the 3D region is not present
- //! in the memory cache - is returned. 
- // 
- const VDFIOBase	*GetRegionReader() {
-	return (_regionReader3D);
- };
-
- //! Return the WaveletBlock2DRegionReader class object associated
- //! with this class instance.
- //!
- //! The WaveletBlock2DRegionReader object instance used to by GetRegion()
- //! methods to read a region from disk - when the 2D region is not present
- //! in the memory cache - is returned. 
- // 
- const VDFIOBase	*GetRegionReader2D() const {
-	return (_regionReader2D);
- };
-
- //! Return the metadata class object associated with this class
- //!
- const  Metadata *GetMetadata() const { return (_metadata); };
-
  //! Clear the memory cache
  //!
  //! This method clears the internal memory cache of all entries
  //
  void	Clear();
 
+ //! Returns true if indicated data volume exists on disk
+ //!
+ //! Returns true if the variable identified by the timestep, variable
+ //! name, and refinement level is present on disk. Returns 0 if
+ //! the variable is not present.
+ //! \param[in] ts A valid time step from the Metadata object used
+ //! to initialize the class
+ //! \param[in] varname A valid variable name
+ //! \param[in] reflevel Refinement level requested. The coarsest 
+ //! refinement level is 0 (zero). A value of -1 indicates the finest
+ //! refinement level contained in the VDC.
+ //
+ virtual int VariableExists(
+	size_t ts,
+	const char *varname,
+	int reflevel = 0
+ ) const = 0;
+
+protected:
+
+
+ //! Open the named variable for reading
+ //!
+ //! This method prepares the multiresolution data volume, indicated by a
+ //! variable name and time step pair, for subsequent read operations by
+ //! methods of this class.  Furthermore, the number of the refinement level
+ //! parameter, \p reflevel indicates the resolution of the volume in
+ //! the multiresolution hierarchy. The valid range of values for
+ //! \p reflevel is [0..max_refinement], where \p max_refinement is the
+ //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
+ //! volume when the volume was created. A value of zero indicates the
+ //! coarsest resolution data, a value of \p max_refinement indicates the
+ //! finest resolution data.
+ //!
+ //! An error occurs, indicated by a negative return value, if the
+ //! volume identified by the {varname, timestep, reflevel} tripple
+ //! is not present on disk. Note the presence of a volume can be tested
+ //! for with the VariableExists() method.
+ //! \param[in] timestep Time step of the variable to read
+ //! \param[in] varname Name of the variable to read
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
+ //!
+ virtual int	OpenVariableRead(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
+ ) = 0;
+
+ //! Close the currently opened variable.
+ //!
+ //! \sa OpenVariableWrite(), OpenVariableRead()
+ //
+ virtual int	CloseVariable() = 0;
+
+ //! Read in and return a subregion from the currently opened multiresolution
+ //! data volume.
+ //!
+ //! This method is identical to the ReadRegion() method with the exception
+ //! that the region boundaries are defined in block, not voxel, coordinates.
+ //! Secondly, unless the 'unblock' parameter  is set, the internal
+ //! blocking of the data will be preserved.
+ //!
+ //! BlockReadRegion will fail if the requested data are not present. The
+ //! VariableExists() method may be used to determine if the data
+ //! identified by a (resolution,timestep,variable) tupple are
+ //! available on disk.
+ //! \param[in] bmin Minimum region extents in block coordinates
+ //! \param[in] bmax Maximum region extents in block coordinates
+ //! \param[out] region The requested volume subregion
+ //! \param[in] unblock If true, unblock the data before copying to \p region
+ //! \retval status Returns a non-negative value on success
+ //! \sa OpenVariableRead(), Metadata::GetBlockSize(), MapVoxToBlk()
+ //
+ virtual int    BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3],
+    float *region, int unblock = 1
+ ) = 0;
+
+
+
+ //! Return the valid bounds of the currently opened region
+ //!
+ //! The VDC permits the storage of volume subregions. This method may
+ //! be used to query the valid domain of the currently opened volume. Results
+ //! are returned in voxel coordinates, relative to the refinement level
+ //! indicated by \p reflevel.
+ //!
+ //! When layered data is used, valid subregions can be restricted
+ //! horizontally, but must include the full vertical extent of
+ //! the data.  In that case the result of GetValidRegion depends
+ //! on the region height in voxels, and can vary from region to region.
+ //!
+ //! \param[out] min A pointer to the minimum bounds of the subvolume
+ //! \param[out] max A pointer to the maximum bounds of the subvolume
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //! \retval status Returns a negative value if the volume is not opened
+ //! for reading or writing.
+ //!
+ //! \sa OpenVariableWrite(), OpenVariableRead()
+ //
+ virtual void GetValidRegion(
+    size_t min[3], size_t max[3], int reflevel
+ ) const = 0;
+
+ //! Return the data range for the currently open variable
+ //!
+ //! The method returns the minimum and maximum data values, respectively, 
+ //! for the variable currently opened. If the variable is not opened,
+ //! or if it is opened for writing, the results are undefined.
+ //!
+ //! \param[out] range Min and Max data values, respectively
+ //! \retval status A negative integer is returned on failure, otherwise
+ //! the method has succeeded.
+ //!
+ virtual const float *GetDataRange() const = 0;
+
 private:
- int	_objInitialized;
+
+ size_t _mem_size;
 
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
 
@@ -410,12 +479,7 @@ private:
  map <size_t, map<string, float> > _dataRangeMaxMap;
  map <size_t, map<string, map<int, size_t *> > > _validRegMinMaxMap;
 
- const Metadata	*_metadata;
-
  int	_timestamp;	// access time of most recently accessed region
-
- VDFIOBase	*_regionReader3D;
- WaveletBlock2DRegionReader	*_regionReader2D;
 
  BlkMemMgr	*_blk_mem_mgr;
 
@@ -432,7 +496,7 @@ private:
  void    *alloc_region(
 	size_t ts,
 	const char *varname,
-	VDFIOBase::VarType_T vtype,
+	VarType_T vtype,
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
@@ -456,7 +520,7 @@ private:
 
  int	free_lru();
 
- int	_DataMgr(size_t mem_size, unsigned int nthreads);
+ int	_DataMgr(size_t mem_size);
 
  int get_cached_data_range(size_t ts, const char *varname, float range[2]);
 

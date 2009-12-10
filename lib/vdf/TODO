@@ -1,0 +1,10 @@
+Set{Get}ClassName
+CloseFile
+IDL interface
+test mixing reading and writing 2d and 3D vars from same class
+Make Metadata class virtual
+Test spherical data
+redo MetadataVDC - split into required, low level and high level convenience
+test merge
+Document!!!!!
+implement DataMgrAMR

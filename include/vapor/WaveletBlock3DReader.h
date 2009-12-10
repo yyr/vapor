@@ -7,7 +7,7 @@
 #define	_WavletBlock3DReader_h_
 
 #include <vapor/MyBase.h>
-#include "WaveletBlock3DIO.h"
+#include "WaveletBlockIOBase.h"
 
 namespace VAPoR {
 
@@ -23,38 +23,32 @@ namespace VAPoR {
 //! (both in terms of memory and performance) for reading an entire data
 //! volume.
 //
-class	VDF_API WaveletBlock3DReader : public WaveletBlock3DIO {
+class	VDF_API WaveletBlock3DReader : public WaveletBlockIOBase {
 
 public:
 
  //! Constructor for the WaveletBlock3DReader class.
  //! \param[in] metadata A pointer to a Metadata structure identifying the
  //! data set upon which all future operations will apply.
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
  //! \sa Metadata, GetErrCode()
  //
  WaveletBlock3DReader(
-	const Metadata *metadata,
-	unsigned int	nthreads = 1
- );
+	const MetadataVDC &metadata
+);
 
  //! Constructor for the WaveletBlock3DReader class.
  //! \param[in] metadata Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  WaveletBlock3DReader(
-	const char *metafile,
-	unsigned int	nthreads = 1
+	const string &metafile
  );
 
  virtual ~WaveletBlock3DReader();
@@ -130,12 +124,15 @@ public:
  //
  int	ReadSlabs(float *two_slabs, int unblock);
 
+protected:
+ void _GetDataRange(float range[2]) const {};
+
 private:
- int	_objInitialized;	// has the obj successfully been initialized?
 
  float	*lambda_blks_c[MAX_LEVELS];	// temp storage for lambda blocks
  float	*scratch_block_c;	// scratch space
  int	slab_cntr_c;
+ size_t _block_size;
 
  int	read_slabs(
 	int level,

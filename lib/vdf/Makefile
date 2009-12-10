@@ -4,24 +4,26 @@ include ${TOP}/make/config/prebase.mk
 
 LIBRARY = vdf
 FILES = \
-	BlkMemMgr DataMgr Metadata WaveletBlock1D WaveletBlock2D WaveletBlock3D \
-	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	VDFIOBase WaveletBlockIOBase WaveletBlock3DIO WaveletBlock3DReader \
+	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
+	MetadataSpherical \
+	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
+	AMRTreeBranch AMRTree AMRData \
+	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
-	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr \
-	LayeredIO AMRIO \
-	AMRTree AMRTreeBranch AMRData MetadataSpherical WRF \
-	WaveletBlock2DIO WaveletBlock2DRegionReader WaveletBlock2DRegionWriter \
-	Transpose
+	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
+	LayeredIO AMRIO  WRF Transpose DataMgr DataMgrWB DataMgrLayered vdf \
+	DataMgrFactory
 
 HEADER_FILES = \
-	BlkMemMgr DataMgr Metadata WaveletBlock1D WaveletBlock2D WaveletBlock3D \
-	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	VDFIOBase WaveletBlockIOBase WaveletBlock3DIO WaveletBlock3DReader \
+	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
+	MetadataSpherical \
+	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
+	AMRTreeBranch AMRTree AMRData \
+	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
-	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr AMRIO \
-	LayeredIO AMRTree AMRTreeBranch AMRData MetadataSpherical WRF \
-	WaveletBlock2DIO WaveletBlock2DRegionReader WaveletBlock2DRegionWriter 
+	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
+	LayeredIO AMRIO  WRF DataMgr DataMgrWB DataMgrLayered \
+	DataMgrFactory
 
 
 #LIB_DEFS = vdf.def

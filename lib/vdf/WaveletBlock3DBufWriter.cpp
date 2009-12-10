@@ -15,50 +15,38 @@ void	WaveletBlock3DBufWriter::_WaveletBlock3DBufWriter()
 }
 
 WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
-	Metadata *metadata,
-	unsigned int    nthreads
-) : WaveletBlock3DWriter(metadata, nthreads) {
+	const MetadataVDC &metadata
+) : WaveletBlock3DWriter(metadata) {
 
-	_objInitialized = 0;
 	if (WaveletBlock3DWriter::GetErrCode()) return;
 
-	SetDiagMsg(
-		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(,%d)", nthreads
-	);
-
+	SetDiagMsg("WaveletBlock3DBufWriter::WaveletBlock3DBufWriter()");
 
 	_WaveletBlock3DBufWriter();
-
-	_objInitialized = 1;
 }
 
 WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
-	const char *metafile,
-	unsigned int    nthreads
-) : WaveletBlock3DWriter(metafile, nthreads) {
+	const string &metafile
+) : WaveletBlock3DWriter(metafile) {
 
-	_objInitialized = 0;
 	if (WaveletBlock3DWriter::GetErrCode()) return;
 
 	SetDiagMsg(
-		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(%s,%d)", 
-		metafile, nthreads
+		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(%s)", 
+		metafile.c_str()
 	);
 
 	_WaveletBlock3DBufWriter();
 
-	_objInitialized = 1;
 }
 
 WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 ) {
 	SetDiagMsg("WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter()");
 
-	if (! _objInitialized) return;
 
 	WaveletBlock3DWriter::CloseVariable();
 
-	_objInitialized = 0;
 }
 
 int	WaveletBlock3DBufWriter::OpenVariableWrite(
@@ -74,7 +62,7 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 		timestep, varname, reflevel
 	);
 
-	if (reflevel < 0) reflevel = _num_reflevels - 1;
+	if (reflevel < 0) reflevel = GetNumTransforms();
 
 	slice_cntr_c = 0;
 	is_open_c = 1;
@@ -82,7 +70,11 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	rc = WaveletBlock3DWriter::OpenVariableWrite(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 
-	size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
+	size_t bdim[3];
+	GetDimBlk(bdim, GetNumTransforms());
+	const size_t *bs = GetBlockSize();
+
+	size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2] * 2;
 	buf_c = new float[size];
 	if (! buf_c) {
 		SetErrMsg("new float[%d] : %s", size, strerror(errno));
@@ -101,13 +93,15 @@ int     WaveletBlock3DBufWriter::CloseVariable(
 
 	if (! is_open_c) return(0);
 
-	if (slice_cntr_c != _dim[2]) {
-		SetErrMsg("File closed before exactly %d slices written", _dim[2]);
+	const size_t *dim = GetDimension();
+	const size_t *bs = GetBlockSize();
+	if (slice_cntr_c != dim[2]) {
+		SetErrMsg("File closed before exactly %d slices written", dim[2]);
 	}
 
 	// May need to flush the buffer
 	//
-	if ((slice_cntr_c % (_bs[2]*2)) != 0) {	
+	if ((slice_cntr_c % (bs[2]*2)) != 0) {	
 		int rc; 
 
 		rc = WaveletBlock3DWriter::WriteSlabs(buf_c);
@@ -171,30 +165,35 @@ int	WaveletBlock3DBufWriter::WriteSlice(
 		return(-1);
 	}
 
-	if (slice_cntr_c >= (int)_dim[2]) {
-		SetErrMsg("WriteSlice() must be invoked exactly %d times", _dim[2]);
+	const size_t *dim = GetDimension();
+	if (slice_cntr_c >= (int)dim[2]) {
+		SetErrMsg("WriteSlice() must be invoked exactly %d times", dim[2]);
 		return(-1);
 	}
 
-	if (slice_cntr_c % (_bs[2]*2) == 0) {	
-		size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
+	size_t bdim[3];
+	GetDimBlk(bdim, GetNumTransforms());
+	const size_t *bs = GetBlockSize();
+
+	if (slice_cntr_c % (bs[2]*2) == 0) {	
+		size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2] * 2;
 		memset(buf_c, 0, size*sizeof(buf_c[0]));
 		bufptr_c = buf_c;
 	}
 
-	if ((slice_cntr_c + _bs[2]) % (_bs[2]*2) == 0) {
-		size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2];
+	if ((slice_cntr_c + bs[2]) % (bs[2]*2) == 0) {
+		size = bdim[0] * bdim[1] * bs[0] * bs[1] * bs[2];
 		bufptr_c = buf_c + size;
 	}
 
 	blockit(
-		slice, bufptr_c, (int)_dim[0], (int)_dim[1], (int)_bdim[0],(int)_bdim[1],_bs,
-		slice_cntr_c % _bs[2]
+		slice, bufptr_c, (int)dim[0], (int)dim[1], (int)bdim[0],(int)bdim[1],bs,
+		slice_cntr_c % bs[2]
 	);
 
 	slice_cntr_c++;
 
-	if (slice_cntr_c % (_bs[2]*2) == 0) {	
+	if (slice_cntr_c % (bs[2]*2) == 0) {	
 		int rc; 
 
 		rc = WaveletBlock3DWriter::WriteSlabs(buf_c);

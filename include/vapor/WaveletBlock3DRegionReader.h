@@ -7,7 +7,7 @@
 #define	_WavletBlock3DRegionReader_h_
 
 #include <vapor/MyBase.h>
-#include "WaveletBlock3DIO.h"
+#include "WaveletBlockIOBase.h"
 
 namespace VAPoR {
 
@@ -21,38 +21,32 @@ namespace VAPoR {
 //! This class provides an API for extracting volume sub-regions  
 //! from a VDF file
 //
-class VDF_API	WaveletBlock3DRegionReader : public WaveletBlock3DIO {
+class VDF_API	WaveletBlock3DRegionReader : public WaveletBlockIOBase {
 
 public:
 
  //! Constructor for the WaveletBlock3DRegionReader class. 
  //! \param[in] metadata A pointer to a Metadata structure identifying the
  //! data set upon which all future operations will apply. 
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  WaveletBlock3DRegionReader(
-	const Metadata *metadata,
-	unsigned int	nthreads = 1
+	const MetadataVDC &metadata
  );
 
  //! Constructor for the WaveletBlock3DRegionReader class. 
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  WaveletBlock3DRegionReader(
-	const char	*metafile,
-	unsigned int	nthreads = 1
+	const string &metafile
  );
 
  virtual ~WaveletBlock3DRegionReader();
@@ -129,6 +123,10 @@ public:
 	float *region
  );
 
+ virtual int	ReadRegion(
+	float *region
+ );
+
 
  //! Read in and return a subregion from the currently opened multiresolution
  //! data volume.  
@@ -182,23 +180,41 @@ public:
 
 #endif
 
-private:
- int	_objInitialized;	// has the obj successfully been initialized?
+protected:
+ void _GetDataRange(float range[2]) const {};
 
+
+private:
  float	*lambda_blks_c[MAX_LEVELS];
  float	*gamma_blks_c[MAX_LEVELS];
+ float  *_lambda_tiles[MAX_LEVELS];
+ float  *_gamma_tiles[MAX_LEVELS];
 
- int	row_inv_xform(
+ size_t _block_size;
+
+ int	row_inv_xform3d(
 	const float *lambda_row, 
 	unsigned int ljx0, unsigned int ljy0, unsigned int ljz0, 
 	unsigned int ljnx, unsigned int j, float *region, 
 	const size_t min[3], const size_t max[3], unsigned int level, int unblock
-	);
- int	my_realloc(); 
+ );
+ int    row_inv_xform2d(
+	const float *lambda_row,
+	unsigned int ljx0, unsigned int ljy0,
+	unsigned int ljnx, unsigned int j, float *region,
+	const size_t min[2], const size_t max[2], unsigned int level, int untile
+ );
+
+ int	my_realloc3d(); 
+ int	my_realloc2d(); 
  void	my_free(); 
 
- int	_ReadRegion(
+ int	_ReadRegion3D(
 	const size_t min[3], const size_t max[3], 
+	float *region, int unblock = 1
+ );
+ int	_ReadRegion2D(
+	const size_t min[2], const size_t max[2], 
 	float *region, int unblock = 1
  );
 

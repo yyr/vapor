@@ -57,11 +57,10 @@ public:
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode(),
+ //! \sa MetadataVDC, GetErrCode(),
  //
  AMRIO(
-	const Metadata *metadata,
-	unsigned int	nthreads = 1
+	const MetadataVDC &metadata
  );
 
  //! Constructor for the AMRIO class.
@@ -69,16 +68,13 @@ public:
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply. The metadata class object
  //! identifies the VDC for all subsequent data operations
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode(),
+ //! \sa MetadataVDC, GetErrCode(),
  //
  AMRIO(
-	const char *metafile,
-	unsigned int	nthreads = 1
+	const string &metafile
  );
 
  virtual ~AMRIO();
@@ -191,7 +187,7 @@ public:
 	const char *varname,
 	int reflevel = -1
  );
-
+ 
  //! Open the named AMR grid for reading
  //!
  //! This method prepares the AMR data grid, indicated by a
@@ -272,36 +268,19 @@ public:
  //!
  int	GetBlockMaxs(const float **maxs, int reflevel) const;
 
- //! Return the transform timer
- //!
- //! This method returns the accumulated clock time, in seconds,
- //! spent peforming wavelet transforms. There is presently no
- //! way to reset the counter (without creating a new class object)
- //!
- double	GetXFormTimer() const { return(_xform_timer); };
+private:
+ typedef int int32_t;
 
-
-protected:
  static const int MAX_LEVELS = 32;	// Max # of refinement leveles permitted
 
  int	_reflevel;	// refinement level of currently opened file.
 						
- double	_xform_timer;	// records transform time by derived classes
-
- size_t _treeTimeStep;		// Currently opened tree timestep
- size_t _dataTimeStep;		// Currently opened data timestep
  string _varName;		// Currently opened variable
  string	_treeFileName;	// Currenly opened tree file name
  string	_dataFileName;	// Currenly opened amr data file name
 
  float	*_mins[MAX_LEVELS];	// min value contained in a block
  float	*_maxs[MAX_LEVELS];	// max value contained in a block
-
-
-private:
- int	_objInitialized;	// has the obj successfully been initialized?
-
- typedef int int32_t;
 
  int	_treeIsOpen;	// true if an AMR tree file is open
  int	_dataIsOpen;	// true if an AMR data file is open

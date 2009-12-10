@@ -46,7 +46,6 @@ const string AMRData::_blockSizeZToken = "BlocksSizeNz";
 const string AMRData::_varToken = "FieldVariable";
 const string AMRData::_blockMinToken = "MinCorner";
 const string AMRData::_blockMaxToken = "MaxCorner";
-const string AMRData::_cellDimToken = "CellDimensions";
 const string AMRData::_refinementLevelToken = "RefinementLevel";
 const string AMRData::_scalarRangeToken = "ScalarDataRange";
 
@@ -72,8 +71,8 @@ const string AMRData::_scalarRangeToken = "ScalarDataRange";
 void AMRData::_AMRData(
 	const AMRTree *tree,
 	const size_t cell_dim[3],
-	const size_t min[3],
-	const size_t max[3],
+	const size_t bmin[3],
+	const size_t bmax[3],
 	int reflevel 
 ) {
 	_treeData = NULL;
@@ -90,24 +89,24 @@ void AMRData::_AMRData(
 	const size_t *bdim = tree->GetBaseDim();
 
 	for(int i=0; i<3; i++) {
-		if ((min[i] >= bdim[i]) || (max[i] > bdim[i]) || (min[i]>max[i])){
+		if ((bmin[i] >= bdim[i]) || (bmax[i] > bdim[i]) || (bmin[i]>bmax[i])){
 			SetErrMsg("Block coordinates invalid");
 			return;
 		}
     }
 
-//	if (reflevel<0 || reflevel>tree->GetRefinementLevel(min,max)) {
-//		reflevel = tree->GetRefinementLevel(min, max);
+//	if (reflevel<0 || reflevel>tree->GetRefinementLevel(bmin,bmax)) {
+//		reflevel = tree->GetRefinementLevel(bmin, bmax);
 //	}
 	if (reflevel<0) {
-		reflevel = tree->GetRefinementLevel(min, max);
+		reflevel = tree->GetRefinementLevel(bmin, bmax);
 	}
 
 
 	for(int i=0; i<3; i++) {
 		_cellDim[i] = cell_dim[i];
-		_bmin[i] = min[i];
-		_bmax[i] = max[i];
+		_bmin[i] = bmin[i];
+		_bmax[i] = bmax[i];
 	}
 	_tree = tree;
 	_maxRefinementLevel = reflevel;
@@ -159,11 +158,11 @@ void AMRData::_AMRData(
 AMRData::AMRData(
 	const AMRTree *tree,
 	const size_t cell_dim[3],
-	const size_t min[3],
-	const size_t max[3],
+	const size_t bmin[3],
+	const size_t bmax[3],
 	int reflevel
 ) {
-	_AMRData(tree, cell_dim, min, max, reflevel);
+	_AMRData(tree, cell_dim, bmin, bmax, reflevel);
 }
 
 AMRData::AMRData(
@@ -174,10 +173,24 @@ AMRData::AMRData(
 
 	const size_t *bdim = tree->GetBaseDim();
 
-	size_t	min[3] = {0,0,0};
-	size_t	max[3] = {(size_t) bdim[0]-1,(size_t) bdim[1]-1,(size_t) bdim[2]-1};
+	size_t	bmin[3] = {0,0,0};
+	size_t	bmax[3] = {(size_t) bdim[0]-1,(size_t) bdim[1]-1,(size_t) bdim[2]-1};
 
-	_AMRData(tree, cell_dim, min, max, reflevel);
+	_AMRData(tree, cell_dim, bmin, bmax, reflevel);
+}
+
+AMRData::AMRData(
+	const AMRTree *tree
+) {
+
+	const size_t *bdim = tree->GetBaseDim();
+	int reflevel = tree->GetRefinementLevel();
+
+	size_t	cell_dim[3] = {1,1,1};
+	size_t	bmin[3] = {0,0,0};
+	size_t	bmax[3] = {(size_t) bdim[0]-1,(size_t) bdim[1]-1,(size_t) bdim[2]-1};
+
+	_AMRData(tree, cell_dim, bmin, bmax, reflevel);
 }
 
 AMRData::AMRData(
@@ -192,10 +205,10 @@ AMRData::AMRData(
 
 	const size_t *bdim = tree->GetBaseDim();
 
-	size_t	min[3] = {0,0,0};
-	size_t	max[3] = {(size_t) bdim[0]-1,(size_t) bdim[1]-1,(size_t) bdim[2]-1};
+	size_t	bmin[3] = {0,0,0};
+	size_t	bmax[3] = {(size_t) bdim[0]-1,(size_t) bdim[1]-1,(size_t) bdim[2]-1};
 
-	_AMRData(tree, cell_dim, min, max, reflevel);
+	_AMRData(tree, cell_dim, bmin, bmax, reflevel);
 	if (GetErrCode()) return;
 
 	vector <int> baseblocks;
@@ -212,7 +225,7 @@ AMRData::AMRData(
 	}
 }
 
-AMRData::~AMRData() {
+void AMRData::_AMRDataFree() {
 
 	if (! _tree) return;
 
@@ -233,26 +246,26 @@ AMRData::~AMRData() {
 }
 
 int AMRData::SetRegion(
-	const size_t min[3],
-	const size_t max[3],
+	const size_t bmin[3],
+	const size_t bmax[3],
 	int reflevel
 ) {
 	const size_t *bdim = _tree->GetBaseDim();
 
 	for(int i=0; i<3; i++) {
-		if ((min[i] >= bdim[i]) || (max[i] >= bdim[i]) || (min[i]>max[i])){
+		if ((bmin[i] >= bdim[i]) || (bmax[i] >= bdim[i]) || (bmin[i]>bmax[i])){
 			SetErrMsg("Block coordinates invalid");
 			return(-1);
 		}
     }
 
-	if (reflevel<0 || reflevel>_tree->GetRefinementLevel(min,max)) {
-		reflevel = _tree->GetRefinementLevel(min, max);
+	if (reflevel<0 || reflevel>_tree->GetRefinementLevel(bmin,bmax)) {
+		reflevel = _tree->GetRefinementLevel(bmin, bmax);
 	}
 
 	for(int i=0; i<3; i++) {
-		_bmin[i] = min[i];
-		_bmax[i] = max[i];
+		_bmin[i] = bmin[i];
+		_bmax[i] = bmax[i];
 	}
 	_maxRefinementLevel = reflevel;
 
@@ -271,6 +284,10 @@ int AMRData::SetRegion(
 		// Allocate enough space to store data for this base block. Each
 		// node in the tree, both leaf and non-leaf, contains data. The
 		// non-leaf data are approximations of the leaf data
+		//
+		// N.B. if the new region is smaller than the old region we
+		// don't free data from the old region that is no longer in 
+		// the new region.
 		//
 		int nnodes = tbranch->GetNumCells();
 
@@ -295,12 +312,12 @@ int AMRData::SetRegion(
 }
 
 void AMRData::GetRegion(
-	const size_t **min,
-	const size_t **max,
+	const size_t **bmin,
+	const size_t **bmax,
 	int *reflevel
 ) const {
-	*min = _bmin;
-	*max = _bmax;
+	*bmin = _bmin;
+	*bmax = _bmax;
 	*reflevel = _maxRefinementLevel;
 }
 
@@ -473,16 +490,19 @@ int AMRData::WriteNCDF(
 	return(0);
 }
 
-int AMRData::ReadNCDF(
+
+int AMRData::ReadAttributesNCDF(
 	const string &path,
-	int reflevel
-) {
+	size_t cell_dim[3],
+	size_t min[3],
+	size_t max[3],
+	float data_range[2],
+	int &reflevel,
+	size_t &num_nodes
+) const {
 
 	int	ncid;
 	int rc;
-
-	if (reflevel < 0) reflevel = _maxRefinementLevel;
-	if (reflevel > _maxRefinementLevel) reflevel = _maxRefinementLevel;
 
 	size_t chsz = NC_CHUNKSIZEHINT;
 	int ii = 0;
@@ -504,67 +524,124 @@ int AMRData::ReadNCDF(
 	// netCDF Dimensions
 	//
 	int ncdimid;
-	size_t ncdim;
-	size_t file_num_nodes;
-	
 	
 	rc = nc_inq_dimid(ncid, _numNodeToken.c_str(), &ncdimid);
 	NC_ERR_READ(rc,path)
-	rc = nc_inq_dimlen(ncid, ncdimid, &file_num_nodes);
+	rc = nc_inq_dimlen(ncid, ncdimid, &num_nodes);
 	NC_ERR_READ(rc,path)
 
 	rc = nc_inq_dimid(ncid, _blockSizeXToken.c_str(), &ncdimid);
 	NC_ERR_READ(rc,path)
-	rc = nc_inq_dimlen(ncid, ncdimid, &ncdim);
+	rc = nc_inq_dimlen(ncid, ncdimid, &cell_dim[0]);
 	NC_ERR_READ(rc,path)
-	if (ncdim != _cellDim[0]) {
-		SetErrMsg("File/object mismatch");
-		return(-1);
-	}
 
 	rc = nc_inq_dimid(ncid, _blockSizeYToken.c_str(), &ncdimid);
 	NC_ERR_READ(rc,path)
-	rc = nc_inq_dimlen(ncid, ncdimid, &ncdim);
+	rc = nc_inq_dimlen(ncid, ncdimid, &cell_dim[1]);
 	NC_ERR_READ(rc,path)
-	if (ncdim != _cellDim[1]) {
-		SetErrMsg("File/object mismatch");
-		return(-1);
-	}
 
 	rc = nc_inq_dimid(ncid, _blockSizeZToken.c_str(), &ncdimid);
 	NC_ERR_READ(rc,path)
-	rc = nc_inq_dimlen(ncid, ncdimid, &ncdim);
+	rc = nc_inq_dimlen(ncid, ncdimid, &cell_dim[2]);
 	NC_ERR_READ(rc,path)
-	if (ncdim != _cellDim[2]) {
-		SetErrMsg("File/object mismatch");
-		return(-1);
-	}
-
 
 	//
 	// netCDF Attributes
 	//
-	int file_bmin[3];
-	rc = nc_get_att_int(
-		ncid,NC_GLOBAL,_blockMinToken.c_str(),file_bmin
-	);
+	int min_int[3];
+	rc = nc_get_att_int( ncid,NC_GLOBAL,_blockMinToken.c_str(),min_int);
+	NC_ERR_READ(rc,path)
+	for (int i=0; i<3; i++) min[i] = (size_t) min_int[i];
+
+	int max_int[3];
+	rc = nc_get_att_int( ncid,NC_GLOBAL,_blockMaxToken.c_str(),max_int);
+	NC_ERR_READ(rc,path)
+	for (int i=0; i<3; i++) max[i] = (size_t) max_int[i];
+
+	rc = nc_get_att_int(ncid,NC_GLOBAL,_refinementLevelToken.c_str(),&reflevel);
 	NC_ERR_READ(rc,path)
 
-	int file_bmax[3];
-	rc = nc_get_att_int(
-		ncid,NC_GLOBAL,_blockMaxToken.c_str(),file_bmax
-	);
+	rc = nc_get_att_float(ncid,NC_GLOBAL,_scalarRangeToken.c_str(),data_range);
 	NC_ERR_READ(rc,path)
 
+	return(0);
+}
+
+int AMRData::ReadNCDF(
+	const string &path,
+	const size_t bmin[3],
+	const size_t bmax[3],
+	int reflevel
+) {
+
+	int	ncid;
+	int rc;
+
+
+	//
+	// Attributes contained in the file
+	//
+	size_t file_cell_dim[3];
+	size_t file_bmin[3];
+	size_t file_bmax[3];
+	float file_data_range[2];
 	int file_reflevel;
-	rc = nc_get_att_int(
-		ncid,NC_GLOBAL,_refinementLevelToken.c_str(),&file_reflevel
-	);
-	NC_ERR_READ(rc,path)
+	size_t file_num_nodes;
 
-	rc = nc_get_att_float(
-		ncid,NC_GLOBAL,_scalarRangeToken.c_str(),_dataRange
+	rc = ReadAttributesNCDF(
+		path, file_cell_dim, file_bmin, file_bmax, file_data_range,
+		file_reflevel, file_num_nodes
 	);
+	if (rc < 0) return(-1);
+
+	// 
+	// Make sure requested subregion is contained within file 
+	//
+	for(int i=0; i<3; i++) {
+		if ((bmin[i] < file_bmin[i]) || (bmax[i] > file_bmax[i])) {
+			SetErrMsg("Block coordinates out of range");
+			return(-1);
+		}
+    }
+
+
+	bool rebuild = false;
+	bool setregion = false;
+	for (int i=0; i<3; i++) {
+		if (file_cell_dim[i] != _cellDim[i]) rebuild = true;
+		if (bmin[i] != _bmin[i]) setregion = true;
+		if (bmax[i] != _bmax[i]) setregion = true;
+	}
+	if (file_reflevel != _maxRefinementLevel) setregion = true;
+
+	if (rebuild) {
+		const AMRTree *tree = _tree;
+		_AMRDataFree();
+		_AMRData(tree, file_cell_dim, bmin, bmax, file_reflevel);
+	}
+	else if (setregion) {
+		rc = SetRegion(bmin, bmax, file_reflevel);
+		if (rc<0) return(rc);
+	}
+	_dataRange[0] = file_data_range[0];
+	_dataRange[1] = file_data_range[1];
+
+	if (reflevel < 0) reflevel = _maxRefinementLevel;
+	if (reflevel > _maxRefinementLevel) reflevel = _maxRefinementLevel;
+
+	size_t chsz = NC_CHUNKSIZEHINT;
+	int ii = 0;
+	do {
+		rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &ncid);
+#ifdef WIN32
+		if (rc == EAGAIN) Sleep(100);//milliseconds
+#else
+		if (rc == EAGAIN) sleep(1);//seconds
+#endif
+            ii++;
+
+	} while (rc != NC_NOERR && ii < 10);
+
 	NC_ERR_READ(rc,path)
 
 	//
@@ -574,38 +651,11 @@ int AMRData::ReadNCDF(
 	rc = nc_inq_varid(ncid, _varToken.c_str(), &varid);
 	NC_ERR_READ(rc,path)
 
-
-	//
-	// Make sure the file values are reasonable
-	//
-	const size_t *base_dim = _tree->GetBaseDim();
-	for (int i=0; i<3; i++) {
-		if ((file_bmin[i] > base_dim[i]-1) ||
-			(file_bmax[i] > base_dim[i]-1) ||
-			(file_bmin[i] > file_bmax[i])) {
-
-			SetErrMsg("Data file doesn't match AMR tree");
-			return(-1);
-		}
-	}
-
-	for(int i=0; i<3; i++) {
-		if ((_bmin[i] < file_bmin[i]) ||
-			(_bmax[i] > file_bmax[i])) {
-
-			SetErrMsg("Requested region not present in file");
-			return(-1);
-		}
-	}
-
-	if (_maxRefinementLevel > file_reflevel) {
-		SetErrMsg("Requested refinement level not present in file");
-		return(-1);
-	}
-
 	int branch_nodes = 0;	// Num nodes requested
 	int file_branch_nodes = 0;	// Num nodes stored in file
 	int n = 0;
+	const size_t *base_dim = _tree->GetBaseDim();
+
 	for (int z=file_bmin[2]; z<=file_bmax[2]; z++) {
 	for (int y=file_bmin[1]; y<=file_bmax[1]; y++) {
 	for (int x=file_bmin[0]; x<=file_bmax[0]; x++) {
@@ -621,9 +671,9 @@ int AMRData::ReadNCDF(
 		//
 		// Read data only if in ROI
 		//
-		if (x >= _bmin[0] && x <= _bmax[0] && 
-			y >= _bmin[1] && y <= _bmax[1] && 
-			z >= _bmin[2] && z <= _bmax[2]) {
+		if (x >= bmin[0] && x <= bmax[0] && 
+			y >= bmin[1] && y <= bmax[1] && 
+			z >= bmin[2] && z <= bmax[2]) {
 
 			int index = z*base_dim[0]*base_dim[1] + y*base_dim[0] + x;
 			branch_nodes = tbranch->GetNumCells(reflevel);
@@ -650,7 +700,13 @@ int AMRData::ReadNCDF(
 	nc_close(ncid);
 
 	return(0);
+}
 
+int AMRData::ReadNCDF(
+	const string &path,
+	int reflevel
+) {
+	return(ReadNCDF(path, _bmin, _bmax, reflevel));
 }
 
 float	*AMRData::GetBlock(

@@ -11,9 +11,11 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 	int	j;
 	SetClassName("WaveletBlock3DReader");
 
-	_xform_timer = 0.0;
 	slab_cntr_c = 0;
 	scratch_block_c = new float[_block_size];
+
+	const size_t *bs = GetBlockSize();
+	_block_size = bs[0]*bs[1]*bs[2];
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
@@ -21,34 +23,26 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 }
 
 WaveletBlock3DReader::WaveletBlock3DReader(
-	const Metadata *metadata,
-	unsigned int	nthreads
-) : WaveletBlock3DIO(metadata, nthreads) {
+	const MetadataVDC &metadata
+) : WaveletBlockIOBase(metadata) {
 
-	_objInitialized = 0;
-	if (WaveletBlock3DIO::GetErrCode()) return;
+	if (WaveletBlockIOBase::GetErrCode()) return;
 
 	_WaveletBlock3DReader();
 	
-	_objInitialized = 1;
 }
 
 WaveletBlock3DReader::WaveletBlock3DReader(
-	const char *metafile,
-	unsigned int	nthreads
-) : WaveletBlock3DIO(metafile, nthreads) {
+	const string &metafile
+) : WaveletBlockIOBase(metafile) {
 
-	_objInitialized = 0;
-	if (WaveletBlock3DIO::GetErrCode()) return;
+	if (WaveletBlockIOBase::GetErrCode()) return;
 	
 	_WaveletBlock3DReader();
-
-	_objInitialized = 1;
 }
 
 WaveletBlock3DReader::~WaveletBlock3DReader(
 ) {
-	if (! _objInitialized) return;
 
 	WaveletBlock3DReader::CloseVariable();
 
@@ -56,7 +50,6 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 	scratch_block_c = NULL;
 	my_free();
 
-	_objInitialized = 0;
 }
 
 int	WaveletBlock3DReader::OpenVariableRead(
@@ -68,9 +61,9 @@ int	WaveletBlock3DReader::OpenVariableRead(
 
 	slab_cntr_c = 0;
 
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
-	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
+	rc = WaveletBlockIOBase::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	rc = my_realloc();
 	if (rc<0) return(rc);
@@ -80,7 +73,7 @@ int	WaveletBlock3DReader::OpenVariableRead(
 
 int     WaveletBlock3DReader::CloseVariable(
 ) {
-	return(WaveletBlock3DIO::CloseVariable());
+	return(WaveletBlockIOBase::CloseVariable());
 }
 
 int	WaveletBlock3DReader::ReadSlabs(
@@ -96,9 +89,15 @@ int	WaveletBlock3DReader::ReadSlabs(
 	int	j;
 	int	rc;
 
+	if (_vtype != VAR3D) {
+		SetErrMsg("WaveletBlock3DReader::ReadSlabs() : operation not supported");
+		return(-1);
+	}
+
 	static int	first = 1;
 
 	// if reading from the coarsest level
+	const size_t *bs = GetBlockSize();
 	if (_reflevel==0) {
 		int	nb;
 
@@ -128,7 +127,7 @@ int	WaveletBlock3DReader::ReadSlabs(
 				const size_t bcoord[] = {x,y,z};
 				const size_t min[] = {0,0,0};
 				const size_t max[] = {
-					lambda_nb[0]*_bs[0]-1,lambda_nb[1]*_bs[1]-1,2*_bs[2]-1
+					lambda_nb[0]*bs[0]-1,lambda_nb[1]*bs[1]-1,2*bs[2]-1
 				};
 
 				Block2NonBlock(
@@ -215,7 +214,7 @@ int	WaveletBlock3DReader::ReadSlabs(
 				const size_t bcoord[3] = {x,y,z};
 				const size_t min[] = {0,0,0};
 				const size_t max[] = {
-					dst_nb[0]*_bs[0]-1,dst_nb[1]*_bs[1]-1,2*_bs[2]-1
+					dst_nb[0]*bs[0]-1,dst_nb[1]*bs[1]-1,2*bs[2]-1
 				};
 				Block2NonBlock(
 					srcptr, bcoord, min, max, two_slabs
@@ -255,7 +254,7 @@ int	WaveletBlock3DReader::read_slabs(
 
 	src_super_blk[0] = src_lambda_buf;
 	for(i=1; i<8; i++) {
-		src_super_blk[i] = super_block_c + (_block_size * (i-1));
+		src_super_blk[i] = _super_block + (_block_size * (i-1));
 	}
 
 	//
@@ -264,7 +263,7 @@ int	WaveletBlock3DReader::read_slabs(
 	for(y=0; y<src_nby; y++) {
 	for(x=0; x<src_nbx; x++) {
 
-		rc = readGammaBlocks(1, super_block_c, level);
+		rc = readGammaBlocks(1, _super_block, level);
 		if (rc<0) return(rc);
 
 		dst_super_blk[0] = slab1;
@@ -292,9 +291,9 @@ int	WaveletBlock3DReader::read_slabs(
 			slab2 -= _block_size;
         }
 
-		TIMER_START(t0)
-		wb3d_c->InverseTransform(src_super_blk,dst_super_blk);
-		TIMER_STOP(t0, _xform_timer)
+		_XFormTimerStart();
+		_wb3d->InverseTransform(src_super_blk,dst_super_blk);
+		_XFormTimerStop();
 
 		src_super_blk[0] += _block_size;
 	}

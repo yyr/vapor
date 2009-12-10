@@ -27,31 +27,25 @@ public:
  //! Constructor for the WaveletBlock3DBufReader class.
  //! \param[in] metadata A pointer to a Metadata structure identifying the
  //! data set upon which all future operations will apply.
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
  //! \sa Metadata, GetErrCode()
  //
  WaveletBlock3DBufReader(
-	const Metadata *metadata,
-	unsigned int    nthreads = 1
+	const MetadataVDC &metadata
  );
 
  //! Constructor for the WaveletBlock3DBufReader class.
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
  //! \sa Metadata, GetErrCode()
  //
  WaveletBlock3DBufReader(
-	const char *metafile,
-	unsigned int    nthreads = 1
+	const string &metafile
  );
 
  virtual ~WaveletBlock3DBufReader();
@@ -115,7 +109,6 @@ public:
 
 
 private:
- int	_objInitialized;	// has the obj successfully been initialized?
 
  int	slice_cntr_c;
 

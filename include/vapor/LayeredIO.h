@@ -31,31 +31,25 @@ class VDF_API	LayeredIO : public WaveletBlock3DRegionReader {
 public:
 
  //! data set upon which all future operations will apply. 
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
  //! \sa Metadata, GetErrCode()
  //
  LayeredIO(
-	const Metadata *metadata,
-	unsigned int	nthreads = 1
+	const MetadataVDC &metadata
  );
 
  //! Constructor for the LayeredIO class. 
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  LayeredIO(
-	const char	*metafile,
-	unsigned int	nthreads = 1
+	const string &metafile
  );
 
  virtual ~LayeredIO();
@@ -414,11 +408,8 @@ public:
 
 
 private:
- int	_objInitialized;	// has the obj successfully been initialized?
  bool _interpolateOn;	// Is interpolation on?
  size_t _gridHeight;	// Interpolation grid height
- WaveletBlock3DRegionReader *_varReader;
- WaveletBlock3DRegionReader *_elevReader;
 
  float *_elevBlkBuf;	// buffer for layered elevation data
  float *_varBlkBuf;	// buffer for layered variable data

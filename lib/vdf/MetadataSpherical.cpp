@@ -50,17 +50,18 @@ int MetadataSpherical::SetDefaults() {
 	vector<double> extentsVec(6,0.0);
 	vector <long> periodic_boundary(3,0);
 	const vector <long> rvec = GetGridPermutation();
+	const size_t *dim = GetDimension();
 	for (int i=0; i<3; i++) {
 		switch (rvec[i]) {
 		case 0: {	// longitude
-			double incr = 360.0 / (double)_dim[i];
+			double incr = 360.0 / (double) dim[i];
 			extentsVec[i] = -180 + (incr / 2.0);
 			extentsVec[i+3] = 180 - (incr / 2.0);
 		periodic_boundary[i] = 1;
 		}
 		break;
 		case 1: {	// lattitude
-			double incr = 180.0 / (double)_dim[i];
+			double incr = 180.0 / (double) dim[i];
 			extentsVec[i] = -90 + (incr / 2.0);
 			extentsVec[i+3] = 90 - (incr / 2.0);
 		periodic_boundary[i] = 1;
@@ -89,7 +90,7 @@ MetadataSpherical::MetadataSpherical(
 		const size_t dim[3], size_t numTransforms, size_t bs[3], 
 		size_t permutation[3],
 		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
-) : Metadata(
+) : MetadataVDC(
 	dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion
 ) {
 
@@ -104,7 +105,7 @@ MetadataSpherical::MetadataSpherical(
 
 MetadataSpherical::MetadataSpherical(
 	const string &path
-) : Metadata(path) {
+) : MetadataVDC(path) {
 
 }
 

@@ -11,10 +11,12 @@ void	WaveletBlock3DWriter::_WaveletBlock3DWriter()
 
 	SetClassName("WaveletBlock3DWriter");
 	
-	_xform_timer = 0.0;
 	slab_cntr_c = 0;
 	is_open_c = 0;
 	zero_block_c = NULL;
+
+	const size_t *bs = GetBlockSize();
+	_block_size = bs[0]*bs[1]*bs[2];
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
@@ -24,58 +26,36 @@ void	WaveletBlock3DWriter::_WaveletBlock3DWriter()
 }
 
 WaveletBlock3DWriter::WaveletBlock3DWriter(
-	Metadata *metadata,
-	unsigned int    nthreads
-) : WaveletBlock3DIO(metadata, nthreads) {
+	const MetadataVDC &metadata
+) : WaveletBlockIOBase(metadata) {
 
-	_objInitialized = 0;
-	if (WaveletBlock3DIO::GetErrCode()) return;
+	if (WaveletBlockIOBase::GetErrCode()) return;
 
-	SetDiagMsg(
-		"WaveletBlock3DWriter::WaveletBlock3DWriter(,%d)",
-		nthreads
-	);
+	SetDiagMsg("WaveletBlock3DWriter::WaveletBlock3DWriter()");
 
-	_metafile.clear();
 	_WaveletBlock3DWriter();
-
-	_objInitialized = 1;
 }
 
 WaveletBlock3DWriter::WaveletBlock3DWriter(
-	const char *metafile,
-	unsigned int    nthreads
-) : WaveletBlock3DIO(metafile, nthreads) {
+	const string &metafile
+) : WaveletBlockIOBase(metafile) {
 
-	_objInitialized = 0;
-	if (WaveletBlock3DIO::GetErrCode()) return;
+	if (WaveletBlockIOBase::GetErrCode()) return;
 
-	SetDiagMsg(
-		"WaveletBlock3DWriter::WaveletBlock3DWriter(%s,%d)",
-		metafile, nthreads
-	);
+	SetDiagMsg("WaveletBlock3DWriter::WaveletBlock3DWriter(%s)", metafile.c_str());
 
-	_metafile.assign(metafile);
 	_WaveletBlock3DWriter();
 
-	_objInitialized = 1;
 }
 
 
 WaveletBlock3DWriter::~WaveletBlock3DWriter(
 ) {
-	if (! _objInitialized) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DWriter::~WaveletBlock3DWriter()"
 	);
 
-	if (_version < 2 && _metafile.length()) {
-		// Bad, bad, bad cast!!!
-		//
-		Metadata *m = (Metadata *) _metadata;
-		m->Write(_metafile.c_str());
-	}
 	WaveletBlock3DWriter::CloseVariable();
 
 	my_free();
@@ -83,7 +63,6 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 	if (zero_block_c) delete [] zero_block_c;
 	zero_block_c = NULL;
 
-	_objInitialized = 0;
 }
 
 int	WaveletBlock3DWriter::OpenVariableWrite(
@@ -100,9 +79,9 @@ int	WaveletBlock3DWriter::OpenVariableWrite(
 		timestep, varname, reflevel
 	);
 
-	if (reflevel < 0) reflevel = _num_reflevels - 1;
+	if (reflevel < 0) reflevel = GetNumTransforms();
 
-	rc = WaveletBlock3DIO::OpenVariableWrite(timestep, varname, reflevel);
+	rc = WaveletBlockIOBase::OpenVariableWrite(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	return(my_realloc());
 }
@@ -119,9 +98,9 @@ int     WaveletBlock3DWriter::CloseVariable(
 	//
 	// We've already computed the block min & max at the native refinement
 	// level. Now go back and compute the block min & max at refinement 
-	// levels [0.._num_reflevels-2]
+	// levels [0..GetNumTransforms()-1]
 	//
-	for (int l=_num_reflevels-2; l>=0; l--) {
+	for (int l=GetNumTransforms()-1; l>=0; l--) {
 		size_t bdim[3];		// block dim at level l
 		size_t bdimlp1[3];	// block dim at level l+1
 		int blkidx;
@@ -136,8 +115,8 @@ int     WaveletBlock3DWriter::CloseVariable(
 
 			blkidx = z * bdim[1] * bdim[0] + y * bdim[0] + x;
 			blkidxlp1 = (z<<1) * bdimlp1[1] * bdimlp1[0] + (y<<1) * bdimlp1[0] + (x<<1);
-			_mins[l][blkidx] = _mins[l+1][blkidxlp1];
-			_maxs[l][blkidx] = _maxs[l+1][blkidxlp1];
+			_mins3d[l][blkidx] = _mins3d[l+1][blkidxlp1];
+			_maxs3d[l][blkidx] = _maxs3d[l+1][blkidxlp1];
 
 			for(int zz=z<<1; zz < (z<<1)+2 && zz<bdimlp1[2]; zz++) {
 			for(int yy=y<<1; yy < (y<<1)+2 && yy<bdimlp1[1]; yy++) {
@@ -145,11 +124,11 @@ int     WaveletBlock3DWriter::CloseVariable(
 
 				blkidxlp1 = zz * bdimlp1[1] * bdimlp1[0] + yy * bdimlp1[0] + xx;
 
-				if (_mins[l+1][blkidxlp1] < _mins[l][blkidx]) {
-					_mins[l][blkidx] = _mins[l+1][blkidxlp1];
+				if (_mins3d[l+1][blkidxlp1] < _mins3d[l][blkidx]) {
+					_mins3d[l][blkidx] = _mins3d[l+1][blkidxlp1];
 				}
-				if (_maxs[l+1][blkidxlp1] > _maxs[l][blkidx]) {
-					_maxs[l][blkidx] = _maxs[l+1][blkidxlp1];
+				if (_maxs3d[l+1][blkidxlp1] > _maxs3d[l][blkidx]) {
+					_maxs3d[l][blkidx] = _maxs3d[l+1][blkidxlp1];
 				}
 			}
 			}
@@ -163,7 +142,7 @@ int     WaveletBlock3DWriter::CloseVariable(
 
 	is_open_c = 0;
 
-	return(WaveletBlock3DIO::CloseVariable());
+	return(WaveletBlockIOBase::CloseVariable());
 }
 
 int	WaveletBlock3DWriter::WriteSlabs(
@@ -175,7 +154,7 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	);
 
 	float *fptr = two_slabs;
-	int	l = _num_reflevels - 1;
+	int	l = GetNumTransforms();
 
 	int blkidx;
 	
@@ -183,36 +162,41 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	// Initialize min & max stats
 	//
 	if (slab_cntr_c == 0) {
-		_dataRange[0] = _dataRange[0] = *two_slabs;
+		_dataRange[0] = _dataRange[1] = *two_slabs;
 	}
+
+	const size_t *bs = GetBlockSize();
+	size_t bdim[3];
+	GetDimBlk(bdim, GetNumTransforms());
+	const size_t *dim = GetDimension();
 
 	// calculate the data value's range (min and max)
 	//
-	for(int bz = 0; bz<2 && bz+slab_cntr_c < _bdim[2]; bz++) {
-	for(int by = 0; by<_bdim[1]; by++) {
-	for(int bx = 0; bx<_bdim[0]; bx++) {
+	for(int bz = 0; bz<2 && bz+slab_cntr_c < bdim[2]; bz++) {
+	for(int by = 0; by<bdim[1]; by++) {
+	for(int bx = 0; bx<bdim[0]; bx++) {
 
 		float *blkptr = two_slabs + 
-			_block_size * ((bz * _bdim[0] * _bdim[1]) + (by * _bdim[0]) + bx);
+			_block_size * ((bz * bdim[0] * bdim[1]) + (by * bdim[0]) + bx);
 
-		blkidx = (bz+slab_cntr_c)*_bdim[1]*_bdim[0] + by*_bdim[0] + bx;
+		blkidx = (bz+slab_cntr_c)*bdim[1]*bdim[0] + by*bdim[0] + bx;
 
-		_mins[l][blkidx] = *blkptr;	// initialize with first block element
-		_maxs[l][blkidx] = *blkptr;
+		_mins3d[l][blkidx] = *blkptr;	// initialize with first block element
+		_maxs3d[l][blkidx] = *blkptr;
 
-		for(int vz=0; vz < _bs[2] && (bz+slab_cntr_c)*_bs[2] + vz <_dim[2]; vz++){
-		for(int vy=0; vy < _bs[1] && by*_bs[1] + vy <_dim[1]; vy++) {
-		for(int vx=0; vx < _bs[0] && bx*_bs[0] + vx <_dim[0]; vx++) {
+		for(int vz=0; vz < bs[2] && (bz+slab_cntr_c)*bs[2] + vz <dim[2]; vz++){
+		for(int vy=0; vy < bs[1] && by*bs[1] + vy <dim[1]; vy++) {
+		for(int vx=0; vx < bs[0] && bx*bs[0] + vx <dim[0]; vx++) {
 
-			fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+			fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 
 			if (*fptr < _dataRange[0]) _dataRange[0] = *fptr; 
 			if (*fptr > _dataRange[1]) _dataRange[1] = *fptr; 
 
 			// compute min and max for each block
 			//
-			if (*fptr < _mins[l][blkidx]) _mins[l][blkidx] = *fptr;
-			if (*fptr > _maxs[l][blkidx]) _maxs[l][blkidx] = *fptr;
+			if (*fptr < _mins3d[l][blkidx]) _mins3d[l][blkidx] = *fptr;
+			if (*fptr > _maxs3d[l][blkidx]) _maxs3d[l][blkidx] = *fptr;
 
 		}
 		}
@@ -227,27 +211,27 @@ int	WaveletBlock3DWriter::WriteSlabs(
 
 	// first pad along X dimension
 	//
-	if (_dim[0] % _bs[0]) {
+	if (dim[0] % bs[0]) {
 		float pad;
 
-		for(int bz = 0; bz<2 && bz+slab_cntr_c < _bdim[2]; bz++) {
-		for(int by = 0; by<_bdim[1]; by++) {
-			int bx = _bdim[0] - 1;
+		for(int bz = 0; bz<2 && bz+slab_cntr_c < bdim[2]; bz++) {
+		for(int by = 0; by<bdim[1]; by++) {
+			int bx = bdim[0] - 1;
 
 			float *blkptr = two_slabs + 
-				_block_size * ((bz * _bdim[0] * _bdim[1]) + (by * _bdim[0]) + bx);
+				_block_size * ((bz * bdim[0] * bdim[1]) + (by * bdim[0]) + bx);
 
-			for(int vz=0; vz < _bs[2] && (bz+slab_cntr_c)*_bs[2] + vz <_dim[2]; vz++){
-			for(int vy=0; vy < _bs[1] && by*_bs[1] + vy <_dim[1]; vy++) {
+			for(int vz=0; vz < bs[2] && (bz+slab_cntr_c)*bs[2] + vz <dim[2]; vz++){
+			for(int vy=0; vy < bs[1] && by*bs[1] + vy <dim[1]; vy++) {
 
-				int vx = _dim[0] % _bs[0] -1;
+				int vx = dim[0] % bs[0] -1;
 
-				fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 				pad = *fptr;
 				vx++;
 
-				for(; vx < _bs[0]; vx++) {
-					fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				for(; vx < bs[0]; vx++) {
+					fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 					*fptr = pad;
 				}
 			}
@@ -257,27 +241,27 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	}
 
 	// now pad along Y dimension
-	if (_dim[1] % _bs[1]) {
+	if (dim[1] % bs[1]) {
 		float pad;
 
-		for(int bz = 0; bz<2 && bz+slab_cntr_c < _bdim[2]; bz++) {
-		for(int bx = 0; bx<_bdim[0]; bx++) {
-			int by = _bdim[1] - 1;
+		for(int bz = 0; bz<2 && bz+slab_cntr_c < bdim[2]; bz++) {
+		for(int bx = 0; bx<bdim[0]; bx++) {
+			int by = bdim[1] - 1;
 
 			float *blkptr = two_slabs + 
-				_block_size * ((bz * _bdim[0] * _bdim[1]) + (by * _bdim[0]) + bx);
+				_block_size * ((bz * bdim[0] * bdim[1]) + (by * bdim[0]) + bx);
 
-			for(int vz=0; vz < _bs[2] && (bz+slab_cntr_c)*_bs[2] + vz <_dim[2]; vz++){
-			for(int vx=0; vx < _bs[0]; vx++) {
+			for(int vz=0; vz < bs[2] && (bz+slab_cntr_c)*bs[2] + vz <dim[2]; vz++){
+			for(int vx=0; vx < bs[0]; vx++) {
 
-				int vy = _dim[1] % _bs[1] -1;
+				int vy = dim[1] % bs[1] -1;
 
-				fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 				pad = *fptr;
 				vy++;
 
-				for(; vy < _bs[1]; vy++) {
-					fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				for(; vy < bs[1]; vy++) {
+					fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 					*fptr = pad;
 				}
 			}
@@ -287,27 +271,27 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	}
 
 	// now pad along Z dimension
-	if (slab_cntr_c + 2 >= _bdim[2] && _dim[2] % _bs[2]) {
+	if (slab_cntr_c + 2 >= bdim[2] && dim[2] % bs[2]) {
 		float pad;
 
-		for(int by = 0; by<_bdim[1]; by++) {
-		for(int bx = 0; bx<_bdim[0]; bx++) {
-			int bz = 1 - (_bdim[2] % 2);
+		for(int by = 0; by<bdim[1]; by++) {
+		for(int bx = 0; bx<bdim[0]; bx++) {
+			int bz = 1 - (bdim[2] % 2);
 
 			float *blkptr = two_slabs + 
-				_block_size * ((bz * _bdim[0] * _bdim[1]) + (by * _bdim[0]) + bx);
+				_block_size * ((bz * bdim[0] * bdim[1]) + (by * bdim[0]) + bx);
 
-			for(int vy=0; vy < _bs[1]; vy++) {
-			for(int vx=0; vx < _bs[0]; vx++) {
+			for(int vy=0; vy < bs[1]; vy++) {
+			for(int vx=0; vx < bs[0]; vx++) {
 
-				int vz = _dim[2] % _bs[2] -1;
+				int vz = dim[2] % bs[2] -1;
 
-				fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 				pad = *fptr;
 				vz++;
 
-				for(; vz < _bs[2]; vz++){
-					fptr = blkptr + vz*_bs[1]*_bs[0] + vy*_bs[0] + vx;
+				for(; vz < bs[2]; vz++){
+					fptr = blkptr + vz*bs[1]*bs[0] + vy*bs[0] + vx;
 					*fptr = pad;
 				}
 			}
@@ -317,20 +301,7 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	}
 				
 
-		
-
-	if (_version < 2) {
-		vector <double> r;
-		r.push_back(_dataRange[0]);
-		r.push_back(_dataRange[1]);
-
-		// Bad, bad, bad cast!!!
-		//
-		Metadata *m = (Metadata *) _metadata;
-		m->SetVDataRange(_timeStep, _varName.c_str(), r);
-	}
-
-	int rc = this->write_slabs(two_slabs, _num_reflevels-1);
+	int rc = this->write_slabs(two_slabs, GetNumTransforms());
 	if (rc < 0) return(rc);
 
 	slab_cntr_c += 2;
@@ -351,35 +322,37 @@ int	WaveletBlock3DWriter::write_slabs(
 	int	rc;
 
 
+	size_t bdim[3];
+	GetDimBlk(bdim, GetNumTransforms());
 
 	// handle case where there is no transform
 	//
-	if ((_num_reflevels-1) == 0) {
+	if ((GetNumTransforms()) == 0) {
 		int	size;
 
-		if ((slab_cntr_c+2) <= (int)_bdim[2]) {
-			size = (int)(2 * _bdim[0] * _bdim[1]);
+		if ((slab_cntr_c+2) <= (int)bdim[2]) {
+			size = (int)(2 * bdim[0] * bdim[1]);
 		}
 		else {
-			size = (int)(_bdim[0] * _bdim[1]);	// odd # of slabs
+			size = (int)(bdim[0] * bdim[1]);	// odd # of slabs
 		}
 
 		return(writeLambdaBlocks(two_slabs, size));
 	}
 
-	if (slab_cntr_c+2 >= _bdim[2]) flush = 1;
+	if (slab_cntr_c+2 >= bdim[2]) flush = 1;
 
 	// Transform blocks at each level as long as there are enough 
 	// blocks to process. 
 	j = reflevel;
-	while (j>0 && (flush || (((slab_cntr_c+2) % (1 << (_num_reflevels-j))) == 0))) {
+	while (j>0 && (flush || (((slab_cntr_c+2) % (1 << (GetNumTransforms()+1-j))) == 0))) {
 		int	offset;
 
 
 		VDFIOBase::GetDimBlk(src_nb, j);
 		VDFIOBase::GetDimBlk(lambda_nb, j-1);
 
-		if (((slab_cntr_c / (1<<(_num_reflevels-j))) % 2) == 1) {
+		if (((slab_cntr_c / (1<<(GetNumTransforms()+1-j))) % 2) == 1) {
 			offset = (int)(lambda_nb[0] * lambda_nb[1] * _block_size);
 		}
 		else {
@@ -426,7 +399,7 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 
 	dst_super_blk[0] = dst_lambda_buf;
 	for(i=1; i<8; i++) {
-		dst_super_blk[i] = super_block_c + (_block_size * (i-1));
+		dst_super_blk[i] = _super_block + (_block_size * (i-1));
 	}
 
 	//
@@ -461,15 +434,16 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 			slab2 -= _block_size;
 		}
 
-		TIMER_START(t0)
-		wb3d_c->ForwardTransform(src_super_blk,dst_super_blk);
-		TIMER_STOP(t0, _xform_timer)
+		
+		_XFormTimerStart();
+		_wb3d->ForwardTransform(src_super_blk,dst_super_blk);
+		_XFormTimerStop();
 
 		// only save gamma coefficients for requested levels
 		//
 		if (j <= _reflevel) {
 			size =  1;
-			rc = writeGammaBlocks(super_block_c, size, j);
+			rc = writeGammaBlocks(_super_block, size, j);
 			if (rc<0) return(-1);
 		}
 
@@ -484,7 +458,7 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 int	WaveletBlock3DWriter::my_realloc(
 ) {
 
-	for(int j=0; j<=_num_reflevels-1; j++) {
+	for(int j=0; j<=GetNumTransforms(); j++) {
 		if (! lambda_blks_c[j]) {
 
 			size_t	size;
@@ -516,3 +490,9 @@ void	WaveletBlock3DWriter::my_free(
 		lambda_blks_c[j] = NULL;
 	}
 }
+
+void WaveletBlock3DWriter::_GetDataRange(float range[2]) const {
+	range[0] = _dataRange[0];
+	range[1] = _dataRange[1];
+}
+

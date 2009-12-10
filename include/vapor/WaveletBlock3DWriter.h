@@ -6,7 +6,7 @@
 #define	_WavletBlock3DWriter_h_
 
 #include <vapor/MyBase.h>
-#include "vapor/WaveletBlock3DIO.h"
+#include "vapor/WaveletBlockIOBase.h"
 
 namespace VAPoR {
 
@@ -22,38 +22,32 @@ namespace VAPoR {
 //! (both in terms of memory and performance) for writing an entire data
 //! volume.
 //
-class VDF_API	WaveletBlock3DWriter : public WaveletBlock3DIO {
+class VDF_API	WaveletBlock3DWriter : public WaveletBlockIOBase {
 
 public:
 
  //! Constructor for the WaveletBlock3DWriter class.
  //! \param[in,out] metadata A pointer to a Metadata structure identifying the
  //! data set upon which all future operations will apply.
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  WaveletBlock3DWriter(
-	Metadata *metadata,
-	unsigned int    nthreads = 1
+	const MetadataVDC &metadata
  );
 
  //! Constructor for the WaveletBlock3DWriter class.
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads The number of parallel execution threads to
- //! create.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
- //! \sa Metadata, GetErrCode()
+ //! \sa MetadataVDC, GetErrCode()
  //
  WaveletBlock3DWriter(
-	const char	*metafile,
-	unsigned int    nthreads = 1
+	const string &metafile
  );
 
  virtual ~WaveletBlock3DWriter();
@@ -118,15 +112,19 @@ public:
 // int	WriteSlabs(const float *two_slabs);
  int	WriteSlabs(float *two_slabs);
 
-private:
- int	_objInitialized;	// has the obj successfully been initialized?
+protected:
 
- string _metafile;
+ void _GetDataRange(float range[2]) const;
+
+private:
 
  int	slab_cntr_c;
  int	is_open_c;
  float	*lambda_blks_c[MAX_LEVELS];	// temp storage for lambda blocks
  float	*zero_block_c;	// a block of zero data for padding
+ size_t _block_size;
+
+ float _dataRange[2];
 
  int	write_slabs(
 	const float *two_slabs,

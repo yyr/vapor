@@ -14,9 +14,6 @@
 #include <netcdf.h>
 #include <vapor/PVTime.h>
 
-using namespace VetsUtil;
-using namespace VAPoR;
-
 namespace VAPoR {
 
 class VDF_API WRF : public VetsUtil::MyBase {

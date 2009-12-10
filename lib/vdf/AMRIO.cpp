@@ -44,12 +44,10 @@ int	AMRIO::_AMRIO(
 ) {
 	SetClassName("AMRIO");
 
-	if (_num_reflevels > MAX_LEVELS) {
+	if (GetNumTransforms() >= MAX_LEVELS) {
 		SetErrMsg("Too many refinement levels");
 		return(-1);
 	}
-
-	_xform_timer = 0.0;
 
 	_treeIsOpen = 0;
 	_dataIsOpen = 0;
@@ -58,42 +56,32 @@ int	AMRIO::_AMRIO(
 }
 
 AMRIO::AMRIO(
-	const Metadata	*metadata,
-	unsigned int	nthreads
-) : VDFIOBase(metadata, nthreads) {
+	const MetadataVDC	&metadata
+) : VDFIOBase(metadata) {
 
-	SetDiagMsg("AMRIO::AMRIO(, %d)", nthreads);
-
-	_objInitialized = 0;
+	SetDiagMsg("AMRIO::AMRIO()");
 
 	if (VDFIOBase::GetErrCode()) return;
 
 	if (_AMRIO() < 0) return;
 
-	_objInitialized = 1;
 }
 
 AMRIO::AMRIO(
-	const char *metafile,
-	unsigned int	nthreads
-) : VDFIOBase(metafile, nthreads) {
+	const string &metafile
+) : VDFIOBase(metafile) {
 
-	SetDiagMsg("AMRIO::AMRIO(%s, %d)", metafile, nthreads);
-
-	_objInitialized = 0;
+	SetDiagMsg("AMRIO::AMRIO(%s)", metafile.c_str());
 
 	if (VDFIOBase::GetErrCode()) return;
 
 	if (_AMRIO() < 0) return;
 
-	_objInitialized = 1;
 }
 
 AMRIO::~AMRIO() {
 
-	if (! _objInitialized) return;
 
-	_objInitialized = 0;
 }
 
 int    AMRIO::VariableExists(
@@ -108,13 +96,22 @@ int    AMRIO::VariableExists(
 
 	// Noop since we store all levels in the same file, for now
 	//
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
-
-	if (mkpath(timestep, varname, &basename) < 0) return(0);
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
 	struct STAT64 statbuf;
 
+	// 
+	// First check for file containing field data
+	//
+	if (mkpath(timestep, varname, &basename) < 0) return(0);
 	if (STAT64(basename.c_str(), &statbuf) < 0) return(0);
+
+	// 
+	// Next check for file containing the AMR tree
+	//
+	if (mkpath(timestep, &basename) < 0) return(0);
+	if (STAT64(basename.c_str(), &statbuf) < 0) return(0);
+
 	return(1);
 }
 
@@ -127,8 +124,6 @@ int	AMRIO::OpenTreeWrite(
 	string basename;
 
 	_treeWriteMode = 1;
-
-	_treeTimeStep = timestep;
 
 	(void) AMRIO::CloseTree(); // close any previously opened files
 
@@ -158,8 +153,6 @@ int	AMRIO::OpenTreeRead(
 	string basename;
 
 	_treeWriteMode = 0;
-
-	_treeTimeStep = timestep;
 
 	(void) AMRIO::CloseTree(); // close any previously opened files
 
@@ -198,9 +191,9 @@ int	AMRIO::TreeRead(AMRTree *tree) {
 		return(-1);
 	}
 
-	TIMER_START(t0)
+	_ReadTimerStart();
 	int rc = tree->Read(_treeFileName);
-	TIMER_STOP(t0,_read_timer)
+	_ReadTimerStop();
 	return(rc);
 }
 
@@ -213,9 +206,9 @@ int	AMRIO::TreeWrite(const AMRTree *tree) {
 		return(-1);
 	}
 
-	TIMER_START(t0)
+	_WriteTimerStart();
 	int rc = tree->Write(_treeFileName);
-	TIMER_STOP(t0,_write_timer)
+	_WriteTimerStop();
 	return(rc);
 
 }
@@ -231,19 +224,16 @@ int	AMRIO::OpenVariableWrite(
 	string dir;
 	string basename;
 
-	_dataRange[0] = _dataRange[1] = 0.0;
-
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
 	_dataWriteMode = 1;
 
-	_dataTimeStep = timestep;
 	_varName.assign(varname);
 	_reflevel = reflevel;
 
 	(void) AMRIO::CloseVariable(); // close any previously opened files
 
-	if (reflevel >= _num_reflevels) {
+	if (reflevel > GetNumTransforms()) {
 		SetErrMsg("Requested refinement level out of range (%d)", reflevel);
 		return(-1);
 	}
@@ -277,19 +267,17 @@ int	AMRIO::OpenVariableRead(
 	string dir;
 	string basename;
 
-	_dataRange[0] = _dataRange[1] = 0.0;
 
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
 	_dataWriteMode = 0;
 
-	_dataTimeStep = timestep;
 	_varName.assign(varname);
 	_reflevel = reflevel;
 
 	(void) AMRIO::CloseVariable(); // close any previously opened files
 
-	if (reflevel >= _num_reflevels) {
+	if (reflevel > GetNumTransforms()) {
 		SetErrMsg("Requested refinement level out of range (%d)", reflevel);
 		return(-1);
 	}
@@ -305,7 +293,7 @@ int	AMRIO::OpenVariableRead(
 	DirName(basename, dir);
 
 	_dataFileName = basename;
-	
+
 	_dataIsOpen = 1;
 
 	return(0);
@@ -331,13 +319,9 @@ int	AMRIO::VariableRead(AMRData *data) {
 		return(-1);
 	}
 
-	TIMER_START(t0)
+	_ReadTimerStart();
 	int rc = data->ReadNCDF(_dataFileName,_reflevel);
-	TIMER_STOP(t0, _read_timer)
-
-	const float *r = data->GetDataRange();
-	_dataRange[0] = r[0];
-	_dataRange[1] = r[1];
+	_ReadTimerStop();
 
 	return(rc);
 
@@ -353,13 +337,9 @@ int	AMRIO::VariableWrite(AMRData *data) {
 		return(-1);
 	}
 
-	TIMER_START(t0)
+	_WriteTimerStart();
 	int rc = data->WriteNCDF(_dataFileName,_reflevel);
-	TIMER_STOP(t0, _write_timer)
-
-	const float *r = data->GetDataRange();
-	_dataRange[0] = r[0];
-	_dataRange[1] = r[1];
+	_WriteTimerStop();
 
 	return(rc);
 }
@@ -369,9 +349,9 @@ int	AMRIO::GetBlockMins(
 	const float	**mins,
 	int reflevel
 ) const {
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
-	if (reflevel >= _num_reflevels) {
+	if (reflevel > GetNumTransforms()) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
@@ -388,9 +368,9 @@ int	AMRIO::GetBlockMaxs(
 	const float	**maxs,
 	int reflevel
 ) const {
-    if (reflevel < 0) reflevel = _num_reflevels - 1;
+    if (reflevel < 0) reflevel = GetNumTransforms();
 
-	if (reflevel >= _num_reflevels) {
+	if (reflevel > GetNumTransforms()) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
@@ -409,8 +389,8 @@ int AMRIO::mkpath(size_t timestep, const char *varname, string *path) const {
 
 	path->clear();
 
-	if (_metadata->ConstructFullVBase(timestep, varname, path) < 0) {
-		_metadata->SetErrCode(0);
+	if (ConstructFullVBase(timestep, varname, path) < 0) {
+		SetErrCode(0);
 		return (-1);
 	}
 
@@ -423,13 +403,13 @@ int AMRIO::mkpath(size_t timestep, string *path) const {
 
 	path->clear();
 
-	const string &bp = _metadata->GetTSAuxBasePath(timestep);
-	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
-		_metadata->SetErrCode(0);
+	const string &bp = GetTSAuxBasePath(timestep);
+	if (GetErrCode() != 0 || bp.length() == 0) {
+		SetErrCode(0);
 		return(-1);
 	}
-	if (_metadata->ConstructFullAuxBase(timestep, path) < 0) {
-		_metadata->SetErrCode(0);
+	if (ConstructFullAuxBase(timestep, path) < 0) {
+		SetErrCode(0);
 		return (-1);
 	}
 

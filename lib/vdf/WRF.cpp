@@ -12,8 +12,6 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
-#include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
 
 using namespace VetsUtil;
