@@ -181,7 +181,7 @@ public:
 #endif
 
 protected:
- void _GetDataRange(float range[2]) const {};
+ void _GetDataRange(float /*range*/[2]) const {};
 
 
 private:

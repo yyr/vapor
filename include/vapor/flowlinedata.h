@@ -11,7 +11,7 @@
 #ifndef	FLOWLINEDATA_H
 #define	FLOWLINEDATA_H
 
-
+#include "assert.h"
 #include "vaporinternal/common.h"
 
 #define END_FLOW_FLAG 1.e30f

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #else
 #include "windows.h"
+#include "Winbase.h"
 #include "vaporinternal/common.h"
 #endif
 #include <sys/types.h>
@@ -61,13 +62,28 @@ VDFIOBase::~VDFIOBase() {
 }
 
 double VDFIOBase::GetTime() const {
-	struct timespec ts;
-	double  t;
+	double t;
+#ifdef WIN32 //Windows does not have a nanosecond time function...
+	SYSTEMTIME sTime;
+	FILETIME fTime;
+	GetSystemTime(&sTime);
+	SystemTimeToFileTime(&sTime,&fTime);
+    //Resulting system time is in 100ns increments
+	__int64 longlongtime = fTime.dwHighDateTime;
+	longlongtime <<= 32;
+	longlongtime += fTime.dwLowDateTime;
+	t = (double)longlongtime;
+	t *= 1.e-7;
 
+#endif
+#ifndef WIN32
+	struct timespec ts;
 	ts.tv_sec = ts.tv_nsec = 0;
+#endif
 
 #ifdef Linux
 	clock_gettime(CLOCK_REALTIME, &ts);
+	t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
 #endif
 
 #ifdef	Darwin
@@ -76,10 +92,9 @@ double VDFIOBase::GetTime() const {
 	mach_timebase_info(&info);
 	ts.tv_sec = tmac * 1e-9;
 	ts.tv_nsec = tmac - (ts.tv_sec * 1e9);
-
-#endif
 	t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
-
+#endif
+	
 	return(t);
 }
 

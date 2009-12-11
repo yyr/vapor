@@ -91,8 +91,8 @@ public:
  double GetTime() const;
 
  virtual int    BlockReadRegion(
-    const size_t bmin[3], const size_t bmax[3],
-    float *region, int unblock = 1
+    const size_t /*bmin*/[3], const size_t /*bmax*/[3],
+    float * /*region*/, int /*unblock*/ = 1
  ) { return(-1);};
 
 protected:

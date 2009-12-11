@@ -16,6 +16,7 @@
 #include "vapor/MyBase.h"
 #include "vaporinternal/common.h"
 #include "Interpolator.h"
+#include "assert.h"
 
 namespace VAPoR
 {

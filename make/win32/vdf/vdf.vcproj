@@ -152,6 +152,15 @@
 				RelativePath="..\..\..\lib\vdf\DataMgr.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrFactory.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrLayered.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrWB.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp">
 			</File>
 			<File
@@ -165,6 +174,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\MetadataVDC.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\Transpose.cpp">
@@ -182,15 +194,6 @@
 				RelativePath="..\..\..\lib\vdf\WaveletBlock2D.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock2DIO.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock2DRegionReader.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock2DRegionWriter.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3D.cpp">
 			</File>
 			<File
@@ -198,9 +201,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DBufWriter.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DIO.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DReader.cpp">
@@ -247,6 +247,15 @@
 				RelativePath="..\..\..\include\vapor\DataMgr.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\DataMgrFactory.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\DataMgrLayered.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\DataMgrWB.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\ExpatParseMgr.h">
 			</File>
 			<File
@@ -262,7 +271,13 @@
 				RelativePath="..\..\..\include\vapor\Metadata.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\MetadataVDC.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\Transpose.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\Transpose.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\VDFIOBase.h">
@@ -274,15 +289,6 @@
 				RelativePath="..\..\..\include\vapor\WaveletBlock2D.h">
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock2DIO.h">
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock2DRegionReader.h">
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock2DRegionWriter.h">
-			</File>
-			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h">
 			</File>
 			<File
@@ -290,9 +296,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufWriter.h">
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DIO.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DReader.h">

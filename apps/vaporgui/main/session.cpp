@@ -757,16 +757,21 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//If we don't already have a dataMgr, we can't really be merging:
 	if (!dataMgr) {
 		if (doMerge) {doMerge = false; }
+	} else if(defaultSession || !doMerge) {
+		delete dataMgr;
+		dataMgr = 0;
 	}
 	if (doMerge) assert (!defaultSession);
 
-	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-	if (! dataMgrWB) doMerge = false;
+	
+
+	
 	
 	//Handle the various cases of loading the metadata
 	if (defaultSession){
 		DataStatus::clearVariableNames();
 	} else {
+		
 		if (!doMerge) {
 			if (!restoredSession) DataStatus::clearVariableNames();
 			vector <string> metafiles;
@@ -781,6 +786,9 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 				return false;
 			}
 		} else {//merge
+			assert (dataMgr);
+			DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
+			if (! dataMgrWB) return false;
 			//keep dataMgr, do a merge:
 			//Need a non-const pointer to the metadata, since we will modify it:
 			size_t offset = (size_t) mergeOffset;
@@ -790,8 +798,6 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		}
 		
 	} 
-
-	
 
 	//Get the extents from the metadata, if it exists:
 	if (dataMgr){
