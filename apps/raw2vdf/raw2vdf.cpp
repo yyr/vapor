@@ -32,7 +32,6 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
-#include <vapor/WaveletBlock2DRegionWriter.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
