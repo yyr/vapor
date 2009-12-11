@@ -34,10 +34,9 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
-#include <vapor/WaveletBlock2DRegionWriter.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -217,6 +216,7 @@ void	process_volume(
 	const int ncid,
 	double *read_timer
 ) {
+	*read_timer = 0.0;
 
 	// Check out the netcdf file.
 	// It needs to have the specified variable name, and the specified dimension names
@@ -461,7 +461,7 @@ void	process_volume(
 				cout << "Reading slice # " << z << endl;
 			}
 
-			TIMER_START(t1);
+			double t1 = bufwriter->GetTime();
 			start[dimIndex[2]] = z;
 			
 			if (xtype == NC_FLOAT) {
@@ -471,7 +471,7 @@ void	process_volume(
 				);
 				
 				NC_ERR_READ(nc_status);
-				TIMER_STOP(t1, *read_timer);
+				*read_timer += bufwriter->GetTime() - t1;
 				averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 
@@ -482,7 +482,7 @@ void	process_volume(
 					ncid, varid, start, count, inDBuffer
 				);
 				NC_ERR_READ(nc_status);
-				TIMER_STOP(t1, *read_timer);
+				*read_timer += bufwriter->GetTime() - t1;
 				averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Convert to float:
@@ -516,7 +516,7 @@ void	process_volume(
 
 		
 		//First, read newbuffer, average inside slice as needed
-		TIMER_START(t1);
+		double t1 = bufwriter->GetTime();
 		start[dimIndex[2]] = zbegin;
 		
 		if (xtype == NC_FLOAT) {
@@ -526,7 +526,7 @@ void	process_volume(
 			);
 			
 			NC_ERR_READ(nc_status);
-			TIMER_STOP(t1, *read_timer);
+			*read_timer += bufwriter->GetTime() - t1;
 			averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 			
@@ -536,7 +536,7 @@ void	process_volume(
 				ncid, varid, start, count, stagInDBuffer
 			);
 			NC_ERR_READ(nc_status);
-			TIMER_STOP(t1, *read_timer);
+			*read_timer += bufwriter->GetTime() - t1;
 			averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 					inSizeX, inSizeY, outSizeX, outSizeY);
 		}
@@ -561,13 +561,13 @@ void	process_volume(
 			//  read newBuffer
 			
 			if (xtype == NC_FLOAT) {
-				TIMER_START(t1);
+				double t1 = bufwriter->GetTime();
 				nc_status = nc_get_vara_float(
 					ncid, varid, start, count, stagInFBuffer
 				);
 				
 				NC_ERR_READ(nc_status);
-				TIMER_STOP(t1, *read_timer);
+				*read_timer += bufwriter->GetTime() - t1;
 				averageSlice(xtype,(void*)stagInFBuffer, (void*)newFBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into oldBuffer
@@ -579,12 +579,12 @@ void	process_volume(
 					exit(1);
 				}
 			} else if (xtype == NC_DOUBLE){
-				TIMER_START(t1);
+				double t1 = bufwriter->GetTime();
 				nc_status = nc_get_vara_double(
 					ncid, varid, start, count, stagInDBuffer
 				);
 				NC_ERR_READ(nc_status);
-				TIMER_STOP(t1, *read_timer);
+				*read_timer += bufwriter->GetTime() - t1;
 				averageSlice(xtype,(void*)stagInDBuffer, (void*)newDBuffer, 
 						inSizeX, inSizeY, outSizeX, outSizeY);
 				//Average two slices putting result into outFBuffer
@@ -617,11 +617,12 @@ void	process_volume(
 }
 
 void	process_slice(
-	WaveletBlock2DRegionWriter *bufwriter,
+	WaveletBlock3DRegionWriter *bufwriter,
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
 	double *read_timer
 ) {
+	*read_timer = 0.0;
 
 	// Check out the netcdf file.
 	// It needs to have the specified variable name, and the specified dimension names
@@ -829,7 +830,7 @@ void	process_slice(
 	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
 
 
-	TIMER_START(t1);
+	double t1 = bufwriter->GetTime();
 	
 	if (xtype == NC_FLOAT) {
 	
@@ -838,7 +839,7 @@ void	process_slice(
 		);
 		
 		NC_ERR_READ(nc_status);
-		TIMER_STOP(t1, *read_timer);
+		*read_timer += bufwriter->GetTime() - t1;
 		averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
 				inSizeX, inSizeY, outSizeX, outSizeY);
 
@@ -849,7 +850,7 @@ void	process_slice(
 			ncid, varid, start, count, inDBuffer
 		);
 		NC_ERR_READ(nc_status);
-		TIMER_STOP(t1, *read_timer);
+		*read_timer += bufwriter->GetTime() - t1;
 		averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
 				inSizeX, inSizeY, outSizeX, outSizeY);
 		//Convert to float:
@@ -885,7 +886,6 @@ int	main(int argc, char **argv) {
 	double	timer = 0.0;
 	double	read_timer = 0.0;
 	string	s;
-	const Metadata	*metadata;
 
 	//
 	// Parse command line arguments
@@ -944,73 +944,40 @@ int	main(int argc, char **argv) {
 		opt.ncdfvarname = opt.varname;
 	}
 
-	//Determine if variable is 3D, create a temporary metadata:
-	Metadata mdTemp (metafile);
-	const vector<string> vars3d = mdTemp.GetVariables3D();
-
-	bool is3D = false;
-	for (int i = 0; i<vars3d.size(); i++){
-		if (vars3d[i] == opt.varname) {
-			is3D = true;
-			break;
-		}
-	}
-	if (!is3D){
-		//Make sure the orientation is horizontal:
-		const vector<string> vars2d = mdTemp.GetVariables2DXY();
-		bool isOK = false;
-		for (int i = 0; i<vars2d.size(); i++){
-			if (vars2d[i] == opt.varname) {
-				isOK = true;
-				break;
-			}
-		}
-		if (!isOK){
-			cerr << "Variable named " << opt.varname << " is neither 3D nor horizontal." << endl;
-			cerr << "Conversion not supported." << endl;
-			exit(1);
-		}
-	}
 	
-
-	WaveletBlock3DIO	*wbwriter3D = 0;
-	WaveletBlock2DIO	*wbwriter2D = 0;
+	// Determine if variable is 3D
+	//
+	MetadataVDC metadata (metafile);
+	if (MetadataVDC::GetErrCode() != 0) {
+		MyBase::SetErrMsg("Error processing metafile \"%s\"", metafile);
+		exit(1);
+	}
+	Metadata::VarType_T vtype = metadata.GetVarType(opt.varname);
+	if (vtype == Metadata::VARUNKNOWN) {
+		MyBase::SetErrMsg("Unknown variable \"%s\"", opt.varname);
+		exit(1);
+	}
 
 	//
-	// Create an appropriate WaveletBlock writer. Initialize with
-	// path to .vdf file
+	// Create an appropriate WaveletBlock writer. 
 	//
-	if (is3D){
-		wbwriter3D = new WaveletBlock3DBufWriter(metafile, 0);
-		if (wbwriter3D->GetErrCode() != 0) {
-			cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
-			exit(1);
-		}
-		metadata = wbwriter3D->GetMetadata();
-		if (wbwriter3D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-			cerr << ProgName << " : " << wbwriter3D->GetErrMsg() << endl;
-			exit(1);
-		} 
+	WaveletBlockIOBase *wbwriter3D;
+	if (vtype == Metadata::VAR3D) {
+		wbwriter3D = new WaveletBlock3DBufWriter(metadata);
 	} else {
-		wbwriter2D = new WaveletBlock2DRegionWriter(metafile);
-		if (wbwriter2D->GetErrCode() != 0) {
-			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
-			exit(1);
-		}
-		metadata = wbwriter2D->GetMetadata();
-		if (wbwriter2D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-			cerr << ProgName << " : " << wbwriter2D->GetErrMsg() << endl;
-			exit(1);
-		} 
+		wbwriter3D = new WaveletBlock3DRegionWriter(metafile);
 	}
 	
+	if (wbwriter3D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+		exit(1);
+	} 
 
 
 	//
 	// If pre version 2, create a backup of the .vdf file. The 
 	// translation process will generate a new .vdf file
 	//
-	if (metadata->GetVDFVersion() < 2) save_file(metafile);
+	if (metadata.GetVDFVersion() < 2) save_file(metafile);
 
 	
     int nc_status;
@@ -1022,40 +989,32 @@ int	main(int argc, char **argv) {
    
 	// Get the dimensions of the volume
 	//
-	const size_t *dim = metadata->GetDimension();
+	const size_t *dim = metadata.GetDimension();
 
 
-	TIMER_START(t0);
-	if (is3D){
-		process_volume((WaveletBlock3DBufWriter *) wbwriter3D, dim, ncid, &read_timer);
-		wbwriter3D->CloseVariable();
-		if (wbwriter3D->GetErrCode() != 0) {
-			cerr << ProgName << ": " << wbwriter3D->GetErrMsg() << endl;
-			exit(1);
-		}
+	double t0 = wbwriter3D->GetTime();
+	if (vtype == Metadata::VAR3D){
+		process_volume(
+			(WaveletBlock3DBufWriter *) wbwriter3D, dim, ncid, &read_timer
+		);
 	}
 	else {
-		process_slice((WaveletBlock2DRegionWriter *) wbwriter2D, dim, ncid, &read_timer);
-		wbwriter2D->CloseVariable();
-		if (wbwriter2D->GetErrCode() != 0) {
-			cerr << ProgName << ": " << wbwriter2D->GetErrMsg() << endl;
-			exit(1);
-		}
+		process_slice(
+			(WaveletBlock3DRegionWriter *) wbwriter3D, dim, ncid, &read_timer
+		);
 	}
-	
-	TIMER_STOP(t0,timer);
 
+	wbwriter3D->CloseVariable();
+	if (wbwriter3D->GetErrCode() != 0) {
+		exit(1);
+	}
+	timer = wbwriter3D->GetTime() - t0;
+	
 	if (! opt.quiet) {
 		float write_timer, xform_timer, *range;
-		if (is3D){
-			write_timer = wbwriter3D->GetWriteTimer();
-			xform_timer = wbwriter3D->GetXFormTimer();
-			range = (float*) wbwriter3D->GetDataRange();
-		} else {
-			write_timer = wbwriter2D->GetWriteTimer();
-			xform_timer = wbwriter2D->GetXFormTimer();
-			range = (float*) wbwriter2D->GetDataRange();
-		}
+		write_timer = wbwriter3D->GetWriteTimer();
+		xform_timer = wbwriter3D->GetXFormTimer();
+		range = (float*) wbwriter3D->GetDataRange();
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);
 		fprintf(stdout, "transform time : %f\n", xform_timer);
@@ -1068,9 +1027,8 @@ int	main(int argc, char **argv) {
 	// the .vdf file will not be updated with stats gathered from
 	// the volume we just translated.
 	//
-	if (metadata->GetVDFVersion() < 2) {
-		Metadata *m = (Metadata *) metadata;
-		m->Write(metafile);
+	if (metadata.GetVDFVersion() < 2) {
+		metadata.Write(metafile);
 	}
 	nc_close(ncid);
 	exit(0);

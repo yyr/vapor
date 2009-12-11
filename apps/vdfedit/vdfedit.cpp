@@ -30,7 +30,7 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
 #ifdef WIN32
@@ -155,8 +155,8 @@ int	main(int argc, char **argv) {
 
 	string metafile(*argv);
 
-	Metadata *metadata = new Metadata(metafile);	
-	if (Metadata::GetErrCode()) {
+	MetadataVDC *metadata = new MetadataVDC(metafile);	
+	if (MetadataVDC::GetErrCode()) {
 		exit(1);
 	}
 
@@ -174,7 +174,7 @@ int	main(int argc, char **argv) {
 
 	if (strlen(opt.mapprojection)) {
 		if (metadata->SetMapProjection(opt.mapprojection) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MetadataVDC::GetErrMsg() << endl;
 			exit(1);
 		}
 	}

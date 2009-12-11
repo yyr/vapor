@@ -8,7 +8,7 @@
 #include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
 
@@ -279,7 +279,7 @@ int	main(int argc, char **argv) {
 	size_t dim[3];
 	float extents[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	string	s;
-	Metadata *file;
+	MetadataVDC *file;
 
 	ProgName = Basename(argv[0]);
 
@@ -545,9 +545,9 @@ int	main(int argc, char **argv) {
 	bs[0] = opt.bs.nx;
 	bs[1] = opt.bs.ny;
 	bs[2] = opt.bs.nz;
-	file = new Metadata( dim,opt.level,bs,opt.nfilter,opt.nlifting );	
+	file = new MetadataVDC( dim,opt.level,bs,opt.nfilter,opt.nlifting );	
 
-	if (Metadata::GetErrCode()) {
+	if (MetadataVDC::GetErrCode()) {
 		exit(1);
 	}
 
@@ -586,7 +586,7 @@ int	main(int argc, char **argv) {
 	} //or set it from the WRF file
 	if (mapProj.size() > 0) {
 		if (file->SetMapProjection(mapProj) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MetadataVDC::GetErrMsg() << endl;
 			exit(1);
 		}
 	}

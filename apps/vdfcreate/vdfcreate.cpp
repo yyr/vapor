@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
 
 using namespace VetsUtil;
@@ -115,7 +115,7 @@ int	main(int argc, char **argv) {
 	size_t bs[3];
 	size_t dim[3];
 	string	s;
-	Metadata *file;
+	MetadataVDC *file;
 
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -157,19 +157,19 @@ int	main(int argc, char **argv) {
 	}
 	else {
 		if (opt.mtkcompat) {
-			file = new Metadata(
+			file = new MetadataVDC(
 				dim,opt.level,bs,opt.nfilter,opt.nlifting, 0, 0
 			);
 		}
 		else {
-			file = new Metadata(
+			file = new MetadataVDC(
 				dim,opt.level,bs,opt.nfilter,opt.nlifting
 			);
 		}
 	}
 
-	if (Metadata::GetErrCode()) {
-		cerr << Metadata::GetErrMsg() << endl;
+	if (MyBase::GetErrCode()) {
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 
@@ -180,47 +180,47 @@ int	main(int argc, char **argv) {
 			exit(1);
 		}
 		if (file->SetNumTimeSteps(usertimes.size()) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
 		}
 		for (size_t t=0; t<usertimes.size(); t++) {
 			vector <double> vec(1,usertimes[t]);
 			if (file->SetTSUserTime(t, vec) < 0) {
-				cerr << Metadata::GetErrMsg() << endl;
+				cerr << MyBase::GetErrMsg() << endl;
 				exit(1);
 			}
 		}
 	}
 	else {
 		if (file->SetNumTimeSteps(opt.numts) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
 
 	if (strlen(opt.mapprojection)) {
 		if (file->SetMapProjection(opt.mapprojection) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
 
 	s.assign(opt.comment);
 	if (file->SetComment(s) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign(opt.gridtype);
 	if (file->SetGridType(s) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 
 #ifdef	DEAD
 	s.assign(opt.coordsystem);
 	if (file->SetCoordSystemType(s) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 #endif
@@ -239,7 +239,7 @@ int	main(int argc, char **argv) {
 			extents.push_back(opt.extents[i]);
 		}
 		if (file->SetExtents(extents) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
@@ -250,7 +250,7 @@ int	main(int argc, char **argv) {
 		for (int i=0; i<3; i++) periodic_vec.push_back(opt.periodic[i]);
 
 		if (file->SetPeriodicBoundary(periodic_vec) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
+			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
@@ -279,26 +279,26 @@ int	main(int argc, char **argv) {
 	for (int i=0;i<opt.vars2dyz.size();i++) allvars.push_back(opt.vars2dyz[i]);
 
 	if (file->SetVariableNames(allvars) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	if (file->SetVariables2DXY(opt.vars2dxy) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 	if (file->SetVariables2DXZ(opt.vars2dxz) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 	if (file->SetVariables2DYZ(opt.vars2dyz) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 
 
 	if (file->Write(argv[1]) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
+		cerr << MyBase::GetErrMsg() << endl;
 		exit(1);
 	}
 

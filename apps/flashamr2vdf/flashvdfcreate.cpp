@@ -29,10 +29,7 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/AMRTree.h>
-#include <vapor/AMRData.h>
-#include <vapor/AMRIO.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 
 #include "flashhdf5.h"
 
@@ -200,7 +197,7 @@ int	main(int argc, char **argv) {
 	OptionParser op;
 
 	string	s;
-	Metadata *file;
+	MetadataVDC *metadata;
 
 	ProgName = Basename(argv[0]);
 
@@ -304,32 +301,32 @@ int	main(int argc, char **argv) {
 		dim[2] *= 2;
 	}
 		
-	file = new Metadata(dim,max_reflevel,cell_dims);
+	metadata = new MetadataVDC(dim,max_reflevel,cell_dims);
 
-	if (Metadata::GetErrCode()) {
+	if (MetadataVDC::GetErrCode()) {
 		exit(1);
 	}
 
-	if (file->SetNumTimeSteps(usertimes.size()) < 0) {
+	if (metadata->SetNumTimeSteps(usertimes.size()) < 0) {
 		exit(1);
 	}
 
 	s.assign(opt.comment);
-	if (file->SetComment(s) < 0) {
+	if (metadata->SetComment(s) < 0) {
 		exit(1);
 	}
 
 	s.assign("block_amr");
-	if (file->SetGridType(s) < 0) {
+	if (metadata->SetGridType(s) < 0) {
 		exit(1);
 	}
 
-	if (file->SetVariableNames(vdfVarNames3d) < 0) {
+	if (metadata->SetVariableNames(vdfVarNames3d) < 0) {
 		exit(1);
 	}
 
 	
-	if (file->SetExtents(extents) < 0) {
+	if (metadata->SetExtents(extents) < 0) {
 		exit(1);
 	}
 	
@@ -337,12 +334,12 @@ int	main(int argc, char **argv) {
     for (size_t t = 0 ; t < usertimes.size() ; t++ )
     {
 		vector<double> tsNow(1, (double) usertimes[t]);
-        if ( file->SetTSUserTime( t, tsNow ) < 0) {
+        if ( metadata->SetTSUserTime( t, tsNow ) < 0) {
             exit( 1 );
         }
     }
 
-	if (file->Write(argv[argc-1]) < 0) {
+	if (metadata->Write(argv[argc-1]) < 0) {
 		exit(1);
 	}
 
@@ -350,13 +347,13 @@ int	main(int argc, char **argv) {
 		cout << "Created VDF file:" << endl;
 		cout << "\tNum time steps : " << usertimes.size() << endl;
 		cout << "\t3D Variable names : ";
-		for (int i=0; i<file->GetVariables3D().size(); i++) {
-			cout << file->GetVariables3D()[i] << " ";
+		for (int i=0; i<metadata->GetVariables3D().size(); i++) {
+			cout << metadata->GetVariables3D()[i] << " ";
 		}
 		cout << endl;
 
 		cout << "\tExtents : ";
-		const vector <double> extptr = file->GetExtents();
+		const vector <double> extptr = metadata->GetExtents();
 		for(int i=0; i<6; i++) {
 			cout << extptr[i] << " ";
 		}

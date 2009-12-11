@@ -41,9 +41,9 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
-#include <vapor/WaveletBlock2DRegionWriter.h>
+#include <vapor/WaveletBlock3DRegionWriter.h>
 #include <vapor/WRF.h>
 #ifdef WIN32
 #include "windows.h"
@@ -185,7 +185,7 @@ int DoGeopotStuff(
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
-	Metadata *metadata, 
+	MetadataVDC &metadata, 
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames, 
 	double extents[2]
@@ -389,7 +389,7 @@ int DoWindStuff(
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
-	Metadata *metadata,
+	MetadataVDC &metadata,
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames
 ) {
@@ -636,7 +636,7 @@ int DoPTStuff(
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
-	Metadata *metadata,
+	MetadataVDC &metadata,
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames
 ) {
@@ -877,7 +877,7 @@ int DoIndependentVars3d(
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
-	Metadata *metadata,
+	MetadataVDC &metadata,
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames
 
@@ -900,7 +900,7 @@ int DoIndependentVars3d(
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
 
-		VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(metadata,vn_copy[i]);
+		VDFIOBase::VarType_T vtype = metadata.GetVarType(vn_copy[i]);
 
 		if (vtype != VDFIOBase::VAR3D) continue;
 
@@ -955,16 +955,16 @@ int DoIndependentVars2d(
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
-	Metadata *metadata,
+	MetadataVDC &metadata,
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames
 
 ) {
 	static float * varBuffer = NULL; 
-	WaveletBlock2DRegionWriter * varWriter = NULL;
+	WaveletBlock3DRegionWriter * varWriter = NULL;
 
-	varWriter = new WaveletBlock2DRegionWriter(metadata);
-	if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+	varWriter = new WaveletBlock3DRegionWriter(metadata);
+	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
 
 	// Allocate buffer big enough for staggered variables
 	//
@@ -974,7 +974,7 @@ int DoIndependentVars2d(
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
 
-		VDFIOBase::VarType_T vtype = VDFIOBase::GetVarType(metadata,vn_copy[i]);
+		VDFIOBase::VarType_T vtype = metadata.GetVarType(vn_copy[i]);
 
 		if (vtype != VDFIOBase::VAR2D_XY) continue;
 
@@ -986,7 +986,7 @@ int DoIndependentVars2d(
 		assert(varInfoPtr != NULL);
 
 		varWriter->OpenVariableWrite(aVaporTs, vn_copy[i].c_str(), opt.level);
-		if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+		if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
 		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
 
 		bool dummy = false;
@@ -1000,7 +1000,7 @@ int DoIndependentVars2d(
 		varWriter->CloseVariable();
 	}
 
-	if (WaveletBlock2DRegionWriter::GetErrCode() != 0) return(-1);
+	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
 
 	if (varWriter) delete varWriter;
 
@@ -1016,14 +1016,14 @@ int GetVDFInfo(
 	vector <double> &extents
 ) {
 
-	Metadata *metadata;
+	MetadataVDC *metadata;
 
 	vars.clear();
 	timestamps.clear();
 
-	metadata = new Metadata(metafile);
+	metadata = new MetadataVDC(metafile);
 
-	if (Metadata::GetErrCode() != 0) {
+	if (MetadataVDC::GetErrCode() != 0) {
 		return(-1);
     }
 
@@ -1429,7 +1429,7 @@ int	main(int argc, char **argv) {
 	const char	*metafile;
 	
 	string	s;
-	Metadata	*metadata;
+	MetadataVDC	*metadata;
 
 	// Parse command line arguments and check for errors
 	ProgName = Basename(argv[0]);
@@ -1498,8 +1498,8 @@ int	main(int argc, char **argv) {
 
 	// Process the netCDF files
 	//
-	metadata = new Metadata(metafile);
-	if (Metadata::GetErrCode() != 0) exit(1);
+	metadata = new MetadataVDC(metafile);
+	if (MetadataVDC::GetErrCode() != 0) exit(1);
 
 
 	int MaxTimeSteps = (opt.numts < 0) ? INT_MAX : opt.numts;
@@ -1617,7 +1617,7 @@ int	main(int argc, char **argv) {
 			
 			rc = DoGeopotStuff(
 				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				metadata, wrfNames, vars, wrf_vexts
+				*metadata, wrfNames, vars, wrf_vexts
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 			if ((wrf_vexts[0] < (vdf_extents[2]-0.000001)) && ! opt.quiet && ! opt.noelev) {
@@ -1630,28 +1630,28 @@ int	main(int argc, char **argv) {
 			// Find wind speeds, if necessary
 			rc = DoWindStuff( 
 				ncid, vdf_dims, dx, dy, var_info_map, vdf_ts, wrf_ts,
-				metadata, wrfNames, vars
+				*metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 
 			// Find P- or T-related derived variables, if necessary
 			rc = DoPTStuff(
 				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				metadata, wrfNames, vars
+				*metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 
 			// Remaining 3D variables
 			rc = DoIndependentVars3d(
 				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				metadata, wrfNames, vars
+				*metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 
 			// Remaining 3D variables
 			rc = DoIndependentVars2d(
 				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				metadata, wrfNames, vars
+				*metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
 

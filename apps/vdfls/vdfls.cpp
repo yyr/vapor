@@ -16,8 +16,8 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
-#include <vapor/Metadata.h>
-#include <vapor/WaveletBlock3DIO.h>
+#include <vapor/MetadataVDC.h>
+#include <vapor/VDFIOBase.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -129,7 +129,7 @@ void    mkpath(const string &basename, int level, string &path, int version) {
 }
 
 int getStats(
-	const Metadata *metadata,
+	const MetadataVDC *metadata,
 	map <long, map <string, VarFileInfo > > &statsvec
 ) {
 
@@ -154,7 +154,7 @@ int getStats(
 			
 
 			VarFileInfo vfi;
-			vfi.vartype = VDFIOBase::GetVarType(metadata, varname);
+			vfi.vartype = metadata->GetVarType(varname);
 			for (int j=0; j<numTransforms+1; j++) {
 				string path;
 				string relpath;
@@ -207,13 +207,15 @@ void print_mode(mode_t st_mode) {
 }
 #endif
 
-void print_dim(WaveletBlock3DIO *wb, int j, VDFIOBase::VarType_T vartype) {
+void print_dim(
+	const MetadataVDC *metadata, int j, VDFIOBase::VarType_T vartype
+) {
 
 	ostringstream oss;
 	size_t dim[3];
 
 	// Find max width of field to output
-	wb->GetDim(dim, -1);
+	metadata->GetDim(dim, -1);
 	if (vartype == VDFIOBase::VAR2D_XY) dim[2] = 1;
 	if (vartype == VDFIOBase::VAR2D_XZ) dim[1] = 1;
 	if (vartype == VDFIOBase::VAR2D_YZ) dim[0] = 1;
@@ -223,7 +225,7 @@ void print_dim(WaveletBlock3DIO *wb, int j, VDFIOBase::VarType_T vartype) {
 	oss.str(empty);
 	
 
-	wb->GetDim(dim, j);
+	metadata->GetDim(dim, j);
 	if (vartype == VDFIOBase::VAR2D_XY) dim[2] = 1;
 	if (vartype == VDFIOBase::VAR2D_XZ) dim[1] = 1;
 	if (vartype == VDFIOBase::VAR2D_YZ) dim[0] = 1;
@@ -248,7 +250,9 @@ void print_time(time_t t) {
 }
 
 	
-void PrintVariable(WaveletBlock3DIO *wb, const VarFileInfo &vfi, int j) {
+void PrintVariable(
+	const MetadataVDC *metadata, const VarFileInfo &vfi, int j
+) {
 
 	if (vfi.Test(j)) {
 		const struct STAT64 &statref = vfi.GetStat(j);
@@ -261,7 +265,7 @@ void PrintVariable(WaveletBlock3DIO *wb, const VarFileInfo &vfi, int j) {
 			cout << statref.st_size;
 			cout.setf(ios::left);
 			cout << " ";
-			print_dim(wb, j, vfi.vartype);
+			print_dim(metadata, j, vfi.vartype);
 			cout << " ";
 			print_time(statref.st_mtime);
 			cout << " ";
@@ -308,10 +312,9 @@ int	main(int argc, char **argv) {
 	metafile = argv[1];
 	map <long, map <string, VarFileInfo > > statsvec;
 
-	WaveletBlock3DIO *wb = new WaveletBlock3DIO(metafile);
-	if (MyBase::GetErrCode() != 0) exit(1);
 
-	const Metadata *metadata = wb->GetMetadata();
+	const MetadataVDC *metadata = new MetadataVDC(metafile);
+	if (MyBase::GetErrCode() != 0) exit(1);
 
 	if (getStats(metadata, statsvec) < 0) {
 		exit(1);
@@ -333,7 +336,7 @@ int	main(int argc, char **argv) {
 				const VarFileInfo &vfiref = iter2->second;
 
 				for(int j=0; j<level; j++) {
-					PrintVariable(wb,vfiref, j);
+					PrintVariable(metadata,vfiref, j);
 				}
 			}
 		}
@@ -347,7 +350,7 @@ int	main(int argc, char **argv) {
 				for (iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
 					const VarFileInfo &vfiref = iter2->second;
 
-					PrintVariable(wb,vfiref, j);
+					PrintVariable(metadata,vfiref, j);
 				}
 			}
 		}
@@ -363,7 +366,7 @@ int	main(int argc, char **argv) {
 
 					const VarFileInfo &vfiref = iter2->second[*iter1];;
 
-					PrintVariable(wb,vfiref, j);
+					PrintVariable(metadata,vfiref, j);
 				}
 			}
 		}

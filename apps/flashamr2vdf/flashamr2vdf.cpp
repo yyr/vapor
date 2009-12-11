@@ -127,25 +127,23 @@ int main(int argc, char **argv) {
 
 	// Create an AMRIO object to write the AMR grid to the VDC
 	//
-	AMRIO amrio(metafile.c_str(), 0);
+	AMRIO amrio(metafile.c_str());
 	if (amrio.GetErrCode() != 0) {
 		cerr << ProgName << " : " << amrio.GetErrMsg() << endl;
 		exit(1);
 	}
-	const Metadata *metadata = amrio.GetMetadata();
-
 
 	// Get user times from VDF file. Convert to 32bit for comparison
 	// with 32bit Flash data. Ugh!
 	//
 	vector <float> vdf_usertimes;	
-	for (size_t t=0; t<metadata->GetNumTimeSteps(); t++) {
-		const vector <double> &usertime = metadata->GetTSUserTime(t); 
+	for (size_t t=0; t<amrio.GetNumTimeSteps(); t++) {
+		const vector <double> &usertime = amrio.GetTSUserTime(t); 
 		assert(usertime.size() == 1);	// sanity check
 		vdf_usertimes.push_back(usertime[0]);
 	}
 
-	vector <string> vdf_vars3d = metadata->GetVariables3D();
+	vector <string> vdf_vars3d = amrio.GetVariables3D();
 		
 	int mem_size = 0;
 	int *gids = NULL;
@@ -156,7 +154,7 @@ int main(int argc, char **argv) {
 		int rc;
 		size_t ts;
 
-		TIMER_START(t0);
+		double t0 = amrio.GetTime();
 
 		flashfile = argv[arg]; // Path to raw data file
 
@@ -235,7 +233,7 @@ int main(int argc, char **argv) {
 		if (! opt.quiet) {
 			cout << "	Processing tree (" << total_blocks << " total blocks)\n";
 		}
-		TIMER_START(t1);
+		double t1 = amrio.GetTime();
 
 		AMRTree tree(
 			bdim_sz, (int (*)[15]) gids, (const float (*)[3][2]) bboxes, 
@@ -245,8 +243,7 @@ int main(int argc, char **argv) {
 			cerr << ProgName << " : " << AMRData::GetErrMsg() << endl; 
 			exit(1);
 		}
-
-		TIMER_STOP(t1, read_timer);
+		read_timer += amrio.GetTime() - t1;
 
 		//
 		// Open a tree for writing at the indicated time step
@@ -299,7 +296,7 @@ int main(int argc, char **argv) {
 
 		for (int i=0; i<varnames.size(); i++) {
 
-			TIMER_START(t1);
+			double t1 = amrio.GetTime();
 
 			if (! opt.quiet) {
 				cout << "	Processing variable " << varnames[i] << endl;
@@ -346,7 +343,7 @@ int main(int argc, char **argv) {
 				);
 			}
 
-			TIMER_STOP(t1, read_timer);
+			read_timer += amrio.GetTime() - t1;
 
 
 			//
@@ -383,9 +380,7 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 		}
-		TIMER_STOP(t0, timer);
-
-
+		timer += amrio.GetTime() - t0;
 
 		hdffile.Close();
 			
