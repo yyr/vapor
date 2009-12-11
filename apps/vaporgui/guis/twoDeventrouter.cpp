@@ -64,9 +64,7 @@
 
 #include "params.h"
 #include "vaporinternal/jpegapi.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
@@ -147,7 +145,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 		} 
 	}
 	
-	const size_t* bSize =  ds->getCurrentMetadata()->GetBlockSize();
+	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
 
 	//Get the block coords (in the full volume) of the desired array coordinate:
 	for (int i = 0; i< 3; i++){

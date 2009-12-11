@@ -348,11 +348,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	int i;
 
 
-	DataMgr* myDataMgr = DataStatus::getInstance()->getDataMgr();
-	const Metadata* metadata = DataStatus::getInstance()->getCurrentMetadata();
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 
 	// Nothing to do if there's no data source!
-	if (!myDataMgr) return;
+	if (!dataMgr) return;
 	
 	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	int timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
@@ -428,7 +427,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		savedNumXForms = numxforms;
 	}
 
-	const size_t *bs = metadata->GetBlockSize();
+	const size_t *bs = dataMgr->GetBlockSize();
 
 	  
 	//Loop if user accepts lower resolution:
@@ -526,7 +525,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 
 		void* data = _getRegion(
-			myDataMgr, currentRenderParams, myRegionParams, timeStep,
+			dataMgr, currentRenderParams, myRegionParams, timeStep,
 			varname, numxforms, min_bdim, max_bdim
 		);
 
@@ -589,7 +588,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		if (_type == DvrParams::DVR_SPHERICAL_SHADER)
 		{
 			vector<bool> clip(3, false);
-			const vector<long> &periodic = metadata->GetPeriodicBoundary();
+			const vector<long> &periodic = dataMgr->GetPeriodicBoundary();
 
 			data_roi[0] = (int)min_dim[0];
 			data_roi[1] = (int)min_dim[1];
@@ -602,14 +601,14 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			for (int k = 0; k< 6; k++) extents[k] = exts[k];
 
 			clip[0] = !(periodic[0] &&
-						FLTEQ(extents[0], metadata->GetExtents()[0]) &&
-						FLTEQ(extents[3], metadata->GetExtents()[3]));
+						FLTEQ(extents[0], dataMgr->GetExtents()[0]) &&
+						FLTEQ(extents[3], dataMgr->GetExtents()[3]));
 			clip[1] = !(periodic[1] && 
-						FLTEQ(extents[1], metadata->GetExtents()[1]) &&
-						FLTEQ(extents[4], metadata->GetExtents()[4]));
+						FLTEQ(extents[1], dataMgr->GetExtents()[1]) &&
+						FLTEQ(extents[4], dataMgr->GetExtents()[4]));
 			clip[2] = !(periodic[2] && 
-						FLTEQ(extents[2], metadata->GetExtents()[2]) &&
-						FLTEQ(extents[5], metadata->GetExtents()[5]));
+						FLTEQ(extents[2], dataMgr->GetExtents()[2]) &&
+						FLTEQ(extents[5], dataMgr->GetExtents()[5]));
 
 			rc = _driver->SetRegionSpherical(data,
 											nx, ny, nz,
@@ -617,7 +616,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 											extents, 
 											datablock, 
 											numxforms,
-											metadata->GetGridPermutation(),
+											dataMgr->GetGridPermutation(),
 											clip);
 		}
 		else
@@ -782,7 +781,8 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 	DvrParams *myDVRParams = (DvrParams *) rp;
 
 	if (clutIsDirty()) {
-		const Metadata* metadata = DataStatus::getInstance()->getCurrentMetadata();
+		DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+
 		myGLWindow->setRenderNew();
 
 		bool preint = myDVRParams->getPreIntegration();
@@ -794,7 +794,7 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 		}
 
 		_driver->SetOLUT(myDVRParams->getClut(), 
-		metadata->GetNumTransforms() - savedNumXForms);
+		dataMgr->GetNumTransforms() - savedNumXForms);
 	}
 	
 	

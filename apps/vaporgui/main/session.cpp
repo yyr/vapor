@@ -25,6 +25,8 @@
 #include "dvrparams.h"
 #include "ParamsIso.h"
 #include "vapor/DataMgr.h"
+#include "vapor/DataMgrWB.h"
+#include "vapor/DataMgrFactory.h"
 #include "GetAppPath.h"
 #include "vizwinmgr.h"
 #include "mainform.h"
@@ -41,7 +43,6 @@
 #include <fstream>
 #include <sstream>
 #include "histo.h"
-#include "vapor/Metadata.h"
 #include "vapor/ImpExp.h"
 #include "vapor/Version.h"
 #include "animationcontroller.h"
@@ -95,7 +96,6 @@ Session::Session() {
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
 	dataMgr = 0;
-	currentMetadata = 0;
 	
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
@@ -668,13 +668,8 @@ exportData(){
 	//Note:  will export data associated with current active visualizer
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
-	if (winNum < 0 || (currentMetadata == 0)){
+	if (winNum < 0 || (getDataMgr() == 0)){
 		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data\nand active visualizer");
-		return;
-	}
-	int ver = currentMetadata->GetVDFVersion();
-	if (ver < 2) {
-		MessageReporter::errorMsg("Export of pre-version-2 metadata\nis not supported");
 		return;
 	}
 	RegionParams* r = winMgr->getRegionParams(winNum);
@@ -701,8 +696,7 @@ exportData(){
 		minCoords[i] = mncrds[i];
 		maxCoords[i] = mxcrds[i];
 	}
-	const string& gtype = currentMetadata->GetGridType();
-	if (gtype == "layered") {
+	if (DataStatus::getInstance()->dataIsLayered()) {
 		//Make sure region is full in z dimension:
 		
 		size_t max_zdim = DataStatus::getInstance()->getFullSizeAtLevel(numxforms,2) - 1;
@@ -711,7 +705,7 @@ exportData(){
 			return;
 		}
 		//Determine the unlayered vertical grid size of the data:
-		const size_t* dim = currentMetadata->GetDimension();
+		const size_t* dim = getDataMgr()->GetDimension();
 		maxCoords[2] = dim[2];
 	}
 	
@@ -764,52 +758,45 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	if (!dataMgr) {
 		if (doMerge) {doMerge = false; }
 	}
-	else { delete dataMgr; dataMgr = 0;}
 	if (doMerge) assert (!defaultSession);
+
+	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
+	if (! dataMgrWB) doMerge = false;
 	
 	//Handle the various cases of loading the metadata
 	if (defaultSession){
-		currentMetadata = 0;
 		DataStatus::clearVariableNames();
 	} else {
 		if (!doMerge) {
 			if (!restoredSession) DataStatus::clearVariableNames();
-			dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
-			if (dataMgr->GetErrCode() != 0) {
+			vector <string> metafiles;
+			metafiles.push_back(currentMetadataFile);
+			dataMgr = DataMgrFactory::New(metafiles, cacheMB);
+			if (DataMgr::GetErrCode() != 0) {
 				MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
-					dataMgr->GetErrCode(),dataMgr->GetErrMsg());
-				dataMgr->SetErrCode(0);
-				delete dataMgr;
+					DataMgr::GetErrCode(),DataMgr::GetErrMsg());
+				DataMgr::SetErrCode(0);
+				if (dataMgr) delete dataMgr;
 				dataMgr = 0;
 				return false;
 			}
 		} else {//merge
 			//keep dataMgr, do a merge:
 			//Need a non-const pointer to the metadata, since we will modify it:
-			Metadata* md= (Metadata*)currentMetadata;
 			size_t offset = (size_t) mergeOffset;
 			//Use the fileBase, not the currentMetadataFile for the merge.
-			int rc = md->Merge(fileBase,offset);
+			int rc = dataMgrWB->Merge(fileBase,offset);
 			if (rc < 0) return false;
-			dataMgr = new DataMgr(currentMetadata, cacheMB, 1);
 		}
 		
-		currentMetadata = dataMgr->GetMetadata();
-		if (currentMetadata->GetErrCode() != 0) {
-			MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",
-				currentMetadata->GetErrCode(),currentMetadata->GetErrMsg());
-			currentMetadata->SetErrCode(0);
-			delete dataMgr;
-			dataMgr = 0;
-			return false;
-		}
 	} 
 
 	
 
 	//Get the extents from the metadata, if it exists:
-	if (currentMetadata){
-		std::vector<double> mdExtents = currentMetadata->GetExtents();
+	if (dataMgr){
+		std::vector<double> mdExtents = dataMgr->GetExtents();
+		DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB*> (dataMgr);
 
         // Automatically calculate stretch factors for spherical data, 
         // so that, volume bounding box will be a unit cube. The spherical
@@ -818,8 +805,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
         // general framework that can handle non-cartesian coordinate
         // systems, this provides a convenient, low-impact way to handle 
         // the volume exents vs. data extents issue for spherical rendering.
-        if (currentMetadata->GetCoordSystemType() == "spherical")
-        {
+        if (dataMgrWB && dataMgrWB->GetCoordSystemType() == "spherical") {
           float maxExtent = 0;
 
           for (int i=0; i<3; i++)

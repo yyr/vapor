@@ -43,10 +43,7 @@
 #include "viewpointparams.h"
 
 #include <math.h>
-#include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 #include "vapor/WRF.h"
 
@@ -787,7 +784,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	//Start with the bounding box for this refinement level:
 	getBoundingBox(timeStep, boxMin, boxMax, numRefs);
 	
-	const size_t* bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
+	const size_t* bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
 	size_t temp_min[3],temp_max[3];
 	bool retVal = true;
 	int i;
@@ -876,7 +873,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		sesVarNums[numVars++] = varnum;
 	}
 	
-	const size_t *bSize =  ds->getCurrentMetadata()->GetBlockSize();
+	const size_t *bSize =  ds->getDataMgr()->GetBlockSize();
 	
 	//get the slice(s) from the DataMgr
 	//one of the 3 coords in each coordinate argument will be ignored,
@@ -951,7 +948,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	unsigned char* twoDTexture = new unsigned char[texWidth*texHeight*4];
 
 	//Use the region reader to calculate coordinates in volume
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
@@ -974,7 +971,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
 			
-			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
+			dataMgr->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (i == dataOrientation) continue;

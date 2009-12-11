@@ -64,9 +64,7 @@
 #include "params.h"
 #include "probetab.h"
 #include "vaporinternal/jpegapi.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
@@ -393,11 +391,11 @@ void ProbeEventRouter::updateTab(){
 
 	//And convert these to grid coordinates:
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
-	const VDFIOBase* myReader = ds->getRegionReader();
-	if (myReader){
+	const DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
-		myReader->MapUserToVox((size_t)-1, dboxmin, gridMin, fullRefLevel);
-		myReader->MapUserToVox((size_t)-1, dboxmax, gridMax, fullRefLevel);
+		dataMgr->MapUserToVox((size_t)-1, dboxmin, gridMin, fullRefLevel);
+		dataMgr->MapUserToVox((size_t)-1, dboxmax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -1315,9 +1313,9 @@ reinitTab(bool doOverride){
 	seedAttached = false;
 
 	//Set up the refinement combo:
-	const Metadata* md = ses->getCurrentMetadata();
+	const DataMgr* dataMgr = ses->getDataMgr();
 	
-	int numRefinements = md->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){
@@ -2039,7 +2037,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 		} 
 	}
 	
-	const size_t* bSize =  ds->getCurrentMetadata()->GetBlockSize();
+	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
 
 	//Get the block coords (in the full volume) of the desired array coordinate:
 	for (int i = 0; i< 3; i++){
@@ -2143,7 +2141,7 @@ refreshHistogram(RenderParams* p){
 		updateTab();
 		return;
 	}
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	int bSize =  *(DataStatus::getInstance()->getDataMgr()->GetBlockSize());
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];

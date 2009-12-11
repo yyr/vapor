@@ -147,7 +147,6 @@ public:
 	DataMgr* getDataMgr() {return dataMgr;}
 	
 	static bool isInitialized() { return (theSession != 0);}
-	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	
 	int getNumSessionVariables(){return DataStatus::getNumSessionVariables();}
 	
@@ -361,7 +360,6 @@ protected:
 	int startQueuePos;
 	int recordingCount;
 	Histo** currentHistograms;
-	const Metadata* currentMetadata;
 
 	//Following parameters are in session state, modified by session panel:
 	//Cache size in megabytes

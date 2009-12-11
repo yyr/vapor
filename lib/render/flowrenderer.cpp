@@ -1176,7 +1176,7 @@ void FlowRenderer::calcPeriodicExtents() {
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	const float* extents = DataStatus::getInstance()->getStretchedExtents();
 	size_t dims[3];
-	DataStatus::getInstance()->getRegionReader()->GetDim(dims, -1);
+	DataStatus::getInstance()->getDataMgr()->GetDim(dims, -1);
 	for (int i = 0; i<3; i++){
 		periodicExtents[i] = extents[i];
 		if (myFlowParams->getPeriodicDim(i)){

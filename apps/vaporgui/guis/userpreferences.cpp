@@ -55,6 +55,9 @@
 #include <qvbox.h>
 #include <qlayout.h>
 #include <qwhatsthis.h>
+
+using namespace VAPoR;
+
 const string UserPreferences::_preferencesTag = "UserPreferences";
 const string UserPreferences::_sceneColorsTag = "SceneColors";
 const string UserPreferences::_exportFileNameTag = "ExportFileName";
@@ -112,7 +115,6 @@ const string UserPreferences::_defaultShowTerrainAttr = "DefaultShowTerrain";
 
 string UserPreferences::preferencesVersionString = "";
 
-using namespace VAPoR;
 //Create a new UserPreferences
 UserPreferences::UserPreferences() : Preferences(){
 	dialogChanged = false;

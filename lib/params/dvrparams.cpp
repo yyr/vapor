@@ -36,7 +36,6 @@
 #include "transferfunction.h"
  
 #include <math.h>
-#include <vapor/Metadata.h>
 #include <vapor/Version.h>
 
 #include "common.h"

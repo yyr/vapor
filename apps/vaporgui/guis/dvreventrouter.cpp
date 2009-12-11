@@ -64,9 +64,7 @@
 #include "params.h"
 #include "dvr.h"
 #include "transferfunction.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "dvrparams.h"
@@ -478,9 +476,9 @@ reinitTab(bool doOverride){
 	}
 
 	//Set up the refinement combo:
-	const Metadata* md = ses->getCurrentMetadata();
+	const DataMgr *dataMgr = ses->getDataMgr();
 	
-	int numRefinements = md->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
@@ -1146,11 +1144,11 @@ void DvrEventRouter::benchmarkPreamble()
   size_t max_bdim[3];
   size_t min_bdim[3];
 
-  const Metadata *metadata      = Session::getInstance()->getCurrentMetadata();
+  const DataMgr *dataMgr      = Session::getInstance()->getDataMgr();
   RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
   DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
 
-  const size_t *bs = metadata->GetBlockSize();
+  const size_t *bs = dataMgr->GetBlockSize();
   int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->getNumRefinements();

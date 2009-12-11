@@ -26,16 +26,13 @@
 #include <map>
 #include "vaporinternal/common.h"
 
-#include "vapor/VDFIOBase.h"
+#include "vapor/DataMgr.h"
 #include "vapor/MyBase.h"
 #include <qcolor.h>
 #include "regionparams.h"
 class QApplication;
 
 namespace VAPoR {
-class DataMgr;
-class VDFIOBase;
-class Metadata;
 // Class used by session to keep track of variables, timesteps, resolutions, datarange.
 // It is constructed by the Session whenever a new metadata is opened.
 // It keeps a value of min/max data for each timestep that can be refreshed.
@@ -207,12 +204,9 @@ public:
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		myReader->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
+		dataMgr->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
 	}
-	const VDFIOBase* getRegionReader() {return myReader;}
-	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	DataMgr* getDataMgr() {return dataMgr;}
-	Metadata* getMetadata() {return currentMetadata;}
 	int get2DOrientation(int mdVarNum); //returns 0,1,2 for XY,YZ, or XZ
 
 	//Used for georeferencing and moving region:
@@ -388,7 +382,6 @@ private:
 	//value is -1 if no data at that timestep
 	std::vector<int*> maxNumTransforms;
 	std::vector<int*> maxNumTransforms2D;
-	Metadata* currentMetadata;
 	DataMgr* dataMgr;
 	bool renderOK;
 	QApplication* theApp;
@@ -416,7 +409,6 @@ private:
 	float extents[6];
 	float stretchedExtents[6];
 	float stretchFactors[3];
-	VDFIOBase* myReader;
 
 	// the variableNames array specifies the name associated with each variable num.
 	//Note that this

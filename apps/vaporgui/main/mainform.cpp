@@ -89,6 +89,7 @@
 #include "vizfeatureparams.h"
 #include "userpreferences.h"
 
+#include <vapor/DataMgrWB.h>
 #include "vapor/Version.h"
 //Following shortcuts are provided:
 // CTRL_N: new session
@@ -892,9 +893,11 @@ void MainForm::fileOpen()
 
 void MainForm::fileSave()
 {
+	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
+
 	//This directly saves the session to the current session save file.
     //It does not prompt the user unless there is an error
-	if (!Session::getInstance()->getCurrentMetadata()){
+	if (! dataMgr) {
 		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
 		return;
 	}
@@ -923,8 +926,11 @@ void MainForm::fileSave()
 //
 void MainForm::saveMetadata()
 {
+	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
+	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
+
 	//Do nothing if there is no metadata:
-	if (!Session::getInstance()->getCurrentMetadata()) {
+	if (! dataMgrWB) {
 			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
 		return;
 	}
@@ -956,9 +962,8 @@ void MainForm::saveMetadata()
 				QMessageBox::No);
 			if (rc != QMessageBox::Ok) return;
 		}
-		Metadata* md = (Metadata *) Session::getInstance()->getCurrentMetadata();
 		std::string stdName = std::string(filename.ascii());
-		int rc = md->Write(stdName,0);
+		int rc = dataMgrWB->Write(stdName,0);
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.ascii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
@@ -972,7 +977,9 @@ void MainForm::saveMetadata()
 
 void MainForm::fileSaveAs()
 {
-	if (!Session::getInstance()->getCurrentMetadata()){
+	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
+
+	if (! dataMgr) {
 		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
 		return;
 	}

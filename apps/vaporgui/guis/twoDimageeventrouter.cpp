@@ -65,9 +65,7 @@
 #include "params.h"
 #include "twoDimagetab.h"
 #include "vaporinternal/jpegapi.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"
@@ -310,8 +308,8 @@ void TwoDImageEventRouter::updateTab(){
 	maxUserYLabel->setText(QString::number(boxmax[1]));
 	maxUserZLabel->setText(QString::number(boxmax[2]));
 
-	const VDFIOBase* myReader = ds->getRegionReader();
-	if (myReader){
+	const DataMgr *dataMgr = ds->getDataMgr();
+	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
 
 		double dBoxMin[3], dBoxMax[3];
@@ -320,8 +318,8 @@ void TwoDImageEventRouter::updateTab(){
 			dBoxMin[i] = boxmin[i];
 			dBoxMax[i] = boxmax[i];
 		}
-		myReader->MapUserToVox((size_t)-1, dBoxMin, gridMin, fullRefLevel);
-		myReader->MapUserToVox((size_t)-1, dBoxMax, gridMax, fullRefLevel);
+		dataMgr->MapUserToVox((size_t)-1, dBoxMin, gridMin, fullRefLevel);
+		dataMgr->MapUserToVox((size_t)-1, dBoxMax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -752,9 +750,9 @@ reinitTab(bool doOverride){
 	seedAttached = false;
 
 	//Set up the refinement combo:
-	const Metadata* md = ses->getCurrentMetadata();
+	const DataMgr* dataMgr = ses->getDataMgr();
 	
-	int numRefinements = md->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){

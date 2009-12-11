@@ -2166,7 +2166,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	//separate color, opac min_bdim
 	size_t min_cbdim[3], min_obdim[3];
 	DataStatus* ds = DataStatus::getInstance();
-	const size_t *bs = ds->getDataMgr()->GetMetadata()->GetBlockSize();
+	const size_t *bs = ds->getDataMgr()->GetBlockSize();
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
@@ -2677,7 +2677,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 			}	
 		}
 	}
-	int bSize =  (int)(*(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize()));
+	int bSize =  (int)(*(DataStatus::getInstance()->getDataMgr()->GetBlockSize()));
 	int numPts = 0;
 	float dataSum = 0.f;
 	DataStatus* ds = DataStatus::getInstance();
@@ -2832,16 +2832,16 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		rakeMaxCoords[i] = (double)seedBoxMax[i];
 	}
 	
-	const VDFIOBase* myReader = ds->getRegionReader();
+	DataMgr* dataMgr = ds->getDataMgr();
 	
-	myReader->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
-	myReader->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
-	myReader->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
-	myReader->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
-	myReader->MapVoxToUser((size_t)-1,min_dim, testRakeMin,availRefLevel);
-	myReader->MapVoxToUser((size_t)-1,max_dim, testRakeMax,availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,min_dim, testRakeMin,availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,max_dim, testRakeMax,availRefLevel);
 	bool changed = false;
 	for (int i = 0; i< 3; i++){
 		if (testRakeMin[i] > rakeMinCoords[i]) {
@@ -2861,12 +2861,12 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 	}
 	
-	myReader->MapVoxToUser((size_t)-1,min_dim, rakeMinCoords,availRefLevel);
-	myReader->MapVoxToUser((size_t)-1,max_dim, rakeMaxCoords,availRefLevel);
-	myReader->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
-	myReader->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
-	myReader->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
-	myReader->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,min_dim, rakeMinCoords,availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,max_dim, rakeMaxCoords,availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
 	
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;

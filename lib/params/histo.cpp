@@ -20,7 +20,6 @@
 #include "regionparams.h"
 #include "dvrparams.h"
 #include "animationparams.h"
-#include "vapor/Metadata.h"
 #include <qapplication.h>
 #include <qcursor.h>
 using namespace VAPoR;
@@ -41,7 +40,7 @@ Histo::Histo(unsigned char* data, size_t min_dim[3], size_t max_dim[3],
 	maxData = mxData;
 	numBins = 256;
 	reset();
-	const size_t *bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
+	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
 	// make subregion origin (0,0,0)
 	// Note that this doesn't affect the calc of nx,ny,nz.
 	//

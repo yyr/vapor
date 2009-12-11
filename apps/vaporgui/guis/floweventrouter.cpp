@@ -65,9 +65,7 @@
 
 #include "params.h"
 #include "flowtab.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "vapor/flowlinedata.h"
 #include "vapor/VaporFlow.h"
 

@@ -18,6 +18,7 @@
 //		It performs the opengl rendering for visualizers
 //
 #include <GL/glew.h>
+#include "vapor/DataMgrLayered.h"
 
 #include "glwindow.h"
 #include "customcontext.h"
@@ -1561,7 +1562,9 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	float* elevData = 0;
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
-	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
+	DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+	assert(dataMgrLayered != NULL);
+
 	float displacement = getDisplacement();
 	//Don't allow the terrain surface to be below the minimum extents:
 	const float* extents = ds->getExtents();
@@ -1586,14 +1589,14 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			// in the data manager.
 
 			dataMgr->Clear();
-			myReader->SetInterpolateOnOff(false);
+			dataMgrLayered->SetInterpolateOnOff(false);
 			//Try to get requested refinement level or the nearest acceptable level:
 			int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 					timeStep, &varnum, 1, regMin, regMax);
 			
 
 			if(refLevel < 0) {
-				myReader->SetInterpolateOnOff(true);
+				dataMgrLayered->SetInterpolateOnOff(true);
 				return false;
 			}
 				
@@ -1605,7 +1608,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			//performing the interpolation step
 			
 			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0);
-			myReader->SetInterpolateOnOff(true);
+			dataMgrLayered->SetInterpolateOnOff(true);
 			if (!elevData) {
 				if (ds->warnIfDataMissing()){
 					SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
@@ -1630,7 +1633,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		
 
 		if(refLevel < 0) {
-			myReader->SetInterpolateOnOff(true);
+			dataMgrLayered->SetInterpolateOnOff(true);
 			return false;
 		}
 			
@@ -1684,7 +1687,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 
 	
 	float worldCoord[3];
-	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	const size_t* bs = ds->getDataMgr()->GetBlockSize();
 	for (int j = 0; j<mxy; j++){
 		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(mxy-1);
 		size_t ycrd = 0; 
@@ -1784,10 +1787,12 @@ void GLWindow::drawTimeAnnotation(){
 		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
 	}
 	else {//get string from metadata
-		const Metadata* md = DataStatus::getInstance()->getMetadata();
-		if (!md) labelContents = QString("");
+		const DataMgr *dataMgr = DataStatus::getInstance()->getDataMgr();
+		if (!dataMgr) labelContents = QString("");
 		else {
-			const string& timeStamp = md->GetTSUserDataString(timeStep,"UserTimeStampString");
+			string timeStamp;
+			dataMgr->GetTSUserTimeStamp(timeStep, timeStamp);
+
 			labelContents = QString("Date/Time: ")+QString(timeStamp.c_str());
 		}
 		

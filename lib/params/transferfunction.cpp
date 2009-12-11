@@ -42,7 +42,6 @@
 #include <expat.h>
 #include <cassert>
 #include <algorithm>
-#include <vapor/Metadata.h>
 #include <vapor/CFuncs.h>
 #include "vapor/ExpatParseMgr.h"
 

@@ -43,10 +43,7 @@
 #include "animationparams.h"
 
 #include <math.h>
-#include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 
 
@@ -1002,7 +999,7 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 	}
 	//Get the regionReader to map coordinates:
 	//Use the region reader to calculate coordinates in volume
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
 	}
@@ -1025,7 +1022,7 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
 			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
 		}
-		myReader->MapUserToVox((size_t)-1, resultVec, intResult, numRefs);
+		dataMgr->MapUserToVox((size_t)-1, resultVec, intResult, numRefs);
 		// then make sure the container includes it:
 		for(int i = 0; i< 3; i++){
 			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
@@ -1044,7 +1041,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	//Start with the bounding box for this refinement level:
 	getBoundingBox(timeStep, boxMin, boxMax, numRefs);
 	
-	const size_t* bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
+	const size_t* bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
 	size_t temp_min[3],temp_max[3];
 	bool retVal = true;
 	int i;
@@ -1178,7 +1175,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		sesVarNums[numVars++] = varnum;
 	}
 	
-	const size_t *bSize =  ds->getCurrentMetadata()->GetBlockSize();
+	const size_t *bSize =  ds->getDataMgr()->GetBlockSize();
 	
 	float** volData = getProbeVariables(ts,  numVars, sesVarNums,
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
@@ -1246,7 +1243,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
 	//Use the region reader to calculate coordinates in volume
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
@@ -1265,7 +1262,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			//find the coords that the texture maps to
 			//probeCoord is the coord in the probe, dataCoord is in data volume 
-			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
+			dataMgr->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
@@ -1577,7 +1574,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	const size_t* bSize =  ds->getCurrentMetadata()->GetBlockSize();
+	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
 	float worldCorner[4][3];
 	//Map corners of probe into volume 
 	probeCoord[2] = 0.f;
@@ -1610,7 +1607,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	float sumMag = 0.f;
 	int numValidPoints = 0;
 	//Use the region reader to calculate coordinates in volume
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
 	//Check on below terrain values if layered data;
 	float lowVal[3];
@@ -1636,7 +1633,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			
-			myReader->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
+			dataMgr->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;

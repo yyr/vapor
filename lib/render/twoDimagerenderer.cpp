@@ -27,8 +27,7 @@
 #include "glutil.h"
 
 #include "vapor/errorcodes.h"
-#include "vapor/DataMgr.h"
-#include "vapor/LayeredIO.h"
+#include "vapor/DataMgrLayered.h"
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
@@ -200,11 +199,16 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 
 	//Specify the parameters that are needed to define the elevation grid:
 
+	
+
 	//Determine the grid size, the data extents, and the image size:
 	DataStatus* ds = DataStatus::getInstance();
 	const float* extents = ds->getExtents();
 	DataMgr* dataMgr = ds->getDataMgr();
-	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
+
+	DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+	if (! dataMgrLayered) return false;
+
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
 	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
 	int refLevel = tParams->getNumRefinements();
@@ -275,7 +279,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	double regMin[3], regMax[3];
 	float* hgtData = NULL;
 	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f, minElev=0.f;
-	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	
 	if (tParams->isMappedToTerrain()){
 		//We shall retrieve HGT for the full extents of the data
@@ -285,8 +289,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
 		//Convert to user coords in non-moving extents:
-		myReader->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
-		myReader->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
+		dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
+		dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
 
 		int varnum = DataStatus::getSessionVariableNum2D("HGT");
 		
@@ -296,7 +300,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		if(refLevel1 < 0) {
 			setBypass(timeStep);
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
-			myReader->SetInterpolateOnOff(true);
+			dataMgrLayered->SetInterpolateOnOff(true);
 			return false;
 		}
 		//Make sure the region is nonempty:

@@ -29,17 +29,17 @@
 #include <fstream>
 #include <sstream>
 
-#include "vapor/Metadata.h"
 #include "vapor/ImpExp.h"
 #include "vapor/MyBase.h"
 #include "vapor/DataMgr.h"
+#include "vapor/DataMgrWB.h"
+#include "vapor/DataMgrLayered.h"
 #include "vapor/Version.h"
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qcolor.h>
 #include "vapor/errorcodes.h"
-#include "vapor/LayeredIO.h"
 #include "proj_api.h"
 #include "math.h"
 using namespace VAPoR;
@@ -92,9 +92,7 @@ DataStatus()
 {
 	
 	dataMgr = 0;
-    currentMetadata = 0;
 	renderOK = false;
-	myReader = 0;
 	
 	minTimeStep = 0;
 	maxTimeStep = 0;
@@ -123,24 +121,26 @@ bool DataStatus::
 reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	cacheMB = cachesize;
 	
-	currentMetadata = (Metadata*)dm->GetMetadata();
 	dataMgr = dm;
-	myReader = (VDFIOBase*)dm->GetRegionReader();
-	unsigned int numTS = (unsigned int)currentMetadata->GetNumTimeSteps();
+	unsigned int numTS = (unsigned int)dataMgr->GetNumTimeSteps();
 	if (numTS == 0) return false;
 	assert (numTS >= getNumTimesteps());  //We should always be increasing this
 	numTimesteps = numTS;
 	
-	std::vector<double> mdExtents = currentMetadata->GetExtents();
+	std::vector<double> mdExtents = dataMgr->GetExtents();
 	for (int i = 0; i< 6; i++)
 		extents[i] = (float)mdExtents[i];
 
-	projString = currentMetadata->GetMapProjection();
+	projString = "";
+	DataMgrWB	*dataMgrWB = dynamic_cast<DataMgrWB *>(dataMgr);
+	if (dataMgrWB) {
+		projString = dataMgrWB->GetMapProjection();
+	}
 	
 	timeVaryingExtents.clear();
 	for (int i = 0; i<numTS; i++){
 		
-		const vector<double>& mdexts = currentMetadata->GetTSExtents(i);
+		const vector<double>& mdexts = dataMgr->GetTSExtents(i);
 		if (mdexts.size() < 6) {
 			timeVaryingExtents.push_back(0);
 			continue;
@@ -156,14 +156,14 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//mapping of metadata var nums into session var nums:
 	removeMetadataVars();
 	
-	int num3dVars = currentMetadata->GetVariables3D().size();
+	int num3dVars = dataMgr->GetVariables3D().size();
 	
 	numMetadataVariables = num3dVars;
 	mapMetadataVars = new int[numMetadataVariables];
 
-	numOriented2DVars[0] = currentMetadata->GetVariables2DXY().size();
-	numOriented2DVars[1] = currentMetadata->GetVariables2DYZ().size();
-	numOriented2DVars[2] = currentMetadata->GetVariables2DXZ().size();
+	numOriented2DVars[0] = dataMgr->GetVariables2DXY().size();
+	numOriented2DVars[1] = dataMgr->GetVariables2DYZ().size();
+	numOriented2DVars[2] = dataMgr->GetVariables2DXZ().size();
 
 	int numVars = num3dVars + numOriented2DVars[0];
 	if (numVars <=0) return false;
@@ -174,7 +174,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int i = 0; i<num3dVars; i++){
 		bool match = false;
 		for (int j = 0; j< getNumSessionVariables(); j++){
-			if (getVariableName(j) == currentMetadata->GetVariables3D()[i]){
+			if (getVariableName(j) == dataMgr->GetVariables3D()[i]){
 				mapMetadataVars[i] = j;
 				match = true;
 				break;
@@ -183,8 +183,8 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		if (match) continue;
 		//Note that we are modifying the very array that we are looping over.
 		//
-		string str = currentMetadata->GetVariables3D()[i];
-		addVarName(currentMetadata->GetVariables3D()[i]);
+		string str = dataMgr->GetVariables3D()[i];
+		addVarName(dataMgr->GetVariables3D()[i]);
 		mapMetadataVars[i] = variableNames.size()-1;
 	}
 	//Make sure all the metadata vars are in session vars
@@ -195,19 +195,19 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			
 			if (i < numOriented2DVars[0]){
 				
-				if (getVariableName2D(j) == currentMetadata->GetVariables2DXY()[i]){
+				if (getVariableName2D(j) == dataMgr->GetVariables2DXY()[i]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
 				}
 			} else if ( i < numOriented2DVars[0]+numOriented2DVars[1]){
-				if (getVariableName2D(j) == currentMetadata->GetVariables2DYZ()[i-numOriented2DVars[0]]){
+				if (getVariableName2D(j) == dataMgr->GetVariables2DYZ()[i-numOriented2DVars[0]]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
 				}
 			} else if ( i < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]){
-				if (getVariableName2D(j) == currentMetadata->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]){
+				if (getVariableName2D(j) == dataMgr->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]){
 					mapMetadataVars2D[i] = j;
 					match = true;
 					break;
@@ -219,10 +219,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//Note that we are modifying the very array that we are looping over.
 		//
 		if (i < numOriented2DVars[0])
-			addVarName2D(currentMetadata->GetVariables2DXY()[i]);
+			addVarName2D(dataMgr->GetVariables2DXY()[i]);
 		else if (i < numOriented2DVars[0]+numOriented2DVars[1])
-			addVarName2D(currentMetadata->GetVariables2DYZ()[i-numOriented2DVars[0]]);
-		else addVarName2D(currentMetadata->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]);
+			addVarName2D(dataMgr->GetVariables2DYZ()[i-numOriented2DVars[0]]);
+		else addVarName2D(dataMgr->GetVariables2DXZ()[i-numOriented2DVars[0]-numOriented2DVars[1]]);
 		mapMetadataVars2D[i] = variableNames2D.size()-1;
 	}
 
@@ -268,14 +268,14 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	}
 
 
-	numTransforms = currentMetadata->GetNumTransforms();
+	numTransforms = dataMgr->GetNumTransforms();
 	for (int k = 0; k<dataAtLevel.size(); k++) delete dataAtLevel[k];
 	dataAtLevel.clear();
 	for (int k = 0; k<= numTransforms; k++){
 		dataAtLevel.push_back(new size_t[3]);
 	}
 	
-	myReader->GetDim(fullDataSize, -1);
+	dataMgr->GetDim(fullDataSize, -1);
 		
 
 	//As we go through the variables and timesteps, keep Track of min and max times
@@ -292,10 +292,8 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//Extend the list of session variables to include all that are in dataStatus.
 	//Construct a mapping from variable nums to variable names, first use the
 	//nums and names that are active, then the remainder.
-	//WaveletBlock3DRegionReader* myReader = (WaveletBlock3DRegionReader*)dm->GetRegionReader();
-	const VDFIOBase* myReader = dm->GetRegionReader();
 	for (int lev = 0; lev <= numTransforms; lev++){
-		myReader->GetDim(dataAtLevel[lev],lev);
+		dataMgr->GetDim(dataAtLevel[lev],lev);
 	}
 	bool someDataOverall = false;
 	for (int var = 0; var< numSesVariables; var++){
@@ -303,8 +301,8 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//string s = getVariableName(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		for (int i = 0; i< (int)currentMetadata->GetVariables3D().size(); i++){
-			if (currentMetadata->GetVariables3D()[i] == getVariableName(var)){
+		for (int i = 0; i< (int)dataMgr->GetVariables3D().size(); i++){
+			if (dataMgr->GetVariables3D()[i] == getVariableName(var)){
 				inMetadata = true;
 				break;
 			}
@@ -319,7 +317,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			//i.e., the highest transform level  (highest resolution) that exists
 			int maxXLevel = -1;
 			for (int xf = numTransforms; xf>= 0; xf--){
-				if (myReader->VariableExists(ts, 
+				if (dataMgr->VariableExists(ts, 
 					getVariableName(var).c_str(),
 					xf)) {
 						maxXLevel = xf;
@@ -344,23 +342,23 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//string s = getVariableName(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		for (int i = 0; i< (int)currentMetadata->GetVariables2DXY().size(); i++){
-			if (currentMetadata->GetVariables2DXY()[i] == getVariableName2D(var)){
+		for (int i = 0; i< (int)dataMgr->GetVariables2DXY().size(); i++){
+			if (dataMgr->GetVariables2DXY()[i] == getVariableName2D(var)){
 				inMetadata = true;
 				break;
 			}
 		}
 		if (!inMetadata) {
-			for (int i = 0; i< (int)currentMetadata->GetVariables2DYZ().size(); i++){
-				if (currentMetadata->GetVariables2DYZ()[i] == getVariableName2D(var)){
+			for (int i = 0; i< (int)dataMgr->GetVariables2DYZ().size(); i++){
+				if (dataMgr->GetVariables2DYZ()[i] == getVariableName2D(var)){
 					inMetadata = true;
 					break;
 				}
 			}
 		}
 		if (!inMetadata) {
-			for (int i = 0; i< (int)currentMetadata->GetVariables2DXZ().size(); i++){
-				if (currentMetadata->GetVariables2DXZ()[i] == getVariableName2D(var)){
+			for (int i = 0; i< (int)dataMgr->GetVariables2DXZ().size(); i++){
+				if (dataMgr->GetVariables2DXZ()[i] == getVariableName2D(var)){
 					inMetadata = true;
 					break;
 				}
@@ -376,7 +374,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			//i.e., the highest transform level  (highest resolution) that exists
 			int maxXLevel = -1;
 			for (int xf = numTransforms; xf>= 0; xf--){
-				if (myReader->VariableExists(ts, 
+				if (dataMgr->VariableExists(ts, 
 					getVariableName2D(var).c_str(),
 					xf)) {
 						maxXLevel = xf;
@@ -400,7 +398,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
 	if (dataIsLayered()){	
-		LayeredIO* layeredReader = (LayeredIO*)myReader;
+		DataMgrLayered	*dataMgrLayered = dynamic_cast<DataMgrLayered*>(dataMgr);
 		//construct a list of the non extended variables
 		std::vector<string> vNames;
 		std::vector<float> vals;
@@ -410,7 +408,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 				vals.push_back(getBelowValue(i));
 			}
 		}
-		layeredReader->SetLowVals(vNames, vals);
+		dataMgrLayered->SetLowVals(vNames, vals);
 		vNames.clear();
 		for (int i = 0; i< getNumSessionVariables(); i++){
 			if (!isExtendedUp(i)){
@@ -418,7 +416,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 				vals.push_back(getAboveValue(i));
 			}
 		}
-		layeredReader->SetHighVals(vNames, vals);
+		dataMgrLayered->SetHighVals(vNames, vals);
 	}
 	//For now there are no low high values for 2D variables...
 	return someDataOverall;
@@ -570,12 +568,17 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 }
 //Determine the min and max extents at a given level:
 void DataStatus::getExtentsAtLevel(int level, float exts[6]){
-	size_t minm[3], maxm[3];
+	size_t dim[3], maxm[3];
+	size_t minm[3] = {0,0,0};
 	double usermin[3], usermax[3];
-	//int minframe = (int)minTimeStep;
-	myReader->GetValidRegion(minm, maxm, level);
-	myReader->MapVoxToUser((size_t)-1, minm, usermin, level);
-	myReader->MapVoxToUser((size_t)-1, maxm, usermax, level);
+
+	dataMgr->GetDim(dim, level);
+	for (int i=0; i<3; i++) {
+		maxm[i] = dim[i]-1;
+	}
+
+	dataMgr->MapVoxToUser((size_t)-1, minm, usermin, level);
+	dataMgr->MapVoxToUser((size_t)-1, maxm, usermax, level);
 	for (int i = 0; i<3; i++){
 		exts[i] = (float)usermin[i];
 		exts[i+3] = (float)usermax[i];
@@ -584,17 +587,22 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6]){
 
 bool DataStatus::sphericalTransform()
 {
-  if (currentMetadata)
+	DataMgrWB	*dataMgrWB = dynamic_cast<DataMgrWB*>(dataMgr);
+
+  if (dataMgrWB)
   {
-    return (currentMetadata->GetCoordSystemType() == "spherical");
+    return (dataMgrWB->GetCoordSystemType() == "spherical");
   }
 
   return false;
 }
 
 bool DataStatus::dataIsLayered(){
-	if (!currentMetadata) return false;
-	if(!(StrCmpNoCase(currentMetadata->GetGridType(),"layered") == 0)) return false;
+	if (!dataMgr) return false;
+
+	DataMgrLayered	*dataMgrLayered = dynamic_cast<DataMgrLayered*>(dataMgr);
+
+	if(! dataMgrLayered) return false;
 	//Check if there is an ELEVATION variable:
 	for (int i = 0; i<variableNames.size(); i++){
 		if (StrCmpNoCase(variableNames[i],"ELEVATION") == 0) return true;
@@ -604,9 +612,9 @@ bool DataStatus::dataIsLayered(){
 
 int DataStatus::
 getMetadataVarNum(std::string varname){
-	if (currentMetadata == 0) return -1;
+	if (dataMgr == 0) return -1;
 
-	const vector<string>& names = currentMetadata->GetVariables3D();
+	const vector<string>& names = dataMgr->GetVariables3D();
 	for (int i = 0; i<names.size(); i++){
 		if (names[i] == varname) return i;
 	}
@@ -614,17 +622,17 @@ getMetadataVarNum(std::string varname){
 }
 int DataStatus::
 getMetadataVarNum2D(std::string varname){
-	if (currentMetadata == 0) return -1;
+	if (dataMgr == 0) return -1;
 
-	const vector<string>& namesxy = currentMetadata->GetVariables2DXY();
+	const vector<string>& namesxy = dataMgr->GetVariables2DXY();
 	for (int i = 0; i<namesxy.size(); i++){
 		if (namesxy[i] == varname) return i;
 	}
-	const vector<string>& namesyz = currentMetadata->GetVariables2DYZ();
+	const vector<string>& namesyz = dataMgr->GetVariables2DYZ();
 	for (int i = 0; i<namesyz.size(); i++){
 		if (namesyz[i] == varname) return (i+namesxy.size());
 	}
-	const vector<string>& namesxz = currentMetadata->GetVariables2DXZ();
+	const vector<string>& namesxz = dataMgr->GetVariables2DXZ();
 	for (int i = 0; i<namesxz.size(); i++){
 		if (namesxz[i] == varname) return (i+namesxy.size()+namesyz.size());
 	}

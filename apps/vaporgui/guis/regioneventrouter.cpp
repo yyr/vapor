@@ -58,9 +58,7 @@
 #include <sstream>
 
 #include "params.h"
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "tabmanager.h"
 #include "glutil.h"
 
@@ -247,20 +245,20 @@ void RegionEventRouter::updateTab(){
 	
 	bool layered = false;
 	DataStatus* ds = DataStatus::getInstance();
-	const VDFIOBase* reader = ds->getRegionReader();
-	
-	if (reader) {
+    DataMgr	*dataMgr = ds->getDataMgr();
+
+	if (dataMgr) {
 		layered = ds->dataIsLayered();
 		if (layered)
 			fullHeightEdit->setText(QString::number(rParams->getFullGridHeight()));
 		else {
 			size_t dims[3];
-			reader->GetDim(dims, -1);
+			dataMgr->GetDim(dims, -1);
 			fullHeightEdit->setText(QString::number(dims[2]));
 		}
 	}
 	else fullHeightEdit->setText("0");
-	fullHeightEdit->setEnabled(layered && (reader != 0));
+	fullHeightEdit->setEnabled(layered && (dataMgr != 0));
 	
 	
 	if (rParams->isLocal())
@@ -305,8 +303,8 @@ void RegionEventRouter::relabel()
   if (Session::getInstance()->sphericalTransform())
   {
     QString labels[3] = {"Lon", "Lat", "Rad"};
-    const Metadata *metadata = Session::getInstance()->getCurrentMetadata();
-    const vector<long> &permutation = metadata->GetGridPermutation();
+    const DataMgr *dataMgr = Session::getInstance()->getDataMgr();
+    const vector<long> &permutation = dataMgr->GetGridPermutation();
 
     xCenterLabel->setText(labels[permutation[0]]);
     yCenterLabel->setText(labels[permutation[1]]);
@@ -533,9 +531,9 @@ refreshRegionInfo(RegionParams* rParams){
 	bool is3D = false;
 	int orientation = -1;
 	if (ds ) {
-		const Metadata* md = ds->getCurrentMetadata();
-		varName = md->GetVariableNames()[mdVarNum];
-		vector<string> varnames = md->GetVariables3D();
+		const DataMgr* dataMgr = ds->getDataMgr();
+		varName = dataMgr->GetVariableNames()[mdVarNum];
+		vector<string> varnames = dataMgr->GetVariables3D();
 		for (int i = 0; i< varnames.size(); i++){
 			if (varName == varnames[i]) {
 				is3D = true;
@@ -704,8 +702,8 @@ refreshRegionInfo(RegionParams* rParams){
 		default:
 			break;
 	}
-	if (ds && ds->getCurrentMetadata())
-		bs = *(ds->getCurrentMetadata()->GetBlockSize());
+	if (ds && ds->getDataMgr())
+		bs = *(ds->getDataMgr()->GetBlockSize());
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	float newFullMB;
 	if (is3D)
@@ -910,10 +908,10 @@ guiSetMaxSize(){
 void RegionEventRouter::
 reinitTab(bool doOverride){
 	int i;
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	const DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	
 	//Set up the combo boxes in the gui based on info in the session:
-	const vector<string>& varNames = md->GetVariableNames();
+	const vector<string>& varNames = dataMgr->GetVariableNames();
 	variableCombo->clear();
 	for (i = 0; i<(int)varNames.size(); i++)
 		variableCombo->insertItem(varNames[i].c_str());
@@ -924,7 +922,7 @@ reinitTab(bool doOverride){
 	timestepSpin->setMinValue(mints);
 	timestepSpin->setMaxValue(maxts);
 
-	int numRefinements = md->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){

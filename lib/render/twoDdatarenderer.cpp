@@ -28,7 +28,7 @@
 
 #include "vapor/errorcodes.h"
 #include "vapor/DataMgr.h"
-#include "vapor/LayeredIO.h"
+#include "vapor/DataMgrLayered.h"
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
@@ -167,7 +167,10 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	float* elevData = 0;
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
-	LayeredIO* myReader = (LayeredIO*)dataMgr->GetRegionReader();
+
+    DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+    if (! dataMgrLayered) return false;
+
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
 	float displacement = tParams->getTwoDMin(2);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
@@ -194,11 +197,11 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	int elevGridRefLevel = tParams->getNumRefinements();
 	//Do mapping to voxel coords at current ref level:
-	myReader->MapUserToVox((size_t)-1, regMin, min_dim, elevGridRefLevel);
-	myReader->MapUserToVox((size_t)-1, regMax, max_dim, elevGridRefLevel);
+	dataMgrLayered->MapUserToVox((size_t)-1, regMin, min_dim, elevGridRefLevel);
+	dataMgrLayered->MapUserToVox((size_t)-1, regMax, max_dim, elevGridRefLevel);
 	//Convert back to user coords:
-	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
-	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
 	//Extend by 1 voxel in x and y if it is smaller than original domain
 	for (int i = 0; i< 2; i++){
 		if(regMin[i] > origRegMin[i] && min_dim[i]>0) min_dim[i]--;
@@ -207,8 +210,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//Convert increased vox dims to user coords:
-	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
-	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
 	//Don't allow the terrain surface to be below the minimum extents:
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	
@@ -219,7 +222,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	if(refLevel < 0) {
 		setBypass(timeStep);
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
-		myReader->SetInterpolateOnOff(true);
+		dataMgrLayered->SetInterpolateOnOff(true);
 		return false;
 	}
 	
@@ -308,7 +311,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		maxvals[i] = -1.e30;
 	}
 	float worldCoord[3];
-	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	for (int j = 0; j<maxy; j++){
 		worldCoord[1] = regMin[1] + (float)j*deltay;
 		if (worldCoord[1] < origRegMin[1]) worldCoord[1] = origRegMin[1];

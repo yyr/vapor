@@ -154,11 +154,11 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	full_height = fullGridHeight;
 	numXForms = num_xforms;
 	size_t fullDims[3];
-	const std::vector<double> extents = dataMgr->GetMetadata()->GetExtents();
+	const std::vector<double> extents = dataMgr->GetExtents();
 	
 	size_t fullDataSize[3];
-	dataMgr->GetRegionReader()->GetDim(fullDataSize,num_xforms);
-	dataMgr->GetRegionReader()->GetDim(fullDims,-1);
+	dataMgr->GetDim(fullDataSize,num_xforms);
+	dataMgr->GetDim(fullDims,-1);
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = min_bdim[i];
 		maxBlkRegion[i] = max_bdim[i];
@@ -339,9 +339,8 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	//First map the region to doubles:
 	double minDouble[3], maxDouble[3];
 	
-	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	myReader->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
 	//Use the current region bounds, not the rake bounds...
 	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
 		false, (int)numXForms, timeStep, false);
@@ -540,9 +539,9 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	float **pWData;
 	float **pVData;
 	float **pUData;
-	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetBlockSize()[0];
+	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetBlockSize()[1];
+	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetBlockSize()[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	bool zeroX = (strcmp(xSteadyVarName, "0") == 0); 
 	bool zeroY = (strcmp(ySteadyVarName, "0") == 0); 
@@ -567,19 +566,18 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	for (int i = 0; i< 3; i++){
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
@@ -729,9 +727,9 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	
-    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetBlockSize()[0];
+	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetBlockSize()[1];
+	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetBlockSize()[2];
 	totalNum = (int)(totalXNum*totalYNum*totalZNum);
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
@@ -778,8 +776,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
@@ -787,10 +784,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
-	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
 	minB.Set((float)minUser[0], (float)minUser[1], (float)minUser[2]);
 	maxB.Set((float)maxUser[0], (float)maxUser[1], (float)maxUser[2]);
@@ -817,8 +814,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	{
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
-		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep);
-		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep);
+		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSampledStep);
+		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSampledStep);
 		if (prevTime.size()> 0 && nextTime.size()> 0)
 			pUserTimeSteps[tIndex] = (float)(nextTime[0] - prevTime[0]);
 		else
@@ -873,9 +870,9 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		//Currently only one vapor time step is integrated at a time.
 		double diff = 0.0, curDiff = 0.0;
-		const vector<double>& iforTime = dataMgr->GetMetadata()->GetTSUserTime(iFor);
-		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSample);
-		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSample);
+		const vector<double>& iforTime = dataMgr->GetTSUserTime(iFor);
+		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSample);
+		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSample);
 		if (iforTime.size()>0 && prevTime.size()>0 && nextTime.size()> 0){
 		
 			diff = iforTime[0] -prevTime[0];
@@ -998,9 +995,9 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	
-    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetBlockSize()[0];
+	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetBlockSize()[1];
+	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetBlockSize()[2];
 	totalNum = totalXNum*totalYNum*totalZNum;
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
@@ -1047,8 +1044,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
@@ -1056,10 +1052,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser((size_t)-1, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser((size_t)-1, maxRegion, regMax, numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, numXForms);
+	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, numXForms);
 	
 	minB.Set(minUser[0], minUser[1], minUser[2]);
 	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
@@ -1087,8 +1083,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
-		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep);
-		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep);
+		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSampledStep);
+		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSampledStep);
 		if (nextTime.size()> 0 && prevTime.size()>0)
 			pUserTimeSteps[tIndex] = nextTime[0] - prevTime[0];	
 		else
@@ -1151,9 +1147,9 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		double diff = 0.0, curDiff = 0.0;
-		const vector<double>& iforTime = dataMgr->GetMetadata()->GetTSUserTime(iFor);
-		const vector<double>& prevTime = dataMgr->GetMetadata()->GetTSUserTime(prevSample);
-		const vector<double>& nextTime = dataMgr->GetMetadata()->GetTSUserTime(nextSample);
+		const vector<double>& iforTime = dataMgr->GetTSUserTime(iFor);
+		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSample);
+		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSample);
 		if(iforTime.size()> 0 && prevTime.size()> 0 && nextTime.size()> 0){
 		
 			diff = iforTime[0] - prevTime[0];
@@ -1267,9 +1263,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	}
 	
 	
-	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	// get the field data, lock it in place:
 	// create field object
 	CVectorField* pField;
@@ -1333,11 +1327,11 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 		blockRegionMin[i] = bs[i]*minBlk[i];
 		blockRegionMax[i] = bs[i]*(maxBlk[i]+1)-1;
 	}
-	myReader->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numRefinements);
-	myReader->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numRefinements);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numRefinements);
+	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numRefinements);
 	//Also, map the region extents (needed for in/out testing):
-	myReader->MapVoxToUser((size_t)-1, minInt, regMin, numRefinements);
-	myReader->MapVoxToUser((size_t)-1, maxInt, regMax, numRefinements);
+	dataMgr->MapVoxToUser((size_t)-1, minInt, regMin, numRefinements);
+	dataMgr->MapVoxToUser((size_t)-1, maxInt, regMax, numRefinements);
 	
 	
 	//Now adjust minB, maxB to block region extents:
@@ -1387,7 +1381,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	}
 	
 	
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	const size_t* bs = dataMgr->GetBlockSize();
 	
 	float **pUData, **pVData, **pWData;
 	

@@ -42,10 +42,8 @@
 
 #include "params.h"
 #include "vapor/DataMgr.h"
-#include "vapor/Metadata.h"
+#include "vapor/DataMgrLayered.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/LayeredIO.h"
 //#include "glutil.h"
 
 
@@ -291,7 +289,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	
 	DataStatus* ds = DataStatus::getInstance();
 	//Special case before there is any data...
-	if (!ds->getCurrentMetadata()){
+	if (!ds->getDataMgr()){
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
@@ -317,14 +315,14 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		userMinCoords[i] = (double)regExts[i];;
 		userMaxCoords[i] = (double)regExts[i+3];
 	}
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, minRefLevel);
-	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, minRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, userMinCoords, min_dim, minRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, userMaxCoords, max_dim, minRefLevel);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -360,7 +358,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 	}
 	//calc block dims
-	bs = ds->getCurrentMetadata()->GetBlockSize();
+	bs = ds->getDataMgr()->GetBlockSize();
 	for (i = 0; i<3; i++){	
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
@@ -368,8 +366,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//If bounds are needed, calculate them:
 	if (regMax && regMin){
 		//Do mapping to voxel coords
-		myReader->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
-		myReader->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+		dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
+		dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
 	}
 	
 	return minRefLevel;
@@ -385,7 +383,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	
 	DataStatus* ds = DataStatus::getInstance();
 	//Special case before there is any data...
-	if (!ds->getCurrentMetadata()){
+	if (!ds->getDataMgr()){
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
@@ -418,14 +416,14 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	}
 
 	
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	myReader->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
-	myReader->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
 	if (!twoDim){
 		for(i = 0; i< 3; i++){
 			//Make sure 3D slab has nonzero thickness (this can only
@@ -470,15 +468,15 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		}
 	}
 	//calc block dims
-	bs = ds->getCurrentMetadata()->GetBlockSize();
+	bs = ds->getDataMgr()->GetBlockSize();
 	for (i = 0; i<3; i++){	
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
 	}
 	//Calculate new bounds:
 	
-	myReader->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
-	myReader->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
 	
 	return minRefLevel;
 }
@@ -488,7 +486,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	int i;
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getCurrentMetadata()){
+	if (!ds->getDataMgr()){
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
@@ -504,12 +502,12 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		userMinCoords[i] = (double)regExts[i];
 		userMaxCoords[i] = (double)regExts[i+3];
 	}
-	const VDFIOBase* myReader = ds->getRegionReader();
+	const DataMgr* dataMgr = ds->getDataMgr();
 
-	myReader->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
-	myReader->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
-	myReader->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
-	myReader->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
+	dataMgr->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
+	dataMgr->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
+	dataMgr->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
+	dataMgr->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
 
 	
 	return;
@@ -716,9 +714,9 @@ buildNode(){
 int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getCurrentMetadata()) return 0;
+	if (!ds->getDataMgr()) return 0;
 	
-	int bs = *(ds->getCurrentMetadata()->GetBlockSize());
+	int bs = *(ds->getDataMgr()->GetBlockSize());
 	
 	size_t min_bdim[3], max_bdim[3];
 	double userMinCoords[3];
@@ -727,11 +725,11 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 		userMinCoords[i] = (double)boxMin[i];
 		userMaxCoords[i] = (double)boxMax[i];
 	}
-	const VDFIOBase* myReader = ds->getRegionReader();
-	if (!myReader) return 0;
+	const DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return 0;
 	size_t timestep = DataStatus::getInstance()->getMinTimestep();
-	myReader->MapUserToBlk(timestep, userMinCoords, min_bdim, refLevel);
-	myReader->MapUserToBlk(timestep, userMaxCoords, max_bdim, refLevel);
+	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, refLevel);
+	dataMgr->MapUserToBlk(timestep, userMaxCoords, max_bdim, refLevel);
 	
 	
 	float numVoxels = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
@@ -754,7 +752,7 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3
 
 	//Get the data dimensions (at current resolution):
 	int voxCoords[3];
-	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	const size_t* bs = ds->getDataMgr()->GetBlockSize();
 	const char* varname = ds->getVariableName(sessionVarNum).c_str();
 	double regMin[3], regMax[3];
 	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
@@ -792,14 +790,18 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3
 void RegionParams::
 setFullGridHeight(size_t val){
 	DataStatus* ds = DataStatus::getInstance();
+	DataMgr *dataMgr = ds->getDataMgr();
+
 	if (ds->dataIsLayered()){
+		DataMgrLayered  *data_mgr_layered = dynamic_cast<DataMgrLayered*>(dataMgr);
+		assert(data_mgr_layered != NULL);
+
 		
-		LayeredIO* layeredReader = (LayeredIO*)ds->getRegionReader();
-		size_t currentHeight = layeredReader->GetGridHeight();
+		size_t currentHeight = data_mgr_layered->GetGridHeight();
 		if (currentHeight != val){			
-			layeredReader->SetGridHeight(val);
+			data_mgr_layered->SetGridHeight(val);
 			//purge cache:
-			ds->getDataMgr()->Clear();
+			dataMgr->Clear();
 		}
 		fullHeight = val;
 		return;

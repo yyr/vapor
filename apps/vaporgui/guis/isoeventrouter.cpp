@@ -62,9 +62,7 @@
 #include "params.h"
 #include "isotab.h"
 
-#include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
-#include "vapor/VDFIOBase.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "ParamsIso.h"
@@ -716,9 +714,9 @@ reinitTab(bool doOverride){
 	}
 
 	//Set up the refinement combo:
-	const Metadata* md = ses->getCurrentMetadata();
+	const DataMgr *dataMgr = ses->getDataMgr();
 	
-	int numRefinements = md->GetNumTransforms();
+	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){

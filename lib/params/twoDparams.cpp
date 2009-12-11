@@ -42,10 +42,7 @@
 #include "animationparams.h"
 
 #include <math.h>
-#include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 #include "vapor/WRF.h"
 //tiff stuff:
@@ -87,14 +84,13 @@ TwoDParams::~TwoDParams(){
 void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs){
 	//Determine the box that contains the twoD slice.
 	DataStatus* ds = DataStatus::getInstance();
-	const VDFIOBase* myReader = ds->getRegionReader();
 	double dmin[3],dmax[3];
 	for (int i = 0; i<3; i++) {
 		dmin[i] = twoDMin[i];
 		dmax[i] = twoDMax[i];
 	}
-	myReader->MapUserToVox((size_t)-1,dmin, boxMin, numRefs);
-	myReader->MapUserToVox((size_t)-1,dmax, boxMax, numRefs);
+	ds->getDataMgr()->MapUserToVox((size_t)-1,dmin, boxMin, numRefs);
+	ds->getDataMgr()->MapUserToVox((size_t)-1,dmax, boxMax, numRefs);
 
 }
 

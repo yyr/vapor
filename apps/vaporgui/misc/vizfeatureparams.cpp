@@ -25,7 +25,6 @@
 #include "mainform.h"
 #include "session.h"
 #include "datastatus.h"
-#include "vapor/LayeredIO.h"
 #include <qlineedit.h>
 #include <qfiledialog.h>
 #include <qpushbutton.h>
@@ -38,6 +37,7 @@
 #include <qlayout.h>
 #include <vector>
 #include <qwhatsthis.h>
+#include <vapor/DataMgrLayered.h>
 
 int VizFeatureParams::sessionVariableNum = 0;
 using namespace VAPoR;
@@ -203,18 +203,12 @@ void VizFeatureParams::launch(){
 	
 	//Check if we have time stamps in data:
 	int numTimeTypes = 1;
-	const Metadata* md = DataStatus::getInstance()->getCurrentMetadata();
+	const DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	int firstTime = DataStatus::getInstance()->getMinTimestep();
-	if (md){
-		const vector<string>& userTags = md->GetTSUserDataStringTags();
-		bool tagOK = false;
-		for (int k = 0; k < userTags.size(); k++){
-			if (userTags[k] == "UserTimeStampString") {tagOK = true; break;}
-		}
-		if (tagOK){ //make sure it's there at the first time step
-			const string& timeStamp = md->GetTSUserDataString(firstTime,"UserTimeStampString");
+	if (dataMgr){
+		string timeStamp;
+		dataMgr->GetTSUserTimeStamp(firstTime, timeStamp);
 			if (timeStamp != "") numTimeTypes = 2;
-		}
 	}
 	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes);
 	
@@ -414,7 +408,7 @@ setDialog(){
     vizFeatureDlg->stretch2Edit->setEnabled(enableStretch);
 
 	DataStatus* ds = DataStatus::getInstance();
-	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
+	bool isLayered = ds->dataIsLayered();
 	vizFeatureDlg->outsideValFrame->setEnabled(isLayered);
 	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
 	if (isLayered) vizFeatureDlg->buttonOk->setDefault(false);
@@ -694,7 +688,9 @@ applyToViz(int vizNum){
 			win->setDirtyBit(RegionBit, true);
 		}
 		if (ds->dataIsLayered()){	
-			LayeredIO* layeredReader = (LayeredIO*)ds->getDataMgr()->GetRegionReader();
+			DataMgr *dataMgr = ds->getDataMgr();
+			DataMgrLayered   *dataMgrLayered = dynamic_cast<DataMgrLayered *>(dataMgr);
+
 			//construct a list of the non extended variables
 			std::vector<string> vNames;
 			std::vector<float> vals;
@@ -704,7 +700,7 @@ applyToViz(int vizNum){
 					vals.push_back(ds->getBelowValue(i));
 				}
 			}
-			layeredReader->SetLowVals(vNames, vals);
+			dataMgrLayered->SetLowVals(vNames, vals);
 			vNames.clear();
 			for (int i = 0; i< ds->getNumSessionVariables(); i++){
 				if (!ds->isExtendedUp(i)){
@@ -712,7 +708,7 @@ applyToViz(int vizNum){
 					vals.push_back(ds->getAboveValue(i));
 				}
 			}
-			layeredReader->SetHighVals(vNames, vals);
+			dataMgrLayered->SetHighVals(vNames, vals);
 		}
 		//Must purge the cache when the outside values change:
 		ds->getDataMgr()->Clear();

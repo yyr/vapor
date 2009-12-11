@@ -41,10 +41,7 @@
 #include "viewpointparams.h"
 
 #include <math.h>
-#include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
-#include "vapor/VDFIOBase.h"
-#include "vapor/LayeredIO.h"
 #include "vapor/errorcodes.h"
 #include "vapor/WRF.h"
 #include "sys/stat.h"
@@ -774,10 +771,10 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 		//get the user times from the metadata,
 		//and find the min difference for each usertime.
 		
-		Metadata* md = DataStatus::getInstance()->getMetadata();
+		DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	
 		for (int i = 0; i<=maxTimestep; i++){
-			const vector<double>& d = md->GetTSUserTime((size_t)i);
+			const vector<double>& d = dataMgr->GetTSUserTime((size_t)i);
 			if(d.size()==0){ timesOK = false; break;}
 			wrfTime = (TIME64_T)d[0];
 			//Find the nearest tifftime:
