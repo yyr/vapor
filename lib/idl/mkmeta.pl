@@ -770,7 +770,7 @@ print <<"EOF";
 
 void vdf$name(int argc, IDL_VPTR *argv)
 {
-    Metadata    *metadata = varGetMetadata(argv[0]);
+    MetadataVDC    *metadata = varGetMetadata(argv[0]);
     $tsCheck
     $varCheck
     $tagCheck
@@ -899,7 +899,7 @@ print <<"EOF";
 IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
 {
 
-    Metadata    *metadata = varGetMetadata(argv[0]);
+    MetadataVDC    *metadata = varGetMetadata(argv[0]);
     $tsCheck
     $varCheck
     $tagCheck
@@ -915,7 +915,7 @@ IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
 
     $valueType &value = metadata->$name($params);
     $valueType *valueptr = &value;
-    if (int rc = Metadata::GetErrCode()) {
+    if (int rc = MetadataVDC::GetErrCode()) {
 		if (rc != XmlNode::ERR_TNP) {
 			myBaseErrChk();
         }

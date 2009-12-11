@@ -82,14 +82,14 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 	//
 	argc = IDL_KWProcessByOffset(argc, argv, argk, kw_pars,NULL,1,&kw);
 
-	Metadata *metadata = 0;
+	MetadataVDC *metadata = 0;
 
 	if (argc == 1) {
 		IDL_ENSURE_SCALAR(argv[0]);
 
 		char *path = IDL_VarGetString(argv[0]);
 
-		metadata = new Metadata(path);
+		metadata = new MetadataVDC(path);
 	}
 	else if (argc == 2) {
 		size_t dim[3];
@@ -113,7 +113,7 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 
 		size_t bs[3] = {kw.bs_array[0],kw.bs_array[1],kw.bs_array[2]};
 
-		metadata = new Metadata(
+		metadata = new MetadataVDC(
 			dim, nxforms,bs, kw.nFilterCoef,kw.nLiftingCoef, kw.msbFirst
 		);
 
@@ -140,7 +140,7 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 
 void vdfMetadataDestroy(int argc, IDL_VPTR *argv)
 {
-	Metadata	*metadata = varGetMetadata(argv[0]);
+	MetadataVDC	*metadata = varGetMetadata(argv[0]);
 
 	delete metadata;
 
@@ -148,7 +148,7 @@ void vdfMetadataDestroy(int argc, IDL_VPTR *argv)
 
 void vdfMetadataWrite(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 	char *path = IDL_VarGetString(argv[1]);
 
 	metadata->Write(path);
@@ -157,7 +157,7 @@ void vdfMetadataWrite(int argc, IDL_VPTR *argv)
 	
 IDL_VPTR vdfMetadataGetBlockSize(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	const size_t *bs = metadata->GetBlockSize();
 
@@ -176,7 +176,7 @@ IDL_VPTR vdfMetadataGetBlockSize(int argc, IDL_VPTR *argv)
 	
 IDL_VPTR vdfMetadataGetDimension(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	const size_t *dim = metadata->GetDimension();
 
@@ -195,7 +195,7 @@ IDL_VPTR vdfMetadataGetDimension(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdfMetadataGetFilterCoef(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetFilterCoef();
 	myBaseErrChk();
@@ -205,7 +205,7 @@ IDL_VPTR vdfMetadataGetFilterCoef(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdfMetadataGetLiftingCoef(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetLiftingCoef();
 	myBaseErrChk();
@@ -215,7 +215,7 @@ IDL_VPTR vdfMetadataGetLiftingCoef(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdfMetadataGetNumTransforms(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetNumTransforms();
 	myBaseErrChk();
@@ -225,7 +225,7 @@ IDL_VPTR vdfMetadataGetNumTransforms(int argc, IDL_VPTR *argv)
 
 IDL_VPTR vdfMetadataGetMSBFirst(int argc, IDL_VPTR *argv)
 {
-	Metadata *metadata = varGetMetadata(argv[0]);
+	MetadataVDC *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetMSBFirst();
 	myBaseErrChk();

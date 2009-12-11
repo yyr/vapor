@@ -42,14 +42,14 @@ void    errFatal(
 
 void	myBaseErrChk() {
 
-	if (Metadata::GetErrCode()) {
-		string msg(Metadata::GetErrMsg());
-		Metadata::SetErrCode(0);
+	if (MetadataVDC::GetErrCode()) {
+		string msg(MetadataVDC::GetErrMsg());
+		MetadataVDC::SetErrCode(0);
 		errFatal(msg.c_str());
 	}
 }
 
-Metadata *varGetMetadata(
+MetadataVDC *varGetMetadata(
 	IDL_VPTR var
 ) {
 
@@ -58,5 +58,5 @@ Metadata *varGetMetadata(
 	if (var->type != IDL_TYP_MEMINT) {
         errFatal("Metadata handle must be of type IDL_TYP_MEMINT");
     }
-	return((Metadata *) var->value.memint);
+	return((MetadataVDC *) var->value.memint);
 }
