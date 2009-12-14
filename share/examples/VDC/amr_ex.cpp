@@ -309,7 +309,7 @@ int main(int argc, char **argv) {
 
 	// Create an AMRIO object to write the AMR grid to the VDC
 	//
-	AMRIO *amrio = new AMRIO(metafile, 0);
+	AMRIO *amrio = new AMRIO(metafile);
 	if (amrio->GetErrCode() != 0) {
 		cerr << ProgName << " : " << amrio->GetErrMsg() << endl;
 		exit(1);
@@ -318,22 +318,21 @@ int main(int argc, char **argv) {
 	//
 	// Verify .vdf metafile was properly setup with vdfcreate command
 	//
-	const Metadata *metadata = amrio->GetMetadata();
-	const size_t *bs = metadata->GetBlockSize();
+	const size_t *bs = amrio->GetBlockSize();
 	for (int i=0; i<3; i++) {
 		if (bs[i] != CellDim) {
 			cerr << ProgName << " : Invalid block size" << endl;
 			exit (1);
 		}
 	}
-	const size_t *dim = metadata->GetDimension();
+	const size_t *dim = amrio->GetDimension();
 	for (int i=0; i<3; i++) {
 		if (dim[i] != N) {
 			cerr << ProgName << " : Invalid dimension : " << dim[i] << endl;
 			exit (1);
 		}
 	}
-	int nlevels = metadata->GetNumTransforms();
+	int nlevels = amrio->GetNumTransforms();
 	if (nlevels != NLevels) {
 		cerr << ProgName << " : Invalid number of refinment levels" << endl;
 		exit (1);
