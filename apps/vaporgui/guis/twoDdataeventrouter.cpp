@@ -34,11 +34,11 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
@@ -55,7 +55,6 @@
 #include "twodframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
-#include "qthumbwheel.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -81,7 +80,8 @@
 using namespace VAPoR;
 
 
-TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* name): TwoDDataTab(parent, name), TwoDEventRouter(){
+TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_TwoDDataTab(), TwoDEventRouter(){
+	setupUi(this);
 	myParamsType = Params::TwoDDataParamsType;
 	savedCommand = 0;
 	ignoreListboxChanges = false;
@@ -1658,13 +1658,13 @@ void TwoDDataEventRouter::cleanParams(Params* p)
 void TwoDDataEventRouter::captureImage() {
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	if (!pParams->isEnabled()) return;
-	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
 		"Image capture dialog",
 		true);  //modal
 	//fileDialog.move(pos());
-	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setMode(Q3FileDialog::AnyFile);
 	fileDialog.setCaption("Specify image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;

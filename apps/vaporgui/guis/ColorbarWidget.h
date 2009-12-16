@@ -13,6 +13,7 @@
 #include <vapor/MyBase.h>
 
 #include <qobject.h>
+#include <QColor>
 #include <set>
 #include <list>
 

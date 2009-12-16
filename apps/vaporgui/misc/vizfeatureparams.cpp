@@ -26,19 +26,18 @@
 #include "session.h"
 #include "datastatus.h"
 #include <qlineedit.h>
-#include <qfiledialog.h>
+#include <q3filedialog.h>
 #include <qpushbutton.h>
 #include <qmessagebox.h>
 #include <qcombobox.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qscrollview.h>
-#include <qvbox.h>
+#include <q3scrollview.h>
+#include <q3vbox.h>
 #include <qlayout.h>
 #include <vector>
-#include <qwhatsthis.h>
+#include <q3whatsthis.h>
 #include <vapor/DataMgrLayered.h>
-
 int VizFeatureParams::sessionVariableNum = 0;
 using namespace VAPoR;
 //Create a new vizfeatureparams
@@ -154,7 +153,7 @@ void VizFeatureParams::launch(){
 	if (vizNum < 0 || DataStatus::getInstance()->getNumSessionVariables() <=0){
 		QMessageBox::warning(vizFeatureDlg,"No visualizers or variables",
 			QString("No visualizers or variables exist to be modified"),
-			QMessageBox::Ok, QMessageBox::NoButton);
+			QMessageBox::Ok, Qt::NoButton);
 		return;
 	}
 	
@@ -163,12 +162,12 @@ void VizFeatureParams::launch(){
 	
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Visualizer Feature Selection");
 	
-	QScrollView* sv = new QScrollView(featureHolder);
-	sv->setHScrollBarMode(QScrollView::AlwaysOff);
-	sv->setVScrollBarMode(QScrollView::AlwaysOn);
+	Q3ScrollView* sv = new Q3ScrollView(featureHolder);
+	sv->setHScrollBarMode(Q3ScrollView::AlwaysOff);
+	sv->setVScrollBarMode(Q3ScrollView::AlwaysOn);
 	featureHolder->setScroller(sv);
 	
-	vizFeatureDlg = new VizFeatures(featureHolder);
+	vizFeatureDlg = new VizFeatureDialog(featureHolder);
 	
 	sv->addChild(vizFeatureDlg);
 	
@@ -861,7 +860,7 @@ void VizFeatureParams::okClicked(){
 }
 void VizFeatureParams::
 doHelp(){
-	QWhatsThis::enterWhatsThisMode();
+	Q3WhatsThis::enterWhatsThisMode();
 }
 void VizFeatureParams::
 imageToggled(bool onOff){
@@ -871,7 +870,7 @@ imageToggled(bool onOff){
 	}
 	else { 
 		//select a filename, if succeed turn on textureSurface.
-		QString filename = QFileDialog::getOpenFileName(surfaceImageFilename,
+		QString filename = Q3FileDialog::getOpenFileName(surfaceImageFilename,
 			"Image files (*.jpg)",
 			vizFeatureDlg,
 			"Open Image File Dialog",

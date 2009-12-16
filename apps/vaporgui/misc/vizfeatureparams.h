@@ -28,12 +28,14 @@
 #define VIZFEATUREPARAMS_H
  
 #include <qwidget.h>
-#include <qscrollview.h>
+#include <q3scrollview.h>
 #include <qdialog.h>
+#include "vizfeatures.h"
+//Added by qt3to4:
+#include <QResizeEvent>
 #include <vector>
 
 class QWidget;
-class VizFeatures;
 class ScrollContainer;
 
 namespace VAPoR{
@@ -42,15 +44,20 @@ class ScrollContainer : public QDialog {
 public:
 	ScrollContainer(QWidget* parent, const char* name) : QDialog(parent, name) {
 		setCaption(name);}
-	void setScroller(QScrollView* sv){scroller = sv;}
-	QScrollView* getScroller(){return scroller;}
+	void setScroller(Q3ScrollView* sv){scroller = sv;}
+	Q3ScrollView* getScroller(){return scroller;}
 protected:
 	virtual void resizeEvent(QResizeEvent* event){
 		if (scroller) {
 			scroller->setGeometry(0,0, event->size().width(), event->size().height());
 		}
 	}
-	QScrollView* scroller;
+	Q3ScrollView* scroller;
+};
+class VizFeatureDialog : public QDialog, public Ui_VizFeatures {
+public :
+	VizFeatureDialog(QDialog* parent) : QDialog(parent), Ui_VizFeatures() 
+	{ setupUi(this); }
 };
 class VizFeatureParams : public QObject  {
 	Q_OBJECT
@@ -97,7 +104,7 @@ protected:
 	//Convert visualizer number to a combo index and vice versa
 	int getComboIndex(int vizNum);
 	int getVizNum(int comboIndex);
-	VizFeatures* vizFeatureDlg;
+	VizFeatureDialog* vizFeatureDlg;
 	ScrollContainer* featureHolder;
 
 	//State of one visualizer is saved here:

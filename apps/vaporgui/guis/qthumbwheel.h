@@ -1,3 +1,8 @@
+//Added by qt3to4:
+#include <QMouseEvent>
+#include <QFocusEvent>
+#include <QKeyEvent>
+#include <QWheelEvent>
 /****************************************************************************
 ** $Id$
 **
@@ -46,13 +51,13 @@
 #define QTHUMBWHEEL_H
 
 #ifndef QT_H
-#include "qframe.h"
-#include "qrangecontrol.h"
+#include "q3frame.h"
+#include "q3rangecontrol.h"
 #endif // QT_H
 
 #ifndef QT_NO_THUMBWHEEL
 
-class QThumbWheel : public QFrame, public QRangeControl
+class QThumbWheel : public Q3Frame, public Q3RangeControl
 {
     Q_OBJECT
 
@@ -60,8 +65,8 @@ public:
     QThumbWheel( QWidget *parent=0, const char *name=0 );
     ~QThumbWheel();
 
-    virtual void 	setOrientation( Orientation );
-    Orientation  	orientation() const;
+    virtual void 	setOrientation( Qt::Orientation );
+    Qt::Orientation  	orientation() const;
     virtual void	setTracking( bool enable );
     bool		tracking() const;
     virtual void	setTransmissionRatio( double r );
@@ -98,7 +103,7 @@ private:
     double 	rat;
     int		pressedAt;
 	int		mousePressedAtValue;
-    Orientation orient;
+    Qt::Orientation orient;
     uint	track : 1;
     uint	mousePressed : 1;
 
@@ -106,7 +111,7 @@ private:
     QThumbWheelPrivate *d;
 };
 
-inline QThumbWheel::Orientation QThumbWheel::orientation() const
+inline Qt::Orientation QThumbWheel::orientation() const
 {
     return orient;
 }

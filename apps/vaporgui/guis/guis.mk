@@ -8,7 +8,7 @@ GUI_FILES := \
 	twodframe gltwoDwindow \
 	DomainWidget GLWidget OpacityWidget \
 	qthumbwheel userpreferences \
-	TFLocationTip ControlPointEditor mappingframe ColorbarWidget
+	ControlPointEditor mappingframe ColorbarWidget
 
 
 GUI_QT_HEADERS := \

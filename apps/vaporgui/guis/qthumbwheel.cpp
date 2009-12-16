@@ -41,15 +41,21 @@
 #include <qpainter.h>
 #include <qdrawutil.h>
 #include <qpixmap.h>
+//Added by qt3to4:
+#include <QWheelEvent>
+#include <QFocusEvent>
+#include <Q3Frame>
+#include <QMouseEvent>
+#include <QKeyEvent>
 #include <math.h>
 
 static const double m_pi = 3.14159265358979323846;
 static const double rad_factor = 180.0 / m_pi;
 
 QThumbWheel::QThumbWheel( QWidget *parent, const char *name )
-    : QFrame( parent, name )
+    : Q3Frame( parent, name )
 {
-    orient = Horizontal;
+    orient = Qt::Horizontal;
 	setRange(-100000,100000);
 	
     init();
@@ -78,7 +84,7 @@ void QThumbWheel::init()
     //setFocusPolicy( WheelFocus );
 }
 
-void QThumbWheel::setOrientation( Orientation orientation )
+void QThumbWheel::setOrientation( Qt::Orientation orientation )
 {
     orient = orientation;
     update();
@@ -100,7 +106,7 @@ void QThumbWheel::setTransmissionRatio( double r )
 
 void QThumbWheel::setValue( int value )
 {
-    QRangeControl::setValue( value );
+    Q3RangeControl::setValue( value );
 }
 
 void QThumbWheel::valueChange()
@@ -124,32 +130,32 @@ void QThumbWheel::stepChange()
 void QThumbWheel::keyPressEvent( QKeyEvent *e )
 {
     switch ( e->key() ) {
-    case Key_Left:
-	if ( orient == Horizontal )
+    case Qt::Key_Left:
+	if ( orient == Qt::Horizontal )
 	    subtractLine();
 	break;
-    case Key_Right:
-	if ( orient == Horizontal )
+    case Qt::Key_Right:
+	if ( orient == Qt::Horizontal )
 	    addLine();
 	break;
-    case Key_Up:
-	if ( orient == Vertical )
+    case Qt::Key_Up:
+	if ( orient == Qt::Vertical )
 	    subtractLine();
 	break;
-    case Key_Down:
-	if ( orient == Vertical )
+    case Qt::Key_Down:
+	if ( orient == Qt::Vertical )
 	    addLine();
 	break;
-    case Key_PageUp:
+    case Qt::Key_PageUp:
 	subtractPage();
 	break;
-    case Key_PageDown:
+    case Qt::Key_PageDown:
 	addPage();
 	break;
-    case Key_Home:
+    case Qt::Key_Home:
 	setValue( minValue() );
 	break;
-    case Key_End:
+    case Qt::Key_End:
 	setValue( maxValue() );
 	break;
     default:
@@ -164,7 +170,7 @@ void QThumbWheel::keyPressEvent( QKeyEvent *e )
 
 void QThumbWheel::mousePressEvent( QMouseEvent *e )
 {
-    if ( e->button() == LeftButton ) {
+    if ( e->button() == Qt::LeftButton ) {
 	mousePressed = TRUE;
 	pressedAt = valueFromPosition( e->pos() );
 	mousePressedAtValue = value();
@@ -247,7 +253,7 @@ void QThumbWheel::drawContents( QPainter *p )
     QPen pen0( colorGroup().midlight() );
     QPen pen1( colorGroup().dark() );
 
-    if ( orient == Horizontal ) {
+    if ( orient == Qt::Horizontal ) {
 	double r = 0.5*cr.width();
 	int y0 = cr.y()+1;
 	int y1 = cr.bottom()-1;
@@ -281,7 +287,7 @@ int QThumbWheel::valueFromPosition( const QPoint &p )
 {
     QRect wrec = contentsRect();
     int pos, min, max;
-    if ( orient == Horizontal ) {
+    if ( orient == Qt::Horizontal ) {
 	pos = p.x();
 	min = wrec.left();
 	max = wrec.right();

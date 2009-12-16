@@ -20,7 +20,7 @@
 //
 #ifndef INSTANCETABLE_H
 #define INSTANCETABLE_H
-#include <qtable.h>
+#include <q3table.h>
 #include <qcheckbox.h>
 #include "params.h"
 #define MAX_NUM_INSTANCES 100
@@ -29,7 +29,7 @@ class EventRouter;
 }
 using namespace VAPoR;
 class RowCheckBox;
-class InstanceTable : public QTable {
+class InstanceTable : public Q3Table {
 	
 	Q_OBJECT
 

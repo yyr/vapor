@@ -36,14 +36,15 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qtimer.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "GL/glew.h"
 #include "glwindow.h"
 #include "histo.h"
 #include "vizwin.h"
@@ -364,7 +365,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	vizWin[useWindowNum]->setWindowNum(useWindowNum);
 	
 
-	vizWin[useWindowNum]->setFocusPolicy(QWidget::ClickFocus);
+	vizWin[useWindowNum]->setFocusPolicy(Qt::ClickFocus);
 
 	//Following seems to be unnecessary on windows and irix:
 	activeViz = useWindowNum;
@@ -1330,7 +1331,9 @@ getGlobalParams(Params::ParamType t){
 			return defaultTwoDImageParams;
 		case (Params::TwoDDataParamsType):
 			return defaultTwoDDataParams;
-		default:  assert(0);
+		default:  
+			qWarning(" invalid ParamType %d",t);
+			assert(0);
 			return 0;
 	}
 }
@@ -1808,9 +1811,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		QColor winBgColor = DataStatus::getBackgroundColor();
 		QColor winRgColor = DataStatus::getRegionFrameColor();
 		QColor winSubrgColor = DataStatus::getSubregionFrameColor();
-		QColor winColorbarColor(white);
-		QColor winElevGridColor(darkRed);
-		QColor winTimeAnnotColor(white);
+		QColor winColorbarColor(Qt::white);
+		QColor winElevGridColor(Qt::darkRed);
+		QColor winTimeAnnotColor(Qt::white);
 		float winTimeAnnotCoords[2] = {0.1f, 0.1f};
 		int winTimeAnnotTextSize = 10;
 		int winTimeAnnotType = 0;
@@ -1824,7 +1827,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		ticDir[0] = 1; ticDir[1] = 0; ticDir[2] = 0;
 		ticLength[0] = ticLength[1] = ticLength[2] = 0.05f;
 		axisOriginPos[0]=axisOriginPos[1]=axisOriginPos[2]=0.f;
-		QColor axisColor(white);
+		QColor axisColor(Qt::white);
 		int labelHeight = 10;
 		int labelDigits = 4;
 		float ticWidth = 2.f;

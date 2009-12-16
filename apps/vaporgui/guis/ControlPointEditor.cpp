@@ -27,12 +27,14 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMap *map, 
                                        int cp) :
-  ControlPointEditorBase(parent),
+  QDialog(parent),
+  Ui_ControlPointEditorBase(),
   _controlPoint(cp),
   _mapper(parent->mapperFunction()),
   _omap(map),
   _cmap(NULL)
 {
+  setupUi(this);
   initWidgets();
   initConnections();
 }
@@ -42,12 +44,14 @@ ControlPointEditor::ControlPointEditor(MappingFrame* parent, OpacityMap *map,
 //----------------------------------------------------------------------------
 ControlPointEditor::ControlPointEditor(MappingFrame* parent, VColormap *map, 
                                        int cp) :
-  ControlPointEditorBase(parent),
+  QDialog(parent),
+  Ui_ControlPointEditorBase(),
   _controlPoint(cp),
   _mapper(parent->mapperFunction()),
   _omap(NULL),
   _cmap(map)
 {
+  setupUi(this);
   initWidgets();
   initConnections();
 }

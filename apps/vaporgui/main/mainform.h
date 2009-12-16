@@ -25,25 +25,33 @@
 #define MAINFORM_H
 
 #include <qvariant.h>
-#include <qmainwindow.h>
+#include <q3mainwindow.h>
 #include <qstring.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <QPaintEvent>
+#include <Q3GridLayout>
+#include <QLabel>
+#include <Q3PopupMenu>
+#include <Q3VBoxLayout>
+#include <Q3ActionGroup>
 
 
 #include "command.h"
 #include "params.h"
 class QApplication;
-class QVBoxLayout;
-class QHBoxLayout;
-class QGridLayout;
+class Q3VBoxLayout;
+class Q3HBoxLayout;
+class Q3GridLayout;
 class QSpacerItem;
 class QAction;
-class QActionGroup;
-class QToolBar;
-class QPopupMenu;
+class Q3ActionGroup;
+class Q3ToolBar;
+class Q3PopupMenu;
 class QWidget;
 class QDesktopWidget;
 class QWorkspace;
-class QDockWindow;
+class Q3DockWindow;
 class QLabel;
 class QComboBox;
 class QSpinBox;
@@ -68,7 +76,7 @@ class TwoDDataEventRouter;
 class TwoDImageEventRouter;
 class FlowEventRouter;
 
-class MainForm : public QMainWindow
+class MainForm : public Q3MainWindow
 {
     Q_OBJECT
 
@@ -79,26 +87,26 @@ public:
 			assert(0);
 		return theMainForm;
 	}
-    MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, WFlags fl = WType_TopLevel );
+    MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::WType_TopLevel );
     ~MainForm();
 
     
     QWidget* tab;
     QWidget* tab_2;
     QMenuBar *Main_Form;
-    QPopupMenu *File;
-	QPopupMenu *Edit;
-    QPopupMenu *Data;
-    QPopupMenu *viewMenu;
-	QPopupMenu *captureMenu;
+    Q3PopupMenu *File;
+	Q3PopupMenu *Edit;
+    Q3PopupMenu *Data;
+    Q3PopupMenu *viewMenu;
+	Q3PopupMenu *captureMenu;
     
     //QPopupMenu *Script;
-    QPopupMenu *Rendering;
+    Q3PopupMenu *Rendering;
     //QPopupMenu *Animation;
-    QPopupMenu *helpMenu;
-    QToolBar *modeToolBar;
-	QToolBar *vizToolBar;
-	QToolBar *animationToolbar;
+    Q3PopupMenu *helpMenu;
+    Q3ToolBar *modeToolBar;
+	Q3ToolBar *vizToolBar;
+	Q3ToolBar *animationToolbar;
    //File menu:
 	//
     QAction* fileOpenAction;
@@ -154,7 +162,7 @@ public:
     */
     
 	//Toolbars:
-	QActionGroup* mouseModeActions;
+	Q3ActionGroup* mouseModeActions;
 	QAction* navigationAction;
 	QAction* regionSelectAction;
 	QAction* probeAction;
@@ -180,7 +188,7 @@ public:
 	QComboBox* alignViewCombo;
 	QSpinBox* interactiveRefinementSpin;
 
-    QDockWindow* tabDockWindow;
+    Q3DockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}
 
 	ViewpointEventRouter* getVizTab() { return theVizTab;}
@@ -279,9 +287,9 @@ protected:
 	
 	QWorkspace* myWorkspace;
     TabManager* tabWidget;
-    QHBoxLayout* MainFormLayout;
-    QHBoxLayout* tabLayout;
-    QHBoxLayout* tabLayout_2;
+    Q3HBoxLayout* MainFormLayout;
+    Q3HBoxLayout* tabLayout;
+    Q3HBoxLayout* tabLayout_2;
     QDesktopWidget* myDesktopWidget;
 	ViewpointEventRouter* theVizTab;
 	RegionEventRouter* theRegionTab;

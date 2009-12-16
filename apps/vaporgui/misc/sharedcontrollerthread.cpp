@@ -133,7 +133,7 @@ run(){
 		if( numNotHidden == 0) {
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting for an active renderer to start");
-			myWaitCondition->wait(IDLE_WAIT);
+// qt4 mustfix			myWaitCondition->wait(IDLE_WAIT);
 			numSleeping = 0;
 			continue;
 		}
@@ -143,7 +143,7 @@ run(){
 		while (finishTime > 0) {
 			myAnimationController->animationMutex.unlock();
 			
-			myWaitCondition->wait(finishTime);
+// QT4 mustfix			myWaitCondition->wait(finishTime);
 			int timeSinceStart = myAnimationController->myClock->elapsed()-currentTime;
 			finishTime = minSharedTimeToFinish - timeSinceStart;
 			myAnimationController->animationMutex.lock();
@@ -203,7 +203,7 @@ run(){
 			}
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting because started %d < %d ", numStarted, numNotHidden);
-			myWaitCondition->wait(frameWaitTime);
+// QT4 mustfix			myWaitCondition->wait(frameWaitTime);
 			myAnimationController->animationMutex.lock();
 		}
 		
@@ -227,7 +227,7 @@ run(){
 			
 			for (tries = 0; tries< 61; tries++){
 				myAnimationController->animationMutex.unlock();
-				myWaitCondition->wait(MAX_THREAD_WAIT);
+// QT4 mustfix				myWaitCondition->wait(MAX_THREAD_WAIT);
 				//qWarning("Waiting for completion of overdue renderings");
 				myAnimationController->animationMutex.lock();
 				numOverdue = 0;
@@ -323,7 +323,7 @@ run(){
 		
 		if (timeToRecheck > 10){
 			myAnimationController->animationMutex.unlock();
-			myWaitCondition->wait(timeToRecheck);
+// QT4 mustfix			myWaitCondition->wait(timeToRecheck);
 			
 		}  else {//Just unlock, go back to the start
 			myAnimationController->animationMutex.unlock();
@@ -358,7 +358,7 @@ run(){
 		}
 		//wait for a bit; may be woken if someone finishes, or status changes.
 		//qWarning("Waiting for completion of started renderings");
-		myWaitCondition->wait(IDLE_WAIT);
+// QT4 mustfix		myWaitCondition->wait(IDLE_WAIT);
 	}
 	
 	//Assert that all renderers completed in 60 seconds

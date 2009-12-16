@@ -23,11 +23,14 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qtooltip.h>
-#include <qwhatsthis.h>
+#include <q3whatsthis.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qmessagebox.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <Q3VBoxLayout>
 #include "session.h"
 #include "params.h"
 using namespace VAPoR;
@@ -38,16 +41,16 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, const char* name, bool modal, WFlags fl )
+SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, const char* name, bool modal, Qt::WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
     if ( !name )
 	setName( "SaveTFDialog" );
 	//setFocusPolicy(QWidget::TabFocus);
-    SaveTFDialogLayout = new QHBoxLayout( this, 11, 6, "SaveTFDialogLayout"); 
+    SaveTFDialogLayout = new Q3HBoxLayout( this, 11, 6, "SaveTFDialogLayout"); 
 	myParams = params;
 
-    layout24 = new QVBoxLayout( 0, 0, 6, "layout24"); 
+    layout24 = new Q3VBoxLayout( 0, 0, 6, "layout24"); 
 
     fileSaveButton = new QPushButton( this, "fileSaveButton" );
     QFont fileSaveButton_font(  fileSaveButton->font() );
@@ -87,7 +90,7 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, const char* na
 	nameEditLabel->setText("No Current TF Name");
 	layout24->addWidget( nameEditLabel);
 	
-	savedTFCombo->setInsertionPolicy(QComboBox::NoInsertion);
+	savedTFCombo->setInsertionPolicy(QComboBox::NoInsert);
 	//supply a "new name" edit area
 	savedTFCombo->setEditText(QString("<New Transfer Function Name>"));
 
@@ -121,7 +124,7 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, const char* na
     SaveTFDialogLayout->addLayout( layout24 );
     languageChange();
     resize( QSize(389, 166).expandedTo(minimumSizeHint()) );
-    clearWState( WState_Polished );
+    //clearWState( WState_Polished );
 
     // signals and slots connections.
 	// If combo is selected, put the text into the line-edit

@@ -22,6 +22,7 @@
 
 #include <qthread.h>
 #include <qobject.h>
+#include "GL/glew.h"
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
@@ -36,7 +37,7 @@ class ProbeParams;
 class XmlNode;
 class PanelCommand;
 
-class ProbeEventRouter : public ProbeTab, public EventRouter {
+class ProbeEventRouter : public QWidget, public Ui_ProbeTab, public EventRouter {
 	Q_OBJECT
 public: 
 	

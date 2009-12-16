@@ -15,15 +15,24 @@
 //----------------------------------------------------------------------------
 
 #include <GL/glew.h>
+#ifdef Darwin
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
 #include <iostream>
 #include <math.h>
 #include <qcursor.h>
-#include <qpopupmenu.h>
+#include <q3popupmenu.h>
 #include <qaction.h>
 #include <qcursor.h>
 #include <qlabel.h>
+//Added by qt3to4:
+#include <QContextMenuEvent>
+#include <QMouseEvent>
 
 #include "params.h"
 #include "ParamsIso.h"
@@ -106,8 +115,8 @@ MappingFrame::MappingFrame(QWidget* parent, const char* name)
     _domainHeight(_domainBarHeight + _domainLabelHeight + 3),
     _axisRegionHeight(20),
     _opacityGap(4),
-    _bottomGap(10),
-    _tooltip(NULL)
+    _bottomGap(10)
+//    _tooltip(NULL)
 {
   initWidgets();
   initConnections();
@@ -639,16 +648,16 @@ void MappingFrame::initWidgets()
   //
   // Create the context sensitive menu
   //
-  _contextMenu = new QPopupMenu(this);
+  _contextMenu = new Q3PopupMenu(this);
 
-  _addOpacityWidgetSubMenu = new QPopupMenu(_contextMenu);
+  _addOpacityWidgetSubMenu = new Q3PopupMenu(_contextMenu);
   _addOpacityWidgetSubMenu->insertItem("Control Points", 
                                        OpacityMap::CONTROL_POINT);
   _addOpacityWidgetSubMenu->insertItem("Gaussian", OpacityMap::GAUSSIAN);
   _addOpacityWidgetSubMenu->insertItem("Inverted Gaussian", 
                                        OpacityMap::INVERTED_GAUSSIAN);
 
-  _histogramScalingSubMenu = new QPopupMenu(_contextMenu);
+  _histogramScalingSubMenu = new Q3PopupMenu(_contextMenu);
   _histogramScalingSubMenu->setCheckable(true);
   _histogramScalingSubMenu->insertItem("Boolean", BOOLEAN);
   _histogramScalingSubMenu->setItemChecked(BOOLEAN, false);
@@ -657,7 +666,7 @@ void MappingFrame::initWidgets()
   _histogramScalingSubMenu->insertItem("Log", LOG);
   _histogramScalingSubMenu->setItemChecked(LOG, false);
 
-  _compTypeSubMenu = new QPopupMenu(_contextMenu);
+  _compTypeSubMenu = new Q3PopupMenu(_contextMenu);
   _compTypeSubMenu->setCheckable(true);
   _compTypeSubMenu->insertItem("Addition", 
                                MapperFunction::ADDITION);
@@ -666,7 +675,7 @@ void MappingFrame::initWidgets()
                                MapperFunction::MULTIPLICATION);
   _compTypeSubMenu->setItemChecked(MapperFunction::MULTIPLICATION, false);
 
-  _widgetEnabledSubMenu = new QPopupMenu(_contextMenu);
+  _widgetEnabledSubMenu = new Q3PopupMenu(_contextMenu);
   _widgetEnabledSubMenu->setCheckable(true);
   _widgetEnabledSubMenu->insertItem("Enabled", ENABLED);
   _widgetEnabledSubMenu->setItemChecked(ENABLED, true);
@@ -691,7 +700,7 @@ void MappingFrame::initWidgets()
   //
   // Tooltips
   //
-  _tooltip = new TFLocationTip(this);
+//  _tooltip = new TFLocationTip(this);
 }
 
 
@@ -1283,7 +1292,7 @@ void MappingFrame::addAxisLabel(int x, int y, const QString &text)
 //----------------------------------------------------------------------------
 // Select the GLWidget(s) at the given position
 //----------------------------------------------------------------------------
-void MappingFrame::select(int x, int y, ButtonState state)
+void MappingFrame::select(int x, int y, Qt::ButtonState state)
 {
   const int length = 128;
   static GLuint selectionBuffer[length];
@@ -1351,9 +1360,9 @@ void MappingFrame::select(int x, int y, ButtonState state)
 //----------------------------------------------------------------------------
 // Parse the GL selection buffer
 //----------------------------------------------------------------------------
-void MappingFrame::select(int hits, GLuint *selectionBuffer, ButtonState state)
+void MappingFrame::select(int hits, GLuint *selectionBuffer, Qt::ButtonState state)
 {
-  if (!(state & (Qt::ShiftButton|Qt::ControlButton)))
+  if (!(state & (Qt::ShiftModifier|Qt::ControlModifier)))
   {
     deselectWidgets();
   }

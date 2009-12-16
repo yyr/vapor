@@ -1,3 +1,5 @@
+//Added by qt3to4:
+#include <Q3PopupMenu>
 //************************************************************************
 //																		*
 //		     Copyright (C)  2004										*
@@ -50,7 +52,7 @@ class QTimer;
 #include "params.h"
 #include "command.h"
 
-class QPopupMenu;
+class Q3PopupMenu;
 
 
 

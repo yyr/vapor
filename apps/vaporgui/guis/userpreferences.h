@@ -23,7 +23,7 @@
 #define USERPREFERENCES_H
  
 #include <qwidget.h>
-#include <qscrollview.h>
+#include <q3scrollview.h>
 #include <qdialog.h>
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
@@ -33,9 +33,10 @@ class QWidget;
 class VizFeatures;
 class ScrollContainer;
 
+QT_USE_NAMESPACE
 namespace VAPoR{
 class PreferencesCommand;
-class UserPreferences : public Preferences, public ParsedXml {
+class UserPreferences : public QDialog, public Ui_Preferences, public ParsedXml {
 	Q_OBJECT
 public: 
 	//Constructor gets starting state from the Session

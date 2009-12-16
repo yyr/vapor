@@ -33,11 +33,11 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qlabel.h>
-#include <qlistbox.h>
-#include <qtable.h>
+#include <q3listbox.h>
+#include <q3table.h>
 #include "animationparams.h"
 #include "vizwinmgr.h"
 #include "session.h"
@@ -63,11 +63,15 @@
 #include "animationcontroller.h"
 #include "mainform.h"
 #include "eventrouter.h"
+#include "ui/animationtab.h"
+#include <qglobal.h>
 
 using namespace VAPoR;
+QT_USE_NAMESPACE
 
 
-AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : AnimationTab(parent,name), EventRouter() {
+AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : QWidget(parent,name), Ui_AnimationTab(), EventRouter() {
+	setupUi(this);	
 	myParamsType = Params::AnimationParamsType;
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
 }
@@ -254,7 +258,7 @@ void AnimationEventRouter::updateTab(){
 
 	//Set up the timestep sample table:
 	timestepSampleTable->horizontalHeader()->hide();
-	timestepSampleTable->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable->setSelectionMode(Q3Table::SingleRow);
 	timestepSampleTable->setTopMargin(0);
 	timestepSampleTable->setColumnWidth(0,35);
 	populateTimestepTable();
@@ -596,7 +600,7 @@ void AnimationEventRouter::timestepChanged(int row, int col){
 }
 //Send the contents of the timestepTable to the params.
 //Assumes that the timestepTable is sorted in ascending order.
-void AnimationEventRouter::guiUpdateTimestepList(QTable* tbl, const char* descr){	
+void AnimationEventRouter::guiUpdateTimestepList(Q3Table* tbl, const char* descr){	
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, descr);

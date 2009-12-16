@@ -29,6 +29,7 @@
 
 
 using namespace VetsUtil;
+QT_USE_NAMESPACE
 
 
 namespace VAPoR {
@@ -36,7 +37,7 @@ namespace VAPoR {
 class ViewpointParams;
 class XmlNode;
 class PanelCommand;
-class RegionEventRouter : public RegionTab, public EventRouter {
+class RegionEventRouter : public QWidget, public Ui_RegionTab, public EventRouter {
 
 	Q_OBJECT
 

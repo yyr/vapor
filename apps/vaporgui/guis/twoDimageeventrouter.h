@@ -22,6 +22,7 @@
 
 #include <qthread.h>
 #include <qobject.h>
+#include "GL/glew.h"
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
@@ -37,7 +38,7 @@ namespace VAPoR {
 class TwoDImageParams;
 class XmlNode;
 class PanelCommand;
-class TwoDImageEventRouter : public TwoDImageTab, public TwoDEventRouter {
+class TwoDImageEventRouter : public QWidget, public Ui_TwoDImageTab, public TwoDEventRouter {
 	Q_OBJECT
 public: 
 	

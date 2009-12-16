@@ -21,11 +21,14 @@
 //
 
 #include <qdialog.h>
+//Added by qt3to4:
+#include <Q3VBoxLayout>
+#include <Q3HBoxLayout>
 
-class QHBoxLayout;
+class Q3HBoxLayout;
 class QPushButton;
-class QTable;
-class QVBoxLayout;
+class Q3Table;
+class Q3VBoxLayout;
 
 
 namespace VAPoR {
@@ -38,7 +41,7 @@ class SeedListEditor: public QDialog
 public:
     SeedListEditor( int numSeeds, FlowParams*, 
 		 QWidget *parent = 0, const char *name = "set data form",
-		 bool modal = TRUE, WFlags f = 0 );
+		 bool modal = TRUE, Qt::WFlags f = 0 );
     ~SeedListEditor() {}
 
 public slots:
@@ -51,7 +54,7 @@ protected slots:
 	void accept();
 
 protected:
-    QTable *table;
+    Q3Table *table;
     QPushButton *addPushButton;
 	QPushButton *deletePushButton;
     QPushButton *okPushButton;
@@ -59,8 +62,8 @@ protected:
 	void checkPushButton();
 
 protected:
-    QVBoxLayout *tableButtonBox;
-    QHBoxLayout *buttonBox;
+    Q3VBoxLayout *tableButtonBox;
+    Q3HBoxLayout *buttonBox;
 	FlowParams* myFlowParams;
 	bool changed;
 

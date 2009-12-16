@@ -27,10 +27,11 @@
 #include "vapor/MyBase.h"
 #include "animationtab.h"
 
-class QTable;
+class Q3Table;
 
 
 using namespace VetsUtil;
+QT_USE_NAMESPACE
 
 
 namespace VAPoR {
@@ -38,7 +39,7 @@ namespace VAPoR {
 class ViewpointParams;
 class XmlNode;
 class PanelCommand;
-class AnimationEventRouter : public AnimationTab, public EventRouter {
+class AnimationEventRouter : public QWidget, public Ui_AnimationTab, public EventRouter {
 
 	Q_OBJECT
 
@@ -76,7 +77,7 @@ protected:
 	void guiSingleStep(bool forward);
 	//Need to do more than Params::guiSetLocal():
 	
-	void guiUpdateTimestepList(QTable* tbl, const char* descr);
+	void guiUpdateTimestepList(Q3Table* tbl, const char* descr);
 
 	void populateTimestepTable();
 	

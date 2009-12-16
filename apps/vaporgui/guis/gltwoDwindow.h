@@ -22,9 +22,18 @@
 #define GLTWODWINDOW_H
 
 #include <GL/glew.h>
+
+#ifdef Darwin
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
 #include <qgl.h>
+//Added by qt3to4:
+#include <QPaintEvent>
 #include "glwindow.h"
 #define CURSOR_COLOR 1.f,1.f,1.f
 #define CURSOR_SIZE 0.05f

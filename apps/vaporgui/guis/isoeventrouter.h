@@ -22,6 +22,7 @@
 
 
 #include <qobject.h>
+#include "GL/glew.h"
 #include "params.h"
 #include "ParamsIso.h"
 #include "eventrouter.h"
@@ -39,7 +40,7 @@ class ViewpointParams;
 class XmlNode;
 class PanelCommand;
 class Params;
-class IsoEventRouter : public IsoTab, public EventRouter {
+class IsoEventRouter : public QWidget, public Ui_IsoTab, public EventRouter {
 	Q_OBJECT
 
 public: 

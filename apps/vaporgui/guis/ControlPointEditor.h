@@ -12,6 +12,7 @@
 #define ControlPointEditor_h
 
 #include "ControlPointEditorBase.h"
+#include <qdialog.h>
 
 class MappingFrame;
 
@@ -21,7 +22,7 @@ class MapperFunction;
 class OpacityMap;
 class VColormap;
 
-class ControlPointEditor : public ControlPointEditorBase
+class ControlPointEditor : public QDialog, public Ui_ControlPointEditorBase
 {
   Q_OBJECT
 

@@ -18,26 +18,34 @@
 //		This is the widget that contains the visualizers
 //		Supports mouse event reporting
 //
+#include "GL/glew.h"
 #include "vizwin.h"
 #include <qdatetime.h>
 #include <qvariant.h>
 #include <qlayout.h>
 #include <qtooltip.h>
-#include <qwhatsthis.h>
+#include <q3whatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
-#include <qpopupmenu.h>
-#include <qtoolbar.h>
+#include <q3popupmenu.h>
+#include <q3toolbar.h>
 #include <qimage.h>
 #include <qpixmap.h>
-#include <qmainwindow.h>
+#include <q3mainwindow.h>
 
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qmessagebox.h>
-#include <qframe.h>
+#include <q3frame.h>
 #include <qapplication.h>
-#include <qkeycode.h>
+#include <qnamespace.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <QHideEvent>
+#include <QResizeEvent>
+#include <QFocusEvent>
+#include <QMouseEvent>
+#include <QCloseEvent>
 
 #include "glwindow.h"
 
@@ -76,8 +84,8 @@ using namespace VAPoR;
  *  name 'name' and widget flags set to 'f'.
  *
  */
-VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
-    : QMainWindow( (QWidget*)parent, name, fl )
+VizWin::VizWin( QWorkspace* parent, const char* name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
+    : Q3MainWindow( (QWidget*)parent, name, fl )
 {
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
     if ( !name )
@@ -99,13 +107,13 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	mouseDownHere = false;
 	
     languageChange();
-    clearWState( WState_Polished );
+    // QT4 clearWState( WState_Polished );
 	
 	/*  Following copied from QT OpenGL Box example:*/
 	// Create a nice frame to put around the OpenGL widget
 	
-    QFrame* f = new QFrame( this, "frame" );
-    f->setFrameStyle( QFrame::Sunken | QFrame::Panel );
+    Q3Frame* f = new Q3Frame( this, "frame" );
+    f->setFrameStyle( Q3Frame::Sunken | Q3Frame::Panel );
     f->setLineWidth( 2 );
 
     // Create our OpenGL widget.  
@@ -132,10 +140,10 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->setPreRenderCB(preRenderSetup);
 	myGLWindow->setPostRenderCB(endRender);
 
-    QHBoxLayout* flayout = new QHBoxLayout( f, 2, 2, "flayout");
+    Q3HBoxLayout* flayout = new Q3HBoxLayout( f, 2, 2, "flayout");
     flayout->addWidget( myGLWindow, 1 );
 
-    QHBoxLayout* hlayout = new QHBoxLayout( this, 2, 2, "hlayout");
+    Q3HBoxLayout* hlayout = new Q3HBoxLayout( this, 2, 2, "hlayout");
    
     
     hlayout->addWidget( f, 1 );
@@ -831,7 +839,7 @@ void VizWin::helpAbout()
 //Due to X11 probs need to check again.  Compare this window with the available space.
 bool VizWin::isReallyMaximized() {
     if (isMaximized() ) return true;
-	QWidget* thisCentralWidget = ((QMainWindow*)MainForm::getInstance())->centralWidget();
+	QWidget* thisCentralWidget = ((Q3MainWindow*)MainForm::getInstance())->centralWidget();
     QSize mySize = frameSize();
     QSize spaceSize = thisCentralWidget->size();
     //qWarning(" space is %d by %d, frame is %d by %d ", spaceSize.width(), spaceSize.height(), mySize.width(), mySize.height());

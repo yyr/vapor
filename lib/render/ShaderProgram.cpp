@@ -17,7 +17,6 @@
 
 #include <qapplication.h>
 #include <qfile.h>
-#include <qcstring.h>
 
 using namespace VAPoR;
 
@@ -105,7 +104,7 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 
   QFile file(path);
   
-  if (!file.exists() || !file.open(IO_Raw | IO_ReadOnly))
+  if (!file.exists() || !file.open(QIODevice::Unbuffered | QIODevice::ReadOnly))
   {
     return false;
   }

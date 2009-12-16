@@ -18,9 +18,21 @@
 #define MappingFrame_H
 
 #include <GL/glew.h>
+#ifdef Darwin
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
 #include <qgl.h>
+//Added by qt3to4:
+#include <QContextMenuEvent>
+#include <QPaintEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <Q3PopupMenu>
 #include "glwindow.h"
 
 #include <qpoint.h>
@@ -28,7 +40,7 @@
 #include <map>
 #include <set>
 
-class QPopupMenu;
+class Q3PopupMenu;
 class QAction;
 class QLabel;
 
@@ -44,7 +56,7 @@ namespace VAPoR {
 	class OpacityWidget;
 	class OpacityMap;
 	class ColorbarWidget;
-	class TFLocationTip;
+//	class TFLocationTip;
 };
 
 using namespace VAPoR;
@@ -80,7 +92,7 @@ class MappingFrame : public QGLWidget
 
 public:
 
-  MappingFrame(QWidget* parent, const char* name);
+  MappingFrame(QWidget* parent, const char* name = 0);
   virtual ~MappingFrame();
 
   void setMapperFunction(MapperFunction *mapper);
@@ -186,8 +198,8 @@ protected:
   void updateAxisLabels();
   void addAxisLabel(int x, int y, const QString &text);
 
-  void select(int x, int y, ButtonState);
-  void select(int hits, GLuint *selectionBuffer, ButtonState);
+  void select(int x, int y, Qt::ButtonState);
+  void select(int hits, GLuint *selectionBuffer, Qt::ButtonState);
 
   void deselectWidgets();
 
@@ -264,11 +276,11 @@ private:
   QLabel     *_variableLabel;
     
   QPoint      _contextPoint;
-  QPopupMenu *_contextMenu;
-  QPopupMenu *_addOpacityWidgetSubMenu;
-  QPopupMenu *_histogramScalingSubMenu;
-  QPopupMenu *_compTypeSubMenu;
-  QPopupMenu *_widgetEnabledSubMenu;
+  Q3PopupMenu *_contextMenu;
+  Q3PopupMenu *_addOpacityWidgetSubMenu;
+  Q3PopupMenu *_histogramScalingSubMenu;
+  Q3PopupMenu *_compTypeSubMenu;
+  Q3PopupMenu *_widgetEnabledSubMenu;
   QAction    *_editOpacityWidgetAction;
   QAction    *_deleteOpacityWidgetAction;
   QAction    *_addColorControlPointAction;
@@ -286,7 +298,7 @@ private:
   float  _maxValueStart;
   float  _isoVal;
 
-  ButtonState _button;
+  Qt::ButtonState _button;
 
   float _minX;
   float _maxX;
@@ -304,7 +316,7 @@ private:
   const int _opacityGap;
   const int _bottomGap;
 
-  TFLocationTip *_tooltip;
+//  TFLocationTip *_tooltip;
 
   std::list<QLabel*>            _axisLabels;
   std::list<QLabel*>::iterator  _axisIter;

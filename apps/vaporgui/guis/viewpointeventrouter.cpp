@@ -46,11 +46,10 @@
 #include <sstream>
 
 #include "params.h"
-
 using namespace VAPoR;
 
-
-ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* name): VizTab(parent, name), EventRouter(){
+ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_VizTab(), EventRouter(){
+	setupUi(this);
 	myParamsType = Params::ViewpointParamsType;
 	savedCommand = 0;
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");

@@ -25,25 +25,37 @@
 
 
 #include <qvariant.h>
-#include <qmainwindow.h>
+#include <q3mainwindow.h>
 #include <qcolor.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <QCloseEvent>
+#include <QWheelEvent>
+#include <QResizeEvent>
+#include <Q3GridLayout>
+#include <QFocusEvent>
+#include <QMouseEvent>
+#include <Q3PopupMenu>
+#include <QHideEvent>
+#include <Q3VBoxLayout>
+#include <Q3ActionGroup>
 #include "vizwinmgr.h"
 #include "trackball.h"
 
 
-class QVBoxLayout;
-class QHBoxLayout;
-class QGridLayout;
+class Q3VBoxLayout;
+class Q3HBoxLayout;
+class Q3GridLayout;
 class QSpacerItem;
 class QAction;
-class QActionGroup;
-class QToolBar;
-class QPopupMenu;
+class Q3ActionGroup;
+class Q3ToolBar;
+class Q3PopupMenu;
 class QResizeEvent;
 class QHideEvent;
 class QRect;
 class QWorkspace;
-class QHBoxLayout;
+class Q3HBoxLayout;
 
 #include "glwindow.h"
 #include "animationcontroller.h"
@@ -59,13 +71,13 @@ class Viewpoint;
 class TranslateStretchManip;
 class TranslateRotateManip;
 
-class VizWin : public QMainWindow
+class VizWin : public Q3MainWindow
 {
     Q_OBJECT
 
             
 public:
-    VizWin( QWorkspace* parent , const char* name , WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
+    VizWin( QWorkspace* parent , const char* name , Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
 
 	

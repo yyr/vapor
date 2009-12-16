@@ -1,206 +1,182 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>SetOffsetDialog</class>
-<widget class="QDialog">
-    <property name="name">
-        <cstring>SetOffsetDialog</cstring>
-    </property>
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0" stdsetdef="1">
+  <author></author>
+  <comment></comment>
+  <exportmacro></exportmacro>
+  <class>SetOffsetDialog</class>
+  <widget class="QDialog" name="SetOffsetDialog">
     <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>327</width>
-            <height>112</height>
-        </rect>
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>327</width>
+        <height>112</height>
+      </rect>
     </property>
-    <property name="caption">
-        <string>SpecifyTimestep Offset for Merge</string>
+    <property name="windowTitle">
+      <string>SpecifyTimestep Offset for Merge</string>
     </property>
     <property name="sizeGripEnabled">
-        <bool>true</bool>
+      <bool>true</bool>
     </property>
-    <hbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
-        </property>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout11</cstring>
-            </property>
-            <vbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout10</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer19</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>91</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1</cstring>
-                            </property>
-                            <property name="font">
-                                <font>
-                                    <pointsize>10</pointsize>
-                                </font>
-                            </property>
-                            <property name="text">
-                                <string>Timestep Offset</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the timestep in this session  for the first timestep of the merged data</string>
-                            </property>
-                        </widget>
-                        <widget class="QSpinBox">
-                            <property name="name">
-                                <cstring>timestepOffsetSpin</cstring>
-                            </property>
-                            <property name="font">
-                                <font>
-                                    <pointsize>10</pointsize>
-                                </font>
-                            </property>
-                            <property name="maxValue">
-                                <number>100000</number>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the timestep in this session  for the first timestep of the merged data</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer20</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>71</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer21</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>61</height>
-                        </size>
-                    </property>
+    <layout class="QHBoxLayout">
+      <item>
+        <layout class="QVBoxLayout">
+          <item>
+            <layout class="QHBoxLayout">
+              <item>
+                <spacer name="spacer19">
+                  <property name="sizeHint">
+                    <size>
+                      <width>91</width>
+                      <height>21</height>
+                    </size>
+                  </property>
+                  <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                  </property>
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
                 </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout8</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonOk</cstring>
-                            </property>
-                            <property name="text">
-                                <string>&amp;OK</string>
-                            </property>
-                            <property name="accel">
-                                <string></string>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>true</bool>
-                            </property>
-                            <property name="default">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer18</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>141</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonCancel</cstring>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Cancel</string>
-                            </property>
-                            <property name="accel">
-                                <string></string>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                    </hbox>
+              </item>
+              <item>
+                <widget class="QLabel" name="textLabel1">
+                  <property name="font">
+                    <font>
+                      <pointsize>10</pointsize>
+                    </font>
+                  </property>
+                  <property name="text">
+                    <string>Timestep Offset</string>
+                  </property>
+                  <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="toolTip" stdset="0">
+                    <string>Specify the timestep in this session  for the first timestep of the merged data</string>
+                  </property>
+                  <property name="wordWrap">
+                    <bool>false</bool>
+                  </property>
                 </widget>
-            </vbox>
-        </widget>
-    </hbox>
-</widget>
-<connections>
+              </item>
+              <item>
+                <widget class="QSpinBox" name="timestepOffsetSpin">
+                  <property name="font">
+                    <font>
+                      <pointsize>10</pointsize>
+                    </font>
+                  </property>
+                  <property name="maximum">
+                    <number>100000</number>
+                  </property>
+                  <property name="toolTip" stdset="0">
+                    <string>Specify the timestep in this session  for the first timestep of the merged data</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <spacer name="spacer20">
+                  <property name="sizeHint">
+                    <size>
+                      <width>71</width>
+                      <height>20</height>
+                    </size>
+                  </property>
+                  <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                  </property>
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
+                </spacer>
+              </item>
+            </layout>
+          </item>
+          <item>
+            <spacer name="spacer21">
+              <property name="sizeHint">
+                <size>
+                  <width>20</width>
+                  <height>61</height>
+                </size>
+              </property>
+              <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="orientation">
+                <enum>Qt::Vertical</enum>
+              </property>
+            </spacer>
+          </item>
+          <item>
+            <layout class="QHBoxLayout">
+              <item>
+                <widget class="QPushButton" name="buttonOk">
+                  <property name="text">
+                    <string>&amp;OK</string>
+                  </property>
+                  <property name="shortcut">
+                    <string/>
+                  </property>
+                  <property name="autoDefault">
+                    <bool>true</bool>
+                  </property>
+                  <property name="default">
+                    <bool>true</bool>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <spacer name="spacer18">
+                  <property name="sizeHint">
+                    <size>
+                      <width>141</width>
+                      <height>20</height>
+                    </size>
+                  </property>
+                  <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                  </property>
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
+                </spacer>
+              </item>
+              <item>
+                <widget class="QPushButton" name="buttonCancel">
+                  <property name="text">
+                    <string>&amp;Cancel</string>
+                  </property>
+                  <property name="shortcut">
+                    <string/>
+                  </property>
+                  <property name="autoDefault">
+                    <bool>true</bool>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+        </layout>
+      </item>
+    </layout>
+  </widget>
+  <layoutdefault spacing="6" margin="11"/>
+  <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+  <connections>
     <connection>
-        <sender>buttonOk</sender>
-        <signal>clicked()</signal>
-        <receiver>SetOffsetDialog</receiver>
-        <slot>accept()</slot>
+      <sender>buttonOk</sender>
+      <signal>clicked()</signal>
+      <receiver>SetOffsetDialog</receiver>
+      <slot>accept()</slot>
     </connection>
     <connection>
-        <sender>buttonCancel</sender>
-        <signal>clicked()</signal>
-        <receiver>SetOffsetDialog</receiver>
-        <slot>reject()</slot>
+      <sender>buttonCancel</sender>
+      <signal>clicked()</signal>
+      <receiver>SetOffsetDialog</receiver>
+      <slot>reject()</slot>
     </connection>
-</connections>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+  </connections>
+</ui>

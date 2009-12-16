@@ -17,9 +17,10 @@
 //	Description:	Implements the TabManager class.  This is the QTabWidget
 //		that contains a tab for each of the Params classes
 //
+#include "GL/glew.h"
 #include <qtabwidget.h>
 #include <qwidget.h>
-#include <qscrollview.h>
+#include <q3scrollview.h>
 #include "tabmanager.h"
 #include "assert.h"
 #include "viztab.h"
@@ -38,7 +39,7 @@
 #include "twoDimageeventrouter.h"
 
 using namespace VAPoR;
-TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
+TabManager::TabManager(QWidget* parent, const char* name,  Qt::WFlags f)
 	: QTabWidget(parent, name, f)
 {
 	myParent = parent;
@@ -61,7 +62,7 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
-	QScrollView* myScrollview = new QScrollView(this, "Scrollview");
+	Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
 	insertTab(myScrollview, Params::paramName(widType));
@@ -106,8 +107,8 @@ replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget){
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
-	QScrollView* myScrollview = new QScrollView(this, "Scrollview");
-	myScrollview->setResizePolicy(QScrollView::AutoOne);
+	Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
+	myScrollview->setResizePolicy(Q3ScrollView::AutoOne);
 	insertTab(myScrollview, Params::paramName(widgetType), posn);
 	myScrollview->addChild(newWidget);
 	widgets[posn] = newWidget;
@@ -157,6 +158,8 @@ newFrontTab(QWidget*) {
 	Params::ParamType prevType = Params::UnknownParamsType;
 	if(currentFrontPage >= 0) prevType = widgetTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
+	//Ignore if we haven't set up tabs yet
+	if( widgetTypes[newFrontPosn]== 0) return;
 	//Refresh this tab from the corresponding params:
 	Params* p = VizWinMgr::getInstance()->getApplicableParams(widgetTypes[newFrontPosn]);
 	Params::ParamType newType = p->getParamType();
@@ -214,7 +217,7 @@ void TabManager::tabScrolled(){
 }
 void TabManager::scrollFrontToTop(){
 	//Get the front scrollview:
-	QScrollView* sv = (QScrollView*)currentPage();
+	Q3ScrollView* sv = (Q3ScrollView*)currentPage();
 	sv->ensureVisible(0,0);
 }
 	

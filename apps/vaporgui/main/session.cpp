@@ -21,6 +21,7 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
+#include "GL/glew.h"
 #include "session.h"
 #include "dvrparams.h"
 #include "ParamsIso.h"

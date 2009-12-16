@@ -22,6 +22,7 @@
 
 
 #include <qobject.h>
+#include "GL/glew.h"
 #include "params.h"
 #include "dvrparams.h"
 #include "eventrouter.h"
@@ -32,6 +33,7 @@ class QTimer;
 
 
 using namespace VetsUtil;
+QT_USE_NAMESPACE
 
 namespace VAPoR {
 
@@ -39,7 +41,7 @@ class ViewpointParams;
 class XmlNode;
 class PanelCommand;
 class Params;
-class DvrEventRouter : public Dvr, public EventRouter {
+class DvrEventRouter : public QWidget, public Ui_Dvr, public EventRouter {
 	Q_OBJECT
 
     enum 

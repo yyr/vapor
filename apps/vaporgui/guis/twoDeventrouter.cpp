@@ -34,11 +34,11 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>

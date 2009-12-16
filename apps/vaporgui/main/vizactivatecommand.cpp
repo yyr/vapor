@@ -18,6 +18,7 @@
 //		This is a Command class that supports undo/redo of activate
 //		window events from the visualizer window.
 //
+#include "GL/glew.h"
 #include "vizactivatecommand.h"
 #include "session.h"
 #include "vizwinmgr.h"

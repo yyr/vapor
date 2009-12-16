@@ -282,7 +282,7 @@ public:
  }
 
 
- virtual VarType_T Metadata::GetVarType(const string &varname) const; 
+ virtual VarType_T GetVarType(const string &varname) const; 
 
  //! Return true if indicated region coordinates are valid
  //!

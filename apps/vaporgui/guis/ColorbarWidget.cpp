@@ -11,8 +11,14 @@
 #include "params.h"
 
 #include <GL/glew.h>
+#ifdef Darwin
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
 
 #include "mappingframe.h"
 #include "glutil.h"
@@ -268,7 +274,7 @@ void ColorbarWidget::updateTexture()
 //----------------------------------------------------------------------------
 void ColorbarWidget::select(int handle, Qt::ButtonState state) 
 {
-  if (!(state & (Qt::ShiftButton|Qt::ControlButton)))
+  if (!(state & (Qt::ShiftModifier|Qt::ControlModifier)))
   {
     _selectedCPs.clear();
   }
@@ -276,7 +282,7 @@ void ColorbarWidget::select(int handle, Qt::ButtonState state)
   //
   // Control button
   //
-  if (state & Qt::ControlButton)
+  if (state & Qt::ControlModifier)
   {
     if (_selectedCPs.find(handle) != _selectedCPs.end())
     {
@@ -306,7 +312,7 @@ void ColorbarWidget::select(int handle, Qt::ButtonState state)
   //
   // Shift button
   //
-  if (state & Qt::ShiftButton)
+  if (state & Qt::ShiftModifier)
   {
     _selected = handle;
     

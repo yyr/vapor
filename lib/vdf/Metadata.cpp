@@ -156,7 +156,7 @@ void	Metadata::MapUserToVox(
 	}
 }
 
-Metadata::VarType_T Metadata::GetVarType(
+VAPoR::Metadata::VarType_T Metadata::GetVarType(
 	const string &varname
 ) const {
 

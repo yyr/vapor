@@ -21,7 +21,7 @@
 #include "vapor/DataMgrLayered.h"
 
 #include "glwindow.h"
-#include "customcontext.h"
+//#include "customcontext.h"
 #include "trackball.h"
 #include "glutil.h"
 #include "renderer.h"
@@ -95,14 +95,14 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windo
 	mouseDownHere = false;
 
 	//values of features:
-	timeAnnotColor = QColor(white);
+	timeAnnotColor = QColor(Qt::white);
 	timeAnnotCoords[0] = 0.1f;
 	timeAnnotCoords[1] = 0.1f;
 	timeAnnotTextSize = 10;
 	timeAnnotType = 0;
 
 	
-	colorbarBackgroundColor = QColor(black);
+	colorbarBackgroundColor = QColor(Qt::black);
 	elevColor = QColor(150,75,0);
 	renderElevGrid = getDefaultTerrainEnabled();
 	surfaceTextureEnabled = false;
@@ -130,7 +130,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windo
 	labelHeight = 10;
 	labelDigits = 4;
 	ticWidth = 2.f;
-	axisColor = QColor(white);
+	axisColor = QColor(Qt::white);
 
 	colorbarLLCoord[0] = 0.1f;
 	colorbarLLCoord[1] = 0.1f;
@@ -1921,9 +1921,9 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 				myPainter.setFont(f);
 				
 				const QString& labelText = axisTextLabels[axis][n]->text();
-				myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::SingleLine,labelText,-1);	
+				myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,-1);	
 				QImage image = myPixmap.convertToImage();
-				assert(image != 0);
+				//assert(image != 0);
 				//Write the image to the buffer:
 				int stride = 3*width();
 				for (int j = 0; j<image.height(); j++){
@@ -1966,9 +1966,9 @@ void GLWindow::addTimeToBuffer(unsigned char* buff){
 	myPainter.setFont(f);
 				
 	const QString& labelText = timeAnnotLabel->text();
-	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::SingleLine,labelText,-1);	
+	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,-1);	
 	QImage image = myPixmap.convertToImage();
-	assert(image != 0);
+	//assert(image != 0);
 	//Write the image to the buffer:
 	int stride = 3*width();
 	for (int j = 0; j<image.height(); j++){

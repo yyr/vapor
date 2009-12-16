@@ -25,13 +25,21 @@
 //
 #ifndef COLORPICKER_H
 #define COLORPICKER_H
-#include <qframe.h>
+#include <q3frame.h>
 #include <qlineedit.h>
 #include <qvalidator.h>
+//Added by qt3to4:
+#include <QDropEvent>
+#include <QDragLeaveEvent>
+#include <QPaintEvent>
+#include <QPixmap>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QDragEnterEvent>
 class QPixmap;
 class QLabel;
 
-class ColorPicker : public QFrame
+class ColorPicker : public Q3Frame
 {
     Q_OBJECT
 public:
@@ -67,14 +75,14 @@ private:
 };
 
 
-class ColorShowLabel : public QFrame
+class ColorShowLabel : public Q3Frame
 {
     Q_OBJECT
 
 public:
-    ColorShowLabel( QWidget *parent ) : QFrame( parent, "qt_colorshow_lbl" ) {
-	setFrameStyle( QFrame::Panel|QFrame::Sunken );
-	setBackgroundMode( PaletteBackground );
+    ColorShowLabel( QWidget *parent ) : Q3Frame( parent, "qt_colorshow_lbl" ) {
+	setFrameStyle( Q3Frame::Panel|Q3Frame::Sunken );
+	setBackgroundMode( Qt::PaletteBackground );
 	setAcceptDrops( TRUE );
 	mousePressed = FALSE;
     }
@@ -206,13 +214,13 @@ static inline void rgb2hsv( QRgb rgb, int&h, int&s, int&v )
 {
     QColor c;
     c.setRgb( rgb );
-    c.getHsv(h,s,v);
+    c.getHsv(&h,&s,&v);
 }
-class ColorPickerFrame : public QFrame
+class ColorPickerFrame : public Q3Frame
 {
 Q_OBJECT
 public:
-    ColorPickerFrame( QWidget*, const char* );
+    ColorPickerFrame( QWidget*, const char* name = 0 );
     QRgb currentColor() const { return cs->currentColor(); }
     void setCurrentColor( QRgb rgb );
 

@@ -37,16 +37,17 @@ endif
 ifeq ($(ARCH),Darwin)
 MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
+endif
 
 #
 # Need to link qt for bug 2351386
 #
-LIBRARIES += qt-mt
+#LIBRARIES += QtOpenGL QtGui QtCore
+LIBRARIES += $(QT_LIB)
 ifdef   QT_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
 endif
 
-endif
 
 
 

@@ -20,13 +20,13 @@
 //
 #include "vizselectcombo.h"
 #include <qcombobox.h>
-#include <qtoolbar.h>
+#include <q3toolbar.h>
 #include <qtooltip.h>
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "assert.h"
 using namespace VAPoR;
-VizSelectCombo::VizSelectCombo(QToolBar* parent, VizWinMgr* mgr)
+VizSelectCombo::VizSelectCombo(Q3ToolBar* parent, VizWinMgr* mgr)
 	: QComboBox(parent) {
 	vizWinMgr = mgr;
 	MainForm* mainWin = MainForm::getInstance();

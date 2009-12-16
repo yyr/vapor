@@ -109,7 +109,7 @@ run(){
 		if( numActive == 0) {
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting for an unshared renderer to start");
-			myWaitCondition->wait(IDLE_WAIT);
+// QT4 mustfix			myWaitCondition->wait(IDLE_WAIT);
 			continue;
 		}
 
@@ -148,7 +148,7 @@ run(){
 		
 		myAnimationController->animationMutex.unlock();
 		//qWarning("Wait at end loop for %d",timeToRecheck);
-		myWaitCondition->wait(timeToRecheck);
+// QT4 mustfix		myWaitCondition->wait(timeToRecheck);
 		
 	}//end while(1) loop
 
@@ -175,7 +175,7 @@ run(){
 			break;
 		}
 		//wait; may be woken if someone finishes, or status changes.
-		myWaitCondition->wait(IDLE_WAIT);
+// QT4 mustfix		myWaitCondition->wait(IDLE_WAIT);
 	}
 	
 	//Assert that all renderers completed in 100*MAX_SLOW_WAIT seconds

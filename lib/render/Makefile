@@ -45,4 +45,9 @@ ifdef   GTIFF_INC_PATH
 MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
 endif
 
+LIBRARIES += $(QT_LIB)
+ifdef QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
+
 include ${TOP}/make/config/base.mk

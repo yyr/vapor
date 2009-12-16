@@ -35,10 +35,10 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qtimer.h>
 #include <qtooltip.h>
 #include "instancetable.h"
@@ -80,7 +80,8 @@
 using namespace VAPoR;
 
 
-DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): Dvr(parent, name), EventRouter(){
+DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_Dvr(), EventRouter(){
+        setupUi(this);
 	myParamsType = Params::DvrParamsType;
 	savedCommand = 0;
     benchmark = DONE;
@@ -1164,7 +1165,7 @@ void DvrEventRouter::benchmarkPreamble()
   VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  cout << " " << typeCombo->currentText() << " @ ";
+  cout << " " << typeCombo->currentText().data() << " @ ";
   cout << nx << "x" << ny << "x" << nz << endl;
 
   nextBenchmark();

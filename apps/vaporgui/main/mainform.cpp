@@ -1,10 +1,11 @@
-//************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
-//************************************************************************/
+/************************************************************************/
+//									*
+//		     Copyright (C)  2004				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
+/************************************************************************/
+
 //
 //	File:		mainform.cpp 
 //
@@ -22,8 +23,10 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
+#include <QMenuItem>
+#include "GL/glew.h"
 #include "mainform.h"
-#include <qdockarea.h>
+#include <q3dockarea.h>
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qtabwidget.h>
@@ -31,26 +34,29 @@
 #include <qlayout.h>
 #include <qtooltip.h>
 #include <qcheckbox.h>
-#include <qwhatsthis.h>
+#include <q3whatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
-#include <qpopupmenu.h>
-#include <qtoolbar.h>
+#include <q3popupmenu.h>
+#include <q3toolbar.h>
 #include <qimage.h>
 #include <qpixmap.h>
 #include <qcombobox.h>
-#include <qfiledialog.h>
+#include <q3filedialog.h>
 #include <qlineedit.h>
-#include <qscrollview.h>
+#include <q3scrollview.h>
 #include <qdesktopwidget.h>
 #include <qmessagebox.h>
-#include <qvbox.h>
+#include <q3vbox.h>
 #include <qworkspace.h>
 #include <qcolordialog.h>
 #include <qstatusbar.h>
 #include <qlabel.h>
 #include <qspinbox.h>
 #include <qtoolbutton.h>
+//Added by qt3to4:
+#include <QPaintEvent>
+#include <Q3ActionGroup>
 
 
 #include <iostream>
@@ -144,8 +150,8 @@ MainForm* MainForm::theMainForm = 0;
 
 //Only the main program should call the constructor:
 //
-MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char* name, WFlags )
-    : QMainWindow( parent, name, WDestructiveClose )
+MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char* name, Qt::WFlags )
+    : Q3MainWindow( parent, name, Qt::WDestructiveClose )
 {
 	theMainForm = this;
 	theRegionTab = 0;
@@ -171,9 +177,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		setName( "MainForm" );
     setMinimumSize( QSize( 422, 606 ) );
    
-    setBackgroundOrigin( QMainWindow::WindowOrigin );
+    setBackgroundOrigin( Q3MainWindow::WindowOrigin );
 	
-    QVBox* vb = new QVBox(this);
+    Q3VBox* vb = new Q3VBox(this);
     //Now insert my qworkspace:
     myWorkspace = new QWorkspace(vb);
     setCentralWidget(vb);
@@ -183,13 +189,13 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     
     
     //Now let's add a docking tabbed window on the left side.
-    tabDockWindow = new QDockWindow( QDockWindow::InDock, myWorkspace );
+    tabDockWindow = new Q3DockWindow( Q3DockWindow::InDock, myWorkspace );
     tabDockWindow->setResizeEnabled( TRUE );
     tabDockWindow->setVerticalStretchable( TRUE );
-    addDockWindow( tabDockWindow, DockLeft );
-    setDockEnabled( tabDockWindow, DockTop, FALSE );
-    setDockEnabled( tabDockWindow, DockBottom, FALSE );
-    tabDockWindow->setCloseMode( QDockWindow::Never );
+    addDockWindow( tabDockWindow, Qt::DockLeft );
+    setDockEnabled( tabDockWindow, Qt::DockTop, FALSE );
+    setDockEnabled( tabDockWindow, Qt::DockBottom, FALSE );
+    tabDockWindow->setCloseMode( Q3DockWindow::Never );
 	//setup the tab widget, must be done before creating the 
 
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
@@ -289,46 +295,56 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	captureEndFlowCaptureAction = new QAction( this, "flowEndCaptureAction" );
 
 	//Create an exclusive action group for the mouse mode toolbars:
-	mouseModeActions = new QActionGroup(this, "mouse action group", true);
+	mouseModeActions = new Q3ActionGroup(this, "mouse action group", true);
 	//Toolbar buttons:
 	QPixmap* wheelIcon = new QPixmap(wheel);
 	
 	if (!wheelIcon){
 		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
 	}
-	navigationAction = new QAction("Navigation Mode", *wheelIcon,
-		"&Navigation", 0, mouseModeActions);
+// QT4	navigationAction = new QAction("Navigation Mode", *wheelIcon,
+//		"&Navigation", 0, mouseModeActions);
+	navigationAction = new QAction(*wheelIcon,"Navigation Mode",mouseModeActions);
 	navigationAction->setToggleAction(true);
 	navigationAction->setOn(true);
 
 	QPixmap* regionIcon = new QPixmap(cube);
-	regionSelectAction = new QAction("Region Select Mode", *regionIcon,
-		"&Region", CTRL+Key_R, mouseModeActions);
+//	regionSelectAction = new QAction("Region Select Mode", *regionIcon,
+//		"&Region", Qt::CTRL+Qt::Key_R, mouseModeActions);
+	regionSelectAction = new QAction(*regionIcon, "Region Select Mode", mouseModeActions);
+	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
 	regionSelectAction->setToggleAction(true);
 	regionSelectAction->setOn(false);
 	
 	QPixmap* probeIcon = new QPixmap(probe);
-	probeAction = new QAction("Data Probe and Contour Mode", *probeIcon,
-		"&Probe", 0, mouseModeActions);
+	probeAction = new QAction(*probeIcon, "Data Probe and Contour Plane Mode", mouseModeActions);
+//QT4	probeAction = new QAction("Data Probe and Contour Mode", *probeIcon,
+//		"&Probe", 0, mouseModeActions);
 	probeAction->setToggleAction(true);
 	probeAction->setOn(false);
 
 	
 	QPixmap* twoDDataIcon = new QPixmap(twoDData);
-	twoDDataAction = new QAction("2D Mode", *twoDDataIcon,
-		"&twoDData", CTRL+Key_2, mouseModeActions);
+	twoDDataAction = new QAction(*twoDDataIcon, "2D Data Mode", mouseModeActions);
+	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
+// QT4	twoDDataAction = new QAction("2D Mode", *twoDDataIcon,
+//		"&twoDData", Qt::CTRL+Qt::Key_2, mouseModeActions);
 	twoDDataAction->setToggleAction(true);
 	twoDDataAction->setOn(false);
 
 	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
-	twoDImageAction = new QAction("Image Mode", *twoDImageIcon,
-		"&twoDImage", CTRL+Key_I, mouseModeActions);
+	twoDImageAction = new QAction(*twoDImageIcon, "Image Mode",mouseModeActions);
+	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
+//QT4	twoDImageAction = new QAction("Image Mode", *twoDImageIcon,
+//		"&twoDImage", Qt::CTRL+Qt::Key_I, mouseModeActions);
 	twoDImageAction->setToggleAction(true);
 	twoDImageAction->setOn(false);
 
 	QPixmap* rakeIcon = new QPixmap(rake);
-	rakeAction = new QAction("Rake Mode", *rakeIcon,
-		"&Rake", CTRL+Key_K, mouseModeActions);
+	rakeAction = new QAction(*rakeIcon, "Rake Mode", mouseModeActions);
+	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
+//QT4	rakeAction = new QAction("Rake Mode", *rakeIcon,
+//		"&Rake", Qt::CTRL+Qt::Key_K, mouseModeActions);
 	rakeAction->setToggleAction(true);
 	rakeAction->setOn(false);
 
@@ -340,68 +356,86 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	//Insert toolbar and actions:
 	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction("Go to Home Viewpoint", *homeIcon,
-		"&Home", CTRL+Key_H, this);
+	homeAction = new QAction(*homeIcon, "Go to Home Viewpoint", this);
+	homeAction->setShortcut(Qt::CTRL+Qt::Key_H);
+//QT4	homeAction = new QAction("Go to Home Viewpoint", *homeIcon,
+//		"&Home", Qt::CTRL+Qt::Key_H, this);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
-	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
-		"SetHome", 0, this);
+	sethomeAction = new QAction(*sethomeIcon, "Set Home Viewpoint", this);
+//QT4	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
+//		"SetHome", 0, this);
 	QPixmap* eyeIcon = new QPixmap(eye);
-	viewAllAction = new QAction("View All", *eyeIcon,
-		"&ViewAll", CTRL+Key_V, this);
+	viewAllAction = new QAction(*eyeIcon, "View All", this);
+	viewAllAction->setShortcut(Qt::CTRL+Qt::Key_V);
+//QT4	viewAllAction = new QAction("View All", *eyeIcon,
+//		"&ViewAll", Qt::CTRL+Qt::Key_V, this);
 	QPixmap* magnifyIcon = new QPixmap(magnify);
-	viewRegionAction = new QAction("View Region", *magnifyIcon,
-		"ViewRegion", 0, this);
+	viewRegionAction = new QAction(*magnifyIcon, "View Region", this);
+//QT4	viewRegionAction = new QAction("View Region", *magnifyIcon,
+//		"ViewRegion", 0, this);
 
 	QPixmap* tileIcon = new QPixmap(tiles);
-	tileAction = new QAction("Tile Windows", *tileIcon,
-		"&Tile", CTRL+Key_T, this);
+	tileAction = new QAction(*tileIcon,"Tile Windows",this);
+	tileAction->setShortcut(Qt::CTRL+Qt::Key_T);
+//QT4	tileAction = new QAction("Tile Windows", *tileIcon,
+//		"&Tile", Qt::CTRL+Qt::Key_T, this);
 
 	QPixmap* cascadeIcon = new QPixmap(cascade);
-	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
-		"Cascade", 0, this);
+	cascadeAction = new QAction(*cascadeIcon, "Cascade Windows", this);
+//QT4	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
+//		"Cascade", 0, this);
 
 
 	//Create actions for each animation control button:
 	QPixmap* playForwardIcon = new QPixmap(playforward);
-	playForwardAction = new QAction("Play forward", *playForwardIcon,
-		"&Play", CTRL+Key_P, this);
+	playForwardAction = new QAction(*playForwardIcon, "Play Forward", this);
+	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
+//	playForwardAction = new QAction("Play forward", *playForwardIcon,
+//		"&Play", Qt::CTRL+Qt::Key_P, this);
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
-	playBackwardAction = new QAction("Play backward", *playBackwardIcon,
-		"&Back", CTRL+Key_B, this);
+	playBackwardAction = new QAction(*playBackwardIcon, "Play Backward",this);
+	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
+	//playBackwardAction = new QAction("Play backward", *playBackwardIcon,
+//		"&Back", Qt::CTRL+Qt::Key_B, this);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
-	pauseAction = new QAction("Stop animation", *pauseIcon,
-		"&End play", CTRL+Key_E, this);
+	pauseAction = new QAction(*pauseIcon, "Stop animation", this);
+	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
+//	pauseAction = new QAction("Stop animation", *pauseIcon,
+//		"&End play", Qt::CTRL+Qt::Key_E, this);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
-	stepForwardAction = new QAction("Step forward", *stepForwardIcon,
-		"&ForwardStep", CTRL+Key_F, this);
+	stepForwardAction = new QAction(*stepForwardIcon, "Step forward", this);
+	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);
+//	stepForwardAction = new QAction("Step forward", *stepForwardIcon,
+//		"&ForwardStep", Qt::CTRL+Qt::Key_F, this);
 	QPixmap* stepBackIcon = new QPixmap(stepback);
-	stepBackAction = new QAction("Step back", *stepBackIcon,
-		"Step back", 0, this);
+	stepBackAction = new QAction(*stepBackIcon,"Step back",this);
+//	stepBackAction = new QAction("Step back", *stepBackIcon,
+//		"Step back", 0, this);
 
 
     // toolbars for mouse modes and visualizers
-    modeToolBar = new QToolBar( QString(""), this, DockTop); 
+    modeToolBar = new Q3ToolBar( QString(""), this, Qt::DockTop); 
 	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
 		"that can be used to control the location and position of objects in "+
 		"the 3D scene, by dragging with the mouse in the scene.  These include "+
 		"navigation, region, rake, probe, 2D, and Image tools.";
-	QWhatsThis::add(modeToolBar, qws);
+	Q3WhatsThis::add(modeToolBar, qws);
 	
 
 	//animation toolbar:
-	animationToolbar = new QToolBar("animation control", this, DockTop);
+	animationToolbar = new Q3ToolBar("animation control", this, Qt::DockTop);
 	
 	QString qat = QString("The animation toolbar enables control of the time steps ")+
 		"in the current active visualizer.  Additional controls are available in"+
 		"the animation tab ";
-	QWhatsThis::add(animationToolbar, qat);
+	Q3WhatsThis::add(animationToolbar, qat);
 	animationToolbar->setVerticallyStretchable(false);
 	
-	vizToolBar = new QToolBar( QString(""), this, DockTop); 
+	vizToolBar = new Q3ToolBar( QString(""), this, Qt::DockTop); 
 	vizToolBar->setOffset(1500);
 	vizToolBar->setVerticallyStretchable(false);
 	
-	QDockArea* dkArea = leftDock();
+	Q3DockArea* dkArea = leftDock();
 	dkArea->setAcceptDockWindow(vizToolBar, false);
 	dkArea->setAcceptDockWindow(modeToolBar, false);
 	dkArea->setAcceptDockWindow(animationToolbar, false);
@@ -457,7 +491,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
 	
 	QToolTip::add(interactiveRefinementSpin,"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
-	QWhatsThis::add(interactiveRefinementSpin, 
+	Q3WhatsThis::add(interactiveRefinementSpin, 
 		QString("While the viewpoint is changing due to mouse-dragging ")+
 		"in a visualizer, the refinement level used by the DVR "+
 		"and Iso renderers is reduced to this interactive refinement level, "+
@@ -471,7 +505,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     Main_Form = new QMenuBar( this, "Main_Form" );
 
 
-    File = new QPopupMenu( this );
+    File = new Q3PopupMenu( this );
     fileNew_SessionAction->addTo( File );
     fileOpenAction->addTo( File );
     fileSaveAction->addTo( File );
@@ -481,7 +515,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     fileExitAction->addTo( File );
     Main_Form->insertItem( QString(""), File, 1 );
 
-	Edit = new QPopupMenu(this);
+	Edit = new Q3PopupMenu(this);
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
 	
@@ -489,7 +523,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	editPreferencesAction->addTo(Edit);
 	Main_Form->insertItem( QString(""), Edit, 2 );
 
-    Data = new QPopupMenu( this );
+    Data = new Q3PopupMenu( this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
 	
@@ -504,7 +538,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     
     Main_Form->insertItem( QString(""), Data, 3 );
 
-    viewMenu = new QPopupMenu(this);
+    viewMenu = new Q3PopupMenu(this);
 	
 	viewLaunch_visualizerAction->addTo(viewMenu);
 	//SingleCaptureAction->addTo(viewMenu);
@@ -515,7 +549,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
-    captureMenu = new QPopupMenu( this );
+    captureMenu = new Q3PopupMenu( this );
     captureSingleJpegCaptureAction->addTo( captureMenu );
 	captureStartJpegCaptureAction->addTo( captureMenu );
 	captureEndJpegCaptureAction->addTo( captureMenu );
@@ -535,7 +569,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	exportAnimationScriptAction->addTo(Animation);
     Main_Form->insertItem( QString(""), Animation, 6 );
     */
-    helpMenu = new QPopupMenu( this );
+    helpMenu = new Q3PopupMenu( this );
     //helpContentsAction->addTo( helpMenu );
     //helpIndexAction->addTo( helpMenu );
 	whatsThisAction->addTo(helpMenu);
@@ -548,7 +582,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
     languageChange();
    
-    clearWState( WState_Polished );
+    // QT4 clearWState( WState_Polished );
 
     // signals and slots connections
     connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
@@ -698,55 +732,50 @@ void MainForm::languageChange()
     fileNew_SessionAction->setText( tr( "New Session" ) );
     fileNew_SessionAction->setMenuText( tr( "New Session" ) );
 	fileNew_SessionAction->setToolTip("Restart the session with default settings");
-	fileNew_SessionAction->setAccel( tr( "Ctrl+N" ) );
+	fileNew_SessionAction->setShortcut( Qt::CTRL + Qt::Key_N );
     
     fileOpenAction->setText( tr( "&Open Session" ) );
     fileOpenAction->setMenuText( tr( "&Open Session" ) );
-    fileOpenAction->setAccel( tr( "Ctrl+O" ) );
+    fileOpenAction->setShortcut( tr( "Ctrl+O" ) );
 	fileOpenAction->setToolTip("Launch a file open dialog to reopen a previously saved session file");
     fileSaveAction->setText( tr( "Save" ) );
     fileSaveAction->setMenuText( tr( "&Save Session" ) );
-    fileSaveAction->setAccel( tr( "Ctrl+S" ) );
+    fileSaveAction->setShortcut( tr( "Ctrl+S" ) );
 	fileSaveAction->setToolTip("Launch a file-save dialog to save the state of this session in current session file");
     fileSaveAsAction->setText( tr( "Save As" ) );
     fileSaveAsAction->setMenuText( tr( "Save Session &As..." ) );
-    fileSaveAsAction->setAccel( QString::null );
 	fileSaveAsAction->setToolTip("Launch a file-save dialog to save the state of this session in another session file");
     
 	loadPreferencesAction->setText( tr( "Load Preferences" ) );
     loadPreferencesAction->setMenuText( tr( "Load Preferences" ) );
-	loadPreferencesAction->setAccel( QString::null );
 	loadPreferencesAction->setToolTip("Load the user preferences from a specified file");
     
     savePreferencesAction->setText( tr( "Save Preferences" ) );
     savePreferencesAction->setMenuText( tr( "Save Preferences" ) );
-	savePreferencesAction->setAccel( QString::null );
 	savePreferencesAction->setToolTip("Save the user preferences to a specified file");
     
     fileExitAction->setMenuText( tr( "E&xit" ) );
-    fileExitAction->setAccel( QString::null );
 
 	editUndoAction->setText( tr( "&Foo" ) );
     editUndoAction->setMenuText( tr( "&Undo" ) );
-    editUndoAction->setAccel( tr( "Ctrl+Z" ) );
+    editUndoAction->setShortcut( tr( "Ctrl+Z" ) );
 	editUndoAction->setToolTip("Undo the most recent session state change");
 	editRedoAction->setText( tr( "&Redo" ) );
     editRedoAction->setMenuText( tr( "&Redo" ) );
-    editRedoAction->setAccel( tr( "Ctrl+Y" ) );
+    editRedoAction->setShortcut( tr( "Ctrl+Y" ) );
 	editRedoAction->setToolTip("Redo the last undone session state change");
     
 	
     helpAboutAction->setText( tr( "About VAPOR" ) );
     helpAboutAction->setMenuText( tr( "About VAPOR" ) );
     helpAboutAction->setToolTip( tr( "Information about VAPOR" ) );
-    helpAboutAction->setAccel( QString::null );
 
 	whatsThisAction->setText( tr( "Explain This" ) );
     whatsThisAction->setMenuText( tr( "Explain This" ) );
 	whatsThisAction->setToolTip(tr(QString("Click here, then click over an object for context-sensitive help;  ")+
 		"Or just click Shift-F1 over the object"));
-	whatsThisAction->setAccel(QString::null);
-	whatsThisAction->setIconSet(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()));
+	//ICON not assigned here: QT4
+	//whatsThisAction->setIconSet(QIcon(*Q3WhatsThis::whatsThisButton(0)->pixmap()));
 	//whatsThisAction = new QAction(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()),"What's This?",SHIFT+Key_F1,0);
 	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
 
@@ -764,7 +793,7 @@ void MainForm::languageChange()
     dataLoad_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
     dataLoad_MetafileAction->setMenuText( tr( "Load a &Dataset into Current Session" ) );
 	dataLoad_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
-	dataLoad_MetafileAction->setAccel(tr("Ctrl+D"));
+	dataLoad_MetafileAction->setShortcut(tr("Ctrl+D"));
 	dataLoad_DefaultMetafileAction->setText( tr( "Load a Dataset into &Default Session" ) );
     dataLoad_DefaultMetafileAction->setMenuText( tr( "Load a Dataset into &Default Session" ) );
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
@@ -862,7 +891,7 @@ void MainForm::fileOpen()
 	string s;
 	ses->makeSessionFilepath(s);
 	QString fn = s.c_str();//start with filename in session
-	QString filename = QFileDialog::getOpenFileName(fn,
+	QString filename = Q3FileDialog::getOpenFileName(fn,
 		"Vapor Session Save Files (*.vss)",
 		this,
 		"Open Session Dialog",
@@ -938,7 +967,7 @@ void MainForm::saveMetadata()
 	MessageReporter::warningMsg("Note that the Metadata file\nto be written is non-portable;\n%s",
 		"You may not be able to load \nthe associated data from another system");
 	//This directly saves the session to the current vdf directory
-   QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
+   QString filename = Q3FileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
 		"Save Metadata Dialog",
@@ -991,7 +1020,7 @@ void MainForm::fileSaveAs()
 	string s;
 	Session::getInstance()->makeSessionFilepath(s);
 	
-	QString filename = QFileDialog::getSaveFileName(s.c_str(),
+	QString filename = Q3FileDialog::getSaveFileName(s.c_str(),
 		"Vapor Session Save Files (*.vss)",
 		this,
 		"Save Session Dialog",
@@ -1104,7 +1133,7 @@ void MainForm::browseData()
 //This launches a panel that enables the
     //user to peruse the available data files
     //or metafiles.  Initially it will just select (and open) a vdf file.
-	QString filename = QFileDialog::getOpenFileName(MDFile,
+	QString filename = Q3FileDialog::getOpenFileName(MDFile,
 		"Metadata Files (*.vdf)",
 		this,
 		"Browse Data Dialog",
@@ -1117,7 +1146,7 @@ void MainForm::browseData()
 	
 }
 void MainForm::loadPrefs(){
-	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getPreferencesFile().c_str(),
+	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getPreferencesFile().c_str(),
 		"Vapor Preferences Files (*.vapor_prefs)",
 		this,
 		"Load Preferences Dialog",
@@ -1131,7 +1160,7 @@ void MainForm::loadPrefs(){
 	
 }
 void MainForm::savePrefs(){
-	QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getPreferencesFile().c_str(),
+	QString filename = Q3FileDialog::getSaveFileName(Session::getInstance()->getPreferencesFile().c_str(),
 		"Vapor Preferences Files (*.vapor_prefs)",
 		this,
 		"Save Preferences Dialog",
@@ -1152,7 +1181,7 @@ void MainForm::loadData()
     //user to choose input data files, then to
 	//create a datamanager using those files
     //or metafiles.  
-	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
+	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
 		"Load Metadata Dialog",
@@ -1174,7 +1203,7 @@ void MainForm::mergeData()
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//merge into current metadata 
-	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
+	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
 		"Merge Metadata Data Dialog",
@@ -1182,14 +1211,16 @@ void MainForm::mergeData()
 	if(filename != QString::null){
 		//Check on the timestep offset:
 		int defaultOffset = 0;
-		SetOffsetDialog* sDialog = new SetOffsetDialog(this, 0, true);
+		QDialog sDialog(this);
+		Ui_SetOffsetDialog uiSetter;
+		uiSetter.setupUi(&sDialog);
 		int activeWinNum = VizWinMgr::getInstance()->getActiveViz();
 		if (activeWinNum >= 0){
 			defaultOffset = VizWinMgr::getInstance()->getAnimationParams(activeWinNum)->getCurrentFrameNumber();
 		}
-		sDialog->timestepOffsetSpin->setValue(defaultOffset);
-		if (sDialog->exec() != QDialog::Accepted) return;
-		int offset = sDialog->timestepOffsetSpin->value();
+		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
+		if (sDialog.exec() != QDialog::Accepted) return;
+		int offset = uiSetter.timestepOffsetSpin->value();
 		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true, offset)){
 			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",filename.ascii());
 		}
@@ -1205,7 +1236,7 @@ void MainForm::defaultLoadData()
     //user to choose input data files, then to
 	//create a datamanager using those files
     //or metafiles.  
-	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
+	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
 		"Load Volume Data Dialog",
@@ -1454,8 +1485,8 @@ void MainForm::launchTwoDImageTab()
 	if (!theTwoDImageTab){
 		theTwoDImageTab = new TwoDImageEventRouter(tabWidget, "TwoDImageTab");
 		myVizMgr->hookUpTwoDImageTab(theTwoDImageTab);
-		QToolTip::add(theTwoDImageTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		QToolTip::add(theTwoDImageTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+//QT4.5		QToolTip::add(theTwoDImageTab->attachSeedCheckbox, QString("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed"));
+//QT4.5		QToolTip::add(theTwoDImageTab->addSeedButton,QString("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed"));
 	}
 	
 	int posn = tabWidget->findWidget(Params::TwoDImageParamsType);
@@ -1724,13 +1755,13 @@ void MainForm::exportToIDL(){
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startJpegCapture() {
-	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
 		"Start image capture dialog",
 		true);  //modal
 	fileDialog.move(pos());
-	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setMode(Q3FileDialog::AnyFile);
 	fileDialog.setCaption("Specify first file name for image capture sequence");
 	
 	fileDialog.resize(450,450);
@@ -1778,13 +1809,13 @@ void MainForm::startFlowCapture() {
 		MessageReporter::errorMsg(" Unsteady flow lines may only be captured from flow panel");
 		return;
 	}
-	QFileDialog fileDialog(Session::getInstance()->getFlowDirectory().c_str(),
+	Q3FileDialog fileDialog(Session::getInstance()->getFlowDirectory().c_str(),
 		"text files (*.txt)",
 		this,
 		"Start flow capture dialog",
 		true);  //modal
 	fileDialog.move(pos());
-	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setMode(Q3FileDialog::AnyFile);
 	fileDialog.setCaption("Specify first file name for flow capture sequence");
 	
 	fileDialog.resize(450,450);
@@ -1827,13 +1858,13 @@ void MainForm::startFlowCapture() {
 //Then put jpeg in it.
 //
 void MainForm::captureSingleJpeg() {
-	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg or Tiff images (*.jpg *.tif)",
 		this,
 		"Start image capture dialog",
 		true);  //modal
 	fileDialog.move(pos());
-	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setMode(Q3FileDialog::AnyFile);
 	fileDialog.setCaption("Specify single image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
@@ -1931,5 +1962,5 @@ void MainForm::setCurrentTimestep(int tstep){
 }
 void MainForm::paintEvent(QPaintEvent* e){
 	MessageReporter::infoMsg("MainForm::paintEvent");
-	QMainWindow::paintEvent(e);
+	Q3MainWindow::paintEvent(e);
 }

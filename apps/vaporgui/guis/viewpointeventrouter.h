@@ -36,7 +36,7 @@ namespace VAPoR {
 class ViewpointParams;
 class XmlNode;
 
-class ViewpointEventRouter : public VizTab, public EventRouter {
+class ViewpointEventRouter : public QWidget, public Ui_VizTab, public EventRouter {
 
 	Q_OBJECT
 

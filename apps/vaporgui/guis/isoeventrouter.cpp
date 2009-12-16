@@ -31,9 +31,9 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
-#include <qlistbox.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
+#include <q3listbox.h>
 #include <qtimer.h>
 #include <qtooltip.h>
 #include <qlineedit.h>
@@ -75,7 +75,8 @@
 using namespace VAPoR;
 
 
-IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): IsoTab(parent, name), EventRouter(){
+IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_IsoTab(),  EventRouter(){
+	setupUi(this);
 	myParamsType = Params::IsoParamsType;
 	savedCommand = 0;  
 	renderTextChanged = false;

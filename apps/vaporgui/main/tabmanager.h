@@ -37,7 +37,7 @@ class TabManager : public QTabWidget{
 	Q_OBJECT
 
 	public:
-		TabManager(QWidget* parent, const char* name, WFlags f = 0);
+		TabManager(QWidget* parent, const char* name, Qt::WFlags f = 0);
 	
 	
 		// Insert a widget, it should not already be there.

@@ -34,10 +34,10 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qtooltip.h>
 #include "regionparams.h"
 #include "instancetable.h"
@@ -55,7 +55,7 @@
 #include <qspinbox.h>
 #include <qslider.h>
 #include <qlabel.h>
-#include <qtable.h>
+#include <q3table.h>
 
 #include <vector>
 #include <string>
@@ -82,7 +82,8 @@
 using namespace VAPoR;
 
 
-FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): FlowTab(parent, name), EventRouter(){
+FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_FlowTab(), EventRouter(){
+	setupUi(this);
 	myParamsType = Params::FlowParamsType;
 	savedCommand = 0;
 	flowDataChanged = false;
@@ -527,10 +528,10 @@ void FlowEventRouter::updateTab(){
 	copyCombo->insertItem("This visualizer");
 
 	//Set up the timestep sample tables:
-	timestepSampleTable1->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable1->setSelectionMode(Q3Table::SingleRow);
 	timestepSampleTable1->setTopMargin(0);
 	timestepSampleTable1->setColumnWidth(0,35);
-	timestepSampleTable2->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable2->setSelectionMode(Q3Table::SingleRow);
 	timestepSampleTable2->setTopMargin(0);
 	timestepSampleTable2->setColumnWidth(0,35);
 	if (numViz > 1) {
@@ -579,7 +580,7 @@ void FlowEventRouter::updateTab(){
 	autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
 
 	if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
+	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
 	//Always allow at least 4 variables in combo:
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
@@ -783,7 +784,7 @@ void FlowEventRouter::updateUrgentTabState(){
 	if (fParams) {
 		autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
 		if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-		else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
+		else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
 	}
 }
 
@@ -1229,7 +1230,7 @@ void FlowEventRouter::timestepChanged1(int row, int col){
 }
 //Send the contents of the timestepTable to the params.
 //Assumes that the timestepTable is sorted in ascending order.
-void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){	
+void FlowEventRouter::guiUpdateUnsteadyTimes(Q3Table* tbl, const char* descr){	
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, descr);
@@ -2164,7 +2165,7 @@ guiSetAutoRefresh(bool autoOn){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
 	if (autoOn) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
+	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
 	
 	PanelCommand::captureEnd(cmd, fParams);
 	
@@ -2410,7 +2411,7 @@ void FlowEventRouter::guiLoadSeeds(){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "load seeds from file");
-	QString filename = QFileDialog::getOpenFileName(
+	QString filename = Q3FileDialog::getOpenFileName(
 		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         this,
@@ -2457,7 +2458,7 @@ void FlowEventRouter::saveSeeds(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	//Launch an open-file dialog
 	
-	 QString filename = QFileDialog::getSaveFileName(
+	 QString filename = Q3FileDialog::getSaveFileName(
 		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         this,
@@ -2544,7 +2545,7 @@ void FlowEventRouter::saveFlowLines(){
 	}
 	//Launch an open-file dialog
 	
-	 QString filename = QFileDialog::getSaveFileName(
+	 QString filename = Q3FileDialog::getSaveFileName(
 		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         this,

@@ -22,12 +22,11 @@
 
 
 #include <qobject.h>
+#include "GL/glew.h"
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
 #include "flowtab.h"
-
-
 
 using namespace VetsUtil;
 
@@ -36,7 +35,7 @@ namespace VAPoR {
 class ViewpointParams;
 class XmlNode;
 class PanelCommand;
-class FlowEventRouter : public FlowTab, public EventRouter {
+class FlowEventRouter : public QWidget, public Ui_FlowTab, public EventRouter {
 	Q_OBJECT
 public: 
 	
@@ -170,7 +169,7 @@ protected slots:
 
 protected:
 	bool flowVarsZeroBelow();  //Test if the flow variables are zero below terrain
-	void guiUpdateUnsteadyTimes(QTable*, const char*);
+	void guiUpdateUnsteadyTimes(Q3Table*, const char*);
 	void populateTimestepTables();
 	void setXCenter(FlowParams*,int sliderval);
 	void setYCenter(FlowParams*,int sliderval);

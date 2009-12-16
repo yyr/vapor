@@ -33,13 +33,13 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
+#include "GL/glew.h"
 #include "regionparams.h"
 #include "regiontab.h"
-#include "floweventrouter.h"
 #include "messagereporter.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -65,11 +65,13 @@
 #include "regioneventrouter.h"
 #include "probeeventrouter.h"
 #include "eventrouter.h"
+#include "floweventrouter.h"
 
 using namespace VAPoR;
 
 
-RegionEventRouter::RegionEventRouter(QWidget* parent, const char* name): RegionTab(parent,name), EventRouter() {
+RegionEventRouter::RegionEventRouter(QWidget* parent, const char* name): QWidget(parent,name), Ui_RegionTab(), EventRouter() {
+	setupUi(this);
 	myParamsType = Params::RegionParamsType;
 	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
 }
@@ -979,7 +981,7 @@ guiLoadRegionExtents(){
 	//list does not specify the extents at a timestep.
 	confirmText(false);
 	//Launch a file-open dialog
-	QString filename = QFileDialog::getOpenFileName(
+	QString filename = Q3FileDialog::getOpenFileName(
 		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         this,
@@ -1061,7 +1063,7 @@ saveRegionExtents(){
 		return;
 	}
 	//Launch a file-open dialog
-	QString filename = QFileDialog::getSaveFileName(
+	QString filename = Q3FileDialog::getSaveFileName(
 		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         this,

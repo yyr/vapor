@@ -20,7 +20,7 @@
 //
 #include <qcheckbox.h>
 #include <qcombobox.h>
-#include <qtable.h>
+#include <q3table.h>
 #include <qimage.h>
 #include <qpixmap.h>
 #include <qstringlist.h>
@@ -28,11 +28,11 @@
 #include <qlineedit.h>
 #include "instancetable.h"
 #include "eventrouter.h"
-#include <qtable.h>
+#include <q3table.h>
 #include <qpalette.h>
 
 using namespace VAPoR;
-InstanceTable::InstanceTable(QWidget* parent, const char* name) : QTable(parent, name) {
+InstanceTable::InstanceTable(QWidget* parent, const char* name) : Q3Table(parent, name) {
 
 // Table size
 
@@ -44,17 +44,17 @@ InstanceTable::InstanceTable(QWidget* parent, const char* name) : QTable(parent,
 	setNumCols(numCols);
 
     
-	setFocusPolicy(QWidget::ClickFocus);
-    QHeader *header = horizontalHeader();
+	setFocusPolicy(Qt::ClickFocus);
+    Q3Header *header = horizontalHeader();
    
     header->setLabel( 0, QObject::tr( "View" ));
 	
     setRowMovingEnabled(FALSE);
-	setSelectionMode(QTable::SingleRow);
+	setSelectionMode(Q3Table::SingleRow);
 
 	setMaximumWidth(140);
 	setMaximumHeight(100);
-	setHScrollBarMode(QScrollView::AlwaysOff);
+	setHScrollBarMode(Q3ScrollView::AlwaysOff);
 	setLeftMargin(50);
 	numcheckboxes = 0;
 	
@@ -95,7 +95,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	if(numInsts < numcheckboxes) numcheckboxes = numInsts;
 
-	QHeader* vertHead = verticalHeader();
+	Q3Header* vertHead = verticalHeader();
 	//put existing checkboxes in proper state, or create new ones:
 	
 	for (int r = 0; r<numInsts; r++){

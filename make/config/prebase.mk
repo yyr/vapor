@@ -11,7 +11,7 @@ QT_LIB_PATH = $(QTDIR)/lib
 endif
 endif
 
-QTLIB = -lqt-mt
+QTLIB = -lQtOpenGL -lQtGui -lQtCore -lQt3Support 
 
 EXPATLIB = -lexpat
 NETCDFLIB = -lnetcdf

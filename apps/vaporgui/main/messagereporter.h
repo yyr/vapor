@@ -29,6 +29,8 @@
 #include <qevent.h>
 #include <qobject.h>
 #include <qmutex.h>
+//Added by qt3to4:
+#include <QCustomEvent>
 
 
 namespace VAPoR{

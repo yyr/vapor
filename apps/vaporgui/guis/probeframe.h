@@ -23,8 +23,13 @@
 //
 #ifndef PROBEFRAME_H
 #define PROBEFRAME_H
-#include <qframe.h>
+#include <q3frame.h>
 #include <qwidget.h>
+//Added by qt3to4:
+#include <QPaintEvent>
+#include <QResizeEvent>
+#include <QMouseEvent>
+#include <QLabel>
 #include "glprobewindow.h"
 class QLabel;
 class QWidget;
@@ -35,10 +40,10 @@ namespace VAPoR {
 	class ProbeParams;
 }
 using namespace VAPoR;
-class ProbeFrame : public QFrame {
+class ProbeFrame : public Q3Frame {
 	Q_OBJECT
 public:
-	ProbeFrame( QWidget * parent = 0, const char * name = 0, WFlags f = 0 );
+	ProbeFrame( QWidget * parent = 0, const char * name = 0, Qt::WFlags f = 0 );
 	~ProbeFrame();
 	void setGLWindow(VAPoR::GLProbeWindow* w){glProbeWindow = w;}
 	void setTextureSize(float h, float v){

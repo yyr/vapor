@@ -1,11 +1,9 @@
-//************************************************************************
+/************************************************************************/
 //																		*
 //		     Copyright (C)  2009										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
-//************************************************************************/
-//
+//     University Corporation for Atmospheric Research
+//		     All Rights Reserved			*
+//								*
 //	File:		twoDimageeventrouter.cpp
 //
 //	Author:		Alan Norton
@@ -22,7 +20,6 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
-
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -34,15 +31,16 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
 #include <qlayout.h>
+#include "GL/glew.h"
 #include "twoDimagerenderer.h"
 #include "mappingframe.h"
 #include "transferfunction.h"
@@ -55,7 +53,7 @@
 #include "twodframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
-#include "qthumbwheel.h"
+//#include "qthumbwheel.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -81,7 +79,8 @@
 using namespace VAPoR;
 
 
-TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* name): TwoDImageTab(parent, name), TwoDEventRouter(){
+TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_TwoDImageTab(), TwoDEventRouter(){
+	setupUi(this);
 	myParamsType = Params::TwoDImageParamsType;
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
 }
@@ -436,7 +435,7 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "select image file");
-	QString filename = QFileDialog::getOpenFileName(
+	QString filename = Q3FileDialog::getOpenFileName(
 		Session::getInstance()->getJpegDirectory().c_str(),
         "TIFF files (*.tiff *.tif *.gtif)",
         this,

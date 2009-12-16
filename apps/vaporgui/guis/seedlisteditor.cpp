@@ -5,8 +5,11 @@
 #include <qlayout.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
-#include <qtable.h>
+#include <q3table.h>
 #include <qlineedit.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <Q3VBoxLayout>
 
 #include "flowparams.h"
 
@@ -14,7 +17,7 @@ using namespace VAPoR;
 
 SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
 			  QWidget* parent,  const char* name,
-			  bool modal, WFlags f )
+			  bool modal, Qt::WFlags f )
     : QDialog( parent, name, modal, f )
 
 {
@@ -22,12 +25,12 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
     setCaption( "Edit Seed Point List" );
     resize( 180, 220 );
 	myFlowParams = fp;
-    tableButtonBox = new QVBoxLayout( this, 11, 6, "seed editor layout" );
+    tableButtonBox = new Q3VBoxLayout( this, 11, 6, "seed editor layout" );
 
-    table = new QTable( this, "seed table" );
+    table = new Q3Table( this, "seed table" );
     table->setNumCols( 4 );
     table->setNumRows( numSeeds );
-	table->setSelectionMode(QTable::SingleRow);
+	table->setSelectionMode(Q3Table::SingleRow);
     table->setColumnWidth( 0, 60 );
     table->setColumnWidth( 1, 60 ); 
     table->setColumnWidth( 2, 60 );
@@ -37,7 +40,7 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
 	table->setColumnStretchable(2,true);
 	table->setColumnStretchable(3,true);
    
-    QHeader *th = table->horizontalHeader();
+    Q3Header *th = table->horizontalHeader();
     th->setLabel( 0, "X Coord" );
     th->setLabel( 1, "Y Coord" );
     th->setLabel( 2, "Z Coord" );
@@ -45,7 +48,7 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
 	
     tableButtonBox->addWidget( table );
 
-    buttonBox = new QHBoxLayout( 0, 0, 6, "button box layout" );
+    buttonBox = new Q3HBoxLayout( 0, 0, 6, "button box layout" );
 
     addPushButton = new QPushButton( this, "add button" );
     addPushButton->setText( "&Add Seed" );
@@ -71,7 +74,7 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
 
     cancelPushButton = new QPushButton( this, "cancel button" );
     cancelPushButton->setText( "Cancel" );
-    cancelPushButton->setAccel( Key_Escape );
+    cancelPushButton->setAccel( Qt::Key_Escape );
     buttonBox->addWidget( cancelPushButton );
 
     tableButtonBox->addLayout( buttonBox );

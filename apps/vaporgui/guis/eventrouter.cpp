@@ -29,7 +29,7 @@
 #include <qcursor.h>
 #include <qmessagebox.h>
 #include <qfileinfo.h>
-#include <qfiledialog.h>
+#include <q3filedialog.h>
 #include "vapor/DataMgr.h"
 #include "vapor/errorcodes.h"
 #include "GetAppPath.h"
@@ -266,7 +266,7 @@ saveTF(RenderParams* rParams){
 void EventRouter::
 fileSaveTF(RenderParams* rParams){
 	//Launch a file save dialog, open resulting file
-    QString s = QFileDialog::getSaveFileName(
+    QString s = Q3FileDialog::getSaveFileName(
 					Session::getInstance()->getTFFilePath().c_str(),
                     "Vapor Transfer Functions (*.vtf)",
                     0,
@@ -343,7 +343,7 @@ fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePa
 	
 	//Open a file load dialog
 	
-    QString s = QFileDialog::getOpenFileName(
+    QString s = Q3FileDialog::getOpenFileName(
                     startPath,
                     "Vapor Transfer Functions (*.vtf)",
                     0,

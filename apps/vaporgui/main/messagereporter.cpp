@@ -38,6 +38,8 @@
 #include <qmessagebox.h>
 #include <qmutex.h>
 #include <qapplication.h>
+//Added by qt3to4:
+#include <QCustomEvent>
 
 
 using namespace VAPoR;
@@ -225,7 +227,7 @@ doPopup(messagePriority t, const char* message){
 			assert(0);
 	}
 	QMessageBox* msgBox = new QMessageBox(title,message, msgIcon,
-		QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton,
+		QMessageBox::Ok,Qt::NoButton,Qt::NoButton,
 		MainForm::getInstance()->getTabManager());
 	
 	msgBox->adjustSize();
@@ -270,7 +272,7 @@ doLastPopup(messagePriority t, const char* message){
 			assert(0);
 	}
 	QMessageBox* msgBox = new QMessageBox(title,longMessage, msgIcon,
-		QMessageBox::Ok,QMessageBox::Cancel,QMessageBox::NoButton,
+		QMessageBox::Ok,QMessageBox::Cancel,Qt::NoButton,
 		MainForm::getInstance()->getTabManager());
 	msgBox->setButtonText(2,"Continue");
 	

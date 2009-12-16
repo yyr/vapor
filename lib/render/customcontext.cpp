@@ -20,6 +20,7 @@
 //
 #include <cassert>
 #include "customcontext.h"
+#include "qmessagebox.h"
 using namespace VAPoR;
 #ifdef WIN32
 int CustomContext::choosePixelFormat(void*p, HDC pdc){

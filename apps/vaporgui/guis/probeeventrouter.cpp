@@ -34,11 +34,11 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <qbuttongroup.h>
-#include <qfiledialog.h>
+#include <q3buttongroup.h>
+#include <q3filedialog.h>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <qlistbox.h>
+#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
@@ -81,7 +81,8 @@
 using namespace VAPoR;
 const float ProbeEventRouter::thumbSpeedFactor = 0.045f;  //rotates 45 degrees at full thumbwheel width
 
-ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(parent, name), EventRouter(){
+ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_ProbeTab(), EventRouter(){
+	setupUi(this);
 	myParamsType = Params::ProbeParamsType;
 	savedCommand = 0;
 	ignoreListboxChanges = false;
@@ -2323,13 +2324,13 @@ void ProbeEventRouter::cleanParams(Params* p)
 //Then put jpeg in it.
 //
 void ProbeEventRouter::captureImage() {
-	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)",
 		this,
 		"Image capture dialog",
 		true);  //modal
 	//fileDialog.move(pos());
-	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setMode(Q3FileDialog::AnyFile);
 	fileDialog.setCaption("Specify image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
@@ -2428,13 +2429,13 @@ void ProbeEventRouter::captureImage() {
 void ProbeEventRouter::toggleFlowImageCapture() {
 	if (!capturingIBFV) {
 		//Launch file-open dialog:
-		QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+		Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
 			"Jpeg Images (*.jpg)",
 			this,
 			"Image sequence capture dialog",
 			true);  //modal
 	
-		fileDialog.setMode(QFileDialog::AnyFile);
+		fileDialog.setMode(Q3FileDialog::AnyFile);
 		fileDialog.setCaption("Specify name for image sequence capture");
 		fileDialog.resize(450,450);
 		if (fileDialog.exec() != QDialog::Accepted) return;

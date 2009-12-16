@@ -19,19 +19,29 @@
 
 
 #include <qwidget.h>
-#include <qframe.h>
+#include <q3frame.h>
 #include <qimage.h>
 #include <qpainter.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qapplication.h>
-#include <qdragobject.h>
+#include <q3dragobject.h>
 
 #include <qlayout.h>
 #include <qpushbutton.h>
 #include <qpixmap.h>
 #include <qdrawutil.h>
 #include <qvalidator.h>
+//Added by qt3to4:
+#include <Q3HBoxLayout>
+#include <Q3PointArray>
+#include <QDropEvent>
+#include <QDragLeaveEvent>
+#include <QPaintEvent>
+#include <Q3GridLayout>
+#include <QMouseEvent>
+#include <Q3VBoxLayout>
+#include <QDragEnterEvent>
 //#include "qgridview.h"
 //#include "qstyle.h"
 //#include "qsettings.h"
@@ -51,7 +61,7 @@ void ColorPicker::setCol( const QPoint &pt )
 { setCol( huePt(pt), satPt(pt) ); }
 
 ColorPicker::ColorPicker(QWidget* parent, const char* name )
-    : QFrame( parent, name )
+    : Q3Frame( parent, name )
 {
     hue = 0; sat = 0;
     setCol( 150, 255 );
@@ -66,7 +76,7 @@ ColorPicker::ColorPicker(QWidget* parent, const char* name )
 	}
     pix = new QPixmap;
     pix->convertFromImage(img,0);
-    setBackgroundMode( NoBackground );
+    setBackgroundMode( Qt::NoBackground );
     setSizePolicy( QSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed )  );
 }
 
@@ -116,10 +126,10 @@ void ColorPicker::drawContents(QPainter* p)
 
     p->drawPixmap( r.topLeft(), *pix );
     QPoint pt = colPt() + r.topLeft();
-    p->setPen( QPen(black) );
+    p->setPen( QPen(Qt::black) );
 
-    p->fillRect( pt.x()-9, pt.y(), 20, 2, black );
-    p->fillRect( pt.x(), pt.y()-9, 2, 20, black );
+    p->fillRect( pt.x()-9, pt.y(), 20, 2, Qt::black );
+    p->fillRect( pt.x(), pt.y()-9, 2, 20, Qt::black );
 
 }
 
@@ -143,7 +153,7 @@ void ColorShowLabel::mouseMoveEvent( QMouseEvent *e )
     if ( !mousePressed )
 	return;
     if ( ( pressPos - e->pos() ).manhattanLength() > QApplication::startDragDistance() ) {
-	QColorDrag *drg = new QColorDrag( col, this );
+	Q3ColorDrag *drg = new Q3ColorDrag( col, this );
 	QPixmap pix( 30, 20 );
 	pix.fill( col );
 	QPainter p( &pix );
@@ -159,7 +169,7 @@ void ColorShowLabel::mouseMoveEvent( QMouseEvent *e )
 #ifndef QT_NO_DRAGANDDROP
 void ColorShowLabel::dragEnterEvent( QDragEnterEvent *e )
 {
-    if ( QColorDrag::canDecode( e ) )
+    if ( Q3ColorDrag::canDecode( e ) )
 	e->accept();
     else
 	e->ignore();
@@ -171,8 +181,8 @@ void ColorShowLabel::dragLeaveEvent( QDragLeaveEvent * )
 
 void ColorShowLabel::dropEvent( QDropEvent *e )
 {
-    if ( QColorDrag::canDecode( e ) ) {
-	QColorDrag::decode( e, col );
+    if ( Q3ColorDrag::canDecode( e ) ) {
+	Q3ColorDrag::decode( e, col );
 	repaint( FALSE );
 	emit colorDropped( col.rgb() );
 	e->accept();
@@ -196,7 +206,7 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
     ColIntValidator *val256 = new ColIntValidator( 0, 255, this );
     ColIntValidator *val360 = new ColIntValidator( 0, 360, this );
 
-    QGridLayout *gl = new QGridLayout( this, 1, 1, 6 );
+    Q3GridLayout *gl = new Q3GridLayout( this, 1, 1, 6 );
 	/*
     lab = new ColorShowLabel( this );
     lab->setMinimumWidth( 60 ); //###
@@ -209,42 +219,42 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
     hEd = new ColNumLineEdit( this, "qt_hue_edit" );
     hEd->setValidator( val360 );
     QLabel *l = new QLabel( hEd, "Hu&e:", this, "qt_hue_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 1 );
     gl->addWidget( hEd, 0, 2 );
 
     sEd = new ColNumLineEdit( this, "qt_sat_edit" );
     sEd->setValidator( val256 );
     l = new QLabel( sEd, "&Sat:", this, "qt_sat_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 1 );
     gl->addWidget( sEd, 1, 2 );
 
     vEd = new ColNumLineEdit( this, "qt_val_edit" );
     vEd->setValidator( val256 );
     l = new QLabel( vEd, "&Val:", this, "qt_val_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 1 );
     gl->addWidget( vEd, 2, 2 );
 
     rEd = new ColNumLineEdit( this, "qt_red_edit" );
     rEd->setValidator( val256 );
     l = new QLabel( rEd, "&Red:", this, "qt_red_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 3 );
     gl->addWidget( rEd, 0, 4 );
 
     gEd = new ColNumLineEdit( this, "qt_grn_edit" );
     gEd->setValidator( val256 );
     l = new QLabel( gEd, "&Green:", this, "qt_grn_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 3 );
     gl->addWidget( gEd, 1, 4 );
 
     bEd = new ColNumLineEdit( this, "qt_blue_edit" );
     bEd->setValidator( val256 );
     l = new QLabel( bEd, "Bl&ue:", this, "qt_blue_lbl" );
-    l->setAlignment( AlignRight|AlignVCenter );
+    l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 3 );
     gl->addWidget( bEd, 2, 4 );
 
@@ -434,7 +444,7 @@ void ColorLuminancePicker::paintEvent( QPaintEvent * )
     qDrawShadePanel( &p, r, g, TRUE );
     p.setPen( g.foreground() );
     p.setBrush( g.foreground() );
-    QPointArray a;
+    Q3PointArray a;
     int y = val2y(val);
     a.setPoints( 3, w, y, w+5, y+5, w+5, y-5 );
     erase( w, 0, 5, height() );
@@ -452,7 +462,7 @@ void ColorLuminancePicker::setCol( int h, int s , int v )
 QValidator::State ColIntValidator::validate( QString &s, int &pos ) const
 {
     State state = QIntValidator::validate(s,pos);
-    if ( state == Valid ) {
+    if ( state == QValidator::Intermediate ) {
 	long int val = s.toLong();
 	// This is not a general solution, assumes that top() > 0 and
 	// bottom >= 0
@@ -467,23 +477,23 @@ QValidator::State ColIntValidator::validate( QString &s, int &pos ) const
     return state;
 }
 ColorPickerFrame::ColorPickerFrame(QWidget* parent, const char* name  ) :
-    QFrame(parent, name)
+    Q3Frame(parent, name)
 {
    
     const int lumSpace = 3;
     int border = 12;
    
-    QHBoxLayout *topLay = new QHBoxLayout( this, border, 6 );
-    QVBoxLayout *leftLay = new QVBoxLayout( topLay );
+    Q3HBoxLayout *topLay = new Q3HBoxLayout( this, border, 6 );
+    Q3VBoxLayout *leftLay = new Q3VBoxLayout( topLay );
 
-    QVBoxLayout *rightLay = new QVBoxLayout( topLay );
+    Q3VBoxLayout *rightLay = new Q3VBoxLayout( topLay );
 
-    QHBoxLayout *pickLay = new QHBoxLayout( rightLay );
+    Q3HBoxLayout *pickLay = new Q3HBoxLayout( rightLay );
 
 
-    QVBoxLayout *cLay = new QVBoxLayout( pickLay );
+    Q3VBoxLayout *cLay = new Q3VBoxLayout( pickLay );
     cp = new ColorPicker( this, "qt_colorpicker" );
-    cp->setFrameStyle( QFrame::Panel + QFrame::Sunken );
+    cp->setFrameStyle( Q3Frame::Panel + Q3Frame::Sunken );
     cLay->addSpacing( lumSpace );
     cLay->addWidget( cp );
     cLay->addSpacing( lumSpace );

@@ -8,8 +8,14 @@
 //----------------------------------------------------------------------------
 
 #include <GL/glew.h>
+#ifdef Darwin
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
 #include <qgl.h>
 
 #include "DVRShader.h"
