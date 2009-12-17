@@ -21,15 +21,16 @@
 #include "vizselectcombo.h"
 #include <qcombobox.h>
 #include <q3toolbar.h>
+#include <QToolBar>
 #include <qtooltip.h>
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "assert.h"
 using namespace VAPoR;
-VizSelectCombo::VizSelectCombo(Q3ToolBar* parent, VizWinMgr* mgr)
-	: QComboBox(parent) {
+VizSelectCombo::VizSelectCombo(MainForm* mainWin, QToolBar* tBar, VizWinMgr* mgr)
+	: QComboBox(mainWin) {
+	tBar->addWidget(this);
 	vizWinMgr = mgr;
-	MainForm* mainWin = MainForm::getInstance();
 	currentActive = -1;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		winNum[i] = -1;

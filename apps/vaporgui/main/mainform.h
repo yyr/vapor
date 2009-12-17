@@ -25,7 +25,7 @@
 #define MAINFORM_H
 
 #include <qvariant.h>
-#include <q3mainwindow.h>
+#include <qmainwindow.h>
 #include <qstring.h>
 //Added by qt3to4:
 #include <Q3HBoxLayout>
@@ -45,13 +45,16 @@ class Q3HBoxLayout;
 class Q3GridLayout;
 class QSpacerItem;
 class QAction;
+class QMenu;
 class Q3ActionGroup;
 class Q3ToolBar;
+class QToolBar;
 class Q3PopupMenu;
 class QWidget;
 class QDesktopWidget;
 class QWorkspace;
 class Q3DockWindow;
+class QDockWindow;
 class QLabel;
 class QComboBox;
 class QSpinBox;
@@ -76,7 +79,7 @@ class TwoDDataEventRouter;
 class TwoDImageEventRouter;
 class FlowEventRouter;
 
-class MainForm : public Q3MainWindow
+class MainForm : public QMainWindow
 {
     Q_OBJECT
 
@@ -90,36 +93,68 @@ public:
     MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::WType_TopLevel );
     ~MainForm();
 
-    
+	TabManager* getTabManager() {return tabWidget;}
+
+	ViewpointEventRouter* getVizTab() { return theVizTab;}
+	RegionEventRouter* getRegionTab() {return theRegionTab;}
+	DvrEventRouter* getDvrTab() {return theDvrTab;}
+	ProbeEventRouter* getProbeTab() {return theProbeTab;}
+	TwoDImageEventRouter* getTwoDImageTab() {return theTwoDImageTab;}
+	TwoDDataEventRouter* getTwoDDataTab() {return theTwoDDataTab;}
+	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
+	
+	
+	FlowEventRouter* getFlowTab() {return theFlowTab;}
+	
+	QWorkspace* getWorkspace() {return myWorkspace;}
+	//Disable the editUndo/Redo action:
+	void disableUndoRedo();
+	QApplication* getApp() {return theApp;}
+	
+	void setInteractiveRefinementSpin(int);
+	void setCurrentTimestep(int tstep);
+	//following are accessed during undo/redo
+	QAction* navigationAction;
+	QAction* regionSelectAction;
+	QAction* probeAction;
+	QAction* twoDImageAction;
+	QAction* twoDDataAction;
+	QAction* rakeAction;
+	QAction* moveLightsAction;
+	QAction* editUndoAction;
+	QAction* editRedoAction;
+	QLineEdit* timestepEdit;
+	QComboBox* alignViewCombo;
+private:
+    void createActions(); 
+    void createMenus();
+    void hookupSignals();
+    void createToolBars();
+
     QWidget* tab;
     QWidget* tab_2;
     QMenuBar *Main_Form;
-    Q3PopupMenu *File;
-	Q3PopupMenu *Edit;
-    Q3PopupMenu *Data;
-    Q3PopupMenu *viewMenu;
-	Q3PopupMenu *captureMenu;
+    QMenu *File;
+	QMenu *Edit;
+    QMenu *Data;
+    QMenu *viewMenu;
+	QMenu *captureMenu;
     
-    //QPopupMenu *Script;
     Q3PopupMenu *Rendering;
-    //QPopupMenu *Animation;
-    Q3PopupMenu *helpMenu;
-    Q3ToolBar *modeToolBar;
-	Q3ToolBar *vizToolBar;
-	Q3ToolBar *animationToolbar;
+    QMenu *helpMenu;
+    QToolBar *modeToolBar;
+	QToolBar *vizToolBar;
+	QToolBar *animationToolBar;
    //File menu:
-	//
     QAction* fileOpenAction;
     QAction* fileSaveAction;
     QAction* fileSaveAsAction;
     QAction* fileExitAction;
-	QAction* loadPreferencesAction;
-	QAction* savePreferencesAction;
+    QAction* loadPreferencesAction;
+    QAction* savePreferencesAction;
 
 	//Edit menu:
 	//
-	QAction* editUndoAction;
-	QAction* editRedoAction;
 	QAction* editVizFeaturesAction;
 	QAction* editPreferencesAction;
     
@@ -150,27 +185,10 @@ public:
 	QAction* captureStartFlowCaptureAction;
 	QAction* captureEndFlowCaptureAction;
 
-    //Script menu
-   /*
-    QAction* scriptIDL_scriptAction;
-    QAction* scriptMatlab_scriptAction;
-    QAction* scriptBatchAction;
-    
-    //Animation menu
-    QAction* animationKeyframingAction;
-	QAction* exportAnimationScriptAction;
-    */
     
 	//Toolbars:
 	Q3ActionGroup* mouseModeActions;
-	QAction* navigationAction;
-	QAction* regionSelectAction;
-	QAction* probeAction;
-	QAction* twoDImageAction;
-	QAction* twoDDataAction;
-	QAction* rakeAction;
 	
-	QAction* moveLightsAction;
 	QAction* tileAction;
 	QAction* cascadeAction;
 	QAction* homeAction;
@@ -183,32 +201,10 @@ public:
 	QAction* stepForwardAction;
 	QAction* stepBackAction;
 	QAction* pauseAction;
-	QLineEdit* timestepEdit;
 
-	QComboBox* alignViewCombo;
 	QSpinBox* interactiveRefinementSpin;
 
-    Q3DockWindow* tabDockWindow;
-	TabManager* getTabManager() {return tabWidget;}
-
-	ViewpointEventRouter* getVizTab() { return theVizTab;}
-	RegionEventRouter* getRegionTab() {return theRegionTab;}
-	DvrEventRouter* getDvrTab() {return theDvrTab;}
-	ProbeEventRouter* getProbeTab() {return theProbeTab;}
-	TwoDImageEventRouter* getTwoDImageTab() {return theTwoDImageTab;}
-	TwoDDataEventRouter* getTwoDDataTab() {return theTwoDDataTab;}
-	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
-	
-	
-	FlowEventRouter* getFlowTab() {return theFlowTab;}
-	
-	QWorkspace* getWorkspace() {return myWorkspace;}
-	//Disable the editUndo/Redo action:
-	void disableUndoRedo();
-	QApplication* getApp() {return theApp;}
-	
-	void setInteractiveRefinementSpin(int);
-	void setCurrentTimestep(int tstep);
+    QDockWidget* tabDockWindow;
 
 	
 	

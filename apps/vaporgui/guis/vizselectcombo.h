@@ -23,7 +23,7 @@
 #include <qcombobox.h>
 #include "vizwinmgr.h"
 
-class Q3ToolBar;
+class QToolBar;
 
 namespace VAPoR {
 class VizSelectCombo : public QComboBox{
@@ -31,7 +31,7 @@ class VizSelectCombo : public QComboBox{
 	Q_OBJECT
 
 public:
-	VizSelectCombo(Q3ToolBar* parent, VizWinMgr* mgr);
+	VizSelectCombo(MainForm* parent, QToolBar* tBar, VizWinMgr* mgr);
 protected:
 	//Lookup window num associated with slot
 	int winNum[MAXVIZWINS+1];

@@ -26,6 +26,8 @@
 #include <QMenuItem>
 #include "GL/glew.h"
 #include "mainform.h"
+#include <QDockWidget>
+#include <QToolBar>
 #include <q3dockarea.h>
 #include <qvariant.h>
 #include <qpushbutton.h>
@@ -151,7 +153,7 @@ MainForm* MainForm::theMainForm = 0;
 //Only the main program should call the constructor:
 //
 MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char* name, Qt::WFlags )
-    : Q3MainWindow( parent, name, Qt::WDestructiveClose )
+    : QMainWindow( parent, name, Qt::WDestructiveClose )
 {
 	theMainForm = this;
 	theRegionTab = 0;
@@ -177,7 +179,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		setName( "MainForm" );
     setMinimumSize( QSize( 422, 606 ) );
    
-    setBackgroundOrigin( Q3MainWindow::WindowOrigin );
+    setBackgroundOrigin( QMainWindow::WindowOrigin );
 	
     Q3VBox* vb = new Q3VBox(this);
     //Now insert my qworkspace:
@@ -186,16 +188,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     myWorkspace->setScrollBarsEnabled(true);
    
     
-    
+    createActions();
+    createMenus();
+//    createStatusBar(); 
     
     //Now let's add a docking tabbed window on the left side.
-    tabDockWindow = new Q3DockWindow( Q3DockWindow::InDock, myWorkspace );
-    tabDockWindow->setResizeEnabled( TRUE );
-    tabDockWindow->setVerticalStretchable( TRUE );
-    addDockWindow( tabDockWindow, Qt::DockLeft );
-    setDockEnabled( tabDockWindow, Qt::DockTop, FALSE );
-    setDockEnabled( tabDockWindow, Qt::DockBottom, FALSE );
-    tabDockWindow->setCloseMode( Q3DockWindow::Never );
+    tabDockWindow = new QDockWidget(myWorkspace );
+    addDockWidget(Qt::RightDockWidgetArea, tabDockWindow );
+	tabDockWindow->setFeatures(QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetFloatable);
 	//setup the tab widget, must be done before creating the 
 
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
@@ -220,437 +220,12 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	myVizMgr->createGlobalParams();
 	
 	
-
-    // actions
+    	createToolBars();
     
-    fileOpenAction = new QAction( this, "fileOpenAction" );
-	fileOpenAction->setEnabled(true);
-    //fileOpenAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "fileopen" ) ) );
-    fileSaveAction = new QAction( this, "fileSaveAction" );
-	fileSaveAction->setEnabled(true);
-    //fileSaveAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "filesave" ) ) );
-    fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
-	fileSaveAsAction->setEnabled(true);
-    fileExitAction = new QAction( this, "fileExitAction" );
-	loadPreferencesAction = new QAction(this, "preferencesLoadAction");
-	loadPreferencesAction->setEnabled(true);
-	savePreferencesAction = new QAction(this, "preferencesSaveAction");
-	savePreferencesAction->setEnabled(true);
+    	Main_Form->adjustSize();
+    	languageChange();
+	hookupSignals();   
 
-	editUndoAction = new QAction(this, "editUndoAction");
-	editRedoAction = new QAction(this, "editRedoAction");
-	
-	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
-	editPreferencesAction = new QAction(this, "editUserPreferencesAction");
-	editUndoAction->setEnabled(false);
-	editRedoAction->setEnabled(false);
-    
-	//whatsThisAction = new QAction(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()),"What's This?",SHIFT+Key_F1,0);
-	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
-	whatsThisAction = new QAction(this, "whatsthisaction");
-	whatsThisAction->setEnabled(true);
-
-	
-    //helpContentsAction = new QAction( this, "helpContentsAction" );
-	//helpContentsAction->setEnabled(false);
-    //helpIndexAction = new QAction( this, "helpIndexAction" );
-	//helpIndexAction->setEnabled(false);
-    helpAboutAction = new QAction( this, "helpAboutAction" );
-	helpAboutAction->setEnabled(true);
-    
-    dataBrowse_DataAction = new QAction( this, "dataBrowse_DataAction" );
-	dataBrowse_DataAction->setEnabled(false);
-    dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
-	dataConfigure_MetafileAction->setEnabled(false);
-    dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
-	dataMerge_MetafileAction = new QAction( this, "dataMerge_MetafileAction" );
-	dataSave_MetafileAction = new QAction( this, "dataSave_MetafileAction" );
-	dataLoad_DefaultMetafileAction = new QAction(this, "dataLoad_DefaultMetafileAction");
-	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
-	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
-    
-    
-    viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
-	captureStartJpegCaptureAction = new QAction( this, "captureStartCaptureJpegAction" );
-	captureEndJpegCaptureAction = new QAction( this, "captureEndCaptureJpegAction" );
-	captureSingleJpegCaptureAction = new QAction(this, "captureCaptureSingleJpegAction");
-	
-	/* no script or animation entries:
-    scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
-	scriptIDL_scriptAction->setEnabled(false);
-    scriptMatlab_scriptAction = new QAction( this, "scriptMatlab_scriptAction" );
-	scriptMatlab_scriptAction->setEnabled(false);
-    scriptBatchAction = new QAction(this, "scriptBatchAction");
-	scriptBatchAction->setEnabled(false);
-    
-    animationKeyframingAction = new QAction( this, "animationKeyframingAction" );
-	animationKeyframingAction->setEnabled(false);
-	exportAnimationScriptAction = new QAction(this, "exportAnimationScriptAction");
-	exportAnimationScriptAction->setEnabled(false);
-	*/
-	captureStartJpegCaptureAction = new QAction( this, "jpegStartCaptureAction" );
-	captureEndJpegCaptureAction = new QAction( this, "jpegEndCaptureAction" );
-	captureSingleJpegCaptureAction = new QAction(this, "jpegCaptureSingleAction");
-	captureStartFlowCaptureAction = new QAction( this, "flowStartCaptureAction" );
-	captureEndFlowCaptureAction = new QAction( this, "flowEndCaptureAction" );
-
-	//Create an exclusive action group for the mouse mode toolbars:
-	mouseModeActions = new Q3ActionGroup(this, "mouse action group", true);
-	//Toolbar buttons:
-	QPixmap* wheelIcon = new QPixmap(wheel);
-	
-	if (!wheelIcon){
-		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
-	}
-// QT4	navigationAction = new QAction("Navigation Mode", *wheelIcon,
-//		"&Navigation", 0, mouseModeActions);
-	navigationAction = new QAction(*wheelIcon,"Navigation Mode",mouseModeActions);
-	navigationAction->setToggleAction(true);
-	navigationAction->setOn(true);
-
-	QPixmap* regionIcon = new QPixmap(cube);
-//	regionSelectAction = new QAction("Region Select Mode", *regionIcon,
-//		"&Region", Qt::CTRL+Qt::Key_R, mouseModeActions);
-	regionSelectAction = new QAction(*regionIcon, "Region Select Mode", mouseModeActions);
-	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
-	regionSelectAction->setToggleAction(true);
-	regionSelectAction->setOn(false);
-	
-	QPixmap* probeIcon = new QPixmap(probe);
-	probeAction = new QAction(*probeIcon, "Data Probe and Contour Plane Mode", mouseModeActions);
-//QT4	probeAction = new QAction("Data Probe and Contour Mode", *probeIcon,
-//		"&Probe", 0, mouseModeActions);
-	probeAction->setToggleAction(true);
-	probeAction->setOn(false);
-
-	
-	QPixmap* twoDDataIcon = new QPixmap(twoDData);
-	twoDDataAction = new QAction(*twoDDataIcon, "2D Data Mode", mouseModeActions);
-	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
-// QT4	twoDDataAction = new QAction("2D Mode", *twoDDataIcon,
-//		"&twoDData", Qt::CTRL+Qt::Key_2, mouseModeActions);
-	twoDDataAction->setToggleAction(true);
-	twoDDataAction->setOn(false);
-
-	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
-	twoDImageAction = new QAction(*twoDImageIcon, "Image Mode",mouseModeActions);
-	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
-//QT4	twoDImageAction = new QAction("Image Mode", *twoDImageIcon,
-//		"&twoDImage", Qt::CTRL+Qt::Key_I, mouseModeActions);
-	twoDImageAction->setToggleAction(true);
-	twoDImageAction->setOn(false);
-
-	QPixmap* rakeIcon = new QPixmap(rake);
-	rakeAction = new QAction(*rakeIcon, "Rake Mode", mouseModeActions);
-	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
-//QT4	rakeAction = new QAction("Rake Mode", *rakeIcon,
-//		"&Rake", Qt::CTRL+Qt::Key_K, mouseModeActions);
-	rakeAction->setToggleAction(true);
-	rakeAction->setOn(false);
-
-	//QPixmap* lightsIcon = new QPixmap(lightbulb);
-	//moveLightsAction = new QAction("Move Lights Mode", *lightsIcon,
-	//	"&Lights", CTRL+Key_L, mouseModeActions);
-	//moveLightsAction->setToggleAction(true);
-	//moveLightsAction->setOn(false);
-
-	//Insert toolbar and actions:
-	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction(*homeIcon, "Go to Home Viewpoint", this);
-	homeAction->setShortcut(Qt::CTRL+Qt::Key_H);
-//QT4	homeAction = new QAction("Go to Home Viewpoint", *homeIcon,
-//		"&Home", Qt::CTRL+Qt::Key_H, this);
-	QPixmap* sethomeIcon = new QPixmap(sethome);
-	sethomeAction = new QAction(*sethomeIcon, "Set Home Viewpoint", this);
-//QT4	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
-//		"SetHome", 0, this);
-	QPixmap* eyeIcon = new QPixmap(eye);
-	viewAllAction = new QAction(*eyeIcon, "View All", this);
-	viewAllAction->setShortcut(Qt::CTRL+Qt::Key_V);
-//QT4	viewAllAction = new QAction("View All", *eyeIcon,
-//		"&ViewAll", Qt::CTRL+Qt::Key_V, this);
-	QPixmap* magnifyIcon = new QPixmap(magnify);
-	viewRegionAction = new QAction(*magnifyIcon, "View Region", this);
-//QT4	viewRegionAction = new QAction("View Region", *magnifyIcon,
-//		"ViewRegion", 0, this);
-
-	QPixmap* tileIcon = new QPixmap(tiles);
-	tileAction = new QAction(*tileIcon,"Tile Windows",this);
-	tileAction->setShortcut(Qt::CTRL+Qt::Key_T);
-//QT4	tileAction = new QAction("Tile Windows", *tileIcon,
-//		"&Tile", Qt::CTRL+Qt::Key_T, this);
-
-	QPixmap* cascadeIcon = new QPixmap(cascade);
-	cascadeAction = new QAction(*cascadeIcon, "Cascade Windows", this);
-//QT4	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
-//		"Cascade", 0, this);
-
-
-	//Create actions for each animation control button:
-	QPixmap* playForwardIcon = new QPixmap(playforward);
-	playForwardAction = new QAction(*playForwardIcon, "Play Forward", this);
-	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
-//	playForwardAction = new QAction("Play forward", *playForwardIcon,
-//		"&Play", Qt::CTRL+Qt::Key_P, this);
-	QPixmap* playBackwardIcon = new QPixmap(playreverse);
-	playBackwardAction = new QAction(*playBackwardIcon, "Play Backward",this);
-	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
-	//playBackwardAction = new QAction("Play backward", *playBackwardIcon,
-//		"&Back", Qt::CTRL+Qt::Key_B, this);
-	QPixmap* pauseIcon = new QPixmap(pauseimage);
-	pauseAction = new QAction(*pauseIcon, "Stop animation", this);
-	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
-//	pauseAction = new QAction("Stop animation", *pauseIcon,
-//		"&End play", Qt::CTRL+Qt::Key_E, this);
-	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
-	stepForwardAction = new QAction(*stepForwardIcon, "Step forward", this);
-	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);
-//	stepForwardAction = new QAction("Step forward", *stepForwardIcon,
-//		"&ForwardStep", Qt::CTRL+Qt::Key_F, this);
-	QPixmap* stepBackIcon = new QPixmap(stepback);
-	stepBackAction = new QAction(*stepBackIcon,"Step back",this);
-//	stepBackAction = new QAction("Step back", *stepBackIcon,
-//		"Step back", 0, this);
-
-
-    // toolbars for mouse modes and visualizers
-    modeToolBar = new Q3ToolBar( QString(""), this, Qt::DockTop); 
-	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
-		"that can be used to control the location and position of objects in "+
-		"the 3D scene, by dragging with the mouse in the scene.  These include "+
-		"navigation, region, rake, probe, 2D, and Image tools.";
-	Q3WhatsThis::add(modeToolBar, qws);
-	
-
-	//animation toolbar:
-	animationToolbar = new Q3ToolBar("animation control", this, Qt::DockTop);
-	
-	QString qat = QString("The animation toolbar enables control of the time steps ")+
-		"in the current active visualizer.  Additional controls are available in"+
-		"the animation tab ";
-	Q3WhatsThis::add(animationToolbar, qat);
-	animationToolbar->setVerticallyStretchable(false);
-	
-	vizToolBar = new Q3ToolBar( QString(""), this, Qt::DockTop); 
-	vizToolBar->setOffset(1500);
-	vizToolBar->setVerticallyStretchable(false);
-	
-	Q3DockArea* dkArea = leftDock();
-	dkArea->setAcceptDockWindow(vizToolBar, false);
-	dkArea->setAcceptDockWindow(modeToolBar, false);
-	dkArea->setAcceptDockWindow(animationToolbar, false);
-	dkArea = rightDock();
-	dkArea->setAcceptDockWindow(vizToolBar, false);
-	dkArea->setAcceptDockWindow(modeToolBar, false);
-	dkArea->setAcceptDockWindow(animationToolbar, false);
-	
-
-	//Add a QComboBox to toolbar to select window
-	windowSelector = new VizSelectCombo(vizToolBar, myVizMgr);
-	//add mode buttons, left to right:
-	navigationAction->addTo(modeToolBar);
-	regionSelectAction->addTo(modeToolBar);
-	rakeAction->addTo(modeToolBar);
-	probeAction->addTo(modeToolBar);
-	twoDDataAction->addTo(modeToolBar);
-	twoDImageAction->addTo(modeToolBar);
-
-
-	tileAction->addTo(vizToolBar);
-	cascadeAction->addTo(vizToolBar);
-	homeAction->addTo(vizToolBar);
-	sethomeAction->addTo(vizToolBar);
-	viewRegionAction->addTo(vizToolBar);
-	viewAllAction->addTo(vizToolBar);
-
-	
-	timestepEdit = new QLineEdit(" 0 ", "xxxxx", animationToolbar);
-	timestepEdit->setAlignment(Qt::AlignHCenter);
-	timestepEdit->setMaximumWidth(40);
-	QToolTip::add(timestepEdit, "Edit/Display current time step");
-	playBackwardAction->addTo(animationToolbar);
-	stepBackAction->addTo(animationToolbar);
-	pauseAction->addTo(animationToolbar);
-	stepForwardAction->addTo(animationToolbar);
-	playForwardAction->addTo(animationToolbar);
-	
-	
-
-	alignViewCombo = new QComboBox(vizToolBar);
-	alignViewCombo->insertItem("Align View");
-	alignViewCombo->insertItem("Nearest axis");
-	alignViewCombo->insertItem("     + X ");
-	alignViewCombo->insertItem("     + Y ");
-	alignViewCombo->insertItem("     + Z ");
-	alignViewCombo->insertItem("     - X ");
-	alignViewCombo->insertItem("     - Y ");
-	alignViewCombo->insertItem("Default: - Z ");
-	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
-	
-	interactiveRefinementSpin = new QSpinBox(0, 10, 1, vizToolBar);
-	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
-	
-	QToolTip::add(interactiveRefinementSpin,"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
-	Q3WhatsThis::add(interactiveRefinementSpin, 
-		QString("While the viewpoint is changing due to mouse-dragging ")+
-		"in a visualizer, the refinement level used by the DVR "+
-		"and Iso renderers is reduced to this interactive refinement level, "+
-		"if it is less than the current refinement level of the renderer.");
-    //helpContentsAction->addTo( toolBar );
-    //helpIndexAction->addTo( toolBar );
-    //helpAboutAction->addTo( toolBar );
-
-
-    // menubar
-    Main_Form = new QMenuBar( this, "Main_Form" );
-
-
-    File = new Q3PopupMenu( this );
-    fileNew_SessionAction->addTo( File );
-    fileOpenAction->addTo( File );
-    fileSaveAction->addTo( File );
-    fileSaveAsAction->addTo( File );
-	loadPreferencesAction->addTo(File);
-	savePreferencesAction->addTo(File);
-    fileExitAction->addTo( File );
-    Main_Form->insertItem( QString(""), File, 1 );
-
-	Edit = new Q3PopupMenu(this);
-	editUndoAction->addTo(Edit);
-	editRedoAction->addTo(Edit);
-	
-	editVizFeaturesAction->addTo(Edit);
-	editPreferencesAction->addTo(Edit);
-	Main_Form->insertItem( QString(""), Edit, 2 );
-
-    Data = new Q3PopupMenu( this );
-    dataBrowse_DataAction->addTo( Data );
-    dataConfigure_MetafileAction->addTo( Data );
-	
-    dataLoad_MetafileAction->addTo( Data );
-	dataLoad_DefaultMetafileAction->addTo( Data );
-	dataMerge_MetafileAction->addTo( Data );
-	dataSave_MetafileAction->addTo( Data );
-	
-	dataExportToIDLAction->addTo(Data);
-
-    
-    
-    Main_Form->insertItem( QString(""), Data, 3 );
-
-    viewMenu = new Q3PopupMenu(this);
-	
-	viewLaunch_visualizerAction->addTo(viewMenu);
-	//SingleCaptureAction->addTo(viewMenu);
-	//viewStartCaptureAction->addTo(viewMenu);
-	//viewEndCaptureAction->addTo(viewMenu); 
-	
-    Main_Form->insertItem( QString(""), viewMenu, 4 );
-
-	//Note that the ordering of the following 4 is significant, so that image
-	//capture actions correctly activate each other.
-    captureMenu = new Q3PopupMenu( this );
-    captureSingleJpegCaptureAction->addTo( captureMenu );
-	captureStartJpegCaptureAction->addTo( captureMenu );
-	captureEndJpegCaptureAction->addTo( captureMenu );
-	captureStartFlowCaptureAction->addTo( captureMenu );
-	captureEndFlowCaptureAction->addTo( captureMenu );
-
-	Main_Form->insertItem( QString(""), captureMenu, 5 );
-	/*
-    scriptMatlab_scriptAction->addTo( Script );
-    scriptBatchAction->addTo(Script);
-    Main_Form->insertItem( QString(""), Script, 5 );
-*/
-    
-/*
-    Animation = new QPopupMenu( this );
-    animationKeyframingAction->addTo( Animation );
-	exportAnimationScriptAction->addTo(Animation);
-    Main_Form->insertItem( QString(""), Animation, 6 );
-    */
-    helpMenu = new Q3PopupMenu( this );
-    //helpContentsAction->addTo( helpMenu );
-    //helpIndexAction->addTo( helpMenu );
-	whatsThisAction->addTo(helpMenu);
-    helpMenu->insertSeparator();
-    helpAboutAction->addTo( helpMenu );
-    Main_Form->insertItem( QString(""), helpMenu, 6 );
-    
-
-
-
-    languageChange();
-   
-    // QT4 clearWState( WState_Polished );
-
-    // signals and slots connections
-    connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
-    connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
-    connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
-    connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
-    connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
-	connect( loadPreferencesAction, SIGNAL( activated() ), this, SLOT( loadPrefs() ) );
-	connect( savePreferencesAction, SIGNAL( activated() ), this, SLOT( savePrefs() ) );
-
-	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
-	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
-	
-	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
-	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
-	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
-	
-
-    connect (whatsThisAction, SIGNAL(activated()), SLOT(whatsThis()));
-    //connect( helpIndexAction, SIGNAL( activated() ), this, SLOT( helpIndex() ) );
-    //connect( helpContentsAction, SIGNAL( activated() ), this, SLOT( helpContents() ) );
-    connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
-    
-    connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
-	connect( dataMerge_MetafileAction, SIGNAL( activated() ), this, SLOT( mergeData() ) );
-	connect( dataSave_MetafileAction, SIGNAL( activated() ), this, SLOT( saveMetadata() ) );
-	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
-	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
-	
-	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
-    
-	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
-    connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
-	
-	connect( captureStartJpegCaptureAction, SIGNAL( activated() ), this, SLOT( startJpegCapture() ) );
-	connect( captureEndJpegCaptureAction, SIGNAL( activated() ), this, SLOT( endJpegCapture() ) );
-	connect (captureSingleJpegCaptureAction, SIGNAL(activated()), this, SLOT (captureSingleJpeg()));
-	connect( captureStartFlowCaptureAction, SIGNAL( activated() ), this, SLOT( startFlowCapture() ) );
-	connect( captureEndFlowCaptureAction, SIGNAL( activated() ), this, SLOT( endFlowCapture() ) );
-    
-	//connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
-
-	//Toolbar actions:
-	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
-	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
-	
-	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
-	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
-	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
-	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
-	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
-	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
-	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
-	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
-	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
-	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
-	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
-
-	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
- 
-	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
- 
-	connect (playForwardAction, SIGNAL(activated()), this, SLOT(playForward()));
-	connect (playBackwardAction, SIGNAL(activated()), this, SLOT(playBackward()));
-	connect (pauseAction, SIGNAL(activated()), this, SLOT(pauseClick()));
-	connect (stepForwardAction, SIGNAL(activated()), this, SLOT(stepForward()));
-	connect (stepBackAction, SIGNAL(activated()), this, SLOT(stepBack()));
-	connect (timestepEdit, SIGNAL(returnPressed()),this, SLOT(setTimestep()));
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
 	
 	//These need to be installed to set the tab pointers in the
@@ -718,6 +293,342 @@ MainForm::~MainForm()
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
 }
 
+void MainForm::createToolBars(){
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+    // mouse mode toolbar:
+    	modeToolBar = addToolBar(""); 
+//	modeToolBar->setAllowedAreas(Qt::TopToolBarArea);
+	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
+		"that can be used to control the location and position of objects in "+
+		"the 3D scene, by dragging with the mouse in the scene.  These include "+
+		"navigation, region, rake, probe, 2D, and Image tools.";
+	Q3WhatsThis::add(modeToolBar, qws);
+	//add mode buttons, left to right:
+	navigationAction->addTo(modeToolBar);
+	regionSelectAction->addTo(modeToolBar);
+	rakeAction->addTo(modeToolBar);
+	probeAction->addTo(modeToolBar);
+	twoDDataAction->addTo(modeToolBar);
+	twoDImageAction->addTo(modeToolBar);
+	
+
+// Animation Toolbar:
+	animationToolBar = addToolBar("animation control");
+//	animationToolBar->setAllowedAreas(Qt::TopToolBarArea);
+	timestepEdit = new QLineEdit(" 0 ", "xxxxx", animationToolBar);
+	timestepEdit->setAlignment(Qt::AlignHCenter);
+	timestepEdit->setMaximumWidth(40);
+	QToolTip::add(timestepEdit, "Edit/Display current time step");
+	animationToolBar->addWidget(timestepEdit);
+	playBackwardAction->addTo(animationToolBar);
+	stepBackAction->addTo(animationToolBar);
+	pauseAction->addTo(animationToolBar);
+	stepForwardAction->addTo(animationToolBar);
+	playForwardAction->addTo(animationToolBar);
+	
+	QString qat = QString("The animation toolbar enables control of the time steps ")+
+		"in the current active visualizer.  Additional controls are available in"+
+		"the animation tab ";
+	Q3WhatsThis::add(animationToolBar, qat);
+	
+
+// Viz tool bar:
+	vizToolBar = addToolBar("");
+//	vizToolBar->setAllowedAreas(Qt::TopToolBarArea);
+	
+
+	//Add a QComboBox to toolbar to select window
+	windowSelector = new VizSelectCombo(this, vizToolBar, myVizMgr);
+
+
+	tileAction->addTo(vizToolBar);
+	cascadeAction->addTo(vizToolBar);
+	homeAction->addTo(vizToolBar);
+	sethomeAction->addTo(vizToolBar);
+	viewRegionAction->addTo(vizToolBar);
+	viewAllAction->addTo(vizToolBar);
+
+
+	alignViewCombo = new QComboBox(vizToolBar);
+	alignViewCombo->insertItem("Align View");
+	alignViewCombo->insertItem("Nearest axis");
+	alignViewCombo->insertItem("     + X ");
+	alignViewCombo->insertItem("     + Y ");
+	alignViewCombo->insertItem("     + Z ");
+	alignViewCombo->insertItem("     - X ");
+	alignViewCombo->insertItem("     - Y ");
+	alignViewCombo->insertItem("Default: - Z ");
+	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
+	
+	vizToolBar->addWidget(alignViewCombo);
+	interactiveRefinementSpin = new QSpinBox(0, 10, 1, vizToolBar);
+	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
+	
+	QToolTip::add(interactiveRefinementSpin,"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
+	Q3WhatsThis::add(interactiveRefinementSpin, 
+		QString("While the viewpoint is changing due to mouse-dragging ")+
+		"in a visualizer, the refinement level used by the DVR "+
+		"and Iso renderers is reduced to this interactive refinement level, "+
+		"if it is less than the current refinement level of the renderer.");
+	vizToolBar->addWidget(interactiveRefinementSpin);
+}
+void MainForm::hookupSignals() {
+    VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+    // signals and slots connections
+    connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
+    connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
+    connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
+    connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
+    connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
+	connect( loadPreferencesAction, SIGNAL( activated() ), this, SLOT( loadPrefs() ) );
+	connect( savePreferencesAction, SIGNAL( activated() ), this, SLOT( savePrefs() ) );
+
+	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
+	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
+	
+	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
+	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
+	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
+	
+
+    connect (whatsThisAction, SIGNAL(activated()), SLOT(whatsThis()));
+    connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
+    
+    connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
+	connect( dataMerge_MetafileAction, SIGNAL( activated() ), this, SLOT( mergeData() ) );
+	connect( dataSave_MetafileAction, SIGNAL( activated() ), this, SLOT( saveMetadata() ) );
+	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
+	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
+	
+	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
+    
+	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
+    connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
+	
+	connect( captureStartJpegCaptureAction, SIGNAL( activated() ), this, SLOT( startJpegCapture() ) );
+	connect( captureEndJpegCaptureAction, SIGNAL( activated() ), this, SLOT( endJpegCapture() ) );
+	connect (captureSingleJpegCaptureAction, SIGNAL(activated()), this, SLOT (captureSingleJpeg()));
+	connect( captureStartFlowCaptureAction, SIGNAL( activated() ), this, SLOT( startFlowCapture() ) );
+	connect( captureEndFlowCaptureAction, SIGNAL( activated() ), this, SLOT( endFlowCapture() ) );
+    
+	//connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
+
+	//Toolbar actions:
+	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
+	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
+	
+	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
+	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
+	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
+	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
+	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
+	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
+	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
+	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
+	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
+	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
+	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
+
+	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
+ 
+	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
+ 
+	connect (playForwardAction, SIGNAL(activated()), this, SLOT(playForward()));
+	connect (playBackwardAction, SIGNAL(activated()), this, SLOT(playBackward()));
+	connect (pauseAction, SIGNAL(activated()), this, SLOT(pauseClick()));
+	connect (stepForwardAction, SIGNAL(activated()), this, SLOT(stepForward()));
+	connect (stepBackAction, SIGNAL(activated()), this, SLOT(stepBack()));
+	connect (timestepEdit, SIGNAL(returnPressed()),this, SLOT(setTimestep()));
+}
+
+void MainForm::createMenus(){
+    // menubar
+    Main_Form = new QMenuBar( this, "Main_Form" );
+    File = new QMenu("File", this );
+    fileNew_SessionAction->addTo( File );
+    fileOpenAction->addTo( File );
+    fileSaveAction->addTo( File );
+    fileSaveAsAction->addTo( File );
+	loadPreferencesAction->addTo(File);
+	savePreferencesAction->addTo(File);
+    fileExitAction->addTo( File );
+	Main_Form->addMenu(File);
+	Edit = new QMenu("Edit", this);
+	editUndoAction->addTo(Edit);
+	editRedoAction->addTo(Edit);
+	
+	editVizFeaturesAction->addTo(Edit);
+	editPreferencesAction->addTo(Edit);
+	Main_Form->addMenu(Edit);
+
+    Data = new QMenu("Data", this );
+    dataBrowse_DataAction->addTo( Data );
+    dataConfigure_MetafileAction->addTo( Data );
+	
+    dataLoad_MetafileAction->addTo( Data );
+	dataLoad_DefaultMetafileAction->addTo( Data );
+	dataMerge_MetafileAction->addTo( Data );
+	dataSave_MetafileAction->addTo( Data );
+	
+	dataExportToIDLAction->addTo(Data);
+    
+	Main_Form->addMenu(Data);
+
+    viewMenu = new QMenu("View",this);
+	
+	viewLaunch_visualizerAction->addTo(viewMenu);
+	Main_Form->addMenu(viewMenu);
+
+	//Note that the ordering of the following 4 is significant, so that image
+	//capture actions correctly activate each other.
+    captureMenu = new QMenu("Capture", this );
+    captureSingleJpegCaptureAction->addTo( captureMenu );
+	captureStartJpegCaptureAction->addTo( captureMenu );
+	captureEndJpegCaptureAction->addTo( captureMenu );
+	captureStartFlowCaptureAction->addTo( captureMenu );
+	captureEndFlowCaptureAction->addTo( captureMenu );
+
+	Main_Form->addMenu(captureMenu);
+    
+    Main_Form->addSeparator();
+
+    helpMenu = new QMenu("Help", this );
+	whatsThisAction->addTo(helpMenu);
+    helpMenu->insertSeparator();
+    helpAboutAction->addTo( helpMenu );
+	Main_Form->addMenu(helpMenu);
+}
+
+void MainForm::createActions(){
+    // first do actions for menu bar:
+    
+    fileOpenAction = new QAction( this, "fileOpenAction" );
+	fileOpenAction->setEnabled(true);
+    fileSaveAction = new QAction( this, "fileSaveAction" );
+	fileSaveAction->setEnabled(true);
+    fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
+	fileSaveAsAction->setEnabled(true);
+    fileExitAction = new QAction( this, "fileExitAction" );
+	loadPreferencesAction = new QAction(this, "preferencesLoadAction");
+	loadPreferencesAction->setEnabled(true);
+	savePreferencesAction = new QAction(this, "preferencesSaveAction");
+	savePreferencesAction->setEnabled(true);
+
+	editUndoAction = new QAction(this, "editUndoAction");
+	editRedoAction = new QAction(this, "editRedoAction");
+	
+	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
+	editPreferencesAction = new QAction(this, "editUserPreferencesAction");
+	editUndoAction->setEnabled(false);
+	editRedoAction->setEnabled(false);
+    
+	whatsThisAction = new QAction(this, "whatsthisaction");
+	whatsThisAction->setEnabled(true);
+
+    helpAboutAction = new QAction( this, "helpAboutAction" );
+	helpAboutAction->setEnabled(true);
+    
+    dataBrowse_DataAction = new QAction( this, "dataBrowse_DataAction" );
+	dataBrowse_DataAction->setEnabled(false);
+    dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
+	dataConfigure_MetafileAction->setEnabled(false);
+    dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
+	dataMerge_MetafileAction = new QAction( this, "dataMerge_MetafileAction" );
+	dataSave_MetafileAction = new QAction( this, "dataSave_MetafileAction" );
+	dataLoad_DefaultMetafileAction = new QAction(this, "dataLoad_DefaultMetafileAction");
+	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
+	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
+    
+    
+    viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
+	captureStartJpegCaptureAction = new QAction( this, "captureStartCaptureJpegAction" );
+	captureEndJpegCaptureAction = new QAction( this, "captureEndCaptureJpegAction" );
+	captureSingleJpegCaptureAction = new QAction(this, "captureCaptureSingleJpegAction");
+	captureStartJpegCaptureAction = new QAction( this, "jpegStartCaptureAction" );
+	captureEndJpegCaptureAction = new QAction( this, "jpegEndCaptureAction" );
+	captureSingleJpegCaptureAction = new QAction(this, "jpegCaptureSingleAction");
+	captureStartFlowCaptureAction = new QAction( this, "flowStartCaptureAction" );
+	captureEndFlowCaptureAction = new QAction( this, "flowEndCaptureAction" );
+
+	//Then do the actions for the toolbars:
+	//Create an exclusive action group for the mouse mode toolbar:
+	mouseModeActions = new Q3ActionGroup(this, "mouse action group", true);
+	//Toolbar buttons:
+	QPixmap* wheelIcon = new QPixmap(wheel);
+	
+	if (!wheelIcon){
+		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
+	}
+	navigationAction = new QAction(*wheelIcon,"Navigation Mode",mouseModeActions);
+	navigationAction->setToggleAction(true);
+	navigationAction->setOn(true);
+
+	QPixmap* regionIcon = new QPixmap(cube);
+	regionSelectAction = new QAction(*regionIcon, "Region Select Mode", mouseModeActions);
+	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
+	regionSelectAction->setToggleAction(true);
+	regionSelectAction->setOn(false);
+	
+	QPixmap* probeIcon = new QPixmap(probe);
+	probeAction = new QAction(*probeIcon, "Data Probe and Contour Plane Mode", mouseModeActions);
+	probeAction->setToggleAction(true);
+	probeAction->setOn(false);
+
+	
+	QPixmap* twoDDataIcon = new QPixmap(twoDData);
+	twoDDataAction = new QAction(*twoDDataIcon, "2D Data Mode", mouseModeActions);
+	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
+	twoDDataAction->setToggleAction(true);
+	twoDDataAction->setOn(false);
+
+	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
+	twoDImageAction = new QAction(*twoDImageIcon, "Image Mode",mouseModeActions);
+	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
+	twoDImageAction->setToggleAction(true);
+	twoDImageAction->setOn(false);
+
+	QPixmap* rakeIcon = new QPixmap(rake);
+	rakeAction = new QAction(*rakeIcon, "Rake Mode", mouseModeActions);
+	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
+	rakeAction->setToggleAction(true);
+	rakeAction->setOn(false);
+
+	//Actions for the viztoolbar:
+	QPixmap* homeIcon = new QPixmap(home);
+	homeAction = new QAction(*homeIcon, "Go to Home Viewpoint", this);
+	homeAction->setShortcut(Qt::CTRL+Qt::Key_H);
+	QPixmap* sethomeIcon = new QPixmap(sethome);
+	sethomeAction = new QAction(*sethomeIcon, "Set Home Viewpoint", this);
+	QPixmap* eyeIcon = new QPixmap(eye);
+	viewAllAction = new QAction(*eyeIcon, "View All", this);
+	viewAllAction->setShortcut(Qt::CTRL+Qt::Key_V);
+	QPixmap* magnifyIcon = new QPixmap(magnify);
+	viewRegionAction = new QAction(*magnifyIcon, "View Region", this);
+
+	QPixmap* tileIcon = new QPixmap(tiles);
+	tileAction = new QAction(*tileIcon,"Tile Windows",this);
+	tileAction->setShortcut(Qt::CTRL+Qt::Key_T);
+
+	QPixmap* cascadeIcon = new QPixmap(cascade);
+	cascadeAction = new QAction(*cascadeIcon, "Cascade Windows", this);
+
+
+	//Create actions for each animation control button:
+	QPixmap* playForwardIcon = new QPixmap(playforward);
+	playForwardAction = new QAction(*playForwardIcon, "Play Forward", this);
+	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
+	QPixmap* playBackwardIcon = new QPixmap(playreverse);
+	playBackwardAction = new QAction(*playBackwardIcon, "Play Backward",this);
+	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
+	QPixmap* pauseIcon = new QPixmap(pauseimage);
+	pauseAction = new QAction(*pauseIcon, "Stop animation", this);
+	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
+	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
+	stepForwardAction = new QAction(*stepForwardIcon, "Step forward", this);
+	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);
+	QPixmap* stepBackIcon = new QPixmap(stepback);
+	stepBackAction = new QAction(*stepBackIcon,"Step back",this);
+}
 /*
  *  Sets the strings of the subwidgets using the current
  *  language.
@@ -1526,7 +1437,6 @@ void MainForm::setNavigate(bool on)
 		}
 		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
 		statusBar()->addWidget(modeStatusWidget,2);
-		//statusBar()->message("Use right mouse to rotate, left to zoom, middle to translate",10000);
 	}
 	//resetModeButtons();
 }
@@ -1962,5 +1872,5 @@ void MainForm::setCurrentTimestep(int tstep){
 }
 void MainForm::paintEvent(QPaintEvent* e){
 	MessageReporter::infoMsg("MainForm::paintEvent");
-	Q3MainWindow::paintEvent(e);
+	QMainWindow::paintEvent(e);
 }
