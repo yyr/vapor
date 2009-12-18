@@ -49,8 +49,8 @@ endif
 endif
 
 ifeq ($(ARCH),Darwin)
-MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
-MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers
+MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices -framework Carbon -framework AppKit -framework ApplicationServices -framework OpenGL -framework AGL
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
 endif   
 
