@@ -171,7 +171,6 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	setIcon(QPixmap(vapor_icon___));
 
-    (void)statusBar();
     //insert my qmdiArea:
     myMDIArea = new QMdiArea;
     myMDIArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -218,6 +217,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	createToolBars();	
 	
+    (void)statusBar();
     	Main_Form->adjustSize();
     	languageChange();
 	hookupSignals();   
@@ -440,8 +440,9 @@ void MainForm::hookupSignals() {
 
 void MainForm::createMenus(){
     // menubar
-    Main_Form = new QMenuBar( this, "Main_Form" );
-    File = new QMenu("File", this );
+//    Main_Form = new QMenuBar( this, "Main_Form" );
+    Main_Form = menuBar();
+    File = menuBar()->addMenu(tr("File"));
     fileNew_SessionAction->addTo( File );
     fileOpenAction->addTo( File );
     fileSaveAction->addTo( File );
@@ -449,16 +450,18 @@ void MainForm::createMenus(){
 	loadPreferencesAction->addTo(File);
 	savePreferencesAction->addTo(File);
     fileExitAction->addTo( File );
-	Main_Form->addMenu(File);
-	Edit = new QMenu("Edit", this);
+//	Main_Form->addMenu(File);
+//	Edit = new QMenu("Edit", this);
+    Edit = menuBar()->addMenu(tr("Edit"));
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
 	
 	editVizFeaturesAction->addTo(Edit);
 	editPreferencesAction->addTo(Edit);
-	Main_Form->addMenu(Edit);
+//	Main_Form->addMenu(Edit);
 
-    Data = new QMenu("Data", this );
+    Data = menuBar()->addMenu(tr("Data"));
+//    Data = new QMenu("Data", this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
 	
@@ -471,29 +474,32 @@ void MainForm::createMenus(){
     
 	Main_Form->addMenu(Data);
 
-    viewMenu = new QMenu("View",this);
+    viewMenu = menuBar()->addMenu(tr("View"));
+//    viewMenu = new QMenu("View",this);
 	
 	viewLaunch_visualizerAction->addTo(viewMenu);
-	Main_Form->addMenu(viewMenu);
+//	Main_Form->addMenu(viewMenu);
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
-    captureMenu = new QMenu("Capture", this );
+    captureMenu = menuBar()->addMenu(tr("Capture"));
+//    captureMenu = new QMenu("Capture", this );
     captureSingleJpegCaptureAction->addTo( captureMenu );
 	captureStartJpegCaptureAction->addTo( captureMenu );
 	captureEndJpegCaptureAction->addTo( captureMenu );
 	captureStartFlowCaptureAction->addTo( captureMenu );
 	captureEndFlowCaptureAction->addTo( captureMenu );
 
-	Main_Form->addMenu(captureMenu);
+//	Main_Form->addMenu(captureMenu);
     
     Main_Form->addSeparator();
 
-    helpMenu = new QMenu("Help", this );
+    helpMenu = menuBar()->addMenu(tr("Help"));
+//    helpMenu = new QMenu("Help", this );
 	whatsThisAction->addTo(helpMenu);
     helpMenu->insertSeparator();
     helpAboutAction->addTo( helpMenu );
-	Main_Form->addMenu(helpMenu);
+//	Main_Form->addMenu(helpMenu);
 }
 
 void MainForm::createActions(){
