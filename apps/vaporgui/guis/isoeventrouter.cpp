@@ -27,7 +27,6 @@
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
-#include <qworkspace.h>
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>

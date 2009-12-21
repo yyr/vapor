@@ -28,7 +28,8 @@
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
-#include <qworkspace.h>
+//#include <qworkspace.h>
+#include <QMdiArea>
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
@@ -140,7 +141,7 @@ const string  VizWinMgr::_vizElevGridTextureNameAttr = "ElevGridTextureFilename"
 VizWinMgr::VizWinMgr() 
 {
 	myMainWindow = MainForm::getInstance();
-    myWorkspace = myMainWindow->getWorkspace();
+    myMDIArea = myMainWindow->getMDIArea();
     tabManager = myMainWindow->getTabManager();
     previousClass = 0;
 	activeViz = -1;
@@ -361,7 +362,10 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	if (strlen(newName) != 0) vizName[useWindowNum] = newName;
 	else vizName[useWindowNum] = ((QString("Visualizer No. ")+QString::number(useWindowNum)));
 	emit (newViz(vizName[useWindowNum], useWindowNum));
-	vizWin[useWindowNum] = new VizWin (myWorkspace, vizName[useWindowNum].ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, useWindowNum);
+//	vizWin[useWindowNum] = new VizWin (myWorkspace, vizName[useWindowNum].ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, useWindowNum);
+	vizWin[useWindowNum] = new VizWin (MainForm::getInstance(), vizName[useWindowNum].ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, useWindowNum);
+	MainForm::getInstance()->getMDIArea()->addSubWindow(vizWin[useWindowNum]);
+	
 	vizWin[useWindowNum]->setWindowNum(useWindowNum);
 	
 
@@ -542,7 +546,7 @@ cameraBeyondRegionCenter(int coord, int vizWinNum){
 void 
 VizWinMgr::cascade(){
 	Session::getInstance()->blockRecording();
-    myWorkspace->cascade();
+   	myMDIArea->cascadeSubWindows(); 
 	//Now size them up to a reasonable size:
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]) {
@@ -566,7 +570,7 @@ VizWinMgr::coverRight(){
 void 
 VizWinMgr::fitSpace(){
 	Session::getInstance()->blockRecording();
-    myWorkspace->tile();
+    myMDIArea->tileSubWindows();
 	Session::getInstance()->unblockRecording();
 }
 

@@ -84,7 +84,7 @@ using namespace VAPoR;
  *  name 'name' and widget flags set to 'f'.
  *
  */
-VizWin::VizWin( QWorkspace* parent, const char* name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
+VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : Q3MainWindow( (QWidget*)parent, name, fl )
 {
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
@@ -839,7 +839,7 @@ void VizWin::helpAbout()
 //Due to X11 probs need to check again.  Compare this window with the available space.
 bool VizWin::isReallyMaximized() {
     if (isMaximized() ) return true;
-	QWidget* thisCentralWidget = ((Q3MainWindow*)MainForm::getInstance())->centralWidget();
+	QWidget* thisCentralWidget = (MainForm::getInstance())->centralWidget();
     QSize mySize = frameSize();
     QSize spaceSize = thisCentralWidget->size();
     //qWarning(" space is %d by %d, frame is %d by %d ", spaceSize.width(), spaceSize.height(), mySize.width(), mySize.height());

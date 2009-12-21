@@ -54,7 +54,6 @@ class Q3PopupMenu;
 class QResizeEvent;
 class QHideEvent;
 class QRect;
-class QWorkspace;
 class Q3HBoxLayout;
 
 #include "glwindow.h"
@@ -77,7 +76,7 @@ class VizWin : public Q3MainWindow
 
             
 public:
-    VizWin( QWorkspace* parent , const char* name , Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
+    VizWin(MainForm* parent , const char* name , Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
 
 	
@@ -236,7 +235,7 @@ public slots:
 	
 protected:
 	
-    QWorkspace* myParent;
+    MainForm* myParent;
     int myWindowNum;
     VizWinMgr* myWinMgr;
 	Trackball* myTrackball;

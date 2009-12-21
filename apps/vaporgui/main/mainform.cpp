@@ -50,13 +50,12 @@
 #include <qdesktopwidget.h>
 #include <qmessagebox.h>
 #include <q3vbox.h>
-#include <qworkspace.h>
+#include <QMdiArea>
 #include <qcolordialog.h>
 #include <qstatusbar.h>
 #include <qlabel.h>
 #include <qspinbox.h>
 #include <qtoolbutton.h>
-//Added by qt3to4:
 #include <QPaintEvent>
 #include <Q3ActionGroup>
 
@@ -170,30 +169,28 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	interactiveRefinementSpin = 0;
 	modeStatusWidget = 0;
 	
-	
-	//QPixmap* vaporIcon = new QPixmap(vapor_icon___));
 	setIcon(QPixmap(vapor_icon___));
 
     (void)statusBar();
+    //insert my qmdiArea:
+    myMDIArea = new QMdiArea;
+    myMDIArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    myMDIArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setCentralWidget(myMDIArea);
+
     if ( !name )
 		setName( "MainForm" );
     setMinimumSize( QSize( 422, 606 ) );
    
     setBackgroundOrigin( QMainWindow::WindowOrigin );
 	
-    Q3VBox* vb = new Q3VBox(this);
-    //Now insert my qworkspace:
-    myWorkspace = new QWorkspace(vb);
-    setCentralWidget(vb);
-    myWorkspace->setScrollBarsEnabled(true);
    
-    
     createActions();
     createMenus();
-//    createStatusBar(); 
     
+
     //Now let's add a docking tabbed window on the left side.
-    tabDockWindow = new QDockWidget(myWorkspace );
+    tabDockWindow = new QDockWidget(this );
     addDockWidget(Qt::RightDockWidgetArea, tabDockWindow );
 	tabDockWindow->setFeatures(QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetFloatable);
 	//setup the tab widget, must be done before creating the 
@@ -219,9 +216,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	
 	myVizMgr->createGlobalParams();
 	
+	createToolBars();	
 	
-    	createToolBars();
-    
     	Main_Form->adjustSize();
     	languageChange();
 	hookupSignals();   
@@ -244,6 +240,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	launchFlowTab();
 	//The last one is in front:
 	renderDVR();
+
 	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
@@ -1297,13 +1294,11 @@ animationParams(){
 		myVizMgr->hookUpAnimationTab(theAnimationTab);
 	}
    
-
 	AnimationEventRouter* myAnimationRouter = myVizMgr->getAnimationRouter();
 	
 	int posn = tabWidget->findWidget(Params::AnimationParamsType);
          
 	//Create a new parameter class to work with the widget
-		
     
 	if (posn < 0){
 		tabWidget->insertWidget(theAnimationTab, Params::AnimationParamsType, true );

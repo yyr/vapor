@@ -69,14 +69,16 @@ int main( int argc, char ** argv ) {
 	
 	//The pointsize of 10 works ok on linux and irix, not windows
 	//The weight of 55 is slightly heavier than normal.
-#ifdef WIN32
+//QT4 #ifdef WIN32
 	//default font is OK on windows
 	QFont myFont = a.font();
-	myFont.setPointSize(9);
+	myFont.setPointSize(10);
 	myFont.setWeight(60);
     a.setFont(myFont);
-#else
+//#else
 	//Helvetica looks better on X11 platforms
+	
+/* QT4:  use default fonts
 	QFont myFont(QString("Helvetica"), 10);
 	if (myFont.exactMatch()){
 		////qWarning("Using Helvetica font");
@@ -90,8 +92,9 @@ int main( int argc, char ** argv ) {
 		//qWarning("Using default font family: %s", myFont.family().ascii());
 		a.setFont(myFont);
 	}
+*/
 
-#endif
+//#endif
 	QString fileName("");
     if (argc > 1) fileName = argv[1];
     MainForm* mw = new MainForm(fileName,app);

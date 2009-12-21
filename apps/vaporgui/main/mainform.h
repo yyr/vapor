@@ -52,7 +52,7 @@ class QToolBar;
 class Q3PopupMenu;
 class QWidget;
 class QDesktopWidget;
-class QWorkspace;
+class QMdiArea;
 class Q3DockWindow;
 class QDockWindow;
 class QLabel;
@@ -106,7 +106,8 @@ public:
 	
 	FlowEventRouter* getFlowTab() {return theFlowTab;}
 	
-	QWorkspace* getWorkspace() {return myWorkspace;}
+	//QT4.6QWorkspace* getWorkspace() {return myWorkspace;}
+	QMdiArea* getMDIArea() {return myMDIArea;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
 	QApplication* getApp() {return theApp;}
@@ -281,7 +282,8 @@ protected:
 	
 	Params::ParamType currentFrontTab;
 	
-	QWorkspace* myWorkspace;
+	//QT4.6QWorkspace* myWorkspace;
+	QMdiArea* myMDIArea;
     TabManager* tabWidget;
     Q3HBoxLayout* MainFormLayout;
     Q3HBoxLayout* tabLayout;

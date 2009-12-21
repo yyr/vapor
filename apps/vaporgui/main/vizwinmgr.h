@@ -31,7 +31,7 @@
 
 
 
-class QWorkspace;
+class QMdiArea;
 class QWidget;
 class QDesktopWidget;
 class QMainWidget;
@@ -600,7 +600,7 @@ protected:
     int activeViz;
 	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance,parsingTwoDDataInstance,parsingTwoDImageInstance;
 	
-    QWorkspace* myWorkspace;
+    QMdiArea* myMDIArea;
 	
 	
 	
