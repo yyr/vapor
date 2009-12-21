@@ -27,33 +27,20 @@
 #include <qvariant.h>
 #include <qmainwindow.h>
 #include <qstring.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
 #include <QPaintEvent>
-#include <Q3GridLayout>
+#include <QActionGroup>
 #include <QLabel>
-#include <Q3PopupMenu>
-#include <Q3VBoxLayout>
-#include <Q3ActionGroup>
-
-
 #include "command.h"
 #include "params.h"
 class QApplication;
-class Q3VBoxLayout;
-class Q3HBoxLayout;
-class Q3GridLayout;
 class QSpacerItem;
 class QAction;
 class QMenu;
-class Q3ActionGroup;
-class Q3ToolBar;
+class QActionGroup;
 class QToolBar;
-class Q3PopupMenu;
 class QWidget;
 class QDesktopWidget;
 class QMdiArea;
-class Q3DockWindow;
 class QDockWindow;
 class QLabel;
 class QComboBox;
@@ -90,9 +77,8 @@ public:
 			assert(0);
 		return theMainForm;
 	}
-    MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::WType_TopLevel );
-    ~MainForm();
-
+    	MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::WType_TopLevel );
+    	~MainForm();
 	TabManager* getTabManager() {return tabWidget;}
 
 	ViewpointEventRouter* getVizTab() { return theVizTab;}
@@ -106,7 +92,6 @@ public:
 	
 	FlowEventRouter* getFlowTab() {return theFlowTab;}
 	
-	//QT4.6QWorkspace* getWorkspace() {return myWorkspace;}
 	QMdiArea* getMDIArea() {return myMDIArea;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
@@ -136,16 +121,15 @@ private:
     QWidget* tab_2;
     QMenuBar *Main_Form;
     QMenu *File;
-	QMenu *Edit;
+    QMenu *Edit;
     QMenu *Data;
     QMenu *viewMenu;
-	QMenu *captureMenu;
+    QMenu *captureMenu;
     
-    Q3PopupMenu *Rendering;
     QMenu *helpMenu;
     QToolBar *modeToolBar;
-	QToolBar *vizToolBar;
-	QToolBar *animationToolBar;
+    QToolBar *vizToolBar;
+    QToolBar *animationToolBar;
    //File menu:
     QAction* fileOpenAction;
     QAction* fileSaveAction;
@@ -156,24 +140,23 @@ private:
 
 	//Edit menu:
 	//
-	QAction* editVizFeaturesAction;
-	QAction* editPreferencesAction;
+    QAction* editVizFeaturesAction;
+    QAction* editPreferencesAction;
     
     //Help menu
-	//
     QAction* helpContentsAction;
     QAction* helpIndexAction;
     QAction* helpAboutAction;
-	QAction* whatsThisAction;
+    QAction* whatsThisAction;
     //Data menu
     QAction* dataBrowse_DataAction;
-	QAction* dataExportToIDLAction;
+    QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
-	QAction* dataMerge_MetafileAction;
+    QAction* dataMerge_MetafileAction;
     QAction* dataLoad_MetafileAction;
-	QAction* dataLoad_DefaultMetafileAction;
-	QAction* dataSave_MetafileAction;
-	QAction* fileNew_SessionAction;
+    QAction* dataLoad_DefaultMetafileAction;
+    QAction* dataSave_MetafileAction;
+    QAction* fileNew_SessionAction;
 	
     
    //View menu
@@ -188,7 +171,7 @@ private:
 
     
 	//Toolbars:
-	Q3ActionGroup* mouseModeActions;
+	QActionGroup* mouseModeActions;
 	
 	QAction* tileAction;
 	QAction* cascadeAction;
@@ -282,13 +265,9 @@ protected:
 	
 	Params::ParamType currentFrontTab;
 	
-	//QT4.6QWorkspace* myWorkspace;
 	QMdiArea* myMDIArea;
-    TabManager* tabWidget;
-    Q3HBoxLayout* MainFormLayout;
-    Q3HBoxLayout* tabLayout;
-    Q3HBoxLayout* tabLayout_2;
-    QDesktopWidget* myDesktopWidget;
+    	TabManager* tabWidget;
+    	QDesktopWidget* myDesktopWidget;
 	ViewpointEventRouter* theVizTab;
 	RegionEventRouter* theRegionTab;
 	DvrEventRouter* theDvrTab;
@@ -309,7 +288,7 @@ protected:
 	
 
 protected slots:
-    virtual void languageChange();
+    	virtual void languageChange();
 	void initCaptureMenu();
 	void setInteractiveRefLevel(int);
 

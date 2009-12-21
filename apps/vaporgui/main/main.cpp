@@ -26,7 +26,7 @@ void myMessageOutput( QtMsgType type, const char *msg )
 {
     switch ( type ) {
         case QtDebugMsg:
-			MessageReporter::infoMsg("qDebug: %s\n", msg );
+	    MessageReporter::infoMsg("qDebug: %s\n", msg );
             break;
         case QtWarningMsg:
             MessageReporter::infoMsg("qWarning: %s\n", msg );

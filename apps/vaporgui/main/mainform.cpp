@@ -28,19 +28,16 @@
 #include "mainform.h"
 #include <QDockWidget>
 #include <QToolBar>
-#include <q3dockarea.h>
+#include <QWhatsThis>
+#include <QFileDialog>
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qtabwidget.h>
 #include <qwidget.h>
-#include <qlayout.h>
 #include <qtooltip.h>
 #include <qcheckbox.h>
-#include <q3whatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
-#include <q3popupmenu.h>
-#include <q3toolbar.h>
 #include <qimage.h>
 #include <qpixmap.h>
 #include <qcombobox.h>
@@ -190,12 +187,11 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
     //Now let's add a docking tabbed window on the left side.
     tabDockWindow = new QDockWidget(this );
-    addDockWidget(Qt::RightDockWidgetArea, tabDockWindow );
+    addDockWidget(Qt::LeftDockWidgetArea, tabDockWindow );
 	tabDockWindow->setFeatures(QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetFloatable);
-	//setup the tab widget, must be done before creating the 
+	//setup the tab widget
 
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
-	//tabWidget->setMinimumWidth(420);
 	tabWidget->setMaximumWidth(500);
 	
 	//This is just large enough to show the whole width of flow tab, with a scrollbar
@@ -247,16 +243,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	Session::getInstance()->unblockRecording();
 	
-    show();
+    	show();
 	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
 
 	if(fileName != ""){
 		if (fileName.endsWith(".vss")){
 
 			ifstream is;
-		
 			is.open(fileName.ascii());
-
 			if (!is){//Report error if you can't open the file
 				MessageReporter::errorMsg("Unable to open session file: \n%s", fileName.ascii());
 				return;
@@ -299,7 +293,7 @@ void MainForm::createToolBars(){
 		"that can be used to control the location and position of objects in "+
 		"the 3D scene, by dragging with the mouse in the scene.  These include "+
 		"navigation, region, rake, probe, 2D, and Image tools.";
-	Q3WhatsThis::add(modeToolBar, qws);
+	modeToolBar->setWhatsThis(qws);
 	//add mode buttons, left to right:
 	navigationAction->addTo(modeToolBar);
 	regionSelectAction->addTo(modeToolBar);
@@ -326,7 +320,7 @@ void MainForm::createToolBars(){
 	QString qat = QString("The animation toolbar enables control of the time steps ")+
 		"in the current active visualizer.  Additional controls are available in"+
 		"the animation tab ";
-	Q3WhatsThis::add(animationToolBar, qat);
+	animationToolBar->setWhatsThis(qat);
 	
 
 // Viz tool bar:
@@ -358,49 +352,45 @@ void MainForm::createToolBars(){
 	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
 	
 	vizToolBar->addWidget(alignViewCombo);
-	interactiveRefinementSpin = new QSpinBox(0, 10, 1, vizToolBar);
+	interactiveRefinementSpin = new QSpinBox(vizToolBar);
 	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
 	
-	QToolTip::add(interactiveRefinementSpin,"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
-	Q3WhatsThis::add(interactiveRefinementSpin, 
+	QToolTip::add(interactiveRefinementSpin,
+		"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
+	interactiveRefinementSpin->setWhatsThis(
 		QString("While the viewpoint is changing due to mouse-dragging ")+
 		"in a visualizer, the refinement level used by the DVR "+
 		"and Iso renderers is reduced to this interactive refinement level, "+
 		"if it is less than the current refinement level of the renderer.");
+	interactiveRefinementSpin->setMinimum(0);
+	interactiveRefinementSpin->setMaximum(10);
+	interactiveRefinementSpin->setMinimumWidth(200);
 	vizToolBar->addWidget(interactiveRefinementSpin);
 }
 void MainForm::hookupSignals() {
     VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // signals and slots connections
-    connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
-    connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
-    connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
-    connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
-    connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
+    	connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
+    	connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
+    	connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
+    	connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
+    	connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
 	connect( loadPreferencesAction, SIGNAL( activated() ), this, SLOT( loadPrefs() ) );
 	connect( savePreferencesAction, SIGNAL( activated() ), this, SLOT( savePrefs() ) );
-
 	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
 	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
-	
 	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
 	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
-	
-
-    connect (whatsThisAction, SIGNAL(activated()), SLOT(whatsThis()));
-    connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
-    
-    connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
+    	connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
+    	connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
 	connect( dataMerge_MetafileAction, SIGNAL( activated() ), this, SLOT( mergeData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( activated() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
-	
 	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
-    
 	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
-    connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
+    	connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
 	
 	connect( captureStartJpegCaptureAction, SIGNAL( activated() ), this, SLOT( startJpegCapture() ) );
 	connect( captureEndJpegCaptureAction, SIGNAL( activated() ), this, SLOT( endJpegCapture() ) );
@@ -408,28 +398,22 @@ void MainForm::hookupSignals() {
 	connect( captureStartFlowCaptureAction, SIGNAL( activated() ), this, SLOT( startFlowCapture() ) );
 	connect( captureEndFlowCaptureAction, SIGNAL( activated() ), this, SLOT( endFlowCapture() ) );
     
-	//connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
-	
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
 	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
 	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
-	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
 	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
 	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
 	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
 	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
 	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
 	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
-
 	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
- 
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
- 
 	connect (playForwardAction, SIGNAL(activated()), this, SLOT(playForward()));
 	connect (playBackwardAction, SIGNAL(activated()), this, SLOT(playBackward()));
 	connect (pauseAction, SIGNAL(activated()), this, SLOT(pauseClick()));
@@ -440,7 +424,6 @@ void MainForm::hookupSignals() {
 
 void MainForm::createMenus(){
     // menubar
-//    Main_Form = new QMenuBar( this, "Main_Form" );
     Main_Form = menuBar();
     File = menuBar()->addMenu(tr("File"));
     fileNew_SessionAction->addTo( File );
@@ -450,18 +433,14 @@ void MainForm::createMenus(){
 	loadPreferencesAction->addTo(File);
 	savePreferencesAction->addTo(File);
     fileExitAction->addTo( File );
-//	Main_Form->addMenu(File);
-//	Edit = new QMenu("Edit", this);
     Edit = menuBar()->addMenu(tr("Edit"));
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
 	
 	editVizFeaturesAction->addTo(Edit);
 	editPreferencesAction->addTo(Edit);
-//	Main_Form->addMenu(Edit);
 
     Data = menuBar()->addMenu(tr("Data"));
-//    Data = new QMenu("Data", this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
 	
@@ -475,31 +454,25 @@ void MainForm::createMenus(){
 	Main_Form->addMenu(Data);
 
     viewMenu = menuBar()->addMenu(tr("View"));
-//    viewMenu = new QMenu("View",this);
 	
 	viewLaunch_visualizerAction->addTo(viewMenu);
-//	Main_Form->addMenu(viewMenu);
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
     captureMenu = menuBar()->addMenu(tr("Capture"));
-//    captureMenu = new QMenu("Capture", this );
     captureSingleJpegCaptureAction->addTo( captureMenu );
 	captureStartJpegCaptureAction->addTo( captureMenu );
 	captureEndJpegCaptureAction->addTo( captureMenu );
 	captureStartFlowCaptureAction->addTo( captureMenu );
 	captureEndFlowCaptureAction->addTo( captureMenu );
 
-//	Main_Form->addMenu(captureMenu);
     
     Main_Form->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("Help"));
-//    helpMenu = new QMenu("Help", this );
-	whatsThisAction->addTo(helpMenu);
+    whatsThisAction->addTo(helpMenu);
     helpMenu->insertSeparator();
     helpAboutAction->addTo( helpMenu );
-//	Main_Form->addMenu(helpMenu);
 }
 
 void MainForm::createActions(){
@@ -525,8 +498,7 @@ void MainForm::createActions(){
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
-	whatsThisAction = new QAction(this, "whatsthisaction");
-	whatsThisAction->setEnabled(true);
+	whatsThisAction = QWhatsThis::createAction(this);
 
     helpAboutAction = new QAction( this, "helpAboutAction" );
 	helpAboutAction->setEnabled(true);
@@ -555,7 +527,7 @@ void MainForm::createActions(){
 
 	//Then do the actions for the toolbars:
 	//Create an exclusive action group for the mouse mode toolbar:
-	mouseModeActions = new Q3ActionGroup(this, "mouse action group", true);
+	mouseModeActions = new QActionGroup(this);
 	//Toolbar buttons:
 	QPixmap* wheelIcon = new QPixmap(wheel);
 	
@@ -688,10 +660,6 @@ void MainForm::languageChange()
     whatsThisAction->setMenuText( tr( "Explain This" ) );
 	whatsThisAction->setToolTip(tr(QString("Click here, then click over an object for context-sensitive help;  ")+
 		"Or just click Shift-F1 over the object"));
-	//ICON not assigned here: QT4
-	//whatsThisAction->setIconSet(QIcon(*Q3WhatsThis::whatsThisButton(0)->pixmap()));
-	//whatsThisAction = new QAction(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()),"What's This?",SHIFT+Key_F1,0);
-	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
 
     dataBrowse_DataAction->setText( tr( "Browse Data" ) );
     dataBrowse_DataAction->setMenuText( tr( "&Browse Data" ) );
@@ -805,11 +773,10 @@ void MainForm::fileOpen()
 	string s;
 	ses->makeSessionFilepath(s);
 	QString fn = s.c_str();//start with filename in session
-	QString filename = Q3FileDialog::getOpenFileName(fn,
-		"Vapor Session Save Files (*.vss)",
-		this,
-		"Open Session Dialog",
-		"Choose the Session File to restore a session");
+	QString filename = QFileDialog::getOpenFileName(this, 
+		"Choose a VAPOR session file to restore a session",
+		fn,
+		"Vapor Session Save Files (*.vss)");
 	if(filename.length() == 0) return;
 		
 	
@@ -817,11 +784,8 @@ void MainForm::fileOpen()
 	if (!filename.endsWith(".vss")){
 		filename += ".vss";
 	}
-	
 	ifstream is;
-	
 	is.open(filename.ascii());
-
 	if (!is){//Report error if you can't open the file
 		MessageReporter::errorMsg("Unable to open session file: \n%s", filename.ascii());
 		return;
@@ -839,7 +803,7 @@ void MainForm::fileSave()
 	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 
 	//This directly saves the session to the current session save file.
-    //It does not prompt the user unless there is an error
+    	//It does not prompt the user unless there is an error
 	if (! dataMgr) {
 		MessageReporter::warningMsg( "There is no current metadata.  \nSession state cannot be saved");
 		return;
@@ -881,11 +845,11 @@ void MainForm::saveMetadata()
 	MessageReporter::warningMsg("Note that the Metadata file\nto be written is non-portable;\n%s",
 		"You may not be able to load \nthe associated data from another system");
 	//This directly saves the session to the current vdf directory
-   QString filename = Q3FileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)",
-		this,
-		"Save Metadata Dialog",
-		"Choose the Metadata filename (in this directory) to save the current metadata");
+   	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the Metadata filename (in this directory) to save the current metadata",
+		Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)");
+
 	if(filename != QString::null){
 		//Make sure this filename is still in same directory
 		//If not, pop up an explanatory error message and quit.
@@ -934,11 +898,10 @@ void MainForm::fileSaveAs()
 	string s;
 	Session::getInstance()->makeSessionFilepath(s);
 	
-	QString filename = Q3FileDialog::getSaveFileName(s.c_str(),
-		"Vapor Session Save Files (*.vss)",
-		this,
-		"Save Session Dialog",
-		"Choose the output Session File to save current session");
+	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the output Session File to save current session",
+		s.c_str(),
+		"Vapor Session Save Files (*.vss)");
 
 	if(filename.length() == 0) return;
 		
@@ -1042,16 +1005,14 @@ void MainForm::batchSetup(){
 
 void MainForm::browseData()
 {
-	//Remember the wb filename
 	static QString MDFile("");
-//This launches a panel that enables the
-    //user to peruse the available data files
-    //or metafiles.  Initially it will just select (and open) a vdf file.
-	QString filename = Q3FileDialog::getOpenFileName(MDFile,
-		"Metadata Files (*.vdf)",
-		this,
-		"Browse Data Dialog",
-		"Choose a Metadata File");
+	//This launches a panel that enables the
+    	//user to peruse the available data files
+    	//or metafiles.  Initially it will just select (and open) a vdf file.
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Choose a Metadata File",
+		MDFile,
+		"Metadata Files (*.vdf)");
 	if(filename!= QString::null) {
 		//Need to update this to browse vdf files
 		//showWBInfo(filename.ascii());
@@ -1060,11 +1021,10 @@ void MainForm::browseData()
 	
 }
 void MainForm::loadPrefs(){
-	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)",
-		this,
-		"Load Preferences Dialog",
-		"Choose the Preferences File to load into current session");
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Choose the Preferences File to load into current session",
+		Session::getInstance()->getPreferencesFile().c_str(),
+		"Vapor Preferences Files (*.vapor_prefs)");
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
@@ -1074,11 +1034,10 @@ void MainForm::loadPrefs(){
 	
 }
 void MainForm::savePrefs(){
-	QString filename = Q3FileDialog::getSaveFileName(Session::getInstance()->getPreferencesFile().c_str(),
-		"Vapor Preferences Files (*.vapor_prefs)",
-		this,
-		"Save Preferences Dialog",
-		"Choose the file name to save current preferences");
+	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose the file name to save current preferences",
+		Session::getInstance()->getPreferencesFile().c_str(),
+		"Vapor Preferences Files (*.vapor_prefs)");
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		
@@ -1090,16 +1049,14 @@ void MainForm::savePrefs(){
 //
 void MainForm::loadData()
 {
-
 	//This launches a panel that enables the
-    //user to choose input data files, then to
+    	//user to choose input data files, then to
 	//create a datamanager using those files
-    //or metafiles.  
-	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)",
-		this,
-		"Load Metadata Dialog",
-		"Choose the Metadata File to load into current session");
+    	//or metafiles.  
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Choose the Metadata File to load into current session",
+		Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
@@ -1117,11 +1074,11 @@ void MainForm::mergeData()
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//merge into current metadata 
-	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)",
-		this,
-		"Merge Metadata Data Dialog",
-		"Choose the Metadata File to merge into current session");
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Choose the Metadata File to merge into current session",
+		Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)");
+
 	if(filename != QString::null){
 		//Check on the timestep offset:
 		int defaultOffset = 0;
@@ -1150,11 +1107,10 @@ void MainForm::defaultLoadData()
     //user to choose input data files, then to
 	//create a datamanager using those files
     //or metafiles.  
-	QString filename = Q3FileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
-		"Vapor Metadata Files (*.vdf)",
-		this,
-		"Load Volume Data Dialog",
-		"Choose the Metadata File to load into new session");
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Choose the Metadata File to load into new session",
+		Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
 		Session::getInstance()->resetMetadata(0, false);
 		Session::getInstance()->resetMetadata(filename.ascii(), false);
@@ -1666,15 +1622,11 @@ void MainForm::exportToIDL(){
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startJpegCapture() {
-	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)",
-		this,
-		"Start image capture dialog",
-		true);  //modal
+	QFileDialog fileDialog(this,
+		"Specify first file name for image capture sequence",
+		Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)");
 	fileDialog.move(pos());
-	fileDialog.setMode(Q3FileDialog::AnyFile);
-	fileDialog.setCaption("Specify first file name for image capture sequence");
-	
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
@@ -1720,15 +1672,11 @@ void MainForm::startFlowCapture() {
 		MessageReporter::errorMsg(" Unsteady flow lines may only be captured from flow panel");
 		return;
 	}
-	Q3FileDialog fileDialog(Session::getInstance()->getFlowDirectory().c_str(),
-		"text files (*.txt)",
-		this,
-		"Start flow capture dialog",
-		true);  //modal
+	QFileDialog fileDialog(this,
+		"Specify first file name for flow capture sequence",
+		Session::getInstance()->getFlowDirectory().c_str(),
+		"text files (*.txt)");
 	fileDialog.move(pos());
-	fileDialog.setMode(Q3FileDialog::AnyFile);
-	fileDialog.setCaption("Specify first file name for flow capture sequence");
-	
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
@@ -1769,14 +1717,11 @@ void MainForm::startFlowCapture() {
 //Then put jpeg in it.
 //
 void MainForm::captureSingleJpeg() {
-	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg or Tiff images (*.jpg *.tif)",
-		this,
-		"Start image capture dialog",
-		true);  //modal
+	QFileDialog fileDialog(this,
+		"Specify single image capture file name",
+		Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg or Tiff images (*.jpg *.tif)");
 	fileDialog.move(pos());
-	fileDialog.setMode(Q3FileDialog::AnyFile);
-	fileDialog.setCaption("Specify single image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
