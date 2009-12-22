@@ -13,18 +13,15 @@
 #include "helpwindow.h"
 #include "GetAppPath.h"
 #include <qstatusbar.h>
+#include <QFileDialog>
 #include <qpixmap.h>
 #include <qimage.h>
-#include <q3popupmenu.h>
+#include <QToolBar>
 #include <qmenubar.h>
-#include <q3toolbar.h>
 #include <qtoolbutton.h>
 #include <qicon.h>
 #include <qfile.h>
-#include <q3textstream.h>
-#include <q3stylesheet.h>
 #include <qmessagebox.h>
-#include <q3filedialog.h>
 #include <qapplication.h>
 #include <qcombobox.h>
 #include <qevent.h>
@@ -34,11 +31,7 @@
 #include <qfile.h>
 #include <qdatastream.h>
 #include <qprinter.h>
-#include <q3simplerichtext.h>
 #include <qpainter.h>
-#include <q3paintdevicemetrics.h>
-//Added by qt3to4:
-#include <Q3Frame>
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -50,37 +43,34 @@ HelpWindow* HelpWindow::theHelpWindow = 0;
 
 HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 			QWidget* parent, const char *name )
-    : Q3MainWindow( parent, name, Qt::WDestructiveClose ),
+    : QMainWindow( parent, name, Qt::WDestructiveClose ),
       pathCombo( 0 )
 {
     readHistory();
     readBookmarks();
 
-    browser = new Q3TextBrowser( this );
+    browser = new QTextBrowser( this );
 
-    browser->mimeSourceFactory()->setFilePath( _path );
-    browser->setFrameStyle( Q3Frame::Panel | Q3Frame::Sunken );
-    connect( browser, SIGNAL( sourceChanged(const QString& ) ),
-	     this, SLOT( sourceChanged( const QString&) ) );
+    browser->setSource(_path);
+    connect( browser, SIGNAL( sourceChanged(const QUrl& ) ),
+	     this, SLOT( sourceChanged( const QUrl&) ) );
 
     setCentralWidget( browser );
 
     if ( !home_.isEmpty() )
 	browser->setSource( home_ );
 
-    connect( browser, SIGNAL( highlighted( const QString&) ),
-	     statusBar(), SLOT( message( const QString&)) );
+    connect( browser, SIGNAL( highlighted( const QUrl&) ),
+	     statusBar(), SLOT( showMessage( const QUrl&)) );
 
     resize( 900,700 );
-
-    Q3PopupMenu* file = new Q3PopupMenu( this );
+	QMenu* file = menuBar()->addMenu(tr("File"));
     file->insertItem( tr("&New Window"), this, SLOT( newWindow() ), Qt::CTRL+Qt::Key_N );
     file->insertItem( tr("&Open File"), this, SLOT( openFile() ), Qt::CTRL+Qt::Key_O );
     file->insertItem( tr("&Print"), this, SLOT( print() ), Qt::CTRL+Qt::Key_P );
     file->insertSeparator();
     file->insertItem( tr("&Close"), this, SLOT( close() ), Qt::CTRL+Qt::Key_Q );
     file->insertItem( tr("E&xit"), qApp, SLOT( closeAllWindows() ), Qt::CTRL+Qt::Key_X );
-
     // The same three icons are used twice each.
 	QPixmap* backPix = new QPixmap(back);
 	QPixmap* forwardPix = new QPixmap(forward);
@@ -90,7 +80,7 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
     QIcon icon_forward( *forwardPix );
     QIcon icon_home( *homePix);
 
-    Q3PopupMenu* go = new Q3PopupMenu( this );
+    QMenu* go = menuBar()->addMenu(tr("Go")); 
     backwardId = go->insertItem( icon_back,
 				 tr("&Backward"), browser, SLOT( backward() ),
 				 Qt::CTRL+Qt::Key_Left );
@@ -99,17 +89,17 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 				Qt::CTRL+Qt::Key_Right );
     go->insertItem( icon_home, tr("&Home"), browser, SLOT( home() ) );
 
-    Q3PopupMenu* help = new Q3PopupMenu( this );
+    QMenu* help = menuBar()->addMenu(tr("Help"));
     help->insertItem( tr("&About"), this, SLOT( about() ) );
 
-    hist = new Q3PopupMenu( this );
+    hist = menuBar()->addMenu(tr("History"));
     QStringList::Iterator it = history.begin();
     for ( ; it != history.end(); ++it )
 	mHistory[ hist->insertItem( *it ) ] = *it;
     connect( hist, SIGNAL( activated( int ) ),
 	     this, SLOT( histChosen( int ) ) );
 
-    bookm = new Q3PopupMenu( this );
+    QMenu* bookm = menuBar()->addMenu(tr("Bookmarks")); 
     bookm->insertItem( tr( "Add Bookmark" ), this, SLOT( addBookmark() ) );
     bookm->insertSeparator();
 
@@ -119,13 +109,6 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
     connect( bookm, SIGNAL( activated( int ) ),
 	     this, SLOT( bookmChosen( int ) ) );
 
-    menuBar()->insertItem( tr("&File"), file );
-    menuBar()->insertItem( tr("&Go"), go );
-    menuBar()->insertItem( tr( "History" ), hist );
-    menuBar()->insertItem( tr( "Bookmarks" ), bookm );
-    menuBar()->insertSeparator();
-    menuBar()->insertItem( tr("&Help"), help );
-
     menuBar()->setItemEnabled( forwardId, FALSE);
     menuBar()->setItemEnabled( backwardId, FALSE);
     connect( browser, SIGNAL( backwardAvailable( bool ) ),
@@ -134,8 +117,8 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 	     this, SLOT( setForwardAvailable( bool ) ) );
 
 
-    Q3ToolBar* toolbar = new Q3ToolBar( this );
-    addToolBar( toolbar, "Toolbar");
+    QToolBar* toolbar = new QToolBar( this );
+    addToolBar( toolbar);
     QToolButton* button;
 
     button = new QToolButton( icon_back, tr("Backward"), "", browser, SLOT(backward()), toolbar );
@@ -151,10 +134,10 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
     pathCombo = new QComboBox( TRUE, toolbar );
     connect( pathCombo, SIGNAL( activated( const QString & ) ),
 	     this, SLOT( pathSelected( const QString & ) ) );
-    toolbar->setStretchableWidget( pathCombo );
-    setRightJustification( TRUE );
-    setDockEnabled( Qt::DockLeft, FALSE );
-    setDockEnabled( Qt::DockRight, FALSE );
+    //toolbar->setStretchableWidget( pathCombo );
+    //setRightJustification( TRUE );
+    //setDockEnabled( Qt::DockLeft, FALSE );
+    //setDockEnabled( Qt::DockRight, FALSE );
 
     pathCombo->insertItem( home_ );
     browser->setFocus();
@@ -191,7 +174,7 @@ void HelpWindow::setForwardAvailable( bool b)
 }
 
 
-void HelpWindow::sourceChanged( const QString& url )
+void HelpWindow::sourceChanged( const QUrl& url )
 {
     if ( browser->documentTitle().isNull() )
 	setCaption( "VAPOR Help Viewer - " + url );
@@ -246,7 +229,8 @@ void HelpWindow::about()
 void HelpWindow::openFile()
 {
 #ifndef QT_NO_FILEDIALOG
-    QString fn = Q3FileDialog::getOpenFileName( QString::null, QString::null, this );
+    QString fn = QFileDialog::getOpenFileName(this, QString::null, QString::null );
+
     if ( !fn.isEmpty() )
 	browser->setSource( fn );
 #endif
@@ -263,32 +247,7 @@ void HelpWindow::print()
     QPrinter printer( QPrinter::HighResolution );
     printer.setFullPage(TRUE);
     if ( printer.setup( this ) ) {
-	QPainter p( &printer );
-	if( !p.isActive() ) // starting printing failed
-	    return;
-	Q3PaintDeviceMetrics metrics(p.device());
-	int dpiy = metrics.logicalDpiY();
-	int margin = (int) ( (2/2.54)*dpiy ); // 2 cm margins
-	QRect view( margin, margin, metrics.width() - 2*margin, metrics.height() - 2*margin );
-	Q3SimpleRichText richText( browser->text(),
-				  QFont(),
-				  browser->context(),
-				  browser->styleSheet(),
-				  browser->mimeSourceFactory(),
-				  view.height() );
-	richText.setWidth( &p, view.width() );
-	int page = 1;
-	do {
-	    richText.draw( &p, margin, margin, view, colorGroup() );
-	    view.moveBy( 0, view.height() );
-	    p.translate( 0 , -view.height() );
-	    p.drawText( view.right() - p.fontMetrics().width( QString::number(page) ),
-			view.bottom() + p.fontMetrics().ascent() + 5, QString::number(page) );
-	    if ( view.top() - margin >= richText.height() )
-		break;
-	    printer.newPage();
-	    page++;
-	} while (TRUE);
+	browser->print(&printer);
     }
 #endif
 }
@@ -338,5 +297,5 @@ void HelpWindow::bookmChosen( int i )
 
 void HelpWindow::addBookmark()
 {
-    mBookmarks[ bookm->insertItem( caption() ) ] = browser->context();
+    mBookmarks[ bookm->insertItem( caption() ) ] = browser->source();
 }

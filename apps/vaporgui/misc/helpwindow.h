@@ -12,18 +12,18 @@
 #ifndef HELPWINDOW_H
 #define HELPWINDOW_H
 
-#include <q3mainwindow.h>
-#include <q3textbrowser.h>
+#include <QTextBrowser>
+#include <QMainWindow>
 #include <qstringlist.h>
 #include <qmap.h>
 #include <qdir.h>
+#include <QMenu>
 //Added by qt3to4:
-#include <Q3PopupMenu>
 
 class QComboBox;
-class Q3PopupMenu;
+class QMenu;
 
-class HelpWindow : public Q3MainWindow
+class HelpWindow : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -35,7 +35,7 @@ private slots:
     void setBackwardAvailable( bool );
     void setForwardAvailable( bool );
 
-    void sourceChanged( const QString& );
+    void sourceChanged( const QUrl& );
     void about();
    
     void openFile();
@@ -52,12 +52,12 @@ private:
     void readHistory();
     void readBookmarks();
 
-    Q3TextBrowser* browser;
+    QTextBrowser* browser;
     QComboBox *pathCombo;
     int backwardId, forwardId;
     QStringList history, bookmarks;
     QMap<int, QString> mHistory, mBookmarks;
-    Q3PopupMenu *hist, *bookm;
+    QMenu *hist, *bookm;
 
 };
 
