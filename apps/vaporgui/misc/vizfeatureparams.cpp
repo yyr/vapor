@@ -26,17 +26,16 @@
 #include "session.h"
 #include "datastatus.h"
 #include <qlineedit.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
+#include <QScrollBar>
+#include <QWhatsThis>
 #include <qpushbutton.h>
 #include <qmessagebox.h>
 #include <qcombobox.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3scrollview.h>
-#include <q3vbox.h>
 #include <qlayout.h>
 #include <vector>
-#include <q3whatsthis.h>
 #include <vapor/DataMgrLayered.h>
 int VizFeatureParams::sessionVariableNum = 0;
 using namespace VAPoR;
@@ -162,15 +161,10 @@ void VizFeatureParams::launch(){
 	
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Visualizer Feature Selection");
 	
-	Q3ScrollView* sv = new Q3ScrollView(featureHolder);
-	sv->setHScrollBarMode(Q3ScrollView::AlwaysOff);
-	sv->setVScrollBarMode(Q3ScrollView::AlwaysOn);
+	QScrollArea* sv = new QScrollArea(featureHolder);
 	featureHolder->setScroller(sv);
-	
 	vizFeatureDlg = new VizFeatureDialog(featureHolder);
-	
-	sv->addChild(vizFeatureDlg);
-	
+	sv->setWidget(vizFeatureDlg);
 	
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
@@ -198,7 +192,8 @@ void VizFeatureParams::launch(){
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
 	
-	sv->resizeContents(w,h);
+//	sv->resizeContents(w,h);
+	sv->resize(w,h);
 	
 	//Check if we have time stamps in data:
 	int numTimeTypes = 1;
@@ -860,7 +855,7 @@ void VizFeatureParams::okClicked(){
 }
 void VizFeatureParams::
 doHelp(){
-	Q3WhatsThis::enterWhatsThisMode();
+	QWhatsThis::enterWhatsThisMode();
 }
 void VizFeatureParams::
 imageToggled(bool onOff){
@@ -870,11 +865,10 @@ imageToggled(bool onOff){
 	}
 	else { 
 		//select a filename, if succeed turn on textureSurface.
-		QString filename = Q3FileDialog::getOpenFileName(surfaceImageFilename,
-			"Image files (*.jpg)",
-			vizFeatureDlg,
-			"Open Image File Dialog",
-			"Choose the Image File to map to terrain");
+		QString filename = QFileDialog::getOpenFileName(vizFeatureDlg,
+			"Choose the Image File to map to terrain",
+			surfaceImageFilename,
+			"Image files (*.jpg)");
 		if(filename.length() == 0) return;
 		
 		vizFeatureDlg->imageFilenameEdit->setText(filename);

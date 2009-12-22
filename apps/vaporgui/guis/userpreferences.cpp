@@ -45,16 +45,16 @@
 #include "GetAppPath.h"
 #include <qtooltip.h>
 #include <qlineedit.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
+#include <QScrollArea>
+#include <QWhatsThis>
+#include <QScrollBar>
 #include <qpushbutton.h>
 #include <qmessagebox.h>
 #include <qcombobox.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3scrollview.h>
-#include <q3vbox.h>
 #include <qlayout.h>
-#include <q3whatsthis.h>
 
 using namespace VAPoR;
 
@@ -193,11 +193,9 @@ void UserPreferences::launch(){
 	showAll = false;
 	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Set User Preferences");
 	
-	Q3ScrollView* sv = new Q3ScrollView(featureHolder);
-	sv->setHScrollBarMode(Q3ScrollView::Auto);
-	sv->setVScrollBarMode(Q3ScrollView::Auto);
+	QScrollArea* sv = new QScrollArea(featureHolder);
 	featureHolder->setScroller(sv);
-	sv->addChild(this);
+	sv->setWidget(this);
 	
 	
 	//Copy values from session into this
@@ -216,7 +214,7 @@ void UserPreferences::launch(){
 	setGeometry(0, 0, w, 1300);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
-	sv->resizeContents(w,h);
+//	sv->resizeContents(w,h);
 	
 	//Do connections for buttons
 	connect (buttonLatestSession, SIGNAL(clicked()),this, SLOT(copyLatestSession()));
@@ -364,12 +362,9 @@ void UserPreferences::chooseSessionPath(){
 	QString dir;
 	if (Session::getInstance()->getPrefSessionDirectory() == ".") dir = QDir::currentDirPath();
 	else dir = Session::getInstance()->getPrefSessionDirectory().c_str();
-	QString s = Q3FileDialog::getExistingDirectory(
-			dir,
-            this,
-            "directory chooser",
-            "Choose the session file directory",
-            TRUE );
+	QString s = QFileDialog::getExistingDirectory(this,
+            	"Choose the session file directory",
+		dir);
 	if (s != "") {
 		sessionPathEdit->setText(s);
 		sessionDir = s.ascii();
@@ -378,12 +373,10 @@ void UserPreferences::chooseSessionPath(){
 }
 void UserPreferences::chooseAutoSaveFilename(){
 	//Launch a file-chooser dialog, 
-    QString s = Q3FileDialog::getSaveFileName(
-				Session::getInstance()->getAutoSaveSessionFilename().c_str(),
-				"Vapor Saved Sessions (*.vss)",
-                this,
-                "open auto session file dialog",
-                "Choose a filename for auto saving sessions" );
+    QString s = QFileDialog::getSaveFileName(this,
+                "Choose a filename for auto saving sessions", 
+		Session::getInstance()->getAutoSaveSessionFilename().c_str(),
+		"Vapor Saved Sessions (*.vss)");
 	if (s != ""){
 		autoSaveFilenameEdit->setText(s);
 		Session::getInstance()->setAutoSaveSessionFilename(s.ascii());
@@ -396,12 +389,9 @@ void UserPreferences::chooseMetadataPath(){
 	QString dir;
 	if (Session::getInstance()->getPrefMetadataDir() == ".") dir = QDir::currentDirPath();
 	else dir = Session::getInstance()->getPrefMetadataDir().c_str();
-	QString s = Q3FileDialog::getExistingDirectory(
-			dir,
-            this,
-            "directory chooser",
-            "Choose the metadata directory",
-            TRUE );
+	QString s = QFileDialog::getExistingDirectory(this,
+            	"Choose the metadata directory",
+		dir);
 	if (s != "") {
 		metadataPathEdit->setText(s);
 		metadataDir = s.ascii();
@@ -410,12 +400,10 @@ void UserPreferences::chooseMetadataPath(){
 }
 void UserPreferences::chooseLogFilePath(){
 	//Launch a file-chooser dialog, 
-    QString s = Q3FileDialog::getSaveFileName(
-				Session::getInstance()->getLogfileName().c_str(),
-				"Text (*.txt)",
-                this,
-                "open log file dialog",
-                "Choose a filename for log messages" );
+    QString s = QFileDialog::getSaveFileName(this,
+                "Choose a filename for log messages", 
+		Session::getInstance()->getLogfileName().c_str(),
+		"Text (*.txt)");
 	if (s != ""){
 		logFilePathEdit->setText(s);
 		MessageReporter::getInstance()->reset(s.ascii());
@@ -428,12 +416,9 @@ void UserPreferences::chooseJpegPath(){
 	QString dir;
 	if (Session::getInstance()->getPrefJpegDirectory() == ".") dir = QDir::currentDirPath();
 	else dir = Session::getInstance()->getPrefJpegDirectory().c_str();
-	QString s = Q3FileDialog::getExistingDirectory(
-			dir,
-            this,
-            "directory chooser",
+	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the jpeg (image) file directory",
-            TRUE );
+		dir);
 	if (s != "") {
 		jpegPathEdit->setText(s);
 		jpegPath = s.ascii();
@@ -445,12 +430,9 @@ void UserPreferences::chooseTFPath(){
 	QString dir;
 	if (Session::getInstance()->getPrefTFFilePath() == ".") dir = QDir::currentDirPath();
 	else dir = Session::getInstance()->getPrefTFFilePath().c_str();
-	QString s = Q3FileDialog::getExistingDirectory(
-			dir,
-            this,
-            "directory chooser",
+	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the transfer function file directory",
-            TRUE );
+		dir);
 	if (s != "") {
 		tfPathEdit->setText(s);
 		tfPath = s.ascii();
@@ -462,12 +444,9 @@ void UserPreferences::chooseFlowPath(){
 	QString dir;
 	if (Session::getInstance()->getPrefFlowDirectory() == ".") dir = QDir::currentDirPath();
 	else dir = Session::getInstance()->getPrefFlowDirectory().c_str();
-	QString s = Q3FileDialog::getExistingDirectory(
-			dir,
-            this,
-            "directory chooser",
+	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the flow file directory",
-            TRUE );
+		dir);
 	if (s != "") {
 		flowPathEdit->setText(s);
 		flowPath = s.ascii();
@@ -809,12 +788,10 @@ void UserPreferences::requestSave(){
 		 QMessageBox::Yes|QMessageBox::Default,QMessageBox::No,Qt::NoButton);
 	if (rc != QMessageBox::Yes) return;
 	
-	QString filename = Q3FileDialog::getSaveFileName(
-			Session::getPreferencesFile().c_str(),
-            ".*",
-            this,
-            "save preferences to file",
-            "Select the filename for saving user preferences" );
+	QString filename = QFileDialog::getSaveFileName(this,
+            	"Select the filename for saving user preferences", 
+		Session::getPreferencesFile().c_str(),
+            	".*");
 	
 	if(filename.length() == 0) return;
 	ofstream os;
@@ -844,11 +821,11 @@ saveToFile(ofstream& ofs ){
 }
 void UserPreferences::
 doHelp(){
-	Q3WhatsThis::enterWhatsThisMode();
+	QWhatsThis::enterWhatsThisMode();
 }
 void UserPreferences::
 showAllDefaults(){
-	Q3ScrollView* sv = featureHolder->getScroller();
+	QScrollArea* sv = featureHolder->getScroller();
 	showAll = !showAll;
 	int h = MainForm::getInstance()->height();
 	if ( h > 768) h = 768;
@@ -873,7 +850,8 @@ showAllDefaults(){
 	setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
-	sv->resizeContents(w,h);
+//	sv->resizeContents(w,h);
+	sv->resize(w,h);
 	featureHolder->updateGeometry();
 	featureHolder->adjustSize();
 	featureHolder->update();

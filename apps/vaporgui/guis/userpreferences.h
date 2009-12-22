@@ -23,7 +23,6 @@
 #define USERPREFERENCES_H
  
 #include <qwidget.h>
-#include <q3scrollview.h>
 #include <qdialog.h>
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
