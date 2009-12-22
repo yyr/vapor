@@ -21,6 +21,7 @@
 #include <qtabwidget.h>
 #include <qwidget.h>
 #include <q3scrollview.h>
+#include <QScrollArea>
 #include "tabmanager.h"
 #include "assert.h"
 #include "viztab.h"
@@ -62,12 +63,14 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
-	Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
+	//Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
+	QScrollArea* myScrollArea = new QScrollArea(this);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
-	insertTab(myScrollview, Params::paramName(widType));
-	connect(myScrollview, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
-	myScrollview->addChild(wid);
+	insertTab(myScrollArea, Params::paramName(widType));
+	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
+	//myScrollview->addChild(wid);
+	myScrollArea->setWidget(wid);
 	
 	int posn = count()-1;
 	widgets[posn] = wid;
@@ -107,10 +110,13 @@ replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget){
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
-	Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
-	myScrollview->setResizePolicy(Q3ScrollView::AutoOne);
-	insertTab(myScrollview, Params::paramName(widgetType), posn);
-	myScrollview->addChild(newWidget);
+	QScrollArea* myScrollArea = new QScrollArea(this);
+
+//	Q3ScrollView* myScrollview = new Q3ScrollView(this, "Scrollview");
+//	myScrollview->setResizePolicy(Q3ScrollView::AutoOne);
+	insertTab(myScrollArea, Params::paramName(widgetType), posn);
+	myScrollArea->setWidget(newWidget);
+//	myScrollview->addChild(newWidget);
 	widgets[posn] = newWidget;
 	//qWarning("replaced widget %s in position %d", name.ascii(), posn);
 	if(front) {
@@ -217,7 +223,8 @@ void TabManager::tabScrolled(){
 }
 void TabManager::scrollFrontToTop(){
 	//Get the front scrollview:
-	Q3ScrollView* sv = (Q3ScrollView*)currentPage();
+//	Q3ScrollView* sv = (Q3ScrollView*)currentPage();
+	QScrollArea *sv = (QScrollArea*)currentPage();
 	sv->ensureVisible(0,0);
 }
 	
