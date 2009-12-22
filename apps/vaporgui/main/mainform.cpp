@@ -41,12 +41,9 @@
 #include <qimage.h>
 #include <qpixmap.h>
 #include <qcombobox.h>
-#include <q3filedialog.h>
 #include <qlineedit.h>
-#include <q3scrollview.h>
 #include <qdesktopwidget.h>
 #include <qmessagebox.h>
-#include <q3vbox.h>
 #include <QMdiArea>
 #include <qcolordialog.h>
 #include <qstatusbar.h>

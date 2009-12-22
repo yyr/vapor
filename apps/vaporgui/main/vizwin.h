@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
+//											*
+//		     Copyright (C)  2004						*
 //     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//		     All Rights Reserved						*
+//											*
 //************************************************************************/
 //					
 //	File:		vizwin.h
@@ -25,36 +25,22 @@
 
 
 #include <qvariant.h>
-#include <q3mainwindow.h>
 #include <qcolor.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
 #include <QCloseEvent>
 #include <QWheelEvent>
 #include <QResizeEvent>
-#include <Q3GridLayout>
 #include <QFocusEvent>
 #include <QMouseEvent>
-#include <Q3PopupMenu>
 #include <QHideEvent>
-#include <Q3VBoxLayout>
-#include <Q3ActionGroup>
 #include "vizwinmgr.h"
 #include "trackball.h"
 
 
-class Q3VBoxLayout;
-class Q3HBoxLayout;
-class Q3GridLayout;
 class QSpacerItem;
 class QAction;
-class Q3ActionGroup;
-class Q3ToolBar;
-class Q3PopupMenu;
 class QResizeEvent;
 class QHideEvent;
 class QRect;
-class Q3HBoxLayout;
 
 #include "glwindow.h"
 #include "animationcontroller.h"
@@ -70,13 +56,13 @@ class Viewpoint;
 class TranslateStretchManip;
 class TranslateRotateManip;
 
-class VizWin : public Q3MainWindow
+class VizWin : public QWidget
 {
     Q_OBJECT
 
             
 public:
-    VizWin(MainForm* parent , const char* name , Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
+    VizWin(MainForm* parent ,  const QString& name, Qt::WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
 
 	
@@ -93,17 +79,16 @@ public:
 		return (myWindowNum == myWinMgr->getActiveViz());
 	}
 
-	//bool newGuiCoords;
 	//Following method is called when user has navigated
 	void changeCoords(float *vpos, float* vdir, float* upvec);
+
 	//Call this when the gui values need to update the visualizer:
 	void setValuesFromGui(ViewpointParams* vparams);
+
 	//Tell this visualizer to use global or local viewpoint:
 	void setGlobalViewpoint(bool);
 	
-	
 	GLWindow* getGLWindow() {return myGLWindow;}
-	
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
 	void setAnimationDirty(bool isDirty){ setDirtyBit(AnimationBit,isDirty);}
@@ -123,7 +108,6 @@ public:
 	int pointOverCube(FlowParams* rParams, float screenCoords[2]);
 
 	//Access visualizer features
-	
 	const QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
 	const QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
 	const QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
@@ -237,7 +221,7 @@ protected:
 	
     MainForm* myParent;
     int myWindowNum;
-    VizWinMgr* myWinMgr;
+    	VizWinMgr* myWinMgr;
 	Trackball* myTrackball;
 	Trackball* localTrackball;
 	//OpenGL widget for graphics:
@@ -245,7 +229,6 @@ protected:
 
 	//Method that gets the coord frame from GL, 
 	//causes an update of the viewpoint params
-	//
 	void	changeViewerFrame();
 	
 	//Indicate whether using global or local viewpoint:

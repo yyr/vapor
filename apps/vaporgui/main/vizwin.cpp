@@ -1,11 +1,10 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//									*
+//		     Copyright (C)  2004				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
 //************************************************************************/
-//					
 //	File:		vizwin.cpp
 //
 //	Author:		Alan Norton
@@ -24,34 +23,22 @@
 #include <qvariant.h>
 #include <qlayout.h>
 #include <qtooltip.h>
-#include <q3whatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
-#include <q3popupmenu.h>
-#include <q3toolbar.h>
 #include <qimage.h>
 #include <qpixmap.h>
-#include <q3mainwindow.h>
-
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qmessagebox.h>
-#include <q3frame.h>
 #include <qapplication.h>
 #include <qnamespace.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
 #include <QHideEvent>
 #include <QResizeEvent>
 #include <QFocusEvent>
 #include <QMouseEvent>
 #include <QCloseEvent>
-
 #include "glwindow.h"
-
- 
 #include "vizwinmgr.h"
-
 #include <qdesktopwidget.h>
 #include "tabmanager.h"
 #include "viztab.h"
@@ -75,7 +62,6 @@
 #include "assert.h"
 #include "session.h"
 #include "vaporinternal/jpegapi.h"
-#include "customcontext.h"
 
 using namespace VAPoR;
 
@@ -84,12 +70,11 @@ using namespace VAPoR;
  *  name 'name' and widget flags set to 'f'.
  *
  */
-VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
-    : Q3MainWindow( (QWidget*)parent, name, fl )
+VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
+    : QWidget( (QWidget*)parent, name, fl )
 {
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
-    if ( !name )
-		setName( "VizWin" );
+//	setWindowTitle(name);
     myParent = parent;
     myWindowNum = winNum;
 	spinTimer = 0;
@@ -97,24 +82,11 @@ VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* my
 	moveCount = 0;
 	moveCoords[0] = moveCoords[1] = 0;
 	moveDist = 0;
-	
-	
-        
     move(location->topLeft());
     resize(location->size());
-    //qWarning("Launching window %d", winNum);
     myWinMgr = myMgr;
 	mouseDownHere = false;
-	
     languageChange();
-    // QT4 clearWState( WState_Polished );
-	
-	/*  Following copied from QT OpenGL Box example:*/
-	// Create a nice frame to put around the OpenGL widget
-	
-    Q3Frame* f = new Q3Frame( this, "frame" );
-    f->setFrameStyle( Q3Frame::Sunken | Q3Frame::Panel );
-    f->setLineWidth( 2 );
 
     // Create our OpenGL widget.  
 	QGLFormat fmt;
@@ -123,8 +95,8 @@ VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* my
 	fmt.setDepth(true);
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
-	//CustomContext* ctx = new CustomContext(fmt);
-    myGLWindow = new GLWindow(fmt, f, "glwindow",myWindowNum);
+
+    	myGLWindow = new GLWindow(fmt, this ,myWindowNum);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
@@ -140,13 +112,9 @@ VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* my
 	myGLWindow->setPreRenderCB(preRenderSetup);
 	myGLWindow->setPostRenderCB(endRender);
 
-    Q3HBoxLayout* flayout = new Q3HBoxLayout( f, 2, 2, "flayout");
-    flayout->addWidget( myGLWindow, 1 );
-
-    Q3HBoxLayout* hlayout = new Q3HBoxLayout( this, 2, 2, "hlayout");
-   
-    
-    hlayout->addWidget( f, 1 );
+	QHBoxLayout* flayout = new QHBoxLayout(this);
+	flayout->setContentsMargins(2,2,2,2);
+	flayout->addWidget(myGLWindow);
 
 	//Get viewpoint from viewpointParams
 	ViewpointParams* vpparms = myWinMgr->getViewpointParams(myWindowNum);
@@ -163,27 +131,17 @@ VizWin::VizWin( MainForm* parent, const char* name, Qt::WFlags fl, VizWinMgr* my
 	setValuesFromGui(vpparms);
 	
 	MessageReporter::infoMsg("VizWin::VizWin() end");
-	
-	
 }
-
-
 /*
  *  Destroys the object and frees any allocated resources
  */
 VizWin::~VizWin()
 {
-    // no need to delete child widgets, Qt does it all for us
-	//Do need to notify parent that we are disappearing
-    //qWarning("starting viz win destructor %d", myWindowNum);
-    //myWinMgr->vizAboutToDisappear(myWindowNum);
+
      if (localTrackball) delete localTrackball;
 	 //The renderers are deleted in the glwindow destructor:
-	 //delete myGLWindow;
 	 if (spinTimer) delete spinTimer;
 }
-
-
 void VizWin::closeEvent(QCloseEvent* e){
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
@@ -208,9 +166,6 @@ void VizWin::windowActivationChange(bool ){
 	
 		//qWarning(" Activation Event %d received in window %d ", value, myWindowNum);
 		
-//		if (!value && isActiveWindow()&& (myWinMgr->getActiveViz() != myWindowNum)){
-//			myWinMgr->setActiveViz(myWindowNum);
-//		}
 		//We may also be going out of minimized state:
 		if (isReallyMaximized()) {
 			//qWarning( " resize due to maximization");
@@ -334,7 +289,6 @@ mousePressEvent(QMouseEvent* e){
 					setMouseDown(true);
 					break;
 				}
-			
 			}
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;

@@ -21,14 +21,12 @@
 
 #ifndef GLWINDOW_H
 #define GLWINDOW_H
-
 #include <qgl.h>
 #include <map>
 #include "trackball.h"
 #include <qthread.h>
 #include "qcolor.h"
 #include "qlabel.h"
-
 #include "params.h"
 #include "manip.h"
 #include "vapor/MyBase.h"
@@ -36,7 +34,7 @@
 #include "vaporinternal/jpegapi.h"
 #include "datastatus.h"
 
-//No more than 10 renderers in a window:
+//No more than 20 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 20
 //Following factor accentuates the terrain changes by pointing the
@@ -46,9 +44,7 @@ class QLabel;
 class QThread;
 
 namespace VAPoR {
-
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
-
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
@@ -71,7 +67,7 @@ class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
 public:
 	typedef void (*ErrMsgReleaseCB_T)(void);
-    GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int winnum);
+    GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
     ~GLWindow();
 	Trackball* myTBall;
 	

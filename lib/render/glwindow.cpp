@@ -21,7 +21,6 @@
 #include "vapor/DataMgrLayered.h"
 
 #include "glwindow.h"
-//#include "customcontext.h"
 #include "trackball.h"
 #include "glutil.h"
 #include "renderer.h"
@@ -64,14 +63,11 @@ bool GLWindow::nowPainting = false;
 
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 100;
-GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
-: QGLWidget(fmt, parent, name)
+GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
+: QGLWidget(fmt, parent)
 
 {
 	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
-	//QPaintDevice* dev = (QPaintDevice*) this;
-	//CustomContext *cx = new CustomContext(fmt);
-	//setContext(cx);
 	spinThread = 0;
 	isSpinning = false;
 	timeAnnotLabel = 0;
