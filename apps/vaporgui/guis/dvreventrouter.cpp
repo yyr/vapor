@@ -34,10 +34,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
 #include <qlabel.h>
-#include <q3listbox.h>
 #include <qtimer.h>
 #include <qtooltip.h>
 #include "instancetable.h"

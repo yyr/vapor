@@ -20,7 +20,6 @@
 //
 #include "vizselectcombo.h"
 #include <qcombobox.h>
-#include <q3toolbar.h>
 #include <QToolBar>
 #include <qtooltip.h>
 #include "vizwinmgr.h"

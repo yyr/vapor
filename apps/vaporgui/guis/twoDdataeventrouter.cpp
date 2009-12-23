@@ -33,11 +33,9 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
 #include <qfileinfo.h>
+#include <QFileDialog>
 #include <qlabel.h>
-#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
@@ -1657,13 +1655,10 @@ void TwoDDataEventRouter::cleanParams(Params* p)
 void TwoDDataEventRouter::captureImage() {
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	if (!pParams->isEnabled()) return;
-	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)",
-		this,
-		"Image capture dialog",
-		true);  //modal
-	//fileDialog.move(pos());
-	fileDialog.setMode(Q3FileDialog::AnyFile);
+	QFileDialog fileDialog(this,
+		"Specify Jpeg image capture file name",
+		Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)");
 	fileDialog.setCaption("Specify image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;

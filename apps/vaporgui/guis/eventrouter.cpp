@@ -29,7 +29,7 @@
 #include <qcursor.h>
 #include <qmessagebox.h>
 #include <qfileinfo.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
 #include "vapor/DataMgr.h"
 #include "vapor/errorcodes.h"
 #include "GetAppPath.h"
@@ -266,12 +266,10 @@ saveTF(RenderParams* rParams){
 void EventRouter::
 fileSaveTF(RenderParams* rParams){
 	//Launch a file save dialog, open resulting file
-    QString s = Q3FileDialog::getSaveFileName(
-					Session::getInstance()->getTFFilePath().c_str(),
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "save TF dialog",
-                    "Choose a filename to save the transfer function" );
+    QString s = QFileDialog::getSaveFileName(0,
+        	"Choose a filename to save the transfer function",
+		Session::getInstance()->getTFFilePath().c_str(),
+                "Vapor Transfer Functions (*.vtf)");
 	//Did the user cancel?
 	if (s.length()== 0) return;
 	//Force the name to end with .vtf
@@ -343,12 +341,10 @@ fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePa
 	
 	//Open a file load dialog
 	
-    QString s = Q3FileDialog::getOpenFileName(
+    QString s = QFileDialog::getOpenFileName(0,
+                    "Choose a transfer function file to open",
                     startPath,
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "load TF dialog",
-                    "Choose a transfer function file to open" );
+                    "Vapor Transfer Functions (*.vtf)");
 	//Null string indicates nothing selected.
 	if (s.length() == 0) return;
 	//Force the name to end with .vtf

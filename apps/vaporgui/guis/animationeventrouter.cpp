@@ -32,11 +32,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
 #include <qlabel.h>
-#include <q3listbox.h>
-#include <q3table.h>
 #include <QAbstractItemView>
 #include "animationparams.h"
 #include "vizwinmgr.h"

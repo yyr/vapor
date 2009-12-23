@@ -30,11 +30,9 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
@@ -434,12 +432,10 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "select image file");
-	QString filename = Q3FileDialog::getOpenFileName(
+	QString filename = QFileDialog::getOpenFileName(this,
+        	"Specify image file name to load",
 		Session::getInstance()->getJpegDirectory().c_str(),
-        "TIFF files (*.tiff *.tif *.gtif)",
-        this,
-        "Specify image file Dialog",
-        "Specify image file name to load" );
+        	"TIFF files (*.tiff *.tif *.gtif)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
 		delete cmd;

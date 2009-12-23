@@ -33,11 +33,9 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
+#include <QFileDialog>
 #include <qfileinfo.h>
 #include <qlabel.h>
-#include <q3listbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
@@ -2323,20 +2321,12 @@ void ProbeEventRouter::cleanParams(Params* p)
 //Then put jpeg in it.
 //
 void ProbeEventRouter::captureImage() {
-	Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)",
-		this,
-		"Image capture dialog",
-		true);  //modal
-	//fileDialog.move(pos());
-	fileDialog.setMode(Q3FileDialog::AnyFile);
-	fileDialog.setCaption("Specify image capture file name");
-	fileDialog.resize(450,450);
-	if (fileDialog.exec() != QDialog::Accepted) return;
+	QString filename = QFileDialog::getSaveFileName(this,
+		"Specify image capture Jpeg file name",
+		Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)");
+	if(filename == QString("")) return;
 	
-	//Extract the path, and the root name, from the returned string.
-	QString filename = fileDialog.selectedFile();
-    
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	
@@ -2428,19 +2418,14 @@ void ProbeEventRouter::captureImage() {
 void ProbeEventRouter::toggleFlowImageCapture() {
 	if (!capturingIBFV) {
 		//Launch file-open dialog:
-		Q3FileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
-			"Jpeg Images (*.jpg)",
-			this,
-			"Image sequence capture dialog",
-			true);  //modal
+		QString filename =QFileDialog::getSaveFileName(this,
+			"Specify jpeg file name for image sequence capture",
+			Session::getInstance()->getJpegDirectory().c_str(),
+			"Jpeg Images (*.jpg)");
 	
-		fileDialog.setMode(Q3FileDialog::AnyFile);
-		fileDialog.setCaption("Specify name for image sequence capture");
-		fileDialog.resize(450,450);
-		if (fileDialog.exec() != QDialog::Accepted) return;
+		if (filename == QString("")) return;
 	
 		//Extract the path, and the root name, from the returned string.
-		QString filename = fileDialog.selectedFile();
 		QFileInfo* fileInfo = new QFileInfo(filename);
 		//Save the path for future captures
 		Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());

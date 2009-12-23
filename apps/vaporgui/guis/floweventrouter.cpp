@@ -33,10 +33,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
 #include <qlabel.h>
-#include <q3listbox.h>
 #include <qtooltip.h>
 #include "regionparams.h"
 #include "instancetable.h"
@@ -55,6 +52,7 @@
 #include <qslider.h>
 #include <qlabel.h>
 #include <q3table.h>
+#include <QFileDialog>
 
 #include <vector>
 #include <string>
@@ -2410,12 +2408,10 @@ void FlowEventRouter::guiLoadSeeds(){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "load seeds from file");
-	QString filename = Q3FileDialog::getOpenFileName(
+	QString filename = QFileDialog::getOpenFileName(this,
+        	"Specify file name for loading list of seed points", 
 		Session::getInstance()->getFlowDirectory().c_str(),
-        "Text files (*.txt)",
-        this,
-        "Load Flow Seeds Dialog",
-        "Specify file name for loading list of seed points" );
+        	"Text files (*.txt)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
 		delete cmd;
@@ -2457,12 +2453,10 @@ void FlowEventRouter::saveSeeds(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	//Launch an open-file dialog
 	
-	 QString filename = Q3FileDialog::getSaveFileName(
+	 QString filename = QFileDialog::getSaveFileName(this,
+        	"Specify (*.txt) file name for saving current seed points",
 		Session::getInstance()->getFlowDirectory().c_str(),
-        "Text files (*.txt)",
-        this,
-        "Save Seed Points Dialog",
-        "Specify file name for saving current seed points" );
+        	"Text files (*.txt)");
 	if (filename.isNull())
 		 return;
 
@@ -2544,12 +2538,10 @@ void FlowEventRouter::saveFlowLines(){
 	}
 	//Launch an open-file dialog
 	
-	 QString filename = Q3FileDialog::getSaveFileName(
+	 QString filename = QFileDialog::getSaveFileName(this,
+        	"Specify file name for saving current flow lines",
 		Session::getInstance()->getFlowDirectory().c_str(),
-        "Text files (*.txt)",
-        this,
-        "Save Flowlines Dialog",
-        "Specify file name for saving current flow lines" );
+        	"Text files (*.txt)");
 	if (filename.isNull()){
 		 return;
 	}

@@ -32,10 +32,8 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
-#include <q3buttongroup.h>
-#include <q3filedialog.h>
 #include <qlabel.h>
-#include <q3listbox.h>
+#include <QFileDialog>
 #include "GL/glew.h"
 #include "regionparams.h"
 #include "regiontab.h"
@@ -980,12 +978,10 @@ guiLoadRegionExtents(){
 	//list does not specify the extents at a timestep.
 	confirmText(false);
 	//Launch a file-open dialog
-	QString filename = Q3FileDialog::getOpenFileName(
+	QString filename = QFileDialog::getOpenFileName(this,
+        	"Specify file name for loading list of time-varying Region extents", 
 		Session::getInstance()->getFlowDirectory().c_str(),
-        "Text files (*.txt)",
-        this,
-        "Load Regions Dialog",
-        "Specify file name for loading list of time-varying Region extents" );
+        	"Text files (*.txt)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
 		return;
@@ -1062,12 +1058,10 @@ saveRegionExtents(){
 		return;
 	}
 	//Launch a file-open dialog
-	QString filename = Q3FileDialog::getSaveFileName(
+	QString filename = QFileDialog::getSaveFileName(this,
+        	"Specify file name for saving list of current time-varying Region extents",
 		Session::getInstance()->getFlowDirectory().c_str(),
-        "Text files (*.txt)",
-        this,
-        "Save Regions Dialog",
-        "Specify file name for saving list of current time-varying Region extents" );
+        	"Text files (*.txt)");
 	//Check that user did specify a file:
 	if (filename.isNull()) {
 		return;
