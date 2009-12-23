@@ -27,7 +27,7 @@
 #include "vapor/MyBase.h"
 #include "animationtab.h"
 
-class Q3Table;
+class QTableWidget;
 
 
 using namespace VetsUtil;
@@ -77,7 +77,7 @@ protected:
 	void guiSingleStep(bool forward);
 	//Need to do more than Params::guiSetLocal():
 	
-	void guiUpdateTimestepList(Q3Table* tbl, const char* descr);
+	void guiUpdateTimestepList(QTableWidget* tbl, const char* descr);
 
 	void populateTimestepTable();
 	

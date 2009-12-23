@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2006										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//									*
+//		     Copyright (C)  2006				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
 //************************************************************************/
 //
 //	File:		animationeventrouter.cpp
@@ -37,6 +37,7 @@
 #include <qlabel.h>
 #include <q3listbox.h>
 #include <q3table.h>
+#include <QAbstractItemView>
 #include "animationparams.h"
 #include "vizwinmgr.h"
 #include "session.h"
@@ -107,7 +108,7 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
 	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetPosition(int)));
 	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
-	connect (timestepSampleTable, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged(int,int)));
+	connect (timestepSampleTable, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged(int,int)));
 	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
 	connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (rebuildButton, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
@@ -257,8 +258,9 @@ void AnimationEventRouter::updateTab(){
 
 	//Set up the timestep sample table:
 	timestepSampleTable->horizontalHeader()->hide();
-	timestepSampleTable->setSelectionMode(Q3Table::SingleRow);
-	timestepSampleTable->setTopMargin(0);
+	timestepSampleTable->setSelectionMode(QAbstractItemView::SingleSelection);
+	timestepSampleTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+//QT4	timestepSampleTable->setTopMargin(0);
 	timestepSampleTable->setColumnWidth(0,35);
 	populateTimestepTable();
 
@@ -562,52 +564,24 @@ guiToggleTimestepSample(bool on){
 	updateTab();
 	
 }
-//Respond to user has typed in a row of timestep table. Convert it to an int, swap it up or down
-//until it's in ascending order.
+//Respond to user has typed in a row of timestep table. 
+//then sort in ascending order.
 void AnimationEventRouter::timestepChanged(int row, int col){
-	int newVal = timestepSampleTable->text(row,col).toInt();
-	int i;
-	//First, find the first one above it that's larger:
-	for (i = 0; i< row; i++){
-		int rowInt = timestepSampleTable->text(i,col).toInt();
-		if (rowInt > newVal) break;
-	}
-	if (i < row) { //found one to swap:  Swap from row to i
-		for (int j = row; j>i; j--){
-			timestepSampleTable->swapRows(j,j-1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
-		return;
-	} 
-	//Now look below this one for the lowest one that is smaller
-	for (i =  timestepSampleTable->numRows()-1; i>row; i--){
-		int rowInt = timestepSampleTable->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (i > row){ //found one to swap:  Swap from row to i
-		for (int j = row; j<i; j++){
-			timestepSampleTable->swapRows(j,j+1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
-		return;
-	} 
-	//No Change of order, just value:
+	timestepSampleTable->sortItems(0);
 	guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
 	return;
 }
 //Send the contents of the timestepTable to the params.
 //Assumes that the timestepTable is sorted in ascending order.
-void AnimationEventRouter::guiUpdateTimestepList(Q3Table* tbl, const char* descr){	
+void AnimationEventRouter::guiUpdateTimestepList(QTableWidget* tbl, const char* descr){	
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, descr);
 	std::vector<int>& timesteplist = aParams->getTimestepList();
 	timesteplist.clear();
 	int prevTime = -1;
-	for (int i = 0; i< tbl->numRows(); i++){
-		int newTime = tbl->text(i,0).toInt();
+	for (int i = 0; i< tbl->rowCount(); i++){
+		int newTime = tbl->item(i,0)->text().toInt();
 		if (newTime > prevTime) {
 			timesteplist.push_back(newTime);
 			prevTime = newTime;
@@ -619,7 +593,7 @@ void AnimationEventRouter::guiUpdateTimestepList(Q3Table* tbl, const char* descr
 }
 //Add a new (blank) row to the table
 void AnimationEventRouter::addSample(){
-	timestepSampleTable->insertRows(timestepSampleTable->numRows());
+	timestepSampleTable->setRowCount(1+timestepSampleTable->rowCount());
 }
 //Delete the current selected row
 void AnimationEventRouter::deleteSample(){
@@ -629,9 +603,9 @@ void AnimationEventRouter::deleteSample(){
 void AnimationEventRouter::populateTimestepTable(){
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	std::vector<int>& tSteps = aParams->getTimestepList();
-	timestepSampleTable->setNumRows(tSteps.size());
+	timestepSampleTable->setRowCount(tSteps.size());
 	for (int i = 0; i< tSteps.size(); i++){
-		timestepSampleTable->setText(i,0,QString::number(tSteps[i]));
+		timestepSampleTable->item(i,0)->setText(QString::number(tSteps[i]));
 	}
 	timestepSampleCheckbox->setChecked(aParams->usingTimestepList());
 }
