@@ -1,91 +1,150 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="9.00"
 	Name="render"
 	ProjectGUID="{9FD418C0-1BFF-4BA3-B901-3AC872588F06}"
-	Keyword="Win32Proj">
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_DLL;QT_THREAD_SUPPORT;RENDER_EXPORTS"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/render/"
 				ProgramDataBaseFileName="../../../targets/win32/built/render/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/render.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/render.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;QT_THREAD_SUPPORT"
 				RuntimeLibrary="2"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/render/"
 				ProgramDataBaseFileName="../../../targets/win32/built/render/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
@@ -93,32 +152,36 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/render.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -127,213 +190,277 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\..\lib\render\BBox.cpp">
+				RelativePath="..\..\..\lib\render\BBox.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\customcontext.cpp">
+				RelativePath="..\..\..\lib\render\customcontext.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRBase.cpp">
+				RelativePath="..\..\..\lib\render\DVRBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRDebug.cpp">
+				RelativePath="..\..\..\lib\render\DVRDebug.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRLookup.cpp">
+				RelativePath="..\..\..\lib\render\DVRLookup.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRRayCaster.cpp">
+				RelativePath="..\..\..\lib\render\DVRRayCaster.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRRayCaster2Var.cpp">
+				RelativePath="..\..\..\lib\render\DVRRayCaster2Var.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRShader.cpp">
+				RelativePath="..\..\..\lib\render\DVRShader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRSpherical.cpp">
+				RelativePath="..\..\..\lib\render\DVRSpherical.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRTexture3d.cpp">
+				RelativePath="..\..\..\lib\render\DVRTexture3d.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRVolumizer.cpp">
+				RelativePath="..\..\..\lib\render\DVRVolumizer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\flowrenderer.cpp">
+				RelativePath="..\..\..\lib\render\flowrenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\glwindow.cpp">
+				RelativePath="..\..\..\lib\render\glwindow.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\isorenderer.cpp">
+				RelativePath="..\..\..\lib\render\isorenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\manip.cpp">
+				RelativePath="..\..\..\lib\render\manip.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Matrix3d.cpp">
+				RelativePath="..\..\..\lib\render\Matrix3d.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\proberenderer.cpp">
+				RelativePath="..\..\..\lib\render\proberenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\renderer.cpp">
+				RelativePath="..\..\..\lib\render\renderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\ShaderProgram.cpp">
+				RelativePath="..\..\..\lib\render\ShaderProgram.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Stopwatch.cpp">
+				RelativePath="..\..\..\lib\render\Stopwatch.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\TextureBrick.cpp">
+				RelativePath="..\..\..\lib\render\TextureBrick.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\trackball.cpp">
+				RelativePath="..\..\..\lib\render\trackball.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDdatarenderer.cpp">
+				RelativePath="..\..\..\lib\render\twoDdatarenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDimagerenderer.cpp">
+				RelativePath="..\..\..\lib\render\twoDimagerenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDrenderer.cpp">
+				RelativePath="..\..\..\lib\render\twoDrenderer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Vect3d.cpp">
+				RelativePath="..\..\..\lib\render\Vect3d.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\VolumeRenderer.cpp">
+				RelativePath="..\..\..\lib\render\VolumeRenderer.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\..\lib\render\BBox.h">
+				RelativePath="..\..\..\lib\render\BBox.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\customcontext.h">
+				RelativePath="..\..\..\lib\render\customcontext.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRBase.h">
+				RelativePath="..\..\..\lib\render\DVRBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRDebug.h">
+				RelativePath="..\..\..\lib\render\DVRDebug.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRLookup.h">
+				RelativePath="..\..\..\lib\render\DVRLookup.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRRayCaster.h">
+				RelativePath="..\..\..\lib\render\DVRRayCaster.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRRayCaster2Var.h">
+				RelativePath="..\..\..\lib\render\DVRRayCaster2Var.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRShader.h">
+				RelativePath="..\..\..\lib\render\DVRShader.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRSpherical.h">
+				RelativePath="..\..\..\lib\render\DVRSpherical.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRTexture3d.h">
+				RelativePath="..\..\..\lib\render\DVRTexture3d.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\DVRVolumizer.h">
+				RelativePath="..\..\..\lib\render\DVRVolumizer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\flowrenderer.h">
+				RelativePath="..\..\..\lib\render\flowrenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\glwindow.h">
+				RelativePath="..\..\..\lib\render\glwindow.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\isorenderer.h">
+				RelativePath="..\..\..\lib\render\isorenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\manip.h">
+				RelativePath="..\..\..\lib\render\manip.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Matrix3d.h">
+				RelativePath="..\..\..\lib\render\Matrix3d.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Point3d.h">
+				RelativePath="..\..\..\lib\render\Point3d.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\proberenderer.h">
+				RelativePath="..\..\..\lib\render\proberenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\raycast_shaders.h">
+				RelativePath="..\..\..\lib\render\raycast_shaders.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\renderer.h">
+				RelativePath="..\..\..\lib\render\renderer.h"
+				>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
-"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\lib\moc\moc_renderer.cpp"/>
+						Outputs="..\..\..\lib\moc\moc_renderer.cpp"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp
-"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\renderer.h -o ..\..\..\lib\moc\moc_renderer.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\lib\moc\moc_renderer.cpp"/>
+						Outputs="..\..\..\lib\moc\moc_renderer.cpp"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\ShaderProgram.h">
+				RelativePath="..\..\..\lib\render\ShaderProgram.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\shaders.h">
+				RelativePath="..\..\..\lib\render\shaders.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Stopwatch.h">
+				RelativePath="..\..\..\lib\render\Stopwatch.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\TextureBrick.h">
+				RelativePath="..\..\..\lib\render\TextureBrick.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\trackball.h">
+				RelativePath="..\..\..\lib\render\trackball.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDdatarenderer.h">
+				RelativePath="..\..\..\lib\render\twoDdatarenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDimagerenderer.h">
+				RelativePath="..\..\..\lib\render\twoDimagerenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\twoDrenderer.h">
+				RelativePath="..\..\..\lib\render\twoDrenderer.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\Vect3d.h">
+				RelativePath="..\..\..\lib\render\Vect3d.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\VolumeRenderer.h">
+				RelativePath="..\..\..\lib\render\VolumeRenderer.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 		<Filter
-			Name="Generated MOC Files">
+			Name="Generated MOC Files"
+			>
 			<File
-				RelativePath="..\..\..\lib\moc\moc_renderer.cpp">
+				RelativePath="..\..\..\lib\moc\moc_renderer.cpp"
+				>
 			</File>
 		</Filter>
 	</Files>

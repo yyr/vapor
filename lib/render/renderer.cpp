@@ -126,7 +126,7 @@ buildColorscaleImage(){
 	}
 	
 	//Then, convert the pxmap to a QImage and draw the colormap colors on it.
-	QImage colorbarImage = colorbarPixmap.convertToImage();
+	QImage colorbarImage = colorbarPixmap.toImage();
 
 	//Calculate coefficients that convert screen coords to ycoords, 
 	//Inverting above calc of ycoord.

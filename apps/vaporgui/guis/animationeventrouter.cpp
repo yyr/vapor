@@ -66,7 +66,7 @@ using namespace VAPoR;
 QT_USE_NAMESPACE
 
 
-AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : QWidget(parent,name), Ui_AnimationTab(), EventRouter() {
+AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
 	setupUi(this);	
 	myParamsType = Params::AnimationParamsType;
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
@@ -243,14 +243,14 @@ void AnimationEventRouter::updateTab(){
 		}
 	}
 	if (aParams->isRepeating()){
-		replayButton->setOn(true);
+		replayButton->setDown(true);
 	} else {
-		replayButton->setOn(false);
+		replayButton->setDown(false);
 	}
 	if (aParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
+		LocalGlobal->setCurrentIndex(1);
 	else 
-		LocalGlobal->setCurrentItem(0);
+		LocalGlobal->setCurrentIndex(0);
 
 	//Set up the timestep sample table:
 	timestepSampleTable->horizontalHeader()->hide();
@@ -315,7 +315,7 @@ animationPlayForwardClick(){
 }
 void AnimationEventRouter::
 animationReplayClick(){
-	guiToggleReplay(replayButton->isOn());
+	guiToggleReplay(replayButton->isDown());
 }
 void AnimationEventRouter::
 animationToBeginClick(){

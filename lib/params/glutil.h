@@ -45,7 +45,7 @@
 
 
 //#include <GL/gl.h>
-#include <qgl.h>
+#include <QGLWidget>
 #include <math.h>
 #include "vaporinternal/common.h"
 

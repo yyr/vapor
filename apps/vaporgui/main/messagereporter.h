@@ -31,7 +31,7 @@
 #include <qmutex.h>
 //Added by qt3to4:
 #include <QCustomEvent>
-
+class QCustomEvent;
 
 namespace VAPoR{
 

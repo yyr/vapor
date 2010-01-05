@@ -78,6 +78,7 @@ ColorPicker::ColorPicker(QWidget* parent, const char* name )
     pix->convertFromImage(img,0);
     setBackgroundMode( Qt::NoBackground );
     setSizePolicy( QSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed )  );
+	setEnabled(false);
 }
 
 ColorPicker::~ColorPicker()
@@ -419,6 +420,7 @@ void ColorLuminancePicker::setCol( int h, int s )
 
 void ColorLuminancePicker::paintEvent( QPaintEvent * )
 {
+	return;//QT4, paint here causes crash on windows.
     int w = width() - 5;
 
     QRect r( 0, foff, w, height() - 2*foff );

@@ -1,92 +1,151 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="9.00"
 	Name="params"
 	ProjectGUID="{E8FB619B-48D3-4B7E-B3F0-88939299995A}"
-	Keyword="Win32Proj">
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="2"
-			CharacterSet="0">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;PARAMS_EXPORTS"
-				MinimalRebuild="TRUE"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;PARAMS_EXPORTS;QT_GUI_LIB;QT_LARGEFILE_SUPPORT"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="FALSE"
-				RuntimeTypeInfo="TRUE"
+				BufferSecurityCheck="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/params/"
 				ProgramDataBaseFileName="../../../targets/win32/built/params/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib QtCored4.lib QtGuid4.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/params.pdb"
 				SubSystem="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/params.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS"
 				RuntimeLibrary="2"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/params/"
 				ProgramDataBaseFileName="../../../targets/win32/built/params/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
@@ -94,32 +153,36 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/params.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -128,173 +191,228 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\..\lib\params\animationparams.cpp">
+				RelativePath="..\..\..\lib\params\animationparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\Colormap.cpp">
+				RelativePath="..\..\..\lib\params\Colormap.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ColorMapBase.cpp">
+				RelativePath="..\..\..\lib\params\ColorMapBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\datastatus.cpp">
+				RelativePath="..\..\..\lib\params\datastatus.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\dvrparams.cpp">
+				RelativePath="..\..\..\lib\params\dvrparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\flowparams.cpp">
+				RelativePath="..\..\..\lib\params\flowparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\glutil.cpp">
+				RelativePath="..\..\..\lib\params\glutil.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\histo.cpp">
+				RelativePath="..\..\..\lib\params\histo.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\mapperfunction.cpp">
+				RelativePath="..\..\..\lib\params\mapperfunction.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\MapperFunctionBase.cpp">
+				RelativePath="..\..\..\lib\params\MapperFunctionBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\OpacityMap.cpp">
+				RelativePath="..\..\..\lib\params\OpacityMap.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\OpacityMapBase.cpp">
+				RelativePath="..\..\..\lib\params\OpacityMapBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamNode.cpp">
+				RelativePath="..\..\..\lib\params\ParamNode.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\params.cpp">
+				RelativePath="..\..\..\lib\params\params.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamsBase.cpp">
+				RelativePath="..\..\..\lib\params\ParamsBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamsIso.cpp">
+				RelativePath="..\..\..\lib\params\ParamsIso.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\probeparams.cpp">
+				RelativePath="..\..\..\lib\params\probeparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\regionparams.cpp">
+				RelativePath="..\..\..\lib\params\regionparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\tfinterpolator.cpp">
+				RelativePath="..\..\..\lib\params\tfinterpolator.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\transferfunction.cpp">
+				RelativePath="..\..\..\lib\params\transferfunction.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\TransferFunctionLite.cpp">
+				RelativePath="..\..\..\lib\params\TransferFunctionLite.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDdataparams.cpp">
+				RelativePath="..\..\..\lib\params\twoDdataparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDimageparams.cpp">
+				RelativePath="..\..\..\lib\params\twoDimageparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDparams.cpp">
+				RelativePath="..\..\..\lib\params\twoDparams.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\viewpoint.cpp">
+				RelativePath="..\..\..\lib\params\viewpoint.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\viewpointparams.cpp">
+				RelativePath="..\..\..\lib\params\viewpointparams.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\..\lib\params\animationparams.h">
+				RelativePath="..\..\..\lib\params\animationparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\Colormap.h">
+				RelativePath="..\..\..\lib\params\Colormap.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\ColorMapBase.h">
+				RelativePath="..\..\..\include\vapor\ColorMapBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\datastatus.h">
+				RelativePath="..\..\..\lib\params\datastatus.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\dvrparams.h">
+				RelativePath="..\..\..\lib\params\dvrparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\errorcodes.h">
+				RelativePath="..\..\..\include\vapor\errorcodes.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\flowparams.h">
+				RelativePath="..\..\..\lib\params\flowparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\glutil.h">
+				RelativePath="..\..\..\lib\params\glutil.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\histo.h">
+				RelativePath="..\..\..\lib\params\histo.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\mapperfunction.h">
+				RelativePath="..\..\..\lib\params\mapperfunction.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\MapperFunctionBase.h">
+				RelativePath="..\..\..\include\vapor\MapperFunctionBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\OpacityMap.h">
+				RelativePath="..\..\..\lib\params\OpacityMap.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\OpacityMapBase.h">
+				RelativePath="..\..\..\include\vapor\OpacityMapBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamNode.h">
+				RelativePath="..\..\..\lib\params\ParamNode.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\params.h">
+				RelativePath="..\..\..\lib\params\params.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\ParamsBase.h">
+				RelativePath="..\..\..\include\vapor\ParamsBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamsIso.h">
+				RelativePath="..\..\..\lib\params\ParamsIso.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\probeparams.h">
+				RelativePath="..\..\..\lib\params\probeparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\regionparams.h">
+				RelativePath="..\..\..\lib\params\regionparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\tfinterpolator.h">
+				RelativePath="..\..\..\include\vapor\tfinterpolator.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\transferfunction.h">
+				RelativePath="..\..\..\lib\params\transferfunction.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDdataparams.h">
+				RelativePath="..\..\..\lib\params\twoDdataparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDimageparams.h">
+				RelativePath="..\..\..\lib\params\twoDimageparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\twoDparams.h">
+				RelativePath="..\..\..\lib\params\twoDparams.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\viewpoint.h">
+				RelativePath="..\..\..\lib\params\viewpoint.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\viewpointparams.h">
+				RelativePath="..\..\..\lib\params\viewpointparams.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 	</Files>
 	<Globals>

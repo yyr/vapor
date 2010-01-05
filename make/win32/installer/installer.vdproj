@@ -1,7 +1,7 @@
 "DeployProject"
 {
-"VSVersion" = "3:701"
-"ProjectType" = "8:{2C2AF0D9-9B47-4FE5-BEF2-169778172667}"
+"VSVersion" = "3:800"
+"ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
 "IsWebType" = "8:FALSE"
 "ProjectName" = "8:installer"
 "LanguageId" = "3:1033"
@@ -63,6 +63,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_0C25F4BF7447A58970AD036BC6D24436"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0C4557D8B5304F8D8FC5BA3DA3892389"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -71,6 +77,24 @@
         {
         "MsmKey" = "8:_10EBC40F92464C7AAF0E643DB955B4F1"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_12060F7E37C971272CFA738D83591102"
+        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_12060F7E37C971272CFA738D83591102"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_12060F7E37C971272CFA738D83591102"
+        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -105,12 +129,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1D2FC39D27061ABA7701C53036EC52BD"
-        "OwnerKey" = "8:_F772BBD94ACA490FA3E7A9D6E54432F4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_22E89FF97D8D41189D99BB69D77EDB79"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -135,8 +153,92 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_25147B82751E4188ADF9615BA69BAF10"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_25147B82751E4188ADF9615BA69BAF10"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_268E736A957A499AABD163646C636F48"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_26EE3FA63F169842C735689DC739921F"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -167,6 +269,18 @@
         {
         "MsmKey" = "8:_29FFDE12BDE84B33812D696C15A5BEC8"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_2A48236549C0F561C9A173942ADB8434"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_2A48236549C0F561C9A173942ADB8434"
+        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -286,12 +400,6 @@
         "Entry"
         {
         "MsmKey" = "8:_4FA5E494DCDF7717E0C257CC8F3254EF"
-        "OwnerKey" = "8:_F772BBD94ACA490FA3E7A9D6E54432F4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_4FA5E494DCDF7717E0C257CC8F3254EF"
         "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -351,6 +459,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_58EABF045F287D5051DBC2126690964A"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_5E1BEE13D99D48878EF4B61EB6BA1677"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -383,96 +497,6 @@
         {
         "MsmKey" = "8:_60FC34985CE7A53490F516EC52D1BA21"
         "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_F772BBD94ACA490FA3E7A9D6E54432F4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_62F0C34E0B694AD1B9165862197D4A95"
-        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -569,6 +593,96 @@
         {
         "MsmKey" = "8:_74BD8C24EB3D484A830E70304E7E7145"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -885,6 +999,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_CBF771F7B81F719DB7797C40152860BA"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_CDA520BC5C834D84A8387AD3D470BE1C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -905,114 +1025,6 @@
         {
         "MsmKey" = "8:_CF5E0E124C3C4ECE9926B36F7E3D766C"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_FAA81B94AFDC49F1B84CB3C774C13F6E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_F772BBD94ACA490FA3E7A9D6E54432F4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_CF42ACB8ADF94551B7A6F3085D578022"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_5E1BEE13D99D48878EF4B61EB6BA1677"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1089,6 +1101,90 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_EB43D563A94F474598431089D8E1FBB8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1097,6 +1193,114 @@
         {
         "MsmKey" = "8:_EBFC1CDF77864A01BCC11E6D4DE2017E"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_FAA81B94AFDC49F1B84CB3C774C13F6E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_EF334F9437D14A2AB4BE94304CA1D7CA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_CF42ACB8ADF94551B7A6F3085D578022"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_B6C121E3EFF44286930504DDF1635916"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_80A01C54CD004F93A812B26FB3D34A4B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_728BA4AE0DB1435B880AF5C859E6593F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_6C76377D84AB406EA043EDF454C93686"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_5E1BEE13D99D48878EF4B61EB6BA1677"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_36ECEFBBE4944F9BB5134A221B6998EA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1165,6 +1369,18 @@
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_FFEF2CDDBA2DE6BFD93E1DCDFBECA206"
+        "OwnerKey" = "8:_2890451909624B04BCFE1EA0584A1FCD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FFEF2CDDBA2DE6BFD93E1DCDFBECA206"
+        "OwnerKey" = "8:_5764F290CCDA42D1A50CA9B4856F50DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -1183,6 +1399,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -1199,13 +1423,21 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
     {
         "CustomAction"
         {
-            "{0C9D821E-95BB-411F-BE03-2864360EBF94}:_062472F4C0894EF2996A50940000BF59"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_062472F4C0894EF2996A50940000BF59"
             {
             "Name" = "8:installVapor.vbs"
             "Condition" = "8:"
@@ -1219,7 +1451,7 @@
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:[ALLUSERS]<>[TARGETDIR]"
             }
-            "{0C9D821E-95BB-411F-BE03-2864360EBF94}:_10091CBA14EE401E9DB1E89CAF697B83"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_10091CBA14EE401E9DB1E89CAF697B83"
             {
             "Name" = "8:uninstallVapor.vbs"
             "Condition" = "8:"
@@ -1246,12 +1478,9 @@
             {
             }
         }
-        "Feature"
-        {
-        }
         "File"
         {
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_04700CA3240D46EBA85A337378A486DF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_04700CA3240D46EBA85A337378A486DF"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure1.8.vss"
             "TargetName" = "8:guideFigure1.8.vss"
@@ -1271,7 +1500,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_05BA83E862154B6D9C62BB3F4E2DFECB"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_05BA83E862154B6D9C62BB3F4E2DFECB"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\WRFVortMagEx.pro"
             "TargetName" = "8:WRFVortMagEx.pro"
@@ -1291,7 +1520,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_06E7C0E61E4644CF853516B4890B3EB6"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_06E7C0E61E4644CF853516B4890B3EB6"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.4.vss"
             "TargetName" = "8:guideFigure4.4.vss"
@@ -1311,7 +1540,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_070787CC873D48BA99ABD7865981D2BF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_070787CC873D48BA99ABD7865981D2BF"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.8.vss"
             "TargetName" = "8:WRFFigure4.8.vss"
@@ -1331,7 +1560,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_09AD26E5543A49AD80735CEABDEC940F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_09AD26E5543A49AD80735CEABDEC940F"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.9.vss"
             "TargetName" = "8:WRFFigure1.9.vss"
@@ -1351,7 +1580,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_0A9136E58B6B4BFDBE65E9E808EB51AE"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0A9136E58B6B4BFDBE65E9E808EB51AE"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.6.vss"
             "TargetName" = "8:WRFFigure2.6.vss"
@@ -1371,7 +1600,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_0B74905584894FF6BEE255D3C6F62EE4"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0B74905584894FF6BEE255D3C6F62EE4"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\impregion.pro"
             "TargetName" = "8:impregion.pro"
@@ -1391,7 +1620,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_0BC1D3C4ED034682ADEDCAE7F2547A62"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0BC1D3C4ED034682ADEDCAE7F2547A62"
             {
             "SourcePath" = "8:..\\..\\..\\Images\\splashwide.JPG"
             "TargetName" = "8:splashwide.JPG"
@@ -1411,7 +1640,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_0C4557D8B5304F8D8FC5BA3DA3892389"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0C25F4BF7447A58970AD036BC6D24436"
+            {
+            "SourcePath" = "8:vjpeg.dll"
+            "TargetName" = "8:vjpeg.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0C4557D8B5304F8D8FC5BA3DA3892389"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.8.vss"
             "TargetName" = "8:guideFigure3.8.vss"
@@ -1431,7 +1680,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_10EBC40F92464C7AAF0E643DB955B4F1"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_10EBC40F92464C7AAF0E643DB955B4F1"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\WriteTimeVaryVDF.pro"
             "TargetName" = "8:WriteTimeVaryVDF.pro"
@@ -1451,7 +1700,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_123EFA5A46B64453925AFE4A218B145E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_12060F7E37C971272CFA738D83591102"
+            {
+            "SourcePath" = "8:netcdf.dll"
+            "TargetName" = "8:netcdf.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_123EFA5A46B64453925AFE4A218B145E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.3.vss"
             "TargetName" = "8:guideFigure4.3.vss"
@@ -1471,7 +1740,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_132377F7FCAE4DE189D432AD41C7B03D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_132377F7FCAE4DE189D432AD41C7B03D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.9.vss"
             "TargetName" = "8:guideFigure2.9.vss"
@@ -1491,7 +1760,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_153BE32348714DC0814C8A0BF5AFC263"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_153BE32348714DC0814C8A0BF5AFC263"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\MakeLinCmb.pro"
             "TargetName" = "8:MakeLinCmb.pro"
@@ -1511,7 +1780,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_1D2FC39D27061ABA7701C53036EC52BD"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1D2FC39D27061ABA7701C53036EC52BD"
             {
             "SourcePath" = "8:MPR.dll"
             "TargetName" = "8:MPR.dll"
@@ -1531,7 +1800,7 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_22E89FF97D8D41189D99BB69D77EDB79"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_22E89FF97D8D41189D99BB69D77EDB79"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\div_findiff.pro"
             "TargetName" = "8:div_findiff.pro"
@@ -1551,7 +1820,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_23004644ABC54389B3BF22FE69961DA2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_23004644ABC54389B3BF22FE69961DA2"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.1.vss"
             "TargetName" = "8:guideFigure4.1.vss"
@@ -1571,7 +1840,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_23A14D60D77D48849D55DFA875E05898"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_23A14D60D77D48849D55DFA875E05898"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\ReadRegionVDF.pro"
             "TargetName" = "8:ReadRegionVDF.pro"
@@ -1591,7 +1860,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_24C1EC73561346E3A74C72CCA07C272C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_24C1EC73561346E3A74C72CCA07C272C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\impexp.pro"
             "TargetName" = "8:impexp.pro"
@@ -1611,7 +1880,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_268E736A957A499AABD163646C636F48"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_25147B82751E4188ADF9615BA69BAF10"
+            {
+            "SourcePath" = "8:qt-mt334.dll"
+            "TargetName" = "8:qt-mt334.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_268E736A957A499AABD163646C636F48"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddWRFCurl.pro"
             "TargetName" = "8:AddWRFCurl.pro"
@@ -1631,7 +1920,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_273ED50FED514ACEBB5851AC5F88F621"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26EE3FA63F169842C735689DC739921F"
+            {
+            "SourcePath" = "8:vdf.dll"
+            "TargetName" = "8:vdf.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_273ED50FED514ACEBB5851AC5F88F621"
             {
             "SourcePath" = "8:..\\..\\..\\scripts\\vdfbkup.pl"
             "TargetName" = "8:vdfbkup.pl"
@@ -1651,7 +1960,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_27B45E7BD12F491FA14A8077E29388F6"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_27B45E7BD12F491FA14A8077E29388F6"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddDivVDF.pro"
             "TargetName" = "8:AddDivVDF.pro"
@@ -1671,7 +1980,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_299F7AB5F16A491F9A01DF202DE2F442"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_299F7AB5F16A491F9A01DF202DE2F442"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddWRFETH.pro"
             "TargetName" = "8:AddWRFETH.pro"
@@ -1691,7 +2000,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_29FFDE12BDE84B33812D696C15A5BEC8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_29FFDE12BDE84B33812D696C15A5BEC8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\saved8spot.vss"
             "TargetName" = "8:saved8spot.vss"
@@ -1711,7 +2020,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_2E8122CFFC304EEAAAECB74F4B7E43B3"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2A48236549C0F561C9A173942ADB8434"
+            {
+            "SourcePath" = "8:params.dll"
+            "TargetName" = "8:params.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2E8122CFFC304EEAAAECB74F4B7E43B3"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.12.vss"
             "TargetName" = "8:WRFFigure4.12.vss"
@@ -1731,7 +2060,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_3198C8CF1A3547D38509ADE4CD2CD9C7"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3198C8CF1A3547D38509ADE4CD2CD9C7"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\marschner_lobb.pro"
             "TargetName" = "8:marschner_lobb.pro"
@@ -1751,7 +2080,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_339F7D4E1FA34C04ACCC46286B80513D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_339F7D4E1FA34C04ACCC46286B80513D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.8.vss"
             "TargetName" = "8:guideFigure2.8.vss"
@@ -1771,7 +2100,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_33A0D4DFBCF84F3D9F79468A4ECC2EAF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_33A0D4DFBCF84F3D9F79468A4ECC2EAF"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.3.vss"
             "TargetName" = "8:WRFFigure4.3.vss"
@@ -1791,7 +2120,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_33B65282887D465C8954C05A59D75E6E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_33B65282887D465C8954C05A59D75E6E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.1.vss"
             "TargetName" = "8:WRFFigure5.1.vss"
@@ -1811,7 +2140,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_35A9AA8B3F824316BABD7232FD206891"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_35A9AA8B3F824316BABD7232FD206891"
             {
             "SourcePath" = "8:..\\..\\..\\scripts\\getWMSImage.sh"
             "TargetName" = "8:getWMSImage.sh"
@@ -1831,7 +2160,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_374692AF2F14411F980EFF841A6FEBBC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_374692AF2F14411F980EFF841A6FEBBC"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf2geotiff.ncl"
             "TargetName" = "8:wrf2geotiff.ncl"
@@ -1851,7 +2180,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_399A168ECCF34FF8BBACA4380A014212"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_399A168ECCF34FF8BBACA4380A014212"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.6.vss"
             "TargetName" = "8:WRFFigure5.6.vss"
@@ -1871,7 +2200,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_3CB53983F58647529521C1775F4B3A94"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3CB53983F58647529521C1775F4B3A94"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\MakeCmbo.pro"
             "TargetName" = "8:MakeCmbo.pro"
@@ -1891,7 +2220,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_434226DC1937454F993A6E92FC4CA35F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_434226DC1937454F993A6E92FC4CA35F"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\README.txt"
             "TargetName" = "8:README.txt"
@@ -1911,7 +2240,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_43502847C26B4F14896008D99634D9D8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_43502847C26B4F14896008D99634D9D8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.5.vss"
             "TargetName" = "8:WRFFigure5.5.vss"
@@ -1931,7 +2260,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_45538B87A3C047DD9FB368F1CAA31C83"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_45538B87A3C047DD9FB368F1CAA31C83"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.4.vss"
             "TargetName" = "8:WRFFigure2.4.vss"
@@ -1951,7 +2280,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_4C4ED948C15440778D1CFDB9C474539D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4C4ED948C15440778D1CFDB9C474539D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.2.vss"
             "TargetName" = "8:guideFigure3.2.vss"
@@ -1971,7 +2300,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_4C61D50C90C548008A1E69DD86BB8A87"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4C61D50C90C548008A1E69DD86BB8A87"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.3.vss"
             "TargetName" = "8:guideFigure3.3.vss"
@@ -1991,7 +2320,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_4E453C27067E488AB454F1527091FC21"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4E453C27067E488AB454F1527091FC21"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure5.4.vss"
             "TargetName" = "8:guideFigure5.4.vss"
@@ -2011,7 +2340,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_4FA5E494DCDF7717E0C257CC8F3254EF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4FA5E494DCDF7717E0C257CC8F3254EF"
             {
             "SourcePath" = "8:GLU32.dll"
             "TargetName" = "8:GLU32.dll"
@@ -2031,7 +2360,7 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_50142EA1C69C463994D30CEC6B67DA7E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_50142EA1C69C463994D30CEC6B67DA7E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\QuickStartEx1.pro"
             "TargetName" = "8:QuickStartEx1.pro"
@@ -2051,7 +2380,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_502A326F0A704A0882576C7D470C60B9"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_502A326F0A704A0882576C7D470C60B9"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure5.3.vss"
             "TargetName" = "8:guideFigure5.3.vss"
@@ -2071,7 +2400,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_50C90B54605E43FE9CA2D863A59CCF67"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_50C90B54605E43FE9CA2D863A59CCF67"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\reversedOpaque.vtf"
             "TargetName" = "8:reversedOpaque.vtf"
@@ -2091,7 +2420,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_531413AB277547DC8B6FEC5A7B89E8E1"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_531413AB277547DC8B6FEC5A7B89E8E1"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\wrf_div_findiff.pro"
             "TargetName" = "8:wrf_div_findiff.pro"
@@ -2111,7 +2440,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_54A394A7348C43E9A0B2321D562DEF07"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_54A394A7348C43E9A0B2321D562DEF07"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.4.vss"
             "TargetName" = "8:guideFigure3.4.vss"
@@ -2131,7 +2460,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_56159E7F25F34327BD49A8F87E03318D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_56159E7F25F34327BD49A8F87E03318D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure1.11.vss"
             "TargetName" = "8:guideFigure1.11.vss"
@@ -2151,7 +2480,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_57C9945DBE6E4E819C12CA94F56BA6FB"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_57C9945DBE6E4E819C12CA94F56BA6FB"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\vapor_prefs"
             "TargetName" = "8:.vapor_prefs"
@@ -2171,7 +2500,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_58D9D00D25E441239F0757CECD72E24B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_58D9D00D25E441239F0757CECD72E24B"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\WrfTestScripts.Notes"
             "TargetName" = "8:WrfTestScripts.Notes"
@@ -2191,7 +2520,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_5F18CA470E0D4606A04A1A5D83D9EFB2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_58EABF045F287D5051DBC2126690964A"
+            {
+            "SourcePath" = "8:glew32.dll"
+            "TargetName" = "8:glew32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5F18CA470E0D4606A04A1A5D83D9EFB2"
             {
             "SourcePath" = "8:C:\\NCDF\\lib\\netcdf.dll"
             "TargetName" = "8:netcdf.dll"
@@ -2211,7 +2560,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_5F9A75AB6F034AE097390282B29FE2FE"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5F9A75AB6F034AE097390282B29FE2FE"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.15.vss"
             "TargetName" = "8:WRFFigure1.15.vss"
@@ -2231,7 +2580,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_60FC34985CE7A53490F516EC52D1BA21"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_60FC34985CE7A53490F516EC52D1BA21"
             {
             "SourcePath" = "8:OPENGL32.dll"
             "TargetName" = "8:OPENGL32.dll"
@@ -2251,7 +2600,7 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_65ECE4E0A58F4D9F8A06B839E2B59D95"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65ECE4E0A58F4D9F8A06B839E2B59D95"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf_pv.ncl"
             "TargetName" = "8:wrf_pv.ncl"
@@ -2271,7 +2620,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_67C3D2D2761C47D1949A4F7F92269619"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_67C3D2D2761C47D1949A4F7F92269619"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf_EtaLevels.ncl"
             "TargetName" = "8:wrf_EtaLevels.ncl"
@@ -2291,7 +2640,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_681CA0F2ADE943D0B7F1C8348D5587C8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_681CA0F2ADE943D0B7F1C8348D5587C8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.11.vss"
             "TargetName" = "8:WRFFigure4.11.vss"
@@ -2311,7 +2660,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6A10E5F863724D2AAEACE8D8CE3722ED"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6A10E5F863724D2AAEACE8D8CE3722ED"
             {
             "SourcePath" = "8:uninstallVapor.vbs"
             "TargetName" = "8:uninstallVapor.vbs"
@@ -2331,7 +2680,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6A62F3B27BAA4E149B930DFBB78C5674"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6A62F3B27BAA4E149B930DFBB78C5674"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.6.vss"
             "TargetName" = "8:guideFigure4.6.vss"
@@ -2351,7 +2700,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6B9F1EC816D44A8AA14E5C874974F004"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6B9F1EC816D44A8AA14E5C874974F004"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure1.10.vss"
             "TargetName" = "8:guideFigure1.10.vss"
@@ -2371,7 +2720,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6C996954298746D68E7963765CCC9379"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6C996954298746D68E7963765CCC9379"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.3.vss"
             "TargetName" = "8:guideFigure2.3.vss"
@@ -2391,7 +2740,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6CCFF26D25E9474FAB1D05661A42DC48"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6CCFF26D25E9474FAB1D05661A42DC48"
             {
             "SourcePath" = "8:installVapor.vbs"
             "TargetName" = "8:installVapor.vbs"
@@ -2411,7 +2760,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_6DDD928FD8474DCDA127083C32E7BF8E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6DDD928FD8474DCDA127083C32E7BF8E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.10.vss"
             "TargetName" = "8:WRFFigure4.10.vss"
@@ -2431,7 +2780,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_7117F5B84C7947A1A167CD1C85A38216"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7117F5B84C7947A1A167CD1C85A38216"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.7.vss"
             "TargetName" = "8:WRFFigure4.7.vss"
@@ -2451,7 +2800,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_718A830C1FBF4B4B93D0F4AEA83BA1C8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_718A830C1FBF4B4B93D0F4AEA83BA1C8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.5.vss"
             "TargetName" = "8:guideFigure2.5.vss"
@@ -2471,7 +2820,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_725D6C5B3C54410DA6533F53011EC6E5"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_725D6C5B3C54410DA6533F53011EC6E5"
             {
             "SourcePath" = "8:..\\..\\..\\doc\\help\\UnsteadyHelp.html"
             "TargetName" = "8:UnsteadyHelp.html"
@@ -2491,7 +2840,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_7352D499409C43CA812ACC86B68EE66D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7352D499409C43CA812ACC86B68EE66D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.2.vss"
             "TargetName" = "8:WRFFigure5.2.vss"
@@ -2511,7 +2860,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_74BD8C24EB3D484A830E70304E7E7145"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_74BD8C24EB3D484A830E70304E7E7145"
             {
             "SourcePath" = "8:..\\..\\..\\Images\\vapor-win-icon.ico"
             "TargetName" = "8:vapor-win-icon.ico"
@@ -2531,7 +2880,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_793C69D7264140FFB92A9B5CED2E77AA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_76C82137507D0BA35EA4F77549D029B2"
+            {
+            "SourcePath" = "8:MSVCP71D.dll"
+            "TargetName" = "8:MSVCP71D.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_793C69D7264140FFB92A9B5CED2E77AA"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf_cloud.ncl"
             "TargetName" = "8:wrf_cloud.ncl"
@@ -2551,7 +2920,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_79E2C99FB2AC4448B8ACE5A6A62CFC36"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_79E2C99FB2AC4448B8ACE5A6A62CFC36"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.5.vss"
             "TargetName" = "8:WRFFigure4.5.vss"
@@ -2571,7 +2940,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_7A127FA04DEC48979089B4E93885E15B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7A127FA04DEC48979089B4E93885E15B"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.3.vss"
             "TargetName" = "8:WRFFigure2.3.vss"
@@ -2591,7 +2960,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_7ADD072AD0F24FDF920F18B293414630"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7ADD072AD0F24FDF920F18B293414630"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddCurlVDF.pro"
             "TargetName" = "8:AddCurlVDF.pro"
@@ -2611,7 +2980,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_803CB09FEED44C239D9607ADAE7A2153"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_803CB09FEED44C239D9607ADAE7A2153"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\myderiv.pro"
             "TargetName" = "8:myderiv.pro"
@@ -2631,7 +3000,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_815019F2F68F446D91CB50E33CBF706F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_815019F2F68F446D91CB50E33CBF706F"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.9.vss"
             "TargetName" = "8:guideFigure3.9.vss"
@@ -2651,7 +3020,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8168508DC1074C3FAFE37375EA215752"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8168508DC1074C3FAFE37375EA215752"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.7.vss"
             "TargetName" = "8:WRFFigure2.7.vss"
@@ -2671,7 +3040,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_833F4A06D4A04E638219EF8F9918C376"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_833F4A06D4A04E638219EF8F9918C376"
             {
             "SourcePath" = "8:installVapor.vbs"
             "TargetName" = "8:installVapor.vbs"
@@ -2691,7 +3060,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_85A7CBA14ACA471D847BA0C33A4EFC59"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_85A7CBA14ACA471D847BA0C33A4EFC59"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.9.vss"
             "TargetName" = "8:WRFFigure4.9.vss"
@@ -2711,7 +3080,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_87570DF132C14BB287427E1ACD0ECB98"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_87570DF132C14BB287427E1ACD0ECB98"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.6.vss"
             "TargetName" = "8:guideFigure3.6.vss"
@@ -2731,7 +3100,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8957550612ED44248B0853FD589685E1"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8957550612ED44248B0853FD589685E1"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\elev_deriv.pro"
             "TargetName" = "8:elev_deriv.pro"
@@ -2751,7 +3120,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8C047281E669437E8B0E746C542FE558"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8C047281E669437E8B0E746C542FE558"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddWRFDiv.pro"
             "TargetName" = "8:AddWRFDiv.pro"
@@ -2771,7 +3140,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8CD23B71F3764787A1964F75CCD79DF3"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8CD23B71F3764787A1964F75CCD79DF3"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.2.vss"
             "TargetName" = "8:WRFFigure4.2.vss"
@@ -2791,7 +3160,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8EA6FB6DF9AC48C3AAA8D04D776BAADA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8EA6FB6DF9AC48C3AAA8D04D776BAADA"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure3.2.vss"
             "TargetName" = "8:WRFFigure3.2.vss"
@@ -2811,7 +3180,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_8FE0A8CF08F148B1A1FBA7A2C56DB9B1"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8FE0A8CF08F148B1A1FBA7A2C56DB9B1"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.7.vss"
             "TargetName" = "8:WRFFigure5.7.vss"
@@ -2831,7 +3200,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_914940339EF24A268C97DE9915854B96"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_914940339EF24A268C97DE9915854B96"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\pencil2vapor.pro"
             "TargetName" = "8:pencil2vapor.pro"
@@ -2851,7 +3220,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_923DE517EA3B487EA01590BAFEA56359"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_923DE517EA3B487EA01590BAFEA56359"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\ReadVDF.pro"
             "TargetName" = "8:ReadVDF.pro"
@@ -2871,7 +3240,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9247A29334204374A263A7E4BE815ED9"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9247A29334204374A263A7E4BE815ED9"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf_Surface1.ncl"
             "TargetName" = "8:wrf_Surface1.ncl"
@@ -2891,7 +3260,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_92FFD71125F844F987BB49477351B808"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_92FFD71125F844F987BB49477351B808"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.4.vss"
             "TargetName" = "8:WRFFigure4.4.vss"
@@ -2911,7 +3280,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9493A601890E4B4CB4E1031192C6466C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9493A601890E4B4CB4E1031192C6466C"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\grayscale.vtf"
             "TargetName" = "8:grayscale.vtf"
@@ -2931,7 +3300,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_97ACA3D6A9A64828B5BA02B1F4BD4B80"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_97ACA3D6A9A64828B5BA02B1F4BD4B80"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\wrf_curl_findiff.pro"
             "TargetName" = "8:wrf_curl_findiff.pro"
@@ -2951,7 +3320,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_999561B0EEA64FD0911B247C48DE817A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_999561B0EEA64FD0911B247C48DE817A"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.1.vss"
             "TargetName" = "8:guideFigure2.1.vss"
@@ -2971,7 +3340,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_99C7982095E140F68F620769FFE01530"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_99C7982095E140F68F620769FFE01530"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.6.vss"
             "TargetName" = "8:guideFigure2.6.vss"
@@ -2991,7 +3360,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9B75D0AD17064BDDB18BFCCDCD8EC6B5"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9B75D0AD17064BDDB18BFCCDCD8EC6B5"
             {
             "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\libidl_vdfmodule.dlm"
             "TargetName" = "8:libidl_vdfmodule.dlm"
@@ -3011,7 +3380,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9C239322CA344720B37500CBD036EB6C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9C239322CA344720B37500CBD036EB6C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.10.vss"
             "TargetName" = "8:guideFigure4.10.vss"
@@ -3031,7 +3400,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9E2B1A529F9A4DA49CDBF40416D304ED"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9E2B1A529F9A4DA49CDBF40416D304ED"
             {
             "SourcePath" = "8:..\\..\\..\\doc\\help\\FieldLineAdvectionHelp.html"
             "TargetName" = "8:FieldLineAdvectionHelp.html"
@@ -3051,7 +3420,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_9F32F51C084448018140DBCD52E89019"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9F32F51C084448018140DBCD52E89019"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\reversed.vtf"
             "TargetName" = "8:reversed.vtf"
@@ -3071,7 +3440,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_A1D75F45069E4B31BFAD412548039A80"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A1D75F45069E4B31BFAD412548039A80"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.8.vss"
             "TargetName" = "8:guideFigure4.8.vss"
@@ -3091,7 +3460,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_A4DED62B2B5D4924889534F0F4DDA539"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A4DED62B2B5D4924889534F0F4DDA539"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.7.vss"
             "TargetName" = "8:guideFigure3.7.vss"
@@ -3111,7 +3480,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_AC176C4E5187411291207FAD27C3FE4E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AC176C4E5187411291207FAD27C3FE4E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.1.vss"
             "TargetName" = "8:guideFigure3.1.vss"
@@ -3131,7 +3500,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_AE407820EF8C4390BED1F6833D1796FF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AE407820EF8C4390BED1F6833D1796FF"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\default.vtf"
             "TargetName" = "8:default.vtf"
@@ -3151,7 +3520,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_AF25832C33B64483A22C06CAF8BCCF68"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AF25832C33B64483A22C06CAF8BCCF68"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.1.vss"
             "TargetName" = "8:WRFFigure4.1.vss"
@@ -3171,7 +3540,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_B21DEC6AF7B24A59A495EE94FF93AF4F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B21DEC6AF7B24A59A495EE94FF93AF4F"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.13.vss"
             "TargetName" = "8:WRFFigure1.13.vss"
@@ -3191,7 +3560,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_B442C57669AE493BB44FABC3A4D7E04A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B442C57669AE493BB44FABC3A4D7E04A"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure3.3.vss"
             "TargetName" = "8:WRFFigure3.3.vss"
@@ -3211,7 +3580,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_B8A9CE8875F44654AA16A21FE7C8118F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B8A9CE8875F44654AA16A21FE7C8118F"
             {
             "SourcePath" = "8:C:\\QtRelease\\3.3.4\\bin\\qt-mt334.dll"
             "TargetName" = "8:qt-mt334.dll"
@@ -3231,7 +3600,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_BE7249C5A30840B88112C6F73DAF5C77"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BE7249C5A30840B88112C6F73DAF5C77"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.14.vss"
             "TargetName" = "8:WRFFigure1.14.vss"
@@ -3251,7 +3620,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C0B9DD1AC60B49E8A30488C946046EC4"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0B9DD1AC60B49E8A30488C946046EC4"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.13.vss"
             "TargetName" = "8:WRFFigure4.13.vss"
@@ -3271,7 +3640,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C0FCA21611514C2E984EEE4CA4B3063A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0FCA21611514C2E984EEE4CA4B3063A"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.1.vss"
             "TargetName" = "8:WRFFigure2.1.vss"
@@ -3291,7 +3660,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C1BC172F62054DB19421AE59F273E83F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C1BC172F62054DB19421AE59F273E83F"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.7.vss"
             "TargetName" = "8:guideFigure4.7.vss"
@@ -3311,7 +3680,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C29EC16418CA42F9AFE373B0AB924C70"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C29EC16418CA42F9AFE373B0AB924C70"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.4.vss"
             "TargetName" = "8:guideFigure2.4.vss"
@@ -3331,7 +3700,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C4078CFA9AB34A7292C25409683ABC2C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C4078CFA9AB34A7292C25409683ABC2C"
             {
             "SourcePath" = "8:uninstallVapor.vbs"
             "TargetName" = "8:uninstallVapor.vbs"
@@ -3351,7 +3720,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C4FD302902C144439D0D193F42DD4A6E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C4FD302902C144439D0D193F42DD4A6E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.10.vss"
             "TargetName" = "8:guideFigure2.10.vss"
@@ -3371,7 +3740,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C560146EDE3C482D96BB7A83F1640364"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C560146EDE3C482D96BB7A83F1640364"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\curl_findiff.pro"
             "TargetName" = "8:curl_findiff.pro"
@@ -3391,7 +3760,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C5E88EE55AE5427EB1BF21927A82A822"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C5E88EE55AE5427EB1BF21927A82A822"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.8.vss"
             "TargetName" = "8:WRFFigure1.8.vss"
@@ -3411,7 +3780,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C673C623ABE74622903B39389281FCE0"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C673C623ABE74622903B39389281FCE0"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure5.5.vss"
             "TargetName" = "8:guideFigure5.5.vss"
@@ -3431,7 +3800,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_C755D6FD2E0A489AB120CBAE2771B6DF"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C755D6FD2E0A489AB120CBAE2771B6DF"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure3.5.vss"
             "TargetName" = "8:guideFigure3.5.vss"
@@ -3451,7 +3820,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_CA7026C5D2B8430D97ED0390AE171A91"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CA7026C5D2B8430D97ED0390AE171A91"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure1.10.vss"
             "TargetName" = "8:WRFFigure1.10.vss"
@@ -3471,7 +3840,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_CDA520BC5C834D84A8387AD3D470BE1C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CBF771F7B81F719DB7797C40152860BA"
+            {
+            "SourcePath" = "8:LIBEXPAT.dll"
+            "TargetName" = "8:LIBEXPAT.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CDA520BC5C834D84A8387AD3D470BE1C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure5.2.vss"
             "TargetName" = "8:guideFigure5.2.vss"
@@ -3491,7 +3880,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_CE00D29EF07F45319C480448024BC15C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CE00D29EF07F45319C480448024BC15C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure1.5.vss"
             "TargetName" = "8:guideFigure1.5.vss"
@@ -3511,7 +3900,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_CF5E0E124C3C4ECE9926B36F7E3D766C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CF5E0E124C3C4ECE9926B36F7E3D766C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.2.vss"
             "TargetName" = "8:guideFigure4.2.vss"
@@ -3531,7 +3920,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_D414654A1E9242AFBBA5E50C97C09FF5"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D414654A1E9242AFBBA5E50C97C09FF5"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.9.vss"
             "TargetName" = "8:guideFigure4.9.vss"
@@ -3551,7 +3940,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_D5325E09A8AA4E9F9E7696DF0346104B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D5325E09A8AA4E9F9E7696DF0346104B"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\expregion.pro"
             "TargetName" = "8:expregion.pro"
@@ -3571,7 +3960,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_D736BA181A1E44AF8CA7AEC172151A0D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D736BA181A1E44AF8CA7AEC172151A0D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure3.1.vss"
             "TargetName" = "8:WRFFigure3.1.vss"
@@ -3591,7 +3980,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_D89CFCEDA82D4875910C7B66D334EC08"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D89CFCEDA82D4875910C7B66D334EC08"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\farge_turb1.vtf"
             "TargetName" = "8:farge_turb1.vtf"
@@ -3611,7 +4000,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_DB23FD9BBFDA415A8FC2DB8934A149EC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DB23FD9BBFDA415A8FC2DB8934A149EC"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\PrintMetaVDF.pro"
             "TargetName" = "8:PrintMetaVDF.pro"
@@ -3631,7 +4020,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_DDEE57180D9A41DD9CB842383EB3EF1C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DDEE57180D9A41DD9CB842383EB3EF1C"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure1.7.vss"
             "TargetName" = "8:guideFigure1.7.vss"
@@ -3651,7 +4040,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_E071759CCF204282B416EC74ACCCBC4E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E071759CCF204282B416EC74ACCCBC4E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure4.5.vss"
             "TargetName" = "8:guideFigure4.5.vss"
@@ -3671,7 +4060,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_E5A31BC5D6FC4098958D15BB52034AB4"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E5A31BC5D6FC4098958D15BB52034AB4"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\WriteVDF.pro"
             "TargetName" = "8:WriteVDF.pro"
@@ -3691,7 +4080,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_E5B5A03A3397428DA468782B2573C56D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E5B5A03A3397428DA468782B2573C56D"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\NCL\\wrf_crossSection4.ncl"
             "TargetName" = "8:wrf_crossSection4.ncl"
@@ -3711,7 +4100,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_E84BAE2B2117446F9F6FF75ABD32F62E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E84BAE2B2117446F9F6FF75ABD32F62E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\AddMagVDF.pro"
             "TargetName" = "8:AddMagVDF.pro"
@@ -3731,7 +4120,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_EAF795D9029640379475F244367BD19B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EAF795D9029640379475F244367BD19B"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.4.vss"
             "TargetName" = "8:WRFFigure5.4.vss"
@@ -3751,7 +4140,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_EB43D563A94F474598431089D8E1FBB8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB31FC8B1F2051CFBF9D733AA9AF5040"
+            {
+            "SourcePath" = "8:common.dll"
+            "TargetName" = "8:common.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB43D563A94F474598431089D8E1FBB8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure2.5.vss"
             "TargetName" = "8:WRFFigure2.5.vss"
@@ -3771,7 +4180,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_EBFC1CDF77864A01BCC11E6D4DE2017E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EBFC1CDF77864A01BCC11E6D4DE2017E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure5.1.vss"
             "TargetName" = "8:guideFigure5.1.vss"
@@ -3791,7 +4200,27 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_F6FCAD053EC943AA8E0F02D84751033B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ED0B5E01D9F8453664251FA3FD409F84"
+            {
+            "SourcePath" = "8:MSVCR71D.dll"
+            "TargetName" = "8:MSVCR71D.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6FCAD053EC943AA8E0F02D84751033B"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\idl\\deriv_findiff.pro"
             "TargetName" = "8:deriv_findiff.pro"
@@ -3811,7 +4240,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FA1A3A8618C64C34A154F82EF18AA56E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FA1A3A8618C64C34A154F82EF18AA56E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.2.vss"
             "TargetName" = "8:guideFigure2.2.vss"
@@ -3831,7 +4260,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FA28F75421D946289811E021AB4C75C8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FA28F75421D946289811E021AB4C75C8"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure5.3.vss"
             "TargetName" = "8:WRFFigure5.3.vss"
@@ -3851,7 +4280,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FBA4E9B02DC34B4FB8F34B3A66FD7625"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FBA4E9B02DC34B4FB8F34B3A66FD7625"
             {
             "SourcePath" = "8:C:\\Expat-1.95.8\\Libs\\libexpat.dll"
             "TargetName" = "8:libexpat.dll"
@@ -3871,7 +4300,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FC1EC5E9A0AA45B7BBA9003CDF01C53E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FC1EC5E9A0AA45B7BBA9003CDF01C53E"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\WRFCaseStudy\\WRFFigure4.6.vss"
             "TargetName" = "8:WRFFigure4.6.vss"
@@ -3891,7 +4320,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FD381C2B44664775AF01F5CF6EFFD445"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FD381C2B44664775AF01F5CF6EFFD445"
             {
             "SourcePath" = "8:..\\..\\..\\share\\palettes\\defaultOpaque.vtf"
             "TargetName" = "8:defaultOpaque.vtf"
@@ -3911,7 +4340,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FD398CD20BDA4772863EFC18F12F4F49"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FD398CD20BDA4772863EFC18F12F4F49"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\8spothighres.vss"
             "TargetName" = "8:8spothighres.vss"
@@ -3931,7 +4360,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{A582A373-4685-4296-BEFE-614B80A702C3}:_FD8A2848A5A146598681BB2E199397AC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FD8A2848A5A146598681BB2E199397AC"
             {
             "SourcePath" = "8:..\\..\\..\\examples\\quickstart\\guideFigure2.7.vss"
             "TargetName" = "8:guideFigure2.7.vss"
@@ -3951,10 +4380,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FFEF2CDDBA2DE6BFD93E1DCDFBECA206"
+            {
+            "SourcePath" = "8:flow.dll"
+            "TargetName" = "8:flow.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
-            "{9300C6CA-4CE0-41D6-A6CD-70E04FD37067}:_55FF4F713FF645C7B5FAF35D9EDF1FAF"
+            "{5EB83D71-FA18-4901-BE56-DE22E13CC478}:_55FF4F713FF645C7B5FAF35D9EDF1FAF"
             {
             "Name" = "8:VAPOR session file"
             "Description" = "8:"
@@ -3968,7 +4417,7 @@
                 }
                 "Verbs"
                 {
-                    "{9D28A334-2E55-48EE-AD7D-2DF3F0641A76}:_9144AF30BD154D5A9CB5673A31FD77DE"
+                    "{95C0C507-CBF0-42B8-B119-07219E384A4A}:_9144AF30BD154D5A9CB5673A31FD77DE"
                     {
                     "Command" = "8:&Open"
                     "Verb" = "8:open"
@@ -3977,7 +4426,7 @@
                     }
                 }
             }
-            "{9300C6CA-4CE0-41D6-A6CD-70E04FD37067}:_AFCC7BC47D014CF4B2A6280EAE2332AD"
+            "{5EB83D71-FA18-4901-BE56-DE22E13CC478}:_AFCC7BC47D014CF4B2A6280EAE2332AD"
             {
             "Name" = "8:VAPOR metadata file"
             "Description" = "8:"
@@ -3991,7 +4440,7 @@
                 }
                 "Verbs"
                 {
-                    "{9D28A334-2E55-48EE-AD7D-2DF3F0641A76}:_94DB8422C5B942BBADE4C854DAE01451"
+                    "{95C0C507-CBF0-42B8-B119-07219E384A4A}:_94DB8422C5B942BBADE4C854DAE01451"
                     {
                     "Command" = "8:&Open"
                     "Verb" = "8:open"
@@ -4003,7 +4452,7 @@
         }
         "Folder"
         {
-            "{78BAF5CE-F2E5-45BE-83BC-DB6AF387E941}:_6DD8FD892CA848928472F8609D5E937D"
+            "{1525181F-901A-416C-8A58-119130FE478E}:_6DD8FD892CA848928472F8609D5E937D"
             {
             "Name" = "8:#1916"
             "AlwaysCreate" = "11:TRUE"
@@ -4014,7 +4463,7 @@
                 {
                 }
             }
-            "{58C0ADA3-3CEA-43BD-A3B3-2EA121BC8217}:_8ADB7410EA4B418DA236C41029828921"
+            "{3C67513D-01DD-4637-8A68-80971EB9504F}:_8ADB7410EA4B418DA236C41029828921"
             {
             "DefaultLocation" = "8:[ProgramFilesFolder]\\NCAR\\"
             "Name" = "8:#1925"
@@ -4024,7 +4473,7 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
-                    "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_5ADFDFFA345C4391888B586632E43F7D"
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_5ADFDFFA345C4391888B586632E43F7D"
                     {
                     "Name" = "8:VAPOR"
                     "AlwaysCreate" = "11:FALSE"
@@ -4033,7 +4482,7 @@
                     "Property" = "8:_23345D8B2DEE49F8903F6212BF0C0194"
                         "Folders"
                         {
-                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_651A62CFC1174BBF9B6531C7F4F194D4"
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_651A62CFC1174BBF9B6531C7F4F194D4"
                             {
                             "Name" = "8:share"
                             "AlwaysCreate" = "11:FALSE"
@@ -4042,7 +4491,7 @@
                             "Property" = "8:_5ADABAE121D44F5AB17FF29E0EEFC142"
                                 "Folders"
                                 {
-                                    "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_4D9EEAAEDFE14BC9A3D0CE5FB25101E1"
+                                    "{9EF0B969-E518-4E46-987F-47570745A589}:_4D9EEAAEDFE14BC9A3D0CE5FB25101E1"
                                     {
                                     "Name" = "8:palettes"
                                     "AlwaysCreate" = "11:FALSE"
@@ -4053,7 +4502,7 @@
                                         {
                                         }
                                     }
-                                    "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_5861BBB7293B4D4F974011D644DF83A0"
+                                    "{9EF0B969-E518-4E46-987F-47570745A589}:_5861BBB7293B4D4F974011D644DF83A0"
                                     {
                                     "Name" = "8:doc"
                                     "AlwaysCreate" = "11:FALSE"
@@ -4064,7 +4513,7 @@
                                         {
                                         }
                                     }
-                                    "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_ABE3FEBD36FD4AE4AD806B964F85B39B"
+                                    "{9EF0B969-E518-4E46-987F-47570745A589}:_ABE3FEBD36FD4AE4AD806B964F85B39B"
                                     {
                                     "Name" = "8:examples"
                                     "AlwaysCreate" = "11:FALSE"
@@ -4073,7 +4522,7 @@
                                     "Property" = "8:_05BD8DD8AA3E43AAA888FEB34291B5EB"
                                         "Folders"
                                         {
-                                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_072F187AA10F49D78093098C4BE5B81C"
+                                            "{9EF0B969-E518-4E46-987F-47570745A589}:_072F187AA10F49D78093098C4BE5B81C"
                                             {
                                             "Name" = "8:idl"
                                             "AlwaysCreate" = "11:FALSE"
@@ -4084,7 +4533,7 @@
                                                 {
                                                 }
                                             }
-                                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_3A275563CCB844559C63FA830A006802"
+                                            "{9EF0B969-E518-4E46-987F-47570745A589}:_3A275563CCB844559C63FA830A006802"
                                             {
                                             "Name" = "8:quickstart"
                                             "AlwaysCreate" = "11:FALSE"
@@ -4095,7 +4544,7 @@
                                                 {
                                                 }
                                             }
-                                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_466D2BF761CF482D96ACD7B57CD29B01"
+                                            "{9EF0B969-E518-4E46-987F-47570745A589}:_466D2BF761CF482D96ACD7B57CD29B01"
                                             {
                                             "Name" = "8:WRFCaseStudy"
                                             "AlwaysCreate" = "11:FALSE"
@@ -4106,7 +4555,7 @@
                                                 {
                                                 }
                                             }
-                                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_7F108BF15227471FA2BE5357227382FC"
+                                            "{9EF0B969-E518-4E46-987F-47570745A589}:_7F108BF15227471FA2BE5357227382FC"
                                             {
                                             "Name" = "8:NCL"
                                             "AlwaysCreate" = "11:FALSE"
@@ -4121,7 +4570,7 @@
                                     }
                                 }
                             }
-                            "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_72F705CD4FD641249BABA705EFFE47DE"
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_72F705CD4FD641249BABA705EFFE47DE"
                             {
                             "Name" = "8:bin"
                             "AlwaysCreate" = "11:FALSE"
@@ -4136,7 +4585,7 @@
                     }
                 }
             }
-            "{78BAF5CE-F2E5-45BE-83BC-DB6AF387E941}:_F2DB643C39774F87AC56469CD99BD646"
+            "{1525181F-901A-416C-8A58-119130FE478E}:_F2DB643C39774F87AC56469CD99BD646"
             {
             "Name" = "8:#1919"
             "AlwaysCreate" = "11:FALSE"
@@ -4145,7 +4594,7 @@
             "Property" = "8:ProgramMenuFolder"
                 "Folders"
                 {
-                    "{F27BD5C5-A65D-4608-96D4-7C5DA1F76302}:_743B7700605F4AF5AAB03BF9E5CAF824"
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_743B7700605F4AF5AAB03BF9E5CAF824"
                     {
                     "Name" = "8:VAPOR"
                     "AlwaysCreate" = "11:FALSE"
@@ -4168,6 +4617,7 @@
         "MsiBootstrapper"
         {
         "LangId" = "3:1033"
+        "RequiresElevation" = "11:FALSE"
         }
         "Product"
         {
@@ -4179,6 +4629,7 @@
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
+        "InstallAllUsers" = "11:FALSE"
         "ProductVersion" = "8:1.1.0"
         "Manufacturer" = "8:NCAR"
         "ARPHELPTELEPHONE" = "8:"
@@ -4193,6 +4644,10 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
+        "TargetPlatform" = "3:0"
+        "PreBuildEvent" = "8:"
+        "PostBuildEvent" = "8:"
+        "RunPostBuildEvent" = "3:0"
         }
         "Registry"
         {
@@ -4200,7 +4655,7 @@
             {
                 "Keys"
                 {
-                    "{6A471EEF-D31B-40F8-BCF6-C9E8EC783F36}:_354EFBD1791C4FB7B54766AC4F6CAAA2"
+                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_354EFBD1791C4FB7B54766AC4F6CAAA2"
                     {
                     "Name" = "8:Software"
                     "Condition" = "8:"
@@ -4209,7 +4664,7 @@
                     "Transitive" = "11:FALSE"
                         "Keys"
                         {
-                            "{6A471EEF-D31B-40F8-BCF6-C9E8EC783F36}:_3BD97FA75CFB4A989F80EC8603443F1F"
+                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_3BD97FA75CFB4A989F80EC8603443F1F"
                             {
                             "Name" = "8:[Manufacturer]"
                             "Condition" = "8:"
@@ -4234,7 +4689,7 @@
             {
                 "Keys"
                 {
-                    "{6A471EEF-D31B-40F8-BCF6-C9E8EC783F36}:_E111E9430BF542DD85E2285151599F94"
+                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_E111E9430BF542DD85E2285151599F94"
                     {
                     "Name" = "8:Software"
                     "Condition" = "8:"
@@ -4243,7 +4698,7 @@
                     "Transitive" = "11:FALSE"
                         "Keys"
                         {
-                            "{6A471EEF-D31B-40F8-BCF6-C9E8EC783F36}:_02F1BEB74DB44BC1884DEE67BF89A04A"
+                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_02F1BEB74DB44BC1884DEE67BF89A04A"
                             {
                             "Name" = "8:[Manufacturer]"
                             "Condition" = "8:"
@@ -4288,7 +4743,7 @@
         }
         "Shortcut"
         {
-            "{478F747B-8505-45D1-9AAE-8C3B645C26E3}:_04E399CFEA2F4E93AA50DC4B3A9E0C1B"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_04E399CFEA2F4E93AA50DC4B3A9E0C1B"
             {
             "Name" = "8:vaporgui"
             "Arguments" = "8:"
@@ -4302,7 +4757,7 @@
             "Icon" = "8:_74BD8C24EB3D484A830E70304E7E7145"
             "Feature" = "8:"
             }
-            "{478F747B-8505-45D1-9AAE-8C3B645C26E3}:_DDC8BFBB0B1145B198817D8CCAB4B63A"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_DDC8BFBB0B1145B198817D8CCAB4B63A"
             {
             "Name" = "8:vaporgui"
             "Arguments" = "8:"
@@ -4319,14 +4774,14 @@
         }
         "UserInterface"
         {
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_04679A25C1AA480D92F8068927C84F9B"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_04679A25C1AA480D92F8068927C84F9B"
             {
             "Name" = "8:#1900"
             "Sequence" = "3:1"
             "Attributes" = "3:1"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_4E9B69540AFA4D3FB95ABFF542DA6550"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_4E9B69540AFA4D3FB95ABFF542DA6550"
                     {
                     "Sequence" = "3:200"
                     "DisplayName" = "8:Installation Folder"
@@ -4347,9 +4802,22 @@
                             "Value" = "8:_0BC1D3C4ED034682ADEDCAE7F2547A62"
                             "UsePlugInResources" = "11:TRUE"
                             }
+                            "InstallAllUsersVisible"
+                            {
+                            "Name" = "8:InstallAllUsersVisible"
+                            "DisplayName" = "8:#1059"
+                            "Description" = "8:#1159"
+                            "Type" = "3:5"
+                            "ContextData" = "8:1;True=1;False=0"
+                            "Attributes" = "3:0"
+                            "Setting" = "3:0"
+                            "Value" = "3:1"
+                            "DefaultValue" = "3:1"
+                            "UsePlugInResources" = "11:TRUE"
+                            }
                         }
                     }
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_8AB2525D1B60474E9FD5FD34E0A8AEC3"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_8AB2525D1B60474E9FD5FD34E0A8AEC3"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Welcome"
@@ -4398,7 +4866,7 @@
                             }
                         }
                     }
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_E4EC3520669E481B8FAB004CDADD8979"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_E4EC3520669E481B8FAB004CDADD8979"
                     {
                     "Sequence" = "3:300"
                     "DisplayName" = "8:Confirm Installation"
@@ -4423,14 +4891,14 @@
                     }
                 }
             }
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_146D675BFDC94AC48C20A64A9A405161"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_146D675BFDC94AC48C20A64A9A405161"
             {
             "Name" = "8:#1901"
             "Sequence" = "3:2"
             "Attributes" = "3:2"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_D5D30E3BC94340E988BE9EE05069EF3B"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_D5D30E3BC94340E988BE9EE05069EF3B"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Progress"
@@ -4468,26 +4936,26 @@
                     }
                 }
             }
-            "{B654A020-6903-4E6A-A86C-75DC463DB54B}:_2EA3D4AF51334F7CAF9C72EB07EE39EF"
+            "{2479F3F5-0309-486D-8047-8187E2CE5BA0}:_2EA3D4AF51334F7CAF9C72EB07EE39EF"
             {
             "UseDynamicProperties" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "SourcePath" = "8:<VsdDialogDir>\\VsdUserInterface.wim"
             }
-            "{B654A020-6903-4E6A-A86C-75DC463DB54B}:_64DDAEEBB82C4A57A081C3CE68777E70"
+            "{2479F3F5-0309-486D-8047-8187E2CE5BA0}:_64DDAEEBB82C4A57A081C3CE68777E70"
             {
             "UseDynamicProperties" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "SourcePath" = "8:<VsdDialogDir>\\VsdBasicDialogs.wim"
             }
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_C06D8BA6C28945D7B60F68CFFDC777B1"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_C06D8BA6C28945D7B60F68CFFDC777B1"
             {
             "Name" = "8:#1901"
             "Sequence" = "3:1"
             "Attributes" = "3:2"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_6A26B4C00AD2482A80AF2CA8A2BB0899"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_6A26B4C00AD2482A80AF2CA8A2BB0899"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Progress"
@@ -4525,14 +4993,14 @@
                     }
                 }
             }
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_D7809EA57B654088B81BFE1221BFD278"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_D7809EA57B654088B81BFE1221BFD278"
             {
             "Name" = "8:#1902"
             "Sequence" = "3:2"
             "Attributes" = "3:3"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_F7434224B19C4B36A92B5220B3954D0C"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_F7434224B19C4B36A92B5220B3954D0C"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Finished"
@@ -4557,14 +5025,14 @@
                     }
                 }
             }
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_FC67EF885C7E4412B21BF97CAB23C867"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_FC67EF885C7E4412B21BF97CAB23C867"
             {
             "Name" = "8:#1902"
             "Sequence" = "3:1"
             "Attributes" = "3:3"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_AE55C0CB927841859C1C91D754FB8D6F"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_AE55C0CB927841859C1C91D754FB8D6F"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Finished"
@@ -4602,14 +5070,14 @@
                     }
                 }
             }
-            "{8D9DEE8B-DD8B-4F48-9072-C4364E4F4011}:_FDC6D0BC1DB14BBBAC84BAE76F8F5FB7"
+            "{DF760B10-853B-4699-99F2-AFF7185B4A62}:_FDC6D0BC1DB14BBBAC84BAE76F8F5FB7"
             {
             "Name" = "8:#1900"
             "Sequence" = "3:2"
             "Attributes" = "3:1"
                 "Dialogs"
                 {
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_3536A9CAB1DC4D61817AA9E6C5E78097"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_3536A9CAB1DC4D61817AA9E6C5E78097"
                     {
                     "Sequence" = "3:300"
                     "DisplayName" = "8:Confirm Installation"
@@ -4632,7 +5100,7 @@
                             }
                         }
                     }
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_CC57E51AD81D4D808D957D0B3E395F6D"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_CC57E51AD81D4D808D957D0B3E395F6D"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Welcome"
@@ -4681,7 +5149,7 @@
                             }
                         }
                     }
-                    "{18ADD6EC-89FE-4ED7-AD3E-211C40278470}:_D1F10ADF13F14A3A84514DEBBDF7E48B"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_D1F10ADF13F14A3A84514DEBBDF7E48B"
                     {
                     "Sequence" = "3:200"
                     "DisplayName" = "8:Installation Folder"
@@ -4709,40 +5177,12 @@
         }
         "MergeModule"
         {
-            "{35A69C6E-5BA4-440D-803D-762B59A45393}:_62F0C34E0B694AD1B9165862197D4A95"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:vc_user_stl71_rtl_x86_---.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
-            "{35A69C6E-5BA4-440D-803D-762B59A45393}:_D0FB5E2FC9E24111BDE949E3A1838CB0"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:vc_user_crt71_rtl_x86_---.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
         }
         "ProjectOutput"
         {
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_1CF6496A7EEC48BFB8C74CFEA185AFF2"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdfls.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vdfls.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4768,9 +5208,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_2890451909624B04BCFE1EA0584A1FCD"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_2890451909624B04BCFE1EA0584A1FCD"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\render.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\render.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4796,9 +5236,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_36ECEFBBE4944F9BB5134A221B6998EA"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_36ECEFBBE4944F9BB5134A221B6998EA"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdfedit.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vdfedit.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4824,9 +5264,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_3902F569CFA142668353B1C83FDCB732"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_3902F569CFA142668353B1C83FDCB732"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\common.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\common.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4852,9 +5292,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_4C0E33CEFAC94EA8A9A464710EDFBC3D"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\asciitf2vtf.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\asciitf2vtf.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4880,9 +5320,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_5764F290CCDA42D1A50CA9B4856F50DA"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_5764F290CCDA42D1A50CA9B4856F50DA"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\params.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\params.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4908,9 +5348,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_5E1BEE13D99D48878EF4B61EB6BA1677"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_5E1BEE13D99D48878EF4B61EB6BA1677"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vjpeg.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vjpeg.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4936,9 +5376,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_6C76377D84AB406EA043EDF454C93686"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6C76377D84AB406EA043EDF454C93686"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdf2raw.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vdf2raw.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4964,9 +5404,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_728BA4AE0DB1435B880AF5C859E6593F"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_728BA4AE0DB1435B880AF5C859E6593F"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\flow.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\flow.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -4992,9 +5432,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_80A01C54CD004F93A812B26FB3D34A4B"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_80A01C54CD004F93A812B26FB3D34A4B"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\ncdf2vdf.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\ncdf2vdf.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5020,9 +5460,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9FA09FBAF75E4A78983F9ACFED1B4E4A"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\libidl_vdfmodule.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\libidl_vdfmodule.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5048,9 +5488,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_B6C121E3EFF44286930504DDF1635916"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B6C121E3EFF44286930504DDF1635916"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\wrf2vdf.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\wrf2vdf.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5076,9 +5516,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_C205D857DA374739813F2C95A034AC6E"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C205D857DA374739813F2C95A034AC6E"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\wrfvdfcreate.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\wrfvdfcreate.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5104,9 +5544,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_C6EA919E8F5C44F788A0FBF8D824669D"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C6EA919E8F5C44F788A0FBF8D824669D"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdf.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vdf.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5132,9 +5572,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_CF42ACB8ADF94551B7A6F3085D578022"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CF42ACB8ADF94551B7A6F3085D578022"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\tiff2geotiff.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\tiff2geotiff.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5160,9 +5600,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_DBF40E69DAAE4E0A857201E0486CB142"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_DBF40E69DAAE4E0A857201E0486CB142"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdfcreate.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\vdfcreate.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5188,9 +5628,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_EF334F9437D14A2AB4BE94304CA1D7CA"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EF334F9437D14A2AB4BE94304CA1D7CA"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\raw2vdf.exe"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\raw2vdf.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5216,7 +5656,7 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_F772BBD94ACA490FA3E7A9D6E54432F4"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F772BBD94ACA490FA3E7A9D6E54432F4"
             {
             "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vaporgui.exe"
             "TargetName" = "8:"
@@ -5244,9 +5684,9 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_FAA81B94AFDC49F1B84CB3C774C13F6E"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_FAA81B94AFDC49F1B84CB3C774C13F6E"
             {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\glew32.dll"
+            "SourcePath" = "8:..\\..\\..\\targets\\WIN32\\bin\\glew32.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -5272,9 +5712,6 @@
                 {
                 }
             }
-        }
-        "VJSharpPlugin"
-        {
         }
     }
 }

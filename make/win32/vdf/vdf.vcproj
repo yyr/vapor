@@ -1,96 +1,154 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="9.00"
 	Name="vdf"
 	ProjectGUID="{91C4E098-BC79-4784-94B7-C96B3548682D}"
-	Keyword="Win32Proj">
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				DisableLanguageExtensions="FALSE"
-				TreatWChar_tAsBuiltInType="FALSE"
-				RuntimeTypeInfo="TRUE"
+				DisableLanguageExtensions="false"
+				TreatWChar_tAsBuiltInType="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/vdf/"
 				ProgramDataBaseFileName="../../../targets/win32/built/vdf/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
-				GenerateMapFile="TRUE"
-				MapExports="TRUE"
-				MapLines="FALSE"
+				GenerateMapFile="true"
+				MapExports="true"
 				SubSystem="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/vdf.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				AdditionalIncludeDirectories="&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VDF_EXPORTS"
 				RuntimeLibrary="2"
-				RuntimeTypeInfo="TRUE"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/vdf/"
 				ProgramDataBaseFileName="../../../targets/win32/built/vdf/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib"
@@ -98,32 +156,36 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="FALSE"
+				GenerateDebugInformation="false"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../targets/win32/bin/vdf.lib"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -132,200 +194,264 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRData.cpp">
+				RelativePath="..\..\..\lib\vdf\AMRData.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRIO.cpp">
+				RelativePath="..\..\..\lib\vdf\AMRIO.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRTree.cpp">
+				RelativePath="..\..\..\lib\vdf\AMRTree.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRTreeBranch.cpp">
+				RelativePath="..\..\..\lib\vdf\AMRTreeBranch.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\BlkMemMgr.cpp">
+				RelativePath="..\..\..\lib\vdf\BlkMemMgr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\DataMgr.cpp">
+				RelativePath="..\..\..\lib\vdf\DataMgr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\DataMgrFactory.cpp">
+				RelativePath="..\..\..\lib\vdf\DataMgrFactory.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\DataMgrLayered.cpp">
+				RelativePath="..\..\..\lib\vdf\DataMgrLayered.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\DataMgrWB.cpp">
+				RelativePath="..\..\..\lib\vdf\DataMgrWB.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp">
+				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\ImpExp.cpp">
+				RelativePath="..\..\..\lib\vdf\ImpExp.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\LayeredIO.cpp">
+				RelativePath="..\..\..\lib\vdf\LayeredIO.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\Metadata.cpp">
+				RelativePath="..\..\..\lib\vdf\Metadata.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp">
+				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\MetadataVDC.cpp">
+				RelativePath="..\..\..\lib\vdf\MetadataVDC.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\Transpose.cpp">
+				RelativePath="..\..\..\lib\vdf\Transpose.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\vdf.cpp">
+				RelativePath="..\..\..\lib\vdf\vdf.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp">
+				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock1D.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock1D.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock2D.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock2D.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3D.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3D.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DBufReader.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DBufReader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DBufWriter.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DBufWriter.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DReader.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DReader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionReader.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionReader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlockIOBase.cpp">
+				RelativePath="..\..\..\lib\vdf\WaveletBlockIOBase.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WRF.cpp">
+				RelativePath="..\..\..\lib\vdf\WRF.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\XmlNode.cpp">
+				RelativePath="..\..\..\lib\vdf\XmlNode.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath="..\..\..\include\vapor\AMRData.h">
+				RelativePath="..\..\..\include\vapor\AMRData.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\AMRIO.h">
+				RelativePath="..\..\..\include\vapor\AMRIO.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\AMRTree.h">
+				RelativePath="..\..\..\include\vapor\AMRTree.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\AMRTreeBranch.h">
+				RelativePath="..\..\..\include\vapor\AMRTreeBranch.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\BlkMemMgr.h">
+				RelativePath="..\..\..\include\vapor\BlkMemMgr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\DataMgr.h">
+				RelativePath="..\..\..\include\vapor\DataMgr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\DataMgrFactory.h">
+				RelativePath="..\..\..\include\vapor\DataMgrFactory.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\DataMgrLayered.h">
+				RelativePath="..\..\..\include\vapor\DataMgrLayered.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\DataMgrWB.h">
+				RelativePath="..\..\..\include\vapor\DataMgrWB.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\ExpatParseMgr.h">
+				RelativePath="..\..\..\include\vapor\ExpatParseMgr.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\ImpExp.h">
+				RelativePath="..\..\..\include\vapor\ImpExp.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\LayeredIO.h">
+				RelativePath="..\..\..\include\vapor\LayeredIO.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\Lifting1D.h">
+				RelativePath="..\..\..\include\vapor\Lifting1D.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\Metadata.h">
+				RelativePath="..\..\..\include\vapor\Metadata.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\MetadataVDC.h">
+				RelativePath="..\..\..\include\vapor\MetadataVDC.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\Transpose.h">
+				RelativePath="..\..\..\lib\vdf\Transpose.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\Transpose.h">
+				RelativePath="..\..\..\include\vapor\Transpose.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\VDFIOBase.h">
+				RelativePath="..\..\..\include\vapor\VDFIOBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock1D.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock1D.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock2D.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock2D.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufReader.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufReader.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufWriter.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufWriter.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DReader.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DReader.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionReader.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionReader.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionWriter.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionWriter.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlock3DWriter.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DWriter.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WaveletBlockIOBase.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlockIOBase.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\WRF.h">
+				RelativePath="..\..\..\include\vapor\WRF.h"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\XmlNode.h">
+				RelativePath="..\..\..\include\vapor\XmlNode.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 		<File
-			RelativePath=".\ReadMe.txt">
+			RelativePath=".\ReadMe.txt"
+			>
 		</File>
 	</Files>
 	<Globals>

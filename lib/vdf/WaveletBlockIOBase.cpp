@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <sstream>
 #include <cassert>
+#include <locale>
 #ifndef WIN32
 #include <unistd.h>
 #else

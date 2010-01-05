@@ -1390,7 +1390,7 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	if (elevGridTextureEnabled() && !elevGridTexture){
 		//Read the texture file:
 		
-		int rc = read_JPEG_file(textureFilename.ascii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
+		int rc = read_JPEG_file(textureFilename.toAscii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
 		if (!rc) {enableElevGridTexture(false);}
 	}
 	if (elevGridTextureEnabled()){
@@ -1795,11 +1795,13 @@ void GLWindow::drawTimeAnnotation(){
 	}
 	if(!timeAnnotLabel) { //Do we need a new label?
 		QFont f;
+		QPalette pal;
+		
 		f.setPointSize(timeAnnotTextSize);
 		timeAnnotLabel = new QLabel(this);
 		timeAnnotLabel->setFont(f);
-		timeAnnotLabel->setPaletteBackgroundColor(getBackgroundColor());
-		timeAnnotLabel->setPaletteForegroundColor(timeAnnotColor);
+		pal.setColor(timeAnnotLabel->backgroundRole(), getBackgroundColor());
+		pal.setColor(timeAnnotLabel->foregroundRole(), timeAnnotColor);
 	}
 	
 	timeAnnotLabel->setText(labelContents);
@@ -1836,11 +1838,12 @@ void GLWindow::drawAxisLabels() {
 	//Set up the labels with right colors, size
 	QFont f;
 	f.setPointSize(labelHeight);
+	QPalette pal;
 	for (int i = 0; i<3; i++){
 		for (int k = 0; k<numTics[i]; k++){
 			axisTextLabels[i][k]->setFont(f);
-			axisTextLabels[i][k]->setPaletteForegroundColor(axisColor);
-			axisTextLabels[i][k]->setPaletteBackgroundColor(getBackgroundColor());
+			pal.setColor(axisTextLabels[i][k]->backgroundRole(), getBackgroundColor());
+			pal.setColor(axisTextLabels[i][k]->foregroundRole(), axisColor);
 		}
 	}
 
@@ -1917,8 +1920,8 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 				myPainter.setFont(f);
 				
 				const QString& labelText = axisTextLabels[axis][n]->text();
-				myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,-1);	
-				QImage image = myPixmap.convertToImage();
+				myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,0);	
+				QImage image = myPixmap.toImage();
 				//assert(image != 0);
 				//Write the image to the buffer:
 				int stride = 3*width();
@@ -1962,8 +1965,8 @@ void GLWindow::addTimeToBuffer(unsigned char* buff){
 	myPainter.setFont(f);
 				
 	const QString& labelText = timeAnnotLabel->text();
-	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,-1);	
-	QImage image = myPixmap.convertToImage();
+	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,0);	
+	QImage image = myPixmap.toImage();
 	//assert(image != 0);
 	//Write the image to the buffer:
 	int stride = 3*width();
@@ -2285,7 +2288,7 @@ doFrameCapture(){
 	QString filename;
 	if (capturingImage == 2){
 		filename = captureNameImage;
-		filename += (QString("%1").arg(captureNumImage)).rightJustify(4,'0');
+		filename += (QString("%1").arg(captureNumImage)).rightJustified(4,'0');
 		filename +=  ".jpg";
 	} //Otherwise we are just capturing one frame:
 	else filename = captureNameImage;
@@ -2294,17 +2297,17 @@ doFrameCapture(){
 	FILE* jpegFile = NULL;
 	TIFF* tiffFile = NULL;
 	if (filename.endsWith(".tif")){
-		tiffFile = TIFFOpen(filename, "wb");
+		tiffFile = TIFFOpen(filename.toAscii(), "wb");
 		if (!tiffFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",filename.ascii());
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",filename.toAscii());
 			capturingImage = 0;
 			return;
 		}
 	} else {
 		// open the jpeg file:
-		jpegFile = fopen(filename.ascii(), "wb");
+		jpegFile = fopen(filename.toAscii(), "wb");
 		if (!jpegFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.toAscii());
 			capturingImage = 0;
 			return;
 		}
@@ -2335,7 +2338,7 @@ doFrameCapture(){
 		if (rc){
 			//Error!
 			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
-				filename.ascii());
+				filename.toAscii());
 			capturingImage = 0;
 			delete buf;
 			return;
@@ -2354,7 +2357,7 @@ doFrameCapture(){
 			int rc = TIFFWriteScanline(tiffFile, buf+row*3*imagewidth, row);
 			if (rc != 1){
 				SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing tiff file %s",
-				filename.ascii());
+				filename.toAscii());
 				break;
 			}
 		}

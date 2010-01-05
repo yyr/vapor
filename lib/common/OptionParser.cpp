@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cctype>
 #include <sstream>
+#include <locale>
 #include "vapor/Version.h"
 
 using namespace VetsUtil;

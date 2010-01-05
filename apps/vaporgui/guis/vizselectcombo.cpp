@@ -71,7 +71,7 @@ addWindow(QString& windowName, int windowNum){
 		winNum[j] = winNum[j-1];
 	}
 	winNum[i] = windowNum;
-	currentActive = currentItem();
+	currentActive = currentIndex();
 	if (currentActive < 0) setWindowActive(windowNum);
 }
 	/* 
@@ -97,7 +97,7 @@ removeWindow(int windowNum){
 	if (activenum >= 0){
 		for (int k = 0; k<count() -1; k++){
 			if (activenum == winNum[k]){
-				setCurrentItem(k);
+				setCurrentIndex(k);
 				currentActive = k;
 				break;
 			}
@@ -122,8 +122,8 @@ setWindowActive(int win){
 		assert (i < count()-1);
 	}
 	//Avoid generating an event unless there really is an change.
-	if (currentItem() != i){
-		setCurrentItem(i);
+	if (currentIndex() != i){
+		setCurrentIndex(i);
 		currentActive = i;
 	}
 }
@@ -141,14 +141,14 @@ setWindowName(QString& newName, int windowNum){
 	}
 	assert(i<count());
 	//Note we can only change the text of the current item
-	int currentNum = currentItem();
+	int currentNum = currentIndex();
 	if (i != currentNum)
 		//Set only the parent version of this:
-		QComboBox::setCurrentItem(i);
+		QComboBox::setCurrentIndex(i);
 
-	setCurrentText(newName);
+	setItemText(currentNum, newName);
 	if (i != currentNum)
-		QComboBox::setCurrentItem(currentNum);
+		QComboBox::setCurrentIndex(currentNum);
 }
 
 /*

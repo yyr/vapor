@@ -272,7 +272,7 @@ void ColorbarWidget::updateTexture()
 // Select the widget's part given the opengl selection name and qt button 
 // state. 
 //----------------------------------------------------------------------------
-void ColorbarWidget::select(int handle, Qt::ButtonState state) 
+void ColorbarWidget::select(int handle, Qt::MouseButton state) 
 {
   if (!(state & (Qt::ShiftModifier|Qt::ControlModifier)))
   {

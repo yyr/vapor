@@ -287,7 +287,7 @@ void Trackball::TrackballCopyTo(Trackball *dst)
  * thisButton is Qt:LeftButton, RightButton, or MidButton
  */
 
-void Trackball::MouseOnTrackball(int eventNum, Qt::ButtonState thisButton, int xcrd, int ycrd, unsigned width, unsigned height)
+void Trackball::MouseOnTrackball(int eventNum, Qt::MouseButton thisButton, int xcrd, int ycrd, unsigned width, unsigned height)
 {
     /* Alter a Trackball structure given  mouse event.
      *   This routine *assumes* button 1 rotates, button 2 pans,
@@ -298,7 +298,7 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::ButtonState thisButton, int x
      * tball		: trackball to modify
      */
     float	x, y;
-	static Qt::ButtonState	button;
+	static Qt::MouseButton	button;
 	//Ignore time: Qt doesn't provide time with events (may need to revisit this later????)
     //static Time	downTime;
 
