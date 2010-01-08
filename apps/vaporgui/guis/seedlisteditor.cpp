@@ -5,141 +5,142 @@
 #include <qlayout.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
-#include <q3table.h>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QDialogButtonBox>
 #include <qlineedit.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
-#include <Q3VBoxLayout>
 
 #include "flowparams.h"
 
 using namespace VAPoR;
 
 SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
-			  QWidget* parent,  const char* name,
-			  bool modal, Qt::WFlags f )
-    : QDialog( parent, name, modal, f )
+			  QWidget* parent)
+    : QDialog( parent )
 
 {
-
-    setCaption( "Edit Seed Point List" );
-    resize( 180, 220 );
 	myFlowParams = fp;
-    tableButtonBox = new Q3VBoxLayout( this, 11, 6, "seed editor layout" );
-
-    table = new Q3Table( this, "seed table" );
-    table->setNumCols( 4 );
-    table->setNumRows( numSeeds );
-	table->setSelectionMode(Q3Table::SingleRow);
-    table->setColumnWidth( 0, 60 );
-    table->setColumnWidth( 1, 60 ); 
-    table->setColumnWidth( 2, 60 );
-    table->setColumnWidth( 3, 60 );
-	table->setColumnStretchable(0,true);
-	table->setColumnStretchable(1,true);
-	table->setColumnStretchable(2,true);
-	table->setColumnStretchable(3,true);
-   
-    Q3Header *th = table->horizontalHeader();
-    th->setLabel( 0, "X Coord" );
-    th->setLabel( 1, "Y Coord" );
-    th->setLabel( 2, "Z Coord" );
-    th->setLabel( 3, "Time Step" );
+	table = new QTableWidget(this);
+	table->setColumnCount(5);
 	
-    tableButtonBox->addWidget( table );
+	table->setRowCount(numSeeds);
+	
 
-    buttonBox = new Q3HBoxLayout( 0, 0, 6, "button box layout" );
-
-    addPushButton = new QPushButton( this, "add button" );
-    addPushButton->setText( "&Add Seed" );
-    addPushButton->setEnabled( true );
-    buttonBox->addWidget( addPushButton );
-
-    QSpacerItem *spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding,
-						 QSizePolicy::Minimum );
-    buttonBox->addItem( spacer );
-
-	deletePushButton = new QPushButton( this, "delete button" );
-    deletePushButton->setText( "&Delete Seed" );
-    deletePushButton->setEnabled( false );
-    buttonBox->addWidget( deletePushButton );
-
-    spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding,
-						 QSizePolicy::Minimum );
-    buttonBox->addItem( spacer );
-    okPushButton = new QPushButton( this, "ok button" );
-    okPushButton->setText( "OK" );
-    okPushButton->setDefault( true );
-    buttonBox->addWidget( okPushButton );
-
-    cancelPushButton = new QPushButton( this, "cancel button" );
-    cancelPushButton->setText( "Cancel" );
-    cancelPushButton->setAccel( Qt::Key_Escape );
-    buttonBox->addWidget( cancelPushButton );
-
-    tableButtonBox->addLayout( buttonBox );
-   
-    connect( table, SIGNAL( currentChanged(int,int) ),this, SLOT( currentChanged(int,int) ) );
-    connect( table, SIGNAL( valueChanged(int,int) ),this, SLOT( valueChanged(int,int) ) );
-    connect( deletePushButton, SIGNAL( clicked() ), this, SLOT( deleteSeed() ) );
-	connect( addPushButton, SIGNAL( clicked() ), this, SLOT( addSeed() ) );
-    connect( okPushButton, SIGNAL( clicked() ), this, SLOT( accept() ) );
-    connect( cancelPushButton, SIGNAL( clicked() ), this, SLOT( reject() ) );
+    table->setHorizontalHeaderLabels(QStringList() << tr("Index")
+		<< tr("X coord")<< tr("Y coord")<< tr("Z coord")
+                                                   << tr("time step"));
+    table->verticalHeader()->setVisible(false);
+    table->resize(150, 50);
+	for (int i = 0; i<numSeeds; i++){
+		QTableWidgetItem *indexItem = new QTableWidgetItem(QString::number(i));
+		indexItem->setFlags(Qt::NoItemFlags);  //not editable
+		QTableWidgetItem *xCoordItem = new QTableWidgetItem(QString::number(myFlowParams->getListSeedPoint(i,0),'g',7));
+		QTableWidgetItem *yCoordItem = new QTableWidgetItem(QString::number(myFlowParams->getListSeedPoint(i,1),'g',7));
+		QTableWidgetItem *zCoordItem = new QTableWidgetItem(QString::number(myFlowParams->getListSeedPoint(i,2),'g',7));
+		
+		float tstep = myFlowParams->getListSeedPoint(i,3);
+		QTableWidgetItem *timestepItem;
+		if (tstep < 0.f)
+			timestepItem = new QTableWidgetItem(QString(" * "));
+		else 
+			timestepItem = new QTableWidgetItem(QString::number(tstep,'g',7));
+		table->setItem(i, 0, indexItem);
+        table->setItem(i, 1, xCoordItem);
+		table->setItem(i, 2, yCoordItem);
+		table->setItem(i, 3, zCoordItem);
+		table->setItem(i, 4, timestepItem);
+	}
 
     
-	//Insert the existing seeds
-	for (int i = 0; i<numSeeds; i++){
-		for (int j = 0; j<3; j++){
-			table->setText( i, j, QString::number(myFlowParams->getListSeedPoint(i,j),'g',7));
-			//Hmmm can't do this.((QLineEdit*)(table->item(i,j)))->setAlignment(AlignHCenter);
-		}
-		float tstep = myFlowParams->getListSeedPoint(i,3);
-		if (tstep < 0.f)
-			table->setText( i, 3, QString(" * "));
-		else 
-			table->setText( i, 3, QString::number(tstep));
-	}
+    table->resizeColumnToContents(0);
+    table->horizontalHeader()->setStretchLastSection(true);
+
+	addSeedButton = new QPushButton(tr("Add Seed"));
+	deleteButton = new QPushButton(tr("Delete Seed"));
+	clearButton = new QPushButton(tr("Clear Table"));
+    quitButton = new QPushButton(tr("Cancel"));
+	okButton = new QPushButton(tr("OK"));
+
+    buttonBox = new QDialogButtonBox(this);
+    buttonBox->addButton(addSeedButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(clearButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
+    buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
+
+    connect(quitButton, SIGNAL(pressed()), this, SLOT(close()));
+    connect(clearButton, SIGNAL(pressed()), this, SLOT(clearTable()));
+	connect(addSeedButton, SIGNAL(pressed()), this, SLOT(addSeed()));
+    connect(deleteButton, SIGNAL(pressed()), this, SLOT(deleteSeed()));
+    connect(okButton, SIGNAL(pressed()), this, SLOT(accept()));
+    connect( table, SIGNAL( cellChanged(int,int) ),this, SLOT( valueChanged(int,int) ) );
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    
+    mainLayout->addWidget(table);
+    mainLayout->addWidget(buttonBox);
+    setLayout(mainLayout);
+
+
+    setWindowTitle(tr("Edit Seed Point List"));
+    
+    resize( 180, 220 );
+	table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	table->setSelectionMode(QAbstractItemView::SingleSelection);
+  
 
 	changed = false;
 }
 
 
-void SeedListEditor::currentChanged( int , int  )
-{
-	checkPushButton();
-}
+
 
 void SeedListEditor::valueChanged( int row, int col )
 {
 	bool ok;
-	double d = table->text( row, col ).toDouble( &ok );
-    if ( col <  3) {
+	QTableWidgetItem* item = table->item(row,col);
+	double d = item->text().toDouble( &ok );
+    if ( col <  4 && col > 0) {
 		
-		if (ok) table->setText(row, col, QString( "%1" ).arg(
-					d, 0, 'g', 7 ) );
-		else table->setText(row,col,"0.0");
+		if (!ok) item->setText("0.0");
 	}
-	else { // col is 3; If not a valid timestep, make it "*"
-		if ( ok && d >= 0.0) table->setText(row, col, QString( "%1" ).arg(
-					d, 0, 'g', 4 ) );
-		else table->setText(row, col, QString(" * "));
-
+	else { // col is 4; If not a valid timestep, make it "*"
+		if ( ok && d >= 0.0) item->setText(QString( "%1" ).arg(d, 0, 'g', 4 ) );
+		else item->setText(QString(" * "));
 	}
 	changed = true;
 }
 
-//Add another slot.  Insert it after a selected row, if there is one:
+//Add another row.  Insert it after a selected row, if there is one:
 void SeedListEditor::addSeed()
 {
-	int insertRow = 1+table->currentRow();
-	if (!table->isRowSelected(insertRow-1,true))
-		insertRow = table->numRows();
-	table->insertRows(insertRow);
-	table->setText(insertRow,0, QString("0.0"));
-	table->setText(insertRow,1, QString("0.0"));
-	table->setText(insertRow,2, QString("0.0"));
-	table->setText(insertRow,3, QString(" * "));
-	checkPushButton();
+	int insertPosn = 0;
+	if (table->rowCount()>0) insertPosn = 1+table->currentRow();
+	QTableWidgetItem *indexItem = new QTableWidgetItem(QString::number(insertPosn));
+	indexItem->setFlags(Qt::NoItemFlags);  //not editable
+	QTableWidgetItem *xCoordItem = new QTableWidgetItem(QString::number(0.0));
+	QTableWidgetItem *yCoordItem = new QTableWidgetItem(QString::number(0.0));
+	QTableWidgetItem *zCoordItem = new QTableWidgetItem(QString::number(0.0));
+	QTableWidgetItem *timestepItem;
+	float tstep = -1.f;
+	if(insertPosn > 0 && insertPosn < myFlowParams->getNumListSeedPoints()-1) 
+		tstep = myFlowParams->getListSeedPoint(insertPosn-1,3);
+	if (tstep < 0.f)
+		timestepItem = new QTableWidgetItem(QString(" * "));
+	else 
+		timestepItem = new QTableWidgetItem(QString::number(tstep,'g',7));
+	
+	table->insertRow(insertPosn);
+	table->setItem(insertPosn, 0, indexItem);
+    table->setItem(insertPosn, 1, xCoordItem);
+	table->setItem(insertPosn, 2, yCoordItem);
+	table->setItem(insertPosn, 3, zCoordItem);
+	table->setItem(insertPosn, 4, timestepItem);
+	// renumber all the later rows:
+	
+	for (int i = insertPosn+1; i<table->rowCount(); i++){
+		table->item(i,0)->setText(QString::number(i));
+	}
 	changed = true;
     
 }
@@ -147,11 +148,12 @@ void SeedListEditor::addSeed()
 void SeedListEditor::deleteSeed()
 {
 	int curRow = table->currentRow();
-	if (table->isRowSelected(curRow,true))
-		
-		table->removeRow(curRow);
-
-	checkPushButton();
+	table->removeRow(curRow);
+	//Renumber
+	for (int i = curRow; i< table->rowCount(); i++){
+		table->item(i,0)->setText(QString::number(i));
+	}
+	
 	changed = true;
 }
 
@@ -163,13 +165,14 @@ void SeedListEditor::accept()
 		std::vector<Point4>& seedList = myFlowParams->getSeedPointList();
 		
 		seedList.clear();
-		for (int i = 0; i<table->numRows(); i++){
+		for (int i = 0; i<table->rowCount(); i++){
+			
 			Point4 pt4;
-			pt4.set1Val(0, table->text(i,0).toFloat());
-			pt4.set1Val(1, table->text(i,1).toFloat());
-			pt4.set1Val(2, table->text(i,2).toFloat());
+			pt4.set1Val(0, table->item(i,1)->text().toFloat());
+			pt4.set1Val(1, table->item(i,2)->text().toFloat());
+			pt4.set1Val(2, table->item(i,3)->text().toFloat());
 			bool ok;
-			float tstep = table->text(i,3).toFloat(&ok);
+			float tstep = table->item(i,4)->text().toFloat(&ok);
 			if (!ok) tstep = -1.f;
 			pt4.set1Val(3,tstep);
 			seedList.push_back(pt4);
@@ -177,13 +180,9 @@ void SeedListEditor::accept()
 	}
 	QDialog::accept();
 }
-void SeedListEditor::checkPushButton()
-{
-	for (int i = 0; i<table->numRows(); i++){
-		if (table->isRowSelected(i,true)){
-			deletePushButton->setEnabled( true );
-			return;
-		}
-	}
-	deletePushButton->setEnabled( false );
+
+void SeedListEditor::clearTable() {
+	table->clearContents();
+	table->setRowCount(0);
+	changed = true;
 }

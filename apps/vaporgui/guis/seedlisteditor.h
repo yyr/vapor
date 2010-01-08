@@ -20,15 +20,10 @@
 //	Description:	Definition of the SeedListEditor class
 //
 
-#include <qdialog.h>
-//Added by qt3to4:
-#include <Q3VBoxLayout>
-#include <Q3HBoxLayout>
-
-class Q3HBoxLayout;
+#include <QDialog>
 class QPushButton;
-class Q3Table;
-class Q3VBoxLayout;
+class QDialogButtonBox;
+class QTableWidget;
 
 
 namespace VAPoR {
@@ -40,8 +35,7 @@ class SeedListEditor: public QDialog
     Q_OBJECT
 public:
     SeedListEditor( int numSeeds, FlowParams*, 
-		 QWidget *parent = 0, const char *name = "set data form",
-		 bool modal = TRUE, Qt::WFlags f = 0 );
+		 QWidget *parent = 0);
     ~SeedListEditor() {}
 
 public slots:
@@ -50,20 +44,19 @@ public slots:
     void valueChanged( int row, int col );
 	
 protected slots:
-	void currentChanged( int row, int col );
 	void accept();
+	void clearTable();
 
 protected:
-    Q3Table *table;
-    QPushButton *addPushButton;
-	QPushButton *deletePushButton;
-    QPushButton *okPushButton;
-    QPushButton *cancelPushButton;
-	void checkPushButton();
+    QTableWidget *table;
+    QPushButton *addSeedButton;
+	QPushButton *deleteButton;
+    QPushButton *okButton;
+    QPushButton *quitButton;
+	QPushButton *clearButton;
 
 protected:
-    Q3VBoxLayout *tableButtonBox;
-    Q3HBoxLayout *buttonBox;
+    QDialogButtonBox *buttonBox;
 	FlowParams* myFlowParams;
 	bool changed;
 

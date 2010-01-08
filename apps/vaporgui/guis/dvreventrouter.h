@@ -41,7 +41,7 @@ class ViewpointParams;
 class XmlNode;
 class PanelCommand;
 class Params;
-class DvrEventRouter : public QWidget, public Ui_Dvr, public EventRouter {
+class DvrEventRouter : public QWidget, public Ui_DVR, public EventRouter {
 	Q_OBJECT
 
     enum 

@@ -141,7 +141,7 @@
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
 				AdditionalIncludeDirectories="&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/Qt3Support&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
-				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT3_SUPPORT"
+				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;QT3_SUPPORT;QT_QT3_SUPPORT_LIB"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="1"

@@ -76,7 +76,7 @@
 using namespace VAPoR;
 
 
-DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_Dvr(), EventRouter(){
+DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_DVR(), EventRouter(){
         setupUi(this);
 	myParamsType = Params::DvrParamsType;
 	savedCommand = 0;
