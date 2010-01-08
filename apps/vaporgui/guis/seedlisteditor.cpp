@@ -148,12 +148,12 @@ void SeedListEditor::addSeed()
 void SeedListEditor::deleteSeed()
 {
 	int curRow = table->currentRow();
+	if (curRow<0) return;
 	table->removeRow(curRow);
 	//Renumber
 	for (int i = curRow; i< table->rowCount(); i++){
 		table->item(i,0)->setText(QString::number(i));
 	}
-	
 	changed = true;
 }
 
