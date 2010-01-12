@@ -671,7 +671,7 @@ where the camera is pointed.</string>
             </spacer>
           </item>
           <item>
-            <widget class="Q3Frame" name="latLonFrame">
+            <widget class="QFrame" name="latLonFrame">
               <property name="frameShape">
                 <enum>QFrame::NoFrame</enum>
               </property>

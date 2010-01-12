@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>746</height>
+    <height>519</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -820,7 +820,7 @@ size slider and text box.</string>
         <widget class="QTableWidget" name="timestepSampleTable">
          <property name="maximumSize">
           <size>
-           <width>16777215</width>
+           <width>100</width>
            <height>70</height>
           </size>
          </property>

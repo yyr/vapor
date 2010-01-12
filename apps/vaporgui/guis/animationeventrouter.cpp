@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <algorithm>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -70,6 +71,7 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : 
 	setupUi(this);	
 	myParamsType = Params::AnimationParamsType;
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
+	dontUpdate = false;
 }
 
 
@@ -119,6 +121,7 @@ AnimationEventRouter::hookUpTab()
 	connect(toEndButton, SIGNAL(clicked()), this, SLOT(animationToEndClick()));
 	connect(stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
+	dontUpdate = false;
 
 }
 /*********************************************************************************
@@ -256,8 +259,7 @@ void AnimationEventRouter::updateTab(){
 	timestepSampleTable->horizontalHeader()->hide();
 	timestepSampleTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	timestepSampleTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-//QT4	timestepSampleTable->setTopMargin(0);
-	timestepSampleTable->setColumnWidth(0,35);
+	timestepSampleTable->setColumnWidth(0,80);
 	populateTimestepTable();
 
 	guiSetTextChanged(false);
@@ -276,6 +278,7 @@ void AnimationEventRouter::
 reinitTab(bool doOverride){
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
+	dontUpdate=false;
 }
 
 /*************************************************************************************
@@ -561,49 +564,62 @@ guiToggleTimestepSample(bool on){
 	
 }
 //Respond to user has typed in a row of timestep table. 
-//then sort in ascending order.
+//
 void AnimationEventRouter::timestepChanged(int row, int col){
-	timestepSampleTable->sortItems(0);
-	guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
+	if (dontUpdate) return;
+	guiUpdateTimestepList("edit timestep list");
 	return;
 }
 //Send the contents of the timestepTable to the params.
-//Assumes that the timestepTable is sorted in ascending order.
-void AnimationEventRouter::guiUpdateTimestepList(QTableWidget* tbl, const char* descr){	
+void AnimationEventRouter::guiUpdateTimestepList(const char* descr){	
 	confirmText(false);
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, descr);
 	std::vector<int>& timesteplist = aParams->getTimestepList();
 	timesteplist.clear();
-	int prevTime = -1;
-	for (int i = 0; i< tbl->rowCount(); i++){
-		int newTime = tbl->item(i,0)->text().toInt();
-		if (newTime > prevTime) {
-			timesteplist.push_back(newTime);
-			prevTime = newTime;
-		}
-	}
 	
+	for (int i = 0; i< timestepSampleTable->rowCount(); i++){
+		int newTime = timestepSampleTable->item(i,0)->text().toInt();
+		timesteplist.push_back(newTime);	
+	}
+	//Sort the times
+	std::sort(timesteplist.begin(), timesteplist.end());
+
 	PanelCommand::captureEnd(cmd, aParams);
 	updateTab();
 }
 //Add a new (blank) row to the table
 void AnimationEventRouter::addSample(){
-	timestepSampleTable->setRowCount(1+timestepSampleTable->rowCount());
+	int numRows = timestepSampleTable->rowCount()+1;
+	timestepSampleTable->setRowCount(numRows);
+	QTableWidgetItem* tstepItem = new QTableWidgetItem("");
+	dontUpdate=true;
+	timestepSampleTable->setItem(numRows-1,0, tstepItem);
+	dontUpdate=false;
+	timestepSampleTable->setCurrentCell(numRows-1,0);
+	
 }
 //Delete the current selected row
 void AnimationEventRouter::deleteSample(){
-	timestepSampleTable->removeRow(timestepSampleTable->currentRow());
-	guiUpdateTimestepList(timestepSampleTable, "remove timestep from list");
+	int thisRow = timestepSampleTable->currentRow();
+	if (thisRow <0) return;
+	timestepSampleTable->removeRow(thisRow);
+	if(thisRow>0)timestepSampleTable->setCurrentCell(thisRow-1,0);
+	else timestepSampleTable->setCurrentCell(0,0);
+	guiUpdateTimestepList("remove timestep from list");
 }
 void AnimationEventRouter::populateTimestepTable(){
+	dontUpdate = true;
 	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
 	std::vector<int>& tSteps = aParams->getTimestepList();
 	timestepSampleTable->setRowCount(tSteps.size());
+	timestepSampleTable->setColumnCount(1);
 	for (int i = 0; i< tSteps.size(); i++){
-		timestepSampleTable->item(i,0)->setText(QString::number(tSteps[i]));
+		QTableWidgetItem* tstepItem = new QTableWidgetItem(QString::number(tSteps[i]));
+		timestepSampleTable->setItem(i,0, tstepItem);
 	}
 	timestepSampleCheckbox->setChecked(aParams->usingTimestepList());
+	dontUpdate = false;
 }
 void AnimationEventRouter::guiRebuildList(){
 	confirmText(false);

@@ -68,6 +68,7 @@ public slots:
 	void animationStepReverseClick();
 	
 protected:
+	bool dontUpdate;
 	void setSliders (AnimationParams* a);
 
 	void refreshFrontTab();
@@ -77,7 +78,7 @@ protected:
 	void guiSingleStep(bool forward);
 	//Need to do more than Params::guiSetLocal():
 	
-	void guiUpdateTimestepList(QTableWidget* tbl, const char* descr);
+	void guiUpdateTimestepList(const char* descr);
 
 	void populateTimestepTable();
 	

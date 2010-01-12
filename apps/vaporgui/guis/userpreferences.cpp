@@ -335,7 +335,7 @@ panelChanged(){
 //Slots to respond to color changes:
 void UserPreferences::
 selectRegionFrameColor(){
-	QColor prevColor = regionFrameColorButton->paletteBackgroundColor();
+	QColor prevColor = regionFrameColorButton->palette().color(QPalette::Background);
 	QColor frameColor = QColorDialog::getColor(prevColor,0,0);
 	regionFrameColorButton->setPaletteBackgroundColor(frameColor);
 	regionFrameColor = frameColor;
@@ -344,7 +344,7 @@ selectRegionFrameColor(){
 
 void UserPreferences::
 selectSubregionFrameColor(){
-	QColor frameColor = QColorDialog::getColor(subregionFrameColorButton->paletteBackgroundColor(),0,0);
+	QColor frameColor = QColorDialog::getColor(subregionFrameColorButton->palette().color(QPalette::Background));
 	subregionFrameColorButton->setPaletteBackgroundColor(frameColor);
 	subregionFrameColor = frameColor;
 	dialogChanged = true;
@@ -352,7 +352,8 @@ selectSubregionFrameColor(){
 void UserPreferences::
 selectBackgroundColor(){
 	//Launch colorselector, put result into the button
-	QColor bgColor = QColorDialog::getColor(backgroundColorButton->paletteBackgroundColor(),0,0);
+	
+	QColor bgColor = QColorDialog::getColor(backgroundColorButton->palette().color(QPalette::Background));
 	backgroundColorButton->setPaletteBackgroundColor(bgColor);
 	backgroundColor = bgColor;
 	dialogChanged = true;

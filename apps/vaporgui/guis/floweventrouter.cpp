@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <algorithm>
 #include <qlayout.h>
 #include <qdesktopwidget.h>
 #include <qrect.h>
@@ -51,7 +52,7 @@
 #include <qspinbox.h>
 #include <qslider.h>
 #include <qlabel.h>
-#include <q3table.h>
+#include <QTableWidget>
 #include <QFileDialog>
 
 #include <vector>
@@ -89,6 +90,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(pare
 	showAdvanced = false;
 	showMapEditor = true;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
+	dontUpdate=false;
 }
 
 
@@ -109,8 +111,8 @@ FlowEventRouter::hookUpTab()
 	connect (deleteSampleButton2,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (rebuildButton1, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
 	connect (rebuildButton2, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
-	connect (timestepSampleTable1, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
-	connect (timestepSampleTable2, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged2(int,int)));
+	connect (timestepSampleTable1, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
+	connect (timestepSampleTable2, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged2(int,int)));
 	connect (timestepSampleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	connect (timestepSampleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	
@@ -311,7 +313,7 @@ FlowEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setFlowEnabled(bool,int)));
-
+	dontUpdate=false;
 }
 
 //Insert values from params into tab panel.
@@ -447,8 +449,11 @@ void FlowEventRouter::updateTab(){
 				advancedSteadyFrame->hide();
 				advancedUnsteadyFrame->show();
 				advancedLineAdvectionFrame->hide();
+				//Set up the timestep sample table:
 				timestepSampleTable1->horizontalHeader()->hide();
-				timestepSampleTable1->setTopMargin(0);
+				timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
+				timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
+				timestepSampleTable1->setColumnWidth(0,80);
 				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -467,8 +472,12 @@ void FlowEventRouter::updateTab(){
 				advancedSteadyFrame->hide();
 				advancedUnsteadyFrame->hide();
 				advancedLineAdvectionFrame->show();
+				//Set up the timestep sample table:
 				timestepSampleTable2->horizontalHeader()->hide();
-				timestepSampleTable2->setTopMargin(0);
+				timestepSampleTable2->setSelectionMode(QAbstractItemView::SingleSelection);
+				timestepSampleTable2->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+				timestepSampleTable2->setColumnWidth(0,80);
 				{
 					int advectBeforePriorOption = 
 						fParams->getFLAAdvectBeforePrioritize() ? 1 : 0 ;
@@ -524,13 +533,17 @@ void FlowEventRouter::updateTab(){
 	copyCombo->insertItem("Duplicate In:");
 	copyCombo->insertItem("This visualizer");
 
-	//Set up the timestep sample tables:
-	timestepSampleTable1->setSelectionMode(Q3Table::SingleRow);
-	timestepSampleTable1->setTopMargin(0);
-	timestepSampleTable1->setColumnWidth(0,35);
-	timestepSampleTable2->setSelectionMode(Q3Table::SingleRow);
-	timestepSampleTable2->setTopMargin(0);
-	timestepSampleTable2->setColumnWidth(0,35);
+	//Set up the timestep sample table:
+	timestepSampleTable1->horizontalHeader()->hide();
+	timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
+	timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
+	timestepSampleTable1->setColumnWidth(0,80);
+	timestepSampleTable2->horizontalHeader()->hide();
+	timestepSampleTable2->setSelectionMode(QAbstractItemView::SingleSelection);
+	timestepSampleTable2->setSelectionBehavior(QAbstractItemView::SelectRows);
+	timestepSampleTable2->setColumnWidth(0,80);
+	populateTimestepTables();
+
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
@@ -575,9 +588,15 @@ void FlowEventRouter::updateTab(){
 
 	refreshButton->setEnabled(!fParams->refreshIsAuto() && VizWinMgr::getInstance()->flowDataIsDirty(fParams));
 	autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
-
-	if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
+	QPalette pal;
+	if (fParams->refreshIsAuto()) {
+		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+		autoRefreshCheckbox->setPalette(pal);
+	}
+	else {
+		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+		autoRefreshCheckbox->setPalette(pal);
+	}
 	//Always allow at least 4 variables in combo:
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
@@ -736,7 +755,8 @@ void FlowEventRouter::updateTab(){
 	diamondSizeEdit->setText(QString::number(fParams->getDiamondDiameter()));
 	arrowheadEdit->setText(QString::number(fParams->getArrowDiameter()));
 	constantOpacityEdit->setText(QString::number(fParams->getConstantOpacity()));
-	constantColorButton->setPaletteBackgroundColor(QColor(fParams->getConstantColor()));
+	pal.setColor(constantColorButton->backgroundRole(),QColor(fParams->getConstantColor()));
+	constantColorButton->setPalette(pal);
 	if (fParams->getMapperFunc()){
 		minColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMinColorMapValue()));
 		maxColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMaxColorMapValue()));
@@ -780,8 +800,15 @@ void FlowEventRouter::updateUrgentTabState(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (fParams) {
 		autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
-		if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-		else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
+		QPalette pal;
+		if (fParams->refreshIsAuto()) {
+			pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+			autoRefreshCheckbox->setPalette(pal);
+		}
+		else {
+			pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+			autoRefreshCheckbox->setPalette(pal);
+		}
 	}
 }
 
@@ -1148,10 +1175,19 @@ void FlowEventRouter::stopClicked(){
 		refreshButton->setEnabled(true);
 	}
 }
-//Add a new (blank) row to the table
+//Add a new (blank) row to the tables (they are same size)
 void FlowEventRouter::addSample(){
-	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
-	timestepSampleTable2->insertRows(timestepSampleTable2->numRows());
+	int numRows = timestepSampleTable1->rowCount()+1;
+	timestepSampleTable1->setRowCount(numRows);
+	timestepSampleTable2->setRowCount(numRows);
+	QTableWidgetItem* tstepItem1 = new QTableWidgetItem("");
+	QTableWidgetItem* tstepItem2 = new QTableWidgetItem("");
+	dontUpdate=true;
+	timestepSampleTable1->setItem(numRows-1,0, tstepItem1);
+	timestepSampleTable2->setItem(numRows-1,0, tstepItem2);
+	dontUpdate=false;
+	timestepSampleTable1->setCurrentCell(numRows-1,0);
+	timestepSampleTable2->setCurrentCell(numRows-1,0);
 }
 //Show setup instructions for flow:
 void FlowEventRouter::showSetupHelp(){
@@ -1164,13 +1200,23 @@ void FlowEventRouter::showSetupHelp(){
 }
 //Delete the current selected row
 void FlowEventRouter::deleteSample(){
+	int thisRow;
+	
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	if (fParams->getFlowType() == 1){
-		timestepSampleTable1->removeRow(timestepSampleTable1->currentRow());
+		thisRow = timestepSampleTable1->currentRow();
+		if (thisRow <0) return;
+		timestepSampleTable1->removeRow(thisRow);
 		guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
+		if(thisRow>0)timestepSampleTable1->setCurrentCell(thisRow-1,0);
+		else timestepSampleTable1->setCurrentCell(0,0);
 	} else {
-		timestepSampleTable2->removeRow(timestepSampleTable2->currentRow());
+		thisRow = timestepSampleTable2->currentRow();
+		if (thisRow <0) return;
+		timestepSampleTable2->removeRow(thisRow);
 		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
+		if(thisRow>0)timestepSampleTable2->setCurrentCell(thisRow-1,0);
+		else timestepSampleTable2->setCurrentCell(0,0);
 	}
 }
 //Rebuild the list of timestep samples.
@@ -1190,58 +1236,28 @@ void FlowEventRouter::guiRebuildList(){
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 }
-//Respond to user has typed in a row. Convert it to an int, swap it up or down
-//until it's in ascending order.
+//Respond to user has typed in a row. 
 void FlowEventRouter::timestepChanged1(int row, int col){
-	int newVal = timestepSampleTable1->text(row,col).toInt();
-	int i;
-	//First, find the first one above it that's larger:
-	for (i = 0; i< row; i++){
-		int rowInt = timestepSampleTable1->text(i,col).toInt();
-		if (rowInt > newVal) break;
-	}
-	if (i < row) { //found one to swap:  Swap from row to i
-		for (int j = row; j>i; j--){
-			timestepSampleTable1->swapRows(j,j-1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
-		return;
-	} 
-	//Now look below this one for the lowest one that is smaller
-	for (i =  timestepSampleTable1->numRows()-1; i>row; i--){
-		int rowInt = timestepSampleTable1->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (i > row){ //found one to swap:  Swap from row to i
-		for (int j = row; j<i; j++){
-			timestepSampleTable1->swapRows(j,j+1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
-		return;
-	} 
-	//No Change:
-	guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+	if (dontUpdate) return;
+	guiUpdateUnsteadyTimes(timestepSampleTable1,"edit unsteady timestep list");
 	return;
 }
 //Send the contents of the timestepTable to the params.
-//Assumes that the timestepTable is sorted in ascending order.
-void FlowEventRouter::guiUpdateUnsteadyTimes(Q3Table* tbl, const char* descr){	
+
+void FlowEventRouter::guiUpdateUnsteadyTimes(QTableWidget* tbl, const char* descr){	
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, descr);
 	std::vector<int>& timesteplist = fParams->getUnsteadyTimesteps();
 	timesteplist.clear();
-	int prevTime = -1;
-	for (int i = 0; i< tbl->numRows(); i++){
-		int newTime = tbl->text(i,0).toInt();
-		if (newTime > prevTime) {
-			timesteplist.push_back(newTime);
-			prevTime = newTime;
-		}
-	}
 	
+	for (int i = 0; i< tbl->rowCount(); i++){
+		int newTime = tbl->item(i,0)->text().toInt();
+		timesteplist.push_back(newTime);	
+	}
+	//Sort the times
+	std::sort(timesteplist.begin(), timesteplist.end());
+
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1249,36 +1265,8 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(Q3Table* tbl, const char* descr){
 //Respond to user has typed in a row. Convert it to an int, swap it up or down
 //until it's in ascending order.
 void FlowEventRouter::timestepChanged2(int row, int col){
-	int newVal = timestepSampleTable2->text(row,col).toInt();
-	int i;
-	//First, find the first one above it that's larger:
-	for (i = 0; i< row; i++){
-		int rowInt = timestepSampleTable2->text(i,col).toInt();
-		if (rowInt > newVal) break;
-	}
-	if (i < row) { //found one to swap:  Swap from row to i
-		for (int j = row; j>i; j--){
-			timestepSampleTable2->swapRows(j,j-1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
-		return;
-	} 
-	//Now look below this one for the lowest one that is smaller
-	for (i =  timestepSampleTable2->numRows()-1; i>row; i--){
-		int rowInt = timestepSampleTable2->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (i > row){ //found one to swap:  Swap from row to i
-		for (int j = row; j<i; j++){
-			timestepSampleTable2->swapRows(j,j+1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
-		return;
-	} 
-	//No Change:
-	guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+	if (dontUpdate) return;
+	guiUpdateUnsteadyTimes(timestepSampleTable2,"edit FLA timestep list");
 	return;
 }
 
@@ -1291,16 +1279,22 @@ void FlowEventRouter::toggleAdvanced(){
 	updateTab();
 }
 void FlowEventRouter::populateTimestepTables(){
+	dontUpdate = true;
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	std::vector<int>& tSteps = fParams->getUnsteadyTimesteps();
-	timestepSampleTable1->setNumRows(tSteps.size());
-	timestepSampleTable2->setNumRows(tSteps.size());
+	timestepSampleTable1->setRowCount(tSteps.size());
+	timestepSampleTable1->setColumnCount(1);
+	timestepSampleTable2->setRowCount(tSteps.size());
+	timestepSampleTable2->setColumnCount(1);
 	for (int i = 0; i< tSteps.size(); i++){
-		timestepSampleTable1->setText(i,0,QString::number(tSteps[i]));
-		timestepSampleTable2->setText(i,0,QString::number(tSteps[i]));
+		QTableWidgetItem* tstepItem1 = new QTableWidgetItem(QString::number(tSteps[i]));
+		QTableWidgetItem* tstepItem2 = new QTableWidgetItem(QString::number(tSteps[i]));
+		timestepSampleTable1->setItem(i,0, tstepItem1);
+		timestepSampleTable2->setItem(i,0, tstepItem2);
 	}
 	timestepSampleCheckbox1->setChecked(fParams->usingTimestepSampleList());
 	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
+	dontUpdate = false;
 }
 
 void FlowEventRouter::
@@ -1547,7 +1541,7 @@ reinitTab(bool doOverride){
 		opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
 	updateTab();
-	
+	dontUpdate=false;
 }
 
 //Methods that record changes in the history:
@@ -2161,8 +2155,15 @@ guiSetAutoRefresh(bool autoOn){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
-	if (autoOn) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
-	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(Qt::red));
+	QPalette pal;
+	if (autoOn) {
+		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+		autoRefreshCheckbox->setPalette(pal);
+	}
+	else {
+		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+		autoRefreshCheckbox->setPalette(pal);
+	}
 	
 	PanelCommand::captureEnd(cmd, fParams);
 	
