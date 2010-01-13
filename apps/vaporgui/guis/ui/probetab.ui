@@ -56,7 +56,7 @@
         <widget class="InstanceTable" name="instanceTable" native="true">
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>150</width>
            <height>20</height>
           </size>
          </property>

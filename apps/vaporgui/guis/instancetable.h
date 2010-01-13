@@ -20,21 +20,20 @@
 //
 #ifndef INSTANCETABLE_H
 #define INSTANCETABLE_H
-#include <q3table.h>
-#include <qcheckbox.h>
-#include "params.h"
+#include <QTableWidget>
+
 #define MAX_NUM_INSTANCES 100
 namespace VAPoR {
 class EventRouter;
 }
 using namespace VAPoR;
 class RowCheckBox;
-class InstanceTable : public Q3Table {
+class InstanceTable : public QTableWidget {
 	
 	Q_OBJECT
 
 public:
-	InstanceTable(QWidget* parent, const char* name = 0);
+	InstanceTable(QWidget* parent);
 	~InstanceTable();
 	void rebuild(EventRouter* myRouter);
 	void checkEnabledBox(bool val, int instance);
@@ -42,11 +41,6 @@ public:
 protected:
 	
 	int selectedInstance;
-	RowCheckBox* checkBoxList[MAX_NUM_INSTANCES];
-	int numcheckboxes;
-	//Special checkbox class knows its row
-	
-
 
 protected slots:
 	//Respond to events in table:
@@ -59,7 +53,7 @@ protected slots:
 	//
 
 	void selectInstance();
-	void enableChecked(bool val, int inst);
+	void changeChecked(int r, int c);
 	
 
 signals:
@@ -69,24 +63,7 @@ signals:
 
 };
 
-class RowCheckBox : public QCheckBox {
-	Q_OBJECT
-	public:
-		RowCheckBox(int row, const QString& text, QWidget* parent) ;
-		void setRow(int row) {myRow = row;}
-		void makeEmit(bool val) { doEmit = val;}
-	public slots:
-		void toggleme(bool value);
-	signals:
-		void toggleRow(bool value, int row);
-
-	protected:
-		int myRow;
-		bool doEmit;
-};
-
-
 	
 
-#endif //VIZSELECTCOMBO_H
+#endif //INSTANCETABLE_H
 

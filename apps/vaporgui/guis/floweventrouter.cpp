@@ -1257,7 +1257,9 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(QTableWidget* tbl, const char* desc
 	}
 	//Sort the times
 	std::sort(timesteplist.begin(), timesteplist.end());
-
+	//Eliminate duplicates:
+	for (int i = timesteplist.size()-1; i>0; i--)
+		if (timesteplist[i] == timesteplist[i-1]) timesteplist.erase(timesteplist.begin()+i);
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);

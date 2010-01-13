@@ -56,8 +56,8 @@
         <widget class="InstanceTable" name="instanceTable" native="true">
          <property name="minimumSize">
           <size>
-           <width>120</width>
-           <height>20</height>
+           <width>150</width>
+           <height>80</height>
           </size>
          </property>
          <property name="toolTip">
@@ -945,8 +945,17 @@ rendering calculations.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="geometrySamplesLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>Steady Line Smoothness</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                    <property name="wordWrap">
                     <bool>false</bool>
@@ -955,9 +964,15 @@ rendering calculations.</string>
                  </item>
                  <item>
                   <widget class="QSlider" name="smoothnessSlider">
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>16777215</width>
+                     <width>150</width>
                      <height>25</height>
                     </size>
                    </property>
@@ -989,9 +1004,15 @@ field line.</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="smoothnessSamplesEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>32767</width>
+                     <width>100</width>
                      <height>32767</height>
                     </size>
                    </property>
@@ -1028,13 +1049,16 @@ field&quot; in the advanced flow parameters.</string>
                  <item>
                   <widget class="QLabel" name="textLabel3_12_3_2_3">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="text">
                     <string>Typical Steady Flow Length</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                    <property name="wordWrap">
                     <bool>false</bool>
@@ -1049,9 +1073,15 @@ field&quot; in the advanced flow parameters.</string>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>16777215</width>
+                     <width>150</width>
                      <height>25</height>
                     </size>
                    </property>
@@ -1099,9 +1129,15 @@ factor appropriately.</string>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
-                     <width>32767</width>
+                     <width>100</width>
                      <height>25</height>
                     </size>
                    </property>

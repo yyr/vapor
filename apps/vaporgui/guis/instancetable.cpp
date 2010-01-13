@@ -18,53 +18,51 @@
 //		This fits in the renderer tabs, enables the user to select
 //		copy, delete, and enable instances  
 //
-#include <qcheckbox.h>
-#include <qcombobox.h>
-#include <q3table.h>
-#include <qimage.h>
+
 #include <qpixmap.h>
 #include <qstringlist.h>
-#include <qpushbutton.h>
 #include <qlineedit.h>
 #include "instancetable.h"
 #include "eventrouter.h"
-#include <q3table.h>
-#include <qpalette.h>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QString>
+
 
 using namespace VAPoR;
-InstanceTable::InstanceTable(QWidget* parent, const char* name) : Q3Table(parent, name) {
+InstanceTable::InstanceTable(QWidget* parent) : QTableWidget(parent) {
 
-// Table size
+// Table size always 150 wide
 
-	const int numRows = 6;
-	const int numCols = 1;
-	setColumnWidth(0,60);
-	//setColumnWidth(1,10);
-	setNumRows(numRows);
-	setNumCols(numCols);
-
-    
+	
+	setRowCount(0);
+	setColumnCount(2);
+	setColumnWidth(0,80);
+	setColumnWidth(1,50);
+    verticalHeader()->hide();
+	setSelectionMode(QAbstractItemView::SingleSelection);
+	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setFocusPolicy(Qt::ClickFocus);
-    Q3Header *header = horizontalHeader();
-   
-    header->setLabel( 0, QObject::tr( "View" ));
-	
-    setRowMovingEnabled(FALSE);
-	setSelectionMode(Q3Table::SingleRow);
 
-	setMaximumWidth(140);
-	setMaximumHeight(100);
-	setHScrollBarMode(Q3ScrollView::AlwaysOff);
-	setLeftMargin(50);
-	numcheckboxes = 0;
+	QStringList headerList = QStringList() <<"Instance" <<" View ";
+    setHorizontalHeaderLabels(headerList);
+	horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+	setMaximumWidth(150);
+	setMaximumHeight(120);
+	setMinimumHeight(120);
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	
-	
-	
+	connect(this,SIGNAL(cellChanged(int,int)), this, SLOT(changeChecked(int,int)));
+	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectInstance()));
 	
 }
 InstanceTable::~InstanceTable(){
-	//Possibly not needed.. will the InstanceTable delete its own?
-	for (int i = numRows(); i< numcheckboxes; i++) delete checkBoxList[i];
+	for (int i = 0; i<rowCount(); i++){
+		if (item(i,0)) delete item(i,0);
+		if (item(i,1)) delete item(i,1);
+	}
+
 }
 //Build the table, based on instances in eventrouter
 void InstanceTable::rebuild(EventRouter* myRouter){
@@ -75,90 +73,57 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	VAPoR::VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int numInsts = vizMgr->getNumInstances(winnum,renderType);
-	assert(MAX_NUM_INSTANCES >= numInsts);
-	selectedInstance = vizMgr->getCurrentInstanceIndex(winnum, renderType);
-	if (currentRow() != selectedInstance) selectRow(selectedInstance);
-
-
-	// disable extra rows, before calling setNumRows, 
-	//because setNumRows will delete them and they will continue
-	//to draw, and cause mouse events.
-	for (int r = numInsts; r < numcheckboxes; r++){
-		
-		checkBoxList[r]->setPaletteForegroundColor(Qt::white);
-		checkBoxList[r]->setPaletteBackgroundColor(Qt::white);
-		checkBoxList[r]->makeEmit(false);
-		checkBoxList[r]->setChecked(false);
-		checkBoxList[r]->setEnabled(false);
-	}
-	setNumRows(numInsts);
 	
-	if(numInsts < numcheckboxes) numcheckboxes = numInsts;
-
-	Q3Header* vertHead = verticalHeader();
-	//put existing checkboxes in proper state, or create new ones:
+	
+	
+	//create items as needed
+	//Also insert labels in first column
+	if(rowCount() != numInsts) setRowCount(numInsts);
 	
 	for (int r = 0; r<numInsts; r++){
-		RowCheckBox* checkbox;
+		
 		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderType,r);
-		if( r < numcheckboxes) checkbox = checkBoxList[r];
-		else {
-			checkbox = new RowCheckBox(r,0, this);
-			checkBoxList[r] = checkbox;
-			setCellWidget(r,0,checkbox);
-			connect(checkbox,SIGNAL(toggleRow(bool, int)),this, SLOT(enableChecked(bool,int)));
-		}
-		checkbox->setRow(r);
-		checkbox->makeEmit(false);
-		checkbox->setChecked(rParams->isEnabled());
-		checkbox->setEnabled(true);
-		
-		checkbox->makeEmit(true);
+		bool isEnabled = rParams->isEnabled();
+		if (!item(r,0)) {  //need to create new items..
 
+			QString instanceName = QString(" Instance: ") + QString::number(r+1) + " ";
+			QTableWidgetItem *item0 = new QTableWidgetItem(instanceName);
+			QTableWidgetItem *item1 = new QTableWidgetItem("    ");
+			item0->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+			item1->setFlags(item1->flags() & ~(Qt::ItemIsEditable));
 		
-		vertHead->setLabel(r,QString("Instance: ")+QString::number(r+1)+ " ");
-
-		if (r == selectedInstance){
-			//Invert colors in selected checkbox:
-			checkbox->setPaletteForegroundColor(paletteBackgroundColor());
-			checkbox->setPaletteBackgroundColor(Qt::darkBlue);
-			
+			if (isEnabled)item1->setCheckState(Qt::Checked);
+			else item1->setCheckState(Qt::Unchecked);
+		
+			setItem(r,0, item0);
+			setItem(r,1, item1);
 		} else {
-			//default colors:
-			checkbox->setPaletteForegroundColor(paletteForegroundColor());
-			checkbox->setPaletteBackgroundColor(paletteBackgroundColor());
+			if (isEnabled && item(r,1)->checkState() != Qt::Checked)item(r,1)->setCheckState(Qt::Checked);
+			else if (!isEnabled && item(r,1)->checkState() != Qt::Unchecked)item(r,1)->setCheckState(Qt::Unchecked);
 		}
+		
 	}
-	numcheckboxes = numInsts;
-	connect(this, SIGNAL(selectionChanged()), this, SLOT(selectInstance()));
-	selectRow(selectedInstance);
-
+	if(selectedInstance != vizMgr->getCurrentInstanceIndex(winnum, renderType)){
+		selectedInstance = vizMgr->getCurrentInstanceIndex(winnum, renderType);
+		selectRow(selectedInstance);
+	}
+	
 }
-
 
 //Slots:
 void InstanceTable::selectInstance(){
-	int newSelection = currentRow();
+	QList<QModelIndex> selectList = selectedIndexes();
+	int newSelection = selectList[0].row();
 	if (newSelection == selectedInstance) return;
 	selectedInstance = newSelection;
 	emit changeCurrentInstance(selectedInstance);
 }
-
-void InstanceTable::enableChecked(bool val, int inst){
-	
-	emit enableInstance(val, inst);
+void InstanceTable::changeChecked(int row, int col){
+	if (col != 1) return;
+	QTableWidgetItem* checkedItem = item(row,col);
+	bool val = (checkedItem->checkState() == Qt::Checked);
+	emit enableInstance(val, row);
 }
 void InstanceTable::checkEnabledBox(bool val, int instance){
-	checkBoxList[instance]->setChecked(val);
-}
-RowCheckBox::RowCheckBox(int row, const QString& text, QWidget* parent) :
-		QCheckBox(text, parent) {
-	myRow = row;
-	doEmit = false;
-	connect(this,SIGNAL(toggled(bool)),this,SLOT(toggleme(bool)));
-	
-}
-
-void RowCheckBox::toggleme(bool value) {
-	if (doEmit) emit toggleRow(value, myRow);
+	item(instance,1)->setCheckState(val ? Qt::Checked : Qt::Unchecked);
 }

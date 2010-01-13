@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>946</height>
+    <height>944</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -62,8 +62,8 @@ checkbox to start rendering.</string>
         <widget class="InstanceTable" name="instanceTable" native="true">
          <property name="minimumSize">
           <size>
-           <width>120</width>
-           <height>20</height>
+           <width>150</width>
+           <height>80</height>
           </size>
          </property>
          <property name="toolTip">
@@ -1434,14 +1434,14 @@ rendering time.</string>
    <header>../../guis/instancetable.h</header>
   </customwidget>
   <customwidget>
-   <class>ColorPickerFrame</class>
-   <extends>QWidget</extends>
-   <header location="global">colorpickerframe.h</header>
-  </customwidget>
-  <customwidget>
    <class>MappingFrame</class>
    <extends>QWidget</extends>
    <header>mappingframe.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorPickerFrame</class>
+   <extends>QWidget</extends>
+   <header location="global">colorpickerframe.h</header>
   </customwidget>
  </customwidgets>
  <includes>
