@@ -20,15 +20,15 @@
 //
 #include "probeframe.h"
 #include "probeparams.h"
-#include <q3frame.h>
+#include <QFrame>
 #include <qwidget.h>
 #include <qgl.h>
 #include <qlayout.h>
-//Added by qt3to4:
+
 #include <QPaintEvent>
 #include <QResizeEvent>
 #include <QMouseEvent>
-#include <Q3HBoxLayout>
+#include <QHBoxLayout>
 #include "glprobewindow.h"
 #include "glutil.h"
 #include "vizwinmgr.h"
@@ -36,8 +36,8 @@
 #include "customcontext.h"
 
 
-ProbeFrame::ProbeFrame( QWidget * parent, const char * name, Qt::WFlags f ) :
-	Q3Frame(parent, name, f) {
+ProbeFrame::ProbeFrame( QWidget * parent, Qt::WFlags f ) :
+	QFrame(parent, f) {
 	
 	setFocusPolicy(Qt::StrongFocus);
 	 // Create our OpenGL widget.  
@@ -53,7 +53,7 @@ ProbeFrame::ProbeFrame( QWidget * parent, const char * name, Qt::WFlags f ) :
 	if (!(fmt.directRendering() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
-	Q3HBoxLayout* flayout = new Q3HBoxLayout( this, 2, 2, "flayout");
+	QHBoxLayout* flayout = new QHBoxLayout( this);
     flayout->addWidget( glProbeWindow, 1 );
 	probeParams = 0;
 

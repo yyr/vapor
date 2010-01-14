@@ -23,9 +23,8 @@
 //
 #ifndef TWODFRAME_H
 #define TWODFRAME_H
-#include <q3frame.h>
+#include <QFrame>
 #include <qwidget.h>
-//Added by qt3to4:
 #include <QPaintEvent>
 #include <QResizeEvent>
 #include <QMouseEvent>
@@ -40,10 +39,12 @@ namespace VAPoR {
 	class TwoDParams;
 }
 using namespace VAPoR;
-class TwoDFrame : public Q3Frame {
+class TwoDFrame : public QFrame {
+
 	Q_OBJECT
+
 public:
-	TwoDFrame( QWidget * parent = 0, const char * name = 0, Qt::WFlags f = 0 );
+	TwoDFrame( QWidget * parent = 0,Qt::WFlags f = 0 );
 	~TwoDFrame();
 	void setGLWindow(VAPoR::GLTwoDWindow* w){glTwoDWindow = w;}
 	GLTwoDWindow* getGLWindow(){return glTwoDWindow;}

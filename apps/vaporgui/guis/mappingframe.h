@@ -27,12 +27,10 @@
 #endif
 
 #include <qgl.h>
-//Added by qt3to4:
+
 #include <QContextMenuEvent>
 #include <QPaintEvent>
-#include <QLabel>
 #include <QMouseEvent>
-#include <Q3PopupMenu>
 #include "glwindow.h"
 
 #include <qpoint.h>
@@ -40,9 +38,10 @@
 #include <map>
 #include <set>
 
-class Q3PopupMenu;
+
 class QAction;
 class QLabel;
+class QMenu;
 
 
 
@@ -276,11 +275,11 @@ private:
   QLabel     *_variableLabel;
     
   QPoint      _contextPoint;
-  Q3PopupMenu *_contextMenu;
-  Q3PopupMenu *_addOpacityWidgetSubMenu;
-  Q3PopupMenu *_histogramScalingSubMenu;
-  Q3PopupMenu *_compTypeSubMenu;
-  Q3PopupMenu *_widgetEnabledSubMenu;
+  QMenu *_contextMenu;
+  QMenu *_addOpacityWidgetSubMenu;
+  QMenu *_histogramScalingSubMenu;
+  QMenu *_compTypeSubMenu;
+  QMenu *_widgetEnabledSubMenu;
   QAction    *_editOpacityWidgetAction;
   QAction    *_deleteOpacityWidgetAction;
   QAction    *_addColorControlPointAction;

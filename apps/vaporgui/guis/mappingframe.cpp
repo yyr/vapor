@@ -26,11 +26,10 @@
 #include <iostream>
 #include <math.h>
 #include <qcursor.h>
-#include <q3popupmenu.h>
+#include <QMenu>
 #include <qaction.h>
 #include <qcursor.h>
 #include <qlabel.h>
-//Added by qt3to4:
 #include <QContextMenuEvent>
 #include <QMouseEvent>
 
@@ -648,16 +647,16 @@ void MappingFrame::initWidgets()
   //
   // Create the context sensitive menu
   //
-  _contextMenu = new Q3PopupMenu(this);
+  _contextMenu = new QMenu(this);
 
-  _addOpacityWidgetSubMenu = new Q3PopupMenu(_contextMenu);
+  _addOpacityWidgetSubMenu = new QMenu(_contextMenu);
   _addOpacityWidgetSubMenu->insertItem("Control Points", 
                                        OpacityMap::CONTROL_POINT);
   _addOpacityWidgetSubMenu->insertItem("Gaussian", OpacityMap::GAUSSIAN);
   _addOpacityWidgetSubMenu->insertItem("Inverted Gaussian", 
                                        OpacityMap::INVERTED_GAUSSIAN);
 
-  _histogramScalingSubMenu = new Q3PopupMenu(_contextMenu);
+  _histogramScalingSubMenu = new QMenu(_contextMenu);
   _histogramScalingSubMenu->setCheckable(true);
   _histogramScalingSubMenu->insertItem("Boolean", BOOLEAN);
   _histogramScalingSubMenu->setItemChecked(BOOLEAN, false);
@@ -666,7 +665,7 @@ void MappingFrame::initWidgets()
   _histogramScalingSubMenu->insertItem("Log", LOG);
   _histogramScalingSubMenu->setItemChecked(LOG, false);
 
-  _compTypeSubMenu = new Q3PopupMenu(_contextMenu);
+  _compTypeSubMenu = new QMenu(_contextMenu);
   _compTypeSubMenu->setCheckable(true);
   _compTypeSubMenu->insertItem("Addition", 
                                MapperFunction::ADDITION);
@@ -675,7 +674,7 @@ void MappingFrame::initWidgets()
                                MapperFunction::MULTIPLICATION);
   _compTypeSubMenu->setItemChecked(MapperFunction::MULTIPLICATION, false);
 
-  _widgetEnabledSubMenu = new Q3PopupMenu(_contextMenu);
+  _widgetEnabledSubMenu = new QMenu(_contextMenu);
   _widgetEnabledSubMenu->setCheckable(true);
   _widgetEnabledSubMenu->insertItem("Enabled", ENABLED);
   _widgetEnabledSubMenu->setItemChecked(ENABLED, true);

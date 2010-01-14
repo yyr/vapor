@@ -67,8 +67,6 @@
 #include "trackball.h"
 #include "vizactivatecommand.h"
 #include "session.h"
-#include "loadtfdialog.h"
-#include "savetfdialog.h"
 #include "animationeventrouter.h"
 #include "regioneventrouter.h"
 #include "dvreventrouter.h"

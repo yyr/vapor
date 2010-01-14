@@ -89,8 +89,11 @@ void ControlPointEditor::initWidgets()
                   (int)(255*color.sat()), 
                   (int)(255*color.val()));
 
-    _colorButton->setPaletteBackgroundColor(qcolor);
-    _colorButton->setPaletteForegroundColor(qcolor);
+	QPalette pal;
+	pal.setColor(_colorButton->backgroundRole(),qcolor);
+	pal.setColor(_colorButton->foregroundRole(),qcolor);
+	_colorButton->setPalette(pal);
+
                               
     _opacityLabel->hide();
     _opacityField->hide();
@@ -171,14 +174,18 @@ void ControlPointEditor::indexValueChanged()
 //----------------------------------------------------------------------------
 void ControlPointEditor::pickColor()
 {
-  QColor color = _colorButton->paletteForegroundColor();
+	QColor color = _colorButton->paletteForegroundColor();
 
-  QColor newColor = QColorDialog::getColor(color, this);
+	QColor newColor = QColorDialog::getColor(color, this);
 
-  if (!newColor.isValid()) return; 
+	if (!newColor.isValid()) return; 
 
-  _colorButton->setPaletteBackgroundColor(newColor);
-  _colorButton->setPaletteForegroundColor(newColor);
+	QPalette pal;
+	pal.setColor(_colorButton->backgroundRole(),newColor);
+	pal.setColor(_colorButton->foregroundRole(),newColor);
+	_colorButton->setPalette(pal);
+
+  
 }
 
 //----------------------------------------------------------------------------

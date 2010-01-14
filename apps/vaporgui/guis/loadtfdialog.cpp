@@ -24,12 +24,9 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qtooltip.h>
-#include <q3whatsthis.h>
+
 #include <qlabel.h>
 #include <qcombobox.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
-#include <Q3VBoxLayout>
 
 #include "eventrouter.h"
 using namespace VAPoR;
@@ -41,16 +38,15 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, const char* name, bool modal, Qt::WFlags fl )
-    : QDialog( parent, name, modal, fl )
+LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, Qt::WFlags fl )
+    : QDialog( parent, fl )
 {
-    if ( !name )
-	setName( "LoadTFDialog" );
+    
 	myRouter = router;
-    LoadTFDialogLayout = new Q3HBoxLayout( this, 11, 6, "LoadTFDialogLayout"); 
-
-    layout23 = new Q3VBoxLayout( 0, 0, 6, "layout23"); 
-
+    
+	LoadTFDialogLayout = new QHBoxLayout( this); 
+  
+	layout23 = new QVBoxLayout(); 
     fileLoadButton = new QPushButton( this, "fileLoadButton" );
     QFont fileLoadButton_font(  fileLoadButton->font() );
     fileLoadButton_font.setPointSize( 8 );

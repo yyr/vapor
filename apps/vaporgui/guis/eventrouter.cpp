@@ -258,8 +258,7 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
 void EventRouter::
 saveTF(RenderParams* rParams){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	SaveTFDialog* saveTFDialog = new SaveTFDialog(rParams,0,
-		"Save TF Dialog", true);
+	SaveTFDialog* saveTFDialog = new SaveTFDialog(rParams,0);
 	int rc = saveTFDialog->exec();
 	if (rc == 1) fileSaveTF(rParams);
 }
@@ -320,8 +319,7 @@ loadTF(RenderParams* rParams, int varnum){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	
 	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, 0,
-			"Load TF Dialog", true);
+		LoadTFDialog* loadTFDialog = new LoadTFDialog(this);
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
 		if (rc == 1) {

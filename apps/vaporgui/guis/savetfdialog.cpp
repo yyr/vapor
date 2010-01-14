@@ -23,14 +23,12 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qtooltip.h>
-#include <q3whatsthis.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qmessagebox.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
-#include <Q3VBoxLayout>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include "session.h"
 #include "params.h"
 using namespace VAPoR;
@@ -41,16 +39,14 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, const char* name, bool modal, Qt::WFlags fl )
-    : QDialog( parent, name, modal, fl )
+SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl )
+    : QDialog( parent, fl )
 {
-    if ( !name )
-	setName( "SaveTFDialog" );
-	//setFocusPolicy(QWidget::TabFocus);
-    SaveTFDialogLayout = new Q3HBoxLayout( this, 11, 6, "SaveTFDialogLayout"); 
+   
+    SaveTFDialogLayout = new QHBoxLayout( this); 
 	myParams = params;
 
-    layout24 = new Q3VBoxLayout( 0, 0, 6, "layout24"); 
+    layout24 = new QVBoxLayout(); 
 
     fileSaveButton = new QPushButton( this, "fileSaveButton" );
     QFont fileSaveButton_font(  fileSaveButton->font() );

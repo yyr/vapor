@@ -67,8 +67,6 @@
 #include "dvreventrouter.h"
 #include "animationeventrouter.h"
 #include "eventrouter.h"
-#include "savetfdialog.h"
-#include "loadtfdialog.h"
 #include "colorpickerframe.h"
 #include "VolumeRenderer.h"
 

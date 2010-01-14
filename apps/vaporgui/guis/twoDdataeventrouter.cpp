@@ -70,8 +70,6 @@
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
 #include "eventrouter.h"
-#include "savetfdialog.h"
-#include "loadtfdialog.h"
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;

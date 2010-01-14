@@ -72,8 +72,7 @@
 #include "flowparams.h"
 #include "floweventrouter.h"
 #include "eventrouter.h"
-#include "savetfdialog.h"
-#include "loadtfdialog.h"
+
 
 #include "VolumeRenderer.h"
 
@@ -1400,7 +1399,9 @@ setFlowConstantColor(){
 	//Bring up a color selector dialog:
 	QColor newColor = QColorDialog::getColor(constantColorButton->paletteBackgroundColor(), this, "Constant Color Selection");
 	//Set button color
-	constantColorButton->setPaletteBackgroundColor(newColor);
+	QPalette pal;
+	pal.setColor(constantColorButton->backgroundRole(),newColor);
+	constantColorButton->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
 	guiSetConstantColor(newColor);
 }
