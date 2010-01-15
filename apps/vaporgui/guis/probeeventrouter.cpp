@@ -174,7 +174,7 @@ ProbeEventRouter::hookUpTab()
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
-	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
+	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZCenter()));
@@ -465,8 +465,10 @@ void ProbeEventRouter::updateTab(){
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
 	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
-		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
-			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
+		QListWidgetItem* listItem = variableListBox->item(i);
+		bool selection = probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i));
+		if (listItem->isSelected() != selection)
+			listItem->setSelected(selection);
 	}
 	ignoreListboxChanges = false;
 
@@ -1303,7 +1305,8 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
 		const QString& text = QString(s.c_str());
-		variableListBox->insertItem(text, i);
+		QListWidgetItem* newItem = new QListWidgetItem(text);
+		variableListBox->insertItem(i,newItem);
 	}
 	ignoreListboxChanges = false;
 
@@ -1587,9 +1590,9 @@ guiChangeVariables(){
 	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
 		//Index by session variable num:
 		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum(i);
-		if (variableListBox->isSelected(i)){
+		QListWidgetItem* curItem = variableListBox->item(i);
+		if (curItem->isSelected()){
 			pParams->setVariableSelected(varnum,true);
-			
 			if(firstVar == -1) firstVar = varnum;
 			numSelected++;
 		}

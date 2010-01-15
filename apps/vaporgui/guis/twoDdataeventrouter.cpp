@@ -127,7 +127,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (applyTerrainCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiApplyTerrain(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
+	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
@@ -284,8 +284,8 @@ void TwoDDataEventRouter::updateTab(){
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
 	for (int i = 0; i< ds->getNumMetadataVariables2D(); i++){
-		if (variableListBox->isSelected(i) != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
-			variableListBox->setSelected(i, twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
+		if (variableListBox->item(i)->isSelected() != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
+			variableListBox->item(i)->setSelected(twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
 	}
 	ignoreListboxChanges = false;
 
@@ -794,7 +794,8 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName2D(i);
 		const QString& text = QString(s.c_str());
-		variableListBox->insertItem(text, i);
+		QListWidgetItem* newItem = new QListWidgetItem(text);
+		variableListBox->insertItem(i,newItem);
 	}
 	ignoreListboxChanges = false;
 
@@ -1062,7 +1063,7 @@ guiChangeVariables(){
 	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
 		//Index by session variable num:
 		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum2D(i);
-		if (variableListBox->isSelected(i)){
+		if (variableListBox->item(i)->isSelected()){
 			pParams->setVariableSelected(varnum,true);
 			
 			if(firstVar == -1) {
@@ -1070,7 +1071,7 @@ guiChangeVariables(){
 				orientation = DataStatus::getInstance()->get2DOrientation(i);
 			} else if (orientation != DataStatus::getInstance()->get2DOrientation(i)){
 				//De-select any variables that don't match the first variable's orientation
-				variableListBox->setSelected(i,false);
+				variableListBox->item(i)->setSelected(false);
 				numSelected--;
 			}
 			numSelected++;

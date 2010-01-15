@@ -34,9 +34,9 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QHBoxLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <widget class="QLabel" name="textLabel1">
        <property name="text">
@@ -276,9 +276,9 @@ create new 2D planar instances.</string>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QHBoxLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <layout class="QVBoxLayout">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <layout class="QHBoxLayout">
             <item>
@@ -462,9 +462,9 @@ create new 2D planar instances.</string>
             <property name="frameShadow">
              <enum>QFrame::Raised</enum>
             </property>
-            <layout class="QHBoxLayout">
+            <layout class="QVBoxLayout" name="verticalLayout">
              <item>
-              <layout class="QHBoxLayout">
+              <layout class="QHBoxLayout" name="horizontalLayout">
                <item>
                 <spacer name="spacer57_2">
                  <property name="orientation">
@@ -497,66 +497,22 @@ and transparency</string>
                 </widget>
                </item>
                <item>
-                <widget class="Q3ListBox" name="variableListBox">
+                <widget class="QListWidget" name="variableListBox">
                  <property name="minimumSize">
                   <size>
-                   <width>144</width>
+                   <width>0</width>
                    <height>107</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>32767</width>
-                   <height>55</height>
+                   <width>144</width>
+                   <height>107</height>
                   </size>
                  </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::NoFocus</enum>
-                 </property>
-                 <property name="toolTip">
-                  <string>Select one or more variables to be displayed in contour view</string>
-                 </property>
-                 <property name="whatsThis">
-                  <string>Select one or more 2D variables to be visualized in the 2D plane.  Variables must be horizontal (X-Y oriented).  Multiple variables are selected by ctrl-click with the left mouse button.  When multiple variables are selected, the histogram and the cross-section images are based on the magnitude of the vector consisting of all the selected variables.</string>
-                 </property>
                  <property name="selectionMode">
-                  <enum>Q3ListBox::Extended</enum>
+                  <enum>QAbstractItemView::ExtendedSelection</enum>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>not present</string>
-                  </property>
-                 </item>
                 </widget>
                </item>
                <item>
@@ -3235,17 +3191,6 @@ depending on which button is clicked.</string>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>Q3Frame</class>
-   <extends>QFrame</extends>
-   <header>Qt3Support/Q3Frame</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Q3ListBox</class>
-   <extends>Q3Frame</extends>
-   <header>q3listbox.h</header>
-  </customwidget>
   <customwidget>
    <class>InstanceTable</class>
    <extends>QWidget</extends>

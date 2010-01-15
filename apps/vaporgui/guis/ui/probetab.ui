@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>1882</height>
+    <height>1831</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -3490,59 +3490,22 @@ selected.</string>
                     </widget>
                    </item>
                    <item>
-                    <widget class="Q3ListBox" name="variableListBox">
-                     <property name="maximumSize">
+                    <widget class="QListWidget" name="variableListBox">
+                     <property name="minimumSize">
                       <size>
-                       <width>32767</width>
-                       <height>55</height>
+                       <width>60</width>
+                       <height>0</height>
                       </size>
                      </property>
-                     <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
-                     </property>
-                     <property name="toolTip">
-                      <string>Select one or more variables to be attached to probe</string>
-                     </property>
-                     <property name="whatsThis">
-                      <string>Select one or more variables
-to be examined with the probe.
-Multiple variables are selected
-by ctrl-click with the left mouse 
-button.  When multiple variables
-are selected, the histogram and
-the cross-section images are based
-on the magnitude of the vector
-consisting of all the variables
-selected.</string>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>100</height>
+                      </size>
                      </property>
                      <property name="selectionMode">
-                      <enum>Q3ListBox::Extended</enum>
+                      <enum>QAbstractItemView::ExtendedSelection</enum>
                      </property>
-                     <item>
-                      <property name="text">
-                       <string>not present</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>not present</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>not present</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>not present</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>not present</string>
-                      </property>
-                     </item>
                     </widget>
                    </item>
                   </layout>
@@ -4307,17 +4270,6 @@ depending on which button is clicked.</string>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>Q3Frame</class>
-   <extends>QFrame</extends>
-   <header>Qt3Support/Q3Frame</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Q3ListBox</class>
-   <extends>Q3Frame</extends>
-   <header>q3listbox.h</header>
-  </customwidget>
   <customwidget>
    <class>InstanceTable</class>
    <extends>QWidget</extends>
