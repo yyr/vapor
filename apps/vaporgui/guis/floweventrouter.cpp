@@ -1397,7 +1397,7 @@ void FlowEventRouter::
 setFlowConstantColor(){
 	
 	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(constantColorButton->paletteBackgroundColor(), this, "Constant Color Selection");
+	QColor newColor = QColorDialog::getColor(constantColorButton->palette().color(QPalette::Background), this);
 	//Set button color
 	QPalette pal;
 	pal.setColor(constantColorButton->backgroundRole(),newColor);

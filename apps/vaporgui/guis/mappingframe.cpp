@@ -641,9 +641,10 @@ void MappingFrame::initWidgets()
   _variableLabel = new QLabel(this);
   _variableLabel->setAlignment(Qt::AlignHCenter);
   _variableLabel->hide();
-  _variableLabel->setPaletteForegroundColor(Qt::red);
-  _variableLabel->setPaletteBackgroundColor(Qt::black);
-
+  QPalette pal = _variableLabel->palette();
+  pal.setColor(_variableLabel->backgroundRole(),Qt::black);
+  pal.setColor(_variableLabel->foregroundRole(),Qt::red);
+  
   //
   // Create the context sensitive menu
   //
@@ -866,7 +867,7 @@ void MappingFrame::paintGL()
   //
   // Draw axis region background
   //
-  QColor color = parentWidget()->paletteBackgroundColor();
+  QColor color = parentWidget()->palette().color(QPalette::Background);
   glColor3f(color.red()/255.0, color.green()/255.0, color.blue()/255.0);
 
   float unitPerPixel = 1.0/(height()-totalFixedHeight());

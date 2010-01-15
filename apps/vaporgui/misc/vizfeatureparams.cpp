@@ -357,8 +357,10 @@ visualizerSelected(int comboIndex){
 
 void VizFeatureParams::
 selectTimeTextColor(){
-	QColor tColor = QColorDialog::getColor(timeAnnotColor,0,0);
-	vizFeatureDlg->timeColorButton->setPaletteBackgroundColor(tColor);
+	QPalette pal(vizFeatureDlg->timeColorButton->palette());
+	QColor tColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->timeColorButton->backgroundRole(),tColor);
+	vizFeatureDlg->timeColorButton->setPalette(pal);
 	dialogChanged = true;
 }
 
@@ -366,23 +368,31 @@ selectTimeTextColor(){
 void VizFeatureParams::
 selectColorbarBackgroundColor(){
 	//Launch colorselector, put result into the button
-	QColor bgColor = QColorDialog::getColor(colorbarBackgroundColor,0,0);
-	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(bgColor);
+	QPalette pal(vizFeatureDlg->colorbarBackgroundButton->palette());
+	QColor bgColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(),bgColor);
+	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal);
 	dialogChanged = true;
 }
 void VizFeatureParams::
 selectElevGridColor(){
 	//Launch colorselector, put result into the button
-	QColor sfColor = QColorDialog::getColor(elevGridColor,0,0);
-	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(sfColor);
+	QPalette pal(vizFeatureDlg->surfaceColorButton->palette());
+	QColor sfColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(),sfColor);
+	vizFeatureDlg->surfaceColorButton->setPalette(pal);
 	dialogChanged = true;
+	
 }
 	
 void VizFeatureParams::
 selectAxisColor(){
-	QColor axColor = QColorDialog::getColor(axisAnnotationColor,0,0);
-	vizFeatureDlg->axisColorButton->setPaletteBackgroundColor(axColor);
+	QPalette pal(vizFeatureDlg->axisColorButton->palette());
+	QColor axColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->axisColorButton->backgroundRole(),axColor);
+	vizFeatureDlg->axisColorButton->setPalette(pal);
 	dialogChanged = true;
+
 }
 //Copy values into 'this' and into the dialog, using current comboIndex
 //Also set up the visualizer combo
@@ -471,7 +481,9 @@ setDialog(){
 	vizFeatureDlg->labelDigitsEdit->setText(QString::number(labelDigits));
 	vizFeatureDlg->ticWidthEdit->setText(QString::number(ticWidth));
 	axisAnnotationColor = vizWin->getAxisColor();
-	vizFeatureDlg->axisColorButton->setPaletteBackgroundColor(axisAnnotationColor);
+	QPalette pal0(vizFeatureDlg->axisColorButton->palette());
+	pal0.setColor(vizFeatureDlg->axisColorButton->backgroundRole(),axisAnnotationColor);
+	vizFeatureDlg->axisColorButton->setPalette(pal0);
 	
 	
 	
@@ -493,7 +505,9 @@ setDialog(){
 	vizFeatureDlg->timeLLXEdit->setText(QString::number(timeAnnotCoords[0]));
 	vizFeatureDlg->timeLLYEdit->setText(QString::number(timeAnnotCoords[1]));
 	vizFeatureDlg->timeSizeEdit->setText(QString::number(timeAnnotTextSize));
-	vizFeatureDlg->timeColorButton->setPaletteBackgroundColor(timeAnnotColor);
+	QPalette pal1(vizFeatureDlg->timeColorButton->palette());
+	pal1.setColor(vizFeatureDlg->timeColorButton->backgroundRole(), timeAnnotColor);
+	vizFeatureDlg->timeColorButton->setPalette(pal1);
 
 	numColorbarTics = vizWin->getColorbarNumTics();
 	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
@@ -503,7 +517,9 @@ setDialog(){
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
 	
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
-	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
+	QPalette pal2(vizFeatureDlg->colorbarBackgroundButton->palette());
+	pal2.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(), colorbarBackgroundColor);
+	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal2);
 
 	int numRefs = ds->getNumTransforms();
 	//if (isLayered){
@@ -517,7 +533,10 @@ setDialog(){
 	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
 	elevGridColor = vizWin->getElevGridColor();
 	elevGridRefinement = vizWin->getElevGridRefinementLevel();
-	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(elevGridColor);
+	QPalette pal3(vizFeatureDlg->surfaceColorButton->palette());
+	pal3.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(), elevGridColor);
+	vizFeatureDlg->surfaceColorButton->setPalette(pal3);
+
 	vizFeatureDlg->refinementCombo->setCurrentItem(elevGridRefinement);
 	showElevGrid = vizWin->elevGridRenderingEnabled();
 	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
@@ -594,7 +613,10 @@ copyFromDialog(){
 	labelHeight = vizFeatureDlg->labelHeightEdit->text().toInt();
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
-	axisAnnotationColor = vizFeatureDlg->axisColorButton->paletteBackgroundColor();
+	QPalette pal0(vizFeatureDlg->axisColorButton->palette());
+	pal0.setColor(vizFeatureDlg->axisColorButton->backgroundRole(), axisAnnotationColor);
+	vizFeatureDlg->axisColorButton->setPalette(pal0);
+
 	showAxisAnnotation = vizFeatureDlg->axisAnnotationCheckbox->isChecked();
 	
 	timeAnnotCoords[0] = vizFeatureDlg->timeLLXEdit->text().toFloat();
@@ -607,7 +629,9 @@ copyFromDialog(){
 
 	timeAnnotType = vizFeatureDlg->timeCombo->currentItem();
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
-	timeAnnotColor = vizFeatureDlg->timeColorButton->paletteBackgroundColor();
+	QPalette pal1(vizFeatureDlg->timeColorButton->palette());
+	pal1.setColor(vizFeatureDlg->timeColorButton->backgroundRole(), timeAnnotColor);
+	vizFeatureDlg->timeColorButton->setPalette(pal1);
 
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
@@ -632,10 +656,16 @@ copyFromDialog(){
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
 
-	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
+	QPalette pal2(vizFeatureDlg->colorbarBackgroundButton->palette());
+	pal2.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(), colorbarBackgroundColor);
+	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal2);
 
 	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
-	elevGridColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
+
+	QPalette pal3(vizFeatureDlg->surfaceColorButton->palette());
+	pal3.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(), elevGridColor);
+	vizFeatureDlg->surfaceColorButton->setPalette(pal3);
+
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentItem();
 	textureSurface = vizFeatureDlg->imageCheckbox->isChecked();

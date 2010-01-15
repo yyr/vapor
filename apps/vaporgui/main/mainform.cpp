@@ -51,9 +51,6 @@
 #include <qspinbox.h>
 #include <qtoolbutton.h>
 #include <QPaintEvent>
-#include <Q3ActionGroup>
-
-
 #include <iostream>
 #include <fstream>
 #include <sstream>

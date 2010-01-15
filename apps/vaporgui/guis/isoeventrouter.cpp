@@ -271,7 +271,8 @@ void IsoEventRouter::updateTab(){
 	selectedXEdit->setText(QString::number(coords[0]));
 	selectedYEdit->setText(QString::number(coords[1]));
 	selectedZEdit->setText(QString::number(coords[2]));
-	constantColorButton->setPaletteBackgroundColor(QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
+	QPalette pal = constantColorButton->palette();
+	pal.setColor(constantColorButton->backgroundRole(),QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
 	
 	if(isoParams->getIsoControl()){
 		assert(isoParams->getIsoControl()->getParams() == isoParams);
@@ -687,7 +688,9 @@ reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
-
+	QPalette pal(constantColorButton->palette());
+	pal.setColor(constantColorButton->backgroundRole(),Qt::white);
+	constantColorButton->setPalette(pal);
 	variableCombo->clear();
 	variableCombo->setMaxCount(ses->getNumMetadataVariables());
 	int i;
@@ -1071,9 +1074,11 @@ void IsoEventRouter::
 setConstantColor(){
 	
 	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(constantColorButton->paletteBackgroundColor(), this, "Constant Color Selection");
+	QPalette pal(constantColorButton->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Background), this);
 	//Set button color
-	constantColorButton->setPaletteBackgroundColor(newColor);
+	pal.setColor(constantColorButton->backgroundRole(),newColor);
+	constantColorButton->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
 	guiSetConstantColor(newColor);
 }
