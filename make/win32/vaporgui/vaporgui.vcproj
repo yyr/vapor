@@ -317,7 +317,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\qthumbwheel.cpp"
+				RelativePath="..\..\..\apps\vaporgui\guis\qtthumbwheel.cpp"
 				>
 			</File>
 			<File
@@ -876,28 +876,17 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\qthumbwheel.h"
+				RelativePath="..\..\..\apps\vaporgui\guis\qtthumbwheel.h"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing qthumbwheel.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing qthumbwheel.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp&#x0D;&#x0A;"
+						Description="Moc&apos;ing qtthumbwheel"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1347,7 +1336,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp"
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 				>
 			</File>
 			<File

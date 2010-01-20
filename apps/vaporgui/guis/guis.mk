@@ -7,7 +7,7 @@ GUI_FILES := \
 	twoDeventrouter twoDdataeventrouter twoDimageeventrouter \
 	twodframe gltwoDwindow \
 	DomainWidget GLWidget OpacityWidget \
-	qthumbwheel userpreferences \
+	qtthumbwheel userpreferences \
 	ControlPointEditor mappingframe ColorbarWidget
 
 
@@ -19,7 +19,7 @@ GUI_QT_HEADERS := \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	isoeventrouter DomainWidget GLWidget OpacityWidget ControlPointEditor \
-	qthumbwheel userpreferences \
+	qtthumbwheel userpreferences \
 	mappingframe ColorbarWidget
 
 

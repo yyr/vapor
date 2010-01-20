@@ -2043,7 +2043,7 @@ same as the X, Y, and Z axes.</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QThumbWheel" name="xThumbWheel" native="true">
+                      <widget class="QtThumbWheel" name="xThumbWheel" native="true">
                        <property name="minimumSize">
                         <size>
                          <width>140</width>
@@ -2085,7 +2085,7 @@ same as the X, Y, and Z axes.</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QThumbWheel" name="yThumbWheel" native="true">
+                      <widget class="QtThumbWheel" name="yThumbWheel" native="true">
                        <property name="minimumSize">
                         <size>
                          <width>140</width>
@@ -2127,7 +2127,7 @@ same as the X, Y, and Z axes.</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QThumbWheel" name="zThumbWheel" native="true">
+                      <widget class="QtThumbWheel" name="zThumbWheel" native="true">
                        <property name="minimumSize">
                         <size>
                          <width>140</width>
@@ -4286,16 +4286,16 @@ depending on which button is clicked.</string>
    <header>../probeframe.h</header>
   </customwidget>
   <customwidget>
-   <class>QThumbWheel</class>
-   <extends>QWidget</extends>
-   <header>../../guis/qthumbwheel.h</header>
+   <class>QtThumbWheel</class>
+   <extends>QAbstractSlider</extends>
+   <header>../../guis/qtthumbwheel.h</header>
   </customwidget>
  </customwidgets>
  <includes>
   <include location="local">instancetable.h</include>
-  <include location="local">qthumbwheel.h</include>
-  <include location="local">qthumbwheel.h</include>
-  <include location="local">qthumbwheel.h</include>
+  <include location="local">qtthumbwheel.h</include>
+  <include location="local">qtthumbwheel.h</include>
+  <include location="local">qtthumbwheel.h</include>
   <include location="local">probeframe.h</include>
   <include location="local">mappingframe.h</include>
  </includes>

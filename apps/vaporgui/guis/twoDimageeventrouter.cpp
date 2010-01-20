@@ -50,7 +50,6 @@
 #include "twodframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
-//#include "qthumbwheel.h"
 #include <vector>
 #include <string>
 #include <iostream>

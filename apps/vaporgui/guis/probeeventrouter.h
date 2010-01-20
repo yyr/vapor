@@ -234,6 +234,7 @@ protected:
 	float startRotateActualAngle;
 	float startRotateViewAngle;
 	bool renormalizedRotate;
+	
 };
 
 };

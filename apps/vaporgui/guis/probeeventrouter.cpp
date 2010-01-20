@@ -51,7 +51,7 @@
 #include "probeframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
-#include "qthumbwheel.h"
+#include "qtthumbwheel.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -75,7 +75,7 @@
 
 
 using namespace VAPoR;
-const float ProbeEventRouter::thumbSpeedFactor = 0.045f;  //rotates 45 degrees at full thumbwheel width
+const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
 
 ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
@@ -163,12 +163,12 @@ ProbeEventRouter::hookUpTab()
 	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
 	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
 	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
-	connect (xThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseXWheel(int)));
-	connect (yThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseYWheel(int)));
-	connect (zThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseZWheel(int)));
-	connect (xThumbWheel, SIGNAL(pressed()), this, SLOT(pressXWheel()));
-	connect (yThumbWheel, SIGNAL(pressed()), this, SLOT(pressYWheel()));
-	connect (zThumbWheel, SIGNAL(pressed()), this, SLOT(pressZWheel()));
+	connect (xThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseXWheel(int)));
+	connect (yThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseYWheel(int)));
+	connect (zThumbWheel, SIGNAL(wheelReleased(int)), this, SLOT(guiReleaseZWheel(int)));
+	connect (xThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressXWheel()));
+	connect (yThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressYWheel()));
+	connect (zThumbWheel, SIGNAL(wheelPressed()), this, SLOT(pressZWheel()));
 	
 	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
@@ -600,6 +600,7 @@ void ProbeEventRouter::pressXWheel(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
+	xThumbWheel->setValue(0);
 	if (stretch[1] == stretch[2]) return;
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
@@ -628,6 +629,7 @@ void ProbeEventRouter::pressYWheel(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
+	yThumbWheel->setValue(0);
 	if (stretch[0] == stretch[2]) return;
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
@@ -657,6 +659,7 @@ void ProbeEventRouter::pressZWheel(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	renormalizedRotate = false;
+	zThumbWheel->setValue(0);
 	if (stretch[1] == stretch[0]) return;
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180., pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
@@ -696,6 +699,8 @@ rotateXWheel(int val){
 	}
 	viz->updateGL();
 	
+	assert(!xThumbWheel->isSliderDown());
+	
 }
 void ProbeEventRouter::
 rotateYWheel(int val){
@@ -732,6 +737,7 @@ rotateZWheel(int val){
 void ProbeEventRouter::
 guiReleaseXWheel(int val){
 	confirmText(false);
+	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
 	float finalRotate = (float)val*thumbSpeedFactor;
@@ -749,6 +755,7 @@ guiReleaseXWheel(int val){
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
 	manip->setTempRotation(0.f, 0);
+	//reset the thumbwheel
 
 	updateTab();
 	setProbeDirty(pParams);
@@ -759,6 +766,7 @@ guiReleaseXWheel(int val){
 void ProbeEventRouter::
 guiReleaseYWheel(int val){
 	confirmText(false);
+	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
 	float finalRotate = -(float)val*thumbSpeedFactor;
@@ -787,6 +795,7 @@ guiReleaseYWheel(int val){
 void ProbeEventRouter::
 guiReleaseZWheel(int val){
 	confirmText(false);
+	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
 	float finalRotate = (float)val*thumbSpeedFactor;
@@ -1297,7 +1306,14 @@ reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	if (!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
-
+	xThumbWheel->setRange(-100000,100000);
+	yThumbWheel->setRange(-100000,100000);
+	zThumbWheel->setRange(-100000,100000);
+	xThumbWheel->setValue(0);
+	yThumbWheel->setValue(0);
+	zThumbWheel->setValue(0);
+	
+	
 	numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
