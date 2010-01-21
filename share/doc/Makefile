@@ -1,4 +1,4 @@
-TOP = ../
+TOP = ../..
 
 include $(TOP)/make/config/prebase.mk
 
@@ -11,7 +11,7 @@ DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
 INSTALL_DOC_DIR = $(INSTALL_SHAREDIR)/doc
 
 
-include ${TOP}/make/config/base.mk
+include $(TOP)/make/config/base.mk
 
 install::
 	@$(ECHO) "Installing documentation files $(DOCS) in $(INSTALL_DOC_DIR)"

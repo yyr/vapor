@@ -1,13 +1,13 @@
 TOP = ../..
 
-include ${TOP}/make/config/prebase.mk
+include $(TOP)/make/config/prebase.mk
 
 TFS = farge_turb1.vtf grayscale.vtf reversedOpaque.vtf reversed.vtf default.vtf defaultOpaque.vtf
 
 
 INSTALL_PALETTE_DIR = $(INSTALL_SHAREDIR)/palettes
 
-include ${TOP}/make/config/base.mk
+include $(TOP)/make/config/base.mk
 
 install:: 
 	@$(ECHO) "Installing color palette files $(TFS) in $(INSTALL_PALETTE_DIR)."
