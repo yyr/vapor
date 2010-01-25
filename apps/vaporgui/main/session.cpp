@@ -1138,7 +1138,7 @@ updateTFFilePath(QString* s){
 	if (pos < 0) pos = s->lastIndexOf('/');
 	assert (pos>= 0);
 	if (pos < 0) return;
-	currentTFPath = s->left(pos+1).toAscii();
+	currentTFPath = s->left(pos+1).toStdString();
 }
 
 //Diagnostic message callback:
