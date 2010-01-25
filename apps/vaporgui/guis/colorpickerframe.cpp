@@ -46,7 +46,10 @@ static int pHeight = 120;
 QPoint ColorPicker::colPt()
 { return QPoint( (360-hue)*(pWidth-1)/360, (255-sat)*(pHeight-1)/255 ); }
 int ColorPicker::huePt( const QPoint &pt )
-{ return 360 - pt.x()*360/(pWidth-1); }
+{ 
+	int h =  360 - pt.x()*360/(pWidth-1);
+	return (h < 360 ? h : 0 );
+}
 int ColorPicker::satPt( const QPoint &pt )
 { return 255 - pt.y()*255/(pHeight-1) ; }
 void ColorPicker::setCol( const QPoint &pt )
@@ -63,6 +66,8 @@ ColorPicker::ColorPicker(QWidget* parent )
     for ( y = 0; y < pHeight; y++ )
 	for ( x = 0; x < pWidth; x++ ) {
 	    QPoint p( x, y );
+		int h = huePt(p);
+		int s = satPt(p);
 		img.setPixel( x, y, QColor::fromHsv(huePt(p), satPt(p),200).rgb());
 	}
 	QPixmap px = QPixmap::fromImage(img,0);

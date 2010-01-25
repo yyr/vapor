@@ -429,10 +429,10 @@ void MappingFrame::setHistogramScale(QAction* act)
 //----------------------------------------------------------------------------
 // Set the composition type of the transfer function
 //----------------------------------------------------------------------------
-void MappingFrame::setCompositionType(int type)
+void MappingFrame::setCompositionType(QAction* act)
 {
   emit startChange("Opacity composition type changed");
-
+	int type = act->data().toInt();
   _compTypeSubMenu->actions()[MapperFunction::MULTIPLICATION]->setChecked(type==MapperFunction::MULTIPLICATION);
   _compTypeSubMenu->actions()[MapperFunction::ADDITION]->setChecked(type==MapperFunction::ADDITION);
   
@@ -446,10 +446,10 @@ void MappingFrame::setCompositionType(int type)
 //----------------------------------------------------------------------------
 // Enable/disable TF widget
 //----------------------------------------------------------------------------
-void MappingFrame::setWidgetEnabled(int enabled)
+void MappingFrame::setWidgetEnabled(QAction* act)
 {
   OpacityWidget *opacWidget = dynamic_cast<OpacityWidget*>(_lastSelected);
-
+  int enabled = act->data().toInt();
   if (opacWidget)
   {
     if (enabled)
@@ -722,16 +722,16 @@ void MappingFrame::initWidgets()
 //----------------------------------------------------------------------------
 void MappingFrame::initConnections()
 {
-  connect(_addOpacityControlPointAction, SIGNAL(activated()), 
+  connect(_addOpacityControlPointAction, SIGNAL(triggered()), 
           this, SLOT(addOpacityControlPoint()));
 
-  connect(_addColorControlPointAction, SIGNAL(activated()), 
+  connect(_addColorControlPointAction, SIGNAL(triggered()), 
           this, SLOT(addColorControlPoint()));
 
-  connect(_editControlPointAction, SIGNAL(activated()), 
+  connect(_editControlPointAction, SIGNAL(triggered()), 
           this, SLOT(editControlPoint()));
 
-  connect(_deleteControlPointAction, SIGNAL(activated()), 
+  connect(_deleteControlPointAction, SIGNAL(triggered()), 
           this, SLOT(deleteControlPoint()));
 
   connect(_addOpacityWidgetSubMenu, SIGNAL(triggered(QAction*)),
@@ -740,13 +740,13 @@ void MappingFrame::initConnections()
   connect(_histogramScalingSubMenu, SIGNAL(triggered(QAction*)),
           this, SLOT(setHistogramScale(QAction*)));
 
-  connect(_compTypeSubMenu, SIGNAL(activated(int)),
-          this, SLOT(setCompositionType(int)));
+  connect(_compTypeSubMenu, SIGNAL(triggered(QAction*)),
+          this, SLOT(setCompositionType(QAction*)));
 
-  connect(_widgetEnabledSubMenu, SIGNAL(activated(int)),
-          this, SLOT(setWidgetEnabled(int)));
+  connect(_widgetEnabledSubMenu, SIGNAL(triggered(QAction*)),
+          this, SLOT(setWidgetEnabled(QAction*)));
 
-  connect(_deleteOpacityWidgetAction, SIGNAL(activated()), 
+  connect(_deleteOpacityWidgetAction, SIGNAL(triggered()), 
           this, SLOT(deleteOpacityWidget()));
 
   connect(_colorbarWidget, SIGNAL(mapChanged()), this, SLOT(updateMap()));

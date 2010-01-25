@@ -51,7 +51,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	}
 	haveMultipleViz = false;
 	
-	int ok = connect(this, SIGNAL(currentChanged(QWidget*)), this, SLOT(newFrontTab(QWidget*)));
+	int ok = connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
 	if(!ok) assert (ok);
 	currentFrontPage = -1;
 }
@@ -86,7 +86,7 @@ TabManager::removeWidget(Params::ParamType widgetType){
 	
 	int posn = findWidget(widgetType);
 	if (posn<0) return 0;
-	QWidget* foundScroller = widget(posn);
+	
 	QWidget* foundWidget = widgets[posn];
 	for (int j=posn; j<count()-1; j++){
 		widgetTypes[j] = widgetTypes[j+1];
@@ -152,8 +152,8 @@ TabManager::findWidget(Params::ParamType widgetType){
 //Catch any change in the front page:
 //
 void TabManager::
-newFrontTab(QWidget*) {
-	int newFrontPosn = currentIndex();
+newFrontTab(int newFrontPosn) {
+	
 	//Don't check, sometimes this method can be used to refresh
 	//the existing front tab
 	//if (newFrontPosn == currentFrontPage) return;

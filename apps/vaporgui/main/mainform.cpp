@@ -361,33 +361,33 @@ void MainForm::createToolBars(){
 void MainForm::hookupSignals() {
     VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // signals and slots connections
-    	connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
-    	connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
-    	connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
-    	connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
-    	connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
-	connect( loadPreferencesAction, SIGNAL( activated() ), this, SLOT( loadPrefs() ) );
-	connect( savePreferencesAction, SIGNAL( activated() ), this, SLOT( savePrefs() ) );
-	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
-	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
-	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
-	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
+    	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
+    	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
+    	connect( fileSaveAction, SIGNAL( triggered() ), this, SLOT( fileSave() ) );
+    	connect( fileSaveAsAction, SIGNAL( triggered() ), this, SLOT( fileSaveAs() ) );
+    	connect( fileExitAction, SIGNAL( triggered() ), this, SLOT( fileExit() ) );
+	connect( loadPreferencesAction, SIGNAL( triggered() ), this, SLOT( loadPrefs() ) );
+	connect( savePreferencesAction, SIGNAL( triggered() ), this, SLOT( savePrefs() ) );
+	connect(editUndoAction, SIGNAL(triggered()), this, SLOT (undo()));
+	connect(editRedoAction, SIGNAL(triggered()), this, SLOT (redo()));
+	connect( editVizFeaturesAction, SIGNAL(triggered()), this, SLOT(launchVizFeaturesPanel()));
+	connect( editPreferencesAction, SIGNAL(triggered()), this, SLOT(launchPreferencesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
-    	connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
-    	connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
-	connect( dataMerge_MetafileAction, SIGNAL( activated() ), this, SLOT( mergeData() ) );
-	connect( dataSave_MetafileAction, SIGNAL( activated() ), this, SLOT( saveMetadata() ) );
-	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
-	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
-	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
+    	connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
+    	connect( dataBrowse_DataAction, SIGNAL( triggered() ), this, SLOT( browseData() ) );
+	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
+	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
+	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
+	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
+	connect( dataExportToIDLAction, SIGNAL(triggered()), this, SLOT( exportToIDL()));
 	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
-    	connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
+    	connect( viewLaunch_visualizerAction, SIGNAL( triggered() ), this, SLOT( launchVisualizer() ) );
 	
-	connect( captureStartJpegCaptureAction, SIGNAL( activated() ), this, SLOT( startJpegCapture() ) );
-	connect( captureEndJpegCaptureAction, SIGNAL( activated() ), this, SLOT( endJpegCapture() ) );
-	connect (captureSingleJpegCaptureAction, SIGNAL(activated()), this, SLOT (captureSingleJpeg()));
-	connect( captureStartFlowCaptureAction, SIGNAL( activated() ), this, SLOT( startFlowCapture() ) );
-	connect( captureEndFlowCaptureAction, SIGNAL( activated() ), this, SLOT( endFlowCapture() ) );
+	connect( captureStartJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( startJpegCapture() ) );
+	connect( captureEndJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( endJpegCapture() ) );
+	connect (captureSingleJpegCaptureAction, SIGNAL(triggered()), this, SLOT (captureSingleJpeg()));
+	connect( captureStartFlowCaptureAction, SIGNAL( triggered() ), this, SLOT( startFlowCapture() ) );
+	connect( captureEndFlowCaptureAction, SIGNAL( triggered() ), this, SLOT( endFlowCapture() ) );
     
 
 	//Toolbar actions:
@@ -397,19 +397,19 @@ void MainForm::hookupSignals() {
 	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
 	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
-	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
-	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
-	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
-	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
-	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
-	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
+	connect (cascadeAction, SIGNAL(triggered()), myVizMgr, SLOT(cascade()));
+	connect (tileAction, SIGNAL(triggered()), myVizMgr, SLOT(fitSpace()));
+	connect (homeAction, SIGNAL(triggered()), myVizMgr, SLOT(home()));
+	connect (sethomeAction, SIGNAL(triggered()), myVizMgr, SLOT(sethome()));
+	connect (viewAllAction, SIGNAL(triggered()), myVizMgr, SLOT(viewAll()));
+	connect (viewRegionAction, SIGNAL(triggered()), myVizMgr, SLOT(viewRegion()));
 	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
 	connect (interactiveRefinementSpin, SIGNAL(valueChanged(int)), this, SLOT(setInteractiveRefLevel(int)));
-	connect (playForwardAction, SIGNAL(activated()), this, SLOT(playForward()));
-	connect (playBackwardAction, SIGNAL(activated()), this, SLOT(playBackward()));
-	connect (pauseAction, SIGNAL(activated()), this, SLOT(pauseClick()));
-	connect (stepForwardAction, SIGNAL(activated()), this, SLOT(stepForward()));
-	connect (stepBackAction, SIGNAL(activated()), this, SLOT(stepBack()));
+	connect (playForwardAction, SIGNAL(triggered()), this, SLOT(playForward()));
+	connect (playBackwardAction, SIGNAL(triggered()), this, SLOT(playBackward()));
+	connect (pauseAction, SIGNAL(triggered()), this, SLOT(pauseClick()));
+	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
+	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
 	connect (timestepEdit, SIGNAL(returnPressed()),this, SLOT(setTimestep()));
 }
 

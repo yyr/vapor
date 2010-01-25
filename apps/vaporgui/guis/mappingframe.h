@@ -127,8 +127,8 @@ public:
 public slots:
 
   void setHistogramScale(QAction*);
-  void setCompositionType(int type);
-  void setWidgetEnabled(int enabled);
+  void setCompositionType(QAction*);
+  void setWidgetEnabled(QAction*);
   void setEditMode(bool flag);
   
   void fitToView();

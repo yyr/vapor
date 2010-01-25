@@ -82,7 +82,7 @@ class TabManager : public QTabWidget{
 		void scrollFrontToTop();
 		virtual QSize sizeHint() const { return QSize(460, 800);}
 	public slots:
-		void newFrontTab(QWidget*);
+		void newFrontTab(int);
 		void tabScrolled();
 		
 	private:
