@@ -827,13 +827,13 @@ void MainForm::saveMetadata()
 				QMessageBox::No);
 			if (rc != QMessageBox::Ok) return;
 		}
-		std::string stdName = std::string(filename.toAscii());
+		std::string stdName = filename.toStdString();
 		int rc = dataMgrWB->Write(stdName,0);
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.toAscii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
 			//Save the metadata file name
-			Session::getInstance()->getMetadataFile() = filename.toAscii();
+			Session::getInstance()->getMetadataFile() = filename.toStdString();
 		}
 		return;
 	}
