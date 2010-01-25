@@ -1586,7 +1586,7 @@ XmlNode* VizWinMgr::buildNode() {
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (vizWin[i]){
 			attrs.empty();
-			attrs[_vizWinNameAttr] = vizName[i].vi ();
+			attrs[_vizWinNameAttr] = vizName[i].toStdString();
 			oss.str(empty);
 
 			QColor clr = vizWin[i]->getColorbarBackgroundColor();
