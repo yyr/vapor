@@ -372,7 +372,7 @@ void UserPreferences::chooseSessionPath(){
 		dir);
 	if (s != "") {
 		sessionPathEdit->setText(s);
-		sessionDir = s.toAscii();
+		sessionDir = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -385,7 +385,7 @@ void UserPreferences::chooseAutoSaveFilename(){
 	if (s != ""){
 		autoSaveFilenameEdit->setText(s);
 		Session::getInstance()->setAutoSaveSessionFilename(s.toAscii());
-		autoSaveFilename = s.toAscii();
+		autoSaveFilename = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -399,7 +399,7 @@ void UserPreferences::chooseMetadataPath(){
 		dir);
 	if (s != "") {
 		metadataPathEdit->setText(s);
-		metadataDir = s.toAscii();
+		metadataDir = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -412,7 +412,7 @@ void UserPreferences::chooseLogFilePath(){
 	if (s != ""){
 		logFilePathEdit->setText(s);
 		MessageReporter::getInstance()->reset(s.toAscii());
-		logFileName = s.toAscii();
+		logFileName = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -426,7 +426,7 @@ void UserPreferences::chooseJpegPath(){
 		dir);
 	if (s != "") {
 		jpegPathEdit->setText(s);
-		jpegPath = s.toAscii();
+		jpegPath = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -440,7 +440,7 @@ void UserPreferences::chooseTFPath(){
 		dir);
 	if (s != "") {
 		tfPathEdit->setText(s);
-		tfPath = s.toAscii();
+		tfPath = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -454,7 +454,7 @@ void UserPreferences::chooseFlowPath(){
 		dir);
 	if (s != "") {
 		flowPathEdit->setText(s);
-		flowPath = s.toAscii();
+		flowPath = s.toStdString();
 		dialogChanged = true;
 	}
 }
@@ -1638,22 +1638,22 @@ void UserPreferences::getTextChanges(){
 	cacheMB = (size_t) cacheSizeEdit->text().toInt();
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
-	sessionDir = sessionPathEdit->text().toAscii();
+	sessionDir = sessionPathEdit->text().toStdString();
 	if (sessionDir == "" || sessionDir == "./" || sessionDir == ".\\")
 		sessionDir = ".";
-	autoSaveFilename = autoSaveFilenameEdit->text().toAscii();
-	metadataDir = metadataPathEdit->text().toAscii();
+	autoSaveFilename = autoSaveFilenameEdit->text().toStdString();
+	metadataDir = metadataPathEdit->text().toStdString();
 	if (metadataDir == "" || metadataDir == "./" || metadataDir == ".\\")
 		metadataDir = ".";
 	autoSaveInterval = autoSaveIntervalEdit->text().toInt();
-	tfPath = tfPathEdit->text().toAscii();
+	tfPath = tfPathEdit->text().toStdString();
 	if (tfPath == "" || tfPath == "./" || tfPath == ".\\")
 		tfPath = ".";
-	logFileName = logFilePathEdit->text().toAscii();
-	flowPath = flowPathEdit->text().toAscii();
+	logFileName = logFilePathEdit->text().toStdString();
+	flowPath = flowPathEdit->text().toStdString();
 	if (flowPath == "" || flowPath == "./" || flowPath == ".\\")
 		flowPath = ".";
-	jpegPath = jpegPathEdit->text().toAscii();
+	jpegPath = jpegPathEdit->text().toStdString();
 	if (jpegPath == "" || jpegPath == "./" || jpegPath == ".\\")
 		jpegPath = ".";
 	logNum[0] = maxInfoLog->text().toInt();
