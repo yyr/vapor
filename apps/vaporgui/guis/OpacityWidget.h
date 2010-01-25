@@ -60,7 +60,7 @@ public:
 
   OpacityMap *opacityMap() { return _opacityMap; }
 
-  virtual void select(int handle, Qt::ButtonState state);
+  virtual void select(int handle, Qt::KeyboardModifiers state);
   virtual void deselect();
 
   virtual bool enabled() const;   

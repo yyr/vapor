@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		colorpicker.cpp
+//	File:		colorpickerframe.cpp
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -14,38 +14,30 @@
 //
 //	Date:		November 2004
 //
-//	Description:	Implements the colorpicker class.  
+//	Description:	Implements the ColorPickerFrame class.  
 //
 
 
 #include <qwidget.h>
-#include <q3frame.h>
+
+#include <QFrame>
 #include <qimage.h>
 #include <qpainter.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qapplication.h>
-#include <q3dragobject.h>
 
 #include <qlayout.h>
 #include <qpushbutton.h>
 #include <qpixmap.h>
 #include <qdrawutil.h>
 #include <qvalidator.h>
-//Added by qt3to4:
-#include <Q3HBoxLayout>
-#include <Q3PointArray>
-#include <QDropEvent>
-#include <QDragLeaveEvent>
+
+#include <QHBoxLayout>
 #include <QPaintEvent>
-#include <Q3GridLayout>
+#include <QGridLayout>
 #include <QMouseEvent>
-#include <Q3VBoxLayout>
-#include <QDragEnterEvent>
-//#include "qgridview.h"
-//#include "qstyle.h"
-//#include "qsettings.h"
-//#include "qpopupmenu.h"
+#include <QVBoxLayout>
 
 #include "colorpickerframe.h"
 //Color picker dimensions:
@@ -60,23 +52,22 @@ int ColorPicker::satPt( const QPoint &pt )
 void ColorPicker::setCol( const QPoint &pt )
 { setCol( huePt(pt), satPt(pt) ); }
 
-ColorPicker::ColorPicker(QWidget* parent, const char* name )
-    : Q3Frame( parent, name )
+ColorPicker::ColorPicker(QWidget* parent )
+    : QFrame( parent )
 {
     hue = 0; sat = 0;
     setCol( 150, 255 );
 
-    QImage img( pWidth, pHeight, 32 );
+	QImage img( pWidth, pHeight, QImage::Format_RGB32 );
     int x,y;
     for ( y = 0; y < pHeight; y++ )
 	for ( x = 0; x < pWidth; x++ ) {
 	    QPoint p( x, y );
-	    img.setPixel( x, y, QColor(huePt(p), satPt(p),
-				       200, QColor::Hsv).rgb() );
+		img.setPixel( x, y, QColor::fromHsv(huePt(p), satPt(p),200).rgb());
 	}
-    pix = new QPixmap;
-    pix->convertFromImage(img,0);
-    setBackgroundMode( Qt::NoBackground );
+	QPixmap px = QPixmap::fromImage(img,0);
+	pix = &px;
+    
     setSizePolicy( QSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed )  );
 	setEnabled(false);
 }
@@ -93,16 +84,16 @@ QSize ColorPicker::sizeHint() const
 
 void ColorPicker::setCol( int h, int s )
 {
-    int nhue = QMIN( QMAX(0,h), 360 );
-    int nsat = QMIN( QMAX(0,s), 255);
+    int nhue = qMin( qMax(0,h), 360 );
+    int nsat = qMin( qMax(0,s), 255);
     if ( nhue == hue && nsat == sat )
 	return;
     QRect r( colPt(), QSize(20,20) );
     hue = nhue; sat = nsat;
     r = r.unite( QRect( colPt(), QSize(20,20) ) );
-    r.moveBy( contentsRect().x()-9, contentsRect().y()-9 );
+    r.translate( contentsRect().x()-9, contentsRect().y()-9 );
     //    update( r );
-    repaint( r, FALSE );
+    repaint( r);
 }
 
 void ColorPicker::mouseMoveEvent( QMouseEvent *m )
@@ -120,26 +111,28 @@ void ColorPicker::mousePressEvent( QMouseEvent *m )
 	
     emit newCol( hue, sat );
 }
-
-void ColorPicker::drawContents(QPainter* p)
-{
+void ColorPicker::paintEvent(QPaintEvent* ){
+	QPainter p(this);
+    drawFrame(&p);
     QRect r = contentsRect();
 
-    p->drawPixmap( r.topLeft(), *pix );
+    p.drawPixmap(r.topLeft(), *pix);
     QPoint pt = colPt() + r.topLeft();
-    p->setPen( QPen(Qt::black) );
+    p.setPen(Qt::black);
 
-    p->fillRect( pt.x()-9, pt.y(), 20, 2, Qt::black );
-    p->fillRect( pt.x(), pt.y()-9, 2, 20, Qt::black );
-
+    p.fillRect(pt.x()-9, pt.y(), 20, 2, Qt::black);
+    p.fillRect(pt.x(), pt.y()-9, 2, 20, Qt::black);
 }
 
 
 
-void ColorShowLabel::drawContents( QPainter *p )
+void ColorShowLabel::paintEvent(QPaintEvent *e)
 {
-    p->fillRect( contentsRect(), col );
+    QPainter p(this);
+    drawFrame(&p);
+    p.fillRect(contentsRect()&e->rect(), col);
 }
+
 
 
 void ColorShowLabel::mousePressEvent( QMouseEvent *e )
@@ -148,50 +141,12 @@ void ColorShowLabel::mousePressEvent( QMouseEvent *e )
     pressPos = e->pos();
 }
 
-void ColorShowLabel::mouseMoveEvent( QMouseEvent *e )
+void ColorShowLabel::mouseMoveEvent( QMouseEvent * )
 {
-#ifndef QT_NO_DRAGANDDROP
-    if ( !mousePressed )
-	return;
-    if ( ( pressPos - e->pos() ).manhattanLength() > QApplication::startDragDistance() ) {
-	Q3ColorDrag *drg = new Q3ColorDrag( col, this );
-	QPixmap pix( 30, 20 );
-	pix.fill( col );
-	QPainter p( &pix );
-	p.drawRect( 0, 0, pix.width(), pix.height() );
-	p.end();
-	drg->setPixmap( pix );
-	mousePressed = FALSE;
-	drg->dragCopy();
-    }
-#endif
+
 }
 
-#ifndef QT_NO_DRAGANDDROP
-void ColorShowLabel::dragEnterEvent( QDragEnterEvent *e )
-{
-    if ( Q3ColorDrag::canDecode( e ) )
-	e->accept();
-    else
-	e->ignore();
-}
 
-void ColorShowLabel::dragLeaveEvent( QDragLeaveEvent * )
-{
-}
-
-void ColorShowLabel::dropEvent( QDropEvent *e )
-{
-    if ( Q3ColorDrag::canDecode( e ) ) {
-	Q3ColorDrag::decode( e, col );
-	repaint( FALSE );
-	emit colorDropped( col.rgb() );
-	e->accept();
-    } else {
-	e->ignore();
-    }
-}
-#endif // QT_NO_DRAGANDDROP
 
 void ColorShowLabel::mouseReleaseEvent( QMouseEvent * )
 {
@@ -200,14 +155,15 @@ void ColorShowLabel::mouseReleaseEvent( QMouseEvent * )
     mousePressed = FALSE;
 }
 
-ColorShower::ColorShower( QWidget *parent, const char *name )
-    :QWidget( parent, name)
+ColorShower::ColorShower( QWidget *parent )
+    :QWidget( parent)
 {
     curCol = qRgb( -1, -1, -1 );
     ColIntValidator *val256 = new ColIntValidator( 0, 255, this );
     ColIntValidator *val360 = new ColIntValidator( 0, 360, this );
 
-    Q3GridLayout *gl = new Q3GridLayout( this, 1, 1, 6 );
+    QGridLayout *gl = new QGridLayout( this);
+	
 	/*
     lab = new ColorShowLabel( this );
     lab->setMinimumWidth( 60 ); //###
@@ -217,44 +173,44 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
     connect( lab, SIGNAL( colorDropped(QRgb) ),
 	     this, SLOT( setRgb(QRgb) ) );
 */
-    hEd = new ColNumLineEdit( this, "qt_hue_edit" );
+    hEd = new ColNumLineEdit( this);
     hEd->setValidator( val360 );
-    QLabel *l = new QLabel( hEd, "Hu&e:", this, "qt_hue_lbl" );
+    QLabel *l = new QLabel("Hu&e:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 1 );
     gl->addWidget( hEd, 0, 2 );
 
-    sEd = new ColNumLineEdit( this, "qt_sat_edit" );
+    sEd = new ColNumLineEdit( this );
     sEd->setValidator( val256 );
-    l = new QLabel( sEd, "&Sat:", this, "qt_sat_lbl" );
+    l = new QLabel( "&Sat:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 1 );
     gl->addWidget( sEd, 1, 2 );
 
-    vEd = new ColNumLineEdit( this, "qt_val_edit" );
+    vEd = new ColNumLineEdit( this);
     vEd->setValidator( val256 );
-    l = new QLabel( vEd, "&Val:", this, "qt_val_lbl" );
+    l = new QLabel( "&Val:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 1 );
     gl->addWidget( vEd, 2, 2 );
 
-    rEd = new ColNumLineEdit( this, "qt_red_edit" );
+    rEd = new ColNumLineEdit( this );
     rEd->setValidator( val256 );
-    l = new QLabel( rEd, "&Red:", this, "qt_red_lbl" );
+    l = new QLabel( "&Red:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 3 );
     gl->addWidget( rEd, 0, 4 );
 
-    gEd = new ColNumLineEdit( this, "qt_grn_edit" );
+    gEd = new ColNumLineEdit( this);
     gEd->setValidator( val256 );
-    l = new QLabel( gEd, "&Green:", this, "qt_grn_lbl" );
+    l = new QLabel( "&Green:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 3 );
     gl->addWidget( gEd, 1, 4 );
 
-    bEd = new ColNumLineEdit( this, "qt_blue_edit" );
+    bEd = new ColNumLineEdit( this );
     bEd->setValidator( val256 );
-    l = new QLabel( bEd, "Bl&ue:", this, "qt_blue_lbl" );
+    l = new QLabel( "Bl&ue:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 3 );
     gl->addWidget( bEd, 2, 4 );
@@ -282,7 +238,8 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
 	lab = new ColorShowLabel( this );
     lab->setMinimumWidth( 60 ); //###
 	lab->setMinimumHeight(30);
-    gl->addMultiCellWidget(lab, 3,3,0,4);
+	gl->addWidget(lab,3,0,1,5);
+    //gl->addMultiCellWidget(lab, 3,3,0,4);
     connect( lab, SIGNAL( colorDropped(QRgb) ),
 	     this, SIGNAL( newCol(QRgb) ) );
     connect( lab, SIGNAL( colorDropped(QRgb) ),
@@ -293,7 +250,7 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
 void ColorShower::showCurrentColor()
 {
     lab->setColor( currentColor() );
-    lab->repaint(FALSE); //###
+    lab->repaint(); //###
 }
 
 void ColorShower::rgbEd()
@@ -319,7 +276,7 @@ void ColorShower::hsvEd()
     sat = sEd->val();
     val = vEd->val();
 
-    curCol = QColor( hue, sat, val, QColor::Hsv ).rgb();
+	curCol = QColor::fromHsv(hue, sat, val).rgb();
 
     rEd->setNum( qRed(currentColor()) );
     gEd->setNum( qGreen(currentColor()) );
@@ -351,7 +308,7 @@ void ColorShower::setHsv( int h, int s, int v )
 {
     rgbOriginal = FALSE;
     hue = h; val = v; sat = s; //Range check###
-    curCol = QColor( hue, sat, val, QColor::Hsv ).rgb();
+	curCol = QColor::fromHsv( hue, sat, val).rgb();
 
     hEd->setNum( hue );
     sEd->setNum( sat );
@@ -377,9 +334,8 @@ int ColorLuminancePicker::val2y( int v )
     return coff + (255-v)*d/255;
 }
 
-ColorLuminancePicker::ColorLuminancePicker(QWidget* parent,
-						  const char* name)
-    :QWidget( parent, name )
+ColorLuminancePicker::ColorLuminancePicker(QWidget* parent)
+    : QWidget( parent)
 {
     hue = 100; val = 100; sat = 100;
     pix = 0;
@@ -405,9 +361,9 @@ void ColorLuminancePicker::setVal( int v )
 {
     if ( val == v )
 	return;
-    val = QMAX( 0, QMIN(v,255));
+    val = qMax( 0, qMin(v,255));
     delete pix; pix=0;
-    repaint( FALSE ); //###
+    repaint( ); //###
     emit newHsv( hue, sat, val );
 }
 
@@ -420,46 +376,47 @@ void ColorLuminancePicker::setCol( int h, int s )
 
 void ColorLuminancePicker::paintEvent( QPaintEvent * )
 {
-	return;//QT4, paint here causes crash on windows.
-    int w = width() - 5;
+	 int w = width() - 5;
 
-    QRect r( 0, foff, w, height() - 2*foff );
+    QRect r(0, foff, w, height() - 2*foff);
     int wi = r.width() - 2;
     int hi = r.height() - 2;
-    if ( !pix || pix->height() != hi || pix->width() != wi ) {
-	delete pix;
-	QImage img( wi, hi, 32 );
-	int y;
-	for ( y = 0; y < hi; y++ ) {
-	    QColor c( hue, sat, y2val(y+coff), QColor::Hsv );
-	    QRgb r = c.rgb();
-	    int x;
-	    for ( x = 0; x < wi; x++ )
-		img.setPixel( x, y, r );
-	}
-	pix = new QPixmap;
-	pix->convertFromImage(img, Qt::AvoidDither|Qt::ThresholdDither);
+    if (!pix || pix->height() != hi || pix->width() != wi) {
+        delete pix;
+        QImage img(wi, hi, QImage::Format_RGB32);
+        int y;
+        uint *pixel = (uint *) img.scanLine(0);
+        for (y = 0; y < hi; y++) {
+            const uint *end = pixel + wi;
+            while (pixel < end) {
+                QColor c;
+                c.setHsv(hue, sat, y2val(y+coff));
+                *pixel = c.rgb();
+                ++pixel;
+            }
+        }
+        pix = new QPixmap(QPixmap::fromImage(img));
     }
     QPainter p(this);
-    p.drawPixmap( 1, coff, *pix );
-    const QColorGroup &g = colorGroup();
-    qDrawShadePanel( &p, r, g, TRUE );
-    p.setPen( g.foreground() );
-    p.setBrush( g.foreground() );
-    Q3PointArray a;
+    p.drawPixmap(1, coff, *pix);
+    const QPalette &g = palette();
+    qDrawShadePanel(&p, r, g, true);
+    p.setPen(g.foreground().color());
+    p.setBrush(g.foreground());
+    QPolygon a;
     int y = val2y(val);
-    a.setPoints( 3, w, y, w+5, y+5, w+5, y-5 );
-    erase( w, 0, 5, height() );
-    p.drawPolygon( a );
+    a.setPoints(3, w, y, w+5, y+5, w+5, y-5);
+    p.eraseRect(w, 0, 5, height());
+    p.drawPolygon(a);
 }
-
+	
 void ColorLuminancePicker::setCol( int h, int s , int v )
 {
     val = v;
     hue = h;
     sat = s;
     delete pix; pix=0;
-    repaint( FALSE );//####
+    repaint();//####
 }
 QValidator::State ColIntValidator::validate( QString &s, int &pos ) const
 {
@@ -478,29 +435,35 @@ QValidator::State ColIntValidator::validate( QString &s, int &pos ) const
     }
     return state;
 }
-ColorPickerFrame::ColorPickerFrame(QWidget* parent, const char* name  ) :
-    Q3Frame(parent, name)
+ColorPickerFrame::ColorPickerFrame(QWidget* parent ) :
+    QFrame(parent)
 {
    
     const int lumSpace = 3;
-    int border = 12;
+    //int border = 12;
    
-    Q3HBoxLayout *topLay = new Q3HBoxLayout( this, border, 6 );
-    Q3VBoxLayout *leftLay = new Q3VBoxLayout( topLay );
-
-    Q3VBoxLayout *rightLay = new Q3VBoxLayout( topLay );
-
-    Q3HBoxLayout *pickLay = new Q3HBoxLayout( rightLay );
+    QHBoxLayout *topLay = new QHBoxLayout( this);
+	topLay->setSpacing(6);
+    QVBoxLayout *leftLay = new QVBoxLayout(this);
+	topLay->insertLayout(0,leftLay);
 
 
-    Q3VBoxLayout *cLay = new Q3VBoxLayout( pickLay );
-    cp = new ColorPicker( this, "qt_colorpicker" );
-    cp->setFrameStyle( Q3Frame::Panel + Q3Frame::Sunken );
+    QVBoxLayout *rightLay = new QVBoxLayout(this);
+	topLay->insertLayout(1,rightLay);
+
+    QHBoxLayout *pickLay = new QHBoxLayout(this);
+	rightLay->insertLayout(0,pickLay);
+
+
+    QVBoxLayout *cLay = new QVBoxLayout(this);
+	pickLay->insertLayout(0,cLay);
+    cp = new ColorPicker( this );
+    cp->setFrameStyle( QFrame::Panel + QFrame::Sunken );
     cLay->addSpacing( lumSpace );
     cLay->addWidget( cp );
     cLay->addSpacing( lumSpace );
 
-    lp = new ColorLuminancePicker( this, "qt_luminance_picker" );
+    lp = new ColorLuminancePicker( this);
     lp->setFixedWidth( 20 ); //###
     pickLay->addWidget( lp );
 
@@ -514,23 +477,11 @@ ColorPickerFrame::ColorPickerFrame(QWidget* parent, const char* name  ) :
 
     rightLay->addStretch();
 
-    cs = new ColorShower( this, "qt_colorshower" );
+    cs = new ColorShower( this);
     connect( cs, SIGNAL(newCol(QRgb)), this, SLOT(newColorTypedIn(QRgb)));
     leftLay->addWidget( cs );
 
-    //QHBoxLayout *buttons;
     
-	/*buttons = new QHBoxLayout( leftLay );
-
-    QPushButton *ok, *cancel;
-    ok = new QPushButton( "OK", this, "qt_ok_btn" );
-    connect( ok, SIGNAL(clicked()), parent, SLOT(accept()) );
-    ok->setDefault(TRUE);
-    cancel = new QPushButton( "Cancel", this, "qt_cancel_btn" );
-    connect( cancel, SIGNAL(clicked()), parent, SLOT(reject()) );
-    buttons->addWidget( ok );
-    buttons->addWidget( cancel );
-    buttons->addStretch();*/
 
     
 }

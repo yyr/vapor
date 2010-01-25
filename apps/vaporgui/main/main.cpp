@@ -89,7 +89,7 @@ int main( int argc, char ** argv ) {
 		myFont = a.font();
 		myFont.setPointSize(10);
 		myFont.setWeight(55);
-		//qWarning("Using default font family: %s", myFont.family().ascii());
+		//qWarning("Using default font family: %s", myFont.family().toAscii());
 		a.setFont(myFont);
 	}
 */
@@ -100,7 +100,7 @@ int main( int argc, char ** argv ) {
     MainForm* mw = new MainForm(fileName,app);
 	
 	
-    mw->setCaption( "VAPOR User Interface" );
+    mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
     return a.exec();

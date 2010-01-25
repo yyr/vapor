@@ -74,7 +74,7 @@
 using namespace VAPoR;
 
 
-DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_DVR(), EventRouter(){
+DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_DVR(), EventRouter(){
         setupUi(this);
 	myParamsType = Params::DvrParamsType;
 	savedCommand = 0;
@@ -189,7 +189,7 @@ void DvrEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1) {performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 
@@ -253,12 +253,12 @@ setDvrEnabled(bool val, int instance){
 
 void DvrEventRouter::
 setDvrEditMode(bool mode){
-	navigateButton->setOn(!mode);
+	navigateButton->setDown(!mode);
 	guiSetEditMode(mode);
 }
 void DvrEventRouter::
 setDvrNavigateMode(bool mode){
-	editButton->setOn(!mode);
+	editButton->setDown(!mode);
 	guiSetEditMode(!mode);
 }
 
@@ -326,7 +326,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->ascii());
+	std::string s(name->toAscii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = dParams->getSessionVarNum();
@@ -357,13 +357,13 @@ void DvrEventRouter::updateTab(){
 	
 	
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -409,24 +409,24 @@ void DvrEventRouter::updateTab(){
 	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	
-	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
+	typeCombo->setCurrentIndex(typemapi[dvrParams->getType()]);
 
 	int numRefs = dvrParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
-	variableCombo->setCurrentItem(dvrParams->getComboVarNum());
+		refinementCombo->setCurrentIndex(numRefs);
+	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
-	numBitsCombo->setCurrentItem((dvrParams->getNumBits())>>4);
+	numBitsCombo->setCurrentIndex((dvrParams->getNumBits())>>4);
 	histoScaleEdit->setText(QString::number(dvrParams->GetHistoStretch()));
 	
 
 	updateMapBounds(dvrParams);
 	
 	float sliderVal = dvrParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	//Make slider posited based on square root of slider value, to make it easier to manipulate:
 	sliderVal = sqrt(sliderVal);
 	sliderVal = 256.f*(1.f -sliderVal);
@@ -437,11 +437,11 @@ void DvrEventRouter::updateTab(){
 	
 	if (dvrParams->getEditMode()){
 		
-		editButton->setOn(true);
-		navigateButton->setOn(false);
+		editButton->setDown(true);
+		navigateButton->setDown(false);
 	} else {
-		editButton->setOn(false);
-		navigateButton->setOn(true);
+		editButton->setDown(false);
+		navigateButton->setDown(true);
 	}
 		
 	setEditorDirty();
@@ -467,7 +467,7 @@ reinitTab(bool doOverride){
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		variableCombo->insertItem(text);
+		variableCombo->addItem(text);
 	}
 
 	//Set up the refinement combo:
@@ -477,7 +477,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	if (histogramList){
 		for (int i = 0; i<numHistograms; i++){
@@ -511,7 +511,7 @@ guiSetNumRefinements(int num){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
 		
 	dParams->setNumRefinements(num);
-	refinementCombo->setCurrentItem(num);
+	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 }
@@ -649,7 +649,7 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_VOLUMIZER))
   {
-    typeCombo->insertItem("Volumizer", index);
+    typeCombo->insertItem(index,"Volumizer");
     typemap[index] = DvrParams::DVR_VOLUMIZER;
     typemapi[DvrParams::DVR_VOLUMIZER] = index;
     index++;
@@ -657,7 +657,7 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_SHADER))
   {
-    typeCombo->insertItem("3DTexture-Shader", index);
+    typeCombo->insertItem(index,"3DTexture-Shader");
     typemap[index] = DvrParams::DVR_TEXTURE3D_SHADER;
     typemapi[DvrParams::DVR_TEXTURE3D_SHADER] = index;
     index++;
@@ -665,7 +665,7 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_LOOKUP))
   {
-    typeCombo->insertItem("3DTexture", index);
+    typeCombo->insertItem(index,"3DTexture");
     typemap[index] = DvrParams::DVR_TEXTURE3D_LOOKUP;
     typemapi[DvrParams::DVR_TEXTURE3D_LOOKUP] = index;
     index++;
@@ -673,7 +673,7 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_SPHERICAL_SHADER))
   {
-    typeCombo->insertItem("Spherical-Shader", index);
+    typeCombo->insertItem(index,"Spherical-Shader");
     typemap[index] = DvrParams::DVR_SPHERICAL_SHADER;
     typemapi[DvrParams::DVR_SPHERICAL_SHADER] = index;
     index++;
@@ -681,7 +681,7 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_DEBUG))
   {
-    typeCombo->insertItem("Debug", index);
+    typeCombo->insertItem(index,"Debug" );
     typemap[index] = DvrParams::DVR_DEBUG;
     typemapi[DvrParams::DVR_DEBUG] = index;
     index++;
@@ -689,13 +689,13 @@ void DvrEventRouter::initTypes()
 
   if (VolumeRenderer::supported(DvrParams::DVR_STRETCHED_GRID))
   {
-    typeCombo->insertItem("Stretched Grid", index);
+    typeCombo->insertItem(index,"Stretched Grid");
     typemap[index++] = DvrParams::DVR_STRETCHED_GRID;
     typemapi[DvrParams::DVR_STRETCHED_GRID] = index;
     index++;
   }
   
-  typeCombo->setCurrentItem(0);
+  typeCombo->setCurrentIndex(0);
   //Set all dvr's to the first available type:
   //type = typemap[0];
 }
@@ -772,7 +772,7 @@ guiSetOpacityScale(int val){
 	opacScale = opacScale*opacScale;
 	dParams->setOpacityScale(opacScale);
 	
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(opacScale));
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(opacScale));
 	
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();
@@ -791,7 +791,7 @@ guiStartChangeMapFcn(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	
-	savedCommand = PanelCommand::captureStart(dParams, qstr.latin1());
+	savedCommand = PanelCommand::captureStart(dParams, qstr.toLatin1());
 		
 }
 void DvrEventRouter::
@@ -1034,7 +1034,7 @@ void DvrEventRouter::runBenchmarks()
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   benchmark = PREAMBLE;
-  benchmarkTimer->start(0, FALSE);
+  benchmarkTimer->start(0);
 }
 
 //----------------------------------------------------------------------------
@@ -1081,7 +1081,7 @@ void DvrEventRouter::nextBenchmark()
   {
     case RENDER:
 
-      if (renderCheck->isOn())
+      if (renderCheck->isChecked())
       {
         renderer->resetTimer();
         break;
@@ -1093,7 +1093,7 @@ void DvrEventRouter::nextBenchmark()
       
     case TEMPORAL:
 
-      if(animationCheck->isOn())
+      if(animationCheck->isChecked())
       {
         AnimationEventRouter *animation = mgr->getAnimationRouter();
         
@@ -1113,7 +1113,7 @@ void DvrEventRouter::nextBenchmark()
 
     case TFEDIT:
       
-      if (tfCheck->isOn())
+      if (tfCheck->isChecked())
       {
         renderer->resetTimer();
         guiSetOpacityScale(0);

@@ -42,7 +42,7 @@ namespace VAPoR{
 class ScrollContainer : public QDialog {
 public:
 	ScrollContainer(QWidget* parent, const char* name) : QDialog(parent, Qt::Widget) {
-		setCaption(name);}
+		setWindowTitle(QString(name));}
 	void setScroller(QScrollArea* sv){scroller = sv;}
 	QScrollArea* getScroller(){return scroller;}
 protected:

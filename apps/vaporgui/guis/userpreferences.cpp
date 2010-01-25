@@ -365,14 +365,14 @@ selectBackgroundColor(){
 void UserPreferences::chooseSessionPath(){
 	//Launch a file-chooser dialog, just choosing the directory
 	QString dir;
-	if (Session::getInstance()->getPrefSessionDirectory() == ".") dir = QDir::currentDirPath();
+	if (Session::getInstance()->getPrefSessionDirectory() == ".") dir = QDir::currentPath();
 	else dir = Session::getInstance()->getPrefSessionDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(this,
             	"Choose the session file directory",
 		dir);
 	if (s != "") {
 		sessionPathEdit->setText(s);
-		sessionDir = s.ascii();
+		sessionDir = s.toAscii();
 		dialogChanged = true;
 	}
 }
@@ -384,22 +384,22 @@ void UserPreferences::chooseAutoSaveFilename(){
 		"Vapor Saved Sessions (*.vss)");
 	if (s != ""){
 		autoSaveFilenameEdit->setText(s);
-		Session::getInstance()->setAutoSaveSessionFilename(s.ascii());
-		autoSaveFilename = s.ascii();
+		Session::getInstance()->setAutoSaveSessionFilename(s.toAscii());
+		autoSaveFilename = s.toAscii();
 		dialogChanged = true;
 	}
 }
 void UserPreferences::chooseMetadataPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
 	QString dir;
-	if (Session::getInstance()->getPrefMetadataDir() == ".") dir = QDir::currentDirPath();
+	if (Session::getInstance()->getPrefMetadataDir() == ".") dir = QDir::currentPath();
 	else dir = Session::getInstance()->getPrefMetadataDir().c_str();
 	QString s = QFileDialog::getExistingDirectory(this,
             	"Choose the metadata directory",
 		dir);
 	if (s != "") {
 		metadataPathEdit->setText(s);
-		metadataDir = s.ascii();
+		metadataDir = s.toAscii();
 		dialogChanged = true;
 	}
 }
@@ -411,50 +411,50 @@ void UserPreferences::chooseLogFilePath(){
 		"Text (*.txt)");
 	if (s != ""){
 		logFilePathEdit->setText(s);
-		MessageReporter::getInstance()->reset(s.ascii());
-		logFileName = s.ascii();
+		MessageReporter::getInstance()->reset(s.toAscii());
+		logFileName = s.toAscii();
 		dialogChanged = true;
 	}
 }
 void UserPreferences::chooseJpegPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
 	QString dir;
-	if (Session::getInstance()->getPrefJpegDirectory() == ".") dir = QDir::currentDirPath();
+	if (Session::getInstance()->getPrefJpegDirectory() == ".") dir = QDir::currentPath();
 	else dir = Session::getInstance()->getPrefJpegDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the jpeg (image) file directory",
 		dir);
 	if (s != "") {
 		jpegPathEdit->setText(s);
-		jpegPath = s.ascii();
+		jpegPath = s.toAscii();
 		dialogChanged = true;
 	}
 }
 void UserPreferences::chooseTFPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
 	QString dir;
-	if (Session::getInstance()->getPrefTFFilePath() == ".") dir = QDir::currentDirPath();
+	if (Session::getInstance()->getPrefTFFilePath() == ".") dir = QDir::currentPath();
 	else dir = Session::getInstance()->getPrefTFFilePath().c_str();
 	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the transfer function file directory",
 		dir);
 	if (s != "") {
 		tfPathEdit->setText(s);
-		tfPath = s.ascii();
+		tfPath = s.toAscii();
 		dialogChanged = true;
 	}
 }
 void UserPreferences::chooseFlowPath(){
 	//Launch a directory-chooser dialog, just choosing the directory
 	QString dir;
-	if (Session::getInstance()->getPrefFlowDirectory() == ".") dir = QDir::currentDirPath();
+	if (Session::getInstance()->getPrefFlowDirectory() == ".") dir = QDir::currentPath();
 	else dir = Session::getInstance()->getPrefFlowDirectory().c_str();
 	QString s = QFileDialog::getExistingDirectory(this,
             "Choose the flow file directory",
 		dir);
 	if (s != "") {
 		flowPathEdit->setText(s);
-		flowPath = s.ascii();
+		flowPath = s.toAscii();
 		dialogChanged = true;
 	}
 }
@@ -683,7 +683,7 @@ setDialog(){
 	smoothnessEdit->setText(QString::number(smoothness));
 	accuracyEdit->setText(QString::number(integrationAccuracy));
 	diameterEdit->setText(QString::number(flowDiameter));
-	geometryCombo->setCurrentItem(geometryType);
+	geometryCombo->setCurrentIndex(geometryType);
 	isoBitsPerVoxel = ParamsIso::getDefaultBitsPerVoxel();
 	dvrBitsPerVoxel = DvrParams::getDefaultBitsPerVoxel();
 	dvrLighting = DvrParams::getDefaultLightingEnabled();
@@ -692,8 +692,8 @@ setDialog(){
 	maxFPS = AnimationParams::getDefaultMaxFPS();
 	showAxisArrows = GLWindow::getDefaultAxisArrowsEnabled();
 	showTerrain= GLWindow::getDefaultTerrainEnabled();
-	isoBitsCombo->setCurrentItem((isoBitsPerVoxel == 16) ? 1 : 0);
-	dvrBitsCombo->setCurrentItem((dvrBitsPerVoxel == 16) ? 1 : 0);
+	isoBitsCombo->setCurrentIndex((isoBitsPerVoxel == 16) ? 1 : 0);
+	dvrBitsCombo->setCurrentIndex((dvrBitsPerVoxel == 16) ? 1 : 0);
 	dvrLightingCheckbox->setChecked(dvrLighting);
 	preIntegrationCheckbox->setChecked(dvrPreIntegration);
 	maxWaitEdit->setText(QString::number(maxWait));
@@ -803,10 +803,10 @@ void UserPreferences::requestSave(){
 	
 	if(filename.length() == 0) return;
 	ofstream os;
-	os.open(filename.ascii());
+	os.open(filename.toAscii());
 
 	if (!os || !saveToFile(os)){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open preferences file: \n%s", filename.ascii());
+		MessageReporter::errorMsg("Unable to open preferences file: \n%s", filename.toAscii());
 	}
 	os.close();
 	
@@ -840,7 +840,8 @@ showAllDefaults(){
 	int w;
 	if(showAll) {
 		showDefaultsButton->setText("Hide Defaults");
-		QToolTip::add(showDefaultsButton,"Click to hide the session defaults");
+		
+		showDefaultsButton->setToolTip("Click to hide the session defaults");
 		w = 950;
 		paramDefaultsFrame->show();
 		defaultDirectoryFrame->show();
@@ -848,7 +849,7 @@ showAllDefaults(){
 	}
 	else {
 		showDefaultsButton->setText("Session Defaults");
-		QToolTip::add(showDefaultsButton,"Display the session defaults that will apply when the application is restarted or a new dataset is loaded");
+		showDefaultsButton->setToolTip("Display the session defaults that will apply when the application is restarted or a new dataset is loaded");
 		w = 460;
 		paramDefaultsFrame->hide();
 		defaultDirectoryFrame->hide();
@@ -1637,22 +1638,22 @@ void UserPreferences::getTextChanges(){
 	cacheMB = (size_t) cacheSizeEdit->text().toInt();
 	texSize = textureSizeEdit->text().toInt();
 	jpegQuality = jpegQualityEdit->text().toInt();
-	sessionDir = sessionPathEdit->text().ascii();
+	sessionDir = sessionPathEdit->text().toAscii();
 	if (sessionDir == "" || sessionDir == "./" || sessionDir == ".\\")
 		sessionDir = ".";
-	autoSaveFilename = autoSaveFilenameEdit->text().ascii();
-	metadataDir = metadataPathEdit->text().ascii();
+	autoSaveFilename = autoSaveFilenameEdit->text().toAscii();
+	metadataDir = metadataPathEdit->text().toAscii();
 	if (metadataDir == "" || metadataDir == "./" || metadataDir == ".\\")
 		metadataDir = ".";
 	autoSaveInterval = autoSaveIntervalEdit->text().toInt();
-	tfPath = tfPathEdit->text().ascii();
+	tfPath = tfPathEdit->text().toAscii();
 	if (tfPath == "" || tfPath == "./" || tfPath == ".\\")
 		tfPath = ".";
-	logFileName = logFilePathEdit->text().ascii();
-	flowPath = flowPathEdit->text().ascii();
+	logFileName = logFilePathEdit->text().toAscii();
+	flowPath = flowPathEdit->text().toAscii();
 	if (flowPath == "" || flowPath == "./" || flowPath == ".\\")
 		flowPath = ".";
-	jpegPath = jpegPathEdit->text().ascii();
+	jpegPath = jpegPathEdit->text().toAscii();
 	if (jpegPath == "" || jpegPath == "./" || jpegPath == ".\\")
 		jpegPath = ".";
 	logNum[0] = maxInfoLog->text().toInt();

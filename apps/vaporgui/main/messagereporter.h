@@ -29,9 +29,7 @@
 #include <qevent.h>
 #include <qobject.h>
 #include <qmutex.h>
-//Added by qt3to4:
-#include <QCustomEvent>
-class QCustomEvent;
+
 
 namespace VAPoR{
 
@@ -68,7 +66,7 @@ public:
 	
 	//This is directly called when unloading messages in customEvent
 	static void postMessages(const char* message, int err_code);
-	void customEvent(QCustomEvent*);
+	void customEvent(QEvent*);
 	static void fatalMsg(const char* format, ...); 
 	static void errorMsg(const char* format, ...); 
 	static void warningMsg(const char* format, ...); 

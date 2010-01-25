@@ -39,8 +39,8 @@
 #include "twoDimageeventrouter.h"
 
 using namespace VAPoR;
-TabManager::TabManager(QWidget* parent, const char* name,  Qt::WFlags f)
-	: QTabWidget(parent, name, f)
+TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
+	: QTabWidget(parent)
 {
 	myParent = parent;
 	//Initialize arrays:
@@ -66,17 +66,17 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	QScrollArea* myScrollArea = new QScrollArea(this);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
-	insertTab(myScrollArea, Params::paramName(widType));
+	insertTab(-1, myScrollArea, Params::paramName(widType));
 	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
 	//myScrollview->addChild(wid);
 	myScrollArea->setWidget(wid);
 	
 	int posn = count()-1;
 	widgets[posn] = wid;
-	//qWarning("inserted widget %s in position %d", name.ascii(), posn);
+	//qWarning("inserted widget %s in position %d", name.toAscii(), posn);
 	widgetTypes[posn] = widType;
 	if (selected) {
-		setCurrentPage(posn);
+		setCurrentIndex(posn);
 	}
 	return posn;
 }
@@ -86,13 +86,13 @@ TabManager::removeWidget(Params::ParamType widgetType){
 	
 	int posn = findWidget(widgetType);
 	if (posn<0) return 0;
-	QWidget* foundScroller = page(posn);
+	QWidget* foundScroller = widget(posn);
 	QWidget* foundWidget = widgets[posn];
 	for (int j=posn; j<count()-1; j++){
 		widgetTypes[j] = widgetTypes[j+1];
 		widgets[j] = widgets[j+1];
 	}
-	removePage(foundScroller);
+	removeTab(posn);
 	return foundWidget;
 }
 
@@ -105,18 +105,18 @@ void TabManager::
 replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget){
 	int posn = findWidget(widgetType);
 	assert(posn >= 0);
-	bool front = (posn == currentPageIndex());
+	bool front = (posn == currentIndex());
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
 	//
 	QScrollArea* myScrollArea = new QScrollArea(this);
 
-	insertTab(myScrollArea, Params::paramName(widgetType), posn);
+	insertTab(posn, myScrollArea, Params::paramName(widgetType));
 	myScrollArea->setWidget(newWidget);
 	widgets[posn] = newWidget;
-	//qWarning("replaced widget %s in position %d", name.ascii(), posn);
+	//qWarning("replaced widget %s in position %d", name.toAscii(), posn);
 	if(front) {
-		setCurrentPage(posn);
+		setCurrentIndex(posn);
 		show();
 	}
 	
@@ -131,9 +131,9 @@ int TabManager::
 moveToFront(Params::ParamType widgetType){
 	int posn = findWidget(widgetType);
 	if (posn < 0) return -1;
-	int lastCurrentPage = currentPageIndex();
+	int lastCurrentPage = currentIndex();
 	if (lastCurrentPage == posn) return posn; //No change!
-	setCurrentPage(posn);
+	setCurrentIndex(posn);
 	return posn;
 }
 /*
@@ -142,7 +142,7 @@ moveToFront(Params::ParamType widgetType){
 int 
 TabManager::findWidget(Params::ParamType widgetType){
 	for (int i = 0; i<count(); i++){
-		//qWarning("found widget %s in position %d", widgetNames[i]->ascii(), i);
+		//qWarning("found widget %s in position %d", widgetNames[i]->toAscii(), i);
 		if (widgetTypes[i] == widgetType) {
 			return i;
 		}
@@ -153,7 +153,7 @@ TabManager::findWidget(Params::ParamType widgetType){
 //
 void TabManager::
 newFrontTab(QWidget*) {
-	int newFrontPosn = currentPageIndex();
+	int newFrontPosn = currentIndex();
 	//Don't check, sometimes this method can be used to refresh
 	//the existing front tab
 	//if (newFrontPosn == currentFrontPage) return;
@@ -207,7 +207,7 @@ newFrontTab(QWidget*) {
 */
 void TabManager::tabScrolled(){
 #ifdef WIN32
-	int frontPage = currentPageIndex();
+	int frontPage = currentIndex();
 	
 	if (frontPage < 0) return;
 	Params::ParamType tabType = widgetTypes[frontPage];
@@ -220,7 +220,7 @@ void TabManager::tabScrolled(){
 void TabManager::scrollFrontToTop(){
 	//Get the front scrollview:
 
-	QScrollArea *sv = (QScrollArea*)currentPage();
+	QScrollArea *sv = (QScrollArea*)currentWidget();
 	sv->ensureVisible(0,0);
 }
 	

@@ -71,7 +71,7 @@
 using namespace VAPoR;
 
 
-IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_IsoTab(),  EventRouter(){
+IsoEventRouter::IsoEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_IsoTab(),  EventRouter(){
 	setupUi(this);
 	myParamsType = Params::IsoParamsType;
 	savedCommand = 0;  
@@ -199,13 +199,13 @@ void IsoEventRouter::updateTab(){
 	
 	
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -225,7 +225,7 @@ void IsoEventRouter::updateTab(){
 	}
 		
 	
-	mapVariableCombo->setCurrentItem(mapComboVarNum);
+	mapVariableCombo->setCurrentIndex(mapComboVarNum);
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->getMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->getMapperFunc());
@@ -249,14 +249,14 @@ void IsoEventRouter::updateTab(){
     }
 	
 	
-	numBitsCombo->setCurrentItem((isoParams->GetNumBits())>>4);
+	numBitsCombo->setCurrentIndex((isoParams->GetNumBits())>>4);
 	int numRefs = isoParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
+		refinementCombo->setCurrentIndex(numRefs);
 
 	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(
 		isoParams->GetIsoVariableName());
-	variableCombo->setCurrentItem(comboVarNum);
+	variableCombo->setCurrentIndex(comboVarNum);
 	
 	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
 	TFHistoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
@@ -412,7 +412,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->ascii());
+	std::string s(name->toAscii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = iParams->GetMapVariableNum();
@@ -433,7 +433,7 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(pi, "modify opacity scale slider");
 	pi->setOpacityScale( ((float)(256-val))/256.f);
 	float sliderVal = pi->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	PanelCommand::captureEnd(cmd,pi);
 	pi->SetFlagDirty(ParamsIso::_ColorMapTag);
 	if (pi->isEnabled())
@@ -460,11 +460,11 @@ void IsoEventRouter::guiBindOpacToColor(){
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::setTFNavigateMode(bool mode){
-	TFeditButton->setOn(!mode);
+	TFeditButton->setDown(!mode);
 	guiSetTFEditMode(!mode);
 }
 void IsoEventRouter::setTFEditMode(bool mode){
-	TFnavigateButton->setOn(!mode);
+	TFnavigateButton->setDown(!mode);
 	guiSetTFEditMode(mode);
 }
 void IsoEventRouter::guiSetTFAligned(){
@@ -504,7 +504,7 @@ void IsoEventRouter::guiStartChangeMapFcn(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	ParamsIso* pi = VizWinMgr::getInstance()->getActiveIsoParams();
-    savedCommand = PanelCommand::captureStart(pi, qstr.latin1());
+    savedCommand = PanelCommand::captureStart(pi, qstr.toLatin1());
 }
 
 void IsoEventRouter::guiSetTFEditMode(bool mode){
@@ -537,7 +537,7 @@ guiStartChangeIsoSelection(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	ParamsIso* pi = VizWinMgr::getInstance()->getActiveIsoParams();
-    savedCommand = PanelCommand::captureStart(pi, qstr.latin1());
+    savedCommand = PanelCommand::captureStart(pi, qstr.toLatin1());
 }
 //This will set dirty bits and undo/redo changes to histo bounds and eventually iso value
 void IsoEventRouter::
@@ -565,12 +565,12 @@ guiEndChangeIsoSelection(){
 }
 void IsoEventRouter::
 setIsoEditMode(bool mode){
-	navigateButton->setOn(!mode);
+	navigateButton->setDown(!mode);
 	editMode = mode;
 }
 void IsoEventRouter::
 setIsoNavigateMode(bool mode){
-	editButton->setOn(!mode);
+	editButton->setDown(!mode);
 	editMode = !mode;
 }
 void IsoEventRouter::guiChangeInstance(int newCurrent){
@@ -587,7 +587,7 @@ void IsoEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1) {performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 
@@ -699,18 +699,18 @@ reinitTab(bool doOverride){
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		variableCombo->insertItem(text);
+		variableCombo->addItem(text);
 	}
 
 	mapVariableCombo->clear();
 	mapVariableCombo->setMaxCount(ses->getNumMetadataVariables()+1);
-	mapVariableCombo->insertItem("Constant");
+	mapVariableCombo->addItem("Constant");
 	for (i = 0; i< ses->getNumMetadataVariables(); i++){
 		const std::string& s = ses->getMetadataVarName(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		mapVariableCombo->insertItem(text);
+		mapVariableCombo->addItem(text);
 	}
 
 	//Set up the refinement combo:
@@ -720,7 +720,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	if (histogramList){
 		for (int i = 0; i<numHistograms; i++){
@@ -749,7 +749,7 @@ guiSetNumRefinements(int num){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set number of refinements");
 	
 	iParams->SetRefinementLevel(num);
-	refinementCombo->setCurrentItem(num);
+	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, iParams);
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 	
@@ -875,7 +875,7 @@ guiSetMapComboVarNum(int val){
 		if (ref < 0 || (ref < iParams->GetRefinementLevel() && ds->useLowerRefinementLevel())){
 			//don't change the variable
 			MessageReporter::errorMsg("Selected variable is not available\nat required refinement level\nand at current timestep.");
-			mapVariableCombo->setCurrentItem(comboVarNum);
+			mapVariableCombo->setCurrentIndex(comboVarNum);
 			return;
 		}
 	}

@@ -38,14 +38,14 @@
 using namespace VAPoR;
 
 
-GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* name, ProbeFrame* pf ) : 
-	QGLWidget(fmt, parent, name) {
+GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* , ProbeFrame* pf ) : 
+	QGLWidget(fmt, parent) {
 
 	if(!doubleBuffer()){
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";
 		strng += "Be sure to use 'vglrun' if you are in a VirtualGL session.";
-		Params::BailOut(strng.ascii(),__FILE__,__LINE__);
+		Params::BailOut(strng.toAscii(),__FILE__,__LINE__);
 	}
 	rendering = false;
 	horizTexSize = 1.f;
@@ -306,13 +306,13 @@ doFrameCapture(){
 	//Create a string consisting of captureName, followed by nnnn (framenum), 
 	//followed by .jpg
 	QString filename = captureName;
-	filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+	filename += (QString("%1").arg(captureNum)).rightJustified(4,'0');
 	filename +=  ".jpg";
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	FILE* jpegFile = fopen(filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.toAscii());
 		capturing = 0;
 		return;
 	}

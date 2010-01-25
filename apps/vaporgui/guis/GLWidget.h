@@ -43,7 +43,7 @@ public:
 
   virtual bool selected() { return _selected != NONE; }
   virtual void deselect() { _selected = NONE; }
-  virtual void select(int handle, Qt::ButtonState) { _selected = handle; }
+  virtual void select(int handle, Qt::KeyboardModifiers) { _selected = handle; }
 
   virtual bool enabled() const   { return _enabled; }
   virtual void enable(bool flag) { _enabled = flag; }

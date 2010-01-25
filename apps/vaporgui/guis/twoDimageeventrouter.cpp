@@ -73,7 +73,7 @@
 using namespace VAPoR;
 
 
-TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_TwoDImageTab(), TwoDEventRouter(){
+TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_TwoDImageTab(), TwoDEventRouter(){
 	setupUi(this);
 	myParamsType = Params::TwoDImageParamsType;
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
@@ -168,12 +168,12 @@ void TwoDImageEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
     
-	refinementCombo->setCurrentItem(twoDParams->getNumRefinements());
+	refinementCombo->setCurrentIndex(twoDParams->getNumRefinements());
 	int orientation = twoDParams->getOrientation();
 	
-	orientationCombo->setCurrentItem(orientation);
+	orientationCombo->setCurrentIndex(orientation);
 	
-	placementCombo->setCurrentItem(twoDParams->getImagePlacement());
+	placementCombo->setCurrentIndex(twoDParams->getImagePlacement());
 	//Force consistent settings, if there is a dataset
 	if (ds->getDataMgr()){
 		//See if we can do terrain mapping
@@ -212,7 +212,7 @@ void TwoDImageEventRouter::updateTab(){
 		//placement combo is disabled if either mapped to terrain or georef:
 		if (twoDParams->isMappedToTerrain() || georef){
 			placementCombo->setEnabled(false);
-			placementCombo->setCurrentItem(0);//upright
+			placementCombo->setCurrentIndex(0);//upright
 			twoDParams->setImagePlacement(0);
 		} else {
 			placementCombo->setEnabled(true);
@@ -259,13 +259,13 @@ void TwoDImageEventRouter::updateTab(){
 	int numViz = vizMgr->getNumVisualizers();
 
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -441,9 +441,9 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future image I/O
-	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
 	
-	tParams->setImageFileName(filename.ascii());
+	tParams->setImageFileName(filename.toAscii());
 	
 	filenameEdit->setText(filename);
 	PanelCommand::captureEnd(cmd, tParams);
@@ -585,7 +585,7 @@ void TwoDImageEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1){performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 
@@ -747,7 +747,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	updateTab();
 }
@@ -959,7 +959,7 @@ guiSetNumRefinements(int n){
 		if (n > maxNumRefinements) {
 			MessageReporter::warningMsg("%s","Invalid number of Refinements for current data");
 			n = maxNumRefinements;
-			refinementCombo->setCurrentItem(n);
+			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->setNumRefinements(n);

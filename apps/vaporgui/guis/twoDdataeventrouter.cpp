@@ -75,7 +75,7 @@
 using namespace VAPoR;
 
 
-TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_TwoDDataTab(), TwoDEventRouter(){
+TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_TwoDDataTab(), TwoDEventRouter(){
 	setupUi(this);
 	myParamsType = Params::TwoDDataParamsType;
 	savedCommand = 0;
@@ -229,7 +229,7 @@ void TwoDDataEventRouter::updateTab(){
 	captureButton->setEnabled(twoDParams->isEnabled());
 
 	//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
-	orientationCombo->setCurrentItem(orientation);
+	orientationCombo->setCurrentIndex(orientation);
 	orientationCombo->setEnabled(false);
 	if (twoDParams->getMapperFunc()){
 		twoDParams->getMapperFunc()->setParams(twoDParams);
@@ -240,18 +240,18 @@ void TwoDDataEventRouter::updateTab(){
 	QString varnames = getMappedVariableNames(&numvars);
 	QString shortVarNames = varnames;
 	if(shortVarNames.length() > 12){
-		shortVarNames.setLength(12);
+		shortVarNames.resize(12);
 		shortVarNames.append("...");
 	}
 	if (numvars > 1)
 	{
-	transferFunctionFrame->setVariableName(varnames.ascii());
+	transferFunctionFrame->setVariableName(varnames.toStdString());
 	QString labelString = "Length of vector("+shortVarNames+") at selected point:";
 	variableLabel->setText(labelString);
 	}
 	else if (numvars > 0)
 	{
-	transferFunctionFrame->setVariableName(varnames.ascii());
+	transferFunctionFrame->setVariableName(varnames.toStdString());
 	QString labelString = "Value of variable("+shortVarNames+") at selected point:";
 	variableLabel->setText(labelString);
 	}
@@ -262,7 +262,7 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	int numRefs = twoDParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
+		refinementCombo->setCurrentIndex(numRefs);
 	
 	histoScaleEdit->setText(QString::number(twoDParams->GetHistoStretch()));
 	//List the variables in the combo
@@ -292,8 +292,8 @@ void TwoDDataEventRouter::updateTab(){
 	updateBoundsText(twoDParams);
 	guiSetTextChanged(false);
 	float sliderVal = twoDParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	sliderVal = 256.f*(1.f -sliderVal);
 	opacityScaleSlider->setValue((int) sliderVal);
 	
@@ -302,11 +302,11 @@ void TwoDDataEventRouter::updateTab(){
 	
 	if (twoDParams->getEditMode()){
 		
-		editButton->setOn(true);
-		navigateButton->setOn(false);
+		editButton->setDown(true);
+		navigateButton->setDown(false);
 	} else {
-		editButton->setOn(false);
-		navigateButton->setOn(true);
+		editButton->setDown(false);
+		navigateButton->setDown(true);
 	}
 	
 	
@@ -315,13 +315,13 @@ void TwoDDataEventRouter::updateTab(){
 	int numViz = vizMgr->getNumVisualizers();
 
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -555,7 +555,7 @@ void TwoDDataEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1){performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 
@@ -593,12 +593,12 @@ setTwoDEnabled(bool val, int instance){
 
 void TwoDDataEventRouter::
 setTwoDEditMode(bool mode){
-	navigateButton->setOn(!mode);
+	navigateButton->setDown(!mode);
 	guiSetEditMode(mode);
 }
 void TwoDDataEventRouter::
 setTwoDNavigateMode(bool mode){
-	editButton->setOn(!mode);
+	editButton->setDown(!mode);
 	guiSetEditMode(!mode);
 }
 
@@ -634,7 +634,7 @@ twoDLoadInstalledTF(){
 #endif
 	string share = GetAppPath("vapor", "share");
 	QString installPath = (share + slash + "palettes").c_str();
-	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
+	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.toAscii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
@@ -741,7 +741,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->ascii());
+	std::string s(name->toAscii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = dParams->getSessionVarNum();
@@ -808,7 +808,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	if (histogramList) {
 		for (int i = 0; i<numHistograms; i++){
@@ -905,7 +905,7 @@ setEditorDirty(RenderParams* p){
 	if (DataStatus::getInstance()->getNumSessionVariables2D())
     {
 	  int tmp;
-      transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).ascii());
+      transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).toStdString());
     }
     else
     {
@@ -954,8 +954,8 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( ((float)(256-val))/256.f);
 	float sliderVal = pp->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 
 	setTwoDDirty(pp);
 	twoDTextureFrame->update();
@@ -974,7 +974,7 @@ guiStartChangeMapFcn(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	TwoDDataParams* pp = VizWinMgr::getInstance()->getActiveTwoDDataParams();
-    savedCommand = PanelCommand::captureStart(pp, qstr.latin1());
+    savedCommand = PanelCommand::captureStart(pp, qstr.toLatin1());
 }
 void TwoDDataEventRouter::
 guiEndChangeMapFcn(){
@@ -1087,7 +1087,7 @@ guiChangeVariables(){
 	}
 	pParams->setNumVariablesSelected(numSelected);
 	pParams->setFirstVarNum(firstVar);
-	orientationCombo->setCurrentItem(orientation);
+	orientationCombo->setCurrentIndex(orientation);
 	
 	//Only allow terrain map with horizontal orientation
 	if (orientation != 2) {
@@ -1216,7 +1216,7 @@ guiSetNumRefinements(int n){
 		if (n > maxNumRefinements) {
 			MessageReporter::warningMsg("%s","Invalid number of Refinements for current data");
 			n = maxNumRefinements;
-			refinementCombo->setCurrentItem(n);
+			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->setNumRefinements(n);
@@ -1658,12 +1658,12 @@ void TwoDDataEventRouter::captureImage() {
 		"Specify Jpeg image capture file name",
 		Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)");
-	fileDialog.setCaption("Specify image capture file name");
+	fileDialog.setWindowTitle("Specify image capture file name");
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
 	//Extract the path, and the root name, from the returned string.
-	QString filename = fileDialog.selectedFile();
+	QString filename = fileDialog.selectedFiles()[0];
     
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
@@ -1674,7 +1674,7 @@ void TwoDDataEventRouter::captureImage() {
 		if (rc != QMessageBox::Ok) return;
 	}
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//
 	
@@ -1723,9 +1723,9 @@ void TwoDDataEventRouter::captureImage() {
 	
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	FILE* jpegFile = fopen(filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.toAscii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -1736,13 +1736,13 @@ void TwoDDataEventRouter::captureImage() {
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
-			filename.ascii());
+			filename.toAscii());
 		delete buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.
 	MessageReporter::infoMsg("Image is captured to %s",
-			filename.ascii());
+			filename.toAscii());
 }
 
 void TwoDDataEventRouter::guiNudgeXSize(int val) {

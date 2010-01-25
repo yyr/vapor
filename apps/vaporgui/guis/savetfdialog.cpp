@@ -48,20 +48,20 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl 
 
     layout24 = new QVBoxLayout(); 
 
-    fileSaveButton = new QPushButton( this, "fileSaveButton" );
+    fileSaveButton = new QPushButton( this );
     QFont fileSaveButton_font(  fileSaveButton->font() );
     fileSaveButton_font.setPointSize( 8 );
     fileSaveButton->setFont( fileSaveButton_font ); 
     layout24->addWidget( fileSaveButton );
 	fileSaveButton->setAutoDefault(false);
-	QToolTip::add(fileSaveButton, "Click to save current transfer function to file");
-    
+	
+    fileSaveButton->setToolTip("Click to save current transfer function to file");
 	spacer28 = new QSpacerItem( 20, 41, QSizePolicy::Minimum, QSizePolicy::Expanding );
     layout24->addItem( spacer28 );
 
 	//Add a label for combo box
 		
-	QLabel* comboLabel = new QLabel(this, "combolabel");
+	QLabel* comboLabel = new QLabel(this);
 	comboLabel->setText("Currently saved Transfer Functions in Session:");
 	comboLabel->setAlignment(Qt::AlignHCenter);
 	layout24->addWidget( comboLabel);
@@ -69,8 +69,8 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl 
 	Session* ses = Session::getInstance();
 	
 	//Create editable combo box with all tf names.
-	savedTFCombo = new QComboBox(true, this);
-	
+	savedTFCombo = new QComboBox(this);
+	savedTFCombo->setEditable(true);
 	layout24->addWidget(savedTFCombo);
 	
 	//Insert existing names
@@ -78,29 +78,30 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl 
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& st = QString(ses->getTFName(i)->c_str());
-		savedTFCombo->insertItem(st);
+		savedTFCombo->addItem(st);
 	}
-	QToolTip::add(savedTFCombo, "Enter name for transfer function, or\n select an existing name to replace");
+	
+	savedTFCombo->setToolTip("Enter name for transfer function, or\n select an existing name to replace");
 	//Add a label to show current name
-	nameEditLabel = new QLabel(this, "nameEditLabel");
+	nameEditLabel = new QLabel(this);
 	nameEditLabel->setText("No Current TF Name");
 	layout24->addWidget( nameEditLabel);
 	
-	savedTFCombo->setInsertionPolicy(QComboBox::NoInsert);
+	savedTFCombo->setInsertPolicy(QComboBox::NoInsert);
 	//supply a "new name" edit area
 	savedTFCombo->setEditText(QString("<New Transfer Function Name>"));
 
 	
 	//Follow this with a button, and a spacer
 
-	sessionSaveButton = new QPushButton( this, "sessionSaveButton" );
+	sessionSaveButton = new QPushButton( this );
 	QFont sessionSaveButton_font(  sessionSaveButton->font() );
 	sessionSaveButton_font.setPointSize( 8 );
 	sessionSaveButton->setFont( sessionSaveButton_font ); 
 	//Not active until name is specified:
 	sessionSaveButton->setEnabled(false);
-	QToolTip::add(sessionSaveButton, "click to save transfer function using specified name");
-	
+
+	sessionSaveButton->setToolTip("click to save transfer function using specified name");
 	layout24->addWidget( sessionSaveButton );
 	
 	sessionSaveButton->setAutoDefault(false);
@@ -108,7 +109,7 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl 
 	layout24->addItem( spacer29 );
 
 	//Finally, the cancel button
-    cancelButton = new QPushButton( this, "cancelButton" );
+    cancelButton = new QPushButton( this );
     QFont cancelButton_font(  cancelButton->font() );
     cancelButton_font.setPointSize( 8 );
     cancelButton->setFont( cancelButton_font ); 
@@ -153,7 +154,7 @@ SaveTFDialog::~SaveTFDialog()
  */
 void SaveTFDialog::languageChange()
 {
-    setCaption( tr( "Save Transfer Function" ) );
+    setWindowTitle( tr( "Save Transfer Function" ) );
     fileSaveButton->setText( tr( "Save Transfer Function to File" ) );
     sessionSaveButton->setText( tr( "Save Transfer Function in this Session" ) );
     cancelButton->setText( tr( "Cancel" ) );
@@ -168,18 +169,18 @@ void SaveTFDialog::sessionSave()
 {
 	//Popup a warning if the name already exists:
 	Session* ses = Session::getInstance();
-	std::string stdName(newName->ascii());
+	std::string stdName(newName->toAscii());
 	if (ses->isValidTFName(&stdName)){
 		int ok = QMessageBox::warning(this, "Replacing Existing Transfer Function",
 			QString("OK to Replace existing Transfer Function:\n %1 ?").arg(*newName),
 			QMessageBox::Ok, QMessageBox::Cancel);
 		if (ok != QMessageBox::Ok) done(2);
 	}
-	ses->addTF(newName->ascii(), myParams);
+	ses->addTF(newName->toAscii(), myParams);
     done(2);
 }
 void SaveTFDialog::setTFName(const QString& s){
-	newName = new QString(s.stripWhiteSpace());
+	newName = new QString(s.trimmed());
 	if (newName->length() == 0) {
 		nameEditLabel->setText( QString( "No Current Transfer Function Name" ));
 		sessionSaveButton->setEnabled(false);

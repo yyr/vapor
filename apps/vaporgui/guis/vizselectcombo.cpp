@@ -34,7 +34,7 @@ VizSelectCombo::VizSelectCombo(MainForm* mainWin, QToolBar* tBar, VizWinMgr* mgr
 	for (int i = 0; i< MAXVIZWINS; i++){
 		winNum[i] = -1;
 	}
-	insertItem("Create New Visualizer",0);
+	insertItem(0,"Create New Visualizer");
 	//Remember this one with -100:
 	winNum[0] = -100;
 	//This initially has just the "New viz" entry.
@@ -48,7 +48,7 @@ VizSelectCombo::VizSelectCombo(MainForm* mainWin, QToolBar* tBar, VizWinMgr* mgr
 	connect (this, SIGNAL(newWin()), mainWin, SLOT(launchVisualizer()));
 
 	setMinimumWidth(150);
-	QToolTip::add(this, "Select Active Visualizer or create new one");
+	setToolTip("Select Active Visualizer or create new one");
 }
 
 /* 
@@ -64,7 +64,7 @@ addWindow(QString& windowName, int windowNum){
 		if (winNum[i] > windowNum) break;
 	}
 	//Insert name at the specified place:
-	insertItem(windowName, i);
+	insertItem(i,windowName);
 	//Move the corresponding numbering up.
 	//Note that count has now (already) increased by 1.
 	for (int j = count()-1; j> i; j--){

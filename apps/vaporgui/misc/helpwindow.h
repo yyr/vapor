@@ -51,7 +51,8 @@ private:
 	static HelpWindow* theHelpWindow;
     void readHistory();
     void readBookmarks();
-
+	QAction* newAct, *openAct, *printAct, *closeAct;
+	QAction* backAct, *fwdAct, *aboutAct, *bookAct;
     QTextBrowser* browser;
     QComboBox *pathCombo;
     int backwardId, forwardId;

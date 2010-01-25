@@ -577,7 +577,7 @@ getNumVisualizers(){
 void VizWinMgr::
 setVizWinName(int winNum, QString& qs) {
 		vizName[winNum] = qs;
-		vizWin[winNum]->setCaption(qs);
+		vizWin[winNum]->setWindowTitle(qs);
 		nameChanged(qs, winNum);
 }
 
@@ -940,7 +940,7 @@ alignView(int axis)
 	vw->endSpin();
 	if (axis < 1) return;
 	//Always reset current item to first.
-	myMainWindow->alignViewCombo->setCurrentItem(0);
+	myMainWindow->alignViewCombo->setCurrentIndex(0);
 	getViewpointRouter()->guiAlignView(axis);
 }
 
@@ -1586,7 +1586,7 @@ XmlNode* VizWinMgr::buildNode() {
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (vizWin[i]){
 			attrs.empty();
-			attrs[_vizWinNameAttr] = vizName[i].ascii();
+			attrs[_vizWinNameAttr] = vizName[i].toAscii();
 			oss.str(empty);
 
 			QColor clr = vizWin[i]->getColorbarBackgroundColor();
@@ -1652,7 +1652,7 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizElevGridInvertedAttr] = oss.str();
 
 			oss.str(empty);
-			oss << vizWin[i]->getTextureFile().ascii();
+			oss << vizWin[i]->getTextureFile().toStdString();
 			attrs[_vizElevGridTextureNameAttr] = oss.str();
 
 			oss.str(empty);

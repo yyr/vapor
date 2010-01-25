@@ -38,8 +38,8 @@
 #include <qmessagebox.h>
 #include <qmutex.h>
 #include <qapplication.h>
-//Added by qt3to4:
-#include <QCustomEvent>
+
+#include <QEvent>
 
 
 using namespace VAPoR;
@@ -317,13 +317,13 @@ void MessageReporter::postMessages(const char* msg, int err_code){
 	strng += msg;
 	
 	if (err_code & 0x2000){
-		MessageReporter::warningMsg(strng.ascii());
+		MessageReporter::warningMsg(strng.toAscii());
 	} else if (err_code & 0x4000){
-		MessageReporter::errorMsg(strng.ascii());
+		MessageReporter::errorMsg(strng.toAscii());
 	} else if (err_code & 0x8000){
-		MessageReporter::fatalMsg(strng.ascii());
+		MessageReporter::fatalMsg(strng.toAscii());
 	} else {
-		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
+		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).toAscii());
 	}
 	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 }
@@ -335,7 +335,7 @@ void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
 	savedErrMsgs.push_back(std::string(message));
 	savedErrCodes.push_back(errcode);
 	if (savedErrMsgs.size() == 1){ 
-		QCustomEvent* postMessageEvent = new QCustomEvent(65432);
+		QEvent* postMessageEvent = new QEvent((QEvent::Type)65432);
 		QApplication::postEvent(MessageReporter::getInstance(), postMessageEvent);
 	}
 	releaseMessageLock();
@@ -343,7 +343,7 @@ void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
 	
 }
 
-void MessageReporter::customEvent(QCustomEvent* e)
+void MessageReporter::customEvent(QEvent* e)
 {
 	if (e->type() != 65432) {assert(0); return;}
 	if(!getMessageLock()) assert(0);

@@ -170,7 +170,7 @@ void VizFeatureParams::launch(){
 	setDialog();
 	dialogChanged = false;
 	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
-	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
+	vizFeatureDlg->variableCombo->setCurrentIndex(sessionVariableNum);
 	vizFeatureDlg->lowValEdit->setText(QString::number(lowValues[sessionVariableNum]));
 	vizFeatureDlg->highValEdit->setText(QString::number(highValues[sessionVariableNum]));
 	vizFeatureDlg->extendDownCheckbox->setChecked(extendDown[sessionVariableNum]);
@@ -343,7 +343,7 @@ visualizerSelected(int comboIndex){
 			copyFromDialog();
 		}
 		else if (rc == QMessageBox::Cancel) { //go back to previous setting
-			vizFeatureDlg->currentNameCombo->setCurrentItem(currentComboIndex);
+			vizFeatureDlg->currentNameCombo->setCurrentIndex(currentComboIndex);
 			return;
 		}
 		dialogChanged = false;
@@ -414,14 +414,14 @@ setDialog(){
 	DataStatus* ds = DataStatus::getInstance();
 	bool isLayered = ds->dataIsLayered();
 	vizFeatureDlg->outsideValFrame->setEnabled(isLayered);
-	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
+	vizFeatureDlg->variableCombo->setCurrentIndex(sessionVariableNum);
 	if (isLayered) vizFeatureDlg->buttonOk->setDefault(false);
 	if (ds->getNumSessionVariables()>0){
 		vizFeatureDlg->lowValEdit->setText(QString::number(ds->getBelowValue(sessionVariableNum)));
 		vizFeatureDlg->highValEdit->setText(QString::number(ds->getAboveValue(sessionVariableNum)));
 		vizFeatureDlg->variableCombo->clear();
 		for (int i = 0; i<ds->getNumSessionVariables(); i++){
-			vizFeatureDlg->variableCombo->insertItem(ds->getVariableName(i).c_str());
+			vizFeatureDlg->variableCombo->addItem(ds->getVariableName(i).c_str());
 		}
 	}
 	int vizNum = getVizNum(currentComboIndex);
@@ -432,9 +432,9 @@ setDialog(){
 	vizFeatureDlg->currentNameCombo->clear();
 	for (i = 0; i<MAXVIZWINS; i++){
 		if (vizWinMgr->getVizWin(i))
-			vizFeatureDlg->currentNameCombo->insertItem(vizWinMgr->getVizWinName(i));
+			vizFeatureDlg->currentNameCombo->addItem(vizWinMgr->getVizWinName(i));
 	}
-	vizFeatureDlg->currentNameCombo->setCurrentItem(currentComboIndex);
+	vizFeatureDlg->currentNameCombo->setCurrentIndex(currentComboIndex);
 	//Save the current one:
 	vizName = vizWinMgr->getVizWinName(vizNum);
 	vizFeatureDlg->vizNameEdit->setText(vizName);
@@ -471,9 +471,9 @@ setDialog(){
 	vizFeatureDlg->xTicSizeEdit->setText(QString::number(ticLength[0]));
 	vizFeatureDlg->yTicSizeEdit->setText(QString::number(ticLength[1]));
 	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
-	vizFeatureDlg->xTicOrientCombo->setCurrentItem(ticDir[0]-1);
-	vizFeatureDlg->yTicOrientCombo->setCurrentItem(ticDir[1]/2);
-	vizFeatureDlg->zTicOrientCombo->setCurrentItem(ticDir[2]);
+	vizFeatureDlg->xTicOrientCombo->setCurrentIndex(ticDir[0]-1);
+	vizFeatureDlg->yTicOrientCombo->setCurrentIndex(ticDir[1]/2);
+	vizFeatureDlg->zTicOrientCombo->setCurrentIndex(ticDir[2]);
 	labelHeight = vizWin->getLabelHeight();
 	labelDigits = vizWin->getLabelDigits();
 	ticWidth = vizWin->getTicWidth();
@@ -501,7 +501,7 @@ setDialog(){
 	timeAnnotType = vizWin->getTimeAnnotType();
 	timeAnnotColor = vizWin->getTimeAnnotColor();
 	timeAnnotTextSize = vizWin->getTimeAnnotTextSize();
-	vizFeatureDlg->timeCombo->setCurrentItem(timeAnnotType);
+	vizFeatureDlg->timeCombo->setCurrentIndex(timeAnnotType);
 	vizFeatureDlg->timeLLXEdit->setText(QString::number(timeAnnotCoords[0]));
 	vizFeatureDlg->timeLLYEdit->setText(QString::number(timeAnnotCoords[1]));
 	vizFeatureDlg->timeSizeEdit->setText(QString::number(timeAnnotTextSize));
@@ -526,7 +526,7 @@ setDialog(){
 		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
 		vizFeatureDlg->refinementCombo->clear();
 		for (i = 0; i<= numRefs; i++){
-			vizFeatureDlg->refinementCombo->insertItem(QString::number(i));
+			vizFeatureDlg->refinementCombo->addItem(QString::number(i));
 		}
 	//}
 	displacement = vizWin->getDisplacement();
@@ -537,15 +537,15 @@ setDialog(){
 	pal3.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(), elevGridColor);
 	vizFeatureDlg->surfaceColorButton->setPalette(pal3);
 
-	vizFeatureDlg->refinementCombo->setCurrentItem(elevGridRefinement);
+	vizFeatureDlg->refinementCombo->setCurrentIndex(elevGridRefinement);
 	showElevGrid = vizWin->elevGridRenderingEnabled();
 	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
 	textureSurface = vizWin->elevGridTextureEnabled();
 	vizFeatureDlg->imageCheckbox->setChecked(textureSurface);
 	surfaceUpsideDown = vizWin->textureInverted();
-	vizFeatureDlg->imageUpDownCombo->setCurrentItem(surfaceUpsideDown ? 1 : 0);
+	vizFeatureDlg->imageUpDownCombo->setCurrentIndex(surfaceUpsideDown ? 1 : 0);
 	surfaceRotation = vizWin->getTextureRotation();
-	vizFeatureDlg->imageRotationCombo->setCurrentItem(surfaceRotation/90);
+	vizFeatureDlg->imageRotationCombo->setCurrentIndex(surfaceRotation/90);
 	surfaceImageFilename = vizWin->getTextureFile();
 	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
 	
@@ -607,9 +607,9 @@ copyFromDialog(){
 	ticLength[0] = vizFeatureDlg->xTicSizeEdit->text().toFloat();
 	ticLength[1] = vizFeatureDlg->yTicSizeEdit->text().toFloat();
 	ticLength[2] = vizFeatureDlg->zTicSizeEdit->text().toFloat();
-	ticDir[0] = vizFeatureDlg->xTicOrientCombo->currentItem()+1;
-	ticDir[1] = vizFeatureDlg->yTicOrientCombo->currentItem()*2;
-	ticDir[2] = vizFeatureDlg->zTicOrientCombo->currentItem();
+	ticDir[0] = vizFeatureDlg->xTicOrientCombo->currentIndex()+1;
+	ticDir[1] = vizFeatureDlg->yTicOrientCombo->currentIndex()*2;
+	ticDir[2] = vizFeatureDlg->zTicOrientCombo->currentIndex();
 	labelHeight = vizFeatureDlg->labelHeightEdit->text().toInt();
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
@@ -627,7 +627,7 @@ copyFromDialog(){
 	if (timeAnnotCoords[1] < 0.f) timeAnnotCoords[0] = 0.f;
 	if (timeAnnotCoords[1] > 1.f) timeAnnotCoords[0] = 1.f;
 
-	timeAnnotType = vizFeatureDlg->timeCombo->currentItem();
+	timeAnnotType = vizFeatureDlg->timeCombo->currentIndex();
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
 	QPalette pal1(vizFeatureDlg->timeColorButton->palette());
 	pal1.setColor(vizFeatureDlg->timeColorButton->backgroundRole(), timeAnnotColor);
@@ -667,10 +667,10 @@ copyFromDialog(){
 	vizFeatureDlg->surfaceColorButton->setPalette(pal3);
 
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
-	elevGridRefinement = vizFeatureDlg->refinementCombo->currentItem();
+	elevGridRefinement = vizFeatureDlg->refinementCombo->currentIndex();
 	textureSurface = vizFeatureDlg->imageCheckbox->isChecked();
-	surfaceRotation = vizFeatureDlg->imageRotationCombo->currentItem()*90;
-	surfaceUpsideDown = (vizFeatureDlg->imageUpDownCombo->currentItem() == 1);
+	surfaceRotation = vizFeatureDlg->imageRotationCombo->currentIndex()*90;
+	surfaceUpsideDown = (vizFeatureDlg->imageUpDownCombo->currentIndex() == 1);
 	surfaceImageFilename = vizFeatureDlg->imageFilenameEdit->text();
 
 	applyToViz(vizNum);

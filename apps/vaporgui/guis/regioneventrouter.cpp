@@ -67,7 +67,7 @@
 using namespace VAPoR;
 
 
-RegionEventRouter::RegionEventRouter(QWidget* parent, const char* name): QWidget(parent,name), Ui_RegionTab(), EventRouter() {
+RegionEventRouter::RegionEventRouter(QWidget* parent, const char* ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
 	myParamsType = Params::RegionParamsType;
 	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
@@ -261,9 +261,9 @@ void RegionEventRouter::updateTab(){
 	
 	
 	if (rParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
+		LocalGlobal->setCurrentIndex(1);
 	else 
-		LocalGlobal->setCurrentItem(0);
+		LocalGlobal->setCurrentIndex(0);
 	refreshRegionInfo(rParams);
 
 	//Provide latlon box extents if available:
@@ -514,7 +514,7 @@ refreshRegionInfo(RegionParams* rParams){
 	//If not, correct them.  If there is no data at specified timestep,
 	//Then don't show anything in refinementCombo
 	size_t bs = 32;
-	int mdVarNum = variableCombo->currentItem();
+	int mdVarNum = variableCombo->currentIndex();
 	//This index is only relevant to metadata numbering
 	Session* ses = Session::getInstance();
 	DataStatus* ds= DataStatus::getInstance();
@@ -552,7 +552,7 @@ refreshRegionInfo(RegionParams* rParams){
 		
 	} 
 
-	int refLevel = refinementCombo->currentItem();
+	int refLevel = refinementCombo->currentIndex();
 	
 	const float* fullDataExtents = ses->getExtents();
 
@@ -913,19 +913,19 @@ reinitTab(bool doOverride){
 	const vector<string>& varNames = dataMgr->GetVariableNames();
 	variableCombo->clear();
 	for (i = 0; i<(int)varNames.size(); i++)
-		variableCombo->insertItem(varNames[i].c_str());
+		variableCombo->addItem(varNames[i].c_str());
 	
 	int mints = DataStatus::getInstance()->getMinTimestep();
 	int maxts = DataStatus::getInstance()->getMaxTimestep();
 
-	timestepSpin->setMinValue(mints);
-	timestepSpin->setMaxValue(maxts);
+	timestepSpin->setMinimum(mints);
+	timestepSpin->setMaximum(maxts);
 
 	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
 	else LocalGlobal->setEnabled(false);
@@ -988,9 +988,9 @@ guiLoadRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen(filename.ascii(),"r");
+	FILE* regionFile = fopen(filename.toAscii(),"r");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Load Error;\nUnable to open file %s",filename.ascii());
+		MessageReporter::errorMsg("Region Load Error;\nUnable to open file %s",filename.toAscii());
 		return;
 	}
 	//File is OK, save the state in command queue
@@ -1030,7 +1030,7 @@ guiLoadRegionExtents(){
 
 	}
 	if (numregions == 0) {
-		MessageReporter::errorMsg("Region Load Error;\nNo valid region extents in file %s",filename.ascii());
+		MessageReporter::errorMsg("Region Load Error;\nNo valid region extents in file %s",filename.toAscii());
 		delete cmd;
 		fclose(regionFile);
 		return;
@@ -1068,9 +1068,9 @@ saveRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen(filename.ascii(),"w");
+	FILE* regionFile = fopen(filename.toAscii(),"w");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",filename.ascii());
+		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",filename.toAscii());
 		return;
 	}
 	

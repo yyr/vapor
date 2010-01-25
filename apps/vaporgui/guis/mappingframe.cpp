@@ -67,8 +67,8 @@ using namespace std;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-MappingFrame::MappingFrame(QWidget* parent, const char* name)
-  : QGLWidget(parent, name),
+MappingFrame::MappingFrame(QWidget* parent, const char* )
+  : QGLWidget(parent),
     _NUM_BINS(256),
     _mapper(NULL),
     _histogram(NULL),
@@ -181,11 +181,10 @@ void MappingFrame::setMapperFunction(MapperFunction *mapper)
     }
 
     MapperFunction::CompositionType type = _mapper->getOpacityComposition();
-
-    _compTypeSubMenu->setItemChecked(MapperFunction::ADDITION, 
-                                     type==MapperFunction::ADDITION);
-    _compTypeSubMenu->setItemChecked(MapperFunction::MULTIPLICATION, 
-                                     type==MapperFunction::MULTIPLICATION);
+	
+	_compTypeSubMenu->actions()[MapperFunction::ADDITION]->setChecked(type==MapperFunction::ADDITION);
+	_compTypeSubMenu->actions()[MapperFunction::MULTIPLICATION]->setChecked(type==MapperFunction::MULTIPLICATION);
+   
   }
 
   if (_colorMappingEnabled)
@@ -414,15 +413,15 @@ float MappingFrame::yVariable(const QPoint &pos)
 //----------------------------------------------------------------------------
 // Set the scaling type of the histogram.
 //----------------------------------------------------------------------------
-void MappingFrame::setHistogramScale(int scale)
+void MappingFrame::setHistogramScale(QAction* act)
 {
-  _histogramScale = scale;
+  _histogramScale = act->data().toInt();
 
   _updateTexture = true;
 
-  _histogramScalingSubMenu->setItemChecked(BOOLEAN, scale==BOOLEAN);
-  _histogramScalingSubMenu->setItemChecked(LINEAR, scale==LINEAR);
-  _histogramScalingSubMenu->setItemChecked(LOG, scale==LOG);
+  _histogramScalingSubMenu->actions()[BOOLEAN]->setChecked(_histogramScale==BOOLEAN);
+  _histogramScalingSubMenu->actions()[LINEAR]->setChecked(_histogramScale==LINEAR);
+  _histogramScalingSubMenu->actions()[LOG]->setChecked(_histogramScale==LOG);
 
   updateGL();
 }
@@ -434,11 +433,9 @@ void MappingFrame::setCompositionType(int type)
 {
   emit startChange("Opacity composition type changed");
 
-  _compTypeSubMenu->setItemChecked(MapperFunction::ADDITION, 
-                                   type==MapperFunction::ADDITION);
-  _compTypeSubMenu->setItemChecked(MapperFunction::MULTIPLICATION, 
-                                   type==MapperFunction::MULTIPLICATION);
-
+  _compTypeSubMenu->actions()[MapperFunction::MULTIPLICATION]->setChecked(type==MapperFunction::MULTIPLICATION);
+  _compTypeSubMenu->actions()[MapperFunction::ADDITION]->setChecked(type==MapperFunction::ADDITION);
+  
   _mapper->setOpacityComposition((MapperFunction::CompositionType)type);
 
   emit endChange();
@@ -464,9 +461,9 @@ void MappingFrame::setWidgetEnabled(int enabled)
       emit startChange("Opacity widget disabled");
     }
 
-    _widgetEnabledSubMenu->setItemChecked(ENABLED, enabled==ENABLED);
-    _widgetEnabledSubMenu->setItemChecked(DISABLED, enabled==DISABLED);
-
+    _widgetEnabledSubMenu->actions()[ENABLED]->setChecked(enabled==ENABLED);
+	_widgetEnabledSubMenu->actions()[DISABLED]->setChecked(enabled==DISABLED);
+   
     opacWidget->enable(enabled==ENABLED);
 
     emit endChange();
@@ -651,36 +648,52 @@ void MappingFrame::initWidgets()
   _contextMenu = new QMenu(this);
 
   _addOpacityWidgetSubMenu = new QMenu(_contextMenu);
-  _addOpacityWidgetSubMenu->insertItem("Control Points", 
-                                       OpacityMap::CONTROL_POINT);
-  _addOpacityWidgetSubMenu->insertItem("Gaussian", OpacityMap::GAUSSIAN);
-  _addOpacityWidgetSubMenu->insertItem("Inverted Gaussian", 
-                                       OpacityMap::INVERTED_GAUSSIAN);
+  QAction* act = _addOpacityWidgetSubMenu->addAction("Control Points");    
+  act->setData(OpacityMap::CONTROL_POINT);
+  act = _addOpacityWidgetSubMenu->addAction("Gaussian");
+  act->setData(OpacityMap::GAUSSIAN);
+  act = _addOpacityWidgetSubMenu->addAction("Inverted Gaussian");
+  act->setData(OpacityMap::INVERTED_GAUSSIAN);
+                                       
 
   _histogramScalingSubMenu = new QMenu(_contextMenu);
-  _histogramScalingSubMenu->setCheckable(true);
-  _histogramScalingSubMenu->insertItem("Boolean", BOOLEAN);
-  _histogramScalingSubMenu->setItemChecked(BOOLEAN, false);
-  _histogramScalingSubMenu->insertItem("Linear", LINEAR);
-  _histogramScalingSubMenu->setItemChecked(LINEAR, true);
-  _histogramScalingSubMenu->insertItem("Log", LOG);
-  _histogramScalingSubMenu->setItemChecked(LOG, false);
+  
+  QAction* histact = _histogramScalingSubMenu->addAction("Boolean");
+  histact->setData(BOOLEAN);
+  histact->setCheckable(true);
+  histact->setChecked(false);
+
+  histact = _histogramScalingSubMenu->addAction("Linear");
+  histact->setData(LINEAR);
+  histact->setCheckable(true);
+  histact->setChecked(true);
+ 
+  histact = _histogramScalingSubMenu->addAction("Log");
+  histact->setData(LOG);
+  histact->setCheckable(true);
+  histact->setChecked(false);
 
   _compTypeSubMenu = new QMenu(_contextMenu);
-  _compTypeSubMenu->setCheckable(true);
-  _compTypeSubMenu->insertItem("Addition", 
-                               MapperFunction::ADDITION);
-  _compTypeSubMenu->setItemChecked(MapperFunction::ADDITION, true);
-  _compTypeSubMenu->insertItem("Multiplication", 
-                               MapperFunction::MULTIPLICATION);
-  _compTypeSubMenu->setItemChecked(MapperFunction::MULTIPLICATION, false);
+  
+  QAction* addact = _compTypeSubMenu->addAction("Addition");
+  addact->setCheckable(true);
+  addact->setChecked(true);
+  QAction* multact = _compTypeSubMenu->addAction("Multiplication");
+  multact->setCheckable(true);
+  multact->setChecked(false);
+                              
+ 
 
   _widgetEnabledSubMenu = new QMenu(_contextMenu);
-  _widgetEnabledSubMenu->setCheckable(true);
-  _widgetEnabledSubMenu->insertItem("Enabled", ENABLED);
-  _widgetEnabledSubMenu->setItemChecked(ENABLED, true);
-  _widgetEnabledSubMenu->insertItem("Disabled", DISABLED);
-  _widgetEnabledSubMenu->setItemChecked(DISABLED, false);
+
+  QAction* widEnabled = _widgetEnabledSubMenu->addAction("Enabled");
+  widEnabled->setCheckable(true);
+  widEnabled->setChecked(true);
+
+  QAction* widDisabled = _widgetEnabledSubMenu->addAction("Disabled");
+  widDisabled->setCheckable(true);
+  widDisabled->setChecked(false);
+ 
 
   _deleteOpacityWidgetAction = new QAction(this);
   _deleteOpacityWidgetAction->setText("Delete Opacity Widget");
@@ -721,11 +734,11 @@ void MappingFrame::initConnections()
   connect(_deleteControlPointAction, SIGNAL(activated()), 
           this, SLOT(deleteControlPoint()));
 
-  connect(_addOpacityWidgetSubMenu, SIGNAL(activated(int)),
-          this, SLOT(addOpacityWidget(int)));
+  connect(_addOpacityWidgetSubMenu, SIGNAL(triggered(QAction*)),
+          this, SLOT(addOpacityWidget(QAction*)));
 
-  connect(_histogramScalingSubMenu, SIGNAL(activated(int)),
-          this, SLOT(setHistogramScale(int)));
+  connect(_histogramScalingSubMenu, SIGNAL(triggered(QAction*)),
+          this, SLOT(setHistogramScale(QAction*)));
 
   connect(_compTypeSubMenu, SIGNAL(activated(int)),
           this, SLOT(setCompositionType(int)));
@@ -787,7 +800,7 @@ void MappingFrame::paintGL()
   if (GLWindow::isRendering()) return;
   printOpenGLErrorMsg("MappingFrame");
 
-  qglClearColor(backgroundColor());
+  qglClearColor(palette().color(QPalette::Background));
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1292,7 +1305,7 @@ void MappingFrame::addAxisLabel(int x, int y, const QString &text)
 //----------------------------------------------------------------------------
 // Select the GLWidget(s) at the given position
 //----------------------------------------------------------------------------
-void MappingFrame::select(int x, int y, Qt::ButtonState state)
+void MappingFrame::select(int x, int y, Qt::KeyboardModifiers state)
 {
   const int length = 128;
   static GLuint selectionBuffer[length];
@@ -1360,7 +1373,7 @@ void MappingFrame::select(int x, int y, Qt::ButtonState state)
 //----------------------------------------------------------------------------
 // Parse the GL selection buffer
 //----------------------------------------------------------------------------
-void MappingFrame::select(int hits, GLuint *selectionBuffer, Qt::ButtonState state)
+void MappingFrame::select(int hits, GLuint *selectionBuffer, Qt::KeyboardModifiers state)
 {
   if (!(state & (Qt::ShiftModifier|Qt::ControlModifier)))
   {
@@ -1590,7 +1603,7 @@ void MappingFrame::resize()
 //----------------------------------------------------------------------------
 void MappingFrame::mousePressEvent(QMouseEvent *event)
 {
-  select(event->x(), event->y(), event->state());
+  select(event->x(), event->y(), event->modifiers());
 
   _lastx = xViewToWorld(event->x());
   _lasty = yViewToWorld(height() - event->y());
@@ -1599,7 +1612,7 @@ void MappingFrame::mousePressEvent(QMouseEvent *event)
   _minValueStart = _minValue;
   _maxValueStart = _maxValue;
 
-  _button = event->button();
+  _button = event->buttons();
 
   if (_editMode && (_button == Qt::LeftButton || _button == Qt::MidButton))
   {
@@ -1756,38 +1769,37 @@ void MappingFrame::contextMenuEvent(QContextMenuEvent* /*event*/)
   {
     if(opacWidget->controlPointSelected())
     {
-      _editControlPointAction->addTo(_contextMenu);
-      _deleteControlPointAction->addTo(_contextMenu);
-
-      _contextMenu->insertSeparator();
+		_contextMenu->addAction(_editControlPointAction);
+		_contextMenu->addAction(_deleteControlPointAction);
+		_contextMenu->addSeparator();
     }
+	_widgetEnabledSubMenu->actions()[ENABLED]->setEnabled(opacWidget->enabled());
+	_widgetEnabledSubMenu->actions()[DISABLED]->setEnabled(!opacWidget->enabled());
 
-    _widgetEnabledSubMenu->setItemChecked(ENABLED, opacWidget->enabled());
-    _widgetEnabledSubMenu->setItemChecked(DISABLED, !opacWidget->enabled());
+    QAction* ac = _contextMenu->addMenu(_widgetEnabledSubMenu);
+	ac->setText("Opacity Contribution");
+	_contextMenu->addAction(_deleteOpacityWidgetAction);
 
-    _contextMenu->insertItem("Opacity Contribution", _widgetEnabledSubMenu);
-    _deleteOpacityWidgetAction->addTo(_contextMenu);
-
-    _contextMenu->insertSeparator();
+    _contextMenu->addSeparator();
 
     if (_colorbarWidget)
     {
-      _addColorControlPointAction->addTo(_contextMenu);
+	  _contextMenu->addAction(_addColorControlPointAction);
     }
   }
   
   //
-  // Colobar context
+  // Colorbar context
   else if (_colorbarWidget && _lastSelected == _colorbarWidget)
   {
     if(_colorbarWidget->controlPointSelected())
     {
-      _editControlPointAction->addTo(_contextMenu);
-      _deleteControlPointAction->addTo(_contextMenu);
+		_contextMenu->addAction(_editControlPointAction);
+		_contextMenu->addAction(_deleteControlPointAction);
     }
     else
     {
-      _addColorControlPointAction->addTo(_contextMenu);
+		_contextMenu->addAction(_addColorControlPointAction);
     }    
   }
 
@@ -1798,14 +1810,15 @@ void MappingFrame::contextMenuEvent(QContextMenuEvent* /*event*/)
   {
     if (_opacityMappingEnabled)
     {
-      _contextMenu->insertItem("New Opacity Widget", _addOpacityWidgetSubMenu);
+      QAction* act = _contextMenu->addMenu(_addOpacityWidgetSubMenu);
+	  act->setText("New Opacity Widget");
     }
 
-    _contextMenu->insertSeparator();
+    _contextMenu->addSeparator();
 
     if (_colorMappingEnabled)
     {
-      _addColorControlPointAction->addTo(_contextMenu);
+      _contextMenu->addAction(_addColorControlPointAction);
     }
   }
 
@@ -1826,17 +1839,19 @@ void MappingFrame::contextMenuEvent(QContextMenuEvent* /*event*/)
         x >= omap->minValue() &&
         x <= omap->maxValue())
     {
-      _addOpacityControlPointAction->addTo(_contextMenu);      
+      _contextMenu->addAction(_addOpacityControlPointAction);      
       break;
     } 
   }
 
-  _contextMenu->insertSeparator();
-  _contextMenu->insertItem("Histogram Scaling", _histogramScalingSubMenu);
+  _contextMenu->addSeparator();
+  QAction* menAct = _contextMenu->addMenu(_histogramScalingSubMenu);
+  menAct->setText("Histogram Scaling");
 
   if (_mapper->getNumOpacityMaps() > 1)
   {
-    _contextMenu->insertItem("Opacity Composition", _compTypeSubMenu);
+	  QAction* compAct= _contextMenu->addMenu(_compTypeSubMenu);
+	  compAct->setText("Opacity Composition");
   }
 
   _contextMenu->exec(_contextPoint);
@@ -2111,13 +2126,13 @@ Histo* MappingFrame::getHistogram()
 //----------------------------------------------------------------------------
 // Add a new opacity widget
 //----------------------------------------------------------------------------
-void MappingFrame::addOpacityWidget(int menu)
+void MappingFrame::addOpacityWidget(QAction* act)
 {
   if (_mapper)
   {
     emit startChange("Opacity widget creation");
 
-    OpacityMap::Type t    = (OpacityMap::Type)menu;
+    OpacityMap::Type t    = (OpacityMap::Type)(act->data().toInt());
     OpacityWidget *widget = createOpacityWidget(_mapper->createOpacityMap(t));
     
     connect((QObject*)widget, SIGNAL(startChange(QString)),

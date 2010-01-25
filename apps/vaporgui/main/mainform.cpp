@@ -142,8 +142,8 @@ MainForm* MainForm::theMainForm = 0;
 
 //Only the main program should call the constructor:
 //
-MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char* name, Qt::WFlags )
-    : QMainWindow( parent, name, Qt::WDestructiveClose )
+MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char*, Qt::WFlags )
+    : QMainWindow( parent)
 {
 	theMainForm = this;
 	theRegionTab = 0;
@@ -160,7 +160,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	interactiveRefinementSpin = 0;
 	modeStatusWidget = 0;
 	
-	setIcon(QPixmap(vapor_icon___));
+	setWindowIcon(QPixmap(vapor_icon___));
 
     //insert my qmdiArea:
     myMDIArea = new QMdiArea;
@@ -168,12 +168,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     myMDIArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(myMDIArea);
 
-    if ( !name )
-		setName( "MainForm" );
+    
     setMinimumSize( QSize( 422, 606 ) );
    
-    setBackgroundOrigin( QMainWindow::WindowOrigin );
-	
    
     createActions();
     createMenus();
@@ -244,16 +241,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		if (fileName.endsWith(".vss")){
 
 			ifstream is;
-			is.open(fileName.ascii());
+			is.open(fileName.toAscii());
 			if (!is){//Report error if you can't open the file
-				MessageReporter::errorMsg("Unable to open session file: \n%s", fileName.ascii());
+				MessageReporter::errorMsg("Unable to open session file: \n%s", fileName.toAscii());
 				return;
 			}
 			//Remember file if load is successful:
 			if(Session::getInstance()->loadFromFile(is)){
 				QString sessionSaveFile = fileName;
 				QFileInfo fi(fileName);
-				Session::getInstance()->setSessionFilepath(sessionSaveFile.ascii());
+				Session::getInstance()->setSessionFilepath(sessionSaveFile.toAscii());
 			}
 		} else if (fileName.endsWith(".vdf")){
 #ifdef WIN32
@@ -261,7 +258,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			//DataMgr can deal with this path
 			fileName.replace('\\','/');
 #endif
-			Session::getInstance()->resetMetadata(fileName.ascii(), false);
+			Session::getInstance()->resetMetadata(fileName.toAscii(), false);
 		}
 	}
 	MessageReporter::infoMsg("MainForm::MainForm() end");
@@ -289,27 +286,27 @@ void MainForm::createToolBars(){
 		"navigation, region, rake, probe, 2D, and Image tools.";
 	modeToolBar->setWhatsThis(qws);
 	//add mode buttons, left to right:
-	navigationAction->addTo(modeToolBar);
-	regionSelectAction->addTo(modeToolBar);
-	rakeAction->addTo(modeToolBar);
-	probeAction->addTo(modeToolBar);
-	twoDDataAction->addTo(modeToolBar);
-	twoDImageAction->addTo(modeToolBar);
+	modeToolBar->addAction(navigationAction);
+	modeToolBar->addAction(regionSelectAction);
+	modeToolBar->addAction(rakeAction);
+	modeToolBar->addAction(probeAction);
+	modeToolBar->addAction(twoDDataAction);
+	modeToolBar->addAction(twoDImageAction);
 	
 
 // Animation Toolbar:
 	animationToolBar = addToolBar("animation control");
-//	animationToolBar->setAllowedAreas(Qt::TopToolBarArea);
-	timestepEdit = new QLineEdit(" 0 ", "xxxxx", animationToolBar);
+	timestepEdit = new QLineEdit(animationToolBar);
 	timestepEdit->setAlignment(Qt::AlignHCenter);
 	timestepEdit->setMaximumWidth(40);
-	QToolTip::add(timestepEdit, "Edit/Display current time step");
+	timestepEdit->setToolTip( "Edit/Display current time step");
 	animationToolBar->addWidget(timestepEdit);
-	playBackwardAction->addTo(animationToolBar);
-	stepBackAction->addTo(animationToolBar);
-	pauseAction->addTo(animationToolBar);
-	stepForwardAction->addTo(animationToolBar);
-	playForwardAction->addTo(animationToolBar);
+	
+	animationToolBar->addAction(playBackwardAction);
+	animationToolBar->addAction(stepBackAction);
+	animationToolBar->addAction(pauseAction);
+	animationToolBar->addAction(stepForwardAction);
+	animationToolBar->addAction(playForwardAction);
 	
 	QString qat = QString("The animation toolbar enables control of the time steps ")+
 		"in the current active visualizer.  Additional controls are available in"+
@@ -326,30 +323,30 @@ void MainForm::createToolBars(){
 	windowSelector = new VizSelectCombo(this, vizToolBar, myVizMgr);
 
 
-	tileAction->addTo(vizToolBar);
-	cascadeAction->addTo(vizToolBar);
-	homeAction->addTo(vizToolBar);
-	sethomeAction->addTo(vizToolBar);
-	viewRegionAction->addTo(vizToolBar);
-	viewAllAction->addTo(vizToolBar);
+	vizToolBar->addAction(tileAction);
+	vizToolBar->addAction(cascadeAction);
+	vizToolBar->addAction(homeAction);
+	vizToolBar->addAction(sethomeAction);
+	vizToolBar->addAction(viewRegionAction);
+	vizToolBar->addAction(viewAllAction);
 
 
 	alignViewCombo = new QComboBox(vizToolBar);
-	alignViewCombo->insertItem("Align View");
-	alignViewCombo->insertItem("Nearest axis");
-	alignViewCombo->insertItem("     + X ");
-	alignViewCombo->insertItem("     + Y ");
-	alignViewCombo->insertItem("     + Z ");
-	alignViewCombo->insertItem("     - X ");
-	alignViewCombo->insertItem("     - Y ");
-	alignViewCombo->insertItem("Default: - Z ");
-	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
+	alignViewCombo->addItem("Align View");
+	alignViewCombo->addItem("Nearest axis");
+	alignViewCombo->addItem("     + X ");
+	alignViewCombo->addItem("     + Y ");
+	alignViewCombo->addItem("     + Z ");
+	alignViewCombo->addItem("     - X ");
+	alignViewCombo->addItem("     - Y ");
+	alignViewCombo->addItem("Default: - Z ");
+	alignViewCombo->setToolTip( "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
 	
 	vizToolBar->addWidget(alignViewCombo);
 	interactiveRefinementSpin = new QSpinBox(vizToolBar);
 	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
 	
-	QToolTip::add(interactiveRefinementSpin,
+	interactiveRefinementSpin->setToolTip(
 		"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
 	interactiveRefinementSpin->setWhatsThis(
 		QString("While the viewpoint is changing due to mouse-dragging ")+
@@ -420,104 +417,106 @@ void MainForm::createMenus(){
     // menubar
     Main_Form = menuBar();
     File = menuBar()->addMenu(tr("File"));
-    fileNew_SessionAction->addTo( File );
-    fileOpenAction->addTo( File );
-    fileSaveAction->addTo( File );
-    fileSaveAsAction->addTo( File );
-	loadPreferencesAction->addTo(File);
-	savePreferencesAction->addTo(File);
-    fileExitAction->addTo( File );
+    File->addAction(fileNew_SessionAction);
+    File->addAction(fileOpenAction);
+    File->addAction(fileSaveAction);
+    File->addAction(fileSaveAsAction);
+	File->addAction(loadPreferencesAction);
+	File->addAction(savePreferencesAction);
+    File->addAction(fileExitAction);
     Edit = menuBar()->addMenu(tr("Edit"));
-	editUndoAction->addTo(Edit);
-	editRedoAction->addTo(Edit);
-	
-	editVizFeaturesAction->addTo(Edit);
-	editPreferencesAction->addTo(Edit);
+
+	Edit->addAction(editUndoAction);
+	Edit->addAction(editRedoAction);
+	Edit->addAction(editVizFeaturesAction);
+	Edit->addAction(editPreferencesAction);
 
     Data = menuBar()->addMenu(tr("Data"));
-    dataBrowse_DataAction->addTo( Data );
-    dataConfigure_MetafileAction->addTo( Data );
+    Data->addAction(dataBrowse_DataAction );
+    Data->addAction(dataConfigure_MetafileAction );
 	
-    dataLoad_MetafileAction->addTo( Data );
-	dataLoad_DefaultMetafileAction->addTo( Data );
-	dataMerge_MetafileAction->addTo( Data );
-	dataSave_MetafileAction->addTo( Data );
+    Data->addAction(dataLoad_MetafileAction );
+	Data->addAction(dataLoad_DefaultMetafileAction );
+	Data->addAction(dataMerge_MetafileAction);
+	Data->addAction(dataSave_MetafileAction);
 	
-	dataExportToIDLAction->addTo(Data);
+	Data->addAction(dataExportToIDLAction);
     
 	Main_Form->addMenu(Data);
 
     viewMenu = menuBar()->addMenu(tr("View"));
 	
-	viewLaunch_visualizerAction->addTo(viewMenu);
+	viewMenu->addAction(viewLaunch_visualizerAction);
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
     captureMenu = menuBar()->addMenu(tr("Capture"));
-    captureSingleJpegCaptureAction->addTo( captureMenu );
-	captureStartJpegCaptureAction->addTo( captureMenu );
-	captureEndJpegCaptureAction->addTo( captureMenu );
-	captureStartFlowCaptureAction->addTo( captureMenu );
-	captureEndFlowCaptureAction->addTo( captureMenu );
+	
+    captureMenu->addAction(captureSingleJpegCaptureAction);
+	captureMenu->addAction(captureStartJpegCaptureAction);
+	captureMenu->addAction(captureEndJpegCaptureAction);
+	captureMenu->addAction(captureStartFlowCaptureAction);
+	captureMenu->addAction(captureEndFlowCaptureAction);
 
     
     Main_Form->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("Help"));
-    whatsThisAction->addTo(helpMenu);
-    helpMenu->insertSeparator();
-    helpAboutAction->addTo( helpMenu );
+
+    helpMenu->addAction(whatsThisAction);
+    helpMenu->addSeparator();
+    helpMenu->addAction(helpAboutAction );
 }
 
 void MainForm::createActions(){
     // first do actions for menu bar:
     
-    fileOpenAction = new QAction( this, "fileOpenAction" );
+    fileOpenAction = new QAction( this);
 	fileOpenAction->setEnabled(true);
-    fileSaveAction = new QAction( this, "fileSaveAction" );
+    fileSaveAction = new QAction( this );
 	fileSaveAction->setEnabled(true);
-    fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
+    fileSaveAsAction = new QAction( this );
 	fileSaveAsAction->setEnabled(true);
-    fileExitAction = new QAction( this, "fileExitAction" );
-	loadPreferencesAction = new QAction(this, "preferencesLoadAction");
+    fileExitAction = new QAction( this);
+	loadPreferencesAction = new QAction(this);
 	loadPreferencesAction->setEnabled(true);
-	savePreferencesAction = new QAction(this, "preferencesSaveAction");
+	savePreferencesAction = new QAction(this);
 	savePreferencesAction->setEnabled(true);
 
-	editUndoAction = new QAction(this, "editUndoAction");
-	editRedoAction = new QAction(this, "editRedoAction");
+	editUndoAction = new QAction(this);
+	editRedoAction = new QAction(this);
 	
-	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
-	editPreferencesAction = new QAction(this, "editUserPreferencesAction");
+	editVizFeaturesAction = new QAction(this);
+	editPreferencesAction = new QAction(this);
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
 	whatsThisAction = QWhatsThis::createAction(this);
 
-    helpAboutAction = new QAction( this, "helpAboutAction" );
+    helpAboutAction = new QAction( this );
 	helpAboutAction->setEnabled(true);
     
-    dataBrowse_DataAction = new QAction( this, "dataBrowse_DataAction" );
+    dataBrowse_DataAction = new QAction( this );
 	dataBrowse_DataAction->setEnabled(false);
-    dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
+    dataConfigure_MetafileAction = new QAction( this );
 	dataConfigure_MetafileAction->setEnabled(false);
-    dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
-	dataMerge_MetafileAction = new QAction( this, "dataMerge_MetafileAction" );
-	dataSave_MetafileAction = new QAction( this, "dataSave_MetafileAction" );
-	dataLoad_DefaultMetafileAction = new QAction(this, "dataLoad_DefaultMetafileAction");
-	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
-	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
+    dataLoad_MetafileAction = new QAction( this);
+	dataMerge_MetafileAction = new QAction( this );
+	dataSave_MetafileAction = new QAction( this );
+	dataLoad_DefaultMetafileAction = new QAction(this);
+	fileNew_SessionAction = new QAction( this );
+	dataExportToIDLAction = new QAction(this);
     
     
-    viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
-	captureStartJpegCaptureAction = new QAction( this, "captureStartCaptureJpegAction" );
-	captureEndJpegCaptureAction = new QAction( this, "captureEndCaptureJpegAction" );
-	captureSingleJpegCaptureAction = new QAction(this, "captureCaptureSingleJpegAction");
-	captureStartJpegCaptureAction = new QAction( this, "jpegStartCaptureAction" );
-	captureEndJpegCaptureAction = new QAction( this, "jpegEndCaptureAction" );
-	captureSingleJpegCaptureAction = new QAction(this, "jpegCaptureSingleAction");
-	captureStartFlowCaptureAction = new QAction( this, "flowStartCaptureAction" );
-	captureEndFlowCaptureAction = new QAction( this, "flowEndCaptureAction" );
+    viewLaunch_visualizerAction = new QAction( this );
+	captureStartJpegCaptureAction = new QAction( this );
+	captureEndJpegCaptureAction = new QAction( this);
+	captureSingleJpegCaptureAction = new QAction(this);
+	captureStartJpegCaptureAction = new QAction( this );
+	captureEndJpegCaptureAction = new QAction( this );
+	captureSingleJpegCaptureAction = new QAction(this);
+	captureStartFlowCaptureAction = new QAction( this );
+	captureEndFlowCaptureAction = new QAction( this);
 
 	//Then do the actions for the toolbars:
 	//Create an exclusive action group for the mouse mode toolbar:
@@ -529,38 +528,38 @@ void MainForm::createActions(){
 		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
 	}
 	navigationAction = new QAction(*wheelIcon,"Navigation Mode",mouseModeActions);
-	navigationAction->setToggleAction(true);
-	navigationAction->setOn(true);
+	navigationAction->setCheckable(true);
+	navigationAction->setChecked(true);
 
 	QPixmap* regionIcon = new QPixmap(cube);
 	regionSelectAction = new QAction(*regionIcon, "Region Select Mode", mouseModeActions);
 	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
-	regionSelectAction->setToggleAction(true);
-	regionSelectAction->setOn(false);
+	regionSelectAction->setCheckable(true);
+	regionSelectAction->setChecked(false);
 	
 	QPixmap* probeIcon = new QPixmap(probe);
 	probeAction = new QAction(*probeIcon, "Data Probe and Contour Plane Mode", mouseModeActions);
-	probeAction->setToggleAction(true);
-	probeAction->setOn(false);
+	probeAction->setCheckable(true);
+	probeAction->setChecked(false);
 
 	
 	QPixmap* twoDDataIcon = new QPixmap(twoDData);
 	twoDDataAction = new QAction(*twoDDataIcon, "2D Data Mode", mouseModeActions);
 	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
-	twoDDataAction->setToggleAction(true);
-	twoDDataAction->setOn(false);
+	twoDDataAction->setCheckable(true);
+	twoDDataAction->setChecked(false);
 
 	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
 	twoDImageAction = new QAction(*twoDImageIcon, "Image Mode",mouseModeActions);
 	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
-	twoDImageAction->setToggleAction(true);
-	twoDImageAction->setOn(false);
+	twoDImageAction->setCheckable(true);
+	twoDImageAction->setChecked(false);
 
 	QPixmap* rakeIcon = new QPixmap(rake);
 	rakeAction = new QAction(*rakeIcon, "Rake Mode", mouseModeActions);
 	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
-	rakeAction->setToggleAction(true);
-	rakeAction->setOn(false);
+	rakeAction->setCheckable(true);
+	rakeAction->setChecked(false);
 
 	//Actions for the viztoolbar:
 	QPixmap* homeIcon = new QPixmap(home);
@@ -604,154 +603,119 @@ void MainForm::createActions(){
  */
 void MainForm::languageChange()
 {
-	setCaption( tr( "VAPoR:  NCAR Visualization and Analysis Platform for Research" ) );
-    QToolTip::add( tabWidget, tr( "Parameter Settings" ) );
-    tabWidget->changeTab( tab, tr( "Tab 1" ) );
-    tabWidget->changeTab( tab_2, tr( "Tab 2" ) );
+	setWindowTitle( tr( "VAPoR:  NCAR Visualization and Analysis Platform for Research" ) );
+	tabWidget->setToolTip("Parameter Settings" );
 
     fileNew_SessionAction->setText( tr( "New Session" ) );
-    fileNew_SessionAction->setMenuText( tr( "New Session" ) );
+    
 	fileNew_SessionAction->setToolTip("Restart the session with default settings");
 	fileNew_SessionAction->setShortcut( Qt::CTRL + Qt::Key_N );
     
     fileOpenAction->setText( tr( "&Open Session" ) );
-    fileOpenAction->setMenuText( tr( "&Open Session" ) );
+   
     fileOpenAction->setShortcut( tr( "Ctrl+O" ) );
 	fileOpenAction->setToolTip("Launch a file open dialog to reopen a previously saved session file");
-    fileSaveAction->setText( tr( "Save" ) );
-    fileSaveAction->setMenuText( tr( "&Save Session" ) );
+    
+    fileSaveAction->setText( tr( "&Save Session" ) );
     fileSaveAction->setShortcut( tr( "Ctrl+S" ) );
 	fileSaveAction->setToolTip("Launch a file-save dialog to save the state of this session in current session file");
     fileSaveAsAction->setText( tr( "Save As" ) );
-    fileSaveAsAction->setMenuText( tr( "Save Session &As..." ) );
+    
 	fileSaveAsAction->setToolTip("Launch a file-save dialog to save the state of this session in another session file");
     
 	loadPreferencesAction->setText( tr( "Load Preferences" ) );
-    loadPreferencesAction->setMenuText( tr( "Load Preferences" ) );
+    
 	loadPreferencesAction->setToolTip("Load the user preferences from a specified file");
     
     savePreferencesAction->setText( tr( "Save Preferences" ) );
-    savePreferencesAction->setMenuText( tr( "Save Preferences" ) );
+    
 	savePreferencesAction->setToolTip("Save the user preferences to a specified file");
     
-    fileExitAction->setMenuText( tr( "E&xit" ) );
+    fileExitAction->setText( tr( "E&xit" ) );
 
-	editUndoAction->setText( tr( "&Foo" ) );
-    editUndoAction->setMenuText( tr( "&Undo" ) );
+	editUndoAction->setText( tr( "&Undo" ) );
+    
     editUndoAction->setShortcut( tr( "Ctrl+Z" ) );
 	editUndoAction->setToolTip("Undo the most recent session state change");
 	editRedoAction->setText( tr( "&Redo" ) );
-    editRedoAction->setMenuText( tr( "&Redo" ) );
+    
     editRedoAction->setShortcut( tr( "Ctrl+Y" ) );
 	editRedoAction->setToolTip("Redo the last undone session state change");
     
 	
     helpAboutAction->setText( tr( "About VAPOR" ) );
-    helpAboutAction->setMenuText( tr( "About VAPOR" ) );
+    
     helpAboutAction->setToolTip( tr( "Information about VAPOR" ) );
 
 	whatsThisAction->setText( tr( "Explain This" ) );
-    whatsThisAction->setMenuText( tr( "Explain This" ) );
-	whatsThisAction->setToolTip(tr(QString("Click here, then click over an object for context-sensitive help;  ")+
-		"Or just click Shift-F1 over the object"));
+    
+	whatsThisAction->setToolTip(tr("Click here, then click over an object for context-sensitive help. "));
 
     dataBrowse_DataAction->setText( tr( "Browse Data" ) );
-    dataBrowse_DataAction->setMenuText( tr( "&Browse Data" ) );
+    
 	dataBrowse_DataAction->setToolTip("Browse filesystem to examine properties of available datasets"); 
 	
 	dataExportToIDLAction->setText(tr("Export to IDL"));
-	dataExportToIDLAction->setMenuText(tr("&Export to IDL"));
+	
 	dataExportToIDLAction->setToolTip("Export current data settings to enable IDL access");
    
     dataConfigure_MetafileAction->setText( tr( "Configure Metafile" ) );
-    dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
+    
 	dataConfigure_MetafileAction->setToolTip("Launch a tool to construct the metafile associated with a dataset");
     dataLoad_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
-    dataLoad_MetafileAction->setMenuText( tr( "Load a &Dataset into Current Session" ) );
+   
 	dataLoad_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
 	dataLoad_MetafileAction->setShortcut(tr("Ctrl+D"));
 	dataLoad_DefaultMetafileAction->setText( tr( "Load a Dataset into &Default Session" ) );
-    dataLoad_DefaultMetafileAction->setMenuText( tr( "Load a Dataset into &Default Session" ) );
+  
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
 	dataMerge_MetafileAction->setText( tr( "Merge (Import) a Dataset into Current Session" ) );
-    dataMerge_MetafileAction->setMenuText( tr( "&Merge (Import) a Dataset into Current Session" ) );
+    
 	dataMerge_MetafileAction->setToolTip("Specify a data set to be merged into current session");
 	
 	dataSave_MetafileAction->setText( tr( "Save the current Metadata to file" ) );
-    dataSave_MetafileAction->setMenuText( tr( "&Save the current Metadata to file" ) );
+    
 	dataSave_MetafileAction->setToolTip("Specify a file where the current Metadata will be saved");
 	
 
     viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
-    viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
+    
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
 	editVizFeaturesAction->setText(tr("Edit Visualizer Features"));
-	editVizFeaturesAction->setMenuText(tr("Edit Visualizer Features"));
+	
 	editVizFeaturesAction->setToolTip(tr("View or change various visualizer settings"));
 
 	editPreferencesAction->setText(tr("Edit User Preferences "));
-	editPreferencesAction->setMenuText(tr("Edit User Preferences"));
+	
 	editPreferencesAction->setToolTip(tr("View or change various user preference settings"));
 
 	captureStartJpegCaptureAction->setText( tr( "Begin image capture sequence " ) );
-    captureStartJpegCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
+    
 	captureStartJpegCaptureAction->setToolTip("Begin saving jpeg image files rendered in current active visualizer");
 	
 	captureEndJpegCaptureAction->setText( tr( "End image capture" ) );
-    captureEndJpegCaptureAction->setMenuText( tr( "&End Image Capture" ) );
+   
 	captureEndJpegCaptureAction->setToolTip("End capture of image files in current active visualizer");
 
 	captureSingleJpegCaptureAction->setText( tr( "Single image capture" ) );
-    captureSingleJpegCaptureAction->setMenuText( tr( "&Single Image Capture" ) );
+    
 	captureSingleJpegCaptureAction->setToolTip("Capture one image from current active visualizer");
 
 	captureStartFlowCaptureAction->setText( tr( "Begin flow capture sequence " ) );
-    captureStartFlowCaptureAction->setMenuText( tr( "&Begin flow capture sequence " ) );
+    
 	captureStartFlowCaptureAction->setToolTip("Begin saving flow lines in current active visualizer");
 	
 	captureEndFlowCaptureAction->setText( tr( "End flow capture" ) );
-    captureEndFlowCaptureAction->setMenuText( tr( "&End Flow Capture" ) );
+   
 	captureEndFlowCaptureAction->setToolTip("End capture of flow lines in current active visualizer");
 
-	/*
-    scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
-    scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
-	scriptIDL_scriptAction->setToolTip("Launch an IDL script");
-    scriptMatlab_scriptAction->setText( tr( "Execute Matlab script" ) );
-    scriptMatlab_scriptAction->setMenuText( tr( "Execute &Matlab script" ) );
-	scriptMatlab_scriptAction->setToolTip("Launch a Matlab script in a separate window");
-    scriptBatchAction->setText( tr( "Batch setup" ) );
-    scriptBatchAction->setMenuText( tr( "&Batch setup" ) );
-	scriptBatchAction->setToolTip("Launch a panel to script a Batch Rendering session");
-    
-    animationKeyframingAction->setText( tr( "Keyframing" ) );
-    animationKeyframingAction->setMenuText( tr( "Keyframing" ) );
-	animationKeyframingAction->setToolTip("Launch a parameter panel that specifies keyframes plus their timing and transitions between them");
-	exportAnimationScriptAction->setText( tr( "Export Animation Script" ) );
-    exportAnimationScriptAction->setMenuText( tr( "Export Animation Script" ) );
-	exportAnimationScriptAction->setToolTip("Export current animation settings as a script");
-*/
+	
    
-    vizToolBar->setLabel( tr( "VizTools" ) );
-	modeToolBar->setLabel( tr( "Mouse Modes" ) );
-    if (Main_Form->findItem(1))
-        Main_Form->findItem(1)->setText( tr( "&File" ) );
-	if (Main_Form->findItem(2))
-        Main_Form->findItem(2)->setText( tr( "&Edit" ) );
-    if (Main_Form->findItem(3))
-        Main_Form->findItem(3)->setText( tr( "&Data" ) );
-    if (Main_Form->findItem(4))
-        Main_Form->findItem(4)->setText( tr( "&View" ) );
-    if (Main_Form->findItem(5))
-        Main_Form->findItem(5)->setText( tr( "&Capture" ) );
-   /*
-    if (Main_Form->findItem(6))
-        Main_Form->findItem(6)->setText( tr( "&Animation" ) );
-		*/
-    if (Main_Form->findItem(6))
-        Main_Form->findItem(6)->setText( tr( "&Help" ) );
+    vizToolBar->setWindowTitle( tr( "VizTools" ) );
+	modeToolBar->setWindowTitle( tr( "Mouse Modes" ) );
+   
 }
 
 
@@ -779,16 +743,16 @@ void MainForm::fileOpen()
 		filename += ".vss";
 	}
 	ifstream is;
-	is.open(filename.ascii());
+	is.open(filename.toAscii());
 	if (!is){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open session file: \n%s", filename.ascii());
+		MessageReporter::errorMsg("Unable to open session file: \n%s", filename.toAscii());
 		return;
 	}
 	//Remember file if load is successful:
 	if(Session::getInstance()->loadFromFile(is)){
-		Session::getInstance()->setSessionFilepath(filename.ascii());
+		Session::getInstance()->setSessionFilepath(filename.toAscii());
 	}
-	MessageReporter::infoMsg("Loaded session file: \n%s", filename.ascii());
+	MessageReporter::infoMsg("Loaded session file: \n%s", filename.toAscii());
 }
 
 
@@ -847,13 +811,13 @@ void MainForm::saveMetadata()
 	if(filename != QString::null){
 		//Make sure this filename is still in same directory
 		//If not, pop up an explanatory error message and quit.
-		int posn = filename.findRev("/");
+		int posn = filename.lastIndexOf("/");
 		QString path = filename.left(posn);
 		QString metadataFile = QString(Session::getInstance()->getMetadataFile().c_str());
 		if (!metadataFile.contains(path)){
-			int mposn = metadataFile.findRev("/");
+			int mposn = metadataFile.lastIndexOf("/");
 			QString mpath = metadataFile.left(mposn);
-			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",path.ascii(), mpath.ascii());
+			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",path.toAscii(), mpath.toAscii());
 			return;
 		}
 		//If ok, go ahead and try to save using current DataMgr
@@ -863,13 +827,13 @@ void MainForm::saveMetadata()
 				QMessageBox::No);
 			if (rc != QMessageBox::Ok) return;
 		}
-		std::string stdName = std::string(filename.ascii());
+		std::string stdName = std::string(filename.toAscii());
 		int rc = dataMgrWB->Write(stdName,0);
-		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.ascii());
+		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.toAscii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
 			//Save the metadata file name
-			Session::getInstance()->getMetadataFile() = filename.ascii();
+			Session::getInstance()->getMetadataFile() = filename.toAscii();
 		}
 		return;
 	}
@@ -911,19 +875,19 @@ void MainForm::fileSaveAs()
 		if (rc != QMessageBox::Ok) return;
 	}
 	ofstream fileout;
-	fileout.open(filename.ascii());
+	fileout.open(filename.toAscii());
 	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to save to file: \n%s", filename.ascii());
+		MessageReporter::errorMsg( "Unable to save to file: \n%s", filename.toAscii());
 		return;
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to save session to: \n%s", filename.ascii());
+		MessageReporter::errorMsg("Failed to save session to: \n%s", filename.toAscii());
 		fileout.close();
 		return;
 	}
 	fileout.close();
-	Session::getInstance()->setSessionFilepath(filename.ascii());
+	Session::getInstance()->setSessionFilepath(filename.toAscii());
 }
 
 
@@ -935,7 +899,7 @@ void MainForm::filePrint()
 
 void MainForm::fileExit()
 {
-	close(true);
+	close();
 }
 
 void MainForm::undo(){
@@ -956,8 +920,8 @@ void MainForm::setupUndoRedoText(){
 	if (editRedoAction->isEnabled()) {
 		redoText += currentSession->currentRedoCommand()->getDescription();
 	}
-	editUndoAction->setMenuText( undoText );
-	editRedoAction->setMenuText( redoText );
+	editUndoAction->setText( undoText );
+	editRedoAction->setText( redoText );
 }
 // Disable the undo/redo actions, for when the 
 // command queue is reinitialized
@@ -987,7 +951,7 @@ void MainForm::helpAbout()
 		QString("Version: ")+
 		Version::GetVersionString().c_str());
 
-	QMessageBox::information(this, "Information about VAPOR",versionInfo.ascii());
+	QMessageBox::information(this, "Information about VAPOR",versionInfo.toAscii());
 
 }
 void MainForm::batchSetup(){
@@ -1009,7 +973,7 @@ void MainForm::browseData()
 		"Metadata Files (*.vdf)");
 	if(filename!= QString::null) {
 		//Need to update this to browse vdf files
-		//showWBInfo(filename.ascii());
+		//showWBInfo(filename.toAscii());
 		MDFile = filename;
 	}
 	
@@ -1022,8 +986,8 @@ void MainForm::loadPrefs(){
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
-			UserPreferences::loadPreferences(filename.ascii());
-		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", filename.ascii());
+			UserPreferences::loadPreferences(filename.toAscii());
+		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", filename.toAscii());
 	}
 	
 }
@@ -1035,8 +999,8 @@ void MainForm::savePrefs(){
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		
-		if(!UserPreferences::savePreferences(filename.ascii()))
-			MessageReporter::errorMsg("Unable to save preferences file \n%s", filename.ascii());
+		if(!UserPreferences::savePreferences(filename.toAscii()))
+			MessageReporter::errorMsg("Unable to save preferences file \n%s", filename.toAscii());
 	}
 }
 //Load data into current session
@@ -1054,10 +1018,10 @@ void MainForm::loadData()
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
-			Session::getInstance()->resetMetadata(filename.ascii(), true);
+			Session::getInstance()->resetMetadata(filename.toAscii(), true);
 			
 		}
-		else MessageReporter::errorMsg("Unable to read metadata file \n%s", filename.ascii());
+		else MessageReporter::errorMsg("Unable to read metadata file \n%s", filename.toAscii());
 	}
 }
 //Merge/Import data into current session
@@ -1086,10 +1050,10 @@ void MainForm::mergeData()
 		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
 		if (sDialog.exec() != QDialog::Accepted) return;
 		int offset = uiSetter.timestepOffsetSpin->value();
-		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true, offset)){
-			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",filename.ascii());
+		if (!Session::getInstance()->resetMetadata(filename.toAscii(), false, true, offset)){
+			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",filename.toAscii());
 		}
-	} else MessageReporter::errorMsg("Unable to open \n%s",filename.ascii());
+	} else MessageReporter::errorMsg("Unable to open \n%s",filename.toAscii());
 	
 }
 //Load data into default session
@@ -1107,7 +1071,7 @@ void MainForm::defaultLoadData()
 		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
 		Session::getInstance()->resetMetadata(0, false);
-		Session::getInstance()->resetMetadata(filename.ascii(), false);
+		Session::getInstance()->resetMetadata(filename.toAscii(), false);
 	}
 	
 }
@@ -1303,8 +1267,9 @@ void MainForm::launchProbeTab()
 	if (!theProbeTab){
 		theProbeTab = new ProbeEventRouter(tabWidget, "ProbeTab");
 		myVizMgr->hookUpProbeTab(theProbeTab);
-		QToolTip::add(theProbeTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		QToolTip::add(theProbeTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		theProbeTab->attachSeedCheckbox->setToolTip("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		theProbeTab->addSeedButton->setToolTip("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+
 	}
 	
 	int posn = tabWidget->findWidget(Params::ProbeParamsType);
@@ -1325,8 +1290,8 @@ void MainForm::launchTwoDDataTab()
 	if (!theTwoDDataTab){
 		theTwoDDataTab = new TwoDDataEventRouter(tabWidget, "TwoDDataTab");
 		myVizMgr->hookUpTwoDDataTab(theTwoDDataTab);
-		QToolTip::add(theTwoDDataTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		QToolTip::add(theTwoDDataTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		theTwoDDataTab->attachSeedCheckbox->setToolTip("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		theTwoDDataTab->addSeedButton->setToolTip("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 	}
 	
 	int posn = tabWidget->findWidget(Params::TwoDDataParamsType);
@@ -1395,7 +1360,7 @@ void MainForm::setLights(bool  on)
 {
 // Until we implement this, does nothing:
 	Session* currentSession = Session::getInstance();
-	if (!on && moveLightsAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && moveLightsAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (GLWindow::getCurrentMouseMode() != GLWindow::lightMode){
 		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
@@ -1413,7 +1378,7 @@ void MainForm::setLights(bool  on)
 void MainForm::setProbe(bool on)
 {
 	
-	if (!on && probeAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && probeAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::probeMode){
@@ -1439,7 +1404,7 @@ void MainForm::setProbe(bool on)
 void MainForm::setTwoDData(bool on)
 {
 	//2d mode is like rake mode
-	if (!on && twoDDataAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && twoDDataAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDDataMode){
@@ -1465,7 +1430,7 @@ void MainForm::setTwoDData(bool on)
 void MainForm::setTwoDImage(bool on)
 {
 	//2d image mode is like rake mode
-	if (!on && twoDImageAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && twoDImageAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDImageMode){
@@ -1491,7 +1456,7 @@ void MainForm::setTwoDImage(bool on)
 void MainForm::setRake(bool on)
 {
 	
-	if (!on && rakeAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && rakeAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::rakeMode){
@@ -1517,7 +1482,7 @@ void MainForm::setRegionSelect(bool on)
 {
 	Session* currentSession = Session::getInstance();
 	//Only respond to toggling on:
-	if (!on && regionSelectAction->isOn()){navigationAction->toggle(); return;}
+	if (!on && regionSelectAction->isChecked()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (GLWindow::getCurrentMouseMode() != GLWindow::regionMode){
 		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
@@ -1546,51 +1511,45 @@ void MainForm::initCaptureMenu(){
 	QString vizName = "";
 	if(winNum >= 0) vizName = vizWinMgr->getVizWinName(winNum);
 	//Disable the start capture if no viz, or if active viz already capturing
-	//pos2 is start sequence capture,
-	//pos3 is end sequence
-	//pos1 is single capture
-	//Similar for pos4 = start flow capture
-	//pos5 = end flow capture
-	int pos1 = captureMenu->idAt(0);
-	int pos2 = captureMenu->idAt(1);
-	int pos3 = captureMenu->idAt(2);
-	int pos4 = captureMenu->idAt(3);
-	int pos5 = captureMenu->idAt(4);
+	
+	
 	if (!viz || viz->getGLWindow()->isCapturingImage()) {
-		captureStartJpegCaptureAction->setMenuText( "&Begin image capture sequence"  );
-		captureMenu->setItemEnabled(pos2, false);
-		captureSingleJpegCaptureAction->setMenuText("Capture single image");
-		captureMenu->setItemEnabled(pos1, false);
+		captureStartJpegCaptureAction->setText( "&Begin image capture sequence"  );
+		captureStartJpegCaptureAction->setEnabled(false);
+		captureSingleJpegCaptureAction->setText("Capture single image");
+		captureSingleJpegCaptureAction->setEnabled(false);
+		
 	} else {// there is a visualizer, but it's not capturing images
-		captureStartJpegCaptureAction->setMenuText( "&Begin image capture sequence in "+(vizName) );
-		captureMenu->setItemEnabled(pos2,true);
-		captureSingleJpegCaptureAction->setMenuText("Capture single image of "+(vizName) );
-		captureMenu->setItemEnabled(pos1,true);
+		captureStartJpegCaptureAction->setText( "&Begin image capture sequence in "+(vizName) );
+		captureStartJpegCaptureAction->setEnabled(true);
+		
+		captureSingleJpegCaptureAction->setText("Capture single image of "+(vizName) );
+		captureSingleJpegCaptureAction->setEnabled(true);
 	}
 	//Likewise for flow:
 	if (!viz || viz->getGLWindow()->isCapturingFlow()) {
-		captureStartFlowCaptureAction->setMenuText( "&Begin flow capture sequence"  );
-		captureMenu->setItemEnabled(pos4, false);
+		captureStartFlowCaptureAction->setText( "&Begin flow capture sequence"  );
+		captureStartFlowCaptureAction->setEnabled( false);
 	} else {// there is a visualizer, but it's not capturing flow
-		captureStartFlowCaptureAction->setMenuText( "&Begin flow capture sequence in "+(vizName) );
-		captureMenu->setItemEnabled(pos4,true);
+		captureStartFlowCaptureAction->setText( "&Begin flow capture sequence in "+(vizName) );
+		captureStartFlowCaptureAction->setEnabled(true);
 	}
 	
 	//disable the end capture if no viz, or if active viz is not capturing
 	GLWindow* glWin = viz->getGLWindow();
 	if (!viz || !glWin->isCapturingImage()){
-		captureEndJpegCaptureAction->setMenuText( "End image capture sequence" );
-		captureMenu->setItemEnabled(pos3, false);
+		captureEndJpegCaptureAction->setText( "End image capture sequence" );
+		captureEndJpegCaptureAction->setEnabled( false);
 	} else {
-		captureEndJpegCaptureAction->setMenuText("End image capture sequence in " +(vizName) );
-		captureMenu->setItemEnabled(pos3, true);
+		captureEndJpegCaptureAction->setText("End image capture sequence in " +(vizName) );
+		captureEndJpegCaptureAction->setEnabled( true);
 	}
 	if (!viz || !glWin->isCapturingFlow()){
-		captureEndFlowCaptureAction->setMenuText( "End flow capture sequence" );
-		captureMenu->setItemEnabled(pos5, false);
+		captureEndFlowCaptureAction->setText( "End flow capture sequence" );
+		captureEndFlowCaptureAction->setEnabled(false);
 	} else {
-		captureEndFlowCaptureAction->setMenuText("End flow capture sequence in " +(vizName) );
-		captureMenu->setItemEnabled(pos5, true);
+		captureEndFlowCaptureAction->setText("End flow capture sequence in " +(vizName) );
+		captureEndFlowCaptureAction->setEnabled(true);
 	}
 	
 }
@@ -1599,13 +1558,13 @@ void MainForm::initCaptureMenu(){
  * Set all the mode buttons off, except navigation
  */
 void MainForm::resetModeButtons(){
-	navigationAction->setOn(true);
-	probeAction->setOn(false);
-	twoDDataAction->setOn(false);
-	twoDImageAction->setOn(false);
-	regionSelectAction->setOn(false);
-	moveLightsAction->setOn(false);
-	rakeAction->setOn(false);
+	navigationAction->setChecked(true);
+	probeAction->setChecked(false);
+	twoDDataAction->setChecked(false);
+	twoDImageAction->setChecked(false);
+	regionSelectAction->setChecked(false);
+	moveLightsAction->setChecked(false);
+	rakeAction->setChecked(false);
 }
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
@@ -1625,11 +1584,13 @@ void MainForm::startJpegCapture() {
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
 	//Extract the path, and the root name, from the returned string.
-	QString s = fileDialog.selectedFile();
+	QStringList qsl = fileDialog.selectedFiles();
+	if (qsl.isEmpty()) return;
+	QString s = qsl[0];
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
-	QString fileBaseName = fileInfo->baseName(true);
+	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	QString fileBaseName = fileInfo->baseName();
 	//See if it ends with digits
 	int posn;
 	for (posn = fileBaseName.length()-1; posn >=0; posn--){
@@ -1641,7 +1602,7 @@ void MainForm::startJpegCapture() {
 		startFileNum = fileBaseName.right(fileBaseName.length()-lastDigitPos).toInt();
 		fileBaseName.truncate(lastDigitPos);
 	}
-	QString filePath = fileInfo->dirPath(true) + "/" + fileBaseName;
+	QString filePath = fileInfo->absolutePath() + "/" + fileBaseName;
 	//Determine the active window:
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
@@ -1649,7 +1610,7 @@ void MainForm::startJpegCapture() {
 		viz->getGLWindow()->startImageCapture(filePath,startFileNum);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
-			filePath.ascii());
+			filePath.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
@@ -1675,11 +1636,13 @@ void MainForm::startFlowCapture() {
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
 	//Extract the path, and the root name, from the returned string.
-	QString s = fileDialog.selectedFile();
+	QStringList qs = fileDialog.selectedFiles();
+	if (qs.isEmpty()) return;
+	QString s = qs[0];
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
-	QString fileBaseName = fileInfo->baseName(true);
+	Session::getInstance()->setFlowDirectory(fileInfo->absolutePath().toAscii());
+	QString fileBaseName = fileInfo->baseName();
 	//See if it ends with digits
 	int posn;
 	for (posn = fileBaseName.length()-1; posn >=0; posn--){
@@ -1690,7 +1653,7 @@ void MainForm::startFlowCapture() {
 		fileBaseName.truncate(lastDigitPos);
 	}
 	
-	QString filePath = fileInfo->dirPath(true) + "/" + fileBaseName;
+	QString filePath = fileInfo->absolutePath() + "/" + fileBaseName;
 	//Determine the active window:
 	//Turn on "flow capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
@@ -1698,7 +1661,7 @@ void MainForm::startFlowCapture() {
 		viz->getGLWindow()->startFlowCapture(filePath);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Flow Capture Activated \n Flow is being captured to %s",
-			filePath.ascii());
+			filePath.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Flow Capture Error;\nNo active visualizer for capturing images");
@@ -1720,12 +1683,14 @@ void MainForm::captureSingleJpeg() {
 	if (fileDialog.exec() != QDialog::Accepted) return;
 	
 	//Extract the path, and the root name, from the returned string.
-	QString filename = fileDialog.selectedFile();
+	QStringList files = fileDialog.selectedFiles();
+	if (files.isEmpty()) return;
+	QString filename = files[0];
     
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
 	
 	//Determine the active window:
 	//Turn on "image capture mode" in the current active visualizer
@@ -1734,7 +1699,7 @@ void MainForm::captureSingleJpeg() {
 		viz->getGLWindow()->singleCaptureImage(filename);
 		//Provide a message stating the capture in effect.
 		MessageReporter::infoMsg("Single Image is captured to %s",
-			filename.ascii());
+			filename.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing image");

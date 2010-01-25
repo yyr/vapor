@@ -207,7 +207,7 @@ endRendering(int vizNum){
 	//See if this is the active visualizer
 	if (VizWinMgr::getInstance()->getActiveViz() == vizNum){
 		
-		QApplication* app = MainForm::getInstance()->getApp();
+		QCoreApplication* app = MainForm::getInstance()->getApp();
 		bool hasEvents = app->hasPendingEvents();
 		if (hasEvents) {
 			app->processEvents();

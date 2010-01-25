@@ -174,16 +174,17 @@ void ControlPointEditor::indexValueChanged()
 //----------------------------------------------------------------------------
 void ControlPointEditor::pickColor()
 {
-	QColor color = _colorButton->paletteForegroundColor();
+	QPalette pal = _colorButton->palette();
+	const QColor& color = pal.color(QPalette::Foreground);
 
 	QColor newColor = QColorDialog::getColor(color, this);
 
 	if (!newColor.isValid()) return; 
 
-	QPalette pal;
-	pal.setColor(_colorButton->backgroundRole(),newColor);
-	pal.setColor(_colorButton->foregroundRole(),newColor);
-	_colorButton->setPalette(pal);
+	QPalette pal2;
+	pal2.setColor(_colorButton->backgroundRole(),newColor);
+	pal2.setColor(_colorButton->foregroundRole(),newColor);
+	_colorButton->setPalette(pal2);
 
   
 }
@@ -206,7 +207,9 @@ void ControlPointEditor::okHandler()
     float value = _dataValueField->text().toFloat();
 
     int h,s,v;
-    _colorButton->paletteForegroundColor().hsv(&h,&s,&v);
+	QColor col = _colorButton->palette().color(QPalette::Foreground);
+	col.getHsv(&h,&s,&v);
+
     VColormap::Color color(h/359.0, s/255.0, v/255.0);
 
     _cmap->controlPointValue(_controlPoint, value);

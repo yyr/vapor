@@ -44,25 +44,25 @@ void MouseModeCommand::unDo(){
 	Session::getInstance()->blockRecording();
 	switch (previousMode){
 		case GLWindow::navigateMode:
-			MainForm::getInstance()->navigationAction->setOn(true);
+			MainForm::getInstance()->navigationAction->setChecked(true);
 			break;
 		case GLWindow::regionMode:
-			MainForm::getInstance()->regionSelectAction->setOn(true);
+			MainForm::getInstance()->regionSelectAction->setChecked(true);
 			break;
 		case GLWindow::probeMode:
-			MainForm::getInstance()->probeAction->setOn(true);
+			MainForm::getInstance()->probeAction->setChecked(true);
 			break;
 		case GLWindow::twoDDataMode:
-			MainForm::getInstance()->twoDDataAction->setOn(true);
+			MainForm::getInstance()->twoDDataAction->setChecked(true);
 			break;
 		case GLWindow::twoDImageMode:
-			MainForm::getInstance()->twoDImageAction->setOn(true);
+			MainForm::getInstance()->twoDImageAction->setChecked(true);
 			break;
 		case GLWindow::rakeMode:
-			MainForm::getInstance()->rakeAction->setOn(true);
+			MainForm::getInstance()->rakeAction->setChecked(true);
 			break;
 		case GLWindow::lightMode:
-			MainForm::getInstance()->moveLightsAction->setOn(true);
+			MainForm::getInstance()->moveLightsAction->setChecked(true);
 			break;
 		
 		default:
@@ -74,25 +74,25 @@ void MouseModeCommand::reDo(){
 	Session::getInstance()->blockRecording();
 	switch (currentMode){
 		case GLWindow::navigateMode:
-			MainForm::getInstance()->navigationAction->setOn(true);
+			MainForm::getInstance()->navigationAction->setChecked(true);
 			break;
 		case GLWindow::regionMode:
-			MainForm::getInstance()->regionSelectAction->setOn(true);
+			MainForm::getInstance()->regionSelectAction->setChecked(true);
 			break;
 		case GLWindow::probeMode:
-			MainForm::getInstance()->probeAction->setOn(true);
+			MainForm::getInstance()->probeAction->setChecked(true);
 			break;
 		case GLWindow::twoDDataMode:
-			MainForm::getInstance()->twoDDataAction->setOn(true);
+			MainForm::getInstance()->twoDDataAction->setChecked(true);
 			break;
 		case GLWindow::twoDImageMode:
-			MainForm::getInstance()->twoDImageAction->setOn(true);
+			MainForm::getInstance()->twoDImageAction->setChecked(true);
 			break;
 		case GLWindow::rakeMode:
-			MainForm::getInstance()->rakeAction->setOn(true);
+			MainForm::getInstance()->rakeAction->setChecked(true);
 			break;
 		case GLWindow::lightMode:
-			MainForm::getInstance()->moveLightsAction->setOn(true);
+			MainForm::getInstance()->moveLightsAction->setChecked(true);
 			break;
 		
 		default:

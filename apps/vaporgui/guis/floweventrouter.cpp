@@ -79,7 +79,7 @@
 using namespace VAPoR;
 
 
-FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_FlowTab(), EventRouter(){
+FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_FlowTab(), EventRouter(){
 	setupUi(this);
 	myParamsType = Params::FlowParamsType;
 	savedCommand = 0;
@@ -360,8 +360,8 @@ void FlowEventRouter::updateTab(){
 			}
 			seedTimeFrame->hide();
 			
-			colormapEntityCombo->changeItem("Position along Flow",1);
-			opacmapEntityCombo->changeItem("Position along Flow",1);
+			colormapEntityCombo->setItemText(1,"Position along Flow");
+			opacmapEntityCombo->setItemText(1,"Position along Flow");
 			break;
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
@@ -376,8 +376,8 @@ void FlowEventRouter::updateTab(){
 			seedtimeEndEdit->setEnabled(true);
 			seedTimeFrame->show();
 			
-			colormapEntityCombo->changeItem("Time Step",1);
-			opacmapEntityCombo->changeItem("Time Step",1);
+			colormapEntityCombo->setItemText(1,"Time Step");
+			opacmapEntityCombo->setItemText(1,"Time Step");
 			break;
 		case(2) : //field line advection
 			
@@ -406,8 +406,8 @@ void FlowEventRouter::updateTab(){
 			seedtimeEndEdit->setEnabled(false);
 			seedTimeFrame->show();
 			
-			colormapEntityCombo->changeItem("Position along Flow",1);
-			opacmapEntityCombo->changeItem("Position along Flow",1);
+			colormapEntityCombo->setItemText(1,"Position along Flow");
+			opacmapEntityCombo->setItemText(1,"Position along Flow");
 			break;
 		default :
 			assert(0);
@@ -435,9 +435,9 @@ void FlowEventRouter::updateTab(){
 				autoScaleCheckbox1->setChecked(autoScale);
 				steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit1->setEnabled(!autoScale);
-				xSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
+				xSeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
 				biasEdit1->setText(QString::number(biasVal));
 				guiSetTextChanged(false);
 				bval = biasSlider1->value();
@@ -459,9 +459,9 @@ void FlowEventRouter::updateTab(){
 				populateTimestepTables();
 				biasEdit2->setText(QString::number(biasVal));
 				guiSetTextChanged(false);
-				xSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
+				xSeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
 				
 				bval = biasSlider2->value();
 				if (bval != (int)(biasVal*128.f/15.f))
@@ -480,7 +480,7 @@ void FlowEventRouter::updateTab(){
 				{
 					int advectBeforePriorOption = 
 						fParams->getFLAAdvectBeforePrioritize() ? 1 : 0 ;
-					flaOptionCombo->setCurrentItem(advectBeforePriorOption);
+					flaOptionCombo->setCurrentIndex(advectBeforePriorOption);
 					int numSamps = (advectBeforePriorOption == 0) ? 1 : fParams->getNumFLASamples() ;
 					flaSamplesEdit->setEnabled(advectBeforePriorOption == 1);
 					priorityFieldMinEdit->setEnabled(advectBeforePriorOption != 1);
@@ -494,12 +494,12 @@ void FlowEventRouter::updateTab(){
 				steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit2->setEnabled(!autoScale);
 				populateTimestepTables();
-				xSeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				xSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(0));
-				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
-				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
+				xSeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
+				xSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(0));
+				ySeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(1));
+				zSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(2));
 				
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
@@ -529,8 +529,8 @@ void FlowEventRouter::updateTab(){
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 
 	//Set up the timestep sample table:
 	timestepSampleTable1->horizontalHeader()->hide();
@@ -547,7 +547,7 @@ void FlowEventRouter::updateTab(){
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -559,8 +559,8 @@ void FlowEventRouter::updateTab(){
 		colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
 	}
 
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
-    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
+    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
+    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().toStdString());
 
 	
 	
@@ -572,13 +572,13 @@ void FlowEventRouter::updateTab(){
 	
 	
 	
-	flowTypeCombo->setCurrentItem(flowType);
+	flowTypeCombo->setCurrentIndex(flowType);
 	int numRefs = fParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
+		refinementCombo->setCurrentIndex(numRefs);
 
 	float sliderVal = fParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	sliderVal = 256.f*(1.f -sliderVal);
 	if (opacityScaleSlider->value() != (int) sliderVal)
 		opacityScaleSlider->setValue((int) sliderVal);
@@ -601,13 +601,13 @@ void FlowEventRouter::updateTab(){
 	if (numVars < 4) numVars = 4;
 	
 
-	xSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(0));
-	ySteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(1));
-	zSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(2));
+	xSteadyVarCombo->setCurrentIndex(fParams->getComboSteadyVarnum(0));
+	ySteadyVarCombo->setCurrentIndex(fParams->getComboSteadyVarnum(1));
+	zSteadyVarCombo->setCurrentIndex(fParams->getComboSteadyVarnum(2));
 
-	xUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(0));
-	yUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(1));
-	zUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(2));
+	xUnsteadyVarCombo->setCurrentIndex(fParams->getComboUnsteadyVarnum(0));
+	yUnsteadyVarCombo->setCurrentIndex(fParams->getComboUnsteadyVarnum(1));
+	zUnsteadyVarCombo->setCurrentIndex(fParams->getComboUnsteadyVarnum(2));
 	
 	periodicXCheck->setChecked(fParams->getPeriodicDim(0));
 	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
@@ -618,7 +618,7 @@ void FlowEventRouter::updateTab(){
 		comboSetting = 1;
 		if (fParams->isRandom()) comboSetting = 2;
 	}
-	rakeListCombo->setCurrentItem(comboSetting);
+	rakeListCombo->setCurrentIndex(comboSetting);
 	
 	randomSeedEdit->setEnabled(fParams->isRandom()&&fParams->rakeEnabled());
 
@@ -630,10 +630,10 @@ void FlowEventRouter::updateTab(){
 	}
 
 	//Geometric parameters:
-	geometryCombo->setCurrentItem(fParams->getShapeType());
+	geometryCombo->setCurrentIndex(fParams->getShapeType());
 	
-	colormapEntityCombo->setCurrentItem(fParams->getColorMapEntityIndex());
-	opacmapEntityCombo->setCurrentItem(fParams->getOpacMapEntityIndex());
+	colormapEntityCombo->setCurrentIndex(fParams->getColorMapEntityIndex());
+	opacmapEntityCombo->setCurrentIndex(fParams->getOpacMapEntityIndex());
 
     // Disable the mapping frame if a "Constant" color is selected;
     opacityMappingFrame->setEnabled(fParams->getOpacMapEntityIndex() != 0);
@@ -683,23 +683,23 @@ void FlowEventRouter::updateTab(){
 		if (steadySamplesSlider2->value() != sval)
 			steadySamplesSlider2->setValue(sval);
 		//Set the combo to display "As Needed" and be disabled.
-		unsteadyDirectionCombo->changeItem(QString("As Needed"),0);
-		unsteadyDirectionCombo->setCurrentItem(0);
+		unsteadyDirectionCombo->setItemText(0,QString("As Needed"));
+		unsteadyDirectionCombo->setCurrentIndex(0);
 		unsteadyDirectionCombo->setEnabled(false);
 	}
 	
 	//Put the rest of the setText messages here, will inhibit textChanged event
 	if (flowType != 1) {
 		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
-		steadyDirectionCombo->setCurrentItem(fParams->getSteadyDirection()+1);
+		steadyDirectionCombo->setCurrentIndex(fParams->getSteadyDirection()+1);
 		if (showAdvanced) {
 			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
 			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 		}
 	} else {//set the combo to just show forward & backward and be enabled
 		//dir = -1 results in combo position 1
-		unsteadyDirectionCombo->changeItem(QString("Forward"),0);
-		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
+		unsteadyDirectionCombo->setItemText(0,QString("Forward"));
+		unsteadyDirectionCombo->setCurrentIndex((1-fParams->getUnsteadyDirection())/2);
 		unsteadyDirectionCombo->setMaxCount(2);
 		unsteadyDirectionCombo->setEnabled(true);
 	}
@@ -977,7 +977,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		if(flowType == 2 && showAdvanced) {//Flow line advection only
 			
 			int numFlaSamples = 1;
-			if (flaOptionCombo->currentItem() == 1){
+			if (flaOptionCombo->currentIndex() == 1){
 				numFlaSamples = flaSamplesEdit->text().toInt();
 				if (numFlaSamples < 2) {
 					numFlaSamples = 2;
@@ -1325,7 +1325,7 @@ void FlowEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1) {performGuiCopyInstance();return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 
@@ -1411,12 +1411,12 @@ setFlowConstantColor(){
 
 void FlowEventRouter::
 setFlowEditMode(bool mode){
-	navigateButton->setOn(!mode);
+	navigateButton->setDown(!mode);
 	guiSetEditMode(mode);
 }
 void FlowEventRouter::
 setFlowNavigateMode(bool mode){
-	editButton->setOn(!mode);
+	editButton->setDown(!mode);
 	guiSetEditMode(!mode);
 }
 
@@ -1440,7 +1440,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(maxNumRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= maxNumRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	
 	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
@@ -1485,35 +1485,35 @@ reinitTab(bool doOverride){
 
 	//Put a "0" at the start of the variable combos
 	const QString& text = QString("0");
-	xSteadyVarCombo->insertItem(text);
-	ySteadyVarCombo->insertItem(text);
-	zSteadyVarCombo->insertItem(text);
-	xUnsteadyVarCombo->insertItem(text);
-	yUnsteadyVarCombo->insertItem(text);
-	zUnsteadyVarCombo->insertItem(text);
+	xSteadyVarCombo->addItem(text);
+	ySteadyVarCombo->addItem(text);
+	zSteadyVarCombo->addItem(text);
+	xUnsteadyVarCombo->addItem(text);
+	yUnsteadyVarCombo->addItem(text);
+	zUnsteadyVarCombo->addItem(text);
 	for (int i = 0; i< newNumComboVariables; i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		xSteadyVarCombo->insertItem(text);
-		ySteadyVarCombo->insertItem(text);
-		zSteadyVarCombo->insertItem(text);
-		xUnsteadyVarCombo->insertItem(text);
-		yUnsteadyVarCombo->insertItem(text);
-		zUnsteadyVarCombo->insertItem(text);
-		xSeedDistCombo1->insertItem(text);
-		ySeedDistCombo1->insertItem(text);
-		zSeedDistCombo1->insertItem(text);
-		xSeedDistCombo2->insertItem(text);
-		ySeedDistCombo2->insertItem(text);
-		zSeedDistCombo2->insertItem(text);
-		xSeedDistCombo3->insertItem(text);
-		ySeedDistCombo3->insertItem(text);
-		zSeedDistCombo3->insertItem(text);
-		xSeedPriorityCombo->insertItem(text);
-		ySeedPriorityCombo->insertItem(text);
-		zSeedPriorityCombo->insertItem(text);
+		xSteadyVarCombo->addItem(text);
+		ySteadyVarCombo->addItem(text);
+		zSteadyVarCombo->addItem(text);
+		xUnsteadyVarCombo->addItem(text);
+		yUnsteadyVarCombo->addItem(text);
+		zUnsteadyVarCombo->addItem(text);
+		xSeedDistCombo1->addItem(text);
+		ySeedDistCombo1->addItem(text);
+		zSeedDistCombo1->addItem(text);
+		xSeedDistCombo2->addItem(text);
+		ySeedDistCombo2->addItem(text);
+		zSeedDistCombo2->addItem(text);
+		xSeedDistCombo3->addItem(text);
+		ySeedDistCombo3->addItem(text);
+		zSeedDistCombo3->addItem(text);
+		xSeedPriorityCombo->addItem(text);
+		ySeedPriorityCombo->addItem(text);
+		zSeedPriorityCombo->addItem(text);
 	}
 	
 	std::vector<string> colorMapEntity;
@@ -1537,11 +1537,11 @@ reinitTab(bool doOverride){
 	
 	colormapEntityCombo->clear();
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
-		colormapEntityCombo->insertItem(QString(colorMapEntity[i].c_str()));
+		colormapEntityCombo->addItem(QString(colorMapEntity[i].c_str()));
 	}
 	opacmapEntityCombo->clear();
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
-		opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
+		opacmapEntityCombo->addItem(QString(opacMapEntity[i].c_str()));
 	}
 	updateTab();
 	dontUpdate=false;
@@ -1675,7 +1675,7 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "modify opacity scale slider");
 	fParams->setOpacityScale(((float)(256-val))/256.f);
 	float sliderVal = fParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 
 	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
@@ -1770,7 +1770,7 @@ guiSetNumRefinements(int n){
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n,timestep);
 	if (newNumTrans != n) {
 		MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current region, data cache size");
-		refinementCombo->setCurrentItem(newNumTrans);
+		refinementCombo->setCurrentIndex(newNumTrans);
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
 	fParams->setNumRefinements(newNumTrans);
@@ -2396,7 +2396,7 @@ guiStartChangeMapFcn(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-    savedCommand = PanelCommand::captureStart(fParams, qstr.latin1());
+    savedCommand = PanelCommand::captureStart(fParams, qstr.toLatin1());
 }
 void FlowEventRouter::
 guiEndChangeMapFcn(){
@@ -2424,12 +2424,12 @@ void FlowEventRouter::guiLoadSeeds(){
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future flow I/O
-	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
+	Session::getInstance()->setFlowDirectory(fileInfo->absolutePath().toAscii());
 	
 	//Open the file:
-	FILE* seedFile = fopen(filename.ascii(),"r");
+	FILE* seedFile = fopen(filename.toAscii(),"r");
 	if (!seedFile){
-		MessageReporter::errorMsg("Seed Load Error;\nUnable to open file %s",filename.ascii());
+		MessageReporter::errorMsg("Seed Load Error;\nUnable to open file %s",filename.toAscii());
 		delete cmd;
 		return;
 	}
@@ -2465,7 +2465,7 @@ void FlowEventRouter::saveSeeds(){
 		 return;
 
 	//If the file has no suffix, add .txt
-	if (filename.find(".") == -1){
+	if (filename.indexOf(".") == -1){
 		filename.append(".txt");
 	}
 
@@ -2477,13 +2477,13 @@ void FlowEventRouter::saveSeeds(){
 	}
 	//Extract the path, and the root name, from the returned string.
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo.dirPath(true).ascii());
+	Session::getInstance()->setFlowDirectory(fileInfo.absolutePath().toAscii());
 	
 	
 	//Open the save file:
-	FILE* saveFile = fopen(filename.ascii(),"w");
+	FILE* saveFile = fopen(filename.toAscii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",filename.ascii());
+		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",filename.toAscii());
 		return;
 	}
 	float *seedPoints;
@@ -2501,7 +2501,7 @@ void FlowEventRouter::saveSeeds(){
 			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 				seedPoints[4*j+0],seedPoints[4*j+1],seedPoints[4*j+2],seedPoints[4*j+3]);
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.toAscii());
 				break;
 			}
 		}
@@ -2515,7 +2515,7 @@ void FlowEventRouter::saveSeeds(){
 				seedList[j].getVal(0),seedList[j].getVal(1),
 				seedList[j].getVal(2),seedList[j].getVal(3));
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.ascii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.toAscii());
 				break;
 			}
 		}
@@ -2550,7 +2550,7 @@ void FlowEventRouter::saveFlowLines(){
 		 return;
 	}
 	//If the file has no suffix, add .txt
-	if (filename.find(".") == -1){
+	if (filename.indexOf(".") == -1){
 		filename.append(".txt");
 	}
 
@@ -2562,13 +2562,13 @@ void FlowEventRouter::saveFlowLines(){
 	}
 	//Extract the path, and the root name, from the returned string.
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo.dirPath(true).ascii());
+	Session::getInstance()->setFlowDirectory(fileInfo.absolutePath().toAscii());
 	
 	
 	//Open the save file:
-	FILE* saveFile = fopen(filename.ascii(),"w");
+	FILE* saveFile = fopen(filename.toAscii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n%s",filename.ascii());
+		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n%s",filename.toAscii());
 		return;
 	}
 	//Refresh the flow, if necessary
@@ -3082,11 +3082,11 @@ setEditorDirty(RenderParams* p ){
 	if (!fp) fp = VizWinMgr::getInstance()->getActiveFlowParams();
 	if(fp->getMapperFunc())fp->getMapperFunc()->setParams(fp);
     opacityMappingFrame->setMapperFunction(fp->getMapperFunc());
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
+    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
     opacityMappingFrame->updateParams();
     
     colorMappingFrame->setMapperFunction(fp->getMapperFunc());
-    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
+    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().toStdString());
     colorMappingFrame->updateParams();
 }
 //Make the new params current

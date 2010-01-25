@@ -25,25 +25,22 @@
 //
 #ifndef COLORPICKER_H
 #define COLORPICKER_H
-#include <q3frame.h>
+#include <QFrame>
 #include <qlineedit.h>
 #include <qvalidator.h>
-//Added by qt3to4:
-#include <QDropEvent>
-#include <QDragLeaveEvent>
 #include <QPaintEvent>
 #include <QPixmap>
 #include <QLabel>
 #include <QMouseEvent>
-#include <QDragEnterEvent>
+
 class QPixmap;
 class QLabel;
 
-class ColorPicker : public Q3Frame
+class ColorPicker : public QFrame
 {
     Q_OBJECT
 public:
-    ColorPicker(QWidget* parent=0, const char* name=0);
+    ColorPicker(QWidget* parent=0);
     ~ColorPicker();
 
 public slots:
@@ -56,7 +53,7 @@ signals:
 
 protected:
     QSize sizeHint() const;
-    void drawContents(QPainter* p);
+    void paintEvent(QPaintEvent *);
     void mouseMoveEvent( QMouseEvent * );
     void mousePressEvent( QMouseEvent * );
 	void mouseReleaseEvent(QMouseEvent *){
@@ -75,14 +72,13 @@ private:
 };
 
 
-class ColorShowLabel : public Q3Frame
+class ColorShowLabel : public QFrame
 {
     Q_OBJECT
 
 public:
-    ColorShowLabel( QWidget *parent ) : Q3Frame( parent, "qt_colorshow_lbl" ) {
-	setFrameStyle( Q3Frame::Panel|Q3Frame::Sunken );
-	setBackgroundMode( Qt::PaletteBackground );
+    ColorShowLabel( QWidget *parent ) : QFrame( parent) {
+	setFrameStyle( QFrame::Panel|QFrame::Sunken );
 	setAcceptDrops( TRUE );
 	mousePressed = FALSE;
     }
@@ -92,15 +88,12 @@ signals:
     void colorDropped( QRgb );
 
 protected:
-    void drawContents( QPainter *p );
+	void paintEvent(QPaintEvent *);
+    
     void mousePressEvent( QMouseEvent *e );
     void mouseMoveEvent( QMouseEvent *e );
     void mouseReleaseEvent( QMouseEvent *e );
-#ifndef QT_NO_DRAGANDDROP
-    void dragEnterEvent( QDragEnterEvent *e );
-    void dragLeaveEvent( QDragLeaveEvent *e );
-    void dropEvent( QDropEvent *e );
-#endif
+
 
 private:
     QColor col;
@@ -111,11 +104,15 @@ private:
 class ColNumLineEdit : public QLineEdit
 {
 public:
-    ColNumLineEdit( QWidget *parent, const char* name=0 )
-	: QLineEdit( parent, name ) { setMaxLength( 3 );}
+    ColNumLineEdit( QWidget *parent )
+	: QLineEdit( parent ) { setMaxLength( 3 );}
     QSize sizeHint() const {
-	return QSize( fontMetrics().width( "999" ) + 2 * ( margin() + frameWidth() ),
-		      QLineEdit::sizeHint().height() ); }
+		int margL,margT,margR,margB;
+		getContentsMargins(&margL,&margT,&margR, &margB);
+		int frameWidth = frameGeometry().width()-width();
+		return QSize( fontMetrics().width( "999" ) + 2 * ( margL + frameWidth ),
+		      QLineEdit::sizeHint().height() ); 
+	}
     void setNum( int i ) {
 	QString s;
 	s.setNum(i);
@@ -130,7 +127,7 @@ class ColorShower : public QWidget
 {
     Q_OBJECT
 public:
-    ColorShower( QWidget *parent, const char *name=0 );
+    ColorShower( QWidget *parent );
 
     //things that don't emit signals
     void setHsv( int h, int s, int v );
@@ -169,7 +166,7 @@ class ColorLuminancePicker : public QWidget
 {
     Q_OBJECT
 public:
-    ColorLuminancePicker(QWidget* parent=0, const char* name=0);
+    ColorLuminancePicker(QWidget* parent=0);
     ~ColorLuminancePicker();
 
 public slots:
@@ -205,8 +202,8 @@ class ColIntValidator: public QIntValidator
 {
 public:
     ColIntValidator( int bottom, int top,
-		   QWidget * parent, const char *name = 0 )
-	:QIntValidator( bottom, top, parent, name ) {}
+		   QWidget * parent)
+	:QIntValidator( bottom, top, parent ) {}
 
     QValidator::State validate( QString &, int & ) const;
 };
@@ -216,11 +213,11 @@ static inline void rgb2hsv( QRgb rgb, int&h, int&s, int&v )
     c.setRgb( rgb );
     c.getHsv(&h,&s,&v);
 }
-class ColorPickerFrame : public Q3Frame
+class ColorPickerFrame : public QFrame
 {
 Q_OBJECT
 public:
-    ColorPickerFrame( QWidget*, const char* name = 0 );
+    ColorPickerFrame( QWidget*);
     QRgb currentColor() const { return cs->currentColor(); }
     void setCurrentColor( QRgb rgb );
 

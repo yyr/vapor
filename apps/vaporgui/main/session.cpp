@@ -219,7 +219,7 @@ void Session::setDefaultPrefs(){
 	char buf2[50];
 	
 	DWORD size = 50;
-	//Don't Use QT to convert from unicode back to ascii
+	//Don't Use QT to convert from unicode back to toAscii
 	//WNetGetUserA(0,(LPWSTR)buf2,&size);
 	WNetGetUserA(0,(LPSTR)buf2,&size);
 	str1 = string(tempDir)+"\\VaporAutosave."+string(buf2)+".vss";
@@ -721,7 +721,7 @@ exportData(){
 		exporter.SetErrCode(0);
 	} else {
 		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables \nmay not be exported",
-			currentFrame, VizWinMgr::getInstance()->getVizWinName(winNum).ascii());
+			currentFrame, VizWinMgr::getInstance()->getVizWinName(winNum).toAscii());
 	}
 	return;
 }
@@ -1134,11 +1134,11 @@ isValidTFName(const std::string* name){
 void Session::
 updateTFFilePath(QString* s){
 	//First find the last / or \.  Strip everything to the right:
-	int pos = s->findRev('\\');
-	if (pos < 0) pos = s->findRev('/');
+	int pos = s->lastIndexOf('\\');
+	if (pos < 0) pos = s->lastIndexOf('/');
 	assert (pos>= 0);
 	if (pos < 0) return;
-	currentTFPath = s->left(pos+1).ascii();
+	currentTFPath = s->left(pos+1).toAscii();
 }
 
 //Diagnostic message callback:

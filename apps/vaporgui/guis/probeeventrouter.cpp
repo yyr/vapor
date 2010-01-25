@@ -77,7 +77,7 @@
 using namespace VAPoR;
 const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
 
-ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_ProbeTab(), EventRouter(){
+ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
 	myParamsType = Params::ProbeParamsType;
 	savedCommand = 0;
@@ -246,7 +246,7 @@ void ProbeEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int pType = probeParams->getProbeType();
-	probeTypeCombo->setCurrentItem(pType);
+	probeTypeCombo->setCurrentIndex(pType);
 	if (pType == 1) {
 		ibfvFrame->show();
 		colorMergeCheckbox->setEnabled(true);
@@ -266,9 +266,9 @@ void ProbeEventRouter::updateTab(){
 
 	guiSetTextChanged(false);
 
-	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
-	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
-	zSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(2));
+	xSteadyVarCombo->setCurrentIndex(probeParams->getIBFVComboVarNum(0));
+	ySteadyVarCombo->setCurrentIndex(probeParams->getIBFVComboVarNum(1));
+	zSteadyVarCombo->setCurrentIndex(probeParams->getIBFVComboVarNum(2));
 
 	if (colorMergeCheckbox->isChecked() != probeParams->ibfvColorMerged()){
 		colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
@@ -282,13 +282,13 @@ void ProbeEventRouter::updateTab(){
 	int numViz = vizMgr->getNumVisualizers();
 
 	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
+	copyCombo->addItem("Duplicate In:");
+	copyCombo->addItem("This visualizer");
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				copyCombo->addItem(vizMgr->getVizWinName(i));
 				//Remember the viznum corresponding to a combo item:
 				copyCount[copyNum++] = i;
 			}
@@ -311,18 +311,18 @@ void ProbeEventRouter::updateTab(){
 	QString varnames = getMappedVariableNames(&numvars);
 	QString shortVarNames = varnames;
 	if(shortVarNames.length() > 12){
-		shortVarNames.setLength(12);
+		shortVarNames.resize(12);
 		shortVarNames.append("...");
 	}
     if (numvars > 1)
     {
-      transferFunctionFrame->setVariableName(varnames.ascii());
+      transferFunctionFrame->setVariableName(varnames.toStdString());
 	  QString labelString = "Length of vector("+shortVarNames+") at selected point:";
 	  variableLabel->setText(labelString);
     }
 	else if (numvars > 0)
 	{
-      transferFunctionFrame->setVariableName(varnames.ascii());
+      transferFunctionFrame->setVariableName(varnames.toStdString());
 	  QString labelString = "Value of variable("+shortVarNames+") at selected point:";
 	  variableLabel->setText(labelString);
     }
@@ -333,7 +333,7 @@ void ProbeEventRouter::updateTab(){
     }
 	int numRefs = probeParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
+		refinementCombo->setCurrentIndex(numRefs);
 	
 	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
 	guiSetTextChanged(false);
@@ -475,8 +475,8 @@ void ProbeEventRouter::updateTab(){
 	updateBoundsText(probeParams);
 	
 	float sliderVal = probeParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	sliderVal = 256.f*(1.f -sliderVal);
 	opacityScaleSlider->setValue((int) sliderVal);
 	
@@ -485,11 +485,11 @@ void ProbeEventRouter::updateTab(){
 	
 	if (probeParams->getEditMode()){
 		
-		editButton->setOn(true);
-		navigateButton->setOn(false);
+		editButton->setDown(true);
+		navigateButton->setDown(false);
 	} else {
-		editButton->setOn(false);
-		navigateButton->setOn(true);
+		editButton->setDown(false);
+		navigateButton->setDown(true);
 	}
 		
 	
@@ -826,7 +826,7 @@ void ProbeEventRouter::guiSetProbeType(int t){
 		MessageReporter::warningMsg("Flow Image not supported on this system. \n%s",
 			"Updating graphics drivers may fix this problem.");
 		probeTypeCombo->setEnabled(false);
-		probeTypeCombo->setCurrentItem(0);
+		probeTypeCombo->setCurrentIndex(0);
 		return;
 	}
 	confirmText(false);
@@ -913,7 +913,7 @@ void ProbeEventRouter::guiRotate90(int selection){
 	float angle = (selection < 4) ? 90.f : -90.f;
 	//Renormalize and apply rotation:
 	pParams->rotateAndRenormalizeBox(axis, angle);
-	rotate90Combo->setCurrentItem(0);
+	rotate90Combo->setCurrentIndex(0);
 	updateTab();
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
@@ -935,7 +935,7 @@ void ProbeEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
 	if (toViz == 1){performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
+	copyCombo->setCurrentIndex(0);
 	performGuiCopyInstanceToViz(viznum);
 }
 void ProbeEventRouter::
@@ -967,7 +967,7 @@ setProbeEnabled(bool val, int instance){
 				"Updating graphics drivers may fix this problem.");
 			pParams->setProbeType(0);
 			probeTypeCombo->setEnabled(false);
-			probeTypeCombo->setCurrentItem(0);
+			probeTypeCombo->setCurrentIndex(0);
 			return;
 		}
 	}
@@ -980,12 +980,12 @@ setProbeEnabled(bool val, int instance){
 
 void ProbeEventRouter::
 setProbeEditMode(bool mode){
-	navigateButton->setOn(!mode);
+	navigateButton->setDown(!mode);
 	guiSetEditMode(mode);
 }
 void ProbeEventRouter::
 setProbeNavigateMode(bool mode){
-	editButton->setOn(!mode);
+	editButton->setDown(!mode);
 	guiSetEditMode(!mode);
 }
 
@@ -1022,7 +1022,7 @@ probeLoadInstalledTF(){
 	const char* slash = "/";
 #endif
 	QString installPath = (share + slash +"palettes").c_str();
-	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.ascii(),false);
+	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.toAscii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
@@ -1175,7 +1175,7 @@ guiAxisAlign(int choice){
 		default:
 			assert(0);
 	}
-	axisAlignCombo->setCurrentItem(0);
+	axisAlignCombo->setCurrentIndex(0);
 	//Force a redraw, update tab
 	updateTab();
 	setProbeDirty(pParams);
@@ -1238,7 +1238,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->ascii());
+	std::string s(name->toAscii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = dParams->getSessionVarNum();
@@ -1335,7 +1335,7 @@ reinitTab(bool doOverride){
 	refinementCombo->setMaxCount(numRefinements+1);
 	refinementCombo->clear();
 	for (int i = 0; i<= numRefinements; i++){
-		refinementCombo->insertItem(QString::number(i));
+		refinementCombo->addItem(QString::number(i));
 	}
 	if (histogramList) {
 		for (int i = 0; i<numHistograms; i++){
@@ -1356,15 +1356,15 @@ reinitTab(bool doOverride){
 	zSteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	//Put a "0" at the start of the variable combos
 	const QString& text = QString("0");
-	xSteadyVarCombo->insertItem(text);
-	ySteadyVarCombo->insertItem(text);
-	zSteadyVarCombo->insertItem(text);
+	xSteadyVarCombo->addItem(text);
+	ySteadyVarCombo->addItem(text);
+	zSteadyVarCombo->addItem(text);
 	for (int i = 0; i< newNumComboVariables; i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
 		const QString& text = QString(s.c_str());
-		xSteadyVarCombo->insertItem(text);
-		ySteadyVarCombo->insertItem(text);
-		zSteadyVarCombo->insertItem(text);
+		xSteadyVarCombo->addItem(text);
+		ySteadyVarCombo->addItem(text);
+		zSteadyVarCombo->addItem(text);
 	}
 	setBindButtons(false);
 	updateTab();
@@ -1455,7 +1455,7 @@ setEditorDirty(RenderParams* p){
     if (session->getNumSessionVariables())
     {
 	  int tmp;
-      transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).ascii());
+      transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).toStdString());
     }
     else
     {
@@ -1505,8 +1505,8 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( newscale);
 	float sliderVal = pp->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	
+	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 
 	setProbeDirty(pp);
 	probeTextureFrame->update();
@@ -1525,7 +1525,7 @@ guiStartChangeMapFcn(QString qstr){
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	ProbeParams* pp = VizWinMgr::getInstance()->getActiveProbeParams();
-    savedCommand = PanelCommand::captureStart(pp, qstr.latin1());
+    savedCommand = PanelCommand::captureStart(pp, qstr.toLatin1());
 }
 void ProbeEventRouter::
 guiEndChangeMapFcn(){
@@ -1728,7 +1728,7 @@ guiSetNumRefinements(int n){
 		if (n > maxNumRefinements) {
 			MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current data");
 			n = maxNumRefinements;
-			refinementCombo->setCurrentItem(n);
+			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
 	pParams->setNumRefinements(n);
@@ -2354,7 +2354,7 @@ void ProbeEventRouter::captureImage() {
 		if (rc != QMessageBox::Ok) return;
 	}
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//
 	//If this is IBFV, then we save texture as is.
@@ -2411,9 +2411,9 @@ void ProbeEventRouter::captureImage() {
 	
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	FILE* jpegFile = fopen(filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",filename.ascii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",filename.toAscii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -2424,13 +2424,13 @@ void ProbeEventRouter::captureImage() {
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
-			filename.ascii());
+			filename.toAscii());
 		delete buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.
 	MessageReporter::infoMsg("Image is captured to %s",
-			filename.ascii());
+			filename.toAscii());
 }
 //Start or stop image sequence capture
 void ProbeEventRouter::toggleFlowImageCapture() {
@@ -2446,7 +2446,7 @@ void ProbeEventRouter::toggleFlowImageCapture() {
 		//Extract the path, and the root name, from the returned string.
 		QFileInfo* fileInfo = new QFileInfo(filename);
 		//Save the path for future captures
-		Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+		Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
 		if (filename.endsWith(".jpg")) filename.truncate(filename.length()-4);
 		probeTextureFrame->setCaptureName(filename);
 		probeTextureFrame->setCaptureNum(0);

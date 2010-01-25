@@ -150,7 +150,7 @@ void OpacityWidget::drag(float dx, float dy, float)
 //----------------------------------------------------------------------------
 // Select the widget given the opengl selection name and qt button state. 
 //----------------------------------------------------------------------------
-void OpacityWidget::select(int handle, Qt::ButtonState state) 
+void OpacityWidget::select(int handle, Qt::KeyboardModifiers state) 
 {
   if (!(state & (Qt::ShiftModifier|Qt::ControlModifier)))
   {

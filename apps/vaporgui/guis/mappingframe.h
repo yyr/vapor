@@ -126,7 +126,7 @@ public:
 
 public slots:
 
-  void setHistogramScale(int scale);
+  void setHistogramScale(QAction*);
   void setCompositionType(int type);
   void setWidgetEnabled(int enabled);
   void setEditMode(bool flag);
@@ -197,8 +197,8 @@ protected:
   void updateAxisLabels();
   void addAxisLabel(int x, int y, const QString &text);
 
-  void select(int x, int y, Qt::ButtonState);
-  void select(int hits, GLuint *selectionBuffer, Qt::ButtonState);
+  void select(int x, int y, Qt::KeyboardModifiers);
+  void select(int hits, GLuint *selectionBuffer, Qt::KeyboardModifiers);
 
   void deselectWidgets();
 
@@ -235,7 +235,7 @@ protected:
 
 protected slots:
 
-  void addOpacityWidget(int menuType);
+  void addOpacityWidget(QAction*);
   void deleteOpacityWidget();
 
   void addColorControlPoint();
@@ -297,7 +297,7 @@ private:
   float  _maxValueStart;
   float  _isoVal;
 
-  Qt::ButtonState _button;
+  Qt::MouseButtons _button;
 
   float _minX;
   float _maxX;

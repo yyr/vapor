@@ -246,7 +246,7 @@ public slots:
 
 protected:
 	
-
+	QString myName;
 	QPoint mouseDownPosition;
 	bool mouseDownHere;
 

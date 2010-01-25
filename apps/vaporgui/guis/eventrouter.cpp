@@ -282,11 +282,11 @@ fileSaveTF(RenderParams* rParams){
 		if (rc != QMessageBox::Ok) return;
 	}
 	ofstream fileout;
-	fileout.open(s.ascii());
+	fileout.open(s.toAscii());
 	if (! fileout) {
 		QString str("Unable to save to file: \n");
 		str += s;
-		MessageReporter::errorMsg( str.ascii());
+		MessageReporter::errorMsg( str.toAscii());
 		return;
 	}
 	
@@ -294,7 +294,7 @@ fileSaveTF(RenderParams* rParams){
 	if (!((TransferFunction*)(rParams->getMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
 		str += s;
-		MessageReporter::errorMsg(str.ascii());
+		MessageReporter::errorMsg(str.toAscii());
 		fileout.close();
 		return;
 	}
@@ -312,7 +312,7 @@ loadInstalledTF(RenderParams* rParams, int varnum){
 #endif
 
 	QString installPath = (share + slash + "palettes").c_str();
-	fileLoadTF(rParams,varnum, installPath.ascii(),false);
+	fileLoadTF(rParams,varnum, installPath.toAscii(),false);
 }
 void EventRouter::
 loadTF(RenderParams* rParams, int varnum){
@@ -352,12 +352,12 @@ fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePa
 	
 	ifstream is;
 	
-	is.open(s.ascii());
+	is.open(s.toAscii());
 
 	if (!is){//Report error if you can't open the file
 		QString str("Unable to open file: \n");
 		str+= s;
-		MessageReporter::errorMsg(str.ascii());
+		MessageReporter::errorMsg(str.toAscii());
 		return;
 	}
 	//Start the history save:
@@ -369,7 +369,7 @@ fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePa
 	if (!t){//Report error if can't load
 		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
 		str += s;
-		MessageReporter::errorMsg(str.ascii());
+		MessageReporter::errorMsg(str.toAscii());
 		//Don't put this into history!
 		delete cmd;
 		return;

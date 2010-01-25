@@ -48,7 +48,7 @@
 #include "params.h"
 using namespace VAPoR;
 
-ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* name): QWidget(parent, name), Ui_VizTab(), EventRouter(){
+ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
 	myParamsType = Params::ViewpointParamsType;
 	savedCommand = 0;
@@ -301,9 +301,9 @@ void ViewpointEventRouter::updateTab(){
 	Session::getInstance()->blockRecording();
 	
 	if (vpParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
+		LocalGlobal->setCurrentIndex(1);
 	else 
-		LocalGlobal->setCurrentItem(0);
+		LocalGlobal->setCurrentIndex(0);
 	
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	int nLights = vpParams->getNumLights();
@@ -343,7 +343,7 @@ void ViewpointEventRouter::updateTab(){
 	upVec0->setText(strng.setNum(currentViewpoint->getUpVec(0), 'g', 3));
 	upVec1->setText(strng.setNum(currentViewpoint->getUpVec(1), 'g', 3));
 	upVec2->setText(strng.setNum(currentViewpoint->getUpVec(2), 'g', 3));
-	//perspectiveCombo->setCurrentItem(currentViewpoint->hasPerspective());
+	//perspectiveCombo->setCurrentIndex(currentViewpoint->hasPerspective());
 	rotCenter0->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(0),'g',3));
 	rotCenter1->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(1),'g',3));
 	rotCenter2->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(2),'g',3));
@@ -394,7 +394,7 @@ void ViewpointEventRouter::updateTab(){
 	lightDiff2->setEnabled(lightOn);
 
 	stereoSeparationEdit->setText(QString::number(vpParams->getStereoSeparation()));
-	stereoCombo->setCurrentItem(vpParams->getStereoMode());
+	stereoCombo->setCurrentIndex(vpParams->getStereoMode());
 	if (vpParams->getStereoSeparation() > 0.f)
 		stereoCombo->setEnabled(true);
 	else 

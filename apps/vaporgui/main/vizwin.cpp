@@ -71,10 +71,10 @@ using namespace VAPoR;
  *
  */
 VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
-    : QWidget( (QWidget*)parent, name, fl )
+    : QWidget( (QWidget*)parent, fl )
 {
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
-//	setWindowTitle(name);
+	myName = name;
     myParent = parent;
     myWindowNum = winNum;
 	spinTimer = 0;
@@ -762,17 +762,8 @@ mouseMoveEvent(QMouseEvent* e){
  */
 void VizWin::languageChange()
 {
-    setCaption( tr( name() ) );
+    setWindowTitle(myName);
    
-    //helpContentsAction->setText( tr( "Contents" ) );
-    //helpContentsAction->setMenuText( tr( "&Contents..." ) );
-    //helpContentsAction->setAccel( QString::null );
-    //helpIndexAction->setText( tr( "Index" ) );
-    //helpIndexAction->setMenuText( tr( "&Index..." ) );
-    //helpIndexAction->setAccel( QString::null );
-    //helpAboutAction->setText( tr( "About" ) );
-    //helpAboutAction->setMenuText( tr( "&About" ) );
-    //helpAboutAction->setAccel( QString::null );
 }
 
 void VizWin::helpIndex()

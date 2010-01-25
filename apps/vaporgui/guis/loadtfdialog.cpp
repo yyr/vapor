@@ -47,12 +47,12 @@ LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, Qt::WFlags fl 
 	LoadTFDialogLayout = new QHBoxLayout( this); 
   
 	layout23 = new QVBoxLayout(); 
-    fileLoadButton = new QPushButton( this, "fileLoadButton" );
+    fileLoadButton = new QPushButton( this );
     QFont fileLoadButton_font(  fileLoadButton->font() );
     fileLoadButton_font.setPointSize( 8 );
     fileLoadButton->setFont( fileLoadButton_font ); 
 	fileLoadButton->setAutoDefault(false);
-	QToolTip::add(fileLoadButton,"Click to load a transfer function from a file");
+	fileLoadButton->setToolTip("Click to load a transfer function from a file");
     layout23->addWidget( fileLoadButton );
     spacer26 = new QSpacerItem( 20, 31, QSizePolicy::Minimum, QSizePolicy::Expanding );
     layout23->addItem( spacer26 );
@@ -64,13 +64,13 @@ LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, Qt::WFlags fl 
 	
 	//Add a label for combo box
 		
-	QLabel* comboLabel = new QLabel(this, "combolabel");
+	QLabel* comboLabel = new QLabel(this);
 	comboLabel->setText(" Existing transfer functions saved in session:");
 	comboLabel->setAlignment(Qt::AlignHCenter);
 	layout23->addWidget( comboLabel);
 
 	//Create combo box with all tf names.
-	savedTFCombo = new QComboBox(false, this);
+	savedTFCombo = new QComboBox(this);
 	layout23->addWidget(savedTFCombo);
 	
 	//Insert names
@@ -78,31 +78,31 @@ LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, Qt::WFlags fl 
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& st = QString(ses->getTFName(i)->c_str());
-		savedTFCombo->insertItem(st, i);
+		savedTFCombo->insertItem(i, st);
 	}
-	QToolTip::add(savedTFCombo,"Select from transfer functions currently saved in session");
+	savedTFCombo->setToolTip("Select from transfer functions currently saved in session");
+	
 	//Add a label to show current name
-	nameLabel = new QLabel(this, "nameLabel");
+	nameLabel = new QLabel(this);
 	layout23->addWidget(nameLabel);
 
-    sessionLoadButton = new QPushButton( this, "sessionLoadButton" );
+    sessionLoadButton = new QPushButton( this);
     QFont sessionLoadButton_font(  sessionLoadButton->font() );
     sessionLoadButton_font.setPointSize( 8 );
     sessionLoadButton->setFont( sessionLoadButton_font ); 
 	layout23->addWidget( sessionLoadButton );
 	sessionLoadButton->setAutoDefault(false);
-	QToolTip::add(sessionLoadButton, "Click to load selected transfer function currently saved in this session");
-
+	sessionLoadButton->setToolTip("Click to load selected transfer function currently saved in this session");
 	const QString& s = QString(ses->getTFName(0)->c_str());
 	//label the first (current) name:
 	setTFName(s);
-	savedTFCombo->setCurrentItem(0);
+	savedTFCombo->setCurrentIndex(0);
 
     
     spacer27 = new QSpacerItem( 20, 31, QSizePolicy::Minimum, QSizePolicy::Expanding );
     layout23->addItem( spacer27 );
 
-    cancelButton = new QPushButton( this, "cancelButton" );
+    cancelButton = new QPushButton( this);
     QFont cancelButton_font(  cancelButton->font() );
     cancelButton_font.setPointSize( 8 );
     cancelButton->setFont( cancelButton_font ); 
@@ -137,7 +137,7 @@ LoadTFDialog::~LoadTFDialog()
  */
 void LoadTFDialog::languageChange()
 {
-    setCaption( tr( "Load Transfer Function" ) );
+    setWindowTitle( tr( "Load Transfer Function" ) );
     fileLoadButton->setText( tr( "Load Transfer Function from File" ) );
     sessionLoadButton->setText( tr( "Load Selected Transfer Function in this Session" ) );
     cancelButton->setText( tr( "Cancel" ) );
@@ -153,7 +153,7 @@ void LoadTFDialog::sessionLoad()
     done(2);
 }
 void LoadTFDialog::setTFName(const QString& s){
-	loadName = new QString(s.stripWhiteSpace());
+	loadName = new QString(s.trimmed());
 	if (loadName->length() == 0) {
 		nameLabel->setText( QString( "No Current Transfer Function Name" ));
 		sessionLoadButton->setEnabled(false);
