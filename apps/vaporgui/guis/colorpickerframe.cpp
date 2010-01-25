@@ -115,6 +115,7 @@ void ColorPicker::mousePressEvent( QMouseEvent *m )
     emit newCol( hue, sat );
 }
 void ColorPicker::paintEvent(QPaintEvent* ){
+	return;
 	QPainter p(this);
     drawFrame(&p);
     QRect r = contentsRect();
