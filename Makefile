@@ -3,7 +3,7 @@ TOP = .
 include $(TOP)/make/config/prebase.mk
 
 
-SUBDIRS = lib apps scripts examples 
+SUBDIRS = lib apps scripts share 
 
 ifeq ($(BUILD_TESTAPPS), 1)
 SUBDIRS += test_apps

@@ -38,7 +38,7 @@ CR_CC = $(CC)
 CR_CXX = $(CXX)
 OGL_LIB = GL
 GLU_LIB = GLU
-QT_LIB = QtOpenGL QtGui QtCore Qt3Support 
+QT_LIB = QtOpenGL QtGui QtCore  
 EXPAT_LIB = expat
 
 
@@ -134,7 +134,7 @@ $(MOC_DIR)/moc_%.cpp : %.h
 #	@$(MOC) $< -o $@ 
 
 #INCLUDE_DIRS += -I$(QTDIR)/include -I$(QTDIR)/include/qt -I$(UI_DIR)
-INCLUDE_DIRS += -I$(UI_DIR) -I$(QTDIR)/include -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/Qt3Support -I$(QTDIR)/include/QtGui -I$(QTDIR)/include/QtOpenGL 
+INCLUDE_DIRS += -I$(UI_DIR) -I$(QTDIR)/include -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/QtGui -I$(QTDIR)/include/QtOpenGL 
 #END OF ifdef QT
 endif
 
@@ -258,7 +258,7 @@ endif
 INCLUDE_DIRS += $(MAKEFILE_INCLUDE_DIRS)
 CFLAGS += -D$(ARCH) $(INCLUDE_DIRS)
 #CXXFLAGS += -D$(ARCH) -DQT_THREAD_SUPPORT $(INCLUDE_DIRS)
-CXXFLAGS += -D$(ARCH) -DQT_QT3SUPPORT_LIB -DQT3_SUPPORT -DQT_OPENGL_LIB -DQT_GUI_GUI_LIB -DQT_CORE_LIB -DQT_SHARED $(INCLUDE_DIRS)
+CXXFLAGS += -D$(ARCH) -DQT_OPENGL_LIB -DQT_GUI_GUI_LIB -DQT_CORE_LIB -DQT_SHARED $(INCLUDE_DIRS)
 
 #
 #	Append flags which may have been set from the makefile
