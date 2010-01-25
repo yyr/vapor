@@ -197,10 +197,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\customcontext.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\render\DVRBase.cpp"
 				>
 			</File>

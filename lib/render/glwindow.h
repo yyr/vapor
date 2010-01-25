@@ -60,7 +60,6 @@ class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
 class SpinThread;
-class CustomContext;
 
 
 class RENDER_API GLWindow : public MyBase, public QGLWidget
