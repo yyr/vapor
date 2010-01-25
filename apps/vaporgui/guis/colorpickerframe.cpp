@@ -66,8 +66,6 @@ ColorPicker::ColorPicker(QWidget* parent )
     for ( y = 0; y < pHeight; y++ )
 	for ( x = 0; x < pWidth; x++ ) {
 	    QPoint p( x, y );
-		int h = huePt(p);
-		int s = satPt(p);
 		img.setPixel( x, y, QColor::fromHsv(huePt(p), satPt(p),200).rgb());
 	}
 	QPixmap px = QPixmap::fromImage(img,0);
@@ -120,7 +118,7 @@ void ColorPicker::paintEvent(QPaintEvent* ){
 	QPainter p(this);
     drawFrame(&p);
     QRect r = contentsRect();
-
+	if (pix->isNull()) return;
     p.drawPixmap(r.topLeft(), *pix);
     QPoint pt = colPt() + r.topLeft();
     p.setPen(Qt::black);
@@ -449,18 +447,18 @@ ColorPickerFrame::ColorPickerFrame(QWidget* parent ) :
    
     QHBoxLayout *topLay = new QHBoxLayout( this);
 	topLay->setSpacing(6);
-    QVBoxLayout *leftLay = new QVBoxLayout(this);
+    QVBoxLayout *leftLay = new QVBoxLayout();
 	topLay->insertLayout(0,leftLay);
 
 
-    QVBoxLayout *rightLay = new QVBoxLayout(this);
+    QVBoxLayout *rightLay = new QVBoxLayout();
 	topLay->insertLayout(1,rightLay);
 
-    QHBoxLayout *pickLay = new QHBoxLayout(this);
+    QHBoxLayout *pickLay = new QHBoxLayout();
 	rightLay->insertLayout(0,pickLay);
 
 
-    QVBoxLayout *cLay = new QVBoxLayout(this);
+    QVBoxLayout *cLay = new QVBoxLayout();
 	pickLay->insertLayout(0,cLay);
     cp = new ColorPicker( this );
     cp->setFrameStyle( QFrame::Panel + QFrame::Sunken );

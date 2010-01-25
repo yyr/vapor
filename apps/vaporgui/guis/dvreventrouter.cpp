@@ -887,7 +887,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
         connect((QObject*)myDvr, 
                 SIGNAL(statusMessage(const QString&)),
                 (QObject*)MainForm::getInstance()->statusBar(), 
-                SLOT(message(const QString &)));
+                SLOT(showMessage(const QString &)));
 
 		
 		viz->getGLWindow()->insertSortedRenderer(dParams,myDvr);
