@@ -37,7 +37,7 @@ public:
   void paintGL();
   void initializeGL();
 
-  virtual void select(int handle, Qt::MouseButton);
+  virtual void select(int handle, Qt::KeyboardModifiers);
   virtual void deselect();
 
   std::list<float> selectedPoints();

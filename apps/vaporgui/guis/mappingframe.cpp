@@ -269,7 +269,12 @@ void MappingFrame::setVariableName(std::string name)
   if (name != "")
   {
     _variableLabel->setText(_variableName.c_str());
+	_variableLabel->setFixedSize(_variableLabel->sizeHint());
     _variableLabel->adjustSize();
+	QPalette pal;
+	pal.setColor(_variableLabel->backgroundRole(),Qt::black);
+	pal.setColor(_variableLabel->foregroundRole(),Qt::red);
+	_variableLabel->setPalette(pal);
     _variableLabel->show();
   }
 }
@@ -638,10 +643,10 @@ void MappingFrame::initWidgets()
   _variableLabel = new QLabel(this);
   _variableLabel->setAlignment(Qt::AlignHCenter);
   _variableLabel->hide();
-  QPalette pal = _variableLabel->palette();
+  QPalette pal;
   pal.setColor(_variableLabel->backgroundRole(),Qt::black);
   pal.setColor(_variableLabel->foregroundRole(),Qt::red);
-  
+  _variableLabel->setPalette(pal);
   //
   // Create the context sensitive menu
   //
@@ -1176,7 +1181,13 @@ void MappingFrame::updateAxisLabels()
   list<float> ticks;
 
   _axisIter = _axisLabels.begin();
-
+	for (; _axisIter != _axisLabels.end(); _axisIter++)
+  {
+	  (*_axisIter)->clear();
+    delete *_axisIter;
+  }
+	_axisLabels.clear();
+	_axisIter = _axisLabels.begin();
   OpacityWidget *opacWidget = dynamic_cast<OpacityWidget*>(_lastSelected);
 
   if (opacWidget)
@@ -1296,6 +1307,9 @@ void MappingFrame::addAxisLabel(int x, int y, const QString &text)
   QPoint pos(x - label->width()/2, y-10);
 
   label->setText(text);
+  QPalette pal;
+  pal.setColor(label->foregroundRole(), Qt::black);
+  label->setPalette(pal);
   label->move(mapToParent(pos));
   label->adjustSize();
   label->show();

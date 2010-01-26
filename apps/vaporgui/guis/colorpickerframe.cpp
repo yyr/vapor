@@ -63,16 +63,23 @@ ColorPicker::ColorPicker(QWidget* parent )
 
 	QImage img( pWidth, pHeight, QImage::Format_RGB32 );
     int x,y;
-    for ( y = 0; y < pHeight; y++ )
-	for ( x = 0; x < pWidth; x++ ) {
-	    QPoint p( x, y );
-		img.setPixel( x, y, QColor::fromHsv(huePt(p), satPt(p),200).rgb());
-	}
-	QPixmap px = QPixmap::fromImage(img,0);
-	pix = &px;
+    uint *pixel = (uint *) img.scanLine(0);
+    for (y = 0; y < pHeight; y++) {
+        const uint *end = pixel + pWidth;
+        x = 0;
+        while (pixel < end) {
+            QPoint p(x, y);
+            QColor c;
+            c.setHsv(huePt(p), satPt(p), 200);
+            *pixel = c.rgb();
+            ++pixel;
+            ++x;
+        }
+    }
+	pix = new QPixmap(QPixmap::fromImage(img));
+    setAttribute(Qt::WA_NoSystemBackground);
+    setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed) );   
     
-    setSizePolicy( QSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed )  );
-	setEnabled(false);
 }
 
 ColorPicker::~ColorPicker()
@@ -115,7 +122,7 @@ void ColorPicker::mousePressEvent( QMouseEvent *m )
     emit newCol( hue, sat );
 }
 void ColorPicker::paintEvent(QPaintEvent* ){
-	return;
+	
 	QPainter p(this);
     drawFrame(&p);
     QRect r = contentsRect();
