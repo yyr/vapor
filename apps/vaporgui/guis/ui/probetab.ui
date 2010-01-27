@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
+    <width>460</width>
     <height>1831</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>480</width>
+    <width>460</width>
     <height>32767</height>
    </size>
   </property>
@@ -34,9 +34,9 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QHBoxLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QLabel" name="textLabel1">
        <property name="text">
@@ -3718,6 +3718,9 @@ available from the right mouse button.</string>
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
                      </property>
+                     <property name="invertedAppearance">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -4287,7 +4290,7 @@ depending on which button is clicked.</string>
   </customwidget>
   <customwidget>
    <class>QtThumbWheel</class>
-   <extends>QAbstractSlider</extends>
+   <extends>QWidget</extends>
    <header>../../guis/qtthumbwheel.h</header>
   </customwidget>
  </customwidgets>

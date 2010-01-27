@@ -613,9 +613,8 @@ copyFromDialog(){
 	labelHeight = vizFeatureDlg->labelHeightEdit->text().toInt();
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
-	QPalette pal0(vizFeatureDlg->axisColorButton->palette());
-	pal0.setColor(vizFeatureDlg->axisColorButton->backgroundRole(), axisAnnotationColor);
-	vizFeatureDlg->axisColorButton->setPalette(pal0);
+
+	axisAnnotationColor = vizFeatureDlg->axisColorButton->palette().color(QPalette::Background);
 
 	showAxisAnnotation = vizFeatureDlg->axisAnnotationCheckbox->isChecked();
 	
@@ -629,9 +628,8 @@ copyFromDialog(){
 
 	timeAnnotType = vizFeatureDlg->timeCombo->currentIndex();
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
-	QPalette pal1(vizFeatureDlg->timeColorButton->palette());
-	pal1.setColor(vizFeatureDlg->timeColorButton->backgroundRole(), timeAnnotColor);
-	vizFeatureDlg->timeColorButton->setPalette(pal1);
+
+	timeAnnotColor = vizFeatureDlg->timeColorButton->palette().color(QPalette::Background);
 
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
@@ -656,15 +654,11 @@ copyFromDialog(){
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
 
-	QPalette pal2(vizFeatureDlg->colorbarBackgroundButton->palette());
-	pal2.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(), colorbarBackgroundColor);
-	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal2);
+	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->palette().color(QPalette::Background);
 
 	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
 
-	QPalette pal3(vizFeatureDlg->surfaceColorButton->palette());
-	pal3.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(), elevGridColor);
-	vizFeatureDlg->surfaceColorButton->setPalette(pal3);
+	elevGridColor = vizFeatureDlg->surfaceColorButton->palette().color(QPalette::Background);
 
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentIndex();

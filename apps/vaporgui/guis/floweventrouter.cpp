@@ -1395,18 +1395,14 @@ setBiasFromSlider3(int val){
  */
 void FlowEventRouter::
 setFlowConstantColor(){
+	QPalette pal(constantColorButton->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Background), this);
 	
-	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(constantColorButton->palette().color(QPalette::Background), this);
-	//Set button color
-	QPalette pal;
-	pal.setColor(constantColorButton->backgroundRole(),newColor);
+	pal.setColor(constantColorButton->backgroundRole(), newColor);
 	constantColorButton->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
 	guiSetConstantColor(newColor);
 }
-
-
 
 
 void FlowEventRouter::

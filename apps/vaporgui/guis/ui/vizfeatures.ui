@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>415</width>
-    <height>1192</height>
+    <height>1212</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>415</width>
-    <height>0</height>
+    <height>1212</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -286,6 +286,12 @@
               <layout class="QVBoxLayout">
                <item>
                 <widget class="QLabel" name="textLabel1_5_2">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>30</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>&lt;b&gt;Variable values outside grid (for layered data)&lt;/b&gt;</string>
                  </property>
@@ -324,6 +330,12 @@
                  </item>
                  <item row="0" column="0">
                   <widget class="QLabel" name="textLabel2_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Variable</string>
                    </property>
@@ -337,6 +349,12 @@
                  </item>
                  <item row="0" column="3">
                   <widget class="QLabel" name="textLabel2_2_2_2_2_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Extend</string>
                    </property>
@@ -350,6 +368,12 @@
                  </item>
                  <item row="0" column="1">
                   <widget class="QLabel" name="textLabel2_2_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Below</string>
                    </property>
@@ -373,6 +397,12 @@
                  </item>
                  <item row="1" column="0">
                   <widget class="QComboBox" name="variableCombo">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Specify the variable whose values are being specified</string>
                    </property>
@@ -380,6 +410,12 @@
                  </item>
                  <item row="0" column="4">
                   <widget class="QLabel" name="textLabel2_2_2_2_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Extend</string>
                    </property>
@@ -406,6 +442,12 @@
                  </item>
                  <item row="0" column="2">
                   <widget class="QLabel" name="textLabel2_2_2_2">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>Above</string>
                    </property>
@@ -466,7 +508,7 @@
        <item>
         <widget class="QLabel" name="textLabel1">
          <property name="text">
-          <string>Following apply to specific Visualizer:</string>
+          <string>Following apply to this Visualizer:</string>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -475,6 +517,12 @@
        </item>
        <item>
         <widget class="QComboBox" name="currentNameCombo">
+         <property name="minimumSize">
+          <size>
+           <width>117</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>This visualizer's features are displayed and modified</string>
          </property>
@@ -761,6 +809,12 @@
      </item>
      <item>
       <widget class="QFrame" name="axisAnnotationFrame">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>259</height>
+        </size>
+       </property>
        <property name="whatsThis">
         <string>To display (x,y,z)-axes with tic marks and to display coordinates at the tic marks, specify the min and max coordinate values, the number of tic marks on each axis, and the orientation of the tic marks.</string>
        </property>

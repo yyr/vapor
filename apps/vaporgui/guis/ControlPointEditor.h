@@ -37,6 +37,7 @@ class ControlPointEditor : public QDialog, public Ui_ControlPointEditorBase
 
  protected:
 
+  QColor tempColor;
   void initWidgets();
   void initConnections();
 

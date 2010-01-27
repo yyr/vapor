@@ -28,7 +28,7 @@
         <widget class="QPushButton" name="buttonOk2">
          <property name="maximumSize">
           <size>
-           <width>65</width>
+           <width>50</width>
            <height>32767</height>
           </size>
          </property>
@@ -50,7 +50,7 @@
         <widget class="QPushButton" name="buttonCancel2">
          <property name="maximumSize">
           <size>
-           <width>65</width>
+           <width>50</width>
            <height>32767</height>
           </size>
          </property>
@@ -72,7 +72,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>65</width>
+           <width>50</width>
            <height>32767</height>
           </size>
          </property>
@@ -98,6 +98,12 @@
          <property name="enabled">
           <bool>true</bool>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Click to reset all user preferences and parameter values to their original default values</string>
          </property>
@@ -117,6 +123,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="showDefaultsButton">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Display the application defaults that will be used when the application is restarted or new data is loaded.</string>
          </property>
@@ -1118,7 +1130,7 @@
                     <widget class="QPushButton" name="backgroundColorButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>68</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1254,7 +1266,7 @@
                     <widget class="QPushButton" name="regionFrameColorButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>68</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1393,7 +1405,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>68</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1490,7 +1502,7 @@
                     <widget class="QPushButton" name="sessionPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>49</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1512,7 +1524,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>120</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1538,7 +1550,7 @@
                     <widget class="QPushButton" name="metadataPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>49</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1628,7 +1640,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>120</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1654,7 +1666,7 @@
                     <widget class="QPushButton" name="tfPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>49</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1676,7 +1688,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>120</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1714,7 +1726,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>120</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1736,7 +1748,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>120</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1752,7 +1764,7 @@
                     <widget class="QPushButton" name="jpegPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>49</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1787,7 +1799,7 @@
                     <widget class="QPushButton" name="flowPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>49</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -4797,7 +4809,7 @@ with all three light sources.</string>
          </property>
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>25</height>
           </size>
          </property>

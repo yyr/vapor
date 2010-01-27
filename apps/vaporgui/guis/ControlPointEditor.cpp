@@ -91,7 +91,7 @@ void ControlPointEditor::initWidgets()
 
 	QPalette pal;
 	pal.setColor(_colorButton->backgroundRole(),qcolor);
-	pal.setColor(_colorButton->foregroundRole(),qcolor);
+	
 	_colorButton->setPalette(pal);
 
                               
@@ -174,19 +174,13 @@ void ControlPointEditor::indexValueChanged()
 //----------------------------------------------------------------------------
 void ControlPointEditor::pickColor()
 {
-	QPalette pal = _colorButton->palette();
-	const QColor& color = pal.color(QPalette::Foreground);
-
-	QColor newColor = QColorDialog::getColor(color, this);
-
+	QPalette pal(_colorButton->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Background), this);
 	if (!newColor.isValid()) return; 
+	pal.setColor(_colorButton->backgroundRole(), newColor);
+	_colorButton->setPalette(pal);
+	tempColor = newColor;
 
-	QPalette pal2;
-	pal2.setColor(_colorButton->backgroundRole(),newColor);
-	pal2.setColor(_colorButton->foregroundRole(),newColor);
-	_colorButton->setPalette(pal2);
-
-  
 }
 
 //----------------------------------------------------------------------------
@@ -207,8 +201,8 @@ void ControlPointEditor::okHandler()
     float value = _dataValueField->text().toFloat();
 
     int h,s,v;
-	QColor col = _colorButton->palette().color(QPalette::Foreground);
-	col.getHsv(&h,&s,&v);
+	
+	tempColor.getHsv(&h,&s,&v);
 
     VColormap::Color color(h/359.0, s/255.0, v/255.0);
 

@@ -266,8 +266,8 @@ void MappingFrame::setColorMapping(bool flag)
 void MappingFrame::setVariableName(std::string name)
 {
   _variableName = name;
-  if (_variableName.size()> 50)
-	  _variableName.resize(50);
+  if (_variableName.size()> 45)
+	  _variableName.resize(45);
 
 }
 
@@ -1270,7 +1270,7 @@ void MappingFrame::updateAxisLabels()
   for (int i = 0; i<_axisTexts.size(); i++){
 		
 		QPoint* pt = _axisTextPos[i];
-		renderText(pt->x(),pt->y(), _axisTexts[i], QFont("Arial",8,5,false));
+		renderText(pt->x(),pt->y(), _axisTexts[i], QFont("Arial",10,5,false));
   }
 
 }
@@ -1281,7 +1281,7 @@ void MappingFrame::updateAxisLabels()
 void MappingFrame::addAxisLabel(int x, int y, const QString &text)
 {
 	
-	int xpos = x - text.length()*2;
+	int xpos = x - text.length()*3;
 	QPoint* pos = new QPoint(xpos,y+5);
 	_axisTextPos.push_back(pos);
 	_axisTexts.push_back(text);

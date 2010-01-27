@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>2499</height>
+    <height>2524</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -6577,6 +6577,9 @@ bounds.</string>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>true</bool>
               </property>
              </widget>
             </item>

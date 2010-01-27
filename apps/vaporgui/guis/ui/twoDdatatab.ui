@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>1516</height>
+    <width>460</width>
+    <height>1740</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,7 +24,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>480</width>
+    <width>460</width>
     <height>32767</height>
    </size>
   </property>
@@ -267,6 +267,12 @@ create new 2D planar instances.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame11">
+       <property name="maximumSize">
+        <size>
+         <width>450</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="whatsThis">
         <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  In image mode, geo-referenced images are displayed. This panel controls positioning and color-mapping of the planar region and, in data mode, allows querying variable values and flow seed placement.</string>
        </property>
@@ -2677,6 +2683,9 @@ available from the right mouse button.</string>
                      </property>
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="invertedAppearance">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
