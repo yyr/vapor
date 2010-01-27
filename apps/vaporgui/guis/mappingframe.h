@@ -182,9 +182,7 @@ protected:
   void paintGL();
   void resizeGL( int w, int h );
   //Virtual, Reimplemented here:
-  void paintEvent(QPaintEvent* event){
-	  if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
-  }
+  void paintEvent(QPaintEvent* event);
 
   void drawOpacityCurve();
   void drawOpacityWidgets();
@@ -272,7 +270,6 @@ private:
   bool           _updateTexture;
   int            _histogramScale;
 
-  QLabel     *_variableLabel;
     
   QPoint      _contextPoint;
   QMenu *_contextMenu;
@@ -316,9 +313,9 @@ private:
   const int _bottomGap;
 
 //  TFLocationTip *_tooltip;
-
-  std::list<QLabel*>            _axisLabels;
-  std::list<QLabel*>::iterator  _axisIter;
+  QStringList _axisTexts;
+  QList<QPoint*> _axisTextPos;
+  
 };
 
 #endif // MappingFrame_H

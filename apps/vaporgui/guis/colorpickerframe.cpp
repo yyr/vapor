@@ -186,42 +186,42 @@ ColorShower::ColorShower( QWidget *parent )
 */
     hEd = new ColNumLineEdit( this);
     hEd->setValidator( val360 );
-    QLabel *l = new QLabel("Hu&e:", this );
+    QLabel *l = new QLabel("Hue:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 1 );
     gl->addWidget( hEd, 0, 2 );
 
     sEd = new ColNumLineEdit( this );
     sEd->setValidator( val256 );
-    l = new QLabel( "&Sat:", this );
+    l = new QLabel( "Sat:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 1 );
     gl->addWidget( sEd, 1, 2 );
 
     vEd = new ColNumLineEdit( this);
     vEd->setValidator( val256 );
-    l = new QLabel( "&Val:", this );
+    l = new QLabel( "Val:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 1 );
     gl->addWidget( vEd, 2, 2 );
 
     rEd = new ColNumLineEdit( this );
     rEd->setValidator( val256 );
-    l = new QLabel( "&Red:", this );
+    l = new QLabel( "Red:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 0, 3 );
     gl->addWidget( rEd, 0, 4 );
 
     gEd = new ColNumLineEdit( this);
     gEd->setValidator( val256 );
-    l = new QLabel( "&Green:", this );
+    l = new QLabel( "Green:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 1, 3 );
     gl->addWidget( gEd, 1, 4 );
 
     bEd = new ColNumLineEdit( this );
     bEd->setValidator( val256 );
-    l = new QLabel( "Bl&ue:", this );
+    l = new QLabel( "Blue:", this );
     l->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
     gl->addWidget( l, 2, 3 );
     gl->addWidget( bEd, 2, 4 );

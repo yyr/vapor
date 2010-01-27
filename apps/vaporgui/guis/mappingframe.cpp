@@ -84,7 +84,6 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
     _texture(NULL),
     _updateTexture(true),
     _histogramScale(LINEAR),
-    _variableLabel(NULL),
     _contextMenu(NULL),
     _addOpacityWidgetSubMenu(NULL),
     _histogramScalingSubMenu(NULL),
@@ -149,7 +148,11 @@ MappingFrame::~MappingFrame()
     delete [] _texture;
     _texture = NULL;
   }
-  
+  for (int i = 0; i<_axisTexts.size(); i++){
+	  delete _axisTextPos[i];
+  }
+  _axisTexts.clear();
+  _axisTextPos.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -263,20 +266,9 @@ void MappingFrame::setColorMapping(bool flag)
 void MappingFrame::setVariableName(std::string name)
 {
   _variableName = name;
-  if (_variableName.size()> 40)
-	  _variableName.resize(40);
+  if (_variableName.size()> 50)
+	  _variableName.resize(50);
 
-  if (name != "")
-  {
-    _variableLabel->setText(_variableName.c_str());
-	_variableLabel->setFixedSize(_variableLabel->sizeHint());
-    _variableLabel->adjustSize();
-	QPalette pal;
-	pal.setColor(_variableLabel->backgroundRole(),Qt::black);
-	pal.setColor(_variableLabel->foregroundRole(),Qt::red);
-	_variableLabel->setPalette(pal);
-    _variableLabel->show();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -638,16 +630,6 @@ void MappingFrame::initWidgets()
   _texture = new unsigned char[_NUM_BINS*_NUM_BINS];
 
   //
-  // Create variable label
-  //
-  _variableLabel = new QLabel(this);
-  _variableLabel->setAlignment(Qt::AlignHCenter);
-  _variableLabel->hide();
-  QPalette pal;
-  pal.setColor(_variableLabel->backgroundRole(),Qt::black);
-  pal.setColor(_variableLabel->foregroundRole(),Qt::red);
-  _variableLabel->setPalette(pal);
-  //
   // Create the context sensitive menu
   //
   _contextMenu = new QMenu(this);
@@ -926,7 +908,9 @@ void MappingFrame::paintGL()
 
     glDisable(GL_BLEND);
   }
-
+  
+  swapBuffers();
+  glFlush();
   printOpenGLErrorMsg("MappingFrame");
 }
 
@@ -935,8 +919,9 @@ void MappingFrame::paintGL()
 //----------------------------------------------------------------------------
 void MappingFrame::initializeGL()
 {
-	if (GLWindow::isRendering()) return;
+  if (GLWindow::isRendering()) return;
   printOpenGLErrorMsg("MappingFrame");
+  setAutoBufferSwap(false);
   qglClearColor(QColor(0,0,0)); 
 
   glShadeModel( GL_SMOOTH );
@@ -1061,16 +1046,14 @@ void MappingFrame::drawDomainSlider()
   // Draw Domain Variable Name
   //
 
-  // TBD Note: RenderText
+  //Draw variable name:
+  if (_variableName != "" ){
+		//allow for 4 pixels per character in name:
+		int wx = (width() - _variableName.size()*8)/2;
+		qglColor(Qt::red);
+		renderText(wx, _domainLabelHeight+15, QString::fromStdString(_variableName), QFont("Arial",10,5,false));
+  }
   
-  //AN, 5/8/08: Note:  for some reason, moving the domain slider text
-  //causes gl errors when the domain bounds are invalid.
-  //See bug 1818812
-  //As a workaround, the text is not moved. 
-  //float x = (_domainSlider->minValue() + _domainSlider->maxValue()) / 2.0;
-  //int wx  = (int)(xWorldToView(x) - _variableLabel->width())/2;
-  int wx = (width() - _variableLabel->width())/2;
-  _variableLabel->move(wx, _domainLabelHeight);
  
   glPopName();
 }
@@ -1180,14 +1163,14 @@ void MappingFrame::updateAxisLabels()
 
   list<float> ticks;
 
-  _axisIter = _axisLabels.begin();
-	for (; _axisIter != _axisLabels.end(); _axisIter++)
-  {
-	  (*_axisIter)->clear();
-    delete *_axisIter;
+  // Eliminate axis text and points
+  for (int i = 0; i<_axisTexts.size(); i++){
+	  delete _axisTextPos[i];
   }
-	_axisLabels.clear();
-	_axisIter = _axisLabels.begin();
+  _axisTexts.clear();
+  _axisTextPos.clear();
+
+
   OpacityWidget *opacWidget = dynamic_cast<OpacityWidget*>(_lastSelected);
 
   if (opacWidget)
@@ -1259,10 +1242,6 @@ void MappingFrame::updateAxisLabels()
 	  addAxisLabel(x,y,QString("%1").arg(xWorldToData(isoval)));
   }
 
-  for (; _axisIter != _axisLabels.end(); _axisIter++)
-  {
-    (*_axisIter)->hide();
-  }
 
   //
   // Draw ticks
@@ -1283,6 +1262,17 @@ void MappingFrame::updateAxisLabels()
     }
   }
   glEnd();
+
+  //
+  // Draw axis labels
+  //
+  qglColor(Qt::black);
+  for (int i = 0; i<_axisTexts.size(); i++){
+		
+		QPoint* pt = _axisTextPos[i];
+		renderText(pt->x(),pt->y(), _axisTexts[i], QFont("Arial",8,5,false));
+  }
+
 }
 
 //----------------------------------------------------------------------------
@@ -1290,29 +1280,12 @@ void MappingFrame::updateAxisLabels()
 //----------------------------------------------------------------------------
 void MappingFrame::addAxisLabel(int x, int y, const QString &text)
 {
-  QLabel *label = NULL;
-
-  if (_axisIter == _axisLabels.end())
-  {
-    label = new QLabel(parentWidget());
-    label->setAlignment(Qt::AlignHCenter);
-    _axisLabels.push_back(label);
-  }
-  else
-  {
-    label = *_axisIter;
-    _axisIter++;
-  }
-
-  QPoint pos(x - label->width()/2, y-10);
-
-  label->setText(text);
-  QPalette pal;
-  pal.setColor(label->foregroundRole(), Qt::black);
-  label->setPalette(pal);
-  label->move(mapToParent(pos));
-  label->adjustSize();
-  label->show();
+	
+	int xpos = x - text.length()*2;
+	QPoint* pos = new QPoint(xpos,y+5);
+	_axisTextPos.push_back(pos);
+	_axisTexts.push_back(text);
+	
 }
 
 
@@ -2411,3 +2384,13 @@ void MappingFrame::setIsoSlider()
   
 }
 
+void MappingFrame::paintEvent(QPaintEvent* event)
+{
+	  if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
+	 /* QPainter painter(this);
+	painter.setPen(Qt::blue);
+	painter.setBackgroundMode(Qt::TransparentMode);
+	painter.setFont(QFont("Arial",10));
+	painter.drawText(20,20, 100,50, Qt::AlignCenter, "TEST");
+	*/
+}
