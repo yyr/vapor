@@ -817,7 +817,7 @@ void MainForm::saveMetadata()
 		if (!metadataFile.contains(path)){
 			int mposn = metadataFile.lastIndexOf("/");
 			QString mpath = metadataFile.left(mposn);
-			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",(const char*)path.toAscii(), mpath.toAscii());
+			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",(const char*)path.toAscii(), (const char*)mpath.toAscii());
 			return;
 		}
 		//If ok, go ahead and try to save using current DataMgr
