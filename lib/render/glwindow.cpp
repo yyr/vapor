@@ -1801,7 +1801,7 @@ void GLWindow::drawTimeAnnotation(){
 		QFont f("Courier",timeAnnotTextSize,5,false);
 		f.setStyleStrategy(QFont::OpenGLCompatible);
 		f.setStretch(150);
-		//renderText(xposn, yposn, labelContents, f);
+		renderText(xposn, yposn, labelContents, f);
 	}
 	
 }
