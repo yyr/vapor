@@ -45,7 +45,7 @@ GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* , Pro
 		QString strng(" Inadequate rendering capability.\n");
 		strng += "Ensure your graphics card is properly configured, and/or \n";
 		strng += "Be sure to use 'vglrun' if you are in a VirtualGL session.";
-		Params::BailOut(strng.toAscii(),__FILE__,__LINE__);
+		Params::BailOut((const char*)strng.toAscii(),__FILE__,__LINE__);
 	}
 	rendering = false;
 	horizTexSize = 1.f;
@@ -310,9 +310,9 @@ doFrameCapture(){
 	filename +=  ".jpg";
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.toAscii(), "wb");
+	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.toAscii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",(const char*)filename.toAscii());
 		capturing = 0;
 		return;
 	}

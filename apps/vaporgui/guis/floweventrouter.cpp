@@ -2420,12 +2420,12 @@ void FlowEventRouter::guiLoadSeeds(){
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future flow I/O
-	Session::getInstance()->setFlowDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setFlowDirectory((const char*)fileInfo->absolutePath().toAscii());
 	
 	//Open the file:
-	FILE* seedFile = fopen(filename.toAscii(),"r");
+	FILE* seedFile = fopen((const char*)filename.toAscii(),"r");
 	if (!seedFile){
-		MessageReporter::errorMsg("Seed Load Error;\nUnable to open file %s",filename.toAscii());
+		MessageReporter::errorMsg("Seed Load Error;\nUnable to open file %s",(const char*)filename.toAscii());
 		delete cmd;
 		return;
 	}
@@ -2473,13 +2473,13 @@ void FlowEventRouter::saveSeeds(){
 	}
 	//Extract the path, and the root name, from the returned string.
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo.absolutePath().toAscii());
+	Session::getInstance()->setFlowDirectory((const char*)fileInfo.absolutePath().toAscii());
 	
 	
 	//Open the save file:
-	FILE* saveFile = fopen(filename.toAscii(),"w");
+	FILE* saveFile = fopen((const char*)filename.toAscii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",filename.toAscii());
+		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",(const char*)filename.toAscii());
 		return;
 	}
 	float *seedPoints;
@@ -2497,7 +2497,7 @@ void FlowEventRouter::saveSeeds(){
 			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
 				seedPoints[4*j+0],seedPoints[4*j+1],seedPoints[4*j+2],seedPoints[4*j+3]);
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.toAscii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,(const char*)filename.toAscii());
 				break;
 			}
 		}
@@ -2511,7 +2511,7 @@ void FlowEventRouter::saveSeeds(){
 				seedList[j].getVal(0),seedList[j].getVal(1),
 				seedList[j].getVal(2),seedList[j].getVal(3));
 			if (rc <= 0) {
-				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,filename.toAscii());
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file:\n%s",j,(const char*)filename.toAscii());
 				break;
 			}
 		}
@@ -2558,13 +2558,13 @@ void FlowEventRouter::saveFlowLines(){
 	}
 	//Extract the path, and the root name, from the returned string.
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo.absolutePath().toAscii());
+	Session::getInstance()->setFlowDirectory((const char*)fileInfo.absolutePath().toAscii());
 	
 	
 	//Open the save file:
-	FILE* saveFile = fopen(filename.toAscii(),"w");
+	FILE* saveFile = fopen((const char*)filename.toAscii(),"w");
 	if (!saveFile){
-		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n%s",filename.toAscii());
+		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file:\n%s",(const char*)filename.toAscii());
 		return;
 	}
 	//Refresh the flow, if necessary

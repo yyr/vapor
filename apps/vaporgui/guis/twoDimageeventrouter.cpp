@@ -441,9 +441,9 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future image I/O
-	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	
-	tParams->setImageFileName(filename.toAscii());
+	tParams->setImageFileName((const char*)filename.toAscii());
 	
 	filenameEdit->setText(filename);
 	PanelCommand::captureEnd(cmd, tParams);

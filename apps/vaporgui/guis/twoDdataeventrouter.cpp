@@ -634,7 +634,7 @@ twoDLoadInstalledTF(){
 #endif
 	string share = GetAppPath("vapor", "share");
 	QString installPath = (share + slash + "palettes").c_str();
-	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.toAscii(),false);
+	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char*)installPath.toAscii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
@@ -741,7 +741,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->toAscii());
+	std::string s(name->toStdString());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = dParams->getSessionVarNum();
@@ -1674,7 +1674,7 @@ void TwoDDataEventRouter::captureImage() {
 		if (rc != QMessageBox::Ok) return;
 	}
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//
 	
@@ -1723,9 +1723,9 @@ void TwoDDataEventRouter::captureImage() {
 	
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.toAscii(), "wb");
+	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",filename.toAscii());
+		MessageReporter::errorMsg("Image Capture Error: \nError opening output Jpeg file: \n%s",(const char*)filename.toAscii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
@@ -1736,13 +1736,13 @@ void TwoDDataEventRouter::captureImage() {
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
-			filename.toAscii());
+			(const char*)filename.toAscii());
 		delete buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.
 	MessageReporter::infoMsg("Image is captured to %s",
-			filename.toAscii());
+			(const char*)filename.toAscii());
 }
 
 void TwoDDataEventRouter::guiNudgeXSize(int val) {

@@ -241,16 +241,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 		if (fileName.endsWith(".vss")){
 
 			ifstream is;
-			is.open(fileName.toAscii());
+			is.open((const char*)fileName.toAscii());
 			if (!is){//Report error if you can't open the file
-				MessageReporter::errorMsg("Unable to open session file: \n%s", fileName.toAscii());
+				MessageReporter::errorMsg("Unable to open session file: \n%s", (const char*)fileName.toAscii());
 				return;
 			}
 			//Remember file if load is successful:
 			if(Session::getInstance()->loadFromFile(is)){
 				QString sessionSaveFile = fileName;
 				QFileInfo fi(fileName);
-				Session::getInstance()->setSessionFilepath(sessionSaveFile.toAscii());
+				Session::getInstance()->setSessionFilepath((const char*)sessionSaveFile.toAscii());
 			}
 		} else if (fileName.endsWith(".vdf")){
 #ifdef WIN32
@@ -258,7 +258,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			//DataMgr can deal with this path
 			fileName.replace('\\','/');
 #endif
-			Session::getInstance()->resetMetadata(fileName.toAscii(), false);
+			Session::getInstance()->resetMetadata((const char*)fileName.toAscii(), false);
 		}
 	}
 	MessageReporter::infoMsg("MainForm::MainForm() end");
@@ -743,16 +743,16 @@ void MainForm::fileOpen()
 		filename += ".vss";
 	}
 	ifstream is;
-	is.open(filename.toAscii());
+	is.open((const char*)filename.toAscii());
 	if (!is){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open session file: \n%s", filename.toAscii());
+		MessageReporter::errorMsg("Unable to open session file: \n%s", (const char*)filename.toAscii());
 		return;
 	}
 	//Remember file if load is successful:
 	if(Session::getInstance()->loadFromFile(is)){
-		Session::getInstance()->setSessionFilepath(filename.toAscii());
+		Session::getInstance()->setSessionFilepath((const char*)filename.toAscii());
 	}
-	MessageReporter::infoMsg("Loaded session file: \n%s", filename.toAscii());
+	MessageReporter::infoMsg("Loaded session file: \n%s", (const char*)filename.toAscii());
 }
 
 
@@ -817,7 +817,7 @@ void MainForm::saveMetadata()
 		if (!metadataFile.contains(path)){
 			int mposn = metadataFile.lastIndexOf("/");
 			QString mpath = metadataFile.left(mposn);
-			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",path.toAscii(), mpath.toAscii());
+			MessageReporter::errorMsg("Specified directory %s is invalid. \nMetadata must be saved to \n%s .",(const char*)path.toAscii(), mpath.toAscii());
 			return;
 		}
 		//If ok, go ahead and try to save using current DataMgr
@@ -829,7 +829,7 @@ void MainForm::saveMetadata()
 		}
 		std::string stdName = filename.toStdString();
 		int rc = dataMgrWB->Write(stdName,0);
-		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", filename.toAscii());
+		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", (const char*)filename.toAscii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
 			//Save the metadata file name
@@ -877,17 +877,17 @@ void MainForm::fileSaveAs()
 	ofstream fileout;
 	fileout.open(filename.toAscii());
 	if (! fileout) {
-		MessageReporter::errorMsg( "Unable to save to file: \n%s", filename.toAscii());
+		MessageReporter::errorMsg( "Unable to save to file: \n%s", (const char*)filename.toAscii());
 		return;
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to save session to: \n%s", filename.toAscii());
+		MessageReporter::errorMsg("Failed to save session to: \n%s", (const char*)filename.toAscii());
 		fileout.close();
 		return;
 	}
 	fileout.close();
-	Session::getInstance()->setSessionFilepath(filename.toAscii());
+	Session::getInstance()->setSessionFilepath((const char*)filename.toAscii());
 }
 
 
@@ -951,7 +951,7 @@ void MainForm::helpAbout()
 		QString("Version: ")+
 		Version::GetVersionString().c_str());
 
-	QMessageBox::information(this, "Information about VAPOR",versionInfo.toAscii());
+	QMessageBox::information(this, "Information about VAPOR",(const char*)versionInfo.toAscii());
 
 }
 void MainForm::batchSetup(){
@@ -986,8 +986,8 @@ void MainForm::loadPrefs(){
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
-			UserPreferences::loadPreferences(filename.toAscii());
-		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", filename.toAscii());
+			UserPreferences::loadPreferences((const char*)filename.toAscii());
+		else MessageReporter::errorMsg("Unable to read preferences file: \n%s", (const char*)filename.toAscii());
 	}
 	
 }
@@ -999,8 +999,8 @@ void MainForm::savePrefs(){
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		
-		if(!UserPreferences::savePreferences(filename.toAscii()))
-			MessageReporter::errorMsg("Unable to save preferences file \n%s", filename.toAscii());
+		if(!UserPreferences::savePreferences((const char*)filename.toAscii()))
+			MessageReporter::errorMsg("Unable to save preferences file \n%s", (const char*)filename.toAscii());
 	}
 }
 //Load data into current session
@@ -1018,10 +1018,10 @@ void MainForm::loadData()
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
-			Session::getInstance()->resetMetadata(filename.toAscii(), true);
+			Session::getInstance()->resetMetadata((const char*)filename.toAscii(), true);
 			
 		}
-		else MessageReporter::errorMsg("Unable to read metadata file \n%s", filename.toAscii());
+		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
 	}
 }
 //Merge/Import data into current session
@@ -1050,10 +1050,10 @@ void MainForm::mergeData()
 		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
 		if (sDialog.exec() != QDialog::Accepted) return;
 		int offset = uiSetter.timestepOffsetSpin->value();
-		if (!Session::getInstance()->resetMetadata(filename.toAscii(), false, true, offset)){
-			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",filename.toAscii());
+		if (!Session::getInstance()->resetMetadata((const char*)filename.toAscii(), false, true, offset)){
+			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",(const char*)filename.toAscii());
 		}
-	} else MessageReporter::errorMsg("Unable to open \n%s",filename.toAscii());
+	} else MessageReporter::errorMsg("Unable to open \n%s",(const char*)filename.toAscii());
 	
 }
 //Load data into default session
@@ -1071,7 +1071,7 @@ void MainForm::defaultLoadData()
 		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
 		Session::getInstance()->resetMetadata(0, false);
-		Session::getInstance()->resetMetadata(filename.toAscii(), false);
+		Session::getInstance()->resetMetadata((const char*)filename.toAscii(), false);
 	}
 	
 }
@@ -1589,7 +1589,7 @@ void MainForm::startJpegCapture() {
 	QString s = qsl[0];
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	QString fileBaseName = fileInfo->baseName();
 	//See if it ends with digits
 	int posn;
@@ -1610,7 +1610,7 @@ void MainForm::startJpegCapture() {
 		viz->getGLWindow()->startImageCapture(filePath,startFileNum);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
-			filePath.toAscii());
+			(const char*)filePath.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
@@ -1641,7 +1641,7 @@ void MainForm::startFlowCapture() {
 	QString s = qs[0];
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setFlowDirectory((const char*)fileInfo->absolutePath().toAscii());
 	QString fileBaseName = fileInfo->baseName();
 	//See if it ends with digits
 	int posn;
@@ -1661,7 +1661,7 @@ void MainForm::startFlowCapture() {
 		viz->getGLWindow()->startFlowCapture(filePath);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Flow Capture Activated \n Flow is being captured to %s",
-			filePath.toAscii());
+			(const char*)filePath.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Flow Capture Error;\nNo active visualizer for capturing images");
@@ -1690,7 +1690,7 @@ void MainForm::captureSingleJpeg() {
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	
 	//Determine the active window:
 	//Turn on "image capture mode" in the current active visualizer
@@ -1699,7 +1699,7 @@ void MainForm::captureSingleJpeg() {
 		viz->getGLWindow()->singleCaptureImage(filename);
 		//Provide a message stating the capture in effect.
 		MessageReporter::infoMsg("Single Image is captured to %s",
-			filename.toAscii());
+			(const char*)filename.toAscii());
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing image");

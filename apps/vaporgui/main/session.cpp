@@ -721,7 +721,7 @@ exportData(){
 		exporter.SetErrCode(0);
 	} else {
 		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables \nmay not be exported",
-			currentFrame, VizWinMgr::getInstance()->getVizWinName(winNum).toAscii());
+			currentFrame, (const char*)VizWinMgr::getInstance()->getVizWinName(winNum).toAscii());
 	}
 	return;
 }

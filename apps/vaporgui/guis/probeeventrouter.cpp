@@ -1022,7 +1022,7 @@ probeLoadInstalledTF(){
 	const char* slash = "/";
 #endif
 	QString installPath = (share + slash +"palettes").c_str();
-	fileLoadTF(pParams, pParams->getSessionVarNum(), installPath.toAscii(),false);
+	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char*)installPath.toAscii(),false);
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
@@ -1238,7 +1238,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->toAscii());
+	std::string s(name->toStdString());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = dParams->getSessionVarNum();
@@ -2354,7 +2354,7 @@ void ProbeEventRouter::captureImage() {
 		if (rc != QMessageBox::Ok) return;
 	}
 	//Save the path for future captures
-	Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//
 	//If this is IBFV, then we save texture as is.
@@ -2411,7 +2411,7 @@ void ProbeEventRouter::captureImage() {
 	
 	
 	//Now open the jpeg file:
-	FILE* jpegFile = fopen(filename.toAscii(), "wb");
+	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
 	if (!jpegFile) {
 		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",filename.toAscii());
 		return;
@@ -2424,13 +2424,13 @@ void ProbeEventRouter::captureImage() {
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
-			filename.toAscii());
+			(const char*)filename.toAscii());
 		delete buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.
 	MessageReporter::infoMsg("Image is captured to %s",
-			filename.toAscii());
+			(const char*)filename.toAscii());
 }
 //Start or stop image sequence capture
 void ProbeEventRouter::toggleFlowImageCapture() {
@@ -2446,7 +2446,7 @@ void ProbeEventRouter::toggleFlowImageCapture() {
 		//Extract the path, and the root name, from the returned string.
 		QFileInfo* fileInfo = new QFileInfo(filename);
 		//Save the path for future captures
-		Session::getInstance()->setJpegDirectory(fileInfo->absolutePath().toAscii());
+		Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
 		if (filename.endsWith(".jpg")) filename.truncate(filename.length()-4);
 		probeTextureFrame->setCaptureName(filename);
 		probeTextureFrame->setCaptureNum(0);

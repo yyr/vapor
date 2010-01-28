@@ -384,7 +384,7 @@ void UserPreferences::chooseAutoSaveFilename(){
 		"Vapor Saved Sessions (*.vss)");
 	if (s != ""){
 		autoSaveFilenameEdit->setText(s);
-		Session::getInstance()->setAutoSaveSessionFilename(s.toAscii());
+		Session::getInstance()->setAutoSaveSessionFilename((const char*)s.toAscii());
 		autoSaveFilename = s.toStdString();
 		dialogChanged = true;
 	}
@@ -411,7 +411,7 @@ void UserPreferences::chooseLogFilePath(){
 		"Text (*.txt)");
 	if (s != ""){
 		logFilePathEdit->setText(s);
-		MessageReporter::getInstance()->reset(s.toAscii());
+		MessageReporter::getInstance()->reset((const char*)s.toAscii());
 		logFileName = s.toStdString();
 		dialogChanged = true;
 	}
@@ -803,10 +803,10 @@ void UserPreferences::requestSave(){
 	
 	if(filename.length() == 0) return;
 	ofstream os;
-	os.open(filename.toAscii());
+	os.open((const char*)filename.toAscii());
 
 	if (!os || !saveToFile(os)){//Report error if you can't open the file
-		MessageReporter::errorMsg("Unable to open preferences file: \n%s", filename.toAscii());
+		MessageReporter::errorMsg("Unable to open preferences file: \n%s", (const char*)filename.toAscii());
 	}
 	os.close();
 	

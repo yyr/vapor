@@ -988,9 +988,9 @@ guiLoadRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen(filename.toAscii(),"r");
+	FILE* regionFile = fopen((const char*)filename.toAscii(),"r");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Load Error;\nUnable to open file %s",filename.toAscii());
+		MessageReporter::errorMsg("Region Load Error;\nUnable to open file %s",(const char*)filename.toAscii());
 		return;
 	}
 	//File is OK, save the state in command queue
@@ -1030,7 +1030,7 @@ guiLoadRegionExtents(){
 
 	}
 	if (numregions == 0) {
-		MessageReporter::errorMsg("Region Load Error;\nNo valid region extents in file %s",filename.toAscii());
+		MessageReporter::errorMsg("Region Load Error;\nNo valid region extents in file %s",(const char*)filename.toAscii());
 		delete cmd;
 		fclose(regionFile);
 		return;
@@ -1068,9 +1068,9 @@ saveRegionExtents(){
 	}
 	
 	//Open the file:
-	FILE* regionFile = fopen(filename.toAscii(),"w");
+	FILE* regionFile = fopen((const char*)filename.toAscii(),"w");
 	if (!regionFile){
-		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",filename.toAscii());
+		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",(const char*)filename.toAscii());
 		return;
 	}
 	

@@ -2008,10 +2008,10 @@ captureFlow(int timestep){
 	int flowType = fParams->getFlowType();
 	saveFilename += (QString("%1").arg(timestep)).rightJustified(4,'0');
 	saveFilename +=  ".txt";
-	FILE* saveFile = fopen(saveFilename.toAscii(),"w");
+	FILE* saveFile = fopen((const char*)saveFilename.toAscii(),"w");
 	if (!saveFile){
 		MyBase::SetErrMsg(VAPOR_ERROR_FLOW_SAVE,"Unable to write to file %s",
-			saveFilename.toAscii());
+			(const char*)saveFilename.toAscii());
 		myGLWindow->stopFlowCapture();
 		return;
 	}

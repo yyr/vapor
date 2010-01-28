@@ -338,7 +338,7 @@ void Params::BailOut(const char *errstr, const char *fname, int lineno)
 	errorMessage += fname;
 	errorMessage += " at line ";
 	errorMessage += QString::number(lineno);
-	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",errorMessage.toAscii());
+	SetErrMsg(VAPOR_FATAL,"Fatal error: %s",(const char*)errorMessage.toAscii());
 	//MessageReporter::fatalMsg(errorMessage);
     exit(-1);
 }

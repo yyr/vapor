@@ -169,14 +169,14 @@ void SaveTFDialog::sessionSave()
 {
 	//Popup a warning if the name already exists:
 	Session* ses = Session::getInstance();
-	std::string stdName(newName->toAscii());
+	std::string stdName(newName->toStdString());
 	if (ses->isValidTFName(&stdName)){
 		int ok = QMessageBox::warning(this, "Replacing Existing Transfer Function",
 			QString("OK to Replace existing Transfer Function:\n %1 ?").arg(*newName),
 			QMessageBox::Ok, QMessageBox::Cancel);
 		if (ok != QMessageBox::Ok) done(2);
 	}
-	ses->addTF(newName->toAscii(), myParams);
+	ses->addTF((const char*)newName->toAscii(), myParams);
     done(2);
 }
 void SaveTFDialog::setTFName(const QString& s){

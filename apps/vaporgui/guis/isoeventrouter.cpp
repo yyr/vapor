@@ -412,7 +412,7 @@ sessionLoadTF(QString* name){
 	
 	//Get the transfer function from the session:
 	
-	std::string s(name->toAscii());
+	std::string s((const char*)name->toAscii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = iParams->GetMapVariableNum();

@@ -1389,7 +1389,7 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	if (elevGridTextureEnabled() && !elevGridTexture){
 		//Read the texture file:
 		
-		int rc = read_JPEG_file(textureFilename.toAscii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
+		int rc = read_JPEG_file((const char*)textureFilename.toAscii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
 		if (!rc) {enableElevGridTexture(false);}
 	}
 	if (elevGridTextureEnabled()){
@@ -1801,7 +1801,7 @@ void GLWindow::drawTimeAnnotation(){
 		QFont f("Courier",timeAnnotTextSize,5,false);
 		f.setStyleStrategy(QFont::OpenGLCompatible);
 		f.setStretch(150);
-		renderText(xposn, yposn, labelContents, f);
+		//renderText(xposn, yposn, labelContents, f);
 	}
 	
 }
@@ -2248,17 +2248,17 @@ doFrameCapture(){
 	FILE* jpegFile = NULL;
 	TIFF* tiffFile = NULL;
 	if (filename.endsWith(".tif")){
-		tiffFile = TIFFOpen(filename.toAscii(), "wb");
+		tiffFile = TIFFOpen((const char*)filename.toAscii(), "wb");
 		if (!tiffFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",filename.toAscii());
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Tiff file: %s",(const char*)filename.toAscii());
 			capturingImage = 0;
 			return;
 		}
 	} else {
 		// open the jpeg file:
-		jpegFile = fopen(filename.toAscii(), "wb");
+		jpegFile = fopen((const char*)filename.toAscii(), "wb");
 		if (!jpegFile) {
-			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",filename.toAscii());
+			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error: Error opening output Jpeg file: %s",(const char*)filename.toAscii());
 			capturingImage = 0;
 			return;
 		}
@@ -2286,7 +2286,7 @@ doFrameCapture(){
 		if (rc){
 			//Error!
 			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
-				filename.toAscii());
+				(const char*)filename.toAscii());
 			capturingImage = 0;
 			delete buf;
 			return;
@@ -2305,7 +2305,7 @@ doFrameCapture(){
 			int rc = TIFFWriteScanline(tiffFile, buf+row*3*imagewidth, row);
 			if (rc != 1){
 				SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing tiff file %s",
-				filename.toAscii());
+				(const char*)filename.toAscii());
 				break;
 			}
 		}

@@ -317,13 +317,13 @@ void MessageReporter::postMessages(const char* msg, int err_code){
 	strng += msg;
 	
 	if (err_code & 0x2000){
-		MessageReporter::warningMsg(strng.toAscii());
+		MessageReporter::warningMsg((const char*)strng.toAscii());
 	} else if (err_code & 0x4000){
-		MessageReporter::errorMsg(strng.toAscii());
+		MessageReporter::errorMsg((const char*)strng.toAscii());
 	} else if (err_code & 0x8000){
-		MessageReporter::fatalMsg(strng.toAscii());
+		MessageReporter::fatalMsg((const char*)strng.toAscii());
 	} else {
-		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).toAscii());
+		MessageReporter::errorMsg((const char*)(QString("Unclassified error: ")+strng).toAscii());
 	}
 	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 }
