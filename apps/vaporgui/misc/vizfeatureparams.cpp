@@ -107,6 +107,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	displacement = vfParams.displacement;
 	showAxisAnnotation = vfParams.showAxisAnnotation;
 	axisAnnotationColor = vfParams.axisAnnotationColor;
+	tempAxisAnnotationColor = vfParams.tempAxisAnnotationColor;
 	labelHeight = vfParams.labelHeight;
 	labelDigits = vfParams.labelDigits;
 	ticWidth = vfParams.ticWidth;
@@ -200,11 +201,13 @@ void VizFeatureParams::launch(){
 	const DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	int firstTime = DataStatus::getInstance()->getMinTimestep();
 	if (dataMgr){
+		//If the first time stamp has more than 10 characters, it's
+		//probably a real time stamp
 		string timeStamp;
 		dataMgr->GetTSUserTimeStamp(firstTime, timeStamp);
-			if (timeStamp != "") numTimeTypes = 2;
+			if (timeStamp.length() > 10) numTimeTypes = 2;
 	}
-	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes);
+	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes+1);
 	
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
@@ -358,8 +361,8 @@ visualizerSelected(int comboIndex){
 void VizFeatureParams::
 selectTimeTextColor(){
 	QPalette pal(vizFeatureDlg->timeColorButton->palette());
-	QColor tColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(vizFeatureDlg->timeColorButton->backgroundRole(),tColor);
+	tempTimeAnnotColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->timeColorButton->backgroundRole(),tempTimeAnnotColor);
 	vizFeatureDlg->timeColorButton->setPalette(pal);
 	dialogChanged = true;
 }
@@ -369,8 +372,8 @@ void VizFeatureParams::
 selectColorbarBackgroundColor(){
 	//Launch colorselector, put result into the button
 	QPalette pal(vizFeatureDlg->colorbarBackgroundButton->palette());
-	QColor bgColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(),bgColor);
+	tempColorbarBackgroundColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(),tempColorbarBackgroundColor);
 	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal);
 	dialogChanged = true;
 }
@@ -378,8 +381,8 @@ void VizFeatureParams::
 selectElevGridColor(){
 	//Launch colorselector, put result into the button
 	QPalette pal(vizFeatureDlg->surfaceColorButton->palette());
-	QColor sfColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(),sfColor);
+	tempElevGridColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(),tempElevGridColor);
 	vizFeatureDlg->surfaceColorButton->setPalette(pal);
 	dialogChanged = true;
 	
@@ -388,8 +391,8 @@ selectElevGridColor(){
 void VizFeatureParams::
 selectAxisColor(){
 	QPalette pal(vizFeatureDlg->axisColorButton->palette());
-	QColor axColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(vizFeatureDlg->axisColorButton->backgroundRole(),axColor);
+	tempAxisAnnotationColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	pal.setColor(vizFeatureDlg->axisColorButton->backgroundRole(),tempAxisAnnotationColor);
 	vizFeatureDlg->axisColorButton->setPalette(pal);
 	dialogChanged = true;
 
@@ -481,6 +484,7 @@ setDialog(){
 	vizFeatureDlg->labelDigitsEdit->setText(QString::number(labelDigits));
 	vizFeatureDlg->ticWidthEdit->setText(QString::number(ticWidth));
 	axisAnnotationColor = vizWin->getAxisColor();
+	tempAxisAnnotationColor = axisAnnotationColor;
 	QPalette pal0(vizFeatureDlg->axisColorButton->palette());
 	pal0.setColor(vizFeatureDlg->axisColorButton->backgroundRole(),axisAnnotationColor);
 	vizFeatureDlg->axisColorButton->setPalette(pal0);
@@ -500,6 +504,7 @@ setDialog(){
 	timeAnnotCoords[1] = vizWin->getTimeAnnotCoord(1);
 	timeAnnotType = vizWin->getTimeAnnotType();
 	timeAnnotColor = vizWin->getTimeAnnotColor();
+	tempTimeAnnotColor=timeAnnotColor;
 	timeAnnotTextSize = vizWin->getTimeAnnotTextSize();
 	vizFeatureDlg->timeCombo->setCurrentIndex(timeAnnotType);
 	vizFeatureDlg->timeLLXEdit->setText(QString::number(timeAnnotCoords[0]));
@@ -517,6 +522,7 @@ setDialog(){
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
 	
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
+	tempColorbarBackgroundColor = colorbarBackgroundColor;
 	QPalette pal2(vizFeatureDlg->colorbarBackgroundButton->palette());
 	pal2.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(), colorbarBackgroundColor);
 	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal2);
@@ -532,6 +538,7 @@ setDialog(){
 	displacement = vizWin->getDisplacement();
 	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
 	elevGridColor = vizWin->getElevGridColor();
+	tempElevGridColor = elevGridColor;
 	elevGridRefinement = vizWin->getElevGridRefinementLevel();
 	QPalette pal3(vizFeatureDlg->surfaceColorButton->palette());
 	pal3.setColor(vizFeatureDlg->surfaceColorButton->backgroundRole(), elevGridColor);
@@ -614,7 +621,7 @@ copyFromDialog(){
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
 
-	axisAnnotationColor = vizFeatureDlg->axisColorButton->palette().color(QPalette::Background);
+	axisAnnotationColor = tempAxisAnnotationColor;
 
 	showAxisAnnotation = vizFeatureDlg->axisAnnotationCheckbox->isChecked();
 	
@@ -629,7 +636,7 @@ copyFromDialog(){
 	timeAnnotType = vizFeatureDlg->timeCombo->currentIndex();
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
 
-	timeAnnotColor = vizFeatureDlg->timeColorButton->palette().color(QPalette::Background);
+	timeAnnotColor = tempTimeAnnotColor;
 
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
@@ -654,11 +661,11 @@ copyFromDialog(){
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
 
-	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->palette().color(QPalette::Background);
+	colorbarBackgroundColor = tempColorbarBackgroundColor;
 
 	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
 
-	elevGridColor = vizFeatureDlg->surfaceColorButton->palette().color(QPalette::Background);
+	elevGridColor = tempElevGridColor;
 
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentIndex();
@@ -825,7 +832,6 @@ applyToViz(int vizNum){
 	vizWin->setTextureFile(surfaceImageFilename);
 
 	vizWin->getGLWindow()->invalidateElevGrid();
-	vizWin->getGLWindow()->invalidateTextInScene();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 	

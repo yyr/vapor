@@ -366,8 +366,7 @@ public:
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
 	void invalidateElevGrid();
-	void invalidateTextInScene(){ if (timeAnnotLabel){delete timeAnnotLabel; timeAnnotLabel = 0;}}
-
+	
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
 	
 	void getNearFarClippingPlanes(GLfloat *nearplane, GLfloat *farplane) {
@@ -462,7 +461,7 @@ protected:
 	void drawTimeAnnotation();
 	//Apply the axis labels to an image buffer:
 	void addAxisLabels(unsigned char* imageBuffer);
-	void addTimeToBuffer(unsigned char* imageBuffer);
+	
 	void deleteAxisLabels();
 	void drawElevationGrid(size_t timestep);
 	void placeLights();
@@ -587,7 +586,7 @@ protected:
 	static bool defaultAxisArrowsEnabled;
 
 	QLabel** axisTextLabels[3];
-	QLabel* timeAnnotLabel;
+	
 	int axisLabelNums[3];
 
 	//state to save during handle slide:

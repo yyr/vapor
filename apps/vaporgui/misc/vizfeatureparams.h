@@ -127,7 +127,7 @@ protected:
 	int labelHeight, labelDigits;
 	int timeAnnotTextSize;
 	float ticWidth;
-	QColor axisAnnotationColor;
+	
 
 	float displacement;
 	float colorbarLLCoords[2];
@@ -138,6 +138,12 @@ protected:
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
 	QColor timeAnnotColor;
+	QColor axisAnnotationColor;
+	//Temp versions to remember value set in gui.  This info is lost when the dialog closes.
+	QColor tempColorbarBackgroundColor;
+	QColor tempElevGridColor;
+	QColor tempTimeAnnotColor;
+	QColor tempAxisAnnotationColor;
 
 	float stretch[3];
 	static int sessionVariableNum;

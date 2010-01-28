@@ -70,7 +70,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
 	spinThread = 0;
 	isSpinning = false;
-	timeAnnotLabel = 0;
+
 	winNum = windowNum;
 	rendererMapping.clear();
 	assert(rendererMapping.size() == 0);
@@ -191,7 +191,7 @@ GLWindow::~GLWindow()
 	setNumRenderers(0);
 	invalidateElevGrid();
 	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
-	if (timeAnnotLabel) delete timeAnnotLabel;
+	
 	nowPainting = false;
 }
 
@@ -453,9 +453,7 @@ void GLWindow::paintGL()
 	//Create time annotation from current time step
 	if (getTimeAnnotType()){
 		drawTimeAnnotation();
-	} else {
-		if(timeAnnotLabel) timeAnnotLabel->hide();
-	}
+	} 
 	
 	//Capture the back-buffer image, if not navigating:
 	if (renderNew && !mouseDownHere) 
@@ -463,6 +461,7 @@ void GLWindow::paintGL()
 
 	glPopMatrix();
 	swapBuffers();
+	glFlush();
 	//clear dirty bits
 	
 	setDirtyBit(RegionBit,false);
@@ -1793,25 +1792,17 @@ void GLWindow::drawTimeAnnotation(){
 		}
 		
 	}
-	if(!timeAnnotLabel) { //Do we need a new label?
-		QFont f;
-		QPalette pal;
-		
-		f.setPointSize(timeAnnotTextSize);
-		timeAnnotLabel = new QLabel(this);
-		timeAnnotLabel->setFont(f);
-		pal.setColor(timeAnnotLabel->backgroundRole(), getBackgroundColor());
-		pal.setColor(timeAnnotLabel->foregroundRole(), timeAnnotColor);
-	}
-	
-	timeAnnotLabel->setText(labelContents);
-	timeAnnotLabel->adjustSize();
 	int xposn = (int)(width()*timeAnnotCoords[0]);
 	int yposn = (int)(height()*(1.f-timeAnnotCoords[1]));
-	timeAnnotLabel->move(xposn, yposn);
 	
-	if(timeAnnotTextSize>0) timeAnnotLabel->show();
-	else timeAnnotLabel->hide();
+	
+	if(timeAnnotTextSize>0) {
+		qglColor(timeAnnotColor);
+		QFont f("Courier",timeAnnotTextSize,5,false);
+		f.setStyleStrategy(QFont::OpenGLCompatible);
+		f.setStretch(150);
+		renderText(xposn, yposn, labelContents, f);
+	}
 	
 }
 void GLWindow::drawAxisLabels() {
@@ -1942,47 +1933,7 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 	}
 
 }
-//Apply the time stamps to the buffer so it will
-//show up in jpegs
-void GLWindow::addTimeToBuffer(unsigned char* buff){
-	if (!timeAnnotLabel || timeAnnotTextSize <= 0) return;
-	//Create a new QPixmap to paint into.  
-	//Then create a QPainter for the new Pixmap
-	//Then use QPainter::drawText() to put the text from the label
-	//into the QPixmap
-	//convert the QPixmap to a QImage
-	int xposn = (int)(width()*timeAnnotCoords[0]);
-	int yposn = (int)(height()*(1.f-timeAnnotCoords[1]));
-	int wid = timeAnnotLabel->width();
-	int ht = timeAnnotLabel->height();
-	QPixmap myPixmap(wid,ht);
-	myPixmap.fill(getBackgroundColor());
-	QPainter myPainter(&myPixmap);
-	myPainter.setPen(timeAnnotColor);
-	QFont f;
-	f.setPointSize(timeAnnotTextSize);
 
-	myPainter.setFont(f);
-				
-	const QString& labelText = timeAnnotLabel->text();
-	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::TextSingleLine,labelText,0);	
-	QImage image = myPixmap.toImage();
-	//assert(image != 0);
-	//Write the image to the buffer:
-	int stride = 3*width();
-	for (int j = 0; j<image.height(); j++){
-		if (j+yposn >= height()) continue;
-		for (int i = 0; i< image.width(); i++){
-			if (i+xposn >= width()) continue;
-			QRgb pixval = image.pixel(i,j);
-			//assert(pixval == 0);
-			buff[(xposn+i)*3 + stride*(yposn+j)] = (unsigned char)(qRed(pixval));
-			buff[(xposn+i)*3 + stride*(yposn+j)+1] = (unsigned char)(qGreen(pixval));
-			buff[(xposn+i)*3 + stride*(yposn+j)+2] = (unsigned char)(qBlue(pixval));
-		}
-	}
-				
-}
 void GLWindow::drawAxisTics(){
 	float origin[3], ticMin[3], ticMax[3], ticLen[3];
 	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
@@ -2181,7 +2132,7 @@ void GLWindow::removeAllRenderers(){
 	}
 	setNumRenderers(0);
 	invalidateElevGrid();
-	if (timeAnnotLabel) delete timeAnnotLabel;
+	
 	nowPainting = false;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
@@ -2326,10 +2277,7 @@ doFrameCapture(){
 	if (axisAnnotationIsEnabled() && !DataStatus::getInstance()->sphericalTransform()) {
 		addAxisLabels(buf);
 	}
-	//Add time stamps if necessary
-	if (timeAnnotType && timeAnnotLabel){
-		addTimeToBuffer(buf);
-	}
+	
 	//Now call the Jpeg or tiff library to compress and write the file
 	//
 	if (filename.endsWith(".jpg")){
