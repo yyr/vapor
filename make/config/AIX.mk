@@ -54,4 +54,4 @@ SHARED_LDFLAGS = -G
 
 INSTALL_EXEC = $(TOP)/buildutils/install-sh -c -m 0755
 INSTALL_NONEXEC = $(TOP)/buildutils/install-sh -c -m 0644
-CLD_EXCLUDE_LIBS = -exclude ^/usr -exclude ^/lib
+CLD_EXCLUDE_LIBS = ^/usr ^/lib

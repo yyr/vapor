@@ -626,15 +626,15 @@ twoDLoadInstalledTF(){
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
+
 	//Get the path from the environment:
-#ifdef WIN32
-	const char *slash = "\\";
-#else
-	const char* slash = "/";
-#endif
-	string share = GetAppPath("vapor", "share");
-	QString installPath = (share + slash + "palettes").c_str();
-	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char*)installPath.toAscii(),false);
+    vector <string> paths;
+    paths.push_back("palettes");
+    string palettes = GetAppPath("VAPOR", "share", paths);
+
+	QString installPath = palettes.c_str();
+	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char *) installPath.toAscii(),false);
+
 	tf = pParams->getTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);

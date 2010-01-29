@@ -17,25 +17,9 @@ SUBDIRS = guis misc main
 PROGRAM	= vaporgui
 export PROGRAM
 
-ifdef	VOLUMIZER_ROOT
-MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
-endif
-
-ifdef   TIFF_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(TIFF_INC_PATH)
-endif
-
-ifdef   GTIFF_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
-endif
-
-ifdef   PROJ_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
-endif
-
 MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = render params flow vjpeg vdf common netcdf $(EXPAT_LIB) $(QT_LIB) GLEW tiff geotiff proj 
+LIBRARIES = render params flow vjpeg vdf common netcdf expat $(QT_LIB) GLEW tiff geotiff proj 
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
@@ -43,33 +27,6 @@ endif
 
 ifeq ($(BUILD_VOLUMIZER), 1)
 LIBRARIES += vz
-endif
-
-ifeq ($(ARCH),WIN32) 
-
-ifeq ($(BUILD_VOLUMIZER), 1)
-MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
-endif
-
-ifdef QT_LIB_PATH
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
-endif
-
-else   
-
-ifdef	QT_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
-endif
-ifdef PROJ_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(PROJ_LIB_PATH)
-endif
-ifdef TIFF_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(TIFF_LIB_PATH)
-endif
-ifdef GTIFF_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(GTIFF_LIB_PATH)
-endif
-
 endif
 
 

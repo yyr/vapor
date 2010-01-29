@@ -21,6 +21,7 @@
 #include <qfont.h>
 #include "glutil.h"
 #include "messagereporter.h"
+#include "GetAppPath.h"
 using namespace VAPoR;
 void myMessageOutput( QtMsgType type, const char *msg )
 {
@@ -61,6 +62,15 @@ int main( int argc, char ** argv ) {
 #ifdef NDEBUG
 	qInstallMsgHandler( myMessageOutput );
 #endif
+
+	// Set path for Qt to look for its plugins. 
+	//
+    vector <string> paths;
+    QString filePath =  GetAppPath("VAPOR", "plugins", paths).c_str();
+    QStringList filePaths(filePath);
+    QCoreApplication::setLibraryPaths(filePaths);
+
+
 
 	app = &a;
 	a.setStyle("windows");

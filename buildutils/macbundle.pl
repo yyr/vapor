@@ -34,8 +34,9 @@ use POSIX;
 use File::Spec;
 use File::Glob ':globally';	# what the hell is this?
 
-$0 =~ s/.*\///;
-$ProgName = $0;
+my ($prog_path) = $0;
+$prog_path =~ s/.*\///;
+$ProgName = $prog_path;
 
 
 sub usage {
@@ -118,6 +119,10 @@ sub copy_install_targets {
 	$dstdir = File::Spec->catdir($bundle_path, "Contents", "SharedSupport");
 	copy_dir_contents($srcdir, $dstdir);
 
+	$srcdir = File::Spec->catdir($install_path, "plugins");
+	$dstdir = File::Spec->catdir($bundle_path, "Contents", "Plugins");
+	copy_dir_contents($srcdir, $dstdir);
+
 }
 
 sub edit_template {
@@ -145,64 +150,6 @@ sub edit_template {
 	close (IFH);
 }
 
-sub install_name_change {
-	($target, @libnames) = @_;
-
-
-	$cmd = "/usr/bin/otool -L $target";
-	@lines = `$cmd`;
-	if ($?>>8) {
-		printf STDERR "$ProgName: Command \"$cmd\" failed\n";
-		exit(1);
-	}
-
-	foreach $line (@lines) {
-		# remove leading white space
-		$line  =~ s/^\s+//;
-
-		($libpath) = split(/\s+/, $line);
-
-		foreach $libname (@libnames) {
-			if ($libpath =~ $libname && ! ($target =~ $libname)) {
-				@cmd = ("/usr/bin/install_name_tool", "-change", $libpath, "\@executable_path/$libname", $target);
-				mysystem(@cmd);
-			}
-		}
-	}
-}
-
-sub install_name {
-	my($bundle_path) = @_;
-
-	$execdir = File::Spec->catdir($bundle_path, "Contents", "MacOS");
-
-	@libpaths = <$execdir/*.dylib>;
-	foreach $libpath (@libpaths) {
-		@dirs = File::Spec->splitdir($libpath);
-		$libname = pop(@dirs);
-
-		@cmd = ("/usr/bin/install_name_tool", "-id", "\@executable_path/$libname", $libpath);
-		mysystem(@cmd);
-		push @libnames, $libname;
-	}
-
-	@execpaths = <$execdir/*>;
-	foreach $execpath (@execpaths) {
-
-		$cmd = "/usr/bin/file $execpath";
-		$line = `$cmd`;
-		if ($?>>8) {
-			printf STDERR "$ProgName: Command \"$cmd\" failed\n";
-			exit(1);
-		}
-
-		if ($line =~ "Mach-O") {
-			install_name_change($execpath, @libnames);
-		}
-	}
-}
-		
-
 if ($#ARGV != 3) {
 	usage("Wrong # of arguments");
 }
@@ -228,11 +175,26 @@ edit_template($TemplatePath, $BundlePath, $VersionString);
 
 copy_install_targets($InstallPath, $BundlePath);
 
-install_name($BundlePath);
 
 $vapor_install = File::Spec->catfile($InstallPath, "vapor-install.csh");
 $macos_dir = File::Spec->catdir($bundle_path, "Contents", "MacOS");
-my (@cmd) = ($vapor_install, "-nocopy", "-root", "/usr/local", $macos_dir);
+$plugins_dir = File::Spec->catdir($bundle_path, "Contents", "Plugins");
+
+my ($vol, $dir, $file) = File::Spec->splitpath($0);
+print "dir = $dir\n";
+my ($install_name) = File::Spec->catpath($vol, $dir, "install_name.pl");
+my (@cmd) = (
+	$install_name, "-exec_path", "$InstallPath/bin", $macos_dir, $plugins_dir, $macos_dir
+);
+mysystem(@cmd);
+
+$mandir = File::Spec->catdir($bundle_path, "Contents", "SharedSupport", "man");
+
+my (@cmd) = (
+	$vapor_install, "-nocopy", "-root", $macos_dir, 
+	"-libdir", $macos_dir, "-bindir", $macos_dir, "-mandir", $mandir,
+	$macos_dir
+);
 mysystem(@cmd);
 
 exit(0);

@@ -6,7 +6,7 @@ PROGRAM = amr_ex
 FILES = amr_ex
 
 
-LIBRARIES =  vdf common netcdf $(EXPAT_LIB)
+LIBRARIES =  vdf common netcdf expat
 
 include ${TOP}/make/config/base.mk
 

@@ -22,33 +22,11 @@ ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"
 endif
 
-ifdef	TIFF_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(TIFF_INC_PATH)
-endif
 
-ifdef	GTIFF_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(GTIFF_INC_PATH)
-endif
-
-ifdef	PROJ_INC_PATH
-MAKEFILE_INCLUDE_DIRS += -I$(PROJ_INC_PATH)
-endif
-
-ifeq ($(ARCH),Darwin)
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers
-MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
-endif
-
-#
-# Need to link qt for bug 2351386
-#
-#LIBRARIES += QtOpenGL QtGui QtCore
-LIBRARIES += $(QT_LIB)
-ifdef   QT_LIB_PATH
-MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
-endif
-
-
+#ifeq ($(ARCH),Darwin)
+#MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers
+#MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
+#endif
 
 
 include ${TOP}/make/config/base.mk

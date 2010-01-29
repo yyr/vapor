@@ -65,4 +65,4 @@ SLOP += so_locations
 
 INSTALL_EXEC = $(TOP)/buildutils/sgiinstall.sh -m 0755
 INSTALL_NONEXEC = $(TOP)/buildutils/sgiinstall.sh -m 0644
-CLD_EXCLUDE_LIBS = -exclude ^/usr -exclude ^/lib
+CLD_EXCLUDE_LIBS = ^/usr ^/lib

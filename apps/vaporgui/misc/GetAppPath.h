@@ -8,7 +8,8 @@
 
 namespace VetsUtil {
 
-std::string GetAppPath(const string &app, const string &name);
+std::string GetAppPath(
+	const string &app, const string &name, const vector <string> &paths);
 
 };
 

@@ -304,15 +304,12 @@ fileSaveTF(RenderParams* rParams){
 void EventRouter::
 loadInstalledTF(RenderParams* rParams, int varnum){
 	//Get the path from the environment:
-	string share = GetAppPath("vapor", "share");
-#ifdef WIN32
-	const char *slash = "\\";
-#else
-	const char* slash = "/";
-#endif
+	vector <string> paths;
+	paths.push_back("palettes");
+	string palettes = GetAppPath("VAPOR", "share", paths);
 
-	QString installPath = (share + slash + "palettes").c_str();
-	fileLoadTF(rParams,varnum, (const char*)installPath.toAscii(),false);
+	QString installPath = palettes.c_str();
+	fileLoadTF(rParams,varnum, (const char*) installPath.toAscii(),false);
 }
 void EventRouter::
 loadTF(RenderParams* rParams, int varnum){

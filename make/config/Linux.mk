@@ -49,23 +49,12 @@ else
 LDFLAGS           += -L/usr/X11R6/lib
 endif
 
-LDFLAGS			+= -Wl,-rpath,$(DSO_DIR) -lrt
+RPATHFLAG		= -Wl,-rpath,
+
+LDFLAGS			+= -lrt
 
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
-
-ifeq ($(MACHTYPE), alpha)
-CXXFLAGS          += -mieee 
-CFLAGS            += -mieee
-endif
-
-ifeq ($(MACHTYPE), mips)
-ifeq ($(shell ls /proc/ps2pad), /proc/ps2pad)
-PLAYSTATION2      =   1
-CXXFLAGS          += -DPLAYSTATION2
-CFLAGS            += -DPLAYSTATION2
-endif
-endif
 
 PROFILEFLAGS = -pg -a
 
@@ -109,5 +98,4 @@ MPI_LDFLAGS =
 INSTALL_EXEC = /usr/bin/install -m 0755
 INSTALL_NONEXEC = /usr/bin/install -m 0644
 
-CLD_EXCLUDE_LIBS = -exclude ^/usr -exclude ^/lib
-CLD_INCLUDE_LIBS = -include libexpat -include libtiff
+CLD_EXCLUDE_LIBS = ^/usr ^/lib 

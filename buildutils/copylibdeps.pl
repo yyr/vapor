@@ -5,12 +5,12 @@ use POSIX;
 use Cwd;
 use Cwd 'abs_path';
 use File::Basename;
-#use File::Glob;
 use File::Copy;
 use File::Spec;
 
 $0 =~ s/.*\///;
 $ProgName = $0;
+$Debug = 0;
 
 sub usage {
 	my($msg) = @_;
@@ -38,6 +38,18 @@ sub usage {
 }
 
 
+sub mysystem {
+	my(@cmd) = @_;
+
+	print "cmd=@cmd\n";
+
+	system(@cmd);
+	if ($? != 0) {
+		print STDERR "$ProgName: \"@cmd\" exited with error\n";
+		exit(1);
+	}
+}
+
 sub chaselink {
     my($path) = @_;
 
@@ -59,42 +71,51 @@ sub chaselink {
 sub get_deps {
 	my($target) = @_;
 
-
 	my(@Deps) = ();
+	my($target_is_lib) = 1;
+	my(@lddcmd);
 
-	#
-	# clean up path to target
-	#
-	my($volume, $directories, $file) = File::Spec->splitpath($target);
-	$directories = abs_path($directories);
-	$target = File::Spec->catpath($volume, $directories, $file);
-
-	if ($ARCH eq "Darwin") {
-		# Mac system
-		@lddcmd = ("/usr/bin/otool", "-L"); 
-	} else {
-		@lddcmd = ("/usr/bin/ldd");
-	}
-
-	$cmd = join(' ', @lddcmd, $target);
+	my($cmd) = "/usr/bin/file $target";
 	$_ = `$cmd`;
 	if ($?>>8) {
 		printf STDERR "$ProgName: Command \"$cmd\" failed\n";
 		exit(1);
 	}
+	if ($_ =~ "executable") {
+		$target_is_lib = 0;
+	}
 
-	@lines = split /\n/, $_;
-	if (($ARCH eq "Darwin") || ($ARCH eq "AIX")) {
+	if ($Arch eq "Darwin") {
+		# Mac system
+		@lddcmd = ("/usr/bin/otool", "-L"); 
+
+	} else {
+		@lddcmd = ("/usr/bin/ldd");
+	}
+	my ($cmd) = join(' ', @lddcmd, $target);
+	$_ = `$cmd`;
+	if ($?>>8) {
+		printf STDERR "$ProgName: Command \"$cmd\" failed\n";
+		exit(1);
+	}
+	my(@lines) = split /\n/, $_;
+
+	if (($Arch eq "Darwin") || ($Arch eq "AIX")) {
 		shift @lines;	# discard first line
+	}
+	if (($Arch eq "Darwin") && $target_is_lib) {
+		shift @lines;	# discard second line - the library name
 	}
 
 
+
 LINE:	foreach $line (@lines) {
+		my($lib);
 		$line =~ s/^\s+//;
-		if ($ARCH eq "Darwin") {
+		if ($Arch eq "Darwin") {
 			($lib) = split(/\s+/, $line);
 		}
-		elsif ($ARCH eq "AIX") {
+		elsif ($Arch eq "AIX") {
 			($lib) = split(/\s+/, $line);
 			$lib =~ s/\(.*\)//;
 			next LINE if ($lib eq "/unix");
@@ -102,30 +123,18 @@ LINE:	foreach $line (@lines) {
 		else {
 			($junk1, $junk2, $lib) = split(/\s+/, $line);
 		}
+
 		next LINE if (! defined($lib));
+
 		if ($lib =~ "not found") {
 			printf STDERR "$ProgName: Command \"$cmd\" failed - library $lib not found\n";
 			exit(1);
 		}
 
-		#
-		# clean up directory path
-		#
-		my($volume, $directories, $file) = File::Spec->splitpath($lib);
-		$directories = abs_path($directories);
-		$lib = File::Spec->catpath($volume, $directories, $file);
+		next LINE if (($Arch eq "Darwin") && !( ($lib =~ /dylib/) || $lib =~ /framework/) );
+		next LINE if (($Arch eq "Linux") && !( ($lib =~ /\.so/)));
 
-
-		($name, $path, $suffix) = fileparse($lib);
-		next LINE if (($Arch eq "Darwin") && !($lib =~ /dylib/));
-
-		if (! -f $lib) {
-			printf STDERR "$ProgName: Command \"$cmd\" failed - library $lib not found\n";
-			exit(1);
-		}
-
-
-		$toss = 0;
+		my ($toss) = 0;
 		foreach $exclude (@ExcludePaths) {
 			if ($lib =~ m!$exclude!) {
 				$toss = 1;
@@ -139,17 +148,12 @@ LINE:	foreach $line (@lines) {
 			}
 		}
 
-		if ($lib eq $target) {
-			$toss = 1;
-		}
-
 		if (! $toss) {
 			push @Deps, $lib;
 		}
 	}
 	return(@Deps);
 }
-			
 	
 
 @IncludePaths = ();
@@ -162,7 +166,7 @@ while ($ARGV[0] =~ /^-/) {
 		push(@ExcludePaths, $_);
     }
     elsif (/^-arch$/) {
-        defined($ARCH = shift @ARGV) || die "Missing argument";
+        defined($Arch = shift @ARGV) || die "Missing argument";
     }
     elsif (/^-include$/) {
         defined($_ = shift @ARGV) || die "Missing argument";
@@ -181,6 +185,7 @@ while ($ARGV[0] =~ /^-/) {
 if (! (defined($Libdir = pop @ARGV))) {
 	usage("Wrong # of arguments");
 }
+$Libdir = abs_path($Libdir);
 
 if (! -d $Libdir) {
 	print STDERR "$ProgName: Library directory $Libdir does not exist\n";
@@ -189,24 +194,43 @@ if (! -d $Libdir) {
 
 @Targets = @ARGV;
 
+#
+# Set LD environment variables for ld search path.
+# Needed for the ldd command only (Mac 'otool' ignores these)
+#
 $ENV{"LD_LIBRARY_PATH"} = $LD_LIBRARY_PATH;
 $ENV{"LD_LIBRARYN32_PATH"} = $LD_LIBRARY_PATH;
 $ENV{"LD_LIBRARY64_PATH"} = $LD_LIBRARY_PATH;
 
+#
+# Recursively look for library dependencies
+#
 @cpfiles = ();
 while (defined($target = shift(@Targets))) {
+
+	if ($Debug) {print "Target = $target\n";}
 
 	@_ = get_deps($target);
 
 	foreach $dep (@_) {
+		if ($Debug) {print "Dep = $dep\n";}
+
+		if (! -f $dep) {
+			printf STDERR "$ProgName: Library dependency $lib not found\n";
+			exit(1);
+		}
+
 		$match = 0;
 		foreach $target (@Targets) {
 			$match = 1 if ($dep eq $target);
 		}
-		if ($ARCH ne "AIX") {
+		if ($Arch ne "AIX") {
 			push @Targets, $dep if (! $match);
 		}
 
+		#
+		# add library dependency to copy list if not already there
+		#
 		$match = 0;
 		foreach $cpfile (@cpfiles) {
 			$match = 1 if ($dep eq $cpfile);
@@ -216,9 +240,20 @@ while (defined($target = shift(@Targets))) {
 }
 
 foreach $_ (@cpfiles) {
-	print "Copying $_ to $Libdir\n";
-	copy($_,$Libdir) || die "$ProgName: file copy failed - $!\n";
+	$dirname = abs_path(dirname($_));
+	if ($dirname ne $Libdir) {
+
+		my($volume, $dir, $file) = File::Spec->splitpath($_);
+
+		my ($target) = File::Spec->catpath("", $Libdir, $file);
+
+		print "Copying $_ to $target\n";
+		copy($_,$target) || die "$ProgName: file copy failed - $!\n";
+		my(@cmd) = ("/bin/chmod", "+x", $target);
+		mysystem(@cmd);
+	}
 }
+
 
 
 exit 0;

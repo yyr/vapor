@@ -39,17 +39,23 @@ CR_CXX = $(CXX)
 OGL_LIB = GL
 GLU_LIB = GLU
 QT_LIB = QtOpenGL QtGui QtCore  
-EXPAT_LIB = expat
-
-
 
 OBJDIR := $(BUILDDIR)
 DEPDIR := $(BUILDDIR)/dependencies
-BINDIR := $(TOP)/targets/$(PLATFORM)/bin
 INCDIR := $(TOP)/include
-DSO_DIR := $(BINDIR)
-#DSO_DIR := $(TOP)/targets/$(PLATFORM)/lib/
 DOCDIR := $(TOP)/targets/common/doc
+
+#
+# For make install we relink libraries and executables in the installation
+# directory. This way embedded library paths (e.g. rpath) are correct
+#
+ifdef MAKE_INSTALL
+BINDIR = $(INSTALL_PREFIX_DIR)/bin
+DSO_DIR = $(INSTALL_PREFIX_DIR)/lib
+else
+DSO_DIR := $(ABS_TOP)/targets/$(PLATFORM)/bin
+BINDIR := $(TOP)/targets/$(PLATFORM)/bin
+endif
 
 INCLUDE_DIRS := -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
 
@@ -133,8 +139,12 @@ $(MOC_DIR)/moc_%.cpp : %.h
 #	@$(MAKE_MOCDIR)
 #	@$(MOC) $< -o $@ 
 
-#INCLUDE_DIRS += -I$(QTDIR)/include -I$(QTDIR)/include/qt -I$(UI_DIR)
-INCLUDE_DIRS += -I$(UI_DIR) -I$(QTDIR)/include -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/QtGui -I$(QTDIR)/include/QtOpenGL 
+QT_INCLUDE_DIRS += $(QTDIR)/include
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, QtCore QtGui QtOpenGL)
+QT_INCLUDE_DIRS += $(UI_DIR)
+
+QT_LIB_DIRS = $(QTDIR)/lib
+
 #END OF ifdef QT
 endif
 
@@ -247,12 +257,10 @@ endif
 LDFLAGS := /link $(LDFLAGS)
 endif
 
-ifdef   NETCDF_INC_PATH
-INCLUDE_DIRS += -I$(NETCDF_INC_PATH)
-endif
+INCLUDE_DIRS += $(addprefix -I, $(INC_SEARCH_DIRS))
 
-ifdef   EXPAT_INC_PATH
-INCLUDE_DIRS += -I$(EXPAT_INC_PATH)
+ifdef QT_INCLUDE_DIRS
+INCLUDE_DIRS += $(addprefix -I, $(QT_INCLUDE_DIRS))
 endif
 
 INCLUDE_DIRS += $(MAKEFILE_INCLUDE_DIRS)
@@ -325,7 +333,11 @@ LIBRARIES := $(foreach lib,$(LIBRARIES),$(lib)$(LIBSUFFIX))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(PLATFORM)/lib/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(LIBSUFFIX))
 STATICLIBRARIES :=
 
-LDFLAGS += "/LIBPATH:$(DSO_DIR)" 
+LD_SEARCH_FLAGS += $(addprefix /LIBPATH:, $(DSO_DIR))
+ifdef	QT_LIB_DIRS
+LD_SEARCH_FLAGS += $(addprefix /LIBPATH:, $(QT_LIB_DIRS))
+endif
+LD_SEARCH_FLAGS += $(addprefix /LIBPATH:, $(LIB_SEARCH_DIRS))
 
 else
 
@@ -333,27 +345,19 @@ STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(PLATFORM)/
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),-l$(SHORT_TARGET_NAME)_$(lib)_copy)
 
-LDFLAGS += -L$(DSO_DIR) 
+LD_SEARCH_FLAGS += $(addprefix -L, $(DSO_DIR))
+ifdef	QT_LIB_DIRS
+LD_SEARCH_FLAGS += $(addprefix -L, $(QT_LIB_DIRS))
+endif
+LD_SEARCH_FLAGS += $(addprefix -L, $(LIB_SEARCH_DIRS))
+
+ifdef	RPATHFLAG
+RPATHS += $(addprefix $(RPATHFLAG), $(LIB_SEARCH_DIRS))
+RPATHS += $(addprefix $(RPATHFLAG), $(DSO_DIR))
+endif
 
 endif
 
-
-ifdef NETCDF_LIB_PATH
-ifeq ($(ARCH),WIN32)
-LDFLAGS += /LIBPATH:$(NETCDF_LIB_PATH)
-else
-LDFLAGS += -L$(NETCDF_LIB_PATH)
-endif
-endif
-
-
-ifdef EXPAT_LIB_PATH
-ifeq ($(ARCH),WIN32)
-LDFLAGS += /LIBPATH:$(EXPAT_LIB_PATH)
-else
-LDFLAGS += -L$(EXPAT_LIB_PATH)
-endif
-endif
 
 LDFLAGS += $(MAKEFILE_LDFLAGS)
 
@@ -379,33 +383,29 @@ install-dep:: install
 endif
 endif
 
-# XXX this target should also have a dependency on all static Cr libraries.
-# For example: crserver depends on libcrstate.a and libcrserverlib.a
 $(PROG_TARGET): $(OBJS) $(STATICLIBRARIES)
 ifdef PROGRAM
 	@$(ECHO) "Linking $(PROGRAM) for $(PLATFORM)"
 ifdef WINDOWS
-	@$(CR_CXX) $(OBJS) /Fe$(PROG_TARGET)$(EXESUFFIX) $(LIBRARIES) $(LDFLAGS)
+	@$(CR_CXX) $(OBJS) /Fe$(PROG_TARGET)$(EXESUFFIX) $(LIBRARIES) $(LDFLAGS) $(LD_SEARCH_FLAGS)
 else
-ifdef BINUTIL_LINK_HACK
-endif
-	$(CR_CXX) $(OBJS) -o $(PROG_TARGET)$(EXESUFFIX) $(LDFLAGS) $(LIBRARIES)
+	$(CR_CXX) $(OBJS) -o $(PROG_TARGET)$(EXESUFFIX) $(LDFLAGS) $(RPATHS) $(LD_SEARCH_FLAGS) $(LIBRARIES)
 endif
 
 endif
 
-$(LIB_TARGET): $(OBJS) $(LIB_DEFS) $(STATICLIBRARIES)
+$(LIB_TARGET): $(OBJS) $(STATICLIBRARIES)
 ifdef LIBRARY
 	@$(ECHO) "Linking $@"
 ifdef WINDOWS
 ifdef SHARED
-	@$(LD) $(SHARED_LDFLAGS) /Fe$(LIB_TARGET) $(OBJS) $(LIBRARIES) $(LIB_DEFS) $(LDFLAGS)
+	@$(LD) $(SHARED_LDFLAGS) /Fe$(LIB_TARGET) $(OBJS) $(LIBRARIES) 
 else
 	@LIB.EXE /nologo $(OBJS) $(LIBRARIES) /OUT:$(LIB_TARGET)
 endif #shared
 else #windows
 ifdef SHARED
-	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LDFLAGS) $(LIBRARIES)
+	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LIBRARIES) $(RPATHS) $(LD_SEARCH_FLAGS)
 	cd $(DSO_DIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
 else #shared
 	$(AR) $(ARCREATEFLAGS) $@ $(OBJS)
@@ -568,10 +568,10 @@ endif
 
 INSTALL_BINDIR = $(INSTALL_PREFIX_DIR)/bin
 INSTALL_LIBDIR = $(INSTALL_PREFIX_DIR)/lib
-INSTALL_DOCDIR = $(INSTALL_PREFIX_DIR)/doc
 INSTALL_INCDIR = $(INSTALL_PREFIX_DIR)/include/$(PROJECT)
-INSTALL_SHAREDIR = $(INSTALL_PREFIX_DIR)/share/$(VERSION_APP)
+INSTALL_SHAREDIR = $(INSTALL_PREFIX_DIR)/share
 INSTALL_MANDIR = $(INSTALL_PREFIX_DIR)/share/man
+INSTALL_PLUGINSDIR = $(INSTALL_PREFIX_DIR)/plugins
 
 define MAKE_INSTALL_BINDIR
 	if test ! -d $(INSTALL_BINDIR); then $(MKDIR) $(INSTALL_BINDIR); fi
@@ -581,12 +581,12 @@ define MAKE_INSTALL_LIBDIR
 	if test ! -d $(INSTALL_LIBDIR); then $(MKDIR) $(INSTALL_LIBDIR); fi
 endef
 
-define MAKE_INSTALL_DOCDIR
-	if test ! -d $(INSTALL_DOCDIR); then $(MKDIR) $(INSTALL_DOCDIR); fi
-endef
-
 define MAKE_INSTALL_INCDIR
 	if test ! -d $(INSTALL_INCDIR); then $(MKDIR) $(INSTALL_INCDIR); fi
+endef
+
+define MAKE_INSTALL_PLUGINSDIR
+	if test ! -d $(INSTALL_PLUGINSDIR); then $(MKDIR) $(INSTALL_PLUGINSDIR); fi
 endef
 
 ifdef SUBDIRS
@@ -604,39 +604,32 @@ install:: all
 install-dep:: install
 else
 install-dep:: 
-install:: all
+install:: 
 ifdef LIBRARY
 	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
 	@$(MAKE_INSTALL_LIBDIR)
-	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
-ifdef SHARED
-	cd $(INSTALL_LIBDIR); $(RM) $(LIB_LINKERNAME); $(LN) $(LIB_REALNAME) $(LIB_LINKERNAME)
-#	cd $(INSTALL_LIBDIR); $(RM) $(LIB_SONAME); $(LN) $(LIB_REALNAME) $(LIB_SONAME)
-endif #SHARED
+	$(MAKE) -f $(word 1, $(MAKEFILE_LIST)) all MAKE_INSTALL=1
 install-dep:: install
 else
 ifdef PROGRAM
 	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
 	@$(MAKE_INSTALL_BINDIR)
-	$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+	$(MAKE) -f $(word 1, $(MAKEFILE_LIST)) all MAKE_INSTALL=1
 
 LDLIBPATHS += -ldlibpath $(DSO_DIR)
+LDLIBPATHS += $(addprefix -ldlibpath , $(LIB_SEARCH_DIRS))
 
-ifdef NETCDF_LIB_PATH
-LDLIBPATHS += -ldlibpath $(NETCDF_LIB_PATH)
-endif
-
-ifdef QT_LIB_PATH
-LDLIBPATHS += -ldlibpath $(QT_LIB_PATH)
-endif
-
-ifdef EXPAT_LIB_PATH
-LDLIBPATHS += -ldlibpath $(EXPAT_LIB_PATH)
-endif
+CLD_INCLUDE_FLAGS = $(addprefix -include , $(CLD_INCLUDE_LIBS))
+CLD_EXCLUDE_FLAGS = $(addprefix -exclude , $(CLD_EXCLUDE_LIBS))
+CLD_INCLUDE_FLAGS += $(addprefix -include ^, $(DSO_DIR))
+CLD_INCLUDE_FLAGS += $(addprefix -include ^, $(LIB_SEARCH_DIRS))
 
 install-dep:: install
 	@$(ECHO) "Installing program $(PROGRAM) library dependencies in $(INSTALL_LIBDIR)."
-	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+	$(MAKE) -f $(word 1, $(MAKEFILE_LIST)) install-dep-helper MAKE_INSTALL=1
+
+install-dep-helper::
+	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(PROG_TARGET) $(INSTALL_LIBDIR)
 
 endif
 endif

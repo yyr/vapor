@@ -3,7 +3,6 @@ TOP = ../../..
 include ${TOP}/make/config/prebase.mk
 
 
-
 include ${TOP}/make/config/base.mk
 
 DOCS = asciitf2vtf vdfbkup vdfcreate vdfedit vdfls raw2vdf vdf2raw \

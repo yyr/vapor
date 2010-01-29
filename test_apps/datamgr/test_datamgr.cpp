@@ -6,8 +6,11 @@
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
+#include <vapor/DataMgr.h>
+#include <vapor/DataMgrFactory.h>
 
 using namespace VetsUtil;
+using namespace VAPoR;
 
 
 struct {
@@ -67,6 +70,10 @@ OptionParser::Option_T	get_options[] = {
 const char	*ProgName;
 
 
+void ErrMsgCBHandler(const char *msg, int) {
+    cerr << ProgName << " : " << msg << endl;
+}
+
 int main(int argc, char **argv) {
 
 	OptionParser op;
@@ -75,10 +82,10 @@ int main(int argc, char **argv) {
 	double	timer = 0.0;
 	string	s;
 
-
-	exit(1);
-
 	ProgName = Basename(argv[0]);
+
+	MyBase::SetErrMsgCB(ErrMsgCBHandler);
+
 
 	if (op.AppendOptions(set_opts) < 0) {
 		cerr << ProgName << " : " << op.GetErrMsg();
@@ -106,4 +113,129 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	metafile = argv[1];
+
+	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
+	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
+
+
+	DataMgr	*datamgr;
+
+
+	vector <string> metafiles;
+	metafiles.push_back(metafile);
+
+	datamgr = DataMgrFactory::New(metafiles, opt.memsize);
+	if (DataMgrFactory::GetErrCode() != 0) {
+		cerr << "DataMgrFactory::DataMgrFactory() : " << DataMgrFactory::GetErrMsg() << endl;
+		exit (1);
+	}
+
+	const size_t *bs = datamgr->GetBlockSize();
+	FILE *fp = NULL;
+
+	int nts = datamgr->GetNumTimeSteps();
+	for(int l = 0; l<opt.loop; l++) {
+		cout << "Processing loop " << l << endl;
+
+
+		size_t bdim[3];
+		datamgr->GetDimBlk(bdim, opt.level);
+		for(int i = 0; i<3; i++) {
+			if (min[i] == -1) min[i] = 0;
+			if (max[i] == -1) max[i] = bdim[i]-1;
+		}
+
+		for(int ts = opt.ts0; ts<opt.ts0+opt.nts && ts < nts; ts++) {
+			cout << "Processing time step " << ts << endl;
+
+			if (strlen(opt.savefilebase)) {
+				char buf[4+1];
+				string path(opt.savefilebase);
+				path.append(".");
+				sprintf(buf, "%4.4d", l);
+				path.append(buf);
+				path.append(".");
+				sprintf(buf, "%4.4d", ts);
+				path.append(buf);
+
+				fp = fopen(path.c_str(), "w");
+				if (! fp) {
+					cerr << "Can't open output file " << path << endl;
+				}
+			}
+
+			if (strcmp(opt.dtype, "float") == 0) {
+				float *fptr;
+				fptr = datamgr->GetRegion(
+					ts, opt.varname, opt.level, min, max, 0
+				);
+
+				if (! fptr) {
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					delete datamgr;
+					exit(1);
+				}
+
+				if (fp) {
+					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2];
+
+					fwrite(fptr, sizeof(fptr[0]), size, fp);
+					fclose(fp);
+				}
+			}
+			else if (strcmp(opt.dtype, "uint8") == 0) {
+				float qrange[2] = {0.0, 1.0};
+				unsigned char *ucptr;
+				ucptr = datamgr->GetRegionUInt8(
+					ts, opt.varname, opt.level, min, max, qrange, 0
+				);
+				if (! ucptr) {
+					delete datamgr;
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					exit(1);
+				}
+
+				if (fp) {
+					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2];
+
+					fwrite(ucptr, sizeof(ucptr[0]), size, fp);
+					fclose(fp);
+				}
+			}
+			else if (strcmp(opt.dtype, "uint16") == 0) {
+				float qrange[2] = {0.0, 1.0};
+				unsigned char *ucptr;
+				ucptr = datamgr->GetRegionUInt16(
+					ts, opt.varname, opt.level, min, max, qrange, 0
+				);
+				if (! ucptr) {
+					delete datamgr;
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					exit(1);
+				}
+
+				if (fp) {
+					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2] * 2;
+
+					fwrite(ucptr, sizeof(ucptr[0]), size, fp);
+					fclose(fp);
+				}
+			}
+			float r[2];
+			datamgr->GetDataRange(ts, opt.varname, r);
+			cout << "Data Range : [" << r[0] << ", " << r[1] << "]" << endl;
+		}
+
+	}
+
+	delete datamgr;
+
+	if (! opt.quiet) {
+
+		fprintf(stdout, "total process time : %f\n", timer);
+	}
+
+	exit(0);
 }
+

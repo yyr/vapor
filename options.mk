@@ -30,86 +30,34 @@ PROFILING=0
 # code.
 SPHERICAL_GRID=1
 
-# Set EXPAT_INC_PATH to the directory where 'expat.h' may be found if not
-# in a standard location. expat.h is part of the Expat XML Parser, available
-# from http://expat.sourceforge.net/
+# Set LIB_SEARCH_DIRS to a list of directories containing libraries
+# not on the default search path for the linker. Typically 3rd party 
+# dependencies (e.g. netCDF) are not installed in a location where 
+# linker normally checks. The linker will search the directories
+# in the order specified.
 #
-EXPAT_INC_PATH=
+LIB_SEARCH_DIRS = 
 
-
-# Set EXPAT_LIB_PATH to the directory where 'libexpat.*' may be found 
-# if not in a standard location. libexpat is part of the Expat XML 
-# Parser, available from http://expat.sourceforge.net/
+# Set INC_SEARCH_DIRS to a list of directories containing include files
+# not on the default search path for the compiler. Typically 3rd party 
+# dependencies (e.g. netCDF, IDL) are not installed in a location where 
+# compiler normally checks. The compiler will search the directories
+# in the order specified.
 #
-EXPAT_LIB_PATH=
+INC_SEARCH_DIRS = 
 
-
-# Set NETCDF_INC_PATH to the directory where 'netcdf.h' may be found if not
-# in a standard location. netcdf.h is part of Unidata's NetCDF (network
-# Common Data Form), available from 
-# http://www.unidata.ucar.edu/software/netcdf/
+# Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
+# VAPoR libraries and support utilities are compiled
 #
-NETCDF_INC_PATH=
+BUILD_GUI = 1
 
-# Set NETCDF_LIB_PATH to the directory where 'libnetcdf.*' may be found 
-# if not in a standard location. libnetcdf is part of Unidata's NetCDF (network
-# Common Data Form), available from 
-# http://www.unidata.ucar.edu/software/netcdf/
-#
-NETCDF_LIB_PATH=
-
-
-# Set QTDIR to the root of the QT directory where the directories 'bin',
-# 'lib', and 'include' may be found, if not in a standard location. Qt 
+# If BUILD_GUI is set to 1, set QTDIR to the root of the QT directory 
+# where the sub directories 'bin', 'lib', and 'include' may be found. Qt 
 # refers to Trolltech's Qt, available (with some amount of hunting) from
 # http://www.trolltech.com, and when possible, from the vapor
 # web site: www.vapor.ucar.edu.
 #
 QTDIR =
-
-# Set QT_LIB_PATH to the directory where "libqt-mt.*" may be found if 
-# ***NOT*** under $(QTDIR)/lib. This macro, if set, overrides the 
-# the default location, $(QTDIR)/lib, and may be needed on platforms
-# with mixed word size support (Linux32 and Linux64).
-#
-QT_LIB_PATH = 
-
-# Set TIFF_INC_PATH to the directory where 'tiff.h' may be found if not
-# in a standard location. tiff.h is part of libtiff - TIFF 
-# Library and Utilities, available from http://www.libtiff.org
-#
-TIFF_INC_PATH=
-
-# Set TIFF_LIB_PATH to the directory where 'libtiff.*' may be found 
-# if not in a standard location.  libtiff.* is part of libtiff - TIFF 
-# Library and Utilities, available from http://www.libtiff.org
-#
-TIFF_LIB_PATH=
-
-# Set PROJ_INC_PATH to the directory where 'proj_api.h' may be found if not
-# in a standard location. proj_api.h is part of the PROJ.4 Cartographics
-# Projections Library, available from http://trac.osgeo.org/proj
-#
-PROJ_INC_PATH=
-
-# Set PROJ_LIB_PATH to the directory where 'libproj.*' may be found if not
-# in a standard location. libproj.* is part of the PROJ.4 Cartographics
-# Projections Library, available from http://trac.osgeo.org/proj
-#
-PROJ_LIB_PATH=
-
-# Set GTIFF_INC_PATH to the directory where 'geotiff.h' may be found if not
-# in a standard location. geotiff.h is part of the GeoTIFF library,
-# available from: http://trac.osgeo.org/geotiff/
-#
-GTIFF_INC_PATH=
-
-# Set GTIFF_LIB_PATH to the directory where 'libgeotiff.*' may be found 
-# if not in a standard location. libgeotiff.* is part of the GeoTIFF library,
-# available from: http://trac.osgeo.org/geotiff/
-#
-GTIFF_LIB_PATH=
-
 
 # Set to 1 if you have IDL installed on your system and you would
 # like to build the VAPoR IDL commands. IDL refers to RSI's IDL, available
@@ -119,36 +67,17 @@ GTIFF_LIB_PATH=
 #
 BUILD_IDL_WRAPPERS = 0
 
-# Set to path to IDL include directory. 
-# This is the # path to the directory that contains the file "idl_export.h"
-# (Only needed if BUILD_IDL_WRAPPERS is 1)
+# If BUILD_IDL_WRAPPERS is set to 1, set IDLDIR to the root of the 
+# IDL directory 
+# where the sub directories 'bin', 'lib', and 'include' may be found. 
 #
-IDL_INC_PATH=
+IDLDIR =
 
-# Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
-# VAPoR libraries and support utilities are compiled
-#
-BUILD_GUI = 1
+
 
 # Set to 1 if you want to add support for Adaptive Mesh Refinement grids
 #
-BUILD_AMR_SUPPORT = 0
-
-# Set HDF5_INC_PATH to the directory where 'hdf5.h' may be found if not
-# in a standard location (Only needed if BUILD_AMR_SUPPORT is 1). hdf5.h is
-# part of NCSA's HDF5 package, available from http://hdf.ncsa.uiuc.edu/HDF5/.
-#
-HDF5_INC_PATH=
-
-
-# Set HDF5_LIB_PATH to the directory where 'libhdf5.*' may be found 
-# if not in a standard location (Only needed if BUILD_AMR_SUPPORT is 
-# 1). libhdf5 is part of NCSA's HDF5 package, available 
-# from http://hdf.ncsa.uiuc.edu/HDF5/.
-#
-HDF5_LIB_PATH=
-
-
+BUILD_AMR_SUPPORT = 1
 
 
 ##
@@ -156,16 +85,6 @@ HDF5_LIB_PATH=
 ##	PLATFORM SPECIFIC MACROS
 ##
 ##
-
-
-##
-##	Irix
-##
-
-# SET BUILD_64_BIT to 1 if you want to force the building of 64 bit binaries.
-# Currently only has effect under the IRIX OS
-#
-BUILD_64_BIT=0
 
 
 ##

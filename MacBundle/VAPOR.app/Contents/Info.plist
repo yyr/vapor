@@ -30,6 +30,8 @@
 			<string>vdf</string>
 			<string>vss</string>
 		</array>
+		<key>CFBundleTypeRole</key>
+		<string>None</string>
 		</dict>
 	</array>
 </dict>

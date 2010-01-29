@@ -7,7 +7,7 @@ FILES = vdfedit
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = vdf common netcdf $(EXPAT_LIB)
+LIBRARIES = vdf common netcdf expat
 
 include ${TOP}/make/config/base.mk
 

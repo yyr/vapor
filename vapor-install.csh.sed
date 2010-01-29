@@ -1,10 +1,12 @@
 #!/bin/csh -f
 
 set arch = "ARCH"
-set version_app = "VERSION_APP"
 
 unset directory
 unset vapor_root
+unset lib_search_dirs
+unset bindir
+unset mandir
 set nocopy = 0
 while ($#argv && ! $?directory)
 	if ("$argv[1]" == "-nocopy") then
@@ -12,6 +14,15 @@ while ($#argv && ! $?directory)
 	else if ($#argv && "$argv[1]" == "-root") then
 		shift
 		set vapor_root = $argv[1]
+	else if ($#argv && "$argv[1]" == "-libdir") then
+		shift
+		set lib_search_dirs = $argv[1]
+	else if ($#argv && "$argv[1]" == "-bindir") then
+		shift
+		set bindir = $argv[1]
+	else if ($#argv && "$argv[1]" == "-mandir") then
+		shift
+		set mandir = $argv[1]
 	else
 		set directory = $argv[1]
 		endif
@@ -30,6 +41,9 @@ endif
 
 
 if (! $?vapor_root) set vapor_root = $directory
+if (! $?lib_search_dirs) set lib_search_dirs = $vapor_root/lib
+if (! $?bindir) set bindir = $vapor_root/bin
+if (! $?mandir) set mandir = $vapor_root/share/man
 
 echo directory = $directory
 
@@ -50,7 +64,8 @@ if (! $nocopy) then
 	#
 	# Copy the distribution to the target directory
 	#
-	tar cf - bin include lib share | (cd $directory; tar xf -)
+	tar cf - bin include lib plugins share | (cd $directory; tar xf -)
+
 endif
 
 if (-e /bin/sed) set sedcmd = /bin/sed
@@ -74,19 +89,12 @@ if (! $?sedcmd) then
 	echo "$directory/bin/vapor-setup.csh"
 	echo "$directory/bin/vapor-setup.sh"
 	echo ""
-	echo "changing the values of the root, expat, netcdf and possibly the qt "
+	echo "changing the values of the root and lib_search_dirs  "
 	echo "variables to the values below:"
 	echo ""
 	echo "root : $directory"
-	if ($?expat) then
-		echo "expat : $expat"
-	endif
-	if ($?netcdf) then
-		echo "netcdf : $netcdf"
-	endif
-	if ($?qt) then
-		echo "qt : $qt"
-	endif
+	echo ""
+	echo "lib_search_dirs : $directory/lib"
 	echo ""
 	echo "********WARNING***********"
 	exit 1
@@ -104,29 +112,25 @@ endif
 #
 set old0 = 'set[ 	][ 	]*root[ 	][ 	]*=.*$'
 set new0 = "set root = $vapor_root"
-set old1 = 'set[ 	][ 	]*expat[ 	][ 	]*=.*$'
-set new1 = "set expat = "
-set old2 = 'set[ 	][ 	]*netcdf[ 	][ 	]*=.*$'
-set new2 = "set netcdf = "
-set old3 = 'set[ 	][ 	]*qt[ 	][ 	]*=.*$'
-set new3 = "set qt = "
-set old4 = 'set[ 	][ 	]*share[ 	][ 	]*=.*$'
-set new4 = "set share = $vapor_root/share/$version_app"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
+set old1 = 'set[ 	][ 	]*lib_search_dirs[ 	][ 	]*=.*$'
+set new1 = "set lib_search_dirs = $lib_search_dirs"
+set old2 = 'set[ 	][ 	]*bindir[ 	][ 	]*=.*$'
+set new2 = "set bindir = $bindir"
+set old3 = 'set[ 	][ 	]*mandir[ 	][ 	]*=.*$'
+set new3 = "set mandir = $mandir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.csh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.csh
 
 
 set old0 = 'root=.*$'
 set new0 = "root=$vapor_root"
-set old1 = 'expat=.*$'
-set new1 = "expat="
-set old2 = 'netcdf=.*$'
-set new2 = "netcdf="
-set old3 = 'qt=.*$'
-set new3 = "qt="
-set old4 = 'share=.*$'
-set new4 = "share=$vapor_root/share/$version_app"
-$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" -e "s#$old4#$new4#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
+set old1 = 'lib_search_dirs=.*$'
+set new1 = "lib_search_dirs=$lib_search_dirs"
+set old2 = 'bindir=.*$'
+set new2 = "bindir=$bindir"
+set old3 = 'mandir=.*$'
+set new3 = "mandir=$mandir"
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $dir/vapor-setup.sh >! $dir/vapor-setup.tmp
 /bin/mv $dir/vapor-setup.tmp $dir/vapor-setup.sh
 
 

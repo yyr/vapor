@@ -42,7 +42,6 @@
 #include "mainform.h"
 #include "session.h"
 #include "vapor/Version.h"
-#include "GetAppPath.h"
 #include <qtooltip.h>
 #include <qlineedit.h>
 #include <QFileDialog>

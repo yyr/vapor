@@ -5,7 +5,6 @@ include ${TOP}/make/config/prebase.mk
 PROGRAM = vdfls
 FILES = vdfls
 
-LIBRARIES = vdf common netcdf $(EXPAT_LIB)
-
+LIBRARIES = vdf common netcdf expat
 
 include ${TOP}/make/config/base.mk

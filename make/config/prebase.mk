@@ -1,19 +1,12 @@
+ABS_TOP = $(abspath $(TOP))
+
+# abspath doesn't work on older versions of gmake
+ifeq ($(ABS_TOP), )
+	ABS_TOP = $(shell cd $(TOP) && pwd)
+endif
+
 SHARED = 1
 
 include $(TOP)/make/config/arch.mk
 include $(TOP)/make/config/$(ARCH).mk
 include $(TOP)/options.mk
-
-
-ifndef	QT_LIB_PATH
-ifdef   QTDIR
-QT_LIB_PATH = $(QTDIR)/lib
-endif
-endif
-
-QTLIB = -lQtOpenGL -lQtGui -lQtCore -lQt3Support 
-
-EXPATLIB = -lexpat
-NETCDFLIB = -lnetcdf
-
-
