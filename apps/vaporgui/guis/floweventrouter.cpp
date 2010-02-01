@@ -122,6 +122,7 @@ FlowEventRouter::hookUpTab()
 	connect (hideAdvanced3, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
 	connect (autoScaleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
 	connect (autoScaleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
+	connect (displayListCheckbox,SIGNAL(toggled(bool)),this,SLOT(guiToggleDisplayLists(bool)));
 	connect (showMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	connect (hideMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	
@@ -2284,6 +2285,21 @@ guiToggleAutoScale(bool on){
 	fParams->setAutoScale(on);
 	//Refresh if we are turning it on...
 	if (on) VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	PanelCommand::captureEnd(cmd, fParams);
+	//This has no real effect until the next rendering
+	updateTab();
+}
+void FlowEventRouter::
+guiToggleDisplayLists(bool on){
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	
+	bool wasOn = fParams->usingDisplayLists();
+	if (wasOn == on) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle use of display lists");
+	fParams->enableDisplayLists(on);
+	//Refresh ...
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	//This has no real effect until the next rendering
 	updateTab();

@@ -144,6 +144,7 @@ FlowParams::~FlowParams(){
 //Set everything in sight to default state:
 void FlowParams::
 restart() {
+	useDisplayLists = false;
 	stopFlag = false;
 	autoScale = true;
 	numFLASamples = 5;

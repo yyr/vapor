@@ -145,6 +145,8 @@ public:
 	void setTimeSamplingStart(int val){timeSamplingStart = val;}
 	int getTimeSamplingEnd() {return timeSamplingEnd;}
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
+	void enableDisplayLists(bool val){useDisplayLists = val;}
+	bool usingDisplayLists(){return useDisplayLists;}
 	int getNumTimestepSamples(){
 		if (usingTimestepSampleList())
 			return (int)unsteadyTimestepList.size();
@@ -528,6 +530,7 @@ protected:
 	bool flaAdvectBeforePrioritize;
 	
 	bool useTimestepSampleList;
+	bool useDisplayLists;
 	bool periodicDim[3];
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:

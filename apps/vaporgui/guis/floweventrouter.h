@@ -153,6 +153,7 @@ protected slots:
 	void saveFlowLines();
 	void saveSeeds();
 	
+	void guiToggleDisplayLists(bool on);
 	void guiToggleAutoScale(bool isOn);
 	void guiToggleTimestepSample(bool isOn);
 	void guiSetOpacityScale( int scale);
