@@ -38,7 +38,7 @@ class TabManager : public QTabWidget{
 
 	public:
 		TabManager(QWidget* parent, const char* name, Qt::WFlags f = 0);
-	
+		
 	
 		// Insert a widget, it should not already be there.
 		// Move to front, if selected is true

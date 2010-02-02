@@ -118,6 +118,7 @@ std::string VetsUtil::GetAppPath(
 		}
 	}
 #endif
+#ifndef WIN32 //For both Linux and Mac:
 	if (path.empty()) {
 		if (resource.compare("lib") == 0) {
 			path.append(DSO_DIR);
@@ -136,6 +137,7 @@ std::string VetsUtil::GetAppPath(
 			path.append("plugins");
 		}
 	}
+#endif
 
 	if (path.empty()) return(path);
 

@@ -145,6 +145,7 @@ MainForm* MainForm::theMainForm = 0;
 MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char*, Qt::WFlags )
     : QMainWindow( parent)
 {
+	setAttribute(Qt::WA_DeleteOnClose);
 	theMainForm = this;
 	theRegionTab = 0;
 	theDvrTab = 0;

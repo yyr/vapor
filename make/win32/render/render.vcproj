@@ -307,10 +307,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\render\customcontext.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\render\DVRBase.h"
 				>
 			</File>
