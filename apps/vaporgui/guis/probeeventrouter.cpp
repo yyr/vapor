@@ -2413,7 +2413,7 @@ void ProbeEventRouter::captureImage() {
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen((const char*)filename.toAscii(), "wb");
 	if (!jpegFile) {
-		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",filename.toAscii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening \noutput Jpeg file: \n%s",(const char*)filename.toAscii());
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
