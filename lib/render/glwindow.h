@@ -468,10 +468,7 @@ protected:
 	void drawAxisTics();
 	void drawAxisLabels();
 	void drawTimeAnnotation();
-	//Apply the axis labels to an image buffer:
-	void addAxisLabels(unsigned char* imageBuffer);
 	
-	void deleteAxisLabels();
 	void drawElevationGrid(size_t timestep);
 	void placeLights();
 	bool rebuildElevationGrid(size_t timestep);
@@ -594,8 +591,6 @@ protected:
 	static bool defaultTerrainEnabled;
 	static bool defaultAxisArrowsEnabled;
 
-	QLabel** axisTextLabels[3];
-	
 	int axisLabelNums[3];
 
 	//state to save during handle slide:
