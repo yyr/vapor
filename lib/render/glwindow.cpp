@@ -76,6 +76,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	assert(rendererMapping.size() == 0);
 	setViewerCoordsChanged(true);
 	setAutoBufferSwap(false);
+	setAutoFillBackground(false);
 	wCenter[0] = 0.f;
 	wCenter[1] = 0.f;
 	wCenter[2] = 0.f;
@@ -208,7 +209,11 @@ void GLWindow::resizeGL( int width, int height )
 {
 	//int winViewport[4];
 	//double projMtx[16];
-	
+	setUpViewport(width, height);
+	nowPainting = false;
+	needsResize = false;
+}
+void GLWindow::setUpViewport(int width,int height){
    
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
@@ -252,8 +257,7 @@ void GLWindow::resizeGL( int width, int height )
 		}
 	}
 	glMatrixMode(GL_MODELVIEW);
-	needsResize = false;
-	nowPainting = false;
+	
 }
 	
 void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
@@ -268,9 +272,11 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 }
 
 
-void GLWindow::paintGL()
+void GLWindow::paintEvent(QPaintEvent*)
 {
+	makeCurrent();
 	printOpenGLError();
+	
 	MyBase::SetDiagMsg("GLWindow::paintGL()");
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
@@ -278,12 +284,6 @@ void GLWindow::paintGL()
 
     if (nowPainting) return;
 	nowPainting = true;
-	//Force a resize if perspective has changed:
-	if (perspective != oldPerspective || needsResize){
-		resizeGL(width(), height());
-		oldPerspective = perspective;
-	}
-	
 	
 	qglClearColor(getBackgroundColor()); 
 	
@@ -301,12 +301,13 @@ void GLWindow::paintGL()
 		printOpenGLError();
 		return;
 	}
+	
+	glEnable(GL_MULTISAMPLE);
+	setUpViewport(width(),height());
 	//automatically renormalize normals
 	glEnable(GL_NORMALIZE);
 
     bool sphericalTransform = (dataStatus && dataStatus->sphericalTransform());
-	
-	//Modified 2/28/06:  Go ahead and "render" even if no active renderers:
 	
 	//If we are doing the first capture of an image sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
@@ -330,13 +331,12 @@ void GLWindow::paintGL()
 		setValuesFromGui(currentViewpointParams);
 	}
 	// Move to trackball view of scene  
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
 	placeLights();
 
 	getTBall()->TrackballSetMatrix();
-
-	
 
 	//The prerender callback is set in the vizwin. 
 	//It registers with the animation controller, 
@@ -402,7 +402,7 @@ void GLWindow::paintGL()
 		//Also render the cursor
 		draw3DCursor(getActiveTwoDDataParams()->getSelectedPoint());
 	}
-			//render the twoD geometry, if in twoDData mode, on active visualizer
+		//render the twoD geometry, if in twoDData mode, on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDImageMode) && 
             windowIsActive() && !sphericalTransform){
 		
@@ -419,7 +419,8 @@ void GLWindow::paintGL()
 		TranslateStretchManip* flowManip = getFlowManip();
 		flowManip->setParams((Params*)getActiveFlowParams());
 		flowManip->render();
-	} //or render the probe geometry, if in probe mode on active visualizer
+	} 
+	//or render the probe geometry, if in probe mode on active visualizer
 	else if((GLWindow::getCurrentMouseMode() == GLWindow::probeMode)&&windowIsActive()){
 		
 		
@@ -448,7 +449,6 @@ void GLWindow::paintGL()
 			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 		}
 	}
-	
 	
 	//Create time annotation from current time step
 	if (getTimeAnnotType()){
@@ -506,6 +506,7 @@ void GLWindow::initializeGL()
 	printOpenGLError();
     previousTimeStep = -1;
 	glewInit();
+	glEnable(GL_MULTISAMPLE);
 	//Check to see if we are using MESA:
 	if (GetVendor() == MESA){
 		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
@@ -1797,11 +1798,19 @@ void GLWindow::drawTimeAnnotation(){
 	
 	
 	if(timeAnnotTextSize>0) {
-		qglColor(timeAnnotColor);
-		QFont f("Courier",timeAnnotTextSize,5,false);
-		f.setStyleStrategy(QFont::OpenGLCompatible);
-		f.setStretch(150);
-		renderText(xposn, yposn, labelContents, f);
+		
+		QFont f;
+		f.setPointSize(timeAnnotTextSize);
+		QPainter painter(this);
+		painter.setFont(f);
+		painter.setRenderHint(QPainter::TextAntialiasing);
+		QFontMetrics metrics = QFontMetrics(f);
+		QRect rect = metrics.boundingRect(0,1000, width(), int(height()*0.25),
+			Qt::AlignCenter, labelContents);
+		painter.fillRect(QRect(xposn, yposn, rect.width(), rect.height()), getBackgroundColor());
+		painter.setPen(timeAnnotColor);
+		painter.drawText(QRect(xposn, yposn, rect.width(), rect.height()),Qt::AlignCenter, labelContents);
+		painter.end();
 	}
 	
 }
@@ -2171,7 +2180,7 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 		renderType[j] = renderType[j+1];
 		renderOrder[j] = renderOrder[j+1];
 	}
-	updateGL();
+	update();
 	return true;
 }
 //Remove a <params,renderer> pair from the list.  But leave them

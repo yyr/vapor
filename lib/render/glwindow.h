@@ -315,18 +315,18 @@ public:
 		captureNumImage = startNum;
 		captureNameImage = name;
 		newCaptureImage = true;
-		updateGL();
+		update();
 	}
 	void startFlowCapture(QString& name) {
 		capturingFlow = true;
 		captureNameFlow = name;
-		updateGL();
+		update();
 	}
 	void singleCaptureImage(QString& name){
 		capturingImage = 1;
 		captureNameImage = name;
 		newCaptureImage = true;
-		updateGL();
+		update();
 	}
 	bool captureIsNewImage() { return newCaptureImage;}
 	
@@ -438,13 +438,22 @@ protected:
 	//call the corresponding Renderer methods.
 	//
     void		initializeGL();
-    void		paintGL();
+  
     void		resizeGL( int w, int h );
-	//Virtual, Reimplemented here, to prevent multiple nested gl rendering:
-	void paintEvent(QPaintEvent* event){
-		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
-	}
 
+	//Following QT 4 guidance (see bubbles example), opengl painting is performed
+	//in paintEvent(), so that we can paint nice text over the window.
+	// GLWindow::paintGL() is not implemented.
+	// The other changes include:
+	// GL_MULTISAMPLE is enabled
+	// GLWindow::updateGL() is replaced by GLWindow::update()
+	// resizeGL() contents have been moved to setUpViewport(), which is also called 
+	// from paintEvent().
+	// setAutoFillBackground(false) is called in the GLWindow constructor
+
+	void paintEvent(QPaintEvent* event);
+		
+	void setUpViewport(int width, int height);
 	//Methods to support drawing domain bounds, axes etc.
 	//Set colors to use in domain-bound rendering:
 	void setSubregionFrameColorFlt(const QColor& c);

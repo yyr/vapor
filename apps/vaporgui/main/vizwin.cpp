@@ -592,7 +592,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		
 		//Force rerender, so correct resolution is shown
 		//setRegionNavigating(true);
-		myGLWindow->updateGL();
+		myGLWindow->update();
 	}
 	
 }	
@@ -638,7 +638,7 @@ mouseMoveEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					
 					myRegionManip->slideHandle(handleNum, dirVec);
-					myGLWindow->updateGL();
+					myGLWindow->update();
 					break;
 				}
 			}
@@ -658,7 +658,7 @@ mouseMoveEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					myFlowManip->slideHandle(handleNum, dirVec);
-					myGLWindow->updateGL();
+					myGLWindow->update();
 					break;
 				}
 			}
@@ -679,7 +679,7 @@ mouseMoveEvent(QMouseEvent* e){
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					bool constrain = true;
 					myTwoDDataManip->slideHandle(handleNum, dirVec, constrain);
-					myGLWindow->updateGL();
+					myGLWindow->update();
 					break;
 				}
 			}
@@ -700,7 +700,7 @@ mouseMoveEvent(QMouseEvent* e){
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					bool constrain = false;
 					myTwoDImageManip->slideHandle(handleNum, dirVec, constrain);
-					myGLWindow->updateGL();
+					myGLWindow->update();
 					break;
 				}
 			}
@@ -720,7 +720,7 @@ mouseMoveEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					myProbeManip->slideHandle(handleNum, dirVec);
-					myGLWindow->updateGL();
+					myGLWindow->update();
 					break;
 				}
 			}
@@ -750,7 +750,7 @@ mouseMoveEvent(QMouseEvent* e){
 		myGLWindow->setViewerCoordsChanged(true);
 		setDirtyBit(ProjMatrixBit, true);
 	}
-	myGLWindow->updateGL();
+	myGLWindow->update();
 	return;
 }
 
@@ -1044,7 +1044,7 @@ void VizWin::endSpin(){
 	if (!myGLWindow) return;
 	if (!myGLWindow->stopSpin()) return;
 	VizWinMgr::getInstance()->getViewpointRouter()->endSpin();
-	myGLWindow->updateGL();
+	myGLWindow->update();
 }
 
 
