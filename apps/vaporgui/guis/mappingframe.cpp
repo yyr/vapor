@@ -32,6 +32,7 @@
 #include <qlabel.h>
 #include <QContextMenuEvent>
 #include <QMouseEvent>
+#include <QToolTip>
 
 #include "params.h"
 #include "ParamsIso.h"
@@ -42,7 +43,6 @@
 #include "DomainWidget.h"
 #include "ColorbarWidget.h"
 #include "ControlPointEditor.h"
-#include "TFLocationTip.h"
 #include "histo.h"
 #include "eventrouter.h"
 #include "session.h"
@@ -114,10 +114,11 @@ MappingFrame::MappingFrame(QWidget* parent, const char* )
     _axisRegionHeight(20),
     _opacityGap(4),
     _bottomGap(10)
-//    _tooltip(NULL)
+
 {
   initWidgets();
   initConnections();
+  setMouseTracking(true);
 }
 
 //----------------------------------------------------------------------------
@@ -697,10 +698,7 @@ void MappingFrame::initWidgets()
   _deleteControlPointAction = new QAction(this);
   _deleteControlPointAction->setText("Delete Control Point");
 
-  //
-  // Tooltips
-  //
-//  _tooltip = new TFLocationTip(this);
+ 
 }
 
 
@@ -1680,57 +1678,63 @@ void MappingFrame::mouseDoubleClickEvent(QMouseEvent* /* event*/)
 //----------------------------------------------------------------------------
 void MappingFrame::mouseMoveEvent(QMouseEvent* event)
 {
-  set<GLWidget*>::iterator iter;
+	if (event->buttons()== Qt::NoButton){
+		if (_isoSliderEnabled) return;
+		QToolTip::showText(event->globalPos(), tipText(event->pos()));
+		return;
+	}
+	set<GLWidget*>::iterator iter;
 
-  if (_selectedWidgets.size())
-  {
-    float x = xViewToWorld(event->x());
-    float y = yViewToWorld(height() - event->y());
+	if (_selectedWidgets.size())
+	{
+		float x = xViewToWorld(event->x());
+		float y = yViewToWorld(height() - event->y());
 
-    float dx = x - _lastx;
-    float dy = y - _lasty;
+		float dx = x - _lastx;
+		float dy = y - _lasty;
 
-    _lastx = x;
-    _lasty = y;
+		_lastx = x;
+		_lasty = y;
 
-    if (_button == Qt::LeftButton && _editMode)
-    {
-      for (iter=_selectedWidgets.begin(); iter!=_selectedWidgets.end(); iter++)
-      {
-        (*iter)->drag(dx, dy);
-      }
-    }
-    if (_button == Qt::MidButton)
-    {
-      for (iter=_selectedWidgets.begin(); iter!=_selectedWidgets.end(); iter++)
-      {
-        (*iter)->move(dx, dy);
-      }
-    }
+		if (_button == Qt::LeftButton && _editMode)
+		{
+		  for (iter=_selectedWidgets.begin(); iter!=_selectedWidgets.end(); iter++)
+		  {
+			(*iter)->drag(dx, dy);
+		  }
+		}
+		if (_button == Qt::MidButton)
+		{
+		  for (iter=_selectedWidgets.begin(); iter!=_selectedWidgets.end(); iter++)
+		  {
+			(*iter)->move(dx, dy);
+		  }
+		}
 
-    parentWidget()->repaint();
-  }
-  else if (_button == Qt::LeftButton && !_editMode)
-  {
-	float zoomRatio = pow(2.f, (float)(event->y()-_clickedPos.y())/height());
+		parentWidget()->repaint();
+	}
+	else if (_button == Qt::LeftButton && !_editMode)
+	{
+		float zoomRatio = pow(2.f, (float)(event->y()-_clickedPos.y())/height());
 
-	//Determine the horizontal pan as a fraction of edit window width:
-	float horizFraction = (float)(event->x()-_clickedPos.x())/(float)(width());
+		//Determine the horizontal pan as a fraction of edit window width:
+		float horizFraction = (float)(event->x()-_clickedPos.x())/(float)(width());
 
-	//The zoom starts at the original drag start; i.e. that point won't move
-	float startXMapped = 
-      ((float)_clickedPos.x()/(float)(width())) * 
-      (_maxValueStart-_minValueStart) + _minValueStart;
+		//The zoom starts at the original drag start; i.e. that point won't move
+		float startXMapped = 
+		  ((float)_clickedPos.x()/(float)(width())) * 
+		  (_maxValueStart-_minValueStart) + _minValueStart;
 
-    float minv = startXMapped - (startXMapped - _minValueStart) * zoomRatio;
-    float maxv= startXMapped + (_maxValueStart - startXMapped) * zoomRatio;
+		float minv = startXMapped - (startXMapped - _minValueStart) * zoomRatio;
+		float maxv= startXMapped + (_maxValueStart - startXMapped) * zoomRatio;
 
-	_minValue = minv - horizFraction*(maxv - minv);
-	_maxValue = maxv - horizFraction*(maxv - minv);
-	if(_colorbarWidget) _colorbarWidget->setDirty();
-  }
+		_minValue = minv - horizFraction*(maxv - minv);
+		_maxValue = maxv - horizFraction*(maxv - minv);
+		if(_colorbarWidget) _colorbarWidget->setDirty();
+	}
 
-  updateGL();
+	updateGL();
+  
 }
 
 //----------------------------------------------------------------------------

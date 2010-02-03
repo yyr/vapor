@@ -55,7 +55,6 @@ namespace VAPoR {
 	class OpacityWidget;
 	class OpacityMap;
 	class ColorbarWidget;
-//	class TFLocationTip;
 };
 
 using namespace VAPoR;
@@ -312,7 +311,6 @@ private:
   const int _opacityGap;
   const int _bottomGap;
 
-//  TFLocationTip *_tooltip;
   QStringList _axisTexts;
   QList<QPoint*> _axisTextPos;
   

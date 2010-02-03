@@ -999,6 +999,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TFLocationTip.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\twoDdataeventrouter.h"
 				>
 				<FileConfiguration

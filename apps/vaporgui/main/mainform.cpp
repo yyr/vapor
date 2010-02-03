@@ -605,7 +605,6 @@ void MainForm::createActions(){
 void MainForm::languageChange()
 {
 	setWindowTitle( tr( "VAPoR:  NCAR Visualization and Analysis Platform for Research" ) );
-	tabWidget->setToolTip("Parameter Settings" );
 
     fileNew_SessionAction->setText( tr( "New Session" ) );
     
