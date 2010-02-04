@@ -362,11 +362,11 @@ void MainForm::createToolBars(){
 void MainForm::hookupSignals() {
     VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // signals and slots connections
-    	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
-    	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
-    	connect( fileSaveAction, SIGNAL( triggered() ), this, SLOT( fileSave() ) );
-    	connect( fileSaveAsAction, SIGNAL( triggered() ), this, SLOT( fileSaveAs() ) );
-    	connect( fileExitAction, SIGNAL( triggered() ), this, SLOT( fileExit() ) );
+	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
+	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
+	connect( fileSaveAction, SIGNAL( triggered() ), this, SLOT( fileSave() ) );
+	connect( fileSaveAsAction, SIGNAL( triggered() ), this, SLOT( fileSaveAs() ) );
+	connect( fileExitAction, SIGNAL( triggered() ), this, SLOT( fileExit() ) );
 	connect( loadPreferencesAction, SIGNAL( triggered() ), this, SLOT( loadPrefs() ) );
 	connect( savePreferencesAction, SIGNAL( triggered() ), this, SLOT( savePrefs() ) );
 	connect(editUndoAction, SIGNAL(triggered()), this, SLOT (undo()));
@@ -374,8 +374,8 @@ void MainForm::hookupSignals() {
 	connect( editVizFeaturesAction, SIGNAL(triggered()), this, SLOT(launchVizFeaturesPanel()));
 	connect( editPreferencesAction, SIGNAL(triggered()), this, SLOT(launchPreferencesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
-    	connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
-    	connect( dataBrowse_DataAction, SIGNAL( triggered() ), this, SLOT( browseData() ) );
+    connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
+    connect( dataBrowse_DataAction, SIGNAL( triggered() ), this, SLOT( browseData() ) );
 	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
@@ -619,7 +619,7 @@ void MainForm::languageChange()
     fileSaveAction->setText( tr( "&Save Session" ) );
     fileSaveAction->setShortcut( tr( "Ctrl+S" ) );
 	fileSaveAction->setToolTip("Launch a file-save dialog to save the state of this session in current session file");
-    fileSaveAsAction->setText( tr( "Save As" ) );
+    fileSaveAsAction->setText( tr( "Save Session As" ) );
     
 	fileSaveAsAction->setToolTip("Launch a file-save dialog to save the state of this session in another session file");
     

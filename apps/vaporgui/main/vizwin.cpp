@@ -73,6 +73,7 @@ using namespace VAPoR;
 VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : QWidget( (QWidget*)parent, fl )
 {
+	setAttribute(Qt::WA_DeleteOnClose);
 	MessageReporter::infoMsg("VizWin::VizWin() begin");
 	myName = name;
     myParent = parent;

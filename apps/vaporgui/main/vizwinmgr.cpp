@@ -650,6 +650,7 @@ updateActiveParams(){
 //Method to enable closing of a vizWin for Undo/Redo
 void VizWinMgr::
 killViz(int viznum){
+	MainForm::getInstance()->getMDIArea()->removeSubWindow(vizWin[viznum]);
 	vizWin[viznum]->close();
 	vizWin[viznum] = 0;
 }

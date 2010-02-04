@@ -72,8 +72,9 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	VAPoR::Params::ParamType renderType = myRouter->getParamsType();
 	VAPoR::VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
+	if (winnum <0) return;
 	int numInsts = vizMgr->getNumInstances(winnum,renderType);
-	
+	assert(numInsts > 0);
 	
 	
 	//create items as needed

@@ -32,6 +32,7 @@
 #include "mainform.h"
 #include "command.h"
 #include "messagereporter.h"
+#include <QMDIArea>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qaction.h>
@@ -864,6 +865,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 				myVizWinMgr->killViz(i);
 			}
 		}
+		MainForm::getInstance()->getMDIArea()->closeAllSubWindows();
 		if(!restoredSession) { 
 			//Create one new visualizer, set all params to default
 			myVizWinMgr->launchVisualizer();
