@@ -63,6 +63,15 @@
 #include "ui/animationtab.h"
 #include <qglobal.h>
 
+#include "images/playreverseA.xpm"
+#include "images/playforwardA.xpm" 
+#include "images/pauseA.xpm"
+#include "images/stepfwdA.xpm"
+#include "images/stepbackA.xpm"
+#include "images/toendA.xpm"
+#include "images/tobeginA.xpm"
+#include "images/replayA.xpm"
+
 using namespace VAPoR;
 QT_USE_NAMESPACE
 
@@ -72,6 +81,30 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : 
 	myParamsType = Params::AnimationParamsType;
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
 	dontUpdate = false;
+	QPixmap* playForwardIcon = new QPixmap(playforward);
+	playForwardButton->setIcon(QIcon(*playForwardIcon));
+	playForwardButton->setIconSize(QSize(30,18));
+	QPixmap* playReverseIcon = new QPixmap(playreverse);
+	playReverseButton->setIcon(QIcon(*playReverseIcon));
+	playReverseButton->setIconSize(QSize(30,18));
+	QPixmap* pauseIcon = new QPixmap(pause_);
+	pauseButton->setIcon(QIcon(*pauseIcon));
+	pauseButton->setIconSize(QSize(30,18));
+	QPixmap* toBeginIcon = new QPixmap(toBegin_);
+	toBeginButton->setIcon(QIcon(*toBeginIcon));
+	toBeginButton->setIconSize(QSize(30,18));
+	QPixmap* toEndIcon = new QPixmap(toEnd_);
+	toEndButton->setIcon(QIcon(*toEndIcon));
+	toEndButton->setIconSize(QSize(30,18));
+	QPixmap* replayIcon = new QPixmap(replay_);
+	replayButton->setIcon(QIcon(*replayIcon));
+	replayButton->setIconSize(QSize(30,18));
+	QPixmap* stepfwdIcon = new QPixmap(stepfwd);
+	stepForwardButton->setIcon(QIcon(*stepfwdIcon));
+	stepForwardButton->setIconSize(QSize(30,18));
+	QPixmap* stepbackIcon = new QPixmap(stepback);
+	stepReverseButton->setIcon(QIcon(*stepbackIcon));
+	stepReverseButton->setIconSize(QSize(30,18));
 }
 
 
