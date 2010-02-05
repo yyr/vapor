@@ -63,14 +63,14 @@
 #include "ui/animationtab.h"
 #include <qglobal.h>
 
-#include "images/playreverseA.xpm"
-#include "images/playforwardA.xpm" 
-#include "images/pauseA.xpm"
-#include "images/stepfwdA.xpm"
-#include "images/stepbackA.xpm"
-#include "images/toendA.xpm"
-#include "images/tobeginA.xpm"
-#include "images/replayA.xpm"
+#include "../images/playreverseA.xpm"
+#include "../images/playforwardA.xpm" 
+#include "../images/pauseA.xpm"
+#include "../images/stepfwdA.xpm"
+#include "../images/stepbackA.xpm"
+#include "../images/toendA.xpm"
+#include "../images/tobeginA.xpm"
+#include "../images/replayA.xpm"
 
 using namespace VAPoR;
 QT_USE_NAMESPACE

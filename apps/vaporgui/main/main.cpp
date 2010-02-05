@@ -79,16 +79,14 @@ int main( int argc, char ** argv ) {
 	
 	//The pointsize of 10 works ok on linux and irix, not windows
 	//The weight of 55 is slightly heavier than normal.
-#ifdef WIN32
-	//default font is OK on windows
+	//default font is OK 
 	QFont myFont = a.font();
 	myFont.setPointSize(10);
 	myFont.setWeight(60);
-    a.setFont(myFont);
-#else
-	//Helvetica looks better on X11 and mac platforms
-	
+    	a.setFont(myFont);
 
+
+/*   Helvetica sometimes looks better on some platforms...
 	QFont myFont(QString("Helvetica"), 10);
 	if (myFont.exactMatch()){
 		//qWarning("Using Helvetica font");
@@ -103,8 +101,8 @@ int main( int argc, char ** argv ) {
 		a.setFont(myFont);
 	}
 
-
-#endif
+*/
+//#endif
 
 	QString fileName("");
     if (argc > 1) fileName = argv[1];

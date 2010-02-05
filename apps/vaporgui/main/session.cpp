@@ -32,7 +32,7 @@
 #include "mainform.h"
 #include "command.h"
 #include "messagereporter.h"
-#include <QMDIArea>
+#include <QMdiArea>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qaction.h>
