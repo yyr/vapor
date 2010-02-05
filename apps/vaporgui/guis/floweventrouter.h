@@ -169,6 +169,7 @@ protected slots:
 	void guiSetUnsteadySamples(int sliderVal);
 
 protected:
+	
 	bool dontUpdate;
 	bool flowVarsZeroBelow();  //Test if the flow variables are zero below terrain
 	void guiUpdateUnsteadyTimes(QTableWidget*, const char*);

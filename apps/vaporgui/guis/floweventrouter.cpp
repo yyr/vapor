@@ -625,6 +625,7 @@ void FlowEventRouter::updateTab(){
 
 	float seedBoxMin[3],seedBoxMax[3];
 	fParams->getBox(seedBoxMin,seedBoxMax, -1);
+	
 	for (int i = 0; i< 3; i++){
 		textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
@@ -1424,7 +1425,7 @@ setFlowNavigateMode(bool mode){
 //any of the localFlowParams are setup.
 void FlowEventRouter::
 reinitTab(bool doOverride){
-
+	setIgnoreBoxSliderEvents(false);
 	Session *ses = Session::getInstance();
 	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
@@ -2083,6 +2084,7 @@ guiCheckPeriodicZ(bool periodic){
 
 void FlowEventRouter::
 guiSetXCenter(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake X center");
@@ -2094,6 +2096,7 @@ guiSetXCenter(int sliderval){
 }
 void FlowEventRouter::
 guiSetYCenter(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake Y center");
@@ -2105,6 +2108,7 @@ guiSetYCenter(int sliderval){
 }
 void FlowEventRouter::
 guiSetZCenter(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake Z center");
@@ -2115,6 +2119,7 @@ guiSetZCenter(int sliderval){
 }
 void FlowEventRouter::
 guiSetXSize(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake X size");
@@ -2126,6 +2131,7 @@ guiSetXSize(int sliderval){
 }
 void FlowEventRouter::
 guiSetYSize(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake Y size");
@@ -2137,6 +2143,7 @@ guiSetYSize(int sliderval){
 }
 void FlowEventRouter::
 guiSetZSize(int sliderval){
+	if (ignoreBoxSliderEvents) return;
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "slide flow rake Z size");
@@ -2746,6 +2753,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
+	setIgnoreBoxSliderEvents(true);
 	bool centerChanged = false;
 	bool sizeChanged = false;
 	DataStatus* ds = DataStatus::getInstance();
@@ -2756,8 +2764,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 		extents = DataStatus::getInstance()->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
-	
-	
+
 		if (newSize > (regMax-regMin)){
 			newSize = regMax-regMin;
 			sizeChanged = true;
@@ -2840,8 +2847,10 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 		default:
 			assert(0);
 	}
+	setIgnoreBoxSliderEvents(false);
 	guiSetTextChanged(false);
 	update();
+	return;
 	
 }
 //Set text when a slider changes.

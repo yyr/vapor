@@ -77,6 +77,12 @@ time steps is also controlled here.</string>
        </item>
        <item>
         <widget class="QComboBox" name="LocalGlobal">
+         <property name="minimumSize">
+          <size>
+           <width>120</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Apply these settings to visualizers, either globally or locally</string>
          </property>
@@ -93,8 +99,13 @@ step, and will animate in unison.</string>
           <bool>false</bool>
          </property>
          <property name="maxCount">
-          <number>1</number>
+          <number>2</number>
          </property>
+         <item>
+          <property name="text">
+           <string>Global Settings</string>
+          </property>
+         </item>
          <item>
           <property name="text">
            <string>Local Settings</string>

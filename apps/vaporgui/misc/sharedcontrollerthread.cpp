@@ -131,22 +131,24 @@ run(){
 		//qWarning(" %d windows are non hidden, %d are active",numNotHidden, numActive);
 		//If no shared renderers are active, wait 1 second and retry:
 		if( numNotHidden == 0) {
-			myAnimationController->animationMutex.unlock();
+			//myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting for an active renderer to start");
-// qt4 mustfix			myWaitCondition->wait(IDLE_WAIT);
+			myWaitCondition->wait(&myAnimationController->animationMutex, IDLE_WAIT);
 			numSleeping = 0;
+			myAnimationController->animationMutex.unlock();
 			continue;
 		}
 		//If the time to finish is positive, then wait:
 		//If finish time is positive, need to come back later to recheck:
 		int finishTime = minSharedTimeToFinish;
 		while (finishTime > 0) {
-			myAnimationController->animationMutex.unlock();
 			
-// QT4 mustfix			myWaitCondition->wait(finishTime);
+			//qWarning("waiting since time left to finish");
+			myWaitCondition->wait(&myAnimationController->animationMutex,finishTime);
+			
 			int timeSinceStart = myAnimationController->myClock->elapsed()-currentTime;
 			finishTime = minSharedTimeToFinish - timeSinceStart;
-			myAnimationController->animationMutex.lock();
+			
 		}
 		// Now we have waited long enough. 
 		// Wait for at all the unhidden ones to have started.  
@@ -201,10 +203,9 @@ run(){
 				numSleeping = numNotHidden - numFinished - numStarted;
 				break;
 			}
-			myAnimationController->animationMutex.unlock();
+			
 			//qWarning("Waiting because started %d < %d ", numStarted, numNotHidden);
-// QT4 mustfix			myWaitCondition->wait(frameWaitTime);
-			myAnimationController->animationMutex.lock();
+			myWaitCondition->wait(&myAnimationController->animationMutex,frameWaitTime);
 		}
 		
 		//Now enough have started, don't allow any more to start:
@@ -226,10 +227,10 @@ run(){
 		if (numOverdue > 0){
 			
 			for (tries = 0; tries< 61; tries++){
-				myAnimationController->animationMutex.unlock();
-// QT4 mustfix				myWaitCondition->wait(MAX_THREAD_WAIT);
+				//myAnimationController->animationMutex.unlock();
+				myWaitCondition->wait(&myAnimationController->animationMutex,MAX_THREAD_WAIT);
 				//qWarning("Waiting for completion of overdue renderings");
-				myAnimationController->animationMutex.lock();
+				//myAnimationController->animationMutex.lock();
 				numOverdue = 0;
 				for (viznum = 0; viznum < MAXVIZWINS; viznum++){
 					if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)&&myAnimationController->renderStarted(viznum)){
@@ -322,8 +323,10 @@ run(){
 		//Can wait before checking them:
 		
 		if (timeToRecheck > 10){
+			//qWarning("waiting before checking restarted renderers");
+			
+			myWaitCondition->wait(&myAnimationController->animationMutex,timeToRecheck);
 			myAnimationController->animationMutex.unlock();
-// QT4 mustfix			myWaitCondition->wait(timeToRecheck);
 			
 		}  else {//Just unlock, go back to the start
 			myAnimationController->animationMutex.unlock();
@@ -351,14 +354,16 @@ run(){
 				break;
 			}
 		}
-		myAnimationController->animationMutex.unlock();
+		
 		if (allDone) {
+			myAnimationController->animationMutex.unlock();
 			controllerActive = false;
 			break;
 		}
 		//wait for a bit; may be woken if someone finishes, or status changes.
 		//qWarning("Waiting for completion of started renderings");
-// QT4 mustfix		myWaitCondition->wait(IDLE_WAIT);
+		myWaitCondition->wait(&myAnimationController->animationMutex,IDLE_WAIT);
+		myAnimationController->animationMutex.unlock();
 	}
 	
 	//Assert that all renderers completed in 60 seconds

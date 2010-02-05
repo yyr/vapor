@@ -154,6 +154,9 @@ public slots:
 	
 	
 protected:
+	//for subclasses with a box:
+	void setIgnoreBoxSliderEvents(bool val) {ignoreBoxSliderEvents = val;}
+	bool ignoreBoxSliderEvents;
 	//for subclasses with a datarange:
 	virtual void setDatarangeDirty(RenderParams* ) {assert(0);}
 	//Routers with histograms keep an array, one for each variable,

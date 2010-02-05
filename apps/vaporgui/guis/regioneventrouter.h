@@ -58,12 +58,6 @@ public:
 	void guiSetCenter(const float * coords);
 	
 	
-	void guiSetXCenter(int n);
-	void guiSetXSize(int n);
-	void guiSetYCenter(int n);
-	void guiSetYSize(int n);
-	void guiSetZCenter(int n);
-	void guiSetZSize(int n);
 	void guiCopyRakeToRegion();
 	void guiCopyProbeToRegion();
 
@@ -97,13 +91,12 @@ protected slots:
 	void guiSetNumRefinements(int n);
 	void guiSetVarNum(int n);
 	void guiSetTimeStep(int n);
-	//Sliders set these:
-	void setRegionXCenter();
-	void setRegionYCenter();
-	void setRegionZCenter();
-	void setRegionXSize();
-	void setRegionYSize();
-	void setRegionZSize();
+	void guiSetXCenter(int n);
+	void guiSetXSize(int n);
+	void guiSetYCenter(int n);
+	void guiSetYSize(int n);
+	void guiSetZCenter(int n);
+	void guiSetZSize(int n);
 	void copyRegionToRake();
 	void copyRakeToRegion();
 	void copyRegionToProbe();

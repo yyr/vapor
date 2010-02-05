@@ -84,7 +84,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-	notNudgingSliders = false;
+	
 	animationFlag = false;
 	myIBFVThread = 0;
 	capturingIBFV = false;
@@ -235,7 +235,7 @@ void ProbeEventRouter::updateTab(){
 	
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
-	notNudgingSliders = true;  //don't generate nudge events
+	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
 
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr() && ds->dataIsPresent3D() ) instanceTable->setEnabled(true);
@@ -500,7 +500,7 @@ void ProbeEventRouter::updateTab(){
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	
-	notNudgingSliders = false;
+	setIgnoreBoxSliderEvents(false);
 	setProbeDirty(probeParams);
 }
 //Fix for clean Windows scrolling:
@@ -1306,6 +1306,7 @@ reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	if (!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
+	setIgnoreBoxSliderEvents(false);
 	xThumbWheel->setRange(-100000,100000);
 	yThumbWheel->setRange(-100000,100000);
 	zThumbWheel->setRange(-100000,100000);
@@ -1744,6 +1745,7 @@ guiSetNumRefinements(int n){
 //
 void ProbeEventRouter::
 textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
+	setIgnoreBoxSliderEvents(true);
 	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
 	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
@@ -1835,6 +1837,7 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	}
 	update();
+	setIgnoreBoxSliderEvents(false);
 	return;
 }
 //Set text when a slider changes.
@@ -2457,7 +2460,8 @@ void ProbeEventRouter::toggleFlowImageCapture() {
 	probeTextureFrame->setCapturing(capturingIBFV);
 }
 void ProbeEventRouter::guiNudgeXSize(int val) {
-	if (notNudgingSliders) return;
+	
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	
@@ -2505,7 +2509,8 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
-	if (notNudgingSliders) return;
+
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -2552,7 +2557,8 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
-	if (notNudgingSliders) return;
+	
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -2599,7 +2605,8 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeZCenter(int val) {
-	if (notNudgingSliders) return;
+	
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -2647,7 +2654,8 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
-	if (notNudgingSliders) return;
+	
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -2694,7 +2702,8 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
-	if (notNudgingSliders) return;
+	
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 

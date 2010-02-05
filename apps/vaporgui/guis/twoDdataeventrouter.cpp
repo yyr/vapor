@@ -82,7 +82,7 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* ): QWidget(
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-	notNudgingSliders = false;
+	
 	MessageReporter::infoMsg("TwoDDataEventRouter::TwoDDataEventRouter()");
 }
 
@@ -190,7 +190,7 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	if (GLWindow::isRendering()) return;
 	guiSetTextChanged(false);
-	notNudgingSliders = true;  //don't generate nudge events
+	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
 
 	
 	instanceTable->rebuild(this);
@@ -423,7 +423,7 @@ void TwoDDataEventRouter::updateTab(){
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	
-	notNudgingSliders = false;
+	setIgnoreBoxSliderEvents(false);
 }
 //Fix for clean Windows scrolling:
 void TwoDDataEventRouter::refreshTab(){
@@ -781,7 +781,7 @@ guiCopyRegionToTwoD(){
 //any of the localTwoDDataParams are setup.
 void TwoDDataEventRouter::
 reinitTab(bool doOverride){
-	
+	setIgnoreBoxSliderEvents(false);
     Session *ses = Session::getInstance();
 	if (DataStatus::getInstance()->dataIsPresent2D()&&!ses->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
@@ -1231,6 +1231,7 @@ guiSetNumRefinements(int n){
 //
 void TwoDDataEventRouter::
 textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize){
+	setIgnoreBoxSliderEvents(true);
 	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
 	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
@@ -1317,6 +1318,7 @@ textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize)
 		VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	}
 	update();
+	setIgnoreBoxSliderEvents(false);
 	return;
 }
 //Set text when a slider changes.
@@ -1746,7 +1748,7 @@ void TwoDDataEventRouter::captureImage() {
 }
 
 void TwoDDataEventRouter::guiNudgeXSize(int val) {
-	if (notNudgingSliders) return;
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	
@@ -1794,7 +1796,7 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeXCenter(int val) {
-	if (notNudgingSliders) return;
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -1841,7 +1843,7 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeYCenter(int val) {
-	if (notNudgingSliders) return;
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -1888,7 +1890,7 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 }
 void TwoDDataEventRouter::guiNudgeZCenter(int val) {
-	if (notNudgingSliders) return;
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -1936,7 +1938,7 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 }
 
 void TwoDDataEventRouter::guiNudgeYSize(int val) {
-	if (notNudgingSliders) return;
+	if (ignoreBoxSliderEvents) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
