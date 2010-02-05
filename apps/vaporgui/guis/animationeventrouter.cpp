@@ -351,7 +351,7 @@ animationPlayForwardClick(){
 }
 void AnimationEventRouter::
 animationReplayClick(){
-	guiToggleReplay(replayButton->isDown());
+	guiToggleReplay(replayButton->isChecked());
 }
 void AnimationEventRouter::
 animationToBeginClick(){
