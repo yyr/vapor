@@ -247,18 +247,16 @@ setDvrEnabled(bool val, int instance){
 	updateTab();
 }
 
-
-
-
-
 void DvrEventRouter::
 setDvrEditMode(bool mode){
-	navigateButton->setDown(!mode);
+	navigateButton->setChecked(!mode);
+	editButton->setChecked(mode);
 	guiSetEditMode(mode);
 }
 void DvrEventRouter::
 setDvrNavigateMode(bool mode){
-	editButton->setDown(!mode);
+	editButton->setChecked(!mode);
+	navigateButton->setChecked(mode);
 	guiSetEditMode(!mode);
 }
 
@@ -437,11 +435,11 @@ void DvrEventRouter::updateTab(){
 	
 	if (dvrParams->getEditMode()){
 		
-		editButton->setDown(true);
-		navigateButton->setDown(false);
+		editButton->setChecked(true);
+		navigateButton->setChecked(false);
 	} else {
-		editButton->setDown(false);
-		navigateButton->setDown(true);
+		editButton->setChecked(false);
+		navigateButton->setChecked(true);
 	}
 		
 	setEditorDirty();

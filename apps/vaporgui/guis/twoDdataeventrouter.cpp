@@ -302,11 +302,11 @@ void TwoDDataEventRouter::updateTab(){
 	
 	if (twoDParams->getEditMode()){
 		
-		editButton->setDown(true);
-		navigateButton->setDown(false);
+		editButton->setChecked(true);
+		navigateButton->setChecked(false);
 	} else {
-		editButton->setDown(false);
-		navigateButton->setDown(true);
+		editButton->setChecked(false);
+		navigateButton->setChecked(true);
 	}
 	
 	
@@ -593,12 +593,12 @@ setTwoDEnabled(bool val, int instance){
 
 void TwoDDataEventRouter::
 setTwoDEditMode(bool mode){
-	navigateButton->setDown(!mode);
+	navigateButton->setChecked(!mode);
 	guiSetEditMode(mode);
 }
 void TwoDDataEventRouter::
 setTwoDNavigateMode(bool mode){
-	editButton->setDown(!mode);
+	editButton->setChecked(!mode);
 	guiSetEditMode(!mode);
 }
 

@@ -460,11 +460,11 @@ void IsoEventRouter::guiBindOpacToColor(){
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::setTFNavigateMode(bool mode){
-	TFeditButton->setDown(!mode);
+	TFeditButton->setChecked(!mode);
 	guiSetTFEditMode(!mode);
 }
 void IsoEventRouter::setTFEditMode(bool mode){
-	TFnavigateButton->setDown(!mode);
+	TFnavigateButton->setChecked(!mode);
 	guiSetTFEditMode(mode);
 }
 void IsoEventRouter::guiSetTFAligned(){
@@ -565,12 +565,12 @@ guiEndChangeIsoSelection(){
 }
 void IsoEventRouter::
 setIsoEditMode(bool mode){
-	navigateButton->setDown(!mode);
+	navigateButton->setChecked(!mode);
 	editMode = mode;
 }
 void IsoEventRouter::
 setIsoNavigateMode(bool mode){
-	editButton->setDown(!mode);
+	editButton->setChecked(!mode);
 	editMode = !mode;
 }
 void IsoEventRouter::guiChangeInstance(int newCurrent){

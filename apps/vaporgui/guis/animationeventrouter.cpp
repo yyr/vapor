@@ -252,15 +252,15 @@ void AnimationEventRouter::updateTab(){
 	int playDirection = aParams->getPlayDirection();
 
 	if (playDirection==0) {//pause
-		//pauseButton->setDown(true);
-		playForwardButton->setDown(false);
-		playReverseButton->setDown(false);
+		//pauseButton->setChecked(true);
+		playForwardButton->setChecked(false);
+		playReverseButton->setChecked(false);
 		stepForwardButton->setEnabled(true);
 		stepReverseButton->setEnabled(true);
 	} else if (playDirection==1){//forward play
-		//pauseButton->setDown(false);
-		playForwardButton->setDown(true);
-		playReverseButton->setDown(false);
+		//pauseButton->setChecked(false);
+		playForwardButton->setChecked(true);
+		playReverseButton->setChecked(false);
 		if (!aParams->isRepeating() && currentFrame >= endFrame){
 			//kludge to make the buttons update at the end of
 			//the animation sequence.  The problem is that
@@ -270,18 +270,18 @@ void AnimationEventRouter::updateTab(){
 			stepReverseButton->setEnabled(true);
 		}
 	} else {//reverse play
-		//pauseButton->setDown(false);
-		playForwardButton->setDown(false);
-		playReverseButton->setDown(true);
+		//pauseButton->setChecked(false);
+		playForwardButton->setChecked(false);
+		playReverseButton->setChecked(true);
 		if (!aParams->isRepeating() && currentFrame <= startFrame){
 			stepForwardButton->setEnabled(true);
 			stepReverseButton->setEnabled(true);
 		}
 	}
 	if (aParams->isRepeating()){
-		replayButton->setDown(true);
+		replayButton->setChecked(true);
 	} else {
-		replayButton->setDown(false);
+		replayButton->setChecked(false);
 	}
 	if (aParams->isLocal())
 		LocalGlobal->setCurrentIndex(1);
@@ -329,23 +329,23 @@ animationReturnPressed(void){
 
 void AnimationEventRouter::
 animationPauseClick(){
-	playForwardButton->setDown(false);
-	playReverseButton->setDown(false);
+	playForwardButton->setChecked(false);
+	playReverseButton->setChecked(false);
 	guiSetPlay(0);
 }
 void AnimationEventRouter::
 animationPlayReverseClick(){
 	if (!playReverseButton->isDown()){
-		playForwardButton->setDown(false);
-		playReverseButton->setDown(true);
+		playForwardButton->setChecked(false);
+		playReverseButton->setChecked(true);
 		guiSetPlay(-1);
 	}
 }
 void AnimationEventRouter::
 animationPlayForwardClick(){
 	
-	playForwardButton->setDown(true);
-	playReverseButton->setDown(false);
+	playForwardButton->setChecked(true);
+	playReverseButton->setChecked(false);
 	guiSetPlay(1);
 	
 }

@@ -485,11 +485,11 @@ void ProbeEventRouter::updateTab(){
 	
 	if (probeParams->getEditMode()){
 		
-		editButton->setDown(true);
-		navigateButton->setDown(false);
+		editButton->setChecked(true);
+		navigateButton->setChecked(false);
 	} else {
-		editButton->setDown(false);
-		navigateButton->setDown(true);
+		editButton->setChecked(false);
+		navigateButton->setChecked(true);
 	}
 		
 	
@@ -980,12 +980,12 @@ setProbeEnabled(bool val, int instance){
 
 void ProbeEventRouter::
 setProbeEditMode(bool mode){
-	navigateButton->setDown(!mode);
+	navigateButton->setChecked(!mode);
 	guiSetEditMode(mode);
 }
 void ProbeEventRouter::
 setProbeNavigateMode(bool mode){
-	editButton->setDown(!mode);
+	editButton->setChecked(!mode);
 	guiSetEditMode(!mode);
 }
 

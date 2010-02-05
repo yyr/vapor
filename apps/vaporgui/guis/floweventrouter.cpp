@@ -1409,12 +1409,12 @@ setFlowConstantColor(){
 
 void FlowEventRouter::
 setFlowEditMode(bool mode){
-	navigateButton->setDown(!mode);
+	navigateButton->setChecked(!mode);
 	guiSetEditMode(mode);
 }
 void FlowEventRouter::
 setFlowNavigateMode(bool mode){
-	editButton->setDown(!mode);
+	editButton->setChecked(!mode);
 	guiSetEditMode(!mode);
 }
 

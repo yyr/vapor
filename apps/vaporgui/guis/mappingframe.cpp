@@ -1685,7 +1685,7 @@ void MappingFrame::mouseMoveEvent(QMouseEvent* event)
 	}
 	set<GLWidget*>::iterator iter;
 
-	if (_selectedWidgets.size())
+	if (_editMode && _selectedWidgets.size())
 	{
 		float x = xViewToWorld(event->x());
 		float y = yViewToWorld(height() - event->y());
