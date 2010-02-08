@@ -57,7 +57,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
+#include "../images/playforwardA.xpm" 
+#include "../images/pauseA.xpm"
 #include "params.h"
 #include "probetab.h"
 #include "vaporinternal/jpegapi.h"
@@ -84,6 +85,14 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
+
+	QPixmap* playForwardIcon = new QPixmap(playforward);
+	playButton->setIcon(QIcon(*playForwardIcon));
+	playButton->setIconSize(QSize(30,18));
+
+	QPixmap* pauseIcon = new QPixmap(pause_);
+	pauseButton->setIcon(QIcon(*pauseIcon));
+	pauseButton->setIconSize(QSize(30,18));
 	
 	animationFlag = false;
 	myIBFVThread = 0;
@@ -98,10 +107,9 @@ ProbeEventRouter::~ProbeEventRouter(){
 	if (savedCommand) delete savedCommand;
 	
 	if (myIBFVThread){
+		ibfvPause();
 		animationFlag= false;
 		probeTextureFrame->setAnimatingTexture(false);
-		myIBFVThread->wait();
-		delete myIBFVThread;
 	}
 	
 }

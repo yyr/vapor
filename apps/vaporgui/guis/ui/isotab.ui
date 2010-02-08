@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>1171</height>
+    <height>1405</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1333,8 +1333,14 @@ specified range.</string>
              <widget class="QPushButton" name="constantColorButton">
               <property name="minimumSize">
                <size>
-                <width>100</width>
+                <width>60</width>
                 <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>75</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="palette">
@@ -1799,8 +1805,14 @@ specified range.</string>
              <widget class="QLineEdit" name="constantOpacityEdit">
               <property name="minimumSize">
                <size>
-                <width>100</width>
+                <width>60</width>
                 <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>75</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="toolTip">
@@ -2425,6 +2437,12 @@ depending on which button is clicked.</string>
             </item>
             <item>
              <widget class="QPushButton" name="fitDataButton">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Fit TF domain bounds to data bounds</string>
               </property>

@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>1212</height>
+    <width>500</width>
+    <height>1536</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>415</width>
+    <width>450</width>
     <height>1212</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>415</width>
+    <width>500</width>
     <height>32767</height>
    </size>
   </property>
@@ -293,7 +293,11 @@
                   </size>
                  </property>
                  <property name="text">
-                  <string>&lt;b&gt;Variable values outside grid (for layered data)&lt;/b&gt;</string>
+                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Variable values outside grid (layered data)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -519,7 +523,7 @@
         <widget class="QComboBox" name="currentNameCombo">
          <property name="minimumSize">
           <size>
-           <width>117</width>
+           <width>170</width>
            <height>0</height>
           </size>
          </property>
@@ -578,6 +582,12 @@
         <widget class="QLineEdit" name="vizNameEdit">
          <property name="enabled">
           <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>160</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="toolTip">
           <string>Edit to rename this visualizer</string>
@@ -2148,7 +2158,7 @@
             <item>
              <widget class="QLabel" name="textLabel1_2_4">
               <property name="text">
-               <string>Image jpeg:</string>
+               <string> jpeg:</string>
               </property>
               <property name="wordWrap">
                <bool>false</bool>

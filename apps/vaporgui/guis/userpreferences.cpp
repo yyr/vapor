@@ -37,7 +37,7 @@
 #include "flowparams.h"
 #include "regionparams.h"
 
-
+#include "images/fileopen.xpm"
 #include "messagereporter.h"
 #include "mainform.h"
 #include "session.h"
@@ -120,6 +120,15 @@ UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
 	dialogChanged = false;
 	textChangedFlag = false;
 	featureHolder = 0;
+	QPixmap* fileopenIcon = new QPixmap(fileopen);
+	logFilePathButton->setIcon(QIcon(*fileopenIcon));
+	sessionPathButton->setIcon(QIcon(*fileopenIcon));
+	metadataPathButton->setIcon(QIcon(*fileopenIcon));
+	jpegPathButton->setIcon(QIcon(*fileopenIcon));
+	tfPathButton->setIcon(QIcon(*fileopenIcon));
+	flowPathButton->setIcon(QIcon(*fileopenIcon));
+	autoSaveButton->setIcon(QIcon(*fileopenIcon));
+
 }
 //Just clone the exposed part, not the QT part
 UserPreferences* UserPreferences::clone(){
@@ -849,7 +858,7 @@ showAllDefaults(){
 	else {
 		showDefaultsButton->setText("Session Defaults");
 		showDefaultsButton->setToolTip("Display the session defaults that will apply when the application is restarted or a new dataset is loaded");
-		w = 460;
+		w = 480;
 		paramDefaultsFrame->hide();
 		defaultDirectoryFrame->hide();
 		defaultVizFeatureFrame->hide();
@@ -858,7 +867,7 @@ showAllDefaults(){
 	setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
-//	sv->resizeContents(w,h);
+
 	sv->resize(w,h);
 	featureHolder->updateGeometry();
 	featureHolder->adjustSize();

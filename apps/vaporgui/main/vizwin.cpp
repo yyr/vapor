@@ -62,6 +62,7 @@
 #include "assert.h"
 #include "session.h"
 #include "vaporinternal/jpegapi.h"
+#include "images/vapor-icon-32.xpm"
 
 using namespace VAPoR;
 
@@ -88,7 +89,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
     myWinMgr = myMgr;
 	mouseDownHere = false;
     languageChange();
-
+	setWindowIcon(QPixmap(vapor_icon___));
     // Create our OpenGL widget.  
 	QGLFormat fmt;
 	fmt.setAlpha(true);

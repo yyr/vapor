@@ -612,12 +612,12 @@ refreshRegionInfo(RegionParams* rParams){
 			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = fullDataExtents[k+3];
 		}
 		//Calculate fraction of extents:
-		minVarXLabel->setText(QString::number(var_ext[0],'g'));
-		minVarYLabel->setText(QString::number(var_ext[1],'g'));
-		minVarZLabel->setText(QString::number(var_ext[2],'g'));
-		maxVarXLabel->setText(QString::number(var_ext[3],'g'));
-		maxVarYLabel->setText(QString::number(var_ext[4],'g'));
-		maxVarZLabel->setText(QString::number(var_ext[5],'g'));
+		minVarXLabel->setText(QString::number(var_ext[0],'g',4));
+		minVarYLabel->setText(QString::number(var_ext[1],'g',4));
+		minVarZLabel->setText(QString::number(var_ext[2],'g',4));
+		maxVarXLabel->setText(QString::number(var_ext[3],'g',4));
+		maxVarYLabel->setText(QString::number(var_ext[4],'g',4));
+		maxVarZLabel->setText(QString::number(var_ext[5],'g',4));
 	} else {
 		minXVoxVarLabel->setText("");
 		minYVoxVarLabel->setText("");

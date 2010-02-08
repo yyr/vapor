@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>2570</height>
+    <height>3121</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -960,13 +960,13 @@ rendering calculations.</string>
                   <widget class="QSlider" name="smoothnessSlider">
                    <property name="minimumSize">
                     <size>
-                     <width>150</width>
+                     <width>75</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
+                     <width>100</width>
                      <height>25</height>
                     </size>
                    </property>
@@ -1069,13 +1069,13 @@ field&quot; in the advanced flow parameters.</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>150</width>
+                     <width>75</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
+                     <width>100</width>
                      <height>25</height>
                     </size>
                    </property>
@@ -2001,7 +2001,7 @@ per flow line.</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>32767</width>
+                <width>90</width>
                 <height>25</height>
                </size>
               </property>
@@ -2214,7 +2214,7 @@ per flow line.</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>32767</width>
+                <width>90</width>
                 <height>25</height>
                </size>
               </property>
@@ -2838,7 +2838,7 @@ magnitude of points in the rake.</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>32767</width>
+                <width>90</width>
                 <height>25</height>
                </size>
               </property>
@@ -3312,7 +3312,7 @@ per flow line.</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>32767</width>
+                <width>90</width>
                 <height>25</height>
                </size>
               </property>
@@ -3813,7 +3813,7 @@ magnitude of points in the rake.</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>32767</width>
+                <width>90</width>
                 <height>25</height>
                </size>
               </property>
@@ -4352,6 +4352,12 @@ current region early.</string>
             </item>
             <item>
              <widget class="QLineEdit" name="flaSamplesEdit">
+              <property name="maximumSize">
+               <size>
+                <width>90</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Specify the number of sample points that are advected and then prioritized</string>
               </property>
@@ -4418,6 +4424,12 @@ current region early.</string>
      </item>
      <item>
       <widget class="QFrame" name="seedingFrame">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>330</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -4739,6 +4751,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -4775,7 +4793,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -4821,6 +4839,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -4857,7 +4881,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -4903,6 +4927,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -4939,7 +4969,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -4985,6 +5015,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -5021,7 +5057,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -5067,6 +5103,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -5103,7 +5145,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -5149,6 +5191,12 @@ coordinate.</string>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -5185,7 +5233,7 @@ coordinate.</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>32767</width>
+                  <width>100</width>
                   <height>25</height>
                  </size>
                 </property>
@@ -5242,7 +5290,7 @@ coordinate.</string>
              <widget class="QLineEdit" name="generatorCountEdit">
               <property name="maximumSize">
                <size>
-                <width>70</width>
+                <width>40</width>
                 <height>32767</height>
                </size>
               </property>
@@ -5290,7 +5338,7 @@ coordinate.</string>
              <widget class="QLineEdit" name="xSeedEdit">
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>35</width>
                 <height>32767</height>
                </size>
               </property>
@@ -5322,7 +5370,7 @@ coordinate.</string>
              <widget class="QLineEdit" name="ySeedEdit">
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>35</width>
                 <height>32767</height>
                </size>
               </property>
@@ -5354,7 +5402,7 @@ coordinate.</string>
              <widget class="QLineEdit" name="zSeedEdit">
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>35</width>
                 <height>32767</height>
                </size>
               </property>
@@ -5937,7 +5985,7 @@ point per time step.</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>32767</width>
+                     <width>90</width>
                      <height>25</height>
                     </size>
                    </property>

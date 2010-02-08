@@ -346,6 +346,7 @@ void MainForm::createToolBars(){
 	vizToolBar->addWidget(alignViewCombo);
 	interactiveRefinementSpin = new QSpinBox(vizToolBar);
 	interactiveRefinementSpin->setPrefix(" Interactive Refinement: ");
+	interactiveRefinementSpin->setMinimumWidth(230);
 	
 	interactiveRefinementSpin->setToolTip(
 		"Specify minimum refinement level during mouse motion,\nused in DVR and Iso rendering");
@@ -356,7 +357,7 @@ void MainForm::createToolBars(){
 		"if it is less than the current refinement level of the renderer.");
 	interactiveRefinementSpin->setMinimum(0);
 	interactiveRefinementSpin->setMaximum(10);
-	interactiveRefinementSpin->setMinimumWidth(200);
+	
 	vizToolBar->addWidget(interactiveRefinementSpin);
 }
 void MainForm::hookupSignals() {

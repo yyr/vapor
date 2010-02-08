@@ -683,6 +683,12 @@ positioned.</string>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>75</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
                    <string>Specify the X center of plane in scene</string>
                   </property>
@@ -727,7 +733,7 @@ positioned.</string>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>32767</width>
+                    <width>75</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -787,6 +793,12 @@ positioned.</string>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>75</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
                    <string>Specify the Y center of plane in scene</string>
                   </property>
@@ -831,7 +843,7 @@ positioned.</string>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>32767</width>
+                    <width>75</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -891,6 +903,12 @@ positioned.</string>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>75</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
                    <string>Specify the Z center of plane in scene</string>
                   </property>
@@ -935,7 +953,7 @@ positioned.</string>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>32767</width>
+                    <width>75</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -1034,6 +1052,12 @@ orientation of the plane.</string>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>75</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
                    <string>Specify the width of plane in scene</string>
                   </property>
@@ -1080,7 +1104,7 @@ orientation of the plane.</string>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>32767</width>
+                    <width>75</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -1142,6 +1166,12 @@ orientation of the plane.</string>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>75</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
                    <string>Specify the height of plane in scene</string>
                   </property>
@@ -1188,7 +1218,7 @@ orientation of the plane.</string>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>32767</width>
+                    <width>75</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -2333,7 +2363,7 @@ change the selection in the 2D plane</string>
           <item>
            <widget class="QLabel" name="textLabel11">
             <property name="text">
-             <string>Use selected point to set:</string>
+             <string>Use selected point to center:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -2354,7 +2384,7 @@ change the selection in the 2D plane</string>
                <string>When this is clicked, the selected point is made the center of the current region.  The region is shrunk as necessary to fit within the full data extents.</string>
               </property>
               <property name="text">
-               <string>Region Center</string>
+               <string>Region </string>
               </property>
              </widget>
             </item>
@@ -2367,7 +2397,7 @@ change the selection in the 2D plane</string>
                <string>When this is clicked, the current viewpoint is modified to point at the selected point and the selected point becomes the rotation center.</string>
               </property>
               <property name="text">
-               <string>View Center</string>
+               <string>View </string>
               </property>
              </widget>
             </item>
@@ -2380,7 +2410,7 @@ change the selection in the 2D plane</string>
                <string>When clicked, the current selected point becomes the center of the current rake (for the current active flow instance).  The rake will be shrunk as necessary to fit within the data domain.</string>
               </property>
               <property name="text">
-               <string>Rake Center</string>
+               <string>Rake </string>
               </property>
              </widget>
             </item>
@@ -2393,7 +2423,7 @@ change the selection in the 2D plane</string>
                <string>When this button is clicked, this probe is moved so that its center becomes the selected point.</string>
               </property>
               <property name="text">
-               <string>Probe Center</string>
+               <string>Probe </string>
               </property>
              </widget>
             </item>
@@ -2896,6 +2926,12 @@ specified range.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="ColorBindButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Move selected color to same x coord as selected opacity </string>
                    </property>
@@ -2932,6 +2968,12 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="OpacityBindButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Move selected opacity to same x coord as selected color</string>
                    </property>
@@ -2968,6 +3010,12 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="fitDataButton">
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Fit TF domain bounds to data bounds</string>
                    </property>
@@ -3055,6 +3103,12 @@ depending on which button is clicked.</string>
                  </item>
                  <item>
                   <widget class="QPushButton" name="loadInstalledButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Load Transfer Function from directory of pre-installed transfer functions</string>
                    </property>

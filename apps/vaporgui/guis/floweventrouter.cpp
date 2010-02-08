@@ -361,8 +361,8 @@ void FlowEventRouter::updateTab(){
 			}
 			seedTimeFrame->hide();
 			
-			colormapEntityCombo->setItemText(1,"Position along Flow");
-			opacmapEntityCombo->setItemText(1,"Position along Flow");
+			colormapEntityCombo->setItemText(1,"Position on Flow");
+			opacmapEntityCombo->setItemText(1,"Position on Flow");
 			break;
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
@@ -407,8 +407,8 @@ void FlowEventRouter::updateTab(){
 			seedtimeEndEdit->setEnabled(false);
 			seedTimeFrame->show();
 			
-			colormapEntityCombo->setItemText(1,"Position along Flow");
-			opacmapEntityCombo->setItemText(1,"Position along Flow");
+			colormapEntityCombo->setItemText(1,"Position on Flow");
+			opacmapEntityCombo->setItemText(1,"Position on Flow");
 			break;
 		default :
 			assert(0);

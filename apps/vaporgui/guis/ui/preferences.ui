@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>844</width>
-    <height>1157</height>
+    <width>973</width>
+    <height>1286</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -48,9 +48,15 @@
        </item>
        <item>
         <widget class="QPushButton" name="buttonCancel2">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>60</width>
            <height>32767</height>
           </size>
          </property>
@@ -100,7 +106,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
+           <width>130</width>
            <height>0</height>
           </size>
          </property>
@@ -125,7 +131,7 @@
         <widget class="QPushButton" name="showDefaultsButton">
          <property name="minimumSize">
           <size>
-           <width>100</width>
+           <width>130</width>
            <height>0</height>
           </size>
          </property>
@@ -167,13 +173,13 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>380</width>
+           <width>420</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>450</width>
+           <width>480</width>
            <height>32767</height>
           </size>
          </property>
@@ -245,11 +251,17 @@
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>80</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
                     <property name="text">
-                     <string>user actions</string>
+                     <string> changes</string>
                     </property>
                     <property name="alignment">
-                     <set>Qt::AlignCenter</set>
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                     </property>
                     <property name="wordWrap">
                      <bool>false</bool>
@@ -291,7 +303,7 @@
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>100</width>
+                      <width>80</width>
                       <height>32767</height>
                      </size>
                     </property>
@@ -332,7 +344,7 @@
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>100</width>
+                      <width>80</width>
                       <height>32767</height>
                      </size>
                     </property>
@@ -376,7 +388,7 @@
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>100</width>
+                      <width>80</width>
                       <height>32767</height>
                      </size>
                     </property>
@@ -569,7 +581,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -619,7 +631,7 @@
                       <string>The file specified for auto save is overwritten every time there is an automatic session save</string>
                      </property>
                      <property name="text">
-                      <string>Session autosave file</string>
+                      <string>Autosave file</string>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -649,7 +661,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>140</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1491,7 +1503,10 @@
                    <item row="3" column="0">
                     <widget class="QLabel" name="textLabel1_2_5_3">
                      <property name="text">
-                      <string>Transfer function dir.</string>
+                      <string>Transfer function</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -1502,7 +1517,7 @@
                     <widget class="QPushButton" name="sessionPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>49</width>
+                       <width>40</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1524,7 +1539,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>120</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1539,7 +1554,10 @@
                    <item row="0" column="0">
                     <widget class="QLabel" name="textLabel1_2_3_2_2_2">
                      <property name="text">
-                      <string>Session file directory</string>
+                      <string>Session file </string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -1550,7 +1568,7 @@
                     <widget class="QPushButton" name="metadataPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>49</width>
+                       <width>40</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1568,7 +1586,10 @@
                    <item row="4" column="0">
                     <widget class="QLabel" name="textLabel1_2_5_2_3">
                      <property name="text">
-                      <string>Flow directory</string>
+                      <string>Flow </string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -1579,8 +1600,14 @@
                     <widget class="QPushButton" name="buttonLatestTF">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>50</width>
                        <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>75</width>
+                       <height>16777215</height>
                       </size>
                      </property>
                      <property name="toolTip">
@@ -1594,7 +1621,10 @@
                    <item row="1" column="0">
                     <widget class="QLabel" name="textLabel1_2_3_2_3">
                      <property name="text">
-                      <string>Metadata Directory</string>
+                      <string>Metadata </string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -1605,8 +1635,14 @@
                     <widget class="QPushButton" name="buttonLatestFlow">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>50</width>
                        <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>75</width>
+                       <height>16777215</height>
                       </size>
                      </property>
                      <property name="toolTip">
@@ -1621,8 +1657,14 @@
                     <widget class="QPushButton" name="buttonLatestMetadata">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>50</width>
                        <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>75</width>
+                       <height>16777215</height>
                       </size>
                      </property>
                      <property name="toolTip">
@@ -1640,7 +1682,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>120</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1655,7 +1697,10 @@
                    <item row="2" column="0">
                     <widget class="QLabel" name="textLabel1_2_4_2">
                      <property name="text">
-                      <string>Image directory</string>
+                      <string>Images</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <property name="wordWrap">
                       <bool>false</bool>
@@ -1666,7 +1711,7 @@
                     <widget class="QPushButton" name="tfPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>49</width>
+                       <width>40</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1688,7 +1733,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>120</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1707,8 +1752,14 @@
                     <widget class="QPushButton" name="buttonLatestImage">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>50</width>
                        <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>75</width>
+                       <height>16777215</height>
                       </size>
                      </property>
                      <property name="toolTip">
@@ -1726,7 +1777,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>120</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1748,7 +1799,7 @@
                      </property>
                      <property name="minimumSize">
                       <size>
-                       <width>120</width>
+                       <width>160</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1764,7 +1815,7 @@
                     <widget class="QPushButton" name="jpegPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>49</width>
+                       <width>40</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -1783,8 +1834,14 @@
                     <widget class="QPushButton" name="buttonLatestSession">
                      <property name="minimumSize">
                       <size>
-                       <width>0</width>
+                       <width>50</width>
                        <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>75</width>
+                       <height>16777215</height>
                       </size>
                      </property>
                      <property name="toolTip">
@@ -1799,7 +1856,7 @@
                     <widget class="QPushButton" name="flowPathButton">
                      <property name="minimumSize">
                       <size>
-                       <width>49</width>
+                       <width>40</width>
                        <height>25</height>
                       </size>
                      </property>
@@ -2010,13 +2067,13 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>380</width>
+           <width>420</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>450</width>
+           <width>480</width>
            <height>32767</height>
           </size>
          </property>
@@ -4747,7 +4804,7 @@ with all three light sources.</string>
         <widget class="QPushButton" name="buttonCancel">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>65</width>
            <height>25</height>
           </size>
          </property>
@@ -4809,7 +4866,7 @@ with all three light sources.</string>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
+           <width>140</width>
            <height>25</height>
           </size>
          </property>
