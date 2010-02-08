@@ -129,8 +129,16 @@ Session::~Session(){
 	int i;
 	tempParsedTF = 0;
 	tempParsedPanel = 0;
+	//Before deleting the animation controller, stop the animation:
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if (vizMgr->getVizWin(i)){
+			AnimationController::getInstance()->finishVisualizer(i);
+			vizMgr->getVizWin(i)->setEnabled(false);
+		}
+	}
 	delete AnimationController::getInstance();
-	delete VizWinMgr::getInstance();
+	delete vizMgr;
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
 	DataStatus::removeMetadataVars();

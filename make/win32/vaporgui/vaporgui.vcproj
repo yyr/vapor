@@ -148,6 +148,7 @@
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
 				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
 				ProgramDataBaseFileName="..\..\..\targets\win32\built\vaporgui\vc70.pdb"

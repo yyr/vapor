@@ -138,7 +138,7 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
  */
 VizWin::~VizWin()
 {
-
+	
      if (localTrackball) delete localTrackball;
 	 //The renderers are deleted in the glwindow destructor:
 	 if (spinTimer) delete spinTimer;

@@ -184,6 +184,9 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
 GLWindow::~GLWindow()
 {
+	if (isSpinning){
+		stopSpin();
+	}
     makeCurrent();
 	for (int i = 0; i< getNumRenderers(); i++){
 		delete renderer[i];
