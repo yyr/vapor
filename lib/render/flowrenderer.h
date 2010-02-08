@@ -25,6 +25,12 @@
 #include "flowparams.h"
 namespace VAPoR {
 
+struct flowTubeVertexData {
+		float color [4];
+		float normal[3];
+		float vertex[3];
+};
+
 class RENDER_API FlowRenderer : public Renderer
 {
 
@@ -90,7 +96,7 @@ public:
 	//When a bit is set dirty, must set appropriate bits for 
 	//all timesteps.
 	void setDataDirty(bool doInterrupt = true);
-	
+	void setDisplayListDirty();
 	void setGraphicsDirty();
 
 	bool rebuildFlowData(int timeStep);
@@ -113,7 +119,7 @@ protected:
 	
 
 	//do it with FlowLineData:
-	void renderFlowData(FlowLineData*,bool constColors, int currentFrameNum);
+	void renderFlowData(bool constColors, int currentFrameNum);
 	
 	void renderTubes(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge,  bool constMap);
 	void renderCurves(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge,  bool constMap);
@@ -131,6 +137,8 @@ protected:
 	// draw one cylinder of tube
 	void drawTube(bool isLit, float* secondColor, float* startPoint, float* endPoint, float* currentB, float* currentU, 
 		float radius, bool constMap, float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex);
+	// add 6 point orthogonal to point_in to storage array at offset
+	void FlowRenderer::makeRing(flowTubeVertexData* storage, unsigned int* offset, float* color_in, float* point_in, float* B_in, float* U_in, float radius_in, bool constMap);
 
 	//Constants that are used, recalculated in each rendering:
 	float constFlowColor[4];
@@ -199,6 +207,17 @@ protected:
 	float periodicExtents[6];
 	VaporFlow* myFlowLib;
 
+
+	/* array to hold data for tube verticies, normals and colors */
+	flowTubeVertexData	 *vertexArray;
+	/* index array, and counters for tubes and arrows */
+	unsigned int curVaIndex, curVaIndex2, curVaSize, *indexArray;
+	int lastShapeType;
+
+	/* markers used for display list logic */
+	bool dirtyDL, useDisplayLists, newType, wasConstColors;
+	/* id for display list(s) */
+	GLuint flowDisplayList;
 
 };
 };

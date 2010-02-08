@@ -408,6 +408,7 @@ public:
 	void setDatarangeDirty(RenderParams* p); 
 	void setFlowGraphicsDirty(FlowParams* p);
 	void setFlowDataDirty(FlowParams* p, bool doInterrupt = true);
+	void setFlowDisplayListDirty(FlowParams* p);
 	
 	bool flowDataIsDirty(FlowParams* p);
 

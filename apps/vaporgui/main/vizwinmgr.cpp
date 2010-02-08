@@ -2335,6 +2335,19 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	vw->updateGL();
 }
 
+void VizWinMgr::setFlowDisplayListDirty(FlowParams* p){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
+	VizWin* vw = getVizWin(p->getVizNum());
+	if (!vw) return;
+	GLWindow* glwin = vw->getGLWindow();
+	if (!glwin) return;
+	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
+	if(flowRend) {
+		flowRend->setDisplayListDirty();
+		flowRend->paintGL();
+	}
+}
+
 bool VizWinMgr::flowDataIsDirty(FlowParams* p){
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return false;

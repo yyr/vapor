@@ -1929,6 +1929,7 @@ guiSetConstantColor(QColor& newColor){
 	fParams->setConstantColor(newColor.rgb());
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
+	VizWinMgr::getInstance()->setFlowDisplayListDirty(fParams);
 }
 //Slider sets the geometry sampling rate.  This is the number of objects per flowline,
 //and is between 2 and 2000
@@ -2306,7 +2307,7 @@ guiToggleDisplayLists(bool on){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle use of display lists");
 	fParams->enableDisplayLists(on);
 	//Refresh ...
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	VizWinMgr::getInstance()->setFlowDisplayListDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	//This has no real effect until the next rendering
 	updateTab();
