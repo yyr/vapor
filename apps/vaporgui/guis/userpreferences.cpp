@@ -37,7 +37,7 @@
 #include "flowparams.h"
 #include "regionparams.h"
 
-#include "images/fileopen.xpm"
+#include "../images/fileopen.xpm"
 #include "messagereporter.h"
 #include "mainform.h"
 #include "session.h"
