@@ -117,7 +117,7 @@ public:
 	return(LayeredIO::GetTSExtents(ts));
  };
 
- virtual void   GetDim(size_t dim[3], int reflevel) {
+ virtual void   GetDim(size_t dim[3], int reflevel) const {
 	return(LayeredIO::GetDim(dim, reflevel));
  };
 
