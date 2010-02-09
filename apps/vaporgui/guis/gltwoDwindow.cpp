@@ -24,8 +24,8 @@
 #include "glutil.h"
 #include "twodframe.h"
 #include "twoDparams.h"
-#include "twoDDataeventrouter.h"
-#include "twoDImageeventrouter.h"
+#include "twoDdataeventrouter.h"
+#include "twoDimageeventrouter.h"
 #include "messagereporter.h"
 #include "session.h"
 #include <math.h>
