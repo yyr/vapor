@@ -135,6 +135,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	DataMgrWB	*dataMgrWB = dynamic_cast<DataMgrWB *>(dataMgr);
 	if (dataMgrWB) {
 		projString = dataMgrWB->GetMapProjection();
+	} else {
+		DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered *>(dataMgr);
+		if (dataMgrLayered)
+			projString = dataMgrLayered->GetMapProjection();
 	}
 	
 	timeVaryingExtents.clear();
