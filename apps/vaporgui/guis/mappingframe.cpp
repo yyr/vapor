@@ -854,6 +854,20 @@ void MappingFrame::paintGL()
   //
   drawDomainSlider();
   if(_isoSliderEnabled) drawIsoSlider();
+  
+  //
+  // Draw Domain Variable Name.  Cannot be performed in drawDomainSlider, because
+  // qglWidget::renderText() has the side-effect of recording a hit when we
+  // select points
+  //
+
+  if (_variableName != "" ){
+		//allow for 4 pixels per character in name:
+		int wx = (width() - _variableName.size()*8)/2;
+		qglColor(Qt::red);
+		renderText(wx, _domainLabelHeight+15, QString::fromStdString(_variableName), QFont("Arial",10,5,false));
+  }
+  
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
 	
@@ -1040,20 +1054,9 @@ void MappingFrame::drawDomainSlider()
   
   _domainSlider->paintGL();
   
-  //
-  // Draw Domain Variable Name
-  //
-
-  //Draw variable name:
-  if (_variableName != "" ){
-		//allow for 4 pixels per character in name:
-		int wx = (width() - _variableName.size()*8)/2;
-		qglColor(Qt::red);
-		renderText(wx, _domainLabelHeight+15, QString::fromStdString(_variableName), QFont("Arial",10,5,false));
-  }
-  
- 
   glPopName();
+  
+  
 }
 //----------------------------------------------------------------------------
 // Draw the iso slider
