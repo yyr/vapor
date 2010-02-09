@@ -69,6 +69,9 @@ protected:
 	void paintEvent(QPaintEvent* event){
 		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
 	}
+	void mousePressEvent( QMouseEvent * );
+    void mouseReleaseEvent( QMouseEvent * );
+    void mouseMoveEvent( QMouseEvent * );
 	
 	bool getPixelData(int minx, int miny, int sizex, int sizey,unsigned char* pixData);
 	

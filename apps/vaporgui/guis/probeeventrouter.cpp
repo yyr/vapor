@@ -509,7 +509,7 @@ void ProbeEventRouter::updateTab(){
 	Session::getInstance()->unblockRecording();
 	
 	setIgnoreBoxSliderEvents(false);
-	setProbeDirty(probeParams);
+	//setProbeDirty(probeParams);
 }
 //Fix for clean Windows scrolling:
 void ProbeEventRouter::refreshTab(){

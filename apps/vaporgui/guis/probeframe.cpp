@@ -53,8 +53,8 @@ ProbeFrame::ProbeFrame( QWidget * parent, Qt::WFlags f ) :
 	if (!(fmt.directRendering() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
-	QHBoxLayout* flayout = new QHBoxLayout( this);
-    flayout->addWidget( glProbeWindow, 1 );
+	QBoxLayout* flayout = new QBoxLayout(QBoxLayout::LeftToRight, this);
+    flayout->addWidget( glProbeWindow, 0 );
 	probeParams = 0;
 
 }
@@ -74,43 +74,3 @@ void ProbeFrame::paintEvent(QPaintEvent* ){
 	glProbeWindow->updateGL();
 }
 
-void ProbeFrame::mousePressEvent( QMouseEvent * e){
-	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-	if (!probeParams) return;
-	float x,y;
-	glProbeWindow->mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
-	per->guiStartCursorMove();
-	probeParams->setCursorCoords(x,y);
-	update();
-	
-}
-
-
-
-
-void ProbeFrame::mouseReleaseEvent( QMouseEvent *e ){
-	if (!glProbeWindow) return;
-	if (!probeParams) return;
-	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-	float x,y;
-	glProbeWindow->mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
-	probeParams->setCursorCoords(x,y);
-	per->guiEndCursorMove();
-	update();
-}
-	
-//When the mouse moves, display its new coordinates.  Move the "grabbed" 
-//control point, or zoom/pan the display
-//
-void ProbeFrame::mouseMoveEvent( QMouseEvent * e){
-	if (!glProbeWindow) return;
-	if (!probeParams) return;
-	float x,y;
-	glProbeWindow->mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
-	probeParams->setCursorCoords(x,y);
-	update();
-	
-}
-void ProbeFrame::resizeEvent( QResizeEvent *  ){
-	needUpdate = true;
-}

@@ -59,7 +59,6 @@ TwoDFrame::~TwoDFrame() {
 	
 }
 	
-
 void TwoDFrame::paintEvent(QPaintEvent* ){
 	
 	//if (!glTwoDWindow){ //should never happen?
@@ -69,60 +68,4 @@ void TwoDFrame::paintEvent(QPaintEvent* ){
 	//Defer to the glTwoDWindow (do a GL draw)
 	if (GLWindow::isRendering()) return;
 	if(!glTwoDWindow->isRendering())glTwoDWindow->updateGL();
-}
-
-void TwoDFrame::mousePressEvent( QMouseEvent * e){
-	float x,y;
-	if (!twoDParams) return;
-	if (isDataWindow){
-		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
-		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-		per->guiStartCursorMove();
-	}
-	else {
-		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
-		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-		per->guiStartCursorMove();
-	}
-	twoDParams->setCursorCoords(x,y);
-	update();
-	
-}
-
-
-
-
-void TwoDFrame::mouseReleaseEvent( QMouseEvent *e ){
-	if (!glTwoDWindow) return;
-	if (!twoDParams) return;
-	float x,y;
-	if (isDataWindow){
-		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
-		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-		twoDParams->setCursorCoords(x,y);
-		per->guiEndCursorMove();
-	}
-	else {
-		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
-		glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-		twoDParams->setCursorCoords(x,y);
-		per->guiEndCursorMove();
-	}
-	update();
-}
-	
-//When the mouse moves, display its new coordinates.  Move the "grabbed" 
-//control point, or zoom/pan the display
-//
-void TwoDFrame::mouseMoveEvent( QMouseEvent * e){
-	if (!glTwoDWindow) return;
-	if (!twoDParams) return;
-	float x,y;
-	glTwoDWindow->mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
-	twoDParams->setCursorCoords(x,y);
-	update();
-	
-}
-void TwoDFrame::resizeEvent( QResizeEvent *  ){
-	needUpdate = true;
 }

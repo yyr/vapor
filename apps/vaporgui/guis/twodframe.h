@@ -69,19 +69,11 @@ protected:
 	
 	//Virtual, Reimplemented here:
 	void paintEvent(QPaintEvent* event);
-	void mousePressEvent( QMouseEvent * );
-    void mouseReleaseEvent( QMouseEvent * );
-    void mouseMoveEvent( QMouseEvent * );
-	
-	void resizeEvent( QResizeEvent * );
 	
 	
 
 	VAPoR::GLTwoDWindow* glTwoDWindow;
-	bool needUpdate;
-	bool amDragging;
 	
-	bool mouseIsDown;
 	VAPoR::TwoDParams* twoDParams;
 	bool isDataWindow;
 	

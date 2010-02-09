@@ -24,7 +24,8 @@
 #include "glutil.h"
 #include "twodframe.h"
 #include "twoDparams.h"
-#include "twoDeventrouter.h"
+#include "twoDDataeventrouter.h"
+#include "twoDImageeventrouter.h"
 #include "messagereporter.h"
 #include "session.h"
 #include <math.h>
@@ -277,4 +278,55 @@ getPixelData(int minx, int miny, int sizex, int sizey, unsigned char* data){
 	return true;
 }
 
+
+void GLTwoDWindow::mousePressEvent( QMouseEvent * e){
+	float x,y;
+	if (!twoDFrame->getParams()) return;
+	if (isDataWindow){
+		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
+		mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		per->guiStartCursorMove();
+	}
+	else {
+		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
+		mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		per->guiStartCursorMove();
+	}
+	twoDFrame->getParams()->setCursorCoords(x,y);
+	update();
+	
+}
+
+
+void GLTwoDWindow::mouseReleaseEvent( QMouseEvent *e ){
+	
+	if (!twoDFrame->getParams()) return;
+	float x,y;
+	if (isDataWindow){
+		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
+		mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		twoDFrame->getParams()->setCursorCoords(x,y);
+		per->guiEndCursorMove();
+	}
+	else {
+		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
+		mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+		twoDFrame->getParams()->setCursorCoords(x,y);
+		per->guiEndCursorMove();
+	}
+	update();
+}
+	
+//When the mouse moves, display its new coordinates.  Move the "grabbed" 
+//control point, or zoom/pan the display
+//
+void GLTwoDWindow::mouseMoveEvent( QMouseEvent * e){
+	
+	if (!twoDFrame->getParams()) return;
+	float x,y;
+	mapPixelToTwoDCoords(e->x(),e->y(), &x, &y);
+	twoDFrame->getParams()->setCursorCoords(x,y);
+	update();
+	
+}
 

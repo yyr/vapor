@@ -36,7 +36,39 @@
 #include "assert.h"
 
 using namespace VAPoR;
+void GLProbeWindow::mousePressEvent( QMouseEvent * e){
+	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
+	if (!probeFrame->getParams()) return;
+	float x,y;
+	mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
 
+	per->guiStartCursorMove();
+	probeFrame->getParams()->setCursorCoords(x,y);
+	qWarning("mouse press at %f %f", x, y);
+	update();
+	
+}
+void GLProbeWindow::mouseMoveEvent( QMouseEvent * e){
+	
+	if (!probeFrame->getParams()) return;
+	float x,y;
+	mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
+	probeFrame->getParams()->setCursorCoords(x,y);
+	qWarning("mouse move to %f %f", x, y);
+	update();
+	
+}
+void GLProbeWindow::mouseReleaseEvent( QMouseEvent *e ){
+	
+	if (!probeFrame->getParams()) return;
+	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
+	float x,y;
+	mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
+	probeFrame->getParams()->setCursorCoords(x,y);
+	qWarning("mouse release to %f %f", x, y);
+	per->guiEndCursorMove();
+	update();
+}
 
 GLProbeWindow::GLProbeWindow( QGLFormat& fmt, QWidget* parent, const char* , ProbeFrame* pf ) : 
 	QGLWidget(fmt, parent) {
