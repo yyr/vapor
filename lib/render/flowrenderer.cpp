@@ -1074,7 +1074,7 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 	/* (re)allocate memory for Vertex Array */
 	if (lastAge > curVaSize || newType) {
 		delete[] vertexArray;
-		vertexArray = new flowTubeVertexData[(lastAge+1)];
+		vertexArray = new flowTubeVertexData[(lastAge*2)];
 		curVaSize = lastAge;
 	}
 	
@@ -1134,10 +1134,16 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 			myFlowParams->periodicMap(point, mappedPoint, false);
 			vcopy(mappedPoint, vertexArray[curVaIndex].vertex);
 			curVaIndex++;
+			
+			/* if we overshoot our memory range, render and restart (only in periodic case)*/
+			if (curVaIndex > curVaSize) assert(0); //{
+			/*	glDrawArrays(GL_POINTS, 0, curVaIndex);
+				curVaIndex = 0;
+			}*/
 		}	
 		
 		/* render VA for this point set*/
-		glDrawArrays(GL_POINTS, 0, curVaIndex);
+		if (curVaIndex) glDrawArrays(GL_POINTS, 0, curVaIndex);
 
 	}
 
@@ -1285,7 +1291,11 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 				//end previous curve, start next one:
 				newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
 				assert(!newcycle);
-
+				
+				/* Render the current geometry & restart rendering in new position */
+				glDrawArrays(GL_LINE_STRIP, 0, curVaIndex);
+				curVaIndex = 0;
+				
 				vcopy(normVec, vertexArray[curVaIndex].normal);
 				vcopy(mappedPoint, vertexArray[curVaIndex].vertex);
 				curVaIndex++;
@@ -1509,7 +1519,8 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			newcycle = false;
 
 			bool currentIsEven = false;
-			int tubeIndex;
+			int tubeIndex;				
+			
 			for (tubeIndex = tubeStartIndex+1; tubeIndex <= lastIndex; tubeIndex++){
 				point = flowLineData->getFlowPoint(tubeNum, tubeIndex);
 				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
@@ -1593,6 +1604,9 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 						}
 					}
 					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
+					
+					/* add first ring before looping through the rest */
+					makeRing(vertexArray, &curVaIndex, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), prevVertex, currentB, currentU, radius, constMap);
 				}
 				drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, endPoint, currentB, currentU, radius, constMap,
 					prevNormal, prevVertex, currentNormal, currentVertex);
@@ -1606,6 +1620,11 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					assert(!newcycle);
 					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
 					mapPeriodicCycle(point-3, nextStartPoint, currentCycle, newCycle);
+					
+					/* Render the current geometry & restart rendering in new position */
+					for (int ii = 0; ii+1 < curVaIndex/6; ii++) glDrawElements(GL_TRIANGLE_STRIP, 14, GL_UNSIGNED_INT, &indexArray[ii*2*7]);
+					curVaIndex = 0;
+					
 					//Render the translation of the previous tube.  Note that we will need to first specify
 					//translated values for prevVertex.  prevNormal is OK.  The resulting values
 					//in currentVertex are translated appropriately, since they are offset from endPoint
@@ -1904,6 +1923,13 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 					assert(!newcycle);
 					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
 					mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					
+					/* Render the current geometry & restart rendering in new position */
+					for (int ii = 0; ii+1 < curVaIndex/12; ii++) glDrawElements(GL_TRIANGLE_STRIP, 14, GL_UNSIGNED_INT, &indexArray[ii*2*7]);
+					for (int ii = 0; ii+1 < curVaIndex/12; ii++) glDrawArrays(GL_POLYGON, ii*(2*6+0), 6);
+					for (int ii = 0; ii+1 < curVaIndex/12; ii++) glDrawElements(GL_TRIANGLE_FAN, 8, GL_UNSIGNED_INT, &indexArray[curVaSize*2*7 + ii*8]);
+					curVaIndex = 0;
+					
 					//Then render the new (cyclically offset) arrow:
 					drawArrow(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
 				}
@@ -1916,15 +1942,15 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 		} //legitimate flow line
 
 		//Render tubes
-		for (int ii = 0; ii+1 < curVaIndex/12; ii++) 
+		for (int ii = 0; ii < curVaIndex/12; ii++) 
 			glDrawElements(GL_TRIANGLE_STRIP, 14, GL_UNSIGNED_INT, &indexArray[ii*2*7]);
-
+		
 		//Render endcaps
-		for (int ii = 0; ii+1 < curVaIndex/12; ii++)
+		for (int ii = 0; ii < curVaIndex/12; ii++)
 			glDrawArrays(GL_POLYGON, ii*(2*6+0), 6);
 
 		//Render arrowheads
-		for (int ii = 0; ii+1 < curVaIndex/12; ii++)
+		for (int ii = 0; ii < curVaIndex/12; ii++)
 			glDrawElements(GL_TRIANGLE_FAN, 8, GL_UNSIGNED_INT, &indexArray[curVaSize*2*7 + ii*8]);
 
 	} //end of loop over seedPoints
