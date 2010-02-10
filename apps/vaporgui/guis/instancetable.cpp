@@ -37,7 +37,7 @@ InstanceTable::InstanceTable(QWidget* parent) : QTableWidget(parent) {
 	
 	setRowCount(0);
 	setColumnCount(2);
-	setColumnWidth(0,100);
+	setColumnWidth(0,80);
 	setColumnWidth(1,50);
     verticalHeader()->hide();
 	setSelectionMode(QAbstractItemView::SingleSelection);
