@@ -190,14 +190,14 @@ void	process_volume(
 	float maxz = opt.maxZExtent;
 
 	
-	size_t* start;
-	size_t* count;
-	size_t* outCount, *inCount;
+	size_t* start = 0;
+	size_t* count = 0;
+	size_t* outCount = 0, *inCount = 0;
 	int nc_status;
 	int varid;			// id of variable we are reading
 	int ndimids;
 	int ncid;
-	FILE *fp;
+	FILE *fp = 0;
 	if (!opt.bin){ 
 		// Check out the netcdf file.
 		// It needs to have the specified variable name, and the specified dimension names
