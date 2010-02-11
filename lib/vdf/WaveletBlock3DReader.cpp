@@ -2,7 +2,9 @@
 #include <cstring>
 #include <cerrno>
 #include "vapor/WaveletBlock3DReader.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 

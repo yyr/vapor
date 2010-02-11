@@ -11,7 +11,9 @@
 #include <CoreServices/CoreServices.h>
 #endif
 #include "GetAppPath.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace std;
 using namespace VetsUtil;
 

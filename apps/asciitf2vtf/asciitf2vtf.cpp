@@ -9,7 +9,9 @@
 #include <vapor/Metadata.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/TransferFunctionLite.h>
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 

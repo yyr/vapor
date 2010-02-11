@@ -35,7 +35,9 @@
 extern char * getenv JPP((const char * name));
 #endif
 #endif
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 
 /*
  * Some important notes:

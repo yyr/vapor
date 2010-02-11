@@ -8,7 +8,9 @@
 #include <iostream>
 #include <vapor/EasyThreads.h>
 #include <vapor/MyBase.h>
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 namespace VAPoR {
 
 //

@@ -40,7 +40,9 @@
 #include <qapplication.h>
 
 #include <QEvent>
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 
 using namespace VAPoR;
 

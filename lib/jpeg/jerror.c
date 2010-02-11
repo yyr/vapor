@@ -23,6 +23,9 @@
 #include "jpeglib.h"
 #include "jversion.h"
 #include "jerror.h"
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 
 #ifdef USE_WINDOWS_MESSAGEBOX
 #include <windows.h>

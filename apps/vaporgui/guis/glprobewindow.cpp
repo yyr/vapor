@@ -34,6 +34,9 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include "assert.h"
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 
 using namespace VAPoR;
 void GLProbeWindow::mousePressEvent( QMouseEvent * e){

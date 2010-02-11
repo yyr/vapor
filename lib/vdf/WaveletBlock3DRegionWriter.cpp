@@ -6,7 +6,9 @@
 #include <cerrno>
 #include <cassert>
 #include "vapor/WaveletBlock3DRegionWriter.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 

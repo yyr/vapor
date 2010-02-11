@@ -8,6 +8,9 @@
 #include <sstream>
 #include <locale>
 #include "vapor/Version.h"
+#ifdef WIN32
+#pragma warning( disable : 4996 )
+#endif
 
 using namespace VetsUtil;
 

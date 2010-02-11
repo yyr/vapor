@@ -40,7 +40,9 @@
 #include <algorithm>
 #include "vapor/ExpatParseMgr.h"
 #include "vapor/XmlNode.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 
 using namespace VetsUtil;
 using namespace VAPoR;

@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log$
+ * Revision 1.6  2009/07/14 20:34:07  alannorton
+ * Changes to compile on Windows
+ *
  * Revision 1.5  2009/07/13 19:03:18  clynejp
  *
  * Ported to RHEL5
@@ -130,6 +133,9 @@
 #include "geotiff.h"
 #include "geo_normalize.h"
 #include "geovalues.h"
+#ifdef WIN32
+#pragma warning( disable : 4996 )
+#endif
 
 /************************************************************************/
 /*                          OSRProj4Tokenize()                          */

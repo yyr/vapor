@@ -2,7 +2,9 @@
 #include <cstring>
 #include <cerrno>
 #include "vapor/WaveletBlock3DWriter.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VAPoR;
 
 void	WaveletBlock3DWriter::_WaveletBlock3DWriter()

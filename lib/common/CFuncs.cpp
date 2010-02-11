@@ -7,6 +7,9 @@
 #include "vapor/CFuncs.h"
 
 #include <iostream>
+#ifdef WIN32
+#pragma warning( disable : 4996 )
+#endif
 
 using namespace VetsUtil;
 

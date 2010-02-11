@@ -28,6 +28,9 @@
 #include "xtiffio.h"
 #include "cpl_serv.h"
 #include "proj_api.h"
+#ifdef WIN32
+#pragma warning( disable : 4996 )
+#endif
 
 
 

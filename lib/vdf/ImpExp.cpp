@@ -26,7 +26,7 @@
 #include <unistd.h>
 //Silence an annoying and unnecessary compiler warning
 #else
-#pragma warning(disable : 4251 4267)
+#pragma warning(disable : 4251 4267 4996)
 #include "windows.h"
 #include "Winnetwk.h"
 #endif

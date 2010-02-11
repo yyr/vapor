@@ -33,6 +33,9 @@
 #include "dvreventrouter.h"
 #include "isoeventrouter.h"
 #include "probeeventrouter.h"
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VAPoR;
 VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Command::activateType t){
 	lastActiveViznum = prevViz;

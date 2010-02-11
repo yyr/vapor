@@ -27,7 +27,10 @@
 #include "ParamsIso.h"
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrWB.h"
+#include "vapor/DataMgrLayered.h"
 #include "vapor/DataMgrFactory.h"
+#include "vapor/LayeredIO.h"
+
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "command.h"
@@ -796,14 +799,22 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			}
 		} else {//merge
 			assert (dataMgr);
+			MetadataVDC* md; 
 			DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-			if (! dataMgrWB) return false;
-			//keep dataMgr, do a merge:
+			DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered *> (dataMgr);
+			
+			if (dataMgrWB) {
+				md = (MetadataVDC*) dataMgrWB;
+			} else if (dataMgrLayered){
+				md = (MetadataVDC*) dataMgrLayered;
+			} else return false;
+				
 			//Need a non-const pointer to the metadata, since we will modify it:
 			size_t offset = (size_t) mergeOffset;
 			//Use the fileBase, not the currentMetadataFile for the merge.
-			int rc = dataMgrWB->Merge(fileBase,offset);
+			int rc = md->Merge(fileBase,offset);
 			if (rc < 0) return false;
+
 		}
 		
 	} 

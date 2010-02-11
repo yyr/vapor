@@ -88,6 +88,8 @@
 #include "userpreferences.h"
 
 #include <vapor/DataMgrWB.h>
+#include <vapor/DataMgrLayered.h>
+#include <vapor/MetadataVDC.h>
 #include "vapor/Version.h"
 //Following shortcuts are provided:
 // CTRL_N: new session
@@ -184,7 +186,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	//setup the tab widget
 
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
-	tabWidget->setMaximumWidth(500);
+	tabWidget->setMaximumWidth(700);
 	
 	//This is just large enough to show the whole width of flow tab, with a scrollbar
 	//on right (on windows, linux, and irix)  Using default settings of 
@@ -794,9 +796,10 @@ void MainForm::saveMetadata()
 {
 	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
+	DataMgrLayered *dataMgrLayered = dynamic_cast<DataMgrLayered *> (dataMgr);
 
 	//Do nothing if there is no metadata:
-	if (! dataMgrWB) {
+	if (! dataMgrWB  && !dataMgrLayered) {
 			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
 		return;
 	}
@@ -829,7 +832,12 @@ void MainForm::saveMetadata()
 			if (rc != QMessageBox::Ok) return;
 		}
 		std::string stdName = filename.toStdString();
-		int rc = dataMgrWB->Write(stdName,0);
+		int rc;
+		MetadataVDC* md;
+		if (dataMgrWB) md = (MetadataVDC*) dataMgrWB;
+		else md = (MetadataVDC*) dataMgrLayered;
+		rc = md->Write(stdName,0);
+
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", (const char*)filename.toAscii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);

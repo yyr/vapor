@@ -10,6 +10,7 @@
 #ifndef WIN32
 #include <unistd.h>
 #else
+#pragma warning(disable : 4996)
 #include "windows.h"
 #include "vaporinternal/common.h"
 #endif

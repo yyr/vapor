@@ -11,7 +11,9 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 

@@ -24,7 +24,9 @@
 #include <string>
 #include <idl_export.h>
 #include "IDLCommon.h"
-
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 void    errFatal(
     const char *format,
     ...

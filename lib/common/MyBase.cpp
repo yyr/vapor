@@ -10,6 +10,7 @@
 
 #include "vapor/MyBase.h"
 #ifdef WIN32
+#pragma warning( disable : 4996 )
 #include "windows.h"
 #endif
 

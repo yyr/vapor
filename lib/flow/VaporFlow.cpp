@@ -1,5 +1,5 @@
 #ifdef WIN32
-#pragma warning(disable : 4244 4251 4267 4100)
+#pragma warning(disable : 4244 4251 4267 4100 4996)
 #endif
 
 #include "vapor/VaporFlow.h"

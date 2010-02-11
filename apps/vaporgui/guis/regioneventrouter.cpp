@@ -20,7 +20,7 @@
 //
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
-#pragma warning( disable : 4100 )
+#pragma warning( disable : 4100 4996 )
 #endif
 #include <qdesktopwidget.h>
 #include <qrect.h>

@@ -150,6 +150,7 @@ static struct tm *_localtime64_r (const time_t * now, TIME64_T *_t, struct tm *p
         tm.tm_year = 2037 - 1900;
     t = MkTime64 (&tm);
 #ifdef	WIN32
+#pragma warning( disable : 4996 )
 	struct tm *tm_localtime_ptr, *tm_gmtime_ptr;
 
     tm_localtime_ptr = localtime (&t);
