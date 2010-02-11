@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="tiffToGeotiff"
 	ProjectGUID="{602EBD94-0F3E-4EAA-90F6-503D18A67272}"
+	RootNamespace="tiffToGeotiff"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -130,7 +131,7 @@
 				ObjectFile="../../../targets/win32/built/tiff2geotiff/"
 				ProgramDataBaseFileName="../../../targets/win32/built/tiff2geotiff/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

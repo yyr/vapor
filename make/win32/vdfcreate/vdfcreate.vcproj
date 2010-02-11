@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="vdfcreate"
 	ProjectGUID="{A57612E6-649A-4C0E-8456-C4C80DB807A4}"
+	RootNamespace="vdfcreate"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -129,7 +130,7 @@
 				ProgramDataBaseFileName="../../../targets/win32/built/vdfcreate/vc70.pdb"
 				BrowseInformation="1"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

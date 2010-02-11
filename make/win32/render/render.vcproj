@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="render"
 	ProjectGUID="{9FD418C0-1BFF-4BA3-B901-3AC872588F06}"
+	RootNamespace="render"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -125,7 +126,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;QT_THREAD_SUPPORT"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
@@ -133,7 +134,7 @@
 				ObjectFile="../../../targets/win32/built/render/"
 				ProgramDataBaseFileName="../../../targets/win32/built/render/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -147,10 +148,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\glew32.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCore4.lib QtGui4.lib QtOpenGL4.lib opengl32.lib glu32.lib proj.lib libtiff.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="true"
 				SubSystem="2"

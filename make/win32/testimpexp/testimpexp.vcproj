@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="testimpexp"
 	ProjectGUID="{58AD122F-0E8E-4F94-A503-E030309B280D}"
+	RootNamespace="testimpexp"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -127,7 +128,7 @@
 				ObjectFile="../../../targets/win32/built/testimpexp/"
 				ProgramDataBaseFileName="../../../targets/win32/built/testimpexp/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

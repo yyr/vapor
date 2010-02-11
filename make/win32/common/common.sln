@@ -117,6 +117,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tiffToGeotiff", "..\tiffToG
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{58F96DD4-77D9-415C-9484-95BD1A6CD6EE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cart2wrfvdf", "..\cart2wrfvdf\cart2wrfvdf.vcproj", "{60E627C6-F63E-49EF-A1EB-94716A19448D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -126,6 +132,7 @@ Global
 		{2A421CB7-58B3-3747-A570-E36BF03CEA3F}.Debug|Win32.ActiveCfg = Debug|Win32
 		{2A421CB7-58B3-3747-A570-E36BF03CEA3F}.Debug|Win32.Build.0 = Debug|Win32
 		{2A421CB7-58B3-3747-A570-E36BF03CEA3F}.Release|Win32.ActiveCfg = Release|Win32
+		{2A421CB7-58B3-3747-A570-E36BF03CEA3F}.Release|Win32.Build.0 = Release|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug|Win32.Build.0 = Debug|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release|Win32.ActiveCfg = Release|Win32
@@ -204,6 +211,10 @@ Global
 		{602EBD94-0F3E-4EAA-90F6-503D18A67272}.Debug|Win32.Build.0 = Debug|Win32
 		{602EBD94-0F3E-4EAA-90F6-503D18A67272}.Release|Win32.ActiveCfg = Release|Win32
 		{602EBD94-0F3E-4EAA-90F6-503D18A67272}.Release|Win32.Build.0 = Release|Win32
+		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Debug|Win32.Build.0 = Debug|Win32
+		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Release|Win32.ActiveCfg = Release|Win32
+		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

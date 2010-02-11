@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="wrfvdfcreate"
-	ProjectGUID="{31C701B3-60F3-48DC-9445-83BC83A9821B}"
-	RootNamespace="wrfvdfcreate"
+	Name="cart2wrfvdf"
+	ProjectGUID="{60E627C6-F63E-49EF-A1EB-94716A19448D}"
+	RootNamespace="cart2wrfvdf"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -42,15 +42,14 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(NETCDF_INC_PATH)&quot;;../../../include;&quot;$(EXPAT_INC_PATH)&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				ObjectFile="../../../targets/win32/built/wrfvdfcreate/"
-				ProgramDataBaseFileName="../../../targets/win32/built/wrfvdfcreate/vc70.pdb"
-				BrowseInformation="1"
+				ObjectFile="../../../targets/win32/built/cart2wrfvdf/"
+				ProgramDataBaseFileName="../../../targets/win32/built/cart2wrfvdf/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -66,13 +65,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="netcdf.lib proj.lib"
-				OutputFile=".\..\..\..\targets\win32\bin\wrfvdfcreate.exe"
+				AdditionalDependencies="netcdf.lib"
+				OutputFile="..\..\..\targets\win32\bin\cart2wrfvdf.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
-				IgnoreDefaultLibraryNames="MSVCRT"
+				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../../../targets/win32/bin/wrfvdfcreate.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/cart2vdf.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -125,10 +123,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../include;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="&quot;$(NETCDF_INC_PATH)&quot;;../../../include;&quot;$(EXPAT_INC_PATH)&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/cart2wrfvdf/"
+				ProgramDataBaseFileName="../../../targets/win32/built/cart2wrfvdf/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
@@ -144,12 +144,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="netcdf.lib proj.lib"
-				OutputFile=".\..\..\..\targets\win32\bin\wrfvdfcreate.exe"
+				AdditionalDependencies="netcdf.lib"
+				OutputFile="..\..\..\targets\win32\bin\cart2wrfvdf.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="true"
+				GenerateDebugInformation="false"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -189,7 +189,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\apps\wrfvdfcreate\wrfvdfcreate.cpp"
+				RelativePath="..\..\..\apps\cart2wrfvdf\cart2wrfvdf.cpp"
 				>
 			</File>
 		</Filter>

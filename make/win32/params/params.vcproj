@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="params"
 	ProjectGUID="{E8FB619B-48D3-4B7E-B3F0-88939299995A}"
+	RootNamespace="params"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -52,7 +53,7 @@
 				ObjectFile="../../../targets/win32/built/params/"
 				ProgramDataBaseFileName="../../../targets/win32/built/params/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -126,7 +127,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
@@ -134,7 +135,7 @@
 				ObjectFile="../../../targets/win32/built/params/"
 				ProgramDataBaseFileName="../../../targets/win32/built/params/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -148,10 +149,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib QtCore4.lib QtGui4.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTRELDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="true"
 				SubSystem="2"

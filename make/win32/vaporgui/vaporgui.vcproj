@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="vaporgui"
 	ProjectGUID="{2A421CB7-58B3-3747-A570-E36BF03CEA3F}"
+	RootNamespace="vaporgui"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -45,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
 				Optimization="3"
-				AdditionalIncludeDirectories="&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
+				AdditionalIncludeDirectories="&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
 				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="false"
@@ -73,10 +74,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="qt-mt334.lib ..\..\..\targets\win32\bin\glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="QtCore4.lib QtOpenGL4.lib QtGui4.lib qtmain.lib ..\..\..\targets\win32\bin\glew32.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTRELDIR)\lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				DelayLoadDLLs="opengl32.dll"
@@ -1467,10 +1468,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\animationtab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -o ..\..\..\apps\vaporgui\guis\ui\animationtab.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -i animationtab.h -o ..\..\..\apps\vaporgui\guis\ui\animationtab.cpp&#x0D;&#x0A;$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.h -o ..\..\..\apps\vaporgui\moc\moc_animationtab.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\animationtab.h;..\..\..\apps\vaporgui\guis\ui\animationtab.cpp;..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"
+						Description="Uic&apos;ing animationtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -o ..\..\..\apps\vaporgui\guis\ui\animationtab.h"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\animationtab.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1479,7 +1480,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing animationtab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -o ..\..\..\apps\vaporgui\guis\ui\animationtab.h&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -o ..\..\..\apps\vaporgui\guis\ui\animationtab.h"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\animationtab.h"
 					/>
@@ -1494,9 +1495,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing ControlPointEditorBase.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_ControlPointEditorBase.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_ControlPointEditorBase.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1505,7 +1506,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing ControlPointEditorBase.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h&quot;"
 					/>
@@ -1519,10 +1520,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\dvr.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\dvr.ui -o ..\..\..\apps\vaporgui\guis\ui\dvr.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\dvr.ui -i dvr.h -o ..\..\..\apps\vaporgui\guis\ui\dvr.cpp&#x0D;&#x0A;$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\dvr.h -o ..\..\..\apps\vaporgui\moc\moc_dvr.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\dvr.h;..\..\..\apps\vaporgui\guis\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"
+						Description="Uic&apos;ing dvr.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\dvr.ui -o ..\..\..\apps\vaporgui\guis\ui\dvr.h"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\dvr.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1531,7 +1532,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing dvr.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\dvr.ui -o ..\..\..\apps\vaporgui\guis\ui\dvr.h&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\dvr.ui -o ..\..\..\apps\vaporgui\guis\ui\dvr.h"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\dvr.h"
 					/>
@@ -1546,9 +1547,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing flowtab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -i flowtab.h -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_flowtab.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_flowtab.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1557,7 +1558,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing flowtab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;"
 					/>
@@ -1572,9 +1573,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing isotab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_isotab.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_isotab.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1583,7 +1584,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing isotab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;"
 					/>
@@ -1598,9 +1599,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing preferences.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\preferences.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_preferences.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1609,7 +1610,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing preferences.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\preferences.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\preferences.h&quot;"
 					/>
@@ -1624,9 +1625,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing probetab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -i probetab.h -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1635,7 +1636,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing probetab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;"
 					/>
@@ -1649,10 +1650,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\regiontab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.ui -o ..\..\..\apps\vaporgui\guis\ui\regiontab.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.ui -i regiontab.h -o ..\..\..\apps\vaporgui\guis\ui\regiontab.cpp&#x0D;&#x0A;$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.h -o ..\..\..\apps\vaporgui\moc\moc_regiontab.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\regiontab.h;..\..\..\apps\vaporgui\guis\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"
+						Description="Uic&apos;ing regiontab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.ui -o ..\..\..\apps\vaporgui\guis\ui\regiontab.h"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\regiontab.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1661,7 +1662,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing regiontab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.ui -o ..\..\..\apps\vaporgui\guis\ui\regiontab.h&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.ui -o ..\..\..\apps\vaporgui\guis\ui\regiontab.h"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\regiontab.h"
 					/>
@@ -1676,9 +1677,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing setoffset.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1687,7 +1688,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing setoffset.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;"
 					/>
@@ -1702,9 +1703,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing twoDdatatab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_twoDdatatab.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_twoDdatatab.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1713,7 +1714,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing twoDdatatab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDdatatab.h&quot;"
 					/>
@@ -1728,9 +1729,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing twoDimagetab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_twoDimagetab.cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_twoDimagetab.cpp&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1739,7 +1740,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing twoDimagetab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\twoDimagetab.h&quot;"
 					/>
@@ -1753,10 +1754,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui -o ..\..\..\apps\vaporgui\guis\ui\vizfeatures.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui -i vizfeatures.h -o ..\..\..\apps\vaporgui\guis\ui\vizfeatures.cpp&#x0D;&#x0A;$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.h -o ..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\vizfeatures.h;..\..\..\apps\vaporgui\guis\ui\vizfeatures.cpp;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp"
+						Description="Uic&apos;ing vizfeatures.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui -o ..\..\..\apps\vaporgui\guis\ui\vizfeatures.h"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\vizfeatures.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1765,7 +1766,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing vizfeatures.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui -o ..\..\..\apps\vaporgui\guis\ui\vizfeatures.h&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\vizfeatures.ui -o ..\..\..\apps\vaporgui\guis\ui\vizfeatures.h"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\vizfeatures.h"
 					/>
@@ -1779,10 +1780,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\viztab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\viztab.ui -o ..\..\..\apps\vaporgui\guis\ui\viztab.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\viztab.ui -i viztab.h -o ..\..\..\apps\vaporgui\guis\ui\viztab.cpp&#x0D;&#x0A;$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\viztab.h -o ..\..\..\apps\vaporgui\moc\moc_viztab.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\viztab.h;..\..\..\apps\vaporgui\guis\ui\viztab.cpp;..\..\..\apps\vaporgui\moc\moc_viztab.cpp"
+						Description="Uic&apos;ing viztab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\viztab.ui -o ..\..\..\apps\vaporgui\guis\ui\viztab.h"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\viztab.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1791,7 +1792,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing viztab.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\viztab.ui -o ..\..\..\apps\vaporgui\guis\ui\viztab.h&#x0D;&#x0A;&#x0D;&#x0A;"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\viztab.ui -o ..\..\..\apps\vaporgui\guis\ui\viztab.h"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\viztab.h"
 					/>

@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="asciitf2vtf"
 	ProjectGUID="{110B2E1A-E116-46FE-BEFE-F63B558549BD}"
+	RootNamespace="asciitf2vtf"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -128,7 +129,7 @@
 				ObjectFile="../../../targets/win32/built/asciitf2vdf/"
 				ProgramDataBaseFileName="../../../targets/win32/built/asciitf2vdf/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

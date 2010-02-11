@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="jpeg"
 	ProjectGUID="{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}"
+	RootNamespace="jpeg"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -131,7 +132,7 @@
 				ObjectFile="../../../targets/win32/built/jpeg/"
 				ProgramDataBaseFileName="../../../targets/win32/built/jpeg//vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="glew"
 	ProjectGUID="{E09B68CA-3655-4B1D-8399-246F0F458462}"
+	RootNamespace="glew"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -130,7 +131,7 @@
 				ObjectFile="../../../targets/win32/built/glew32/"
 				ProgramDataBaseFileName="../../../targets/win32/built/glew32/vc70.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
