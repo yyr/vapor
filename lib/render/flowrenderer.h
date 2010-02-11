@@ -138,7 +138,7 @@ protected:
 	void drawTube(bool isLit, float* secondColor, float* startPoint, float* endPoint, float* currentB, float* currentU, 
 		float radius, bool constMap, float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex);
 	// add 6 point orthogonal to point_in to storage array at offset
-	void FlowRenderer::makeRing(flowTubeVertexData* storage, unsigned int* offset, float* color_in, float* point_in, float* B_in, float* U_in, float radius_in, bool constMap);
+	void makeRing(flowTubeVertexData* storage, unsigned int* offset, float* color_in, float* point_in, float* B_in, float* U_in, float radius_in, bool constMap);
 
 	//Constants that are used, recalculated in each rendering:
 	float constFlowColor[4];
