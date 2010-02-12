@@ -38,7 +38,11 @@
 
 #include "renderer.h"
 #include "mapperfunction.h"
+
+#ifdef WIN32
 #pragma warning(disable : 4996)
+#endif
+
 //Constants used for arrow design:
 //VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
 #define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder

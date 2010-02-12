@@ -331,7 +331,6 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 	}
 
 	if (this->GetVDFVersion() != metadata.GetVDFVersion()) {
-		int foo = this->GetVDFVersion();
 		SetErrMsg("Merge failed: VDF file version mismatch");
 		return(-1);
 	}
