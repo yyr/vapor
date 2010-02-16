@@ -1588,6 +1588,7 @@ void MainForm::startJpegCapture() {
 		"Specify first file name for image capture sequence",
 		Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg Images (*.jpg)");
+	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 	fileDialog.move(pos());
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
@@ -1640,6 +1641,7 @@ void MainForm::startFlowCapture() {
 		"Specify first file name for flow capture sequence",
 		Session::getInstance()->getFlowDirectory().c_str(),
 		"text files (*.txt)");
+	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 	fileDialog.move(pos());
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
@@ -1687,6 +1689,7 @@ void MainForm::captureSingleJpeg() {
 		"Specify single image capture file name",
 		Session::getInstance()->getJpegDirectory().c_str(),
 		"Jpeg or Tiff images (*.jpg *.tif)");
+	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 	fileDialog.move(pos());
 	fileDialog.resize(450,450);
 	if (fileDialog.exec() != QDialog::Accepted) return;
