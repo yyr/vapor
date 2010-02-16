@@ -10,7 +10,7 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-MAKEFILE_INCLUDE_DIRS :=  -I../main -I../misc -I../../../lib/params -I../../../lib/render
+MAKEFILE_INCLUDE_DIRS +=  -I../main -I../misc -I../../../lib/params -I../../../lib/render
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"

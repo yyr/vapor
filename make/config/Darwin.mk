@@ -1,6 +1,6 @@
 G++-INCLUDE-DIR = /usr/include/g++
-CXX = c++ -fno-common
-CC = cc -fno-common
+CXX = c++ -fno-common -arch i386
+CC = cc -fno-common -arch i386
 
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC -arch i386
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
