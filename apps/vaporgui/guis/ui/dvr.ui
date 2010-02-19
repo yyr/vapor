@@ -1417,7 +1417,6 @@ rendering time.</string>
               </layout>
              </item>
             </layout>
-            <zorder></zorder>
            </widget>
           </item>
          </layout>
