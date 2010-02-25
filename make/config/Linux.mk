@@ -14,8 +14,6 @@ CC = gcc
 endif
 
 
-#CXXFLAGS          += -DLINUX -Wall -Werror
-
 ifeq	($(HAVE_INTEL_COMPILERS),1)
 
 CXXFLAGS          += -DLINUX -D__USE_LARGEFILE64

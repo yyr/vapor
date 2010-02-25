@@ -59,6 +59,12 @@ BUILD_GUI = 1
 #
 QTDIR =
 
+# If BUILD_GUI is set to 1 **and** this is a Mac system, set HAVE_QT_FRAMEWORK
+# to 1 if your Qt libraries are built as Mac Frameworks, or to 0 if 
+# your Qt libraries are built as older UNIX style dynamic libraries.
+#
+HAVE_QT_FRAMEWORK = 1
+
 # Set to 1 if you have IDL installed on your system and you would
 # like to build the VAPoR IDL commands. IDL refers to RSI's IDL, available
 # for fee from www.rsinc.com. IDL is not required by vapor, however the 

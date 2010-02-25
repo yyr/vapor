@@ -38,7 +38,10 @@ CR_CC = $(CC)
 CR_CXX = $(CXX)
 OGL_LIB = GL
 GLU_LIB = GLU
+
+ifneq ($(QT_FRAMEWORK), 1) 
 QT_LIB = QtOpenGL QtGui QtCore  
+endif
 
 OBJDIR := $(BUILDDIR)
 DEPDIR := $(BUILDDIR)/dependencies
@@ -88,7 +91,7 @@ define MAKE_DOCDIR
 endef
 
 
-ifdef QT
+ifeq ($(QT), 1)
 # Whenever QT is used in a directory, the Makefile must
 # define MOC_DIR and UI_DIR.  MOC_DIR specifies the directory
 # where the MOC intermediate files will go and UI_DIR contains *.ui files 
@@ -143,7 +146,9 @@ QT_INCLUDE_DIRS += $(QTDIR)/include
 QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, QtCore QtGui QtOpenGL)
 QT_INCLUDE_DIRS += $(UI_DIR)
 
+ifneq ($(QT_FRAMEWORK), 1)
 QT_LIB_DIRS = $(QTDIR)/lib
+endif
 
 #END OF ifdef QT
 endif
@@ -352,8 +357,11 @@ endif
 LD_SEARCH_FLAGS += $(addprefix -L, $(LIB_SEARCH_DIRS))
 
 ifdef	RPATHFLAG
-RPATHS += $(addprefix $(RPATHFLAG), $(LIB_SEARCH_DIRS))
 RPATHS += $(addprefix $(RPATHFLAG), $(DSO_DIR))
+ifdef	QT_LIB_DIRS
+RPATHS += $(addprefix $(RPATHFLAG), $(QT_LIB_DIRS))
+endif
+RPATHS += $(addprefix $(RPATHFLAG), $(LIB_SEARCH_DIRS))
 endif
 
 endif

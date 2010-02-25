@@ -25,15 +25,23 @@ ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
 endif
 
-ifeq ($(BUILD_VOLUMIZER), 1)
-LIBRARIES += vz
-endif
-
 
 ifeq ($(ARCH),Darwin)
-MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers
-MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices -framework Carbon -framework AppKit -framework ApplicationServices -framework OpenGL -framework AGL
+
+MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers 
+MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
+
+MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
+MAKEFILE_LDFLAGS += -framework Carbon -framework AppKit -framework 
+MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
+
+ifeq ($(QT_FRAMEWORK), 1)
+MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui 
+MAKEFILE_LDFLAGS += -framework QtOpenGL
+endif
+
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
+
 endif   
 
 

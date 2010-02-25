@@ -2,6 +2,10 @@ G++-INCLUDE-DIR = /usr/include/g++
 CXX = c++ -fno-common -arch i386
 CC = cc -fno-common -arch i386
 
+ifeq    ($(HAVE_QT_FRAMEWORK),1)
+QT_FRAMEWORK = 1
+endif
+
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC -arch i386
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g

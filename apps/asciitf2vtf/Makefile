@@ -10,7 +10,13 @@ FILES = asciitf2vtf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = params flow vdf common netcdf tiff geotiff proj expat QtGui 
+LIBRARIES = params flow vdf common netcdf tiff geotiff proj expat 
+
+ifeq ($(QT_FRAMEWORK),1)
+MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtGui
+else
+LIBRARIES += QtGui 
+endif
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
