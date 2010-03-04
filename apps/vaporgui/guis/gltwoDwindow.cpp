@@ -277,7 +277,10 @@ getPixelData(int minx, int miny, int sizex, int sizey, unsigned char* data){
 	
 	return true;
 }
-
+void GLTwoDWindow::paintEvent(QPaintEvent* event){
+	QRect geom = twoDFrame->geometry();
+        if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
+}
 
 void GLTwoDWindow::mousePressEvent( QMouseEvent * e){
 	float x,y;

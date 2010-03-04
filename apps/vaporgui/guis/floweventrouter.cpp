@@ -22,6 +22,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 4996)
 #endif
+#include <QScrollArea>
+#include <QScrollBar>
 #include <algorithm>
 #include <qlayout.h>
 #include <qdesktopwidget.h>
@@ -90,6 +92,12 @@ FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(pare
 	showMapEditor = true;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
+#ifdef Darwin
+	colorMapShown=false;
+	opacityMapShown = false;
+	colorMappingFrame->hide();
+	opacityMappingFrame->hide();
+#endif
 }
 
 
@@ -522,7 +530,7 @@ void FlowEventRouter::updateTab(){
 		advancedLineAdvectionFrame->hide();
 		showAdvancedFrame->show();
 	}
-	updateGeometry();
+	//updateGeometry();
 	adjustSize();
 
 	
@@ -3183,3 +3191,26 @@ flowVarsZeroBelow(){
 	}
 	return true;
 }
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
+
+#ifdef Darwin
+void FlowEventRouter::paintEvent(QPaintEvent* ev){
+	
+	QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+ 	if(!colorMapShown ){
+		sArea->ensureWidgetVisible(colorMappingFrame);
+		colorMappingFrame->show();
+		colorMapShown = true;
+		update();
+		QWidget::paintEvent(ev);
+		return;
+	}
+	if(!opacityMapShown ){
+		sArea->ensureWidgetVisible(opacityMappingFrame);
+		opacityMappingFrame->show();
+		opacityMapShown = true;
+		update();
+	}
+	QWidget::paintEvent(ev);
+}
+#endif

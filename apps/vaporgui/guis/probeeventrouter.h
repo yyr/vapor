@@ -66,6 +66,9 @@ public:
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 	void textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize);
 	void setZCenter(ProbeParams* pParams,int sliderval);
 	void setYCenter(ProbeParams* pParams,int sliderval);

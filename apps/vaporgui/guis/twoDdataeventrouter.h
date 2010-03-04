@@ -57,6 +57,9 @@ public:
 	virtual void updateTab();
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1, bool reEnable = false);
 	virtual void cleanParams(Params* p); 
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 
 	virtual void refreshTab();
 	void sessionLoadTF(QString* name);

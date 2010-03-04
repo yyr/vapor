@@ -87,6 +87,9 @@ public:
 		
 	virtual void reinitTab(bool doOverride);
 	virtual void refreshTab();
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 
 	
 public slots:

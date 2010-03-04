@@ -57,6 +57,10 @@ public:
 	virtual void updateTab();
 	
 	virtual void cleanParams(Params* p); 
+	virtual QSize const sizeHint(){ return QSize(440,800);}
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 
 	//gui... methods are set from gui, have undo/redo support:
 	//

@@ -22,6 +22,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <QScrollArea>
+#include <QScrollBar>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qdesktopwidget.h>
@@ -81,6 +83,13 @@ DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent
     benchmark = DONE;
     benchmarkTimer = 0;
 	MessageReporter::infoMsg("DvrEventRouter::DvrEventRouter()");
+#ifndef BENCHMARKING
+	benchmarkGroup->setMaximumSize(0,0);
+#endif
+#ifdef Darwin
+	transferFunctionFrame->hide();
+	opacityMapShown = false;
+#endif
 }
 
 
@@ -379,13 +388,11 @@ void DvrEventRouter::updateTab(){
 	
 	QString strn;
     
-
 	if (dvrParams->getMapperFunc()){
 		dvrParams->getMapperFunc()->setParams(dvrParams);
 		transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
 	}
 	transferFunctionFrame->updateParams();
-    
 
     if (session->getNumSessionVariables()&&DataStatus::getInstance()->getDataMgr())
     {
@@ -1283,3 +1290,19 @@ void DvrEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
+
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
+
+#ifdef Darwin
+void DvrEventRouter::paintEvent(QPaintEvent* ev){
+	if(!opacityMapShown){
+		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		sArea->ensureWidgetVisible(tfFrame);
+		transferFunctionFrame->show();
+		opacityMapShown = true;
+		updateGeometry();
+		update();
+	}
+	QWidget::paintEvent(ev);
+}
+#endif

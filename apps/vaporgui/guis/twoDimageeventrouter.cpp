@@ -20,6 +20,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <QScrollArea>
+#include <QScrollBar>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -76,6 +78,11 @@ TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* ): QWidge
 	setupUi(this);
 	myParamsType = Params::TwoDImageParamsType;
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
+#ifdef Darwin
+	texShown = false;
+	twoDTextureFrame->hide();
+#endif
+	
 }
 
 
@@ -1674,3 +1681,17 @@ void TwoDImageEventRouter::refreshGLWindow()
 	if (twoDTextureFrame->getGLWindow()->isRendering()) return;
 	twoDTextureFrame->getGLWindow()->updateGL();
 }
+#ifdef Darwin
+void TwoDImageEventRouter::paintEvent(QPaintEvent* ev){
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widget 
+
+ 	if(!texShown){
+		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		sArea->ensureWidgetVisible(twoDFrameHolder);
+		twoDTextureFrame->show();
+		texShown = true;
+		update();
+	}
+	QWidget::paintEvent(ev);
+}
+#endif

@@ -137,9 +137,7 @@ public slots:
 
   void bindColorToOpacity();
   void bindOpacityToColor();
-  void updateGL(){
-	  if (!GLWindow::isRendering()) QGLWidget::updateGL();
-  }
+  void updateGL();
   void update(){
 	  if (!GLWindow::isRendering()) QGLWidget::update();
   }

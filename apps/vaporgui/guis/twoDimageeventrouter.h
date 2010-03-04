@@ -58,6 +58,9 @@ public:
 	virtual void refreshTab();
 	//void sessionLoadTF(QString* name);
 	
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 	void sliderToText(TwoDImageParams* pParams, int coord, int sliderval, bool isSizeSlider);
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);

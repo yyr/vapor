@@ -47,7 +47,7 @@ void GLProbeWindow::mousePressEvent( QMouseEvent * e){
 
 	per->guiStartCursorMove();
 	probeFrame->getParams()->setCursorCoords(x,y);
-	qWarning("mouse press at %f %f", x, y);
+	
 	update();
 	
 }
@@ -57,7 +57,7 @@ void GLProbeWindow::mouseMoveEvent( QMouseEvent * e){
 	float x,y;
 	mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
 	probeFrame->getParams()->setCursorCoords(x,y);
-	qWarning("mouse move to %f %f", x, y);
+	
 	update();
 	
 }
@@ -68,7 +68,6 @@ void GLProbeWindow::mouseReleaseEvent( QMouseEvent *e ){
 	float x,y;
 	mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
 	probeFrame->getParams()->setCursorCoords(x,y);
-	qWarning("mouse release to %f %f", x, y);
 	per->guiEndCursorMove();
 	update();
 }

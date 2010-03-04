@@ -22,7 +22,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 4996 )
 #endif
-
+#include <QScrollArea>
+#include <QScrollBar>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -84,6 +85,12 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* ): QWidget(
 	seedAttached = false;
 	
 	MessageReporter::infoMsg("TwoDDataEventRouter::TwoDDataEventRouter()");
+#ifdef Darwin
+	texShown = false;
+	opacityMapShown = false;
+	transferFunctionFrame->hide();
+	twoDTextureFrame->hide();
+#endif
 }
 
 
@@ -2194,3 +2201,32 @@ void TwoDDataEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
+
+#ifdef Darwin
+void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
+	QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+
+	//First show the texture frame, next time through, show the tf frame
+	//Other order doesn't work.
+	if(!texShown ){
+		sArea->ensureWidgetVisible(twoDFrameHolder);
+		twoDTextureFrame->updateGeometry();
+		twoDTextureFrame->show();
+		texShown = true;
+		update();
+		QWidget::paintEvent(ev);
+		return;
+	} 
+	if (!opacityMapShown){
+	 sArea->ensureWidgetVisible(tfFrame);
+	 transferFunctionFrame->show();
+	 opacityMapShown = true;
+	 update();
+	
+	 } 
+	QWidget::paintEvent(ev);
+	return;
+	
+}
+#endif

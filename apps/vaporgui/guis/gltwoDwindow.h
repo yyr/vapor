@@ -66,9 +66,8 @@ protected:
     void		paintGL();
     void		resizeGL( int w, int h );
 	//Virtual, Reimplemented here:
-	void paintEvent(QPaintEvent* event){
-		if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
-	}
+	void paintEvent(QPaintEvent* event);
+
 	void mousePressEvent( QMouseEvent * );
     void mouseReleaseEvent( QMouseEvent * );
     void mouseMoveEvent( QMouseEvent * );

@@ -70,6 +70,9 @@ public:
 	virtual void captureMouseDown();
 	//When the mouse goes up, save the displacement into the params
 	virtual void captureMouseUp();
+#ifdef Darwin
+	void paintEvent(QPaintEvent*);
+#endif
 	
 	void guiCenterRake(const float* coords);
 	void guiAddSeed(Point4 pt);

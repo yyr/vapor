@@ -22,6 +22,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <QScrollArea>
+#include <QScrollBar>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qdesktopwidget.h>
@@ -80,6 +82,12 @@ IsoEventRouter::IsoEventRouter(QWidget* parent,const char* ): QWidget(parent), U
 	isoSelectionFrame->setColorMapping(false);
 	isoSelectionFrame->setIsoSlider(true);
 	MessageReporter::infoMsg("IsoEventRouter::IsoEventRouter()");
+#ifdef Darwin
+	opacityMapShown = false;
+	isoShown = false;
+	transferFunctionFrame->hide();
+	isoSelectionFrame->hide();
+#endif
 }
 
 
@@ -1228,10 +1236,14 @@ Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool 
 }
 //Fix for clean Windows scrolling:
 void IsoEventRouter::refreshTab(){
-	Isovalue_Frame->hide();
-	Isovalue_Frame->show();
-	mappingFrame->hide();
-	mappingFrame->show();
+#ifdef WIN32
+	if (tfShown && isovalShown){
+		isoSelectFrame->hide();
+		isoSelectFrame->show();
+		mappingFrame->hide();
+		mappingFrame->show();
+	}
+#endif
 }
 void IsoEventRouter::guiFitTFToData(){
 	
@@ -1258,3 +1270,26 @@ void IsoEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets until paintEvent 
+
+#ifdef Darwin
+void IsoEventRouter::paintEvent(QPaintEvent* ev){
+		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		if(!isoShown ){
+			sArea->ensureWidgetVisible(isoSelectFrame);
+			isoSelectionFrame->show();
+			isoShown = true;
+			update();
+			QWidget::paintEvent(ev);
+			return;
+		}
+		if(!opacityMapShown ){
+			sArea->ensureWidgetVisible(transferFunctionFrame);
+			transferFunctionFrame->show();
+			opacityMapShown = true;
+			update();
+		}
+	QWidget::paintEvent(ev);
+	return;
+	}
+#endif

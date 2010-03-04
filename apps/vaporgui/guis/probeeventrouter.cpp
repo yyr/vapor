@@ -22,7 +22,8 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 4996 )
 #endif
-
+#include <QScrollArea>
+#include <QScrollBar>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -99,6 +100,12 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent
 	capturingIBFV = false;
 	for (int i = 0; i<3; i++)maxBoxSize[i] = 1.f;
 	MessageReporter::infoMsg("ProbeEventRouter::ProbeEventRouter()");
+#ifdef Darwin
+	opacityMapShown = false;
+	texShown = false;
+	probeTextureFrame->hide();
+	transferFunctionFrame->hide();
+#endif
 	
 }
 
@@ -3198,3 +3205,31 @@ void ProbeEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
+//Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
+
+#ifdef Darwin
+void ProbeEventRouter::paintEvent(QPaintEvent* ev){
+	
+		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		
+		//First show the texture frame, next time through, show the tf frame
+		//Other order doesn't work.
+		if(!texShown ){
+			sArea->ensureWidgetVisible(probeFrameHolder);
+			probeTextureFrame->updateGeometry();
+			probeTextureFrame->show();
+			texShown = true;
+			update();
+			QWidget::paintEvent(ev);
+			return;
+		} 
+		if (!opacityMapShown){
+			sArea->ensureWidgetVisible(tfFrame);
+			transferFunctionFrame->show();
+			opacityMapShown = true;
+			update();
+		} 
+		QWidget::paintEvent(ev);
+		return;
+}
+#endif

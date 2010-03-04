@@ -2394,10 +2394,27 @@ void MappingFrame::setIsoSlider()
 void MappingFrame::paintEvent(QPaintEvent* event)
 {
 	  if (!GLWindow::isRendering()) QGLWidget::paintEvent(event);
-	 /* QPainter painter(this);
-	painter.setPen(Qt::blue);
-	painter.setBackgroundMode(Qt::TransparentMode);
-	painter.setFont(QFont("Arial",10));
-	painter.drawText(20,20, 100,50, Qt::AlignCenter, "TEST");
-	*/
+	
 }
+void MappingFrame::updateGL(){
+	
+	if(GLWindow::isRendering()) return;
+#ifndef Darwin
+	QGLWidget::updateGL();
+	return;
+#endif
+	if(!getParams()) {
+		return;
+	}
+	//3 cases:  isoVal, colorMap, or opac/tf map
+    	EventRouter* eRouter = VizWinMgr::getEventRouter(getParams()->getParamType());
+	if (_isoSliderEnabled && eRouter->isoShown){
+		QGLWidget::updateGL();
+	} else if (_opacityMappingEnabled && eRouter->opacityMapShown){
+		QGLWidget::updateGL();
+	} else if (_colorMappingEnabled && eRouter->colorMapShown){
+		QGLWidget::updateGL();
+	} 
+	return;
+}
+

@@ -43,6 +43,7 @@ public:
 		textChangedFlag = 0; savedCommand = 0;
 		histogramList = 0;
 		numHistograms = 0;
+		isoShown = colorMapShown = opacityMapShown = texShown = false;
 	}
 	virtual ~EventRouter() {
 		for (int i = 0; i<numHistograms; i++) 
@@ -146,6 +147,8 @@ void loadInstalledTF(RenderParams* rParams, int varnum);
 void loadTF(RenderParams* rParams, int varnum);
 
 void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
+	//Workaround Darwin/Qt bug.  Note these are public:
+	bool isoShown, colorMapShown, opacityMapShown, texShown;
 
 public slots:
 
