@@ -852,7 +852,7 @@ showAllDefaults(){
 	int w;
 	if(showAll) {
 		showDefaultsButton->setText("Hide Defaults");
-		
+	        h+=300;	
 		showDefaultsButton->setToolTip("Click to hide the session defaults");
 		w = 950;
 		paramDefaultsFrame->show();
@@ -870,6 +870,7 @@ showAllDefaults(){
 	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
 	setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();
+	if (h>768) h = 768;
 	featureHolder->setGeometry(50, 50, w+swidth,h);
 
 	sv->resize(w,h);
