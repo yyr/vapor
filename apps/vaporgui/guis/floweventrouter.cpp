@@ -3214,3 +3214,26 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 	QWidget::paintEvent(ev);
 }
 #endif
+QSize FlowEventRouter::sizeHint() const {
+	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
+	if (!fParams) return QSize(460,1500);
+	int vertsize;
+	switch (fParams->getFlowType()){
+		case(0): 
+			vertsize = 1470; 
+			if (showAdvanced) vertsize += 130;
+			break;
+		case(1): vertsize = 1620; 	
+			if (showAdvanced) vertsize += 130;
+			break;
+		case(2): vertsize = 1650; 
+			if (showAdvanced) vertsize += 300;
+			break;
+	}
+	if (!showMapEditor) vertsize -= 350;	
+	return QSize(460,vertsize);
+}
+
+
+
+
