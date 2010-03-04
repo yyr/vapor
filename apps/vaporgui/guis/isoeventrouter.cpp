@@ -1237,12 +1237,10 @@ Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool 
 //Fix for clean Windows scrolling:
 void IsoEventRouter::refreshTab(){
 #ifdef WIN32
-	if (tfShown && isovalShown){
-		isoSelectFrame->hide();
-		isoSelectFrame->show();
-		mappingFrame->hide();
-		mappingFrame->show();
-	}
+	isoSelectFrame->hide();
+	isoSelectFrame->show();
+	mappingFrame->hide();
+	mappingFrame->show();
 #endif
 }
 void IsoEventRouter::guiFitTFToData(){
