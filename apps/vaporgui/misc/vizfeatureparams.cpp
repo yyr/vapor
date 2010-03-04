@@ -187,7 +187,7 @@ void VizFeatureParams::launch(){
 	
 	int h = MainForm::getInstance()->height();
 	if ( h > 750) h = 750;
-	int w = 415;
+	int w = 390;
 	
 	vizFeatureDlg->setGeometry(0, 0, w, h);
 	int swidth = sv->verticalScrollBar()->width();

@@ -213,15 +213,19 @@ void UserPreferences::launch(){
 	
 	int h = MainForm::getInstance()->height();
 	if ( h > 900) h = 900;
-	int w = 400;
+	int w = 450;
 	paramDefaultsFrame->hide();
 	defaultDirectoryFrame->hide();
 	defaultVizFeatureFrame->hide();
 	
 	if (w > MainForm::getInstance()->width()) w = MainForm::getInstance()->width();
-	setGeometry(0, 0, w, 1300);
+	setGeometry(0, 0, w, 900);
 	int swidth = sv->verticalScrollBar()->width();
 	featureHolder->setGeometry(50, 50, w+swidth,h);
+
+	sv->resize(w,h);
+	featureHolder->updateGeometry();
+	featureHolder->adjustSize();
 //	sv->resizeContents(w,h);
 	
 	//Do connections for buttons
