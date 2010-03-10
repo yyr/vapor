@@ -214,7 +214,9 @@ public:
 	void endSpin();
 public slots:
     //Force an update in the gl window:
-	void updateGL() { if (myGLWindow) myGLWindow->update();}
+	void updateGL() { 
+		if (myGLWindow) myGLWindow->update();
+	}
 
 	
 protected:

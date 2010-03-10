@@ -25,6 +25,7 @@
 #include <map>
 #include "trackball.h"
 #include <qthread.h>
+#include <QMutex>
 #include "qcolor.h"
 #include "qlabel.h"
 #include "params.h"
@@ -391,6 +392,9 @@ public:
 	bool spinning(){return isSpinning;}
 
 	void clearRendererBypass(Params::ParamType t);
+	//Following is intended to prevent conflicts between concurrent
+	//opengl threads.  Probably it should be protected by a semaphore 
+	//For now, leave it and see if problems occur.
 	static bool isRendering(){return nowPainting;}
 	void setValuesFromGui(ViewpointParams* vpparams);
 	
@@ -405,6 +409,7 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
+	QMutex renderMutex;  //prevent recursive rendering
 	int winNum;
 	int previousTimeStep;
 	static int jpegQuality;

@@ -67,13 +67,14 @@ InstanceTable::~InstanceTable(){
 //Build the table, based on instances in eventrouter
 void InstanceTable::rebuild(EventRouter* myRouter){
 	
-	
+	int numInsts = 1;
 	//All instance info is in VizWinMgr.
 	VAPoR::Params::ParamType renderType = myRouter->getParamsType();
 	VAPoR::VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
-	if (winnum <0) return;
-	int numInsts = vizMgr->getNumInstances(winnum,renderType);
+
+	if (winnum >= 0) 
+		numInsts = vizMgr->getNumInstances(winnum,renderType);
 	assert(numInsts > 0);
 	
 	

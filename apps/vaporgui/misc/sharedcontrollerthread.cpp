@@ -181,7 +181,15 @@ run(){
 							maxFinished = numFinished;
 						}
 					}
-					else missingViz = viznum;
+				//Following is needed only in Darwin OSX 10.5, OK in 10.6
+					else {
+						//Hasn't even started
+						//Try again to start it:
+						//qWarning("re-requesting render in vis %d",viznum);
+						myAnimationController->startVisualizer(viznum, currentTime);
+						missingViz = viznum;
+					}
+				//End of Darwin fix
 				}
 			}
 			if((numStarted+numFinished+numSleeping) >= numNotHidden) {

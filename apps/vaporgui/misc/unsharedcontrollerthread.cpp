@@ -64,6 +64,7 @@ restart(){
 	//Wait until controller thread completes:
 	for (i = 0; i<100; i++){
 		if (!controllerActive) break;
+		//qWarning("waiting until controller threat completes");
 		wait(MAX_SLOW_WAIT);
 	}
 	if( i>= 100) Params::BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
@@ -118,33 +119,48 @@ run(){
 		//Whether to restart them or to deactivate them, or to just wait longer
 		
 		for (viznum = 0; viznum<MAXVIZWINS; viznum++){
-			if (myAnimationController->isActive(viznum)&&myAnimationController->renderFinished(viznum)&&!myAnimationController->isShared(viznum)){
+			if (myAnimationController->isActive(viznum)&&!myAnimationController->isShared(viznum)){
+
+				if (myAnimationController->renderFinished(viznum)){
 				
-				//Either deactivate, or Call startVisualizer(viznum).
-				//If a visualizer is local, finished, and late
-				if ((!myVizWinMgr->getVizWin(viznum)) ||
-					(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
-					((!myVizWinMgr->getDvrParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getIsoParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getTwoDDataParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getTwoDImageParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getProbeParams(viznum)->isEnabled()) &&
-					(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
-					//deactivate stopped animations
-					myAnimationController->deActivate(viznum);
-				} else { //start it if it's ready to go
-					int timeToFinish = myAnimationController->getTimeToFinish(viznum, currentTime);
-					if (timeToFinish <= 0) {
-						int renderTime = myVizWinMgr->getAnimationParams(viznum)->getMinTimeToRender();
-						myAnimationController->startVisualizer(viznum, currentTime);
-						if (timeToRecheck > renderTime) timeToRecheck = renderTime;
-						myAnimationController->setRequestRender(viznum);
-					} else if (timeToFinish < timeToRecheck){
-						//If we don't restart, remember when to recheck:
-						timeToRecheck = timeToFinish;
+					//Either deactivate, or Call startVisualizer(viznum).
+					//If a visualizer is local, finished, and late
+					if ((!myVizWinMgr->getVizWin(viznum)) ||
+						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
+						((!myVizWinMgr->getDvrParams(viznum)->isEnabled()) &&
+						(!myVizWinMgr->getIsoParams(viznum)->isEnabled()) &&
+						(!myVizWinMgr->getTwoDDataParams(viznum)->isEnabled()) &&
+						(!myVizWinMgr->getTwoDImageParams(viznum)->isEnabled()) &&
+						(!myVizWinMgr->getProbeParams(viznum)->isEnabled()) &&
+						(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
+						//deactivate stopped animations
+						//qWarning("Deactivating stopped animation in viz %d",viznum);
+						myAnimationController->deActivate(viznum);
+					} else { //start it if it's ready to go
+						int timeToFinish = myAnimationController->getTimeToFinish(viznum, currentTime);
+						if (timeToFinish <= 0) {
+							int renderTime = myVizWinMgr->getAnimationParams(viznum)->getMinTimeToRender();
+							myAnimationController->startVisualizer(viznum, currentTime);
+							if (timeToRecheck > renderTime) timeToRecheck = renderTime;
+							myAnimationController->setRequestRender(viznum);
+							//qWarning("Requesting render in %d",viznum);
+						} else if (timeToFinish < timeToRecheck){
+							//If we don't restart, remember when to recheck:
+							timeToRecheck = timeToFinish;
+							//qWarning("remembering when to recheck viz %d",viznum);
+						} else {
+							//qWarning("time to finish > time to recheck");
+						}
 					}
-				}
-			}//isActive(viznum)
+				//Following needed only for Darwin OSX 10.5 bug, it's not needed in 10.6
+				} else if (!myAnimationController->renderStarted(viznum)){
+					
+					myAnimationController->startVisualizer(viznum, currentTime);
+					myAnimationController->setRequestRender(viznum);
+					//qWarning("Re-Requesting render in %d",viznum);
+				} 
+				//End of Darwin fix
+			}
 		}//loop over viznum
 		
 		
@@ -178,6 +194,7 @@ run(){
 			break;
 		}
 		//wait; may be woken if someone finishes, or status changes.
+		///
 		//qWarning("waiting for someone else to finish or status to change");
 		myWaitCondition->wait(&myAnimationController->animationMutex,IDLE_WAIT);
 		myAnimationController->animationMutex.unlock();

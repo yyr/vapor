@@ -85,6 +85,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	oldPerspective = false;
 	renderNew = false;
 	nowPainting = false;
+	
 	needsResize = true;
 	farDist = 100.f;
 	nearDist = 0.1f;
@@ -196,6 +197,7 @@ GLWindow::~GLWindow()
 	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
 	
 	nowPainting = false;
+	
 }
 
 void GLWindow::setDefaultPrefs(){
@@ -276,6 +278,7 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 
 void GLWindow::paintEvent(QPaintEvent*)
 {
+	renderMutex.lock();
 	makeCurrent();
 	printOpenGLError();
 	
@@ -299,6 +302,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	if (!dataStatus->getDataMgr() ||!(dataStatus->renderReady())) {
 		swapBuffers();
+		renderMutex.unlock();
 		nowPainting = false;
 		printOpenGLError();
 		return;
@@ -343,6 +347,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//The prerender callback is set in the vizwin. 
 	//It registers with the animation controller, 
 	//and tells the window the current viewer frame.
+	//qWarning("calling preRenderCB at timestep %d in winnum %d",timeStep,winNum);
 	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
 	//If there are new coords, get them from GL, send them to the gui
 	if (viewerCoordsChanged()){ 
@@ -472,13 +477,16 @@ void GLWindow::paintEvent(QPaintEvent*)
 	setDirtyBit(ViewportBit, false);
 	setDirtyBit(LightingBit, false);
 	nowPainting = false;
+	
 	if (isSpinning){
 		getTBall()->TrackballSpin();
 		setViewerCoordsChanged(true);
 		setDirtyBit(ProjMatrixBit, true);
 	}
-
+	renderMutex.unlock();
+	//qWarning("calling postRenderCB at timestep %d in winnum %d",timeStep,winNum);
 	postRenderCB(winNum, isControlled);
+	
 	glDisable(GL_NORMALIZE);
 	printOpenGLError();
 }
@@ -2048,7 +2056,6 @@ void GLWindow::removeAllRenderers(){
 	}
 	setNumRenderers(0);
 	invalidateElevGrid();
-	
 	nowPainting = false;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
@@ -2063,6 +2070,7 @@ void GLWindow::removeAllRenderers(){
 bool GLWindow::removeRenderer(RenderParams* rp){
 	int i;
 	assert(!nowPainting);
+	renderMutex.lock();
 	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
 	if (find_iter == rendererMapping.end()) return false;
 	Renderer* ren = find_iter->second;
@@ -2087,6 +2095,7 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 		renderType[j] = renderType[j+1];
 		renderOrder[j] = renderOrder[j+1];
 	}
+	renderMutex.unlock();
 	update();
 	return true;
 }
