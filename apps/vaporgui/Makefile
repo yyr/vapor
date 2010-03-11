@@ -32,7 +32,7 @@ MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/OpenGL.framework/Headers
 MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
-MAKEFILE_LDFLAGS += -framework Carbon -framework AppKit -framework 
+MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
 
 ifeq ($(QT_FRAMEWORK), 1)
