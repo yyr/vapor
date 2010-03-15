@@ -169,11 +169,14 @@ postMsg(messagePriority t, const char* message){
 		doPopup(t, message);	
 	}
 	else if (count == maxPopup[t]-1){
+		//Duplicate the message, because another invocation of this method, 
+		//triggered by doLastPopup()
+		//will change the value of message during the call.
+		char* msg = strdup(message);
 		messageCount[message] = count + 1;
 		//Users can reset the message count if they don't want to silence it:
 		if (doLastPopup(t, message)){
-			messageCount[message] = 0;
-			return;
+			messageCount[msg] = 0;
 		}
 	} 
 	

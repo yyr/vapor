@@ -2615,4 +2615,20 @@ bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coord
 	}
 	return false;
 }
-
+//Stop all the unsteady flow integrations that are occurring in any visualizer
+void VizWinMgr::stopFlowIntegration(){
+	//Do the same as a stop click on the available router
+	FlowEventRouter* fRouter = getFlowRouter();
+	fRouter->stopClicked();
+	//Then check for any other active flow rendering
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]){
+			for (int j = 0; j<getNumFlowInstances(i); j++){
+				FlowParams* fParams = getFlowParams(i,j);
+				if (fParams->isEnabled() && !fParams->flowIsSteady()){
+					fParams->setStopFlag(true);
+				}
+			}
+		}
+	}
+}

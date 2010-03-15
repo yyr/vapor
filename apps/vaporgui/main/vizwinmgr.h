@@ -461,6 +461,7 @@ public:
 	}
 	void setInteractiveNavigating(int level);
 	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
+	void stopFlowIntegration();
 
 public slots:
 	//arrange the viz windows:

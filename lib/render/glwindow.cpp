@@ -278,7 +278,7 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 
 void GLWindow::paintEvent(QPaintEvent*)
 {
-	renderMutex.lock();
+	if(!renderMutex.tryLock()) return;
 	makeCurrent();
 	printOpenGLError();
 	

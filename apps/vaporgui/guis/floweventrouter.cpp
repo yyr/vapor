@@ -1176,13 +1176,12 @@ void FlowEventRouter::confirmText(bool /*render*/){
 void FlowEventRouter::stopClicked(){
 	//Set the "Stop" flag in the params
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	
+	if (fParams->flowIsSteady()||!fParams->isEnabled()) return;
 	//Turn off autoRefresh (does this screw up undo/redo queue?
 	guiSetAutoRefresh(false);
-	if (fParams->isEnabled()){
-		fParams->setStopFlag();
-		refreshButton->setEnabled(true);
-	}
+	fParams->setStopFlag();
+	refreshButton->setEnabled(true);
+	
 }
 //Add a new (blank) row to the tables (they are same size)
 void FlowEventRouter::addSample(){

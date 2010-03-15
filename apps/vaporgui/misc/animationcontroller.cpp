@@ -208,13 +208,13 @@ endRendering(int vizNum){
 	if (VizWinMgr::getInstance()->getActiveViz() == vizNum){
 	/*  This was needed in Qt3 but causes minor issues in Qt4	
 	    Evidently the multithreading in Qt 4 helps processing events
-	    while the app is otherwise busy
+	    while the app is otherwise busy*/
 		QCoreApplication* app = MainForm::getInstance()->getApp();
 		bool hasEvents = app->hasPendingEvents();
 		if (hasEvents) {
 			app->processEvents();
 		}
-	*/
+	
 		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
 		MainForm::getInstance()->setCurrentTimestep(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber());
 	}

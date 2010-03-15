@@ -91,8 +91,10 @@ public slots:
 	virtual void guiEndChangeMapFcn();
 
 	void guiSetRakeToRegion();
-protected slots:
 	void stopClicked();
+
+protected slots:
+	
 	void showSetupHelp();
 	void addSample();
 	void deleteSample();

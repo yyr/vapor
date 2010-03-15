@@ -593,7 +593,7 @@ void MainForm::createActions(){
 	playBackwardAction = new QAction(*playBackwardIcon, "Play Backward",this);
 	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
-	pauseAction = new QAction(*pauseIcon, "Stop animation", this);
+	pauseAction = new QAction(*pauseIcon, "Stop animation and unsteady flow integration", this);
 	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
 	stepForwardAction = new QAction(*stepForwardIcon, "Step forward", this);
@@ -1755,6 +1755,7 @@ void MainForm::setInteractiveRefinementSpin(int val){
 void MainForm::pauseClick(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
 	aRouter->animationPauseClick();
+	VizWinMgr::getInstance()->stopFlowIntegration();
 }
 void MainForm::playForward(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
