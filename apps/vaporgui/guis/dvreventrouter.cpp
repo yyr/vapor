@@ -462,7 +462,11 @@ void DvrEventRouter::updateTab(){
 void DvrEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
-	if (DataStatus::getInstance()->dataIsPresent3D()) setEnabled(true);
+	if (DataStatus::getInstance()->dataIsPresent3D()) {
+		setEnabled(true);
+		instanceTable->setEnabled(true);
+		instanceTable->rebuild(this);
+	}
 	else setEnabled(false);
 	variableCombo->clear();
 	variableCombo->setMaxCount(ses->getNumMetadataVariables());

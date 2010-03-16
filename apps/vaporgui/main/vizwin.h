@@ -215,7 +215,7 @@ public:
 public slots:
     //Force an update in the gl window:
 	void updateGL() { 
-		if (myGLWindow) myGLWindow->update();
+		if (myGLWindow && !GLWindow::isRendering()) myGLWindow->update();
 	}
 
 	
