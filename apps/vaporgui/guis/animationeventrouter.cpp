@@ -490,7 +490,7 @@ void AnimationEventRouter::guiSetFrameStep(int stepsize){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current step size");
 	int endFrame = aParams->getEndFrameNumber();
 	int startFrame = aParams->getStartFrameNumber();
-	int frameStepSize = 1+ (int)((float)(endFrame - startFrame)*(float)stepsize/1000.f);
+	int frameStepSize = (int)(1.5+ ((float)(endFrame - startFrame)*(float)stepsize/1000.f));
 	if (frameStepSize < 1) frameStepSize = 1;
 	aParams->setFrameStepSize(frameStepSize);
 	
@@ -566,7 +566,7 @@ setSliders(AnimationParams* aParams){
 	int stepsize = 1+(int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
 	if(stepsize < 1) stepsize = 1;
 	if (stepsize != frameStepSize && endFrame != startFrame){
-		frameStepSlider->setValue((int)(1000.f*((float)frameStepSize/(float)(endFrame-startFrame))));
+		frameStepSlider->setValue((int)(0.5+(1000.f*((float)(frameStepSize-1.)/(float)(endFrame-startFrame)))));
 	}
 }
 //Method to call when a new window installed via undo/redo
