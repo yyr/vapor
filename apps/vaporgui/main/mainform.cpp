@@ -536,7 +536,7 @@ void MainForm::createActions(){
 	navigationAction->setChecked(true);
 
 	QPixmap* regionIcon = new QPixmap(cube);
-	regionSelectAction = new QAction(*regionIcon, tr("Region Select Mode (Ctrl+R)"), mouseModeActions);
+	regionSelectAction = new QAction(*regionIcon, QString(tr("Region Select Mode  "))+QString(QKeySequence(tr("Ctrl+R"))), mouseModeActions);
 	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
 	regionSelectAction->setCheckable(true);
 	regionSelectAction->setChecked(false);
@@ -548,37 +548,37 @@ void MainForm::createActions(){
 
 	
 	QPixmap* twoDDataIcon = new QPixmap(twoDData);
-	twoDDataAction = new QAction(*twoDDataIcon, tr("2D Data Mode (Ctrl+2)"), mouseModeActions);
+	twoDDataAction = new QAction(*twoDDataIcon, QString(tr("2D Data Mode  "))+QString(QKeySequence(tr("Ctrl+2"))), mouseModeActions);
 	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
 	twoDDataAction->setCheckable(true);
 	twoDDataAction->setChecked(false);
 
 	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
-	twoDImageAction = new QAction(*twoDImageIcon, tr("Image Mode  (Ctrl+I)"),mouseModeActions);
+	twoDImageAction = new QAction(*twoDImageIcon, QString(tr("Image Mode  "))+QString(QKeySequence(tr("Ctrl+I"))),mouseModeActions);
 	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
 	twoDImageAction->setCheckable(true);
 	twoDImageAction->setChecked(false);
 
 	QPixmap* rakeIcon = new QPixmap(rake);
-	rakeAction = new QAction(*rakeIcon, tr("Rake Mode  (Ctrl+K"), mouseModeActions);
+	rakeAction = new QAction(*rakeIcon,QString(tr("Rake Mode  "))+QString(QKeySequence(tr("Ctrl+K"))), mouseModeActions);
 	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
 	rakeAction->setCheckable(true);
 	rakeAction->setChecked(false);
 
 	//Actions for the viztoolbar:
 	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction(*homeIcon, tr("Go to Home Viewpoint (Ctrl+H)"), this);
+	homeAction = new QAction(*homeIcon,QString(tr("Go to Home Viewpoint  "))+QString(QKeySequence(tr("Ctrl+H"))), this);
 	homeAction->setShortcut(Qt::CTRL+Qt::Key_H);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
 	sethomeAction = new QAction(*sethomeIcon, "Set Home Viewpoint", this);
 	QPixmap* eyeIcon = new QPixmap(eye);
-	viewAllAction = new QAction(*eyeIcon, tr("View All (Ctrl+V)"), this);
+	viewAllAction = new QAction(*eyeIcon,QString(tr("View All  "))+QString(QKeySequence(tr("Ctrl+V"))), this);
 	viewAllAction->setShortcut(Qt::CTRL+Qt::Key_V);
 	QPixmap* magnifyIcon = new QPixmap(magnify);
 	viewRegionAction = new QAction(*magnifyIcon, "View Region", this);
 
 	QPixmap* tileIcon = new QPixmap(tiles);
-	tileAction = new QAction(*tileIcon,tr("Tile Windows (Ctrl+T)"),this);
+	tileAction = new QAction(*tileIcon,QString(tr("Tile Windows  "))+QString(QKeySequence(tr("Ctrl+T"))),this);
 	tileAction->setShortcut(Qt::CTRL+Qt::Key_T);
 
 	QPixmap* cascadeIcon = new QPixmap(cascade);
@@ -587,16 +587,16 @@ void MainForm::createActions(){
 
 	//Create actions for each animation control button:
 	QPixmap* playForwardIcon = new QPixmap(playforward);
-	playForwardAction = new QAction(*playForwardIcon, tr("Play Forward (Ctrl+P)"), this);
+	playForwardAction = new QAction(*playForwardIcon,QString(tr("Play Forward  "))+QString(QKeySequence(tr("Ctrl+P"))) , this);
 	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
-	playBackwardAction = new QAction(*playBackwardIcon, tr("Play Backward (Ctrl+B)"),this);
+	playBackwardAction = new QAction(*playBackwardIcon,QString(tr("Play Backward  "))+QString(QKeySequence(tr("Ctrl+B"))),this);
 	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
-	pauseAction = new QAction(*pauseIcon, tr("Stop animation and unsteady flow integration (Ctrl+E)"), this);
+	pauseAction = new QAction(*pauseIcon,QString(tr("End animation and unsteady flow integration  "))+QString(QKeySequence(tr("Ctrl+E"))), this);
 	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
-	stepForwardAction = new QAction(*stepForwardIcon, tr("Step forward (Ctrl+F)"), this);
+	stepForwardAction = new QAction(*stepForwardIcon,QString(tr("Step forward  "))+QString(QKeySequence(tr("Ctrl+F"))), this);
 	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);
 	QPixmap* stepBackIcon = new QPixmap(stepback);
 	stepBackAction = new QAction(*stepBackIcon,"Step back",this);
