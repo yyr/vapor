@@ -27,7 +27,7 @@ CXXFLAGS += -m64
 CFLAGS += -m64
 else 
 SHARED_LDFLAGS += -m32
-_LDFLAGS += -m32
+LDFLAGS += -m32
 CXXFLAGS += -m32
 CFLAGS += -m32
 endif
