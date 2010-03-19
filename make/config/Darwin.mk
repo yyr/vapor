@@ -1,16 +1,16 @@
 G++-INCLUDE-DIR = /usr/include/g++
-CXX = c++ -fno-common -arch i386
-CC = cc -fno-common -arch i386
+CXX = c++ -fno-common
+CC = cc -fno-common
 
 ifeq    ($(HAVE_QT_FRAMEWORK),1)
 QT_FRAMEWORK = 1
 endif
 
-CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC -arch i386
+CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
-CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC -arch i386
+CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
@@ -19,6 +19,19 @@ LD_RELEASE_FLAGS  +=
 LD_DEBUG_FLAGS    += 
 
 PROFILEFLAGS = -pg -a
+
+ifeq ($(MACHTYPE),x86_64)
+SHARED_LDFLAGS += -m64
+LDFLAGS += -m64
+CXXFLAGS += -m64
+CFLAGS += -m64
+else 
+SHARED_LDFLAGS += -m32
+_LDFLAGS += -m32
+CXXFLAGS += -m32
+CFLAGS += -m32
+endif
+
 
 CAT = cat
 AS = as

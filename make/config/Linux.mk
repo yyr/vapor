@@ -42,9 +42,15 @@ CFLAGS          += -fPIC
 
 
 ifeq ($(MACHTYPE),x86_64)
-LDFLAGS           += -L/usr/X11R6/lib64
+SHARED_LDFLAGS +=	-m64
+LDFLAGS +=			-m64
+CXXFLAGS +=			-m64
+CFLAGS +=			-m64
 else
-LDFLAGS           += -L/usr/X11R6/lib
+SHARED_LDFLAGS +=	-m32
+LDFLAGS +=			-m32
+CXXFLAGS +=			-m32
+CFLAGS +=			-m32
 endif
 
 RPATHFLAG		= -Wl,-rpath,

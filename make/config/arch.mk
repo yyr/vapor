@@ -14,6 +14,11 @@ endif
 
 ifeq ($(ARCH), Darwin)
 MACHTYPE=$(shell uname -p)
+ifeq ($(MACHTYPE), i386)
+ifeq ($(strip $(shell /usr/sbin/sysctl -n hw.cpu64bit_capable)),1)
+MACHTYPE=x86_64
+endif
+endif
 endif
 
 ifeq ($(ARCH), AIX)
@@ -70,5 +75,21 @@ MACHTYPE = i386
 endif
 
 include $(TOP)/options.mk
+
+#
+# Handle forced word size
+#
+ifeq ($(strip $(FORCE_WORD_SIZE)),32)
+ifeq ($(MACHTYPE),x86_64)
+MACHTYPE = i386
+endif
+endif
+
+ifeq ($(strip $(FORCE_WORD_SIZE)),64)
+ifeq ($(MACHTYPE),i386)
+MACHTYPE = x86_64
+endif
+endif
+
 
 ECHO := echo

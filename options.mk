@@ -102,6 +102,17 @@ BUILD_AMR_SUPPORT = 1
 #
 HAVE_INTEL_COMPILERS = 
 
+##
+##	Linux & Mac
+##
+
+# Set WORD_SIZE to either '32' or '64' to force compilation of 32bit or 64bit
+# code, respectively. By default, the build system attempts to 
+# detect the word size of the processor (32 or 64 bit) and generate
+# code accordinly. 
+#
+FORCE_WORD_SIZE = 
+
 #
 #	If the file `site.mk' exists, include it. It contains site-specific
 #	(host or platform specific) make variables that may override 
