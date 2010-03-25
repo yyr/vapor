@@ -299,10 +299,12 @@ void MainForm::createToolBars(){
 
 // Animation Toolbar:
 	animationToolBar = addToolBar("animation control");
+	QIntValidator *v = new QIntValidator(0,99999,animationToolBar);
 	timestepEdit = new QLineEdit(animationToolBar);
 	timestepEdit->setAlignment(Qt::AlignHCenter);
 	timestepEdit->setMaximumWidth(40);
 	timestepEdit->setToolTip( "Edit/Display current time step");
+	timestepEdit->setValidator(v);
 	animationToolBar->addWidget(timestepEdit);
 	
 	animationToolBar->addAction(playBackwardAction);
@@ -414,7 +416,7 @@ void MainForm::hookupSignals() {
 	connect (pauseAction, SIGNAL(triggered()), this, SLOT(pauseClick()));
 	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
 	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
-	connect (timestepEdit, SIGNAL(returnPressed()),this, SLOT(setTimestep()));
+	connect (timestepEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
 }
 
 void MainForm::createMenus(){

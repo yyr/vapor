@@ -1243,6 +1243,7 @@ void FlowEventRouter::guiRebuildList(){
 	populateTimestepTables();
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Respond to user has typed in a row. 
 void FlowEventRouter::timestepChanged1(int row, int col){

@@ -159,7 +159,7 @@ buildColorscaleImage(){
 	//Finally create the gl-formatted texture 
 	//assert(colorbarImage.depth()==32);
 	glColorbarImage = QGLWidget::convertToGLFormat(colorbarImage);
-	
+	painter.end();
 	
 }
 void Renderer::
