@@ -442,7 +442,9 @@ void GLWindow::paintEvent(QPaintEvent*)
 	if (renderElevGrid) {
 			drawElevationGrid(timeStep);
 	}
-	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisLabels();
+	if (axisAnnotationIsEnabled() && !sphericalTransform) {
+		drawAxisLabels();
+	}
 
 	
 	sortRenderers(timeStep);
@@ -1797,7 +1799,7 @@ void GLWindow::drawTimeAnnotation(){
 	
 	
 	if(timeAnnotTextSize>0) {
-		
+		glPushAttrib(GL_TEXTURE_BIT);
 		QFont f;
 		f.setPointSize(timeAnnotTextSize);
 		QPainter painter(this);
@@ -1810,6 +1812,7 @@ void GLWindow::drawTimeAnnotation(){
 		painter.setPen(timeAnnotColor);
 		painter.drawText(QRect(xposn, yposn, rect.width(), rect.height()),Qt::AlignCenter, labelContents);
 		painter.end();
+		glPopAttrib();
 	}
 	
 }
@@ -1833,6 +1836,7 @@ void GLWindow::drawAxisLabels() {
 	
 	float pointOnAxis[3];
 	float winCoords[2];
+	glPushAttrib(GL_TEXTURE_BIT);
 	for (int axis = 0; axis < 3; axis++){
 		if (numTics[axis] > 1){
 			vcopy(origin, pointOnAxis);
@@ -1855,6 +1859,7 @@ void GLWindow::drawAxisLabels() {
 		}
 	}
 	painter.end();
+	glPopAttrib();
 }
 
 
