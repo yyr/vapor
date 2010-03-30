@@ -7,6 +7,7 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
+#include <vapor/WRF.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
@@ -25,6 +26,8 @@ struct opt_t {
 	int	level;
 	int	nfilter;
 	int	nlifting;
+	int deltat;
+	char * startt;
 	char *comment;
 	char *coordsystem;
 	char *gridtype;
@@ -45,7 +48,9 @@ struct opt_t {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"dimension",1, "512x512x512",	"Data volume dimensions expressed in "
 		"grid points (NXxNYxNZ)"},
+	{"startt",      1,      "", "Starting time stamp, where time has the form : yyyy-mm-dd_hh:mm:ss"},
 	{"numts",	1, 	"1",			"Number of timesteps in the data set"},
+	{"deltat",      1,      "1",                    "Seconds per VDC time step"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor "
 		"expressed in grid points (NXxNYxNZ)"},
 	{"level",	1, 	"0",		"Number of approximation levels in hierarchy. "
@@ -89,6 +94,8 @@ OptionParser::Option_T	get_options[] = {
 	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
+	{"startt", VetsUtil::CvtToString, &opt.startt, sizeof(opt.startt)},
+	{"deltat", VetsUtil::CvtToInt, &opt.deltat, sizeof(opt.deltat)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
@@ -175,6 +182,35 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	if (strlen(opt.startt) > 0) {
+		TIME64_T seconds;
+		if(WRF::WRFTimeStrToEpoch(opt.startt,&seconds) < 0)
+			exit(1);
+		vector <double> vec(1,seconds);
+		if(file->SetTSUserTime(0,vec) < 0) {
+			cerr << MyBase::GetErrMsg() << endl;
+			exit(1);
+		}
+	}
+
+	if (opt.deltat) {
+		vector <double> vecbase;
+		size_t ind = 0;
+		if (file->SetNumTimeSteps(opt.numts) < 0) {
+			cerr << MyBase::GetErrMsg() << endl;
+			exit(1);
+		}
+		double starttime = (file->GetTSUserTime(ind)).at(0);
+		for (size_t t=1; t < opt.numts; t++) {
+			starttime += opt.deltat;
+			vector <double> vec(1,starttime);
+			if(file->SetTSUserTime(t,vec) < 0) {
+				cerr << MyBase::GetErrMsg() << endl;
+				exit(1);
+			}
+		}
+	}
+
 	if (strlen(opt.usertimes)) {
 		vector <double> usertimes;
 		if (getUserTimes(opt.usertimes, usertimes)<0) {
@@ -197,6 +233,16 @@ int	main(int argc, char **argv) {
 		if (file->SetNumTimeSteps(opt.numts) < 0) {
 			cerr << MyBase::GetErrMsg() << endl;
 			exit(1);
+		}
+		size_t ind = 0;
+		double starttime = (file->GetTSUserTime(ind)).at(0);
+		for (size_t t=1; t < opt.numts; t++) {
+			starttime += opt.deltat;
+			vector <double> vec(1,starttime);
+			if(file->SetTSUserTime(t,vec) < 0) {
+				cerr << MyBase::GetErrMsg() << endl;
+				exit(1);
+			}
 		}
 	}
 

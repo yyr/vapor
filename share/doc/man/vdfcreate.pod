@@ -37,6 +37,21 @@ The B<-dimension> option specifies the volumetric dimensions of all
 (in grid points) of the fastest varying dimension. I<NY> specifies the
 bounds of the second fastest varying dimension, and so on.
 
+=item -startt E<lt>timeE<gt>
+
+Starting time.  This is the date and time, which corresponds to the first
+time step in the VDC (time step 0). 
+
+The format of the I<time> argument is I<yyyy-mm-dd_hh:mm:ss>, where
+I<yyyy> is the four-digit year,  I<mm> is the two-digit month (January ==
+01), I<dd> is the day of the month, I<hh> is the hour, I<mm> is the minute,
+and I<ss> is the second.
+
+=item -deltat E<lt>numberE<gt>
+
+Time in seconds between successive time steps.  This option specifies
+a uniform, integer sampling interval between successive time steps in
+seconds. 
 
 =item -numts E<lt>nE<gt>
 

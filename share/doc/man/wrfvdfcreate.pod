@@ -149,6 +149,16 @@ names of the variables which are typically named U:V:W:PH:PHB:P:PB:T.
 The list must be given in that order and contain all 8 elements, even
 if some of these eight variables have the expected names.
 
+=item -mapprojection E<lt>"proj string"E<gt>
+
+This option specifies a map projection using a PROJ projection string.  This
+string must be enclosed in quotes, and consists of several keyword/value pairs
+of the form "+key=value".  The full set of PROJ key/value pairs can be found at the
+PROJ wiki http://trac.osgeo.org/proj/wiki . For example, a longitude/latitude projection on
+a spherical earth is specified as "+proj=latlong +ellps=sphere".  B<VAPOR>
+supports Lambert conformal conic, Mercator, Longitude/Latitude, and polar stereographic projections.  
+The PROJ string is not checked for validity.
+
 =item -level E<lt>levelE<gt>
 
 See vdfcreate.
