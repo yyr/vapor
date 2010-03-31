@@ -288,7 +288,7 @@ doLastPopup(messagePriority t, const char* message){
 	//pnt is the absolute position of the tab manager
 	msgBox->move(tabPsn);
 	msgBox->exec();
-	if (msgBox->result() == QDialog::Rejected || msgBox->result() > 1024 ) doContinue = 1;
+	if (msgBox->result() != QMessageBox::Ok) doContinue = 1;
 	delete msgBox;
 	return (doContinue==1);
 }
