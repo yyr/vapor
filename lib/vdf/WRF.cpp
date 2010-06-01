@@ -384,7 +384,12 @@ int WRF::GetZSlice(
 	}
 
 	// Read a slice from the netCDF
-	if ( needAnother )
+	//
+	// JC: removed this optimization because it prevented interleaving 
+	// of calls to this function with different variables
+	//
+	//if ( needAnother )
+	if ( true )
 	{
 		rc = ReadZSlice4D( ncid, thisVar, wrfT, z, fbuffer, dim);
 		if (rc < 0) return(-1);
@@ -397,7 +402,8 @@ int WRF::GetZSlice(
 	// for interpolation
 	if ( thisVar.stag[2] )
 	{
-		if ( needAnother ) {
+		//if ( needAnother ) {
+		if ( true ) {
 			// Now we no longer need to read two slices
 			needAnother = false;
 		}
