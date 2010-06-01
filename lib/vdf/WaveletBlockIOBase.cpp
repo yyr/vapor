@@ -1668,7 +1668,7 @@ void WaveletBlockIOBase::_GetValidRegion(
 	const size_t *dim = GetDimension();
 
 	for (int i=0; i<3; i++) {
-		minreg[0] = 0;
-		maxreg[0] = dim[i]-1;
+		minreg[i] = 0;
+		maxreg[i] = dim[i]-1;
 	}
 }
