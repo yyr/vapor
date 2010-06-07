@@ -277,7 +277,7 @@
 		name => "GetTSUserTime",
 		set => 0,
 		type	=> "double",
-		vector	=> 1,
+		vector	=> 0,
 		ts		=> 1,
 		var		=> 0,
 		tag		=> 0
@@ -870,7 +870,7 @@ sub GetFunc {
 		$idlTypeSpec = "IDL_TYP_DOUBLE";
 		$idlType = "double";
 		$cType = "double";
-		$resAssign = "result = IDL_Gettmp(); IDL_ALLTYPES v; v.l = *valueptr; IDL_StoreScalar(result, IDL_TYP_DOUBLE, &v)";
+		$resAssign = "result = IDL_Gettmp(); IDL_ALLTYPES v; v.d = *valueptr; IDL_StoreScalar(result, IDL_TYP_DOUBLE, &v);";
         $resPtrAssign = "result_ptr[i] = (double) (*valueptr)[i];";
 	}
 	else {
