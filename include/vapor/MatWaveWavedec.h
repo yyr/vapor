@@ -363,7 +363,7 @@ public:
  //! \param[out] lenz The returned Z dimension of approximation coefficients
  //
  void approxlength3(
-	const size_t *L, int n, int l, size_t *lenx, size_t *leny, size_t *leny
+	const size_t *L, int n, int l, size_t *lenx, size_t *leny, size_t *lenz
  ) const; 
 
 

@@ -8,6 +8,7 @@
 #include <vector>
 #include <cassert>
 #include <vapor/MyBase.h>
+#include <algorithm>
 
 //using namespace std;
 
@@ -218,7 +219,7 @@ public:
  //!
  //! \sa GetMap()
  //
- size_t SignificanceMap::GetMapSize() const {
+ size_t GetMapSize() const {
 	return(GetMapSize(GetNumSignificant()));
  };
 

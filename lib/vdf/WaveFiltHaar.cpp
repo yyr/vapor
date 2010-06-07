@@ -21,8 +21,8 @@
  */
 
 #include <cmath>
-#include "WaveFiltBase.h"
-#include "WaveFiltHaar.h"
+#include "vapor/WaveFiltBase.h"
+#include "vapor/WaveFiltHaar.h"
 
 
 using namespace VAPoR;

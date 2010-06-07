@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "WaveFiltBase.h"
+#include "vapor/WaveFiltBase.h"
 
 using namespace std;
 using namespace VAPoR;

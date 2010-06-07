@@ -5,6 +5,9 @@
 #include <netcdf.h>
 #include <sys/stat.h>
 #include <vapor/WaveCodecIO.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 using namespace std;
 using namespace VAPoR;

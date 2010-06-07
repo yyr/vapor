@@ -242,7 +242,7 @@ public:
  //! bounds of the data domain in user-defined coordinates.
  //!
  //
- virtual vector<double> GetTSExtents(size_t ts) const {
+ virtual vector<double> GetTSExtents(size_t ) const {
 	return(GetExtents());
  }
 

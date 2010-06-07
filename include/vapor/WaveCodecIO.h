@@ -7,7 +7,7 @@
 
 namespace VAPoR {
 
-class WaveCodecIO : public VDFIOBase {
+class VDF_API WaveCodecIO : public VDFIOBase {
 public:
 
  WaveCodecIO(const MetadataVDC &metadata);

@@ -50,7 +50,7 @@ public:
 	size_t ts,
 	const char *varname,
 	int reflevel = 0,
-	int lod = 0
+	int /*lod */ = 0
  ) const {
 	return (LayeredIO::VariableExists(ts,varname,reflevel));
  };

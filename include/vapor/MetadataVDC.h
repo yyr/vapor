@@ -269,7 +269,7 @@ public:
  //!
  //! \retval size Internal block factor
  //
- virtual void GetBlockSize(size_t bs[3], int reflevel) const {
+ virtual void GetBlockSize(size_t bs[3], int /*reflevel*/) const {
 	for (int i=0; i<3; i++) bs[i] = _bs[i];
  }
 

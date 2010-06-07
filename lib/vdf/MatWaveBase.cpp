@@ -1,10 +1,10 @@
 #include <cmath>
 #include <cassert>
-#include "MatWaveBase.h"
-#include "WaveFiltDaub.h"
-#include "WaveFiltCoif.h"
-#include "WaveFiltBior.h"
-#include "WaveFiltHaar.h"
+#include "vapor/MatWaveBase.h"
+#include "vapor/WaveFiltDaub.h"
+#include "vapor/WaveFiltCoif.h"
+#include "vapor/WaveFiltBior.h"
+#include "vapor/WaveFiltHaar.h"
 
 using namespace VAPoR;
 
@@ -113,7 +113,7 @@ size_t MatWaveBase::approxlength(size_t sigInLen) const {
 		}
 	}
 
-	return((size_t)floor((sigInLen + filterLen - 1)/2));
+	return((size_t)floor((double)((sigInLen + filterLen - 1)/2)));
 }
 
 void
@@ -144,8 +144,8 @@ MatWaveBase::_wave_len_validate (
 			*lev = n + 1; 
 		}
 		*val = 1;
-		n1 = (int) floor (log (waveLength) / log ((float) 2));
-		m1 = (int) ceil (log (waveLength) / log ((float) 2));
+		n1 = (int) floor (log ((float)waveLength) / log ((float) 2));
+		m1 = (int) ceil (log ((float)waveLength) / log ((float) 2));
 
 		if (n1 != m1) {
 			assert( *lev > 0);

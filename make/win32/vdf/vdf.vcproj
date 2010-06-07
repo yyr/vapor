@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\Compressor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\DataMgr.cpp"
 				>
 			</File>
@@ -234,6 +238,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrWC.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp"
 				>
 			</File>
@@ -243,6 +251,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\LayeredIO.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\MatWaveBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\MatWaveDwt.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\MatWaveWavedec.cpp"
 				>
 			</File>
 			<File
@@ -258,6 +278,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\SignificanceMap.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\Transpose.cpp"
 				>
 			</File>
@@ -267,6 +291,30 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveCodecIO.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveFiltBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveFiltBior.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveFiltCoif.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveFiltDaub.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveFiltHaar.cpp"
 				>
 			</File>
 			<File
