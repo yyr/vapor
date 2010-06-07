@@ -774,9 +774,8 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 		DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	
 		for (int i = 0; i<=maxTimestep; i++){
-			const vector<double>& d = dataMgr->GetTSUserTime((size_t)i);
-			if(d.size()==0){ timesOK = false; break;}
-			wrfTime = (TIME64_T)d[0];
+			double d = dataMgr->GetTSUserTime((size_t)i);
+			wrfTime = (TIME64_T)d;
 			//Find the nearest tifftime:
 			TIME64_T minTimeDiff = 123456789123456789LL;
 			int bestpos = -1;

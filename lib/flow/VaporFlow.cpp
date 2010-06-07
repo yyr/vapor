@@ -271,7 +271,7 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 float* VaporFlow::GetData(size_t ts, const char* varName)
 {
 	
-	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,1);
+	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, -1, minBlkRegion, maxBlkRegion,1);
 	
 	if (!regionData) {
 		SetErrMsg(VAPOR_ERROR_FLOW,"Error obtaining field\ndata for timestep %d, variable %s",ts, varName);
@@ -814,12 +814,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	{
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
-		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSampledStep);
-		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSampledStep);
-		if (prevTime.size()> 0 && nextTime.size()> 0)
-			pUserTimeSteps[tIndex] = (float)(nextTime[0] - prevTime[0]);
-		else
-			pUserTimeSteps[tIndex] = (float)(nextSampledStep - prevSampledStep);
+		double prevTime = dataMgr->GetTSUserTime(prevSampledStep);
+		double nextTime = dataMgr->GetTSUserTime(nextSampledStep);
+		pUserTimeSteps[tIndex] = (float)(nextTime - prevTime);
+
 		//following should make the value always positive
 		pUserTimeSteps[tIndex++] *= timeDir;
 		assert(pUserTimeSteps[tIndex-1] >= 0.f);
@@ -870,19 +868,13 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		//Currently only one vapor time step is integrated at a time.
 		double diff = 0.0, curDiff = 0.0;
-		const vector<double>& iforTime = dataMgr->GetTSUserTime(iFor);
-		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSample);
-		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSample);
-		if (iforTime.size()>0 && prevTime.size()>0 && nextTime.size()> 0){
+		double iforTime = dataMgr->GetTSUserTime(iFor);
+		double prevTime = dataMgr->GetTSUserTime(prevSample);
+		double nextTime = dataMgr->GetTSUserTime(nextSample);
 		
-			diff = iforTime[0] -prevTime[0];
-			curDiff = nextTime[0] - iforTime[0]; 
+		diff = iforTime - prevTime;
+		curDiff = nextTime - iforTime; 
 			
-		} else {
-			diff = (iFor - prevSample);
-			curDiff = (nextSample - iFor);
-			
-		}
 		
 		pField->SetUserTimeStepInc((float)diff);
 		float vaporTimeDiff = (float)(numTimesteps -1)/(float)(numTimeSamples -1);
@@ -1083,12 +1075,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
-		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSampledStep);
-		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSampledStep);
-		if (nextTime.size()> 0 && prevTime.size()>0)
-			pUserTimeSteps[tIndex] = nextTime[0] - prevTime[0];	
-		else
-			pUserTimeSteps[tIndex] = (float)(nextSampledStep - prevSampledStep);
+		double prevTime = dataMgr->GetTSUserTime(prevSampledStep);
+		double nextTime = dataMgr->GetTSUserTime(nextSampledStep);
+		pUserTimeSteps[tIndex] = nextTime - prevTime;	
+
 		//following should make the value always positive
 		pUserTimeSteps[tIndex++] *= timeDir;
 		assert(pUserTimeSteps[tIndex-1] >= 0.f);
@@ -1147,19 +1137,13 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		double diff = 0.0, curDiff = 0.0;
-		const vector<double>& iforTime = dataMgr->GetTSUserTime(iFor);
-		const vector<double>& prevTime = dataMgr->GetTSUserTime(prevSample);
-		const vector<double>& nextTime = dataMgr->GetTSUserTime(nextSample);
-		if(iforTime.size()> 0 && prevTime.size()> 0 && nextTime.size()> 0){
+		double iforTime = dataMgr->GetTSUserTime(iFor);
+		double prevTime = dataMgr->GetTSUserTime(prevSample);
+		double nextTime = dataMgr->GetTSUserTime(nextSample);
 		
-			diff = iforTime[0] - prevTime[0];
-				
-			curDiff = nextTime[0] - iforTime[0];
+		diff = iforTime - prevTime;
+		curDiff = nextTime - iforTime;
 					
-		} else {
-			diff = (iFor - prevSample);
-			curDiff = (nextSample - iFor);
-		}
 		float vaporTimeDiff = (float)(numTimesteps -1)/(float)(numTimeSamples -1);
 		pField->SetUserTimePerVaporTS(abs((diff+curDiff)/vaporTimeDiff));
 		pField->SetUserTimeStepInc((float)diff);
@@ -1281,13 +1265,13 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, -1, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return 0;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, -1, minBlk, maxBlk, 1);
 		if (pVData[0] == 0 && pUData[0]) {
 			dataMgr->UnlockRegion(pUData[0]);
 			return 0;
@@ -1295,7 +1279,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk,  1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, -1, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
@@ -1391,13 +1375,13 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, -1, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return false;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk,  1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, -1, minBlk, maxBlk,  1);
 		if (pVData[0] == 0) {
 			if(pUData[0]) dataMgr->UnlockRegion(pUData[0]);
 			return false;
@@ -1405,7 +1389,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk,  1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, -1, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);

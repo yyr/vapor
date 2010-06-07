@@ -448,7 +448,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	if (refLevel > maxRes) refLevel = maxRes;
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		vname, refLevel, blkMin, blkMax,  0);
+		vname, refLevel, -1, blkMin, blkMax,  0);
 	if (!reg){
 		if (ds->warnIfDataMissing()){
 			setBypass(timeStep);

@@ -759,14 +759,14 @@ void *VolumeRenderer::_getRegion(
 
 	if (_voxelType == GL_UNSIGNED_BYTE) {
 		data =  data_mgr->GetRegionUInt8(
-			ts, varname, numxforms, min, max,
+			ts, varname, numxforms, -1, min, max,
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);
 	}
 	else {
 		data = data_mgr->GetRegionUInt16(
-			ts, varname, numxforms, min, max,
+			ts, varname, numxforms, -1, min, max,
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);

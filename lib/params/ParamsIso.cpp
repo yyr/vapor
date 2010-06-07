@@ -415,7 +415,7 @@ void ParamsIso::SetNormalOnOff(bool flag) {
 }
 
 bool ParamsIso::GetNormalOnOff() {
-	vector <long> &valvec = GetRootNode()->GetElementLong(_NormalOnOffTag);
+	vector <long> valvec = GetRootNode()->GetElementLong(_NormalOnOffTag);
 	return((bool) valvec[0]);
 }
 
@@ -432,7 +432,7 @@ void ParamsIso::SetConstantColor(float rgba[4]) {
 }
 
 const float *ParamsIso::GetConstantColor() {
-	vector <double> &valvec = GetRootNode()->GetElementDouble(_ConstantColorTag);
+	vector <double> valvec = GetRootNode()->GetElementDouble(_ConstantColorTag);
 	for (int i=0; i<4; i++) _constcolorbuf[i] = valvec[i];
 	return(_constcolorbuf);
 }
@@ -492,7 +492,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  }
 
  float ParamsIso::GetIsoHistoStretch(){
-	vector<double>& valvec = GetRootNode()->GetElementDouble(_HistoScaleTag);
+	vector<double> valvec = GetRootNode()->GetElementDouble(_HistoScaleTag);
 	return (float)valvec[0];
  }
  void ParamsIso::SetHistoStretch(float scale){
@@ -501,7 +501,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  }
 
  float ParamsIso::GetHistoStretch(){
-	vector<double>& valvec = GetRootNode()->GetElementDouble(_MapHistoScaleTag);
+	vector<double> valvec = GetRootNode()->GetElementDouble(_MapHistoScaleTag);
 	return (float)valvec[0];
  }
 
@@ -519,7 +519,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	 GetRootNode()->SetElementLong(_RefinementLevelTag,valvec);
  }
  int ParamsIso::GetRefinementLevel(){
-	vector<long>& valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
+	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
 	return (int)valvec[0];
  }
  void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
@@ -532,11 +532,11 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	vizNum = viznum;
  }
  int ParamsIso::GetVisualizerNum(){
-	vector<long>& valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
+	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
 	return (int)valvec[0];
  }
  int ParamsIso::GetNumBits(){
-	vector<long>& valvec = GetRootNode()->GetElementLong(_NumBitsTag);
+	vector<long> valvec = GetRootNode()->GetElementLong(_NumBitsTag);
 	if (valvec.size() == 0){
 		//For backwards compatibility, insert default value:
 		SetNumBits(defaultBitsPerVoxel);
