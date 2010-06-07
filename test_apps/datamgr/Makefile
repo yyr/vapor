@@ -6,7 +6,7 @@ PROGRAM = test_datamgr
 FILES = test_datamgr
 
 
-LIBRARIES = vdf common netcdf $(EXPAT_LIB)
+LIBRARIES = vdf common netcdf expat
 
 
 include ${TOP}/make/config/base.mk

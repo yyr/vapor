@@ -21,6 +21,7 @@ struct {
 	char *varname;
 	char *savefilebase;
 	int	level;
+	int	lod;
 	char *dtype;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
@@ -38,6 +39,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"savefilebase",	1, 	"",	"Base path name to output file"},
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
+	{"lod",1, "0","Level of detail. Zero implies coarsest resolution"},
 	{"dtype",	1,	"float",	"data type (float|uint8|uint16)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
@@ -57,6 +59,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"savefilebase", VetsUtil::CvtToString, &opt.savefilebase, sizeof(opt.savefilebase)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"dtype", VetsUtil::CvtToString, &opt.dtype, sizeof(opt.dtype)},
@@ -168,7 +171,7 @@ int main(int argc, char **argv) {
 			if (strcmp(opt.dtype, "float") == 0) {
 				float *fptr;
 				fptr = datamgr->GetRegion(
-					ts, opt.varname, opt.level, min, max, 0
+					ts, opt.varname, opt.level, opt.level, min, max, 0
 				);
 
 				if (! fptr) {
@@ -188,7 +191,7 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt8(
-					ts, opt.varname, opt.level, min, max, qrange, 0
+					ts, opt.varname, opt.level, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
@@ -207,7 +210,7 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt16(
-					ts, opt.varname, opt.level, min, max, qrange, 0
+					ts, opt.varname, opt.level, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;

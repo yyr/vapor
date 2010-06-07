@@ -138,9 +138,8 @@ int main(int argc, char **argv) {
 	//
 	vector <float> vdf_usertimes;	
 	for (size_t t=0; t<amrio.GetNumTimeSteps(); t++) {
-		const vector <double> &usertime = amrio.GetTSUserTime(t); 
-		assert(usertime.size() == 1);	// sanity check
-		vdf_usertimes.push_back(usertime[0]);
+		double usertime = amrio.GetTSUserTime(t); 
+		vdf_usertimes.push_back(usertime);
 	}
 
 	vector <string> vdf_vars3d = amrio.GetVariables3D();

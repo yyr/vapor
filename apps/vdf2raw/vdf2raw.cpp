@@ -11,6 +11,7 @@
 #include <vapor/WaveletBlock3DBufReader.h>
 #include <vapor/WaveletBlock3DReader.h>
 #include <vapor/WaveletBlock3DRegionReader.h>
+#include <vapor/WaveCodecIO.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -20,6 +21,7 @@ struct opt_t {
 	int	ts;
 	char *varname;
 	int	level;
+	int	lod;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -33,6 +35,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",1, "-1","Multiresolution refinement level. Zero implies coarsest resolution"},
+	{"lod",1, "-1","Compression level of detail. Zero implies coarsest approximation"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -48,6 +51,7 @@ OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -60,7 +64,7 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-void	process_volume(
+void	process_volume_vdc1(
 	MetadataVDC &metadata, FILE *fp,
 	double *read_timer, double *xform_timer, double *write_timer,
 	double *timer
@@ -162,6 +166,83 @@ void	process_volume(
 	delete wbreader3D;
 }
 
+void	process_volume_vdc2(
+	MetadataVDC &metadata, FILE *fp,  Metadata::VarType_T vtype,
+	double *read_timer, double *xform_timer, double *write_timer,
+	double *timer
+) {
+	size_t	size;
+	float	*buf;
+	WaveCodecIO *wcreader = NULL;
+	size_t dim[3];
+	double t0, t1;
+
+	wcreader = new WaveCodecIO(metadata);
+	if (wcreader->GetErrCode() != 0) {
+		exit(1);
+	}
+	if (wcreader->OpenVariableRead(opt.ts, opt.varname,opt.level, opt.lod) < 0) {
+		exit(1);
+	} 
+	wcreader->GetDim(dim, opt.level);
+
+	t0 = wcreader->GetTime();
+	*timer = *write_timer = 0.0;
+
+	size_t dim3d[3] = {0,0,0};
+
+	switch (vtype) {
+	case Metadata::VAR2D_XY:
+		dim3d[0] = dim[0]; dim3d[1] = dim[1]; dim3d[2] = 1;
+	break;
+
+	case Metadata::VAR2D_XZ:
+		dim3d[0] = dim[0]; dim3d[1] = dim[2]; dim3d[2] = 1;
+	break;
+	case Metadata::VAR2D_YZ:
+		dim3d[0] = dim[1]; dim3d[1] = dim[2]; dim3d[2] = 1;
+	break;
+	case Metadata::VAR3D:
+		dim3d[0] = dim[0]; dim3d[1] = dim[1]; dim3d[2] = dim[2];
+	break;
+	default:
+	break;
+
+	}
+	
+	size = dim3d[0] * dim3d[1];
+	buf = new float[size];
+	assert (buf != NULL);
+
+	for(int z = 0; z<dim3d[2]; z++) {
+
+		if (! opt.quiet && z%10 == 0) {
+			cout << "Writing slice # " << z << endl; 
+		}
+
+		if (wcreader->ReadSlice(buf) < 0) {
+			exit(1);
+		} 
+
+		t1 = wcreader->GetTime();
+		if (fwrite(buf, sizeof(*buf), size, fp) != size) {
+			MyBase::SetErrMsg("Could not write to output file : %M");
+			exit(1);
+		}
+		*write_timer += wcreader->GetTime() - t1;
+	}
+
+	if (! opt.quiet) {
+		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
+	}
+
+	*timer = wcreader->GetTime() - t0;
+	*xform_timer = wcreader->GetXFormTimer();
+	*read_timer = wcreader->GetReadTimer();
+	wcreader->CloseVariable();
+
+	delete wcreader;
+}
 void	process_region(
 	MetadataVDC &metadata, FILE *fp, Metadata::VarType_T vtype,
 	double *read_timer, double *xform_timer, double *write_timer,
@@ -384,17 +465,25 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+    bool vdc1 = (metadata.GetVDCType() == 1);
 
-	if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
-		max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 &&
-		vtype == Metadata::VAR3D) {
+	if (vdc1) {
+		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
+			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 &&
+			vtype == Metadata::VAR3D) {
 
-		process_volume(
-			metadata, fp, &read_timer, &xform_timer, &write_timer, &timer
-		);
+			process_volume_vdc1(
+				metadata, fp, &read_timer, &xform_timer, &write_timer, &timer
+			);
+		}
+		else {
+			process_region(
+				metadata, fp, vtype, &read_timer, &xform_timer, &write_timer, &timer
+			);
+		}
 	}
 	else {
-		process_region(
+		process_volume_vdc2(
 			metadata, fp, vtype, &read_timer, &xform_timer, &write_timer, &timer
 		);
 	}

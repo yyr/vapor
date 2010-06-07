@@ -210,6 +210,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 					timeStep, 
 					varname,
 					availRefLevel,
+					-1,
 					min_bdim, max_bdim,
 					dRange,
 					0 //Don't lock!

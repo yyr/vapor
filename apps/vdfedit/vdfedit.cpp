@@ -253,8 +253,8 @@ int	main(int argc, char **argv) {
 		}
 		else {
 			for (size_t t = 0; t<numts; t++) {
-				const vector <double> &v = metadata->GetTSUserTime(t);
-				timestamps.push_back((TIME64_T) v[0]); 
+				double v = metadata->GetTSUserTime(t);
+				timestamps.push_back((TIME64_T) v); 
 			}
 		}
 
