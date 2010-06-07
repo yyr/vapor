@@ -113,6 +113,26 @@ int	VetsUtil::CvtToFloat(
 }
 
 /*
+ *	CvtToDouble()
+ *
+ *	convert a ascii string to its floating point value
+ */
+int	VetsUtil::CvtToDouble(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	double	*dptr	= (double *) to;
+
+	if (! from) {
+		*dptr = 0.0;
+	}
+	else if (sscanf(from, "%lf", dptr) != 1) {
+		return(-1);
+	}
+	return(1);
+}
+
+/*
  *	CvtToChar()
  *
  *	convert a ascii string to a char.

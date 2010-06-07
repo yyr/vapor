@@ -71,7 +71,8 @@ LayeredIO::~LayeredIO(
 int	LayeredIO::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 	int	rc;
 

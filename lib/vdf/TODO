@@ -1,8 +1,62 @@
-Set{Get}ClassName
-CloseFile
-IDL interface
-redo MetadataVDC - split into required, low level and high level convenience
-test merge
 Document!!!!!
 implement DataMgrAMR
 
+
+VDC2
+----
+
+HIGH
+
+
+
+Currently no verification that .vdf file agrees with what is
+in .ncdf files
+
+Document API
+
+MEDIUM
+
+VDC1 version 4 .vdf files should be readable by vaporgui 1.5.x
+
+Implement {Read,Write}Region and add region support in raw2vdf and vdf2raw
+construtor without metadata
+
+vdfcreate should automatically compute compression ratios based on bs and
+wavelet 
+
+Constructor when not metafile is available.
+
+
+LOW
+
+Add VDC2 support to Layered data reader
+
+
+WaveCodeIO/Compressor need to be able to handle volumes with extreme aspect
+ratios  (e.g. a volume 1000x1000x4 will not be compressible with because the 
+4 dimension will limit the 3d transform).
+
+Get rid of MetadataSpherical specialization (or figure out how add
+support to it for vdc2)
+
+
+
+Test:
+ + odd and non-symmetric block size
+ + Read vdc1 file
+ + writing and reading regions with wholes (incomplete regions)
+ + verify reading/writing subregions
+
+Alan:
+
++ VariableExist and GetRegion has lod parameter
++ block size varies with level
++ killed many reference return types
++ Changes to SetVariableNames (deprecated), impact on scripts
++ GetVDCType()
+
+
+Doc:
+
++ Compression ratios specified apply to 3D data. 2D compression ratios
+are derived from 3D (see WaveCodeIO constructor)

@@ -20,7 +20,15 @@ namespace VAPoR {
 
 //
 //! \class Metadata
-//! \brief A class for managing data set metadata
+//! \brief An abstract class for managing metadata for a collection 
+//! of gridded data. The data collection may support two forms 
+//! of data reduction: multi-resolution (a hierarchy of grids, each dimension
+//! a factor of two coarser than the preceeding), and level-of-detail (a
+//! sequence of one more compressions). 
+//!
+//! Implementers must derive a concrete class from Metadata to support
+//! a particular data collection type
+//!
 //! \author John Clyne
 //! \version $Revision$
 //! \date    $Date$
@@ -29,6 +37,12 @@ namespace VAPoR {
 class VDF_API Metadata {
 public:
 
+ //! An enum of variable types. Variables defined in a data collection
+ //! may be either three-dimensional
+ //! (\p VAR3D), or two-dimensional. In the latter case the two-dimesional
+ //! data are constrained to lie in the XY, XZ, or YZ coordinate planes
+ //! of a 3D volume
+ //! 
  enum VarType_T {
 	VARUNKNOWN = -1,
 	VAR3D, VAR2D_XY, VAR2D_XZ, VAR2D_YZ
@@ -36,37 +50,90 @@ public:
 
  virtual ~Metadata() {};
 
- //! Return the internal blocking factor use for WaveletBlock files
+ //! Returns the X,Y,Z coordinate dimensions of all data variables
+ //! in grid (voxel) coordinates. Hence, all variables of a given 
+ //! type (3D or 2D)
+ //! must have the same dimension.
  //!
- //! \retval size Internal block factor
- //
- virtual const size_t *GetBlockSize() const = 0;
-
- //! Returns the X,Y,Z coordinate dimensions of the data in grid coordinates
- //! \retval dim A three element vector containing the voxel dimension of 
+ //! \retval dim A three element vector (ordered X, Y, Z) containing the 
+ //! voxel dimensions of 
  //! the data at its native resolution
  //!
  //!
  virtual const size_t *GetDimension() const = 0;
 
+ //! Return the internal blocking factor used for data. 
+ //!
+ //! Returns the X,Y,Z coordinate dimensions of all internal data blocks 
+ //! in grid (voxel) coordinates.  If the data are
+ //! not blocked this method should return the same values as 
+ //! GetDimension().
+ //!
+ //! \retval bs  A three element vector containing the voxel dimension of
+ //! a data block
+ //
+ virtual const size_t *GetBlockSize() const = 0;
+
+ //! Return the internal blocking factor at a given refinement level
+ //!
+ //! For multi-resolution data this method returns the dimensions
+ //! of a data block at refinement level \p reflevel, where reflevel
+ //! is in the range 0 to GetNumTransforms(). A value of -1 may be 
+ //! specified to indicate the maximum refinement level.
+ //! 
+ //! \param[in] reflevel Refinement level 
+ //! \param[bs] dim Transformed dimension.
+ //!
+ //! \retval bs  A three element vector containing the voxel dimension of
+ //! a data block
+ //
+ virtual void GetBlockSize(size_t bs[3], int reflevel) const = 0;
+
+
  //! Return number of transformations in hierarchy 
  //!
+ //! For multi-resolution data this method returns the number of
+ //! coarsened approximations present. If no approximations 
+ //! are available - if only the native data are present - the return
+ //! value is 0.
  //!
- //! \note Starts from 0 or 1????
+ //! \retval n  The number of coarsened data approximations available
  //
- virtual int GetNumTransforms() const = 0;
+ virtual int GetNumTransforms() const {return(0); };
+
+ //! Return the compression ratios available.
+ //!
+ //! For data sets offering level-of-detail, the method returns a 
+ //! vector of integers, each specifying an available compression factor.
+ //! For example, a factor of 10 indicates a compression ratio of 10:1.
+ //!
+ //! \retval cr A vector of one or more compression factors
+ //
+ virtual vector <size_t> GetCRatios() const {
+	vector <size_t> cr; cr.push_back(1); return(cr);
+ }
+
 
  //! Return the domain extents specified in user coordinates
  //!
+ //! Variables in the data represented by spatial coordinates,  such as 
+ //! velocity components, are expected to be expressed in the same units 
+ //! the returned domain extents.
+ //! For data sets with moving (time varying) domains, this method should
+ //! return the global bounds of the entire time series.
+ //!
  //! \retval extents A six-element array containing the min and max
- //! bounds of the data domain in user-defined coordinates
+ //! bounds of the data domain in user-defined coordinates. The first
+ //! three elements specify the minimum X, Y, and Z bounds, respectively,
+ //! the second three elements specify the maximum bounds.
  //!
+ //! \sa GetTSExtents();
  //
- virtual const vector<double> &GetExtents() const = 0;
+ virtual vector<double> GetExtents() const = 0;
 
- //! Return the number of time steps in the collection
+ //! Return the number of time steps in the data collection
  //!
- //! \retval value The number of time steps or a negative number on error
+ //! \retval value The number of time steps 
  //!
  //
  virtual long GetNumTimeSteps() const = 0;
@@ -74,26 +141,46 @@ public:
 
  //! Return the names of the variables in the collection 
  //!
+ //! This method returns a vector of all variables of all types
+ //! in the data collection
+ //!
  //! \retval value is a space-separated list of variable names
  //!
  //
- virtual const vector <string> &GetVariableNames() const = 0;
+ virtual vector <string> GetVariableNames() const;
 
  //! Return the names of the 3D variables in the collection 
  //!
- //! \retval value is a space-separated list of 3D variable names
+ //! \retval value is a space-separated list of 3D variable names.
+ //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual const vector <string> &GetVariables3D() const = 0;
+ virtual vector <string> GetVariables3D() const = 0;
 
  //! Return the names of the 2D, XY variables in the collection 
  //!
  //! \retval value is a space-separated list of 2D XY variable names
+ //! An emptry string is returned if no variables of this type are present
  //!
  //
- virtual const vector <string> &GetVariables2DXY() const = 0;
- virtual const vector <string> &GetVariables2DXZ() const = 0;
- virtual const vector <string> &GetVariables2DYZ() const = 0;
+ virtual vector <string> GetVariables2DXY() const = 0;
+
+ //! Return the names of the 2D, XZ variables in the collection 
+ //!
+ //! \retval value is a space-separated list of 2D ZY variable names
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> GetVariables2DXZ() const = 0;
+
+ //! Return the names of the 2D, YZ variables in the collection 
+ //!
+ //! \retval value is a space-separated list of 2D YZ variable names
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> GetVariables2DYZ() const = 0;
+
 
  //! Return a three-element boolean array indicating if the X,Y,Z
  //! axes have periodic boundaries, respectively.
@@ -101,56 +188,73 @@ public:
  //! \retval boolean-vector  
  //!
  //
- virtual const vector<long> &GetPeriodicBoundary() const = 0;
+ virtual vector<long> GetPeriodicBoundary() const = 0;
 
  //! Return a three-element integer array indicating the coordinate
  //! ordering permutation.
  //!
  //! \retval integer-vector  
  //!
- //! \remarks Optional element 
- //
- virtual const vector<long> &GetGridPermutation() const = 0;
+ virtual vector<long> GetGridPermutation() const = 0;
 
- //! Return the time for a time step, if it exists, 
+ //! Return the time for a time step
+ //!
+ //! This method returns the time, in user-defined coordinates,
+ //! associated with the time step, \p ts. Variables such as 
+ //! velocity field components that are expressed in distance per 
+ //! units of time are expected to use the same time coordinates
+ //! as the values returned by this mehtod.
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
+ //!
  //! \retval value A single element vector specifying the time
  //!
  //
- virtual const vector<double> &GetTSUserTime(size_t ts) const = 0;
+ virtual double GetTSUserTime(size_t ts) const = 0;
 
+
+ //! Return the time for a time step
+ //!
+ //! This method returns the user time, 
+ //! associated with the time step, \p ts, as a formatted string. 
+ //! The returned time stamp is intended to be used for annotation
+ //! purposes
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \param[out] s A formated time string
+ //!
+ //
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const = 0;
 
  //! Return the domain extents specified in user coordinates
  //! for the indicated time step
  //!
+ //! For data collections defined on moving (time varying) domains,
+ //! this method returns the domain extents in user coordinates 
+ //! for the indicated time step, \p ts.
+ //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
+ //!
  //! \retval extents A six-element array containing the min and max
  //! bounds of the data domain in user-defined coordinates.
- //! An empty vector is returned if the extents for the specified time
- //! step is not defined.
  //!
- //! \remarks Optional element
  //
- virtual const vector<double> &GetTSExtents(size_t ts) const = 0;
+ virtual vector<double> GetTSExtents(size_t ts) const {
+	return(GetExtents());
+ }
 
  //! Get the dimension of a volume
  //! 
- //! Get the resulting dimension of the volume
- //! after undergoing a specified number of forward transforms.
- //! If the number of transforms is zero, and the
- //! grid type is not layered, the
- //! value returned is the native volume dimension as specified in the
- //! Metadata structure used to construct the class.
- //! With layered data, the third coordinate depends
- //! on the user-specified interpolation.
+ //! Get the resulting dimension of a variable
+ //! at a the specified refinment level.
+ //!
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] dim Transformed dimension.
  //!
- //! \sa Metadata::GetDimension()
+ //! \sa Metadata::GetDimension() GetNumTransforms()
  //
  virtual void   GetDim(size_t dim[3], int reflevel = 0) const;
 
@@ -159,10 +263,10 @@ public:
  //! Performs same operation as GetDim() except returns
  //! dimensions in block coordinates instead of voxels.
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined.
  //! \param[out] bdim Transformed dimension in blocks.
  //!
- //! \sa Metadata::GetDimension()
+ //! \sa Metadata::GetDimension() GetNumTransforms()
  //
  virtual void   GetDimBlk(size_t bdim[3], int reflevel = 0) const; 
 
@@ -282,6 +386,14 @@ public:
  }
 
 
+ //! Return the variable type for the indicated variable
+ //!
+ //! This method returns the variable type for the variable 
+ //! named by \p varname.
+ //!
+ //! \param[in] varname A 3D or 2D variable name
+ //! \retval type The variable type
+ //
  virtual VarType_T GetVarType(const string &varname) const; 
 
  //! Return true if indicated region coordinates are valid
@@ -295,7 +407,7 @@ public:
  //! \param[in] max Maximum region extents in voxel coordinates
  //! \retval boolean True if region is valid
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined 
  //
  virtual int IsValidRegion(
 	const size_t min[3], const size_t max[3], int reflevel = 0
@@ -313,7 +425,7 @@ public:
  //! \param[in] min Minimum region extents in block coordinates
  //! \param[in] max Maximum region extents in block coordinates
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined 
  //! \retval boolean True if region is valid
  //
  virtual int IsValidRegionBlk(
@@ -322,8 +434,6 @@ public:
 
 
 };
-
-
 };
 
 #endif	//	_Metadata_h_

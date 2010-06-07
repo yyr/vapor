@@ -68,6 +68,8 @@ public:
 	size_t blk_size, size_t num_blks, int page_aligned = 1
  );
 
+ static size_t GetBlkSize() {return(_blk_size);}
+
 private:
  static size_t	_page_aligned_req;	// requested page align memory (boolean)
  static size_t	_mem_size_req;	// requested size of mem in blocks

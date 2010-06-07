@@ -43,6 +43,7 @@ XmlNode::XmlNode(
 	_emptyString.clear();
 	_asciiLimit = 1024;
 	_parent = NULL;
+	_errOnMissing = true;
 
 	if (numChildrenHint) _children.reserve(numChildrenHint);
 
@@ -92,18 +93,23 @@ vector<long> &XmlNode::SetElementLong(
 	return(_longmap[tag]);
 }
 	
-vector<long> &XmlNode::GetElementLong(const string &tag) {
+const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 
 	map <string, vector<long> >::const_iterator p = _longmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _longmap.end()) { 
-		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
+		if (_errOnMissing) {
+			SetErrMsg(
+				ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str()
+			);
+		}
 		return(_emptyLongVec);
 	}
 
-	return(_longmap[tag]);
+	//return(_longmap[tag]);
+	return(p->second);
 }
 
 int XmlNode::HasElementLong(const string &tag) const {
@@ -129,18 +135,23 @@ vector<double> &XmlNode::SetElementDouble(
 
 }
 	
-vector<double> &XmlNode::GetElementDouble(const string &tag) {
+const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 
 	map <string, vector<double> >::const_iterator p = _doublemap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _doublemap.end()) { 
-		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
+		if (_errOnMissing) {
+			SetErrMsg(
+				ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str()
+			);
+		}
 		return(_emptyDoubleVec);
 	}
 
-	return(_doublemap[tag]);
+	//return(_doublemap[tag]);
+	return(p->second);
 }
 
 int XmlNode::HasElementDouble(const string &tag) const {
@@ -180,14 +191,18 @@ string &XmlNode::SetElementStringVec(
 
 
 	
-string &XmlNode::GetElementString(const string &tag) {
+const string &XmlNode::GetElementString(const string &tag) const {
 
-	map <string, string>::iterator p = _stringmap.find(tag);
+	map <string, string>::const_iterator p = _stringmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _stringmap.end()) { 
-		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
+		if (_errOnMissing) {
+			SetErrMsg(
+				ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str()
+			);
+		}
 		return(_emptyString);
 	}
 
@@ -195,7 +210,7 @@ string &XmlNode::GetElementString(const string &tag) {
 	return(p->second);
 }
 
-void XmlNode::GetElementStringVec(const string &tag, vector <string> &vec) {
+void XmlNode::GetElementStringVec(const string &tag, vector <string> &vec) const {
 	
 	string s = XmlNode::GetElementString(tag);
 
@@ -216,6 +231,7 @@ XmlNode	*XmlNode::NewChild(
 	XmlNode	*node = Construct(tag, attrs, numChildrenHint);
 	// need to check for error
 	assert(node != NULL);
+	node->ErrOnMissing() = this->ErrOnMissing();
 
 //	_children[_children.size()] = node;	// Doesn't change size!!!! 
 	_children.push_back(node);

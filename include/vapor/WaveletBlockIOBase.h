@@ -75,7 +75,8 @@ public:
  virtual int    VariableExists(
 	size_t ts,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  ) const ;
 
 
@@ -115,7 +116,7 @@ public:
  //! parameter, \p reflevel indicates the resolution of the volume in
  //! the multiresolution hierarchy. The valid range of values for
  //! \p reflevel is [0..max_refinement], where \p max_refinement is the
- //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
+ //! maximum finement level of the data set: Metadata::GetNumTransforms().
  //! volume when the volume was created. A value of zero indicates the
  //! coarsest resolution data, a value of \p max_refinement indicates the
  //! finest resolution data.
@@ -134,7 +135,8 @@ public:
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  );
 
  //! Close the currently opened variable.

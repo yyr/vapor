@@ -237,10 +237,10 @@ public:
 	int reflevel = -1
  );
 
- int ReadAttributesNCDF(
+ static int ReadAttributesNCDF(
 	const string &path, size_t cell_dim[3], size_t min[3],  size_t max[3],
 	float data_range[2], int &reflevel, size_t &num_nodes
- ) const;
+ );
 
 
  //! Get a block of data from the AMR grid
@@ -301,6 +301,9 @@ public:
 
  const AMRTree	*GetTree() const {return(_tree);};
 
+ void GetBounds(size_t bmin[3], size_t bmax[3]) const {
+	for (int i=0; i<3; i++) {bmin[i] = _bmin[i]; bmax[i] = _bmax[i];}
+ }
 
 private:
 

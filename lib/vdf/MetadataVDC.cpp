@@ -51,7 +51,7 @@ const string MetadataVDC::_rootTag = "Metadata";
 const string MetadataVDC::_userTimeTag = "UserTime";
 const string MetadataVDC::_userTimeStampTag = "UserTimeStampString";
 const string MetadataVDC::_timeStepTag = "TimeStep";
-const string MetadataVDC::_varNamesTag = "VariableNames";
+const string MetadataVDC::_varNamesTag = "VariableNames";	// pre ver 4
 const string MetadataVDC::_vars3DTag = "Variables3D";
 const string MetadataVDC::_vars2DXYTag = "Variables2DXY";
 const string MetadataVDC::_vars2DXZTag = "Variables2DXZ";
@@ -72,12 +72,63 @@ const string MetadataVDC::_liftingCoefficientsAttr = "LiftingCoefficients";
 const string MetadataVDC::_msbFirstAttr = "MSBFirst";
 const string MetadataVDC::_vdfVersionAttr = "VDFVersion";
 const string MetadataVDC::_numChildrenAttr = "NumChildren";
+const string MetadataVDC::_waveletNameAttr = "WaveletName";
+const string MetadataVDC::_waveletBoundaryModeAttr = "WaveletBoundaryMode";
+const string MetadataVDC::_vdcTypeAttr = "VDCType";
+const string MetadataVDC::_cRatiosAttr = "CompressionRatios";
 
+namespace {
+
+// Delete 'value' from 'vec' if 'value' is contained in 'vec'. Otherwise
+// 'vec' is unchanged.
+//
+void vector_delete (vector <string> &vec, const string &value) {
+
+	vector<string>::iterator itr;
+	for (itr = vec.begin(); itr != vec.end(); ) {
+		if (itr->compare(value) == 0) {
+			vec.erase(itr);
+			itr = vec.begin();
+		}
+		else {
+			itr++;
+		}
+	}
+}
+
+//
+// Delete any duplicate entries from 'vec'.
+//
+void vector_unique (vector <string> &vec) {
+
+	vector <string> tmpvec;
+	vector<string>::iterator itr1;
+	vector<string>::iterator itr2;
+
+	for (itr1 = vec.begin(); itr1 != vec.end(); itr1++) {
+		bool match = false;
+		for (itr2 = tmpvec.begin(); itr2 != tmpvec.end(); itr2++) {
+			if (itr1->compare(*itr2) == 0) {
+				match = true;
+			}
+		}
+		if (! match) tmpvec.push_back(*itr1);
+	}
+	vec = tmpvec;
+}
+
+};
 
 int MetadataVDC::SetDefaults() {
 
 	vector <long> periodic_boundary(3,0);
 	SetPeriodicBoundary(periodic_boundary);
+
+	vector <long> grid_permutation;
+	grid_permutation.push_back(0);
+	grid_permutation.push_back(1);
+	grid_permutation.push_back(2);
+	SetGridPermutation(grid_permutation);
 
 	// Set some default metadata attributes. 
 	//
@@ -103,31 +154,35 @@ int MetadataVDC::SetDefaults() {
 
 // Initialize the class object
 //
-int MetadataVDC::_init(
-		const size_t dim[3], size_t numTransforms, size_t bs[3],
+int MetadataVDC::_init() {
+
+	_emptyDoubleVec.clear();
+	_emptyLongVec.clear();
+	_emptyString.clear();
+
+	if (SetNumTimeSteps(1) < 0) return(-1);
+
+	vector<string> varNamesVec(1,"var1");
+	if (SetVariables3D(varNamesVec) < 0) return(-1);
+
+	string comment = "";
+	_rootnode->SetElementString(_commentTag, comment);
+
+	return(SetDefaults());
+}
+
+int MetadataVDC::_init1(
+		const size_t dim[3], size_t numTransforms, const size_t bs[3],
 		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	map <string, string> attrs;
 	ostringstream oss;
 	string empty;
 
-	SetClassName("MetadataVDC");
-
 	if (! (bs[0] == bs[1] && bs[1] == bs[2])) {
 		SetErrMsg("Block dimensions not symmetric");
 		return(-1);
 	}
-
-//	for(int i=0; i<3; i++) {
-//		if (! IsPowerOfTwo((int)bs[i])) {
-//			SetErrMsg("Block dimension is not a power of two: bs=%d", bs[i]);
-//			return(-1);
-//		}
-//	}
-
-	_emptyDoubleVec.clear();
-	_emptyLongVec.clear();
-	_emptyString.clear();
 
 	for(int i=0; i<3; i++) {
 		_bs[i] = bs[i];
@@ -138,12 +193,10 @@ int MetadataVDC::_init(
 	_nLiftingCoef = nLiftingCoef;
 	_msbFirst = msbFirst;
 	_vdfVersion = vdfVersion;
-
-	_varNames.clear();
-	_varNames3D.clear();
-	_varNames2DXY.clear();
-	_varNames2DXZ.clear();
-	_varNames2DYZ.clear();
+	_vdcType = 1;
+	_wname = "";
+	_wmode = "";
+	_cratios.clear();
 
 	oss.str(empty);
 	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];
@@ -173,35 +226,97 @@ int MetadataVDC::_init(
 	oss << _vdfVersion;
 	attrs[_vdfVersionAttr] = oss.str();
 
+	//
+	// For now maintain compatability with pre version 4 
+	//
+	//oss.str(empty);
+	//oss << _vdcType;
+	//attrs[_vdcTypeAttr] = oss.str();
+
 
 	// Create the root node of an xml tree. The node is named (tagged)
 	// by 'roottag', and will have XML attributes as specified by 'attrs'
 	//
 	_rootnode = new XmlNode(_rootTag, attrs);
 	if (XmlNode::GetErrCode() != 0) return(-1);
-	
-	_periodicBoundaryDefault.assign(3,0);
+	_rootnode->ErrOnMissing() = false;
 
-	_gridPermutationDefault.assign(3,0);	// allocate space
-	_gridPermutationDefault[0] = 0;
-	_gridPermutationDefault[1] = 1;
-	_gridPermutationDefault[2] = 2;
+	return(_init());
+}
 
-	if (SetNumTimeSteps(1) < 0) return(-1);
+// Initialize the class object
+//
+int MetadataVDC::_init2(
+	const size_t dim[3], const size_t bs[3], const vector <size_t> &cratios, 
+	string wname, string wmode, int vdfVersion
+) {
+	map <string, string> attrs;
+	ostringstream oss;
+	string empty;
 
-	vector<string> varNamesVec(1,"var1");
-	if (SetVariableNames(varNamesVec) < 0) return(-1);
+	for (int i=0; i<cratios.size()-1; i++) {
+		if (cratios[i] == cratios[i+1]) {
+			SetErrMsg("Invalid compression ratio - non unique entries");
+			return(-1);
+		}
+	}
 
-	string comment = "";
-	_rootnode->SetElementString(_commentTag, comment);
+	_numTransforms = 0;
+	_nFilterCoef = 0;
+	_nLiftingCoef = 0;
+	_msbFirst = 0;
+	_vdfVersion = vdfVersion;
+	_wname = wname;
+	_wmode = wmode;
+	_vdcType = 2;
+	_cratios = cratios;
 
-	
 
-	return(SetDefaults());
+	for(int i=0; i<3; i++) {
+		_bs[i] = bs[i];
+		_dim[i] = dim[i];
+	}
+
+	oss.str(empty);
+	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];
+	attrs[_blockSizeAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (unsigned int)_dim[0] << " " << (unsigned int)_dim[1] << " " << (unsigned int)_dim[2];
+	attrs[_dimensionLengthAttr] = oss.str();
+
+	attrs[_waveletNameAttr] = wname;
+	attrs[_waveletBoundaryModeAttr] = wmode;
+
+	oss.str(empty);
+	oss << _vdfVersion;
+	attrs[_vdfVersionAttr] = oss.str();
+
+	oss.str(empty);
+	oss << _vdcType;
+	attrs[_vdcTypeAttr] = oss.str();
+
+	oss.str(empty);
+	for (int i=0; i<cratios.size(); i++) {
+		oss << cratios[i];
+		if (i != cratios.size()-1) oss << " ";
+	}
+	attrs[_cRatiosAttr] = oss.str();
+		
+
+
+	// Create the root node of an xml tree. The node is named (tagged)
+	// by 'roottag', and will have XML attributes as specified by 'attrs'
+	//
+	_rootnode = new XmlNode(_rootTag, attrs);
+	if (XmlNode::GetErrCode() != 0) return(-1);
+	_rootnode->ErrOnMissing() = false;
+
+	return(_init());
 }
 
 MetadataVDC::MetadataVDC(
-		const size_t dim[3], size_t numTransforms, size_t bs[3], 
+		const size_t dim[3], size_t numTransforms, const size_t bs[3], 
 		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	SetDiagMsg(
@@ -215,11 +330,29 @@ MetadataVDC::MetadataVDC(
 	_metafileName.clear();
 	_dataDirName.clear();
 
-	if (_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion) < 0){
+	if (_init1(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion) < 0){
 		return;
 	}
 }
 
+MetadataVDC::MetadataVDC(
+	const size_t dim[3], const size_t bs[3], const vector <size_t> &cratios,
+	string wname, string wmode
+) {
+	SetDiagMsg(
+		"MetadataVDC::MetadataVDC([%d,%d,%d], [%d,%d%d] %s, %s)", 
+		dim[0], dim[1], dim[2], bs[0],bs[1],bs[2], wname.c_str(), wmode.c_str()
+	);
+
+	_rootnode = NULL;
+	_metafileDirName.clear();
+	_metafileName.clear();
+	_dataDirName.clear();
+
+	if (_init2(dim, bs, cratios, wname, wmode, VDF_VERSION) < 0){
+		return;
+	}
+}
 
 
 
@@ -228,8 +361,6 @@ MetadataVDC::MetadataVDC(const string &metafile) {
 	SetDiagMsg("MetadataVDC::MetadataVDC(%s)", metafile.c_str());
 
 	ifstream is;
-	
-
 	_rootnode = NULL;
 
 	is.open(metafile.c_str());
@@ -266,6 +397,7 @@ MetadataVDC::MetadataVDC(const MetadataVDC &node)
 {
 	*this = node;
 	this->_rootnode = new XmlNode(*(node._rootnode));
+	this->_rootnode->ErrOnMissing() = false;
 }
 
 MetadataVDC::~MetadataVDC() {
@@ -297,24 +429,6 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 		}
 	}
 
-	if (this->GetVDFVersion() < 2 || metadata.GetVDFVersion() < 2) {
-		SetErrMsg("Pre version 2 vdf files not supported");
-		return(-1);
-	}
-
-	//
-	// Ensure that both metadata objects have current version numbers
-	//
-	if (this->MakeCurrent() < 0) {
-		SetErrMsg("Could not make MetadataVDC object current");
-		return(-1);
-	}
-//	if (metadata.MakeCurrent() < 0) {
-//		SetErrMsg("Could not make MetadataVDC object current");
-//		return(-1);
-//	}
-		
-
 	if (this->GetFilterCoef() != metadata.GetFilterCoef()) {
 		SetErrMsg("Merge failed: filter coefficient mismatch");
 		return(-1);
@@ -330,48 +444,58 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 		return(-1);
 	}
 
-	if (this->GetVDFVersion() != metadata.GetVDFVersion()) {
-		SetErrMsg("Merge failed: VDF file version mismatch");
+	if (this->GetWaveName().compare(metadata.GetWaveName()) != 0) {
+		SetErrMsg("Merge failed: Wavelet names mismatch");
 		return(-1);
 	}
+
+	if (this->GetBoundaryMode().compare(metadata.GetBoundaryMode()) != 0) {
+		SetErrMsg("Merge failed: Wavelet boundary handling mismatch");
+		return(-1);
+	}
+
 
 	//
 	// Now merge the variable names
 	//
-	const vector <string> varnames = this->GetVariableNames();
-	const vector <string> mvarnames = metadata.GetVariableNames();
+	const vector <string> &varnames = this->GetVariableNames();
+	const vector <string> &mvarnames = metadata.GetVariableNames();
 
-	const vector <string> vars3d0 = this->GetVariables3D();
-	const vector <string> vars3d1 = metadata.GetVariables3D();
+	const vector <string> &vars3d0 = this->GetVariables3D();
+	const vector <string> &vars3d1 = metadata.GetVariables3D();
 	vector <string> vars3d;
 	for (int i=0; i<vars3d0.size(); i++) vars3d.push_back(vars3d0[i]);
 	for (int i=0; i<vars3d1.size(); i++) vars3d.push_back(vars3d1[i]);
+	vector_unique(vars3d);
 
-	const vector <string> vars2dxy0 = this->GetVariables2DXY();
-	const vector <string> vars2dxy1 = metadata.GetVariables2DXY();
+	const vector <string> &vars2dxy0 = this->GetVariables2DXY();
+	const vector <string> &vars2dxy1 = metadata.GetVariables2DXY();
 	vector <string> vars2dxy;
 	for (int i=0; i<vars2dxy0.size(); i++) vars2dxy.push_back(vars2dxy0[i]);
 	for (int i=0; i<vars2dxy1.size(); i++) vars2dxy.push_back(vars2dxy1[i]);
+	vector_unique(vars2dxy);
 
-	const vector <string> vars2dxz0 = this->GetVariables2DXZ();
-	const vector <string> vars2dxz1 = metadata.GetVariables2DXZ();
+	const vector <string> &vars2dxz0 = this->GetVariables2DXZ();
+	const vector <string> &vars2dxz1 = metadata.GetVariables2DXZ();
 	vector <string> vars2dxz;
 	for (int i=0; i<vars2dxz0.size(); i++) vars2dxz.push_back(vars2dxz0[i]);
 	for (int i=0; i<vars2dxz1.size(); i++) vars2dxz.push_back(vars2dxz1[i]);
+	vector_unique(vars2dxz);
 
-	const vector <string> vars2dyz0 = this->GetVariables2DYZ();
-	const vector <string> vars2dyz1 = metadata.GetVariables2DYZ();
+	const vector <string> &vars2dyz0 = this->GetVariables2DYZ();
+	const vector <string> &vars2dyz1 = metadata.GetVariables2DYZ();
 	vector <string> vars2dyz;
 	for (int i=0; i<vars2dyz0.size(); i++) vars2dyz.push_back(vars2dyz0[i]);
 	for (int i=0; i<vars2dyz1.size(); i++) vars2dyz.push_back(vars2dyz1[i]);
+	vector_unique(vars2dyz);
 
 	long ts = this->GetNumTimeSteps();
 
 	// Need to make a copy of the base names. Later, when we call
-	// SetVariableNames() all of the base names will be regenerated.
+	// SetVariable*() all of the base names will be regenerated.
 	// This is fine if the base names are all default values, but if they're
 	// not - if the MetadataVDC object resulted from a previous merge, for
-	// example - they will get clobbered by SetVariableNames. 
+	// example - they will get clobbered by SetVariable*. 
 	//
 	map <string, vector<string> > basecopy;
 	for (int i = 0; i<varnames.size(); i++) {
@@ -382,23 +506,6 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 	}
 	}
 
-	vector <string> newnames = varnames;
-	for (int i=0; i<mvarnames.size(); i++) {
-		int match = 0;
-		for (int j=0; j<varnames.size() && ! match; j++) {
-			if (mvarnames[i].compare(varnames[j]) == 0) match = 1;
-		}
-		if (! match) {	// name not found => add it
-			newnames.push_back(mvarnames[i]);
-		}
-	}
-	if (newnames.size() > varnames.size()) { 
-		int rc = SetVariableNames(newnames);
-		if (rc < 0) return(-1);
-	}
-
-	// Ugh. SetVariableNames destroys the variable type
-	//
 	SetVariables3D(vars3d);
 	SetVariables2DXY(vars2dxy);
 	SetVariables2DXZ(vars2dxz);
@@ -447,28 +554,6 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 
 	return(0);
 }
-
-int MetadataVDC::MakeCurrent() {
-
-	if (GetVDFVersion() < 1) {
-		SetErrMsg("Can't make a pre-version 1 VDF file current");
-		return(-1);
-	}
-	if (GetVDFVersion() == VDF_VERSION) return(0);
-
-	_vdfVersion = VDF_VERSION;
-
-	map <string, string> &attrs = _rootnode->Attrs();
-	ostringstream oss;
-    oss << _vdfVersion;
-    attrs[_vdfVersionAttr] = oss.str();
-
-	const vector <string> &vnames = GetVariableNames();
-	vector <string> myvnames = vnames;	// get a local copy
-
-	return(SetVariableNames(vnames));
-}
-	
 
 int MetadataVDC::Merge(const string &path, size_t ts_start) {
 	MetadataVDC *metadata;
@@ -594,7 +679,6 @@ int MetadataVDC::Write(const string &path, int relative_path) {
 
 int MetadataVDC::SetGridType(const string &value) {
 
-
 	if (!IsValidGridType(value)) {
 		SetErrMsg("Invalid GridType specification : \"%s\"", value.c_str());
 		return(-1);
@@ -648,6 +732,8 @@ int MetadataVDC::_SetNumTimeSteps(long value) {
 	size_t oldN = _rootnode->GetNumChildren();
 	map <string, string> attrs;
 
+	const vector <string> &var_names = GetVariableNames();
+
 	// Add children
 	//
 	if (newN > oldN) {
@@ -657,8 +743,8 @@ int MetadataVDC::_SetNumTimeSteps(long value) {
 
 		for (size_t ts = oldN; ts < newN; ts++) {
 			XmlNode *child;
-			child = _rootnode->NewChild(_timeStepTag, attrs, _varNames.size());
-			_SetVariableNames(child, (long)ts);
+			child = _rootnode->NewChild(_timeStepTag, attrs, var_names.size());
+			_SetVariables(child, (long)ts);
 
 			vector <double> valvec(1, (double) ts);
 			SetTSUserTime(ts, valvec);
@@ -692,56 +778,22 @@ int MetadataVDC::_SetNumTimeSteps(long value) {
 }
 
 //
-// Delete 'value' from 'vec' if 'value' is contained in 'vec'. Otherwise
-// 'vec' is unchanged.
-//
-void vector_delete (vector <string> &vec, const string &value) {
 
-	vector<string>::iterator itr;
-	for (itr = vec.begin(); itr != vec.end(); ) {
-		if (itr->compare(value) == 0) {
-			vec.erase(itr);
-			itr = vec.begin();
-		}
-		else {
-			itr++;
-		}
-	}
-}
+int MetadataVDC::_SetVariables(XmlNode *node, long ts) {
 
-//
-// Delete any duplicate entries from 'vec'.
-//
-void vector_unique (vector <string> &vec) {
-
-	vector <string> tmpvec;
-	vector<string>::iterator itr1;
-	vector<string>::iterator itr2;
-
-	for (itr1 = vec.begin(); itr1 != vec.end(); itr1++) {
-		bool match = false;
-		for (itr2 = tmpvec.begin(); itr2 != tmpvec.end(); itr2++) {
-			if (itr1->compare(*itr2) == 0) {
-				match = true;
-			}
-		}
-		if (! match) tmpvec.push_back(*itr1);
-	}
-	vec = tmpvec;
-}
-
-int MetadataVDC::_SetVariableNames(XmlNode *node, long ts) {
+	
+	const vector <string> &var_names = GetVariableNames();
 
 	map <string, string> attrs; // empty map
 	int oldN = node->GetNumChildren();
-	int newN = _varNames.size();
+	int newN = var_names.size();
 
 	if (newN > oldN) {
 
 		// Create new children if needed (if not renaming old children);
 		//
 		for (int i = oldN; i < newN; i++) {
-			node->NewChild(_varNames[(size_t) i], attrs, 0);
+			node->NewChild(var_names[(size_t) i], attrs, 0);
 		}
 	}
 	else {
@@ -759,10 +811,10 @@ int MetadataVDC::_SetVariableNames(XmlNode *node, long ts) {
 	//
 	for (size_t i = 0; i < newN; i++) {
 		XmlNode *var = node->GetChild(i);
-		var->Tag() = _varNames[i]; // superfluous if a new variable
+		var->Tag() = var_names[i]; // superfluous if a new variable
 		oss.str(empty);
 
-		oss << _varNames[i].c_str() << "/" << _varNames[i].c_str();
+		oss << var_names[i].c_str() << "/" << var_names[i].c_str();
 		oss << ".";
 		oss.width(4);
 		oss.fill('0');
@@ -795,180 +847,104 @@ long MetadataVDC::GetNumTimeSteps() const {
 	const vector <long> &rvec = _rootnode->GetElementLong(_numTimeStepsTag);
 
 	if (rvec.size()) return(rvec[0]);
-	else return(-1);
+	else return(0);
 };
 
-int MetadataVDC::SetVariableNames(const vector <string> &value) {
+
+int MetadataVDC::_SetVariableNames(
+	string set_tag,
+	const vector <string> &delete_tags,
+	const vector <string> &value
+) {
 	size_t numTS = _rootnode->GetNumChildren();
 
-	SetDiagMsg("MetadataVDC::SetVariableNames()");
-
+	// remove duplicate entries
 	vector <string> value_unique = value;
 	vector_unique(value_unique);
 
-	_varNames = value_unique;
+	//
+	// If a var name is already in use by a different type of variable,
+	// delete it.
+	//
+	for (int i=0; i<delete_tags.size(); i++) {
+
+		vector <string> del_var_names;
+		_rootnode->GetElementStringVec(delete_tags[i], del_var_names);
+
+		for (int j=0; j<value_unique.size(); j++) {
+			// vector_delete is a no-op if value_unique[j] is not in
+			// del_var_names
+			//
+			vector_delete(del_var_names, value_unique[j]);
+		}
+		_rootnode->SetElementStringVec(delete_tags[i], del_var_names);
+	}
+
+	// Finally set the new list of variable names
+	//
+	_rootnode->SetElementStringVec(set_tag, value_unique);
 
 	// For each time step we need to create a list of variable nodes
 	//
 	for(size_t i = 0; i<numTS; i++) {
-		if (_SetVariableNames(_rootnode->GetChild(i), (long)i) < 0) return(-1);
+		if (_SetVariables(_rootnode->GetChild(i), (long)i) < 0) return(-1);
 	}
 
-	_rootnode->SetElementStringVec(_varNamesTag, value_unique);
-
-	_varNames3D = value_unique;
-
-
-    if (this->GetVDFVersion() < 3) return(0);
-
-	// By default all variables are of type 3D
-	_rootnode->SetElementStringVec(_vars3DTag, value_unique);
-
-
-	// Clear all other data types
-	string empty;
-	_rootnode->SetElementString(_vars2DXYTag, empty); _varNames2DXY.clear();
-	_rootnode->SetElementString(_vars2DXZTag, empty); _varNames2DXZ.clear();
-	_rootnode->SetElementString(_vars2DYZTag, empty); _varNames2DYZ.clear();
+	//
+	// Maintain compatability with pre-version 4 translators 
+	//
+	vector <string> v = GetVariableNames();
+	_rootnode->SetElementStringVec(_varNamesTag,v);
 
 	return(0);
 }
-
-
-int MetadataVDC::_setVariableTypes(
-	const string &tag,
-	const vector <string> &delete_tags,
-	const vector <string> &value
-) {
-	vector <string> value_unique = value;
-	vector_unique(value_unique);
-	// 
-	// Make sure the variables all exist (i.e. previously defined)
-	//
-	const vector <string> &vnames = GetVariableNames();
-	vector<string>::const_iterator itr1;
-	vector<string>::const_iterator itr2;
-	for (itr1 = value_unique.begin(); itr1 != value_unique.end(); itr1++) {
-		bool match = false;
-		for (itr2=vnames.begin(); itr2!=vnames.end(); itr2++) {
-			if (itr1->compare(*itr2) == 0) match = true;
-		}
-		if (! match) {
-			SetErrMsg("Variable %s not defined", itr1->c_str());
-			return(-1);
-		}
-	}
-
-	_rootnode->SetElementStringVec(tag, value_unique);
-
-	//
-	// Remove variables in 'value' from all other type
-	// lists.
-	//
-	for (itr1 = delete_tags.begin(); itr1 != delete_tags.end(); itr1++) {
-		vector <string> vtypes;
-		_rootnode->GetElementStringVec(*itr1, vtypes);
-
-
-		// Delete each var name found in 'value' from the 
-		// type list associated with the tag *itr1
-		//
-		for (itr2 = value_unique.begin(); itr2 != value_unique.end(); itr2++) {
-			vector_delete(vtypes, *itr2);
-		}
-		//
-		// Now restore the remaining, undeleted variable names
-		//
-		_rootnode->SetElementStringVec(*itr1, vtypes);
-	}
-
-	// 
-	// Update cache 
-	//
-	_rootnode->GetElementStringVec(_vars3DTag, _varNames3D);
-	_rootnode->GetElementStringVec(_vars2DXYTag, _varNames2DXY);
-	_rootnode->GetElementStringVec(_vars2DXZTag, _varNames2DXZ);
-	_rootnode->GetElementStringVec(_vars2DYZTag, _varNames2DYZ);
-
-	return(0);
-}
-
-
+	
 int MetadataVDC::SetVariables3D(const vector <string> &value) {
 
 	SetDiagMsg("MetadataVDC::SetVariables3D()");
 
-	if (this->GetVDFVersion() < 3) {
-		SetErrMsg("Pre version 3 vdf files not supported");
-		return(-1);
-	}
-
 	vector <string> delete_tags;
-	
 	delete_tags.push_back(_vars2DXYTag);
 	delete_tags.push_back(_vars2DXZTag);
 	delete_tags.push_back(_vars2DYZTag);
 
-	if (_setVariableTypes(_vars3DTag, delete_tags, value)<0) return(-1);
-
-	return(0);
+	return(_SetVariableNames(_vars3DTag, delete_tags, value));
 }
 
 int MetadataVDC::SetVariables2DXY(const vector <string> &value) {
 
 	SetDiagMsg("MetadataVDC::SetVariables2DXY()");
 
-	if (this->GetVDFVersion() < 3) {
-		SetErrMsg("Pre version 3 vdf files not supported");
-		return(-1);
-	}
-
 	vector <string> delete_tags;
-	
 	delete_tags.push_back(_vars3DTag);
 	delete_tags.push_back(_vars2DXZTag);
 	delete_tags.push_back(_vars2DYZTag);
 
-	if (_setVariableTypes(_vars2DXYTag, delete_tags, value)<0) return(-1);
-	return(0);
+	return(_SetVariableNames(_vars2DXYTag, delete_tags, value));
 }
 
 int MetadataVDC::SetVariables2DXZ(const vector <string> &value) {
 
 	SetDiagMsg("MetadataVDC::SetVariables2DXZ()");
 
-	if (this->GetVDFVersion() < 3) {
-		SetErrMsg("Pre version 3 vdf files not supported");
-		return(-1);
-	}
-
 	vector <string> delete_tags;
-	
-	delete_tags.push_back(_vars3DTag); 
+	delete_tags.push_back(_vars3DTag);
 	delete_tags.push_back(_vars2DXYTag);
 	delete_tags.push_back(_vars2DYZTag);
 
-	if (_setVariableTypes(_vars2DXZTag, delete_tags, value)<0) return(-1);
-	return(0);
+	return(_SetVariableNames(_vars2DXZTag, delete_tags, value));
 }
 
 int MetadataVDC::SetVariables2DYZ(const vector <string> &value) {
 
 	SetDiagMsg("MetadataVDC::SetVariables2DYZ()");
 
-	if (this->GetVDFVersion() < 3) {
-		SetErrMsg("Pre version 3 vdf files not supported");
-		return(-1);
-	}
-
 	vector <string> delete_tags;
-	
 	delete_tags.push_back(_vars3DTag);
 	delete_tags.push_back(_vars2DXYTag);
 	delete_tags.push_back(_vars2DXZTag);
 
-	if (_setVariableTypes(_vars2DYZTag, delete_tags, value)<0) return(-1);
-	return(0);
+	return(_SetVariableNames(_vars2DYZTag, delete_tags, value));
 }
 
 int MetadataVDC::SetTSExtents(size_t ts, const vector<double> &value) {
@@ -1084,7 +1060,7 @@ int MetadataVDC::SetVComment(
 	return(0);
 }
 
-const string &MetadataVDC::GetVBasePath(
+string MetadataVDC::GetVBasePath(
 	size_t ts, const string &var
 ) const {
 
@@ -1239,6 +1215,10 @@ void	MetadataVDC::_startElementHandler0(ExpatParseMgr* pm,
 	int msbFirst = 1;
 	int vdfVersion = 1;  //If it's not set it should be 1 ?? not VDF_VERSION;?
 	int numTransforms = 0;
+	string wname = "";
+	string wmode = "";
+	int vdcType = 1;
+	vector <size_t> cratios;
 
 
 	// Verify valid level 0 element
@@ -1282,6 +1262,22 @@ void	MetadataVDC::_startElementHandler0(ExpatParseMgr* pm,
 		else if (StrCmpNoCase(attr, _vdfVersionAttr) == 0) {
 			ist >> vdfVersion;
 		}
+		else if (StrCmpNoCase(attr, _waveletNameAttr) == 0) {
+			ist >> wname;
+		}
+		else if (StrCmpNoCase(attr, _waveletBoundaryModeAttr) == 0) {
+			ist >> wmode;
+		}
+		else if (StrCmpNoCase(attr, _vdcTypeAttr) == 0) {
+			ist >> vdcType;
+		}
+		else if (StrCmpNoCase(attr, _cRatiosAttr) == 0) {
+			while (! ist.eof()) {
+				size_t c;
+				ist >> c;
+				cratios.push_back(c);
+			}
+		}
 		else {
 			pm->parseError("Invalid tag attribute : \"%s\"", attr.c_str());
 		}
@@ -1291,13 +1287,24 @@ void	MetadataVDC::_startElementHandler0(ExpatParseMgr* pm,
 		bs[1] = bs[2] = bs[0];
 	}
 
-	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion);
+	if (vdcType == 1) {
+		_init1(
+			dim, numTransforms, bs, nFilterCoef, nLiftingCoef, 
+			msbFirst, VDF_VERSION
+		);
+	}
+	else if (vdcType == 2) {
+		_init2(dim, bs, cratios, wname, wmode, VDF_VERSION);
+	}
+	else {
+		pm->parseError("Invalid VDC type: %d", vdcType);
+		return;
+	}
+
 	if (GetErrCode()) {
 		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 		return;
 	}
-
-
 }
 
 void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
@@ -1442,11 +1449,12 @@ void	MetadataVDC::_startElementHandler2(ExpatParseMgr* pm,
 	// Its either a variable element (with no attributes) or a data element
 	//
 	if (! *attrs) {
+		const vector <string> &varnames = this->GetVariableNames();
 
 		// Only variable name tags permitted.
 		//
-		for(int i = 0; i<(int)_varNames.size(); i++) {
-			if ((StrCmpNoCase(tag, _varNames[i]) == 0)) {
+		for(int i = 0; i<(int)varnames.size(); i++) {
+			if ((StrCmpNoCase(tag, varnames[i]) == 0)) {
 				_currentVar = tag;
 				return;
 			}
@@ -1639,20 +1647,56 @@ void	MetadataVDC::_endElementHandler1(ExpatParseMgr* pm,
 		}
 	}
 	else if (StrCmpNoCase(tag, _vars3DTag) == 0) {
-		_rootnode->SetElementString(_vars3DTag, pm->getStringData());
-		_rootnode->GetElementStringVec(_vars3DTag, _varNames3D);
+		istringstream ist(pm->getStringData());
+		string v;
+		vector <string> vec;
+
+		while (ist >> v) {
+			vec.push_back(v);
+		}
+		if (SetVariables3D(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
 	}
 	else if (StrCmpNoCase(tag, _vars2DXYTag) == 0) {
-		_rootnode->SetElementString(_vars2DXYTag, pm->getStringData());
-		_rootnode->GetElementStringVec(_vars2DXYTag, _varNames2DXY);
+		istringstream ist(pm->getStringData());
+		string v;
+		vector <string> vec;
+
+		while (ist >> v) {
+			vec.push_back(v);
+		}
+		if (SetVariables2DXY(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
 	}
 	else if (StrCmpNoCase(tag, _vars2DXZTag) == 0) {
-		_rootnode->SetElementString(_vars2DXZTag, pm->getStringData());
-		_rootnode->GetElementStringVec(_vars2DXZTag, _varNames2DXZ);
+		istringstream ist(pm->getStringData());
+		string v;
+		vector <string> vec;
+
+		while (ist >> v) {
+			vec.push_back(v);
+		}
+		if (SetVariables2DXZ(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
 	}
 	else if (StrCmpNoCase(tag, _vars2DYZTag) == 0) {
-		_rootnode->SetElementString(_vars2DYZTag, pm->getStringData());
-		_rootnode->GetElementStringVec(_vars2DYZTag, _varNames2DYZ);
+		istringstream ist(pm->getStringData());
+		string v;
+		vector <string> vec;
+
+		while (ist >> v) {
+			vec.push_back(v);
+		}
+		if (SetVariables2DYZ(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
 	}
 	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
 		if (SetPeriodicBoundary(pm->getLongData()) < 0) {

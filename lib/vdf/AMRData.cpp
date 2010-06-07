@@ -499,7 +499,7 @@ int AMRData::ReadAttributesNCDF(
 	float data_range[2],
 	int &reflevel,
 	size_t &num_nodes
-) const {
+) {
 
 	int	ncid;
 	int rc;

@@ -129,12 +129,13 @@ public:
  //! Return the character data associated with the Xml elemented 
  //! named by \p tag for this node. The data is interpreted and 
  //! returned as a vector of longs. If the element does not exist
- //! an empty vector is returned
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
  //! \retval vector Vector of longs associated with the named elemented
  //!
- virtual vector<long> &GetElementLong(const string &tag);
+ virtual const vector<long> &GetElementLong(const string &tag) const;
 
  //! Return true if the named element of type long exists
  //!
@@ -163,12 +164,13 @@ public:
  //! Return the character data associated with the Xml elemented 
  //! named by \p tag for this node. The data is interpreted and 
  //! returned as a vector of doubles. If the element does not exist
- //! an empty vector is returned
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
  //! \retval vector Vector of doubles associated with the named elemented
  //!
- virtual vector<double> &GetElementDouble(const string &tag);
+ virtual const vector<double> &GetElementDouble(const string &tag) const;
 
  //! Return true if the named element of type double exists
  //!
@@ -196,12 +198,13 @@ public:
  //! Return the character data associated with the Xml elemented 
  //! named by \p tag for this node. The data is interpreted and 
  //! returned as a string. If the element does not exist
- //! an empty vector is returned
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
  //! \retval string The string associated with the named element
  //!
- virtual string &GetElementString(const string &tag);
+ virtual const string &GetElementString(const string &tag) const;
 
  //! Set an Xml element of type string
  //!
@@ -234,7 +237,7 @@ public:
  //! \param[in] tag Name of element
  //! \param[out] vec Vector of doubles associated with the named elemented
  //!
- virtual void GetElementStringVec(const string &tag, vector <string> &vec);
+ virtual void GetElementStringVec(const string &tag, vector <string> &vec) const;
 
  //! Return true if the named element of type string exists
  //!
@@ -348,6 +351,18 @@ public:
  //
  virtual XmlNode *GetChild(const string &tag);
 
+ //! Set or Get the Error on Missing Flag
+ //!
+ //! This method returns a reference to a flag that may be used
+ //! to control whether GetElement methods will generate an error
+ //! if the requested element is not present. If the flag is set
+ //! to true, an error will be generated if the element is not found.
+ //! By default the flag is true.
+ //!
+ //! \retval flag A reference to the Error on Missing flag
+ //
+ virtual bool &ErrOnMissing() {return (_errOnMissing); };
+
  //! Return true if the indicated child node exists
  //!
  //! \param[in] tag Name of the child node 
@@ -378,6 +393,7 @@ private:
  string _emptyString;
  size_t _asciiLimit;	// length limit beyond which element data are encoded
  XmlNode *_parent;	// Node's parent
+ bool _errOnMissing;
 
  // Recursively delete all chidren of the specified node. The node itself
  // is not deleted.

@@ -54,7 +54,7 @@ namespace VAPoR {
 		return(RETVAL); \
 	}
 
-const int VDF_VERSION = 3;
+const int VDF_VERSION = 4;
 
 //
 //! \class MetadataVDC
@@ -92,7 +92,7 @@ class VDF_API MetadataVDC : public Metadata,
 	public VetsUtil::MyBase, public ParsedXml {
 public:
 
- //! Create a metadata object from scratch. 
+ //! Create a VDC type 1 metadata object from scratch. 
  //!
  //! \param[in] dim The X, Y, and Z coordinate dimensions of all
  //! data volumes, specified in grid coordinates (voxels)
@@ -110,12 +110,29 @@ public:
  //! should not be changed from the default
  //
  MetadataVDC(
-	const size_t dim[3], size_t numTransforms, size_t bs[3],
+	const size_t dim[3], size_t numTransforms, const size_t bs[3],
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1,
 	int vdfVersion = VDF_VERSION
-	);
+ );
 
- //! Create a metadata object from a metadata file stored on disk. 
+ //! Create a VDC type 2 metadata object from scratch. 
+ //!
+ //! \param[in] dim The X, Y, and Z coordinate dimensions of all
+ //! data volumes, specified in grid coordinates (voxels)
+ //! \param[in] bs Internal blocking factor for transformed data. Must
+ //! be a power of two.
+ //! \param[in] cratios A vector of compression ratios
+ //! \param[in] wname Wavelet name
+ //! \param[in] wmode Wavelet boundary handling mode
+ //
+ MetadataVDC(
+	const size_t dim[3], const size_t bs[3], const vector <size_t> &cratios,
+	string wname, string wmode
+ );
+
+ //! Create a metadata object from a metadata file stored on disk. If
+ //! the metafile is an earlier version the resulting metadata object
+ //! will be converted to the current version.
  //!
  //! \param[in] path Path to metadata file
  //
@@ -195,9 +212,11 @@ public:
  //! \retval status A negative integer is returned on failure, otherwise
  //! the method has succeeded.
  //!
+ //! \deprecated This method is a no-op
+ //!
  //! \sa GetVDFVersion()
  //
- int MakeCurrent();
+ int MakeCurrent() const {return(0); };
 
  //! Return the file path name to the metafile's parent directory.
  //! If the class was constructed with a path name, this method
@@ -241,7 +260,18 @@ public:
  //! \retval size Internal block factor
  //! \remarks Required element
  //
- const size_t *GetBlockSize() const { return(_bs); }
+ virtual const size_t *GetBlockSize() const { return(_bs); }
+
+ //! Return the internal blocking factor at a particular refinement level
+ //! 
+ //! \param[in] reflevel Refinement level of the variable
+ //! \param[out] dim Transformed dimension.
+ //!
+ //! \retval size Internal block factor
+ //
+ virtual void GetBlockSize(size_t bs[3], int reflevel) const {
+	for (int i=0; i<3; i++) bs[i] = _bs[i];
+ }
 
  //! Returns the X,Y,Z coordinate dimensions of the data in grid coordinates
  //! \retval dim A three element vector containing the voxel dimension of 
@@ -261,21 +291,21 @@ public:
  //! Returns the number of lifting coefficients employed for wavelet transforms
  //! \retval _nLiftingCoef Number of lifting coefficients
  //!
- //! \remarks Required element
+ //! \remarks Required type 1 element
  //
  int GetLiftingCoef() const { return(_nLiftingCoef); }
 
  //! Returns the number of wavelet transforms
  //! \param _numTransforms Number of transforms
  //!
- //! \remarks Required element
+ //! \remarks Required type 1 element
  //
- int GetNumTransforms() const { return(_numTransforms); }
+ virtual int GetNumTransforms() const { return(_numTransforms); }
 
  //! Returns true if the storage order for data is most signicant byte first
  //! \retval _msbFirst Booean
  //!
- //! \remarks Required element
+ //! \remarks Required type 1 element
  //
  int GetMSBFirst() const { return(_msbFirst); }
 
@@ -286,6 +316,35 @@ public:
  //
  int GetVDFVersion() const { return(_vdfVersion); }
 
+ //! Returns wavelet family name
+ //! \retval wavename Wavelet name
+ //!
+ //! \remarks Required type 2 element
+ //
+ string GetWaveName() const { return(_wname); }
+
+ //! Returns wavelet boundary handling mode 
+ //! \retval wavename Wavelet boundary handling mode
+ //!
+ //! \remarks Required type 2 element
+ //
+ string GetBoundaryMode() const { return(_wmode); }
+
+ //! Returns compression ratios
+ //! \retval cratios vector of compression ratios
+ //!
+ //! \remarks Required type 2 element
+ //
+ virtual vector <size_t> GetCRatios() const { return(_cratios); }
+
+ //! Returns VDC type (1 or 2) 
+ //!
+ //! \retval int 1 or 2
+ //!
+ //
+ int GetVDCType() const { return(_vdcType); }
+
+
 
  //------------------------------------------------------------------
  //			Metdata Attributes
@@ -293,8 +352,6 @@ public:
  // The methods below get, set, and possibly test various metadata
  // attributes.
  //
- // N.B. Get* methods return pointers to internal storage containing
- // the desired attribute values.
  //
  //------------------------------------------------------------------
 
@@ -312,7 +369,7 @@ public:
  //!
  //! \remarks Required element
  //
- const string &GetGridType() const {
+ string GetGridType() const {
 	return(_rootnode->GetElementString(_gridTypeTag));
 	};
 
@@ -341,7 +398,7 @@ public:
  //!
  //! \remarks Required element
  //
- const string &GetCoordSystemType() const {
+ string GetCoordSystemType() const {
 	return(_rootnode->GetElementString(_coordSystemTypeTag));
 	};
 
@@ -374,7 +431,7 @@ public:
  //!
  //! \remarks Required element
  //
- const vector<double> &GetExtents() const {
+ vector<double> GetExtents() const {
 	return(_rootnode->GetElementDouble(_extentsTag));
 	};
 
@@ -412,20 +469,13 @@ public:
  //! All variables specified are of type 3D. 
  //! \param[in] value A white-space delimited list of names
  //! \retval status Returns a non-negative integer on success
- //
- int SetVariableNames(const vector <string> &value);
-
-
-
- //! Return the names of the variables in the collection 
  //!
- //! \retval value is a space-separated list of variable names
- //!
- //! \remarks Required element
+ //! \deprecated Use SetVariables3D() instead
  //
- const vector <string> &GetVariableNames() const {
-	return(_varNames);
-	};
+ int SetVariableNames(const vector <string> &value) {
+	return (SetVariables3D(value));
+ }
+
 
  //! Indicate which variables in a VDC are of type 3D
  //!
@@ -446,9 +496,11 @@ public:
  //!
  //! \remarks Required element (VDF version 1.3 or greater)
  //
- const vector <string> &GetVariables3D() const {
-	return(_varNames3D);
-	};
+ vector <string> GetVariables3D() const {
+	vector <string> svec;
+	_rootnode->GetElementStringVec(_vars3DTag, svec);
+	return(svec);
+ };
 
  //! Indicate which variables in a VDC are of type 2DXY
  //!
@@ -469,15 +521,21 @@ public:
  //!
  //! \remarks Required element (VDF version 1.3 or greater)
  //
- const vector <string> &GetVariables2DXY() const {
-	return(_varNames2DXY);
-	};
- const vector <string> &GetVariables2DXZ() const {
-	return(_varNames2DXZ);
-	};
- const vector <string> &GetVariables2DYZ() const {
-	return(_varNames2DYZ);
-	};
+ vector <string> GetVariables2DXY() const {
+	vector <string> svec;
+	_rootnode->GetElementStringVec(_vars2DXYTag, svec);
+	return(svec);
+ };
+ vector <string> GetVariables2DXZ() const {
+	vector <string> svec;
+	_rootnode->GetElementStringVec(_vars2DXZTag, svec);
+	return(svec);
+ };
+ vector <string> GetVariables2DYZ() const {
+	vector <string> svec;
+	_rootnode->GetElementStringVec(_vars2DYZTag, svec);
+	return(svec);
+ };
 
 
  //! Set a global comment
@@ -498,12 +556,9 @@ public:
  //!
  //! \remarks Optional element 
  //
- const string &GetComment() const {
-	if (_rootnode->HasElementString(_commentTag))
-		return(_rootnode->GetElementString(_commentTag));
-	else
-		return(_emptyString);
-	};
+ string GetComment() const {
+	return(_rootnode->GetElementString(_commentTag));
+ };
 
  //! Set the grid boundary type
  //!
@@ -524,21 +579,9 @@ public:
  //!
  //! \remarks Required element (VDF version 1.3 or greater)
  //
- const vector<long> &GetPeriodicBoundary() const {
-	if (_rootnode->HasElementLong(_periodicBoundaryTag)) {
-		return(_rootnode->GetElementLong(_periodicBoundaryTag));
-	} else {
-		return(_periodicBoundaryDefault);
-	}
-	};
-
- //! Return true if a the MetadataVDC object has a periodic boundary element
- //!
- //! \retval boolean True if a periodic boundary element exists 
- //
- int HasPeriodicBoundary() const {
-	return(_rootnode->HasElementDouble(_periodicBoundaryTag));
-	};
+ vector<long> GetPeriodicBoundary() const {
+	return(_rootnode->GetElementLong(_periodicBoundaryTag));
+ };
 
  //! Set the grid coordinate ordering
  //!
@@ -564,13 +607,9 @@ public:
  //!
  //! \remarks Optional element 
  //
- const vector<long> &GetGridPermutation() const {
-	if (_rootnode->HasElementLong(_gridPermutationTag)) {
-		return(_rootnode->GetElementLong(_gridPermutationTag));
-	} else {
-		return(_gridPermutationDefault);
-	}
-	};
+ vector<long> GetGridPermutation() const {
+	return(_rootnode->GetElementLong(_gridPermutationTag));
+ };
 
  //! Set a map projection argument string
  //!
@@ -605,12 +644,9 @@ public:
  //!
  //! \sa SetMapProjection()
  //
- virtual const string &GetMapProjection() const {
-	if (_rootnode->HasElementString(_mapProjectionTag))
-		return(_rootnode->GetElementString(_mapProjectionTag));
-	else
-		return(_emptyString);
-	};
+ const string GetMapProjection() const {
+	return(_rootnode->GetElementString(_mapProjectionTag));
+ };
 
 
  //! Set the time of a time step in user-defined coordinates.
@@ -632,9 +668,12 @@ public:
  //! \remarks Required element 
  //!
  //
- const vector<double> &GetTSUserTime(size_t ts) const {
-	CHK_TS_REQ(ts, _emptyDoubleVec)
-	return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag));
+ double GetTSUserTime(size_t ts) const {
+	CHK_TS_REQ(ts, 0.0)
+	if (_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag).size())
+		return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag)[0]);
+	else 
+		return(ts);
 	};
 
  int SetTSUserTimeStamp(size_t ts, const string &s);
@@ -656,7 +695,7 @@ public:
  //!
  //! \remarks Required element 
  //
- const string &GetTSAuxBasePath(size_t ts) const {
+ string GetTSAuxBasePath(size_t ts) const {
 	CHK_TS_REQ(ts, _emptyString)
 	return(_rootnode->GetChild(ts)->GetElementString(_auxBasePathTag));
 	};
@@ -668,7 +707,7 @@ public:
  //!
  //! \retval boolean True if \p value is a valid argument
  //!
- //! \nb This method is deprecated and should always return true
+ //! \deprecated This method is deprecated and should always return true
  //! as UserTime is a required metadata element.
  //
  int HasTSUserTime(size_t ts) const {
@@ -714,13 +753,10 @@ public:
  //!
  //! \remarks Optional element 
  //
- const vector<double> &GetTSXCoords(size_t ts) const {
+ vector<double> GetTSXCoords(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->HasElementDouble(_xCoordsTag))
-		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
-	else 
-		return(_emptyDoubleVec);
-	};
+	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+ };
 
  //! Return true if \p value is a valid X dimension coordinate array
  //!
@@ -735,13 +771,11 @@ public:
 
  int SetTSYCoords(size_t ts, const vector<double> &value);
 
- const vector<double> &GetTSYCoords(size_t ts) const {
+ vector<double> GetTSYCoords(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->HasElementDouble(_yCoordsTag))
-		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
-	else 
-		return(_emptyDoubleVec);
-	}
+	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+ }
+
  int IsValidYCoords(const vector<double> &value) const {
 	return(value.size() == _dim[1]);
 	}
@@ -749,11 +783,8 @@ public:
  int SetTSZCoords(size_t ts, const vector<double> &value);
  const vector<double> &GetTSZCoords(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->HasElementDouble(_zCoordsTag))
-		return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
-	else 
-		return(_emptyDoubleVec);
-	}
+	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
+ }
  int IsValidZCoords(const vector<double> &value) const {
 	return(value.size() == _dim[2]);
 	}
@@ -776,13 +807,10 @@ public:
  //!
  //! \remarks Optional element 
  //
- const string &GetTSComment(size_t ts) const {
+ string GetTSComment(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyString)
-	if (_rootnode->GetChild(ts)->HasElementString(_commentTag))
-		return(_rootnode->GetChild(ts)->GetElementString(_commentTag));
-	else 
-		return(_emptyString);
-	}
+	return(_rootnode->GetChild(ts)->GetElementString(_commentTag));
+ }
 
  //! Set the spatial domain extents of the indicated time step
  //!
@@ -809,13 +837,10 @@ public:
  //!
  //! \remarks Optional element
  //
- const vector<double> &GetTSExtents(size_t ts) const {
+ vector<double> GetTSExtents(size_t ts) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->HasElementDouble(_extentsTag))
-		return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
-	else 
-		return(_emptyDoubleVec);
-	};
+	return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
+ }
 
  //! Set a comment for the variable, \p v at the time step indicated by \p ts
  //!
@@ -838,13 +863,10 @@ public:
  //!
  //! \remarks Optional element 
  //
- const string &GetVComment(size_t ts, const string &var) const {
+ string GetVComment(size_t ts, const string &var) const {
 	CHK_VAR_OPT(ts, var, _emptyString)
-	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementString(_commentTag))
-		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(_commentTag));
-	else 
-		return(_emptyString);
-	}
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(_commentTag));
+ }
 
  //! Return the base path for the variable, \p v, indicated by the time 
  //! step, \p ts, if it exists.  
@@ -857,7 +879,7 @@ public:
  //!
  //! \remarks Required element 
  //
- const string &GetVBasePath(size_t ts, const string &var) const;
+ string GetVBasePath(size_t ts, const string &var) const;
 
 
  int SetVBasePath(
@@ -887,7 +909,7 @@ public:
  //!
  //! \nb This method is deprecated and should no longer be used.
  //
- const vector<double> &GetVDataRange(size_t ts, const string &var) const {
+ vector<double> GetVDataRange(size_t ts, const string &var) const {
 	CHK_VAR_REQ(ts, var, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(_dataRangeTag));
 	}
@@ -944,7 +966,7 @@ public:
  //! \retval vector A vector of tag names
  //! \sa SetUserDataLong(), GetUserDataLong()
  //
- const vector<string> &GetUserDataLongTags() const {return(_userDLTags);}
+ vector<string> GetUserDataLongTags() const {return(_userDLTags);}
 
  //! Set global, user-defined metadata
  //!
@@ -975,39 +997,30 @@ public:
  //!
  //! \remarks Optional element
  //
- const vector<long> &GetUserDataLong(const string &tag) const {
-	if (_rootnode->HasElementLong(tag))
-		return(_rootnode->GetElementLong(tag));
-	else 
-		return(_emptyLongVec);
+ vector<long> GetUserDataLong(const string &tag) const {
+	return(_rootnode->GetElementLong(tag));
  }
 
- const vector<string> &GetUserDataDoubleTags() const {return(_userDDTags);}
+ vector<string> GetUserDataDoubleTags() const {return(_userDDTags);}
 
  int SetUserDataDouble(const string &tag, const vector<double> &value) {
 	_RecordUserDataTags(_userDDTags, tag);
 	_rootnode->SetElementDouble(tag, value);
 	return(0);
  }
- const vector<double> &GetUserDataDouble(const string &tag) const {
-	if (_rootnode->HasElementDouble(tag))
-		return(_rootnode->GetElementDouble(tag));
-	else 
-		return(_emptyDoubleVec);
+ vector<double> GetUserDataDouble(const string &tag) const {
+	return(_rootnode->GetElementDouble(tag));
  }
 
- const vector<string> &GetUserDataStringTags() const {return(_userDSTags);}
+ vector<string> GetUserDataStringTags() const {return(_userDSTags);}
 
  int SetUserDataString(const string &tag, const string &value) {
 	_RecordUserDataTags(_userDSTags, tag);
 	_rootnode->SetElementString(tag, value);
 	return(0);
  }
- const string &GetUserDataString(const string &tag) const {
-	if (_rootnode->HasElementString(tag))
-		return(_rootnode->GetElementString(tag));
-	else 
-		return(_emptyString);
+ string GetUserDataString(const string &tag) const {
+	return(_rootnode->GetElementString(tag));
  }
 
 
@@ -1031,7 +1044,7 @@ public:
  //! \sa SetTSUserDataLong(), GetTSUserDataLong()
  //!
  //
- const vector<string> &GetTSUserDataLongTags() const {
+ vector<string> GetTSUserDataLongTags() const {
 	return(_timeStepUserDLTags); 
  }
 
@@ -1066,12 +1079,9 @@ public:
  //!
  //! \remarks Optional element
  //
- const vector<long> &GetTSUserDataLong( size_t ts, const string &tag) const {
+ vector<long> GetTSUserDataLong( size_t ts, const string &tag) const {
 	CHK_TS_OPT(ts, _emptyLongVec)
-	if (_rootnode->GetChild(ts)->HasElementLong(tag))
-		return(_rootnode->GetChild(ts)->GetElementLong(tag));
-	else 
-		return(_emptyLongVec);
+	return(_rootnode->GetChild(ts)->GetElementLong(tag));
  }
 
  int SetTSUserDataDouble(
@@ -1083,14 +1093,11 @@ public:
 	return(0);
  }
 
- const vector<double> &GetTSUserDataDouble(size_t ts, const string &tag) const {
+ vector<double> GetTSUserDataDouble(size_t ts, const string &tag) const {
 	CHK_TS_OPT(ts, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->HasElementDouble(tag))
-		return(_rootnode->GetChild(ts)->GetElementDouble(tag));
-	else 
-		return(_emptyDoubleVec);
+	return(_rootnode->GetChild(ts)->GetElementDouble(tag));
  }
- const vector<string> &GetTSUserDataDoubleTags() const {
+ vector<string> GetTSUserDataDoubleTags() const {
 	return(_timeStepUserDDTags);
  }
 
@@ -1103,14 +1110,11 @@ public:
 	return(0);
  }
 
- const string &GetTSUserDataString(size_t ts, const string &tag) const {
+ string GetTSUserDataString(size_t ts, const string &tag) const {
 	CHK_TS_OPT(ts, _emptyString)
-	if (_rootnode->GetChild(ts)->HasElementString(tag))
-		return(_rootnode->GetChild(ts)->GetElementString(tag));
-	else 
-		return(_emptyString);
+	return(_rootnode->GetChild(ts)->GetElementString(tag));
  }
- const vector<string> &GetTSUserDataStringTags() const {
+ vector<string> GetTSUserDataStringTags() const {
 	return(_timeStepUserDSTags);
  }
 
@@ -1139,7 +1143,7 @@ public:
  //! \retval vector A vector of tag names
  //! \sa SetVUserDataLong(), GetVUserDataLong(), GetVariableNames()
  //
- const vector<string> &GetVUserDataLongTags() const {
+ vector<string> GetVUserDataLongTags() const {
 	return(_variableUserDLTags); 
  }
 
@@ -1179,17 +1183,14 @@ public:
  //!
  //! \remarks Optional element
  //
- const vector<long> &GetVUserDataLong(
+ vector<long> GetVUserDataLong(
 	size_t ts, const string &var, const string &tag
  ) const {
 	CHK_VAR_OPT(ts, var, _emptyLongVec)
-	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementLong(tag))
-		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementLong(tag));
-	else 
-		return(_emptyLongVec);
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementLong(tag));
  }
 
- const vector<string> &GetVUserDataDoubleTags() const {
+ vector<string> GetVUserDataDoubleTags() const {
 	return(_variableUserDDTags);
  }
  int SetVUserDataDouble(
@@ -1201,14 +1202,11 @@ public:
 	return(0);
  }
 
- const vector<double> &GetVUserDataDouble(
+ vector<double> GetVUserDataDouble(
 	size_t ts, const string &var, const string &tag
  ) const {
 	CHK_VAR_OPT(ts, var, _emptyDoubleVec)
-	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementDouble(tag))
-		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(tag));
-	else 
-		return(_emptyDoubleVec);
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(tag));
  }
 
  int SetVUserDataString(
@@ -1220,27 +1218,19 @@ public:
 	return(0);
  }
 
- const string &GetVUserDataString(
+ string GetVUserDataString(
 	size_t ts, const string &var, const string &tag
  ) const {
 	CHK_VAR_OPT(ts, var, _emptyString)
-	if (_rootnode->GetChild(ts)->GetChild(var)->HasElementString(tag))
-		return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(tag));
-	else 
-		return(_emptyString);
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(tag));
  }
 
- const vector<string> &GetVUserDataStringTags() const {
+ vector<string> GetVUserDataStringTags() const {
 	return(_variableUserDSTags);
  }
 
 private:
  XmlNode	*_rootnode;		// root node of the xml tree
- vector <string> _varNames;	// Names of all the field variables
- vector <string> _varNames3D;	// Names of all 3D field variables
- vector <string> _varNames2DXY;	// Names of all 2D XY field variables
- vector <string> _varNames2DXZ;	// Names of all 2D XZ field variables
- vector <string> _varNames2DYZ;	// Names of all 2D YZ field variables
  size_t _bs[3];				// blocking factor to be used by data
  size_t _dim[3];			// data dimensions
  int	_nFilterCoef;		// Lifting filter coefficients
@@ -1248,9 +1238,13 @@ private:
  int	_numTransforms;		// Number of wavelet transforms
  int	_msbFirst;			// Most Significant Byte First storage order
  int	_vdfVersion;		// VDF file version number
+ int	_vdcType;			// VDC file type (1 or 2)
+ string _wname;				// Wavelet name
+ string _wmode;				// Wavelet boundary handling mode
  string	_metafileDirName;	// path to metafile parent directory
  string	_metafileName;		// basename of path to metafile 
  string _dataDirName;		// basename of path to data directory
+ vector <size_t> _cratios;	// compression ratios
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;
@@ -1259,8 +1253,6 @@ private:
  
  string _currentVar;	// name of variable currently being processed
  long 	_currentTS;	// Number of time step currently being processed
- vector <long> _periodicBoundaryDefault;	// default periodic boundary mask
- vector <long> _gridPermutationDefault;	// default grid permutation
 
 
  // Known xml tags
@@ -1300,6 +1292,10 @@ private:
  static const string _msbFirstAttr;
  static const string _vdfVersionAttr;
  static const string _numChildrenAttr;
+ static const string _waveletNameAttr;
+ static const string _waveletBoundaryModeAttr;
+ static const string _vdcTypeAttr;
+ static const string _cRatiosAttr;
  
 
  // Names of tags for user-defined data of type long, double, or string
@@ -1316,11 +1312,16 @@ private:
  vector <string> _variableUserDDTags;
  vector <string> _variableUserDSTags;
 
- int _init(
-	const size_t dim[3], size_t numTransforms, size_t bs[3],
+ int _init();
+ int _init1(
+	const size_t dim[3], size_t numTransforms, const size_t bs[3],
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1,
 	int vdfVersion = VDF_VERSION
-	);
+ );
+ int _init2(
+	const size_t dim[3], const size_t bs[3], const vector <size_t> &cratios,
+    string wname, string wmode, int vdfVersion = VDF_VERSION
+ );
 
  int _SetNumTimeSteps(long value);
  int _setVariableTypes(
@@ -1328,7 +1329,13 @@ private:
 	const vector <string> &value,
 	const vector <string> &delete_tags
  );
- int _SetVariableNames(XmlNode *node, long ts);
+ int _SetVariables(XmlNode *node, long ts);
+ int _SetVariableNames(
+	string set_tag,
+	const vector <string> &delete_tags,
+	const vector <string> &value
+ ); 
+
  int _RecordUserDataTags(vector <string> &keys, const string &tag);
 
 bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);

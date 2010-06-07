@@ -95,6 +95,8 @@ public:
     float * /*region*/, int /*unblock*/ = 1
  ) { return(-1);};
 
+ virtual const float *GetDataRange() const = 0;
+
 protected:
  void _ReadTimerReset() {_read_timer_acc = 0;};
  void _ReadTimerStart() {_read_timer = GetTime();};

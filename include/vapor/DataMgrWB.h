@@ -49,7 +49,8 @@ public:
  virtual int VariableExists(
 	size_t ts,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  ) const {
 	return (WaveletBlock3DRegionReader::VariableExists(ts,varname,reflevel));
  };
@@ -62,6 +63,10 @@ public:
 	return(WaveletBlock3DRegionReader::GetBlockSize());
  }
 
+ virtual void GetBlockSize(size_t bs[3], int reflevel) const {
+	WaveletBlock3DRegionReader::GetBlockSize(bs, reflevel);
+ }
+
  virtual const size_t *GetDimension() const {
 	return(WaveletBlock3DRegionReader::GetDimension());
  };
@@ -70,7 +75,7 @@ public:
 	return(WaveletBlock3DRegionReader::GetNumTransforms());
  };
 
- virtual const vector<double> &GetExtents() const {
+ virtual vector<double> GetExtents() const {
 	return(WaveletBlock3DRegionReader::GetExtents());
  };
 
@@ -78,43 +83,34 @@ public:
 	return(WaveletBlock3DRegionReader::GetNumTimeSteps());
  };
 
-
- virtual const vector <string> &GetVariableNames() const {
-	return(WaveletBlock3DRegionReader::GetVariableNames());
- };
-
- virtual const vector <string> &GetVariables3D() const {
+ virtual vector <string> GetVariables3D() const {
 	return(WaveletBlock3DRegionReader::GetVariables3D());
  };
 
- virtual const vector <string> &GetVariables2DXY() const {
+ virtual vector <string> GetVariables2DXY() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DXY());
  };
- virtual const vector <string> &GetVariables2DXZ() const {
+ virtual vector <string> GetVariables2DXZ() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DXZ());
  };
- virtual const vector <string> &GetVariables2DYZ() const {
+ virtual vector <string> GetVariables2DYZ() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DYZ());
  };
 
- virtual const vector<long> &GetPeriodicBoundary() const {
+ virtual vector<long> GetPeriodicBoundary() const {
 	return(WaveletBlock3DRegionReader::GetPeriodicBoundary());
  };
 
- virtual const vector<long> &GetGridPermutation() const {
+ virtual vector<long> GetGridPermutation() const {
 	return(WaveletBlock3DRegionReader::GetGridPermutation());
  };
 
- virtual const vector<double> &GetTSUserTime(size_t ts) const {
+ virtual double GetTSUserTime(size_t ts) const {
 	return(WaveletBlock3DRegionReader::GetTSUserTime(ts));
  };
 
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
 	WaveletBlock3DRegionReader::GetTSUserTimeStamp(ts,s);
- };
-
- virtual const vector<double> &GetTSExtents(size_t ts) const {
-	return(WaveletBlock3DRegionReader::GetTSExtents(ts));
  };
 
  virtual void   GetDim(size_t dim[3], int reflevel) {
@@ -125,11 +121,11 @@ public:
 	return(WaveletBlock3DRegionReader::GetDimBlk(bdim, reflevel));
  };
 
- virtual const string &GetMapProjection() const {
+ virtual string GetMapProjection() const {
 	return(WaveletBlock3DRegionReader::GetMapProjection());
  };
 
- const string &GetCoordSystemType() const {
+ virtual string GetCoordSystemType() const {
 	return(WaveletBlock3DRegionReader::GetCoordSystemType());
  };
 	
@@ -141,7 +137,8 @@ protected:
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  ) {
 	return(WaveletBlock3DRegionReader::OpenVariableRead(
 		timestep, varname, reflevel)
@@ -154,10 +151,10 @@ protected:
 
  virtual int    BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region, int unblock = 1
+    float *region
  )  {
  	return(WaveletBlock3DRegionReader::BlockReadRegion(
-		bmin, bmax, region, unblock)
+		bmin, bmax, region, 1)
 	);
  }; 
 

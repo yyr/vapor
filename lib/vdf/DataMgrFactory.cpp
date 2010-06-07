@@ -5,6 +5,7 @@
 #include <vapor/DataMgrFactory.h>
 #include <vapor/DataMgrLayered.h>
 #include <vapor/DataMgrWB.h>
+#include <vapor/DataMgrWC.h>
 
 using namespace VAPoR;
 
@@ -19,8 +20,14 @@ DataMgr *DataMgrFactory::New(const vector <string> &files, size_t mem_size) {
 		if (type.compare("layered") == 0) {
 			return new DataMgrLayered(*md, mem_size);
 		}
-		else {
+		else if (md->GetVDCType() == 1) {
 			return new DataMgrWB(*md, mem_size);
+		}
+		else if (md->GetVDCType() == 2) {
+			return new DataMgrWC(*md, mem_size);
+		}
+		else {
+			return(NULL);
 		}
 	}
 	else {

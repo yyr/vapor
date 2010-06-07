@@ -35,6 +35,21 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 
+vector <string> Metadata::GetVariableNames() const {
+	vector <string> svec1, svec2;
+	svec1 = GetVariables3D();
+	for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+
+	svec1 = GetVariables2DXY();
+	for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+	svec1 = GetVariables2DXZ();
+	for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+	svec1 = GetVariables2DYZ();
+	for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+
+	return(svec2);
+};
+
 
 void Metadata::GetDim(
 	size_t dim[3], int reflevel
@@ -63,7 +78,8 @@ void    Metadata::GetDimBlk(
 
     Metadata::GetDim(dim, reflevel);
 
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
     for (int i=0; i<3; i++) {
         bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs[i]);
     }

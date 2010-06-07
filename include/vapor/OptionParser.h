@@ -148,6 +148,8 @@ COMMON_API int	CvtToInt( const char *from, void *to);
 
 COMMON_API int	CvtToFloat(const char	*from, void *to);
 
+COMMON_API int	CvtToDouble(const char	*from, void *to);
+
 COMMON_API int	CvtToChar(const char *from, void *to);
 
 COMMON_API int	CvtToBoolean(const char *from, void *to);

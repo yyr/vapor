@@ -65,7 +65,8 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 int	WaveletBlock3DRegionReader::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 	int	rc;
 

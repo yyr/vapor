@@ -94,7 +94,8 @@ public:
  int    VariableExists(
 	size_t ts,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  ) const ;
 
  //! Open the specified AMR octree for writing
@@ -196,7 +197,7 @@ public:
  //! parameter, \p reflevel indicates the resolution of the volume in
  //! the multiresolution hierarchy. The valid range of values for
  //! \p reflevel is [0..max_refinement], where \p max_refinement is the
- //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
+ //! maximum finement level of the data set: Metadata::GetNumTransforms().
  //! volume when the volume was created. A value of zero indicates the
  //! coarsest resolution data, a value of \p max_refinement indicates the
  //! finest resolution data.
@@ -215,7 +216,8 @@ public:
  int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	int lod = 0
  );
 
  //! Close the currently opened variable.
@@ -268,6 +270,13 @@ public:
  //!
  int	GetBlockMaxs(const float **maxs, int reflevel) const;
 
+ const float *GetDataRange() const {return (_dataRange);}
+
+ void GetValidRegion(
+    size_t min[3], size_t max[3], int reflevel
+ ) const;
+
+
 private:
  typedef int int32_t;
 
@@ -286,6 +295,9 @@ private:
  int	_dataIsOpen;	// true if an AMR data file is open
  int	_treeWriteMode;	// true if file opened for writing
  int	_dataWriteMode;	// true if file opened for writing
+ float	_dataRange[2];
+ size_t _validRegMin[3];
+ size_t _validRegMax[3];
 
 
  int _AMRIO();

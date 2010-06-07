@@ -140,7 +140,8 @@ WaveletBlockIOBase::~WaveletBlockIOBase() {
 int    WaveletBlockIOBase::VariableExists(
     size_t timestep,
     const char *varname,
-    int reflevel
+    int reflevel,
+	int 
 ) const {
 	string basename;
 
@@ -413,7 +414,8 @@ int WaveletBlockIOBase::open_var_write(
 int	WaveletBlockIOBase::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 	string basename;
 
@@ -782,7 +784,7 @@ int	WaveletBlockIOBase::readBlocks(
 
 	const size_t *bs = GetBlockSize();
 
-	int i1, i2;
+	int i1 = 0, i2 = 0;
 	switch (_vtype) {
 	case VAR2D_XY:
 		i1 = bs[1];
@@ -886,7 +888,7 @@ int	WaveletBlockIOBase::writeBlocks(
 
 	const size_t *bs = GetBlockSize();
 
-	int i1, i2;
+	int i1 = 0, i2 = 0;
 	switch (_vtype) {
 	case VAR2D_XY:
 		i1 = bs[1];

@@ -87,7 +87,8 @@ AMRIO::~AMRIO() {
 int    AMRIO::VariableExists(
     size_t timestep,
     const char *varname,
-    int reflevel
+    int reflevel,
+	int
 ) const {
 
 	SetDiagMsg("AMRIO::VariableExists(%d, %s, %d)", timestep, varname,reflevel);
@@ -250,6 +251,21 @@ int	AMRIO::OpenVariableWrite(
 	if (MkDirHier(dir) < 0) return(-1);
 
 	_dataFileName = basename;
+
+	size_t num_nodes, cell_dim[3];
+	int dummy;
+	int rc = AMRData::ReadAttributesNCDF(
+		_dataFileName, cell_dim, _validRegMin, _validRegMax, _dataRange, 
+		dummy, num_nodes
+	);
+	if (rc<0) {
+		SetErrMsg(
+			"Failed to stat variable \"%s\" at time step %d", 
+			varname, (int) timestep
+		);
+		return(-1);
+	}
+	
 	
 	_dataIsOpen = 1;
 
@@ -259,7 +275,8 @@ int	AMRIO::OpenVariableWrite(
 int	AMRIO::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	int
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableRead(%d, %s, %d)",timestep,varname,reflevel);
@@ -341,6 +358,12 @@ int	AMRIO::VariableWrite(AMRData *data) {
 	int rc = data->WriteNCDF(_dataFileName,_reflevel);
 	_WriteTimerStop();
 
+	const float *fptr = data->GetDataRange();
+	_dataRange[0] = fptr[0];
+	_dataRange[1] = fptr[1];
+
+	data->GetBounds(_validRegMin, _validRegMax);
+
 	return(rc);
 }
 
@@ -382,6 +405,21 @@ int	AMRIO::GetBlockMaxs(
 	*maxs = NULL;
 	return(-1);
 #endif
+}
+
+void    AMRIO::GetValidRegion(
+	size_t minreg[3], size_t maxreg[3], int reflevel
+) const {
+
+
+	if (reflevel < 0) reflevel = GetNumTransforms();
+
+	int  ldelta = GetNumTransforms() - reflevel;
+
+	for (int i=0; i<3; i++) {
+		minreg[i] = _validRegMin[i] >> ldelta;
+		maxreg[i] = _validRegMax[i] >> ldelta;
+	}
 }
 
 

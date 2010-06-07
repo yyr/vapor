@@ -78,11 +78,8 @@ AMRTreeBranch::~AMRTreeBranch()
 }
 
 void AMRTreeBranch::Update() {
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
-
-	parent_table.clear();
-	ref_level.clear();
+	vector <long> parent_table;
+	vector <long> ref_level;
 
 	ref_level.push_back(_octree->get_max_level());
 
@@ -102,6 +99,8 @@ void AMRTreeBranch::Update() {
 			parent_table.push_back(flag);
 		}
 	}
+	_rootNode->SetElementLong(_parentTableTag, parent_table);
+	_rootNode->SetElementLong(_refinementLevelTag, ref_level);
 }
 
 int AMRTreeBranch::DeleteCell(cid_t cellid) {
@@ -370,17 +369,15 @@ int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 
 	SetDiagMsg("AMRTreeBranch::SetParentTable()");
 
-	vector <long> &parent_table = _rootNode->GetElementLong(_parentTableTag);
-	vector <long> &ref_level = _rootNode->GetElementLong(_refinementLevelTag);
+	vector <long> parent_table;
+	vector <long> ref_level;
 
-
-	parent_table.clear();
 	parent_table.reserve(table.size());
-	ref_level.clear();
 
 	for(int i=0; i<table.size(); i++) {
 		parent_table.push_back(table[i]);
 	}
+	_rootNode->SetElementLong(_parentTableTag, parent_table);
 
 	_octree->clear();
 	if (table.size() == 0) return(0);	// we're done
@@ -421,6 +418,7 @@ int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 	}
 
 	ref_level.push_back(_octree->get_max_level());
+	_rootNode->SetElementLong(_refinementLevelTag, ref_level);
 
 	return(0);
 }

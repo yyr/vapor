@@ -12,7 +12,10 @@ FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	LayeredIO AMRIO  WRF Transpose DataMgr DataMgrWB DataMgrLayered vdf \
-	DataMgrFactory
+	DataMgrFactory \
+	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
+	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
+	SignificanceMap Compressor WaveCodecIO DataMgrWC
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -23,7 +26,10 @@ HEADER_FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	LayeredIO AMRIO  WRF DataMgr DataMgrWB DataMgrLayered \
-	DataMgrFactory
+	DataMgrFactory \
+	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
+	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
+	SignificanceMap Compressor WaveCodecIO DataMgrWC
 
 
 #LIB_DEFS = vdf.def

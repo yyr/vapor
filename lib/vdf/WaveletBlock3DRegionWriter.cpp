@@ -812,7 +812,7 @@ int	WaveletBlock3DRegionWriter::BlockWriteRegion(
 	for(int i=0; i<3; i++) min[i] = my_bs[i]*bmin[i];
 	for(int i=0; i<3; i++) max[i] = (my_bs[i]*(bmax[i]+1))-1;
 
-	if (_vtype = VAR3D) {
+	if (_vtype == VAR3D) {
 		return(_WriteRegion3D(region, min, max, block));
 	}
 	else {
