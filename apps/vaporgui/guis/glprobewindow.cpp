@@ -28,7 +28,6 @@
 #include "probeeventrouter.h"
 #include "messagereporter.h"
 #include "session.h"
-#include "customcontext.h"
 #include <math.h>
 #include <qgl.h>
 #include <qapplication.h>

@@ -33,7 +33,6 @@
 #include "glutil.h"
 #include "vizwinmgr.h"
 #include "probeeventrouter.h"
-#include "customcontext.h"
 
 
 ProbeFrame::ProbeFrame( QWidget * parent, Qt::WFlags f ) :
