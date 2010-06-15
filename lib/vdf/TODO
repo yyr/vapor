@@ -12,11 +12,9 @@ HIGH
 Currently no verification that .vdf file agrees with what is
 in .ncdf files
 
-Document API
+User Documentation
 
 MEDIUM
-
-VDC1 version 4 .vdf files should be readable by vaporgui 1.5.x
 
 Implement {Read,Write}Region and add region support in raw2vdf and vdf2raw
 construtor without metadata

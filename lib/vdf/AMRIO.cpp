@@ -252,19 +252,6 @@ int	AMRIO::OpenVariableWrite(
 
 	_dataFileName = basename;
 
-	size_t num_nodes, cell_dim[3];
-	int dummy;
-	int rc = AMRData::ReadAttributesNCDF(
-		_dataFileName, cell_dim, _validRegMin, _validRegMax, _dataRange, 
-		dummy, num_nodes
-	);
-	if (rc<0) {
-		SetErrMsg(
-			"Failed to stat variable \"%s\" at time step %d", 
-			varname, (int) timestep
-		);
-		return(-1);
-	}
 	
 	
 	_dataIsOpen = 1;
@@ -310,6 +297,24 @@ int	AMRIO::OpenVariableRead(
 	DirName(basename, dir);
 
 	_dataFileName = basename;
+
+	size_t num_nodes, cell_dim[3], bmin[3], bmax[3];
+	int dummy;
+	int rc = AMRData::ReadAttributesNCDF(
+		_dataFileName, cell_dim, bmin, bmax, _dataRange, 
+		dummy, num_nodes
+	);
+	if (rc<0) {
+		SetErrMsg(
+			"Failed to stat variable \"%s\" at time step %d", 
+			varname, (int) timestep
+		);
+		return(-1);
+	}
+	for (int i=0; i<3; i++) {
+		_validRegMin[i] = (cell_dim[i] >> GetNumTransforms()) * bmin[i];
+		_validRegMax[i] = (cell_dim[i] >> GetNumTransforms()) * (bmax[i]+1) - 1;
+	}
 
 	_dataIsOpen = 1;
 
@@ -362,7 +367,13 @@ int	AMRIO::VariableWrite(AMRData *data) {
 	_dataRange[0] = fptr[0];
 	_dataRange[1] = fptr[1];
 
-	data->GetBounds(_validRegMin, _validRegMax);
+	size_t bmin[3], bmax[3];
+	const size_t *bs = GetBlockSize();
+	data->GetBounds(bmin, bmax);
+	for (int i=0; i<3; i++) {
+		_validRegMin[i] = (bs[i] >> GetNumTransforms()) * bmin[i];
+		_validRegMax[i] = (bs[i] >> GetNumTransforms()) * (bmax[i]+1) - 1;
+	}
 
 	return(rc);
 }

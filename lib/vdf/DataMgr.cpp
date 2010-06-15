@@ -547,7 +547,6 @@ int DataMgr::GetDataRange(
 	// See if we've already cache'd it.
 	//
 	if (get_cached_data_range(ts, varname, range) == 0) return(0);
-		
 
 	// Range isn't cache'd. Need to read it from the file
 	//

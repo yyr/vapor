@@ -15,7 +15,7 @@ FILES = \
 	DataMgrFactory \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC
+	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -29,7 +29,7 @@ HEADER_FILES = \
 	DataMgrFactory \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC
+	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR
 
 
 #LIB_DEFS = vdf.def
