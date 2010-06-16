@@ -28,7 +28,7 @@ HEADER_FILES = \
 	LayeredIO AMRIO  WRF DataMgr DataMgrWB DataMgrLayered \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR
+	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
 	DataMgrFactory PythonControl
 
 
