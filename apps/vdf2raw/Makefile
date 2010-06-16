@@ -5,6 +5,7 @@ include ${TOP}/make/config/prebase.mk
 PROGRAM = vdf2raw
 FILES = vdf2raw
 
-LIBRARIES = vdf common netcdf expat
+LIBRARIES = pthread dl util m vdf python2.6 common netcdf expat
+
 
 include ${TOP}/make/config/base.mk

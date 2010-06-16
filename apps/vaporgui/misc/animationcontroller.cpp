@@ -209,7 +209,8 @@ endRendering(int vizNum){
 	/*  This was needed in Qt3 but causes minor issues in Qt4	
 	    Evidently the multithreading in Qt 4 helps processing events
 	    while the app is otherwise busy*/
-		QCoreApplication* app = MainForm::getInstance()->getApp();
+		QCoreApplication* app;
+		app = MainForm::getInstance()->getApp();
 		bool hasEvents = app->hasPendingEvents();
 		if (hasEvents) {
 			app->processEvents();

@@ -239,7 +239,7 @@ public:
 	static bool isExtendedUp(int sesvarnum) {return extendUp[sesvarnum];}
 	static bool isExtendedDown(int sesvarnum) {return extendDown[sesvarnum];}
 
-	//Find the session num of a name, or -1 if it's not metadata:
+	//Find the session num of a name, or -1 if it's not in session
 	static int getSessionVariableNum(const std::string& str);
 	static int getSessionVariableNum2D(const std::string& str);
 	//Insert variableName if necessary; return sessionVariableNum
@@ -273,8 +273,6 @@ public:
 	//"session" variables are those in session
 	static int getNumMetadataVariables() {return numMetadataVariables;}
 	static int getNumMetadataVariables2D() {return numMetadataVariables2D;}
-	static int getNum2DOrientedMetadataVariables(int orientation) 
-	{return numOriented2DVars[orientation];}
 
 	static int mapMetadataToSessionVarNum(int varnum) 
 		{ if(!mapMetadataVars) return 0; 
@@ -283,7 +281,7 @@ public:
 		{ if(!mapMetadataVars2D) return 0; 
 		return mapMetadataVars2D[varnum];}
 	static int mapSessionToMetadataVarNum(int var);
-	static int mapSessionToMetadataVarNum2D(int var);
+	
 	// Find the name that corresponds to a metadata variable num
 	// should be the same as getting it from the metadata directly
 	static std::string& getMetadataVarName(int mdvarnum) {
@@ -358,7 +356,36 @@ public:
 	static bool convertToLatLon(int timestep, double coords[], int npoints = 1);
 	static bool convertFromLatLon(int timestep, double coords[], int npoints = 1);
 
+	//Active variable names and variable nums refer to variables that either occur in
+	//the metadata or are derived (i.e. output of a python script).  To support them,
+	//there are mappings from active names/nums to session nums
 	
+	static int getNumActiveVariables3D()  {return activeVariableNums3D.size();}
+	static int getNumActiveVariables2D()  {return activeVariableNums2D.size();}
+		
+	static int mapActiveToSessionVarNum3D(int varnum)
+		{ if( varnum >= activeVariableNums3D.size()) return -1; 
+		return activeVariableNums3D[varnum];}
+	static int mapActiveToSessionVarNum2D(int varnum) 
+		{ if( varnum >= activeVariableNums2D.size()) return -1; 
+		return activeVariableNums2D[varnum];}
+	static int mapSessionToActiveVarNum3D(int var);
+	static int mapSessionToActiveVarNum2D(int var);
+	// Find the name that corresponds to an active variable num
+	// should be the same as getting it from the metadata directly,if its in metadata
+	static std::string& getActiveVarName3D(int activevarnum){
+		if (activeVariableNums3D.size()<= activevarnum) return variableNames[0];
+		return (variableNames[activeVariableNums3D[activevarnum]]);}
+	static std::string& getActiveVarName2D(int activevarnum){
+		if (activeVariableNums2D.size()<= activevarnum) return variableNames2D[0];
+		return (variableNames2D[activeVariableNums2D[activevarnum]]);}
+	int getActiveVarNum3D(std::string varname) const;
+	int getActiveVarNum2D(std::string varname) const;
+	
+	static void clearActiveVars() {
+		activeVariableNums2D.clear();
+		activeVariableNums3D.clear();
+	}
 
 	//Attribute names:
 	static const string _backgroundColorAttr;
@@ -368,14 +395,79 @@ public:
 	static const string _subregionFrameEnabledAttr;
 	static const string _useLowerRefinementAttr;
 	static const string _missingDataWarningAttr;
+
+	//Support for Python methods
+	//Specify a new python script, return the integer ID (-1 if error)
+	int addDerivedScript(const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::string &);
+	//Replace an existing python script with a new one.  -1 if error
+	int replaceDerivedScript(int id, const vector<string> &in2DVars, const vector<string> &out2DVars, const vector<string>& in3Dvars, const vector<string>& out3Dvars, const string& script);
+	//Obtain the id for a given output variable, return -1 if it does not exist
+	//mapping from index to output 2D variables
+	//Client classes need to iterate (read-only) over these
+	const map<int,vector<string> >& getDerived2DOutputMap() const {return derived2DOutputMap;}
+	const map<int,vector<string> >& getDerived3DOutputMap() const {return derived3DOutputMap;}
+	//Remove a python script and associated variable lists.  Return false if it's already gone
+	bool removeDerivedScript(int index);
+
+	bool isDerivedVariable(std::string varname) const{
+		return (getDerivedScriptId(varname) >= 0);
+	}
+	const std::string getDerivedMethod(std::string varname) const{
+		int id = getDerivedScriptId(varname);
+		if (id <0) return string("");
+		return (getDerivedScript(id)); 
+	}
+	 //Change the just the method on an existing script
+	 bool setDerivedMethod(const std::string varname, const std::string& method){
+		 int id = getDerivedScriptId(varname);
+		 if (id <0) return false;
+		 derivedMethodMap[id] = method;
+		 return true;
+	}
+	
+	int getDerivedScriptId(const string& outvar) const;
+	const string& getDerivedScript(int id) const;
+	const vector<string>& getDerived2DInputVars(int id) const;
+	const vector<string>& getDerived3DInputVars(int id) const;
+	const vector<string>& getDerived2DOutputVars(int id) const;
+	const vector<string>& getDerived3DOutputVars(int id) const;
+	const string& getDerivedScript(const string& outvar) const{
+		return getDerivedScript(getDerivedScriptId(outvar));
+	}
+	//Add a python variable to the session, update mappings, bounds, etc. appropriately.
+	//Return the new session var num
+	//The variable should already be the output of an existing script.
+	//It's OK if the variable is already set as a python variable, but 
+	//make sure the input variables are all in the vdc; if not remove them.
+	int setDerivedVariable3D(const string& derivedVarName);
+	int setDerivedVariable2D(const string& derivedVarName);
+	//Remove a python variable, return false if it's not there.
+	//It should already be removed from the python variable mapping
+	static bool removeDerivedVariable2D(const string& derivedVarName);
+	static bool removeDerivedVariable3D(const string& derivedVarName);
+	void updateDerivedMappings(){
+		dataMgr->UpdateDerivedMappings(&derivedMethodMap,&derived2DInputMap,&derived3DInputMap,&derived2DOutputMap,&derived3DOutputMap);
+	}
 	
 private:
 	static DataStatus* theDataStatus;
-	
+	const vector<string> emptyVec;
+	//Python script mappings:
+	//mapping from index to Python function
+	map<int,string> derivedMethodMap;
+	//mapping from index to input 2D variables
+	map<int,vector<string> > derived2DInputMap;
+	//mapping from index to input 3D variables
+	map<int,vector<string> > derived3DInputMap;
+	//mapping to 2d outputs
+	map<int,vector<string> > derived2DOutputMap;
+	//mapping from index to output 3D variables
+	map<int,vector<string> > derived3DOutputMap;
+
 	void calcDataRange(int sesvarnum, int ts);
 	void calcDataRange2D(int sesvarnum, int ts);
-	//Identify if a session variable is active.  This requires it to be a metadata variable,
-	//and for there to be actual data behind it.
+	//Identify if a session variable is active.  This requires it to be an active variable
+	//and for there to be actual data behind it, or for it to be a python variable
 	std::vector<bool> variableExists;
 	std::vector<bool> variableExists2D;
 	//for each int variable there is an int vector of num transforms for each time step.
@@ -410,7 +502,7 @@ private:
 	float stretchedExtents[6];
 	float stretchFactors[3];
 
-	// the variableNames array specifies the name associated with each variable num.
+	// the variableNames array specifies the name associated with each session variable num.
 	//Note that this
 	//contains (possibly properly) the corresponding variableNames in the
 	//dataMgr.  The number of metadataVariables should coincide with the 
@@ -425,6 +517,9 @@ private:
 	static std::vector<std::string> variableNames2D;
 	static int numMetadataVariables2D;
 	static int* mapMetadataVars2D;
+	static vector<int> activeVariableNums2D;
+	static vector<int> activeVariableNums3D;
+	
 	string sessionVersion;
 	
 	

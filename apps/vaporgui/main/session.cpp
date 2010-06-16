@@ -144,7 +144,7 @@ Session::~Session(){
 	delete vizMgr;
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
-	DataStatus::removeMetadataVars();
+	DataStatus::clearActiveVars();
 	
 	for (i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {

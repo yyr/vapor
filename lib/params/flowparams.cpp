@@ -391,7 +391,7 @@ reinit(bool doOverride){
 	//Get the variable names:
 	
 	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
-	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
+	int newNumComboVariables = DataStatus::getInstance()->getNumActiveVariables3D();
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
 	//Rebuild map bounds arrays:
@@ -416,8 +416,8 @@ reinit(bool doOverride){
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	for (i = 0; i< newNumComboVariables; i++){
-		colorMapEntity.push_back(DataStatus::getInstance()->getMetadataVarName(i));
-		opacMapEntity.push_back(DataStatus::getInstance()->getMetadataVarName(i));
+		colorMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
+		opacMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
 	}
 	
 	if(doOverride || getOpacMapEntityIndex() >= newNumComboVariables+4){
@@ -429,11 +429,11 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int j = 0; j<3; j++){
 			comboSteadyVarNum[j] = Min(j+1,newNumComboVariables);
-			steadyVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(comboSteadyVarNum[j]-1)+1;
+			steadyVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(comboSteadyVarNum[j]-1)+1;
 		}
 		for (int j = 0; j<3; j++){
 			comboUnsteadyVarNum[j] = Min(j+1,newNumComboVariables);
-			unsteadyVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(comboUnsteadyVarNum[j]-1)+1;
+			unsteadyVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(comboUnsteadyVarNum[j]-1)+1;
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
@@ -491,12 +491,12 @@ reinit(bool doOverride){
 	for (int dim = 0; dim < 3; dim++){
 		if(steadyVarNum[dim] == 0) comboSteadyVarNum[dim] = 0;
 		else 
-			comboSteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(steadyVarNum[dim]-1)+1;
+			comboSteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(steadyVarNum[dim]-1)+1;
 		if (unsteadyVarNum[dim] == 0) comboUnsteadyVarNum[dim] = 0;
 		else
-			comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(unsteadyVarNum[dim]-1)+1;
-		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(seedDistVarNum[dim]);
-		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(priorityVarNum[dim]);
+			comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(unsteadyVarNum[dim]-1)+1;
+		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(seedDistVarNum[dim]);
+		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(priorityVarNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){
@@ -2177,12 +2177,12 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(ds->mapMetadataToSessionVarNum(getOpacMapEntityIndex()-4));
+			timeStep = ds->getFirstTimestep(ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4));
 			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for opacity mapped variable");
 		}
 		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
-		int opacVarnum = ds->mapMetadataToSessionVarNum(getOpacMapEntityIndex()-4);
+		int opacVarnum = ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4);
 		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
 		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
@@ -2218,7 +2218,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		size_t min_dim[3], max_dim[3], max_bdim[3];
 
-		int colorVarnum = ds->mapMetadataToSessionVarNum(getColorMapEntityIndex()-4);
+		int colorVarnum = ds->mapActiveToSessionVarNum3D(getColorMapEntityIndex()-4);
 		
 		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
 			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
@@ -2451,7 +2451,7 @@ float FlowParams::minRange(int index, int timestep){
 		case (3): //seed index.  Goes from 0 to num seedsp
 			return (0.f );
 		default:
-			int varnum = DataStatus::mapMetadataToSessionVarNum(index -4);
+			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
 				return( DataStatus::getInstance()->getDataMin(varnum, timestep));
 			}
@@ -2485,7 +2485,7 @@ float FlowParams::maxRange(int index, int timestep){
 			
 			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
-			int varnum = DataStatus::mapMetadataToSessionVarNum(index -4);
+			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
 				return( DataStatus::getInstance()->getDataMax(varnum, timestep));
 			}

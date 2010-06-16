@@ -510,7 +510,7 @@ refreshRegionInfo(RegionParams* rParams){
 			maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
 		}
 		else {
-			int mdVarnum = ds->getMetadataVarNum2D(varName);
+			int mdVarnum = ds->getActiveVarNum2D(varName);
 			orientation = ds->get2DOrientation(mdVarnum);
 			varNum = ds->getSessionVariableNum2D(varName);
 			maxRefLevel = ds->maxXFormPresent2D(varNum, timeStep);

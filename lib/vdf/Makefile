@@ -12,10 +12,10 @@ FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	LayeredIO AMRIO  WRF Transpose DataMgr DataMgrWB DataMgrLayered vdf \
-	DataMgrFactory \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR
+	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
+	DataMgrFactory PythonControl
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -26,14 +26,14 @@ HEADER_FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	LayeredIO AMRIO  WRF DataMgr DataMgrWB DataMgrLayered \
-	DataMgrFactory \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR
+	DataMgrFactory PythonControl
 
 
 #LIB_DEFS = vdf.def
-  
+
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
 MAKEFILE_CXXFLAGS += /D"DLL_NETCDF"

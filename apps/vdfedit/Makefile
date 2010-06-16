@@ -7,7 +7,7 @@ FILES = vdfedit
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = vdf common netcdf expat
+LIBRARIES = pthread dl util m vdf python2.6 common netcdf expat
 
 include ${TOP}/make/config/base.mk
 

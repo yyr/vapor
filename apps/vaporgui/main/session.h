@@ -277,14 +277,8 @@ public:
 	//In general the indices in combo boxes are metadata var nums, but
 	//Info about the variables (e.g. transfer functions, datastatus info) are
 	//indexed by session var nums.
-	int getNumMetadataVariables() {return DataStatus::getNumMetadataVariables();}
-	int mapMetadataToSessionVarNum(int varnum){
-		return DataStatus::mapMetadataToSessionVarNum(varnum);
-	}
-	int mapSessionToMetadataVarNum(int var) {return DataStatus::mapSessionToMetadataVarNum(var);}
-	string& getMetadataVarName(int varnum) {
-		return DataStatus::getMetadataVarName(varnum);
-	}
+	
+	
 
     bool sphericalTransform()
     {

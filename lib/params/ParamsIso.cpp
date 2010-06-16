@@ -118,13 +118,13 @@ reinit(bool doOverride){
 	
 	int totNumVariables = ds->getNumSessionVariables();
 	if (totNumVariables <= 0) return false;
-	int varNum = ds->getMetadataVarNum(GetIsoVariableName());
-	int mapVarNum = ds->getMetadataVarNum(GetMapVariableName());
+	int varNum = ds->getActiveVarNum3D(GetIsoVariableName());
+	int mapVarNum = ds->getActiveVarNum3D(GetMapVariableName());
 	//See if current variable name is valid.  It needs to be in the metadata.
 	//if not, reset to first variable that is present in metadata:
 	if (varNum < 0) 
 	{
-		SetIsoVariableName(ds->getMetadataVarName(0));
+		SetIsoVariableName(ds->getActiveVarName3D(0));
 		varNum = 0;
 	}
 	//use constant if variable is not available

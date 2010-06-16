@@ -123,7 +123,7 @@ private:
     QMenu *File;
     QMenu *Edit;
     QMenu *Data;
-    QMenu *viewMenu;
+    QMenu *pythonMenu;
     QMenu *captureMenu;
     
     QMenu *helpMenu;
@@ -142,6 +142,11 @@ private:
 	//
     QAction* editVizFeaturesAction;
     QAction* editPreferencesAction;
+	//Derived Variables Menu
+	//
+	QMenu* editPythonMenu;
+	QAction* newPythonAction;
+	QMenu* deletePythonMenu;
     
     //Help menu
     QAction* helpContentsAction;
@@ -158,9 +163,6 @@ private:
     QAction* dataSave_MetafileAction;
     QAction* fileNew_SessionAction;
 	
-    
-   //View menu
-    QAction* viewLaunch_visualizerAction;
 
    // Capture menu
 	QAction* captureStartJpegCaptureAction;
@@ -219,6 +221,9 @@ public slots:
 	virtual void exportToIDL();
     virtual void launchVisualizer();
 	virtual void launchVizFeaturesPanel();
+	virtual void launchPythonEditor(QAction* act);
+	virtual void newPythonEditor();
+	virtual void deleteVariable(QAction* act);
 	virtual void launchPreferencesPanel();
 	virtual void startJpegCapture();
 	virtual void endJpegCapture();
@@ -288,8 +293,9 @@ protected:
 	
 
 protected slots:
-    	virtual void languageChange();
+    virtual void languageChange();
 	void initCaptureMenu();
+	void setupPythonMenu();
 	void setInteractiveRefLevel(int);
 
 };

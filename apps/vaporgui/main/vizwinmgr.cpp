@@ -1566,7 +1566,70 @@ reinitializeParams(bool doOverride){
 	viewpointEventRouter->reinitTab(doOverride);
 	globalAnimationParams->reinit(doOverride);
 }
+//Update params and tabs to be aware of change of active variables
+//Similar to above, but don't turn off existing renderers, DataMgr has
+//not changed.
+void VizWinMgr::
+reinitializeVariables(){
+	// Default render params should override
+	defaultDvrParams->reinit(false);
+	defaultIsoParams->reinit(false);
+	defaultFlowParams->reinit(false);
+	defaultProbeParams->reinit(false);
+	defaultTwoDImageParams->reinit(false);
+	defaultTwoDDataParams->reinit(false);
 
+	globalRegionParams->reinit(false);
+	regionEventRouter->reinitTab(false);
+	regionEventRouter->refreshRegionInfo(globalRegionParams);
+	//NOTE that the vpparams need to be initialized after
+	//the global region params, since they use its settings..
+	//
+	globalVPParams->reinit(false);
+	
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vpParams[i]) vpParams[i]->reinit(false);
+		if(rgParams[i]) rgParams[i]->reinit(false);
+		for (int inst = 0; inst < getNumDvrInstances(i); inst++){
+			DvrParams* dParams = getDvrParams(i,inst);
+			dParams->reinit(false);
+		}
+		for (int inst = 0; inst < getNumIsoInstances(i); inst++){
+			ParamsIso* iParams = getIsoParams(i,inst);
+			iParams->reinit(false);
+		}
+		for (int inst = 0; inst < getNumProbeInstances(i); inst++){
+			ProbeParams* pParams = getProbeParams(i,inst);
+			pParams->reinit(false);
+		}
+		for (int inst = 0; inst < getNumTwoDImageInstances(i); inst++){
+			TwoDImageParams* pParams = getTwoDImageParams(i,inst);
+			pParams->reinit(false);
+		}
+		for (int inst = 0; inst < getNumTwoDDataInstances(i); inst++){
+			TwoDDataParams* pParams = getTwoDDataParams(i,inst);
+			pParams->reinit(false);
+		}
+		for (int inst = 0; inst < getNumFlowInstances(i); inst++){
+			FlowParams* fParams = getFlowParams(i,inst);
+			fParams->reinit(false);
+		}
+		if(animationParams[i]) animationParams[i]->reinit(false);
+	}
+
+    //
+    // Reinitialize tabs
+    //
+	flowEventRouter->reinitTab(false);
+	dvrEventRouter->reinitTab(false);
+	isoEventRouter->reinitTab(false);
+	probeEventRouter->reinitTab(false);
+	twoDImageEventRouter->reinitTab(false);
+	twoDDataEventRouter->reinitTab(false);
+	animationEventRouter->reinitTab(false);
+	viewpointEventRouter->reinitTab(false);
+	globalAnimationParams->reinit(false);
+}
 void VizWinMgr::
 setSelectionMode( GLWindow::mouseModeType m){ 
 	GLWindow::setCurrentMouseMode(m);

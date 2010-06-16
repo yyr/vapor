@@ -1,3 +1,5 @@
+#include <Python.h>
+#include <arrayobject.h>
 #include <cstdio>
 #include <cstring>
 #include <cassert>
@@ -6,8 +8,11 @@
 #include "vapor/DataMgr.h"
 #include "vaporinternal/common.h"
 #include "vapor/errorcodes.h"
+#include "vapor/Metadata.h"
+#include "vapor/PythonControl.h"
 using namespace VetsUtil;
 using namespace VAPoR;
+
 
 int	DataMgr::_DataMgr(
 	size_t mem_size
@@ -21,9 +26,15 @@ int	DataMgr::_DataMgr(
 	_dataRangeMinMap.clear();
 	_dataRangeMaxMap.clear();
 	_validRegMinMaxMap.clear();
+	UpdateDerivedMappings(0,0,0,0,0);
 	_mem_size = mem_size;
 
 	_timestamp = 0;
+	derivedMethodMapPtr = 0;
+	derived2DInputMapPtr=0;
+	derived3DInputMapPtr=0;
+	derived2DOutputMapPtr=0;
+	derived3DOutputMapPtr=0;
 
 	return(0);
 }
@@ -35,6 +46,7 @@ DataMgr::DataMgr(
 	SetDiagMsg("DataMgr::DataMgr(,%d)", mem_size);
 
 	if (_DataMgr(mem_size) < 0) return;
+	pyControl = new PythonControl(this);
 
 }
 
@@ -106,7 +118,30 @@ float	*DataMgr::GetRegion(
 		SetDiagMsg("DataMgr::GetRegion() - data in cache %xll\n", blks);
 		return(blks);
 	}
-
+	//Else, if it's derived, calculate it:
+	int scriptId = getDerivedScriptId(string(varname));
+	if (scriptId >= 0){
+		// Invoke the method in its c++ -t wrapper.
+		//This will truncate/reform the (blocked)region extents
+		//to specify true extents of a region that fits within the full data bounds.
+		//Then calls the python method with the truncated region, plus ts and reflevel
+		//as arguments.
+		if (0 != pyControl->python_wrapper(scriptId, ts,reflevel,min,max)){
+			SetErrMsg("DataMgr::GetRegion() - python derivation failure\n");
+			return NULL;
+		}
+				
+		blks = (float *) get_region_from_cache(ts, varname, reflevel, -1, DataMgr::FLOAT32, min, max, lock);
+		if (blks) {
+			printf(" data returned from python script execution\n");
+			SetDiagMsg("DataMgr::GetRegion() - python-derived data in cache %xll\n", blks);
+			return(blks);
+		} else {
+			printf(" data NOT returned from python script execution\n");
+			SetErrMsg("DataMgr::GetRegion() - derived data not in cache\n");
+			return(NULL);
+		}
+	}
 
 	// Else, read it from disk
 	//
@@ -1028,7 +1063,82 @@ size_t *DataMgr::get_cached_reg_min_max(
 		}
 	}
 
-	// Not cached
+	// not cached
 	return(NULL);
 }
 
+//following methods needed for python execution
+//Override Metadata virtual method:
+//
+Metadata::VarType_T DataMgr::GetVarType(const string &varname) const
+{
+	int scriptid = getDerivedScriptId(varname);
+	if (scriptid < 0) return Metadata::GetVarType(varname);
+	const vector<string>& outvars3d = getDerived3DOutputs(scriptid);
+	for (int i = 0; i< outvars3d.size(); i++)
+		if (outvars3d[i] == varname) return (VAR3D);
+	const vector<string>& outvars2d = getDerived2DOutputs(scriptid);
+	for (int i = 0; i< outvars2d.size(); i++)
+		if (outvars2d[i] == varname) return (VAR2D_XY);
+	return(VARUNKNOWN);
+}
+	
+
+ //Obtain the id for a given output variable, return -1 if it does not exist
+int DataMgr::getDerivedScriptId(const string& outvar) const{
+	map <int, vector<string> > :: const_iterator outIter = derived2DOutputMapPtr->begin();
+	while (outIter != derived2DOutputMapPtr->end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			if (vars[i] == outvar) return outIter->first;
+		}
+		outIter++;
+	}
+	outIter = derived3DOutputMapPtr->begin();
+	while (outIter != derived3DOutputMapPtr->end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			if (vars[i] == outvar) return outIter->first;
+		}
+		outIter++;
+	}
+	return -1;
+}
+const string& DataMgr::getDerivedScript(int id) const{
+	map<int,string> :: const_iterator iter = derivedMethodMapPtr->find(id);
+	if (iter == derivedMethodMapPtr->end()) return *(new string(""));
+	else return iter->second;
+}
+const vector<string>& DataMgr::getDerived2DInputs(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived2DInputMapPtr->find(id);
+	if (iter == derived2DInputMapPtr->end()) return emptyVec;
+	else return iter->second;
+}
+ const vector<string>& DataMgr::getDerived2DOutputs(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived2DOutputMapPtr->find(id);
+	if (iter == derived2DOutputMapPtr->end()) return emptyVec;
+	else return iter->second;
+}
+ const vector<string>& DataMgr::getDerived3DInputs(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived3DInputMapPtr->find(id);
+	if (iter == derived3DInputMapPtr->end()) return emptyVec;
+	else return iter->second;
+}
+ const vector<string>& DataMgr::getDerived3DOutputs(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived3DOutputMapPtr->find(id);
+	if (iter == derived3DOutputMapPtr->end()) return emptyVec;
+	else return iter->second;
+}
+ 
+void DataMgr::PurgeScriptOutputs(int id){
+	map<int,vector<string> > :: const_iterator iter = derived2DOutputMapPtr->find(id);
+	if (iter != derived2DOutputMapPtr->end()) {
+		vector<string> outputvars = iter->second;
+		for (int i = 0; i<outputvars.size(); i++) free_var(outputvars[i],1);
+	}
+	iter = derived3DOutputMapPtr->find(id);
+	if (iter != derived3DOutputMapPtr->end()) {
+		vector<string> outputvars = iter->second;
+		for (int i = 0; i<outputvars.size(); i++) free_var(outputvars[i],1);
+	}
+ }

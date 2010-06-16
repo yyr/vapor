@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../../include;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -66,10 +66,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="netcdf.lib proj.lib"
+				AdditionalDependencies="netcdf.lib proj.lib python26.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\wrfvdfcreate.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/wrfvdfcreate.pdb"
@@ -144,10 +144,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="netcdf.lib proj.lib"
+				AdditionalDependencies="netcdf.lib proj.lib python26.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\wrfvdfcreate.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="true"
 				SubSystem="1"

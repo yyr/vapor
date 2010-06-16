@@ -461,18 +461,19 @@ void DvrEventRouter::updateTab(){
 //any of the localDvrParams are setup.
 void DvrEventRouter::
 reinitTab(bool doOverride){
-	Session* ses = Session::getInstance();
-	if (DataStatus::getInstance()->dataIsPresent3D()) {
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->dataIsPresent3D()) {
 		setEnabled(true);
 		instanceTable->setEnabled(true);
 		instanceTable->rebuild(this);
 	}
 	else setEnabled(false);
 	variableCombo->clear();
-	variableCombo->setMaxCount(ses->getNumMetadataVariables());
+	variableCombo->setMaxCount(ds->getNumActiveVariables3D());
 	int i;
-	for (i = 0; i< ses->getNumMetadataVariables(); i++){
-		const std::string& s = ses->getMetadataVarName(i);
+	for (i = 0; i< ds->getNumActiveVariables3D(); i++){
+		const std::string& s = ds->getActiveVarName3D(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
@@ -480,7 +481,7 @@ reinitTab(bool doOverride){
 	}
 
 	//Set up the refinement combo:
-	const DataMgr *dataMgr = ses->getDataMgr();
+	const DataMgr *dataMgr = ds->getDataMgr();
 	
 	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
@@ -610,7 +611,7 @@ guiSetComboVarNum(int val){
 	
 	
 	
-	dParams->setVarNum(Session::getInstance()->mapMetadataToSessionVarNum(val));
+	dParams->setVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(val));
 	updateMapBounds(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
@@ -928,12 +929,13 @@ setEditorDirty(RenderParams *p){
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
     transferFunctionFrame->updateParams();
 
-    Session *session = Session::getInstance();
+    DataStatus *ds;
+	ds = DataStatus::getInstance();
 
-    if (session->getNumSessionVariables())
+    if (ds->getNumSessionVariables())
     {
       int varnum = dp->getSessionVarNum();
-      const std::string& varname = session->getVariableName(varnum);
+      const std::string& varname = ds->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
     }

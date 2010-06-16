@@ -291,11 +291,11 @@ reinit(bool doOverride){
 	}
 
 	// set up the ibfv variables
-	int numComboVariables = DataStatus::getInstance()->getNumMetadataVariables()+1;
+	int numComboVariables = DataStatus::getInstance()->getNumActiveVariables3D()+1;
 	if (doOverride){
 		for (int j = 0; j<3; j++){
 			ibfvComboVarNum[j] = Min(j+1,numComboVariables);
-			ibfvSessionVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(ibfvComboVarNum[j]-1)+1;
+			ibfvSessionVarNum[j] = DataStatus::getInstance()->mapActiveToSessionVarNum3D(ibfvComboVarNum[j]-1)+1;
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
@@ -320,7 +320,7 @@ reinit(bool doOverride){
 	for (int dim = 0; dim < 3; dim++){
 		if(ibfvSessionVarNum[dim] == 0) ibfvComboVarNum[dim] = 0;
 		else 
-			ibfvComboVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(ibfvSessionVarNum[dim]-1)+1;
+			ibfvComboVarNum[dim] = DataStatus::getInstance()->mapSessionToActiveVarNum3D(ibfvSessionVarNum[dim]-1)+1;
 	}
 		
 	

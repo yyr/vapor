@@ -1434,8 +1434,8 @@ setFlowNavigateMode(bool mode){
 void FlowEventRouter::
 reinitTab(bool doOverride){
 	setIgnoreBoxSliderEvents(false);
-	Session *ses = Session::getInstance();
-	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->dataIsPresent3D()&&!ds->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
 
 	flowDataChanged = false;
@@ -1449,7 +1449,7 @@ reinitTab(bool doOverride){
 		refinementCombo->addItem(QString::number(i));
 	}
 	
-	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
+	int newNumComboVariables = ds->getNumActiveVariables3D();
 	//Set up the combo 
 	
 	xSteadyVarCombo->clear();
@@ -1498,7 +1498,7 @@ reinitTab(bool doOverride){
 	yUnsteadyVarCombo->addItem(text);
 	zUnsteadyVarCombo->addItem(text);
 	for (int i = 0; i< newNumComboVariables; i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
+		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
@@ -1535,8 +1535,8 @@ reinitTab(bool doOverride){
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	for (int i = 0; i< newNumComboVariables; i++){
-		colorMapEntity.push_back(DataStatus::getInstance()->getMetadataVarName(i));
-		opacMapEntity.push_back(DataStatus::getInstance()->getMetadataVarName(i));
+		colorMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
+		opacMapEntity.push_back(DataStatus::getInstance()->getActiveVarName3D(i));
 	}
 	//Set up the color, opac map entity combos:
 	
@@ -1792,7 +1792,7 @@ guiSetXComboSteadyVarNum(int varnum){
 	fParams->setComboSteadyVarnum(0,varnum);
 	if (varnum == 0) fParams->setXSteadyVarNum(0);
 	else 
-		fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+		fParams->setXSteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1806,7 +1806,7 @@ guiSetYComboSteadyVarNum(int varnum){
 	fParams->setComboSteadyVarnum(1,varnum);
 	if (varnum == 0)fParams->setYSteadyVarNum(0);
 	else
-		fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+		fParams->setYSteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1819,7 +1819,7 @@ guiSetZComboSteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z steady field variable");
 	fParams->setComboSteadyVarnum(2,varnum);
 	if (varnum == 0)fParams->setZSteadyVarNum(0);
-	else fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	else fParams->setZSteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1831,7 +1831,7 @@ guiSetXComboSeedDistVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X seed distribution field variable");
 	fParams->setComboSeedDistVarnum(0,varnum);
-	fParams->setXSeedDistVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setXSeedDistVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1842,7 +1842,7 @@ guiSetYComboSeedDistVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y seed distribution field variable");
 	fParams->setComboSeedDistVarnum(1,varnum);
-	fParams->setYSeedDistVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setYSeedDistVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1853,7 +1853,7 @@ guiSetZComboSeedDistVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z seed distribution field variable");
 	fParams->setComboSeedDistVarnum(2,varnum);
-	fParams->setZSeedDistVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setZSeedDistVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1864,7 +1864,7 @@ guiSetXComboPriorityVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X seed prioritization field variable");
 	fParams->setComboPriorityVarnum(0,varnum);
-	fParams->setXPriorityVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setXPriorityVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1875,7 +1875,7 @@ guiSetYComboPriorityVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y seed prioritization field variable");
 	fParams->setComboPriorityVarnum(1,varnum);
-	fParams->setYPriorityVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setYPriorityVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1886,7 +1886,7 @@ guiSetZComboPriorityVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z seed prioritization field variable");
 	fParams->setComboPriorityVarnum(2,varnum);
-	fParams->setZPriorityVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	fParams->setZPriorityVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1898,7 +1898,7 @@ guiSetXComboUnsteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X unsteady field variable");
 	fParams->setComboUnsteadyVarnum(0,varnum);
 	if (varnum == 0)fParams->setXUnsteadyVarNum(0);
-	else fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	else fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1910,7 +1910,7 @@ guiSetYComboUnsteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y unsteady field variable");
 	fParams->setComboUnsteadyVarnum(1,varnum);
 	if (varnum == 0)fParams->setYUnsteadyVarNum(0);
-	else fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	else fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1922,7 +1922,7 @@ guiSetZComboUnsteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z unsteady field variable");
 	fParams->setComboUnsteadyVarnum(2,varnum);
 	if (varnum == 0)fParams->setZUnsteadyVarNum(0);
-	else fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	else fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);

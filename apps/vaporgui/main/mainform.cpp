@@ -26,7 +26,9 @@
 #include <QMenuItem>
 #include "GL/glew.h"
 #include "mainform.h"
+#include "pythonedit.h"
 #include <QDockWidget>
+#include <QTextEdit>
 #include <QToolBar>
 #include <QWhatsThis>
 #include <QFileDialog>
@@ -378,6 +380,7 @@ void MainForm::hookupSignals() {
 	connect(editRedoAction, SIGNAL(triggered()), this, SLOT (redo()));
 	connect( editVizFeaturesAction, SIGNAL(triggered()), this, SLOT(launchVizFeaturesPanel()));
 	connect( editPreferencesAction, SIGNAL(triggered()), this, SLOT(launchPreferencesPanel()));
+	
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
     connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
     connect( dataBrowse_DataAction, SIGNAL( triggered() ), this, SLOT( browseData() ) );
@@ -387,8 +390,11 @@ void MainForm::hookupSignals() {
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
 	connect( dataExportToIDLAction, SIGNAL(triggered()), this, SLOT( exportToIDL()));
 	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
-    	connect( viewLaunch_visualizerAction, SIGNAL( triggered() ), this, SLOT( launchVisualizer() ) );
-	
+   
+	connect(pythonMenu, SIGNAL(aboutToShow()), this, SLOT (setupPythonMenu()));
+	connect( newPythonAction, SIGNAL(triggered()), this, SLOT(newPythonEditor()));
+	connect(deletePythonMenu,SIGNAL(triggered(QAction*)), this, SLOT(deleteVariable(QAction*)));
+	connect(editPythonMenu,SIGNAL(triggered(QAction*)), this, SLOT(launchPythonEditor(QAction*)));
 	connect( captureStartJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( startJpegCapture() ) );
 	connect( captureEndJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( endJpegCapture() ) );
 	connect (captureSingleJpegCaptureAction, SIGNAL(triggered()), this, SLOT (captureSingleJpeg()));
@@ -436,6 +442,7 @@ void MainForm::createMenus(){
 	Edit->addAction(editRedoAction);
 	Edit->addAction(editVizFeaturesAction);
 	Edit->addAction(editPreferencesAction);
+	
 
     Data = menuBar()->addMenu(tr("Data"));
     Data->addAction(dataBrowse_DataAction );
@@ -450,9 +457,12 @@ void MainForm::createMenus(){
     
 	Main_Form->addMenu(Data);
 
-    viewMenu = menuBar()->addMenu(tr("View"));
-	
-	viewMenu->addAction(viewLaunch_visualizerAction);
+    pythonMenu = menuBar()->addMenu(tr("Derived Variables"));
+	editPythonMenu = new QMenu("Edit script defining variable");
+	deletePythonMenu = new QMenu("Delete script defining variable");
+	pythonMenu->addMenu(editPythonMenu);
+	pythonMenu->addMenu(deletePythonMenu);
+	pythonMenu->addAction(newPythonAction);
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
@@ -494,6 +504,9 @@ void MainForm::createActions(){
 	
 	editVizFeaturesAction = new QAction(this);
 	editPreferencesAction = new QAction(this);
+
+	newPythonAction = new QAction(this);
+	
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
@@ -514,7 +527,10 @@ void MainForm::createActions(){
 	dataExportToIDLAction = new QAction(this);
     
     
-    viewLaunch_visualizerAction = new QAction( this );
+    
+	newPythonAction = new QAction(this);
+	
+
 	captureStartJpegCaptureAction = new QAction( this );
 	captureEndJpegCaptureAction = new QAction( this);
 	captureSingleJpegCaptureAction = new QAction(this);
@@ -682,11 +698,7 @@ void MainForm::languageChange()
 	dataSave_MetafileAction->setText( tr( "Save the current Metadata to file" ) );
     
 	dataSave_MetafileAction->setToolTip("Specify a file where the current Metadata will be saved");
-	
 
-    viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
-    
-	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
 	editVizFeaturesAction->setText(tr("Edit Visualizer Features"));
 	
@@ -695,6 +707,12 @@ void MainForm::languageChange()
 	editPreferencesAction->setText(tr("Edit User Preferences "));
 	
 	editPreferencesAction->setToolTip(tr("View or change various user preference settings"));
+	editPythonMenu->setTitle(tr("Edit program defining existing derived variable"));
+	editPythonMenu->setToolTip(tr("Edit a python program defining existing variable"));
+	newPythonAction->setText(tr("Create program defining a new variable"));
+	newPythonAction->setToolTip(tr("Create python program defining a new variable"));
+	deletePythonMenu->setTitle(tr("Delete a derived variable"));
+	deletePythonMenu->setToolTip(tr("Delete a derived variable"));
 
 	captureStartJpegCaptureAction->setText( tr( "Begin image capture sequence " ) );
     
@@ -1513,7 +1531,48 @@ void MainForm::setRegionSelect(bool on)
 		statusBar()->addWidget(modeStatusWidget,2);
 	}
 }
+void MainForm::setupPythonMenu(){
+	//set up the menus based on what derived variables are available
+	DataStatus* ds = DataStatus::getInstance();
+	
+	
+	deletePythonMenu->clear();
+	editPythonMenu->clear();
+		
+	newPythonAction->setEnabled(true);
+	bool haveVars = false;
+	
+	map<int,vector<string> > pyMap = ds->getDerived3DOutputMap();
+	//Iterate through the maps, getting all 3D variables
+	map <int,vector<string> > :: const_iterator var_Iter = pyMap.begin();
+	while (var_Iter != pyMap.end()){
+		const vector<string> varnames = var_Iter->second;
+		for (int i = 0; i<varnames.size(); i++){
+			const QString varname = QString(varnames[i].c_str());
+			deletePythonMenu->addAction(varname);
+			editPythonMenu->addAction(varname);
+			haveVars = true;
+		}
+		var_Iter++;
+	}
+	pyMap = ds->getDerived2DOutputMap();
+	//Iterate through the maps, getting all 2D variables
+	var_Iter = pyMap.begin();
+	while (var_Iter != pyMap.end()){
+		const vector<string> varnames = var_Iter->second;
+		for (int i = 0; i<varnames.size(); i++){
+			const QString varname = QString(varnames[i].c_str());
+			deletePythonMenu->addAction(varname);
+			editPythonMenu->addAction(varname);
+			haveVars = true;
+		}
+		var_Iter++;
+	}
+	editPythonMenu->setEnabled(haveVars);
+	deletePythonMenu->setEnabled(haveVars);
+	
 
+}
 //Enable or disable the View menu options:
 void MainForm::initCaptureMenu(){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
@@ -1746,6 +1805,23 @@ void MainForm::launchVizFeaturesPanel(){
 void MainForm::launchPreferencesPanel(){
 	UserPreferences uPref;
 	uPref.launch();
+}
+void MainForm::deleteVariable(QAction* act){
+	QString str = act->text();
+	DataStatus* ds = DataStatus::getInstance();
+	
+	int id = ds->getDerivedScriptId(str.toStdString());
+	if (id >=0) ds->removeDerivedScript(id);
+	
+}
+void MainForm::newPythonEditor(){
+	PythonEdit* pythonEditor = new PythonEdit(this);
+	pythonEditor->show();
+}
+void MainForm::launchPythonEditor(QAction* act){
+	QString str = act->text();
+	PythonEdit* pythonEditor = new PythonEdit(this,str);
+	pythonEditor->show();
 }
 void MainForm::setInteractiveRefLevel(int val){
 	VizWinMgr::getInstance()->setInteractiveNavigating(val);

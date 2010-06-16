@@ -435,6 +435,10 @@ public:
 	//previous state
 	//
 	void reinitializeParams(bool doOverride);
+	//Reinitialize params and tabs for 
+	//change in active variables
+	//
+	void reinitializeVariables();
 	//reset to starting state
 	//
 	void restartParams();

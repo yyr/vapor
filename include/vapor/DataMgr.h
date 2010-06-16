@@ -5,21 +5,24 @@
 #ifndef	_DataMgr_h_
 #define	_DataMgr_h_
 
-
 #include <list>
+#include <map>
+#include <string>
+#include <vector>
 #include <vapor/MyBase.h>
 #include "vapor/BlkMemMgr.h"
 #include "vapor/Metadata.h"
 #include "vaporinternal/common.h"
 
 namespace VAPoR {
-
+class PythonControl;
 //
 //! \class DataMgr
 //! \brief A cache based data reader
 //! \author John Clyne
 //! \version $Revision$
 //! \date    $Date$
+
 //!
 //! This class provides a wrapper to the WaveletBlock3DRegionReader()
 //! and WaveletBlock2DRegionReader()
@@ -353,7 +356,69 @@ public:
 	int lod = 0
  ) const = 0;
 
+virtual VarType_T GetVarType(const string &varname) const; 
+
+ //! Specify pointers to mappings that are used for derived variables
+ //!
+ //! \param[in] methodMapPtr pointer to a std::map, from int (script id) to a std::string script.
+ //! \param[in] input2DMapPtr pointer to a std::map, from int (script id) to a vector of input 2D variables
+ //! \param[in] input3DMapPtr pointer to a std::map, from int (script id) to a vector of input 3D variables
+ //! \param[in] output2DMapPtr pointer to a std::map, from int (script id) to a vector of output 2D variables
+ //! \param[in] output3DMapPtr pointer to a std::map, from int (script id) to a vector of output 3D variables
+ //!
+void UpdateDerivedMappings(
+	std::map<int,string> *methodMapPtr,
+	std::map<int,std::vector<string> > *input2DMapPtr,
+	std::map<int,std::vector<string> > *input3DMapPtr,
+	std::map<int,std::vector<string> > *output2DMapPtr,
+	std::map<int,std::vector<string> > *output3DMapPtr) {
+		derivedMethodMapPtr = methodMapPtr;
+		derived2DInputMapPtr = input2DMapPtr;
+		derived3DInputMapPtr = input3DMapPtr;
+		derived2DOutputMapPtr = output2DMapPtr;
+		derived3DOutputMapPtr = output3DMapPtr;
+ }
+	
+//! Purge the cache of all the output variables of a Python script
+//!
+//! \param[in] scriptId is the index of the associated script
+//!
+void PurgeScriptOutputs(int scriptId);
+
+//! Obtain the PythonControl associated with the DataMgr.
+//! Needed for executing python scripts. 
+//!
+PythonControl* GetPythonControl(){
+	return pyControl;
+}
+
+ int getDerivedScriptId(const string& outvar) const;
+ const string& getDerivedScript(int id) const;
+ const string& getDerivedScript(const string& outvar) const{
+	 return getDerivedScript(getDerivedScriptId(outvar));
+ }
+ const vector<string>& getDerived2DInputs(int id) const;
+ const vector<string>& getDerived2DOutputs(int id) const;
+ const vector<string>& getDerived3DInputs(int id) const;
+ const vector<string>& getDerived3DOutputs(int id) const;
+
+ enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
+ void    *alloc_region(
+	size_t ts,
+	const char *varname,
+	VarType_T vtype,
+	int reflevel,
+	int lod,
+	_dataTypes_t type,
+	const size_t min[3],
+	const size_t max[3],
+	int lock
+ ); 
+
 protected:
+ const vector<string> emptyVec;
+ PythonControl* pyControl;
+ 
 
  // The protected methods below are pure virtual and must be implemented by any 
  // child class  of the DataMgr.
@@ -464,11 +529,14 @@ protected:
  //!
  virtual const float *GetDataRange() const = 0;
 
+
+
 private:
+
+
 
  size_t _mem_size;
 
- enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
 
  typedef struct {
 	size_t ts;
@@ -507,17 +575,6 @@ private:
 	int lock
  );
 
- void    *alloc_region(
-	size_t ts,
-	const char *varname,
-	VarType_T vtype,
-	int reflevel,
-	int lod,
-	_dataTypes_t type,
-	const size_t min[3],
-	const size_t max[3],
-	int lock
- ); 
 
  int	free_region(
 	size_t ts,
@@ -558,7 +615,21 @@ private:
     const float *fptr, unsigned char *ucptr, size_t size, const float range[2]
  );
 
-
+//DataMgr holds pointers to derived variable mappings.
+//The mappings themselves are also kept in the DataStatus
+//The datastatus updates the pointers whenever a
+//new DataMgr is loaded.
+//
+//mapping from index to Python function
+map<int,string> *derivedMethodMapPtr;
+//mapping from index to input 2D variables
+map<int,vector<string> > *derived2DInputMapPtr;
+//mapping from index to input 3D variables
+map<int,vector<string> > *derived3DInputMapPtr;
+//mapping to 2d outputs
+map<int,vector<string> > *derived2DOutputMapPtr;
+//mapping from index to output 3D variables
+map<int,vector<string> > *derived3DOutputMapPtr;
 
 };
 

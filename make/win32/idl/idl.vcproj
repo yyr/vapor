@@ -212,6 +212,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\idl\IDLMetadataAuto.cpp.template"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/IDLMetadataAuto.cpp.template &gt; ../../../lib/idl/IDLMetadataAuto.cpp"
+						Outputs="../../../lib/idl/IDLMetadataAuto.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\idl\IDLVaporImport.cpp"
 				>
 			</File>

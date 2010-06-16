@@ -59,10 +59,11 @@ int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
 std::vector<float*> DataStatus::timeVaryingExtents;
 std::string DataStatus::projString;
-
 int DataStatus::numMetadataVariables2D = 0;
 int DataStatus::numOriented2DVars[3] = {0,0,0};
 int* DataStatus::mapMetadataVars2D = 0;
+std::vector<int> DataStatus::activeVariableNums3D;
+std::vector<int> DataStatus::activeVariableNums2D;
 bool DataStatus::doWarnIfDataMissing = true;
 bool DataStatus::doUseLowerRefinementLevel = false;
 QColor DataStatus::backgroundColor =  Qt::black;
@@ -98,6 +99,7 @@ DataStatus()
 	maxTimeStep = 0;
 	numTimesteps = 0;
 	numTransforms = 0;
+	clearActiveVars();
 	
 	for (int i = 0; i< 3; i++){
 		extents[i] = 0.f;
@@ -116,6 +118,9 @@ DataStatus()
 // After a metadata::merge, call resetDataStatus to 
 // add additional and/or modify previous variables
 // return true if there was anything to set up.
+//
+// If there are python scripts use their output variables.
+// If the python scripts inputs are not in the DataMgr, remove the input variables.  
 // 
 bool DataStatus::
 reset(DataMgr* dm, size_t cachesize, QApplication* app){
@@ -159,6 +164,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//Add all new variable names to the variable name list, while building the 
 	//mapping of metadata var nums into session var nums:
 	removeMetadataVars();
+	clearActiveVars();
 	
 	int num3dVars = dataMgr->GetVariables3D().size();
 	
@@ -399,6 +405,33 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	}
 
 	QApplication::restoreOverrideCursor();
+	//Now process the python variables.
+	//They must be added to the session variables.
+	//Also the dataMgr must be told where to look for the python info
+	dataMgr->UpdateDerivedMappings(&derivedMethodMap,&derived2DInputMap,&derived3DInputMap,&derived2DOutputMap,&derived3DOutputMap);
+	//Set up the active variable mapping initially to coincide with the metadata variable mapping,
+	//then add entries for python variables.
+	
+	for (int i = 0; i< numMetadataVariables; i++)
+		getInstance()->activeVariableNums3D.push_back(mapMetadataVars[i]);
+	for (int i = 0; i< numMetadataVariables2D; i++)
+		getInstance()->activeVariableNums2D.push_back(mapMetadataVars2D[i]);
+	//Add all the variables that show up in any 2D or 3D output.
+	std::map<int, vector<string> > :: const_iterator outIter = derived2DOutputMap.begin();
+	while (outIter != derived2DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			setDerivedVariable2D(vars[i]);
+		}
+	}
+	outIter = derived3DOutputMap.begin();
+	while (outIter != derived3DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			setDerivedVariable3D(vars[i]);
+		}
+	}
+
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
 	if (dataIsLayered()){	
@@ -555,12 +588,7 @@ int DataStatus::mapSessionToMetadataVarNum(int sesVarNum){
 	}
 	return -1;
 }
-int DataStatus::mapSessionToMetadataVarNum2D(int sesVarNum){
-	for (int i = 0; i< numMetadataVariables2D; i++){
-		if (mapMetadataVars2D[i] == sesVarNum) return i;
-	}
-	return -1;
-}
+
 
 
 //Convert the max stretched extents into cube coords
@@ -726,4 +754,366 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 	for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
 	return true;
 	
+}
+//Derived var support
+//Obtain the id for a given output variable, return -1 if it does not exist
+//More or less the same as the method on DataMgr, but valid even if there is not DataMgr
+int DataStatus::getDerivedScriptId(const string& outvar) const{
+	map <int, vector<string> > :: const_iterator outIter = derived2DOutputMap.begin();
+	while (outIter != derived2DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			if (vars[i] == outvar) return outIter->first;
+		}
+		outIter++;
+	}
+	outIter = derived3DOutputMap.begin();
+	while (outIter != derived3DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			if (vars[i] == outvar) return outIter->first;
+		}
+		outIter++;
+	}
+	return -1;
+}
+const string& DataStatus::getDerivedScript(int id) const{
+	map<int,string> :: const_iterator iter = derivedMethodMap.find(id);
+	if (iter == derivedMethodMap.end()) return *(new string(""));
+	else return iter->second;
+}
+const vector<string>& DataStatus::getDerived2DInputVars(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived2DInputMap.find(id);
+	if (iter == derived2DInputMap.end()) return emptyVec;
+	else return iter->second;
+}
+const vector<string>& DataStatus::getDerived3DInputVars(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived3DInputMap.find(id);
+	if (iter == derived3DInputMap.end()) return emptyVec;
+	else return iter->second;
+}
+const vector<string>& DataStatus::getDerived2DOutputVars(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived2DOutputMap.find(id);
+	if (iter == derived2DOutputMap.end()) return emptyVec;
+	else return iter->second;
+}
+const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
+	map<int,vector<string> > :: const_iterator iter = derived3DOutputMap.find(id);
+	if (iter == derived3DOutputMap.end()) return emptyVec;
+	else return iter->second;
+}
+//Remove a python script and associated variable lists. 
+//Delete derived variables from active variable lists
+//Return false if it's already gone
+ bool DataStatus::removeDerivedScript(int id){
+	map<int,string> :: iterator iter = derivedMethodMap.find(id);
+	if (iter == derivedMethodMap.end()) return false;
+	derivedMethodMap.erase(iter);
+
+	map<int,vector<string> > :: iterator iter1 = derived2DOutputMap.find(id);
+	if (iter1 != derived2DOutputMap.end()) {
+		vector<string> outvars = iter1->second;
+		for (int i = 0; i<outvars.size(); i++){
+			removeDerivedVariable2D(outvars[i]);
+		}
+		derived2DOutputMap.erase(iter1);
+	}
+	iter1 = derived3DOutputMap.find(id);
+	if (iter1 != derived3DOutputMap.end()) {
+		vector<string> outvars = iter1->second;
+		for (int i = 0; i<outvars.size(); i++){
+			removeDerivedVariable3D(outvars[i]);
+		}
+		derived3DOutputMap.erase(iter1);
+	}
+	iter1 = derived2DInputMap.find(id);
+	if (iter1 != derived2DInputMap.end()) derived2DInputMap.erase(iter1);
+	iter1 = derived3DInputMap.find(id);
+	if (iter1 != derived3DInputMap.end()) derived3DInputMap.erase(iter1);
+	return true;
+ }
+ int DataStatus::addDerivedScript(const vector<string>& in2DVars, const vector<string>& out2DVars, 
+							 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
+	//First test to make sure that none of the outvars are in other scripts:
+	for (int i = 0; i<out2DVars.size(); i++){
+		if (getDerivedScriptId(out2DVars[i]) >= 0) return -1;
+	}
+	for (int i = 0; i<out3DVars.size(); i++){
+		if (getDerivedScriptId(out3DVars[i]) >= 0) return -1;
+	}
+	//Find an unused index:
+	int newIndex = -1;
+	for (int indx = 1;; indx++){
+		map<int, string>::const_iterator iter = derivedMethodMap.find(indx);
+		if (iter == derivedMethodMap.end()) {
+			newIndex = indx;
+			break;
+		}
+	}
+	
+	derivedMethodMap[newIndex] = script;
+	derived2DInputMap[newIndex] = in2DVars;
+	derived3DInputMap[newIndex] = in3DVars;
+	derived2DOutputMap[newIndex] = out2DVars;
+	derived3DOutputMap[newIndex] = out3DVars;
+
+	//Add the new derived variables
+	for (int i = 0; i<out2DVars.size(); i++){
+		int sesid = setDerivedVariable2D(out2DVars[i]);
+		if (sesid < 0) return -1;
+	}
+	for (int i = 0; i<out3DVars.size(); i++){
+		int sesid = setDerivedVariable3D(out3DVars[i]);
+		if (sesid < 0) return -1;
+	}
+	
+	return newIndex;
+}
+//Replace an existing derived script with a new one.  
+//
+int DataStatus::replaceDerivedScript(int id, const vector<string>& in2DVars, const vector<string>& out2DVars,
+								 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
+
+    //Must purge cache of the previous output variables of the script
+	dataMgr->PurgeScriptOutputs(id);
+	removeDerivedScript(id);
+	return (addDerivedScript(in2DVars, out2DVars, in3DVars, out3DVars, script));
+}
+int DataStatus::setDerivedVariable3D(const string& derivedVarName){
+	int scriptid = getDerivedScriptId(derivedVarName);
+	if (scriptid < 0) return -1;
+	if (!getDataMgr()) return -1;
+	//Iterate over inputs, make sure they are all in metadata...
+	map<int,vector<string> > :: const_iterator iter1 = derived2DInputMap.find(scriptid);
+	if (iter1 != derived2DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = vars.size()-1; i>=0; i--){
+			if (getMetadataVarNum2D(vars[i]) < 0) {
+				vars.erase(vars.begin()+ i);
+			}
+		}
+	}
+	iter1 = derived3DInputMap.find(scriptid);
+	if (iter1 != derived3DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = vars.size()-1; i>=0; i--){
+			if (getMetadataVarNum(vars[i]) < 0) {
+				vars.erase(vars.begin()+ i);
+			}
+		}
+	}
+	
+	//Is it already in session?
+	int sesvarnum = getSessionVariableNum2D(derivedVarName);
+	if (sesvarnum < 0){
+		
+		sesvarnum = mergeVariableName(derivedVarName);
+		int numSesVariables = getNumSessionVariables();
+		assert(numSesVariables == sesvarnum+1);  //should have added at end
+		variableExists.resize(numSesVariables);
+		maxNumTransforms.resize(numSesVariables);
+		dataMin.resize(numSesVariables);
+		dataMax.resize(numSesVariables);
+		variableExists[sesvarnum] = false;
+		maxNumTransforms[sesvarnum] = new int[numTimesteps];
+		dataMin[sesvarnum] = new float[numTimesteps];
+		dataMax[sesvarnum] = new float[numTimesteps];
+	}
+	//Initialize to default values.	
+	for (int k = 0; k<numTimesteps; k++){
+		maxNumTransforms[sesvarnum][k] = numTransforms;
+		dataMin[sesvarnum][k] = -1.f;
+		dataMax[sesvarnum][k] = 1.f;
+	}
+	bool varexists = true;
+	//Then check all the input 2D variables for max num transforms
+	iter1 = derived2DInputMap.find(scriptid);
+	if (iter1 != derived2DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = 0; i<vars.size(); i++){
+			int sesinvar = getSessionVariableNum2D(vars[i]);
+			if(sesinvar >= 0) {
+				for (int k = 0; k<numTimesteps; k++){
+					if(maxNumTransforms[sesvarnum][k]>maxNumTransforms2D[sesinvar][k])
+						maxNumTransforms[sesvarnum][k]=maxNumTransforms2D[sesinvar][k];
+				}
+				if (!variableExists2D[sesinvar]) varexists = false;
+			} else {
+				varexists = false;
+			}
+		
+		}
+	}
+	
+	//Then check all the 3D input variables for max num transforms
+	iter1 = derived3DInputMap.find(scriptid);
+	if (iter1 != derived3DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = 0; i<vars.size(); i++){
+			int sesinvar = getSessionVariableNum(vars[i]);
+			if(sesinvar >= 0) {
+				for (int k = 0; k<numTimesteps; k++){
+					if(maxNumTransforms[sesvarnum][k]>maxNumTransforms[sesinvar][k])
+						maxNumTransforms[sesvarnum][k]=maxNumTransforms[sesinvar][k];
+				}
+				if (!variableExists[sesinvar]) varexists = false;
+			} else {
+				varexists = false;
+			}
+		}
+	}
+	
+	//Is it already mapped?
+	if (mapSessionToActiveVarNum3D(sesvarnum) < 0){
+		activeVariableNums3D.push_back(sesvarnum);
+	}
+	variableExists[sesvarnum] = varexists;
+	return sesvarnum;
+}
+
+bool DataStatus::removeDerivedVariable2D(const string& derivedVarName){
+	int sesnum = getSessionVariableNum2D(derivedVarName);
+	if (sesnum < 0 ) return false;
+	int activeNum = mapSessionToActiveVarNum2D(sesnum);
+	if (activeNum < 0) assert(0);  //Not active
+
+	else {
+		//need to erase it from active list
+		//Leave it in the session (no big harm done)
+		activeVariableNums2D.erase(activeVariableNums2D.begin()+activeNum);
+	}
+	return true;
+}
+bool DataStatus::removeDerivedVariable3D(const string& derivedVarName){
+	int sesnum = getSessionVariableNum(derivedVarName);
+	if (sesnum < 0 ) return false;
+	int activeNum = mapSessionToActiveVarNum3D(sesnum);
+	if (activeNum < 0) assert(0);  //Not active
+	else activeVariableNums3D.erase(activeVariableNums3D.begin()+activeNum);
+	return true;
+}
+int DataStatus::setDerivedVariable2D(const string& varName){
+	int scriptid = getDerivedScriptId(varName);
+	if (scriptid < 0) return -1;
+	if (!getDataMgr()) return -1;
+	//Iterate over inputs, make sure they are all in metadata
+	map<int,vector<string> > :: const_iterator iter1 = derived2DInputMap.find(scriptid);
+	if (iter1 != derived2DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = vars.size()-1; i>=0; i--){
+			if (getMetadataVarNum2D(vars[i]) < 0) {
+				vars.erase(vars.begin()+i);
+			}
+		}
+	}
+	iter1 = derived3DInputMap.find(scriptid);
+	if (iter1 != derived3DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = vars.size()-1; i>=0; i--){
+			if (getMetadataVarNum(vars[i]) < 0) {
+				vars.erase(vars.begin()+i);
+			}
+		}
+	}
+	//Is it already in session?
+	int sesvarnum = getSessionVariableNum2D(varName);
+	if (sesvarnum < 0){
+		sesvarnum = mergeVariableName2D(varName);
+		int numSesVariables2D = getNumSessionVariables2D();
+		assert(numSesVariables2D == sesvarnum+1);  //should have added at end
+		variableExists2D.resize(numSesVariables2D);
+		maxNumTransforms2D.resize(numSesVariables2D);
+		dataMin2D.resize(numSesVariables2D);
+		dataMax2D.resize(numSesVariables2D);
+		variableExists2D[sesvarnum] = false;
+		maxNumTransforms2D[sesvarnum] = new int[numTimesteps];
+		dataMin2D[sesvarnum] = new float[numTimesteps];
+		dataMax2D[sesvarnum] = new float[numTimesteps];
+	}
+	//Initialize to default values.
+	
+	for (int k = 0; k<numTimesteps; k++){
+		maxNumTransforms2D[sesvarnum][k] = numTransforms;
+		dataMin2D[sesvarnum][k] = -1.f;
+		dataMax2D[sesvarnum][k] = 1.f;
+	}
+	bool varexists = true;
+	//Then check all the input 2d variables for max num transforms
+	iter1 = derived2DInputMap.find(scriptid);
+	if (iter1 != derived2DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = 0; i<vars.size(); i++){
+			int sesinvar = getSessionVariableNum2D(vars[i]);
+			if(sesinvar >= 0) {
+				for (int k = 0; k<numTimesteps; k++){
+					if(maxNumTransforms2D[sesvarnum][k]>maxNumTransforms2D[sesinvar][k])
+						maxNumTransforms2D[sesvarnum][k]=maxNumTransforms2D[sesinvar][k];
+				}
+				if (!variableExists2D[sesinvar]) varexists = false;
+			} else {
+				varexists = false;
+			}
+		}
+	}
+	
+	//Then check all the input 3d variables for max num transforms
+	iter1 = derived3DInputMap.find(scriptid);
+	if (iter1 != derived3DInputMap.end()) {
+		vector<string> vars = iter1->second;
+		for (int i = 0; i<vars.size(); i++){
+			int sesinvar = getSessionVariableNum(vars[i]);
+			if(sesinvar >= 0) {
+				for (int k = 0; k<numTimesteps; k++){
+					if(maxNumTransforms2D[sesvarnum][k]>maxNumTransforms[sesinvar][k])
+						maxNumTransforms2D[sesvarnum][k]=maxNumTransforms[sesinvar][k];
+				}
+				if (!variableExists[sesinvar]) varexists = false;
+			} else {
+				varexists = false;
+			}
+		}
+	}
+	
+	//Is it already mapped?
+	if (mapSessionToActiveVarNum2D(sesvarnum) < 0){
+		activeVariableNums2D.push_back(sesvarnum);
+	}
+	variableExists2D[sesvarnum] = varexists;
+	return sesvarnum;
+}
+int DataStatus::mapSessionToActiveVarNum2D(int sesvarnum){
+	for (int i = 0; i<activeVariableNums2D.size(); i++){
+		if (activeVariableNums2D[i] == sesvarnum) return i;
+	}
+	return -1;
+}
+int DataStatus::mapSessionToActiveVarNum3D(int sesvarnum){
+	for (int i = 0; i<activeVariableNums3D.size(); i++){
+		if (activeVariableNums3D[i] == sesvarnum) return i;
+	}
+	return -1;
+}
+int DataStatus::getActiveVarNum3D(const string varname) const{
+	//Find it in the session names, then see if it is mapped:
+	int i;
+	for (i = 0; i<variableNames.size(); i++){
+		if (variableNames[i] == varname) break;
+	}
+	if (i >= variableNames.size()) return -1;
+	for (int j = 0; j<activeVariableNums3D.size(); j++){
+		if (activeVariableNums3D[j] == i) return j;
+	}
+	return -1;
+}
+int DataStatus::getActiveVarNum2D(const string varname) const{
+	//Find it in the session names, then see if it is mapped:
+	int i;
+	for (i = 0; i<variableNames2D.size(); i++){
+		if (variableNames2D[i] == varname) break;
+	}
+	if (i >= variableNames2D.size()) return -1;
+	for (int j = 0; j<activeVariableNums2D.size(); j++){
+		if (activeVariableNums2D[j] == i) return j;
+	}
+	return -1;
 }

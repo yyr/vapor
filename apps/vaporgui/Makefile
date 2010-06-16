@@ -19,10 +19,11 @@ export PROGRAM
 
 MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = render params flow vjpeg vdf common netcdf expat $(QT_LIB) GLEW tiff geotiff proj 
+LIBRARIES = pthread dl util m render params flow vjpeg vdf common netcdf expat $(QT_LIB) GLEW tiff geotiff proj python2.6 
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)
+MAKEFILE_LDFLAGS += -Xlinker -export-dynamic
 endif
 
 
@@ -34,6 +35,7 @@ MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 MAKEFILE_LDFLAGS += -framework CoreFoundation -framework CoreServices 
 MAKEFILE_LDFLAGS += -framework Cocoa -framework AppKit -framework 
 MAKEFILE_LDFLAGS += ApplicationServices -framework OpenGL -framework AGL
+MAKEFILE_LDFLAGS += -u _PyMac_Error 
 
 ifeq ($(QT_FRAMEWORK), 1)
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtCore -framework QtGui 

@@ -3,10 +3,13 @@ MISC_FILES := \
 	sharedcontrollerthread\
 	unsharedcontrollerthread \
 	vizfeatureparams \
-	GetAppPath
+	GetAppPath \
+	pythonedit
+
 
 MISC_QT_HEADERS := \
 	helpwindow\
-	vizfeatureparams 
+	vizfeatureparams\
+	pythonedit 
  
 

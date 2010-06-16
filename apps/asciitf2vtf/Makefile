@@ -10,7 +10,7 @@ FILES = asciitf2vtf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = params flow vdf common netcdf tiff geotiff proj expat 
+LIBRARIES = params flow vdf pthread dl util m python2.6 common netcdf tiff geotiff proj expat 
 
 ifeq ($(QT_FRAMEWORK),1)
 MAKEFILE_LDFLAGS += -F$(QTDIR)/lib -framework QtGui

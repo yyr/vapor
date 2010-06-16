@@ -814,7 +814,43 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dm = ds->getDataMgr();
 	if (!dm) return -1;
-	int rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
+	int scriptid = ds->getDerivedScriptId(varname);
+	int rc;
+	if (scriptid >= 0){
+		size_t temp_min[3], temp_max[3]; 
+		size_t curr_min[3] = {1000000000,1000000000,1000000000}, curr_max[3] = {0,0,0};
+		const vector<string> invars3d = ds->getDerived3DInputVars(scriptid);
+		const vector<string> invars2d = ds->getDerived2DInputVars(scriptid);
+		//If there are no 3d inputs, make the 3D min/max be the full data size
+		if (invars3d.size() == 0){
+			curr_min[2] = 0;
+			curr_max[2] = ds->getFullSizeAtLevel(minRefLevel,2); 
+		}
+		//Intersect the valid regions of all the input variables:
+		for (int i = 0; i<invars3d.size(); i++){
+			rc = dm->GetValidRegion(timestep, invars3d[i].c_str(), minRefLevel, temp_min, temp_max);
+			if (rc < 0) return rc;
+			for (int j = 0; j<3; j++){
+				if (temp_min[j] < curr_min[j]) curr_min[j] = temp_min[j];
+				if (temp_max[j] > curr_max[j]) curr_max[j] = temp_max[j];
+			}
+		}
+		for (int i = 0; i<invars2d.size(); i++){
+			rc = dm->GetValidRegion(timestep, invars2d[i].c_str(), minRefLevel, temp_min, temp_max);
+			if (rc < 0) return rc;
+			for (int j = 0; j<2; j++){
+				if (temp_min[j] < curr_min[j]) curr_min[j] = temp_min[j];
+				if (temp_max[j] > curr_max[j]) curr_max[j] = temp_max[j];
+			}
+		}
+		for (int j = 0; j<3; j++){
+			min_coord[j] = curr_min[j];
+			max_coord[j] = curr_max[j];
+		}
+
+	} else {
+		rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
+	}
 	if (!ds->dataIsLayered()) return rc;
 	if (rc < 0) return rc;
 	int maxRefLevel = ds->getNumTransforms();

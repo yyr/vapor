@@ -229,7 +229,7 @@ void IsoEventRouter::updateTab(){
     int mapComboVarNum = 0;
 	if (StrCmpNoCase(varname, "Constant") != 0) {
 		//1 extra for constant
-		mapComboVarNum = 1+DataStatus::getInstance()->getMetadataVarNum(varname);
+		mapComboVarNum = 1+DataStatus::getInstance()->getActiveVarNum3D(varname);
 	}
 		
 	
@@ -262,7 +262,7 @@ void IsoEventRouter::updateTab(){
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 
-	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(
+	int comboVarNum = DataStatus::getInstance()->getActiveVarNum3D(
 		isoParams->GetIsoVariableName());
 	variableCombo->setCurrentIndex(comboVarNum);
 	
@@ -693,17 +693,17 @@ refreshHisto(){
 //any of the localIsoParams are setup.
 void IsoEventRouter::
 reinitTab(bool doOverride){
-	Session* ses = Session::getInstance();
-	if (DataStatus::getInstance()->dataIsPresent3D()&&!ses->sphericalTransform()) setEnabled(true);
+	DataStatus* ds = DataStatus::getInstance();
+	if (ds->dataIsPresent3D()&&!ds->sphericalTransform()) setEnabled(true);
 	else setEnabled(false);
 	QPalette pal(constantColorButton->palette());
 	pal.setColor(constantColorButton->backgroundRole(),Qt::white);
 	constantColorButton->setPalette(pal);
 	variableCombo->clear();
-	variableCombo->setMaxCount(ses->getNumMetadataVariables());
+	variableCombo->setMaxCount(ds->getNumActiveVariables3D());
 	int i;
-	for (i = 0; i< ses->getNumMetadataVariables(); i++){
-		const std::string& s = ses->getMetadataVarName(i);
+	for (i = 0; i< ds->getNumActiveVariables3D(); i++){
+		const std::string& s = ds->getActiveVarName3D(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
@@ -711,10 +711,10 @@ reinitTab(bool doOverride){
 	}
 
 	mapVariableCombo->clear();
-	mapVariableCombo->setMaxCount(ses->getNumMetadataVariables()+1);
+	mapVariableCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
 	mapVariableCombo->addItem("Constant");
-	for (i = 0; i< ses->getNumMetadataVariables(); i++){
-		const std::string& s = ses->getMetadataVarName(i);
+	for (i = 0; i< ds->getNumActiveVariables3D(); i++){
+		const std::string& s = ds->getActiveVarName3D(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
@@ -722,7 +722,7 @@ reinitTab(bool doOverride){
 	}
 
 	//Set up the refinement combo:
-	const DataMgr *dataMgr = ses->getDataMgr();
+	const DataMgr *dataMgr = ds->getDataMgr();
 	
 	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
@@ -847,7 +847,7 @@ guiSetComboVarNum(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	//The comboVarNum is the metadata num, but the ParamsIso keeps
 	//the session variable name
-	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(iParams->GetIsoVariableName());
+	int comboVarNum = DataStatus::getInstance()->getActiveVarNum3D(iParams->GetIsoVariableName());
 	if (val == comboVarNum) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso variable");
@@ -855,7 +855,7 @@ guiSetComboVarNum(int val){
 	//reset the display range shown on the histo window
 	//also set dirty flag
 	
-	iParams->SetIsoVariableName(DataStatus::getInstance()->getMetadataVarName(val));
+	iParams->SetIsoVariableName(DataStatus::getInstance()->getActiveVarName3D(val));
 	
 	updateHistoBounds(iParams);
 	
@@ -872,13 +872,13 @@ guiSetMapComboVarNum(int val){
 	//The mapcomboVarNum is the metadata num +1, but the ParamsIso keeps
 	//the session variable name
 	DataStatus* ds = DataStatus::getInstance();
-	int comboVarNum = 1+ds->getMetadataVarNum(iParams->GetMapVariableName());
+	int comboVarNum = 1+ds->getActiveVarNum3D(iParams->GetMapVariableName());
 	if (val == comboVarNum) return;
 	//If the change is to set the combo to a nonexistent variable, then do not make
 	//the change:
 	if (val != 0){ 
 		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		int sesvarnum = ds->mapMetadataToSessionVarNum(val-1);
+		int sesvarnum = ds->mapActiveToSessionVarNum3D(val-1);
 		int ref = ds->maxXFormPresent(sesvarnum, timeStep);
 		if (ref < 0 || (ref < iParams->GetRefinementLevel() && ds->useLowerRefinementLevel())){
 			//don't change the variable
@@ -894,7 +894,7 @@ guiSetMapComboVarNum(int val){
 		//reset the display range shown on the histo window
 		//also set dirty flag
 		if(val > 0){
-			iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
+			iParams->SetMapVariableName(DataStatus::getInstance()->getActiveVarName3D(val-1));
 		}
 		else iParams->SetMapVariableName("Constant");
 		//Disable and enable:
@@ -912,7 +912,7 @@ guiSetMapComboVarNum(int val){
 		//reset the display range shown on the histo window
 		//also set dirty flag
 		if(val > 0){
-			iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
+			iParams->SetMapVariableName(DataStatus::getInstance()->getActiveVarName3D(val-1));
 			updateMapBounds(iParams);
 		}
 		else iParams->SetMapVariableName("Constant");

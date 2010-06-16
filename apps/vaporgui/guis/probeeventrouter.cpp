@@ -479,9 +479,9 @@ void ProbeEventRouter::updateTab(){
 	//Set the selection in the variable listbox.
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
-	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
+	for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
 		QListWidgetItem* listItem = variableListBox->item(i);
-		bool selection = probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i));
+		bool selection = probeParams->variableIsSelected(ds->mapActiveToSessionVarNum3D(i));
 		if (listItem->isSelected() != selection)
 			listItem->setSelected(selection);
 	}
@@ -1334,8 +1334,8 @@ reinitTab(bool doOverride){
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
 	variableListBox->clear();
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
+	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
+		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
 		const QString& text = QString(s.c_str());
 		QListWidgetItem* newItem = new QListWidgetItem(text);
 		variableListBox->insertItem(i,newItem);
@@ -1361,7 +1361,7 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
+	int newNumComboVariables = DataStatus::getInstance()->getNumActiveVariables3D();
 	//Set up the ibfv variable combos
 	
 	xSteadyVarCombo->clear();
@@ -1376,7 +1376,7 @@ reinitTab(bool doOverride){
 	ySteadyVarCombo->addItem(text);
 	zSteadyVarCombo->addItem(text);
 	for (int i = 0; i< newNumComboVariables; i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
+		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
 		const QString& text = QString(s.c_str());
 		xSteadyVarCombo->addItem(text);
 		ySteadyVarCombo->addItem(text);
@@ -1619,9 +1619,9 @@ guiChangeVariables(){
 	int firstVar = -1;
 	int numSelected = 0;
 	//Session* ses = Session::getInstance();
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
+	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
 		//Index by session variable num:
-		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum(i);
+		int varnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(i);
 		QListWidgetItem* curItem = variableListBox->item(i);
 		if (curItem->isSelected()){
 			pParams->setVariableSelected(varnum,true);
@@ -2843,7 +2843,7 @@ guiSetXIBFVComboVarNum(int varnum){
 	pParams->setIBFVComboVarNum(0,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(0,0);
 	else 
-		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -2856,7 +2856,7 @@ guiSetYIBFVComboVarNum(int varnum){
 	pParams->setIBFVComboVarNum(1,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(1,0);
 	else 
-		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -2869,7 +2869,7 @@ guiSetZIBFVComboVarNum(int varnum){
 	pParams->setIBFVComboVarNum(2,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(2,0);
 	else 
-		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);

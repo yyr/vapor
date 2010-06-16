@@ -290,9 +290,9 @@ void TwoDDataEventRouter::updateTab(){
 	//Set the selection in the variable listbox.
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
-	for (int i = 0; i< ds->getNumMetadataVariables2D(); i++){
-		if (variableListBox->item(i)->isSelected() != twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)))
-			variableListBox->item(i)->setSelected(twoDParams->variableIsSelected(ds->mapMetadataToSessionVarNum2D(i)));
+	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+		if (variableListBox->item(i)->isSelected() != twoDParams->variableIsSelected(ds->mapActiveToSessionVarNum2D(i)))
+			variableListBox->item(i)->setSelected(twoDParams->variableIsSelected(ds->mapActiveToSessionVarNum2D(i)));
 	}
 	ignoreListboxChanges = false;
 
@@ -798,8 +798,8 @@ reinitTab(bool doOverride){
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
 	variableListBox->clear();
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
-		const std::string& s = DataStatus::getInstance()->getMetadataVarName2D(i);
+	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
+		const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
 		const QString& text = QString(s.c_str());
 		QListWidgetItem* newItem = new QListWidgetItem(text);
 		variableListBox->insertItem(i,newItem);
@@ -1067,9 +1067,9 @@ guiChangeVariables(){
 	int numSelected = 0;
 	//Session* ses = Session::getInstance();
 	int orientation = 0;
-	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables2D(); i++){
+	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 		//Index by session variable num:
-		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum2D(i);
+		int varnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(i);
 		if (variableListBox->item(i)->isSelected()){
 			pParams->setVariableSelected(varnum,true);
 			
