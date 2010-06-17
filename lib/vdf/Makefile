@@ -15,7 +15,7 @@ FILES = \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory PythonControl
+	DataMgrFactory
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -29,10 +29,16 @@ HEADER_FILES = \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory PythonControl
+	DataMgrFactory
 
 
 #LIB_DEFS = vdf.def
+
+ifeq ($(BUILD_GUI),1)
+MAKEFILE_CXXFLAGS += -D"BUILD_GUI"
+HEADER_FILES += PythonControl
+FILES += PythonControl
+endif
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 

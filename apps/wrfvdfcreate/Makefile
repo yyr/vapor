@@ -8,7 +8,12 @@ FILES = wrfvdfcreate
 #LIB_DEFS = vdf.def
 
 
+ifeq ($(BUILD_GUI),1)
 LIBRARIES = pthread dl util m vdf python2.6 common netcdf proj expat
+else
+LIBRARIES = vdf common netcdf proj expat
+endif
+
 
 include ${TOP}/make/config/base.mk
 

@@ -1,5 +1,8 @@
+#ifdef BUILD_GUI
 #include <Python.h>
 #include <arrayobject.h>
+#include "vapor/PythonControl.h"
+#endif
 #include <cstdio>
 #include <cstring>
 #include <cassert>
@@ -9,7 +12,6 @@
 #include "vaporinternal/common.h"
 #include "vapor/errorcodes.h"
 #include "vapor/Metadata.h"
-#include "vapor/PythonControl.h"
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -46,7 +48,9 @@ DataMgr::DataMgr(
 	SetDiagMsg("DataMgr::DataMgr(,%d)", mem_size);
 
 	if (_DataMgr(mem_size) < 0) return;
+#ifdef BUILD_GUI
 	pyControl = new PythonControl(this);
+#endif
 
 }
 
@@ -118,6 +122,7 @@ float	*DataMgr::GetRegion(
 		SetDiagMsg("DataMgr::GetRegion() - data in cache %xll\n", blks);
 		return(blks);
 	}
+#ifdef BUILD_GUI
 	//Else, if it's derived, calculate it:
 	int scriptId = getDerivedScriptId(string(varname));
 	if (scriptId >= 0){
@@ -142,7 +147,7 @@ float	*DataMgr::GetRegion(
 			return(NULL);
 		}
 	}
-
+#endif
 	// Else, read it from disk
 	//
 	VarType_T vtype = GetVarType(varname);
