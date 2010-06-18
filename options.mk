@@ -79,6 +79,23 @@ BUILD_IDL_WRAPPERS = 0
 #
 IDLDIR =
 
+# Set to 1 if you want the Python intepreter built
+#
+BUILD_PYTHON = 0
+
+# If BUILD_PYTHON is set to 1, set PYTHONDIR to the root of the 
+# Python directory where the sub directories 'lib', and 'include' 
+# may be found. 
+#
+PYTHONDIR =
+
+# If BUILD_PYTHON is set to 1, set PYTHONVERSION to the version 
+# number (both major and minor, e.g. "2.6") of Python.
+# The build system will look for Python modules and include files
+# under $PYTHONDIR/lib/python${PYTHONVERSION} and 
+# $PYTHONDIR/include/python${PYTHONVERSION}, respectively.
+#
+PYTHONVERSION = 2.6
 
 
 # Set to 1 if you want to add support for Adaptive Mesh Refinement grids

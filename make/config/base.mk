@@ -153,6 +153,11 @@ endif
 #END OF ifdef QT
 endif
 
+ifeq ($(BUILD_PYTHON), 1)
+PY_INCLUDE_DIRS = $(addprefix $(PYTHONDIR)/include/python, $(PYTHONVERSION))
+PY_INCLUDE_DIRS += $(addprefix $(join $(PYTHONDIR)/lib/python, $(PYTHONVERSION)), /site-packages/numpy/core/include)
+endif
+
 ifdef TEST
 FILES := $(TEST)
 endif
@@ -266,6 +271,10 @@ INCLUDE_DIRS += $(addprefix -I, $(INC_SEARCH_DIRS))
 
 ifdef QT_INCLUDE_DIRS
 INCLUDE_DIRS += $(addprefix -I, $(QT_INCLUDE_DIRS))
+endif
+
+ifdef	PY_INCLUDE_DIRS
+INCLUDE_DIRS += $(addprefix -I, $(PY_INCLUDE_DIRS))
 endif
 
 INCLUDE_DIRS += $(MAKEFILE_INCLUDE_DIRS)
