@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
-				PreprocessorDefinitions="WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -68,10 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib python26.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib python26_d.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="C:\Python26_d\libs;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
 				GenerateMapFile="true"
@@ -131,7 +131,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VDF_EXPORTS"
+				PreprocessorDefinitions="BUILD_GUI;WIN32;_WINDOWS;_USRDLL;VDF_EXPORTS"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
@@ -448,11 +448,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\Transpose.h"
+				RelativePath="..\..\..\include\vapor\Transpose.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\Transpose.h"
+				RelativePath="..\..\..\lib\vdf\Transpose.h"
 				>
 			</File>
 			<File

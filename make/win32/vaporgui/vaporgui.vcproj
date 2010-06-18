@@ -170,11 +170,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="..\..\..\targets\win32\bin\glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26_d.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="C:\Python26_d\libs;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="true"
