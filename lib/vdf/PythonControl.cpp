@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "vapor/PythonControl.h"
-#include <arrayobject.h>
+#include <numpy/arrayobject.h>
 #include <cstdio>
 #include <cstring>
 #include <cassert>

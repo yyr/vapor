@@ -1,6 +1,6 @@
 #ifdef BUILD_GUI
 #include <Python.h>
-#include <arrayobject.h>
+#include <numpy/arrayobject.h>
 #include "vapor/PythonControl.h"
 #endif
 #include <cstdio>
