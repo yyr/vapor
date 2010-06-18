@@ -885,12 +885,23 @@
 				RelativePath="..\..\..\apps\vaporgui\misc\pythonedit.h"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing pythonedit"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="moc&apos;ing pythonedit.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp&#x0D;&#x0A;"
+						Description="moc&apos;ing pythonedit"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
 					/>
@@ -900,12 +911,23 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\qtthumbwheel.h"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="mocing qtthumbwheel"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing qtthumbwheel"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp&#x0D;&#x0A;"
+						Description="mocing qtthumbwheel"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 					/>
