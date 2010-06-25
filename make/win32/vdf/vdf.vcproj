@@ -71,7 +71,7 @@
 				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib python26_d.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Python26_d\libs;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
 				GenerateMapFile="true"
@@ -449,10 +449,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\Transpose.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\Transpose.h"
 				>
 			</File>
 			<File

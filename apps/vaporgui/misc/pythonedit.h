@@ -67,10 +67,11 @@ private slots:
 	void testScript();
 	void applyScript();
 	void quit();
+	void textChanged();
    
 
 private:
-   
+   bool changeFlag;
    
 
     QAction *actionSave,

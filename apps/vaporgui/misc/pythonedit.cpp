@@ -25,14 +25,15 @@ using namespace VAPoR;
 PythonEdit::PythonEdit(QWidget *parent, QString varname)
     : QDialog(parent)
 {
+	changeFlag = false;
 	QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    	QHBoxLayout* hlayout = new QHBoxLayout();
+    QHBoxLayout* hlayout = new QHBoxLayout();
 	QHBoxLayout* buttonLayout1 = new QHBoxLayout();
     
-    	setWindowTitle("Python Script Editor");
+    setWindowTitle("Python Script Editor");
 
-    	pythonEdit = new QTextEdit(this);
-    	pythonEdit->setFocus();
+    pythonEdit = new QTextEdit(this);
+    pythonEdit->setFocus();
 	pythonEdit->setAcceptRichText(false);
 	inputVars2 = new QComboBox(this);
 	hlayout->addWidget(inputVars2);
@@ -68,13 +69,10 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	outputVars2->setFocusPolicy(Qt::NoFocus);
 	outputVars3->setFocusPolicy(Qt::NoFocus);
 	
-	QPushButton* settingsButton = new QPushButton("Settings",this);
-	buttonLayout1->addWidget(settingsButton);
 	QPushButton* saveButton = new QPushButton("Save to File",this);
 	buttonLayout1->addWidget(saveButton);
 	QPushButton* loadButton = new QPushButton("Load from File",this);
 	buttonLayout1->addWidget(loadButton);
-	
 	QPushButton* testButton = new QPushButton("Test",this);
 	buttonLayout1->addWidget(testButton);
 	QPushButton* applyButton = new QPushButton("Apply",this);
@@ -85,6 +83,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	connect(testButton, SIGNAL(pressed()), this, SLOT(testScript()));
 	connect(applyButton, SIGNAL(pressed()), this, SLOT(applyScript()));
 	connect(quitButton, SIGNAL(pressed()), this, SLOT(quit()));
+	connect(pythonEdit, SIGNAL(textChanged()), this, SLOT(textChanged()) );
 
 	
 	mainLayout->addLayout(hlayout);
@@ -130,8 +129,6 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 
 using namespace VetsUtil;
 using namespace VAPoR;
-static int numargs=0;
-
 
 void PythonEdit::addInputVar2(){
 	//Create a QStringList with all the MD 2D variables
@@ -190,6 +187,7 @@ void PythonEdit::delInputVar2(){
 		int location = inputVars2->findText(text);
 		if (location < 1 ) return;
 		inputVars2->removeItem(location);
+		changeFlag = true;
 	}
 }
 void PythonEdit::delOutputVar2(){
@@ -206,6 +204,7 @@ void PythonEdit::delOutputVar2(){
 		int location = outputVars2->findText(text);
 		if (location < 1 ) return;
 		outputVars2->removeItem(location);
+		changeFlag = true;
 	}
 	
 }
@@ -237,6 +236,7 @@ void PythonEdit::addInputVar3(){
 		int location = inputVars3->findText(text);
 		if (location > 0 ) return;
 		inputVars3->insertItem(2,text);
+		changeFlag = true;
 	}
 }
 void PythonEdit::addOutputVar3(){
@@ -258,6 +258,7 @@ void PythonEdit::addOutputVar3(){
 		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++)
 			if (ds->getMetadataVarName2D(i) == text.toStdString()) return;
 		outputVars3->insertItem(2,text);
+		changeFlag = true;
 		
 	}
 }
@@ -276,6 +277,7 @@ void PythonEdit::delInputVar3(){
 		int location = inputVars3->findText(text);
 		if (location < 1) return;
 		inputVars3->removeItem(location);
+		changeFlag = true;
 	}
 }
 void PythonEdit::delOutputVar3(){
@@ -293,6 +295,7 @@ void PythonEdit::delOutputVar3(){
 		int location = outputVars3->findText(text);
 		if (location < 1 ) return;
 		outputVars3->removeItem(location);
+		changeFlag = true;
 	}
 }
 void PythonEdit::inputVarsActive3(int index){
@@ -313,6 +316,38 @@ void PythonEdit::testScript(){
 
 	DataMgr* dataMgr = ds->getDataMgr();
 	const string script = pythonEdit->toPlainText().toStdString();
+	
+	if (script.length()==0){
+		MessageReporter::errorMsg(" No python script specified");
+		return;
+	}
+	//check that all input and output variables appear in script:
+	QString prog = pythonEdit->toPlainText();
+	for (int i = 2; i< inputVars2->count()-3; i++){ 
+		if (!prog.contains(inputVars2->itemText(i))) {
+			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars2->itemText(i).toAscii().data());
+			return;
+		}
+	}
+	for (int i = 2; i< inputVars3->count()-3; i++){ 
+		if (!prog.contains(inputVars3->itemText(i))) {
+			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars3->itemText(i).toAscii().data());
+			return;
+		}
+	}
+
+	for (int i = 2; i< outputVars2->count()-3; i++){ 
+		if (!prog.contains(outputVars2->itemText(i))) {
+			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars2->itemText(i).toAscii().data());
+			return;
+		}
+	}
+	for (int i = 2; i< outputVars3->count()-3; i++){ 
+		if (!prog.contains(outputVars3->itemText(i))) {
+			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars3->itemText(i).toAscii().data());
+			return;
+		}
+	}
 	vector<string> inVars2, outVars2, inVars3, outVars3;
 	for (int i = 2; i<inputVars3->count()-3; i++) inVars3.push_back(inputVars3->itemText(i).toStdString());
 	for (int i = 2; i<outputVars3->count()-3; i++) outVars3.push_back(outputVars3->itemText(i).toStdString());
@@ -415,5 +450,21 @@ void PythonEdit::applyScript(){
 	close();
 }
 void PythonEdit::quit(){
+	if(changeFlag){
+		QMessageBox msgBox;
+		msgBox.setText("The script has been changed.");
+		msgBox.setInformativeText("Do you want to discard your changes?");
+		msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Discard | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Discard);
+		int ret = msgBox.exec();
+		if(ret == QMessageBox::Cancel) return;
+		if(ret == QMessageBox::Apply) {
+			applyScript();
+			return;
+		}
+	}
 	close();
+}
+void PythonEdit::textChanged(){
+	changeFlag = true;
 }
