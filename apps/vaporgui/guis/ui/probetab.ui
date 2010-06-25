@@ -34,9 +34,9 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLabel" name="textLabel1">
        <property name="text">
@@ -286,11 +286,11 @@ window toolbar.</string>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QHBoxLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <layout class="QVBoxLayout">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QHBoxLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <spacer name="spacer140">
               <property name="orientation">
@@ -335,6 +335,64 @@ Probe</string>
                <bool>true</bool>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="_2">
+              <item>
+               <widget class="QLabel" name="textLabel1_13">
+                <property name="toolTip">
+                 <string>Select the refinement level (resolution) of the current probe/contour plane</string>
+                </property>
+                <property name="text">
+                 <string>LOD</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="lodCombo">
+                <property name="toolTip">
+                 <string>Select the refinement level (resolution) of the current probe/contour plane</string>
+                </property>
+                <property name="maxCount">
+                 <number>5</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>1:1</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>10:1</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>100:1</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
              <spacer name="spacer111">
@@ -2331,8 +2389,8 @@ Domain</string>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>20</height>
+              <width>415</width>
+              <height>13</height>
              </size>
             </property>
            </spacer>
@@ -2760,8 +2818,8 @@ level.</string>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>20</height>
+              <width>415</width>
+              <height>13</height>
              </size>
             </property>
            </spacer>
@@ -2867,8 +2925,8 @@ below  the cross-section view.</string>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>16</height>
+              <width>415</width>
+              <height>13</height>
              </size>
             </property>
            </spacer>
@@ -3425,8 +3483,8 @@ change the selection in the probe</string>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>20</height>
+              <width>415</width>
+              <height>13</height>
              </size>
             </property>
            </spacer>

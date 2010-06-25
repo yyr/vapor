@@ -262,6 +262,43 @@ is controlled by the values in this
              </spacer>
             </item>
             <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>LOD</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="lodCombo">
+              <item>
+               <property name="text">
+                <string>1:1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>100:1</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QLabel" name="textLabel1_9">
               <property name="text">
                <string>Refinement</string>
@@ -390,7 +427,7 @@ is controlled by the values in this
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>48</width>
+                <width>18</width>
                 <height>21</height>
                </size>
               </property>

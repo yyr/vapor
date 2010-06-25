@@ -37,9 +37,9 @@
   <property name="whatsThis">
    <string>This panel allows controls the rendering of isosurfaces</string>
   </property>
-  <layout class="QHBoxLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLabel" name="textLabel1_4">
        <property name="text">
@@ -279,11 +279,17 @@ create new isosurface instances.</string>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QHBoxLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <layout class="QVBoxLayout">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QLabel" name="textLabel1">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>Isosurface Selection</string>
             </property>
@@ -296,7 +302,7 @@ create new isosurface instances.</string>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <spacer name="spacer50">
               <property name="orientation">
@@ -309,6 +315,43 @@ create new isosurface instances.</string>
                <size>
                 <width>20</width>
                 <height>21</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>LOD</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="lodCombo">
+              <item>
+               <property name="text">
+                <string>1:1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>100:1</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
                </size>
               </property>
              </spacer>
@@ -554,7 +597,7 @@ how the histogram is scaled.</string>
               <widget class="MappingFrame" name="isoSelectionFrame" native="true">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>300</width>
                  <height>120</height>
                 </size>
                </property>
@@ -882,6 +925,12 @@ specified range.</string>
           </item>
           <item>
            <spacer name="spacer213">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -890,7 +939,7 @@ specified range.</string>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
+              <width>297</width>
               <height>20</height>
              </size>
             </property>
@@ -898,6 +947,12 @@ specified range.</string>
           </item>
           <item>
            <widget class="QLabel" name="textLabel1_2">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>Isosurface through specific point</string>
             </property>

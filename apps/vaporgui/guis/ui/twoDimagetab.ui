@@ -34,9 +34,9 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QHBoxLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLabel" name="textLabel1">
        <property name="text">
@@ -51,7 +51,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout">
+      <layout class="QHBoxLayout" name="topQHBox">
        <item>
         <widget class="InstanceTable" name="instanceTable" native="true">
          <property name="minimumSize">
@@ -266,7 +266,7 @@ create new 2D planar instances.</string>
       </spacer>
      </item>
      <item>
-      <widget class="QFrame" name="frame11">
+      <widget class="QFrame" name="mainFrame">
        <property name="whatsThis">
         <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  In image mode, geo-referenced images are displayed. This panel controls positioning and color-mapping of the planar region and, in data mode, allows querying variable values and flow seed placement.</string>
        </property>
@@ -276,11 +276,11 @@ create new 2D planar instances.</string>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QHBoxLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <layout class="QVBoxLayout">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QHBoxLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <spacer name="spacer59_3">
               <property name="orientation">
@@ -292,6 +292,48 @@ create new 2D planar instances.</string>
               <property name="sizeHint" stdset="0">
                <size>
                 <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>LOD:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="lodCombo">
+              <item>
+               <property name="text">
+                <string>1:1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>100:1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>1000:1</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>17</width>
                 <height>20</height>
                </size>
               </property>
@@ -424,7 +466,7 @@ create new 2D planar instances.</string>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>39</width>
+                <width>18</width>
                 <height>20</height>
                </size>
               </property>
@@ -2267,7 +2309,7 @@ below the contour view.</string>
             </property>
             <layout class="QHBoxLayout">
              <item>
-              <layout class="QVBoxLayout">
+              <layout class="QVBoxLayout" name="textureQVBox">
                <item>
                 <widget class="QLabel" name="textLabel3">
                  <property name="text">
