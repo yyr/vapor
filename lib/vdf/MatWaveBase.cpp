@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cmath>
 #include <cassert>
 #include "vapor/MatWaveBase.h"
@@ -124,18 +125,22 @@ MatWaveBase::_wave_len_validate (
 	int m;
 	int n1;
 	int m1;
-	float di;
+	double di;
 
-	*val = 0;
-	di = (float) sigInLen / (float) waveLength;
+	*val = 1;
+	di = (double) sigInLen / (double) waveLength;
 	if (di < 1) {
 		*lev = 0;
 		*val = 0;
 		return;
 	}
+	*lev = (int) (log((double) sigInLen / (double) (waveLength-1)) / log(2.0));
+	if (*lev < 1) *lev = 0;
+
+#ifdef	DEAD
 	else {
-		n = (int) floor (log (di) / log ((float) 2));
-		m = (int) ceil (log (di) / log ((float) 2));
+		n = (int) floor (log (di) / log ((double) 2));
+		m = (int) ceil (log (di) / log ((double) 2));
 		if ((((long) 1 << n) * waveLength == sigInLen)
 		|| (((long) 1 << m) * waveLength == sigInLen)) {
 			*lev = m + 1;
@@ -144,8 +149,8 @@ MatWaveBase::_wave_len_validate (
 			*lev = n + 1; 
 		}
 		*val = 1;
-		n1 = (int) floor (log ((float)waveLength) / log ((float) 2));
-		m1 = (int) ceil (log ((float)waveLength) / log ((float) 2));
+		n1 = (int) floor (log ((double)waveLength) / log ((double) 2));
+		m1 = (int) ceil (log ((double)waveLength) / log ((double) 2));
 
 		if (n1 != m1) {
 			assert( *lev > 0);
@@ -153,6 +158,7 @@ MatWaveBase::_wave_len_validate (
 		}
 		return;
 	}
+#endif
 }
 
 WaveFiltBase *MatWaveBase::_create_wf(const string &wname) const {
