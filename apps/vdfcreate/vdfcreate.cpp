@@ -7,7 +7,6 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/MetadataSpherical.h>
-#include <vapor/WRF.h>
 #include <vapor/CFuncs.h>
 #include <vapor/WaveCodecIO.h>
 #ifdef WIN32
@@ -29,7 +28,7 @@ struct opt_t {
 	int	nfilter;
 	int	nlifting;
 	double deltat;
-	char * startt;
+	double startt;
 	char *comment;
 	char *coordsystem;
 	char *gridtype;
@@ -52,18 +51,18 @@ struct opt_t {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"dimension",1, "512x512x512",	"Data volume dimensions expressed in "
 		"grid points (NXxNYxNZ)"},
-	{"startt",      1,      "", "Starting time stamp, where time has the form : yyyy-mm-dd_hh:mm:ss"},
+	{"startt", 1, "0.0", "Time, in user coordinates, of the first time step"},
 	{"numts",	1, 	"1",			"Number of timesteps in the data set"},
-	{"deltat",  1,  "1",   "Increment between time stamps expressed in user "
+	{"deltat",  1,  "1.0",   "Increment between time steps expressed in user "
 		"time coordinates"},
 	{"bs",		1, 	"-1x-1x-1",		"Internal storage blocking factor "
 		"expressed in grid points (NXxNYxNZ). Defaults: 32x32x32 (VDC type 1), "
 		"64x64x64 (VDC type 2"},
 	{"level",	1, 	"0",		"Number of approximation levels in hierarchy. "
 		"0 => no approximations, 1 => one approximation, and so on"},
-	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
-	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
-	{"comment",	1,	"",				"Top-level comment to be included in VDF"},
+	{"nfilter",	1, 	"1","Number of wavelet filter coefficients (VDC 1 only)"},
+	{"nlifting",1, 	"1","Number of wavelet lifting coefficients (VDC 1 only)"},
+	{"comment",	1,	"",	"Top-level comment to be included in VDF"},
 	{"gridtype",	1,	"regular",	"Data grid type "
 		"(regular|layered|stretched|block_amr)"}, 
 	{"usertimes",	1,	"",	"Path to a file containing a whitespace "
@@ -105,7 +104,7 @@ OptionParser::Option_T	get_options[] = {
 	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
-	{"startt", VetsUtil::CvtToString, &opt.startt, sizeof(opt.startt)},
+	{"startt", VetsUtil::CvtToDouble, &opt.startt, sizeof(opt.startt)},
 	{"deltat", VetsUtil::CvtToDouble, &opt.deltat, sizeof(opt.deltat)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
@@ -234,19 +233,6 @@ int	main(int argc, char **argv) {
 			}
 		}
 
-		//
-		// cratios should be caculated based on maximum compression
-		// rate possible. Values chosen below may fail if non default
-		// block size or wname are used
-		//
-		if (cratios.size() == 0) {
-			cratios.push_back(1);
-			cratios.push_back(10);
-			cratios.push_back(100);
-			cratios.push_back(500);
-		}
-
-
 		file = new MetadataVDC(dim,bs,cratios,wname,wmode);
 	}
 	else if (s.compare("spherical") == 0) {
@@ -279,17 +265,6 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (strlen(opt.startt) > 0) {
-		TIME64_T seconds;
-		if(WRF::WRFTimeStrToEpoch(opt.startt,&seconds) < 0)
-			exit(1);
-		vector <double> vec(1,seconds);
-		if(file->SetTSUserTime(0,vec) < 0) {
-			exit(1);
-		}
-	}
-
-
 	if (strlen(opt.usertimes)) {
 		vector <double> usertimes;
 		if (getUserTimes(opt.usertimes, usertimes)<0) {
@@ -308,15 +283,13 @@ int	main(int argc, char **argv) {
 		if (file->SetNumTimeSteps(opt.numts) < 0) {
 			exit(1);
 		}
-
-		vector <double> vecbase;
-		double starttime = file->GetTSUserTime(0);
-		for (size_t t=1; t < opt.numts; t++) {
-			starttime += opt.deltat;
-			vector <double> vec(1,starttime);
+		double usertime = opt.startt;
+		for (size_t t=0; t < opt.numts; t++) {
+			vector <double> vec(1,usertime);
 			if(file->SetTSUserTime(t,vec) < 0) {
 				exit(1);
 			}
+			usertime += opt.deltat;
 		}
 	}
 
