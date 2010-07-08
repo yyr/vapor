@@ -24,11 +24,21 @@ data volume contained in a VDC (e.g. path names to files containing a
 particular solution variable).
 
 Data volumes in a VDC are represented hiearchically: each volume may
-be accessed at varying, power-of-two coarsened approximations. 
+be accessed at varying, power-of-two coarsened approximations. Moreover,
+two types of VDC files are supported: VDC1 and VDC2. The latter, VDC2,
+supports level-of-detail access in addtion to hierarchical access.
 
 =head1 OPTIONS
 
 =over 4
+
+=item -cratios E<lt>vector<gt>
+
+This option (VDC 2 only) specifies a colon delimited list of
+compression ratios. The minimum compression ratio is 1 (indicating no
+compression). The maximum is determined by the wavelet familiy (See
+B<-wname>) and the block dimension (See B<-bs>).
+
 
 =item -dimension E<lt>NXxNYxNZE<gt>
 
@@ -39,19 +49,16 @@ bounds of the second fastest varying dimension, and so on.
 
 =item -startt E<lt>timeE<gt>
 
-Starting time.  This is the date and time, which corresponds to the first
-time step in the VDC (time step 0). 
-
-The format of the I<time> argument is I<yyyy-mm-dd_hh:mm:ss>, where
-I<yyyy> is the four-digit year,  I<mm> is the two-digit month (January ==
-01), I<dd> is the day of the month, I<hh> is the hour, I<mm> is the minute,
-and I<ss> is the second.
+Starting time in user time coordinates. This option specifies the time
+in the user defined coordinate system for the first time step in
+the VDC. Correct specification of user time for each time step is 
+necessary for accurate time-dependent fields (e.g. velocity). 
 
 =item -deltat E<lt>numberE<gt>
 
-Time in seconds between successive time steps.  This option specifies
-a uniform, integer sampling interval between successive time steps in
-seconds. 
+Time in user coordinates between successive time steps.  This option specifies
+a uniform, sampling interval between successive time steps in
+the user coordinate system for time. 
 
 =item -numts E<lt>nE<gt>
 
@@ -62,7 +69,7 @@ the .vdf file, but not more. The default number of time steps is one.
 =item -bs E<lt>NXxNYxNZE<gt>
 
 The internal storage blocking factor expressed in voxels. In general this 
-should not be changed from the default value, 32x32x32.
+should not be changed from the default value.
 
 =item -level E<lt>levelE<gt>
 
@@ -114,8 +121,7 @@ of monotonically increasing user times. Each I<user time> is a unitless
 floating point value indicating the time associated with a time step. User
 times are required for correct calculation of time-dependent algorithms
 such as unsteady flow visualization. If this option is present, the
-B<-numts> option is ignored. If no user time information the default
-the time step is used as the user time.
+B<-numts>, B<-deltat>, and B<startt> options are ignored. 
 
 =item -coordsystem E<lt>typeE<gt>
 
@@ -189,6 +195,15 @@ in the VDF. The default is to include no 2D XZ-plane variables.
 
 A colon delimited list of 2D, YZ-plane field variable names to be included 
 in the VDF. The default is to include no 2D YZ-plane variables.
+
+=item -vdc2 
+
+Generate a .vdf file for a VDC version 2 data collection.
+
+=item -wname E<lt>wave_name<gt>
+
+Wavelet family name used for compression (VDC2 only). See the vdfcreate
+help message for a list of supported wavelets.
 
 =item -help 
 
