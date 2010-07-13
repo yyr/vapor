@@ -48,7 +48,7 @@ struct opt_t {
 	int	ts;
 	char *varname;
 	int level;
-	int clevel;
+	int lod;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -65,7 +65,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0 => coarsest, 1 => "
 		"next refinement, etc. -1 => all levels defined by the .vdf file"},
-	{"clevel",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
+	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
 		"next refinement, etc. -1 => all levels defined by the .vdf file"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
@@ -84,7 +84,7 @@ OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
-	{"clevel", VetsUtil::CvtToInt, &opt.clevel, sizeof(opt.clevel)},
+	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -290,7 +290,7 @@ void	process_volume_vdc2(
 	float *slice = new float[dim3d[0]*dim3d[1]];
 
 	int rc;
-	rc = wcwriter->OpenVariableWrite(opt.ts,opt.varname, opt.level, opt.clevel);
+	rc = wcwriter->OpenVariableWrite(opt.ts,opt.varname, opt.level, opt.lod);
 	if (rc<0) {
 		MyBase::SetErrMsg(
 			"Failed to open variable \"%s\" for writing", opt.varname
@@ -325,7 +325,6 @@ void	process_volume_vdc2(
 	*write_timer = wcwriter->GetWriteTimer();
 	*xform_timer = wcwriter->GetXFormTimer();
 }
-
 
 void	process_volume_vdc1(
 	WaveletBlock3DBufWriter *wbwriter,
@@ -404,22 +403,19 @@ void	process_volume_vdc1(
 	*xform_timer = wbwriter->GetXFormTimer();
 }
 
-void	process_region(
-	WaveletBlock3DRegionWriter *regwriter,
+float *read_region(
+	VDFIOBase *vdfio,
 	FILE	*fp, 
 	Metadata::VarType_T vtype,
-	float *read_timer,
-	float *write_timer,
-	float *xform_timer
+	size_t min[3],
+	size_t max[3],
+	float *read_timer
 ) {
-
 
 	// Get the dimensions of the volume
 	//
-	const size_t *dim = regwriter->GetDimension();
+	const size_t *dim = vdfio->GetDimension();
 
-	size_t min[3];
-	size_t max[3];
 	size_t dim3d[3];
 
 	switch (vtype) {
@@ -434,16 +430,16 @@ void	process_region(
 	case Metadata::VAR2D_XZ:
 		min[0] = opt.xregion.min == (size_t) -1 ? 0 : opt.xregion.min;
 		max[0] = opt.xregion.max == (size_t) -1 ? dim[0] - 1 : opt.xregion.max;
-		min[1] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
-		max[1] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
-		min[2] = max[2] = 0;
+		min[2] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
+		max[2] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
+		min[1] = max[1] = 0;
 	break;
 	case Metadata::VAR2D_YZ:
-		min[0] = opt.yregion.min == (size_t) -1 ? 0 : opt.yregion.min;
-		max[0] = opt.yregion.max == (size_t) -1 ? dim[1] - 1 : opt.yregion.max;
-		min[1] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
-		max[1] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
-		min[2] = max[2] = 0;
+		min[1] = opt.yregion.min == (size_t) -1 ? 0 : opt.yregion.min;
+		max[1] = opt.yregion.max == (size_t) -1 ? dim[1] - 1 : opt.yregion.max;
+		min[2] = opt.zregion.min == (size_t) -1 ? 0 : opt.zregion.min;
+		max[2] = opt.zregion.max == (size_t) -1 ? dim[2] - 1 : opt.zregion.max;
+		min[0] = max[0] = 0;
 	break;
 	case Metadata::VAR3D:
 		min[0] = opt.xregion.min == (size_t) -1 ? 0 : opt.xregion.min;
@@ -457,16 +453,6 @@ void	process_region(
 	break;
 
 	}
-
-	int rc;
-	rc = regwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level);
-	if (rc<0) {
-		MyBase::SetErrMsg(
-			"Failed to open variable \"%s\" for writing", opt.varname
-		);
-		exit(1);
-	}
-
 	
 	for(int i=0; i<3; i++) {
 		dim3d[i] = max[i]-min[i]+1;
@@ -477,24 +463,52 @@ void	process_region(
 	//
 	size_t size = dim3d[0]*dim3d[1]*dim3d[2];
 
-	float *buf = new float[size];
+	float *region = new float[size];
 
 	//
 	// Translate the volume one slice at a time
 	//
-	float *slice = buf;
-	*read_timer = 0.0;
+	float *slice = region;
+	int rc;
 	for(int z=0; z<dim3d[2]; z++) {
 
 		if (z%10== 0 && ! opt.quiet) {
 			cout << "Reading slice # " << z << endl;
 		}
 
-		rc = read_next_slice(regwriter, dim3d, fp, slice, read_timer);
+		rc = read_next_slice(vdfio, dim3d, fp, slice, read_timer);
 		if (rc<0) exit(1);
 
 		slice += dim3d[0]*dim3d[1];
 	}
+
+	return(region);
+}
+
+
+void	process_region(
+	WaveletBlock3DRegionWriter *regwriter,
+	FILE	*fp, 
+	Metadata::VarType_T vtype,
+	float *read_timer,
+	float *write_timer,
+	float *xform_timer
+) {
+
+	int rc;
+	rc = regwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to open variable \"%s\" for writing", opt.varname
+		);
+		exit(1);
+	}
+
+
+	float *buf = NULL;
+	size_t min[3], max[3];
+
+	buf = read_region(regwriter, fp, vtype, min, max, read_timer);
 
 	regwriter->WriteRegion((float *) buf, min, max);
 	if (regwriter->GetErrCode() != 0) {
@@ -504,6 +518,8 @@ void	process_region(
 		exit(1);
 	}
 
+	delete [] buf;
+
 	rc = regwriter->CloseVariable();
 	if (rc<0) {
 		MyBase::SetErrMsg("Error closing output file"); 
@@ -512,6 +528,50 @@ void	process_region(
 
 	*write_timer = regwriter->GetWriteTimer();
 	*xform_timer = regwriter->GetXFormTimer();
+}
+
+void	process_region_vdc2(
+	WaveCodecIO *wcwriter,
+	FILE	*fp, 
+	Metadata::VarType_T vtype,
+	float *read_timer,
+	float *write_timer,
+	float *xform_timer
+) {
+
+	int rc;
+	rc = wcwriter->OpenVariableWrite(opt.ts,opt.varname, opt.level, opt.lod);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to open variable \"%s\" for writing", opt.varname
+		);
+		exit(1);
+	}
+
+
+	float *buf = NULL;
+	size_t min[3], max[3];
+
+	buf = read_region(wcwriter, fp, vtype, min, max, read_timer);
+
+	wcwriter->WriteRegion(buf, min, max);
+	if (wcwriter->GetErrCode() != 0) {
+		MyBase::SetErrMsg(
+			"Failed to write region of variable \"%s\"", opt.varname
+		); 
+		exit(1);
+	}
+
+	delete [] buf;
+
+	rc = wcwriter->CloseVariable();
+	if (rc<0) {
+		MyBase::SetErrMsg("Error closing output file"); 
+		exit(1);
+	}
+
+	*write_timer = wcwriter->GetWriteTimer();
+	*xform_timer = wcwriter->GetXFormTimer();
 }
 
 void ErrMsgCBHandler(const char *msg, int) {
@@ -636,9 +696,19 @@ int	main(int argc, char **argv) {
 		}
 	}
 	else {
-		process_volume_vdc2(
-			wcwriter, fp, vtype, &read_timer, &write_timer, &xform_timer
-		);
+		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] &&
+			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1 ) {
+
+			process_volume_vdc2(
+				wcwriter, fp, vtype, &read_timer, &write_timer, &xform_timer
+			);
+		}
+		else {
+			process_region_vdc2(
+				wcwriter, fp, vtype, 
+				&read_timer, &write_timer, &xform_timer
+			);
+		}
 	}
 
 

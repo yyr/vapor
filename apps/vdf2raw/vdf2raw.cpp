@@ -243,6 +243,78 @@ void	process_volume_vdc2(
 
 	delete wcreader;
 }
+
+void	process_region_vdc2(
+	MetadataVDC &metadata, FILE *fp,  Metadata::VarType_T vtype,
+	size_t min[3], size_t max[3],
+	double *read_timer, double *xform_timer, double *write_timer,
+	double *timer
+) {
+	size_t	size;
+	float	*buf;
+	WaveCodecIO *wcreader = NULL;
+	size_t dim[3];
+	double t0, t1;
+
+	wcreader = new WaveCodecIO(metadata);
+	if (wcreader->GetErrCode() != 0) {
+		exit(1);
+	}
+	if (wcreader->OpenVariableRead(opt.ts, opt.varname,opt.level, opt.lod) < 0) {
+		exit(1);
+	} 
+	wcreader->GetDim(dim, opt.level);
+
+	t0 = wcreader->GetTime();
+	*timer = *write_timer = 0.0;
+
+	size_t dim3d[3] = {0,0,0};
+
+	switch (vtype) {
+	case Metadata::VAR2D_XY:
+	case Metadata::VAR2D_XZ:
+	case Metadata::VAR2D_YZ:
+		dim3d[0] = max[0] - min[0] + 1;
+		dim3d[1] = max[1] - min[1] + 1;
+		dim3d[2] = 1;
+	break;
+	case Metadata::VAR3D:
+		dim3d[0] = max[0] - min[0] + 1;
+		dim3d[1] = max[1] - min[1] + 1;
+		dim3d[2] = max[2] - min[2] + 1;
+	break;
+	default:
+	break;
+
+	}
+	
+	size = dim3d[0] * dim3d[1] * dim3d[2];
+	buf = new float[size];
+	assert (buf != NULL);
+
+	if (wcreader->ReadRegion(min, max, buf) < 0) {
+		exit(1);
+	} 
+
+	t1 = wcreader->GetTime();
+	if (fwrite(buf, sizeof(*buf), size, fp) != size) {
+		MyBase::SetErrMsg("Could not write to output file : %M");
+		exit(1);
+	}
+	*write_timer += wcreader->GetTime() - t1;
+
+	if (! opt.quiet) {
+		fprintf(stdout, "Wrote %dx%dx%d volume\n", (int) dim3d[0],(int) dim3d[1],(int) dim3d[2]);
+	}
+
+	*timer = wcreader->GetTime() - t0;
+	*xform_timer = wcreader->GetXFormTimer();
+	*read_timer = wcreader->GetReadTimer();
+	wcreader->CloseVariable();
+
+	delete wcreader;
+}
+
 void	process_region(
 	MetadataVDC &metadata, FILE *fp, Metadata::VarType_T vtype,
 	double *read_timer, double *xform_timer, double *write_timer,
@@ -483,9 +555,20 @@ int	main(int argc, char **argv) {
 		}
 	}
 	else {
-		process_volume_vdc2(
-			metadata, fp, vtype, &read_timer, &xform_timer, &write_timer, &timer
-		);
+		if (min[0] == min[1] && min[1] == min[2] && min[2] == max[0] && 
+			max[0] == max[1]  && max[1] == max[2] && max[2] == (size_t) -1) {
+
+			process_volume_vdc2(
+				metadata, fp, vtype, 
+				&read_timer, &xform_timer, &write_timer, &timer
+			);
+		}
+		else {
+			process_region_vdc2(
+				metadata, fp, vtype, min, max,
+				&read_timer, &xform_timer, &write_timer, &timer
+			);
+		}
 	}
 
 	fclose(fp);
