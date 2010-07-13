@@ -458,8 +458,8 @@ int	WaveletBlock3DRegionWriter::_WriteRegion3D(
 	}
 
 	// Bounds (in blocks) of region relative to global volume
-	VDFIOBase::MapVoxToBlk(min, _volBMin);
-	VDFIOBase::MapVoxToBlk(max, _volBMax);
+	VDFIOBase::MapVoxToBlk(min, _volBMin, _reflevel);
+	VDFIOBase::MapVoxToBlk(max, _volBMax, _reflevel);
 
 	// handle case where there is no transform
 	//
@@ -552,8 +552,8 @@ int	WaveletBlock3DRegionWriter::_WriteRegion2D(
         min3d[0] = min[0]; min3d[1] = min[1];
         max3d[0] = max[0]; max3d[1] = max[1];
 		// Bounds (in blocks) of region relative to global volume
-		VDFIOBase::MapVoxToBlk(min3d, volBMin3d);
-		VDFIOBase::MapVoxToBlk(max3d, volBMax3d);
+		VDFIOBase::MapVoxToBlk(min3d, volBMin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, volBMax3d, _reflevel);
 		_volBMin[0] = volBMin3d[0]; _volBMin[1] = volBMin3d[1];
 		_volBMax[0] = volBMax3d[0]; _volBMax[1] = volBMax3d[1];
 	break;
@@ -569,8 +569,8 @@ int	WaveletBlock3DRegionWriter::_WriteRegion2D(
         min3d[0] = min[0]; min3d[2] = min[1];
         max3d[0] = max[0]; max3d[2] = max[1];
 		// Bounds (in blocks) of region relative to global volume
-		VDFIOBase::MapVoxToBlk(min3d, volBMin3d);
-		VDFIOBase::MapVoxToBlk(max3d, volBMax3d);
+		VDFIOBase::MapVoxToBlk(min3d, volBMin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, volBMax3d, _reflevel);
 		_volBMin[0] = volBMin3d[0]; _volBMin[1] = volBMin3d[2];
 		_volBMax[0] = volBMax3d[0]; _volBMax[1] = volBMax3d[2];
 
@@ -586,8 +586,8 @@ int	WaveletBlock3DRegionWriter::_WriteRegion2D(
         min3d[1] = min[0]; min3d[2] = min[1];
         max3d[1] = max[0]; max3d[2] = max[1];
 		// Bounds (in blocks) of region relative to global volume
-		VDFIOBase::MapVoxToBlk(min3d, volBMin3d);
-		VDFIOBase::MapVoxToBlk(max3d, volBMax3d);
+		VDFIOBase::MapVoxToBlk(min3d, volBMin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, volBMax3d, _reflevel);
 		_volBMin[0] = volBMin3d[1]; _volBMin[1] = volBMin3d[2];
 		_volBMax[0] = volBMax3d[1]; _volBMax[1] = volBMax3d[2];
 	break;

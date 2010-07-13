@@ -111,7 +111,8 @@ int WaveCodecIO::_WaveCodecIO() {
 	}
 	const size_t *bs =  VDFIOBase::GetBlockSize();
 
-	_block = new float[bs[0]*bs[1]*bs[2]];
+	_block = NULL;
+	_blockReg = NULL;
 
 	//
 	// Set up the default compressor - a 3D one.
@@ -181,6 +182,7 @@ WaveCodecIO::~WaveCodecIO() {
 	if (_compressor2DXZ) delete _compressor2DXZ;
 	if (_compressor2DYZ) delete _compressor2DYZ;
 	if (_block) delete [] _block;
+	if (_blockReg) delete [] _blockReg;
 	if (_sliceBuffer) delete [] _sliceBuffer;
 }
 
@@ -421,6 +423,12 @@ int WaveCodecIO::BlockReadRegion(
 	size_t bs[3];
 	size_t bs_p[3];	// packed copy of bs
 
+	if (unblock && ! _block) {
+		GetBlockSize(bs, -1);
+		size_t sz = bs[0]*bs[1]*bs[2];
+		_block = new float [sz];
+	}
+
 	GetBlockSize(bs, _reflevel);
 
 	_FillPackedCoord(_vtype, bmin, bmin_p, 0);
@@ -514,6 +522,137 @@ int WaveCodecIO::BlockReadRegion(
 	return(0);
 }
 
+int WaveCodecIO::ReadRegion(
+	const size_t min[3], const size_t max[3], float *region
+) {
+	if (! _isOpen || _writeMode) {
+		SetErrMsg("Variable not open for reading\n");
+		return(-1);
+	}
+
+	size_t min_up[3], max_up[3];	// unpacked copy of min, max
+	_UnpackCoord(_vtype, min, min_up, 0);
+	_UnpackCoord(_vtype, max, max_up, 0);
+	if (! IsValidRegion(min_up, max_up, _reflevel)) {
+		SetErrMsg(
+			"Invalid region : (%d %d %d) (%d %d %d)", 
+			min[0], min[1], min[2], max[0], max[1], max[2]
+		);
+		return(-1);
+	}
+
+
+	//
+	// unpacked and packed coordinates, respectively, of region in blocks
+	//
+	size_t bmin_up[3], bmax_up[3];
+	size_t bmin_p[3], bmax_p[3];
+
+	// packed coordinates of region 
+	size_t min_p[3], max_p[3];
+
+	// MapVoxToBlk operates on unpacked coordinates
+	//
+	MapVoxToBlk(min_up, bmin_up, _reflevel);
+	MapVoxToBlk(max_up, bmax_up, _reflevel);
+
+	_PackCoord(_vtype, bmin_up, bmin_p, 0);
+	_PackCoord(_vtype, bmax_up, bmax_p, 0);
+
+	//
+	// fill in 3rd dimension (no-op if 3D data)
+	//
+	_FillPackedCoord(_vtype, min, min_p, 0);
+	_FillPackedCoord(_vtype, max, max_p, 0);
+
+	//
+	// Dimension of region in voxels
+	//
+	size_t nx = max_p[0] - min_p[0] + 1; 
+	size_t ny = max_p[1] - min_p[1] + 1; 
+
+	size_t bs[3];
+	size_t bs_p[3];	// packed copy of bs
+
+	if (! _blockReg) {
+		GetBlockSize(bs, -1);
+		size_t sz = bs[0]*bs[1]*bs[2];
+		_blockReg = new float [sz];
+	}
+
+	GetBlockSize(bs, _reflevel);
+	_PackCoord(_vtype, bs, bs_p, 1);
+
+
+	int rc;
+	for (int bz=bmin_p[2]; bz<=bmax_p[2]; bz++) {
+	for (int by=bmin_p[1]; by<=bmax_p[1]; by++) {
+	for (int bx=bmin_p[0]; bx<=bmax_p[0]; bx++) {
+		size_t b_p[] = {bx,by,bz};
+
+		//
+		// Read current block
+		//
+		rc = BlockReadRegion(b_p, b_p, _blockReg, 0);
+		if (rc<0) return(-1);
+
+		//
+		// Now copy current block to region, clipping block to 
+		// region bounds
+		//
+
+		// Packed voxel coordinates of subregion within current 
+		// block relative to volume
+		//
+		size_t minv_p[3], maxv_p[3];
+
+		// Packed voxel coordinates of subregion within current 
+		// block relative to current block
+		//
+		size_t minb_p[3], maxb_p[3];
+
+		//
+		// Set up coordinates for copy
+		//
+		for (int i=0; i<3; i++) {
+
+			minb_p[i] = 0;
+			maxb_p[i] = bs_p[i]-1;
+
+			minv_p[i] = b_p[i] * bs_p[i];
+			maxv_p[i] = (b_p[i]+1) * bs_p[i] - 1;
+
+			// Clip to region bounds
+			//
+			if (minv_p[i] < min_p[i]) {
+				minb_p[i] += min_p[i] - minv_p[i];
+				minv_p[i] = min_p[i];
+			}
+			if (maxv_p[i] > max_p[i]) {
+				maxb_p[i] -= maxv_p[i] - max_p[i];
+				maxv_p[i] = max_p[i];
+			}
+		}
+
+		//
+		// Finally, copy data from block to region
+		//
+		for (int z=minb_p[2], zr=minv_p[2]-min_p[2]; z<=maxb_p[2]; z++,zr++){
+		for (int y=minb_p[1], yr=minv_p[1]-min_p[1]; y<=maxb_p[1]; y++,yr++){
+		for (int x=minb_p[0], xr=minv_p[0]-min_p[0]; x<=maxb_p[0]; x++,xr++){
+
+			region[zr*nx*ny + yr*nx + xr] = 
+				_blockReg[z*bs_p[0]*bs_p[1] + y*bs_p[0] + x];
+		}
+		}
+		}
+
+	}
+	}
+	}
+	return(0);
+}
+
 int WaveCodecIO::BlockWriteRegion(
 	const float *region, const size_t bmin[3], const size_t bmax[3], int block
 ) {
@@ -542,6 +681,11 @@ int WaveCodecIO::BlockWriteRegion(
 	_FillPackedCoord(_vtype, bmax, bmax_p, 0);
 
 	const size_t *bs =  VDFIOBase::GetBlockSize();
+
+	if (! _block) {
+		size_t sz = bs[0]*bs[1]*bs[2];
+		_block = new float [sz];
+	}
 
 	size_t bs_p[3];	// packed copy of bs
 	_PackCoord(_vtype, bs, bs_p, 1);
@@ -725,6 +869,238 @@ int WaveCodecIO::BlockWriteRegion(
 		t = min((((bmax_up[i]+1) * bs[i]) - 1), (dim[i]-1));
 		if (_validRegMax[i] < t) _validRegMax[i] = t;
 	}
+	return(0);
+}
+
+int WaveCodecIO::WriteRegion(
+	const float *region, const size_t min[3], const size_t max[3]
+) {
+	if (! _isOpen || ! _writeMode) {
+		SetErrMsg("Variable not open for writing\n");
+		return(-1);
+	}
+
+	size_t min_up[3], max_up[3];	// unpacked copy of min, max
+	_UnpackCoord(_vtype, min, min_up, 0);
+	_UnpackCoord(_vtype, max, max_up, 0);
+	if (! IsValidRegion(min_up, max_up, _reflevel)) {
+		SetErrMsg(
+			"Invalid region : (%d %d %d) (%d %d %d)", 
+			min[0], min[1], min[2], max[0], max[1], max[2]
+		);
+		return(-1);
+	}
+
+	//
+	// unpacked and packed coordinates, respectively, of region in blocks
+	//
+	size_t bmin_up[3], bmax_up[3];
+	size_t bmin_p[3], bmax_p[3];
+
+	// packed coordinates of region 
+	size_t min_p[3], max_p[3];
+
+	// MapVoxToBlk operates on unpacked coordinates
+	//
+	MapVoxToBlk(min_up, bmin_up, _reflevel);
+	MapVoxToBlk(max_up, bmax_up, _reflevel);
+
+	_PackCoord(_vtype, bmin_up, bmin_p, 0);
+	_PackCoord(_vtype, bmax_up, bmax_p, 0);
+
+	//
+	// fill in 3rd dimension (no-op if 3D data)
+	//
+	_FillPackedCoord(_vtype, min, min_p, 0);
+	_FillPackedCoord(_vtype, max, max_p, 0);
+
+	//
+	// Dimension of region in voxels
+	//
+	size_t nx = max_p[0] - min_p[0] + 1; 
+	size_t ny = max_p[1] - min_p[1] + 1; 
+
+	size_t bs[3];
+	size_t bs_p[3];	// packed copy of bs
+
+	if (! _blockReg) {
+		GetBlockSize(bs, -1);
+		size_t sz = bs[0]*bs[1]*bs[2];
+		_blockReg = new float [sz];
+	}
+
+	GetBlockSize(bs, _reflevel);
+	_PackCoord(_vtype, bs, bs_p, 1);
+
+	//
+	// local copies of valid region extents
+	//
+	size_t myValidRegMin[3];
+	size_t myValidRegMax[3];
+	for(int i=0; i<3; i++) {
+		myValidRegMin[i] = _validRegMin[i];
+		myValidRegMax[i] = _validRegMax[i];
+	}
+
+	int rc;
+	for (int bz=bmin_p[2]; bz<=bmax_p[2]; bz++) {
+	for (int by=bmin_p[1]; by<=bmax_p[1]; by++) {
+	for (int bx=bmin_p[0]; bx<=bmax_p[0]; bx++) {
+		size_t b_p[] = {bx,by,bz};
+
+		//
+		// These flags are true if this is a boundary block && the region
+		// dimensions don't coincide with block boundaries
+		//
+		bool xbdry = ((bx == bmin_p[0]) && (min_p[0] != 0)) || 
+			((bx == bmax_p[0]) && ((bx+1)*bs_p[0] != (max_p[0]+1)));
+		bool ybdry = ((by == bmin_p[1]) && (min_p[1] != 0)) || 
+			((by == bmax_p[1]) && ((by+1)*bs_p[1] != (max_p[1]+1)));
+		bool zbdry = ((bz == bmin_p[2]) && (min_p[2] != 0)) || 
+			((bz == bmax_p[2]) && ((bz+1)*bs_p[2] != (max_p[2]+1)));
+
+
+
+		//
+		// Now copy current block to region, clipping block to 
+		// region bounds
+		//
+
+		// Packed voxel coordinates of subregion within current 
+		// block relative to volume
+		//
+		size_t minv_p[3], maxv_p[3];
+
+		// Packed voxel coordinates of subregion within current 
+		// block relative to current block
+		//
+		size_t minb_p[3], maxb_p[3];
+
+		//
+		// Set up coordinates for copy
+		//
+		for (int i=0; i<3; i++) {
+
+			minb_p[i] = 0;
+			maxb_p[i] = bs_p[i]-1;
+
+			minv_p[i] = b_p[i] * bs_p[i];
+			maxv_p[i] = (b_p[i]+1) * bs_p[i] - 1;
+
+			// Clip to region bounds
+			//
+			if (minv_p[i] < min_p[i]) {
+				minb_p[i] += min_p[i] - minv_p[i];
+				minv_p[i] = min_p[i];
+			}
+			if (maxv_p[i] > max_p[i]) {
+				maxb_p[i] -= maxv_p[i] - max_p[i];
+				maxv_p[i] = max_p[i];
+			}
+		}
+
+		//
+		// Finally, copy data from block to region
+		//
+		for (int z=minb_p[2], zr=minv_p[2]-min_p[2]; z<=maxb_p[2]; z++,zr++){
+		for (int y=minb_p[1], yr=minv_p[1]-min_p[1]; y<=maxb_p[1]; y++,yr++){
+		for (int x=minb_p[0], xr=minv_p[0]-min_p[0]; x<=maxb_p[0]; x++,xr++){
+
+			_blockReg[z*bs_p[0]*bs_p[1] + y*bs_p[0] + x] = 
+				region[zr*nx*ny + yr*nx + xr];
+		}
+		}
+		}
+
+		//
+		// Pad any incomplete dimensions
+		//
+		if (xbdry && _pad) {
+
+			float *line_start;
+			for (int z = 0; z<bs_p[2]; z++) {  
+			for (int y = 0; y<bs_p[1]; y++) {  
+
+				size_t l1 = maxb_p[0]-minb_p[0]+1;	// length of valid data
+				size_t l2; 
+
+				line_start = _blockReg + (z*bs_p[1]*bs_p[0] + y*bs_p[0]);
+
+				line_start += minb_p[0];
+				l2 = bs_p[0] - minb_p[0];
+				_pad_line(line_start, l1, l2, 1);
+
+				line_start += l1 - 1;
+				l2 = maxb_p[0] + 1;
+				_pad_line(line_start, l1, l2, -1);
+			}
+			}
+		}
+
+		if (ybdry && _pad) {
+
+			float *line_start;
+			for (int z = 0; z<bs_p[2]; z++) {  
+			for (int x = 0; x<bs_p[0]; x++) {  
+				line_start = _blockReg + (z*bs_p[1]*bs_p[0] + x);
+				long stride = bs_p[0];
+
+				size_t l1 = maxb_p[1]-minb_p[1]+1;	// length of valid data
+				size_t l2;
+
+				line_start += minb_p[1] * stride;
+				l2 = bs_p[1] - minb_p[1];
+				_pad_line(line_start, l1, l2, stride);
+
+				line_start += (l1 - 1) * stride;
+				l2 = maxb_p[1] + 1;
+				_pad_line(line_start, l1, l2, -stride);
+			}
+			}
+		}
+
+		if (zbdry && _pad) {
+
+			float *line_start;
+			for (int y = 0; y<bs_p[1]; y++) {  
+			for (int x = 0; x<bs_p[0]; x++) {  
+				line_start = _blockReg + (y*bs_p[0] + x);
+				long stride = bs_p[0] * bs_p[1];
+
+				size_t l1 = maxb_p[2]-minb_p[2]+1;	// length of valid data
+				size_t l2;
+
+				line_start += minb_p[2] * stride;
+				l2 = bs_p[2] - minb_p[2];
+				_pad_line(line_start, l1, l2, stride);
+
+				line_start += (l1 - 1) * stride;
+				l2 = maxb_p[2] + 1;
+				_pad_line(line_start, l1, l2, -stride);
+			}
+			}
+		}
+
+		//
+		// Write current block
+		//
+		rc = BlockWriteRegion(_blockReg, b_p, b_p);
+		if (rc<0) return(-1);
+
+	}
+	}
+	}
+
+	//
+	// Update valid region. N.B. _validReg* gets written by 
+	// BlockRegionWrite(), but this info is incorrect in the general 
+	// case when the region extents aren't block aligned 
+	// 
+	for(int i=0; i<3; i++) {
+		if (myValidRegMin[i] > min_p[i]) _validRegMin[i] = min_p[i];
+		if (myValidRegMax[i] < max_p[i]) _validRegMax[i] = max_p[i];
+	}
+
 	return(0);
 }
 
@@ -1616,21 +1992,22 @@ int WaveCodecIO::_WriteBlock(
 
 void WaveCodecIO::_pad_line(
 	float *line_start, 
-	size_t l1,
-	size_t l2,
-	size_t stride
+	size_t l1,	// length of valid data
+	size_t l2,	// total length of array
+	long stride
 ) const {
 	string mode = GetBoundaryMode();
-	float *ptr = line_start + (l1*stride);
+	float *ptr = line_start + ((long) l1 * stride);
 
-	int index;
+	long index;
 	int inc;
 
-	assert(l1>0 && l1<=l2);
+	assert(l1>0 && stride != 0);
 	if (l1==l2) return;
 
 	if (l1 == 1) {
-		for (size_t l=l1; l<l2; l++) {
+		int dir = stride < 0 ? -1 : 1;
+		for (size_t l=l1; l<l2; l+=dir) {
 			*ptr = *line_start;
 			ptr += stride;
 		}
@@ -1645,7 +2022,7 @@ void WaveCodecIO::_pad_line(
 	//	      ^^^^^
 	//
 	if (mode.compare("symh") == 0) {
-		index = (int) l1 - 1;
+		index = (long) l1 - 1;
 		inc = 0;
 
 		for (size_t l=l1; l<l2; l++) {
@@ -1655,7 +2032,7 @@ void WaveCodecIO::_pad_line(
 				if (inc == 0) inc = 1;
 				else inc = 0;
 			}
-			else if (index == (int) l1 - 1) {
+			else if (index == (long) l1 - 1) {
 				if (inc == 0) inc = -1;
 				else inc = 0;
 			}
@@ -1669,7 +2046,7 @@ void WaveCodecIO::_pad_line(
 	//	DEDCBABCDEDCBAB
 	//	     ^^^^^
 	else if (mode.compare("symw") == 0) {
-		index = (int) l1 - 2;
+		index = (long) l1 - 2;
 		inc = -1;
 
 		for (size_t l=l1; l<l2; l++) {
@@ -1678,7 +2055,7 @@ void WaveCodecIO::_pad_line(
 			if (index == 0) {
 				inc = 1;
 			}
-			else if (index == (int) l1 - 1) {
+			else if (index == (long) l1 - 1) {
 				inc = -1;
 			}
 			index += inc;
@@ -1706,7 +2083,7 @@ void WaveCodecIO::_pad_line(
 	//	...AAAAABCDEEEEE...
 	//	       ^^^^^
 	else if (mode.compare("sp0") == 0) {
-		index = (int) l1-1;
+		index = (long) l1-1;
 
 		for (size_t l=l1; l<l2; l++) {
 			*ptr = line_start[(size_t) index * stride];
@@ -1716,7 +2093,7 @@ void WaveCodecIO::_pad_line(
 	// Default to sp0
 	//
 	else {
-		index = (int) l1-1;
+		index = (long) l1-1;
 
 		for (size_t l=l1; l<l2; l++) {
 			*ptr = line_start[(size_t) index * stride];
@@ -1725,9 +2102,6 @@ void WaveCodecIO::_pad_line(
 	}
 }
 
-// Take a packed coordinate vector (src) and unpack it into 'dst'. The 
-// unused coordinate of 'dst' is filled with 'fill'
-//
 void WaveCodecIO::_UnpackCoord(
 	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
 ) const {
@@ -1758,9 +2132,6 @@ void WaveCodecIO::_UnpackCoord(
 	}
 }
 
-// Take an unpacked coordinate vector (src) and pack it into 'dst'. The 
-// unused coordinate of 'dst' is filled with 'fill'
-//
 void WaveCodecIO::_PackCoord(
 	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
 ) const {
@@ -1790,9 +2161,6 @@ void WaveCodecIO::_PackCoord(
 	}
 }
 
-// Take a packed coordinate vector (src) and copy it into 'dst', 
-// filling the unused coordinate with 'fill'
-//
 void WaveCodecIO::_FillPackedCoord(
 	VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill
 ) const {

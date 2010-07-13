@@ -279,8 +279,10 @@ public:
  //! coordinates
  //! \param[out] bcoord Coordinate of block in integer coordinates containing
  //! the voxel. 
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined.
  //!
- virtual void	MapVoxToBlk(const size_t vcoord[3], size_t bcoord[3]) const;
+ virtual void	MapVoxToBlk(const size_t vcoord[3], size_t bcoord[3], int reflevel = -1) const;
 		
 
  //! Map integer voxel coordinates to user-defined floating point coords.
@@ -382,7 +384,7 @@ public:
  ) const {
 	size_t v[3];
 	MapUserToVox(timestep, vcoord0, v, reflevel);
-	Metadata::MapVoxToBlk(v, bcoord0);
+	Metadata::MapVoxToBlk(v, bcoord0, reflevel);
  }
 
 

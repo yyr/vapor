@@ -6,8 +6,6 @@ VDC2
 
 HIGH
 
-
-
 Currently no verification that .vdf file agrees with what is
 in .ncdf files
 
@@ -15,7 +13,6 @@ User Documentation
 
 MEDIUM
 
-Implement {Read,Write}Region and add region support in raw2vdf and vdf2raw
 construtor without metadata
 
 vdfcreate should automatically compute compression ratios based on bs and

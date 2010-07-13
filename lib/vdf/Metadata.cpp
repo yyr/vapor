@@ -86,9 +86,10 @@ void    Metadata::GetDimBlk(
 }
 
 void    Metadata::MapVoxToBlk(
-	const size_t vcoord[3], size_t bcoord[3]
+	const size_t vcoord[3], size_t bcoord[3], int reflevel
 ) const {
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
 
 	for (int i=0; i<3; i++) {
 		bcoord[i] = vcoord[i] / bs[i];

@@ -136,8 +136,8 @@ int	WaveletBlock3DRegionReader::_ReadRegion3D(
 		for(int i=0; i<3; i++) assert(((max[i]+1) % bs[i]) == 0);
 	}
 
-	VDFIOBase::MapVoxToBlk(min, bmin);
-	VDFIOBase::MapVoxToBlk(max, bmax);
+	VDFIOBase::MapVoxToBlk(min, bmin, _reflevel);
+	VDFIOBase::MapVoxToBlk(max, bmax, _reflevel);
 
 	size_t x0 = bmin[0];
 	size_t y0 = bmin[1];
@@ -235,8 +235,8 @@ int	WaveletBlock3DRegionReader::_ReadRegion2D(
 		bs2d[0] = bs[0]; bs2d[1] = bs[1];
 		min3d[0] = min[0]; min3d[1] = min[1]; 
 		max3d[0] = max[0]; max3d[1] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[0]; bmin[1] = bmin3d[1];
 		bmax[0] = bmax3d[0]; bmax[1] = bmax3d[1];
 	break;
@@ -244,8 +244,8 @@ int	WaveletBlock3DRegionReader::_ReadRegion2D(
 		bs2d[0] = bs[0]; bs2d[1] = bs[2];
 		min3d[0] = min[0]; min3d[2] = min[1];
 		max3d[0] = max[0]; max3d[2] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[0]; bmin[1] = bmin3d[2];
 		bmax[0] = bmax3d[0]; bmax[1] = bmax3d[2];
 	break;
@@ -253,8 +253,8 @@ int	WaveletBlock3DRegionReader::_ReadRegion2D(
 		bs2d[0] = bs[1]; bs2d[1] = bs[2];
 		min3d[1] = min[0]; min3d[2] = min[1];
 		max3d[1] = max[0]; max3d[2] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[1]; bmin[1] = bmin3d[2];
 		bmax[0] = bmax3d[1]; bmax[1] = bmax3d[2];
 	break;
@@ -464,8 +464,8 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 	// If this is a 2D region, make sure 3rd, unused coord is valid
 	//
 	WaveletBlockIOBase::GetValidRegion(min3d, max3d, _reflevel);
-	WaveletBlockIOBase::MapVoxToBlk(min3d, bmin3d);
-	WaveletBlockIOBase::MapVoxToBlk(max3d, bmax3d);
+	WaveletBlockIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+	WaveletBlockIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 	const size_t *bs = GetBlockSize();
 
 	switch (_vtype) {
@@ -546,8 +546,8 @@ int	WaveletBlock3DRegionReader::row_inv_xform3d(
 		maxsub[2] -= bs[2];
 	}
 
-	VDFIOBase::MapVoxToBlk(min, bmin);
-	VDFIOBase::MapVoxToBlk(max, bmax);
+	VDFIOBase::MapVoxToBlk(min, bmin, _reflevel);
+	VDFIOBase::MapVoxToBlk(max, bmax, _reflevel);
 
 	size_t x0 = bmin[0];
 	size_t y0 = bmin[1];
@@ -738,8 +738,8 @@ int	WaveletBlock3DRegionReader::row_inv_xform2d(
 		bs2d[0] = bs[0]; bs2d[1] = bs[1];
 		min3d[0] = min[0]; min3d[1] = min[1]; 
 		max3d[0] = max[0]; max3d[1] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[0]; bmin[1] = bmin3d[1];
 		bmax[0] = bmax3d[0]; bmax[1] = bmax3d[1];
 		wb2d = _wb2dXY;
@@ -748,8 +748,8 @@ int	WaveletBlock3DRegionReader::row_inv_xform2d(
 		bs2d[0] = bs[0]; bs2d[1] = bs[2];
 		min3d[0] = min[0]; min3d[2] = min[1];
 		max3d[0] = max[0]; max3d[2] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[0]; bmin[1] = bmin3d[2];
 		bmax[0] = bmax3d[0]; bmax[1] = bmax3d[2];
 		wb2d = _wb2dXZ;
@@ -758,8 +758,8 @@ int	WaveletBlock3DRegionReader::row_inv_xform2d(
 		bs2d[0] = bs[1]; bs2d[1] = bs[2];
 		min3d[1] = min[0]; min3d[2] = min[1];
 		max3d[1] = max[0]; max3d[2] = max[1];
-		VDFIOBase::MapVoxToBlk(min3d, bmin3d);
-		VDFIOBase::MapVoxToBlk(max3d, bmax3d);
+		VDFIOBase::MapVoxToBlk(min3d, bmin3d, _reflevel);
+		VDFIOBase::MapVoxToBlk(max3d, bmax3d, _reflevel);
 		bmin[0] = bmin3d[1]; bmin[1] = bmin3d[2];
 		bmax[0] = bmax3d[1]; bmax[1] = bmax3d[2];
 		wb2d = _wb2dYZ;
