@@ -31,7 +31,7 @@
 #include "dvrparams.h"
 #include "flowparams.h"
 #include "twoDdataparams.h"
-#include "twoDimageParams.h"
+#include "twoDimageparams.h"
 #include "regionparams.h"
 #include "animationparams.h"
 #include "viewpointparams.h"

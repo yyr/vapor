@@ -144,7 +144,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static vector<Params*>& GetAllParamsInstances(const std::string tag, int winnum){
 		return GetAllParamsInstances(GetTypeFromTag(tag),winnum);
 	}
-	static map <int, vector<Params*>>* cloneAllParamsInstances(int winnum);
+	static map <int, vector<Params*> >* cloneAllParamsInstances(int winnum);
 	static vector <Params*>* cloneAllDefaultParams();
 
 	static bool IsRenderingEnabled(int winnum);
@@ -266,7 +266,7 @@ protected:
 	
 	
 	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
-	static map<pair<int,int>,vector<Params*>> paramsInstances;
+	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
 	static map<pair<int,int>, int> currentParamsInstance;
 	//default params instances indexed by paramsBaseType

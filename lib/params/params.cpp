@@ -35,7 +35,7 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
-#include "flowParams.h"
+#include "flowparams.h"
 #include "twoDdataparams.h"
 #include "twoDimageparams.h"
 #include "probeparams.h"
@@ -68,7 +68,7 @@ const string Params::_opacityScaleAttr = "OpacityScale";
 const string Params::_useTimestepSampleListAttr = "UseTimestepSampleList";
 const string Params::_timestepSampleListAttr = "TimestepSampleList";
 
-std::map<pair<int,int>,vector<Params*>> Params::paramsInstances;
+std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
 std::map<int, Params*> Params::defaultParamsInstance;
 
@@ -536,8 +536,8 @@ void Params::RemoveParamsInstance(int pType, int winnum, int instance){
 	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
 	delete p;
 }
-map <int, vector<Params*>>* Params::cloneAllParamsInstances(int winnum){
-	map<int, vector<Params*>>* winParamsMap = new map<int, vector<Params*>>;
+map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){
+	map<int, vector<Params*> >* winParamsMap = new map<int, vector<Params*> >;
 	for (int i = 1; i<= GetNumParamsClasses(); i++){
 		vector<Params*> *paramsVec = new vector<Params*>;
 		for (int j = 0; j<GetNumParamsInstances(i,winnum); j++){
