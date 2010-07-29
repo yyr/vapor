@@ -55,7 +55,7 @@ protected:
 	Command::activateType thisType;
 	const char* windowName;
 	//State needed for remove undo:
-	map<int, vector<Params*>> *savedParamsInstances;
+	map<int, vector<Params*> > *savedParamsInstances;
 	vector<Params*> *savedDefaultParams;
 	//If this is a "remove" event, we need the following state as well:
 	//
