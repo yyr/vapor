@@ -12,6 +12,7 @@
 #include <sstream>
 #include <algorithm>
 #include <vapor/XmlNode.h>
+#include "ParamNode.h"
 #include "assert.h"
 #include "Colormap.h"
 #include "vapor/MapperFunctionBase.h"

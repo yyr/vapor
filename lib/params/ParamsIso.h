@@ -27,6 +27,7 @@
 
 
 #include "vapor/XmlNode.h"
+#include "ParamNode.h"
 #include "vapor/ExpatParseMgr.h"
 #include "params.h"
 #include "datastatus.h"
@@ -68,6 +69,9 @@ public:
  //
  virtual void restart();
  static void setDefaultPrefs();
+ //Required for registration:
+ static ParamsBase* CreateDefaultInstance() {return new ParamsIso(0,-1);}
+ const std::string& getShortName() {return _shortName;}
  //Methods required by Params class:
  virtual int getNumRefinements() {
 	 return GetRefinementLevel();
@@ -181,7 +185,7 @@ int GetIsoVariableNum(){
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
 
- virtual XmlNode* buildNode();
+ virtual ParamNode* buildNode();
  float (&getClut())[256][4] {
 		refreshCtab();
 		return ctab;
@@ -204,7 +208,7 @@ int GetIsoVariableNum(){
  static const string _MapBoundsTag;
 
 protected:
-	
+static const string _shortName;
 
 private:
  

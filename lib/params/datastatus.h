@@ -38,6 +38,8 @@ namespace VAPoR {
 // It keeps a value of min/max data for each timestep that can be refreshed.
 // Variables can be referenced either by the varNum (numbering all the variables in
 // the session) or by the varName.  
+
+
 class PARAMS_API DataStatus : public VetsUtil::MyBase{
 public:
 	
@@ -48,6 +50,9 @@ public:
 		return theDataStatus;
 	}
 	QApplication* getApp() {return theApp;}
+
+	
+
 	//Reset the datastatus when a new datamgr is opened.
 	//This avoids all "Set" methods:
 	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
@@ -450,6 +455,7 @@ public:
 	}
 	
 private:
+	
 	static DataStatus* theDataStatus;
 	const vector<string> emptyVec;
 	//Python script mappings:
@@ -542,6 +548,14 @@ private:
 	static std::string projString;
 	static vector <float*> timeVaryingExtents;
 	
+	//Static tables where all ParamsBase classes are registered.
+	//Each class has a unique:
+	//		classId (positive for Params classes)
+	//		std::string tag
+	//		CreateDefaultInstance() method, returns default instance of the class
+	
+	
+
 	
 };
 

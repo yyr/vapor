@@ -38,6 +38,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
+class ParamNode;
 class PanelCommand;
 class AnimationEventRouter : public QWidget, public Ui_AnimationTab, public EventRouter {
 

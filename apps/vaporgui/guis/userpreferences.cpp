@@ -36,6 +36,7 @@
 #include "animationparams.h"
 #include "flowparams.h"
 #include "regionparams.h"
+#include "ParamNode.h"
 
 #include "../images/fileopen.xpm"
 #include "messagereporter.h"
@@ -825,7 +826,7 @@ void UserPreferences::requestSave(){
 }
 bool UserPreferences::
 saveToFile(ofstream& ofs ){
-	XmlNode* const rootNode = buildNode("");
+	ParamNode* rootNode = buildNode("");
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
@@ -880,7 +881,7 @@ showAllDefaults(){
 	
 }
 //Build the XML for user preferences, based on the state of the app
-XmlNode* UserPreferences::buildNode(const string& ){
+ParamNode* UserPreferences::buildNode(const string& ){
 	Session* ses = Session::getInstance();
 	string empty;
 	std::map <string, string> attrs;
@@ -912,7 +913,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss << (long)ses->getAutoSaveInterval();
 	attrs[Session::_autoSaveIntervalAttr] = oss.str();
 
-	XmlNode* mainNode = new XmlNode(_preferencesTag, attrs, 10);
+	ParamNode* mainNode = new ParamNode(_preferencesTag, attrs, 10);
 //create element for each path or filename
 	mainNode->SetElementString(_metadataPathTag, ses->getPrefMetadataDir());
 	mainNode->SetElementString(_sessionPathTag, ses->getPrefSessionDirectory());
@@ -956,7 +957,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 		oss << "false";
 	attrs[DataStatus::_useLowerRefinementAttr] = oss.str();
 
-	XmlNode* msgNode = new XmlNode(_messagesTag, attrs, 0);
+	ParamNode* msgNode = new ParamNode(_messagesTag, attrs, 0);
 	mainNode->AddChild(msgNode);
 
 	//Now handle colors etc.
@@ -992,7 +993,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 		else oss<<"false";
 	attrs[DataStatus::_subregionFrameEnabledAttr] = oss.str();
 			
-	XmlNode* colorNode = new XmlNode(_sceneColorsTag, attrs, 0);
+	ParamNode* colorNode = new ParamNode(_sceneColorsTag, attrs, 0);
 
 	
 
@@ -1015,7 +1016,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss.str(empty);
 	oss << (double)ProbeParams::getDefaultPsi();
 	attrs[_psiAttr] = oss.str();
-	XmlNode* defaultProbeNode = new XmlNode(_probeDefaultsTag, attrs, 0);
+	ParamNode* defaultProbeNode = new ParamNode(_probeDefaultsTag, attrs, 0);
 	
 	mainNode->AddChild(defaultProbeNode);
 
@@ -1055,7 +1056,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	attrs[_specularExpAttr] = oss.str();
 	
 	
-	XmlNode* defaultViewpointNode = new XmlNode(_viewpointDefaultsTag, attrs, 0);
+	ParamNode* defaultViewpointNode = new ParamNode(_viewpointDefaultsTag, attrs, 0);
 	
 	mainNode->AddChild(defaultViewpointNode);
 
@@ -1082,7 +1083,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss.str(empty);
 	oss << (int)FlowParams::getDefaultGeometryType();
 	attrs[_geometryTypeAttr] = oss.str();
-	XmlNode* defaultFlowNode = new XmlNode(_flowDefaultsTag, attrs, 0);
+	ParamNode* defaultFlowNode = new ParamNode(_flowDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultFlowNode);
 
 	//Create a node for iso defaults:
@@ -1090,7 +1091,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss.str(empty);
 	oss << (int)ParamsIso::getDefaultBitsPerVoxel();
 	attrs[_isoDefaultBitsPerVoxelAttr] = oss.str();
-	XmlNode* defaultIsoNode = new XmlNode(_isoDefaultsTag, attrs, 0);
+	ParamNode* defaultIsoNode = new ParamNode(_isoDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultIsoNode);
 	
 	//Create a node for dvr defaults:
@@ -1106,7 +1107,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	str = DvrParams::getDefaultPreIntegrationEnabled() ? "true" : "false";
 	oss << str;
 	attrs[_dvrDefaultPreIntegrationAttr] = oss.str();
-	XmlNode* defaultDvrNode = new XmlNode(_dvrDefaultsTag, attrs, 0);
+	ParamNode* defaultDvrNode = new ParamNode(_dvrDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultDvrNode);
 
 	//Create a node for Animation Defaults
@@ -1118,7 +1119,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss << (float)AnimationParams::getDefaultMaxFPS();
 	attrs[_animationDefaultMaxFPSAttr] = oss.str();
 
-	XmlNode* defaultAnimationNode = new XmlNode(_animationDefaultsTag, attrs, 0);
+	ParamNode* defaultAnimationNode = new ParamNode(_animationDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultAnimationNode);
 
 	//Create a node for VizFeature Defaults
@@ -1132,7 +1133,7 @@ XmlNode* UserPreferences::buildNode(const string& ){
 	oss << str;
 	attrs[_defaultShowTerrainAttr] = oss.str();
 
-	XmlNode* defaultVizFeatureNode = new XmlNode(_vizFeatureDefaultsTag, attrs, 0);
+	ParamNode* defaultVizFeatureNode = new ParamNode(_vizFeatureDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultVizFeatureNode);
 
 	

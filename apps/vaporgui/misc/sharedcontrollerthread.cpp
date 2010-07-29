@@ -285,12 +285,8 @@ run(){
 				//has the animation stopped, or was the renderer disabled?
 				if ((!myVizWinMgr->getVizWin(viznum)) ||
 						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
-						((!myVizWinMgr->getDvrParams(viznum)->isEnabled())&&
-						(!myVizWinMgr->getIsoParams(viznum)->isEnabled())&&
-						(!myVizWinMgr->getTwoDDataParams(viznum)->isEnabled())&&
-						(!myVizWinMgr->getTwoDImageParams(viznum)->isEnabled())&&
-						(!myVizWinMgr->getProbeParams(viznum)->isEnabled())&&
-						(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
+						//Check if any renderer is enabled
+						!Params::IsRenderingEnabled(viznum) ){
 					
 					myAnimationController->deActivate(viznum);
 				} else if (myAnimationController->isChanged(viznum)) {

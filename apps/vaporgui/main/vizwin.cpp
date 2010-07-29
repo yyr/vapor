@@ -102,15 +102,9 @@ VizWin::VizWin( MainForm* parent, const QString& name, Qt::WFlags fl, VizWinMgr*
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
-	myGLWindow->setActiveViewpointParams(myWinMgr->getViewpointParams(myWindowNum));
-	myGLWindow->setActiveRegionParams(myWinMgr->getRegionParams(myWindowNum));
-	myGLWindow->setActiveAnimationParams(myWinMgr->getAnimationParams(myWindowNum));
-	myGLWindow->setActiveDvrParams(myWinMgr->getDvrParams(myWindowNum));
-	myGLWindow->setActiveIsoParams(myWinMgr->getIsoParams(myWindowNum));
-	myGLWindow->setActiveFlowParams(myWinMgr->getFlowParams(myWindowNum));
-	myGLWindow->setActiveProbeParams(myWinMgr->getProbeParams(myWindowNum));
-	myGLWindow->setActiveTwoDImageParams(myWinMgr->getTwoDImageParams(myWindowNum));
-	myGLWindow->setActiveTwoDDataParams(myWinMgr->getTwoDDataParams(myWindowNum));
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++)
+		myGLWindow->setActiveParams(Params::GetCurrentParamsInstance(i,myWindowNum),i);
+	
 	myGLWindow->setPreRenderCB(preRenderSetup);
 	myGLWindow->setPostRenderCB(endRender);
 
@@ -586,7 +580,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		}
 		if (!doSpin){
 			//terminate current mouse motion
-			VizWinMgr::getEventRouter(Params::ViewpointParamsType)->captureMouseUp();
+			VizWinMgr::getEventRouter(Params::_viewpointParamsTag)->captureMouseUp();
 		}
 		//Done with timer:
 		if(spinTimer) delete spinTimer;

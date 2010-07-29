@@ -349,10 +349,10 @@ void PythonEdit::testScript(){
 		}
 	}
 	vector<string> inVars2, outVars2, inVars3, outVars3;
-	for (int i = 2; i<inputVars3->count()-3; i++) inVars3.push_back(inputVars3->itemText(i).toStdString());
+	/*for (int i = 2; i<inputVars3->count()-3; i++) inVars3.push_back(inputVars3->itemText(i).toStdString());
 	for (int i = 2; i<outputVars3->count()-3; i++) outVars3.push_back(outputVars3->itemText(i).toStdString());
 	for (int i = 2; i<inputVars2->count()-3; i++) inVars2.push_back(inputVars2->itemText(i).toStdString());
-	for (int i = 2; i<outputVars2->count()-3; i++) outVars2.push_back(outputVars2->itemText(i).toStdString());
+	for (int i = 2; i<outputVars2->count()-3; i++) outVars2.push_back(outputVars2->itemText(i).toStdString());*/
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
 	rParams->getRegionVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, timeStep);

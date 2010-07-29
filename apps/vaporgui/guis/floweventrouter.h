@@ -34,6 +34,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
+class ParamNode;
 class PanelCommand;
 class FlowEventRouter : public QWidget, public Ui_FlowTab, public EventRouter {
 	Q_OBJECT

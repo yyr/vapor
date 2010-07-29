@@ -42,7 +42,8 @@ public:
 	FlowParams(int winnum);
 	
 	~FlowParams();
-
+	static ParamsBase* CreateDefaultInstance() {return new FlowParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	
 	void setTab(FlowTab* tab); 
 	virtual RenderParams* deepRCopy();
@@ -57,7 +58,7 @@ public:
 	bool validateSettings(int timestep);
 
 	//Save, restore stuff:
-	XmlNode* buildNode(); 
+	ParamNode* buildNode(); 
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
@@ -375,6 +376,7 @@ public:
 
 	
 protected:
+	static const string _shortName;
 	//Tags for attributes in session save
 	//Top level labels
 	static const string _mappedVariableNamesAttr;//obsolete

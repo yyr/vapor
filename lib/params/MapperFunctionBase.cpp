@@ -60,8 +60,10 @@ const string MapperFunctionBase::_colorControlPointTag = "ColorControlPoint";
 //----------------------------------------------------------------------------
 // Constructor for empty, default Mapper function
 //----------------------------------------------------------------------------
-MapperFunctionBase::MapperFunctionBase() 
+MapperFunctionBase::MapperFunctionBase(const string& name) :
+	ParamsBase(name)
 {	
+	
 	previousClass = 0;
     opacityScaleFactor = 1.0;
 	colorVarNum = 0;
@@ -75,7 +77,8 @@ MapperFunctionBase::MapperFunctionBase()
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-MapperFunctionBase::MapperFunctionBase(int nBits)
+MapperFunctionBase::MapperFunctionBase(int nBits, const string& name) : 
+	ParamsBase(name)
 {
 	previousClass = 0;
 	//Currently ignore the nBits parameter:
@@ -94,9 +97,11 @@ MapperFunctionBase::MapperFunctionBase(int nBits)
 }
 
 //----------------------------------------------------------------------------
-// Copy Constructor
+// Copy Constructor.  Calls default ParamsBase constructor (not copy constructor),
+// since we don't want to clone the ParamNode.
 //----------------------------------------------------------------------------
 MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
+	ParamsBase(_paramsBaseName),
   _compType(mapper._compType),
   _colormap(NULL),
   
@@ -110,7 +115,6 @@ MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
   opacVarNum(mapper.opacVarNum),
   opacityScaleFactor(mapper.opacityScaleFactor)
 {
-	
 }
 
 //----------------------------------------------------------------------------
@@ -411,7 +415,7 @@ bool MapperFunctionBase::isOpaque()
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
 
-XmlNode* MapperFunctionBase::buildNode(const string& tfname) 
+ParamNode* MapperFunctionBase::buildNode(const string& tfname) 
 {
   //Construct the main node
   string empty;
@@ -441,7 +445,7 @@ XmlNode* MapperFunctionBase::buildNode(const string& tfname)
   //
   int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
 
-  XmlNode* mainNode = new XmlNode(_mapperFunctionTag, attrs, numChildren);
+  ParamNode* mainNode = new ParamNode(_mapperFunctionTag, attrs, numChildren);
 
   //
   // Opacity maps

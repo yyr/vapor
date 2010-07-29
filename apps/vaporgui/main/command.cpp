@@ -124,125 +124,53 @@ modeName(GLWindow::mouseModeType t){
 	}
 }
 
-TabChangeCommand::TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab){
+TabChangeCommand::TabChangeCommand(Params::ParamsBaseType oldTab, Params::ParamsBaseType newTab){
 	//Make a copy of previous panel:
 	previousTab = oldTab;
 	currentTab = newTab;
 	
 	
-	description = QString("change tab");
+	description = QString(" change tab ");
 	description += tabName(oldTab);
-	description += "to";
+	description += " to ";
 	description += tabName(newTab);
 }
 
 void TabChangeCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	switch (previousTab){
-		case Params::UnknownParamsType:
-			MainForm::getInstance()->viewpoint();
-			break;
-		case Params::ViewpointParamsType:
-			MainForm::getInstance()->viewpoint();
-			break;
-		case Params::RegionParamsType:
-			MainForm::getInstance()->region();
-			break;
-		
-		case Params::FlowParamsType:
-			MainForm::getInstance()->launchFlowTab();
-			break;
-		case Params::DvrParamsType:
-			MainForm::getInstance()->renderDVR();
-			break;
-		case Params::IsoParamsType:
-			MainForm::getInstance()->launchIsoTab();
-			break;
-		case Params::ProbeParamsType:
-			MainForm::getInstance()->launchProbeTab();
-			break;
-		case Params::TwoDDataParamsType:
-			MainForm::getInstance()->launchTwoDDataTab();
-			break;
-		case Params::TwoDImageParamsType:
-			MainForm::getInstance()->launchTwoDImageTab();
-			break;
-		case Params::AnimationParamsType:
-			MainForm::getInstance()->animationParams();
-			break;
-		default:
-			assert(0);
-	}
+	const string& tag = Params::GetTagFromType(previousTab);
+	if (tag == Params::_viewpointParamsTag) MainForm::getInstance()->viewpoint();
+	else if (tag == Params::_regionParamsTag) MainForm::getInstance()->region();
+	else if (tag == Params::_flowParamsTag) MainForm::getInstance()->launchFlowTab();
+	else if (tag == Params::_dvrParamsTag) MainForm::getInstance()->renderDVR();
+	else if (tag == Params::_isoParamsTag) MainForm::getInstance()->launchIsoTab();
+	else if (tag == Params::_probeParamsTag) MainForm::getInstance()->launchProbeTab();
+	else if (tag == Params::_twoDDataParamsTag) MainForm::getInstance()->launchTwoDDataTab();
+	else if (tag == Params::_twoDImageParamsTag) MainForm::getInstance()->launchTwoDImageTab();
+	else if (tag == Params::_animationParamsTag) MainForm::getInstance()->animationParams();
+	
 	Session::getInstance()->unblockRecording();
 }
 
 void TabChangeCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	switch (currentTab){
-		case Params::UnknownParamsType:
-			MainForm::getInstance()->viewpoint();
-			break;
-		case Params::ViewpointParamsType:
-			MainForm::getInstance()->viewpoint();
-			break;
-		case Params::RegionParamsType:
-			MainForm::getInstance()->region();
-			break;
-		
-		case Params::FlowParamsType:
-			MainForm::getInstance()->launchFlowTab();
-			break;
-		case Params::DvrParamsType:
-			MainForm::getInstance()->renderDVR();
-			break;
-		case Params::IsoParamsType:
-			MainForm::getInstance()->launchIsoTab();
-			break;
-		case Params::ProbeParamsType:
-			MainForm::getInstance()->launchProbeTab();
-			break;
-		case Params::TwoDDataParamsType:
-			MainForm::getInstance()->launchTwoDDataTab();
-			break;
-		case Params::TwoDImageParamsType:
-			MainForm::getInstance()->launchTwoDImageTab();
-			break;
-		case Params::AnimationParamsType:
-			MainForm::getInstance()->animationParams();
-			break;
-		default:
-			assert(0);
-	}
+	const string& tag = Params::GetTagFromType(currentTab);
+	if (tag == Params::_viewpointParamsTag) MainForm::getInstance()->viewpoint();
+	else if (tag == Params::_regionParamsTag) MainForm::getInstance()->region();
+	else if (tag == Params::_flowParamsTag) MainForm::getInstance()->launchFlowTab();
+	else if (tag == Params::_dvrParamsTag) MainForm::getInstance()->renderDVR();
+	else if (tag == Params::_isoParamsTag) MainForm::getInstance()->launchIsoTab();
+	else if (tag == Params::_probeParamsTag) MainForm::getInstance()->launchProbeTab();
+	else if (tag == Params::_twoDDataParamsTag) MainForm::getInstance()->launchTwoDDataTab();
+	else if (tag == Params::_twoDImageParamsTag) MainForm::getInstance()->launchTwoDImageTab();
+	else if (tag == Params::_animationParamsTag) MainForm::getInstance()->animationParams();
+	
 	Session::getInstance()->unblockRecording();
 }
 
 const char* TabChangeCommand::
-tabName(Params::ParamType t){
-	switch (t){
-		case Params::UnknownParamsType:
-			return " none ";
-		case Params::ViewpointParamsType:
-			return "viewpoint";
-		case Params::RegionParamsType:
-			return " region ";
-		case Params::DvrParamsType:
-			return " dvr ";
-		case Params::IsoParamsType:
-			return " Iso ";
-		case Params::AnimationParamsType:
-			return " animation ";
-		case Params::FlowParamsType:
-			return " flow ";
-		case Params::ProbeParamsType:
-			return " probe ";
-		case Params::TwoDDataParamsType:
-			return " 2D ";
-		case Params::TwoDImageParamsType:
-			return " Image ";
-		default:  
-			assert(0);
-			return 0;
-	}
+tabName(Params::ParamsBaseType t){
+	return Params::paramName(t).c_str();
 }
 //VizFeatureCommand methods:
 

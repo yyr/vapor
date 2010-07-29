@@ -268,7 +268,6 @@ protected:
 	static MainForm* theMainForm;
 	void resetModeButtons();
 	
-	Params::ParamType currentFrontTab;
 	
 	QMdiArea* myMDIArea;
     	TabManager* tabWidget;

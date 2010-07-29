@@ -36,6 +36,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API RegionParams : public Params {
 	
@@ -44,7 +45,8 @@ public:
 	
 	~RegionParams();
 	virtual Params* deepCopy();
-	
+	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	//Method to calculate the read-only region info that is displayed in the regionTab
 	
 	//following method gets voxel coords of region, but doesn't verify the existens
@@ -97,7 +99,7 @@ public:
 	virtual void restart();
 	static void setDefaultPrefs() {}  //No default preferences
 	
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	//See if the proposed number of transformations is OK.  Return a valid value
@@ -133,6 +135,7 @@ public:
 	bool extentsAreVarying(){ return extentsMap.size()>0;}
 
 protected:
+	static const string _shortName;
 	static const string _regionMinTag;
 	static const string _regionMaxTag;
 	static const string _regionCenterTag;

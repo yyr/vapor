@@ -69,7 +69,7 @@ using namespace VAPoR;
 
 RegionEventRouter::RegionEventRouter(QWidget* parent, const char* ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
-	myParamsType = Params::RegionParamsType;
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_regionParamsTag, this);
 	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
 }
 
@@ -132,7 +132,7 @@ setRegionTabTextChanged(const QString& ){
 }
 void RegionEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "edit region text");
 	float centerPos[3], regSize[3];
 	centerPos[0] = xCntrEdit->text().toFloat();
@@ -695,9 +695,9 @@ void RegionEventRouter::
 guiCopyProbeToRegion(){
 	confirmText(false);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy probe to region");
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	if (pParams->getPhi() != 0.f ||
 		pParams->getTheta() != 0.f ||
 		pParams->getPsi() != 0.f) {
@@ -717,9 +717,9 @@ void RegionEventRouter::
 guiCopyRakeToRegion(){
 	confirmText(false);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy rake to region");
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
+	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
 	float boxmin[3],boxmax[3];
 	fParams->getBox(boxmin, boxmax, timestep);
 	rParams->setBox(boxmin, boxmax, timestep);
@@ -732,7 +732,7 @@ guiCopyRakeToRegion(){
 void RegionEventRouter::
 guiSetVarNum(int n){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set variable");
 	rParams->setInfoVarNum(n);
 	refreshRegionInfo(rParams);
@@ -741,7 +741,7 @@ guiSetVarNum(int n){
 }
 void RegionEventRouter::guiSetTimeStep(int n){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set time step");
 	rParams->setInfoTimeStep(n);
 	PanelCommand::captureEnd(cmd, rParams);
@@ -750,7 +750,7 @@ void RegionEventRouter::guiSetTimeStep(int n){
 void RegionEventRouter::
 guiSetNumRefinements(int n){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "set number of Refinements");
 	rParams->setInfoNumRefinements(n);
 	refreshRegionInfo(rParams);
@@ -761,7 +761,7 @@ guiSetNumRefinements(int n){
 //Move the region center to specified coords, shrink it if necessary
 void RegionEventRouter::
 guiSetCenter(const float* coords){
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
 	const float* extents = Session::getInstance()->getExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -787,7 +787,7 @@ guiSetCenter(const float* coords){
 void RegionEventRouter::
 guiSetXCenter(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X center");
 	
 	sliderToText(rParams, 0, sliderval, xSizeSlider->value());
@@ -801,7 +801,7 @@ guiSetXCenter(int sliderval){
 void RegionEventRouter::
 guiSetYCenter(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y center");
 	sliderToText(rParams, 1, sliderval, ySizeSlider->value());
 	refreshRegionInfo(rParams);
@@ -813,7 +813,7 @@ guiSetYCenter(int sliderval){
 void RegionEventRouter::
 guiSetZCenter(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z center");
 	sliderToText(rParams, 2, sliderval, zSizeSlider->value());
 	refreshRegionInfo(rParams);
@@ -825,7 +825,7 @@ guiSetZCenter(int sliderval){
 void RegionEventRouter::
 guiSetXSize(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X size");
 	sliderToText(rParams, 0, xCenterSlider->value(),sliderval);
 	refreshRegionInfo(rParams);
@@ -835,7 +835,7 @@ guiSetXSize(int sliderval){
 void RegionEventRouter::
 guiSetYSize(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y size");
 	sliderToText(rParams, 1, yCenterSlider->value(),sliderval);
 	refreshRegionInfo(rParams);
@@ -845,7 +845,7 @@ guiSetYSize(int sliderval){
 void RegionEventRouter::
 guiSetZSize(int sliderval){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z size");
 	sliderToText(rParams, 2, zCenterSlider->value(),sliderval);
 	refreshRegionInfo(rParams);
@@ -856,7 +856,7 @@ guiSetZSize(int sliderval){
 void RegionEventRouter::
 guiSetMaxSize(){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "change region size to max");
 	const float* fullDataExtents = Session::getInstance()->getExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -905,7 +905,7 @@ void RegionEventRouter::
 captureMouseDown(){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
 	savedCommand = PanelCommand::captureStart(rParams,  "slide region handle");
@@ -916,7 +916,7 @@ captureMouseDown(){
 void RegionEventRouter::
 captureMouseUp(){
 	//Update the tab:
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	if (!savedCommand) return;
 	updateTab();
 	PanelCommand::captureEnd(savedCommand, rParams);
@@ -960,7 +960,7 @@ guiLoadRegionExtents(){
 		return;
 	}
 	//File is OK, save the state in command queue
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "read regions file");
 
 	const float* fullExtents = DataStatus::getInstance()->getExtents();
@@ -1015,7 +1015,7 @@ saveRegionExtents(){
 	//region extents.   
 	//Timesteps that have not been modified do not get saved.
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 
 	std::map<int,float*>& extentsMapping = rParams->getExtentsMapping();
 	//Are there any extents to write?
@@ -1060,7 +1060,7 @@ saveRegionExtents(){
 void RegionEventRouter::
 guiAdjustExtents(){
 	confirmText(false);
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "adjust current extents");
 	//Set the current extents in the extents list

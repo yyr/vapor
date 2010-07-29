@@ -33,13 +33,14 @@
 namespace VAPoR {
 class XmlNode;
 class ParamNode;
-class PARAMS_API MapperFunctionBase : public ParsedXml 
+class PARAMS_API MapperFunctionBase : public ParamsBase 
 {
 
 public:
-	MapperFunctionBase();
-	MapperFunctionBase(int nBits);
+	MapperFunctionBase(const string& name);
+	MapperFunctionBase(int nBits, const string& name);
 	MapperFunctionBase(const MapperFunctionBase &mapper);
+	
 	virtual ~MapperFunctionBase();
 
     //
@@ -178,7 +179,8 @@ public:
 	// except for specifying separate color and opacity bounds,
 	// and not having a name attribute
     //
-	virtual XmlNode* buildNode(const string& tfname); 
+	virtual void refreshNode() {setRootParamNode(buildNode(""));}
+	virtual ParamNode* buildNode(const string& tfname); 
 
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
                                      std::string&, const char **);

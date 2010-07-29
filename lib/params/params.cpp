@@ -34,6 +34,14 @@
 #include "vapor/errorcodes.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
+#include "dvrparams.h"
+#include "flowParams.h"
+#include "twoDdataparams.h"
+#include "twoDimageparams.h"
+#include "probeparams.h"
+#include "regionparams.h"
+#include "viewpointparams.h"
+#include "animationparams.h"
 
 
 using namespace VAPoR;
@@ -60,34 +68,33 @@ const string Params::_opacityScaleAttr = "OpacityScale";
 const string Params::_useTimestepSampleListAttr = "UseTimestepSampleList";
 const string Params::_timestepSampleListAttr = "TimestepSampleList";
 
+std::map<pair<int,int>,vector<Params*>> Params::paramsInstances;
+std::map<pair<int,int>, int> Params::currentParamsInstance;
+std::map<int, Params*> Params::defaultParamsInstance;
 
-QString& Params::paramName(Params::ParamType type){
-	switch (type){
-		
-		case(ViewpointParamsType):
-			return *(new QString("View"));
-		case(RegionParamsType):
-			return *(new QString("Region"));
-		
-		case(FlowParamsType):
-			return *(new QString("Flow"));
-		case(DvrParamsType):
-			return *(new QString("DVR"));
-		case(IsoParamsType):
-			return *(new QString("Iso"));
-		case(ProbeParamsType):
-			return *(new QString("Probe"));
-		case(TwoDImageParamsType):
-			return *(new QString("Image"));
-		case(TwoDDataParamsType):
-			return *(new QString("2D"));
-		case(AnimationParamsType):
-			return *(new QString("Animation"));
-		case (UnknownParamsType):
-		default:
-			return *(new QString("Unknown"));
-	}
+
+
+Params::Params(
+	XmlNode *parent, const string &name, int winNum
+	): ParamsBase(parent,name) {
+	vizNum = winNum;
+	if(winNum < 0) local = false; else local = true;
 	
+}
+
+
+Params::~Params() {
+	
+}
+
+RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
+	minColorEditBounds = 0;
+	maxColorEditBounds = 0;
+	minOpacEditBounds = 0;
+	maxOpacEditBounds = 0;
+}
+const std::string& Params::paramName(Params::ParamsBaseType type){
+	return GetDefaultParams(type)->getShortName();
 }
 float RenderParams::getMinColorMapBound(){
 	return (getMapperFunc()? getMapperFunc()->getMinColorMapValue(): 0.f);
@@ -384,25 +391,7 @@ void Params::setStretchedBox(const float boxmin[3], const float boxmax[3], int t
 
 //Following methods adapted from ParamsBase.cpp
 
-Params::Params(
-	XmlNode *parent, const string &name, int winNum
-	): ParamsBase(parent,name) {
-	vizNum = winNum;
-	if(winNum < 0) local = false; else local = true;
-	thisParamType = UnknownParamsType;
-}
 
-
-Params::~Params() {
-	
-}
-
-RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
-	minColorEditBounds = 0;
-	maxColorEditBounds = 0;
-	minOpacEditBounds = 0;
-	maxOpacEditBounds = 0;
-}
 void RenderParams::initializeBypassFlags(){
 	bypassFlags.clear();
 	int numTimesteps = DataStatus::getInstance()->getNumTimesteps();
@@ -529,89 +518,55 @@ float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, i
 	}
 	return minDist;
 
-	/* Following strategy doesn't work very well
-	//Find distance of camera from current region
-	
-	
-	const float *camPos = vpp->getCameraPos();
-	const float* regExts = rpp->getRegionExtents(timestep);
-	//First see which side it's on:
-	//There are 6 tests, 3 for each dimension
-	bool inReg[6];
-	bool inDim[3];
-	int numIn = 0;
-	float testPoint[4][3];  
-	for (int i = 0; i<3; i++){
-		inReg[i] = (camPos[i] >= regExts[i]);
-		inReg[i+3] = (camPos[i] <= regExts[i+3]);
-		inDim[i] = (inReg[i]&&inReg[i+3]);
-		if (inDim[i]) numIn++;
-	}
-	//Test if camera is in box:
-	if (numIn == 3) return 0.f;
+}
 
-	//Check the faces (numIn = 2)
-	if (numIn == 2) {
-		//Check for camera on face (out in only one dimension)
-		for (int k = 0; k< 3; k++){
-			if (!inDim[k]){ //camera is on k-face of box.  find 2 test points
-				//use other 2 (k1,k2) coords of camera, k- coord of box
-				int k1 = (k+1)%3;
-				int k2 = (k+2)%3;
-				testPoint[0][k1] = camPos[k1];
-				testPoint[0][k2] = camPos[k2];
-				testPoint[1][k1] = camPos[k1];
-				testPoint[1][k2] = camPos[k2];
-				testPoint[0][k] = regExts[k];
-				testPoint[1][k] = regExts[k+3];
-				float dist1 = vdist(camPos, testPoint[0]);
-				float dist2 = vdist(camPos, testPoint[1]);
-				return Min(dist1,dist2);
-			}
+Params* Params::GetParamsInstance(int pType, int winnum, int instance){
+	if (winnum < 0) return defaultParamsInstance[pType];
+	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
+	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) return GetDefaultParams(pType);
+	return paramsInstances[make_pair(pType, winnum)][instance];
+}
+
+void Params::RemoveParamsInstance(int pType, int winnum, int instance){
+	vector<Params*>& instVec = paramsInstances[make_pair(pType,winnum)];
+	Params* p = instVec.at(instance);
+	int currInst = currentParamsInstance[make_pair(pType,winnum)];
+	if (currInst > instance) currentParamsInstance[make_pair(pType,winnum)] = currInst - 1;
+	instVec.erase(instVec.begin()+instance);
+	if (currInst >= (int) instVec.size()) currentParamsInstance[make_pair(pType,winnum)]--;
+	delete p;
+}
+map <int, vector<Params*>>* Params::cloneAllParamsInstances(int winnum){
+	map<int, vector<Params*>>* winParamsMap = new map<int, vector<Params*>>;
+	for (int i = 1; i<= GetNumParamsClasses(); i++){
+		vector<Params*> *paramsVec = new vector<Params*>;
+		for (int j = 0; j<GetNumParamsInstances(i,winnum); j++){
+			Params* p = GetParamsInstance(i,winnum,j);
+			paramsVec->push_back(p->deepCopy());
+		}
+		(*winParamsMap)[i] = *paramsVec;
+	}
+	return winParamsMap;
+
+			
+}
+vector <Params*>* Params::cloneAllDefaultParams(){
+	vector <Params*>* defaultParams = new vector<Params*>;
+	defaultParams->push_back(0); //don't use position 0
+	for (int i = 1; i<= GetNumParamsClasses(); i++){
+		Params* p = GetDefaultParams(i);
+		defaultParams->push_back(p->deepCopy());
+	}
+	return (defaultParams);
+}
+
+bool Params::IsRenderingEnabled(int winnum){
+	for (int i = 1; i<= GetNumParamsClasses(); i++){
+		for (int inst = 0; inst < GetNumParamsInstances(i,winnum); i++){
+			Params* p = GetParamsInstance(i,winnum, inst);
+			if (!(p->isRenderParams())) break;
+			if (((RenderParams*)p)->isEnabled()) return true;
 		}
 	}
-	//If numIn = 1, the camera is in the slab between two side planes of the box
-	//Try the three slabs 
-	if (numIn == 1){
-		//Check each face (the dimension that's not in)
-		for (int k = 0; k<3; k++){
-			if (inDim[k]){//identify the unique in-dimension:
-				//get other 2 dimensions:
-				int k1 = (k+1)%3;
-				int k2 = (k+2)%3;
-				//Find 4 points that have same k-coord as camera, but
-				//have other 2 coordinates on box faces:
-				float minDist = 1.e30;
-				for(int i = 0; i<4; i++) {
-					// oddCrd goes 0,1,0,1 (*3)
-					// secondCrd goes 0,0,1,1 (*3)
-					int oddCrd = (i%2)*3;
-					int secondCrd = (i>>1)*3;
-					testPoint[i][k] = camPos[k];
-					testPoint[i][k1] = regExts[k1+oddCrd];
-					testPoint[i][k2] = regExts[k2+secondCrd];
-					float dist = vdist(camPos, testPoint[i]);
-					if (dist < minDist) minDist = dist;
-				}
-				return minDist;
-			}
-		}
-	}
-	//Final case:  corner point
-	assert(numIn == 0);
-	float minDist = 1.e30;
-	float pnt[3];
-	for (int i = 0; i<8; i++){
-		int i1 = (i%2)*3;
-		int i2 = ((i>>1)%2)*3;
-		int i3 = (i>>2)*3;
-		pnt[0] = regExts[i1];
-		pnt[1] = regExts[1+i2];
-		pnt[2] = regExts[2+i3];
-		float dist = vdist(camPos,pnt);
-		if (minDist > dist) minDist = dist;
-	}
-	return minDist;
-	*/
-
+	return false;
 }

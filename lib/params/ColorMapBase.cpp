@@ -11,6 +11,7 @@
 #include <sstream>
 #include <algorithm>
 #include <vapor/XmlNode.h>
+#include "ParamNode.h"
 #include <vapor/MyBase.h>
 #include <vapor/ColorMapBase.h>
 #include "assert.h"
@@ -231,7 +232,7 @@ void ColorMapBase::clear()
 //----------------------------------------------------------------------------
 // Build an xml node
 //----------------------------------------------------------------------------
-XmlNode* ColorMapBase::buildNode()
+ParamNode* ColorMapBase::buildNode()
 {
   std::map <string, string> attrs;
   string empty;
@@ -247,7 +248,7 @@ XmlNode* ColorMapBase::buildNode()
   oss << (double)_maxValue;
   attrs[_maxTag] = oss.str();
 
-  XmlNode* mainNode = new XmlNode(_tag, attrs, _controlPoints.size());
+  ParamNode* mainNode = new ParamNode(_tag, attrs, _controlPoints.size());
 
   for (int i=0; i < _controlPoints.size(); i++)
   {

@@ -29,12 +29,7 @@ class VizWin;
 class Session;
 class RegionParams;
 class ViewpointParams;
-class DvrParams;
-class ParamsIso;
-class ProbeParams;
 
-class AnimationParams;
-class FlowParams;
 //Simple Command to handle events associated with creating, deleting, activating visualizers
 //There are only 3:  create, remove, and activate
 //
@@ -59,16 +54,12 @@ protected:
 	int currentActiveViznum;
 	Command::activateType thisType;
 	const char* windowName;
+	//State needed for remove undo:
+	map<int, vector<Params*>> *savedParamsInstances;
+	vector<Params*> *savedDefaultParams;
 	//If this is a "remove" event, we need the following state as well:
 	//
-	ViewpointParams* vpParams;
-	RegionParams* regionParams;
 	
-	std::vector<DvrParams*> dvrParamsList;
-	std::vector<ParamsIso*> isoParamsList;
-	std::vector<ProbeParams*> probeParamsList;
-	AnimationParams* animationParams;
-	std::vector<FlowParams*> flowParamsList;
 	QColor backgroundColor;
 
 };

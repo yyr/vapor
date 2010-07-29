@@ -17,6 +17,7 @@ namespace VAPoR {
 
 class MapperFunctionBase;
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API VColormap : public ColorMapBase 
 {

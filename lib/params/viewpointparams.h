@@ -33,6 +33,7 @@ class MainForm;
 class RegionParams;
 class PanelCommand;
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API ViewpointParams : public Params {
 	
@@ -40,7 +41,8 @@ public:
 	ViewpointParams(int winnum);
 	
 	virtual ~ViewpointParams();
-	
+	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy();
 	
 	//Note that all calls to get camera pos and get rot center return values
@@ -153,7 +155,7 @@ public:
 	}
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	static const float* getDefaultViewDir(){return defaultViewDir;}
 	static const float* getDefaultUpVec(){return defaultUpVec;}
 	static const float* getDefaultLightDirection(int lightNum){return defaultLightDirection[lightNum];}
@@ -182,6 +184,7 @@ public:
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
 
 protected:
+	static const string _shortName;
 	static const string _latLonAttr;
 	static const string _currentViewTag;
 	static const string _homeViewTag;

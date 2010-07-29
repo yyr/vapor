@@ -64,7 +64,7 @@ const string TwoDParams::_verticalDisplacementAttr = "VerticalDisplacement";
 const string TwoDParams::_numTransformsAttr = "NumTransforms";
 const string TwoDParams::_orientationAttr = "Orientation";
 
-TwoDParams::TwoDParams(int winnum) : RenderParams(winnum){
+TwoDParams::TwoDParams(int winnum, const string& name) : RenderParams(winnum, name){
 	
 	lastTwoDTexture = 0;
 

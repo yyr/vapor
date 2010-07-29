@@ -46,6 +46,7 @@
 #define LARGEST_MIN_STEP 4.f
 #define LARGEST_MAX_STEP 10.f
 using namespace VAPoR;
+	const string FlowParams::_shortName = "Flow";
 	const string FlowParams::_seedingTag = "FlowSeeding";
 	const string FlowParams::_seedRegionMinAttr = "SeedRegionMins";
 	const string FlowParams::_seedRegionMaxAttr = "SeedRegionMaxes";
@@ -117,8 +118,8 @@ using namespace VAPoR;
 	float FlowParams::defaultArrowSize = 2.f;
 	float FlowParams::defaultDiamondSize = 2.f;
 
-FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
-	thisParamType = FlowParamsType;
+	FlowParams::FlowParams(int winnum) : RenderParams(winnum, Params::_flowParamsTag) {
+	
 	//myFlowLib = 0;
 	mapperFunction = 0;
 	
@@ -1376,7 +1377,7 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 
 }
 //Method to construct Xml for state saving
-XmlNode* FlowParams::
+ParamNode* FlowParams::
 buildNode() {
 	DataStatus* ds;
 	ds = DataStatus::getInstance();
@@ -1525,7 +1526,7 @@ buildNode() {
 	oss << ds->getVariableName(priorityVarNum[0])<<" "<<ds->getVariableName(priorityVarNum[1])<<" "<<ds->getVariableName(priorityVarNum[2]);
 	attrs[_priorityVariableNamesAttr] = oss.str();
 
-	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numComboVariables);
+	ParamNode* flowNode = new ParamNode(_flowParamsTag, attrs, 2+numComboVariables);
 
 	//Now add children:  
 	//There's a child for geometry, a child for
@@ -1574,7 +1575,7 @@ buildNode() {
 	attrs[_useRakeAttr] = oss.str();
 	oss.str(empty);
 
-	XmlNode* seedingNode = new XmlNode(_seedingTag,attrs,getNumListSeedPoints());
+	ParamNode* seedingNode = new ParamNode(_seedingTag,attrs,getNumListSeedPoints());
 
 	//Add a node for each seed point:
 	for (int i = 0; i<getNumListSeedPoints(); i++){
@@ -1587,7 +1588,7 @@ buildNode() {
 		oss.str(empty);
 		oss << (double)seedPointList[i].getVal(3);
 		attrs[_timestepAttr] = oss.str();
-		XmlNode* seedNode = new XmlNode(_seedPointTag, attrs, 0);
+		ParamNode* seedNode = new ParamNode(_seedPointTag, attrs, 0);
 		seedingNode->AddChild(seedNode);
 	}
 
@@ -1641,11 +1642,11 @@ buildNode() {
 		attrs[_opacityScaleAttr] = oss.str();
 	}
 
-	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,2*numComboVariables+1);
+	ParamNode* graphicNode = new ParamNode(_geometryTag,attrs,2*numComboVariables+1);
 
 	//Create a mapper function node, add it as child
 	if(mapperFunction) {
-		XmlNode* mfNode = mapperFunction->buildNode(empty);
+		ParamNode* mfNode = mapperFunction->buildNode(empty);
 		graphicNode->AddChild(mfNode);
 	}
 	

@@ -81,7 +81,8 @@ const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees
 
 ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
-	myParamsType = Params::ProbeParamsType;
+
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_probeParamsTag, this);
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
@@ -289,7 +290,7 @@ void ProbeEventRouter::updateTab(){
 		colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
 	}
 	
-	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
+	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(Params::_probeParamsTag, winnum) > 1);
 	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
 		planarCheckbox->setChecked(probeParams->isPlanar());
 	}
@@ -1023,7 +1024,7 @@ refreshProbeHisto(){
 
 void ProbeEventRouter::
 probeLoadInstalledTF(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	TransferFunction* tf = pParams->getTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
@@ -1051,29 +1052,29 @@ probeLoadInstalledTF(){
 void ProbeEventRouter::
 probeSaveTF(void){
 	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
-	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	saveTF(dParams);
 }
 void ProbeEventRouter::
 probeLoadTF(void){
 	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	loadTF(pParams, pParams->getSessionVarNum());
 	updateClut(pParams);
 }
 void ProbeEventRouter::
 probeCenterRegion(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void ProbeEventRouter::
 probeCenterView(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void ProbeEventRouter::
 probeCenterRake(){
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	fRouter->guiCenterRake(pParams->getSelectedPoint());
 }
@@ -1081,10 +1082,10 @@ probeCenterRake(){
 void ProbeEventRouter::
 probeAddSeed(){
 	Point4 pt;
-	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPoint());
-	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
+	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	int ts = ap->getCurrentFrameNumber();
 	pt.set1Val(3,(float)ts);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
@@ -1202,7 +1203,7 @@ guiAxisAlign(int choice){
 void ProbeEventRouter::
 probeAttachSeed(bool attach){
 	if (attach) probeAddSeed();
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
+	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
 	
 	guiAttachSeed(attach, fParams);
 }
@@ -2313,8 +2314,8 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	ProbeParams* pParams = (ProbeParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumProbeInstances(vizNum) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::ProbeParamsType, instance);
+	if (!prevParams) assert(Params::GetNumParamsInstances(Params::_probeParamsTag,vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::GetTypeFromTag(Params::_probeParamsTag), instance);
 	setEditorDirty();
 	updateTab();
 	ProbeParams* formerParams = (ProbeParams*)prevParams;

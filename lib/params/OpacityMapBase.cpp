@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #include <vapor/XmlNode.h>
+#include "ParamNode.h"
 #include <vapor/MyBase.h>
 #include <vapor/OpacityMapBase.h>
 
@@ -165,7 +166,7 @@ void OpacityMapBase::clear()
 //----------------------------------------------------------------------------
 // Build an xml node (caller has ownership)
 //----------------------------------------------------------------------------
-XmlNode* OpacityMapBase::buildNode()
+ParamNode* OpacityMapBase::buildNode()
 {
   std::map <string, string> attrs;
   string empty;
@@ -205,7 +206,7 @@ XmlNode* OpacityMapBase::buildNode()
   oss << (double)_phase;
   attrs[_phaseTag] = oss.str();
 
-  XmlNode* mainNode = new XmlNode(_tag, attrs, _controlPoints.size());
+  ParamNode* mainNode = new ParamNode(_tag, attrs, _controlPoints.size());
 
   for (int i=0; i < _controlPoints.size(); i++)
   {

@@ -38,6 +38,7 @@ class MainForm;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
+class ParamNode;
 class FlowParams;
 class Histo;
 
@@ -46,6 +47,8 @@ class PARAMS_API TwoDDataParams : public TwoDParams {
 public: 
 	TwoDDataParams(int winnum);
 	~TwoDDataParams();
+	static ParamsBase* CreateDefaultInstance() {return new TwoDDataParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	virtual RenderParams* deepRCopy();
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
@@ -139,7 +142,7 @@ public:
 	bool reinit(bool doOverride);
 	virtual void restart();
 	static void setDefaultPrefs();
-	XmlNode* buildNode(); 
+	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
@@ -201,6 +204,7 @@ public:
 	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
 	
 protected:
+	static const string _shortName;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _variableSelectedAttr;

@@ -78,12 +78,12 @@ protected:
 //
 class TabChangeCommand : public Command{
 public:
-	TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab);
+	TabChangeCommand(Params::ParamsBaseType oldTab, Params::ParamsBaseType newTab);
 	virtual ~TabChangeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
 protected:
-	const char* tabName(Params::ParamType t);
+	const char* tabName(Params::ParamsBaseType t);
 	int previousTab;
 	int currentTab;
 

@@ -38,6 +38,7 @@ class ExpatParseMgr;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
+class ParamNode;
 class PARAMS_API DvrParams : public RenderParams{
 	
 public: 
@@ -58,6 +59,8 @@ public:
 
 	DvrParams(int winnum);
 	~DvrParams();
+	const std::string& getShortName() {return _shortName;}
+	static ParamsBase* CreateDefaultInstance() {return new DvrParams(-1);}
 	virtual RenderParams* deepRCopy();
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
@@ -151,7 +154,7 @@ public:
 	bool reinit(bool doOverride);
 	virtual void restart();
 	static void setDefaultPrefs();
-	XmlNode* buildNode(); 
+	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
@@ -171,6 +174,7 @@ public:
 	static void setDefaultPreIntegration(bool val){defaultPreIntegrationEnabled = val;}
 	static void setDefaultLighting(bool val) {defaultLightingEnabled = val;}
 protected:
+	static const string _shortName;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _activeVariableNameAttr;

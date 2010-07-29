@@ -83,7 +83,8 @@ using namespace VAPoR;
 
 FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_FlowTab(), EventRouter(){
 	setupUi(this);
-	myParamsType = Params::FlowParamsType;
+	
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_flowParamsTag, this);
 	savedCommand = 0;
 	flowDataChanged = false;
 	mapBoundsChanged = false;
@@ -573,7 +574,7 @@ void FlowEventRouter::updateTab(){
 
 	
 	
-	deleteInstanceButton->setEnabled(vizMgr->getNumFlowInstances(winnum) > 1);
+	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(Params::_flowParamsTag,winnum)>1);
 	
 
 	//Get the region corners from the current applicable region panel,
@@ -3126,9 +3127,9 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance,boo
 	FlowParams* fParams = (FlowParams*)(newParams->deepCopy());
 	int vizNum = fParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumFlowInstances(vizNum) == instance);
+	if (!prevParams) assert(Params::GetNumParamsInstances(Params::_flowParamsTag,vizNum) == instance);
 	
-	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::FlowParamsType, instance);
+	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::GetTypeFromTag(Params::_flowParamsTag), instance);
 	setEditorDirty();
 	//if (fParams->getMapperFunc())fParams->getMapperFunc()->setParams(fParams);
 	updateTab();

@@ -2110,7 +2110,7 @@ Histo* MappingFrame::getHistogram()
 
   if (params)
   {
-    return VizWinMgr::getEventRouter(params->getParamType())->
+    return VizWinMgr::getEventRouter(params->GetParamsBaseTypeId())->
       getHistogram(params, params->isEnabled(),_isoSliderEnabled);
   }
 
@@ -2359,7 +2359,7 @@ void MappingFrame::setDomain()
     emit endChange();
 
     RenderParams *params = _mapper->getParams();
-    VizWinMgr::getEventRouter(params->getParamType())->updateMapBounds(params);
+    VizWinMgr::getEventRouter(params->GetParamsBaseTypeId())->updateMapBounds(params);
 	
     updateGL();
   }
@@ -2407,7 +2407,7 @@ void MappingFrame::updateGL(){
 		return;
 	}
 	//3 cases:  isoVal, colorMap, or opac/tf map
-    	EventRouter* eRouter = VizWinMgr::getEventRouter(getParams()->getParamType());
+    	EventRouter* eRouter = VizWinMgr::getEventRouter(getParams()->GetParamsBaseTypeId());
 	if (_isoSliderEnabled && eRouter->isoShown){
 		QGLWidget::updateGL();
 	} else if (_opacityMappingEnabled && eRouter->opacityMapShown){

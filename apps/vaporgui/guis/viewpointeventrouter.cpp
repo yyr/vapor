@@ -50,7 +50,7 @@ using namespace VAPoR;
 
 ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
-	myParamsType = Params::ViewpointParamsType;
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_viewpointParamsTag, this);
 	savedCommand = 0;
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
 }
@@ -156,7 +156,7 @@ setVtabTextChanged(const QString& ){
 void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	
-	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vParams, "edit Viewpoint text");
 	bool usingLatLon = vParams->isLatLon();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -412,7 +412,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		savedCommand = 0;
 	}
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center sub-region view");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	//Find the largest of the dimensions of the current region, projected orthogonal to view
@@ -471,7 +471,7 @@ guiCenterFullRegion(RegionParams* rParams){
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center full region view");
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	vpParams->centerFullRegion(timestep);
@@ -495,7 +495,7 @@ guiAlignView(int axis){
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	if (axis == 1) {  //Special case to align to closest axis.
 		//determine the closest view direction and up vector to the current viewpoint.
@@ -574,7 +574,7 @@ guiSetCenter(const float* coords){
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "set view center");
@@ -675,7 +675,7 @@ void ViewpointEventRouter::guiSetStereoMode(int mode){
 }
 void ViewpointEventRouter::
 setHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Set Home Viewpoint");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	vpParams->setHomeViewpoint(new Viewpoint(*currentViewpoint));
@@ -685,7 +685,7 @@ setHomeViewpoint(){
 }
 void ViewpointEventRouter::
 useHomeViewpoint(){
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "Use Home Viewpoint");
 	Viewpoint* homeViewpoint = vpParams->getHomeViewpoint();
@@ -720,7 +720,7 @@ captureMouseUp(){
 void ViewpointEventRouter::
 endSpin(){
 	//Update the tab:
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	if (!savedCommand) return;
 	updateTab();
 	
@@ -768,7 +768,7 @@ void ViewpointEventRouter::
 captureMouseDown(){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
-	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
 	savedCommand = PanelCommand::captureStart(vpParams,  "viewpoint navigation");

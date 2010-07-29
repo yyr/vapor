@@ -40,13 +40,13 @@ setNext(Params* next){
 }
 void PanelCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(nextPanel,previousPanel, false, previousInstance);
+	VizWinMgr::getEventRouter(previousPanel->GetParamsBaseTypeId())->makeCurrent(nextPanel,previousPanel, false, previousInstance);
 	Session::getInstance()->unblockRecording();
 	
 }
 void PanelCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(previousPanel,nextPanel, false, previousInstance);
+	VizWinMgr::getEventRouter(previousPanel->GetParamsBaseTypeId())->makeCurrent(previousPanel,nextPanel, false, previousInstance);
 	Session::getInstance()->unblockRecording();
 	
 }
@@ -60,7 +60,7 @@ captureStart(Params* p,   const char* description, int prevInst){
 	if (!Session::getInstance()->isRecording()) return 0;
 	//If instance is default, get it from vizwinmgr:
 	if ((prevInst < 0) && p->isRenderParams()){
-		prevInst = VizWinMgr::getInstance()->getActiveInstanceIndex(p->getParamType());
+		prevInst = VizWinMgr::getInstance()->getActiveInstanceIndex(p->GetParamsBaseTypeId());
 	}
 	PanelCommand* cmd = new PanelCommand(p, description, prevInst);
 	return cmd;
@@ -79,13 +79,13 @@ ReenablePanelCommand::ReenablePanelCommand(Params* prevParams, const char* descr
 
 void ReenablePanelCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(nextPanel,previousPanel, false, previousInstance, true);
+	VizWinMgr::getEventRouter(previousPanel->GetParamsBaseTypeId())->makeCurrent(nextPanel,previousPanel, false, previousInstance, true);
 	Session::getInstance()->unblockRecording();
 	
 }
 void ReenablePanelCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(previousPanel,nextPanel, false, previousInstance, true);
+	VizWinMgr::getEventRouter(previousPanel->GetParamsBaseTypeId())->makeCurrent(previousPanel,nextPanel, false, previousInstance, true);
 	Session::getInstance()->unblockRecording();
 }
 
@@ -95,7 +95,7 @@ captureStart(Params* p,   const char* description, int prevInst){
 	assert(p->isRenderParams());
 	//If instance is default, get it from vizwinmgr:
 	if ((prevInst < 0) && p->isRenderParams()){
-		prevInst = VizWinMgr::getInstance()->getActiveInstanceIndex(p->getParamType());
+		prevInst = VizWinMgr::getInstance()->getActiveInstanceIndex(p->GetParamsBaseTypeId());
 	}
 	ReenablePanelCommand* cmd = new ReenablePanelCommand(p, description, prevInst);
 	return cmd;
@@ -128,7 +128,8 @@ void InstancedPanelCommand::unDo(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//All instance commands act on current active Viz, except for copy-to
 	int winnum = vizMgr->getActiveViz();
-	Params::ParamType pType = previousPanel->getParamType();
+	
+	Params::ParamsBaseType pType = previousPanel->GetParamsBaseTypeId();
 	EventRouter* evRouter = VizWinMgr::getEventRouter(pType);
 	int lastInstance;
 	switch (instancedCommandType){
@@ -187,7 +188,7 @@ void InstancedPanelCommand::reDo(){
 	//copy-to, that uses nextIndex to identify the copy target
 	int winnum = vizMgr->getActiveViz();
 
-	VAPoR::Params::ParamType pType = previousPanel->getParamType();
+	Params::ParamsBaseType pType = previousPanel->GetParamsBaseTypeId();
 
 	EventRouter* evRouter = VizWinMgr::getEventRouter(pType);
 	switch (instancedCommandType){

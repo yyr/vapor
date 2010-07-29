@@ -76,7 +76,7 @@ XmlNode::~XmlNode() {
 }
 
 
-vector<long> &XmlNode::SetElementLong(
+int XmlNode::SetElementLong(
 	const string &tag, const vector<long> &values
 ) {
 
@@ -90,9 +90,53 @@ vector<long> &XmlNode::SetElementLong(
 	else {
 		_longmap[tag] = values;
 	}
-	return(_longmap[tag]);
+	return(0);
+}
+int XmlNode::SetElementLong(
+	const vector<string> &tags, const vector<long> &values
+) {
+	//Iterate through tags, finding associated node
+	XmlNode* currNode = this;
+	for (int i = 0; i< tags.size()-1; i++){
+		currNode = currNode->GetChild(tags[i]);
+		if (!currNode) return -1;
+	}
+	string tag = tags[tags.size()-1];
+	map <string, vector<long> >::iterator p = currNode->_longmap.find(tag);
+
+	// see if entry for this key (tag) already exists
+	//
+	if (p != currNode->_longmap.end()) { 
+		p->second = values;
+	}
+	else {
+		currNode->_longmap[tag] = values;
+	}
+	return(0);
 }
 	
+int XmlNode::SetElementDouble(
+	const vector<string> &tags, const vector<double> &values
+) {
+	//Iterate through tags, finding associated node
+	XmlNode* currNode = this;
+	for (int i = 0; i< tags.size()-1; i++){
+		currNode = currNode->GetChild(tags[i]);
+		if (!currNode) return -1;
+	}
+	string tag = tags[tags.size()-1];
+	map <string, vector<double> >::iterator p = currNode->_doublemap.find(tag);
+
+	// see if entry for this key (tag) already exists
+	//
+	if (p != (currNode->_doublemap.end())) { 
+		p->second = values;
+	}
+	else {
+		currNode->_doublemap[tag] = values;
+	}
+	return(0);
+}
 const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 
 	map <string, vector<long> >::const_iterator p = _longmap.find(tag);
@@ -118,7 +162,7 @@ int XmlNode::HasElementLong(const string &tag) const {
 }
 
 
-vector<double> &XmlNode::SetElementDouble(
+int XmlNode::SetElementDouble(
 	const string &tag, const vector<double> &values
 ) {
 	map <string, vector<double> >::iterator p = _doublemap.find(tag);
@@ -131,12 +175,13 @@ vector<double> &XmlNode::SetElementDouble(
 	else {
 		_doublemap[tag] = values;
 	}
-	return(_doublemap[tag]);
+	return(0);
 
 }
 	
 const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 
+	
 	map <string, vector<double> >::const_iterator p = _doublemap.find(tag);
 
 	// see if entry for this key (tag) already exists
@@ -159,7 +204,7 @@ int XmlNode::HasElementDouble(const string &tag) const {
 	return(p != _doublemap.end());
 }
 	
-string &XmlNode::SetElementString(
+int XmlNode::SetElementString(
 	const string &tag, const string &str
 ) {
 	map <string, string>::iterator p = _stringmap.find(tag);
@@ -173,10 +218,10 @@ string &XmlNode::SetElementString(
 		_stringmap[tag] = str;
 	}
 
-	return(_stringmap[tag]);
+	return(0);
 } 
 
-string &XmlNode::SetElementStringVec(
+int XmlNode::SetElementString(
     const string &tag,const vector <string> &strvec
 ) {
 	string s;
@@ -188,6 +233,24 @@ string &XmlNode::SetElementStringVec(
 	return(XmlNode::SetElementString(tag, s));
 }
 
+int XmlNode::SetElementString(
+    const vector<string> &tagpath, const vector <string> &strvec
+) {
+	//Iterate through tags, finding associated node
+	XmlNode* currNode = this;
+	for (int i = 0; i< tagpath.size()-1; i++){
+		currNode = currNode->GetChild(tagpath[i]);
+		if (!currNode) return -1;
+	}
+	string tag = tagpath[tagpath.size()-1];
+
+	string s;
+	for (int i=0; i<strvec.size(); i++) {
+		s.append(strvec[i]);
+		if (i<strvec.size()-1) s.append(" ");
+	}
+	return(currNode->SetElementString(tag, s));
+}
 
 
 	
@@ -209,6 +272,7 @@ const string &XmlNode::GetElementString(const string &tag) const {
 
 	return(p->second);
 }
+
 
 void XmlNode::GetElementStringVec(const string &tag, vector <string> &vec) const {
 	
@@ -282,7 +346,7 @@ int	XmlNode::DeleteChild(const string &tag) {
 	return(-1);
 }
 
-XmlNode	*XmlNode::GetChild(size_t index) {
+XmlNode	*XmlNode::GetChild(size_t index) const {
 
 	if (index >= _children.size()) {
 		// need to report error message
@@ -299,7 +363,7 @@ int XmlNode::HasChild(size_t index) {
 	
 }
 
-XmlNode	*XmlNode::GetChild(const string &tag) {
+XmlNode	*XmlNode::GetChild(const string &tag) const {
 
 	XmlNode *child;
 
@@ -451,3 +515,11 @@ std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 }
 };
 
+//Recursively delete all descendants of this node
+void XmlNode::DeleteAll(){
+	for (int i=0; i<(int)_children.size(); i++) {
+		if (_children[i]) _children[i]->DeleteAll();
+		delete _children[i];
+	}
+	_children.clear();
+}

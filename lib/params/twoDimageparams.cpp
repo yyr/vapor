@@ -54,6 +54,7 @@
 
 
 using namespace VAPoR;
+const string TwoDImageParams::_shortName = "Image";
 const string TwoDImageParams::_imagePlacementAttr = "ImagePlacement";
 const string TwoDImageParams::_cropImageAttr = "CropImage";
 const string TwoDImageParams::_georeferencedAttr = "Georeferenced";
@@ -61,8 +62,8 @@ const string TwoDImageParams::_resampleRateAttr = "ResamplingRate";
 const string TwoDImageParams::_opacityMultAttr = "OpacityMultiplier";
 const string TwoDImageParams::_imageFileNameAttr = "ImageFileName";
 
-TwoDImageParams::TwoDImageParams(int winnum) : TwoDParams(winnum){
-	thisParamType = TwoDImageParamsType;
+TwoDImageParams::TwoDImageParams(int winnum) : TwoDParams(winnum, Params::_twoDImageParamsTag){
+	
 	imageExtents = 0;
 	textureSizes = 0;
 	imageNums = 0;
@@ -342,7 +343,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 }
 
 //Method to construct Xml for state saving
-XmlNode* TwoDImageParams::
+ParamNode* TwoDImageParams::
 buildNode() {
 	//Construct the twoD node
 	string empty;
@@ -399,7 +400,7 @@ buildNode() {
 
 	attrs[_imageFileNameAttr] = imageFileName;
 	
-	XmlNode* twoDNode = new XmlNode(_twoDImageParamsTag, attrs, 3);
+	ParamNode* twoDNode = new ParamNode(_twoDImageParamsTag, attrs, 3);
 
 	//Now add children:  
 	//Now do geometry node:

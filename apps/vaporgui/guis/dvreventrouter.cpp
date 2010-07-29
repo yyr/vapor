@@ -78,7 +78,8 @@ using namespace VAPoR;
 
 DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_DVR(), EventRouter(){
         setupUi(this);
-	myParamsType = Params::DvrParamsType;
+	
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_dvrParamsTag, this);
 	savedCommand = 0;
     benchmark = DONE;
     benchmarkTimer = 0;
@@ -181,7 +182,7 @@ void DvrEventRouter::guiChangeInstance(int newCurrent){
 	for (int i = 0; i< numInst; i++){
 		//If another instance is enabled, 
 		//then enable newCurrent (which will disable the other one)
-		if (vizMgr->getDvrParams(winnum, i)->isEnabled() && 
+		if (((DvrParams*)(vizMgr->getDvrParams(winnum, i)))->isEnabled() && 
 			i != newCurrent)
 			setDvrEnabled(true, newCurrent);
 	}
@@ -208,7 +209,7 @@ setDvrTabTextChanged(const QString& ){
 }
 void DvrEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "edit Dvr text");
 	QString strn;
@@ -239,7 +240,7 @@ setDvrEnabled(bool val, int instance){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
 	
-	DvrParams* dParams = vizMgr->getDvrParams(activeViz, instance);
+	DvrParams* dParams = (DvrParams*)(vizMgr->getDvrParams(activeViz, instance));
 	//Make sure this is a change:
 	if (dParams->isEnabled() == val ) return;
 	//If we are enabling, also make this the current instance:
@@ -273,7 +274,7 @@ void DvrEventRouter::
 refreshHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
-	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
 	if (dParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
@@ -292,13 +293,13 @@ refreshHisto(){
 //dialog, then sends the result to the DVR params
 void DvrEventRouter::
 dvrSaveTF(void){
-	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
 	saveTF(dParams);
 }
 
 void DvrEventRouter::
 dvrLoadInstalledTF(){
-	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
 	TransferFunction* tf = dParams->getTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
@@ -315,7 +316,7 @@ dvrLoadInstalledTF(){
 void DvrEventRouter::
 dvrLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
-	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
 	loadTF(dParams,dParams->getSessionVarNum());
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
@@ -530,7 +531,7 @@ guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.
-	DvrParams* dParams = vizWinMgr->getDvrParams(winnum, instance);
+	DvrParams* dParams = (DvrParams*)(vizWinMgr->getDvrParams(winnum, instance));
 	
 	if (value == dParams->isEnabled()) return;
 	confirmText(false);
@@ -538,11 +539,12 @@ guiSetEnabled(bool value, int instance){
 	if (value){
 		
 		VizWin* viz = vizWinMgr->getActiveVisualizer();
-		DvrParams* prevParams = (DvrParams*)viz->getGLWindow()->findARenderer(Params::DvrParamsType);
+		DvrParams* prevParams = (DvrParams*)viz->getGLWindow()->findARenderer(Params::GetTypeFromTag(Params::_dvrParamsTag));
 		assert(prevParams != dParams);
 		if (prevParams){
 			
-			int prevInstance = vizWinMgr->findInstanceIndex(winnum, prevParams, Params::DvrParamsType);
+			int prevInstance = vizWinMgr->findInstanceIndex(winnum, prevParams, 
+				Params::GetTypeFromTag(Params::_dvrParamsTag));
 			assert (prevInstance >= 0);
 			//Put the disable in the history:
 			PanelCommand* cmd = PanelCommand::captureStart(prevParams, "disable existing dvr", prevInstance);
@@ -986,7 +988,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 	
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumDvrInstances(vizNum) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::DvrParamsType, instance);
+	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::GetTypeFromTag(Params::_dvrParamsTag), instance);
 	
 	//setEditorDirty(dParams);
 	//updateTab();

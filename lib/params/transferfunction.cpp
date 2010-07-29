@@ -34,6 +34,7 @@
 
 #include "vapor/MyBase.h"
 #include <vapor/XmlNode.h>
+#include "ParamNode.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -109,7 +110,7 @@ TransferFunction::~TransferFunction()
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
 
-XmlNode* TransferFunction::buildNode(const string& tfname) 
+ParamNode* TransferFunction::buildNode(const string& tfname) 
 {
   // Construct the main node
   string empty;
@@ -139,7 +140,7 @@ XmlNode* TransferFunction::buildNode(const string& tfname)
   //
   int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
 
-  XmlNode* mainNode = new XmlNode(_transferFunctionTag, attrs, numChildren);
+  ParamNode* mainNode = new ParamNode(_transferFunctionTag, attrs, numChildren);
 
   //
   // Opacity maps
@@ -182,7 +183,7 @@ TransferFunction* TransferFunction::loadFromFile(ifstream& is,
 bool TransferFunction::saveToFile(ofstream& ofs)
 {
   const std::string emptyString;
-  XmlNode* rootNode = buildNode(emptyString);
+  ParamNode* rootNode = buildNode(emptyString);
 
   ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" 
       << endl;

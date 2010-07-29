@@ -24,12 +24,12 @@
 #include "GL/glew.h"
 #include "session.h"
 #include "dvrparams.h"
-#include "ParamsIso.h"
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrWB.h"
 #include "vapor/DataMgrLayered.h"
 #include "vapor/DataMgrFactory.h"
 #include "vapor/LayeredIO.h"
+#include "ParamNode.h"
 
 #include "vizwinmgr.h"
 #include "mainform.h"
@@ -263,7 +263,7 @@ void Session::setDefaultPrefs(){
 
 bool Session::
 saveToFile(ofstream& ofs ){
-	XmlNode* const rootNode = buildNode();
+	ParamNode* const rootNode = buildNode();
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
@@ -279,7 +279,7 @@ saveToFile(ofstream& ofs ){
 
 //Construct an XML node from the session parameters
 //
-XmlNode* Session::
+ParamNode* Session::
 buildNode() {
 	//Construct the main node
 	string empty;
@@ -303,7 +303,7 @@ buildNode() {
 	attrs[_interactiveRefLevelAttr] = oss.str();
 	
 	int numSesVars = getNumSessionVariables();
-	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numSesVars+numTFs+2);
+	ParamNode* mainNode = new ParamNode(_sessionTag, attrs, numSesVars+numTFs+2);
 
 	//Now add children:  One for all the saved transfer functions,
 	//One for each of the session variables,
@@ -312,10 +312,11 @@ buildNode() {
 	//Create a global transfer function node
 	if (numTFs > 0){
 		attrs.clear();
-		XmlNode* globalTFs = mainNode->NewChild(_globalTransferFunctionsTag, attrs, numTFs);
+		ParamNode* globalTFs = new ParamNode(_globalTransferFunctionsTag, attrs, numTFs);
+		mainNode->AddChild(globalTFs);
 		for (int i = 0; i< numTFs; i++){
 			//Save all the state-saved tf's with their names
-			XmlNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
+			ParamNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
 			globalTFs->AddChild(tfNode);
 		}
 	}
@@ -342,14 +343,15 @@ buildNode() {
 	}
 	//Create a global params node, and populate it.
 	attrs.clear();
-	XmlNode* globalPanels = mainNode->NewChild(_globalParameterPanelsTag, attrs, 5);
+	ParamNode* globalPanels = new ParamNode(_globalParameterPanelsTag, attrs, 5);
+	mainNode->AddChild(globalPanels);
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Have the global parameters populate this:
-	XmlNode* rgNode = vizMgr->getGlobalParams(Params::RegionParamsType)->buildNode();
+	ParamNode* rgNode = vizMgr->getGlobalParams(ParamsBase::GetTypeFromTag(Params::_regionParamsTag))->buildNode();
 	if(rgNode) globalPanels->AddChild(rgNode);
-	XmlNode* animNode = vizMgr->getGlobalParams(Params::AnimationParamsType)->buildNode();
+	ParamNode* animNode = vizMgr->getGlobalParams(ParamsBase::GetTypeFromTag(Params::_animationParamsTag))->buildNode();
 	if(animNode) globalPanels->AddChild(animNode);
-	XmlNode* vpNode = vizMgr->getGlobalParams(Params::ViewpointParamsType)->buildNode();
+	ParamNode* vpNode = vizMgr->getGlobalParams(ParamsBase::GetTypeFromTag(Params::_viewpointParamsTag))->buildNode();
 	if (vpNode) globalPanels->AddChild(vpNode);
 	//have vizwinmgr populate the vizwin nodes
 	mainNode->AddChild(vizMgr->buildNode());
@@ -537,55 +539,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				pm->pushClassStack(tempParsedTF);
 				tempParsedTF->elementStartHandler(pm, depth, tag, attrs);
 				return true;
-			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
-				//Need to "push" to dvr parser.
-				//That parser will "pop" back to session when done.
-				tempParsedPanel = new DvrParams(-1);
+			} else if (Params::IsParamsTag(tag)){
+				tempParsedPanel = Params::CreateDefaultParams(Params::GetTypeFromTag(tag));
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
-			} else if (StrCmpNoCase(tag, Params::_isoParamsTag) == 0){
-				//Need to "push" to iso parser.
-				//That parser will "pop" back to session when done.
-				tempParsedPanel = new ParamsIso(0, -1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
-				//Need to "push" to probe parser.
-				//That parser will "pop" back to session when done.
-				tempParsedPanel = new ProbeParams(-1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
-				//Need to "push" to region parser.
-				//That parser will "pop" back to session when done.
-				tempParsedPanel = new RegionParams(-1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
-				
-				tempParsedPanel = new ViewpointParams(-1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
-				
-				tempParsedPanel = new AnimationParams(-1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
-				//Need to "push" to flow parser.
-				//That parser will "pop" back to session when done.
-				tempParsedPanel = new FlowParams(-1);
-				pm->pushClassStack(tempParsedPanel);
-				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
-				return true;
-			} 
-			else return false;
+			} else return false;
 		default: return false;
 	}
 }
@@ -617,52 +576,52 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_dvrParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_isoParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::IsoParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_isoParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ProbeParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_probeParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_twoDImageParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::TwoDImageParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_twoDImageParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::TwoDDataParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_twoDDataParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::RegionParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_regionParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::AnimationParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_animationParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ViewpointParamsType);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_viewpointParamsTag));
 				tempParsedPanel = 0;
 				return true;	
 			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-                vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::FlowParamsType);
+                vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_flowParamsTag));
 				tempParsedPanel = 0;
 				return true;
 			} else return false;
@@ -690,7 +649,7 @@ exportData(){
 	//
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
 	
-	DvrParams* dParams = winMgr->getDvrParams(winNum);
+	DvrParams* dParams = (DvrParams*)(winMgr->getDvrParams(winNum));
 	//always go for max number of transforms:
 	int numxforms = DataStatus::getInstance()->getNumTransforms();
 	

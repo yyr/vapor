@@ -77,7 +77,8 @@ public:
 	void newRendererInstance(int winnum);
 	void copyRendererInstance(int toWinnum, RenderParams* rParams);
 	void changeRendererInstance(int winnum, int newInstance);
-	Params::ParamType getParamsType() {return myParamsType;}
+	
+	Params::ParamsBaseType getParamsBaseType() {return myParamsBaseType;}
 	virtual void performGuiChangeInstance(int newCurrent);
 	virtual void performGuiNewInstance();
 	virtual void performGuiDeleteInstance();
@@ -107,7 +108,7 @@ public:
 
 	virtual void guiSetEnabled(bool, int ) {assert(0);}
 
-	void guiSetLocal(Params* p, bool lg){
+	virtual void guiSetLocal(Params* p, bool lg){
 		if (textChangedFlag) confirmText(false);
 	
 		PanelCommand* cmd;
@@ -117,7 +118,11 @@ public:
 		}
 		else cmd = PanelCommand::captureStart(localParams,  "set Local to Global");
 		localParams->setLocal(lg);
+		int winnum = localParams->getVizNum();
+		GLWindow* glwin = VizWinMgr::getInstance()->getVizWin(winnum)->getGLWindow();
+		glwin->setActiveParams(Params::GetCurrentParamsInstance(localParams->GetParamsBaseTypeId(),winnum),localParams->GetParamsBaseTypeId());
 		PanelCommand::captureEnd(cmd, localParams);
+		updateTab();
 	}
 	//confirm a change in a text box.  the render argument
 	//is true if this requires updateRenderer()
@@ -168,7 +173,7 @@ protected:
 	int numHistograms; //how large is histo array..
 	//There is one tabbed panel for each class of Params
 	
-	Params::ParamType myParamsType;
+	Params::ParamsBaseType myParamsBaseType;
 	bool textChangedFlag;
 	PanelCommand* savedCommand;
 };

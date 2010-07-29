@@ -78,7 +78,8 @@ QT_USE_NAMESPACE
 
 AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
 	setupUi(this);	
-	myParamsType = Params::AnimationParamsType;
+
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_animationParamsTag, this);
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
 	dontUpdate = false;
 	QPixmap* playForwardIcon = new QPixmap(playforward);
@@ -685,9 +686,9 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 void AnimationEventRouter::refreshFrontTab(){
 	TabManager* tmgr = MainForm::getInstance()->getTabManager();
 	EventRouter* eRouter = tmgr->getFrontEventRouter();
-	if (eRouter->getParamsType() == Params::TwoDDataParamsType ||
-			eRouter->getParamsType() == Params::TwoDImageParamsType ||
-			eRouter->getParamsType() == Params::ProbeParamsType ){
+	if (eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDDataParamsTag)||
+			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDImageParamsTag) ||
+			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_probeParamsTag) ){
 		eRouter->refreshGLWindow();
 	}
 }

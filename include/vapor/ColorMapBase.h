@@ -14,7 +14,7 @@
 
 namespace VAPoR {
 
-class XmlNode;
+class ParamNode;
 
 class PARAMS_API ColorMapBase : public ParsedXml 
 {
@@ -56,7 +56,7 @@ public:
 
   const ColorMapBase& operator=(const ColorMapBase &cmap);
 
-  XmlNode* buildNode();
+  ParamNode* buildNode();
 
   void  clear();
 

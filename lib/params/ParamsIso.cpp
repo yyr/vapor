@@ -34,7 +34,7 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
-
+const string ParamsIso::_shortName = "Iso";
 const string ParamsIso::_IsoValueTag = "IsoValue";
 const string ParamsIso::_IsoControlTag = "IsoControl";
 const string ParamsIso::_ColorMapTag = "ColorMap";
@@ -58,7 +58,7 @@ namespace {
 ParamsIso::ParamsIso(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, Params::_isoParamsTag, winnum) {
-	thisParamType = IsoParamsType;
+	
 	
 	minIsoEditBounds = 0;
 	maxIsoEditBounds = 0;
@@ -82,8 +82,8 @@ ParamsIso::~ParamsIso() {
 }
 //clone the xml node, (since buildNode() will eventually
 //destroy the node it uses).  Then add isoControl and TF nodes
-XmlNode* ParamsIso::buildNode(){
-	XmlNode* clonedNode = new XmlNode(*GetRootNode());
+ParamNode* ParamsIso::buildNode(){
+	ParamNode* clonedNode = new ParamNode(*GetRootNode());
 	
 	// For each session variable, create a variable node with appropriate attributes:
 	for (int i = 0; i<numSessionVariables; i++){
@@ -98,9 +98,9 @@ XmlNode* ParamsIso::buildNode(){
 		oss << (double)(transFunc[i]->getOpacityScaleFactor());
 		varAttrs[_opacityScaleAttr] = oss.str();
 
-		XmlNode *variableNode = new XmlNode(_variableTag, varAttrs);
-		variableNode->AddChild(transFunc[i]->buildNode(""));
-		variableNode->AddChild(isoControls[i]->buildNode(""));
+		ParamNode *variableNode = new ParamNode(_variableTag, varAttrs);
+		variableNode->AddChild(transFunc[i]->GetRootNode());
+		variableNode->AddChild(isoControls[i]->GetRootNode());
 		//Use XMLNode version of AddChild to add multiple children with same tag
 		clonedNode->XmlNode::AddChild(variableNode);
 	}
@@ -360,24 +360,24 @@ IsoControl* ParamsIso::getIsoControl(){
 
 void ParamsIso::setMinColorMapBound(float val){
 	getMapperFunc()->setMinColorMapValue(val);
-	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	getRootParamNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 void ParamsIso::setMaxColorMapBound(float val){
 	getMapperFunc()->setMaxColorMapValue(val);
-	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	getRootParamNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 
 
 void ParamsIso::setMinOpacMapBound(float val){
 	getMapperFunc()->setMinOpacMapValue(val);
-	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	getRootParamNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 void ParamsIso::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
-	_rootParamNode->SetFlagDirty(_MapBoundsTag);
+	getRootParamNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 
@@ -386,7 +386,7 @@ void ParamsIso::SetIsoValue(double value) {
 	double oldVal = GetIsoValue();
 	if (oldVal == value) return;
 	getIsoControl()->setIsoValue(value);
-	_rootParamNode->SetFlagDirty(_IsoValueTag);
+	getRootParamNode()->SetFlagDirty(_IsoValueTag);
 	setAllBypass(false);
 }
 
@@ -397,16 +397,16 @@ double ParamsIso::GetIsoValue() {
 //Note:  Following dirty flags are not actually associated with tags or nodes in the xml.
 //The flags must be set when appropriate changes are made in the isoControls or transfer functions
 void ParamsIso::RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagNode(_IsoValueTag, df);
+	GetRootNode()->RegisterDirtyFlag(_IsoValueTag, df);
 }
 void ParamsIso::RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagNode(_ColorMapTag, df);
+	GetRootNode()->RegisterDirtyFlag(_ColorMapTag, df);
 }
 void ParamsIso::RegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagNode(_MapBoundsTag, df);
+	GetRootNode()->RegisterDirtyFlag(_MapBoundsTag, df);
 }
 void ParamsIso::RegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagNode(_HistoBoundsTag, df);
+	GetRootNode()->RegisterDirtyFlag(_HistoBoundsTag, df);
 }
 
 void ParamsIso::SetNormalOnOff(bool flag) {
@@ -420,7 +420,7 @@ bool ParamsIso::GetNormalOnOff() {
 }
 
 void ParamsIso::RegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagLong(_NormalOnOffTag, df);
+	GetRootNode()->RegisterDirtyFlag(_NormalOnOffTag, df);
 }
 
 void ParamsIso::SetConstantColor(float rgba[4]) {
@@ -438,7 +438,7 @@ const float *ParamsIso::GetConstantColor() {
 }
 
 void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagDouble(_ConstantColorTag, df);
+	GetRootNode()->RegisterDirtyFlag(_ConstantColorTag, df);
 }
 
  void ParamsIso::SetHistoBounds(float bnds[2]){
@@ -448,7 +448,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 		isoContr->getMaxHistoValue() == bnds[1]) return;
 	isoContr->setMinHistoValue(bnds[0]);
 	isoContr->setMaxHistoValue(bnds[1]);
-	_rootParamNode->SetFlagDirty(_HistoBoundsTag);
+	getRootParamNode()->SetFlagDirty(_HistoBoundsTag);
 	setAllBypass(false);
  }
  
@@ -523,7 +523,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	return (int)valvec[0];
  }
  void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagLong(_RefinementLevelTag, df);
+	GetRootNode()->RegisterDirtyFlag(_RefinementLevelTag, df);
 }
 
  void ParamsIso::SetVisualizerNum(int viznum){
@@ -549,7 +549,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->SetElementLong(_NumBitsTag,valvec);
  }
 void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagLong(_NumBitsTag, df);
+	GetRootNode()->RegisterDirtyFlag(_NumBitsTag, df);
 }
 
  void ParamsIso::SetIsoVariableName(const string& varName){
@@ -562,7 +562,7 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
 	 return GetRootNode()->GetElementString(_VariableNameTag);
  }
  void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagString(_VariableNameTag, df);
+	GetRootNode()->RegisterDirtyFlag(_VariableNameTag, df);
 }
 void ParamsIso::SetMapVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_MapVariableNameTag, varName);
@@ -574,7 +574,7 @@ void ParamsIso::SetMapVariableName(const string& varName){
 	 return GetRootNode()->GetElementString(_MapVariableNameTag);
  }
  void ParamsIso::RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagString(_MapVariableNameTag, df);
+	GetRootNode()->RegisterDirtyFlag(_MapVariableNameTag, df);
 }
 void ParamsIso::
 refreshCtab() {
@@ -584,13 +584,15 @@ refreshCtab() {
 RenderParams* ParamsIso::deepRCopy(){
 	ParamsIso* newParams = new ParamsIso(*this);
 	// Need to clone the xmlnode; 
-	if (_rootParamNode) newParams->_rootParamNode = new ParamNode(*_rootParamNode);
+	if (getRootParamNode()) newParams->setRootParamNode(new ParamNode(*getRootParamNode()));
 	
 	//Probably these are always the same when we clone...
-	assert(_rootParamNode == _currentParamNode);
-	if (_rootParamNode == _currentParamNode)
-		newParams->_currentParamNode = newParams->_rootParamNode;
-	else newParams->_currentParamNode = new ParamNode(*_currentParamNode);
+	ParamNode* rpn = getRootParamNode();
+	ParamNode* cpn = getCurrentParamNode();
+	assert(rpn==cpn);
+	if (rpn == cpn)
+		newParams->setCurrentParamNode(newParams->getRootParamNode());
+	else newParams->setCurrentParamNode(new ParamNode(*getCurrentParamNode()));
 	//Copy the edit bounds:
 	newParams->minOpacEditBounds = new float[numSessionVariables];
 	newParams->maxOpacEditBounds = new float[numSessionVariables];

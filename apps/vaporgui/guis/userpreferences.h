@@ -28,12 +28,15 @@
 #include "vapor/ExpatParseMgr.h"
 #include "preferences.h"
 
+
 class QWidget;
 class VizFeatures;
 class ScrollContainer;
 
+
 QT_USE_NAMESPACE
 namespace VAPoR{
+class ParamNode;
 class PreferencesCommand;
 class UserPreferences : public QDialog, public Ui_Preferences, public ParsedXml {
 	Q_OBJECT
@@ -53,7 +56,7 @@ public:
 	void applyToState();
 	void getTextChanges();
 	static bool saveToFile(ofstream& ofs );
-	static XmlNode* buildNode(const string& tfname); 
+	static ParamNode* buildNode(const string& tfname); 
 
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
                                      std::string&, const char **);

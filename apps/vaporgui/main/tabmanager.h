@@ -48,24 +48,19 @@ class TabManager : public QTabWidget{
 		// Bring associated viz to front, if selected=true and viznum>=0
 		// Return the position
 		//
-		int insertWidget(QWidget* wid, Params::ParamType widgetType, bool selected);
+		int insertWidget(QWidget* wid, Params::ParamsBaseType widgetBaseType, bool selected);
 
-		// Swap a tabbed panel out with another (of the same type):
-		//
-		void replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget);
 
-		//Remove a widget from tab dialog.  Don't delete it 
-		//
-		QWidget* removeWidget(Params::ParamType widgetType);
+
 		
 		//Find the position of the specified widget, or -1 if it isn't there.
 		//
-		int findWidget(Params::ParamType widgetType);
+		int findWidget(Params::ParamsBaseType widgetBaseType);
 		
 		//Make this the front widget, associate with specified viz
 		//return the tab position
 		//
-		int moveToFront(Params::ParamType widgetType);
+		int moveToFront(Params::ParamsBaseType widgetType);
 		//Mainform must set the session before can handle any history changes.
 		//
 		//Determine if a widget is the current front tab
@@ -73,7 +68,7 @@ class TabManager : public QTabWidget{
 			return (wid == widgets[currentFrontPage]);}
 
 		EventRouter* getFrontEventRouter() { 
-			return VizWinMgr::getInstance()->getEventRouter(widgetTypes[currentFrontPage]);
+			return VizWinMgr::getInstance()->getEventRouter(widgetBaseTypes[currentFrontPage]);
 		}
 		QPoint tabPos() {
 			return (myParent->pos());
@@ -89,7 +84,7 @@ class TabManager : public QTabWidget{
 		//Data structures to store widget info
 		//
 		QWidget* widgets[MAX_WIDGETS];
-		Params::ParamType widgetTypes[MAX_WIDGETS];
+		ParamsBase::ParamsBaseType widgetBaseTypes[MAX_WIDGETS];
 		bool haveMultipleViz;
 		int currentFrontPage;
 		QWidget* myParent;

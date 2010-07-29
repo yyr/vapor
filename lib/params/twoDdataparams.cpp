@@ -49,12 +49,13 @@
 
 
 using namespace VAPoR;
+const string TwoDDataParams::_shortName = "2D";
 const string TwoDDataParams::_editModeAttr = "TFEditMode";
 const string TwoDDataParams::_histoStretchAttr = "HistoStretchFactor";
 const string TwoDDataParams::_variableSelectedAttr = "VariableSelected";
 
-TwoDDataParams::TwoDDataParams(int winnum) : TwoDParams(winnum){
-	thisParamType = TwoDDataParamsType;
+TwoDDataParams::TwoDDataParams(int winnum) : TwoDParams(winnum, Params::_twoDDataParamsTag){
+	
 	numVariables = 0;
 	twoDDataTextures = 0;
 	maxTimestep = 1;
@@ -654,7 +655,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 }
 
 //Method to construct Xml for state saving
-XmlNode* TwoDDataParams::
+ParamNode* TwoDDataParams::
 buildNode() {
 	//Construct the twoD node
 	if (numVariables <= 0) return 0;
@@ -699,7 +700,7 @@ buildNode() {
 	oss << (long)orientation;
 	attrs[_orientationAttr] = oss.str();
 	
-	XmlNode* twoDDataNode = new XmlNode(_twoDDataParamsTag, attrs, 3);
+	ParamNode* twoDDataNode = new ParamNode(_twoDDataParamsTag, attrs, 3);
 
 	//Now add children:  
 	//Create the Variables nodes
@@ -730,10 +731,10 @@ buildNode() {
 		oss << (double)transFunc[i]->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 
-		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
+		ParamNode* varNode = new ParamNode(_variableTag,attrs,1);
 
 		//Create a transfer function node, add it as child
-		XmlNode* tfNode = transFunc[i]->buildNode(empty);
+		ParamNode* tfNode = transFunc[i]->buildNode(empty);
 		varNode->AddChild(tfNode);
 		twoDDataNode->AddChild(varNode);
 	}

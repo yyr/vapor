@@ -26,23 +26,35 @@
 #include "assert.h"
 #include "ParamNode.h"
 #include "vapor/ParamsBase.h"
-
+#include "params.h"
+#include "ParamsIso.h"
+#include "dvrparams.h"
+#include "flowparams.h"
+#include "twoDdataparams.h"
+#include "twoDimageParams.h"
+#include "regionparams.h"
+#include "animationparams.h"
+#include "viewpointparams.h"
+#include "probeparams.h"
 using namespace VAPoR;
-
+std::map<string,int> ParamsBase::classIdFromTagMap;
+std::map<int,string> ParamsBase::tagFromClassIdMap;
+std::map<int,BaseCreateFcn> ParamsBase::createDefaultFcnMap;
+const std::string ParamsBase::_emptyString;
+int ParamsBase::numParamsClasses = 0;
+int ParamsBase::numEmbedClasses = 0;
 ParamsBase::ParamsBase(
 	XmlNode *parent, const string &name
 ) {
-	
-	
 	previousClass = 0;
-
 	assert (!parent || parent->GetNumChildren() == 0);
 
 	map <string, string> attrs;
 	_rootParamNode = new ParamNode(name, attrs);
 	_currentParamNode = _rootParamNode;
+	_rootParamNode->SetParamsBase(this);
 	if(parent) parent->AddChild(_rootParamNode);
-
+	_paramsBaseName = name;
 	_parseDepth = 0;
 }
 
@@ -62,7 +74,14 @@ void ParamsBase::SetParent(
 	this->_rootParamNode = (ParamNode *) child;
 	this->_currentParamNode = _rootParamNode;
 }
-
+//Default copy constructor.  Copy the root paramNode
+ParamsBase::ParamsBase(const ParamsBase& pBase) :
+	_rootParamNode(pBase._rootParamNode)
+{
+	_currentParamNode = _rootParamNode;
+	_parseDepth = pBase._parseDepth;
+	_paramsBaseName = pBase._paramsBaseName;
+}
 bool ParamsBase::elementStartHandler(
         ExpatParseMgr* pm, int depth, string& tag, const char ** attrs
 ) {
@@ -76,7 +95,6 @@ bool ParamsBase::elementStartHandler(
 		// we might don't know the ancestory of the parameter 
 		// tree root node.
 		Clear();
-		restart(); //Required to ensure that all base tags get defined to default
 		if (StrCmpNoCase(tag, _rootParamNode->Tag()) != 0) {
 			pm->parseError("Invalid root tag");
 			return(false);
@@ -92,6 +110,7 @@ bool ParamsBase::elementStartHandler(
 		ParamNode* childNode = Push(tag);
 		return (childNode != 0);
 	}
+	//If it has "ParamsBase" attribute, then do similarly, but create an instance of the class associated with the tag.
 	
 	if (*attrs) {
 
@@ -138,7 +157,7 @@ bool ParamsBase::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 		const string &strdata = pm->getStringData();
 		_currentParamNode->SetElementString(tag, strdata);
 	}
-
+	
 	//Call pop() if it was a child node
 	if (! state->has_data) {
 		(void) Pop();
@@ -216,3 +235,60 @@ void ParamsBase::SetFlagDirty(const string& flag)
 	_rootParamNode->SetFlagDirty(flag);
 }
 	
+//Static methods for class registration
+//All ParamsBase classes must provide one line in the following method
+void ParamsBase::RegisterParamsBaseClasses(){
+	RegisterParamsBaseClass(Params::_isoParamsTag, ParamsIso::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_probeParamsTag, ProbeParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_twoDImageParamsTag, TwoDImageParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
+	RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
+}
+int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bool isParams){
+	// See if tag is registered already 
+	// If so, error
+	map <string, int> :: const_iterator getIdIter;
+    getIdIter = classIdFromTagMap.find(tag);
+	if (getIdIter != classIdFromTagMap.end()) {
+		assert(0);
+		return 0;
+	}
+	//Find first unused index
+	int minIndex, maxIndex;
+	if (classIdFromTagMap.size() > 0){
+		minIndex = 10000;
+		maxIndex = -10000;
+		for (getIdIter = classIdFromTagMap.begin(); getIdIter != classIdFromTagMap.end(); getIdIter++){
+			if (minIndex > getIdIter->second) minIndex = getIdIter->second;
+			if (maxIndex < getIdIter->second) maxIndex = getIdIter->second;
+		}
+	} else {
+		minIndex = maxIndex = 0;
+	}
+	int newIndex;
+	if (isParams) newIndex = maxIndex+1;
+	else newIndex = minIndex -1;
+	classIdFromTagMap.insert(pair<string,int>(tag,newIndex));
+	tagFromClassIdMap.insert(pair<int,string>(newIndex,tag));
+	createDefaultFcnMap.insert(pair<int, BaseCreateFcn>(newIndex, fcn));
+	if(isParams) numParamsClasses = newIndex;
+	else numEmbedClasses = -newIndex;
+	return newIndex;
+
+}
+ParamsBase::ParamsBaseType ParamsBase::GetTypeFromTag(const string&tag){
+	map <string,int> :: const_iterator getIdIter;
+    getIdIter = classIdFromTagMap.find(tag);
+	if (getIdIter == classIdFromTagMap.end()) return 0;
+	return (ParamsBaseType)(getIdIter->second);
+}
+const string& ParamsBase::GetTagFromType(ParamsBaseType t){
+	map <int,string> :: const_iterator getTagIter;
+    getTagIter = tagFromClassIdMap.find(t);
+	if (getTagIter == tagFromClassIdMap.end()) return _emptyString;
+	return getTagIter->second;
+}

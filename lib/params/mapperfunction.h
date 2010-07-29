@@ -27,7 +27,7 @@
 #include <vapor/tfinterpolator.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/MapperFunctionBase.h>
-
+#include "ParamNode.h"
 #include "OpacityMap.h"
 #include "Colormap.h"
 
@@ -35,6 +35,7 @@ namespace VAPoR {
 class Params;
 class RenderParams;
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API MapperFunction : public MapperFunctionBase 
 {
@@ -44,7 +45,14 @@ public:
 	MapperFunction(RenderParams* p, int nBits = 8);
 	MapperFunction(const MapperFunction &mapper);
 	MapperFunction(const MapperFunctionBase &mapper);
+
 	virtual ~MapperFunction();
+	virtual MapperFunction* deepCopy(ParamNode* newRoot){
+		MapperFunction* mf = new MapperFunction(*this);
+		mf->setRootParamNode(newRoot);
+		newRoot->SetParamsBase(mf);
+		return mf;
+	}
 
 	void setParams(RenderParams* p) { _params = p; }
 	RenderParams* getParams()       { return _params; }
@@ -83,7 +91,7 @@ public:
 	void setIsoValue(double val){isoValue = val;}
 	double getIsoValue(){return isoValue;}
 	
-	virtual XmlNode* buildNode(const string&);
+	virtual ParamNode* buildNode(const string&);
 	void setMinHistoValue(float val){setMinOpacMapValue(val);}
 	void setMaxHistoValue(float val){setMaxOpacMapValue(val);}
 	float getMinHistoValue() {return getMinOpacMapValue();}

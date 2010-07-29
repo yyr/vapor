@@ -37,6 +37,7 @@ class MainForm;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
+class ParamNode;
 class FlowParams;
 class Histo;
 class PARAMS_API ProbeParams : public RenderParams{
@@ -44,6 +45,8 @@ class PARAMS_API ProbeParams : public RenderParams{
 public: 
 	ProbeParams(int winnum);
 	~ProbeParams();
+	static ParamsBase* CreateDefaultInstance() {return new ProbeParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	virtual RenderParams* deepRCopy();
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
@@ -156,7 +159,7 @@ public:
 	bool reinit(bool doOverride);
 	virtual void restart();
 	static void setDefaultPrefs();
-	XmlNode* buildNode(); 
+	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
@@ -284,7 +287,7 @@ public:
 	static void setDefaultPsi(float val){defaultPsi = val;}
 	
 protected:
-	
+	static const string _shortName;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _variableSelectedAttr;

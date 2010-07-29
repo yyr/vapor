@@ -71,6 +71,8 @@ namespace VAPoR{
 
 class XmlNode;
 class ParamNode;
+class ParamsBase;
+typedef ParamsBase* (*BaseCreateFcn)();
 
 class PARAMS_API ParamsBase : public ParsedXml {
 	
@@ -78,12 +80,25 @@ public:
 ParamsBase(
 	XmlNode *parent, const string &name
  );
+typedef int ParamsBase::ParamsBaseType;
 //Default constructor for Params that don't (yet) use this class's capabilities
-ParamsBase() {
+ParamsBase(const string& name) {
 	_currentParamNode = _rootParamNode = 0;
 	_parseDepth = 0;
+	_paramsBaseName = name;
 }
+//Copy constructor.  Clones the root node
+ParamsBase(const ParamsBase &pbase);
  virtual ~ParamsBase();
+
+ //! Make a copy of a ParamBase that uses a specified 
+ //! clone of the ParamNode as its root node.  This is
+ //! required for any ParamsBase that is not a Params
+ //!
+ //!
+ //! \param[in] newRoot Root of cloned ParamsBase instance
+ //
+ virtual ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot) = 0;
 
  //! Set the parent node of the XmlNode tree.
  //!
@@ -128,27 +143,61 @@ ParamsBase() {
  //! This method returns the top node in the parameter node tree
  //!
 
-ParamNode *GetRootNode() { return(_rootParamNode); }
+ParamNode *GetRootNode() { return(getRootParamNode()); }
 
 //!	
 //! Methods to build an xml node from state.
 //!
 
-virtual XmlNode* buildNode() { return 0;}
+virtual ParamNode* buildNode() { return 0;}
 
 //!	
 //! Method for manual setting of node flags
 //!
 
 void SetFlagDirty(const string& flag);
+//!	
+//! Method for obtaining the name and/or tag associated with the instance
+//!
 
-virtual void restart() = 0;
-protected:
-	
+const string& GetName() {return _paramsBaseName;}
+//!	
+//! Method for obtaining the type Id associated with an instance
+//!
+
+ParamsBaseType GetParamsBaseTypeId() {return GetTypeFromTag(_paramsBaseName);}
+static ParamsBaseType GetTypeFromTag(const string&tag);
+static const string& GetTagFromType(ParamsBaseType t);
+
+//Methods for registration and tabulation of existing Params instances
+	static void RegisterParamsBaseClasses();
+	static int RegisterParamsBaseClass(const string& tag, BaseCreateFcn, bool isParams);
+	static int GetNumParamsClasses() {return numParamsClasses;}
+	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
+private:
+	//These should be accessed by subclasses through get() and set() methods
 	ParamNode *_currentParamNode;
 	ParamNode *_rootParamNode;
+	
 
+protected:
+	static const string _emptyString;
+	virtual ParamNode *getCurrentParamNode() {return _currentParamNode;}
+	virtual ParamNode *getRootParamNode(){refreshNode(); return _rootParamNode;}
+	virtual void setCurrentParamNode(ParamNode* pn){ _currentParamNode=pn;}
+	virtual void setRootParamNode(ParamNode* pn){_rootParamNode = pn;}
+	//Subclasses should reimplement this if the node can ever be
+	//inconsistent with the class state:
+	virtual void refreshNode() {}
+	
+	static map<string,int> classIdFromTagMap;
+	static map<int,string> tagFromClassIdMap;
+	static map<int,BaseCreateFcn> createDefaultFcnMap;
+
+	string _paramsBaseName;
 	int _parseDepth;
+	static int numParamsClasses;
+	static int numEmbedClasses;
 
 
 protected:

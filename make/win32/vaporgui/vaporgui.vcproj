@@ -890,7 +890,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="moc&apos;ing pythonedit"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
 					/>
@@ -901,7 +901,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="moc&apos;ing pythonedit"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\pythonedit.h -o ..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_pythonedit.cpp"
 					/>
@@ -916,7 +916,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="mocing qtthumbwheel"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 					/>
@@ -927,7 +927,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="mocing qtthumbwheel"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qtthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_qtthumbwheel.cpp"
 					/>

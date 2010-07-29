@@ -31,12 +31,14 @@ namespace VAPoR {
 class ExpatParseMgr;
 
 class XmlNode;
+class ParamNode;
 class PARAMS_API AnimationParams : public Params {
 	
 public: 
 	AnimationParams(int winnum);
 	~AnimationParams();
-	
+	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
+	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy();
 
 	virtual void restart();
@@ -85,11 +87,12 @@ public:
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	std::vector<int>& getTimestepList() { return timestepList;}
 	
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
+	static const string _shortName;
 	static const string _repeatAttr;
 	static const string _maxRateAttr;
 	static const string _stepSizeAttr;

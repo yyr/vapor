@@ -39,6 +39,7 @@ namespace VAPoR {
 
 class ViewpointParams;
 class XmlNode;
+class ParamNode;
 class PanelCommand;
 class Params;
 class DvrEventRouter : public QWidget, public Ui_DVR, public EventRouter {

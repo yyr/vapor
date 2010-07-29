@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //					
-//	File:		TransferFunctionLite.cpp//
+//	File:		TransferFunctionLite.cpp
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
@@ -35,12 +35,12 @@
 #include <cassert>
 #include <algorithm>
 #include <vapor/CFuncs.h>
-#include <vapor/ExpatParseMgr.h>
 #include <vapor/TransferFunctionLite.h>
 #include <vaporinternal/common.h>
 
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
+#include "ParamNode.h"
 #include <vapor/tfinterpolator.h>
 #include "transferfunction.h"
 
@@ -51,7 +51,7 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 // Constructor for empty, default transfer function
 //----------------------------------------------------------------------------
-TransferFunctionLite::TransferFunctionLite() : MapperFunctionBase()
+TransferFunctionLite::TransferFunctionLite() : MapperFunctionBase("")
 {	
 	createOpacityMap();
 	_colormap = new ColorMapBase();
@@ -62,7 +62,7 @@ TransferFunctionLite::TransferFunctionLite() : MapperFunctionBase()
 //
 //----------------------------------------------------------------------------
 TransferFunctionLite::TransferFunctionLite(int nBits) : 
-  MapperFunctionBase(nBits)
+  MapperFunctionBase(nBits, "")
 {
 	createOpacityMap();
 	_colormap = new ColorMapBase();

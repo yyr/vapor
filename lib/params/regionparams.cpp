@@ -44,12 +44,14 @@
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrLayered.h"
 #include "vapor/XmlNode.h"
+#include "ParamNode.h"
 //#include "glutil.h"
 
 
 using namespace VAPoR;
 
 const string RegionParams::_regionCenterTag = "RegionCenter";
+const string RegionParams::_shortName = "Region";
 const string RegionParams::_regionSizeTag = "RegionSize";
 const string RegionParams::_maxSizeAttr = "MaxSizeSlider";
 const string RegionParams::_numTransAttr = "NumTrans";
@@ -63,8 +65,8 @@ const string RegionParams::_regionListTag = "RegionList";
 const string RegionParams::_fullHeightAttr = "FullGridHeight";
 size_t RegionParams::fullHeight = 0;
 
-RegionParams::RegionParams(int winnum): Params(winnum){
-	thisParamType = RegionParamsType;
+RegionParams::RegionParams(int winnum): Params(winnum, Params::_regionParamsTag){
+	
 	
 	restart();
 }
@@ -638,7 +640,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return false;  
 	}
 }
-XmlNode* RegionParams::
+ParamNode* RegionParams::
 buildNode(){
 	//Construct the region node
 	string empty;
@@ -662,7 +664,7 @@ buildNode(){
 		oss << "false";
 	attrs[_localAttr] = oss.str();
 	int numchildren = 2 + extentsMap.size();
-	XmlNode* regionNode = new XmlNode(_regionParamsTag, attrs, numchildren);
+	ParamNode* regionNode = new ParamNode(_regionParamsTag, attrs, numchildren);
 
 	//Now add children:  
 	
@@ -702,7 +704,7 @@ buildNode(){
 				(double) exts[5];
 			attrs[_extentsAttr] = oss.str();
 			
-			XmlNode* regionTimeNode = new XmlNode(_regionAtTimeTag, attrs, 0);
+			ParamNode* regionTimeNode = new ParamNode(_regionAtTimeTag, attrs, 0);
 			regionNode->AddChild(regionTimeNode);
 		}
 		//regionNode->AddChild(regionListNode);

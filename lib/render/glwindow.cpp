@@ -26,7 +26,7 @@
 #include "renderer.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
-#include "ParamsIso.h"
+
 #include "regionparams.h"
 #include "probeparams.h"
 #include "twoDdataparams.h"
@@ -67,6 +67,10 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 : QGLWidget(fmt, parent)
 
 {
+	currentParams.clear();
+	for (int i = 0; i<= Params::GetNumParamsClasses(); i++)
+		currentParams.push_back(0);
+
 	MyBase::SetDiagMsg("GLWindow::GLWindow() begin");
 	spinThread = 0;
 	isSpinning = false;
@@ -136,7 +140,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	numColorbarTics = 11;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
-		renderType[i] = Params::UnknownParamsType;
+		renderType[i] = 0;
 		renderOrder[i] = 0;
 		renderer[i] = 0;
 	}
@@ -332,9 +336,9 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//and put them in the trackball, prior to setting up the trackball.
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
 	
-	if (currentViewpointParams->isLatLon()&& timeStep != previousTimeStep){
-		currentViewpointParams->convertFromLatLon(timeStep);
-		setValuesFromGui(currentViewpointParams);
+	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
+		getActiveViewpointParams()->convertFromLatLon(timeStep);
+		setValuesFromGui(getActiveViewpointParams());
 	}
 	// Move to trackball view of scene  
 	glMatrixMode(GL_MODELVIEW);
@@ -1778,7 +1782,7 @@ void GLWindow::calcElevGridNormals(size_t timeStep){
 void GLWindow::drawTimeAnnotation(){
 
 	//Always need to check the time:
-	size_t timeStep = (size_t)currentAnimationParams->getCurrentFrameNumber(); 
+	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentFrameNumber(); 
 	QString labelContents;
 	if (timeAnnotType == 1){
 		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
@@ -2031,7 +2035,7 @@ void GLWindow::drawAxisArrows(float* extents){
 void GLWindow::
 insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 {
-	Params::ParamType rendType = rp->getParamType();
+	Params::ParamsBaseType rendType = rp->GetParamsBaseTypeId();
 	
 	if (numRenderers < MAXNUMRENDERERS){
 		mapRenderer(rp, ren);
@@ -2064,7 +2068,7 @@ void GLWindow::removeAllRenderers(){
 	nowPainting = false;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){
-		renderType[i] = Params::UnknownParamsType;
+		renderType[i] = 0;
 		renderOrder[i] = 0;
 		renderer[i] = 0;
 	}
@@ -2117,7 +2121,7 @@ unmapRenderer(RenderParams* rp){
 }
 
 //find (first) renderer params of specified type:
-RenderParams* GLWindow::findARenderer(Params::ParamType renType){
+RenderParams* GLWindow::findARenderer(Params::ParamsBaseType renType){
 	
 	for (int i = 0; i<numRenderers; i++) {		
 		if (renderType[i] != renType) continue;
@@ -2141,18 +2145,21 @@ setDirtyBit(DirtyBitType t, bool nowDirty){
 	if (nowDirty){
 		if (t == RegionBit){
 			//Must clear all iso, dvr, and flow bypass flags
-			clearRendererBypass((Params::ParamType)(Params::DvrParamsType|Params::IsoParamsType|Params::FlowParamsType));
+			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
+			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
+			clearRendererBypass((Params::GetTypeFromTag(Params::_flowParamsTag)));
 		} else if (t == DvrRegionBit) {
-			clearRendererBypass((Params::ParamType)(Params::DvrParamsType|Params::IsoParamsType));
+			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
+			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
 		}
 	}
 }
 //Clear all render bypass flags for active renderers that match the specified type(s)
-//The renderer type can be an 'or' of multiple types.
+
 void GLWindow::
-clearRendererBypass(Params::ParamType t){
+clearRendererBypass(Params::ParamsBaseType t){
 	for (int i = 0; i< getNumRenderers(); i++){
-		if(renderer[i]->isInitialized() && (renderType[i]&t))
+		if(renderer[i]->isInitialized() && (renderType[i] == t))
 			renderer[i]->setAllBypass(false);
 	}
 }
@@ -2259,39 +2266,6 @@ float GLWindow::getPixelSize(){
 	float halfHeight = tan(M_PI*0.125)* distToScene;
 	return (2.f*halfHeight/(float)height()); 
 	
-}
-void GLWindow::setActiveParams(Params* p, Params::ParamType t){
-	switch (t) {
-		case Params::ProbeParamsType :
-			setActiveProbeParams((ProbeParams*)p);
-			return;
-		case Params::TwoDDataParamsType :
-			setActiveTwoDDataParams((TwoDDataParams*)p);
-			return;
-		case Params::TwoDImageParamsType :
-			setActiveTwoDImageParams((TwoDImageParams*)p);
-			return;
-		case Params::DvrParamsType :
-			setActiveDvrParams((DvrParams*)p);
-			return;
-		case Params::IsoParamsType :
-			setActiveIsoParams((ParamsIso*)p);
-			return;
-		case Params::RegionParamsType :
-			setActiveRegionParams((RegionParams*)p);
-			return;
-		case Params::FlowParamsType :
-			setActiveFlowParams((FlowParams*)p);
-			return;
-		case Params::ViewpointParamsType :
-			setActiveViewpointParams((ViewpointParams*)p);
-			return;
-		case Params::AnimationParamsType :
-			setActiveAnimationParams((AnimationParams*)p);
-			return;
-		default: assert(0);
-	}
-	return;
 }
 
 void GLWindow::placeLights(){
@@ -2401,7 +2375,7 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 	if (handleNum > 2) handleNum = handleNum-3;
 	else handleNum = 2 - handleNum;
 	float boxExtents[6];
-	int timestep = currentAnimationParams->getCurrentFrameNumber();
+	int timestep = getActiveAnimationParams()->getCurrentFrameNumber();
 	manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
 	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
 	// project the boxCtr and one more point, to get a direction vector
@@ -2553,7 +2527,7 @@ sortRenderers(int timestep){
 	for (int i = 0; i<numToSort; i++){
 		//Determine the camera distance of each renderer
 		RenderParams* rParams = sortList[i]->ren->getRenderParams();
-		sortList[i]->camDist = rParams->getCameraDistance(currentViewpointParams,currentRegionParams, timestep);
+		sortList[i]->camDist = rParams->getCameraDistance(getActiveViewpointParams(),getActiveRegionParams(), timestep);
 	}
 
 	sort(sortList.begin(), sortList.end(), renderPriority);

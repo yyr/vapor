@@ -76,7 +76,8 @@ using namespace VAPoR;
 
 TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_TwoDImageTab(), TwoDEventRouter(){
 	setupUi(this);
-	myParamsType = Params::TwoDImageParamsType;
+	
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_twoDImageParamsTag, this);
 	MessageReporter::infoMsg("TwoDImageEventRouter::TwoDImageEventRouter()");
 #ifdef Darwin
 	texShown = false;
@@ -260,7 +261,7 @@ void TwoDImageEventRouter::updateTab(){
 	
 	
 	
-	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDImageInstances(winnum) > 1);
+	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(Params::_twoDImageParamsTag,winnum) > 1);
 	
 	int numViz = vizMgr->getNumVisualizers();
 
@@ -636,17 +637,17 @@ setTwoDEnabled(bool val, int instance){
 
 void TwoDImageEventRouter::
 twoDCenterRegion(){
-	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDImageParamsType);
+	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void TwoDImageEventRouter::
 twoDCenterView(){
-	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDImageParamsType);
+	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void TwoDImageEventRouter::
 twoDCenterRake(){
-	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDImageParamsType);
+	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	fRouter->guiCenterRake(pParams->getSelectedPoint());
 }
@@ -654,10 +655,10 @@ twoDCenterRake(){
 void TwoDImageEventRouter::
 twoDAddSeed(){
 	Point4 pt;
-	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDImageParamsType);
+	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPoint());
-	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
+	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	
 	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
@@ -1244,8 +1245,8 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	TwoDImageParams* pParams = (TwoDImageParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumTwoDImageInstances(vizNum) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::TwoDImageParamsType, instance);
+	if (!prevParams) assert(Params::GetNumParamsInstances(Params::_twoDDataParamsTag,vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::GetTypeFromTag(Params::_twoDImageParamsTag), instance);
 	
 	updateTab();
 	TwoDImageParams* formerParams = (TwoDImageParams*)prevParams;
@@ -1671,7 +1672,7 @@ twoDReturnPressed(void){
 void TwoDImageEventRouter::
 twoDAttachSeed(bool attach){
 	if (attach) twoDAddSeed();
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
+	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
 	
 	guiAttachSeed(attach, fParams);
 }

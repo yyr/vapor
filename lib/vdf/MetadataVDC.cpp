@@ -877,12 +877,12 @@ int MetadataVDC::_SetVariableNames(
 			//
 			vector_delete(del_var_names, value_unique[j]);
 		}
-		_rootnode->SetElementStringVec(delete_tags[i], del_var_names);
+		_rootnode->SetElementString(delete_tags[i], del_var_names);
 	}
 
 	// Finally set the new list of variable names
 	//
-	_rootnode->SetElementStringVec(set_tag, value_unique);
+	_rootnode->SetElementString(set_tag, value_unique);
 
 	// For each time step we need to create a list of variable nodes
 	//
@@ -894,7 +894,7 @@ int MetadataVDC::_SetVariableNames(
 	// Maintain compatability with pre-version 4 translators 
 	//
 	vector <string> v = GetVariableNames();
-	_rootnode->SetElementStringVec(_varNamesTag,v);
+	_rootnode->SetElementString(_varNamesTag,v);
 
 	return(0);
 }

@@ -47,7 +47,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	//
 	for (int i = 0; i< MAX_WIDGETS; i++){
 		widgets[i] = 0;
-		widgetTypes[i] = Params::UnknownParamsType;
+		widgetBaseTypes[i] = 0;
 	}
 	haveMultipleViz = false;
 	
@@ -57,7 +57,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 }
 //Insert a new tabbed widget at the end of the tabs
 //
-int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selected){
+int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, bool selected){
 	//qWarning("In insert Widget");
 	//Create a QScrollView, put the widget into the scrollview, then
 	//Insert the scrollview into the tabs
@@ -66,7 +66,7 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	QScrollArea* myScrollArea = new QScrollArea(this);
 	//myScrollview->resizeContents(500, 1000);
 	//myScrollview->setResizePolicy(QScrollView::Manual);
-	insertTab(-1, myScrollArea, Params::paramName(widType));
+	insertTab(-1, myScrollArea, QString::fromStdString(Params::paramName(widBaseType)));
 	//connect(myScrollArea, SIGNAL(verticalSliderReleased()), this, SLOT(tabScrolled()));
 	//myScrollview->addChild(wid);
 	myScrollArea->setWidget(wid);
@@ -74,53 +74,17 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamType widType, bool selec
 	int posn = count()-1;
 	widgets[posn] = wid;
 	//qWarning("inserted widget %s in position %d", name.toAscii(), posn);
-	widgetTypes[posn] = widType;
+	
+	widgetBaseTypes[posn] = widBaseType;
 	if (selected) {
 		setCurrentIndex(posn);
 	}
 	return posn;
 }
 
-QWidget*
-TabManager::removeWidget(Params::ParamType widgetType){
-	
-	int posn = findWidget(widgetType);
-	if (posn<0) return 0;
-	
-	QWidget* foundWidget = widgets[posn];
-	for (int j=posn; j<count()-1; j++){
-		widgetTypes[j] = widgetTypes[j+1];
-		widgets[j] = widgets[j+1];
-	}
-	removeTab(posn);
-	return foundWidget;
-}
 
 
-/*
- *Replaces a tabbed widget with another of the same type.
- *Retains front status if needed
- */
-void TabManager::
-replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget){
-	int posn = findWidget(widgetType);
-	assert(posn >= 0);
-	bool front = (posn == currentIndex());
-	//Create a QScrollView, put the widget into the scrollview, then
-	//Insert the scrollview into the tabs
-	//
-	QScrollArea* myScrollArea = new QScrollArea(this);
 
-	insertTab(posn, myScrollArea, Params::paramName(widgetType));
-	myScrollArea->setWidget(newWidget);
-	widgets[posn] = newWidget;
-	//qWarning("replaced widget %s in position %d", name.toAscii(), posn);
-	if(front) {
-		setCurrentIndex(posn);
-		show();
-	}
-	
-}
 
 /*
  * Make the specified named panel move to front tab, using
@@ -128,8 +92,9 @@ replaceTabWidget(Params::ParamType widgetType, QWidget* newWidget){
  */
 		
 int TabManager::
-moveToFront(Params::ParamType widgetType){
-	int posn = findWidget(widgetType);
+moveToFront(Params::ParamsBaseType widgetBaseType){
+
+	int posn = findWidget(widgetBaseType);
 	if (posn < 0) return -1;
 	int lastCurrentPage = currentIndex();
 	if (lastCurrentPage == posn) return posn; //No change!
@@ -140,12 +105,15 @@ moveToFront(Params::ParamType widgetType){
  *  Find the number of the widget that has the specified name
  */
 int 
-TabManager::findWidget(Params::ParamType widgetType){
+TabManager::findWidget(Params::ParamsBaseType widgetBaseType){
+	
 	for (int i = 0; i<count(); i++){
 		//qWarning("found widget %s in position %d", widgetNames[i]->toAscii(), i);
-		if (widgetTypes[i] == widgetType) {
+		if (widgetBaseTypes[i] == widgetBaseType) {
+			
 			return i;
 		}
+		
 	}
 	return -1;
 }
@@ -156,48 +124,19 @@ newFrontTab(int newFrontPosn) {
 	
 	//Don't check, sometimes this method can be used to refresh
 	//the existing front tab
-	//if (newFrontPosn == currentFrontPage) return;
-	Params::ParamType prevType = Params::UnknownParamsType;
-	if(currentFrontPage >= 0) prevType = widgetTypes[currentFrontPage];
+	
+	Params::ParamsBaseType prevType = 0;
+	if(currentFrontPage >= 0) prevType = widgetBaseTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
 	//Ignore if we haven't set up tabs yet
-	if( widgetTypes[newFrontPosn]== 0) return;
-	//Refresh this tab from the corresponding params:
-	Params* p = VizWinMgr::getInstance()->getApplicableParams(widgetTypes[newFrontPosn]);
-	Params::ParamType newType = p->getParamType();
-	if (newType == Params::RegionParamsType){
-		RegionEventRouter* rer = VizWinMgr::getInstance()->getRegionRouter();
-		rer->updateTab();
-	} else if (newType == Params::DvrParamsType){
-		DvrEventRouter* der = VizWinMgr::getInstance()->getDvrRouter();
-		der->updateTab();
-	} else if (newType == Params::IsoParamsType){
-		IsoEventRouter* ier = VizWinMgr::getInstance()->getIsoRouter();
-		ier->updateTab();
-	} else if (newType == Params::ViewpointParamsType){
-		ViewpointEventRouter* ver = VizWinMgr::getInstance()->getViewpointRouter();
-		ver->updateTab();
-	} else if (newType == Params::ProbeParamsType){
-		ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-		per->updateTab();
-	} else if (newType == Params::TwoDDataParamsType){
-		TwoDDataEventRouter* per = VizWinMgr::getInstance()->getTwoDDataRouter();
-		per->updateTab();
-	} else if (newType == Params::TwoDImageParamsType){
-		TwoDImageEventRouter* per = VizWinMgr::getInstance()->getTwoDImageRouter();
-		per->updateTab();
-	} else if (newType == Params::AnimationParamsType){
-		AnimationEventRouter* aer = VizWinMgr::getInstance()->getAnimationRouter();
-		aer->updateTab();
-	} else if (newType == Params::FlowParamsType){
-		FlowEventRouter* fer = VizWinMgr::getInstance()->getFlowRouter();
-		fer->updateTab();
-	}
-	else {
-		assert(0);
-	}
+	if( widgetBaseTypes[newFrontPosn] == 0) return;
+	//Refresh this tab 
+	
+	EventRouter* eRouter = VizWinMgr::getEventRouter(widgetBaseTypes[newFrontPosn]);
+	eRouter->updateTab();
+	
 	//Put into history
-	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetTypes[newFrontPosn]);
+	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetBaseTypes[newFrontPosn]);
 	Session::getInstance()->addToHistory(cmd);
 
 } 
@@ -210,8 +149,7 @@ void TabManager::tabScrolled(){
 	int frontPage = currentIndex();
 	
 	if (frontPage < 0) return;
-	Params::ParamType tabType = widgetTypes[frontPage];
-	
+	Params::ParamsBaseType tabType = widgetBaseTypes[frontPage];
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tabType);
 	
 	eRouter->refreshTab();

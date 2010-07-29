@@ -127,8 +127,8 @@ class DataStatus;
 class VDFIOBase;
 class TransferFunction;
 class DvrParams;
-class ParamsIso;
 class RegionParams;
+class ParamNode;
 
 
 class Session : public ParsedXml {
@@ -331,7 +331,7 @@ protected:
 	static const string _interactiveRefLevelAttr;
 	
 
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
 	bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
 

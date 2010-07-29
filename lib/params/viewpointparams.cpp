@@ -32,6 +32,7 @@
 #include "glutil.h"
 #include "viewpoint.h"
 #include "vapor/XmlNode.h"
+#include "ParamNode.h"
 #include "datastatus.h"
 #include "regionparams.h"
 
@@ -52,6 +53,7 @@ float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
 
 
 using namespace VAPoR;
+const string ViewpointParams::_shortName = "View";
 const string ViewpointParams::_latLonAttr = "UseLatLon";
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
 const string ViewpointParams::_homeViewTag = "HomeViewpoint";
@@ -65,8 +67,8 @@ const string ViewpointParams::_specularExponentAttr = "SpecularExponent";
 const string ViewpointParams::_stereoModeAttr = "StereoMode";
 const string ViewpointParams::_stereoSeparationAttr = "StereoSeparation";
 
-ViewpointParams::ViewpointParams(int winnum): Params(winnum){
-	thisParamType = ViewpointParamsType;
+ViewpointParams::ViewpointParams(int winnum): Params(winnum, Params::_viewpointParamsTag){
+	
 	
 	homeViewpoint = 0;
 	currentViewpoint = 0;
@@ -470,7 +472,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 		return false;  //Could there be other end tags that we ignore??
 	}
 }
-XmlNode* ViewpointParams::
+ParamNode* ViewpointParams::
 buildNode(){
 	//Construct the viewpoint node
 	string empty;
@@ -512,7 +514,7 @@ buildNode(){
 	else oss << "center";
 	attrs[_stereoModeAttr] = oss.str();
 
-	XmlNode* vpParamsNode = new XmlNode(_viewpointParamsTag, attrs, 2);
+	ParamNode* vpParamsNode = new ParamNode(_viewpointParamsTag, attrs, 2);
 	
 	//Now add children: lights, and home and current viewpoints:
 	//There is one light node for each light source
@@ -538,9 +540,11 @@ buildNode(){
 		vpParamsNode->NewChild(_lightTag, attrs, 0);
 	}
 	attrs.clear();
-	XmlNode* currVP = vpParamsNode->NewChild(_currentViewTag, attrs, 1);
+	ParamNode* currVP = new ParamNode(_currentViewTag, attrs, 1);
+	vpParamsNode->AddChild(currVP);
 	currVP->AddChild(currentViewpoint->buildNode());
-	XmlNode* homeVP = vpParamsNode->NewChild(_homeViewTag, attrs, 1);
+	ParamNode* homeVP = new ParamNode(_homeViewTag, attrs, 1);
+	vpParamsNode->AddChild(homeVP);
 	homeVP->AddChild(homeViewpoint->buildNode());
 	return vpParamsNode;
 }

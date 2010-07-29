@@ -14,7 +14,7 @@
 
 namespace VAPoR {
 
-
+class ParamsBase;
 //
 //! \class ParamNode
 //! \brief An Xml tree
@@ -61,14 +61,25 @@ public:
 
  //! Copy constructor for the ParamNode class.
  //!
- //! Create's a new ParamNode node from an existing one.
+ //! Creates a new ParamNode node from an existing one.
  //!
  //! \param[in] pn ParamNode instance from which to construct a copy
  //!
- ParamNode(ParamNode &pn);
-
+ ParamNode(const ParamNode &pn);
+ 
  virtual ParamNode *Clone() {return new ParamNode(*this); };
+ //! Like copy constructor for the ParamNode class, but
+ //! in addition to cloning the child nodes in xml hierarchy,
+ //! also clones the ParamsBase instances that are referenced
+ //! by child nodes
+ //!
+ //! Creates a new ParamNode node from an existing one.
+ //!
+ //! \retval ParamNode copied from this
+ //!
 
+ 
+ virtual ParamNode* deepCopy();
 
  ~ParamNode();
  //! Set all the flags dirty (or clean)
@@ -90,40 +101,276 @@ public:
  //! \param[in] tag Name of the element to define/set
  //! \param[in] values Vector of longs
  //!
- //! \retval status Returns a reference to vector containing the data
+ //! \retval status Returns 0 if successful
  //
- vector<long> &SetElementLong(
+ int SetElementLong(
 	const string &tag, const vector<long> &values
  );
-
- vector<double> &SetElementDouble(
+//! Set an ParamNode parameter of type double
+ //!
+ //! This method defines and sets a parameter of type double. The
+ //! parameter data
+ //! data to be associated with \p tag is the array of double
+ //! specified by \p values
+ //!
+ //! \param[in] tag Name of the element to define/set
+ //! \param[in] values Vector of doubles
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementDouble(
 	const string &tag, const vector<double> &values
  );
-
- string &SetElementString(const string &tag, const string &str);
-
- //! Set the dirty flag not necessarily associated with xml node.
- //! Has no effect if there the flag is not registered.
+//! Set an ParamNode parameter of type string
  //!
- //! \param[in] tag Name of the element to mark dirty
+ //! This method defines and sets a parameter of type string. The
+ //! paramter data
+ //! data to be associated with \p tag is the array of strings
+ //! specified by \p values
  //!
+ //! \param[in] tag Name of the element to define/set
+ //! \param[in] values Vector of strings
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementString(const string &tag, const vector<string> &strvals);
+
+ //! Set an ParamNode parameter of type long
+ //!
+ //! This method defines and sets a parameter of type long. The
+ //! paramter data
+ //! data to be associated with \p tagpath is the array of longs
+ //! specified by \p values
+ //!
+ //! \param[in] tagpath Names of nodes leading to the value to be set
+ //! \param[in] values Vector of longs
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementLong(
+	const vector<string> &tagpath, const vector<long> &values
+ );
+ //! Get an Xml element's data of type long
+ //!
+ //! Return the character data associated with the Xml element 
+ //! reached via a sequence \p tagpath of nodes from this node. 
+ //! The data is interpreted and 
+ //! returned as a vector of longs. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
+ //!
+ //! \param[in] tagpath Sequence of tags to element
+ //! \retval vector Vector of longs associated with the named elemented
+ //!
+ virtual const vector<long> &GetElementLong(const vector<string> &tagpath) const;
+ //! Get an Xml element's data of type long
+ //!
+ //! Return the character data associated with the Xml elemented 
+ //! named by \p tag for this node. The data is interpreted and 
+ //! returned as a vector of longs. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
+ //!
+ //! \param[in] tag Name of element
+ //! \retval vector Vector of longs associated with the named elemented
+ //!
+ virtual const vector<long> &GetElementLong(const string &tag) const {return XmlNode::GetElementLong(tag);}
+//! Set an ParamNode parameter of type double
+ //!
+ //! This method defines and sets a parameter of type double. The
+ //! parameter data
+ //! data to be associated with \p tagpath is the array of double
+ //! specified by \p values
+ //!
+ //! \param[in] tagpath Names of the nodes leading to the element to be set
+ //! \param[in] values Vector of doubles
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementDouble(
+	const vector<string> &tagpath, const vector<double> &values
+ );
+ //! Get an element's data of type double
+ //!
+ //! Return the character data associated with the Xml element 
+ //! identified by a sequence \p tagpath from this node. The data is interpreted and 
+ //! returned as a vector of doubles. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
+ //!
+ //! \param[in] tag Name of element
+ //! \retval vector Vector of doubles associated with the named elemented
+ //!
+ virtual const vector<double> &GetElementDouble(const vector<string> &tagpath) const;
+ //! Get an Xml element's data of type double
+ //!
+ //! Return the character data associated with the Xml elemented 
+ //! named by \p tag for this node. The data is interpreted and 
+ //! returned as a vector of doubles. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
+ //!
+ //! \param[in] tag Name of element
+ //! \retval vector Vector of doubles associated with the named elemented
+ //!
+ virtual const vector<double> &GetElementDouble(const string &tag) const {return XmlNode::GetElementDouble(tag);}
+
+//! Set an ParamNode parameter of type string
+ //!
+ //! This method defines and sets a parameter of type string. The
+ //! parameter data
+ //! data to be associated with \p tagpath is the array of strings
+ //! specified by \p values
+ //!
+ //! \param[in] tagpath Names of nodes leading to value to be set
+ //! \param[in] values Vector of strings
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementString(const vector<string> &tagpath, const vector<string> &strvals);
  
- void SetFlagDirty(const string &tag);
+  //! Get an element's data of type string
+ //!
+ //! Return the character data associated with the Xml element 
+ //! identified by a sequence of tags \p tagpath from this node. 
+ //! The data is interpreted as
+ //! a space-separated list of words (contiguous characters). The
+ //! string vector returned is generated by treating white
+ //! space as delimeters between vector elements. 
+ //! If the element does not exist
+ //! an empty vector is returned
+ //!
+ //! \param[in] tagpath Sequence of tags
+ //! \param[out] vec Vector of strings associated with the named element
+ //!
+ virtual void GetElementStringVec(const vector<string> &tagpath, vector <string> &vec) const;
+ //! Set a single ParamNode parameter of type long
+ //!
+ //! This method defines and sets a parameter of type long. The
+ //! paramter data
+ //! data to be associated with \p tag is the single long
+ //! specified by \p value
+ //!
+ //! \param[in] tag Name of the element to define/set
+ //! \param[in] value long
+ //!
+ //! \retval status Returns 0 if successful
+ //
 
- //! Add an existing node as a child of the current node.
+ int SetElementLong(
+	const string &tag, long value
+ );
+
+ //! Set a single ParamNode parameter of type double
+ //!
+ //! This method defines and sets a parameter of type double. The
+ //! paramter data
+ //! data to be associated with \p tag is the single double
+ //! specified by \p value
+ //!
+ //! \param[in] tag Name of the element to define/set
+ //! \param[in] value double
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementDouble(
+	const string &tag, double value
+ );
+
+ //! Set a single ParamNode parameter of type string
+ //!
+ //! This method defines and sets a parameter of type string. The
+ //! parameter data
+ //! data to be associated with \p tag is the single string
+ //! specified by \p value
+ //!
+ //! \param[in] tag Name of the element to define/set
+ //! \param[in] value string
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementString(
+	const string &tag, const string &value
+ );
+
+ //!  Set a dirty flag on an element or node at child node
+ //!  of this ParamNode
+ //!
+ //! \param[in] tagpath Sequence of names leading to element associated with flag
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ 
+ int SetFlagDirty(const vector<string> &tagpath);
+
+ //!  Set a dirty flag on a basic element at a ParamNode
+ //!
+ //! \param[in] tag Name of the element associated with flag
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ 
+ int SetFlagDirty(const string &tag);
+//! Add an existing node as a child of the current node.
  //!
  //! The new child node will be
  //! appended to the array of child nodes.
  //!
  //! \note This method differs from the base class method that it
- //! overloads in that it prohibits siblings from having duplicate names.
+ //! overloads in that it prohibits siblings from having duplicate tags.
  //!
+ //! \param[in] tag is the tag that will identify the new node
  //! \param[in] child is the ParamNode object to be added as a child
  //! \retval status Return 0 upon success. A negative number is returned
  //! if a sibling already exists with the same name.
  //
- int AddChild(ParamNode* child);
+ int AddNode(const string& tag, ParamNode* child);
 
+ //! Add an existing node as a last child of a path of
+ //! nodes starting at the current 
+ //!
+ //! The new child node will be
+ //! appended to the array of child nodes of the final node.
+ //!
+ //! \note This method differs from the base class method that it
+ //! overloads in that it prohibits siblings from having duplicate tags.
+ //!
+ //! \param[in] tag is the tag that will identify the new node
+ //! \param[in] child is the ParamNode object to be added as a child
+ //! \retval status Return 0 upon success. A negative number is returned
+ //! if a sibling already exists with the same name, or if one of the
+ //! specified nodes in the path sequence does not already exist
+ //
+ int AddNode(const vector<string>& tagpath, ParamNode* child);
+
+ //! Add an existing node with associated registered ParamsBase class
+ //!
+ //! The new child node will be
+ //! appended to the array of child nodes of the final node.
+ //!
+ //! \param[in] tag is the tag that will identify the new node
+ //! \param[in] child is the ParamNode object to be added as a child
+ //! \param[in] associate is the ParamsBase object for which this is the root node
+ //! \retval status Return 0 upon success. A negative number is returned
+ //! if a sibling already exists with the same name, or if one of the
+ //! specified nodes in the path sequence does not already exist
+ //
+ int AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase* associate);
+
+ //! Add an existing node with associated registered ParamsBase class
+ //! Where the node is the final node in a path of ParamNode nodes.
+ //!
+ //! The new child node will be
+ //! appended to the array of child nodes of the final node.
+ //!
+ //! \param[in] tagPath is sequence of tags that will identify the new node
+ //! \param[in] child is the ParamNode object to be added as a child
+ //! \param[in] associate is the ParamsBase object for which this is the root node
+ //! \retval status Return 0 upon success. A negative number is returned
+ //! if a sibling already exists with the same name, or if one of the
+ //! specified nodes in the path sequence does not already exist
+ //
+ int AddRegisteredNode(const vector<string>& tagPath, ParamNode* child, ParamsBase* associate);
 
  //! Return the indicated child node. 
  //!
@@ -136,7 +383,17 @@ public:
  //! could does not exist
  //! \sa GetNumChildren()
  //
- ParamNode *GetChild(size_t index) {return((ParamNode *) XmlNode::GetChild(index));}
+ ParamNode *GetChild(size_t index) const {return((ParamNode *) XmlNode::GetChild(index));}
+
+ //! Return the indicated child node based on a sequence of tags
+ //!
+ //! Return the indicated tagged child node. Return NULL if the child 
+ //! does not exist.
+ //! \param[in] tagpath Sequence of nodes to specified child
+ //! \retval child Returns the indicated child, or NULL if the child
+ //! could does not exist
+ //
+ ParamNode *GetNode(const vector<string> &tagpath);
 
  //! Return the indicated child node. 
  //!
@@ -146,12 +403,34 @@ public:
  //! \retval child Returns the indicated child, or NULL if the child
  //! could does not exist
  //
- ParamNode *GetChild(const string &tag) {return((ParamNode *) XmlNode::GetChild(tag));}
+ ParamNode *GetNode(const string &tag) const {return((ParamNode *) XmlNode::GetChild(tag));}
 
- //! Register a dirty flag with a named parameter of type long
+ //! Delete the indicated child node and all its descendants. 
+ //!
+ //! Returns -1 if the child 
+ //! does not exist.
+ //! \param[in] tag Name of the child node to delete
+ //! \retval Return 0 if successful, -1 if child does not exist.
+ //
+ int DeleteNode(const string &tag);
+		
+ 
+
+ //! Delete the indicated child node and all its descendants, based
+ //! on a path to the child
+ //!
+ //! Returns -1 if the child 
+ //! does not exist.
+ //! \param[in] tagpath Path to the child node to delete
+ //! \retval Return 0 if successful, -1 if child does not exist.
+ //
+ int DeleteNode(const vector<string> &tagpath); 
+
+
+ //! Register a dirty flag with a named parameter 
  //!
  //! This method stores a pointer to the DirtyFlag \p df with
- //! the long parameter named by \p tag. The ParamNode::DirtyFlag::Set()
+ //! the parameter named by \p tag. The ParamNode::DirtyFlag::Set()
  //! method will be invoked whenever the associated parameter is 
  //! modified. 
  //!
@@ -161,73 +440,98 @@ public:
  //!
  //! \param[in] tag Name of ParamNode node
  //! \param[in] df A pointer to a dirty flag
+ //! \retval Return 0 if successful, -1 on failure
  //!
- //! \sa RegisterDirtyFlagLong()
+ //! \sa RegisterDirtyFlag()
  //
- void RegisterDirtyFlagLong(const string &tag, ParamNode::DirtyFlag *df);
+ int RegisterDirtyFlag(const string &tag, ParamNode::DirtyFlag *df);
 
- //! Unregister a dirty flag associated with the named parameter of type long
- //!
- //! This method unregisters the DirtyFlag \p df associated with
- //! the long parameter named by \p tag, previously registered
- //! with RegisterDirtyFlagLong(). It is imperative that DirtyFlags pointers 
- //! are unregistered if the objects they refer to are invalidated (deleted).
- //!
- //! \param[in] tag Name of ParamNode node
- //! \param[in] df A pointer to a dirty flag
- //!
- //! \sa UnRegisterDirtyFlagLong()
- //
- void UnRegisterDirtyFlagLong(
-	const string &tag, const ParamNode::DirtyFlag *df
- );
-
- void RegisterDirtyFlagDouble(const string &tag, ParamNode::DirtyFlag *df);
- void UnRegisterDirtyFlagDouble(
-	const string &tag, const ParamNode::DirtyFlag *df
- );
-
- void RegisterDirtyFlagString(const string &tag, ParamNode::DirtyFlag *df);
- void UnRegisterDirtyFlagString(
-	const string &tag, const ParamNode::DirtyFlag *df
- );
-
- //! Register a dirty flag with a subnode of the tree
+ //! Register a dirty flag with a named parameter,
+ //! indicating a sequence of nodes in the XML hierarchy
+ //! leading to the specific node with the dirty flag.
  //!
  //! This method stores a pointer to the DirtyFlag \p df with
- //! the long parameter named by \p tag. The ParamNode::DirtyFlag::Set()
- //! method will be invoked whenever the associated node is 
- //! modified, 
+ //! the parameter named by \p tag. The ParamNode::DirtyFlag::Set()
+ //! method will be invoked whenever the associated parameter is 
+ //! modified. 
+ //!
+ //! \note It is possible to register dirty flags for parameters 
+ //! that do not exist. In which case they will not be set until
+ //! the parameter is defined.
+ //!
+ //! \param[in] tagpath Names of tags leading to the node
+ //! \param[in] df A pointer to a dirty flag
+ //! \retval Return 0 if successful, -1 on failure
+ //!
+ //! \sa RegisterDirtyFlag()
+ //
+ int RegisterDirtyFlag(const vector<string> &tagpath, ParamNode::DirtyFlag *df);
+
+ //! Unregister a dirty flag associated with the named parameter 
+ //!
+ //! This method unregisters the DirtyFlag \p df associated with
+ //! the parameter named by \p tag, previously registered
+ //! with RegisterDirtyFlag(). It is imperative that DirtyFlags pointers 
+ //! are unregistered if the objects they refer to are invalidated (deleted).
+ //!
+ //! \param[in] tagpath Names of tags, leading to node
+ //! \param[in] df A pointer to a dirty flag
+ //! \retval Return 0 if successful, -1 on failure
+ //!
+ //! \sa UnRegisterDirtyFlag()
+ //
+ int UnRegisterDirtyFlag(
+	const vector<string> &tagpath, const ParamNode::DirtyFlag *df
+ );
+
+ //! Unregister a dirty flag associated with the named parameter,
+ //!
+ //! This method unregisters the DirtyFlag \p df associated with
+ //! the parameter named by \p tagpath, previously registered
+ //! with RegisterDirtyFlag(). It is imperative that DirtyFlags pointers 
+ //! are unregistered if the objects they refer to are invalidated (deleted).
  //!
  //! \param[in] tag Name of ParamNode node
  //! \param[in] df A pointer to a dirty flag
+ //! \retval Return 0 if successful, -1 on failure
  //!
- //! \sa RegisterDirtyFlagNode()
+ //! \sa UnRegisterDirtyFlag()
  //
- void RegisterDirtyFlagNode(const string &tag, ParamNode::DirtyFlag *df);
-
- //! Unregister a dirty flag associated with the named node
- //!
- //! This method unregisters the DirtyFlag \p df associated with
- //! the parameter subtree named by \p tag, previously registered
- //! with RegisterDirtyFlagNode(). It is imperative that DirtyFlags pointers 
- //! are unregistered if the objects they refer to are invalidated (deleted).
- //!
- //! \param[in] tag Name of ParamNode node of subtree
- //! \param[in] df A pointer to a dirty flag
- //!
- //! \sa UnRegisterDirtyFlagNode()
- //
- void UnRegisterDirtyFlagNode(
+ int UnRegisterDirtyFlag(
 	const string &tag, const ParamNode::DirtyFlag *df
  );
 
-protected:
- map <string, vector <DirtyFlag *> > _dirtyLongFlags;
- map <string, vector <DirtyFlag *> > _dirtyDoubleFlags;
- map <string, vector <DirtyFlag *> > _dirtyStringFlags;
- map <string, vector <DirtyFlag *> > _dirtyNodeFlags;
 
+ //! Set a ParamsBase node for which this is the root
+ //!
+ //! The ParamsBase node is NULL unless this node is associated with a
+ //! registered ParamsBase object.
+ //! 
+ //!
+ //! \param[in] pBase Pointer to the ParamsBase node for which this is the root node
+ //!
+ //! \sa SetParamsBase()
+ //
+ void SetParamsBase(ParamsBase* pBase) {_paramsBase = pBase;}
+
+ //! Get the ParamsBase node for which this is the root
+ //!
+ //! The ParamsBase node is NULL unless this node is associated with a
+ //! registered ParamsBase object.
+ //! 
+ //!
+ //! \param[in] pBase Pointer to the ParamsBase node for which this is the root node
+ //! \retval Pointer to the ParamsBase node for which this is the root node
+ //! \sa GetParamsBase()
+ //
+ParamsBase* GetParamsBase() {return _paramsBase;}
+
+protected:
+ map <string, vector <DirtyFlag *> > _dirtyFlags;
+ static const string _typeAttr;
+ static const string _paramsBaseAttr;
+
+ ParamsBase* _paramsBase;
 };
 
 };

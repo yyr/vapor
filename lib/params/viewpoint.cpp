@@ -31,6 +31,7 @@
 #include "viewpoint.h"
 #include "vapor/MyBase.h"
 #include "vapor/XmlNode.h"
+#include "ParamNode.h"
 
 
 
@@ -142,7 +143,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return false;  
 	}
 }
-XmlNode* Viewpoint::
+ParamNode* Viewpoint::
 buildNode(){
 	//Construct a viewpoint node
 	string empty;
@@ -157,7 +158,7 @@ buildNode(){
 		oss << "false";
 	attrs[_perspectiveAttr] = oss.str();
 	
-	XmlNode* viewpointNode = new XmlNode(_viewpointTag, attrs, 4);
+	ParamNode* viewpointNode = new ParamNode(_viewpointTag, attrs, 4);
 
 	//Now add children
 	

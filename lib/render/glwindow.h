@@ -49,7 +49,6 @@ typedef bool (*renderCBFcn)(int winnum, bool newCoords);
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
-class ParamsIso;
 class AnimationParams;
 class FlowParams;
 class ProbeParams;
@@ -239,7 +238,7 @@ public:
 
 	void setNumRenderers(int num) {numRenderers = num;}
 	int getNumRenderers() { return numRenderers;}
-	Params::ParamType getRendererType(int i) {return renderType[i];}
+	Params::ParamsBaseType getRendererType(int i) {return renderType[i];}
 
 	Renderer* getRenderer(int i) {return renderer[i];}
 	Renderer* getRenderer(RenderParams* p);
@@ -256,7 +255,7 @@ public:
 	void removeAllRenderers();
 	void sortRenderers(int timestep);  //Sort all the pri 0 renderers
 	//Find a renderParams in renderer list, if it exists:
-	RenderParams* findARenderer(Params::ParamType renderertype);
+	RenderParams* findARenderer(Params::ParamsBaseType renderertype);
 	
 	static mouseModeType getCurrentMouseMode() {return currentMouseMode;}
 	static void setCurrentMouseMode(mouseModeType t){currentMouseMode = t;}
@@ -267,36 +266,50 @@ public:
 	//  -changing instance
 	//	-reinit
 	//	-new visualizer
-	void setActiveParams(Params* p, Params::ParamType t);
-	void setActiveViewpointParams(ViewpointParams* p) {currentViewpointParams = p;}
-	void setActiveRegionParams(RegionParams* p) {
-		currentRegionParams = p; 
-		if(myRegionManip)myRegionManip->setParams((Params*)currentRegionParams);
+	
+	void setActiveViewpointParams(Params* p) {setActiveParams(p,Params::_viewpointParamsTag);}
+	void setActiveRegionParams(Params* p) {
+		setActiveParams(p,Params::_regionParamsTag);
+		if(myRegionManip)myRegionManip->setParams(p);
 	}
-	void setActiveAnimationParams(AnimationParams* p) {currentAnimationParams = p;}
-	void setActiveDvrParams(DvrParams* p) {currentDvrParams = p; }
-	void setActiveIsoParams(ParamsIso* p) {currentIsoParams = p; }
-	void setActiveFlowParams(FlowParams* p) {
-		currentFlowParams = p; myFlowManip->setParams((Params*)currentFlowParams);
+	void setActiveAnimationParams(Params* p) {setActiveParams(p,Params::_animationParamsTag);}
+	void setActiveDvrParams(Params* p) {setActiveParams(p,Params::_dvrParamsTag); }
+	void setActiveIsoParams(Params* p) {setActiveParams(p,Params::_isoParamsTag); }
+	void setActiveFlowParams(Params* p) {
+		setActiveParams(p,Params::_flowParamsTag); 
+		myFlowManip->setParams(p);
 	}
-	void setActiveProbeParams(ProbeParams* p) {
-		currentProbeParams = p; myProbeManip->setParams((Params*)currentProbeParams);
+	void setActiveProbeParams(Params* p) {
+		setActiveParams(p,Params::_probeParamsTag);
+		myProbeManip->setParams(p);
 	}
-	void setActiveTwoDDataParams(TwoDDataParams* p) {
-		currentTwoDDataParams = p; myTwoDDataManip->setParams((Params*)currentTwoDDataParams);
+	void setActiveTwoDDataParams(Params* p) {
+		setActiveParams(p,Params::_twoDDataParamsTag); 
+		myTwoDDataManip->setParams(p);
 	}
-	void setActiveTwoDImageParams(TwoDImageParams* p) {
-		currentTwoDImageParams = p; myTwoDImageManip->setParams((Params*)currentTwoDImageParams);
+	void setActiveTwoDImageParams(Params* p) {
+		setActiveParams(p,Params::_twoDImageParamsTag); 
+		myTwoDImageManip->setParams(p);
 	}
-	ViewpointParams* getActiveViewpointParams() {return currentViewpointParams;}
-	RegionParams* getActiveRegionParams() {return currentRegionParams;}
-	AnimationParams* getActiveAnimationParams() {return currentAnimationParams;}
-	DvrParams* getActiveDvrParams() {return currentDvrParams;}
-	ParamsIso* getActiveIsoParams() {return currentIsoParams;}
-	FlowParams* getActiveFlowParams() {return currentFlowParams;}
-	ProbeParams* getActiveProbeParams() {return currentProbeParams;}
-	TwoDDataParams* getActiveTwoDDataParams() {return currentTwoDDataParams;}
-	TwoDImageParams* getActiveTwoDImageParams() {return currentTwoDImageParams;}
+	ViewpointParams* getActiveViewpointParams() {return (ViewpointParams*)getActiveParams(Params::_viewpointParamsTag);}
+	RegionParams* getActiveRegionParams() {return (RegionParams*)getActiveParams(Params::_regionParamsTag);}
+	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
+	DvrParams* getActiveDvrParams() {return (DvrParams*)getActiveParams(Params::_dvrParamsTag);}
+	
+	FlowParams* getActiveFlowParams() {return (FlowParams*)getActiveParams(Params::_flowParamsTag);}
+	ProbeParams* getActiveProbeParams() {return (ProbeParams*)getActiveParams(Params::_probeParamsTag);}
+	TwoDDataParams* getActiveTwoDDataParams() {return (TwoDDataParams*)getActiveParams(Params::_twoDDataParamsTag);}
+	TwoDImageParams* getActiveTwoDImageParams() {return (TwoDImageParams*)getActiveParams(Params::_twoDImageParamsTag);}
+
+	vector<Params*> currentParams;
+	Params* getActiveParams(ParamsBase::ParamsBaseType pType) {return currentParams[pType];}
+	Params* getActiveParams(const std::string& tag) {return currentParams[Params::GetTypeFromTag(tag)];}
+	void setActiveParams(Params* p, ParamsBase::ParamsBaseType pType){
+		currentParams[pType] = p;
+	}
+	void setActiveParams(Params* p, const std::string& tag){
+		currentParams[Params::GetTypeFromTag(tag)] = p;
+	}
 
 	//The GLWindow keeps track of the renderers with an ordered list of them
 	//as well as with a map from renderparams to renderer
@@ -391,7 +404,7 @@ public:
 	bool stopSpin();
 	bool spinning(){return isSpinning;}
 
-	void clearRendererBypass(Params::ParamType t);
+	void clearRendererBypass(Params::ParamsBaseType t);
 	//Following is intended to prevent conflicts between concurrent
 	//opengl threads.  Probably it should be protected by a semaphore 
 	//For now, leave it and see if problems occur.
@@ -404,7 +417,7 @@ protected:
 		public:
 		Renderer* ren;
 		float camDist;
-		Params::ParamType renType;
+		Params::ParamsBaseType renType;
 	};
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
@@ -420,7 +433,7 @@ protected:
 	static mouseModeType currentMouseMode;
 	std::map<DirtyBitType,bool> vizDirtyBit; 
 	Renderer* renderer[MAXNUMRENDERERS];
-	Params::ParamType renderType[MAXNUMRENDERERS];
+	Params::ParamsBaseType renderType[MAXNUMRENDERERS];
 	int renderOrder[MAXNUMRENDERERS];
 
 	//Map params to renderer for set/get dirty bits, etc:
@@ -574,15 +587,6 @@ protected:
 	bool colorbarDirty;
 	bool mouseDownHere;
 
-	ViewpointParams* currentViewpointParams;
-	RegionParams* currentRegionParams;
-	AnimationParams* currentAnimationParams;
-	FlowParams* currentFlowParams;
-	DvrParams* currentDvrParams;
-	ParamsIso* currentIsoParams;
-	ProbeParams* currentProbeParams;
-	TwoDDataParams* currentTwoDDataParams;
-	TwoDImageParams* currentTwoDImageParams;
 
 
 	renderCBFcn preRenderCB;

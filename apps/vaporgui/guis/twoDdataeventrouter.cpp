@@ -78,7 +78,7 @@ using namespace VAPoR;
 
 TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_TwoDDataTab(), TwoDEventRouter(){
 	setupUi(this);
-	myParamsType = Params::TwoDDataParamsType;
+	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_twoDDataParamsTag, this);
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
@@ -317,7 +317,7 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	
 	
-	deleteInstanceButton->setEnabled(vizMgr->getNumTwoDDataInstances(winnum) > 1);
+	deleteInstanceButton->setEnabled(Params::GetNumParamsInstances(Params::_twoDDataParamsTag,winnum) > 1);
 	
 	int numViz = vizMgr->getNumVisualizers();
 
@@ -627,7 +627,7 @@ refreshTwoDHisto(){
 
 void TwoDDataEventRouter::
 twoDLoadInstalledTF(){
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	TransferFunction* tf = pParams->getTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
@@ -652,28 +652,28 @@ twoDLoadInstalledTF(){
 //dialog, then sends the result to the TwoDData params
 void TwoDDataEventRouter::
 twoDSaveTF(void){
-	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* dParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	saveTF(dParams);
 }
 void TwoDDataEventRouter::
 twoDLoadTF(void){
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	loadTF(pParams, pParams->getSessionVarNum());
 	updateClut(pParams);
 }
 void TwoDDataEventRouter::
 twoDCenterRegion(){
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void TwoDDataEventRouter::
 twoDCenterView(){
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
 }
 void TwoDDataEventRouter::
 twoDCenterRake(){
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	fRouter->guiCenterRake(pParams->getSelectedPoint());
 }
@@ -681,10 +681,10 @@ twoDCenterRake(){
 void TwoDDataEventRouter::
 twoDAddSeed(){
 	Point4 pt;
-	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::TwoDDataParamsType);
+	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPoint());
-	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::AnimationParamsType);
+	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	int timestep = ap->getCurrentFrameNumber();
 	pt.set1Val(3,(float)timestep);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
@@ -1617,8 +1617,8 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	TwoDDataParams* pParams = (TwoDDataParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
-	if (!prevParams) assert(VizWinMgr::getInstance()->getNumTwoDDataInstances(vizNum) == instance);
-	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::TwoDDataParamsType, instance);
+	if (!prevParams) assert(Params::GetNumParamsInstances(Params::_twoDDataParamsTag,vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::GetTypeFromTag(Params::_twoDDataParamsTag), instance);
 	setEditorDirty();
 	updateTab();
 	TwoDDataParams* formerParams = (TwoDDataParams*)prevParams;
@@ -2145,7 +2145,7 @@ twoDReturnPressed(void){
 void TwoDDataEventRouter::
 twoDAttachSeed(bool attach){
 	if (attach) twoDAddSeed();
-	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
+	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
 	
 	guiAttachSeed(attach, fParams);
 }

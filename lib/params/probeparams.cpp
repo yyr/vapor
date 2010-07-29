@@ -48,6 +48,7 @@
 
 
 using namespace VAPoR;
+const string ProbeParams::_shortName = "Probe";
 const string ProbeParams::_editModeAttr = "TFEditMode";
 const string ProbeParams::_histoStretchAttr = "HistoStretchFactor";
 const string ProbeParams::_variableSelectedAttr = "VariableSelected";
@@ -71,8 +72,8 @@ float ProbeParams::defaultTheta = 0.0f;
 float ProbeParams::defaultPhi = 0.0f;
 float ProbeParams::defaultPsi = 0.0f;
 
-ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
-	thisParamType = ProbeParamsType;
+ProbeParams::ProbeParams(int winnum) : RenderParams(winnum, Params::_probeParamsTag){
+	
 	numVariables = 0;
 	probeDataTextures = 0;
 	probeIBFVTextures = 0;
@@ -782,7 +783,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 }
 
 //Method to construct Xml for state saving
-XmlNode* ProbeParams::
+ParamNode* ProbeParams::
 buildNode() {
 	//Construct the probe node
 	if (numVariables <= 0) return 0;
@@ -846,7 +847,7 @@ buildNode() {
 	if (ibfvColorMerged()) oss << "true"; else oss << "false";
 	attrs[_mergeColorAttr] = oss.str();
 
-	XmlNode* probeNode = new XmlNode(_probeParamsTag, attrs, 3);
+	ParamNode* probeNode = new ParamNode(_probeParamsTag, attrs, 3);
 
 	//Now add children:  
 	//Create the Variables nodes
@@ -877,10 +878,10 @@ buildNode() {
 		oss << (double)transFunc[i]->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 
-		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
+		ParamNode* varNode = new ParamNode(_variableTag,attrs,1);
 
 		//Create a transfer function node, add it as child
-		XmlNode* tfNode = transFunc[i]->buildNode(empty);
+		ParamNode* tfNode = transFunc[i]->buildNode(empty);
 		varNode->AddChild(tfNode);
 		probeNode->AddChild(varNode);
 	}

@@ -52,6 +52,7 @@ enum DirtyBitType {
 	AnimationBit //Set when the current frame number changes
 };
 class XmlNode;
+class ParamNode;
 class MapperFunction;
 class TransferFunction;
 class ViewpointParams;
@@ -65,10 +66,10 @@ public:
 Params(
 	XmlNode *parent, const string &name, int winNum
  );
-Params(int winNum) : ParamsBase() {
+Params(int winNum, const string& name) : ParamsBase(name) {
 	vizNum = winNum;
 	if(winNum < 0) local = false; else local = true;
-	thisParamType = UnknownParamsType;
+	
 	previousClass = 0;
 }
 	
@@ -79,24 +80,80 @@ Params(int winNum) : ParamsBase() {
  //!
  virtual ~Params();
 
+ virtual const std::string& getShortName()=0;
 
+	static int GetCurrentParamsInstanceIndex(int pType, int winnum){
+		return currentParamsInstance[make_pair(pType,winnum)];
+	}
+	static int GetCurrentParamsInstanceIndex(const std::string tag, int winnum){
+		return GetCurrentParamsInstanceIndex(GetTypeFromTag(tag),winnum);
+	}
+	
+	static void SetCurrentParamsInstanceIndex(int pType, int winnum, int instance){
+		currentParamsInstance[make_pair(pType,winnum)] = instance;
+	}
+	
+	static Params* GetParamsInstance(int pType, int winnum = -1, int instance = -1);
+	static Params* GetParamsInstance(const std::string tag, int winnum = -1, int instance = -1){
+		return GetParamsInstance(GetTypeFromTag(tag), winnum, instance);
+	}
+	static Params* GetCurrentParamsInstance(int pType, int winnum){
+		Params* p = GetParamsInstance(pType, winnum, -1);
+		if (p->isLocal()) return p;
+		return GetDefaultParams(pType);
+	}
+	
+	static Params* GetDefaultParams(ParamsBase::ParamsBaseType pType){
+		return defaultParamsInstance[pType];
+	}
+	static Params* GetDefaultParams(const string& tag){
+		return defaultParamsInstance[GetTypeFromTag(tag)];
+	}
+	static void SetDefaultParams(int pType, Params* p) {
+		defaultParamsInstance[pType] = p;
+	}
+	static void SetDefaultParams(const string& tag, Params* p) {
+		defaultParamsInstance[GetTypeFromTag(tag)] = p;
+	}
+	static Params* CreateDefaultParams(int pType){
+		Params*p = (Params*)(createDefaultFcnMap[pType])();
+		return p;
+	}
+	static int GetNumParamsInstances(int pType, int winnum){
+		return paramsInstances[make_pair(pType, winnum)].size();
+	}
+	static int GetNumParamsInstances(const std::string tag, int winnum){
+		return GetNumParamsInstances(GetTypeFromTag(tag), winnum);
+	}
+	
+	static void AppendParamsInstance(int pType, int winnum, Params* p){
+		paramsInstances[make_pair(pType,winnum)].push_back(p);
+	}
+	static void AppendParamsInstance(const std::string tag, int winnum, Params* p){
+		AppendParamsInstance(GetTypeFromTag(tag),winnum, p);
+	}
+	static void RemoveParamsInstance(int pType, int winnum, int instance);
+	
+	static void InsertParamsInstance(int pType, int winnum, int posn, Params* dp){
+		vector<Params*>& instances = paramsInstances[make_pair(pType,winnum)];
+		instances.insert(instances.begin()+posn, dp);
+	}
+	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
+		return paramsInstances[make_pair(pType,winnum)];
+	}
+	static vector<Params*>& GetAllParamsInstances(const std::string tag, int winnum){
+		return GetAllParamsInstances(GetTypeFromTag(tag),winnum);
+	}
+	static map <int, vector<Params*>>* cloneAllParamsInstances(int winnum);
+	static vector <Params*>* cloneAllDefaultParams();
+
+	static bool IsRenderingEnabled(int winnum);
+	
 	virtual bool isRenderParams() {return false;}
-	enum ParamType {
-		UnknownParamsType = 0,
-		ViewpointParamsType = 1,
-		RegionParamsType = 2,
-		DvrParamsType = 4,
-		IsoParamsType = 8,
-		ProbeParamsType = 16,
-		TwoDDataParamsType = 32,
-		AnimationParamsType = 64,
-		FlowParamsType = 128,
-		TwoDImageParamsType = 256
-	};
 	
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
-	static QString& paramName(ParamType);
+	static const std::string& paramName(ParamsBaseType t);
 	static const string _dvrParamsTag;
 	static const string _isoParamsTag;
 	static const string _probeParamsTag;
@@ -125,8 +182,18 @@ Params(int winNum) : ParamsBase() {
 	//I.e. copy everything that is unique to this object
 	//
 	virtual Params* deepCopy() = 0;
-	
 
+	virtual void restart() = 0;
+	//This version of deepCopy should NOT clone the xml tree.
+	//In fact it should never be called!
+	virtual Params* deepCopy(ParamNode* pNode){
+		assert(0);
+		Params* p = deepCopy();
+		p->setRootParamNode(pNode);
+		pNode->SetParamsBase(p);
+		return p;
+	}
+	
 	int getVizNum() {return vizNum;}
 	virtual void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
 		else local = false;}
@@ -172,12 +239,6 @@ Params(int winNum) : ParamsBase() {
 	void buildCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 
 
-	
-	
-	//Identify if this params is at the front of the tabbed params
-	//bool isCurrent(); 
-	ParamType getParamType() {return thisParamType;}
-
 	//Helper function for testing distances,
 	//testing whether a point is inside or outside of cube 
 	//Return is positive if point is outside.  Arguments are outward pointing
@@ -202,14 +263,21 @@ protected:
 	//Keep track of which window number corresp to this.  -1 for global or default parameters.
 	//
 	int vizNum;
-	ParamType thisParamType;
+	
+	
+	//Params instances are vectors of Params*, one per instance, indexed by paramsBaseType, winNum
+	static map<pair<int,int>,vector<Params*>> paramsInstances;
+	//CurrentRenderParams indexed by paramsBaseType, winNum
+	static map<pair<int,int>, int> currentParamsInstance;
+	//default params instances indexed by paramsBaseType
+	static map<int, Params*> defaultParamsInstance;
 
 };
 
 //Subclass for params that control rendering.
 class PARAMS_API RenderParams : public Params {
 public: 
-	RenderParams(int winNum) : Params(winNum) {
+	RenderParams(int winNum, const string& name) : Params(winNum, name) {
 		
 		local = true;
 		

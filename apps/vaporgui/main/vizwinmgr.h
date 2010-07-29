@@ -30,6 +30,7 @@
 
 
 class QMdiArea;
+class QMdiSubWindow;
 class QWidget;
 class QDesktopWidget;
 class QMainWidget;
@@ -101,25 +102,33 @@ public:
 	}
 	//Get active params always uses current instance on renderparams.
 	static DvrParams* getActiveDvrParams(){
-		return (getInstance()->getDvrParams(getInstance()->activeViz));}
+		return((DvrParams*)Params::GetParamsInstance(Params::_dvrParamsTag,getInstance()->activeViz,-1));
+	}
 	static ParamsIso* getActiveIsoParams(){
-		return (getInstance()->getIsoParams(getInstance()->activeViz));}
+		return((ParamsIso*)Params::GetParamsInstance(Params::_isoParamsTag,getInstance()->activeViz,-1));
+	}
 	static ProbeParams* getActiveProbeParams(){
-		return (getInstance()->getProbeParams(getInstance()->activeViz));}
+		return ((ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,getInstance()->activeViz,-1));}
 	static TwoDDataParams* getActiveTwoDDataParams(){
-		return (getInstance()->getTwoDDataParams(getInstance()->activeViz));}
+		return ((TwoDDataParams*)Params::GetParamsInstance(Params::_twoDDataParamsTag,getInstance()->activeViz,-1));}
 	static TwoDImageParams* getActiveTwoDImageParams(){
-		return (getInstance()->getTwoDImageParams(getInstance()->activeViz));}
+		return ((TwoDImageParams*)Params::GetParamsInstance(Params::_twoDImageParamsTag,getInstance()->activeViz,-1));}
 	static RegionParams* getActiveRegionParams(){
-		return (getInstance()->getRegionParams(getInstance()->activeViz));}
+		return (getInstance()->getRegionParams(getInstance()->activeViz));
+	}
 	static FlowParams* getActiveFlowParams(){
-		return (getInstance()->getFlowParams(getInstance()->activeViz));}
+		return ((FlowParams*)Params::GetParamsInstance(Params::_flowParamsTag,getInstance()->activeViz,-1));}
 	static ViewpointParams* getActiveVPParams(){
-		return (getInstance()->getViewpointParams(getInstance()->activeViz));}
+		return (getInstance()->getViewpointParams(getInstance()->activeViz));
+	}
 	static AnimationParams* getActiveAnimationParams(){
-		return (getInstance()->getAnimationParams(getInstance()->activeViz));}
+		return (getInstance()->getAnimationParams(getInstance()->activeViz));
+	}
+
+	//Each event router registers itself in its constructor with the vizwinmgr by calling the following
+	static Params::ParamsBaseType RegisterEventRouter(const std::string tag, EventRouter* router);
 	
-	void createGlobalParams();
+	void createAllDefaultParams();
     ~VizWinMgr();
 	
     //Respond to end:
@@ -144,13 +153,17 @@ public:
         isMin[i] = false;
         isMax[i] = false;
     }
-	static EventRouter* getEventRouter(Params::ParamType routerType);
+	
+	static EventRouter* getEventRouter(Params::ParamsBaseType typeId);
+	static EventRouter* getEventRouter(const std::string& tag){
+		return getEventRouter(ParamsBase::GetTypeFromTag(tag));
+	}
 
-	Params* getGlobalParams(Params::ParamType);
-	void setGlobalParams(Params* p, Params::ParamType t);
+	Params* getGlobalParams(Params::ParamsBaseType ptype);
+	void setGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
 	//Method that returns the current params that apply in the current
 	//active visualizer if it is local.
-	Params* getLocalParams(Params::ParamType);
+	Params* getLocalParams(Params::ParamsBaseType t);
     //method to launch a viz window, returns vizNum
 	//Default values create a new vis use whatever available number.
 	//If usenum is >= 0 it relaunches a previously used visualizer.
@@ -178,138 +191,56 @@ public:
 	RegionParams* getRegionParams(int winNum);
 	//For a renderer, there will only exist a local version.
 	// If instance is negative, return the current instance.
-	DvrParams* getDvrParams(int winNum, int instance = -1);
-	ParamsIso* getIsoParams(int winNum, int instance = -1);
+	
+	Params* getIsoParams(int winnum, int instance = -1){
+		return Params::GetParamsInstance(Params::GetTypeFromTag(Params::_isoParamsTag),winnum, instance);
+	}
+	Params* getDvrParams(int winnum, int instance = -1){
+		return Params::GetParamsInstance(Params::GetTypeFromTag(Params::_dvrParamsTag),winnum, instance);
+	}
 	ProbeParams* getProbeParams(int winNum, int instance = -1);
 	TwoDDataParams* getTwoDDataParams(int winNum, int instance = -1);
 	TwoDImageParams* getTwoDImageParams(int winNum, int instance = -1);
 
-	Params* getParams(int winNum, Params::ParamType pType, int instance = -1);
+	Params* getParams(int winNum, Params::ParamsBaseType pType, int instance = -1);
 	
-	int getNumFlowInstances(int winnum){return flowParamsInstances[winnum].size();}
-	int getNumProbeInstances(int winnum){return probeParamsInstances[winnum].size();}
-	int getNumTwoDDataInstances(int winnum){return twoDDataParamsInstances[winnum].size();}
-	int getNumTwoDImageInstances(int winnum){return twoDImageParamsInstances[winnum].size();}
-	int getNumDvrInstances(int winnum){return dvrParamsInstances[winnum].size();}
-	int getNumIsoInstances(int winnum){return isoParamsInstances[winnum].size();}
-	int getNumInstances(int winnum, Params::ParamType pType);
-	int getCurrentFlowInstIndex(int winnum) {return currentFlowInstance[winnum];}
-	int getCurrentDvrInstIndex(int winnum) {return currentDvrInstance[winnum];}
-	int getCurrentIsoInstIndex(int winnum) {return currentIsoInstance[winnum];}
-	int getCurrentProbeInstIndex(int winnum) {return currentProbeInstance[winnum];}
-	int getCurrentTwoDDataInstIndex(int winnum) {return currentTwoDDataInstance[winnum];}
-	int getCurrentTwoDImageInstIndex(int winnum) {return currentTwoDImageInstance[winnum];}
-	void setCurrentFlowInstIndex(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
-	void setCurrentDvrInstIndex(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
-	void setCurrentIsoInstIndex(int winnum, int inst) {currentIsoInstance[winnum] = inst;}
-	void setCurrentProbeInstIndex(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
-	void setCurrentTwoDDataInstIndex(int winnum, int inst) {currentTwoDDataInstance[winnum] = inst;}
-	void setCurrentTwoDImageInstIndex(int winnum, int inst) {currentTwoDImageInstance[winnum] = inst;}
-	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamType t);
-	int getCurrentInstanceIndex(int winnum, Params::ParamType t);
-	int findInstanceIndex(int winnum, Params* params, Params::ParamType t);
-	int getActiveInstanceIndex(Params::ParamType t){
+	int getNumFlowInstances(int winnum){return Params::GetNumParamsInstances(Params::_flowParamsTag,winnum);}
+	int getNumProbeInstances(int winnum){return Params::GetNumParamsInstances(Params::_probeParamsTag,winnum);}
+	int getNumTwoDDataInstances(int winnum){return Params::GetNumParamsInstances(Params::_twoDDataParamsTag,winnum);}
+	int getNumTwoDImageInstances(int winnum){return Params::GetNumParamsInstances(Params::_twoDImageParamsTag,winnum);}
+	int getNumDvrInstances(int winnum){
+		return Params::GetNumParamsInstances(Params::_dvrParamsTag, winnum);
+	}
+	int getNumIsoInstances(int winnum){
+		return Params::GetNumParamsInstances(Params::_isoParamsTag, winnum);
+	}
+	int getNumInstances(int winnum, Params::ParamsBaseType pType);
+	
+	int getCurrentFlowInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_flowParamsTag,winnum);}
+	int getCurrentDvrInstIndex(int winnum) {
+		return Params::GetCurrentParamsInstanceIndex(Params::_dvrParamsTag,winnum);
+	}
+	int getCurrentIsoInstIndex(int winnum) {
+		return Params::GetCurrentParamsInstanceIndex(Params::GetTypeFromTag(Params::_isoParamsTag),winnum);
+	}
+	int getCurrentProbeInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_probeParamsTag,winnum);}
+	int getCurrentTwoDDataInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_twoDDataParamsTag,winnum);}
+	int getCurrentTwoDImageInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_twoDImageParamsTag,winnum);}
+	
+	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamsBaseType t);
+	int getCurrentInstanceIndex(int winnum, Params::ParamsBaseType t);
+	int findInstanceIndex(int winnum, Params* params, Params::ParamsBaseType t);
+	int getActiveInstanceIndex(Params::ParamsBaseType t){
 		return getCurrentInstanceIndex(activeViz,t);
 	}
 
-	void appendFlowInstance(int winnum, FlowParams* fp){
-		flowParamsInstances[winnum].push_back(fp);
-	}
-	void appendDvrInstance(int winnum, DvrParams* dp){
-		dvrParamsInstances[winnum].push_back(dp);
-	}
-	void appendIsoInstance(int winnum, ParamsIso* ip){
-		isoParamsInstances[winnum].push_back(ip);
-	}
-	void appendProbeInstance(int winnum, ProbeParams* pp){
-		probeParamsInstances[winnum].push_back(pp);
-	}
-	void appendTwoDDataInstance(int winnum, TwoDDataParams* pp){
-		twoDDataParamsInstances[winnum].push_back(pp);
-	}
-	void appendTwoDImageInstance(int winnum, TwoDImageParams* pp){
-		twoDImageParamsInstances[winnum].push_back(pp);
-	}
+	
 	void appendInstance(int winnum, Params* p);
-	void insertFlowInstance(int winnum, int posn, FlowParams* fp){
-		flowParamsInstances[winnum].insert(flowParamsInstances[winnum].begin()+posn, fp);
-	}
-	void insertDvrInstance(int winnum, int posn, DvrParams* dp){
-		dvrParamsInstances[winnum].insert(dvrParamsInstances[winnum].begin()+posn, dp);
-	}
-	void insertIsoInstance(int winnum, int posn, ParamsIso* dp){
-		isoParamsInstances[winnum].insert(isoParamsInstances[winnum].begin()+posn, dp);
-	}
-	void insertProbeInstance(int winnum, int posn, ProbeParams* pp){
-		probeParamsInstances[winnum].insert(probeParamsInstances[winnum].begin()+posn, pp);
-	}
-	void insertTwoDDataInstance(int winnum, int posn, TwoDDataParams* pp){
-		twoDDataParamsInstances[winnum].insert(twoDDataParamsInstances[winnum].begin()+posn, pp);
-	}
-	void insertTwoDImageInstance(int winnum, int posn, TwoDImageParams* pp){
-		twoDImageParamsInstances[winnum].insert(twoDImageParamsInstances[winnum].begin()+posn, pp);
-	}
+	
 	void insertInstance(int winnum, int posn, Params* p);
-	void removeFlowInstance(int winnum, int instance){
-		FlowParams* fParams = flowParamsInstances[winnum].at(instance);
-		if (currentFlowInstance[winnum] > instance)
-			currentFlowInstance[winnum]--;
-		flowParamsInstances[winnum].erase(flowParamsInstances[winnum].begin()+instance);
-		//Did we remove last one?
-		if (currentFlowInstance[winnum] >= (int)flowParamsInstances[winnum].size())
-			currentFlowInstance[winnum]--;
-		delete fParams;
-	}
-	void removeDvrInstance(int winnum, int instance){
-		DvrParams* dParams = dvrParamsInstances[winnum].at(instance);
-		if (currentDvrInstance[winnum] > instance)
-			currentDvrInstance[winnum]--;
-		dvrParamsInstances[winnum].erase(dvrParamsInstances[winnum].begin()+instance);
-		//Did we remove last one?
-		if (currentDvrInstance[winnum] >= (int)dvrParamsInstances[winnum].size())
-			currentDvrInstance[winnum]--;
-		delete dParams;
-	}
-	void removeIsoInstance(int winnum, int instance){
-		ParamsIso* iParams = isoParamsInstances[winnum].at(instance);
-		if (currentIsoInstance[winnum] > instance)
-			currentIsoInstance[winnum]--;
-		isoParamsInstances[winnum].erase(isoParamsInstances[winnum].begin()+instance);
-		//Did we remove last one?
-		if (currentIsoInstance[winnum] >= (int)isoParamsInstances[winnum].size())
-			currentIsoInstance[winnum]--;
-		delete iParams;
-	}
-	void removeProbeInstance(int winnum, int instance){
-		ProbeParams* pParams = probeParamsInstances[winnum].at(instance);
-		if (currentProbeInstance[winnum] > instance)
-			currentProbeInstance[winnum]--;
-		probeParamsInstances[winnum].erase(probeParamsInstances[winnum].begin()+instance);
-		if (currentProbeInstance[winnum] >= (int)probeParamsInstances[winnum].size())
-			currentProbeInstance[winnum]--;
-		delete pParams;
-	}
 	
-	void removeTwoDDataInstance(int winnum, int instance){
-		TwoDDataParams* pParams = twoDDataParamsInstances[winnum].at(instance);
-		if (currentTwoDDataInstance[winnum] > instance)
-			currentTwoDDataInstance[winnum]--;
-		twoDDataParamsInstances[winnum].erase(twoDDataParamsInstances[winnum].begin()+instance);
-		if (currentTwoDDataInstance[winnum] >= (int)twoDDataParamsInstances[winnum].size())
-			currentTwoDDataInstance[winnum]--;
-		delete pParams;
-	}
-	void removeTwoDImageInstance(int winnum, int instance){
-		TwoDImageParams* pParams = twoDImageParamsInstances[winnum].at(instance);
-		if (currentTwoDImageInstance[winnum] > instance)
-			currentTwoDImageInstance[winnum]--;
-		twoDImageParamsInstances[winnum].erase(twoDImageParamsInstances[winnum].begin()+instance);
-		if (currentTwoDImageInstance[winnum] >= (int)twoDImageParamsInstances[winnum].size())
-			currentTwoDImageInstance[winnum]--;
-		delete pParams;
-	}
 	
-	void removeInstance(int winnum, int instance, Params::ParamType t);
+	void removeInstance(int winnum, int instance, Params::ParamsBaseType t);
 	FlowParams* getFlowParams(int winNum, int instance = -1);
 	AnimationParams* getAnimationParams(int winNum);
 
@@ -324,7 +255,10 @@ public:
 	FlowEventRouter* getFlowRouter() {return flowEventRouter;}
 
 	//Get whatever params apply to a particular tab
-	Params* getApplicableParams(Params::ParamType t);
+	Params* getApplicableParams(Params::ParamsBaseType t);
+	Params* getApplicableParams(const std::string& tag){
+		return getApplicableParams(ParamsBase::GetTypeFromTag(tag));
+	}
 	//Make all the params for the current window update their tabs:
 	void updateActiveParams();
 	//Establish connections to this from the viztab.
@@ -342,32 +276,41 @@ public:
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return vizWin[i];}
 	//Direct access to actual params object:
-	ViewpointParams* getRealVPParams(int i) {return vpParams[i];}
-	
-	std::vector<FlowParams*>& getAllFlowParams(int i) {return flowParamsInstances[i];}
-	std::vector<DvrParams*>& getAllDvrParams(int i) {return dvrParamsInstances[i];}
-	std::vector<ParamsIso*>& getAllIsoParams(int i) {return isoParamsInstances[i];}
-	std::vector<ProbeParams*>& getAllProbeParams(int i) {return probeParamsInstances[i];}
-	std::vector<TwoDDataParams*>& getAllTwoDDataParams(int i) {return twoDDataParamsInstances[i];}
-	std::vector<TwoDImageParams*>& getAllTwoDImageParams(int i) {return twoDImageParamsInstances[i];}
-	
+	ViewpointParams* getRealVPParams(int win) {
+		Params* p = Params::GetParamsInstance(Params::_viewpointParamsTag,win,-1);
+		if (p->isLocal()) return (ViewpointParams*)p;
+		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
+	}
+	RegionParams* getRealRegionParams(int win) {
+		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
+		if (p->isLocal()) return (RegionParams*)p;
+		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
+	}
+	AnimationParams* getRealAnimationParams(int win) {
+		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
+		if (p->isLocal()) return (AnimationParams*)p;
+		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
+	}
+	ViewpointParams* getGlobalVPParams(){return (ViewpointParams*)(Params::GetDefaultParams(Params::_viewpointParamsTag));}
+	RegionParams* getGlobalRegionParams(){
+		return (RegionParams*)(Params::GetDefaultParams(Params::_regionParamsTag));
+	}
+	AnimationParams* getGlobalAnimationParams(){return (AnimationParams*)(Params::GetDefaultParams(Params::_animationParamsTag));}
 
-	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
-	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
-
+	
 	void setVizWinName(int winNum, QString& qs);
 	QString& getVizWinName(int winNum) {return vizName[winNum];}
 	bool isMinimized(int winNum) {return isMin[winNum];}
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	//Setting a params changes the previous params to the
 	//specified one, performs needed ref/unref
-	void setParams(int winNum, Params* p, Params::ParamType t, int instance = -1);
+	void setParams(int winNum, Params* p, ParamsBase::ParamsBaseType typeId, int instance = -1);
 	
-	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::ViewpointParamsType);}
-	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::RegionParamsType);}
-	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::AnimationParamsType);}
+	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_viewpointParamsTag));}
+	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_regionParamsTag));}
+	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_animationParamsTag));}
 		
-	void replaceGlobalParams(Params* p, Params::ParamType typ);
+	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
 	void createDefaultParams(int winnum);
 	
 	void setSelectionMode( GLWindow::mouseModeType m);
@@ -447,7 +390,7 @@ public:
 	void initViews();
 	
 	//Methods to handle save/restore
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	//this tag needs to be visible in session class
@@ -458,10 +401,10 @@ public:
 
 
 	Params* getCorrespondingGlobalParams(Params* p) {
-		return getGlobalParams(p->getParamType());
+		return getGlobalParams(p->GetParamsBaseTypeId());
 	}
 	Params* getCorrespondingLocalParams(Params* p) {
-		return getLocalParams(p->getParamType());
+		return getLocalParams(p->GetParamsBaseTypeId());
 	}
 	void setInteractiveNavigating(int level);
 	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
@@ -536,31 +479,12 @@ protected:
 	VizWinMgr ();
 	
     VizWin* vizWin[MAXVIZWINS];
+	QMdiSubWindow* vizMdiWin[MAXVIZWINS];
    
     QString vizName[MAXVIZWINS];
     bool isMax[MAXVIZWINS];
     bool isMin[MAXVIZWINS];
-	ViewpointParams* vpParams[MAXVIZWINS];
-	RegionParams* rgParams[MAXVIZWINS];
-	//For renderparams, there is an array of vectors of params, plus an integer
-	//pointing to the current instance:
 	
-	vector<DvrParams*> dvrParamsInstances[MAXVIZWINS];
-	int currentDvrInstance[MAXVIZWINS];
-	vector<ParamsIso*> isoParamsInstances[MAXVIZWINS];
-	int currentIsoInstance[MAXVIZWINS];
-	vector<ProbeParams*> probeParamsInstances[MAXVIZWINS];
-	int currentProbeInstance[MAXVIZWINS];
-	vector<TwoDDataParams*> twoDDataParamsInstances[MAXVIZWINS];
-	vector<TwoDImageParams*> twoDImageParamsInstances[MAXVIZWINS];
-	int currentTwoDDataInstance[MAXVIZWINS];
-	int currentTwoDImageInstance[MAXVIZWINS];
-	vector<FlowParams*> flowParamsInstances[MAXVIZWINS];
-	int currentFlowInstance[MAXVIZWINS];
-	
-
-	AnimationParams* animationParams[MAXVIZWINS];
-	Params** getParamsArray(Params::ParamType t);
 	//Remember the activation order:
 	int activationOrder[MAXVIZWINS];
 	int activationCount;
@@ -575,17 +499,6 @@ protected:
 		return mj;
 	}
 	Trackball* globalTrackball;
-	ViewpointParams* globalVPParams;
-	RegionParams* globalRegionParams;
-	//Default, not same as global...
-	FlowParams* defaultFlowParams;
-	ProbeParams* defaultProbeParams;
-	TwoDDataParams* defaultTwoDDataParams;
-	TwoDImageParams* defaultTwoDImageParams;
-	DvrParams* defaultDvrParams;
-	ParamsIso* defaultIsoParams;
-	
-	AnimationParams* globalAnimationParams;
 
 	RegionEventRouter* regionEventRouter;
 	DvrEventRouter* dvrEventRouter;
@@ -596,11 +509,12 @@ protected:
 	ViewpointEventRouter* viewpointEventRouter;
 	AnimationEventRouter* animationEventRouter;
 	FlowEventRouter* flowEventRouter;
-	
+	static std::map<ParamsBase::ParamsBaseType, EventRouter*> eventRouterMap;
     MainForm* myMainWindow;
     TabManager* tabManager;
    
     int activeViz;
+	vector<int> parsingInstance;
 	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance,parsingTwoDDataInstance,parsingTwoDImageInstance;
 	
     QMdiArea* myMDIArea;

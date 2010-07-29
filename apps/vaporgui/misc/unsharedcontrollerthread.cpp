@@ -125,14 +125,9 @@ run(){
 				
 					//Either deactivate, or Call startVisualizer(viznum).
 					//If a visualizer is local, finished, and late
-					if ((!myVizWinMgr->getVizWin(viznum)) ||
+					if ((!myVizWinMgr->getVizWin(viznum)) || 
 						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
-						((!myVizWinMgr->getDvrParams(viznum)->isEnabled()) &&
-						(!myVizWinMgr->getIsoParams(viznum)->isEnabled()) &&
-						(!myVizWinMgr->getTwoDDataParams(viznum)->isEnabled()) &&
-						(!myVizWinMgr->getTwoDImageParams(viznum)->isEnabled()) &&
-						(!myVizWinMgr->getProbeParams(viznum)->isEnabled()) &&
-						(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
+						!Params::IsRenderingEnabled(viznum)) {
 						//deactivate stopped animations
 						//qWarning("Deactivating stopped animation in viz %d",viznum);
 						myAnimationController->deActivate(viznum);

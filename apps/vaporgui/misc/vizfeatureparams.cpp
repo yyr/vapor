@@ -708,7 +708,7 @@ applyToViz(int vizNum){
 			if (!win) continue;
 			//do each dvr
 			
-			DvrParams* dp = vizMgr->getDvrParams(j);
+			DvrParams* dp = (DvrParams*)vizMgr->getDvrParams(j);
 			vizMgr->setDatarangeDirty(dp);
 			win->setDirtyBit(RegionBit, true);
 		}

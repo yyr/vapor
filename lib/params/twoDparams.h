@@ -34,6 +34,7 @@ class MainForm;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
+class ParamNode;
 class FlowParams;
 class Histo;
 class ViewpointParams;
@@ -42,7 +43,7 @@ class RegionParams;
 class PARAMS_API TwoDParams : public RenderParams {
 	
 public: 
-	TwoDParams(int winnum);
+	TwoDParams(int winnum, const string& name);
 	~TwoDParams();
 	virtual RenderParams* deepRCopy() = 0;
 	Params* deepCopy() {return (Params*)deepRCopy();}
@@ -99,7 +100,7 @@ public:
 	bool reinit(bool doOverride) = 0;
 	virtual void restart() = 0;
 	static void setDefaultPrefs();
-	virtual XmlNode* buildNode()=0; 
+	virtual ParamNode* buildNode()=0; 
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/)=0;
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/)=0;
 	

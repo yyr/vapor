@@ -76,7 +76,6 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
-#include "ParamsIso.h"
 
 #include "animationparams.h"
 #include "probeparams.h"
@@ -205,7 +204,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	MessageReporter::infoMsg("MainForm::MainForm(): setup session");
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	
-	myVizMgr->createGlobalParams();
+	myVizMgr->createAllDefaultParams();
 	
 	createToolBars();	
 	
@@ -1137,15 +1136,15 @@ void MainForm::viewpoint()
 	
 	ViewpointEventRouter* myViewpointRouter = myVizMgr->getViewpointRouter();
 	
-	int posn = tabWidget->findWidget(Params::ViewpointParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_viewpointParamsTag));
          
 	//Create a new parameter class to work with the widget
 		
     
 	if (posn < 0){
-		tabWidget->insertWidget(theVizTab, Params::ViewpointParamsType, true );
+		tabWidget->insertWidget(theVizTab, Params::GetTypeFromTag(Params::_viewpointParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::ViewpointParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_viewpointParamsTag));
 	}
 	myViewpointRouter->updateTab();
 }
@@ -1166,15 +1165,15 @@ region()
 	
 	RegionEventRouter* myRegionRouter = myVizMgr->getRegionRouter();
 	
-	int posn = tabWidget->findWidget(Params::RegionParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_regionParamsTag));
          
 	//Create a new parameter class to work with the widget
 		
     
 	if (posn < 0){
-		tabWidget->insertWidget(theRegionTab, Params::RegionParamsType, true );
+		tabWidget->insertWidget(theRegionTab, Params::GetTypeFromTag(Params::_regionParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::RegionParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_regionParamsTag));
 	}
 	myRegionRouter->updateTab();
 	
@@ -1192,12 +1191,12 @@ renderDVR(){
 		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
 		myVizMgr->hookUpDvrTab(theDvrTab);
 	}
-	int posn = tabWidget->findWidget(Params::DvrParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_dvrParamsTag));
 	//Create a new parameter class to work with the widget
 	if (posn < 0){
-		tabWidget->insertWidget(theDvrTab, Params::DvrParamsType, true );
+		tabWidget->insertWidget(theDvrTab, Params::GetTypeFromTag(Params::_dvrParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::DvrParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_dvrParamsTag));
 	}
 	theDvrTab->updateTab();
 	
@@ -1217,15 +1216,15 @@ launchIsoTab(){
 	}
 	
 	
-	int posn = tabWidget->findWidget(Params::IsoParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_isoParamsTag));
          
 	//Create a new parameter class to work with the widget
 		
     
 	if (posn < 0){
-		tabWidget->insertWidget(theIsoTab, Params::IsoParamsType, true );
+		tabWidget->insertWidget(theIsoTab, Params::GetTypeFromTag(Params::_isoParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::IsoParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_isoParamsTag));
 	}
 	theIsoTab->updateTab();
 	
@@ -1245,14 +1244,14 @@ animationParams(){
    
 	AnimationEventRouter* myAnimationRouter = myVizMgr->getAnimationRouter();
 	
-	int posn = tabWidget->findWidget(Params::AnimationParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_animationParamsTag));
          
 	//Create a new parameter class to work with the widget
     
 	if (posn < 0){
-		tabWidget->insertWidget(theAnimationTab, Params::AnimationParamsType, true );
+		tabWidget->insertWidget(theAnimationTab, Params::GetTypeFromTag(Params::_animationParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::AnimationParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_animationParamsTag));
 	}
 	myAnimationRouter->updateTab();
 	
@@ -1275,15 +1274,15 @@ void MainForm::launchFlowTab()
 	
 	FlowEventRouter* myFlowRouter = myVizMgr->getFlowRouter();
 	
-	int posn = tabWidget->findWidget(Params::FlowParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_flowParamsTag));
          
 	//Create a new parameter class to work with the widget
 		
     
 	if (posn < 0){
-		tabWidget->insertWidget(theFlowTab, Params::FlowParamsType, true );
+		tabWidget->insertWidget(theFlowTab, Params::GetTypeFromTag(Params::_flowParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::FlowParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_flowParamsTag));
 	}
 	myFlowRouter->updateTab();
 	
@@ -1301,14 +1300,14 @@ void MainForm::launchProbeTab()
 
 	}
 	
-	int posn = tabWidget->findWidget(Params::ProbeParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_probeParamsTag));
          
 	//Create a new parameter class to work with the widget
 		 
 	if (posn < 0){
-		tabWidget->insertWidget(theProbeTab, Params::ProbeParamsType, true );
+		tabWidget->insertWidget(theProbeTab, Params::GetTypeFromTag(Params::_probeParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::ProbeParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_probeParamsTag));
 	}
 }
 void MainForm::launchTwoDDataTab()
@@ -1323,14 +1322,14 @@ void MainForm::launchTwoDDataTab()
 		theTwoDDataTab->addSeedButton->setToolTip("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 	}
 	
-	int posn = tabWidget->findWidget(Params::TwoDDataParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_twoDDataParamsTag));
          
 	//Create a new parameter class to work with the widget
 		 
 	if (posn < 0){
-		tabWidget->insertWidget(theTwoDDataTab, Params::TwoDDataParamsType, true );
+		tabWidget->insertWidget(theTwoDDataTab, Params::GetTypeFromTag(Params::_twoDDataParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::TwoDDataParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_twoDDataParamsTag));
 	}
 }
 void MainForm::launchTwoDImageTab()
@@ -1345,14 +1344,14 @@ void MainForm::launchTwoDImageTab()
 //QT4.5		QToolTip::add(theTwoDImageTab->addSeedButton,QString("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed"));
 	}
 	
-	int posn = tabWidget->findWidget(Params::TwoDImageParamsType);
+	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_twoDImageParamsTag));
          
 	//Create a new parameter class to work with the widget
 		 
 	if (posn < 0){
-		tabWidget->insertWidget(theTwoDImageTab, Params::TwoDImageParamsType, true );
+		tabWidget->insertWidget(theTwoDImageTab, Params::GetTypeFromTag(Params::_twoDImageParamsTag), true );
 	} else {
-		tabWidget->moveToFront(Params::TwoDImageParamsType);
+		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_twoDImageParamsTag));
 	}
 }
 /*
@@ -1831,29 +1830,29 @@ void MainForm::setInteractiveRefinementSpin(int val){
 }
 	
 void MainForm::pauseClick(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationPauseClick();
 	VizWinMgr::getInstance()->stopFlowIntegration();
 }
 void MainForm::playForward(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationPlayForwardClick();
 }
 void MainForm::playBackward(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationPlayReverseClick();
 }
 void MainForm::stepBack(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationStepReverseClick();
 }	
 void MainForm::stepForward(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationStepForwardClick();
 }	
 //Respond to a change in the text in the animation toolbar
 void MainForm::setTimestep(){
-	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::AnimationParamsType);
+	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	int tstep = timestepEdit->text().toInt();
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 

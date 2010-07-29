@@ -41,7 +41,7 @@
 #include "common.h"
 
 using namespace VAPoR;
-
+const string DvrParams::_shortName = "DVR";
 const string DvrParams::_activeVariableNameAttr = "ActiveVariableName";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
@@ -52,9 +52,9 @@ int DvrParams::defaultBitsPerVoxel = 8;
 bool DvrParams::defaultPreIntegrationEnabled = false;
 bool DvrParams::defaultLightingEnabled = false;
 
-DvrParams::DvrParams(int winnum) : RenderParams(winnum)
+DvrParams::DvrParams(int winnum) : RenderParams(winnum, Params::_dvrParamsTag)
 {
-	thisParamType = DvrParamsType;
+	
 	numBits = defaultBitsPerVoxel;
 	numVariables = 0;
 	type = DVR_INVALID_TYPE;
@@ -515,7 +515,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 }
 
 //Method to construct Xml for state saving
-XmlNode* DvrParams::
+ParamNode* DvrParams::
 buildNode() {
 	//Construct the dvr node
 	if (numVariables <= 0) return 0;
@@ -574,7 +574,7 @@ buildNode() {
 		oss << "false";
 	attrs[_dvrPreIntegrationAttr] = oss.str();
 
-	XmlNode* dvrNode = new XmlNode(_dvrParamsTag, attrs, 3);
+	ParamNode* dvrNode = new ParamNode(_dvrParamsTag, attrs, 3);
 
 	//Now add children:  
 	//Create the Variables nodes
@@ -597,10 +597,10 @@ buildNode() {
 		oss << (double)transFunc[i]->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 
-		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
+		ParamNode* varNode = new ParamNode(_variableTag,attrs,1);
 
 		//Create a transfer function node, add it as child
-		XmlNode* tfNode = transFunc[i]->buildNode(empty);
+		ParamNode* tfNode = transFunc[i]->buildNode(empty);
 		varNode->AddChild(tfNode);
 		dvrNode->AddChild(varNode);
 	}

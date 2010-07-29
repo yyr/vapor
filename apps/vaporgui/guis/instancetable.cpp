@@ -69,12 +69,13 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	int numInsts = 1;
 	//All instance info is in VizWinMgr.
-	VAPoR::Params::ParamType renderType = myRouter->getParamsType();
+	
+	VAPoR::Params::ParamsBaseType renderBaseType = myRouter->getParamsBaseType();
 	VAPoR::VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 
 	if (winnum >= 0) 
-		numInsts = vizMgr->getNumInstances(winnum,renderType);
+		numInsts = vizMgr->getNumInstances(winnum,renderBaseType);
 	assert(numInsts > 0);
 	
 	
@@ -84,7 +85,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	for (int r = 0; r<numInsts; r++){
 		
-		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderType,r);
+		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderBaseType,r);
 		bool isEnabled = rParams->isEnabled();
 		if (!item(r,0)) {  //need to create new items..
 
@@ -105,8 +106,8 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 		}
 		
 	}
-	if(selectedInstance != vizMgr->getCurrentInstanceIndex(winnum, renderType)){
-		selectedInstance = vizMgr->getCurrentInstanceIndex(winnum, renderType);
+	if(selectedInstance != vizMgr->getCurrentInstanceIndex(winnum, renderBaseType)){
+		selectedInstance = vizMgr->getCurrentInstanceIndex(winnum, renderBaseType);
 		selectRow(selectedInstance);
 	}
 	

@@ -31,6 +31,7 @@
 #include <cassert>
 #include <algorithm>
 
+#include "vapor/ParamsBase.h"
 #include <vapor/CFuncs.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/tfinterpolator.h>
@@ -41,6 +42,7 @@
 #include "mapperfunction.h"
 #include "params.h"
 #include "ParamsIso.h"
+#include "ParamNode.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -51,7 +53,7 @@ const string IsoControl::_rightHistoBoundAttr = "RightHistoBound";
 // Constructor for empty, default Mapper function
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction() : 
-  MapperFunctionBase(),
+MapperFunctionBase(MapperFunctionBase::_mapperFunctionTag),
   _params(NULL)
 {	
 	// Delete ColorMapBase created by parent class
@@ -64,8 +66,8 @@ MapperFunction::MapperFunction() :
 // Constructor
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction(RenderParams* p, int nBits) :
-  MapperFunctionBase(nBits),
-  _params(p)
+  MapperFunctionBase(nBits,MapperFunctionBase::_mapperFunctionTag),
+	  _params(p)
 {
 	// Delete ColorMapBase and OpacityMapBase created by parent class
 	if (_colormap) delete _colormap;	
@@ -364,7 +366,7 @@ bool IsoControl::elementEndHandler(ExpatParseMgr* pm, int depth ,
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
 
-XmlNode* IsoControl::buildNode(const string& tfname) 
+ParamNode* IsoControl::buildNode(const string& tfname) 
 {
 	//Construct the main node
 	string empty;
@@ -383,7 +385,7 @@ XmlNode* IsoControl::buildNode(const string& tfname)
 	// Add child node 
 	//
   
-	XmlNode* mainNode = new XmlNode(ParamsIso::_IsoControlTag, attrs,0);
+	ParamNode* mainNode = new ParamNode(ParamsIso::_IsoControlTag, attrs,0);
 	//add an isovalue node:
 	vector<double> isoval;
 	isoval.clear();

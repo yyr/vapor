@@ -17,6 +17,7 @@
 namespace VAPoR {
 
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API OpacityMapBase : public ParsedXml 
 {
@@ -73,7 +74,7 @@ public:
 
   void clear();
 
-  XmlNode* buildNode();
+  ParamNode* buildNode();
 
   const OpacityMapBase& operator=(const OpacityMapBase &cmap);
 

@@ -7,6 +7,7 @@
 #include "datastatus.h"
 namespace VAPoR {
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API Viewpoint : public ParsedXml {
 	
@@ -71,7 +72,7 @@ public:
 
 	void setPerspective(bool on) {perspective = on;}
 	bool hasPerspective() {return perspective;}
-	XmlNode* buildNode();
+	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	

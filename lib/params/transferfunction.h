@@ -35,6 +35,7 @@ namespace VAPoR {
 class TFEditor;
 class RenderParams;
 class XmlNode;
+class ParamNode;
 
 class PARAMS_API TransferFunction : public MapperFunction 
 {
@@ -77,7 +78,7 @@ public:
 	bool saveToFile(ofstream& f);
     static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 
-	virtual XmlNode* buildNode(const string& tfname);
+	virtual ParamNode* buildNode(const string& tfname);
 	
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 

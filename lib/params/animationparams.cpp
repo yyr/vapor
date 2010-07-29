@@ -33,9 +33,10 @@
 #include "datastatus.h" 
 #include "params.h"
 #include "animationparams.h"
-#include "vapor/XmlNode.h"
+#include "ParamNode.h"
 
 using namespace VAPoR;
+const string AnimationParams::_shortName = "Animation";
 const string AnimationParams::_repeatAttr = "RepeatPlay";
 const string AnimationParams::_maxRateAttr = "MaxFrameRate";
 const string AnimationParams::_stepSizeAttr = "FrameStepSize";
@@ -46,8 +47,7 @@ const string AnimationParams::_maxWaitAttr = "MaxWait";
 float AnimationParams::defaultMaxFPS = 10.f;
 float AnimationParams::defaultMaxWait = 6000.f;
 
-AnimationParams::AnimationParams(int winnum): Params( winnum){
-	thisParamType = AnimationParamsType;
+AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
 	
 	restart();
 }
@@ -301,7 +301,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	}
 	return true;  
 }
-XmlNode* AnimationParams::
+ParamNode* AnimationParams::
 buildNode(){
 		//Construct the animation node
 	string empty;
@@ -371,7 +371,7 @@ buildNode(){
 	}
 
 
-	XmlNode* animationNode = new XmlNode(_animationParamsTag, attrs, 0);
+	ParamNode* animationNode = new ParamNode(_animationParamsTag, attrs, 0);
 
 	//No Children!
 	
