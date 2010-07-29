@@ -80,7 +80,7 @@ public:
 ParamsBase(
 	XmlNode *parent, const string &name
  );
-typedef int ParamsBase::ParamsBaseType;
+typedef int ParamsBaseType;
 //Default constructor for Params that don't (yet) use this class's capabilities
 ParamsBase(const string& name) {
 	_currentParamNode = _rootParamNode = 0;
@@ -98,7 +98,7 @@ ParamsBase(const ParamsBase &pbase);
  //!
  //! \param[in] newRoot Root of cloned ParamsBase instance
  //
- virtual ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot) = 0;
+ virtual ParamsBase* deepCopy(ParamNode* newRoot) = 0;
 
  //! Set the parent node of the XmlNode tree.
  //!

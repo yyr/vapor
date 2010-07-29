@@ -268,7 +268,7 @@ public:
  //!
  //! \retval status Returns 0 if successful
  //
-virtual int XmlNode::SetElementString(
+virtual int SetElementString(
     const vector<string> &tagpath, const vector <string> &strvec
 );
  
