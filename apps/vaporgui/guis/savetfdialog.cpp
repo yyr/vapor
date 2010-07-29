@@ -128,7 +128,7 @@ SaveTFDialog::SaveTFDialog(RenderParams* params, QWidget* parent, Qt::WFlags fl 
 	
 	//When a slot is selected, enable the save button
 	
-	connect (savedTFCombo, SIGNAL(textChanged(const QString&)),
+	connect (savedTFCombo, SIGNAL(editTextChanged(const QString&)),
 		this, SLOT(setTFName(const QString&)));
 	//FileSave will ignore any other input, launch file save dialog
     connect( fileSaveButton, SIGNAL( clicked() ), this, SLOT( fileSave() ) );
