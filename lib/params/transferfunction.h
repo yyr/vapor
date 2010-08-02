@@ -46,6 +46,7 @@ public:
 	TransferFunction(RenderParams* p, int nBits=8);
 	TransferFunction(const MapperFunctionBase &mapper);
 	virtual ~TransferFunction();
+	static ParamsBase* CreateDefaultInstance(){return new TransferFunction();}
 
     //
 	// Note:  All public methods use actual real coords.
@@ -103,6 +104,9 @@ protected:
 	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
 	static const string _rightBoundAttr;
+	static const string _leftBoundTag;
+	static const string _rightBoundTag;
+	static const string _tfNameTag;
 };
 };
 #endif //TRANSFERFUNCTION_H

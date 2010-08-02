@@ -525,11 +525,12 @@ public:
  //! \sa GetParamsBase()
  //
 ParamsBase* GetParamsBase() {return _paramsBase;}
-
+static const string _paramsBaseAttr;
 protected:
  map <string, vector <DirtyFlag *> > _dirtyFlags;
  static const string _typeAttr;
- static const string _paramsBaseAttr;
+ vector<long> longvec;
+ vector<double>doublevec;
 
  ParamsBase* _paramsBase;
 };

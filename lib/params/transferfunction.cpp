@@ -57,6 +57,9 @@ const string TransferFunction::_transferFunctionTag = "TransferFunction";
 const string TransferFunction::_tfNameAttr = "Name";
 const string TransferFunction::_leftBoundAttr = "LeftBound";
 const string TransferFunction::_rightBoundAttr = "RightBound";
+const string TransferFunction::_leftBoundTag = "LeftBound";
+const string TransferFunction::_rightBoundTag = "RightBound";
+const string TransferFunction::_tfNameTag = "Name";
 
 //----------------------------------------------------------------------------
 // Constructor for empty, default transfer function
@@ -118,29 +121,25 @@ ParamNode* TransferFunction::buildNode(const string& tfname)
   attrs.empty();
   ostringstream oss;
 
-  if (!tfname.empty())
-  {
-    attrs[_tfNameAttr] = tfname;
-  }
-	
-  oss.str(empty);
-  oss << (double)getMinMapValue();
-  attrs[_leftBoundAttr] = oss.str();
+  attrs[_typeAttr] = ParamNode::_paramsBaseAttr;
 
-  oss.str(empty);
-  oss << (double)getMaxMapValue();
-  attrs[_rightBoundAttr] = oss.str();
-
-  oss.str(empty);
-  oss << (int)getOpacityComposition();
-  attrs[_opacityCompositionAttr] = oss.str();
 
   // 
   // Add children nodes 
   //
-  int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
+  int numChildren = _opacityMaps.size()+4; // opacity maps + 1 colormap + 3 values
 
   ParamNode* mainNode = new ParamNode(_transferFunctionTag, attrs, numChildren);
+
+ 
+	mainNode->SetElementDouble(_leftBoundTag, (double) getMinMapValue());
+	mainNode->SetElementDouble(_rightBoundTag, (double) getMaxMapValue());
+	mainNode->SetElementLong(_opacityCompositionTag,(long)getOpacityComposition());
+	if (!tfname.empty())
+	{
+		mainNode->SetElementString(_tfNameTag,tfname);
+	}
+
 
   //
   // Opacity maps
@@ -219,8 +218,12 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
       string value = *attrs;
       attrs++;
       istringstream ist(value);
-
-      if (StrCmpNoCase(attribName, _tfNameAttr) == 0) 
+	  //Newer tf's will have ParamsBase node attribute; that's OK
+	  if (StrCmpNoCase(attribName, _typeAttr) == 0) 
+      {
+		  if (value != ParamNode::_paramsBaseAttr) return false;
+      }
+      else if (StrCmpNoCase(attribName, _tfNameAttr) == 0) 
       {
         ist >> mapperName;
       }
@@ -327,6 +330,27 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
 
     return _colormap->elementStartHandler(pm, depth, tagString, attrs);
   }
+  //Prepare for data tags, only in versions after 1.5
+  else if ((StrCmpNoCase(tagString, _leftBoundTag) == 0) ||
+			(StrCmpNoCase(tagString, _rightBoundTag) == 0) || 
+			(StrCmpNoCase(tagString, _opacityCompositionTag) == 0) ||
+			(StrCmpNoCase(tagString, _tfNameTag) == 0)) {
+		//Should have a double or long type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		
+		state->data_type = value;
+		return true;  
+	}
 
   else return false;
 }
@@ -338,15 +362,35 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
 bool TransferFunction::elementEndHandler(ExpatParseMgr* pm, int depth , 
                                          std::string& tag)
 {
-  //Check only for the transferfunction tag, ignore others.
-  if (StrCmpNoCase(tag, _transferFunctionTag) != 0) return true;
-  
-  //If depth is 0, this is a transfer function file; otherwise need to
-  //pop the parse stack.  The caller will need to save the resulting
-  //transfer function (i.e. this)
-  if (depth == 0) return true;
-	
-  ParsedXml* px = pm->popClassStack();
-  bool ok = px->elementEndHandler(pm, depth, tag);
-  return ok;
+	  //Check for the transferfunction tag,
+	if (StrCmpNoCase(tag, _transferFunctionTag) == 0) {
+	  
+		  //If depth is 0, this is a transfer function file; otherwise need to
+		  //pop the parse stack.  The caller will need to save the resulting
+		  //transfer function (i.e. this)
+		  if (depth == 0) return true;
+			
+		  ParsedXml* px = pm->popClassStack();
+		  bool ok = px->elementEndHandler(pm, depth, tag);
+		  return ok;
+	} //Otherwise need to obtain data values
+	else if (StrCmpNoCase(tag, _leftBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMinMapValue((float)val[0]);
+		return true;
+	} else if (StrCmpNoCase(tag, _rightBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMaxMapValue((float)val[0]);
+		return true;
+	} else if (StrCmpNoCase(tag, _opacityCompositionTag) == 0){
+		vector<long> val = pm->getLongData();
+		setOpacityComposition((CompositionType)val[0]);
+		return true;
+	} else if (StrCmpNoCase(tag, _tfNameTag) == 0){
+		const string& val = pm->getStringData();
+		mapperName = val;
+		return true;
+	}
+	//Ignore other tags
+	else return true;
 }

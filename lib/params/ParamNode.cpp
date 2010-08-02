@@ -91,6 +91,23 @@ int ParamNode::SetElementLong(
 	return(0);
 }
 	
+int ParamNode::SetElementLong(
+	const string &tag, long value
+) {
+
+	longvec.clear();
+	longvec.push_back(value);
+	return SetElementLong(tag, longvec);
+}
+int ParamNode::SetElementDouble(
+	const string &tag, double value
+) {
+
+	doublevec.clear();
+	doublevec.push_back(value);
+	return SetElementDouble(tag, doublevec);
+}
+
 int ParamNode::SetElementDouble(
 	const string &tag, const vector<double> &values
 ) {

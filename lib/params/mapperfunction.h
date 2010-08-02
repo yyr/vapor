@@ -45,6 +45,7 @@ public:
 	MapperFunction(RenderParams* p, int nBits = 8);
 	MapperFunction(const MapperFunction &mapper);
 	MapperFunction(const MapperFunctionBase &mapper);
+	static ParamsBase* CreateDefaultInstance(){return new MapperFunction();}
 
 	virtual ~MapperFunction();
 	virtual MapperFunction* deepCopy(ParamNode* newRoot){
@@ -87,6 +88,7 @@ public:
 	IsoControl(RenderParams* p, int nBits = 8);
 	//Copy constructor
 	IsoControl(const IsoControl &mapper);
+	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
 	void setIsoValue(double val){isoValue = val;}
 	double getIsoValue(){return isoValue;}
@@ -104,6 +106,8 @@ public:
 protected:
 	static const string _leftHistoBoundAttr;
 	static const string _rightHistoBoundAttr;
+	static const string _leftHistoBoundTag;
+	static const string _rightHistoBoundTag;
 	double isoValue;
 };
 };

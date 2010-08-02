@@ -50,6 +50,12 @@ const string MapperFunctionBase::_rightColorBoundAttr = "RightColorBound";
 const string MapperFunctionBase::_leftOpacityBoundAttr = "LeftOpacityBound";
 const string MapperFunctionBase::_rightOpacityBoundAttr = "RightOpacityBound";
 const string MapperFunctionBase::_opacityCompositionAttr = "OpacityComposition";
+
+const string MapperFunctionBase::_leftColorBoundTag = "LeftColorBound";
+const string MapperFunctionBase::_rightColorBoundTag = "RightColorBound";
+const string MapperFunctionBase::_leftOpacityBoundTag = "LeftOpacityBound";
+const string MapperFunctionBase::_rightOpacityBoundTag = "RightOpacityBound";
+const string MapperFunctionBase::_opacityCompositionTag = "OpacityComposition";
 const string MapperFunctionBase::_hsvAttr = "HSV";
 const string MapperFunctionBase::_positionAttr = "Position";
 const string MapperFunctionBase::_opacityAttr = "Opacity";
@@ -417,35 +423,28 @@ bool MapperFunctionBase::isOpaque()
 
 ParamNode* MapperFunctionBase::buildNode(const string& tfname) 
 {
-  //Construct the main node
+// Construct the main node
   string empty;
   std::map <string, string> attrs;
   attrs.empty();
   ostringstream oss;
-  
-  oss.str(empty);
-  oss << (double)getMinColorMapValue();
-  attrs[_leftColorBoundAttr] = oss.str();
-  oss.str(empty);
-  oss << (double)getMaxColorMapValue();
-  attrs[_rightColorBoundAttr] = oss.str();
-  oss.str(empty);
-  oss << (double)getMinOpacMapValue();
-  attrs[_leftOpacityBoundAttr] = oss.str();
-  oss.str(empty);
-  oss << (double)getMaxOpacMapValue();
-  attrs[_rightOpacityBoundAttr] = oss.str();
-  oss.str(empty);
-  oss << (int)getOpacityComposition();
-  attrs[_opacityCompositionAttr] = oss.str();
-  
-	
-  // 
+
+  attrs[_typeAttr] = ParamNode::_paramsBaseAttr;
+
+ // 
   // Add children nodes 
   //
-  int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
+  int numChildren = _opacityMaps.size()+6; // opacity maps + 1 colormap + 5 values
 
   ParamNode* mainNode = new ParamNode(_mapperFunctionTag, attrs, numChildren);
+
+ 
+	mainNode->SetElementDouble(_leftOpacityBoundTag, (double) getMinOpacMapValue());
+	mainNode->SetElementDouble(_rightOpacityBoundTag, (double) getMaxOpacMapValue());
+	mainNode->SetElementDouble(_leftColorBoundTag, (double) getMinColorMapValue());
+	mainNode->SetElementDouble(_rightColorBoundTag, (double) getMaxColorMapValue());
+	mainNode->SetElementLong(_opacityCompositionTag, (long) getOpacityComposition());
+ 
 
   //
   // Opacity maps
@@ -490,7 +489,12 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
       string value = *attrs;
       attrs++;
       istringstream ist(value);
-      
+       //Newer mapper functions will have ParamsBase node attribute; that's OK
+	  if (StrCmpNoCase(attribName, _typeAttr) == 0) 
+      {
+		  if (value != ParamNode::_paramsBaseAttr) return false;
+      }
+	  //Continue to read old format attrs:
       if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) 
       {
         float floatval;
@@ -529,6 +533,51 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
     
     return true;
   }
+  //Prepare for data tags, only in versions after 1.5
+  else if ((StrCmpNoCase(tagString, _leftColorBoundTag) == 0) ||
+			(StrCmpNoCase(tagString, _rightColorBoundTag) == 0) || 
+			(StrCmpNoCase(tagString, _leftOpacityBoundTag) == 0) || 
+			(StrCmpNoCase(tagString, _rightOpacityBoundTag) == 0) ){
+			
+		//Should have a double type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		if (StrCmpNoCase(value, _doubleType) != 0) {
+			pm->parseError("Invalid type : %s", value.c_str());
+			return false;
+		}
+		state->data_type = value;
+		return true;  
+	}
+  else if (StrCmpNoCase(tagString, _opacityCompositionTag) == 0){
+	  //Should have a long type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		if (StrCmpNoCase(value, _longType) != 0) {
+			pm->parseError("Invalid type : %s", value.c_str());
+			return false;
+		}
+		state->data_type = value;
+		return true;  
+	}
   else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) 
   {
     //Create a color control point with default values,
@@ -616,17 +665,44 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
 
 //----------------------------------------------------------------------------
 // The end handler needs to pop the parse stack, if this is not the top level.
+// Also (with newer versions) needs to get map bound values
 //----------------------------------------------------------------------------
 bool MapperFunctionBase::elementEndHandler(ExpatParseMgr* pm, int depth , 
                                        std::string& tag)
 {
 	//Check only for the MapperFunctionBase tag, ignore others.
-	if (StrCmpNoCase(tag, _mapperFunctionTag) != 0) return true;
-	//If depth is 0, this is a transfer function file; otherwise need to
+	if (StrCmpNoCase(tag, _mapperFunctionTag) == 0) {
 	//pop the parse stack.  The caller will need to save the resulting
 	//mapper function (i.e. this)
-	if (depth == 0) return true;
-	ParsedXml* px = pm->popClassStack();
-	bool ok = px->elementEndHandler(pm, depth, tag);
-	return ok;
+		
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	}
+	else if (StrCmpNoCase(tag, _leftColorBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMinColorMapValue((float)val[0]);
+		return true;
+	}
+	else if (StrCmpNoCase(tag, _rightColorBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMaxColorMapValue((float)val[0]);
+		return true;
+	}
+	else if (StrCmpNoCase(tag, _leftOpacityBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMinOpacMapValue((float)val[0]);
+		return true;
+	}
+	else if (StrCmpNoCase(tag, _rightOpacityBoundTag) == 0){
+		vector<double> val = pm->getDoubleData();
+		setMaxOpacMapValue((float)val[0]);
+		return true;
+	} 
+	else if (StrCmpNoCase(tag, _opacityCompositionTag) == 0){
+		vector<long> val = pm->getLongData();
+		setOpacityComposition((CompositionType)val[0]);
+		return true;
+	} 
+	else return true;  //Other tags are handled by StartHandlers
 }

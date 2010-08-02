@@ -1129,7 +1129,7 @@ Params* VizWinMgr::
 getApplicableParams(Params::ParamsBaseType typId){
 	if(activeViz < 0) return getGlobalParams(typId);
 	Params* p = Params::GetParamsInstance(typId,activeViz,-1);
-	if (p->isLocal()) return p;
+	if (p->isRenderParams() || p->isLocal()) return p;
 	return Params::GetDefaultParams(typId);
 }
 EventRouter* VizWinMgr::

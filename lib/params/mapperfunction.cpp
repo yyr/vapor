@@ -48,6 +48,8 @@ using namespace VAPoR;
 using namespace VetsUtil;
 const string IsoControl::_leftHistoBoundAttr = "LeftHistoBound";
 const string IsoControl::_rightHistoBoundAttr = "RightHistoBound";
+const string IsoControl::_leftHistoBoundTag = "LeftHistoBound";
+const string IsoControl::_rightHistoBoundTag = "RightHistoBound";
 
 //----------------------------------------------------------------------------
 // Constructor for empty, default Mapper function
@@ -292,7 +294,11 @@ bool IsoControl::elementStartHandler(ExpatParseMgr* pm,
 			string value = *attrs;
 			attrs++;
 			istringstream ist(value);
-		      
+		    //Newer tf's will have ParamsBase node attribute; that's OK
+			if (StrCmpNoCase(attribName, _typeAttr) == 0) 
+			{
+				  if (value != ParamNode::_paramsBaseAttr) return false;
+			}
 			if (StrCmpNoCase(attribName, _leftHistoBoundAttr) == 0) 
 			{
 				float floatval;
@@ -313,8 +319,11 @@ bool IsoControl::elementStartHandler(ExpatParseMgr* pm,
 		return true;
 	}
   
-	//Otherwise it could be an isoValue tag:
-	else if (StrCmpNoCase(tagString, ParamsIso::_IsoValueTag) == 0) 
+	//Otherwise it could be an isoValue or left/right histo bounds tag:
+	else if (StrCmpNoCase(tagString, ParamsIso::_IsoValueTag) == 0 ||
+		(StrCmpNoCase(tagString, _leftHistoBoundTag) == 0 ) ||
+		(StrCmpNoCase(tagString, _rightHistoBoundTag) == 0 ))
+		
 	{
 		//Should have a double type attribute
 		string attribName = *attrs;
@@ -359,33 +368,39 @@ bool IsoControl::elementEndHandler(ExpatParseMgr* pm, int depth ,
 		vector<double> isoval = pm->getDoubleData();
 		isoValue = isoval[0];
 		return true;
+	} else if (StrCmpNoCase(tag, _leftHistoBoundTag) == 0) {		
+		vector<double> histval = pm->getDoubleData();
+		setMinOpacMapValue(histval[0]);
+		return true;
+	} else if (StrCmpNoCase(tag, _rightHistoBoundTag) == 0) {		
+		vector<double> histval = pm->getDoubleData();
+		setMaxOpacMapValue(histval[0]);
+		return true;
 	} else return false;
 }
 
 //----------------------------------------------------------------------------
-// Construct an XML node from the transfer function
+// Construct an XML node from the iso control
 //----------------------------------------------------------------------------
 
 ParamNode* IsoControl::buildNode(const string& tfname) 
 {
-	//Construct the main node
-	string empty;
-	std::map <string, string> attrs;
-	attrs.empty();
-	ostringstream oss;
-	  
-	//min and max opac map are really histo bounds
-	oss << (double)getMinOpacMapValue();
-	attrs[_leftHistoBoundAttr] = oss.str();
-	oss.str(empty);
-	oss << (double)getMaxOpacMapValue();
-	attrs[_rightHistoBoundAttr] = oss.str();
-	  
-	// 
-	// Add child node 
-	//
+	 // Construct the main node
+  string empty;
+  std::map <string, string> attrs;
+  attrs.empty();
+  ostringstream oss;
+
+  attrs[_typeAttr] = ParamNode::_paramsBaseAttr;
+
+
   
-	ParamNode* mainNode = new ParamNode(ParamsIso::_IsoControlTag, attrs,0);
+  ParamNode* mainNode = new ParamNode(ParamsIso::_IsoControlTag, attrs, 0);
+
+ 
+	mainNode->SetElementDouble(_leftHistoBoundTag, (double) getMinOpacMapValue());
+	mainNode->SetElementDouble(_rightHistoBoundTag, (double) getMaxOpacMapValue());
+	
 	//add an isovalue node:
 	vector<double> isoval;
 	isoval.clear();
@@ -393,8 +408,3 @@ ParamNode* IsoControl::buildNode(const string& tfname)
 	mainNode->SetElementDouble(ParamsIso::_IsoValueTag, isoval);
 	return mainNode;
 }
-
-
-
-//----------------------------------------------------------------------------
-// Handle

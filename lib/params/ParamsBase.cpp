@@ -36,6 +36,7 @@
 #include "animationparams.h"
 #include "viewpointparams.h"
 #include "probeparams.h"
+#include "transferfunction.h"
 using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
 std::map<int,string> ParamsBase::tagFromClassIdMap;
@@ -238,6 +239,9 @@ void ParamsBase::SetFlagDirty(const string& flag)
 //Static methods for class registration
 //All ParamsBase classes must provide one line in the following method
 void ParamsBase::RegisterParamsBaseClasses(){
+	RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
+	RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
+	RegisterParamsBaseClass(ParamsIso::_IsoControlTag, IsoControl::CreateDefaultInstance, false);
 	RegisterParamsBaseClass(Params::_isoParamsTag, ParamsIso::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
@@ -257,18 +261,16 @@ int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bo
 		assert(0);
 		return 0;
 	}
-	//Find first unused index
-	int minIndex, maxIndex;
+	//Find range of used indices, but min must be <= 0, max must be >= 0
+	int minIndex = 0, maxIndex = 0;
 	if (classIdFromTagMap.size() > 0){
-		minIndex = 10000;
-		maxIndex = -10000;
+		minIndex = 0;
+		maxIndex = 0;
 		for (getIdIter = classIdFromTagMap.begin(); getIdIter != classIdFromTagMap.end(); getIdIter++){
 			if (minIndex > getIdIter->second) minIndex = getIdIter->second;
 			if (maxIndex < getIdIter->second) maxIndex = getIdIter->second;
 		}
-	} else {
-		minIndex = maxIndex = 0;
-	}
+	} 
 	int newIndex;
 	if (isParams) newIndex = maxIndex+1;
 	else newIndex = minIndex -1;

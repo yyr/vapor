@@ -214,6 +214,12 @@ protected:
 	static const string _leftOpacityBoundAttr;
 	static const string _rightOpacityBoundAttr;
     static const string _opacityCompositionAttr;
+	//Several attributes became tags after version 1.5:
+	static const string _leftColorBoundTag;
+	static const string _rightColorBoundTag;
+	static const string _leftOpacityBoundTag;
+	static const string _rightOpacityBoundTag;
+    static const string _opacityCompositionTag;
 	static const string _hsvAttr;
 	static const string _positionAttr;
 	static const string _opacityAttr;
