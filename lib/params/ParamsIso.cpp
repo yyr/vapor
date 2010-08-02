@@ -268,7 +268,7 @@ reinit(bool doOverride){
 
 void ParamsIso::restart() {
 	
-	/*
+	
 	for (int i = 0; i< transFunc.size(); i++) {
 		if (transFunc[i]) delete transFunc[i];
 		transFunc[i] = NULL;
@@ -281,7 +281,7 @@ void ParamsIso::restart() {
 	transFunc.clear();
 	isoControls.clear();
 	numSessionVariables = 0;
-	*/
+	
 
 	SetNormalOnOff(1);
 	SetNumBits(defaultBitsPerVoxel);
