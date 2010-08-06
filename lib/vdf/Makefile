@@ -5,7 +5,7 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = vdf
 FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical \
+	MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
@@ -19,7 +19,7 @@ FILES = \
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical \
+	MetadataSpherical MetadataWRF \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \

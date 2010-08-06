@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -9,6 +10,7 @@
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
 #include <vapor/MetadataVDC.h>
+#include <vapor/MetadataWRF.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
 #ifdef WIN32
@@ -17,9 +19,22 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-int	cvtToExtents(const char *from, void *to);
-int	cvtTo3DBool(const char *from, void *to);
-int	cvtToOrder(const char *from, void *to);
+int	cvtToExtents(
+	const char *from, void *to
+) {
+	float   *fptr   = (float *) to;
+
+	if (! from) {
+		fptr[0] = fptr[1] = fptr[2] = fptr[3] = fptr[4] = fptr[5] = 0.0;
+	}
+	else if (! 
+		(sscanf(from,"%f:%f:%f:%f:%f:%f",
+		&fptr[0],&fptr[1],&fptr[2],&fptr[3],&fptr[4],&fptr[5]) == 6)) { 
+
+		return(-1);
+	}
+	return(1);
+}
 
 struct opt_t {
 	OptionParser::Dimension3D_T	dim;
@@ -93,168 +108,6 @@ bool timeOrdering(pair<TIME64_T, float* > p,pair<TIME64_T, float* > q){
 	return false;
 }
 
-int	GetWRFMetadata(
-	const char **files,
-	int nfiles,
-	const WRF::atypVarNames_t wrfNames,
-	
-	float extents[6],
-	size_t dims[3],
-	vector <string> &varnames3d,
-	vector <string> &varnames2d,
-	string startDate,
-	string &mapProjection,
-	vector<pair<TIME64_T, float*> > &tStepExtents
-) {
-	float _dx = 0.0;
-	float _dy = 0.0;
-	float _vertExts[2] = {0.0,0.0};
-	string _startDate;
-	string _mapProjection;
-	
-	vector<pair<TIME64_T,float*> > tsExtents; //one file's pairs of times and corners
-	vector<string> _wrfVars3d; // Holds names of 3d variables in WRF file
-	vector<string> _wrfVars2d; // Holds names of 2d variables in WRF file
-	
-	vector<pair<TIME64_T,float*> > _tStepExtents; //accumulate times/extents as obtained.
-	size_t _dimLens[3] = {0,0,0};
-	bool first = true;
-	bool success = false;
-
-	for (int i=0; i<nfiles; i++) {
-		float dx, dy;
-		float vertExts[2] = {0.0, 0.0};
-		float *vertExtsPtr = vertExts;
-		size_t dimLens[4];  //last one holds time, not used
-		vector<string> wrfVars3d;
-		vector<string> wrfVars2d;
-		int rc;
-
-		if (! extents) vertExtsPtr = NULL;
-
-		tsExtents.clear();
-		wrfVars3d.clear();
-		wrfVars2d.clear();
-		rc = WRF::OpenWrfGetMeta(
-			files[i], wrfNames, dx, dy, vertExtsPtr, dimLens, 
-			startDate, mapProjection, wrfVars3d, wrfVars2d, 
-			tsExtents
-		);
-		if (rc < 0 || (vertExtsPtr && vertExtsPtr[0] >= vertExtsPtr[1])) {
-			cerr << "Error processing file " << files[i] << ", skipping" << endl;
-			MyBase::SetErrCode(0);
-			continue;
-		}
-		if (dx < 0.f || dy < 0.f) {
-			cerr << "Error: DX and DY attributes not found in " << files[i] << ", skipping" << endl;
-			MyBase::SetErrCode(0);
-			continue;
-		}
-		if (first) {
-			_dx = dx;
-			_dy = dy;
-			_vertExts[0] = vertExts[0];
-			_vertExts[1] = vertExts[1];
-			_dimLens[0] = dimLens[0];
-			_dimLens[1] = dimLens[1];
-			_dimLens[2] = dimLens[2];
-			_wrfVars3d = wrfVars3d;
-			_wrfVars2d = wrfVars2d;
-			_startDate = startDate;
-			_mapProjection = mapProjection;
-		}
-		else {
-			bool mismatch = false;
-			if (
-				_dx != dx || _dy != dy || _dimLens[0] != dimLens[0] ||
-				_dimLens[1] != dimLens[1] || _dimLens[2] != dimLens[2]) {
-	
-				mismatch = true;
-			}
-
-			if (mapProjection != _mapProjection) mismatch = true;
-
-			if (_wrfVars3d.size() != wrfVars3d.size()) {
-				mismatch = true;
-			}
-			else {
-
-				for (int j=0; j<wrfVars3d.size(); j++) {
-					if (wrfVars3d[j].compare(_wrfVars3d[j]) != 0) {
-						mismatch = true;
-					}
-				}
-			}
-			if (_wrfVars2d.size() != wrfVars2d.size()) {
-				mismatch = true;
-			}
-			else {
-
-				for (int j=0; j<wrfVars2d.size(); j++) {
-					if (wrfVars2d[j].compare(_wrfVars2d[j]) != 0) {
-						mismatch = true;
-					}
-				}
-			}
-			if (mismatch) {
-				cerr << "File mismatch, skipping " << files[i] <<  endl;
-				continue;
-			}
-		}
-		first = false;
-
-		// Want _minimum_ vertical extents for entire data set for bottom
-		// and top layer.
-		//
-		if (vertExts[0] < _vertExts[0]) _vertExts[0] = vertExts[0];
-		if (vertExts[1] < _vertExts[1]) _vertExts[1] = vertExts[1];
-
-		//Copy all the timesteps & extents acquired from this file
-		for (int j=0; j< tsExtents.size(); j++) {
-			_tStepExtents.push_back(tsExtents[j]);
-		}
-		success = true;
-	}
-
-	// sort the time stamps, remove duplicates
-	// time stamps are paired with time-varying extents
-	//
-	
-	sort (_tStepExtents.begin(), _tStepExtents.end(), timeOrdering);
-	tStepExtents.clear();
-	if (_tStepExtents.size()) tStepExtents.push_back(_tStepExtents[0]);
-	for (size_t i=1; i<_tStepExtents.size(); i++) {
-		if (_tStepExtents[i].first != tStepExtents.back().first) {
-			tStepExtents.push_back(_tStepExtents[i]);	// unique times
-			
-		}
-	}
-
-	dims[0] = _dimLens[0];
-	dims[1] = _dimLens[1];
-	dims[2] = _dimLens[2];
-
-	if (extents) {
-
-		extents[0] = 0.0;
-		extents[1] = 0.0;
-		extents[2] = _vertExts[0];
-		extents[3] = _dx*(_dimLens[0]-1.);
-		extents[4] = _dy*(_dimLens[1]-1.);
-		extents[5] = _vertExts[1]; 
-	}
-	
-	
-	varnames3d = _wrfVars3d;
-	varnames2d = _wrfVars2d;
-
-	mapProjection = _mapProjection;
-
-	if (success) return(0);
-	else return(-1);
-}
-	
-
 const char *ProgName;
 
 void Usage(OptionParser &op, const char * msg) {
@@ -277,11 +130,11 @@ int	main(int argc, char **argv) {
 	OptionParser op;
 
 
-	size_t bs[3];
 	size_t dim[3];
 	float extents[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	string	s;
 	MetadataVDC *file;
+	MetadataWRF *WRFData;
 
 	ProgName = Basename(argv[0]);
 
@@ -370,12 +223,23 @@ int	main(int argc, char **argv) {
 
 	}
 	else if (argc > 1) {
-		int rc;
+		//
+		// At this point there is at last one WRF file to work with.
+		// The format is wrf-file+ vdf-file.
+		//
 
+		vector<string> wrffiles;
+		for (int i=0; i<argc-1; i++) {
+			 wrffiles.push_back(argv[i]);
+		}
+		WRFData = new MetadataWRF(wrffiles);
+
+		//
 		// If the extents were provided on the command line, set the
 		// extentsPtr to NULL so that we don't have to calulate the
 		// extents by examining all the netCDF files
 		//
+
 		float *extentsPtr = extents;
 		for(int i=0; i<5; i++) {
 			if (opt.extents[i] != opt.extents[i+1]) {
@@ -389,414 +253,112 @@ int	main(int argc, char **argv) {
 			}
 		}
 
-		string startDate;
+//		string startDate;
 		
-		rc = GetWRFMetadata(
-			(const char **)argv, argc-1, wrfNames, extentsPtr, 
-			dim, wrfVarNames3d, wrfVarNames2d, startDate, mapProj, tStepExtents
-		);
-		if (rc<0) exit(1);
-
 		
-		if (strlen(opt.startt) != 0) {
-			startT.assign(opt.startt);
-
-			if ((startT.compare("SIMULATION_START_DATE") == 0) ||
-				(startT.compare("START_DATE") == 0)) { 
-
-				startT = startDate;
-			}
-		}
-
-		// Check and see if the variable names specified on the command
-		// line exist. Issue a warning if they don't, but we still
-		// include them.
-		//
-		if (opt.vars3d.size()) {
-			vdfVarNames3d = opt.vars3d;
-
-			for ( int i = 0 ; i < opt.vars3d.size() ; i++ ) {
-
-				bool foundVar = false;
-				for ( int j = 0 ; j < wrfVarNames3d.size() ; j++ )
-					if ( wrfVarNames3d[j] == opt.vars3d[i] ) {
-						foundVar = true;
-						break;
-					}
-
-				if ( !foundVar ) {
-					cerr << ProgName << ": Warning: desired WRF 3D variable " << 
-						opt.vars3d[i] << " does not appear in sample WRF file" << endl;
-				}
-			}
-		}
-		else {
-			vdfVarNames3d = wrfVarNames3d;
-		}
-
-		// Check and see if the 2D variable names specified on the command
-		// line exist. Issue a warning if they don't, but we still
-		// include them.
-		//
-		if (opt.vars2d.size()) {
-			vdfVarNames2d = opt.vars2d;
-
-			for ( int i = 0 ; i < opt.vars2d.size() ; i++ ) {
-
-				bool foundVar = false;
-				for ( int j = 0 ; j < wrfVarNames2d.size() ; j++ )
-					if ( wrfVarNames2d[j] == opt.vars2d[i] ) {
-						foundVar = true;
-						break;
-					}
-
-				if ( !foundVar ) {
-					cerr << ProgName << ": Warning: desired WRF 2D variable " <<
-						opt.vars2d[i] << " does not appear in sample WRF file" << endl;
-				}
-			}
-		}
-		else {
-			vdfVarNames2d = wrfVarNames2d;
-		}
 	}
+
+	if(WRFData->GetNumTimeSteps() > 0) {
+
+	file = new MetadataVDC(WRFData->GetDimension(), 2, WRFData->GetBlockSize());	
+
+        // Copy values over from MetadataWRF to MetadataVDC.
+        // Add checking of return values and error messsages.
+
+		if(file->SetNumTimeSteps(WRFData->GetNumTimeSteps())) {
+			cerr << "Error populating NumTimeSteps." << endl;
+			exit(1);
+		}
+		if(file->SetMapProjection(WRFData->GetMapProjection())) {
+			cerr << "Error populating MapProjection." << endl;
+			exit(1);
+		}
+		if(file->SetVariables3D(WRFData->GetVariables3D())) {
+			cerr << "Error populating Variables3D." << endl;
+			exit(1);
+		}
+		if(file->SetVariables2DXY(WRFData->GetVariables2DXY())) {
+			cerr << "Error populating Variables3D." << endl;
+			exit(1);
+		}
+		if(file->SetVariables2DXZ(WRFData->GetVariables2DXZ())) {
+			cerr << "Error populating Variables3D." << endl;
+			exit(1);
+		}
+		if(file->SetVariables2DYZ(WRFData->GetVariables2DYZ())) {
+			cerr << "Error populating Variables3D." << endl;
+			exit(1);
+		}
+		if(file->SetExtents(WRFData->GetExtents())) {
+			cerr << "Error populating Extents." << endl;
+			exit(1);
+		}
+	        if(file->SetGridType(WRFData->GetGridType())) {
+			cerr << "Error populating GridType." << endl;
+			exit(1);
+		}
+        	if(file->SetUserDataString("DependentVarNames", "U:V:W:PH:PHB:P:PB:T")) {
+			cerr << "Error populating Dependent Vars." << endl;
+			exit(1);
+		}
+		string usertimestamp;
+		vector <double> usertime;
+		for(int i = 0; i < WRFData->GetNumTimeSteps(); i++) {
+			WRFData->GetTSUserTimeStamp(i, usertimestamp);
+			if(file->SetTSUserTimeStamp(i, usertimestamp)) {
+				cerr << "Error populating TSUserTimeStamp." << endl;
+				exit(1);
+			}
+			usertime.clear();
+			usertime.push_back(WRFData->GetTSUserTime(i));
+			if(file->SetTSUserTime(i, usertime)) {
+				cerr << "Error populating TSUserTime." << endl;
+				exit(1);
+			}
+			if(file->SetTSExtents(i, WRFData->GetTSExtents(i))) {
+				cerr << "Error populating TSExtents." << endl;
+				exit(1);
+			}
+		}
+	
+        // Handle command line over rides here.
+
+		if (file->Write(argv[argc-1]) < 0) {
+			exit(1);
+		}
+	} // End if Number of timesteps.
 	else {
-		Usage(op, "Invalid syntax");
-		exit(1);
+		cerr << "No output file generated due to no input files processed." << endl;
 	}
 
-	// If a start time was specified, make sure we have no time stamps
-	// earlier than the start time
-	//
-	if (! startT.empty()) {
-		TIME64_T seconds;
-		if (WRF::WRFTimeStrToEpoch(startT, &seconds) < 0) exit(1);
-	
-		vector <pair<TIME64_T,float*> >::iterator itr = tStepExtents.begin();
-		while ((*itr).first < seconds && itr != tStepExtents.end()) {
-			itr++;
-		}
-		if (itr != tStepExtents.begin()) {
-			tStepExtents.erase(tStepExtents.begin(), itr);
-		}
-	}
-
-	// If an explict time sampling was specified use it
-	//
-	if (opt.deltat) {
-		TIME64_T seconds = tStepExtents[0].first;
-		int numts = Max(opt.numts, (int) tStepExtents.size());
-		tStepExtents.clear();
-		pair<TIME64_T,float*> pr;
-		pr = make_pair(seconds,(float*)0);
-		tStepExtents.push_back(pr);
-
-		for (TIME64_T t = 1; t<numts; t++) {
-			pr = make_pair(tStepExtents[0].first+(t*opt.deltat),(float*)0);
-			tStepExtents.push_back(pr);
-		}
-	}
-
-	// If a limit was specified on the number of time steps delete
-	// excess ones
-	//
-	if (opt.numts && (opt.numts < tStepExtents.size())) {
-		tStepExtents.erase(tStepExtents.begin()+opt.numts, tStepExtents.end());
-	}
-		
-			
-	// Add derived variables to the list of variables
-	for ( int i = 0 ; i < opt.dervars.size() ; i++ )
-	{
-		if ( opt.dervars[i] == "PFull_" ) {
-			vdfVarNames3d.push_back( "PFull_" );
-		}
-		else if ( opt.dervars[i] == "PNorm_" ) {
-			vdfVarNames3d.push_back( "PNorm_" );
-		}
-		else if ( opt.dervars[i] == "PHNorm_" ) {
-			vdfVarNames3d.push_back( "PHNorm_" );
-		}
-		else if ( opt.dervars[i] == "Theta_" ) {
-			vdfVarNames3d.push_back( "Theta_" );
-		}
-		else if ( opt.dervars[i] == "TK_" ) {
-			vdfVarNames3d.push_back( "TK_" );
-		}
-		else if ( opt.dervars[i] == "UV_" ) {
-			vdfVarNames3d.push_back( "UV_" );
-		}
-		else if ( opt.dervars[i] == "UVW_" ) {
-			vdfVarNames3d.push_back( "UVW_" );
-		} 
-		else if ( opt.dervars[i] == "omZ_" ) {
-			vdfVarNames3d.push_back( "omZ_" );
-		}
-		else {
-			cerr << ProgName << " : Invalid derived variable : " <<
-				opt.dervars[i]  << endl;
-			exit( 1 );
-		}
-	}
-
-	// Always require the ELEVATION and HGT variables
-	//
-	vdfVarNames3d.push_back("ELEVATION");
-	vdfVarNames2d.push_back("HGT");
-		
-	bs[0] = opt.bs.nx;
-	bs[1] = opt.bs.ny;
-	bs[2] = opt.bs.nz;
-	file = new MetadataVDC( dim,opt.level,bs,opt.nfilter,opt.nlifting );	
-
-	if (MetadataVDC::GetErrCode()) {
-		exit(1);
-	}
-
-	if (file->SetNumTimeSteps(tStepExtents.size()) < 0) {
-		exit(1);
-	}
-
-	s.assign(opt.comment);
-	if (file->SetComment(s) < 0) {
-		exit(1);
-	}
-
-	s.assign("layered");
-	if (file->SetGridType(s) < 0) {
-		exit(1);
-	}
-
-	
-
-	// need a list of 2d and 3d varnames together
-	//
-	vector <string> varnames = vdfVarNames3d;
-	for (int i=0; i<vdfVarNames2d.size(); i++) {
-		varnames.push_back(vdfVarNames2d[i]);
-	}
-	if (file->SetVariableNames(varnames) < 0) {
-		exit(1);
-	}
-	if (file->SetVariables2DXY(vdfVarNames2d) < 0) {
-		exit(1);
-	}
-
-	//Set the map projection from the command line if it was there:
-	if (strlen(opt.mapprojection)) {
-		mapProj = opt.mapprojection;
-	} //or set it from the WRF file
-	if (mapProj.size() > 0) {
-		if (file->SetMapProjection(mapProj) < 0) {
-			cerr << MetadataVDC::GetErrMsg() << endl;
-			exit(1);
-		}
-	}
-	// reproject the latlon to box coords
-	int firstAvailTime = -1;
-	double mappedExtents[4];
-	if (mapProj.size()>0){
-		projPJ p = pj_init_plus(mapProj.c_str());
-		
-		if (!p  && !opt.quiet){
-			//Invalid string. Get the error code:
-			int *pjerrnum = pj_get_errno_ref();
-			fprintf(stderr, "Invalid geo-referencing in WRF output\n %s\n",
-				pj_strerrno(*pjerrnum));
-		}
-		
-		
-		if (p){
-			//reproject latlon to current coord projection.
-			//Must convert to radians:
-			const double DEG2RAD = 3.141592653589793/180.;
-			const char* latLongProjString = "+proj=latlong +ellps=sphere";
-			projPJ latlon_p = pj_init_plus(latLongProjString);
-			
-			double dbextents[4];
-			vector<double> currExtents;
-			
-			for ( size_t t = 0 ; t < tStepExtents.size() ; t++ ){
-				float* exts = tStepExtents[t].second;
-				if (!exts) continue;
-				//exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
-				for (int j = 0; j<4; j++) dbextents[j] = exts[j]*DEG2RAD;
-				int rc = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
-				if (rc && opt.quiet){
-					int *pjerrnum = pj_get_errno_ref();
-					fprintf(stderr, "Error geo-referencing WRF domain extents\n %s\n",
-						pj_strerrno(*pjerrnum));
-				}
-				//Put the reprojected extents into the vdf
-				//Use the global specified extents for vertical coords
-				if (!rc){
-					currExtents.clear();
-					currExtents.push_back(dbextents[0]);
-					currExtents.push_back(dbextents[1]);
-					currExtents.push_back(extents[2]);
-					currExtents.push_back(dbextents[2]);
-					currExtents.push_back(dbextents[3]);
-					currExtents.push_back(extents[5]);
-					file->SetTSExtents(t, currExtents);
-					if (firstAvailTime == -1) {
-						for (int k = 0; k<4; k++) mappedExtents[k] = dbextents[k];
-						firstAvailTime = t;
-					}
-
-				}
-			}
-
-		}
-	}
-	//If the user specified the (global)extents, use those unmodified.
-	//If the user didn't specify them, and specified no sample file, 
-	//Then don't put them in the metadata either; 
-	//so the metadata class can calculate.
-	bool calcExtentsFromData = false;
-	if (!userSpecifiedExtents) {
-		//see if extents were calculated from data
-		for(int i=0; i<5; i++) {
-			if (extents[i] != extents[i+1]) {
-				calcExtentsFromData = true;
-			}
-		}
-	}
-	
-	//then put into metadata:
-	if (userSpecifiedExtents || calcExtentsFromData){
-		vector<double> extentsVec;
-		for(int i=0; i<6; i++) {
-			extentsVec.push_back(extents[i]);
-		}
-		if (file->SetExtents(extentsVec) < 0) {
-			exit(1);
-		}
-	}
-	
-    // Set the user time for each time step.
-	// In the meantime note the min/max latitude and longitude extents
-	float minLat = 1000.f, minLon = 1000.f, maxLat = -1000.f, maxLon = -1000.f;
-	
-    for ( size_t t = 0 ; t < tStepExtents.size() ; t++ )
-    {
-		vector<double> tsNow(1, (double) tStepExtents[t].first);
-        if ( file->SetTSUserTime( t, tsNow ) < 0) {
-            exit( 1 );
-        }
-
-		// Add a user readable tag with the time stamp
-		string tag("UserTimeStampString");
-		string wrftime_str;
-		(void) WRF::EpochToWRFTimeStr(tStepExtents[t].first, wrftime_str);
-
-        if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
-            exit( 1 );
-        }
-		float* exts = tStepExtents[t].second;
-		if (exts){ //Check all 4 corners for max and min longitude/latitude
-			for (int cor = 0; cor < 4; cor++){
-				if (exts[cor*2] < minLon) minLon = exts[cor*2];
-				if (exts[cor*2] > maxLon) maxLon = exts[cor*2];
-				if (exts[cor*2+1] < minLat) minLat = exts[cor*2+1];
-				if (exts[cor*2+1] > maxLat) maxLat = exts[cor*2+1];
-			}
-		}
-    }
-
-	// Specify the atypical var names for dependent variables
-	//
-	string tag("DependentVarNames");
-	string atypnames;
-	atypnames.append(wrfNames.U); atypnames.append(":");
-	atypnames.append(wrfNames.V); atypnames.append(":");
-	atypnames.append(wrfNames.W); atypnames.append(":");
-	atypnames.append(wrfNames.PH); atypnames.append(":");
-	atypnames.append(wrfNames.PHB); atypnames.append(":");
-	atypnames.append(wrfNames.P); atypnames.append(":");
-	atypnames.append(wrfNames.PB); atypnames.append(":");
-	atypnames.append(wrfNames.T);
-
-	if ( file->SetUserDataString(tag, atypnames ) < 0) {
-		exit( 1 );
-	}
-
-	if (file->Write(argv[argc-1]) < 0) {
-		exit(1);
-	}
-
-	if (! opt.quiet) {
+	if (! opt.quiet && WRFData->GetNumTimeSteps() > 0) {
 		cout << "Created VDF file:" << endl;
-		cout << "\tNum time steps : " << tStepExtents.size() << endl;
+		cout << "\tNum time steps : " << WRFData->GetNumTimeSteps() << endl;
 		cout << "\t3D Variable names : ";
-		for (int i=0; i<file->GetVariables3D().size(); i++) {
-			cout << file->GetVariables3D()[i] << " ";
+		for (int i = 0; i < WRFData->GetVariables3D().size(); i++) {
+			cout << WRFData->GetVariables3D()[i] << " ";
 		}
 		cout << endl;
 		cout << "\t2D Variable names : ";
-		for (int i=0; i<file->GetVariables2DXY().size(); i++) {
-			cout << file->GetVariables2DXY()[i] << " ";
+		for (int i=0; i < WRFData->GetVariables2DXY().size(); i++) {
+			cout << WRFData->GetVariables2DXY()[i] << " ";
 		}
 		cout << endl;
 
 		cout << "\tCoordinate extents : ";
-		const vector <double> extptr = file->GetExtents();
+		const vector <double> extptr = WRFData->GetExtents();
 		for(int i=0; i<6; i++) {
 			cout << extptr[i] << " ";
 		}
 		cout << endl;
-		if (minLon < 1000.f){
-			cout << "\tMin Longitude and Latitude of domain corners: " << minLon << " " << minLat << endl;
-			cout << "\tMax Longitude and Latitude of domain corners: " << maxLon << " " << maxLat << endl;
+		if (WRFData->GetminLon() < 1000.f){
+			cout << "\tMin Longitude and Latitude of domain corners: " << WRFData->GetminLon() << " " << WRFData->GetminLat() << endl;
+			cout << "\tMax Longitude and Latitude of domain corners: " << WRFData->GetmaxLon() << " " << WRFData->GetmaxLat() << endl;
 		}
 		
-	}
+	} // End if quiet.
 
 	exit(0);
-}
+} // End of main.
 
-int	cvtToOrder(
-	const char *from, void *to
-) {
-	int   *iptr   = (int *) to;
-
-	if (! from) {
-		iptr[0] = iptr[1] = iptr[2];
-	}
-	else if (!  (sscanf(from,"%d:%d:%d", &iptr[0],&iptr[1],&iptr[2]) == 3)) { 
-
-		return(-1);
-	}
-	return(1);
-}
-
-int	cvtToExtents(
-	const char *from, void *to
-) {
-	float   *fptr   = (float *) to;
-
-	if (! from) {
-		fptr[0] = fptr[1] = fptr[2] = fptr[3] = fptr[4] = fptr[5] = 0.0;
-	}
-	else if (! 
-		(sscanf(from,"%f:%f:%f:%f:%f:%f",
-		&fptr[0],&fptr[1],&fptr[2],&fptr[3],&fptr[4],&fptr[5]) == 6)) { 
-
-		return(-1);
-	}
-	return(1);
-}
-
-int	cvtTo3DBool(
-	const char *from, void *to
-) {
-	int   *iptr   = (int *) to;
-
-	if (! from) {
-		iptr[0] = iptr[1] = iptr[2] = 0;
-	}
-	else if (! (sscanf(from,"%d:%d:%d", &iptr[0],&iptr[1],&iptr[2]) == 3)) { 
-		return(-1);
-	}
-	return(1);
-}
 

@@ -115,12 +115,14 @@ public:
 
  static int WRFTimeStrToEpoch(
 	const string &wrftime,
-	TIME64_T *seconds
+	TIME64_T *seconds,
+	int dpy = 0
  );
 
  static int EpochToWRFTimeStr(
 	TIME64_T seconds,
-	string &wrftime
+	string &wrftime,
+	int daysyear = 0
  );
 
 
@@ -135,6 +137,18 @@ public:
 	string &mapProj, // Map projection string (out)
 	vector<string> & wrfVars3d, // 3D Variable names in WRF file (out)
 	vector<string> & wrfVars2d, // 2D Variable names in WRF file (out)
+	vector <pair <TIME64_T, float*> > &tstepExtents // Time stamps, in seconds, and matching extents (out)
+);
+
+ static int GetWRFMeta(
+	const int ncid, // Holds netCDF file ID (in)
+	float * vertExts, // Vertical extents (out)
+	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
+	string &startDate, // Place to put START_DATE attribute (out)
+	string &mapProj, // Map projection string (out)
+	vector<string> & wrfVars3d, // 3D Variable names in WRF file (out)
+	vector<string> & wrfVars2d, // 2D Variable names in WRF file (out)
+	vector<pair<string, double> > & gl_attrib,
 	vector <pair <TIME64_T, float*> > &tstepExtents // Time stamps, in seconds, and matching extents (out)
 );
 

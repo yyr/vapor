@@ -22,7 +22,7 @@ using namespace VAPoR;
 #define NC_ERR_READ(X) \
 	{ \
 	int nc_statusxxx = (X); \
-    if (nc_statusxxx != NC_NOERR) { \
+	if (nc_statusxxx != NC_NOERR) { \
 		cerr << "Error reading netCDF file at line " <<  __LINE__ << " : " << nc_strerror(nc_statusxxx) << endl; \
 		return(-1); \
 	} \
@@ -67,12 +67,13 @@ int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo,
 
 int WRF::GetProjectionString(int ncid, string& projString){
 	string empty;
+	string ErrMsgStr;
 	ostringstream oss;
 	float lat0,lat1,lat2,lon0,latts;
 	int projNum;
 
 	if (nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) != NC_NOERR) return -1;
-	
+
 	switch (projNum){
 		case(0): //Lat Lon
 			projString = "+proj=latlong";
@@ -163,7 +164,10 @@ int WRF::GetProjectionString(int ncid, string& projString){
 			break;
 		default:
 
-			cerr << "Unsupported MAP_PROJ value " <<  projNum <<  endl;
+			ErrMsgStr.assign("Unsupported MAP_PROJ value ");
+			ErrMsgStr += projNum ;
+			SetErrMsg(ErrMsgStr.c_str());
+//			cerr << "Unsupported MAP_PROJ value " <<  projNum <<  endl;
 			return -1;
 
 	}
@@ -429,10 +433,12 @@ int WRF::GetZSlice(
 
 int WRF::WRFTimeStrToEpoch(
 	const string &wrftime,
-	TIME64_T *seconds
+	TIME64_T *seconds,
+	int daysperyear
 ) {
 
 	int rc;
+	int year_offset = 1900;
 	const char *format = "%4d-%2d-%2d_%2d:%2d:%2d";
 	struct tm ts;
 
@@ -441,35 +447,72 @@ int WRF::WRFTimeStrToEpoch(
 		&ts.tm_hour, &ts.tm_min, &ts.tm_sec
 	);
 	if (rc != 6) {
-		MyBase::SetErrMsg("Unrecognized time stamp: %s", wrftime.c_str());
-		return(-1);
+		rc = sscanf(
+			wrftime.c_str(), "%4d-%5d_%2d:%2d:%2d", &ts.tm_year,  &ts.tm_mday, 
+			&ts.tm_hour, &ts.tm_min, &ts.tm_sec
+		);
+		ts.tm_mon=1;
+		year_offset = 0;
+		if (rc != 5) {
+			MyBase::SetErrMsg("Unrecognized time stamp: %s", wrftime.c_str());
+			return(-1);
+		}
 	}
-	
-	ts.tm_mon -= 1;
-	ts.tm_year -= 1900;
-	ts.tm_isdst = -1;	// let mktime() figure out timezone
 
-	*seconds = MkTime64(&ts);
+	if (daysperyear == 0) {	
+		ts.tm_mon -= 1;
+		ts.tm_year -= year_offset;
+		ts.tm_isdst = -1;	// let mktime() figure out timezone
 
+		*seconds = MkTime64(&ts);
+	}
+	else { // PlanetWRF.
+		*seconds = (86400*daysperyear)*ts.tm_year + (86400)*ts.tm_mday + (3600)*ts.tm_hour + (60)*ts.tm_min + ts.tm_sec;
+	}	
 	return(0);
 }
 
+// In this scheme of date, a time of zero seconds
+// will be a date of 1970-01-01:00:00:00.  But
+// in a PlantWRF file that is still the same, but
+// different number of days per year.  Still
+// 60 seconds per minute, 60 minutes per hours,
+// and 24 hours per day. But not SI seconds.
+
 int WRF::EpochToWRFTimeStr(
 	TIME64_T seconds,
-	string &str
+	string &str,
+	int daysyear
 ) {
-
 	struct tm ts;
-    const char *format = "%Y-%m-%d_%H:%M:%S";
+	const char *format = "%Y-%m-%d_%H:%M:%S";
 	char buf[128];
 
-	GmTime64_r(&seconds, &ts);
+	if(daysyear == 0) {
+		GmTime64_r(&seconds, &ts);
 
-	if (strftime(buf,sizeof(buf), format, &ts) == 0) {
-		MyBase::SetErrMsg("strftime(%s) : ???, format");
-		return(-1);
+		if (strftime(buf,sizeof(buf), format, &ts) == 0) {
+			MyBase::SetErrMsg("strftime(%s) : ???, format");
+			return(-1);
+		}
 	}
-
+	else {
+		TIME64_T w_sec;
+		int spd = 60 * 60 * 24; // seconds per day
+		int year, day, hour, min, sec;
+		year = day = hour = min = sec = 0;
+		w_sec = seconds;
+		year = w_sec / (spd * daysyear);
+		w_sec -= year * (spd * daysyear);
+		day = w_sec/spd;
+		w_sec -= day * spd;
+		hour = w_sec / 3600;
+		w_sec -= hour * 3600;
+		min = w_sec / 60;
+		w_sec -= min * 60;
+		sec = w_sec;
+		sprintf(buf,"%04d-%05d_%02d:%02d:%02d",year,day,hour,min,sec);
+	}
 	str = buf;
 
 	return(0);
@@ -489,6 +532,7 @@ int WRF::OpenWrfGetMeta(
 	vector<string> & wrfVars2d, 
 	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon corners (out)
 ) {
+	string ErrMsgStr;
 	int ncid; // Holds netCDF file ID
 	int ndims; // Number of dimensions in netCDF
 	int ngatts; // Number of global attributes
@@ -553,25 +597,38 @@ int WRF::OpenWrfGetMeta(
 	// Make sure we found all the dimensions we need
 	if ( weId < 0 || snId < 0 || btId < 0 )
 	{
-		MyBase::SetErrMsg("Could not find expected dimensions WRF file");
+		ErrMsgStr.assign("Could not find expected dimensions WRF file ");
+		ErrMsgStr.append(wrfName);
+		MyBase::SetErrMsg(ErrMsgStr.c_str());
 		return(-1);
 	}
 	for (int i=0; i<4; i++) {
 		if (dimLens[i] < 1) {
-			MyBase::SetErrMsg("Zero-length WRF variable dimension");
+			ErrMsgStr.assign("Zero-length WRF variable dimension ");
+			ErrMsgStr.append(wrfName);
+			MyBase::SetErrMsg(ErrMsgStr.c_str());
 			return(-1);
 		}
 	}
 	if ( wesId < 0 || snsId < 0 || btsId < 0 ) {
-		cerr << "Caution: could not find staggered dimensions in WRF file\n";
+		ErrMsgStr.assign("Caution: could not find staggered dimensions in WRF file ");
+		ErrMsgStr.append(wrfName);
+		MyBase::SetErrMsg(ErrMsgStr.c_str());
+		MyBase::SetErrCode(0);
 	}
-
 
 	// Get DX and DY, set to -1 if they aren't there.
 	int ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx );
 	if (ncrc != NC_NOERR) dx = -1.f;
 	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy );
 	if (ncrc != NC_NOERR) dy = -1.f;
+
+	// If planetWRF there is a gravity value.
+ 	float grav = 0.0;
+	ncrc = nc_get_att_float(ncid, NC_GLOBAL, "G", &grav);
+	if (ncrc != NC_NOERR) {
+		grav = 9.81;
+	}
 
 	//Build the projection string, 
 	//If we can't, the projection string is length 0
@@ -698,12 +755,12 @@ int WRF::OpenWrfGetMeta(
 			if (rc<0) return (rc);
 
 			if (first) {
-				vertExts[0] = (phBuf[0] + phbBuf[0])/9.81;
+				vertExts[0] = (phBuf[0] + phbBuf[0])/grav;
 			}
 			
 			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
 
-				height = (phBuf[i] + phbBuf[i])/9.81;
+				height = (phBuf[i] + phbBuf[i])/grav;
 				// Want to find the bottom of the bottom layer and the bottom 
 				// of the
 				// top layer so that we can output them
@@ -727,12 +784,12 @@ int WRF::OpenWrfGetMeta(
 			if (rc<0) return (rc);
 
 			if (first) {
-				vertExts[1] = (phBuf[0] + phbBuf[0])/9.81;
+				vertExts[1] = (phBuf[0] + phbBuf[0])/grav;
 			}
 			
 			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
 
-				height = (phBuf[i] + phbBuf[i])/9.81;
+				height = (phBuf[i] + phbBuf[i])/grav;
 				// Want to find the bottom of the bottom layer and the bottom 
 				// of the
 				// top layer so that we can output them
@@ -802,5 +859,366 @@ int WRF::OpenWrfGetMeta(
 
 	// Close the WRF file
 	NC_ERR_READ( nc_close( ncid ) );
+
+
 	return(0);
 }
+
+
+
+int WRF::GetWRFMeta(
+	const int ncid, // Holds netCDF file ID (in)
+	float *vertExts, // Vertical extents (out)
+	size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
+	string &startDate, // Place to put START_DATE attribute (out)
+	string &mapProjection, //PROJ4 projection string
+	vector<string> &wrfVars3d, 
+	vector<string> &wrfVars2d, 
+	vector<pair<string, double> > &gl_attrib,
+	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon corners (out)
+) {
+	string ErrMsgStr;
+	float dx = -1.0; // Place to put DX attribute  (-1 if it's not there)
+	float dy = -1.0; // Place to put DY attribute (-1 if it's not there)
+	int ndims; // Number of dimensions in netCDF
+	int ngatts; // Number of global attributes
+	int nvars; // Number of variables
+	int daysperyear; // Used in timestr conversion.
+	int xdimid; // ID of unlimited dimension (not used)
+	
+	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
+
+	static char *buf = NULL;
+	static size_t bufSize = 0;
+	
+	wrfVars3d.clear();
+	wrfVars2d.clear();
+	gl_attrib.clear();
+	tsExtents.clear();
+
+	// Find the number of dimensions, variables, and global attributes, and check
+	// the existance of the unlimited dimension (not that we need to)
+	NC_ERR_READ( nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
+
+	// Find out dimension lengths.  x <==> west_east, y <==> south_north,
+	// z <==> bottom_top.  Need names, too, for finding vertical extents.
+	int timeId = -1;
+	int weId = -1;
+	int snId = -1;
+	int btId = -1;
+	int wesId = -1;
+	int snsId = -1;
+	int btsId = -1;
+	for ( int i = 0 ; i < ndims ; i++ )
+	{
+		NC_ERR_READ( nc_inq_dimname( ncid, i, dimName ) );
+		if ( strcmp( dimName, "west_east" ) == 0 )
+		{
+			weId = i;
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[0] ) );
+		} else if ( strcmp( dimName, "south_north" ) == 0 )
+		{
+			snId = i;
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[1] ) );
+		} else if ( strcmp( dimName, "bottom_top" ) == 0 )
+		{
+			btId = i;
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[2] ) );
+		} else if ( strcmp( dimName, "west_east_stag" ) == 0 )
+		{
+			wesId = i;
+		} else if ( strcmp( dimName, "south_north_stag" ) == 0 )
+		{
+			snsId = i;
+		} else if ( strcmp( dimName, "bottom_top_stag") == 0 )
+		{
+			btsId = i;
+		} else if ( strcmp( dimName, "Time" ) == 0 )
+		{
+			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[3] ) );
+			timeId = i;
+		}
+	}
+	// Make sure we found all the dimensions we need
+	if ( weId < 0 || snId < 0 || btId < 0 )
+	{
+		ErrMsgStr.assign("Could not find expected dimensions WRF file ");
+		MyBase::SetErrMsg(ErrMsgStr.c_str());
+		return(-1);
+	}
+	for (int i=0; i<4; i++) {
+		if (dimLens[i] < 1) {
+			ErrMsgStr.assign("Zero-length WRF variable dimension ");
+			MyBase::SetErrMsg(ErrMsgStr.c_str());
+			return(-1);
+		}
+	}
+	if ( wesId < 0 || snsId < 0 || btsId < 0 ) {
+		ErrMsgStr.assign("Caution: could not find staggered dimensions in WRF file ");
+		MyBase::SetErrMsg(ErrMsgStr.c_str());
+		MyBase::SetErrCode(0);
+	}
+
+	// Get DX and DY, set to -1 if they aren't there.
+	int ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx );
+	if (ncrc != NC_NOERR) dx = -1.f;
+	gl_attrib.push_back(make_pair("DX",dx));
+	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy );
+	if (ncrc != NC_NOERR) dy = -1.f;
+	gl_attrib.push_back(make_pair("DY",dy));
+
+	// If planetWRF there will be a gravity value.
+ 	double grav = 0.0;
+	daysperyear = 0;
+	float tgrav;
+	ncrc = nc_get_att_float(ncid, NC_GLOBAL, "G", &tgrav);
+	grav = tgrav;
+	if (ncrc == NC_NOERR) { 
+	// this is a PlanetWRF file, so we will grab the
+	// other attributes values.
+		gl_attrib.push_back(make_pair("G",grav));
+		float tempval;
+		ncrc = nc_get_att_float( ncid, NC_GLOBAL, "PLANET_YEAR", &tempval);
+		gl_attrib.push_back(make_pair("PLANET_YEAR",tempval));
+		daysperyear = (int) tempval;
+		ncrc = nc_get_att_float( ncid, NC_GLOBAL, "RADIUS", &tempval);
+		gl_attrib.push_back(make_pair("RADIUS",tempval));
+		ncrc = nc_get_att_float( ncid, NC_GLOBAL, "P2SI", &tempval);
+		gl_attrib.push_back(make_pair("P2SI",tempval));
+	}
+	else {
+		grav = 9.81;
+	}
+
+	//Build the projection string, 
+	//If we can't, the projection string is length 0
+	GetProjectionString(ncid, mapProjection);
+	
+	// Get starting time stamp
+	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
+
+	size_t attlen;
+	const char *start_attr = "SIMULATION_START_DATE";
+	int nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
+	if (nc_status == NC_ENOTATT) {
+		start_attr = "START_DATE";
+		nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
+		if (nc_status == NC_ENOTATT) {
+			start_attr = NULL;
+			startDate.erase();
+		}
+	}
+	if (start_attr) {
+		if (bufSize < attlen+1) {
+			if (buf) delete [] buf;
+			buf = new char[attlen+1];
+			bufSize = attlen+1;
+		}
+
+		NC_ERR_READ(nc_get_att_text( ncid, NC_GLOBAL, start_attr, buf ));
+
+		startDate.assign(buf, attlen);
+	}
+		
+    // build list of all dimensions found in the file
+    //
+	vector <ncdim_t> ncdims;
+    for (int dimid = 0; dimid < ndims; dimid++) {
+        ncdim_t dim;
+
+        NC_ERR_READ(nc_inq_dim( ncid, dimid, dim.name, &dim.size));
+        ncdims.push_back(dim);
+    }
+
+	// Find names of variables with appropriate dimmensions
+	for ( int i = 0 ; i < nvars ; i++ ) {
+		varInfo varinfo;
+		char name[NC_MAX_NAME+1];
+		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
+		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
+#ifdef WIN32
+//On windows, CON is not a valid vapor variable name because windows does
+//not permit CON to be directory name
+// CON is a 2D variable, "orographic convexity"
+		if (strcmp(name, "CON") == 0) continue;
+#endif
+
+		if ((varinfo.ndimids == 4) && 
+			(varinfo.dimids[0] ==  timeId) &&
+			((varinfo.dimids[1] ==  btId) || (varinfo.dimids[1] == btsId)) &&
+			((varinfo.dimids[2] ==  snId) || (varinfo.dimids[2] == snsId)) &&
+			((varinfo.dimids[3] ==  weId) || (varinfo.dimids[3] == wesId))) {
+
+			wrfVars3d.push_back( name );
+		}
+		else if ((varinfo.ndimids == 3) && 
+			(varinfo.dimids[0] ==  timeId) &&
+			((varinfo.dimids[1] ==  snId) || (varinfo.dimids[1] == snsId)) &&
+			((varinfo.dimids[2] ==  weId) || (varinfo.dimids[2] == wesId))) {
+
+			wrfVars2d.push_back( name );
+		}
+	}
+
+
+	// Get vertical extents if requested
+	//
+	if (vertExts) {
+
+		// Get ready to read PH and PHB
+		varInfo phInfo; // structs for variable information
+		varInfo phbInfo;
+
+		if (GetVarInfo( ncid, "PH", ncdims, phInfo) < 0) return(-1);
+		if (phInfo.ndimids != 4) {
+			MyBase::SetErrMsg("Variable %s has wrong # dims", "PH");
+			return(-1);
+		}
+		size_t ph_slice_sz = phInfo.dimlens[phInfo.ndimids-1] * 
+			phInfo.dimlens[phInfo.ndimids-2];
+
+		if (GetVarInfo( ncid, "PHB", ncdims, phbInfo) < 0) return(-1);
+		if (phbInfo.ndimids != 4) {
+			MyBase::SetErrMsg("Variable %s has wrong # dims", "PHB");
+			return(-1);
+		}
+		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.ndimids-1] * 
+			phbInfo.dimlens[phbInfo.ndimids-2];
+			
+
+		// Allocate memory
+		float * phBuf = new float[ph_slice_sz];
+		float * phBufTemp = new float[ph_slice_sz];
+		float * phbBuf = new float[phb_slice_sz];
+		float * phbBufTemp = new float[phb_slice_sz];
+		
+
+		bool first = true;
+		for (size_t t = 0; t<dimLens[3]; t++) {
+			float height;
+			int rc;
+
+			// Dummies needed by function
+
+			// Read bottom slices
+			bool needAnotherPh = true;
+			bool needAnotherPhb = true;
+			rc = GetZSlice(
+				ncid, phInfo, t, 0, phBuf, phBufTemp, needAnotherPh, dimLens
+			);
+			if (rc<0) return (rc);
+
+			rc = GetZSlice(
+				ncid, phbInfo, t, 0, phbBuf, phbBufTemp, needAnotherPhb, 
+				dimLens
+			);
+			if (rc<0) return (rc);
+
+			if (first) {
+				vertExts[0] = (phBuf[0] + phbBuf[0])/grav;
+			}
+			
+			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
+
+				height = (phBuf[i] + phbBuf[i])/grav;
+				// Want to find the bottom of the bottom layer and the bottom 
+				// of the
+				// top layer so that we can output them
+				if (height < vertExts[0] ) vertExts[0] = height;
+			}
+
+
+			//  Read the top slices
+			rc = GetZSlice(
+				ncid, phInfo, t, dimLens[2] - 1, phBuf, phBufTemp, 
+				needAnotherPh, dimLens
+			);
+			if (rc<0) return (rc);
+
+			needAnotherPh = true;
+			needAnotherPhb = true;
+			rc = GetZSlice(
+				ncid, phbInfo, t, dimLens[2] - 1, phbBuf, phbBufTemp, 
+				needAnotherPhb, dimLens
+			);
+			if (rc<0) return (rc);
+
+			if (first) {
+				vertExts[1] = (phBuf[0] + phbBuf[0])/grav;
+			}
+			
+			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
+
+				height = (phBuf[i] + phbBuf[i])/grav;
+				// Want to find the bottom of the bottom layer and the bottom 
+				// of the
+				// top layer so that we can output them
+				if (height < vertExts[1] ) vertExts[1] = height;
+			}
+			first = false;
+
+		}
+
+		delete [] phBuf;
+		delete [] phBufTemp;
+		delete [] phbBuf;
+		delete [] phbBufTemp;
+
+	}
+
+	// Get time stamps and lat/lon extents
+	//
+	varInfo timeInfo; // structs for variable information
+
+	varInfo latInfo, lonInfo;
+	bool haveLatLon = false;
+	//Check to make sure we have the XLAT and XLONG variables
+	int vid;
+	haveLatLon = ( NC_NOERR == nc_inq_varid(ncid, "XLAT", &vid));
+
+	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
+
+	if (haveLatLon){
+		if(GetVarInfo(ncid, "XLAT", ncdims, latInfo) < 0) haveLatLon = false;
+		if(GetVarInfo(ncid, "XLONG", ncdims, lonInfo) < 0) haveLatLon = false;
+	}
+
+
+	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
+	if (timeInfo.ndimids != 2) {
+		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
+		return(-1);
+	}
+	size_t sz = timeInfo.dimlens[0] * timeInfo.dimlens[1];
+	if (bufSize < sz) {
+		if (buf) delete [] buf;
+		buf = new char[sz];
+		bufSize = sz;
+	}
+	nc_status = nc_get_var_text(ncid, timeInfo.varid, buf);
+	for (int i =0; i<timeInfo.dimlens[0]; i++) {
+		//Try to get corner coords if we can.
+		//Not needed for wrf2vdf
+		float * latlonexts = 0;
+		if (haveLatLon){ 
+			latlonexts = new float[8];
+			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0)){
+				delete latlonexts;
+				latlonexts = 0;
+			}
+		}
+			 
+		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
+		TIME64_T seconds;
+
+		if (WRFTimeStrToEpoch(time_fmt, &seconds, daysperyear) < 0) return(-1);
+		pair <TIME64_T, float*> pr;
+		pr = make_pair(seconds, (float*)latlonexts);
+		tsExtents.push_back(pr);
+	}
+
+	// Close the WRF file
+
+	return(0);
+} // End of GetWRFMeta.
+
