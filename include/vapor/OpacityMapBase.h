@@ -18,6 +18,7 @@ namespace VAPoR {
 
 class XmlNode;
 class ParamNode;
+class MapperFunctionBase;
 
 class PARAMS_API OpacityMapBase : public ParsedXml 
 {
@@ -42,6 +43,7 @@ class PARAMS_API OpacityMapBase : public ParsedXml
     void  select()   { _selected = true; }
     void  deselect() { _selected = false; }
     bool  selected() { return _selected; }
+	
 
   private:
 

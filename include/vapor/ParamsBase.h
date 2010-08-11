@@ -60,6 +60,7 @@
 #define ParamsBase_H
 
 #include "vapor/XmlNode.h"
+#include "ParamNode.h"
 #include "vapor/ExpatParseMgr.h"
 #include "assert.h"
 #include "vaporinternal/common.h"
@@ -89,16 +90,19 @@ ParamsBase(const string& name) {
 }
 //Copy constructor.  Clones the root node
 ParamsBase(const ParamsBase &pbase);
- virtual ~ParamsBase();
 
- //! Make a copy of a ParamBase that uses a specified 
- //! clone of the ParamNode as its root node.  This is
- //! required for any ParamsBase that is not a Params
+virtual ~ParamsBase();
+
+ //! Make a copy of a ParamBase that optionally uses specified 
+ //! clone of the ParamNode as its root node.  If the root
+ //! is null, the copy ignores any ParamNodes.  This is
+ //! required for any ParamsBase 
  //!
  //!
  //! \param[in] newRoot Root of cloned ParamsBase instance
  //
- virtual ParamsBase* deepCopy(ParamNode* newRoot) = 0;
+ virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
+ 
 
  //! Set the parent node of the XmlNode tree.
  //!
@@ -143,13 +147,13 @@ ParamsBase(const ParamsBase &pbase);
  //! This method returns the top node in the parameter node tree
  //!
 
-ParamNode *GetRootNode() { return(getRootParamNode()); }
+ParamNode *GetRootNode() { return(_rootParamNode); }
 
 //!	
 //! Methods to build an xml node from state.
 //!
 
-virtual ParamNode* buildNode() { return 0;}
+virtual ParamNode* buildNode(); 
 
 //!	
 //! Method for manual setting of node flags
@@ -168,12 +172,22 @@ const string& GetName() {return _paramsBaseName;}
 ParamsBaseType GetParamsBaseTypeId() {return GetTypeFromTag(_paramsBaseName);}
 static ParamsBaseType GetTypeFromTag(const string&tag);
 static const string& GetTagFromType(ParamsBaseType t);
+static ParamsBase* CreateDefaultParamsBase(int pType){
+	ParamsBase *p = (createDefaultFcnMap[pType])();
+	return p;
+}
+static ParamsBase* CreateDefaultParamsBase(const string&tag){
+	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
+	return p;
+}
 
 //Methods for registration and tabulation of existing Params instances
 	static void RegisterParamsBaseClasses();
 	static int RegisterParamsBaseClass(const string& tag, BaseCreateFcn, bool isParams);
+	virtual void SetRootParamNode(ParamNode* pn){_rootParamNode = pn;}
 	static int GetNumParamsClasses() {return numParamsClasses;}
 	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
+	
 private:
 	//These should be accessed by subclasses through get() and set() methods
 	ParamNode *_currentParamNode;
@@ -183,12 +197,10 @@ private:
 protected:
 	static const string _emptyString;
 	virtual ParamNode *getCurrentParamNode() {return _currentParamNode;}
-	virtual ParamNode *getRootParamNode(){refreshNode(); return _rootParamNode;}
+	
 	virtual void setCurrentParamNode(ParamNode* pn){ _currentParamNode=pn;}
-	virtual void setRootParamNode(ParamNode* pn){_rootParamNode = pn;}
-	//Subclasses should reimplement this if the node can ever be
-	//inconsistent with the class state:
-	virtual void refreshNode() {}
+	
+	
 	
 	static map<string,int> classIdFromTagMap;
 	static map<int,string> tagFromClassIdMap;
@@ -220,13 +232,15 @@ protected:
  //! relative to the current branch.
  //! User-specific subtrees can be provided by extending this method
  //!
- //! \param[in] name The name of the branch
+ //! \param[in] tag The name of the branch
+ //! \param[in] pBase optional ParamsBase object to be associated with ParamNode
  //! \retval node Returns the new current node
  //!
  //! \sa Pop(), Delete(), GetCurrentNode()
  //
  ParamNode *Push(
-	 string& tag
+	 string& tag,
+	 ParamsBase* pBase = 0
 	);
 
 

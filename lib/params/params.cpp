@@ -61,6 +61,7 @@ const string Params::_vizNumAttr = "VisualizerNum";
 const string Params::_numVariablesAttr = "NumVariables";
 const string Params::_numTransformsAttr = "NumTransforms";
 const string Params::_variableTag = "Variable";
+const string Params::_variablesTag = "Variables";
 const string Params::_leftEditBoundAttr = "LeftEditBound";
 const string Params::_rightEditBoundAttr = "RightEditBound";
 const string Params::_variableNameAttr = "VariableName";
@@ -92,6 +93,8 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	maxColorEditBounds = 0;
 	minOpacEditBounds = 0;
 	maxOpacEditBounds = 0;
+	local = true;
+	enabled = false;
 }
 const std::string& Params::paramName(Params::ParamsBaseType type){
 	return GetDefaultParams(type)->getShortName();
@@ -542,7 +545,7 @@ map <int, vector<Params*> >* Params::cloneAllParamsInstances(int winnum){
 		vector<Params*> *paramsVec = new vector<Params*>;
 		for (int j = 0; j<GetNumParamsInstances(i,winnum); j++){
 			Params* p = GetParamsInstance(i,winnum,j);
-			paramsVec->push_back(p->deepCopy());
+			paramsVec->push_back(p->deepCopy(0));
 		}
 		(*winParamsMap)[i] = *paramsVec;
 	}
@@ -555,7 +558,7 @@ vector <Params*>* Params::cloneAllDefaultParams(){
 	defaultParams->push_back(0); //don't use position 0
 	for (int i = 1; i<= GetNumParamsClasses(); i++){
 		Params* p = GetDefaultParams(i);
-		defaultParams->push_back(p->deepCopy());
+		defaultParams->push_back(p->deepCopy(0));
 	}
 	return (defaultParams);
 }

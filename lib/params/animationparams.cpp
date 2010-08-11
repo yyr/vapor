@@ -55,7 +55,7 @@ AnimationParams::~AnimationParams(){}
 
 
 //Currently nothing "deep" to copy:
-Params* AnimationParams::deepCopy(){
+Params* AnimationParams::deepCopy(ParamNode*){
 	return (Params*)new AnimationParams(*this);
 }
 

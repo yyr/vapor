@@ -379,6 +379,10 @@ createDefaultParams(int winnum){
 		Params::AppendParamsInstance(i,winnum,p);
 		Params::SetCurrentParamsInstanceIndex(i,winnum,0);
 		if (!p->isRenderParams())p->setLocal(false);
+		else if(DataStatus::getInstance()->getDataMgr()){
+			EventRouter* eRouter = getEventRouter(i);
+			eRouter->setEditorDirty((RenderParams*)p);
+		}
 	}
 	
 	
@@ -1485,7 +1489,7 @@ ParamNode* VizWinMgr::buildNode() {
 			}
 			for (int inst = 0; inst< getNumIsoInstances(i); inst++){
 				ParamNode* isoNode = Params::GetParamsInstance(Params::_isoParamsTag,i,inst)->buildNode();
-				if(isoNode) locals->AddChild(isoNode);
+				locals->AddChild(isoNode);
 			}
 			for (int inst = 0; inst< Params::GetNumParamsInstances(Params::_flowParamsTag,i); inst++){
 				ParamNode* flowNode = getFlowParams(i,inst)->buildNode();

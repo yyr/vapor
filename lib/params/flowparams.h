@@ -47,7 +47,7 @@ public:
 	
 	void setTab(FlowTab* tab); 
 	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy() {return (Params*)deepRCopy();}
+	virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
 	
 
 	// Reinitialize due to new Session:

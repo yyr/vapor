@@ -65,6 +65,18 @@ MapperFunctionBase(MapperFunctionBase::_mapperFunctionTag),
 }
 
 //----------------------------------------------------------------------------
+// Constructor for empty, default Mapper function
+//----------------------------------------------------------------------------
+MapperFunction::MapperFunction(const string& tag) : 
+MapperFunctionBase(tag),
+  _params(NULL)
+{	
+	// Delete ColorMapBase created by parent class
+	if (_colormap) delete _colormap;	
+ 
+	_colormap = new VColormap(NULL);
+}
+//----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction(RenderParams* p, int nBits) :
@@ -383,7 +395,7 @@ bool IsoControl::elementEndHandler(ExpatParseMgr* pm, int depth ,
 // Construct an XML node from the iso control
 //----------------------------------------------------------------------------
 
-ParamNode* IsoControl::buildNode(const string& tfname) 
+ParamNode* IsoControl::buildNode() 
 {
 	 // Construct the main node
   string empty;

@@ -39,7 +39,7 @@ public:
 	~AnimationParams();
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual Params* deepCopy();
+	virtual Params* deepCopy(ParamNode* n = 0);
 
 	virtual void restart();
 	static void setDefaultPrefs();

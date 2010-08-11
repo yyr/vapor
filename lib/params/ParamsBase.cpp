@@ -75,13 +75,29 @@ void ParamsBase::SetParent(
 	this->_rootParamNode = (ParamNode *) child;
 	this->_currentParamNode = _rootParamNode;
 }
-//Default copy constructor.  Copy the root paramNode
+//Default copy constructor.  Don't copy the paramnode
 ParamsBase::ParamsBase(const ParamsBase& pBase) :
-	_rootParamNode(pBase._rootParamNode)
+	ParsedXml(pBase)
 {
-	_currentParamNode = _rootParamNode;
+	_currentParamNode = _rootParamNode = 0;
 	_parseDepth = pBase._parseDepth;
 	_paramsBaseName = pBase._paramsBaseName;
+}
+//Default buildNode clones the ParamNodes but calls buildNode on Registered nodes
+ParamNode* ParamsBase::buildNode(){	
+
+	ParamNode* oldNode = GetRootNode();
+	ParamNode* newNode = oldNode->ShallowCopy();
+	for (int i=0; i<oldNode->GetNumChildren(); i++) {
+		ParamNode *child = oldNode->GetChild(i);
+		ParamNode *newChild;
+		if (child->GetParamsBase())
+			newChild = child->GetParamsBase()->buildNode();
+		else newChild = child->NodeCopy();
+		newNode->AddChild(newChild);
+	}
+	return newNode;
+
 }
 bool ParamsBase::elementStartHandler(
         ExpatParseMgr* pm, int depth, string& tag, const char ** attrs
@@ -119,12 +135,33 @@ bool ParamsBase::elementStartHandler(
 			pm->parseError("Invalid attribute : %s", *attrs);
 			return(false);
 		}
-		attrs++;
 
-		state->data_type = *attrs;
-		attrs++;
+		//See if this is a paramNode or paramsBase 
+		string type = *(attrs+1);
+		if ( type == ParamNode::_paramNodeAttr){
+			ParamNode* childNode = Push(tag);
+			return (childNode != 0);
+		} else if( type == ParamNode::_paramsBaseAttr){
+			//If it has "ParamsBase" attribute, then do similarly, but create an instance of the class associated with the tag.
+			ParamsBase* baseNode = CreateDefaultParamsBase(tag);
+			//Create a new child node
+			map <string, string> childattrs;
+			ParamNode *child = new ParamNode(tag, childattrs);
+			child->SetParamsBase(baseNode);
+			(void) _currentParamNode->AddChild(child);
+			_currentParamNode = child;
+	
+			pm->pushClassStack(baseNode);
+			//defer to the base node to do its own parsing:
+			baseNode->elementStartHandler(pm, depth, tag, attrs);
+			return (true);
+		} else {
+			attrs++;
+			state->data_type = *attrs;
+			attrs++;
 
-		state->has_data = 1;
+			state->has_data = 1;
+		}
 	}
 
     if (*attrs) {
@@ -174,8 +211,10 @@ bool ParamsBase::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 }
 
 //Default Push() creates a child node, that can then have its own data.
+//The ParamsBase is attached
 ParamNode *ParamsBase::Push(
-	string& name
+	string& name,
+	ParamsBase* pBase
 ) {
 
 
@@ -186,12 +225,14 @@ ParamNode *ParamsBase::Push(
 		ParamNode *child = _currentParamNode->GetChild(i);
 		if (child->Tag().compare(name) == 0) {
 			_currentParamNode = child;
+			_currentParamNode->SetParamsBase(pBase);
 			return(_currentParamNode);	// We're done
 		}
 	}
-
+	//Create a new child
 	map <string, string> attrs;
 	ParamNode *child = new ParamNode(name, attrs);
+	child->SetParamsBase(pBase);
 	(void) _currentParamNode->AddChild(child);
 	_currentParamNode = child;
 	return(_currentParamNode);
@@ -216,9 +257,12 @@ void ParamsBase::Clear() {
 	XmlNode *parent = _rootParamNode->GetParent();
 	string name = _rootParamNode->Tag();
 
+	//Delete all the existing children?
+	_rootParamNode->DeleteAll();
 	if (parent){
 		// Delete current root node
 		int nchildren = parent->GetNumChildren();
+		assert(nchildren <= 1);
 		for (int i=0; i<nchildren; i++) {
 			parent->DeleteChild((int)0);	// Should only be one childe
 		}

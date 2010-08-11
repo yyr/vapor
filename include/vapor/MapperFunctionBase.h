@@ -179,8 +179,8 @@ public:
 	// except for specifying separate color and opacity bounds,
 	// and not having a name attribute
     //
-	virtual void refreshNode() {setRootParamNode(buildNode(""));}
-	virtual ParamNode* buildNode(const string& tfname); 
+	
+	virtual ParamNode* buildNode(); 
 
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
                                      std::string&, const char **);

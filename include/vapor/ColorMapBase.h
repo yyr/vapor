@@ -89,7 +89,7 @@ public:
                                    const char **attribs);
   virtual bool elementEndHandler(ExpatParseMgr*, int depth, std::string &tag);
  
-
+	
 protected:
 
   int leftIndex(float val);

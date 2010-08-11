@@ -62,7 +62,7 @@ public:
 	const std::string& getShortName() {return _shortName;}
 	static ParamsBase* CreateDefaultInstance() {return new DvrParams(-1);}
 	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy() {return (Params*)deepRCopy();}
+	virtual Params* deepCopy(ParamNode* = 0) {return (Params*)deepRCopy();}
 	
 	void setNumBits(int val) {numBits = val;}
 	int getNumBits() {return numBits;}

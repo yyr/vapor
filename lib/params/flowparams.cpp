@@ -1646,7 +1646,7 @@ buildNode() {
 
 	//Create a mapper function node, add it as child
 	if(mapperFunction) {
-		ParamNode* mfNode = mapperFunction->buildNode(empty);
+		ParamNode* mfNode = mapperFunction->buildNode();
 		graphicNode->AddChild(mfNode);
 	}
 	

@@ -64,8 +64,9 @@ const string TransferFunction::_tfNameTag = "Name";
 //----------------------------------------------------------------------------
 // Constructor for empty, default transfer function
 //----------------------------------------------------------------------------
-TransferFunction::TransferFunction() : MapperFunction()
+TransferFunction::TransferFunction() : MapperFunction(_transferFunctionTag)
 {	
+	
 }
 
 //----------------------------------------------------------------------------
@@ -115,6 +116,15 @@ TransferFunction::~TransferFunction()
 
 ParamNode* TransferFunction::buildNode(const string& tfname) 
 {
+	ParamNode* node = buildNode();
+	if (!tfname.empty())
+	{
+		node->SetElementString(_tfNameTag,tfname);
+	}
+	return node;
+}
+ParamNode* TransferFunction::buildNode() 
+{
   // Construct the main node
   string empty;
   std::map <string, string> attrs;
@@ -135,10 +145,6 @@ ParamNode* TransferFunction::buildNode(const string& tfname)
 	mainNode->SetElementDouble(_leftBoundTag, (double) getMinMapValue());
 	mainNode->SetElementDouble(_rightBoundTag, (double) getMaxMapValue());
 	mainNode->SetElementLong(_opacityCompositionTag,(long)getOpacityComposition());
-	if (!tfname.empty())
-	{
-		mainNode->SetElementString(_tfNameTag,tfname);
-	}
 
 
   //
@@ -173,6 +179,9 @@ TransferFunction* TransferFunction::loadFromFile(ifstream& is,
   ExpatParseMgr* parseMgr = new ExpatParseMgr(newTF);
   parseMgr->parse(is);
   delete parseMgr;
+  ParamNode* pNode = newTF->buildNode();
+  newTF->SetRootParamNode(pNode);
+  pNode->SetParamsBase(newTF);
   return newTF;
 }
 
@@ -182,7 +191,7 @@ TransferFunction* TransferFunction::loadFromFile(ifstream& is,
 bool TransferFunction::saveToFile(ofstream& ofs)
 {
   const std::string emptyString;
-  ParamNode* rootNode = buildNode(emptyString);
+  ParamNode* rootNode = buildNode();
 
   ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" 
       << endl;

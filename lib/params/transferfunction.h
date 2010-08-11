@@ -45,6 +45,7 @@ public:
 	TransferFunction();
 	TransferFunction(RenderParams* p, int nBits=8);
 	TransferFunction(const MapperFunctionBase &mapper);
+	TransferFunction(const ParamsBase* parent);
 	virtual ~TransferFunction();
 	static ParamsBase* CreateDefaultInstance(){return new TransferFunction();}
 
@@ -80,6 +81,7 @@ public:
     static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 
 	virtual ParamNode* buildNode(const string& tfname);
+	virtual ParamNode* buildNode();
 	
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 
@@ -88,6 +90,19 @@ public:
 
 	//Transfer function tag is visible to session 
 	static const string _transferFunctionTag;
+	virtual void hookup(RenderParams* p, int cvar, int ovar){
+		_params = p;
+		colorVarNum = cvar;
+		opacVarNum = ovar; 
+		if(_colormap)((VColormap*)_colormap)->setMapper(this);
+		if(_opacityMaps.size()>0) ((OpacityMap*)_opacityMaps[0])->setMapper(this);
+	}
+	virtual TransferFunction* deepCopy(ParamNode* newRoot = 0){
+		TransferFunction* tf = new TransferFunction(*this);
+		tf->SetRootParamNode(newRoot);
+		if(newRoot) newRoot->SetParamsBase(tf);
+		return tf;
+	}
 	
 protected:
 

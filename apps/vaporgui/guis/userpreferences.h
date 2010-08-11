@@ -56,7 +56,7 @@ public:
 	void applyToState();
 	void getTextChanges();
 	static bool saveToFile(ofstream& ofs );
-	static ParamNode* buildNode(const string& tfname); 
+	static ParamNode* buildNode(); 
 
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
                                      std::string&, const char **);

@@ -67,7 +67,7 @@ const string MapperFunctionBase::_colorControlPointTag = "ColorControlPoint";
 // Constructor for empty, default Mapper function
 //----------------------------------------------------------------------------
 MapperFunctionBase::MapperFunctionBase(const string& name) :
-	ParamsBase(name)
+	ParamsBase(0, name)
 {	
 	
 	previousClass = 0;
@@ -421,7 +421,7 @@ bool MapperFunctionBase::isOpaque()
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
 
-ParamNode* MapperFunctionBase::buildNode(const string& tfname) 
+ParamNode* MapperFunctionBase::buildNode() 
 {
 // Construct the main node
   string empty;

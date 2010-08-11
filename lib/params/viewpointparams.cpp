@@ -76,7 +76,7 @@ ViewpointParams::ViewpointParams(int winnum): Params(winnum, Params::_viewpointP
 	
 }
 Params* ViewpointParams::
-deepCopy(){
+deepCopy(ParamNode*){
 	ViewpointParams* p = new ViewpointParams(*this);
 	p->currentViewpoint = new Viewpoint(*currentViewpoint);
 	p->homeViewpoint = new Viewpoint(*homeViewpoint);

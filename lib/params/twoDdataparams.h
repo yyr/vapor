@@ -50,7 +50,7 @@ public:
 	static ParamsBase* CreateDefaultInstance() {return new TwoDDataParams(-1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy() {return (Params*)deepRCopy();}
+	virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
 	
 	virtual bool twoDIsDirty(int timestep) {
 		return (!twoDDataTextures || twoDDataTextures[timestep] == 0);

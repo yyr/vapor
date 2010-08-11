@@ -44,7 +44,8 @@ public:
 	RegionParams(int winnum);
 	
 	~RegionParams();
-	virtual Params* deepCopy();
+	virtual Params* deepCopy(ParamNode* n = 0);
+	
 	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
 	const std::string& getShortName() {return _shortName;}
 	//Method to calculate the read-only region info that is displayed in the regionTab

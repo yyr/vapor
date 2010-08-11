@@ -31,6 +31,7 @@ using namespace VAPoR;
 using namespace VetsUtil;
 const string ParamNode::_typeAttr= "Type";
 const string ParamNode::_paramsBaseAttr= "ParamsBase";
+const string ParamNode::_paramNodeAttr= "ParamNode";
 
 ParamNode::ParamNode(
 	const string &tag, const map <string, string> &attrs, 
@@ -40,14 +41,31 @@ ParamNode::ParamNode(
 	_paramsBase = 0;
 	SetClassName("ParamNode");
 }
+ParamNode::ParamNode(
+	const string &tag, 
+	size_t numChildrenHint
+	) : XmlNode(tag, numChildrenHint){
+	_paramsBase = 0;
+	pair<string,string> mapval(_typeAttr,_paramNodeAttr);
+	Attrs().insert(mapval);
+}
 
+//Clone all children, and have them clone their paramsBases.
+//Don't touch this' ParamsBase
 ParamNode* ParamNode::deepCopy()
-	
 {
-	ParamNode* copyNode = new ParamNode(*this);
-	//If there's a paramsBase, have it clone itself, but not its rootNode
-	if(_paramsBase) copyNode->_paramsBase = _paramsBase->deepCopy(copyNode);
-	else copyNode->_paramsBase = 0;
+	ParamNode* copyNode = ShallowCopy();
+	for (int i=0; i<GetNumChildren(); i++) {
+		ParamNode *child = GetChild(i);
+		
+		ParamNode *newchild = child->deepCopy();
+		if (child->GetParamsBase()){
+			newchild->SetParamsBase(child->GetParamsBase()->deepCopy(newchild));
+			newchild->GetParamsBase()->SetRootParamNode(newchild);
+		}
+		else newchild->SetParamsBase(0);
+		copyNode->AddChild(newchild);
+	}
 	return copyNode;
 }
 //copy constructor clones itself, calls deepCopy on children
@@ -55,15 +73,38 @@ ParamNode::ParamNode(const ParamNode &node) :
 	XmlNode()
 {
 	*this = node;
-	this->DeleteAll();
+	this->ClearChildren();
 	for (int i=0; i<node.GetNumChildren(); i++) {
 		ParamNode *child = node.GetChild(i);
 		ParamNode *newchild = child->deepCopy();
 		this->AddChild(newchild);
 	}
 }
+ParamNode* ParamNode::ShallowCopy(){
+	ParamNode* newNode = new ParamNode(Tag(),Attrs());
+	newNode->_longmap = _longmap;
+	newNode->_doublemap = _doublemap;
+	newNode->_stringmap = _stringmap;
+	newNode->_paramsBase = 0;
+	return newNode;
+}
+//node copy constructor clones ParamNode structure, calls buildNode to construct ParamNodes associated with ParamBase 
+ParamNode* ParamNode::NodeCopy()
+{
+	ParamNode* newNode = ShallowCopy();
+	for (int i=0; i<GetNumChildren(); i++) {
+		ParamNode *child = GetChild(i);
+		ParamNode *newChild;
+		if (child->GetParamsBase())
+			newChild = child->GetParamsBase()->buildNode();
+		else newChild = child->NodeCopy();
+		newNode->AddChild(newChild);
+	}
+	return newNode;
+}
 ParamNode::~ParamNode() {
-
+	if (_paramsBase) 
+		delete _paramsBase;
 }
 
 
@@ -332,6 +373,7 @@ int ParamNode::AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase
 		return(-1);
 	}
 	XmlNode::AddChild(child);
+	child->SetParamsBase(associate);
 	assert( child->GetParamsBase() == associate); 
 	//child->SetParamsBase(associate);
 	child->Tag() = tag;
@@ -372,6 +414,17 @@ int ParamNode::DeleteNode(const vector<string> &tagpath){
 		pNode->DeleteAll();
 		delete pNode;
 		return 0;
+ }
+int ParamNode::ReplaceNode(const vector<string> &tagpath, ParamNode* newNode){
+		ParamNode* pNode = GetNode(tagpath);
+		if (!pNode) return -1;
+		XmlNode* parent = pNode->GetParent();
+		return parent->ReplaceChild(pNode, newNode);
+ }
+int ParamNode::ReplaceNode(const string &tag, ParamNode* newNode){
+		ParamNode* pNode = GetNode(tag);
+		if (!pNode) return -1;
+		return ReplaceChild(pNode, newNode);
  }
 
 ParamNode* ParamNode::GetNode(const vector<string>& tagpath){

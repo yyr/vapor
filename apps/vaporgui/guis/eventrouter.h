@@ -137,7 +137,7 @@ public:
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null
-	virtual void setEditorDirty(RenderParams*){assert(0);}
+	virtual void setEditorDirty(RenderParams*){}
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
 

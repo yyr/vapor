@@ -43,7 +43,7 @@ public:
 	virtual ~ViewpointParams();
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual Params* deepCopy();
+	virtual Params* deepCopy(ParamNode* n = 0);
 	
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in

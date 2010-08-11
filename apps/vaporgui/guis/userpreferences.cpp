@@ -826,7 +826,7 @@ void UserPreferences::requestSave(){
 }
 bool UserPreferences::
 saveToFile(ofstream& ofs ){
-	ParamNode* rootNode = buildNode("");
+	ParamNode* rootNode = buildNode();
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	if (MyBase::GetErrCode() != 0) {
@@ -881,7 +881,7 @@ showAllDefaults(){
 	
 }
 //Build the XML for user preferences, based on the state of the app
-ParamNode* UserPreferences::buildNode(const string& ){
+ParamNode* UserPreferences::buildNode(){
 	Session* ses = Session::getInstance();
 	string empty;
 	std::map <string, string> attrs;

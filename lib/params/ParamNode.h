@@ -54,6 +54,10 @@ public:
 	size_t numChildrenHint = 0
  );
 
+  ParamNode(
+	const string &tag, 
+	size_t numChildrenHint = 0
+	);
  virtual ParamNode *Construct(
 	const string &tag, const map<string, string> &attrs,
 	size_t numChildrenHint = 0
@@ -66,8 +70,11 @@ public:
  //! \param[in] pn ParamNode instance from which to construct a copy
  //!
  ParamNode(const ParamNode &pn);
+
+ ParamNode* NodeCopy();
+ ParamNode* ShallowCopy();
  
- virtual ParamNode *Clone() {return new ParamNode(*this); };
+ 
  //! Like copy constructor for the ParamNode class, but
  //! in addition to cloning the child nodes in xml hierarchy,
  //! also clones the ParamsBase instances that are referenced
@@ -79,9 +86,11 @@ public:
  //!
 
  
- virtual ParamNode* deepCopy();
+ virtual ParamNode* deepCopy() ;
 
- ~ParamNode();
+ virtual ~ParamNode();
+
+ 
  //! Set all the flags dirty (or clean)
  //!
  //! This method is useful if it is necessary to
@@ -405,6 +414,28 @@ public:
  //
  ParamNode *GetNode(const string &tag) const {return((ParamNode *) XmlNode::GetChild(tag));}
 
+ 
+ //! Replace the indicated child node based on a sequence of tags
+ //!
+ //! Return -1 if child does not exist
+ //! \param[in] tagpath Sequence of nodes to specified child
+ //! \param[in] newNode ParamNode to install
+ //! \retval child Returns the indicated child, or NULL if the child
+ //! could does not exist
+ //
+ int ReplaceNode(const vector<string> &tagpath, ParamNode* newNode);
+
+ //! Replace the indicated child node. 
+ //!
+ //! Return 0 if successful. Return -1 if the child 
+ //! does not exist.
+ //! If child has a paramsBase instance, it is deleted.
+ //! \param[in] tag Name of the child node to replace
+ //! \param[in] newNode ParamNode to install
+ //! \retval child Returns 0 if successful
+ //
+ int ReplaceNode(const string &tag, ParamNode* newNode);
+
  //! Delete the indicated child node and all its descendants. 
  //!
  //! Returns -1 if the child 
@@ -414,8 +445,6 @@ public:
  //
  int DeleteNode(const string &tag);
 		
- 
-
  //! Delete the indicated child node and all its descendants, based
  //! on a path to the child
  //!
@@ -526,9 +555,12 @@ public:
  //
 ParamsBase* GetParamsBase() {return _paramsBase;}
 static const string _paramsBaseAttr;
+static const string _paramNodeAttr;
 protected:
  map <string, vector <DirtyFlag *> > _dirtyFlags;
  static const string _typeAttr;
+ 
+ 
  vector<long> longvec;
  vector<double>doublevec;
 

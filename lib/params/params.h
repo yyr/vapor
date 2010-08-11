@@ -168,6 +168,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _localAttr;
 	static const string _numVariablesAttr;
 	static const string _variableTag;
+	static const string _variablesTag;
 	static const string _leftEditBoundAttr;
 	static const string _rightEditBoundAttr;
 	static const string _variableNumAttr;
@@ -181,18 +182,10 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
 	//
-	virtual Params* deepCopy() = 0;
+	virtual Params* deepCopy(ParamNode* nd = 0) = 0;
 
 	virtual void restart() = 0;
-	//This version of deepCopy should NOT clone the xml tree.
-	//In fact it should never be called!
-	virtual Params* deepCopy(ParamNode* pNode){
-		assert(0);
-		Params* p = deepCopy();
-		p->setRootParamNode(pNode);
-		pNode->SetParamsBase(p);
-		return p;
-	}
+	
 	
 	int getVizNum() {return vizNum;}
 	virtual void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
@@ -328,16 +321,16 @@ public:
 	float getMinColorMapBound();	
 	float getMaxColorMapBound(); 
 	
-	void setMinColorEditBound(float val, int var) {
+	virtual void setMinColorEditBound(float val, int var) {
 		minColorEditBounds[var] = val;
 	}
-	void setMaxColorEditBound(float val, int var) {
+	virtual void setMaxColorEditBound(float val, int var) {
 		maxColorEditBounds[var] = val;
 	}
-	float getMinColorEditBound(int var) {
+	virtual float getMinColorEditBound(int var) {
 		return minColorEditBounds[var];
 	}
-	float getMaxColorEditBound(int var) {
+	virtual float getMaxColorEditBound(int var) {
 		return maxColorEditBounds[var];
 	}
 	//And opacity:

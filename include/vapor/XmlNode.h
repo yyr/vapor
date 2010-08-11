@@ -66,7 +66,10 @@ public:
 	const string &tag, const map<string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
-
+XmlNode(
+	const string &tag, 
+	size_t numChildrenHint = 0
+ );
  XmlNode() {_objInitialized = false;}
  virtual XmlNode *Construct(
 	const string &tag, const map<string, string> &attrs, 
@@ -353,6 +356,11 @@ virtual int SetElementString(
  //! 
  //
  virtual void DeleteAll();
+//!
+ //! Clear the children, but don't delete them. 
+ //! 
+ //
+ virtual void ClearChildren() {_children.clear();}
 
  //! Replace the indicated child node with specified new child node
  //!

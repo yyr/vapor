@@ -36,6 +36,8 @@ public:
   virtual float maxValue() const;      // Data Coordinates
   virtual void  maxValue(float value); // Data Coordinates
 
+  void setMapper(MapperFunctionBase* m) {_mapper = m;}
+
 protected:
 
 

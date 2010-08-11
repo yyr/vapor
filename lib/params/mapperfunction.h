@@ -42,21 +42,24 @@ class PARAMS_API MapperFunction : public MapperFunctionBase
 
 public:
 	MapperFunction();
+	MapperFunction(const string& tag);
 	MapperFunction(RenderParams* p, int nBits = 8);
 	MapperFunction(const MapperFunction &mapper);
 	MapperFunction(const MapperFunctionBase &mapper);
 	static ParamsBase* CreateDefaultInstance(){return new MapperFunction();}
 
 	virtual ~MapperFunction();
-	virtual MapperFunction* deepCopy(ParamNode* newRoot){
+	virtual MapperFunction* deepCopy(ParamNode* newRoot = 0){
 		MapperFunction* mf = new MapperFunction(*this);
-		mf->setRootParamNode(newRoot);
-		newRoot->SetParamsBase(mf);
+		mf->SetRootParamNode(newRoot);
+		if(newRoot) newRoot->SetParamsBase(mf);
 		return mf;
 	}
 
 	void setParams(RenderParams* p) { _params = p; }
 	RenderParams* getParams()       { return _params; }
+	
+
 
     //
     // Function values
@@ -88,12 +91,18 @@ public:
 	IsoControl(RenderParams* p, int nBits = 8);
 	//Copy constructor
 	IsoControl(const IsoControl &mapper);
+	virtual IsoControl* deepCopy(ParamNode* newRoot = 0){
+		IsoControl* mf = new IsoControl(*this);
+		mf->SetRootParamNode(newRoot);
+		if(newRoot) newRoot->SetParamsBase(mf);
+		return mf;
+	}
 	static ParamsBase* CreateDefaultInstance(){return new IsoControl();}
 	virtual ~IsoControl();
 	void setIsoValue(double val){isoValue = val;}
 	double getIsoValue(){return isoValue;}
 	
-	virtual ParamNode* buildNode(const string&);
+	virtual ParamNode* buildNode();
 	void setMinHistoValue(float val){setMinOpacMapValue(val);}
 	void setMaxHistoValue(float val){setMaxOpacMapValue(val);}
 	float getMinHistoValue() {return getMinOpacMapValue();}

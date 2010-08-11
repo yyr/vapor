@@ -193,7 +193,11 @@ void MappingFrame::setMapperFunction(MapperFunction *mapper)
 
   if (_colorMappingEnabled)
   {
-    _colorbarWidget->setColormap(_mapper ? _mapper->getColormap() : NULL);
+	  if (_mapper) {
+		  _mapper->getColormap()->setMapper(_mapper);
+		  _colorbarWidget->setColormap(_mapper->getColormap());
+	  } else 
+		_colorbarWidget->setColormap(NULL);
   }
   
   updateParams();

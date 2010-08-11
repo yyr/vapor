@@ -49,7 +49,28 @@ XmlNode::XmlNode(
 
 	_objInitialized = 1;
 }
+XmlNode::XmlNode(
+	const string &tag,
+	size_t numChildrenHint
+) {
+	_objInitialized = 0;
 
+	SetClassName("XmlNode");
+
+	_tag = tag;
+	_attrmap = *(new std::map<string,string>);
+
+	_emptyLongVec.clear();
+	_emptyDoubleVec.clear();
+	_emptyString.clear();
+	_asciiLimit = 1024;
+	_parent = NULL;
+	_errOnMissing = true;
+
+	if (numChildrenHint) _children.reserve(numChildrenHint);
+
+	_objInitialized = 1;
+}
 
 XmlNode::XmlNode(const XmlNode &node) 
 {
@@ -314,6 +335,7 @@ int XmlNode::ReplaceChild(XmlNode* prevChildNode, XmlNode* newChildNode){
 		if (node == prevChildNode) {
 			delete node;
 			_children[index] = newChildNode;
+			newChildNode->_parent = this;
 			return index;
 		}
 	}

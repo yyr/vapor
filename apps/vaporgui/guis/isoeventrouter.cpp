@@ -233,7 +233,6 @@ void IsoEventRouter::updateTab(){
 		mapComboVarNum = 1+DataStatus::getInstance()->getActiveVarNum3D(varname);
 	}
 		
-	
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->getMapperFunc()) {
@@ -285,6 +284,10 @@ void IsoEventRouter::updateTab(){
 	
 	if(isoParams->getIsoControl()){
 		assert(isoParams->getIsoControl()->getParams() == isoParams);
+		Params* p = isoParams->getIsoControl()->getParams();
+		Params* p1 = isoParams;
+		if(p != p1)
+			assert(isoParams->getIsoControl()->getParams() == isoParams);
 		isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	}
 	
@@ -391,6 +394,7 @@ void IsoEventRouter::isoLoadInstalledTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::_isoParamsTag);
 	if (iParams->GetMapVariableNum() < 0) return;
 	TransferFunction* tf = (TransferFunction*)iParams->getMapperFunc();
+	assert(tf);
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
@@ -398,6 +402,8 @@ void IsoEventRouter::isoLoadInstalledTF(){
 	tf = (TransferFunction*)iParams->getMapperFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
+	iParams->SetMinMapEdit(iParams->GetMapVariableNum(), minb);
+	iParams->SetMaxMapEdit(iParams->GetMapVariableNum(), maxb);
 	setEditorDirty();
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
 	if (iParams->isEnabled())
@@ -425,6 +431,8 @@ sessionLoadTF(QString* name){
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
 	int varNum = iParams->GetMapVariableNum();
+	tf->SetRootParamNode(new ParamNode(TransferFunction::_transferFunctionTag));
+	tf->GetRootNode()->SetParamsBase(tf);
 	iParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, iParams);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
@@ -1061,6 +1069,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 			VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
 			VizWinMgr::getInstance()->setClutDirty(iParams);
 			VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit, true);
+			VizWinMgr::getInstance()->setDatarangeDirty(iParams);
 		}
 	}
 }

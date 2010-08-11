@@ -71,7 +71,7 @@ RegionParams::RegionParams(int winnum): Params(winnum, Params::_regionParamsTag)
 	restart();
 }
 Params* RegionParams::
-deepCopy(){
+deepCopy(ParamNode* ){
 	//Just make a shallow copy, but duplicate the extentsMap
 	//
 	RegionParams* p = new RegionParams(*this);

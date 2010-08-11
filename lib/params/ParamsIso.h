@@ -76,8 +76,9 @@ public:
  virtual int getNumRefinements() {
 	 return GetRefinementLevel();
  }
+ 
  virtual RenderParams* deepRCopy();
- virtual Params* deepCopy() {return (Params*)deepRCopy();}
+ virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
 
  virtual int getSessionVarNum(){
 	 return DataStatus::getInstance()->getSessionVariableNum(
@@ -98,6 +99,49 @@ public:
 //Obtain the transfer function
 virtual MapperFunction* getMapperFunc(); 
 IsoControl* getIsoControl();
+TransferFunction* GetTransFunc(int sesVarNum);
+IsoControl* GetIsoControl(int sesVarNum);
+
+int GetNumVariables(){
+	return(GetRootNode()->GetNode(_variablesTag)->GetNumChildren());
+}
+void SetMinMapEdit(int var, float val){
+	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	vector<double> newvec(vec);
+	newvec[1] = val;
+	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+}
+void SetMaxMapEdit(int var, float val){
+	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	vector<double> newvec(vec);
+	newvec[3] = val;
+	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+}
+void SetMinIsoEdit(int var, float val){
+	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	vector<double> newvec(vec);
+	newvec[0] = val;
+	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+}
+void SetMaxIsoEdit(int var, float val){
+	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	vector<double> newvec(vec);
+	newvec[2] = val;
+	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+}
+float GetMinMapEdit(int var){
+	return (GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[1]);
+}
+float GetMaxMapEdit(int var){
+	return (GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[3]);
+}
+float GetMinIsoEdit(int var){
+	return(GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[0]);
+}
+float GetMaxIsoEdit(int var){
+	return(GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[2]);
+}
+
  //Virtual methods to set map bounds.  Get() is in parent class
 //this causes it to be set in the mapperfunction (transfer function)
 virtual void setMinColorMapBound(float val);
@@ -108,28 +152,26 @@ virtual void setMaxOpacMapBound(float val);
 virtual bool isOpaque();
 
 
-void setMinMapEditBound(float val) {
-	setMinColorEditBound(val, GetMapVariableNum());
-	setMinOpacEditBound(val, GetMapVariableNum());
+virtual void setMinOpacEditBound(float val, int sesvarnum) {
+	SetMinMapEdit(sesvarnum,val);
 }
-void setMaxMapEditBound(float val) {
-	setMaxColorEditBound(val, GetMapVariableNum());
-	setMaxOpacEditBound(val, GetMapVariableNum());
+virtual void setMaxOpacEditBound(float val, int sesvarnum) {
+	SetMaxMapEdit(sesvarnum,val);
 }
-float getMinMapEditBound() {
-	return minColorEditBounds[GetMapVariableNum()];
+virtual float getMinOpacEditBound(int sesvarnum) {
+	return GetMinMapEdit(sesvarnum);
 }
-float getMaxMapEditBound() {
-	return maxColorEditBounds[GetMapVariableNum()];
+virtual float getMaxOpacEditBound(int sesvarnum) {
+	return GetMaxMapEdit(sesvarnum);
 }
-void setMinIsoEditBound(float val) {minIsoEditBounds[GetIsoVariableNum()] = val;} 
-void setMaxIsoEditBound(float val) {maxIsoEditBounds[GetIsoVariableNum()] = val;}  
+void setMinIsoEditBound(float val) {SetMinIsoEdit(GetIsoVariableNum(),val);} 
+void setMaxIsoEditBound(float val) {SetMaxIsoEdit(GetIsoVariableNum(),val);} 
 
 float getMinIsoEditBound() {
-	return minIsoEditBounds[GetIsoVariableNum()];
+	return GetMinIsoEdit(GetIsoVariableNum());
 }
 float getMaxIsoEditBound() {
-	return maxIsoEditBounds[GetIsoVariableNum()];
+	return GetMaxIsoEdit(GetIsoVariableNum());
 }
  void SetIsoValue(double value);
  double GetIsoValue();
@@ -147,10 +189,10 @@ float getMaxIsoEditBound() {
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
 
- bool getIsoEditMode(){return isoEditMode;}
- bool getMapEditMode(){return mapEditMode;}
- void setIsoEditMode(bool val){isoEditMode = val;}
- void setMapEditMode(bool val){mapEditMode = val;}
+ bool getMapEditMode();
+ bool getIsoEditMode();
+ void setMapEditMode(bool val);
+ void setIsoEditMode(bool val);
  float getOpacityScale(); 
  void setOpacityScale(float val); 
 
@@ -173,10 +215,12 @@ float getMaxIsoEditBound() {
  int GetNumBits();
  void RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
 int GetMapVariableNum(){
-	return DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
+	//Note:  -1 is returned if there is no match.  That indicates no mapping.
+	return  DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
 }
 int GetIsoVariableNum(){
-	return DataStatus::getInstance()->getSessionVariableNum(GetIsoVariableName());
+	int varnum = DataStatus::getInstance()->getSessionVariableNum(GetIsoVariableName());
+	if (varnum < 0) return 0; else return varnum;
 }
  void SetIsoVariableName(const string& varName);
  const string& GetIsoVariableName();
@@ -185,7 +229,7 @@ int GetIsoVariableNum(){
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
 
- virtual ParamNode* buildNode();
+ 
  float (&getClut())[256][4] {
 		refreshCtab();
 		return ctab;
@@ -211,7 +255,9 @@ protected:
 static const string _shortName;
 
 private:
- 
+ static const string _editBoundsTag;
+ static const string _mapEditModeTag;
+ static const string _isoEditModeTag;
  static const string _NormalOnOffTag;
  static const string _ConstantColorTag;
 
@@ -224,19 +270,13 @@ private:
  static const string _MapVariableNameTag;
  static const string _NumBitsTag;
 
- float* minIsoEditBounds;
- float* maxIsoEditBounds;
 
  float _constcolorbuf[4];
  float _histoBounds[2];
  float _mapperBounds[2];
- bool isoEditMode;
- bool mapEditMode;
+
  
- std::vector<IsoControl*> isoControls;
- std::vector<TransferFunction*> transFunc;
  int parsingVarNum;
- int numSessionVariables;
  float ctab[256][4];
  
  // The noIsoControlTags flag indicates that the last time we parsed a ParamsIso there
