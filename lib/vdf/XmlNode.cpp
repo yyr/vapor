@@ -405,7 +405,8 @@ int XmlNode::HasChild(const string &tag) {
 
 	for (size_t i = 0; i<_children.size(); i++) {
 		if (! HasChild(i)) return(0);
-		assert ((child = GetChild(i)) != NULL);
+		child = GetChild(i);
+		assert (child != NULL);
 	
 		if (StrCmpNoCase(child->_tag, tag) == 0) return(1);
 	}
