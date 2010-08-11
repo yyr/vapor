@@ -15,7 +15,7 @@ FILES = \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite
 
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
-	TransferFunctionLite tfinterpolator ParamsBase
+	TransferFunctionLite tfinterpolator ParamsBase ParamNode
 
 
 ifeq ($(ARCH),WIN32)
