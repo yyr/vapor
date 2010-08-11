@@ -24,7 +24,7 @@
 #include <string>
 #include "vapor/MyBase.h"
 #include "assert.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "vapor/ParamsBase.h"
 #include "params.h"
 #include "ParamsIso.h"

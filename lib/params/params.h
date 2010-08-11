@@ -23,7 +23,7 @@
 
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include <qwidget.h>
 #include "assert.h"
 #include "vaporinternal/common.h"

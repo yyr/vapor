@@ -44,7 +44,7 @@
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrLayered.h"
 #include "vapor/XmlNode.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 //#include "glutil.h"
 
 

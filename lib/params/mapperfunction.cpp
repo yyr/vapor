@@ -42,7 +42,7 @@
 #include "mapperfunction.h"
 #include "params.h"
 #include "ParamsIso.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;

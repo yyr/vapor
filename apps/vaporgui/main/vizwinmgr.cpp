@@ -84,7 +84,7 @@
 
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 
 using namespace VAPoR;

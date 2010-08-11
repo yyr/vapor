@@ -13,7 +13,7 @@
 #include <vector>
 #include <algorithm>
 #include <vapor/XmlNode.h>
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "OpacityMap.h"
 #include "vapor/MapperFunctionBase.h"
 

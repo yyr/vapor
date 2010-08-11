@@ -33,7 +33,7 @@
 #include "datastatus.h" 
 #include "params.h"
 #include "animationparams.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 using namespace VAPoR;
 const string AnimationParams::_shortName = "Animation";

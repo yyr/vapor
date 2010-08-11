@@ -29,7 +29,7 @@
 #include "vapor/DataMgrLayered.h"
 #include "vapor/DataMgrFactory.h"
 #include "vapor/LayeredIO.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 #include "vizwinmgr.h"
 #include "mainform.h"

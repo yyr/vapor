@@ -60,7 +60,7 @@
 #define ParamsBase_H
 
 #include "vapor/XmlNode.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "vapor/ExpatParseMgr.h"
 #include "assert.h"
 #include "vaporinternal/common.h"

@@ -39,7 +39,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/ParamsBase.h>
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;

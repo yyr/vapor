@@ -34,7 +34,7 @@
 
 #include "vapor/MyBase.h"
 #include <vapor/XmlNode.h>
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>

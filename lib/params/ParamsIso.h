@@ -27,7 +27,7 @@
 
 
 #include "vapor/XmlNode.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "vapor/ExpatParseMgr.h"
 #include "params.h"
 #include "datastatus.h"

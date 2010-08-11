@@ -29,7 +29,7 @@
 #include "params.h"
 #include "mapperfunction.h"
 #include "glutil.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "vapor/DataMgr.h"
 #include "vapor/errorcodes.h"
 #include "viewpointparams.h"

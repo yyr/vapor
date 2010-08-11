@@ -24,7 +24,7 @@
 #include <cassert>
 #include "vapor/Base64.h"
 #include "vapor/errorcodes.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 #include "vapor/ParamsBase.h"
 
 using namespace VAPoR;

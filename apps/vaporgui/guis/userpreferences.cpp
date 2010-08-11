@@ -36,7 +36,7 @@
 #include "animationparams.h"
 #include "flowparams.h"
 #include "regionparams.h"
-#include "ParamNode.h"
+#include "vapor/ParamNode.h"
 
 #include "../images/fileopen.xpm"
 #include "messagereporter.h"
