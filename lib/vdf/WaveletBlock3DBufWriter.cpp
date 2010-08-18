@@ -95,7 +95,8 @@ int     WaveletBlock3DBufWriter::CloseVariable(
 
 	if (! is_open_c) return(0);
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	const size_t *bs = GetBlockSize();
 	if (slice_cntr_c != dim[2]) {
 		SetErrMsg("File closed before exactly %d slices written", dim[2]);
@@ -167,7 +168,8 @@ int	WaveletBlock3DBufWriter::WriteSlice(
 		return(-1);
 	}
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	if (slice_cntr_c >= (int)dim[2]) {
 		SetErrMsg("WriteSlice() must be invoked exactly %d times", dim[2]);
 		return(-1);

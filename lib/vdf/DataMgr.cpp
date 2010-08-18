@@ -588,7 +588,7 @@ int DataMgr::GetDataRange(
 	//
 	if (get_cached_data_range(ts, varname, range) == 0) return(0);
 
-	// Range isn't cache'd. Need to read it from the file
+	// Range isn't cache'd. Need to get it from derived class
 	//
 	rc = OpenVariableRead(ts, varname, 0,0);
 	if (rc < 0) {
@@ -600,15 +600,103 @@ int DataMgr::GetDataRange(
 	}
 
 	const float *r = GetDataRange();
+	if (r) {
+		range[0] = r[0];
+		range[1] = r[1];
 
-	range[0] = r[0];
-	range[1] = r[1];
+		// Use of []'s creates an entry in map
+		_dataRangeMinMap[ts][varname] = range[0];
+		_dataRangeMaxMap[ts][varname] = range[1];
 
+		CloseVariable();
+		return(0);
+	}
+	CloseVariable();
+
+	//
+	// Argh. Derived class doesn't know data range. Have to caculate it
+	// ourselves
+	//
+	size_t min[3], max[3];
+	size_t bmin[3], bmax[3];
+	rc = GetValidRegion(ts, varname, -1, min, max);
+	if (rc<0) return(-1);
+	MapVoxToBlk(min, bmin, -1);
+	MapVoxToBlk(max, bmax, -1);
+
+
+	VarType_T vtype = GetVarType(varname);
+
+	// See if region is already in cache. 
+	//
+	float *blks = (float *) get_region_from_cache(
+		ts, varname, -1, -1, DataMgr::FLOAT32, bmin, bmax, 0
+	);
+	
+	// If not in cache we need to read it
+	//
+	if (! blks) {
+
+		blks = (float *) alloc_region(
+			ts,varname,vtype, -1, -1, DataMgr::FLOAT32,bmin,bmax,0
+		);
+		if (! blks) return(-1);
+
+		rc = OpenVariableRead(ts, varname, -1,-1);
+		if (rc < 0) {
+			SetErrMsg(
+				"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
+				varname, ts, -1,-1
+			);
+			return(-1);
+		}
+
+		rc = BlockReadRegion(bmin, bmax, blks);
+		if (rc < 0) {
+			SetErrMsg(
+				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
+				varname, ts, -1, -1
+			);
+			(void) free_region(ts,varname,-1,-1,FLOAT32,bmin,bmax);
+		}
+		CloseVariable();
+	}
+
+	size_t bs[3];
+	GetBlockSize(bs, -1);
+
+	size_t size;
+	switch (vtype) {
+	case VAR2D_XY:
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]);
+		break;
+	case VAR2D_XZ:
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[2]);
+		break;
+	case VAR2D_YZ:
+		size = ((bmax[0]-bmin[0]+1)*bs[1]) * ((bmax[1]-bmin[1]+1)*bs[2]);
+		break;
+	case VAR3D:
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]) *
+			((bmax[2]-bmin[2]+1)*bs[2]);
+		break;
+	default: 
+		size = 0;
+	}
+
+	//
+	// Finally calculate the range. Note this code probably should crop
+	// the extents to the valid extents range returned by GetValidExtents()
+	//
+	range[0] = blks[0];
+	range[1] = blks[0];
+	for (size_t i=0; i<size; i++) {
+		if (blks[i] < range[0]) range[0] = blks[i];
+		if (blks[i] > range[1]) range[1] = blks[i];
+	}
 	// Use of []'s creates an entry in map
 	_dataRangeMinMap[ts][varname] = range[0];
 	_dataRangeMaxMap[ts][varname] = range[1];
-
-	CloseVariable();
 
 	return(0);
 }
@@ -1091,6 +1179,7 @@ Metadata::VarType_T DataMgr::GetVarType(const string &varname) const
 
  //Obtain the id for a given output variable, return -1 if it does not exist
 int DataMgr::getDerivedScriptId(const string& outvar) const{
+	if (! derived2DOutputMapPtr) return(-1);
 	map <int, vector<string> > :: const_iterator outIter = derived2DOutputMapPtr->begin();
 	while (outIter != derived2DOutputMapPtr->end()){
 		vector<string> vars = outIter->second;

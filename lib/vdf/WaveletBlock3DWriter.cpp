@@ -170,7 +170,9 @@ int	WaveletBlock3DWriter::WriteSlabs(
 	const size_t *bs = GetBlockSize();
 	size_t bdim[3];
 	GetDimBlk(bdim, GetNumTransforms());
-	const size_t *dim = GetDimension();
+
+	size_t dim[3];
+	GetDim(dim,-1);
 
 	// calculate the data value's range (min and max)
 	//

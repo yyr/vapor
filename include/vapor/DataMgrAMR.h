@@ -61,10 +61,6 @@ public:
 	AMRIO::GetBlockSize(bs, reflevel);
  }
 
- virtual const size_t *GetDimension() const {
-	return(AMRIO::GetDimension());
- };
-
  virtual int GetNumTransforms() const {
 	return(AMRIO::GetNumTransforms());
  };
@@ -107,16 +103,8 @@ public:
 	AMRIO::GetTSUserTimeStamp(ts,s);
  };
 
- virtual void   GetDim(size_t dim[3], int reflevel) {
-	return(AMRIO::GetDim(dim, reflevel));
- };
-
- virtual void   GetDimBlk(size_t bdim[3], int reflevel) {
-	return(AMRIO::GetDimBlk(bdim, reflevel));
- };
-
- virtual string GetMapProjection() const {
-	return(AMRIO::GetMapProjection());
+ virtual void   GetGridDim(size_t dim[3]) const {
+	return(AMRIO::GetGridDim(dim));
  };
 
  virtual string GetCoordSystemType() const {

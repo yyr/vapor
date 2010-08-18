@@ -112,7 +112,7 @@ public:
  //! \param[in] max Maximum region extents in voxel coordinates
  //! \param[in] region The volume subregion to write
  //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableWrite(), Metadata::GetDimension()
+ //! \sa OpenVariableWrite()
  //
  int	WriteRegion(
 	const float *region,

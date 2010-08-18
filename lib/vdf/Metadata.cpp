@@ -61,7 +61,8 @@ void Metadata::GetDim(
 
     int  ldelta = GetNumTransforms() - reflevel;
 
-    const size_t *maxdim = GetDimension();
+    size_t maxdim[3];
+	GetGridDim(maxdim);
 
     for (int i=0; i<3; i++) {
         dim[i] = maxdim[i] >> ldelta;
@@ -145,8 +146,8 @@ void	Metadata::MapUserToVox(
 	if (! extents.size()) extents = GetExtents();
 
 	vector <double> lextents = extents;
-	const size_t *maxdim = GetDimension();
-
+    size_t maxdim[3];
+	GetDim(maxdim, -1);
 
 	Metadata::GetDim(dim, reflevel);	
 	for(int i = 0; i<3; i++) {

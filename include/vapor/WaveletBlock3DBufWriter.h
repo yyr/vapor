@@ -99,7 +99,7 @@ public:
  //!
  //! \param[in] slice A slices of volume data
  //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableRead(), Metadata::GetDimension()
+ //! \sa OpenVariableRead()
  //!
  int	WriteSlice(const float *slice);
 

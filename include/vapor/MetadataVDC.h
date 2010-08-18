@@ -273,6 +273,10 @@ public:
 	for (int i=0; i<3; i++) bs[i] = _bs[i];
  }
 
+ virtual void GetGridDim(size_t dim[3]) const {
+	for (int i=0; i<3; i++) dim[i] = _dim[i];
+ }
+
  //! Returns the X,Y,Z coordinate dimensions of the data in grid coordinates
  //! \retval dim A three element vector containing the voxel dimension of 
  //! the data at its native resolution
@@ -644,7 +648,7 @@ public:
  //!
  //! \sa SetMapProjection()
  //
- const string GetMapProjection() const {
+ virtual string GetMapProjection() const {
 	return(_rootnode->GetElementString(_mapProjectionTag));
  };
 

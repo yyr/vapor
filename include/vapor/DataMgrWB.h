@@ -67,10 +67,6 @@ public:
 	WaveletBlock3DRegionReader::GetBlockSize(bs, reflevel);
  }
 
- virtual const size_t *GetDimension() const {
-	return(WaveletBlock3DRegionReader::GetDimension());
- };
-
  virtual int GetNumTransforms() const {
 	return(WaveletBlock3DRegionReader::GetNumTransforms());
  };
@@ -113,12 +109,8 @@ public:
 	WaveletBlock3DRegionReader::GetTSUserTimeStamp(ts,s);
  };
 
- virtual void   GetDim(size_t dim[3], int reflevel) {
-	return(WaveletBlock3DRegionReader::GetDim(dim, reflevel));
- };
-
- virtual void   GetDimBlk(size_t bdim[3], int reflevel) {
-	return(WaveletBlock3DRegionReader::GetDimBlk(bdim, reflevel));
+ virtual void   GetGridDim(size_t dim[3]) const {
+	return(WaveletBlock3DRegionReader::GetGridDim(dim));
  };
 
  virtual string GetMapProjection() const {

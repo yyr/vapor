@@ -66,10 +66,6 @@ public:
 	WaveCodecIO::GetBlockSize(bs, reflevel);
  }
 
- virtual const size_t *GetDimension() const {
-	return(WaveCodecIO::GetDimension());
- };
-
  virtual int GetNumTransforms() const {
 	return(WaveCodecIO::GetNumTransforms());
  };
@@ -116,12 +112,8 @@ public:
 	WaveCodecIO::GetTSUserTimeStamp(ts,s);
  };
 
- virtual void   GetDim(size_t dim[3], int reflevel) {
-	return(WaveCodecIO::GetDim(dim, reflevel));
- };
-
- virtual void   GetDimBlk(size_t bdim[3], int reflevel) {
-	return(WaveCodecIO::GetDimBlk(bdim, reflevel));
+ virtual void   GetGridDim(size_t dim[3]) const {
+	return(WaveCodecIO::GetGridDim(dim));
  };
 
  virtual string GetMapProjection() const {

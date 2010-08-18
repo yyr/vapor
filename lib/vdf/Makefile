@@ -11,7 +11,8 @@ FILES = \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	LayeredIO AMRIO  WRF Transpose DataMgr DataMgrWB DataMgrLayered vdf \
+	LayeredIO AMRIO  WRF WRFReader Transpose DataMgr DataMgrWB \
+	DataMgrLayered DataMgrWRF vdf \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
@@ -25,7 +26,7 @@ HEADER_FILES = \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	LayeredIO AMRIO  WRF DataMgr DataMgrWB DataMgrLayered \
+	LayeredIO AMRIO  WRF WRFReader DataMgr DataMgrWB DataMgrLayered DataMgrWRF \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \

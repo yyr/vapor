@@ -292,7 +292,8 @@ int WaveCodecIO::OpenVariableWrite(
 	}
 	_lod = lod;
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = dim[i]-1;
 		_validRegMax[i] = 0;	// impossible values
@@ -1197,7 +1198,8 @@ int WaveCodecIO::WriteSlice(
 	size_t bs_p[3];
 	_PackCoord(_vtype, bs, bs_p, 1);
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim,-1);
 	size_t dim_p[3];	// packed version of dim
 	_PackCoord(_vtype, dim, dim_p, 1);
 
@@ -1659,7 +1661,8 @@ int WaveCodecIO::_OpenVarWrite(
 	//
 	// Create a netCDF file for each refinement level
 	//
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	size_t bs[3]; 
 	GetBlockSize(bs, -1);
 

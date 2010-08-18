@@ -268,7 +268,7 @@ public:
  //!
  //! \param[in] slice A slices of volume data
  //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableRead(), Metadata::GetDimension()
+ //! \sa OpenVariableRead()
  //!
  virtual int WriteSlice(const float *slice);
 
@@ -282,7 +282,7 @@ public:
  //! \param[in] pad Boolean indicating whether padding should (true) or should
  //! not (false) take place
  //!
- //! \sa GetDimension(), GetBoundaryMode()
+ //! \sa GetBoundaryMode()
  //!
  virtual void SetBoundaryPadOnOff(bool pad) {
 	_pad = pad;

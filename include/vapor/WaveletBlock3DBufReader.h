@@ -102,7 +102,7 @@ public:
  //! available on disk.
  //! \param[out] slice The requested volume slice
  //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableRead(), Metadata::GetDimension()
+ //! \sa OpenVariableRead()
  //!
  //! ReadSlice returns 0 if the entire volume has been read.
  //

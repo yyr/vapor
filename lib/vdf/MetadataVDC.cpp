@@ -419,8 +419,11 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 		}
 	}
 
-	const size_t *dim = this->GetDimension();
-	const size_t *mdim = metadata.GetDimension();
+	size_t dim[3];
+	this->GetDim(dim, -1);
+
+	size_t mdim[3];
+	metadata.GetDim(mdim, -1);
 
 	for(int i=0; i<3; i++) {
 		if (dim[i] != mdim[i]) {

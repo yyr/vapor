@@ -5,6 +5,7 @@
 #define	_WRFReader_h_
 
 #include <vapor/MetadataWRF.h>
+#include <vapor/WRF.h>
 
 namespace VAPoR {
 
@@ -55,7 +56,7 @@ public:
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
  //! 
- //! \retval id Returns a file handle on success, and a negative value on 
+ //! \retval id Returns 0 on success, and a negative value on 
  //! failure. This method will fail if the netCDF file containing 
  //! \p varname at the given time step, \p timestep, can not be opened 
  //! for reading.
@@ -68,27 +69,23 @@ public:
 
  //! Close a currently opened variable.
  //!
- //! Close the variable currently opened for reading associated with 
- //! the file handle, \p handle.
- //!
- //! \param[in] handle An open file handle returned by OpenVariableRead()
+ //! Close the variable currently opened for reading. 
  //!
  //! \retval status A negative integer is returned on failure
  //!
  //! \sa OpenVariableRead()
  //
- virtual int CloseVariable(int handle);
+ virtual int CloseVariable();
 
  //! Read in and return the currently opened variable.
  //!
- //! This method reads the variable associated with the open
- //! file handle, \p handle, into the array pointed to by \p region. 
+ //! This method reads the currently opened variable 
+ //! into the array pointed to by \p region. 
  //! The entire 2D or 3D variable is copied to \p region. It is the caller's
  //! responsiblity to ensure \p region points to enough space for the 
  //! variable. The dimensions of the variable are given by 
  //! MetadataWRF::GetDimension().
  //!
- //! \param[in] handle An open file handle returned by OpenVariableRead()
  //! \param[in] region A pointer to sufficient space to contain the 2D or
  //! 3D variable.
  //!
@@ -97,14 +94,14 @@ public:
  //! \sa OpenVariableRead(), GetDimension(), GetVarType()
  //
  virtual int ReadVariable(
-	int handle, float *region
+	float *region
  );
 
 
  //! Read in and return a slice from the currently opened variable.
  //!
- //! This method reads a single slice of the variable associated with the open
- //! file handle, \p handle, into the array pointed to by \p region. 
+ //! This method reads a single slice of the currently opened variable 
+ //! into the array pointed to by \p region. 
  //! The slice is identified by \p z. For 3D variables \p z must be in 
  //! the range from 0
  //! to nz-1, where nz is the 3rd element of the vector returned by
@@ -115,7 +112,6 @@ public:
  //! the first two elements of the vector returned by 
  //! MetadataWRF::GetDimension().
  //!
- //! \param[in] handle An open file handle returned by OpenVariableRead()
  //! \param[in] z Index of the slice to read.
  //! \param[in] region A pointer to sufficient space to contain a slice
  //!
@@ -125,22 +121,8 @@ public:
  //! \sa OpenVariableRead(), GetDimension(), GetVarType()
  //
  virtual int ReadSlice(
-	int handle, int z, float *region
+	int z, float *region
  );
-
- virtual void InterpolateRegion(
-    float *region,          // Destination interpolated ROI
-    const float *elevBlks,  // Source elevation ROI
-    const float *varBlks,   // Source variable ROI
-    const size_t blkMin[3],
-    const size_t blkMax[3], // coords of native (layered grid)
-                            // ROI specified in blocks
-    size_t zmini,
-    size_t zmaxi,           // Z coords extents of interpolated ROI
-    float *lowVal,
-    float *highVal
- ) const;
-
 
  //! Returns true if the indicated data volume exists on disk
  //!
@@ -156,25 +138,23 @@ public:
  //! approximation level is 0 (zero). A value of -1 indicates the finest
  //! refinement level contained in the VDC.
  //
- virtual int    VariableExists(
-    size_t ts,
-    const char *varname
- ) const ;
+ virtual int    VariableExists( size_t ts, const char *varname) const; 
 
 private:
 
-	class wrf_file_t {
-	public:
-		int _ncid;
-		string _varname;
-		size_t _wrf_ts;
-		size_t _nx;
-		size_t _ny;
-		size_t _nz;
-		bool _in_use;
-	};
+ size_t _nx;
+ size_t _ny;
+ size_t _nz;
+ string _current_file;
+ string _current_var;
+ size_t _current_wrf_ts;
+ WRF *_wrf;
+ WRF::varFileHandle_t *_wrf_fh;
+ WRF::varFileHandle_t *_wrf_fh2;
+ double _grav;
+ float *_slice_buf;
 
-	vector <wrf_file_t> _openFiles;
+ int _WRFReader();
 
 };
 };

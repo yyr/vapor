@@ -537,7 +537,9 @@ int	WaveletBlock3DRegionWriter::_WriteRegion2D(
     size_t max3d[] = {0,0,0};
 	size_t volBMin3d[3], volBMax3d[3];
 	const size_t *bs = GetBlockSize();
-	const size_t *dim = GetDimension();
+
+	size_t dim[3];
+	GetDim(dim, -1);
 
 	switch (_vtype) {
 	case VAR2D_XY:

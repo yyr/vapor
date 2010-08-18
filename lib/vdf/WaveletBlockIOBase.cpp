@@ -173,7 +173,8 @@ int	WaveletBlockIOBase::OpenVariableWrite(
 	int min;
 	_vtype = GetVarType(varname);
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = 0;
 		_validRegMax[i] = dim[i]-1;
@@ -271,7 +272,8 @@ int WaveletBlockIOBase::open_var_write(
 	// Create a netCDF file for each refinement level
 	//
 	const size_t *bs = GetBlockSize();
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	for(int j=0; j<=_reflevel; j++) {
 		string path;
 		int rc;
@@ -426,7 +428,8 @@ int	WaveletBlockIOBase::OpenVariableRead(
 	_varName.assign(varname);
 	_reflevel = reflevel;
 
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 	for(int i=0; i<3; i++) {
 		_validRegMin[i] = 0;
 		_validRegMax[i] = dim[i]-1;
@@ -1667,7 +1670,8 @@ void WaveletBlockIOBase::_GetValidRegion(
 	size_t minreg[3], size_t maxreg[3]
 ) const {
 	
-	const size_t *dim = GetDimension();
+	size_t dim[3];
+	GetDim(dim, -1);
 
 	for (int i=0; i<3; i++) {
 		minreg[i] = 0;

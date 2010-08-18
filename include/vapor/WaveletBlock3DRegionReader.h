@@ -117,7 +117,7 @@ public:
  //! \param[in] max Maximum region extents in voxel coordinates
  //! \param[out] region The requested volume subregion
  //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableRead(), Metadata::GetDimension()
+ //! \sa OpenVariableRead()
  //
  virtual int	ReadRegion(
 	const size_t min[3], const size_t max[3], 

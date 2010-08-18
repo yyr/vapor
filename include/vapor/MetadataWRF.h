@@ -19,8 +19,9 @@
 
 namespace VAPoR {
 
-  class VDF_API MetadataWRF : public Metadata, 
-        public VetsUtil::MyBase, public ParsedXml {
+class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
+	// , public ParsedXml 
+  {
     public:
       MetadataWRF();
       MetadataWRF (const vector<string> &files);
@@ -31,7 +32,7 @@ namespace VAPoR {
 //! \retval size Internal block factor
 //! \remarks Required element
 //
-      virtual const size_t *GetBlockSize() const { return(Blocksize); }
+      virtual const size_t *GetBlockSize() const { return(Dimens); }
 
 //! Return the internal blocking factor at a particular refinement level
 //!
@@ -41,7 +42,7 @@ namespace VAPoR {
 //! \retval size Internal block factor
 //
       virtual void GetBlockSize(size_t bs[3], int reflevel) const {
-        for (int i=0; i<3; i++) bs[i] = Blocksize[i]; }
+        for (int i=0; i<3; i++) bs[i] = Dimens[i]; }
 
 //! Returns the X,Y,Z coordinate dimensions of the data in grid coordinates
 //! \retval dim A three element vector containing the voxel dimension of
@@ -50,6 +51,10 @@ namespace VAPoR {
 //! \remarks Required element
 //
       const size_t *GetDimension() const { return(Dimens); }
+
+      void GetGridDim(size_t dim[3]) const { 
+        for (int i=0; i<3; i++) dim[i] = Dimens[i]; 
+      }
 
 //! Return the domain extents specified in user coordinates
 //!
@@ -68,7 +73,7 @@ namespace VAPoR {
 //! \retval Global_attrib a vector with attribute value pairs.
 //
 
-      vector<pair<string, double> > GetGlobalAtrributes() const {
+      vector<pair<string, double> > GetGlobalAttributes() const {
         return(Global_attrib); };
 
  //! Return the domain extents specified in user coordinates
@@ -136,7 +141,7 @@ namespace VAPoR {
 //!
 //
 
-	const string GetMapProjection() const {
+	string GetMapProjection() const {
 		return(MapProjection); };
 
 //! Reproject the Lat-Lon values for each time step. 
@@ -235,7 +240,7 @@ namespace VAPoR {
 
     private:
       vector<pair<string, double> > Global_attrib;
-      vector<pair<TIME64_T, float*> > Time_latlon_extents;
+      vector <pair< TIME64_T, vector <float> > > Time_latlon_extents;
       vector<pair<TIME64_T, vector<double> > > Time_extents;
       vector<pair<TIME64_T, string> > Timestep_filename;
       vector<pair<TIME64_T, size_t> > Timestep_offset;
@@ -243,12 +248,12 @@ namespace VAPoR {
       vector<long> PeriodicBoundary, GridPermutation;
       vector<double> Extents, UserTimes;
       string StartDate, MapProjection;
-      size_t Blocksize[3], Dimens[3];
+      size_t Dimens[3];
       float minLat, minLon, maxLat, maxLon;
       double Reflevel;
 
-      bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
-      bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
+      //bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
+      //bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
 
   }; // End of class.
 

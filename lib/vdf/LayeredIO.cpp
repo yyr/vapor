@@ -1,18 +1,17 @@
+//
+// $Id$
+//
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
 #include <cassert>
-#include "vapor/LayeredIO.h"
-#ifdef WIN32
-#pragma warning(disable : 4996)
-#endif
+#include <vapor/LayeredIO.h>
+
 using namespace VetsUtil;
 using namespace VAPoR;
 
 int	LayeredIO::_LayeredIO()
 {
-	SetClassName("LayeredIO");
-
 	_elevBlkBuf = NULL;
 	_varBlkBuf = NULL;
 	_blkBufSize = 0;
@@ -21,44 +20,24 @@ int	LayeredIO::_LayeredIO()
 	_lowValMap.clear();
 	_highValMap.clear();
 
-	const size_t *dim = GetDimension();
-
-	SetGridHeight(dim[2]);
+	SetGridHeight(100);
 	SetInterpolateOnOff(true);
 
 	return(0);
 }
 
 LayeredIO::LayeredIO(
-	const MetadataVDC &metadata
-) : WaveletBlock3DRegionReader(metadata) {
-
-	if (LayeredIO::GetErrCode()) return;
+	size_t mem_size
+) : DataMgr(mem_size) {
 
 	SetDiagMsg("LayeredIO::LayeredIO()");
 
 	if (_LayeredIO() < 0) return;
 }
 
-LayeredIO::LayeredIO(
-	const string &metafile
-) : WaveletBlock3DRegionReader(metafile) {
-
-	if (LayeredIO::GetErrCode()) return;
-
-	SetDiagMsg("LayeredIO::LayeredIO(%s)", metafile.c_str());
-
-	if (_LayeredIO() < 0) return;
-
-}
-
-LayeredIO::~LayeredIO(
-) {
+LayeredIO::~LayeredIO() {
 
 	SetDiagMsg("LayeredIO::~LayeredIO()");
-
-	LayeredIO::CloseVariable();
-
 
 	if (_varBlkBuf) delete _varBlkBuf;
 	_varBlkBuf = NULL;
@@ -72,20 +51,24 @@ int	LayeredIO::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
 	int reflevel,
-	int
+	int lod
 ) {
 	int	rc;
 
 	SetDiagMsg(
-		"LayeredIO::OpenVariableRead(%d, %s, %d)",
+		"OpenVariableRead(%d, %s, %d)",
 		timestep, varname, reflevel
 	);
 
-	LayeredIO::CloseVariable();	// close any previously opened files.
-	rc = WaveletBlock3DRegionReader::OpenVariableRead(
-			timestep, varname, reflevel
-		);
+	CloseVariable();	// close any previously opened files.
+	rc = OpenVariableReadNative(timestep, varname, reflevel);
 	if (rc < 0) return(rc);
+
+	_reflevel = reflevel;
+	_lod = lod;
+	_timeStep = timestep;
+	_varName = varname;
+	_vtype = GetVarType(varname);
 
 	if (_vtype == VAR2D_XY) return(0);
 	if (_vtype != VAR3D) {
@@ -96,52 +79,25 @@ int	LayeredIO::OpenVariableRead(
 	// Can't handle layered data not defined on full Z domain
 	//
 	size_t dim[3];
-	WaveletBlock3DRegionReader::GetDim(dim, -1);
+	GetDimNative(dim, -1);
 
 	size_t regmin[3];
 	size_t regmax[3];
 
-	WaveletBlockIOBase::GetValidRegion(regmin, regmax, -1);
+	GetValidRegionNative(regmin, regmax, -1);
 	assert(regmin[2] == 0);
 	assert(regmax[2] == dim[2]-1);
-
 
 	return(rc);
 }
 
 int	LayeredIO::CloseVariable(
 ) {
-	SetDiagMsg("LayeredIO::CloseVariable()");
+	SetDiagMsg("CloseVariable()");
 
-	return(WaveletBlock3DRegionReader::CloseVariable());
+	return(CloseVariableNative());
 }
 
-
-int	LayeredIO::ReadRegion(
-	const size_t min[3],
-	const size_t max[3],
-	float *region
-) {
-	SetDiagMsg(
-		"LayeredIO::ReadRegion((%d,%d,%d),(%d,%d,%d))",
-		min[0], min[1], min[2], max[0], max[1], max[2]
-	);
-
-	if (! _interpolateOn) {
-		return(WaveletBlock3DRegionReader::ReadRegion(min, max, region));
-	}
-
-	if (! LayeredIO::IsValidRegion(min, max, _reflevel)) {
-		SetErrMsg(
-			"Invalid region : (%d %d %d) (%d %d %d)", 
-			min[0], min[1], min[2], max[0], max[1], max[2]
-		);
-		return(-1);
-	}
-
-	return(-1);
-
-}
 
 bool LayeredIO::cache_check(
 	size_t timestep,
@@ -178,8 +134,7 @@ void LayeredIO::cache_clear(
 int	LayeredIO::BlockReadRegion(
 	const size_t bmin[3],
 	const size_t bmax[3],
-	float *region,
-	int unblock
+	float *region
 ) {
 
 	SetDiagMsg(
@@ -188,22 +143,10 @@ int	LayeredIO::BlockReadRegion(
 	);
 
 	if (! _interpolateOn || (_vtype == VAR2D_XY)) {
-		return(
-			WaveletBlock3DRegionReader::BlockReadRegion(
-			bmin, bmax, region, unblock)
-		);
+		return(BlockReadRegionNative( bmin, bmax, region));
 	}
 	if (_vtype != VAR3D) {
 		SetErrMsg("Variable type not supported");
-		return(-1);
-	}
-	assert(unblock = 1);
-
-	if (! LayeredIO::IsValidRegionBlk(bmin, bmax, _reflevel)) {
-		SetErrMsg(
-			"Invalid region : (%d %d %d) (%d %d %d)", 
-			bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
-		);
 		return(-1);
 	}
 
@@ -211,7 +154,7 @@ int	LayeredIO::BlockReadRegion(
 	// full Z extent
 	//
 	size_t nativeBlkDims[3];
-	VDFIOBase::GetDimBlk(nativeBlkDims, _reflevel);
+	GetDimBlkNative(nativeBlkDims, _reflevel);
 	size_t blkMinFullZ[3], blkMaxFullZ[3];	// Native coords
 	for (int i=0; i<2; i++) {
 		blkMinFullZ[i] = bmin[i];
@@ -264,22 +207,22 @@ int	LayeredIO::BlockReadRegion(
 
 		// Close currently opened variable
 		//
-		WaveletBlock3DRegionReader::CloseVariable();
+		CloseVariableNative();
 
 		//
 		// open and read the ELEVATION variable
 		//
-		rc = WaveletBlock3DRegionReader::OpenVariableRead(
-			_timeStep, "ELEVATION", _reflevel
+		rc = OpenVariableReadNative(
+			_timeStep, "ELEVATION", _reflevel, _lod
 		);
 		if (rc<0) return(-1);
 
-		rc = WaveletBlock3DRegionReader::BlockReadRegion(
-			blkMinFullZ, blkMaxFullZ, _elevBlkBuf, 1
+		rc = BlockReadRegionNative(
+			blkMinFullZ, blkMaxFullZ, _elevBlkBuf
 		);
 		if (rc<0) return(-1);
 
-		WaveletBlock3DRegionReader::CloseVariable();
+		CloseVariableNative();
 
 		// update cache
 		//
@@ -287,13 +230,13 @@ int	LayeredIO::BlockReadRegion(
 
 		// Reopen the previously opened field variable
 		//
-		rc = WaveletBlock3DRegionReader::OpenVariableRead(
-			_timeStep, my_var_name.c_str(), _reflevel
+		rc = OpenVariableReadNative(
+			_timeStep, my_var_name.c_str(), _reflevel, _lod
 		);
 	}
 
-	rc = WaveletBlock3DRegionReader::BlockReadRegion(
-		blkMinFullZ, blkMaxFullZ, _varBlkBuf, 1
+	rc = BlockReadRegionNative(
+		blkMinFullZ, blkMaxFullZ, _varBlkBuf
 	);
 	if (rc<0) return(-1);
 
@@ -314,18 +257,6 @@ int	LayeredIO::BlockReadRegion(
 	);
 
 	return(0);
-}
-
-int LayeredIO::SetGridHeight(size_t height) {
-
-	_gridHeight = height;
-
-	return(0);
-}
-
-void LayeredIO::SetInterpolateOnOff(bool on)
-{
-	_interpolateOn = on;
 }
 
 void LayeredIO::SetLowVals(
@@ -376,6 +307,13 @@ void LayeredIO::GetHighVals(
 	}
 }
 
+int LayeredIO::SetGridHeight(size_t height) 
+{
+	_gridHeight = height; 
+	return(0);
+};
+
+
 
 void LayeredIO::_interpolateRegion(
 	float *region, const float *elevBlks, const float *varBlks, 
@@ -409,7 +347,7 @@ void LayeredIO::_interpolateRegion(
 	// we don't know how the blocks were padded)
 	//
 	size_t dim[3];
-	VDFIOBase::GetDim(dim,_reflevel);
+	GetDimNative(dim,_reflevel);
 
 	// coordinate of last valid voxel in Z relativeo to ROI coords
 	//
@@ -421,11 +359,11 @@ void LayeredIO::_interpolateRegion(
 	//
 	size_t vcoordi[3] = {0,0,zmini*bs[2]};
 	double ucoordi[3];	// user coorindates of interpolated grid 
-	LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
+	MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
 	float zbottomi_u = ucoordi[2];
 
 	vcoordi[2] = (zmaxi+1)*bs[2];
-	LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
+	MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
 	float ztopi_u = ucoordi[2];
 	float zdeltai_u = (ztopi_u-zbottomi_u)/(float) nzi;
 
@@ -440,9 +378,6 @@ void LayeredIO::_interpolateRegion(
 
 		float zi_u = zbottomi_u;
 		for (zi = 0, zzi=zmini*bs[2], z=0; zi<nzi; zi++, zzi++) {
-			// size_t vcoordi[3] = {xx,yy,zzi};
-			// double ucoordi[3];	// user coorindates of interpolated grid 
-			// LayeredIO::MapVoxToUser(_timeStep, vcoordi, ucoordi, _reflevel);
 
 			// Below the grid
 			if (zi_u < elevBlks[nx*ny*0 + nx*y + x]) {
@@ -476,20 +411,24 @@ void LayeredIO::_interpolateRegion(
 	}
 }
 
+void    LayeredIO::GetGridDim(
+    size_t dim[3]
+) const {
+	return(GetDim(dim, -1));
+}
 
 void    LayeredIO::GetDim(
     size_t dim[3], int reflevel
 ) const {
 
+	GetDimNative(dim, reflevel);
+
 	if (! _interpolateOn) { 
-		VDFIOBase::GetDim(dim, reflevel);
 		return;
 	}
  
 	// X & Y dims are same as for parent class
 	//
-	VDFIOBase::GetDim(dim, reflevel);
-
 	// Now deal with Z dim
 	//
     if (reflevel < 0) reflevel = GetNumTransforms();
@@ -506,13 +445,13 @@ void    LayeredIO::GetDimBlk(
 ) const {
 
 	if (! _interpolateOn) { 
-		VDFIOBase::GetDimBlk(bdim, reflevel);
+		GetDimBlkNative(bdim, reflevel);
 		return;
 	}
 
     size_t dim[3];
  
-    LayeredIO::GetDim(dim, reflevel); 
+    GetDimNative(dim, reflevel); 
 
 	const size_t *bs = GetBlockSize();
 
@@ -521,57 +460,18 @@ void    LayeredIO::GetDimBlk(
     }
 }
 
-int LayeredIO::IsValidRegion(
-	const size_t min[3],
-	const size_t max[3],
-	int reflevel
-) const {
-
-	if (! _interpolateOn) {
-		return(VDFIOBase::IsValidRegion(min, max, reflevel));
-	}
-
-	size_t dim[3];
-	LayeredIO::GetDim(dim, reflevel);
-
-	for(int i=0; i<3; i++) {
-		if (min[i] > max[i]) return (0);
-		if (max[i] >= dim[i]) return (0);
-	}
-	return(1);
-}
-
-int LayeredIO::IsValidRegionBlk( 
-	const size_t min[3],
-	const size_t max[3],
-	int reflevel
-) const {
-
-	if (! _interpolateOn) {
-		return(VDFIOBase::IsValidRegionBlk(min, max, reflevel));
-	}
-	size_t dim[3];
-	LayeredIO::GetDimBlk(dim, reflevel);
-
-	for(int i=0; i<3; i++) {
-		if (min[i] > max[i]) return (0);
-		if (max[i] >= dim[i]) return (0);
-	}
-	return(1);
-}
-
 void    LayeredIO::GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
 ) const {
 
 	if (! _interpolateOn) {
-		WaveletBlockIOBase::GetValidRegion(min, max, reflevel);
+		GetValidRegionNative(min, max, reflevel);
 		return;
 	}
 
 	// X & Y dims are same as for parent class
 	//
-	WaveletBlockIOBase::GetValidRegion(min, max, reflevel);
+	GetValidRegionNative(min, max, reflevel);
 
 	// Now deal with Z dim
 	//
@@ -592,7 +492,7 @@ void    LayeredIO::MapVoxToUser(
 ) const {
 
 	if (! _interpolateOn) {
-		VDFIOBase::MapVoxToUser(timestep, vcoord0, vcoord1, reflevel);
+		MapVoxToUserNative(timestep, vcoord0, vcoord1, reflevel);
 		return;
 	}
 
@@ -604,7 +504,7 @@ void    LayeredIO::MapVoxToUser(
 	vector <double> extents = GetTSExtents(timestep);
 	if (! extents.size()) extents = GetExtents();
 
-	LayeredIO::GetDim(dim, -1);   // finest dimension
+	GetDim(dim, -1);   // finest dimension
 	for(int i = 0; i<3; i++) {
 
 		// distance between voxels along dimension 'i' in user coords
@@ -629,7 +529,7 @@ void	LayeredIO::MapUserToVox(
 ) const {
 
 	if (! _interpolateOn) {
-		VDFIOBase::MapUserToVox(timestep, vcoord0, vcoord1, reflevel);
+		MapUserToVoxNative(timestep, vcoord0, vcoord1, reflevel);
 		return;
 	}
 
@@ -641,9 +541,10 @@ void	LayeredIO::MapUserToVox(
 	// assert(GetErrCode() == 0);
 
 	size_t	my_dim[3];
-	LayeredIO::GetDim(my_dim, reflevel);	
+	GetDim(my_dim, reflevel);	
 
-	const size_t *dim = GetDimension();
+	size_t dim[3]; 
+	GetDimNative(dim, -1);
 
 	for(int i = 0; i<3; i++) {
 		double a;

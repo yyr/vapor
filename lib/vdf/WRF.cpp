@@ -20,16 +20,112 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 #define NC_ERR_READ(X) \
-	{ \
-	int nc_statusxxx = (X); \
-	if (nc_statusxxx != NC_NOERR) { \
-		cerr << "Error reading netCDF file at line " <<  __LINE__ << " : " << nc_strerror(nc_statusxxx) << endl; \
-		return(-1); \
-	} \
+    { \
+    int rc = (X); \
+    if (rc != NC_NOERR) { \
+        MyBase::SetErrMsg("Error reading netCDF file at line %d : %s", \
+		__LINE__,  nc_strerror(rc)) ; \
+        return(-1); \
+    } \
     }
+
+
+
+int WRF::_WRF(
+	const string &wrfname, const atypVarNames_t &atypnames
+) {
+
+	_ncid = 0;
+	_atypnames = atypnames;
+	_vertExts[0] = _vertExts[1] = 0.0;
+	_dimLens[0] = _dimLens[1] = _dimLens[2] = _dimLens[3] = 1;
+
+	// Open netCDF file and check for failure
+	NC_ERR_READ( nc_open( wrfname.c_str(), NC_NOWRITE, &_ncid ));
+
+	int rc = _GetWRFMeta(
+		_ncid, _vertExts, _dimLens, _startDate, _mapProjection,
+		_wrfVars3d, _wrfVars2d, _wrfVarInfo, _gl_attrib, _tsExtents
+	);
+
+	return(rc);
+}
+
+WRF::WRF(const string &wrfname) {
+	atypVarNames_t atypnames;
+
+	atypnames.U = "U";
+	atypnames.V = "V";
+	atypnames.W = "U";
+	atypnames.PH = "PH";
+	atypnames.PHB = "PHB";
+	atypnames.P = "P";
+	atypnames.PB = "PB";
+	atypnames.T = "T";
+
+	(void) _WRF(wrfname, atypnames);
+}
+
+WRF::WRF(const string &wrfname, const atypVarNames_t &atypnames) {
+
+	(void) _WRF(wrfname, atypnames);
+
+}
+
+WRF::~WRF() {
+	// Close the WRF file
+	(void) nc_close( _ncid );
+}
+
+WRF::varFileHandle_t *WRF::Open(
+	const string &varname
+) {
+	varFileHandle_t fh;
+	fh.buffer = NULL;
+
+	//
+	// Make sure we have a record for the variable
+	//
+	bool found = false;
+	for (int i=0; i<_wrfVarInfo.size(); i++) {
+		if (varname.compare(_wrfVarInfo[i].name) == 0) {
+			fh.thisVar = _wrfVarInfo[i];
+			found = true;
+		}
+	}
+	if (! found) {
+		SetErrMsg("Variable not found : %s", varname.c_str());
+		return(NULL);
+	}
+
+
+	//
+	// Allocate space for a single, staggered slice (even if variable 
+	// is not staggered). N.B. dimLens contains unstaggered dimensions
+	//
+	size_t sz = (fh.thisVar.dimlens[fh.thisVar.dimids.size()-2] + 1) *
+		(fh.thisVar.dimlens[fh.thisVar.dimids.size()-1] + 1);
+
+	fh.buffer = new float[sz];
+	fh.z = -1;	// Invalid slice #
+	fh.wrft = -1;	// Invalid time step
+
+	varFileHandle_t *fhptr = new varFileHandle_t();
+	*fhptr = fh;
+
+	return(fhptr);
+}
+
+int WRF::Close(varFileHandle_t *fh) {
+
+	if (fh->buffer) delete [] fh->buffer;
+	delete fh;
+	return(0);
+}
+
 //Read 4 corner coordinates (in latitude and longitude) from the xlat,xlong variables.
 //Put the result in coords[], in order ll, ur, ul, lr; so first 2 are extents
-int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo, float coords[8]){
+int WRF::_GetCornerCoords(int ncid, int ts, const varInfo_t &latInfo, const varInfo_t &lonInfo, float coords[8]){
 	size_t coordIndex[3];
 	coordIndex[2] = 0;
 	coordIndex[1] = 0;
@@ -65,7 +161,7 @@ int WRF::GetCornerCoords(int ncid, int ts, varInfo_t latInfo, varInfo_t lonInfo,
 	return 0;
 }
 
-int WRF::GetProjectionString(int ncid, string& projString){
+int WRF::_GetProjectionString(int ncid, string& projString){
 	string empty;
 	string ErrMsgStr;
 	ostringstream oss;
@@ -167,7 +263,6 @@ int WRF::GetProjectionString(int ncid, string& projString){
 			ErrMsgStr.assign("Unsupported MAP_PROJ value ");
 			ErrMsgStr += projNum ;
 			SetErrMsg(ErrMsgStr.c_str());
-//			cerr << "Unsupported MAP_PROJ value " <<  projNum <<  endl;
 			return -1;
 
 	}
@@ -180,7 +275,7 @@ int	WRF::GetVarInfo(
 	int ncid, // ID of the file we're reading
 	const char *name,
 	const vector <ncdim_t> &ncdims,
-	varInfo & thisVar // Variable info
+	varInfo_t & thisVar // Variable info
 ) {
 
 	thisVar.name.assign(name);
@@ -195,21 +290,27 @@ int	WRF::GetVarInfo(
 
 	char dummy[NC_MAX_NAME+1]; // Will hold a variable's name
 	int natts; // Number of attributes associated with this variable
+	int dimids[NC_MAX_VAR_DIMS], ndimids;
 	NC_ERR_READ( nc_inq_var(
-		ncid, thisVar.varid, dummy, &thisVar.xtype, &thisVar.ndimids,
-		thisVar.dimids, &natts
+		ncid, thisVar.varid, dummy, &thisVar.xtype, &ndimids,
+		dimids, &natts
 	));
 
-	for (int i = 0; i<thisVar.ndimids; i++) {
-		thisVar.dimlens[i] = ncdims[thisVar.dimids[i]].size;
+	thisVar.dimids.clear();
+	thisVar.dimlens.clear();
+	for (int i = 0; i<ndimids; i++) {
+		thisVar.dimids.push_back(dimids[i]);
+		thisVar.dimlens.push_back(ncdims[dimids[i]].size);
 	}
 
 	// Determine if variable has staggered dimensions. Only three
 	// fastest varying dimensions are checked
 	//
-	thisVar.stag[0] = thisVar.stag[1] = thisVar.stag[2] =  false;
+	thisVar.stag.push_back(false);
+	thisVar.stag.push_back(false);
+	thisVar.stag.push_back(false);
 
-	if (thisVar.ndimids == 4) { 
+	if (thisVar.dimids.size() == 4) { 
 		if (strcmp(ncdims[thisVar.dimids[1]].name, "bottom_top_stag") == 0) {
 			thisVar.stag[2] = true;
 		}
@@ -220,7 +321,7 @@ int	WRF::GetVarInfo(
 			thisVar.stag[0] = true;
 		}
 	}
-	else if (thisVar.ndimids == 3) { 
+	else if (thisVar.dimids.size() == 3) { 
 		if (strcmp(ncdims[thisVar.dimids[1]].name, "south_north_stag") == 0) {
 			thisVar.stag[1] = true;
 		}
@@ -236,28 +337,27 @@ int	WRF::GetVarInfo(
 
 
 // Reads a single horizontal slice of netCDF data
-int WRF::ReadZSlice4D(
+int WRF::_ReadZSlice4D(
 	int ncid, // ID of the netCDF file
-	varInfo & thisVar, // Struct for the variable we want
+	const varInfo_t & thisVar, // Struct for the variable we want
 	size_t wrfT, // The WRF time step we want
 	size_t z, // Which z slice we want
-	float * fbuffer, // Buffer we're going to store slice in
-	const size_t * dim // Dimensions from VDF
+	float * fbuffer // Buffer we're going to store slice in
 ) {
 
 	size_t start[NC_MAX_DIMS]; // The point from which we start reading netCDF data
 	size_t count[NC_MAX_DIMS]; // What interval to read the data
 
 	// Initialize the count and start arrays for extracting slices from the data:
-	for (int i = 0; i<thisVar.ndimids; i++){
+	for (int i = 0; i<thisVar.dimids.size(); i++){
 		start[i] = 0; // Start reading in a corner
 		count[i] = 1; // Read every point (changes later)
 	}
 
-	start[thisVar.ndimids-4] = wrfT;
-	start[thisVar.ndimids-3] = z;
-	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
-	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
+	start[thisVar.dimids.size()-4] = wrfT;
+	start[thisVar.dimids.size()-3] = z;
+	count[thisVar.dimids.size()-2] = thisVar.dimlens[thisVar.dimids.size()-2];
+	count[thisVar.dimids.size()-1] = thisVar.dimlens[thisVar.dimids.size()-1];
 
 	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
 
@@ -265,9 +365,9 @@ int WRF::ReadZSlice4D(
 }
 
 // Reads a single slice from a 3D (time + space) variable 
-int WRF::ReadZSlice3D(
+int WRF::_ReadZSlice3D(
 	int ncid, // ID of the netCDF file
-	varInfo & thisVar, // Struct for the variable we want
+	const varInfo_t & thisVar, // Struct for the variable we want
 	size_t wrfT, // The WRF time step we want
 	float * fbuffer // Buffer we're going to store slice in
 ) {
@@ -276,14 +376,14 @@ int WRF::ReadZSlice3D(
 	size_t count[NC_MAX_DIMS]; // What interval to read the data
 
 	// Initialize the count and start arrays for extracting slices from the data:
-	for (int i = 0; i<thisVar.ndimids; i++){
+	for (int i = 0; i<thisVar.dimids.size(); i++){
 		start[i] = 0; // Start reading in a corner
 		count[i] = 1; // Read every point (changes later)
 	}
 
-	start[thisVar.ndimids-3] = wrfT;
-	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
-	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
+	start[thisVar.dimids.size()-3] = wrfT;
+	count[thisVar.dimids.size()-2] = thisVar.dimlens[thisVar.dimids.size()-2];
+	count[thisVar.dimids.size()-1] = thisVar.dimlens[thisVar.dimids.size()-1];
 
 	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
 
@@ -292,18 +392,18 @@ int WRF::ReadZSlice3D(
 
 
 
-void WRF::InterpHorizSlice(
+void WRF::_InterpHorizSlice(
 	float * fbuffer, // The slice of data to interpolate
-	varInfo & thisVar, // Data about the variable
-	const size_t *dim // Dimensions from VDF
+	const varInfo_t & thisVar // Data about the variable
 ) {
 	// NOTE: As of July 20, 2007 (when this function was written), interpolating
 	// data that is staggered in both horizontal dimensions has not been tested.
 
-	size_t xUnstagDim = dim[0]; // Define these just for convenience
-	size_t xStagDim = dim[0] + 1;
-	size_t yUnstagDim = dim[1];
-	size_t yStagDim = dim[1] + 1;
+	// Define these just for convenience
+	size_t xUnstagDim = thisVar.dimlens[thisVar.dimlens.size()-1];
+	size_t xStagDim = xUnstagDim + 1;
+	size_t yUnstagDim = thisVar.dimlens[thisVar.dimlens.size()-2];
+	size_t yStagDim = yUnstagDim + 1;
 
 	size_t xDimWillBe = xUnstagDim; // More convenience
 	size_t xDimNow, yDimNow;
@@ -364,69 +464,79 @@ void WRF::InterpHorizSlice(
 
 
 int WRF::GetZSlice(
-   int ncid, // ID of netCDF file
-   varInfo & thisVar, // varInfo struct for the variable we're interested in
-   size_t wrfT, // The WRF time step we want
-   size_t z, // The (unstaggered) vertical coordinate of the plane we want
-   float * fbuffer, // Array into which we read the slice
-   float * fbufferAbove, // Pointer to temporary array, needed if variable
-						 // is staggered vertically.  If variable is not
-						 // staggered vertically, pass a null pointer.
-   bool & needAnother, // If variable is staggered vertically, this will be
-					   // set to false after the first z slice is read, to
-					   // reduce redundant reads
-   const size_t * dim // Dimensions from VDF
+	varFileHandle_t *fh,
+	size_t wrft,	// WRF time step
+	size_t z, // The (unstaggered) vertical coordinate of the plane we want
+	float *buffer
 ) {
+	
 	int rc;
-	// Read a slice from the netCDF
-	if ( thisVar.ndimids == 3 )
-	{
-		if (ReadZSlice3D( ncid, thisVar, wrfT, fbuffer) < 0) return(-1);
-		// Do horizontal interpolation of staggered grids, if necessary
-		if ( thisVar.stag[0] || thisVar.stag[1] )
-			InterpHorizSlice( fbuffer, thisVar, dim );
-	}
 
-	// Read a slice from the netCDF
+	// If z dimension is not staggered simply read and return slice (possibly
+	// doing horizontal interpolation)
 	//
-	// JC: removed this optimization because it prevented interleaving 
-	// of calls to this function with different variables
-	//
-	//if ( needAnother )
-	if ( true )
-	{
-		rc = ReadZSlice4D( ncid, thisVar, wrfT, z, fbuffer, dim);
-		if (rc < 0) return(-1);
-		// Do horizontal interpolation of staggered grids, if necessary
-		if ( thisVar.stag[0] || thisVar.stag[1] )
-			InterpHorizSlice( fbuffer, thisVar, dim );
-	}
+	if (! fh->thisVar.stag[2]) {
+		if ( fh->thisVar.dimids.size() == 3 ) {
 
-	// If the vertical grid is staggered, we'll need the slice above
-	// for interpolation
-	if ( thisVar.stag[2] )
-	{
-		//if ( needAnother ) {
-		if ( true ) {
-			// Now we no longer need to read two slices
-			needAnother = false;
+			rc = _ReadZSlice3D( _ncid, fh->thisVar, fh->wrft, buffer);
 		}
 		else {
-			memcpy(fbuffer, fbufferAbove, dim[0]*dim[1]*sizeof(fbuffer[0]));
+			rc = _ReadZSlice4D( _ncid, fh->thisVar, fh->wrft, z, buffer);
 		}
+		if (rc<0) return(-1);
 
-		rc =  ReadZSlice4D(ncid, thisVar, wrfT, z+1, fbufferAbove, dim);
-		if (rc < 0) return(-1);
-		// Iterpolate horizontally, if needed
-		if ( thisVar.stag[0] || thisVar.stag[1] )
-			InterpHorizSlice( fbufferAbove, thisVar, dim );
-
-		// Now do the vertical interpolation
-		for ( size_t l = 0 ; l < dim[0]*dim[1] ; l++ )
-		{
-			fbuffer[l] = (fbuffer[l] + fbufferAbove[l]) / 2.0;
+		// Do in-place horizontal interpolation of staggered grids, 
+		// if necessary
+		//
+		if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
+			_InterpHorizSlice(buffer, fh->thisVar);
 		}
+		return(0);
 	}
+
+	assert (fh->thisVar.dimids.size() == 4);
+
+	// size of one unstaggered slice
+	//
+	size_t slice_sz = fh->thisVar.dimlens[fh->thisVar.dimids.size()-2] *
+		fh->thisVar.dimlens[fh->thisVar.dimids.size()-1];
+
+	// Need two slices. See if first is already buffered from previous 
+	// invocation. If not, read it.
+	//
+	if (!( fh->z == z && fh->wrft == wrft)) {
+		// Read a slice from the netCDF
+		//
+		rc = _ReadZSlice4D( _ncid, fh->thisVar, wrft, z, fh->buffer);
+		if (rc<0) return(-1);
+
+		if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
+			_InterpHorizSlice(fh->buffer, fh->thisVar);
+		}
+		fh->z = z;
+		fh->wrft = wrft;
+	}
+
+	// Now read second slice
+	//
+	rc = _ReadZSlice4D( _ncid, fh->thisVar, wrft, z+1, buffer);
+	if (rc<0) return(-1);
+
+	if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
+		_InterpHorizSlice(buffer, fh->thisVar);
+	}
+
+	// Now do the vertical interpolation
+	// and buffer bottom (top?) slice for next invocation
+	//
+	for ( size_t l = 0 ; l < slice_sz ; l++ ) {
+
+		float tmp = buffer[l];
+		buffer[l] = (buffer[l] + fh->buffer[l]) / 2.0;
+		fh->buffer[l] = tmp;
+	}
+	fh->z = z+1;
+	fh->wrft = wrft;
 
 	return(0);
 }
@@ -518,364 +628,17 @@ int WRF::EpochToWRFTimeStr(
 	return(0);
 }
 
-
-int WRF::OpenWrfGetMeta(
-	const char * wrfName, // Name of the WRF file (in)
-	const atypVarNames_t &atypnames,
-	float & dx, // Place to put DX attribute (out) (-1 if it's not there)
-	float & dy, // Place to put DY attribute (out) (-1 if it's not there)
-	float * vertExts, // Vertical extents (out)
-	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
-	string &startDate, // Place to put START_DATE attribute (out)
-	string &mapProjection, //PROJ4 projection string
-	vector<string> & wrfVars3d, 
-	vector<string> & wrfVars2d, 
-	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon corners (out)
-) {
-	string ErrMsgStr;
-	int ncid; // Holds netCDF file ID
-	int ndims; // Number of dimensions in netCDF
-	int ngatts; // Number of global attributes
-	int nvars; // Number of variables
-	int xdimid; // ID of unlimited dimension (not used)
-	
-	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
-
-	static char *buf = NULL;
-	static size_t bufSize = 0;
-	
-	wrfVars3d.clear();
-	wrfVars2d.clear();
-	tsExtents.clear();
-
-	// Open netCDF file and check for failure
-	NC_ERR_READ( nc_open( wrfName, NC_NOWRITE, &ncid ));
-	// Find the number of dimensions, variables, and global attributes, and check
-	// the existance of the unlimited dimension (not that we need to)
-	NC_ERR_READ( nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
-
-	// Find out dimension lengths.  x <==> west_east, y <==> south_north,
-	// z <==> bottom_top.  Need names, too, for finding vertical extents.
-	int timeId = -1;
-	int weId = -1;
-	int snId = -1;
-	int btId = -1;
-	int wesId = -1;
-	int snsId = -1;
-	int btsId = -1;
-	for ( int i = 0 ; i < ndims ; i++ )
-	{
-		NC_ERR_READ( nc_inq_dimname( ncid, i, dimName ) );
-		if ( strcmp( dimName, "west_east" ) == 0 )
-		{
-			weId = i;
-			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[0] ) );
-		} else if ( strcmp( dimName, "south_north" ) == 0 )
-		{
-			snId = i;
-			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[1] ) );
-		} else if ( strcmp( dimName, "bottom_top" ) == 0 )
-		{
-			btId = i;
-			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[2] ) );
-		} else if ( strcmp( dimName, "west_east_stag" ) == 0 )
-		{
-			wesId = i;
-		} else if ( strcmp( dimName, "south_north_stag" ) == 0 )
-		{
-			snsId = i;
-		} else if ( strcmp( dimName, "bottom_top_stag") == 0 )
-		{
-			btsId = i;
-		} else if ( strcmp( dimName, "Time" ) == 0 )
-		{
-			NC_ERR_READ( nc_inq_dimlen( ncid, i, &dimLens[3] ) );
-			timeId = i;
-		}
-	}
-
-	// Make sure we found all the dimensions we need
-	if ( weId < 0 || snId < 0 || btId < 0 )
-	{
-		ErrMsgStr.assign("Could not find expected dimensions WRF file ");
-		ErrMsgStr.append(wrfName);
-		MyBase::SetErrMsg(ErrMsgStr.c_str());
-		return(-1);
-	}
-	for (int i=0; i<4; i++) {
-		if (dimLens[i] < 1) {
-			ErrMsgStr.assign("Zero-length WRF variable dimension ");
-			ErrMsgStr.append(wrfName);
-			MyBase::SetErrMsg(ErrMsgStr.c_str());
-			return(-1);
-		}
-	}
-	if ( wesId < 0 || snsId < 0 || btsId < 0 ) {
-		ErrMsgStr.assign("Caution: could not find staggered dimensions in WRF file ");
-		ErrMsgStr.append(wrfName);
-		MyBase::SetErrMsg(ErrMsgStr.c_str());
-		MyBase::SetErrCode(0);
-	}
-
-	// Get DX and DY, set to -1 if they aren't there.
-	int ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx );
-	if (ncrc != NC_NOERR) dx = -1.f;
-	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy );
-	if (ncrc != NC_NOERR) dy = -1.f;
-
-	// If planetWRF there is a gravity value.
- 	float grav = 0.0;
-	ncrc = nc_get_att_float(ncid, NC_GLOBAL, "G", &grav);
-	if (ncrc != NC_NOERR) {
-		grav = 9.81;
-	}
-
-	//Build the projection string, 
-	//If we can't, the projection string is length 0
-	GetProjectionString(ncid, mapProjection);
-	
-	// Get starting time stamp
-	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
-
-	size_t attlen;
-	const char *start_attr = "SIMULATION_START_DATE";
-	int nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
-	if (nc_status == NC_ENOTATT) {
-		start_attr = "START_DATE";
-		nc_status = nc_inq_attlen(ncid, NC_GLOBAL, start_attr, &attlen);
-		if (nc_status == NC_ENOTATT) {
-			start_attr = NULL;
-			startDate.erase();
-		}
-	}
-	if (start_attr) {
-		if (bufSize < attlen+1) {
-			if (buf) delete [] buf;
-			buf = new char[attlen+1];
-			bufSize = attlen+1;
-		}
-
-		NC_ERR_READ(nc_get_att_text( ncid, NC_GLOBAL, start_attr, buf ));
-
-		startDate.assign(buf, attlen);
-	}
-		
-    // build list of all dimensions found in the file
-    //
-	vector <ncdim_t> ncdims;
-    for (int dimid = 0; dimid < ndims; dimid++) {
-        ncdim_t dim;
-
-        NC_ERR_READ(nc_inq_dim( ncid, dimid, dim.name, &dim.size));
-        ncdims.push_back(dim);
-    }
-
-	// Find names of variables with appropriate dimmensions
-	for ( int i = 0 ; i < nvars ; i++ ) {
-		varInfo varinfo;
-		char name[NC_MAX_NAME+1];
-		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
-		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
-#ifdef WIN32
-//On windows, CON is not a valid vapor variable name because windows does
-//not permit CON to be directory name
-// CON is a 2D variable, "orographic convexity"
-		if (strcmp(name, "CON") == 0) continue;
-#endif
-
-		if ((varinfo.ndimids == 4) && 
-			(varinfo.dimids[0] ==  timeId) &&
-			((varinfo.dimids[1] ==  btId) || (varinfo.dimids[1] == btsId)) &&
-			((varinfo.dimids[2] ==  snId) || (varinfo.dimids[2] == snsId)) &&
-			((varinfo.dimids[3] ==  weId) || (varinfo.dimids[3] == wesId))) {
-
-			wrfVars3d.push_back( name );
-		}
-		else if ((varinfo.ndimids == 3) && 
-			(varinfo.dimids[0] ==  timeId) &&
-			((varinfo.dimids[1] ==  snId) || (varinfo.dimids[1] == snsId)) &&
-			((varinfo.dimids[2] ==  weId) || (varinfo.dimids[2] == wesId))) {
-
-			wrfVars2d.push_back( name );
-		}
-	}
-
-
-	// Get vertical extents if requested
-	//
-	if (vertExts) {
-
-		// Get ready to read PH and PHB
-		varInfo phInfo; // structs for variable information
-		varInfo phbInfo;
-
-		if (GetVarInfo( ncid, atypnames.PH.c_str(), ncdims, phInfo) < 0) return(-1);
-		if (phInfo.ndimids != 4) {
-			MyBase::SetErrMsg("Variable %s has wrong # dims", atypnames.PH.c_str());
-			return(-1);
-		}
-		size_t ph_slice_sz = phInfo.dimlens[phInfo.ndimids-1] * 
-			phInfo.dimlens[phInfo.ndimids-2];
-
-		if (GetVarInfo( ncid, atypnames.PHB.c_str(), ncdims, phbInfo) < 0) return(-1);
-		if (phbInfo.ndimids != 4) {
-			MyBase::SetErrMsg("Variable %s has wrong # dims", atypnames.PHB.c_str());
-			return(-1);
-		}
-		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.ndimids-1] * 
-			phbInfo.dimlens[phbInfo.ndimids-2];
-			
-
-		// Allocate memory
-		float * phBuf = new float[ph_slice_sz];
-		float * phBufTemp = new float[ph_slice_sz];
-		float * phbBuf = new float[phb_slice_sz];
-		float * phbBufTemp = new float[phb_slice_sz];
-		
-
-		bool first = true;
-		for (size_t t = 0; t<dimLens[3]; t++) {
-			float height;
-			int rc;
-
-			// Dummies needed by function
-
-			// Read bottom slices
-			bool needAnotherPh = true;
-			bool needAnotherPhb = true;
-			rc = GetZSlice(
-				ncid, phInfo, t, 0, phBuf, phBufTemp, needAnotherPh, dimLens
-			);
-			if (rc<0) return (rc);
-
-			rc = GetZSlice(
-				ncid, phbInfo, t, 0, phbBuf, phbBufTemp, needAnotherPhb, 
-				dimLens
-			);
-			if (rc<0) return (rc);
-
-			if (first) {
-				vertExts[0] = (phBuf[0] + phbBuf[0])/grav;
-			}
-			
-			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
-
-				height = (phBuf[i] + phbBuf[i])/grav;
-				// Want to find the bottom of the bottom layer and the bottom 
-				// of the
-				// top layer so that we can output them
-				if (height < vertExts[0] ) vertExts[0] = height;
-			}
-
-
-			//  Read the top slices
-			rc = GetZSlice(
-				ncid, phInfo, t, dimLens[2] - 1, phBuf, phBufTemp, 
-				needAnotherPh, dimLens
-			);
-			if (rc<0) return (rc);
-
-			needAnotherPh = true;
-			needAnotherPhb = true;
-			rc = GetZSlice(
-				ncid, phbInfo, t, dimLens[2] - 1, phbBuf, phbBufTemp, 
-				needAnotherPhb, dimLens
-			);
-			if (rc<0) return (rc);
-
-			if (first) {
-				vertExts[1] = (phBuf[0] + phbBuf[0])/grav;
-			}
-			
-			for ( size_t i = 0 ; i < dimLens[0]*dimLens[1] ; i++ ) {
-
-				height = (phBuf[i] + phbBuf[i])/grav;
-				// Want to find the bottom of the bottom layer and the bottom 
-				// of the
-				// top layer so that we can output them
-				if (height < vertExts[1] ) vertExts[1] = height;
-			}
-			first = false;
-
-		}
-
-		delete [] phBuf;
-		delete [] phBufTemp;
-		delete [] phbBuf;
-		delete [] phbBufTemp;
-
-	}
-
-	// Get time stamps and lat/lon extents
-	//
-	varInfo timeInfo; // structs for variable information
-
-	varInfo latInfo, lonInfo;
-	bool haveLatLon = false;
-	//Check to make sure we have the XLAT and XLONG variables
-	int vid;
-	haveLatLon = ( NC_NOERR == nc_inq_varid(ncid, "XLAT", &vid));
-
-	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
-
-	if (haveLatLon){
-		if(GetVarInfo(ncid, "XLAT", ncdims, latInfo) < 0) haveLatLon = false;
-		if(GetVarInfo(ncid, "XLONG", ncdims, lonInfo) < 0) haveLatLon = false;
-	}
-
-
-	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
-	if (timeInfo.ndimids != 2) {
-		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
-		return(-1);
-	}
-	size_t sz = timeInfo.dimlens[0] * timeInfo.dimlens[1];
-	if (bufSize < sz) {
-		if (buf) delete [] buf;
-		buf = new char[sz];
-		bufSize = sz;
-	}
-	nc_status = nc_get_var_text(ncid, timeInfo.varid, buf);
-	for (int i =0; i<timeInfo.dimlens[0]; i++) {
-		//Try to get corner coords if we can.
-		//Not needed for wrf2vdf
-		float * latlonexts = 0;
-		if (haveLatLon){ 
-			latlonexts = new float[8];
-			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0)){
-				delete latlonexts;
-				latlonexts = 0;
-			}
-		}
-			 
-		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
-		TIME64_T seconds;
-
-		if (WRFTimeStrToEpoch(time_fmt, &seconds) < 0) return(-1);
-		pair <TIME64_T, float*> pr;
-		pr = make_pair(seconds, (float*)latlonexts);
-		tsExtents.push_back(pr);
-	}
-
-	// Close the WRF file
-	NC_ERR_READ( nc_close( ncid ) );
-
-
-	return(0);
-}
-
-
-
-int WRF::GetWRFMeta(
-	const int ncid, // Holds netCDF file ID (in)
+int WRF::_GetWRFMeta(
+	int ncid, // Holds netCDF file ID (in)
 	float *vertExts, // Vertical extents (out)
 	size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	string &mapProjection, //PROJ4 projection string
 	vector<string> &wrfVars3d, 
 	vector<string> &wrfVars2d, 
+	vector<varInfo_t> &wrfVarInfo,
 	vector<pair<string, double> > &gl_attrib,
-	vector < pair< TIME64_T, float* > > &tsExtents //Times in seconds, lat/lon corners (out)
+	vector <pair< TIME64_T, vector <float> > > &tsExtents //Times in seconds, lat/lon corners (out)
 ) {
 	string ErrMsgStr;
 	float dx = -1.0; // Place to put DX attribute  (-1 if it's not there)
@@ -888,11 +651,12 @@ int WRF::GetWRFMeta(
 	
 	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
 
-	static char *buf = NULL;
-	static size_t bufSize = 0;
+	char *buf = NULL;
+	size_t bufSize = 0;
 	
 	wrfVars3d.clear();
 	wrfVars2d.clear();
+	wrfVarInfo.clear();
 	gl_attrib.clear();
 	tsExtents.clear();
 
@@ -992,7 +756,8 @@ int WRF::GetWRFMeta(
 
 	//Build the projection string, 
 	//If we can't, the projection string is length 0
-	GetProjectionString(ncid, mapProjection);
+	int rc = _GetProjectionString(ncid, mapProjection);
+	if (rc<0) return(-1);
 	
 	// Get starting time stamp
 	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
@@ -1032,7 +797,7 @@ int WRF::GetWRFMeta(
 
 	// Find names of variables with appropriate dimmensions
 	for ( int i = 0 ; i < nvars ; i++ ) {
-		varInfo varinfo;
+		varInfo_t varinfo;
 		char name[NC_MAX_NAME+1];
 		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
 		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
@@ -1043,7 +808,9 @@ int WRF::GetWRFMeta(
 		if (strcmp(name, "CON") == 0) continue;
 #endif
 
-		if ((varinfo.ndimids == 4) && 
+		wrfVarInfo.push_back(varinfo);
+
+		if ((varinfo.dimids.size() == 4) && 
 			(varinfo.dimids[0] ==  timeId) &&
 			((varinfo.dimids[1] ==  btId) || (varinfo.dimids[1] == btsId)) &&
 			((varinfo.dimids[2] ==  snId) || (varinfo.dimids[2] == snsId)) &&
@@ -1051,7 +818,7 @@ int WRF::GetWRFMeta(
 
 			wrfVars3d.push_back( name );
 		}
-		else if ((varinfo.ndimids == 3) && 
+		else if ((varinfo.dimids.size() == 3) && 
 			(varinfo.dimids[0] ==  timeId) &&
 			((varinfo.dimids[1] ==  snId) || (varinfo.dimids[1] == snsId)) &&
 			((varinfo.dimids[2] ==  weId) || (varinfo.dimids[2] == wesId))) {
@@ -1066,52 +833,49 @@ int WRF::GetWRFMeta(
 	if (vertExts) {
 
 		// Get ready to read PH and PHB
-		varInfo phInfo; // structs for variable information
-		varInfo phbInfo;
+		varInfo_t phInfo; // structs for variable information
+		varInfo_t phbInfo;
 
-		if (GetVarInfo( ncid, "PH", ncdims, phInfo) < 0) return(-1);
-		if (phInfo.ndimids != 4) {
+		if (GetVarInfo( ncid, _atypnames.PH.c_str(), ncdims, phInfo) < 0) return(-1);
+		if (phInfo.dimids.size() != 4) {
 			MyBase::SetErrMsg("Variable %s has wrong # dims", "PH");
 			return(-1);
 		}
-		size_t ph_slice_sz = phInfo.dimlens[phInfo.ndimids-1] * 
-			phInfo.dimlens[phInfo.ndimids-2];
+		size_t ph_slice_sz = phInfo.dimlens[phInfo.dimids.size()-1] * 
+			phInfo.dimlens[phInfo.dimids.size()-2];
 
-		if (GetVarInfo( ncid, "PHB", ncdims, phbInfo) < 0) return(-1);
-		if (phbInfo.ndimids != 4) {
+		if (GetVarInfo( ncid, _atypnames.PHB.c_str(), ncdims, phbInfo) < 0) return(-1);
+		if (phbInfo.dimids.size() != 4) {
 			MyBase::SetErrMsg("Variable %s has wrong # dims", "PHB");
 			return(-1);
 		}
-		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.ndimids-1] * 
-			phbInfo.dimlens[phbInfo.ndimids-2];
+		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.dimids.size()-1] * 
+			phbInfo.dimlens[phbInfo.dimids.size()-2];
 			
 
 		// Allocate memory
 		float * phBuf = new float[ph_slice_sz];
-		float * phBufTemp = new float[ph_slice_sz];
 		float * phbBuf = new float[phb_slice_sz];
-		float * phbBufTemp = new float[phb_slice_sz];
 		
 
 		bool first = true;
+
+		varFileHandle_t *fh_ph, *fh_phb;
+
+		fh_ph = Open(_atypnames.PH);
+		if (! fh_ph) return(-1);
+
+		fh_phb = Open(_atypnames.PHB);
+		if (! fh_phb) return(-1);
+
 		for (size_t t = 0; t<dimLens[3]; t++) {
 			float height;
 			int rc;
 
-			// Dummies needed by function
-
-			// Read bottom slices
-			bool needAnotherPh = true;
-			bool needAnotherPhb = true;
-			rc = GetZSlice(
-				ncid, phInfo, t, 0, phBuf, phBufTemp, needAnotherPh, dimLens
-			);
+			rc = GetZSlice(fh_ph, t, 0, phBuf);
 			if (rc<0) return (rc);
 
-			rc = GetZSlice(
-				ncid, phbInfo, t, 0, phbBuf, phbBufTemp, needAnotherPhb, 
-				dimLens
-			);
+			rc = GetZSlice(fh_phb, t, 0, phbBuf);
 			if (rc<0) return (rc);
 
 			if (first) {
@@ -1127,20 +891,11 @@ int WRF::GetWRFMeta(
 				if (height < vertExts[0] ) vertExts[0] = height;
 			}
 
-
 			//  Read the top slices
-			rc = GetZSlice(
-				ncid, phInfo, t, dimLens[2] - 1, phBuf, phBufTemp, 
-				needAnotherPh, dimLens
-			);
+			rc = GetZSlice(fh_ph, t, dimLens[2]-1, phBuf);
 			if (rc<0) return (rc);
 
-			needAnotherPh = true;
-			needAnotherPhb = true;
-			rc = GetZSlice(
-				ncid, phbInfo, t, dimLens[2] - 1, phbBuf, phbBufTemp, 
-				needAnotherPhb, dimLens
-			);
+			rc = GetZSlice(fh_phb, t, dimLens[2]-1, phbBuf);
 			if (rc<0) return (rc);
 
 			if (first) {
@@ -1160,17 +915,15 @@ int WRF::GetWRFMeta(
 		}
 
 		delete [] phBuf;
-		delete [] phBufTemp;
 		delete [] phbBuf;
-		delete [] phbBufTemp;
 
 	}
 
 	// Get time stamps and lat/lon extents
 	//
-	varInfo timeInfo; // structs for variable information
+	varInfo_t timeInfo; // structs for variable information
 
-	varInfo latInfo, lonInfo;
+	varInfo_t latInfo, lonInfo;
 	bool haveLatLon = false;
 	//Check to make sure we have the XLAT and XLONG variables
 	int vid;
@@ -1185,7 +938,7 @@ int WRF::GetWRFMeta(
 
 
 	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
-	if (timeInfo.ndimids != 2) {
+	if (timeInfo.dimids.size() != 2) {
 		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
 		return(-1);
 	}
@@ -1199,26 +952,48 @@ int WRF::GetWRFMeta(
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
 		//Try to get corner coords if we can.
 		//Not needed for wrf2vdf
-		float * latlonexts = 0;
+		vector <float> llevec;
 		if (haveLatLon){ 
-			latlonexts = new float[8];
-			if((GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts) < 0)){
-				delete latlonexts;
-				latlonexts = 0;
-			}
+			float latlonexts[8];
+			(void) _GetCornerCoords(ncid, i, latInfo, lonInfo, latlonexts);
+			for (int j=0; j<8; j++) llevec.push_back(latlonexts[j]);
 		}
 			 
 		string time_fmt(buf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		TIME64_T seconds;
 
 		if (WRFTimeStrToEpoch(time_fmt, &seconds, daysperyear) < 0) return(-1);
-		pair <TIME64_T, float*> pr;
-		pr = make_pair(seconds, (float*)latlonexts);
+		pair <TIME64_T, vector <float> > pr;
+		pr = make_pair(seconds, llevec);
 		tsExtents.push_back(pr);
 	}
 
-	// Close the WRF file
+	if (buf) delete [] buf;
 
 	return(0);
 } // End of GetWRFMeta.
 
+void WRF::GetWRFMeta(
+	float *vertExts, // Vertical extents (out)
+	size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
+	string &startDate, // Place to put START_DATE attribute (out)
+	string &mapProjection, //PROJ4 projection string
+	vector<string> &wrfVars3d, 
+	vector<string> &wrfVars2d, 
+	vector<pair<string, double> > &gl_attrib,
+	vector <pair< TIME64_T, vector <float> > > &tsExtents //Times in seconds, lat/lon corners (out)
+) {
+	vertExts[0] = _vertExts[0];
+	vertExts[1] = _vertExts[1];
+
+	dimLens[0] = _dimLens[0];
+	dimLens[1] = _dimLens[1];
+	dimLens[2] = _dimLens[2];
+	dimLens[3] = _dimLens[3];
+	startDate = _startDate;
+	mapProjection = _mapProjection;
+	wrfVars3d = _wrfVars3d;
+	wrfVars2d = _wrfVars2d;
+	gl_attrib = _gl_attrib;
+	tsExtents = _tsExtents;
+}

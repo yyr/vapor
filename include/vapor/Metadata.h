@@ -50,24 +50,24 @@ public:
 
  virtual ~Metadata() {};
 
+ //! Get the native dimension of a volume
+ //!
  //! Returns the X,Y,Z coordinate dimensions of all data variables
- //! in grid (voxel) coordinates. Hence, all variables of a given 
- //! type (3D or 2D)
- //! must have the same dimension.
+ //! in grid (voxel) coordinates full resolution.
  //!
- //! \retval dim A three element vector (ordered X, Y, Z) containing the 
- //! voxel dimensions of 
- //! the data at its native resolution
+ //! \param[in] reflevel Refinement level of the variable
+ //! \param[out] dim A three element vector (ordered X, Y, Z) containing the 
+ //! voxel dimensions of the data at full resolution.
  //!
- //!
- virtual const size_t *GetDimension() const = 0;
+ //
+ virtual void   GetGridDim(size_t dim[3]) const = 0;
 
  //! Return the internal blocking factor used for data. 
  //!
  //! Returns the X,Y,Z coordinate dimensions of all internal data blocks 
  //! in grid (voxel) coordinates.  If the data are
  //! not blocked this method should return the same values as 
- //! GetDimension().
+ //! GetDim().
  //!
  //! \retval bs  A three element vector containing the voxel dimension of
  //! a data block
@@ -148,6 +148,15 @@ public:
  //!
  //
  virtual vector <string> GetVariableNames() const;
+
+ //! Return the Proj4 map projection string.
+ //!
+ //! \retval value An empty string if a Proj4 map projection is
+ //! not available, otherwise a properly formatted Proj4 projection
+ //! string is returned.
+ //!
+ //
+ virtual string GetMapProjection() const {string empty; return (empty); };
 
  //! Return the names of the 3D variables in the collection 
  //!
@@ -247,14 +256,20 @@ public:
  }
 
  //! Get the dimension of a volume
- //! 
- //! Get the resulting dimension of a variable
- //! at a the specified refinment level.
+ //!
+ //! Returns the X,Y,Z coordinate dimensions of all data variables
+ //! in grid (voxel) coordinates at the resolution
+ //! level indicated by \p reflevel. Hence, all variables of a given 
+ //! type (3D or 2D)
+ //! must have the same dimension. If \p reflevel is -1 (or the value
+ //! returned by GetNumTransforms()) the native grid resolution is 
+ //! returned.
  //!
  //! \param[in] reflevel Refinement level of the variable
- //! \param[out] dim Transformed dimension.
+ //! \param[out] dim A three element vector (ordered X, Y, Z) containing the 
+ //! voxel dimensions of the data at the specified resolution.
  //!
- //! \sa Metadata::GetDimension() GetNumTransforms()
+ //! \sa GetNumTransforms()
  //
  virtual void   GetDim(size_t dim[3], int reflevel = 0) const;
 
@@ -266,7 +281,7 @@ public:
  //! indicates the maximum refinment level defined.
  //! \param[out] bdim Transformed dimension in blocks.
  //!
- //! \sa Metadata::GetDimension() GetNumTransforms()
+ //! \sa Metadata::GetNumTransforms()
  //
  virtual void   GetDimBlk(size_t bdim[3], int reflevel = 0) const; 
 

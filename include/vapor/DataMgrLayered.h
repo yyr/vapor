@@ -8,7 +8,7 @@
 
 #include <vector>
 #include <string>
-#include "vapor/DataMgr.h"
+#include "vapor/WaveletBlock3DRegionReader.h"
 #include "vapor/LayeredIO.h"
 #include "vaporinternal/common.h"
 
@@ -28,7 +28,7 @@ namespace VAPoR {
 //! interface are stored in a cache in main memory, where they may be
 //! be available for future access without reading from disk.
 //
-class VDF_API DataMgrLayered : public DataMgr, LayeredIO {
+class VDF_API DataMgrLayered : public LayeredIO, WaveletBlock3DRegionReader {
 
 public:
 
@@ -36,7 +36,6 @@ public:
 	const string &metafile,
 	size_t mem_size
  );
-// ) : DataMgr(mem_size), LayeredIO(metafile.c_str()) {};
 
  DataMgrLayered(
 	const MetadataVDC &metadata,
@@ -44,15 +43,15 @@ public:
  );
 
 
- virtual ~DataMgrLayered() {}; 
+ virtual ~DataMgrLayered() {CloseVariableNative();};
 
  virtual int VariableExists(
 	size_t ts,
 	const char *varname,
 	int reflevel = 0,
-	int /*lod */ = 0
+	int lod = 0
  ) const {
-	return (LayeredIO::VariableExists(ts,varname,reflevel));
+	return (WaveletBlock3DRegionReader::VariableExists(ts,varname,reflevel,lod));
  };
 
  //
@@ -60,151 +59,125 @@ public:
  //
 
  virtual const size_t *GetBlockSize() const {
-	return(LayeredIO::GetBlockSize());
+	return(WaveletBlock3DRegionReader::GetBlockSize());
  }
 
  virtual void GetBlockSize(size_t bs[3], int reflevel) const {
-	LayeredIO::GetBlockSize(bs, reflevel);
+	WaveletBlock3DRegionReader::GetBlockSize(bs, reflevel);
  }
 
- virtual const size_t *GetDimension() const {
-	return(LayeredIO::GetDimension());
- };
-
  virtual int GetNumTransforms() const {
-	return(LayeredIO::GetNumTransforms());
+	return(WaveletBlock3DRegionReader::GetNumTransforms());
  };
 
  virtual vector<double> GetExtents() const {
-	return(LayeredIO::GetExtents());
+	return(WaveletBlock3DRegionReader::GetExtents());
  };
 
  virtual long GetNumTimeSteps() const {
-	return(LayeredIO::GetNumTimeSteps());
+	return(WaveletBlock3DRegionReader::GetNumTimeSteps());
  };
 
  virtual vector <string> GetVariables3D() const {
-	return(LayeredIO::GetVariables3D());
+	return(WaveletBlock3DRegionReader::GetVariables3D());
  };
 
  virtual vector <string> GetVariables2DXY() const {
-	return(LayeredIO::GetVariables2DXY());
+	return(WaveletBlock3DRegionReader::GetVariables2DXY());
  };
  virtual vector <string> GetVariables2DXZ() const {
-	return(LayeredIO::GetVariables2DXZ());
+	return(WaveletBlock3DRegionReader::GetVariables2DXZ());
  };
  virtual vector <string> GetVariables2DYZ() const {
-	return(LayeredIO::GetVariables2DYZ());
+	return(WaveletBlock3DRegionReader::GetVariables2DYZ());
  };
 
  virtual vector<long> GetPeriodicBoundary() const {
-	return(LayeredIO::GetPeriodicBoundary());
+	return(WaveletBlock3DRegionReader::GetPeriodicBoundary());
  };
 
  virtual vector<long> GetGridPermutation() const {
-	return(LayeredIO::GetGridPermutation());
+	return(WaveletBlock3DRegionReader::GetGridPermutation());
  };
 
  virtual double GetTSUserTime(size_t ts) const {
-	return(LayeredIO::GetTSUserTime(ts));
+	return(WaveletBlock3DRegionReader::GetTSUserTime(ts));
  };
 
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
-    LayeredIO::GetTSUserTimeStamp(ts,s);
+    WaveletBlock3DRegionReader::GetTSUserTimeStamp(ts,s);
  }
 
  virtual vector<double> GetTSExtents(size_t ts) const {
-	return(LayeredIO::GetTSExtents(ts));
- };
-
- virtual void   GetDim(size_t dim[3], int reflevel) const {
-	return(LayeredIO::GetDim(dim, reflevel));
- };
-
- virtual void   GetDimBlk(size_t bdim[3], int reflevel) {
-	return(LayeredIO::GetDimBlk(bdim, reflevel));
+	return(WaveletBlock3DRegionReader::GetTSExtents(ts));
  };
 
  virtual string GetMapProjection() const {
-	return(LayeredIO::GetMapProjection());
+	return(WaveletBlock3DRegionReader::GetMapProjection());
  };
-
- void SetLowVals(const vector<string>& varNames, const vector<float>& values) { 
-	LayeredIO::SetLowVals(varNames, values);
- }
- void SetHighVals(const vector<string>& varNames, const vector<float>& values) { 
-	LayeredIO::SetHighVals(varNames, values);
- }
-
- void SetInterpolateOnOff(bool on) {
-	LayeredIO::SetInterpolateOnOff(on);
- };
-
-
- int SetGridHeight(size_t height) {
-	return(LayeredIO::SetGridHeight(height));
- }
-
- size_t GetGridHeight() const {
-	return(LayeredIO::GetGridHeight());
- }
-	
- virtual void   MapVoxToUser(
-    size_t timestep,
-    const size_t vcoord0[3], double vcoord1[3], int reflevel = 0
- ) const {
-	LayeredIO::MapVoxToUser(timestep, vcoord0, vcoord1, reflevel);
- };
-
- virtual void   MapUserToVox(
-    size_t timestep,
-    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
- ) const {
-	LayeredIO::MapUserToVox(timestep, vcoord0, vcoord1, reflevel);
- };
-
-
-
-
-
 
 protected:
 
- virtual int	OpenVariableRead(
+ virtual const float *GetDataRange() const {
+	return(WaveletBlock3DRegionReader::GetDataRange());
+ }
+ virtual int	OpenVariableReadNative(
 	size_t timestep,
 	const char *varname,
 	int reflevel = 0,
 	int lod = 0
  ) {
-	return(LayeredIO::OpenVariableRead(
+	return(WaveletBlock3DRegionReader::OpenVariableRead(
 		timestep, varname, reflevel)
 	); 
  };
 
- virtual int	CloseVariable() {
-	 return (LayeredIO::CloseVariable());
+ virtual int	CloseVariableNative() {
+	 return (WaveletBlock3DRegionReader::CloseVariable());
  };
 
- virtual int    BlockReadRegion(
+ virtual int    BlockReadRegionNative(
     const size_t bmin[3], const size_t bmax[3],
     float *region
  )  {
- 	return(LayeredIO::BlockReadRegion(
+ 	return(WaveletBlock3DRegionReader::BlockReadRegion(
 		bmin, bmax, region, 1)
 	);
  }; 
 
- virtual void GetValidRegion(
+ virtual void GetValidRegionNative(
     size_t min[3], size_t max[3], int reflevel
  ) const {
- 	return(LayeredIO::GetValidRegion(
+ 	return(WaveletBlock3DRegionReader::GetValidRegion(
 		min, max, reflevel)
 	);
  };
 
- virtual const float *GetDataRange() const {
-	return(LayeredIO::GetDataRange());
- }
+ virtual void   GetDimNative(size_t dim[3], int reflevel) const {
+	return(WaveletBlock3DRegionReader::GetDim(dim, reflevel));
+ };
+
+ virtual void   GetDimBlkNative(size_t bdim[3], int reflevel) const {
+	return(WaveletBlock3DRegionReader::GetDimBlk(bdim, reflevel));
+ };
+
+ virtual void   MapVoxToUserNative(
+    size_t timestep,
+    const size_t vcoord0[3], double vcoord1[3], int reflevel = 0
+ ) const {
+	return(WaveletBlock3DRegionReader::MapVoxToUser(
+		timestep, vcoord0, vcoord1, reflevel)
+	);
+ };
+
+ virtual void   MapUserToVoxNative(
+    size_t timestep,
+    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
+ ) const {
+	return(WaveletBlock3DRegionReader::MapUserToVox(
+		timestep, vcoord0, vcoord1, reflevel)
+	);
+ };
 
 };
 
