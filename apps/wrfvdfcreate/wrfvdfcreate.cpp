@@ -260,7 +260,9 @@ int	main(int argc, char **argv) {
 
 	if(WRFData->GetNumTimeSteps() > 0) {
 
-	file = new MetadataVDC(WRFData->GetDimension(), 2, WRFData->GetBlockSize());	
+		size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
+		file = new MetadataVDC(WRFData->GetDimension(), opt.level, bs);
+		if (MetadataVDC::GetErrCode() != 0) exit(1);
 
         // Copy values over from MetadataWRF to MetadataVDC.
         // Add checking of return values and error messsages.
