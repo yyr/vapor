@@ -22,9 +22,7 @@ using namespace VAPoR;
 using namespace VetsUtil;
 
 //Define ordering of pairs <timestep, extents> so they can be sorted together
-bool timeOrdering(
-	pair<TIME64_T, vector<float> > p, pair<TIME64_T, vector<float> > q
-) {
+bool timeOrdering(pair<TIME64_T, float* > p,pair<TIME64_T, float* > q){
   if (p.first < q.first) 
     return true;
   return false;
@@ -53,6 +51,7 @@ MetadataWRF::MetadataWRF() {
   GridPermutation.push_back(1);
   GridPermutation.push_back(2);
   GridPermutation.push_back(3);
+  Blocksize[0] = Blocksize[1] = Blocksize[2] = 32;
   Dimens[0] = Dimens[1] = Dimens[2] = 512;
   Time_latlon_extents.clear();
   Timestep_filename.clear();
@@ -67,7 +66,7 @@ MetadataWRF::MetadataWRF() {
 
 MetadataWRF::MetadataWRF(const vector<string> &infiles) {
   vector<string> twrfvars3d, twrfvars2d;
-  vector <pair< TIME64_T, vector <float> > > tt_latlon_exts;
+  vector<pair<TIME64_T, float*> > tt_latlon_exts;
   vector<pair<string, double> > tgl_attr;
   vector<pair<string, double> >::iterator sf_pair_iter;
   vector<string>::iterator striter;
@@ -79,7 +78,8 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
   float vertexts[2] = {0.0, 0.0};
   float *vertexts_ptr = vertexts;
   float dx, tdx, dy, tdy;
-  int i = 0;
+  int ncid = 0;
+  int rc = 0, i = 0;
   bool first_file_flag = true;
   bool mismatch_flag = false;
 
@@ -104,6 +104,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
   GridPermutation.push_back(1);
   GridPermutation.push_back(2);
   GridPermutation.push_back(3);
+  Blocksize[0] = Blocksize[1] = Blocksize[2] = 32;
   Dimens[0] = Dimens[1] = Dimens[2] = 512;
   Time_latlon_extents.clear();
   Timestep_filename.clear();
@@ -119,30 +120,19 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
     twrfvars2d.clear();
     tgl_attr.clear();
     tt_latlon_exts.clear();
+    rc = (int)nc_open(infiles[i].c_str(), NC_NOWRITE, &ncid);
+    if (rc == NC_NOERR) {
+      rc = WRF::GetWRFMeta(ncid,vertexts_ptr,tdimlens,tstartdate,tmapprojection,twrfvars3d,twrfvars2d,tgl_attr,tt_latlon_exts);
 
-    //WRF wrf(infiles[i], atypnames);
-    WRF wrf(infiles[i]);
-	if (WRF::GetErrCode() != 0) {
-		WRF::SetErrMsg(
-			"Error processing file %s, skipping.",infiles[i].c_str()
-		);
-        WRF::SetErrCode(0);
+      if (rc < 0 || (vertexts_ptr && vertexts_ptr[0] >= vertexts_ptr[1])) {
+        ErrMsgStr.assign("Error processing file ");
+        ErrMsgStr += infiles[i];
+        ErrMsgStr.append(", skipping.");
+        MyBase::SetErrMsg(ErrMsgStr.c_str());
+        nc_close(ncid);
+        MyBase::SetErrCode(0);
         continue;
-    }
-   
-    wrf.GetWRFMeta(
-      vertexts_ptr,tdimlens,tstartdate,tmapprojection,twrfvars3d,
-      twrfvars2d,tgl_attr,tt_latlon_exts
-    );
-
-    if (vertexts_ptr[0] >= vertexts_ptr[1]) {
-      WRF::SetErrMsg(
-        "Error processing file %s (invalid vertical extents), skipping.",
-        infiles[i].c_str()
-      );
-      WRF::SetErrCode(0);
-      continue;
-    }
+      }
 
 // Grab the dx and dy values from attrib list;
 
@@ -158,6 +148,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
         ErrMsgStr += infiles[i];
         ErrMsgStr.append(", skipping.");
         MyBase::SetErrMsg(ErrMsgStr.c_str());
+        nc_close(ncid);
         MyBase::SetErrCode(0);
         continue;
       }
@@ -228,10 +219,12 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
           ErrMsgStr.assign("File mismatch, skipping file ");
           ErrMsgStr += infiles[i];
           MyBase::SetErrMsg(ErrMsgStr.c_str());
+          nc_close(ncid);
           MyBase::SetErrCode(0);
           continue;
         }
       } // end else first_file_flag.
+      nc_close(ncid);
 
 // Want the minimum vertical extents for entire data
 // set for bottom and top layer.
@@ -260,6 +253,14 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
         }
       } // End of for j. 
 
+    } // End if file opened.
+    else {
+      ErrMsgStr.assign("Error opening file ");
+      ErrMsgStr += infiles[i];
+      ErrMsgStr.append(" !");
+      MyBase::SetErrMsg(ErrMsgStr.c_str());
+      MyBase::SetErrCode(0);
+    }
   } // End for files to open (i).
 
 // Finished all the input files, now can process over 
@@ -320,7 +321,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
   } // End if daysperyear.
   minLat = minLon = 500.0;
   maxLat = maxLon = -500.0;
-  vector <float> llexts;
+  float * llexts;
   for(int i = 0; i < Time_latlon_extents.size(); i++) {
     ttime_str.clear();
     ts_now = Time_latlon_extents[i].first;
@@ -332,7 +333,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
     }
     UserTimeStamps.push_back(ttime_str);
     llexts = Time_latlon_extents[i].second;
-    if (llexts.size() == 8 ){ //Check all 4 corners for max and min longitude/latitude
+    if (llexts){ //Check all 4 corners for max and min longitude/latitude
       for (int cor = 0; cor < 4; cor++){
         if (llexts[cor*2] < minLon) minLon = llexts[cor*2];
         if (llexts[cor*2] > maxLon) maxLon = llexts[cor*2];
@@ -373,6 +374,8 @@ MetadataWRF::~MetadataWRF() {
   GridPermutation.clear();
   StartDate.clear();
   MapProjection.clear();
+  delete [] Blocksize;
+  delete [] Dimens;
   Time_latlon_extents.clear();
   Timestep_filename.clear();
   Timestep_offset.clear();
@@ -383,14 +386,23 @@ int MetadataWRF::MapVDCTimestep(
   string &wrf_fname,
   size_t &wrf_ts) {
   size_t i;
+  size_t tmp_usertime;
   int retval = 0;
   bool found_flag = false;
 
-  if(Timestep_filename.size() == 0 || Timestep_offset.size() == 0)
+  if(Timestep_filename.size() == 0 || 
+      Timestep_offset.size() == 0 ||
+      Time_latlon_extents.size() == 0 )
     retval = -1;
+
+  if( timestep < 0 || timestep >= Time_latlon_extents.size() )
+    retval = -1;
+
+  tmp_usertime = Time_latlon_extents[timestep].first;
+
   if (retval == 0) {
     for(i = 0; i < Timestep_offset.size() && !found_flag; i++) {
-      if(Timestep_offset[i].first == timestep) {
+      if(Timestep_offset[i].first == tmp_usertime) {
         wrf_ts = Timestep_offset[i].second;
         found_flag = true;
       }
@@ -401,7 +413,7 @@ int MetadataWRF::MapVDCTimestep(
   found_flag = false;
   if (retval == 0) {
     for(i = 0; i < Timestep_filename.size() && !found_flag; i++) {
-      if(Timestep_filename[i].first == timestep) {
+      if(Timestep_filename[i].first == tmp_usertime) {
         wrf_fname = Timestep_filename[i].second;
         found_flag = true;
       }
@@ -421,24 +433,32 @@ int MetadataWRF::MapWRFTimestep(
   const string &wrf_fname,
   size_t wrf_ts,
   size_t &timestep) {
-  size_t temp_ts;
+  size_t tmp_usertime;
   int retval = 0;
   bool found_flag = false;
   timestep = 0;
 
   for(size_t i = 0; i < Timestep_filename.size() && !found_flag; i++) {
     if ( Timestep_filename[i].second == wrf_fname) {
-      temp_ts = Timestep_filename[i].first;
+      tmp_usertime = Timestep_filename[i].first;
       for(size_t j = 0; j < Timestep_offset.size() && !found_flag; j++) {
-        if(Timestep_offset[i].first == temp_ts && Timestep_offset[i].second == wrf_ts) {
-          timestep = temp_ts;
+        if(Timestep_offset[i].first == tmp_usertime && Timestep_offset[i].second == wrf_ts) {
           found_flag = true;
         }
       } // End for j ( offset) .
-    }
+    } // End if.
   } // End for i (filename).
 
-  if (!found_flag)
+  if(found_flag) {
+    bool done_flag = false;
+    for(int i = 0; i < Time_latlon_extents.size() || !done_flag; i++) {
+      if(Time_latlon_extents[i].first == tmp_usertime) {
+        timestep = i;
+        done_flag = true;
+      }
+    }
+  }
+  else
     retval = -1;
 
   return(retval);
@@ -492,8 +512,8 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       vector<double> currExtents;
 
       for ( size_t t = 0 ; t < Time_latlon_extents.size() ; t++ ){
-        vector <float> exts = Time_latlon_extents[t].second;
-        if (!exts.size()) continue;
+        float* exts = Time_latlon_extents[t].second;
+        if (!exts) continue;
         //exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
         for (int j = 0; j<4; j++)
           dbextents[j] = exts[j]*DEG2RAD;
@@ -530,12 +550,12 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
   return (retval);
 } // End of ReprojectTsLatLon.
 
-//bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
-//{
- // return true;
-//}
+bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
+{
+  return true;
+}
 
-//bool MetadataWRF::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
- // return true;
-//}
+bool MetadataWRF::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
+  return true;
+}
 
