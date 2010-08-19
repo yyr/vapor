@@ -26,7 +26,7 @@
 #include "dvrparams.h"
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrWB.h"
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 #include "vapor/DataMgrFactory.h"
 #include "vapor/LayeredIO.h"
 #include "vapor/ParamNode.h"
@@ -676,7 +676,8 @@ exportData(){
 			return;
 		}
 		//Determine the unlayered vertical grid size of the data:
-		const size_t* dim = getDataMgr()->GetDimension();
+		size_t dim[3];
+		getDataMgr()->GetDim(dim, -1);
 		maxCoords[2] = dim[2];
 	}
 	
@@ -760,7 +761,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			assert (dataMgr);
 			MetadataVDC* md; 
 			DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-			DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered *> (dataMgr);
+			LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO *> (dataMgr);
 			
 			if (dataMgrWB) {
 				md = (MetadataVDC*) dataMgrWB;

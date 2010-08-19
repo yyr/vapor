@@ -89,7 +89,7 @@
 #include "userpreferences.h"
 
 #include <vapor/DataMgrWB.h>
-#include <vapor/DataMgrLayered.h>
+#include <vapor/LayeredIO.h>
 #include <vapor/MetadataVDC.h>
 #include "vapor/Version.h"
 //Following shortcuts are provided:
@@ -263,7 +263,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			fileName.replace('\\','/');
 #endif
 			Session::getInstance()->resetMetadata((const char*)fileName.toAscii(), false);
-		}
+		} 
 	}
 	MessageReporter::infoMsg("MainForm::MainForm() end");
 }
@@ -815,7 +815,7 @@ void MainForm::saveMetadata()
 {
 	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-	DataMgrLayered *dataMgrLayered = dynamic_cast<DataMgrLayered *> (dataMgr);
+	LayeredIO *dataMgrLayered = dynamic_cast<LayeredIO *> (dataMgr);
 
 	//Do nothing if there is no metadata:
 	if (! dataMgrWB  && !dataMgrLayered) {

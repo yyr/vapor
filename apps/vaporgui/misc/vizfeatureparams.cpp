@@ -36,9 +36,10 @@
 #include <qcolordialog.h>
 #include <qlayout.h>
 #include <vector>
-#include <vapor/DataMgrLayered.h>
-int VizFeatureParams::sessionVariableNum = 0;
+#include <vapor/LayeredIO.h>
+
 using namespace VAPoR;
+int VizFeatureParams::sessionVariableNum = 0;
 //Create a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(){
 	dialogChanged = false;
@@ -714,7 +715,7 @@ applyToViz(int vizNum){
 		}
 		if (ds->dataIsLayered()){	
 			DataMgr *dataMgr = ds->getDataMgr();
-			DataMgrLayered   *dataMgrLayered = dynamic_cast<DataMgrLayered *>(dataMgr);
+			LayeredIO   *dataMgrLayered = dynamic_cast<LayeredIO *>(dataMgr);
 
 			//construct a list of the non extended variables
 			std::vector<string> vNames;
