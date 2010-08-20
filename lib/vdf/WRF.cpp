@@ -478,10 +478,10 @@ int WRF::GetZSlice(
 	if (! fh->thisVar.stag[2]) {
 		if ( fh->thisVar.dimids.size() == 3 ) {
 
-			rc = _ReadZSlice3D( _ncid, fh->thisVar, fh->wrft, buffer);
+			rc = _ReadZSlice3D( _ncid, fh->thisVar, wrft, buffer);
 		}
 		else {
-			rc = _ReadZSlice4D( _ncid, fh->thisVar, fh->wrft, z, buffer);
+			rc = _ReadZSlice4D( _ncid, fh->thisVar, wrft, z, buffer);
 		}
 		if (rc<0) return(-1);
 
