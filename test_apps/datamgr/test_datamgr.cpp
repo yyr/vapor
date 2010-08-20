@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -36,7 +37,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts0",		1, 	"0","First time step to process"},
 	{"loop",	1, 	"10","Number of loops to execute"},
 	{"memsize",	1, 	"100","Cache size in MBs"},
-	{"varname",	1, 	"var1",	"Name of variable"},
+	{"varname",	1, 	"",	"Name of variable"},
 	{"savefilebase",	1, 	"",	"Base path name to output file"},
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "0","Level of detail. Zero implies coarsest resolution"},
@@ -76,12 +77,73 @@ const char	*ProgName;
 void ErrMsgCBHandler(const char *msg, int) {
     cerr << ProgName << " : " << msg << endl;
 }
+void print_info(DataMgr *datamgr) {
+
+	int num_transforms = datamgr->GetNumTransforms();
+	cout << "Num transforms: " << num_transforms << endl;
+
+	for (int i=0; i<= num_transforms; i++) {
+		size_t dim[3];
+		datamgr->GetDim(dim, i);
+
+		cout << "Grid " << i << ":" << dim[0] << " " << dim[1] << " " << dim[2];
+		cout << endl;
+	}
+	for (int i=0; i<= num_transforms; i++) {
+		size_t bs[3];
+		datamgr->GetBlockSize(bs, i);
+
+		cout << "Block " << i << ":" << bs[0] << " " << bs[1] << " " << bs[2];
+		cout << endl;
+	}
+
+	cout << "3D variables: ";
+	for (int i=0; i<datamgr->GetVariables3D().size(); i++) {
+		cout << datamgr->GetVariables3D()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "2DXY variables: ";
+	for (int i=0; i<datamgr->GetVariables2DXY().size(); i++) {
+		cout << datamgr->GetVariables2DXY()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "2DXZ variables: ";
+	for (int i=0; i<datamgr->GetVariables2DXZ().size(); i++) {
+		cout << datamgr->GetVariables2DXZ()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "2DYZ variables: ";
+	for (int i=0; i<datamgr->GetVariables2DYZ().size(); i++) {
+		cout << datamgr->GetVariables2DYZ()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "Compression ratios: ";
+	for (int i=0; i<datamgr->GetCRatios().size(); i++) {
+		cout << datamgr->GetCRatios()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "Extents: ";
+	for (int i=0; i<datamgr->GetExtents().size(); i++) {
+		cout << datamgr->GetExtents()[i] << " ";
+	}
+	cout << endl;
+
+	cout << "Num timesteps: " << datamgr->GetNumTimeSteps() << endl;
+
+	cout << "Map projection: " << datamgr->GetMapProjection() << endl;
+
+	cout << endl << endl;
+
+}
 
 int main(int argc, char **argv) {
 
 	OptionParser op;
-	const char	*metafile;
-
 	double	timer = 0.0;
 	string	s;
 
@@ -101,7 +163,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (opt.help) {
-		cerr << "Usage: " << ProgName << " [options] metafile " << endl;
+		cerr << "Usage: " << ProgName << " [options] metafiles " << endl;
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
@@ -110,32 +172,39 @@ int main(int argc, char **argv) {
 		MyBase::SetDiagMsgFilePtr(stderr);
 	}
 
-	if (argc != 2) {
-		cerr << "Usage: " << ProgName << " [options] metafile " << endl;
+	if (argc < 2) {
+		cerr << "Usage: " << ProgName << " [options] metafiles " << endl;
 		op.PrintOptionHelp(stderr);
 		exit(1);
 	}
 
-	metafile = argv[1];
-
+	vector <string> metafiles;
+	for (int i=1; i<argc; i++) {
+		metafiles.push_back(argv[i]);
+	}
+		
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
 
 	DataMgr	*datamgr;
 
-
-	vector <string> metafiles;
-	metafiles.push_back(metafile);
-
 	datamgr = DataMgrFactory::New(metafiles, opt.memsize);
 	if (DataMgrFactory::GetErrCode() != 0) {
-		cerr << "DataMgrFactory::DataMgrFactory() : " << DataMgrFactory::GetErrMsg() << endl;
 		exit (1);
+	}
+
+	print_info(datamgr);
+
+	string vname = opt.varname;
+	if (vname.length() == 0) {
+		vname = datamgr->GetVariableNames()[0];
 	}
 
 	const size_t *bs = datamgr->GetBlockSize();
 	FILE *fp = NULL;
+
+	cout << "Variable name : " << vname << endl;
 
 	int nts = datamgr->GetNumTimeSteps();
 	for(int l = 0; l<opt.loop; l++) {
@@ -171,11 +240,10 @@ int main(int argc, char **argv) {
 			if (strcmp(opt.dtype, "float") == 0) {
 				float *fptr;
 				fptr = datamgr->GetRegion(
-					ts, opt.varname, opt.level, opt.level, min, max, 0
+					ts, vname.c_str(), opt.level, opt.level, min, max, 0
 				);
 
 				if (! fptr) {
-					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
 					delete datamgr;
 					exit(1);
 				}
@@ -191,11 +259,10 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt8(
-					ts, opt.varname, opt.level, opt.level, min, max, qrange, 0
+					ts, vname.c_str(), opt.level, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
-					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
 					exit(1);
 				}
 
@@ -210,11 +277,10 @@ int main(int argc, char **argv) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt16(
-					ts, opt.varname, opt.level, opt.level, min, max, qrange, 0
+					ts, vname.c_str(), opt.level, opt.level, min, max, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
-					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
 					exit(1);
 				}
 
@@ -226,8 +292,15 @@ int main(int argc, char **argv) {
 				}
 			}
 			float r[2];
-			datamgr->GetDataRange(ts, opt.varname, r);
+			datamgr->GetDataRange(ts, vname.c_str(), r);
 			cout << "Data Range : [" << r[0] << ", " << r[1] << "]" << endl;
+
+			string stamp;
+			datamgr->GetTSUserTimeStamp(ts, stamp);
+			cout << "Time stamp: " << stamp << endl;
+
+			cout << setprecision (16) << "User time: " << datamgr->GetTSUserTime(ts) << endl;
+			cout << endl;
 		}
 
 	}
