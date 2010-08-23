@@ -749,7 +749,7 @@ void MatWaveWavedec::approxlength(
 
 	int LLength = n + 2;
 	
-	*len = approxlength(L[LLength-1], l);
+	*len = approxlength(L[LLength-1], n-l);
 }
 
 void MatWaveWavedec::approxlength2(
@@ -759,8 +759,8 @@ void MatWaveWavedec::approxlength2(
 
 	int LLength = n * 6 + 4;
 	
-	*lenx = approxlength(L[LLength-2], l);
-	*leny = approxlength(L[LLength-1], l);
+	*lenx = approxlength(L[LLength-2], n-l);
+	*leny = approxlength(L[LLength-1], n-l);
 }
 
 void MatWaveWavedec::approxlength3(
@@ -770,9 +770,9 @@ void MatWaveWavedec::approxlength3(
 
 	int LLength = n * 21 + 6;
 	
-	*lenx = approxlength(L[LLength-3], l);
-	*leny = approxlength(L[LLength-2], l);
-	*lenz = approxlength(L[LLength-1], l);
+	*lenx = approxlength(L[LLength-3], n-l);
+	*leny = approxlength(L[LLength-2], n-l);
+	*lenz = approxlength(L[LLength-1], n-l);
 }
 
 
