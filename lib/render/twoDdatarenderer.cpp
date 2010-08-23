@@ -28,7 +28,7 @@
 
 #include "vapor/errorcodes.h"
 #include "vapor/DataMgr.h"
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
@@ -168,7 +168,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
 
-    DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+    LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
     if (! dataMgrLayered) return false;
 
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;

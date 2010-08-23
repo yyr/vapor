@@ -27,7 +27,7 @@
 #include "glutil.h"
 
 #include "vapor/errorcodes.h"
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
@@ -206,7 +206,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	const float* extents = ds->getExtents();
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+	LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
 	if (! dataMgrLayered) return false;
 
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;

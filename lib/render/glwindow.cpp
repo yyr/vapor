@@ -18,7 +18,7 @@
 //		It performs the opengl rendering for visualizers
 //
 #include <GL/glew.h>
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 
 #include "glwindow.h"
 #include "trackball.h"
@@ -1573,7 +1573,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	float* elevData = 0;
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
-	DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered*> (dataMgr);
+	LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
 	assert(dataMgrLayered != NULL);
 
 	float displacement = getDisplacement();
