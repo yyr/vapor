@@ -255,6 +255,16 @@ int WaveCodecIO::OpenVariableRead(
 		return(-1);
 	}
 
+	//
+	// Clamp the range of the reconstructed values to the range of the
+	// original data values
+	//
+	_compressor->ClampMinOnOff() = true;
+	_compressor->ClampMaxOnOff() = true;
+
+	_compressor->ClampMin() = _dataRange[0];
+	_compressor->ClampMax() = _dataRange[1];
+
 	return(0);
 }
 

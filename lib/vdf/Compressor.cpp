@@ -25,6 +25,11 @@ Compressor::Compressor(
 	_dims.clear();
 	_indexvec.clear();
 	_keepapp = true;
+    _clamp_min_flag = false;
+    _clamp_max_flag = false;
+    _clamp_min = 0.0;
+    _clamp_max = 1.0;
+
 
 	for (int i=0; i<dims.size(); i++) {
 		_dims.push_back(dims[i]);
@@ -298,18 +303,40 @@ int decompress_template(
 	
 
 	int rc = 0;
+	size_t dst_dim[] = {1,1,1};
 	if (dims.size() == 3) {
-		rc = cmp->waverec3(C, L, nlevels, dst_arr);
+		//rc = cmp->waverec3(C, L, nlevels, dst_arr);
+		rc = cmp->appcoef3(C, L, nlevels, nlevels, true, dst_arr);
+		cmp->approxlength3(L, nlevels, nlevels, &dst_dim[0],&dst_dim[1],&dst_dim[2]);
 	}
 	else if (dims.size() == 2) {
-		rc = cmp->waverec2(C, L, nlevels, dst_arr);
+		//rc = cmp->waverec2(C, L, nlevels, dst_arr);
+		rc = cmp->appcoef2(C, L, nlevels, nlevels, true, dst_arr);
+		cmp->approxlength2(L, nlevels, nlevels, &dst_dim[0],&dst_dim[1]);
 	}
 	else if (dims.size() == 1) {
-		rc = cmp->waverec(C, L, nlevels, dst_arr);
+		//cmp->waverec(C, L, nlevels, dst_arr);
+		rc = cmp->appcoef(C, L, nlevels, nlevels, true, dst_arr);
+		cmp->approxlength(L, nlevels, nlevels, &dst_dim[0]);
+	}
+	if (rc<0) return(rc);
+
+	if (cmp->ClampMinOnOff() || cmp->ClampMaxOnOff()) {
+		bool clamp_min_f = cmp->ClampMinOnOff();
+		double clamp_min = cmp->ClampMin();
+		bool clamp_max_f = cmp->ClampMaxOnOff();
+		double clamp_max = cmp->ClampMax();
+
+		size_t sz = dst_dim[0]*dst_dim[1]*dst_dim[2];
+		for (size_t i = 0; i<sz; i++) {
+			if (clamp_min_f && dst_arr[i] < clamp_min) dst_arr[i] = clamp_min;
+			if (clamp_max_f && dst_arr[i] > clamp_max) dst_arr[i] = clamp_max;
+		}
 	}
 
-	return(rc);
+	return(0);
 }
+
 };
 
 int Compressor::Decompress(
@@ -529,19 +556,36 @@ int reconstruct_template(
 
 
 	int rc = 0;
+	size_t dst_dim[] = {1,1,1};
 	if (dims.size() == 3) {
 		//cmp->waverec3(C, L, nlevels, dst_arr);
 		rc = cmp->appcoef3(C, L, nlevels, l, true, dst_arr);
+		cmp->approxlength3(L, nlevels, l, &dst_dim[0],&dst_dim[1],&dst_dim[2]);
 	}
 	else if (dims.size() == 2) {
 		//cmp->waverec2(C, L, nlevels, dst_arr);
 		rc = cmp->appcoef2(C, L, nlevels, l, true, dst_arr);
+		cmp->approxlength2(L, nlevels, l, &dst_dim[0],&dst_dim[1]);
 	}
 	else if (dims.size() == 1) {
 		//cmp->waverec(C, L, nlevels, dst_arr);
 		rc = cmp->appcoef(C, L, nlevels, l, true, dst_arr);
+		cmp->approxlength(L, nlevels, l, &dst_dim[0]);
 	}
 	if (rc < 0) return(-1);
+
+	if (cmp->ClampMinOnOff() || cmp->ClampMaxOnOff()) {
+		bool clamp_min_f = cmp->ClampMinOnOff();
+		double clamp_min = cmp->ClampMin();
+		bool clamp_max_f = cmp->ClampMaxOnOff();
+		double clamp_max = cmp->ClampMax();
+
+		size_t sz = dst_dim[0]*dst_dim[1]*dst_dim[2];
+		for (size_t i = 0; i<sz; i++) {
+			if (clamp_min_f && dst_arr[i] < clamp_min) dst_arr[i] = clamp_min;
+			if (clamp_max_f && dst_arr[i] > clamp_max) dst_arr[i] = clamp_max;
+		}
+	}
 
 	return(0);
 }
