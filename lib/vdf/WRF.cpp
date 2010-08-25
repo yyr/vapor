@@ -103,8 +103,7 @@ WRF::varFileHandle_t *WRF::Open(
 	// Allocate space for a single, staggered slice (even if variable 
 	// is not staggered). N.B. dimLens contains unstaggered dimensions
 	//
-	size_t sz = (fh.thisVar.dimlens[fh.thisVar.dimids.size()-2] + 1) *
-		(fh.thisVar.dimlens[fh.thisVar.dimids.size()-1] + 1);
+	size_t sz = _dimLens[0] * _dimLens[1];
 
 	fh.buffer = new float[sz];
 	fh.z = -1;	// Invalid slice #
@@ -472,16 +471,21 @@ int WRF::GetZSlice(
 	
 	int rc;
 
+	// size of one unstaggered slice
+	//
+	size_t slice_sz = _dimLens[0] * _dimLens[1];
+
 	// If z dimension is not staggered simply read and return slice (possibly
 	// doing horizontal interpolation)
 	//
 	if (! fh->thisVar.stag[2]) {
+
 		if ( fh->thisVar.dimids.size() == 3 ) {
 
-			rc = _ReadZSlice3D( _ncid, fh->thisVar, wrft, buffer);
+			rc = _ReadZSlice3D( _ncid, fh->thisVar, wrft, fh->buffer);
 		}
 		else {
-			rc = _ReadZSlice4D( _ncid, fh->thisVar, wrft, z, buffer);
+			rc = _ReadZSlice4D( _ncid, fh->thisVar, wrft, z, fh->buffer);
 		}
 		if (rc<0) return(-1);
 
@@ -489,17 +493,19 @@ int WRF::GetZSlice(
 		// if necessary
 		//
 		if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
-			_InterpHorizSlice(buffer, fh->thisVar);
+			_InterpHorizSlice(fh->buffer, fh->thisVar);
 		}
+
+		for ( size_t l = 0 ; l < slice_sz ; l++ ) {
+			buffer[l] = fh->buffer[l];
+		}
+		fh->z = z;
+
 		return(0);
 	}
 
 	assert (fh->thisVar.dimids.size() == 4);
 
-	// size of one unstaggered slice
-	//
-	size_t slice_sz = fh->thisVar.dimlens[fh->thisVar.dimids.size()-2] *
-		fh->thisVar.dimlens[fh->thisVar.dimids.size()-1];
 
 	// Need two slices. See if first is already buffered from previous 
 	// invocation. If not, read it.

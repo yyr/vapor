@@ -36,7 +36,7 @@ public:
 	string name; // Name of the variable in the VDF and WRF file
 	int varid; // Variable ID in netCDF file
 	vector <int> dimids; // Array of dimension IDs that this variable uses
-	vector <size_t> dimlens; // Array of dimensions 
+	vector <size_t> dimlens; // Array of dimensions from netCDF file
 	nc_type xtype; // The type of the variable (float, double, etc.)
 	vector <bool> stag; // Indicates which of the fastest varying three dimensions 
 				// are staggered. N.B. order of array is reversed from
@@ -102,7 +102,7 @@ public:
 
  void GetWRFMeta(
 	float * vertExts, // Vertical extents (out)
-	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
+	size_t dimLens[4], // Lengths of x, y, z, and time unstaggered dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	string &mapProj, // Map projection string (out)
 	vector <string> & wrfVars3d, // 3D Variable names in WRF file (out)
@@ -117,7 +117,7 @@ private:
  atypVarNames_t _atypnames;
 
  float _vertExts[2]; // Vertical extents
- size_t _dimLens[4]; // Lengths of x, y, z, and time dimensions
+ size_t _dimLens[4]; // Lengths of x, y, z, and time dimensions (unstaggered)
  string _startDate; // Place to put START_DATE attribute 
  string _mapProjection; //PROJ4 projection string
  vector <string> _wrfVars3d;
@@ -164,10 +164,10 @@ private:
 
  int _GetWRFMeta(
     int ncid, // Holds netCDF file ID (in)
-    float *vertExts, // Vertical extents (out)
-    size_t dimLens[4], // Lengths of x, y, z, and time dimensions (out)
-    string &startDate, // Place to put START_DATE attribute (out)
-    string &mapProjection, //PROJ4 projection string
+    float *vertExts, 
+    size_t dimLens[4], 
+    string &startDate, 
+    string &mapProjection, 
     vector<string> &wrfVars3d,
     vector<string> &wrfVars2d,
     vector<varInfo_t> &wrfVarInfo,

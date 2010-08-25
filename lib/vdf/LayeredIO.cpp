@@ -432,6 +432,7 @@ void    LayeredIO::GetDim(
 	// Now deal with Z dim
 	//
     if (reflevel < 0) reflevel = GetNumTransforms();
+    if (reflevel > GetNumTransforms()) reflevel = GetNumTransforms();
     int  ldelta = GetNumTransforms() - reflevel; 
  
 	dim[2] = _gridHeight >> ldelta;
@@ -496,7 +497,9 @@ void    LayeredIO::MapVoxToUser(
 		return;
 	}
 
-	if (reflevel < 0) reflevel = GetNumTransforms();
+	if (reflevel < 0 || reflevel > GetNumTransforms()) {
+		reflevel = GetNumTransforms();
+	}
 	int  ldelta = GetNumTransforms() - reflevel;
 
 	size_t  dim[3];
@@ -534,6 +537,7 @@ void	LayeredIO::MapUserToVox(
 	}
 
 	if (reflevel < 0) reflevel = GetNumTransforms();
+	if (reflevel > GetNumTransforms() ) reflevel = GetNumTransforms();
 	int	 ldelta = GetNumTransforms() - reflevel;
 
 	vector <double> extents = GetTSExtents(timestep);
