@@ -673,7 +673,7 @@ public:
  //!
  //
  double GetTSUserTime(size_t ts) const {
-	CHK_TS_REQ(ts, 0.0)
+	CHK_TS_OPT(ts, 0.0)
 	if (_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag).size())
 		return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag)[0]);
 	else 
@@ -836,13 +836,13 @@ public:
  //! GetNumTimeSteps() - 1.
  //! \retval extents A six-element array containing the min and max
  //! bounds of the data domain in user-defined coordinates.
- //! An empty vector is returned if the extents for the specified time
- //! step is not defined.
+ //! The global extents  vector is returned if the extents for the 
+ //! specified time step is not defined.
  //!
  //! \remarks Optional element
  //
  vector<double> GetTSExtents(size_t ts) const {
-	CHK_TS_OPT(ts, _emptyDoubleVec)
+	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
 	return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
  }
 
