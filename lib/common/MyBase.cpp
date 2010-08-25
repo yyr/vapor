@@ -18,6 +18,32 @@
 
 using namespace VetsUtil;
 
+using namespace std;
+
+#ifdef	NEW_DEBUG
+void * operator new (size_t sz) {
+	void *p = malloc(sz);
+	std::cout << "Malloc " << sz << " bytes" << endl;
+	if (! p) {
+		std::cerr << "Malloc " << sz << " bytes failed!!!" << endl;
+		exit(1);
+	}
+
+	return (p);
+}
+
+void * operator new[] (size_t sz) {
+	void *p = malloc(sz);
+	cout << "Malloc " << sz << " bytes" << endl;
+
+	if (! p) {
+		std::cerr << "Malloc " << sz << " bytes failed!!!" << endl;
+		exit(1);
+	}
+	return (p);
+}
+#endif
+
 char 	*MyBase::ErrMsg = NULL;
 int	MyBase::ErrMsgSize = 0;
 int	MyBase::ErrCode = 0;

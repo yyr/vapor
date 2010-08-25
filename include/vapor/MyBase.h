@@ -41,6 +41,13 @@
 #include <vector>
 #include "vaporinternal/common.h"
 
+#ifdef	NEW_DEBUG
+#include <new>
+void * operator new (size_t sz);
+void * operator new[] (size_t sz);
+#endif
+
+
 #ifdef WIN32
 //Silence an annoying and unnecessary compiler warning
 #pragma warning(disable : 4251)
