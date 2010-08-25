@@ -2679,7 +2679,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 			}	
 		}
 	}
-	int bSize =  (int)(*(DataStatus::getInstance()->getDataMgr()->GetBlockSize()));
+	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
 	int numPts = 0;
 	float dataSum = 0.f;
 	DataStatus* ds = DataStatus::getInstance();
@@ -2705,9 +2705,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	for (size_t i = min_dim[0]; i<=max_dim[0]; i++){
 		for (size_t j = min_dim[1]; j<=max_dim[1]; j++){
 			for (size_t k = min_dim[2]; k<=max_dim[2]; k++){
-				int xyzCoord = (i - min_bdim[0]*bSize) +
-					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
-					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
+				int xyzCoord = (i - min_bdim[0]*bs[0]) +
+					(j - min_bdim[1]*bs[1])*(bs[0]*(max_bdim[0]-min_bdim[0]+1)) +
+					(k - min_bdim[2]*bs[2])*(bs[1]*(max_bdim[1]-min_bdim[1]+1))*(bs[0]*(max_bdim[0]-min_bdim[0]+1));
 				
 				float varX = (xnull ? 0.f : varData[0][xyzCoord]);
 				float varY = (ynull ? 0.f : varData[1][xyzCoord]);

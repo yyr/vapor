@@ -817,8 +817,8 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
 		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
 		//And make the block coords:
-		boxMinBlk[i] = boxMin[i]/ (*bs);
-		boxMaxBlk[i] = boxMax[i]/ (*bs);
+		boxMinBlk[i] = boxMin[i]/ bs[i];
+		boxMaxBlk[i] = boxMax[i]/ bs[i];
 	}
 	
 	return retVal;

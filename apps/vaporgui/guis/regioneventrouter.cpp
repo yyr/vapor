@@ -479,7 +479,6 @@ refreshRegionInfo(RegionParams* rParams){
 	//Make sure that the refinement levels are valid for the specified timestep.
 	//If not, correct them.  If there is no data at specified timestep,
 	//Then don't show anything in refinementCombo
-	size_t bs = 32;
 	int mdVarNum = variableCombo->currentIndex();
 	//This index is only relevant to metadata numbering
 	Session* ses = Session::getInstance();
@@ -667,18 +666,20 @@ refreshRegionInfo(RegionParams* rParams){
 		default:
 			break;
 	}
+	size_t defaultBS[] = {32,32,32};
+	const size_t *bs = defaultBS;
 	if (ds && ds->getDataMgr())
-		bs = *(ds->getDataMgr()->GetBlockSize());
+		bs = ds->getDataMgr()->GetBlockSize();
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	float newFullMB;
 	if (is3D)
-		newFullMB = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+		newFullMB = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
 	else {
 		//get other coords:
 		int crd0 = 0, crd1 = 1;
 		if (orientation < 2) crd1++;
 		if (orientation < 1) crd0++;
-		newFullMB = (float)(bs*bs*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
+		newFullMB = (float)(bs[0]*bs[1]*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
 	}
 	
 	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:

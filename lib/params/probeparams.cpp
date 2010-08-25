@@ -1070,8 +1070,8 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
 		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
 		//And make the block coords:
-		boxMinBlk[i] = boxMin[i]/ (*bs);
-		boxMaxBlk[i] = boxMax[i]/ (*bs);
+		boxMinBlk[i] = boxMin[i]/ (bs[i]);
+		boxMaxBlk[i] = boxMax[i]/ (bs[i]);
 	}
 	
 	return retVal;
@@ -1176,7 +1176,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		sesVarNums[numVars++] = varnum;
 	}
 	
-	const size_t *bSize =  ds->getDataMgr()->GetBlockSize();
+	const size_t *bs =  ds->getDataMgr()->GetBlockSize();
 	
 	float** volData = getProbeVariables(ts,  numVars, sesVarNums,
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
@@ -1272,9 +1272,9 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			
 			if(dataOK) { //find the coordinate in the data array
 				
-				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
-					(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[0]*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+				int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
+					(arrayCoord[1] - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
 				float varVal;
 				assert(xyzCoord >= 0);
 
@@ -1575,7 +1575,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
+	const size_t* bs =  ds->getDataMgr()->GetBlockSize();
 	float worldCorner[4][3];
 	//Map corners of probe into volume 
 	probeCoord[2] = 0.f;
@@ -1640,9 +1640,9 @@ bool ProbeParams::buildIBFVFields(int timestep){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 			}
 			
-			int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
-					(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[0]*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+			int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
+					(arrayCoord[1] - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
 			assert(xyzCoord >= 0);
 			int texPos = ix + texWidth*iy;
 			

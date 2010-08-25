@@ -42,7 +42,7 @@
 
 #include "params.h"
 #include "vapor/DataMgr.h"
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 #include "vapor/XmlNode.h"
 #include "vapor/ParamNode.h"
 //#include "glutil.h"
@@ -718,7 +718,7 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 	
-	int bs = *(ds->getDataMgr()->GetBlockSize());
+	const size_t *bs = ds->getDataMgr()->GetBlockSize();
 	
 	size_t min_bdim[3], max_bdim[3];
 	double userMinCoords[3];
@@ -734,7 +734,7 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 	dataMgr->MapUserToBlk(timestep, userMaxCoords, max_bdim, refLevel);
 	
 	
-	float numVoxels = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+	float numVoxels = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
 	
 	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
 	float fullMB = numVoxels/262144.f;
@@ -795,7 +795,7 @@ setFullGridHeight(size_t val){
 	DataMgr *dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
-		DataMgrLayered  *data_mgr_layered = dynamic_cast<DataMgrLayered*>(dataMgr);
+		LayeredIO  *data_mgr_layered = dynamic_cast<LayeredIO*>(dataMgr);
 		assert(data_mgr_layered != NULL);
 
 		

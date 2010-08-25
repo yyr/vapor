@@ -2072,11 +2072,11 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 		} 
 	}
 	
-	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
+	const size_t *bs =  ds->getDataMgr()->GetBlockSize();
 
 	//Get the block coords (in the full volume) of the desired array coordinate:
 	for (int i = 0; i< 3; i++){
-		blkMin[i] = arrayCoord[i]/bSize[i];
+		blkMin[i] = arrayCoord[i]/bs[i];
 		blkMax[i] = blkMin[i];
 	}
 	
@@ -2098,9 +2098,9 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 	}
 	QApplication::restoreOverrideCursor();
 			
-	int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
-		(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[1]*(blkMax[0]-blkMin[0]+1)) +
-		(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
+	int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
+		(arrayCoord[1] - blkMin[1]*bs[1])*(bs[1]*(blkMax[0]-blkMin[0]+1)) +
+		(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
 	
 	float varVal;
 	//use the int xyzCoord to index into the loaded data
@@ -2176,7 +2176,7 @@ refreshHistogram(RenderParams* p){
 		updateTab();
 		return;
 	}
-	int bSize =  *(DataStatus::getInstance()->getDataMgr()->GetBlockSize());
+	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
@@ -2272,13 +2272,13 @@ refreshHistogram(RenderParams* p){
 					//incount++;
 					//Point is (almost) inside.
 					//Evaluate the variable(s):
-					int xyzCoord = (i - blkMin[0]*bSize) +
-						(j - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-						(k - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
+					int xyzCoord = (i - blkMin[0]*bs[0]) +
+						(j - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
+						(k - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
 					//qWarning(" sampled coord %d",xyzCoord);
 	
 					assert(xyzCoord >= 0);
-					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize));
+					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bs[0]*bs[1]*bs[2]));
 					float varVal;
 					//use the int xyzCoord to index into the loaded data
 					if (totVars == 1) varVal = volData[0][xyzCoord];
