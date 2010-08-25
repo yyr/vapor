@@ -88,8 +88,10 @@ class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
  //!
  //! \remarks Optional element
  //
-      vector<double> GetTSExtents(size_t ts) const {
-        return( Time_extents[ts].second); }; 
+ vector<double> GetTSExtents(size_t ts) const {
+	if (ts >= Time_extents.size() ) return(Extents);
+	return( Time_extents[ts].second);
+ }; 
 
 //! Return the number of time steps in the collection
 //!
@@ -162,9 +164,16 @@ class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
 //! \remarks Required element
 //!
 //
-      double GetTSUserTime(size_t ts) const { return(Time_latlon_extents[ts].first); };
+ double GetTSUserTime(size_t ts) const { 
+	if (ts >= Time_latlon_extents.size()) return(0.0);
+	return(Time_latlon_extents[ts].first); 
+ };
 
-      void GetTSUserTimeStamp(size_t ts, string &s) const { s = UserTimeStamps[ts]; };
+ void GetTSUserTimeStamp(size_t ts, string &s) const { 
+	s.clear();
+	if (ts >= UserTimeStamps.size()) return;
+	s = UserTimeStamps[ts]; 
+ };
 
  //! Return the grid type.
  //!
