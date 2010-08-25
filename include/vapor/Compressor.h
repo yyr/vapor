@@ -305,6 +305,41 @@ public:
  //!
  bool &KeepAppOnOff() {return(_keepapp); };
 
+ //! Set or get the min range clamping attribute
+ //!
+ //! When set, this attribute will clamp the minimum data value 
+ //! reconstructed to the value of ClampMin(). I.e. all data values
+ //! reconstructed by Decompress() or Reconstruct() will be greater
+ //! than or equal to the value returned by ClampMin(). By default
+ //! clamping is disabled.
+ //!
+ //! \sa ClampMin(), Decompress(), Reconstruct()
+ //!
+ bool &ClampMinOnOff() {return (_clamp_min_flag); };
+
+ //! Set or get the minimum range clamp value
+ //!
+ //! \sa ClampMinOnOff(), Decompress(), Reconstruct()
+ //!
+ double &ClampMin() {return (_clamp_min); };
+
+ //! Set or get the max range clamping attribute
+ //!
+ //! When set, this attribute will clamp the maximum data value 
+ //! reconstructed to the value of ClampMax(). I.e. all data values
+ //! reconstructed by Decompress() or Reconstruct() will be less
+ //! than or equal to the value returned by ClampMax(). By default
+ //! clamping is disabled.
+ //!
+ //! \sa ClampMin(), Decompress(), Reconstruct()
+ //!
+ bool &ClampMaxOnOff() {return (_clamp_max_flag); };
+
+ //! Set or get the maximum range clamp value
+ //!
+ //! \sa ClampMaxOnOff(), Decompress(), Reconstruct()
+ //!
+ double &ClampMax() {return (_clamp_max); };
 
 private:
 
@@ -319,6 +354,10 @@ private:
 	size_t *_L; // wavelet coefficient book keeping array
 	size_t _LLen;	
 	bool _keepapp;	// if true, approximation coeffs are not used in compression
+	bool _clamp_min_flag;
+	bool _clamp_max_flag;
+	double _clamp_min;
+	double _clamp_max;
 
 };
 
