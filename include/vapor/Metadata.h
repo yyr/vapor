@@ -79,7 +79,9 @@ public:
  //! For multi-resolution data this method returns the dimensions
  //! of a data block at refinement level \p reflevel, where reflevel
  //! is in the range 0 to GetNumTransforms(). A value of -1 may be 
- //! specified to indicate the maximum refinement level.
+ //! specified to indicate the maximum refinement level. In fact,
+ //! any value outside the valid refinement level range will be treated
+ //! as the maximum refinement level.
  //! 
  //! \param[in] reflevel Refinement level 
  //! \param[bs] dim Transformed dimension.
@@ -217,7 +219,8 @@ public:
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
  //!
- //! \retval value A single element vector specifying the time
+ //! \retval value The user time at time step \p ts. If \p ts is outside
+ //! the valid range zero is returned.
  //!
  //
  virtual double GetTSUserTime(size_t ts) const = 0;
@@ -232,7 +235,8 @@ public:
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
- //! \param[out] s A formated time string
+ //! \param[out] s A formated time string. If \p ts is outside
+ //! the valid range zero the empty string is returned.
  //!
  //
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const = 0;
@@ -248,7 +252,8 @@ public:
  //! GetNumTimeSteps() - 1.
  //!
  //! \retval extents A six-element array containing the min and max
- //! bounds of the data domain in user-defined coordinates.
+ //! bounds of the data domain in user-defined coordinates. If \p ts
+ //! is outside the valid range the value of GetExtents() is returned.
  //!
  //
  virtual vector<double> GetTSExtents(size_t ) const {
@@ -263,7 +268,8 @@ public:
  //! type (3D or 2D)
  //! must have the same dimension. If \p reflevel is -1 (or the value
  //! returned by GetNumTransforms()) the native grid resolution is 
- //! returned.
+ //! returned. In fact, any value outside the valid range is treated
+ //! as the maximum refinement level
  //!
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] dim A three element vector (ordered X, Y, Z) containing the 
@@ -278,7 +284,8 @@ public:
  //! Performs same operation as GetDim() except returns
  //! dimensions in block coordinates instead of voxels.
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined.
+ //! indicates the maximum refinment level defined. In fact, any value 
+ //! outside the valid range is treated as the maximum refinement level
  //! \param[out] bdim Transformed dimension in blocks.
  //!
  //! \sa Metadata::GetNumTransforms()
@@ -313,13 +320,15 @@ public:
  //! Results are undefined if vcoord is outside of the volume 
  //! boundary.
  //!
- //! \param[in] timestep Time step of the variable 
+ //! \param[in] timestep Time step of the variable. If an invalid
+ //! timestep is supplied the global domain extents are used. 
  //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel)
  //! coordinates
  //! \param[out] vcoord1 Coordinate of transformed voxel in user-defined,
  //! floating point  coordinates
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
  //!
  //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
  //! GetTSXCoords()
@@ -347,14 +356,16 @@ public:
  //! time step, \p timestep, the global extents for the VDC will 
  //! be used.
  //!
- //! \param[in] timestep Time step of the variable 
+ //! \param[in] timestep Time step of the variable  If an invalid
+ //! timestep is supplied the global domain extents are used.
  //! \param[in] vcoord0 Coordinate of input point in floating point
  //! coordinates
  //! \param[out] vcoord1 Integer coordinates of closest voxel, at the 
  //! indicated refinement level, to the specified point.
  //! integer coordinates
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
  //!
  //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
  //! GetTSXCoords()
@@ -383,12 +394,14 @@ public:
  //! time step, \p timestep, the global extents for the VDC will 
  //! be used.
  //!
- //! \param[in] timestep Time step of the variable 
+ //! \param[in] timestep Time step of the variable.  If an invalid
+ //! timestep is supplied the global domain extents are used.
  //! \param[in] vcoord0 Coordinate of input point in floating point
  //! coordinates
  //! \param[out] vcoord1 Integer coordinates of block containing the point
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
  //!
  //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
  //! GetTSXCoords()
@@ -409,7 +422,7 @@ public:
  //! named by \p varname.
  //!
  //! \param[in] varname A 3D or 2D variable name
- //! \retval type The variable type
+ //! \retval type The variable type. The constant VAR
  //
  virtual VarType_T GetVarType(const string &varname) const; 
 
@@ -424,7 +437,8 @@ public:
  //! \param[in] max Maximum region extents in voxel coordinates
  //! \retval boolean True if region is valid
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined 
+ //! indicates the maximum refinment level defined. In fact,
+ //! any invalid value is treated as the maximum refinement level. 
  //
  virtual int IsValidRegion(
 	const size_t min[3], const size_t max[3], int reflevel = 0
@@ -442,7 +456,8 @@ public:
  //! \param[in] min Minimum region extents in block coordinates
  //! \param[in] max Maximum region extents in block coordinates
  //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined 
+ //! indicates the maximum refinment level defined. In fact,
+ //! any invalid value is treated as the maximum refinement level. 
  //! \retval boolean True if region is valid
  //
  virtual int IsValidRegionBlk(
