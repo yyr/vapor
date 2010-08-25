@@ -33,7 +33,7 @@
 #include "vapor/MyBase.h"
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrWB.h"
-#include "vapor/DataMgrLayered.h"
+#include "vapor/LayeredIO.h"
 #include "vapor/Version.h"
 #include <qstring.h>
 #include <qapplication.h>
@@ -142,7 +142,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	if (dataMgrWB) {
 		projString = dataMgrWB->GetMapProjection();
 	} else {
-		DataMgrLayered* dataMgrLayered = dynamic_cast<DataMgrLayered *>(dataMgr);
+		LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO *>(dataMgr);
 		if (dataMgrLayered)
 			projString = dataMgrLayered->GetMapProjection();
 	}
@@ -436,7 +436,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
 	if (dataIsLayered()){	
-		DataMgrLayered	*dataMgrLayered = dynamic_cast<DataMgrLayered*>(dataMgr);
+		LayeredIO	*dataMgrLayered = dynamic_cast<LayeredIO*>(dataMgr);
 		//construct a list of the non extended variables
 		std::vector<string> vNames;
 		std::vector<float> vals;
@@ -633,7 +633,7 @@ bool DataStatus::sphericalTransform()
 bool DataStatus::dataIsLayered(){
 	if (!dataMgr) return false;
 
-	DataMgrLayered	*dataMgrLayered = dynamic_cast<DataMgrLayered*>(dataMgr);
+	LayeredIO	*dataMgrLayered = dynamic_cast<LayeredIO*>(dataMgr);
 
 	if(! dataMgrLayered) return false;
 	//Check if there is an ELEVATION variable:
