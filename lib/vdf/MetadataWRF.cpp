@@ -546,13 +546,3 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
 
   return (retval);
 } // End of ReprojectTsLatLon.
-
-//bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
-//{
- // return true;
-//}
-
-//bool MetadataWRF::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
- // return true;
-//}
-
