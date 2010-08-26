@@ -222,7 +222,7 @@ void IsoEventRouter::updateTab(){
 	}
 
 
-	ParamsIso* isoParams = (ParamsIso*) VizWinMgr::getActiveIsoParams();
+	ParamsIso* isoParams = getActiveIsoParams();
 	deleteInstanceButton->setEnabled(vizMgr->getNumIsoInstances(winnum) > 1);
 
 	QString strn;
@@ -283,11 +283,6 @@ void IsoEventRouter::updateTab(){
 	pal.setColor(constantColorButton->backgroundRole(),QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
 	
 	if(isoParams->getIsoControl()){
-		assert(isoParams->getIsoControl()->getParams() == isoParams);
-		Params* p = isoParams->getIsoControl()->getParams();
-		Params* p1 = isoParams;
-		if(p != p1)
-			assert(isoParams->getIsoControl()->getParams() == isoParams);
 		isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	}
 	
@@ -422,7 +417,7 @@ void IsoEventRouter::
 sessionLoadTF(QString* name){
 	
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Load Transfer Function from Session");
 	
 	//Get the transfer function from the session:
@@ -444,7 +439,7 @@ sessionLoadTF(QString* name){
 //Respond to a change in opacity scale factor
 void IsoEventRouter::
 guiSetOpacityScale(int val){
-	ParamsIso* pi = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* pi = getActiveIsoParams();
 	if(pi->GetMapVariableNum() < 0) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(pi, "modify opacity scale slider");
@@ -458,7 +453,7 @@ guiSetOpacityScale(int val){
 }
 void IsoEventRouter::guiBindColorToOpac(){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Color to Opacity");
     transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, iParams);
@@ -468,7 +463,7 @@ void IsoEventRouter::guiBindColorToOpac(){
 }
 void IsoEventRouter::guiBindOpacToColor(){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Opacity to Color");
     transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, iParams);
@@ -502,7 +497,7 @@ void IsoEventRouter::guiSetTFAligned(){
 void IsoEventRouter::refreshTFHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	if (iParams->GetMapVariableNum()<0) return;
 	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
@@ -520,13 +515,13 @@ void IsoEventRouter::guiStartChangeMapFcn(QString qstr){
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
-	ParamsIso* pi = (ParamsIso*)VizWinMgr::getInstance()->getActiveIsoParams();
+	ParamsIso* pi = getActiveIsoParams();
     savedCommand = PanelCommand::captureStart(pi, qstr.toLatin1());
 }
 
 void IsoEventRouter::guiSetTFEditMode(bool mode){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set edit/navigate mode");
 	iParams->setMapEditMode(mode);
 	PanelCommand::captureEnd(cmd, iParams); 
@@ -539,7 +534,7 @@ void IsoEventRouter::setBindButtons(bool canbind){
 void IsoEventRouter::
 guiEndChangeMapFcn(){
 	if (!savedCommand) return;
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand::captureEnd(savedCommand,iParams);
 	iParams->SetFlagDirty(ParamsIso::_MapBoundsTag);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
@@ -553,14 +548,14 @@ guiStartChangeIsoSelection(QString qstr){
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
-	ParamsIso* pi = (ParamsIso*)VizWinMgr::getInstance()->getActiveIsoParams();
+	ParamsIso* pi = getActiveIsoParams();
     savedCommand = PanelCommand::captureStart(pi, qstr.toLatin1());
 }
 //This will set dirty bits and undo/redo changes to histo bounds and eventually iso value
 void IsoEventRouter::
 guiEndChangeIsoSelection(){
 	if (!savedCommand) return;
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	// Make sure histo bounds are valid
 	IsoControl* icntrl = iParams->getIsoControl();
 	float minbnd = icntrl->getMinHistoValue();
@@ -653,7 +648,7 @@ setIsoEnabled(bool val, int instance){
 //Has no effect if there is no dataMgr
 void IsoEventRouter::guiPassThruPoint(){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "pass iso thru point");
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -663,7 +658,7 @@ void IsoEventRouter::guiPassThruPoint(){
 	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 float IsoEventRouter::evaluateSelectedPoint(){
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	if (!iParams->isEnabled()) return OUT_OF_BOUNDS;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -759,7 +754,7 @@ guiSetNumRefinements(int num){
 	confirmText(false);
 	//make sure we are setting it to a valid number
 	
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	
 	if (num == iParams->getNumRefinements()) return;
 	
@@ -837,7 +832,7 @@ updateHistoBounds(RenderParams* params){
 void IsoEventRouter::
 guiCopyProbePoint(){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	//Issue a warning if the probe resolution does not match iso resolution;
 	if (pParams->getNumRefinements() != iParams->getNumRefinements()){
@@ -853,7 +848,7 @@ guiCopyProbePoint(){
 void IsoEventRouter::
 guiSetComboVarNum(int val){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	//The comboVarNum is the metadata num, but the ParamsIso keeps
 	//the session variable name
 	int comboVarNum = DataStatus::getInstance()->getActiveVarNum3D(iParams->GetIsoVariableName());
@@ -877,7 +872,7 @@ guiSetComboVarNum(int val){
 void IsoEventRouter::
 guiSetMapComboVarNum(int val){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	//The mapcomboVarNum is the metadata num +1, but the ParamsIso keeps
 	//the session variable name
 	DataStatus* ds = DataStatus::getInstance();
@@ -937,7 +932,7 @@ guiSetMapComboVarNum(int val){
 
 void IsoEventRouter::
 guiSetLighting(bool val){
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	confirmText(false);
 	if (iParams->GetNormalOnOff() == val) return;
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "toggle iso lighting");
@@ -1103,7 +1098,7 @@ setConstantColor(){
 void IsoEventRouter::
 guiSetConstantColor(QColor& newColor){
 	confirmText(false);
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "set constant iso color");
 	const float* prevColor = iParams->GetConstantColor();
 	float fColor[4];
@@ -1147,7 +1142,7 @@ updateMapBounds(RenderParams* params){
 void IsoEventRouter::
 setEditorDirty(RenderParams* p){
 	ParamsIso* ip = (ParamsIso*)p;
-	if(!ip) ip = (ParamsIso*)VizWinMgr::getInstance()->getActiveIsoParams();
+	if(!ip) ip = getActiveIsoParams();
 	if(ip->getIsoControl())ip->getIsoControl()->setParams(ip);
     isoSelectionFrame->setMapperFunction(ip->getIsoControl());
 	isoSelectionFrame->setVariableName(ip->GetIsoVariableName());
@@ -1182,7 +1177,7 @@ setEditorDirty(RenderParams* p){
 }
 void IsoEventRouter::
 guiSetNumBits(int val){
-	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* iParams = getActiveIsoParams();
 	confirmText(false);
 	if(iParams->isEnabled()){
 		ReenablePanelCommand* cmd = ReenablePanelCommand::captureStart(iParams, "set iso voxel bits");
@@ -1258,7 +1253,7 @@ void IsoEventRouter::guiFitTFToData(){
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	confirmText(false);
-	ParamsIso* pParams = (ParamsIso*)VizWinMgr::getActiveIsoParams();
+	ParamsIso* pParams = getActiveIsoParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
 	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();

@@ -543,26 +543,7 @@ refreshCtab() {
 	if (getMapperFunc())
 		((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
 }
-RenderParams* ParamsIso::deepRCopy(){
-	//Start with copy constructor.  It will leave null root.
-	ParamsIso* newParams = new ParamsIso(*this);
-	// Need to clone the xmlnode; 
-	ParamNode* rootNode = GetRootNode();
-	if (rootNode) {
-		newParams->SetRootParamNode(rootNode->deepCopy());
-		newParams->GetRootNode()->SetParamsBase(newParams);
-	}
-	
-	newParams->setCurrentParamNode(newParams->GetRootNode());
-	
-	//The isocontrol, trans function are cloned already, but they need to be connected to the
-	//new params
-	/*for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){
-		newParams->GetTransFunc(i)->setParams(newParams);
-		newParams->GetIsoControl(i)->setParams(newParams);
-	}*/
-	return (RenderParams*)newParams;
-}
+
 //Following performs parsing for old versions (prior to 1.6)
 //Parsing for 1.6 relies on ParamsBase to do everything
 //Parsing of Iso node needs to handle tags for Variable,
@@ -720,7 +701,10 @@ float ParamsIso::getOpacityScale()
 
   return 1.0;
 }
-
+int ParamsIso::GetNumVariables() {
+	if (!GetRootNode()->HasChild(_variablesTag)) return 0;
+	return(GetRootNode()->GetNode(_variablesTag)->GetNumChildren());
+}
 void ParamsIso::setOpacityScale(float val) 
 {
   if (GetNumVariables()>0)

@@ -46,8 +46,8 @@ public:
 	const std::string& getShortName() {return _shortName;}
 	
 	void setTab(FlowTab* tab); 
-	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
+	
+	virtual Params* deepCopy(ParamNode* =0);
 	
 
 	// Reinitialize due to new Session:
@@ -546,9 +546,7 @@ protected:
 	static float defaultArrowSize;
 	static float defaultDiamondSize;
 	static int defaultGeometryType;
-	
-	
-	
+		
 
 };
 };

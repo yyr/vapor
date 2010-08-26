@@ -72,8 +72,8 @@ DvrParams::~DvrParams(){
 }
 
 //Deepcopy requires cloning tf 
-RenderParams* DvrParams::
-deepRCopy(){
+Params* DvrParams::
+deepCopy(ParamNode*){
 	DvrParams* newParams = new DvrParams(*this);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);

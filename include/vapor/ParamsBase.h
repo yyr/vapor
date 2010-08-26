@@ -88,7 +88,7 @@ ParamsBase(const string& name) {
 	_parseDepth = 0;
 	_paramsBaseName = name;
 }
-//Copy constructor.  Clones the root node
+//Copy constructor.  
 ParamsBase(const ParamsBase &pbase);
 
 virtual ~ParamsBase();
@@ -103,7 +103,6 @@ virtual ~ParamsBase();
  //
  virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
  
-
  //! Set the parent node of the XmlNode tree.
  //!
  //! Sets a new parent node for the XmlNode tree parameter 

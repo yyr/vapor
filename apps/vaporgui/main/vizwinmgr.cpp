@@ -56,7 +56,7 @@
 
 #include "tabmanager.h"
 #include "dvrparams.h"
-#include "ParamsIso.h"
+
 #include "params.h"
 #include "twoDimageparams.h"
 #include "twoDdataparams.h"
@@ -1168,35 +1168,23 @@ initViews(){
 void VizWinMgr::
 restartParams(){
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!getVizWin(i)) continue;
 		if(getRealVPParams(i)) getRealVPParams(i)->restart();
 		if(getRealRegionParams(i)) getRealRegionParams(i)->restart();
-		for (int inst = 0; inst<Params::GetNumParamsInstances(Params::_dvrParamsTag,i); inst++){
-			dvrEventRouter->cleanParams(getDvrParams(i,inst));
-			getDvrParams(i,inst)->restart();
-		}
-		for (int inst = 0; inst<getNumIsoInstances(i); inst++){
-			isoEventRouter->cleanParams(Params::GetParamsInstance(Params::_isoParamsTag,i,inst));
-			((ParamsIso*)Params::GetParamsInstance(Params::_isoParamsTag,activeViz, inst))->restart();
-		}
-		for (int inst = 0; inst<Params::GetNumParamsInstances(Params::_probeParamsTag,i); inst++){
-			probeEventRouter->cleanParams(getProbeParams(i,inst));
-			getProbeParams(i,inst)->restart();
-		}
-		for (int inst = 0; inst<getNumTwoDImageInstances(i); inst++){
-			twoDImageEventRouter->cleanParams(getTwoDImageParams(i,inst));
-			getTwoDImageParams(i,inst)->restart();
-		}
-		for (int inst = 0; inst<getNumTwoDDataInstances(i); inst++){
-			twoDDataEventRouter->cleanParams(getTwoDDataParams(i,inst));
-			getTwoDDataParams(i,inst)->restart();
-		}
-		for (int inst = 0; inst<Params::GetNumParamsInstances(Params::_flowParamsTag,i); inst++){
-			flowEventRouter->cleanParams(getFlowParams(i,inst));
-			getFlowParams(i,inst)->restart();
-		}
-		
 		if(getRealAnimationParams(i)) getRealAnimationParams(i)->restart();
+		//Perform restart on all renderer params instances:
+		for (int k = 1; k<= Params::GetNumParamsClasses(); k++){
+			Params* p = Params::GetDefaultParams(k);
+			if (!p->isRenderParams())continue;
+			EventRouter* eRouter = getEventRouter(k);
+			for (int inst = 0; inst < Params::GetNumParamsInstances(k, i); inst++){
+				Params* rpar = Params::GetParamsInstance(k,i,inst);
+				eRouter->cleanParams(rpar);
+				rpar->restart();
+			}
+		}
 	}
+	
 	getGlobalVPParams()->restart();
 	getGlobalRegionParams()->restart();
 	getGlobalAnimationParams()->restart();

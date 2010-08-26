@@ -160,7 +160,7 @@ void InstancedPanelCommand::unDo(){
 		case deleteInstance :
 			{
 				//insert a clone at the specified position:
-				RenderParams* rpClone = ((RenderParams*)previousPanel)->deepRCopy();
+				RenderParams* rpClone = dynamic_cast<RenderParams*>(previousPanel->deepCopy());
 				vizMgr->insertInstance(winnum, previousInstance, rpClone);
 				//Possibly enable it:
 				evRouter->updateRenderer(rpClone, false, false);

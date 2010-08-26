@@ -572,7 +572,7 @@ refreshRegionInfo(RegionParams* rParams){
 		maxYVoxSelectedLabel->setText("");
 		maxZVoxSelectedLabel->setText("");
 	}
-
+	if (refLevel > maxRefLevel) refLevel = 0;
 	if (ds){
 		//Entire region size in voxels
 		for (int i = 0; i<3; i++){

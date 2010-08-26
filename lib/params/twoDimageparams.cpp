@@ -95,8 +95,8 @@ TwoDImageParams::~TwoDImageParams(){
 
 
 //Deepcopy requires cloning tf 
-RenderParams* TwoDImageParams::
-deepRCopy(){
+Params* TwoDImageParams::
+deepCopy(ParamNode*){
 	TwoDImageParams* newParams = new TwoDImageParams(*this);
 	
 	//TwoD texture must be recreated when needed
@@ -107,6 +107,7 @@ deepRCopy(){
 	
 	return newParams;
 }
+
 
 
 

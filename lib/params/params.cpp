@@ -573,3 +573,40 @@ bool Params::IsRenderingEnabled(int winnum){
 	}
 	return false;
 }
+//Default copy constructor.  Don't copy the paramnode
+Params::Params(const Params& p) :
+	ParamsBase(p)
+{
+}
+Params* Params::deepCopy(ParamNode* ){
+	//Start with default copy  
+	Params* newParams = CreateDefaultParams(GetParamsBaseTypeId());
+	newParams->local = isLocal();
+	newParams->setVizNum(getVizNum());
+	// Need to clone the xmlnode; 
+	ParamNode* rootNode = GetRootNode();
+	if (rootNode) {
+		newParams->SetRootParamNode(rootNode->deepCopy());
+		newParams->GetRootNode()->SetParamsBase(newParams);
+	}
+	
+	newParams->setCurrentParamNode(newParams->GetRootNode());
+	return newParams;
+}
+Params* RenderParams::deepCopy(ParamNode* nd){
+	//Start with default copy  
+	Params* newParams = Params::deepCopy(nd);
+	
+	RenderParams* renParams = dynamic_cast<RenderParams*>(newParams);
+	
+	renParams->enabled = enabled;
+	renParams->stopFlag = stopFlag;
+	
+	renParams->minColorEditBounds = 0;
+	renParams->maxColorEditBounds = 0;
+	renParams->minOpacEditBounds = 0;
+	renParams->maxOpacEditBounds = 0;
+
+	renParams->bypassFlags = bypassFlags;
+	return renParams;
+}

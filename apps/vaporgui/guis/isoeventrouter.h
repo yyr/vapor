@@ -62,6 +62,11 @@ public:
 	void paintEvent(QPaintEvent*);
 #endif
 
+	//Convenience method to obtain current ParamsIso Pointer
+	static ParamsIso* getActiveIsoParams(){
+		int activeViz = VizWinMgr::getInstance()->getActiveViz();
+		return((ParamsIso*)Params::GetParamsInstance(Params::_isoParamsTag,activeViz,-1));
+	}
 	//gui... methods are set from gui, have undo/redo support:
 	//
 	

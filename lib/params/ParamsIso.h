@@ -28,7 +28,6 @@
 
 #include "vapor/XmlNode.h"
 #include "vapor/ParamNode.h"
-#include "vapor/ExpatParseMgr.h"
 #include "params.h"
 #include "datastatus.h"
 #include "mapperfunction.h"
@@ -39,8 +38,7 @@ namespace VAPoR{
 class TransferFunction;
 class IsoControl;
 class MapperFunction;
-class RegionParams;
-class ViewpointParams;
+
 //
 //! \class ParamsIso
 //! \brief A class for managing (storing and retrieving) 
@@ -68,43 +66,63 @@ public:
  //! restore state to the default
  //
  virtual void restart();
- static void setDefaultPrefs();
- //Required for registration:
+ 
+ //! Create a default instance.  Required of all params classes
+ //!
+ //! This static method must be implented
+ //
  static ParamsBase* CreateDefaultInstance() {return new ParamsIso(0,-1);}
+ //! Specify a short name for the class.  Will be used to identify
+ //! the panel in the tab
+ //!
+ //! This static method must be implemented
+ //
  const std::string& getShortName() {return _shortName;}
- //Methods required by Params class:
+ //! Specify the current refinement level.
+ //!
+ //! Pure virtual method required of render params
+ //
  virtual int getNumRefinements() {
 	 return GetRefinementLevel();
  }
- 
- virtual RenderParams* deepRCopy();
- virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
-
+ //! Reinitialize the object for a new dataset.
+ //!
+ //! Pure virtual method required of params
+ //
+ virtual bool reinit(bool override);
+ //! Specify the session variable number of the current iso variable
+ //!
  virtual int getSessionVarNum(){
 	 return DataStatus::getInstance()->getSessionVariableNum(
 		 GetIsoVariableName());
  }
- virtual bool reinit(bool override);
-
+ //! Following Get/Set methods are for 
+ //! parameters used in creating an isosurface
+ //
+ // Histo stretch is associated with the map variable
  virtual float GetHistoStretch();
  void SetHistoStretch(float scale);
+ // Iso histo stretch associated with iso variable
  void SetIsoHistoStretch(float scale);
  float GetIsoHistoStretch();
  
- //Following is obsolete, left for compatibility
+ //Following required of render params classes 
  virtual const float* getCurrentDatarange(){
 	 return GetHistoBounds();
  }
- 
-//Obtain the transfer function
+ //  Set the Iso preferences to default values.    The only preference is the number of bits per voxel
+ static void setDefaultPrefs();
+
+//Obtain the current transfer function
 virtual MapperFunction* getMapperFunc(); 
+//obtain the current iso control
 IsoControl* getIsoControl();
+//Obtain transfer function for a specific variable
 TransferFunction* GetTransFunc(int sesVarNum);
 IsoControl* GetIsoControl(int sesVarNum);
+//Total number of variables (including those that are not in data)
+int GetNumVariables();
 
-int GetNumVariables(){
-	return(GetRootNode()->GetNode(_variablesTag)->GetNumChildren());
-}
 void SetMinMapEdit(int var, float val){
 	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
 	vector<double> newvec(vec);
@@ -149,6 +167,7 @@ virtual void setMaxColorMapBound(float val);
 virtual void setMinOpacMapBound(float val);
 virtual void setMaxOpacMapBound(float val);
 
+//following required of 
 virtual bool isOpaque();
 
 
@@ -252,7 +271,7 @@ int GetIsoVariableNum(){
  static const string _MapBoundsTag;
 
 protected:
-static const string _shortName;
+ static const string _shortName;
 
 private:
  static const string _editBoundsTag;
@@ -280,7 +299,7 @@ private:
  float ctab[256][4];
  
  // The noIsoControlTags flag indicates that the last time we parsed a ParamsIso there
- // were not Iso control tags in it (i.e., it was an obsolete ParamsIso that was parsed).
+ // were no Iso control tags in it (i.e., it was an obsolete ParamsIso that was parsed).
  // In that situation, the isovalue and histo bounds were saved, so they will be used
  // when new metadata is read.
  bool noIsoControlTags; 

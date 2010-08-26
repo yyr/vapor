@@ -46,7 +46,6 @@ class QTimer;
 #include "flowparams.h"
 #include "dvrparams.h"
 #include "animationparams.h"
-#include "ParamsIso.h"
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "command.h"
@@ -104,9 +103,7 @@ public:
 	static DvrParams* getActiveDvrParams(){
 		return((DvrParams*)Params::GetParamsInstance(Params::_dvrParamsTag,getInstance()->activeViz,-1));
 	}
-	static ParamsIso* getActiveIsoParams(){
-		return((ParamsIso*)Params::GetParamsInstance(Params::_isoParamsTag,getInstance()->activeViz,-1));
-	}
+	
 	static ProbeParams* getActiveProbeParams(){
 		return ((ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,getInstance()->activeViz,-1));}
 	static TwoDDataParams* getActiveTwoDDataParams(){

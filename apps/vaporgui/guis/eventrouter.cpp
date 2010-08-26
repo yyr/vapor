@@ -67,7 +67,7 @@ void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
 void EventRouter::newRendererInstance(int winnum){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Clone default params
-	RenderParams* newP = ((RenderParams*)vizMgr->getGlobalParams(myParamsBaseType))->deepRCopy();
+	RenderParams* newP = dynamic_cast<RenderParams*>(vizMgr->getGlobalParams(myParamsBaseType)->deepCopy());
 	newP->setVizNum(winnum);
 	newP->setEnabled(false);
 	vizMgr->appendInstance(winnum, newP);

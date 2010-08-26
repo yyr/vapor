@@ -247,6 +247,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrWRF.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp"
 				>
 			</File>
@@ -372,6 +376,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WRF.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WRFReader.cpp"
 				>
 			</File>
 			<File

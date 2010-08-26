@@ -47,8 +47,8 @@ public:
 	~ProbeParams();
 	static ParamsBase* CreateDefaultInstance() {return new ProbeParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy(ParamNode*) {return (Params*)deepRCopy();}
+	
+	virtual Params* deepCopy(ParamNode* = 0); 
 	
 	bool probeIsDirty(int timestep) {
 		if (probeType == 0) return (!probeDataTextures || probeDataTextures[timestep] == 0);

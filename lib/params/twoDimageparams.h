@@ -47,8 +47,8 @@ public:
 	~TwoDImageParams();
 	static ParamsBase* CreateDefaultInstance() {return new TwoDImageParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	virtual RenderParams* deepRCopy();
-	virtual Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
+	
+	virtual Params* deepCopy(ParamNode* =0); 
 	
 	virtual bool twoDIsDirty(int timestep) {
 		return (!twoDDataTextures || twoDDataTextures[0] == 0 || cachedTimestep != timestep);

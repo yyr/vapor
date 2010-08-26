@@ -122,8 +122,8 @@ ProbeParams::~ProbeParams(){
 
 
 //Deepcopy requires cloning tf 
-RenderParams* ProbeParams::
-deepRCopy(){
+Params* ProbeParams::
+deepCopy(ParamNode*){
 	ProbeParams* newParams = new ProbeParams(*this);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);

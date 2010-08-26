@@ -45,8 +45,6 @@ class PARAMS_API TwoDParams : public RenderParams {
 public: 
 	TwoDParams(int winnum, const string& name);
 	~TwoDParams();
-	virtual RenderParams* deepRCopy() = 0;
-	Params* deepCopy(ParamNode* =0) {return (Params*)deepRCopy();}
 	
 	virtual bool twoDIsDirty(int timestep)= 0;
 		

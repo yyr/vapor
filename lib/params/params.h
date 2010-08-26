@@ -73,6 +73,8 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	previousClass = 0;
 }
 	
+//Default copy constructor
+Params(const Params& p);
  //! Destroy object
  //!
  //! \note This destructor does not delete children XmlNodes created
@@ -182,7 +184,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
 	//
-	virtual Params* deepCopy(ParamNode* nd = 0) = 0;
+	virtual Params* deepCopy(ParamNode* nd = 0);
 
 	virtual void restart() = 0;
 	
@@ -289,7 +291,8 @@ public:
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
 
 	}
-	virtual RenderParams* deepRCopy() = 0;
+	
+	virtual Params* deepCopy(ParamNode* nd = 0);
 	virtual bool isRenderParams() {return true;}
 
 	//this does nothing for renderParams

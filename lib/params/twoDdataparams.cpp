@@ -82,8 +82,8 @@ TwoDDataParams::~TwoDDataParams(){
 
 
 //Deepcopy requires cloning tf 
-RenderParams* TwoDDataParams::
-deepRCopy(){
+Params* TwoDDataParams::
+deepCopy(ParamNode*){
 	TwoDDataParams* newParams = new TwoDDataParams(*this);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);

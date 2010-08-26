@@ -282,8 +282,8 @@ void FlowParams::setDefaultPrefs(){
 }
 
 //Make a copy of  parameters:
-RenderParams* FlowParams::
-deepRCopy(){
+Params* FlowParams::
+deepCopy(ParamNode*){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
 	//Keep the flowlib??
