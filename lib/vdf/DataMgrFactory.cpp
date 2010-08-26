@@ -11,10 +11,12 @@
 
 using namespace VAPoR;
 
-DataMgr *DataMgrFactory::New(const vector <string> &files, size_t mem_size) {
+DataMgr *DataMgrFactory::New(
+	const vector <string> &files, size_t mem_size, string ftype
+) {
 	if (files.size() == 0) return (NULL);
 
-	if (files[0].compare(files[0].length()-4, 4, ".vdf") == 0) {
+	if (ftype.compare("vdf") == 0) {
 		MetadataVDC *md = new MetadataVDC(files[0]);
 		if (! md) return (NULL);
 
@@ -35,7 +37,7 @@ DataMgr *DataMgrFactory::New(const vector <string> &files, size_t mem_size) {
 			return(NULL);
 		}
 	}
-	else if (files[0].compare(files[0].length()-4, 4, ".wrf") == 0) {
+	else if (ftype.compare("wrf") == 0) {
 		MetadataWRF *md = new MetadataWRF(files);
 		if (! md) return (NULL);
 
@@ -43,6 +45,7 @@ DataMgr *DataMgrFactory::New(const vector <string> &files, size_t mem_size) {
 
 	}
 	else {
+		SetErrMsg("Unknown data set type : %s", ftype.c_str());
 		return(NULL);
 	}
 }

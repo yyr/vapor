@@ -15,7 +15,9 @@ namespace VAPoR {
 class VDF_API DataMgrFactory : public VetsUtil::MyBase { 
 public:
 
- static DataMgr *New(const vector <string> &files, size_t mem_size);
+ static DataMgr *New(
+	const vector <string> &files, size_t mem_size, string ftype = "vdf"
+ );
 
 };
 
