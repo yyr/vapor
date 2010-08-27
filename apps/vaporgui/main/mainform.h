@@ -154,10 +154,11 @@ private:
     QAction* helpAboutAction;
     QAction* whatsThisAction;
     //Data menu
-    QAction* dataBrowse_DataAction;
+   
     QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
     QAction* dataMerge_MetafileAction;
+	QAction* dataImportWRF_Action;
     QAction* dataLoad_MetafileAction;
     QAction* dataLoad_DefaultMetafileAction;
     QAction* dataSave_MetafileAction;
@@ -216,6 +217,7 @@ public slots:
 	virtual void loadData();
 	virtual void defaultLoadData();
 	virtual void mergeData();
+	virtual void importWRFData();
 	virtual void saveMetadata();
 	virtual void newSession();
 	virtual void exportToIDL();

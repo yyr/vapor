@@ -362,7 +362,8 @@ buildNode() {
 bool Session::
 loadFromFile(ifstream& ifs){
 	//Call resetMetadata to clean stuff out
-	resetMetadata(0,true);
+	vector<string> files;
+	resetMetadata(files,true, false);
 	//Reset message counts:
 	MessageReporter::getInstance()->resetCounts();
 	//Then set values from file.
@@ -707,7 +708,7 @@ exportData(){
  * not reloaded.  
  */
 bool Session::
-resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int mergeOffset)
+resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool doMerge, int mergeOffset)
 {
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
@@ -715,12 +716,12 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	if (DataStatus::getInstance())
 		DataStatus::getInstance()->setRenderReady(false);
 	
-	bool defaultSession = (fileBase == 0);
+	bool defaultSession = (files.size() == 0);
 	//if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
 	//Don't update the currentMetadataFile if we are doing a merge
 	if (!defaultSession && !doMerge) {
-		currentMetadataFile = fileBase;
+		currentMetadataFile = files[0].c_str();
 		int lastpos = currentMetadataFile.find_last_of("/\\");
 		if (lastpos >= 0)
 			currentMetadataDir = currentMetadataFile.substr(0,lastpos);
@@ -746,16 +747,28 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		
 		if (!doMerge) {
 			if (!restoredSession) DataStatus::clearVariableNames();
-			vector <string> metafiles;
-			metafiles.push_back(currentMetadataFile);
-			dataMgr = DataMgrFactory::New(metafiles, cacheMB);
-			if (DataMgr::GetErrCode() != 0) {
-				MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
-					DataMgr::GetErrCode(),DataMgr::GetErrMsg());
-				DataMgr::SetErrCode(0);
-				if (dataMgr) delete dataMgr;
-				dataMgr = 0;
-				return false;
+			if (importing) {
+				dataMgr = DataMgrFactory::New(files, cacheMB,"wrf");
+				if (DataMgr::GetErrCode() != 0) {
+					MessageReporter::errorMsg("WRF loading error %d, creating Data Manager:\n %s",
+						DataMgr::GetErrCode(),DataMgr::GetErrMsg());
+					DataMgr::SetErrCode(0);
+					if (dataMgr) delete dataMgr;
+					dataMgr = 0;
+					return false;
+				}
+			} else {
+				vector <string> metafiles;
+				metafiles.push_back(currentMetadataFile);
+				dataMgr = DataMgrFactory::New(metafiles, cacheMB);
+				if (DataMgr::GetErrCode() != 0) {
+					MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
+						DataMgr::GetErrCode(),DataMgr::GetErrMsg());
+					DataMgr::SetErrCode(0);
+					if (dataMgr) delete dataMgr;
+					dataMgr = 0;
+					return false;
+				}
 			}
 		} else {//merge
 			assert (dataMgr);
@@ -772,7 +785,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			//Need a non-const pointer to the metadata, since we will modify it:
 			size_t offset = (size_t) mergeOffset;
 			//Use the fileBase, not the currentMetadataFile for the merge.
-			int rc = md->Merge(fileBase,offset);
+			int rc = md->Merge(files[0].c_str(),offset);
 			if (rc < 0) return false;
 
 		}

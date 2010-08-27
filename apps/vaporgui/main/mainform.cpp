@@ -262,7 +262,9 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			//DataMgr can deal with this path
 			fileName.replace('\\','/');
 #endif
-			Session::getInstance()->resetMetadata((const char*)fileName.toAscii(), false);
+			vector<string> files;
+			files.push_back(fileName.toStdString());
+			Session::getInstance()->resetMetadata(files, false, false);
 		} 
 	}
 	MessageReporter::infoMsg("MainForm::MainForm() end");
@@ -382,8 +384,9 @@ void MainForm::hookupSignals() {
 	
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
     connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
-    connect( dataBrowse_DataAction, SIGNAL( triggered() ), this, SLOT( browseData() ) );
+    
 	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
+	connect( dataImportWRF_Action, SIGNAL( triggered() ), this, SLOT( importWRFData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
@@ -444,8 +447,8 @@ void MainForm::createMenus(){
 	
 
     Data = menuBar()->addMenu(tr("Data"));
-    Data->addAction(dataBrowse_DataAction );
-    Data->addAction(dataConfigure_MetafileAction );
+    
+    Data->addAction(dataImportWRF_Action);
 	
     Data->addAction(dataLoad_MetafileAction );
 	Data->addAction(dataLoad_DefaultMetafileAction );
@@ -514,12 +517,12 @@ void MainForm::createActions(){
     helpAboutAction = new QAction( this );
 	helpAboutAction->setEnabled(true);
     
-    dataBrowse_DataAction = new QAction( this );
-	dataBrowse_DataAction->setEnabled(false);
+   
     dataConfigure_MetafileAction = new QAction( this );
 	dataConfigure_MetafileAction->setEnabled(false);
     dataLoad_MetafileAction = new QAction( this);
 	dataMerge_MetafileAction = new QAction( this );
+	dataImportWRF_Action = new QAction( this );
 	dataSave_MetafileAction = new QAction( this );
 	dataLoad_DefaultMetafileAction = new QAction(this);
 	fileNew_SessionAction = new QAction( this );
@@ -671,9 +674,6 @@ void MainForm::languageChange()
     
 	whatsThisAction->setToolTip(tr("Click here, then click over an object for context-sensitive help. "));
 
-    dataBrowse_DataAction->setText( tr( "Browse Data" ) );
-    
-	dataBrowse_DataAction->setToolTip("Browse filesystem to examine properties of available datasets"); 
 	
 	dataExportToIDLAction->setText(tr("Export to IDL"));
 	
@@ -690,7 +690,10 @@ void MainForm::languageChange()
   
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
-	dataMerge_MetafileAction->setText( tr( "Merge (Import) a Dataset into Current Session" ) );
+	dataImportWRF_Action->setText(tr("Import WRF output files"));
+	dataImportWRF_Action->setToolTip("Specify one or more WRF output files to import into a new session");
+	dataMerge_MetafileAction->setText( tr( "Merge a VDC Dataset into Current Session" ) );
+	
     
 	dataMerge_MetafileAction->setToolTip("Specify a data set to be merged into current session");
 	
@@ -1046,13 +1049,15 @@ void MainForm::loadData()
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
-			Session::getInstance()->resetMetadata((const char*)filename.toAscii(), true);
+			vector<string> files;
+			files.push_back(filename.toStdString());
+			Session::getInstance()->resetMetadata(files, true, false);
 			
 		}
 		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
 	}
 }
-//Merge/Import data into current session
+//Merge data into current session
 //
 void MainForm::mergeData()
 {
@@ -1078,10 +1083,40 @@ void MainForm::mergeData()
 		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
 		if (sDialog.exec() != QDialog::Accepted) return;
 		int offset = uiSetter.timestepOffsetSpin->value();
-		if (!Session::getInstance()->resetMetadata((const char*)filename.toAscii(), false, true, offset)){
+		vector<string> files;
+		files.push_back(filename.toStdString());
+		if (!Session::getInstance()->resetMetadata(files, false, false, true, offset)){
 			MessageReporter::errorMsg("Unsuccessful metadata merge of \n%s",(const char*)filename.toAscii());
 		}
 	} else MessageReporter::errorMsg("Unable to open \n%s",(const char*)filename.toAscii());
+	
+}
+//Merge data into current session
+//
+void MainForm::importWRFData()
+{
+
+	//This launches a panel that enables the
+    //user to choose input WRF output files, then to
+	//use them to create a new data
+	QStringList filenames = QFileDialog::getOpenFileNames(this,
+		"Select the WRF Output Files to import",
+		Session::getInstance()->getMetadataFile().c_str(),"");
+	
+	if (filenames.length() > 0){
+		//Create a string vector from the QStringList
+		vector<string> files;
+		//reset to default session:
+		Session::getInstance()->resetMetadata(files, false, false);
+		QStringList list = filenames;
+		QStringList::Iterator it = list.begin();
+		while(it != list.end()) {
+			files.push_back((*it).toStdString());
+			++it;
+		}
+		Session::getInstance()->resetMetadata(files, false, true);
+	
+	} else MessageReporter::errorMsg("No valid WRF files \n");
 	
 }
 //Load data into default session
@@ -1098,15 +1133,17 @@ void MainForm::defaultLoadData()
 		Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)");
 	if(filename != QString::null){
-		Session::getInstance()->resetMetadata(0, false);
-		Session::getInstance()->resetMetadata((const char*)filename.toAscii(), false);
+		vector<string> files;
+		Session::getInstance()->resetMetadata(files, false, false);
+		files.push_back(filename.toStdString());
+		Session::getInstance()->resetMetadata(files, false, false);
 	}
 	
 }
 void MainForm::newSession()
 {
-
-	Session::getInstance()->resetMetadata(0, false);
+	vector<string> files;
+	Session::getInstance()->resetMetadata(files, false, false);
 	//Reload preferences:
 	UserPreferences::loadDefault();
 	MessageReporter::getInstance()->resetCounts();
