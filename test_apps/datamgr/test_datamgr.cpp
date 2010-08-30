@@ -24,6 +24,7 @@ struct {
 	int	level;
 	int	lod;
 	char *dtype;
+	char *ftype;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	debug;
@@ -42,6 +43,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "0","Level of detail. Zero implies coarsest resolution"},
 	{"dtype",	1,	"float",	"data type (float|uint8|uint16)"},
+	{"ftype",	1,	"vdf",	"data set type (vdf|wrf)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
 	{"debug",	0,	"",	"Debug mode"},
@@ -64,6 +66,7 @@ OptionParser::Option_T	get_options[] = {
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"dtype", VetsUtil::CvtToString, &opt.dtype, sizeof(opt.dtype)},
+	{"ftype", VetsUtil::CvtToString, &opt.ftype, sizeof(opt.ftype)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
 	{"yregion", VetsUtil::CvtToIntRange, &opt.yregion, sizeof(opt.yregion)},
@@ -189,7 +192,7 @@ int main(int argc, char **argv) {
 
 	DataMgr	*datamgr;
 
-	datamgr = DataMgrFactory::New(metafiles, opt.memsize);
+	datamgr = DataMgrFactory::New(metafiles, opt.memsize, opt.ftype);
 	if (DataMgrFactory::GetErrCode() != 0) {
 		exit (1);
 	}
