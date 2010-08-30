@@ -103,7 +103,7 @@ WRF::varFileHandle_t *WRF::Open(
 	// Allocate space for a single, staggered slice (even if variable 
 	// is not staggered). N.B. dimLens contains unstaggered dimensions
 	//
-	size_t sz = _dimLens[0] * _dimLens[1];
+	size_t sz = (_dimLens[0]+1) * (_dimLens[1]+1);
 
 	fh.buffer = new float[sz];
 	fh.z = -1;	// Invalid slice #
