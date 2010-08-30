@@ -18,7 +18,7 @@ DataMgr *DataMgrFactory::New(
 
 	if (ftype.compare("vdf") == 0) {
 		MetadataVDC *md = new MetadataVDC(files[0]);
-		if (! md) return (NULL);
+		if (MetadataVDC::GetErrCode() != 0) return (NULL);
 
 		string type = md->GetGridType();
 		if (type.compare("layered") == 0) {
@@ -39,7 +39,7 @@ DataMgr *DataMgrFactory::New(
 	}
 	else if (ftype.compare("wrf") == 0) {
 		MetadataWRF *md = new MetadataWRF(files);
-		if (! md) return (NULL);
+		if (MetadataWRF::GetErrCode() != 0) return (NULL);
 
 		return new DataMgrWRF(*md, mem_size);
 
