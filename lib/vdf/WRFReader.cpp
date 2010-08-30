@@ -115,6 +115,7 @@ int WRFReader::OpenVariableRead(
 	if (_current_var.compare(varname) != 0) {
 		string elevation = "ELEVATION";
 		if (elevation.compare(varname) != 0) {
+			if (_wrf_fh) _wrf->Close(_wrf_fh);
 			_wrf_fh = _wrf->Open(varname);
 			if (! _wrf_fh) return(-1);
 		}
@@ -123,8 +124,11 @@ int WRFReader::OpenVariableRead(
 		// PH and PHB
 		//
 		else {
+			if (_wrf_fh) _wrf->Close(_wrf_fh);
 			_wrf_fh = _wrf->Open("PH");
 			if (! _wrf_fh) return(-1);
+
+			if (_wrf_fh2) _wrf->Close(_wrf_fh2);
 			_wrf_fh2 = _wrf->Open("PHB");
 			if (! _wrf_fh2) return(-1);
 

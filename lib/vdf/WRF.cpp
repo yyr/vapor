@@ -399,12 +399,11 @@ void WRF::_InterpHorizSlice(
 	// data that is staggered in both horizontal dimensions has not been tested.
 
 	// Define these just for convenience
-	size_t xUnstagDim = thisVar.dimlens[thisVar.dimlens.size()-1];
+	size_t xUnstagDim = _dimLens[0];
 	size_t xStagDim = xUnstagDim + 1;
-	size_t yUnstagDim = thisVar.dimlens[thisVar.dimlens.size()-2];
+	size_t yUnstagDim = _dimLens[1];
 	size_t yStagDim = yUnstagDim + 1;
 
-	size_t xDimWillBe = xUnstagDim; // More convenience
 	size_t xDimNow, yDimNow;
 	if ( thisVar.stag[0] )
 		xDimNow = xStagDim;
@@ -416,47 +415,29 @@ void WRF::_InterpHorizSlice(
 	else
 		yDimNow = yUnstagDim;
 	
-	// Interpolate a staggered (N+1 points) x variable to an unstaggered (N points) x grid
-	if ( thisVar.stag[0] )
-	{
-		size_t x = 0; // x grid point in staggered grid
-		size_t y = 0; // y grid point in y's (unstaggered) grid
-		float avg = 0.0; // Holds average
-		for ( size_t l = 0 ; l < xDimWillBe*yDimNow ; l++ ) // l indexes storage location
-		{
-			if ( x < xDimWillBe ) // For all but the last x point for a given y
-			{
-				avg = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
-				fbuffer[l] = avg;
-				x++;
-			}
-			else // This is for the last x point for a given y
-			{
-				y++;
-				avg = (fbuffer[y*xDimNow] + fbuffer[1 + y*xDimNow])/2.0;
-				fbuffer[l] = avg;
-				x=1;
-			}
+	// Interpolate a staggered (N+1 points) x 
+	// variable to an unstaggered (N points) x grid
+	//
+	float *bufptr = fbuffer;
+	if ( thisVar.stag[0] ) {
+		for (size_t y = 0; y<yDimNow; y++) {
+		for (size_t x = 0; x<xUnstagDim; x++) {
+			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
+			bufptr++;
+		}
 		}
 	}
 
-	// Interpolate a staggered (N+1 points) y variable to an unstaggered (N points) y grid
-	if ( thisVar.stag[1] )
-	{
-		size_t x = 0; // x grid point in staggered grid
-		size_t y = 0; // y grid point in y's (unstaggered) grid
-		float avg = 0.0; // Holds average
-		for ( size_t l = 0 ; l < xUnstagDim*(yUnstagDim - 1) ; l++ ) // l indexes storage location
-		{
-			avg = (fbuffer[x + xUnstagDim*y] + fbuffer[x + (y + 1)*xUnstagDim])/2.0;
-			fbuffer[l] = avg;
-			if ( x < xUnstagDim - 1 ) // For all but the last x point for a given y point
-				x++;
-			else // If this happens, you're at the last x value for a given y
-			{
-				x = 0;
-				y++;
-			}
+	// Interpolate a staggered (N+1 points) y 
+	// variable to an unstaggered (N points) y grid
+	//
+	bufptr = fbuffer;
+	if ( thisVar.stag[1] ) {
+		for (size_t x = 0; x<xUnstagDim; x++) {
+		for (size_t y = 0; y<xUnstagDim; y++) {
+			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
+			bufptr++;
+		}
 		}
 	}
 }
@@ -738,14 +719,14 @@ int WRF::_GetWRFMeta(
 	gl_attrib.push_back(make_pair("DY",dy));
 
 	// If planetWRF there will be a gravity value.
- 	double grav = 0.0;
+ 	double grav = 9.81;
 	daysperyear = 0;
 	float tgrav;
 	ncrc = nc_get_att_float(ncid, NC_GLOBAL, "G", &tgrav);
-	grav = tgrav;
 	if (ncrc == NC_NOERR) { 
 	// this is a PlanetWRF file, so we will grab the
 	// other attributes values.
+		grav = tgrav;
 		gl_attrib.push_back(make_pair("G",grav));
 		float tempval;
 		ncrc = nc_get_att_float( ncid, NC_GLOBAL, "PLANET_YEAR", &tempval);
@@ -755,9 +736,6 @@ int WRF::_GetWRFMeta(
 		gl_attrib.push_back(make_pair("RADIUS",tempval));
 		ncrc = nc_get_att_float( ncid, NC_GLOBAL, "P2SI", &tempval);
 		gl_attrib.push_back(make_pair("P2SI",tempval));
-	}
-	else {
-		grav = 9.81;
 	}
 
 	//Build the projection string, 
@@ -919,6 +897,9 @@ int WRF::_GetWRFMeta(
 			first = false;
 
 		}
+
+		Close(fh_ph);
+		Close(fh_phb);
 
 		delete [] phBuf;
 		delete [] phbBuf;
