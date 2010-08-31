@@ -158,7 +158,8 @@ private:
     QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
     QAction* dataMerge_MetafileAction;
-	QAction* dataImportWRF_Action;
+    QAction* dataImportWRF_Action;
+    QAction* dataImportDefaultWRF_Action;
     QAction* dataLoad_MetafileAction;
     QAction* dataLoad_DefaultMetafileAction;
     QAction* dataSave_MetafileAction;
@@ -218,6 +219,7 @@ public slots:
 	virtual void defaultLoadData();
 	virtual void mergeData();
 	virtual void importWRFData();
+	virtual void importDefaultWRFData();
 	virtual void saveMetadata();
 	virtual void newSession();
 	virtual void exportToIDL();

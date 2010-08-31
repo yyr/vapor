@@ -387,6 +387,7 @@ void MainForm::hookupSignals() {
     
 	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
 	connect( dataImportWRF_Action, SIGNAL( triggered() ), this, SLOT( importWRFData() ) );
+	connect( dataImportDefaultWRF_Action, SIGNAL( triggered() ), this, SLOT( importDefaultWRFData() ) );
 	connect( dataSave_MetafileAction, SIGNAL( triggered() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( triggered() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( triggered() ), this, SLOT( defaultLoadData() ) );
@@ -448,10 +449,11 @@ void MainForm::createMenus(){
 
     Data = menuBar()->addMenu(tr("Data"));
     
-    Data->addAction(dataImportWRF_Action);
 	
     Data->addAction(dataLoad_MetafileAction );
-	Data->addAction(dataLoad_DefaultMetafileAction );
+    Data->addAction(dataLoad_DefaultMetafileAction );
+    Data->addAction(dataImportWRF_Action);
+    Data->addAction(dataImportDefaultWRF_Action);
 	Data->addAction(dataMerge_MetafileAction);
 	Data->addAction(dataSave_MetafileAction);
 	
@@ -523,6 +525,7 @@ void MainForm::createActions(){
     dataLoad_MetafileAction = new QAction( this);
 	dataMerge_MetafileAction = new QAction( this );
 	dataImportWRF_Action = new QAction( this );
+	dataImportDefaultWRF_Action = new QAction( this );
 	dataSave_MetafileAction = new QAction( this );
 	dataLoad_DefaultMetafileAction = new QAction(this);
 	fileNew_SessionAction = new QAction( this );
@@ -690,8 +693,11 @@ void MainForm::languageChange()
   
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
-	dataImportWRF_Action->setText(tr("Import WRF output files"));
-	dataImportWRF_Action->setToolTip("Specify one or more WRF output files to import into a new session");
+	
+	dataImportDefaultWRF_Action->setText(tr("Import WRF output files into default session"));
+	dataImportDefaultWRF_Action->setToolTip("Specify one or more WRF output files to import into a new session");
+	dataImportWRF_Action->setText(tr("Import WRF output files into current session"));
+	dataImportWRF_Action->setToolTip("Specify one or more WRF output files to import into the current session");
 	dataMerge_MetafileAction->setText( tr( "Merge a VDC Dataset into Current Session" ) );
 	
     
@@ -1091,7 +1097,7 @@ void MainForm::mergeData()
 	} else MessageReporter::errorMsg("Unable to open \n%s",(const char*)filename.toAscii());
 	
 }
-//Merge data into current session
+//import WRF data into current session
 //
 void MainForm::importWRFData()
 {
@@ -1100,7 +1106,32 @@ void MainForm::importWRFData()
     //user to choose input WRF output files, then to
 	//use them to create a new data
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
-		"Select the WRF Output Files to import",
+		"Select the WRF Output Files to import into current session",
+		Session::getInstance()->getMetadataFile().c_str(),"");
+	
+	if (filenames.length() > 0){
+		//Create a string vector from the QStringList
+		vector<string> files;
+		QStringList list = filenames;
+		QStringList::Iterator it = list.begin();
+		while(it != list.end()) {
+			files.push_back((*it).toStdString());
+			++it;
+		}
+		Session::getInstance()->resetMetadata(files, true, true);
+	
+	} else MessageReporter::errorMsg("No valid WRF files \n");
+	
+}
+//import WRF data into default session
+void MainForm::importDefaultWRFData()
+{
+
+	//This launches a panel that enables the
+    //user to choose input WRF output files, then to
+	//use them to create a new data
+	QStringList filenames = QFileDialog::getOpenFileNames(this,
+		"Select the WRF Output Files to import into default session",
 		Session::getInstance()->getMetadataFile().c_str(),"");
 	
 	if (filenames.length() > 0){

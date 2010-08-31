@@ -736,10 +736,6 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 	}
 	if (doMerge) assert (!defaultSession);
 
-	
-
-	
-	
 	//Handle the various cases of loading the metadata
 	if (defaultSession){
 		DataStatus::clearVariableNames();

@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//									*
+//		     Copyright (C)  2004				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
 //************************************************************************/
 //					
 //	File:		vizwinmgr.cpp
