@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//									*
+//		     Copyright (C)  2004				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
 //************************************************************************/
 //
 //	File:		params.h
@@ -46,7 +46,7 @@ enum DirtyBitType {
 	RegionBit,//Set when the region bounds change
 	DvrRegionBit,//Set when dvr needs to refresh its region data
 	ColorscaleBit,
-    LightingBit,
+    	LightingBit,
 	ProjMatrixBit,
 	ViewportBit,
 	AnimationBit //Set when the current frame number changes
@@ -62,7 +62,6 @@ class PARAMS_API Params : public MyBase, public ParamsBase {
 	
 public: 
 	
-
 Params(
 	XmlNode *parent, const string &name, int winNum
  );
@@ -74,83 +73,205 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 }
 	
 //Default copy constructor
-Params(const Params& p);
+	Params(const Params& p);
  //! Destroy object
  //!
  //! \note This destructor does not delete children XmlNodes created
  //! as children of the \p parent constructor parameter.
  //!
- virtual ~Params();
+ 	virtual ~Params();
 
- virtual const std::string& getShortName()=0;
+//! Pure virtual method specifying name to display on associated tab
+//! \retval string name to identify associated tab
+	 virtual const std::string& getShortName()=0;
 
+//! Static method that identifies the instance that is current in the identified window
+//! \param[in] pType ParamsBase TypeID of the params class
+//! \param[in] winnum index of identified window
+//! \retval instance index that is current
 	static int GetCurrentParamsInstanceIndex(int pType, int winnum){
 		return currentParamsInstance[make_pair(pType,winnum)];
 	}
+//! Static method that identifies the instance that is current in the identified window
+//! Uses tag to identify Params class
+//! \param[in] tag Tag (name) of the params class
+//! \param[in] winnum index of identified window
+//! \retval instance index that is current
 	static int GetCurrentParamsInstanceIndex(const std::string tag, int winnum){
 		return GetCurrentParamsInstanceIndex(GetTypeFromTag(tag),winnum);
 	}
-	
+	 
+//! Static method that specifies the instance that is current in the identified window
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of identified window
+//! \param[in] instance index of instance to be made current
 	static void SetCurrentParamsInstanceIndex(int pType, int winnum, int instance){
 		currentParamsInstance[make_pair(pType,winnum)] = instance;
 	}
 	
+//! Static method that finds the Params instance 
+//! if \p instance is -1, the current instance is found
+//! if \p winnum is -1, the default instance is found
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of  window
+//! \param[in] instance index 
 	static Params* GetParamsInstance(int pType, int winnum = -1, int instance = -1);
+
+//! Static method that finds the Params instance based on tag 
+//! if \p instance is -1, the current instance is found
+//! if \p winnum is -1, the default instance is found
+//! \param[in] tag XML Tag (name) of the params class
+//! \param[in] winnum index of  window
+//! \param[in] instance index 
 	static Params* GetParamsInstance(const std::string tag, int winnum = -1, int instance = -1){
 		return GetParamsInstance(GetTypeFromTag(tag), winnum, instance);
 	}
+
+//! Static method that returns the instance that is current in the identified window
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of identified window
+//! \retval Pointer to specified Params instance
 	static Params* GetCurrentParamsInstance(int pType, int winnum){
 		Params* p = GetParamsInstance(pType, winnum, -1);
 		if (p->isLocal()) return p;
 		return GetDefaultParams(pType);
 	}
 	
+//! Static method that returns the default Params instance
+//! With non-render params this is the global Params instance
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \retval Pointer to specified Params instance
 	static Params* GetDefaultParams(ParamsBase::ParamsBaseType pType){
 		return defaultParamsInstance[pType];
 	}
+
+//! Static method that returns the default Params instance
+//! Based on XML tag (name) of Params class
+//! With non-render params this is the global Params instance
+//! \param[in] tag XML tag of the Params class
+//! \retval Pointer to specified Params instance
 	static Params* GetDefaultParams(const string& tag){
 		return defaultParamsInstance[GetTypeFromTag(tag)];
 	}
+
+//! Static method that specifies the default Params instance
+//! With non-render params this is the global Params instance
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] p Pointer to default Params instance
 	static void SetDefaultParams(int pType, Params* p) {
 		defaultParamsInstance[pType] = p;
 	}
+
+//! Static method that specifies the default Params instance
+//! Based on Xml Tag of Params class
+//! With non-render params this is the global Params instance
+//! \param[in] tag XML Tag of the params class
+//! \param[in] p Pointer to default Params instance
 	static void SetDefaultParams(const string& tag, Params* p) {
 		defaultParamsInstance[GetTypeFromTag(tag)] = p;
 	}
+//! Static method that constructs a default Params instance
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \retval Pointer to new default Params instance
 	static Params* CreateDefaultParams(int pType){
 		Params*p = (Params*)(createDefaultFcnMap[pType])();
 		return p;
 	}
+
+//! Static method that finds how many instances of a Params class
+//! exist for a particular visualizer
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of specified visualizer window
+//! \retval number of instances that exist 
 	static int GetNumParamsInstances(int pType, int winnum){
 		return paramsInstances[make_pair(pType, winnum)].size();
 	}
+
+//! Static method that finds how many instances of a Params class
+//! exist for a particular visualizer
+//! Based on the XML tag of the Params class.
+//! \param[in] tag XML tag associated with Params class
+//! \param[in] winnum index of specified visualizer window
+//! \retval number of instances that exist 
 	static int GetNumParamsInstances(const std::string tag, int winnum){
 		return GetNumParamsInstances(GetTypeFromTag(tag), winnum);
 	}
 	
+//! Static method that appends a new instance to the list of existing 
+//! Params instances for a particular visualizer
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of specified visualizer window
+//! \param[in] p pointer to Params instance being appended 
 	static void AppendParamsInstance(int pType, int winnum, Params* p){
 		paramsInstances[make_pair(pType,winnum)].push_back(p);
 	}
+
+//! Static method that appends a new instance to the list of existing 
+//! Params instances for a particular visualizer
+//! Based on the XML tag of the Params class.
+//! \param[in] tag XML tag associated with Params class
+//! \param[in] winnum index of specified visualizer window
+//! \param[in] p pointer to Params instance being appended 
 	static void AppendParamsInstance(const std::string tag, int winnum, Params* p){
 		AppendParamsInstance(GetTypeFromTag(tag),winnum, p);
 	}
+
+//! Static method that removes an instance from the list of existing 
+//! Params instances for a particular visualizer
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of specified visualizer window
+//! \param[in] instance index of instance to remove 
 	static void RemoveParamsInstance(int pType, int winnum, int instance);
 	
+//! Static method that inserts a new instance into the list of existing 
+//! Params instances for a particular visualizer
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of specified visualizer window
+//! \param[in] posn index where new instance will be inserted 
+//! \param[in] dp pointer to Params instance being appended 
 	static void InsertParamsInstance(int pType, int winnum, int posn, Params* dp){
 		vector<Params*>& instances = paramsInstances[make_pair(pType,winnum)];
 		instances.insert(instances.begin()+posn, dp);
 	}
+
+//! Static method that produces a list of all the Params instances 
+//! for a particular visualizer
+//! \param[in] pType ParamsBase TypeId of the params class
+//! \param[in] winnum index of specified visualizer window
+//! \retval vector of the Params pointers associated with the window 
 	static vector<Params*>& GetAllParamsInstances(int pType, int winnum){
 		return paramsInstances[make_pair(pType,winnum)];
 	}
+
+//! Static method that produces a list of all the Params instances 
+//! for a particular visualizer
+//! based on the XML Tag of the Params class
+//! \param[in] tag XML tag associated with Params class
+//! \param[in] winnum index of specified visualizer window
+//! \retval vector of the Params pointers associated with the window 
 	static vector<Params*>& GetAllParamsInstances(const std::string tag, int winnum){
 		return GetAllParamsInstances(GetTypeFromTag(tag),winnum);
 	}
+
+//! Static method that produces clones of all the Params instances 
+//! for a particular visualizer
+//! \param[in] winnum index of specified visualizer window
+//! \retval std::map mapping from Params typeIDs to std::vectors of Params pointers associated with the window 
 	static map <int, vector<Params*> >* cloneAllParamsInstances(int winnum);
+
+//! Static method that produces clones of all the default Params instances 
+//! for a particular visualizer
+//! \param[in] winnum index of specified visualizer window
+//! \retval std::vector of default Params pointers associated with the window, indexed by ParamsBase TypeIDs 
 	static vector <Params*>* cloneAllDefaultParams();
 
+//! Static method that tells whether or not any renderer is enabled in a visualizer 
+//! \param[in] winnum index of specified visualizer window
+//! \retval True if any renderer is enabled 
 	static bool IsRenderingEnabled(int winnum);
 	
+//! Virtual method indicating whether a params is a render params instance
+//! \retval returns true if it is a render params
 	virtual bool isRenderParams() {return false;}
 	
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
@@ -184,26 +305,36 @@ Params(const Params& p);
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
 	//
+//! Pure virtual method that clones a Params instance.
+//! Derived from ParamsBase.  With Params instances, the argument is ignored.
 	virtual Params* deepCopy(ParamNode* nd = 0);
 
+//! Pure virtual method, sets a Params instance to its default state
 	virtual void restart() = 0;
 	
-	
+//! Identify the visualizer associated with this instance.
+//! With global params this is -1 
 	int getVizNum() {return vizNum;}
+
+//! Specify whether a params is local or global. 
 	virtual void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
 		else local = false;}
+
+//! Indicate whether a Params is local or not
 	bool isLocal() {return local;}
 	
+//! Specify the visualizer index of a Params instance.  
 	void setVizNum(int vnum){vizNum = vnum;}
 	
-	//When a new metadata is read, all params are notified 
-	//If the params have state that depends on the metadata (e.g. region size,
-	//variable, etc., they should implement reinit() to respond.
-	//Default does nothing.
-	//
+//! Virtual method to set up the Params to deal with new metadata.
+//! When a new metadata is read, all params are notified 
+//! If the params have state that depends on the metadata (e.g. region size,
+//! variable, etc., they should implement reinit() to respond.
+//! Default does nothing.
+//
 	virtual bool reinit(bool) {return false;}
 
-	//Following methods are redefined by params that control a box (region), such
+	//Following deprecated methods are redefined by params that control a box (region), such
 	//as regionParams, probeParams, flowParams:
 	//Set the box by copying the arrays provided as arguments.
 	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3], int /*timestep*/) {assert(0);}
@@ -227,7 +358,6 @@ Params(const Params& p);
 	void calcBoxExtents(float* extents, int timestep);
 	//Calculate the box in world coords, using any theta or phi
 	virtual void calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
-	//void calcStretchedBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
 	
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution

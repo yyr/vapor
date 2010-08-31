@@ -22,15 +22,6 @@
 //	Description:	Version information.
 //
 
-//! \class Version
-//! \brief Return version information
-//! \author John Clyne
-//! \date    Tue Jul 11 11:59:43 MDT 2006
-//! A collection of general purpose utilities - things that
-//!                  probably should be in the STL but aren't.
-//!
-
-
 #ifndef	_Version_h_
 #define	_Version_h_
 
@@ -42,6 +33,15 @@
 using namespace std;
 
 namespace VetsUtil {
+
+
+//! \class Version
+//! \brief Return version information
+//! \author John Clyne
+//! \date    Tue Jul 11 11:59:43 MDT 2006
+//! A collection of general purpose utilities - things that
+//!                  probably should be in the STL but aren't.
+//!
 
 //
 class COMMON_API Version : public MyBase {

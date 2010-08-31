@@ -40,7 +40,7 @@
 using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
 std::map<int,string> ParamsBase::tagFromClassIdMap;
-std::map<int,BaseCreateFcn> ParamsBase::createDefaultFcnMap;
+std::map<int,ParamsBase::BaseCreateFcn> ParamsBase::createDefaultFcnMap;
 const std::string ParamsBase::_emptyString;
 int ParamsBase::numParamsClasses = 0;
 int ParamsBase::numEmbedClasses = 0;

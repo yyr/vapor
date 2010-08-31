@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2008										*
-//     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//									*
+//		     Copyright (C)  2008				*
+//     University Corporation for Atmospheric Research			*
+//		     All Rights Reserved				*
+//									*
 //************************************************************************/
 //
 //	File:		ParamsBase.h
@@ -16,45 +16,9 @@
 //
 //	Description:	
 //		Defines the ParamsBase class
-//		This is an abstract class for all classes that rely on 
+//		This is an abstract class for classes that rely on 
 //		accessing an XML node for get/set
 //
-
-//
-//! \class ParamsBase
-//! \brief Nodes with state in Xml tree representation
-//! \author John Clyne
-//! \version $Revision$
-//! \date    $Date$
-//!
-//! This is abstract parent of Params and subclasses with state 
-//! kept in an xml node.  Used with the ParamNode class to support
-//! user-defined Params classes.
-//! 
-//! Users can extend ParamsBase classes to include arbitrary
-//! child (sub) nodes, by support parsing of such nodes as well
-//! as setting a dirty flag on such a node when the underlying
-//! data is changed.  This is useful for adding transfer 
-//! functions to a Params class.  Users can do the following
-//! to make use of this extension:
-//!
-//! 1.  Implement elementStartHandler() and elementEndHandler()
-//!		in the ParamsBase extension class to parse the sub nodes of the
-//!     node.  During this parsing, be sure to add the appropriate nodes
-//!		to the retained XmlTree, rooted at _rootParamNode.  Any
-//!		data structures and classes associated with the sub node should
-//!		be constructed during parsing.
-//!	2.  The classes that are associated with sub nodes should be derived
-//!		from ParsedXml.  These classes should implement elementStartHandler()
-//!		and elementEndHandler so they can do their own parsing.
-//! 3.  Classes that are associated with sub nodes should implement the 
-//!		buildNode() method.  buildNode() will build an XML node for the sub node,
-//!     and must be called from the Params buildNode() method.
-//! 4.  Whenever data within a subnode changes, an appropriate dirty flag associated with
-//!     the node should be set in the parent Params node.
-//! 5.  Client classes (e.g. renderers) that are interested in changes to the state of the
-//!		sub node must call ParamNode::RegisterDirtyFlag*(), and respond
-//!		appropriately to the resulting DirtyFlag::Set().
 
 #ifndef ParamsBase_H
 #define ParamsBase_H
@@ -70,25 +34,43 @@ using namespace VetsUtil;
 
 namespace VAPoR{
 
+//
+//! \class ParamsBase
+//! \brief Nodes with state in Xml tree representation
+//! \author John Clyne
+//! \version $Revision$
+//! \date    $Date$
+//!
+//! This is abstract parent of Params and related classes with state 
+//! kept in an xml node.  Used with the ParamNode class to support
+//! user-defined Params classes as well as other classes such as
+//! the TransferFunction class.
+//! 
+//! Users can extend ParamsBase classes to include arbitrary
+//! child (sub) nodes, by support parsing of such nodes. 
+//!
+
 class XmlNode;
 class ParamNode;
 class ParamsBase;
-typedef ParamsBase* (*BaseCreateFcn)();
 
 class PARAMS_API ParamsBase : public ParsedXml {
 	
+
+typedef ParamsBase* (*BaseCreateFcn)();
+
 public: 
 ParamsBase(
 	XmlNode *parent, const string &name
  );
 typedef int ParamsBaseType;
-//Default constructor for Params that don't (yet) use this class's capabilities
+//! Default constructor 
 ParamsBase(const string& name) {
 	_currentParamNode = _rootParamNode = 0;
 	_parseDepth = 0;
 	_paramsBaseName = name;
 }
-//Copy constructor.  
+//! Copy constructor.  
 ParamsBase(const ParamsBase &pbase);
 
 virtual ~ParamsBase();
@@ -96,10 +78,11 @@ virtual ~ParamsBase();
  //! Make a copy of a ParamBase that optionally uses specified 
  //! clone of the ParamNode as its root node.  If the root
  //! is null, the copy ignores any ParamNodes.  This is
- //! required for any ParamsBase 
+ //! required for any ParamsBase class.  
  //!
  //!
  //! \param[in] newRoot Root of cloned ParamsBase instance
+ //! \retval instance Pointer to cloned instance
  //
  virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
  
@@ -123,8 +106,11 @@ virtual ~ParamsBase();
  //! is virtual so that derived classes may receive notification when
  //! an object instance is reseting state from an XML file
  //!
- //! May be overridden if the class variable names are not determined from
+ //! Override this method if you are not using the ParamNode API to
+ //! specify the state in terms of
  //! the xml representation of the class
+ //! \sa elementEndHandler
+ //! \retval status False indicates parse error
  //
  virtual bool elementStartHandler(
 	ExpatParseMgr* pm, int depth, string& tag, const char ** attribs
@@ -138,6 +124,8 @@ virtual ~ParamsBase();
  //! an object instance has finished reseting state from an XML file.
  //! Must be overridden if the class variable names are not determined from
  //! the xml representation of the class
+ //! \sa elementStartHandler
+ //! \retval status False indicates parse error
  //
  virtual bool elementEndHandler(ExpatParseMgr* pm, int depth, string& tag);
 
@@ -149,7 +137,10 @@ virtual ~ParamsBase();
 ParamNode *GetRootNode() { return(_rootParamNode); }
 
 //!	
-//! Methods to build an xml node from state.
+//! Method to build an xml node from state.
+//! This only needs to be implemented if the state of the ParamsBase
+//! is not specified by the root ParamNode 
+//! \retval node ParamNode representing the current ParamsBase instance
 //!
 
 virtual ParamNode* buildNode(); 
@@ -165,26 +156,78 @@ void SetFlagDirty(const string& flag);
 
 const string& GetName() {return _paramsBaseName;}
 //!	
-//! Method for obtaining the type Id associated with an instance
+//! Method for obtaining the type Id associated with a ParamsBase instance
+//! \retval int ParamsBase TypeID for ParamsBase instance 
 //!
 
 ParamsBaseType GetParamsBaseTypeId() {return GetTypeFromTag(_paramsBaseName);}
+
+//!
+//! Static method for converting a Tag to a ParamsBase typeID
+//! \retval int ParamsBase TypeID for Tag
+//!
 static ParamsBaseType GetTypeFromTag(const string&tag);
+
+//!
+//! Static method for converting a ParamsBase typeID to a Tag
+//! \retval string Tag (Name) associated with ParamsBase TypeID
+//!
 static const string& GetTagFromType(ParamsBaseType t);
+
+//!
+//! Static method for constructing a default instance of a ParamsBase 
+//! class based on the typeId.
+//! \param[in] pType TypeId of the ParamsBase instance to be created.
+//! \retval instance newly created ParamsBase instance
+//!
 static ParamsBase* CreateDefaultParamsBase(int pType){
 	ParamsBase *p = (createDefaultFcnMap[pType])();
 	return p;
 }
+//!
+//! Static method for constructing a default instance of a ParamsBase 
+//! class based on the Tag.
+//! \param[in] tag XML tag of the ParamsBase instance to be created.
+//! \retval instance newly created ParamsBase instance
+//!
 static ParamsBase* CreateDefaultParamsBase(const string&tag){
 	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
 	return p;
 }
 
 //Methods for registration and tabulation of existing Params instances
+
+//!
+//! Static method for registering all the base classes to be used.
+//! Developers of extension classes should modify this method to 
+//! register any new extension classes 
+//!
 	static void RegisterParamsBaseClasses();
-	static int RegisterParamsBaseClass(const string& tag, BaseCreateFcn, bool isParams);
+
+//!
+//! Static method for registering a ParamsBase class.
+//! This calls CreateDefaultInstance on the class. 
+//! \param[in] tag  Tag of class to be registered
+//! \param[in] fcn  Method that creates default instance of ParamsBase class 
+//! \param[in] isParams set true if the ParamsBase class is derived from Params
+//! \retval classID Returns the ParamsBaseClassId, or 0 on failure 
+//!
+	static int RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bool isParams);
+//!
+//! Specify the Root ParamNode of a ParamsBase instance 
+//! \param[in] pn  ParamNode of new root 
+//!
 	virtual void SetRootParamNode(ParamNode* pn){_rootParamNode = pn;}
+//!
+//! Static method to determine how many Params classes are registered
+//! \retval count Number of registered Params classes
+//!
 	static int GetNumParamsClasses() {return numParamsClasses;}
+//!
+//! Static method to determine if a ParamsBase class is a Params class
+//! \param[in] tag XML tag associated with ParamsBase class
+//! \retval status True if the specified class is a Params class
+//!
 	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
 	
 private:
@@ -217,6 +260,7 @@ protected:
  //!
  //! This method returns the current node in the parameter node tree. 
  //! \sa Push(), Pop()
+ //! \retval node Current ParamNode
  //!
  ParamNode *GetCurrentNode() { return(_currentParamNode); }
 
@@ -268,7 +312,7 @@ protected:
 
  //! Return the attributes associated with the current branch
  //!
- //! \retval a list of attributes
+ //! \retval map attribute mapping
  //
  const map <string, string> &GetAttributes();
 

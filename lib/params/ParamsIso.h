@@ -4,7 +4,7 @@
 //
 //***********************************************************************
 //                                                                      *
-//                      Copyright (C)  2006	                            *
+//                     Copyright (C)  2006	                        *
 //          University Corporation for Atmospheric Research             *
 //                      All Rights Reserved                             *
 //                                                                      *
@@ -69,14 +69,14 @@ public:
  
  //! Create a default instance.  Required of all params classes
  //!
- //! This static method must be implented
- //
+ //! This static method must be implemented
+ //!
  static ParamsBase* CreateDefaultInstance() {return new ParamsIso(0,-1);}
  //! Specify a short name for the class.  Will be used to identify
  //! the panel in the tab
  //!
- //! This static method must be implemented
- //
+ //! This static method must be implemented by all Params classes
+ //!
  const std::string& getShortName() {return _shortName;}
  //! Specify the current refinement level.
  //!
@@ -87,17 +87,19 @@ public:
  }
  //! Reinitialize the object for a new dataset.
  //!
- //! Pure virtual method required of params
- //
+ //! Pure virtual method required of Params
+ //!
  virtual bool reinit(bool override);
- //! Specify the session variable number of the current iso variable
+ //!
+ //! Obtain the session variable number of the current iso variable
  //!
  virtual int getSessionVarNum(){
 	 return DataStatus::getInstance()->getSessionVariableNum(
 		 GetIsoVariableName());
  }
  //! Following Get/Set methods are for 
- //! parameters used in creating an isosurface
+ //! parameters used in defining an isosurface
+ //! All of them are implemented in the XML
  //
  // Histo stretch is associated with the map variable
  virtual float GetHistoStretch();

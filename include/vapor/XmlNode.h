@@ -58,7 +58,7 @@ public:
  //!
  //! \param[in] tag Name of Xml node
  //! \param[in] attrs A list of Xml attribute names and values for this node
- //! \param[in] numChildren Reserve space for the indicated number of 
+ //! \param[in] numChildrenHint Reserve space for the indicated number of 
  //! children. Children must be created with
  //! the NewChild() method
  //!
@@ -216,16 +216,16 @@ XmlNode(
  //! Set an Xml element of type string
  //!
  //! This method defines and sets an Xml element. The Xml character 
- //! data to be associated with this element is the array of characters
+ //! data to be associated with this element is the string 
  //! specified by \p values
  //! 
  //! \param[in] tag Name of the element to define/set
- //! \param[in] values Vector of characters to be converted to character data
+ //! \param[in] values string to be converted to character data
  //!
  //! \retval status Returns a non-negative value on success
  //! \retval status Returns 0 if successful
  //
- virtual int SetElementString(const string &tag, const string &str);
+ virtual int SetElementString(const string &tag, const string &values);
 
  //! Get an Xml element's data of type string
  //!
@@ -255,9 +255,9 @@ XmlNode(
  //! \retval status Returns 0 if successful
  //
  virtual int SetElementString(
-	const string &tag,const vector <string> &strvec
+	const string &tag,const vector <string> &values
  );
-//! Set an Xml element of type string
+ //! Set an Xml element of type string
  //!
  //! This method defines and sets an Xml element. The Xml character 
  //! data to be associated with this element is the array of strings
@@ -272,7 +272,7 @@ XmlNode(
  //! \retval status Returns 0 if successful
  //
 virtual int SetElementString(
-    const vector<string> &tagpath, const vector <string> &strvec
+    const vector<string> &tagpath, const vector <string> &values
 );
  
  //! Get an Xml element's data of type string
