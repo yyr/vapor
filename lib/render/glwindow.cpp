@@ -2072,6 +2072,8 @@ void GLWindow::removeAllRenderers(){
 		renderOrder[i] = 0;
 		renderer[i] = 0;
 	}
+	rendererMapping.clear();
+	
 }
 /* 
  * Remove renderer of specified renderParams

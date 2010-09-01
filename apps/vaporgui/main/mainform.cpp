@@ -825,9 +825,10 @@ void MainForm::saveMetadata()
 	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
 	LayeredIO *dataMgrLayered = dynamic_cast<LayeredIO *> (dataMgr);
+	MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
 
 	//Do nothing if there is no metadata:
-	if (! dataMgrWB  && !dataMgrLayered) {
+	if (!md ||(! dataMgrWB  && !dataMgrLayered)) {
 			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
 		return;
 	}
@@ -861,9 +862,7 @@ void MainForm::saveMetadata()
 		}
 		std::string stdName = filename.toStdString();
 		int rc;
-		MetadataVDC* md;
-		if (dataMgrWB) md = (MetadataVDC*) dataMgrWB;
-		else md = (MetadataVDC*) dataMgrLayered;
+		
 		rc = md->Write(stdName,0);
 
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n%s", (const char*)filename.toAscii());
@@ -1071,6 +1070,12 @@ void MainForm::mergeData()
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//merge into current metadata 
+	DataMgr* dm = DataStatus::getInstance()->getDataMgr();
+	MetadataVDC* md = dynamic_cast<MetadataVDC*> (dm);
+	if (!md){
+		MessageReporter::errorMsg("No current metadata available for merge");
+		return;
+	}
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Choose the Metadata File to merge into current session",
 		Session::getInstance()->getMetadataFile().c_str(),
