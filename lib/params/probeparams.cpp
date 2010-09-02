@@ -428,6 +428,7 @@ restart(){
 	textureSize[0] = textureSize[1] = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
+	compressionLevel = 0;
 	setProbeDirty();
 	if (probeDataTextures) delete probeDataTextures;
 	probeDataTextures = 0;
@@ -569,6 +570,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
 				if (numRefinements > maxNumRefinements) maxNumRefinements = numRefinements;
+			}
+			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
+				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -804,6 +808,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)compressionLevel;
+	attrs[_CompressionLevelTag] = oss.str();
 
 	oss.str(empty);
 	if (editMode)
@@ -1175,8 +1183,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		if (!variableIsSelected(varnum)) continue;
 		sesVarNums[numVars++] = varnum;
 	}
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, actualRefLevel);
+	
 	
 	float** volData = getProbeVariables(ts,  numVars, sesVarNums,
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
@@ -1185,6 +1192,8 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		delete sesVarNums;
 		return 0;
 	}
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, actualRefLevel);
 
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:

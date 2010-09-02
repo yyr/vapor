@@ -56,6 +56,7 @@ const string Params::_regionParamsTag = "RegionPanelParameters";
 const string Params::_animationParamsTag = "AnimationPanelParameters";
 const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
 const string Params::_flowParamsTag = "FlowPanelParameters";
+const string Params::_CompressionLevelTag = "CompressionLevel";
 const string Params::_localAttr = "Local";
 const string Params::_vizNumAttr = "VisualizerNum";
 const string Params::_numVariablesAttr = "NumVariables";

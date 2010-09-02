@@ -351,7 +351,7 @@ restart(){
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
-	
+	compressionLevel = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	orientation = 2;
@@ -460,6 +460,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
+			}
+			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
+				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				//Ignore this
@@ -678,6 +681,10 @@ buildNode() {
 	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
+	oss << (long)compressionLevel;
+	attrs[_CompressionLevelTag] = oss.str();
+
+	oss.str(empty);
 	if (editMode)
 		oss << "true";
 	else 
@@ -873,8 +880,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		if (!variableIsSelected(varnum)) continue;
 		sesVarNums[numVars++] = varnum;
 	}
-	size_t bSize[3];
-	ds->getDataMgr()->GetBlockSize(bSize, actualRefLevel);
+	
 	
 	//get the slice(s) from the DataMgr
 	//one of the 3 coords in each coordinate argument will be ignored,
@@ -887,6 +893,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		setBypass(ts);
 		return 0;
 	}
+	size_t bSize[3];
+	ds->getDataMgr()->GetBlockSize(bSize, actualRefLevel);
 
 	float a[2],b[2];  //transform of (x,y) is to (a[0]x+b[0],a[1]y+b[1])
 	//Set up to transform from twoD into volume:

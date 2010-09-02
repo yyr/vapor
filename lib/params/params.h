@@ -287,6 +287,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
 	static const string _flowParamsTag;
+	static const string _CompressionLevelTag;
 	static const string _vizNumAttr;
 	static const string _localAttr;
 	static const string _numVariablesAttr;
@@ -431,7 +432,9 @@ public:
 	bool isEnabled(){return enabled;}
 	virtual void setEnabled(bool value) {enabled = value; stopFlag = false;}
 	
-	
+	virtual int getNumRefinements()=0;
+	virtual int GetCompressionLevel()=0;
+	virtual void SetCompressionLevel(int val)=0;
 	virtual int getSessionVarNum() = 0;
 	virtual float GetHistoStretch() { assert(0); return 1.f;}
 	virtual void setBindButtons() {return;}//Needs to be removed!
@@ -487,7 +490,7 @@ public:
 
 	
 	virtual MapperFunction* getMapperFunc()=0;
-	virtual int getNumRefinements()=0;
+	
 	void setStopFlag(bool val = true) {stopFlag = val;}
 	bool getStopFlag() {return stopFlag;}
 	//Bypass flag is used to indicate a renderer should

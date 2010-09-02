@@ -152,6 +152,7 @@ restart() {
 	flaAdvectBeforePrioritize = false;
 	steadyFlowDirection = 0;
 	unsteadyFlowDirection = 1; //default is forward
+	compressionLevel = 0;
 
 	steadyFlowLength = defaultFlowLength;
 	steadySmoothness = defaultSmoothness;
@@ -1402,6 +1403,10 @@ buildNode() {
 	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
+	oss << (long)compressionLevel;
+	attrs[_CompressionLevelTag] = oss.str();
+
+	oss.str(empty);
 	oss << (double)integrationAccuracy;
 	attrs[_integrationAccuracyAttr] = oss.str();
 
@@ -1821,6 +1826,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
+			}
+			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
+				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _integrationAccuracyAttr) == 0){
 				ist >> integrationAccuracy;

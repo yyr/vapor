@@ -87,6 +87,8 @@ public:
 	//get/set methods
 	void setNumRefinements(int numtrans){numRefinements = numtrans; setTwoDDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
+	virtual int GetCompressionLevel() {return compressionLevel;}
+	virtual void SetCompressionLevel(int val) {compressionLevel = val; setTwoDDirty();}
 
 	virtual bool imageCrop()=0;
 
@@ -184,6 +186,7 @@ protected:
 	bool mapToTerrain;
 	float minTerrainHeight, maxTerrainHeight;
 	unsigned char* lastTwoDTexture;
+	int compressionLevel;
 	
 };
 };

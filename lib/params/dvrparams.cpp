@@ -281,6 +281,7 @@ restart(){
 	lightingOn = defaultLightingEnabled;
     preIntegrationOn = defaultPreIntegrationEnabled;
 	numBits = defaultBitsPerVoxel;
+	compressionLevel = 0;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -365,6 +366,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
+			}
+			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
+				ist >> compressionLevel;
 			}
 			else if (StrCmpNoCase(attribName, _activeVariableNameAttr) == 0) {
 				ist >> activeVarName;
@@ -537,6 +541,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)compressionLevel;
+	attrs[_CompressionLevelTag] = oss.str();
 
 	//convert the active variable num to a name:
 	if (varNum >=0){

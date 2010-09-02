@@ -194,6 +194,7 @@ restart(){
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
 	orientation = 2;
+	compressionLevel = 0;
 	setTwoDDirty();
 	if (twoDDataTextures) {
 		if (twoDDataTextures[0]) delete twoDDataTextures[0];
@@ -265,7 +266,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> numRefinements;
 				if (numRefinements > maxNumRefinements) maxNumRefinements = numRefinements;
 			}
-			
+			else if (StrCmpNoCase(attribName, _CompressionLevelTag) == 0){
+				ist >> compressionLevel;
+			}
 			else if (StrCmpNoCase(attribName, _terrainMapAttr) == 0){
 				if (value == "true") setMappedToTerrain(true); 
 				else setMappedToTerrain(false);
@@ -360,6 +363,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)compressionLevel;
+	attrs[_CompressionLevelTag] = oss.str();
 
 	oss.str(empty);
 	if (isMappedToTerrain())

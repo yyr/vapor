@@ -109,6 +109,22 @@ reinit(bool doOverride){
 		if (numrefs < 0) numrefs = 0;
 	}
 	SetRefinementLevel(numrefs);
+	//Set up the compression level.  Whether or not override is true, make sure
+	//That the compression level is valid.  If override is true set it to 0;
+	if (doOverride) SetCompressionLevel(0);
+	else {
+		int numCompressions = 0;
+	
+		if (ds->getDataMgr()) {
+			numCompressions = ds->getDataMgr()->GetCRatios().size();
+		}
+		//For backwards compatibility:
+		if (!GetRootNode()->HasElementLong(_CompressionLevelTag)) SetCompressionLevel(0);
+		else if (GetCompressionLevel() >= numCompressions){
+			SetCompressionLevel(numCompressions-1);
+		}
+	}
+
 	//Create arrays of pointers to IsoControls and TransferFunctions, and bounds
 	assert(totNumVariables > 0);
 	TransferFunction** newTransFunc = new TransferFunction*[totNumVariables];
@@ -248,6 +264,7 @@ void ParamsIso::restart() {
 	float pnt[3] = {0.0, 0.0, 0.0};
 	SetSelectedPoint(pnt);
 	SetRefinementLevel(0);
+	SetCompressionLevel(0);
 	SetVisualizerNum(vizNum);
 	SetIsoVariableName("none");
 	SetMapVariableName("Constant");
@@ -480,14 +497,24 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	 vector<long> valvec(1,(long)level);
 	 GetRootNode()->SetElementLong(_RefinementLevelTag,valvec);
  }
- int ParamsIso::GetRefinementLevel(){
+int ParamsIso::GetRefinementLevel(){
 	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
 	return (int)valvec[0];
  }
  void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_RefinementLevelTag, df);
 }
-
+int ParamsIso::GetCompressionLevel(){
+	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag);
+	return (int)valvec[0];
+ }
+void ParamsIso::SetCompressionLevel(int level){
+	 vector<long> valvec(1,(long)level);
+	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
+ }
+ void ParamsIso::RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->RegisterDirtyFlag(_CompressionLevelTag, df);
+}
  void ParamsIso::SetVisualizerNum(int viznum){
 	vector<long> valvec(1,(long)viznum);
 	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);

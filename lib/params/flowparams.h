@@ -49,6 +49,8 @@ public:
 	
 	virtual Params* deepCopy(ParamNode* =0);
 	
+	virtual int GetCompressionLevel() {return compressionLevel;}
+	virtual void SetCompressionLevel(int val) {compressionLevel = val; }
 
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
@@ -515,6 +517,7 @@ protected:
 	float* maxColorBounds;
 	
 	int maxPoints;  //largest length of any flow
+	int compressionLevel;
 	
 	int maxFrame;  //Maximum frame timeStep.  Used to determine array sizes for
 	//flow data caches.

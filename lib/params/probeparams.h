@@ -140,6 +140,8 @@ public:
 	//get/set methods
 	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
+	virtual int GetCompressionLevel() {return compressionLevel;}
+	virtual void SetCompressionLevel(int val) {compressionLevel = val; setProbeDirty();}
 	
 	//This needs to be fixed to handle multiple variables!
 	virtual int getSessionVarNum() { return firstVarNum;}
@@ -344,6 +346,7 @@ protected:
 	unsigned char** probeIBFVTextures;
 	unsigned char** probeDataTextures;
 	int maxTimestep;
+	int compressionLevel;
 	
 	
 	//State variables controlled by GUI:

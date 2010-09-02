@@ -91,6 +91,8 @@ public:
 	virtual void setCurrentDatarange(float minval, float maxval){
 		currentDatarange[0] = minval; currentDatarange[1] = maxval;}
     
+	virtual int GetCompressionLevel() {return compressionLevel;}
+	virtual void SetCompressionLevel(int val) {compressionLevel = val; }
 
 	virtual bool isOpaque();
 
@@ -192,6 +194,7 @@ protected:
 	int numBits;
 	
 	int numRefinements;
+	int compressionLevel;
 	
 	bool editMode;
 	//Transfer fcn LUT: (R,G,B,A)

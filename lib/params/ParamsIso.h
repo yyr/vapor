@@ -85,6 +85,16 @@ public:
  virtual int getNumRefinements() {
 	 return GetRefinementLevel();
  }
+ //! Obtain the current compression level.
+ //!
+ //! Pure virtual method required of render params
+ //! \retval level index into the set of available compression ratios
+ virtual int GetCompressionLevel();
+ //! Set the current compression level.
+ //!
+ //! Pure virtual method required of render params
+ //
+ virtual void SetCompressionLevel(int val);
  //! Reinitialize the object for a new dataset.
  //!
  //! Pure virtual method required of Params
@@ -225,9 +235,10 @@ float getMaxIsoEditBound() {
  void SetSelectedPoint(const float pnt[3]);
  const vector<double>& GetSelectedPoint();
 
- void SetRefinementLevel(int level);
+ virtual void SetRefinementLevel(int level);
  int GetRefinementLevel();
  void RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
+ void RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
 
  void SetVisualizerNum(int viznum);
  int GetVisualizerNum();
