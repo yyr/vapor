@@ -287,8 +287,6 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//First determine the bounds specified in this RegionParams
 	int i;
 	
-	const size_t *bs ;
-	
 	DataStatus* ds = DataStatus::getInstance();
 	//Special case before there is any data...
 	if (!ds->getDataMgr()){
@@ -360,7 +358,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 	}
 	//calc block dims
-	bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, minRefLevel);
 	for (i = 0; i<3; i++){	
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
@@ -380,9 +379,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		double regMin[3], double regMax[3], bool twoDim){
 	
 	int i;
-	
-	const size_t *bs ;
-	
+		
 	DataStatus* ds = DataStatus::getInstance();
 	//Special case before there is any data...
 	if (!ds->getDataMgr()){
@@ -470,7 +467,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		}
 	}
 	//calc block dims
-	bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, minRefLevel);
 	for (i = 0; i<3; i++){	
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
@@ -718,7 +716,8 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 	
-	const size_t *bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, refLevel);
 	
 	size_t min_bdim[3], max_bdim[3];
 	double userMinCoords[3];
@@ -754,7 +753,8 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3
 
 	//Get the data dimensions (at current resolution):
 	int voxCoords[3];
-	const size_t* bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
 	const char* varname = ds->getVariableName(sessionVarNum).c_str();
 	double regMin[3], regMax[3];
 	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];

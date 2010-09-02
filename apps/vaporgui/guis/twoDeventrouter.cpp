@@ -136,8 +136,8 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 			return OUT_OF_BOUNDS;
 		} 
 	}
-	
-	const size_t* bSize =  ds->getDataMgr()->GetBlockSize();
+	size_t bSize[3];
+	ds->getDataMgr()->GetBlockSize(bSize, numRefinements);
 
 	//Get the block coords (in the full volume) of the desired array coordinate:
 	for (int i = 0; i< 3; i++){

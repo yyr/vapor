@@ -1590,6 +1590,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		regMaxOrig[i] = regMax[i];
 	}
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
+	int refLevel = elevGridRefLevel;
 	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
 		varnum = DataStatus::getSessionVariableNum("ELEVATION");
@@ -1602,7 +1603,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			dataMgr->Clear();
 			dataMgrLayered->SetInterpolateOnOff(false);
 			//Try to get requested refinement level or the nearest acceptable level:
-			int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+			refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 					timeStep, &varnum, 1, regMin, regMax);
 			
 
@@ -1639,7 +1640,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		
 		
 		//Try to get requested refinement level or the nearest acceptable level:
-		int refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+		refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				timeStep, &varnum, 1, regMin, regMax, true);
 		
 
@@ -1698,7 +1699,8 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 
 	
 	float worldCoord[3];
-	const size_t* bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, refLevel);
 	for (int j = 0; j<mxy; j++){
 		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(mxy-1);
 		size_t ycrd = 0; 

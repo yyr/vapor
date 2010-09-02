@@ -1155,12 +1155,12 @@ void DvrEventRouter::benchmarkPreamble()
   const DataMgr *dataMgr      = Session::getInstance()->getDataMgr();
   RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
   DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
-
-  const size_t *bs = dataMgr->GetBlockSize();
+	
   int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->getNumRefinements();
-
+  size_t bs[3];
+  dataMgr->GetBlockSize(bs,numxforms);
 
   if(regionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
           timeStep, &varNum, 1) < 0 ) return;

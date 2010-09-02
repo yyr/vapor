@@ -34,13 +34,15 @@ Histo::Histo(int numberBins, float mnData, float mxData){
 }
 Histo::Histo(unsigned char* data, size_t min_dim[3], size_t max_dim[3], 
 			 size_t min_bdim[3],size_t max_bdim[3],
-			 float mnData, float mxData){
+			 float mnData, float mxData, int refLevel){
 	binArray = new int[256];
 	minData = mnData;
 	maxData = mxData;
 	numBins = 256;
 	reset();
-	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	
+	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, refLevel);
 	// make subregion origin (0,0,0)
 	// Note that this doesn't affect the calc of nx,ny,nz.
 	//

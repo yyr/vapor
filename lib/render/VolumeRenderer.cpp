@@ -426,8 +426,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		setClutDirty();
 		savedNumXForms = numxforms;
 	}
-
-	const size_t *bs = dataMgr->GetBlockSize();
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs,numxforms);
 
 	  
 	//Loop if user accepts lower resolution:

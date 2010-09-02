@@ -2168,7 +2168,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	//separate color, opac min_bdim
 	size_t min_cbdim[3], min_obdim[3];
 	DataStatus* ds = DataStatus::getInstance();
-	const size_t *bs = ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
+	
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
@@ -2679,7 +2681,8 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 			}	
 		}
 	}
-	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs,availRefLevel);
 	int numPts = 0;
 	float dataSum = 0.f;
 	DataStatus* ds = DataStatus::getInstance();

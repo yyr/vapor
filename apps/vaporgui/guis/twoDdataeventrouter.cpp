@@ -1562,7 +1562,8 @@ refreshHistogram(RenderParams* p){
 		updateTab();
 		return;
 	}
-	const size_t* bSize =  (DataStatus::getInstance()->getDataMgr()->GetBlockSize());
+	size_t bSize[3];
+	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bSize,refLevel);
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** planarData = new float*[numVariables];

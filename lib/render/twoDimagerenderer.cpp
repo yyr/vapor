@@ -279,7 +279,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	double regMin[3], regMax[3];
 	float* hgtData = NULL;
 	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f, minElev=0.f;
-	const size_t* bs = dataMgr->GetBlockSize();
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs,refLevel);
 	
 	if (tParams->isMappedToTerrain()){
 		//We shall retrieve HGT for the full extents of the data

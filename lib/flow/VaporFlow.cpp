@@ -539,9 +539,11 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	float **pWData;
 	float **pVData;
 	float **pUData;
-	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetBlockSize()[0];
-	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetBlockSize()[1];
-	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetBlockSize()[2];
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, numXForms);
+	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* bs[0];
+	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* bs[1];
+	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* bs[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	bool zeroX = (strcmp(xSteadyVarName, "0") == 0); 
 	bool zeroY = (strcmp(ySteadyVarName, "0") == 0); 
@@ -569,7 +571,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
-	const size_t* bs = dataMgr->GetBlockSize();
+	
 	for (int i = 0; i< 3; i++){
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
@@ -726,10 +728,11 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	float **pUData, **pVData, **pWData;
 	
 	int totalXNum, totalYNum, totalZNum, totalNum;
-	
-    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetBlockSize()[0];
-	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetBlockSize()[1];
-	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetBlockSize()[2];
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, numXForms);
+    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* bs[0];
+	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* bs[1];
+	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* bs[2];
 	totalNum = (int)(totalXNum*totalYNum*totalZNum);
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
@@ -776,7 +779,6 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	const size_t* bs = dataMgr->GetBlockSize();
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
@@ -986,9 +988,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	float **pUData = 0, **pVData = 0, **pWData = 0;
 	
 	int totalXNum, totalYNum, totalZNum, totalNum;
-	
-    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetBlockSize()[0];
-	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetBlockSize()[1];
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, numXForms);
+    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* bs[0];
+	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* bs[1];
 	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetBlockSize()[2];
 	totalNum = totalXNum*totalYNum*totalZNum;
 	
@@ -1036,7 +1039,6 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	const size_t* bs = dataMgr->GetBlockSize();
 	VECTOR3 minB, maxB, minR, maxR;
 	double minUser[3], maxUser[3], regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
@@ -1247,7 +1249,8 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	}
 	
 	
-	const size_t* bs = dataMgr->GetBlockSize();
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, numXForms);
 	// get the field data, lock it in place:
 	// create field object
 	CVectorField* pField;
@@ -1365,7 +1368,8 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	}
 	
 	
-	const size_t* bs = dataMgr->GetBlockSize();
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, numXForms);
 	
 	float **pUData, **pVData, **pWData;
 	

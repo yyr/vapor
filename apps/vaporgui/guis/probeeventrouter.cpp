@@ -2071,8 +2071,8 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 			return OUT_OF_BOUNDS;
 		} 
 	}
-	
-	const size_t *bs =  ds->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs,numRefinements);
 
 	//Get the block coords (in the full volume) of the desired array coordinate:
 	for (int i = 0; i< 3; i++){
@@ -2176,7 +2176,8 @@ refreshHistogram(RenderParams* p){
 		updateTab();
 		return;
 	}
-	const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs,refLevel);
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];

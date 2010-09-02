@@ -103,8 +103,8 @@ int PythonControl::python_wrapper(int scriptId,size_t ts,int reflevel,const size
 	PyObject* timestep = Py_BuildValue("i",ts);
 	//must convert input block extents to actual region extents
 	size_t dim[3];
-
-	const size_t* blksize = derVarDataMgr->GetBlockSize();
+	size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
 	derVarDataMgr->GetDim(dim, reflevel);	
 	printf("dim is: %d %d %d\n",dim[0],dim[1],dim[2]);
 	int regmin[3],regmax[3];
@@ -220,8 +220,9 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,const
 	PyObject* timestep = Py_BuildValue("i",ts);
 	//must convert input block extents to actual region extents
 	size_t dim[3];
+	size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
 
-	const size_t* blksize = derVarDataMgr->GetBlockSize();
 	derVarDataMgr->GetDim(dim, reflevel);	
 	printf("dim is: %d %d %d\n",dim[0],dim[1],dim[2]);
 	int regmin[3],regmax[3];
@@ -328,7 +329,9 @@ PyObject* PythonControl::get_3Dvariable(PyObject *self, PyObject* args){
     printf("in get_3Dvariable, tstep = %d, reflevel = %d extents = %d %d %d %d %d %d\n",
 	tstep, reflevel, minreg[0],minreg[1],minreg[2], maxreg[0],maxreg[1],maxreg[2]);
     //Need to convert min,max extents to block extents
-    const size_t* blksize = derVarDataMgr->GetBlockSize();
+	size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
+    
     derVarDataMgr->GetDim(dims,reflevel);
     for (int i = 0; i<3; i++){
 	minblkreg[i] = minreg[i]/blksize[i];
@@ -372,7 +375,8 @@ PyObject* PythonControl::set_3Dvariable(PyObject *self, PyObject* args){
 	//Calculate the block extents
 	//The minreg should already be based on block dims
 	//The maxreg should already be truncated to fit inside domain
-	const size_t *blksize = derVarDataMgr->GetBlockSize();
+	size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
 	for(int i = 0; i<3; i++){
 		regsize[i] = maxreg[i]-minreg[i]+1;
 		minblkreg[i] = minreg[i]/blksize[i];
@@ -412,7 +416,8 @@ PyObject* PythonControl::get_2Dvariable(PyObject *self, PyObject* args){
     printf("in get_2Dvariable, tstep = %d, reflevel = %d extents = %d %d %d %d %d %d\n",
 	tstep, reflevel, minreg[0],minreg[1],minreg[2], maxreg[0],maxreg[1],maxreg[2]);
     //Need to convert min,max extents to block extents
-    const size_t* blksize = derVarDataMgr->GetBlockSize();
+    size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
     derVarDataMgr->GetDim(dims,reflevel);
     for (int i = 0; i<2; i++){
 		minblkreg[i] = minreg[i]/blksize[i];
@@ -470,7 +475,8 @@ PyObject* PythonControl::set_2Dvariable(PyObject *self, PyObject* args){
 	//Calculate the block extents
 	//The minreg should already be based on block dims
 	//The maxreg should already be truncated to fit inside domain
-	const size_t *blksize = derVarDataMgr->GetBlockSize();
+	size_t blksize[3];
+	derVarDataMgr->GetBlockSize(blksize,reflevel);
 	for(int i = 0; i<2; i++){
 		regsize[i] = maxreg[i]-minreg[i]+1;
 		minblkreg[i] = minreg[i]/blksize[i];

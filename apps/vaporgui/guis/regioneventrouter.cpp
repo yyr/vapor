@@ -666,10 +666,9 @@ refreshRegionInfo(RegionParams* rParams){
 		default:
 			break;
 	}
-	size_t defaultBS[] = {32,32,32};
-	const size_t *bs = defaultBS;
+	size_t bs[3] = {32,32,32};
 	if (ds && ds->getDataMgr())
-		bs = ds->getDataMgr()->GetBlockSize();
+		ds->getDataMgr()->GetBlockSize(bs, refLevel);
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	float newFullMB;
 	if (is3D)

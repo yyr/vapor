@@ -226,7 +226,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	}
 
 	histogramList[varNum] = new Histo(data,
-			min_dim, max_dim, min_bdim, max_bdim, dRange[0],dRange[1]);
+			min_dim, max_dim, min_bdim, max_bdim, dRange[0],dRange[1],availRefLevel);
 	
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.

@@ -311,7 +311,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		maxvals[i] = -1.e30;
 	}
 	float worldCoord[3];
-	const size_t* bs = dataMgr->GetBlockSize();
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, refLevel);
 	for (int j = 0; j<maxy; j++){
 		worldCoord[1] = regMin[1] + (float)j*deltay;
 		if (worldCoord[1] < origRegMin[1]) worldCoord[1] = origRegMin[1];

@@ -784,8 +784,8 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	
 	//Start with the bounding box for this refinement level:
 	getBoundingBox(timeStep, boxMin, boxMax, numRefs);
-	
-	const size_t* bs = DataStatus::getInstance()->getDataMgr()->GetBlockSize();
+	size_t bs[3];
+	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, numRefs);
 	size_t temp_min[3],temp_max[3];
 	bool retVal = true;
 	int i;
@@ -873,8 +873,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		if (!variableIsSelected(varnum)) continue;
 		sesVarNums[numVars++] = varnum;
 	}
-	
-	const size_t *bSize =  ds->getDataMgr()->GetBlockSize();
+	size_t bSize[3];
+	ds->getDataMgr()->GetBlockSize(bSize, actualRefLevel);
 	
 	//get the slice(s) from the DataMgr
 	//one of the 3 coords in each coordinate argument will be ignored,

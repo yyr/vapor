@@ -3,7 +3,7 @@
 //		     Copyright (C)  2008										*
 //     University Corporation for Atmospheric Research					*
 //		     All Rights Reserved										*
-//																		*
+//																		 *
 //************************************************************************/
 //
 //	File:		ParamsBase.cpp

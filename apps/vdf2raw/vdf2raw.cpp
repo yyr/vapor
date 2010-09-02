@@ -116,8 +116,8 @@ void	process_volume_vdc1(
 		}
 	}
 	else {
-		size_t bdim[3];
-		const size_t *bs = metadata.GetBlockSize();
+		size_t bdim[3], bs[3];
+		metadata.GetBlockSize(bs, opt.level);
 		
 		wbreader3D->GetDimBlk(bdim, opt.level);
 		
@@ -412,7 +412,8 @@ void	process_region(
 	else {
 		size_t bmin[3];
 		size_t bmax[3];
-		const size_t *bs = metadata.GetBlockSize();
+		size_t bs[3];
+		metadata.GetBlockSize(bs, opt.level);
 
 		wbreader3D->MapVoxToBlk(min,bmin);
 		wbreader3D->MapVoxToBlk(max,bmax);
