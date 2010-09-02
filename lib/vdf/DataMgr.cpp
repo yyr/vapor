@@ -23,6 +23,8 @@ int	DataMgr::_DataMgr(
 
 	_blk_mem_mgr = NULL;
 
+	_PipeLines.clear();
+
 	_quantizationRangeMap.clear();
 	_regionsList.clear();
 	_dataRangeMinMap.clear();
@@ -67,21 +69,6 @@ DataMgr::~DataMgr(
 	_dataRangeMinMap.clear();
 	_dataRangeMaxMap.clear();
 
-	map <size_t, map<string, map<int, size_t *> > >::iterator p1;
-	for(p1 = _validRegMinMaxMap.begin(); p1!=_validRegMinMaxMap.end(); p1++) {
-
-		map <string, map <int, size_t * > > &vmap = p1->second;
-		map <string, map <int, size_t * > >::iterator t;
-
-		for(t = vmap.begin(); t!=vmap.end(); t++) {
-			map <int, size_t * > &imap = t->second;
-			map <int, size_t * >::iterator u;
-
-			for(u=imap.begin(); u!=imap.end(); u++) {
-				if (u->second) delete [] u->second;
-			}
-		}
-	}
 	_validRegMinMaxMap.clear();
 
 	
@@ -94,6 +81,8 @@ DataMgr::~DataMgr(
 	_blk_mem_mgr = NULL;
 
 }
+
+
 
 float	*DataMgr::GetRegion(
 	size_t ts,
@@ -148,6 +137,17 @@ float	*DataMgr::GetRegion(
 		}
 	}
 #endif
+
+
+	//
+	// See if the variable is derived from another variable 
+	//
+	if (IsVariableDerived(varname)) {
+		return(execute_pipeline(
+			ts, string(varname), reflevel, lod, min, max, lock)
+		);
+	}
+
 	// Else, read it from disk
 	//
 	VarType_T vtype = GetVarType(varname);
@@ -443,6 +443,210 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	}
 	return(ublks);
 }
+
+int	DataMgr::NewPipeline(PipeLine *pipeline) {
+
+	//
+	// Delete any pipeline stage with the same name as the new one. This
+	// is a no-op if the stage doesn't exist.
+	//
+	RemovePipeline(pipeline->GetName());
+
+	// 
+	// Make sure outputs don't collide with existing outputs
+	//
+	const vector <pair <string, VarType_T> > &my_outputs = pipeline->GetOutputs();
+
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string,VarType_T> > &outputs = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<my_outputs.size(); j++) {
+		for (int k=0; k<outputs.size(); k++) {
+			if (my_outputs[j].first.compare(outputs[k].first)==0) {
+				SetErrMsg(
+					"Pipeline output %s already in use", 
+					my_outputs[j].first.c_str()
+				);
+				return(-1);
+			}
+		}
+		}
+	}
+
+	//
+	// Now make sure outputs don't match any native variables
+	//
+	vector <string> native_vars = get_native_variables();
+
+	for (int i=0; i<native_vars.size(); i++) {
+		for (int j=0; j<my_outputs.size(); j++) {
+			if (native_vars[i].compare(my_outputs[j].first) == 0) {
+				SetErrMsg(
+					"Pipeline output %s matches native variable name", 
+					my_outputs[i].first.c_str()
+				);
+				return(-1);
+			}
+		}
+	}
+		
+
+	//
+	// Add the new stage to a temporary pipeline. Generate a hash
+	// table with all the dependencies of the temporary pipeline. And
+	// then check for cycles in the graph (e.g. a -> b -> c -> a).
+	//
+	map <string, vector <string> > graph;
+	vector <PipeLine *> tmp_pipe = _PipeLines;
+	tmp_pipe.push_back(pipeline);
+
+	for (int i=0; i<tmp_pipe.size(); i++) {
+		vector <string> depends;
+		for (int j=0; j<tmp_pipe.size(); j++) {
+	
+			// 
+			// See if inputs to tmp_pipe[i] match outputs 
+			// of tmp_pipe[j]
+			//
+			if (depends_on(tmp_pipe[i], tmp_pipe[j])) {
+				depends.push_back(tmp_pipe[j]->GetName());
+			}
+		}
+		graph[tmp_pipe[i]->GetName()] = depends;
+	}
+
+	//
+	// Finally check for cycles in the graph
+	//
+	if (cycle_check(graph, pipeline->GetName(), graph[pipeline->GetName()])) {
+		SetErrMsg("Invalid pipeline : circular dependency detected");
+		return(-1);
+	}
+
+	_PipeLines.push_back(pipeline);
+	return(0);
+}
+
+void	DataMgr::RemovePipeline(string name) {
+
+	vector <PipeLine *>::iterator itr;
+	for (itr = _PipeLines.begin(); itr != _PipeLines.end(); itr++) {
+		if (name.compare((*itr)->GetName()) == 0) {
+			_PipeLines.erase(itr);
+			break;
+		}
+	}
+}
+
+int DataMgr::VariableExists(
+    size_t ts, const char *varname, int reflevel, int lod
+) const {
+
+	if (IsVariableNative(varname)) {
+		return(_VariableExists( ts, varname, reflevel, lod));
+	}
+	else {
+		PipeLine *pipeline = get_pipeline_for_var(varname);
+		assert(pipeline != NULL);
+
+		const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
+		//
+		// Recursively test existence of all dependencies
+		//
+		for (int i=0; i<ovars.size(); i++) {
+			if (! VariableExists(ts, ovars[i].first.c_str(), reflevel, lod)) {
+				return(0);
+			}
+		}
+	}
+	return(1);
+}
+
+
+bool DataMgr::IsVariableNative(string name) const {
+	vector <string> svec = get_native_variables();
+
+	for (int i=0; i<svec.size(); i++) {
+		if (name.compare(svec[i]) == 0) return (true);
+	}
+	return(false);
+}
+
+bool DataMgr::IsVariableDerived(string name) const {
+	vector <string> svec = get_derived_variables();
+
+	for (int i=0; i<svec.size(); i++) {
+		if (name.compare(svec[i]) == 0) return (true);
+	}
+	return(false);
+}
+
+vector <string> DataMgr::GetVariables3D() const {
+
+	// Get native variables (variables contained in the data set)
+	//
+	vector <string> svec = _GetVariables3D();
+
+	// Now get derived variables 
+	//
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string,VarType_T> > &outputs = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<outputs.size(); j++) {
+			if (outputs[j].second == VAR3D) svec.push_back(outputs[j].first);
+		}
+	}
+	return(svec);
+}
+
+vector <string> DataMgr::GetVariables2DXY() const {
+
+	// Get native variables (variables contained in the data set)
+	//
+	vector <string> svec = _GetVariables2DXY();
+
+	// Now get derived variables 
+	//
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string,VarType_T> > &outputs = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<outputs.size(); j++) {
+			if (outputs[j].second == VAR2D_XY) svec.push_back(outputs[j].first);
+		}
+	}
+	return(svec);
+}
+vector <string> DataMgr::GetVariables2DXZ() const {
+
+	// Get native variables (variables contained in the data set)
+	//
+	vector <string> svec = _GetVariables2DXZ();
+
+	// Now get derived variables 
+	//
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string,VarType_T> > &outputs = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<outputs.size(); j++) {
+			if (outputs[j].second == VAR2D_XZ) svec.push_back(outputs[j].first);
+		}
+	}
+	return(svec);
+}
+
+vector <string> DataMgr::GetVariables2DYZ() const {
+
+	// Get native variables (variables contained in the data set)
+	//
+	vector <string> svec = _GetVariables2DYZ();
+
+	// Now get derived variables 
+	//
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string,VarType_T> > &outputs = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<outputs.size(); j++) {
+			if (outputs[j].second == VAR2D_YZ) svec.push_back(outputs[j].first);
+		}
+	}
+	return(svec);
+}
+
 	
 unsigned char	*DataMgr::get_quantized_region(
 	size_t ts,
@@ -577,7 +781,9 @@ void	DataMgr::quantize_region_uint16(
 int DataMgr::GetDataRange(
 	size_t ts,
 	const char *varname,
-	float *range
+	float *range,
+	int reflevel,
+	int lod
 ) {
 	int	rc;
 
@@ -590,31 +796,35 @@ int DataMgr::GetDataRange(
 
 	// Range isn't cache'd. Need to get it from derived class
 	//
-	rc = OpenVariableRead(ts, varname, 0,0);
-	if (rc < 0) {
-		SetErrMsg(
-			"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
-			varname, ts, 0,0
-		);
-		return(-1);
-	}
 
-	const float *r = GetDataRange();
-	if (r) {
-		range[0] = r[0];
-		range[1] = r[1];
+	if (IsVariableNative(varname)) {
+		rc = OpenVariableRead(ts, varname, reflevel,lod);
+		if (rc < 0) {
+			SetErrMsg(
+				"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
+				varname, ts, 0,0
+			);
+			return(-1);
+		}
 
-		// Use of []'s creates an entry in map
-		_dataRangeMinMap[ts][varname] = range[0];
-		_dataRangeMaxMap[ts][varname] = range[1];
+		const float *r = GetDataRange();
+		if (r) {
+			range[0] = r[0];
+			range[1] = r[1];
 
+			// Use of []'s creates an entry in map
+			_dataRangeMinMap[ts][varname] = range[0];
+			_dataRangeMaxMap[ts][varname] = range[1];
+
+			CloseVariable();
+			return(0);
+		}
 		CloseVariable();
-		return(0);
 	}
-	CloseVariable();
 
 	//
-	// Argh. Derived class doesn't know data range. Have to caculate it
+	// Argh. Child class doesn't know data range (or this is a
+	// derived variable). Have to caculate range
 	// ourselves
 	//
 	size_t min[3], max[3];
@@ -624,43 +834,13 @@ int DataMgr::GetDataRange(
 	MapVoxToBlk(min, bmin, -1);
 	MapVoxToBlk(max, bmax, -1);
 
+	
+	// Get data volume 
+	//
+	float *blks = GetRegion(ts, varname, reflevel, lod,bmin, bmax, 0); 
+	if (! blks) return(-1);
 
 	VarType_T vtype = GetVarType(varname);
-
-	// See if region is already in cache. 
-	//
-	float *blks = (float *) get_region_from_cache(
-		ts, varname, -1, -1, DataMgr::FLOAT32, bmin, bmax, 0
-	);
-	
-	// If not in cache we need to read it
-	//
-	if (! blks) {
-
-		blks = (float *) alloc_region(
-			ts,varname,vtype, -1, -1, DataMgr::FLOAT32,bmin,bmax,0
-		);
-		if (! blks) return(-1);
-
-		rc = OpenVariableRead(ts, varname, -1,-1);
-		if (rc < 0) {
-			SetErrMsg(
-				"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
-				varname, ts, -1,-1
-			);
-			return(-1);
-		}
-
-		rc = BlockReadRegion(bmin, bmax, blks);
-		if (rc < 0) {
-			SetErrMsg(
-				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
-				varname, ts, -1, -1
-			);
-			(void) free_region(ts,varname,-1,-1,FLOAT32,bmin,bmax);
-		}
-		CloseVariable();
-	}
 
 	size_t bs[3];
 	GetBlockSize(bs, -1);
@@ -715,15 +895,19 @@ int DataMgr::GetValidRegion(
 
 	// See if we've already cache'd it.
 	//
-	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel);
+	vector <size_t> minmax = get_cached_reg_min_max(ts, varname, reflevel);
+	if (minmax.size()) {
+		for (int i=0; i<3; i++) {
+			min[i] = minmax[i];
+			max[i] = minmax[i+3];
+		}
+		return(0);
+	}
 
-	if (! minmax) {
-		
+	if (IsVariableNative(varname)) {
+
 		// Range isn't cache'd. Need to read it from the file
 		//
-		minmax = new size_t[6];
-		assert(minmax != NULL);
-
 		rc = OpenVariableRead(ts, varname, reflevel, 0);
 		if (rc < 0) {
 			SetErrMsg(
@@ -733,25 +917,72 @@ int DataMgr::GetValidRegion(
 			return(-1);
 		}
 
-		GetValidRegion(minmax, &minmax[3], reflevel);
-
-		// Use of []'s creates an entry in map
-		_validRegMinMaxMap[ts][varname][reflevel] = minmax;
+		GetValidRegion(min, max, reflevel);
 
 		CloseVariable();
 	}
+	else if (IsVariableDerived(varname)) {
 
-	for (int i=0; i<3; i++) {
-		min[i] = minmax[i];
-		max[i] = minmax[i+3];
+		//
+		// Initialize min1 and max1 to maximum extents
+		//
+		size_t dim[3], min1[3], max1[3];
+		GetDim(dim, reflevel);
+		for (int i=0; i<3; i++) {
+			min1[i] = 0;
+			max1[i] = dim[i]-1;
+		}
+
+		//
+		// Get the pipline stage for computing this variable
+		//
+		PipeLine *pipeline = get_pipeline_for_var(varname);
+		assert(pipeline != NULL);
+
+		const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
+
+		//
+		// Recursively compute the intersection of valid regions for 
+		// all variables that a dependencies of this variable
+		//
+		for (int i=0; i<ovars.size(); i++) {
+			size_t min2[3], max2[3];
+			
+			int rc = GetValidRegion(
+				ts, ovars[i].first.c_str(), reflevel, min2, max2
+			);
+			if (rc<0) return(-1);
+
+			for (int j=0; j<3; j++) {
+				if (min2[i] > min1[i]) min1[i] = min2[i];
+				if (max2[i] < max1[i]) max1[i] = max2[i];
+			}
+		}
+		for (int i=0; i<3; i++) {
+			min[i] = min1[i];
+			max[i] = max1[i];
+		}
+	}
+	else {
+		SetErrMsg("Invalid variable : %s", varname);
+		return(-1);
 	}
 
+	//
+	// Cache results
+	//
+	for (int i=0; i<3; i++) minmax.push_back(min[i]);
+	for (int i=0; i<3; i++) minmax.push_back(max[i]);
+
+	// Use of []'s creates an entry in map
+	_validRegMinMaxMap[ts][varname][reflevel] = minmax;
+		
 	return(0);
 }
 
 	
 int	DataMgr::UnlockRegion(
-	void *blks
+	const void *blks
 ) {
 	SetDiagMsg("DataMgr::UnlockRegion()");
 
@@ -1123,7 +1354,7 @@ int DataMgr::get_cached_data_range(
 	return(0);
 }
 
-size_t *DataMgr::get_cached_reg_min_max(
+vector <size_t> DataMgr::get_cached_reg_min_max(
 	size_t ts,
 	const char *varname,
 	int reflevel
@@ -1133,20 +1364,20 @@ size_t *DataMgr::get_cached_reg_min_max(
 	//
 	if (! _validRegMinMaxMap.empty()) {
 
-		map <size_t, map<string, map<int, size_t *> > >::iterator p;
+		map <size_t, map<string, map<int, vector <size_t> > > >::iterator p;
 
 		p = _validRegMinMaxMap.find(ts);
 
 		if (! (p == _validRegMinMaxMap.end())) {
 
-			map <string, map <int, size_t *> > &vmap = p->second;
-			map <string, map <int, size_t *> >::iterator t;
+			map <string, map <int, vector <size_t> > >&vmap = p->second;
+			map <string, map <int, vector <size_t> > >::iterator t;
 
 			t = vmap.find(varname);
 			if (! (t == vmap.end())) {
 
-				map <int, size_t *> &imap = t->second;
-				map <int, size_t *>::iterator s;
+				map <int, vector <size_t> > &imap = t->second;
+				map <int, vector <size_t> >::iterator s;
 
 				s = imap.find(reflevel);
 				if (! (s == imap.end())) {
@@ -1157,8 +1388,198 @@ size_t *DataMgr::get_cached_reg_min_max(
 	}
 
 	// not cached
+	vector <size_t> empty;
+	return(empty);
+}
+
+DataMgr::PipeLine *DataMgr::get_pipeline_for_var(string varname) const {
+
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string, VarType_T> > &output_vars = _PipeLines[i]->GetOutputs();
+
+		for (int j=0; j<output_vars.size(); j++) {
+			if (output_vars[j].first.compare(varname) == 0) {
+				return(_PipeLines[i]);
+			}
+		}
+	}
 	return(NULL);
 }
+
+float *DataMgr::execute_pipeline(
+	size_t ts,
+	string varname,
+	int reflevel,
+	int lod,
+	const size_t min[3],
+	const size_t max[3],
+	int	lock
+) {
+	PipeLine *pipeline = get_pipeline_for_var(varname);
+ 
+	assert(pipeline != NULL);
+
+	const vector <string> &input_varnames = pipeline->GetInputs();
+	const vector <pair <string, VarType_T> > &output_vars = pipeline->GetOutputs();
+
+	//
+	// Ptrs to space for input and output variables
+	//
+	vector <const float *> in_blkptrs;
+	vector <float *> out_blkptrs;
+
+	//
+	// Get input variables, and lock them into memory
+	//
+	for (int i=0; i<input_varnames.size(); i++) {
+		int my_lock = 1;
+		float *blks = GetRegion(
+						ts, input_varnames[i].c_str(), reflevel, lod, 
+						min, max, my_lock
+		);
+		if (! *blks) {
+			// Unlock any locked variables and abort
+			//
+			for (int j=0; j<in_blkptrs.size(); j++) UnlockRegion(in_blkptrs[j]);
+			return(NULL);
+		}
+		in_blkptrs.push_back(blks);
+	}
+
+	//
+	// Get space for all output variables generated by the pipeline,
+	// including the single variable that we will return.
+	//
+	int output_index = -1;
+	for (int i=0; i<output_vars.size(); i++) {
+		int my_lock = 1;
+
+		string v = output_vars[i].first;
+		VarType_T vtype = output_vars[i].second;
+
+		//
+		// if output variable i is the one we are interested in record
+		// the index and use the lock value passed in to this method
+		//
+		if (v.compare(varname) == 0) {
+			output_index = i;
+			my_lock = lock;
+		}
+
+		float *blks = (float *) alloc_region(
+			ts,v.c_str(),vtype, reflevel, lod, DataMgr::FLOAT32,min,max,my_lock
+		);
+		if (! *blks) {
+			// Unlock any locked variables and abort
+			//
+			for (int j=0;j<in_blkptrs.size();j++) UnlockRegion(in_blkptrs[j]);
+			for (int j=0;j<out_blkptrs.size();j++) UnlockRegion(out_blkptrs[j]);
+			return(NULL);
+		}
+		out_blkptrs.push_back(blks);
+	}
+	assert(output_index >= 0);
+
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
+
+	int rc = pipeline->Calculate(in_blkptrs, out_blkptrs, bs, min, max);
+
+	//
+	// Unlock input variables and output variables that are not 
+	// being returned.
+	//
+	// N.B. unlocking a variable doesn't necessarily free it, but
+	// makes the space available if needed later
+	//
+	for (int i=0; i<in_blkptrs.size(); i++) UnlockRegion(in_blkptrs[i]);
+
+	for (int i=0; i<out_blkptrs.size(); i++) {
+		if (i != output_index) UnlockRegion(out_blkptrs[i]);
+	}
+
+	if (rc < 0) return(NULL);
+
+	return(out_blkptrs[output_index]);
+}
+
+bool DataMgr::cycle_check(
+	const map <string, vector <string> > &graph,
+	const string &node, 
+	const vector <string> &depends
+) const {
+
+	if (depends.size() == 0) return(false);
+
+	for (int i=0; i<depends.size(); i++) {
+		if (node.compare(depends[i]) == 0) return(true);
+	}
+
+	for (int i=0; i<depends.size(); i++) {
+		const map <string, vector <string> >::const_iterator itr = 
+			graph.find(depends[i]);
+		assert(itr != graph.end());
+
+		if (cycle_check(graph, node, itr->second)) return(true);
+	}
+
+	return(false);
+}
+
+//
+// return true iff 'a' depends on 'b' - true if a has inputs that
+// match b's outputs.
+//
+bool DataMgr::depends_on(
+	const PipeLine *a, const PipeLine *b
+) const {
+	const vector <string> &input_varnames = a->GetInputs();
+	const vector <pair <string, VarType_T> > &output_vars = b->GetOutputs();
+
+	for (int i=0; i<input_varnames.size(); i++) {
+	for (int j=0; j<output_vars.size(); j++) {
+		if (input_varnames[i].compare(output_vars[j].first) == 0) {
+			return(true);
+		}
+	}
+	}
+	return(false);
+}
+
+//
+// return complete list of native variables
+//
+vector <string> DataMgr::get_native_variables() const {
+    vector <string> svec1, svec2;
+
+    svec1 = _GetVariables3D();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+    svec1 = _GetVariables2DXY();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+    svec1 = _GetVariables2DXZ();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+    svec1 = _GetVariables2DYZ();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+
+    return(svec2);
+}
+
+//
+// return complete list of derived variables
+//
+vector <string> DataMgr::get_derived_variables() const {
+
+    vector <string> svec;
+
+	for (int i=0; i<_PipeLines.size(); i++) {
+		const vector <pair <string, VarType_T> > &ovars = _PipeLines[i]->GetOutputs();
+		for (int j=0; j<ovars.size(); j++) {
+			svec.push_back(ovars[j].first);
+		}
+	}
+    return(svec);
+}
+
 
 //following methods needed for python execution
 //Override Metadata virtual method:
@@ -1236,3 +1657,4 @@ void DataMgr::PurgeScriptOutputs(int id){
 		for (int i = 0; i<outputvars.size(); i++) free_var(outputvars[i],1);
 	}
  }
+

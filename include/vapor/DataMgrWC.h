@@ -45,7 +45,7 @@ public:
 
  virtual ~DataMgrWC() {}; 
 
- virtual int VariableExists(
+ virtual int _VariableExists(
 	size_t ts,
 	const char *varname,
 	int reflevel = 0,
@@ -82,17 +82,17 @@ public:
 	return(WaveCodecIO::GetNumTimeSteps());
  };
 
- virtual vector <string> GetVariables3D() const {
+ virtual vector <string> _GetVariables3D() const {
 	return(WaveCodecIO::GetVariables3D());
  };
 
- virtual vector <string> GetVariables2DXY() const {
+ virtual vector <string> _GetVariables2DXY() const {
 	return(WaveCodecIO::GetVariables2DXY());
  };
- virtual vector <string> GetVariables2DXZ() const {
+ virtual vector <string> _GetVariables2DXZ() const {
 	return(WaveCodecIO::GetVariables2DXZ());
  };
- virtual vector <string> GetVariables2DYZ() const {
+ virtual vector <string> _GetVariables2DYZ() const {
 	return(WaveCodecIO::GetVariables2DYZ());
  };
 

@@ -46,7 +46,7 @@ public:
 
  virtual ~DataMgrWB() {}; 
 
- virtual int VariableExists(
+ virtual int _VariableExists(
 	size_t ts,
 	const char *varname,
 	int reflevel = 0,
@@ -79,17 +79,17 @@ public:
 	return(WaveletBlock3DRegionReader::GetNumTimeSteps());
  };
 
- virtual vector <string> GetVariables3D() const {
+ virtual vector <string> _GetVariables3D() const {
 	return(WaveletBlock3DRegionReader::GetVariables3D());
  };
 
- virtual vector <string> GetVariables2DXY() const {
+ virtual vector <string> _GetVariables2DXY() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DXY());
  };
- virtual vector <string> GetVariables2DXZ() const {
+ virtual vector <string> _GetVariables2DXZ() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DXZ());
  };
- virtual vector <string> GetVariables2DYZ() const {
+ virtual vector <string> _GetVariables2DYZ() const {
 	return(WaveletBlock3DRegionReader::GetVariables2DYZ());
  };
 
