@@ -142,6 +142,7 @@ FlowEventRouter::hookUpTab()
 	
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboSteadyVarNum(int)));
 	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboSteadyVarNum(int)));
 	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboSteadyVarNum(int)));
@@ -344,6 +345,7 @@ void FlowEventRouter::updateTab(){
 	Session::getInstance()->blockRecording();
 
 	stopButton->setEnabled( flowType != 0 && fParams->isEnabled());
+	lodCombo->setCurrentIndex(fParams->GetCompressionLevel());
 
 	
 	switch (flowType){
@@ -1449,6 +1451,16 @@ reinitTab(bool doOverride){
 	for (int i = 0; i<= maxNumRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	if (ds->getDataMgr()){
+		vector<size_t> cRatios = ds->getDataMgr()->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
 	
 	int newNumComboVariables = ds->getNumActiveVariables3D();
 	//Set up the combo 
@@ -1766,6 +1778,21 @@ guiSetUnsteadyDirection(int comboIndex){
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+}
+void FlowEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (num == fParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set compression level");
+	
+	fParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, fParams);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 guiSetNumRefinements(int n){

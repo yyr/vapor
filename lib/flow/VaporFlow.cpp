@@ -38,6 +38,7 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	seedDistBias = 0.f;
 
 	numXForms = 0;
+	compressLevel = 0;
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = 0;
 		maxBlkRegion[i] = 0;
@@ -144,7 +145,8 @@ void VaporFlow::SetUnsteadyFieldComponents(const char* xvar,
 // specify the spatial extent and resolution of the region that will be
 // used for the flow calculations
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetRegion(size_t num_xforms, 
+void VaporFlow::SetRegion(size_t num_xforms,
+						  int clevel,
 						  const size_t min[3], 
 						  const size_t max[3],
 						  const size_t min_bdim[3],
@@ -153,6 +155,7 @@ void VaporFlow::SetRegion(size_t num_xforms,
 {
 	full_height = fullGridHeight;
 	numXForms = num_xforms;
+	compressLevel = clevel;
 	size_t fullDims[3];
 	const std::vector<double> extents = dataMgr->GetExtents();
 	
@@ -271,7 +274,7 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 float* VaporFlow::GetData(size_t ts, const char* varName)
 {
 	
-	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, -1, minBlkRegion, maxBlkRegion,1);
+	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, compressLevel, minBlkRegion, maxBlkRegion,1);
 	
 	if (!regionData) {
 		SetErrMsg(VAPOR_ERROR_FLOW,"Error obtaining field\ndata for timestep %d, variable %s",ts, varName);
@@ -1268,13 +1271,13 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, -1, minBlk, maxBlk, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, compressLevel, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return 0;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, -1, minBlk, maxBlk, 1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk, 1);
 		if (pVData[0] == 0 && pUData[0]) {
 			dataMgr->UnlockRegion(pUData[0]);
 			return 0;
@@ -1282,7 +1285,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, -1, minBlk, maxBlk,  1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
@@ -1379,13 +1382,13 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	pWData = new float*[1];
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, -1, minBlk, maxBlk, 1);
+		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements,compressLevel, minBlk, maxBlk, 1);
 		if (pUData[0]== 0)
 			return false;
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, -1, minBlk, maxBlk,  1);
+		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pVData[0] == 0) {
 			if(pUData[0]) dataMgr->UnlockRegion(pUData[0]);
 			return false;
@@ -1393,7 +1396,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	}
 	if (strcmp(varz,"0")== 0) pWData[0] = 0;
 	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, -1, minBlk, maxBlk,  1);
+		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);

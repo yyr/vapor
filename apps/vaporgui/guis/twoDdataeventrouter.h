@@ -153,7 +153,7 @@ protected slots:
 	void twoDSaveTF();
 	void refreshTwoDHisto();
 	void guiSetNumRefinements(int numtrans);
-	
+	void guiSetCompRatio(int num);
 	void captureImage();
 	
 protected:

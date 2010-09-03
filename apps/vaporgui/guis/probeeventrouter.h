@@ -194,6 +194,7 @@ protected slots:
 	void probeSaveTF();
 	void refreshProbeHisto();
 	void guiSetNumRefinements(int numtrans);
+	void guiSetCompRatio(int num);
 	void setProbeTabTextChanged(const QString& qs);
 	void probeReturnPressed();
 	void captureImage();

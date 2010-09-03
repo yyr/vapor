@@ -39,7 +39,7 @@ namespace VAPoR
 		void SetSteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
-		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3], size_t fullGridHeight);
+		void SetRegion(size_t num_xforms, int clevel, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3], size_t fullGridHeight);
 		void SetRakeRegion(const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
@@ -154,6 +154,7 @@ namespace VAPoR
 		char *xSeedDistVarName, *ySeedDistVarName, *zSeedDistVarName;
 													// field variables used to determine random seed distribution
 		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
+		int compressLevel;
 		size_t minRegion[3], maxRegion[3];			//Actual region bounds
 		float flowPeriod[3];						//Used if data is periodic
 		float* flowLineAdvectionSeeds;

@@ -102,6 +102,7 @@ protected slots:
 	
 	void guiSetLighting(bool val);
 	void guiSetNumRefinements(int num);
+	void guiSetCompRatio(int num);
 	void guiSetNumBits(int num);
 
 	void setIsoTabTextChanged(const QString& qs);

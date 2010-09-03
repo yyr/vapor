@@ -106,6 +106,7 @@ DvrEventRouter::hookUpTab()
 	
 	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiSetType(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(dvrLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
@@ -422,6 +423,8 @@ void DvrEventRouter::updateTab(){
 		refinementCombo->setCurrentIndex(numRefs);
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
 	
+	lodCombo->setCurrentIndex(dvrParams->GetCompressionLevel());
+	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
@@ -490,6 +493,19 @@ reinitTab(bool doOverride){
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	
+	if (dataMgr){
+		vector<size_t> cRatios = dataMgr->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
+	
+	
 	if (histogramList){
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
@@ -510,6 +526,20 @@ guiSetEditMode(bool mode){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set edit/navigate mode");
 	dParams->setEditMode(mode);
 	PanelCommand::captureEnd(cmd, dParams); 
+}
+void DvrEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	if (num == dParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
+	
+	dParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, dParams);
+	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 }
 
 void DvrEventRouter::

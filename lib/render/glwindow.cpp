@@ -1619,7 +1619,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
 			//performing the interpolation step
 			
-			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, -1, min_bdim, max_bdim, 0);
+			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, 0, min_bdim, max_bdim, 0);
 			dataMgrLayered->SetInterpolateOnOff(true);
 			if (!elevData) {
 				if (ds->warnIfDataMissing()){
@@ -1655,7 +1655,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		min_bdim[2] = max_bdim[2] = 0;
 		//Then, ask the Datamgr to retrieve the HGT data
 		
-		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, -1, min_bdim, max_bdim, 0);
+		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, 0, min_bdim, max_bdim, 0);
 		
 		if (!hgtData) {
 			if (ds->warnIfDataMissing()){

@@ -119,14 +119,14 @@ void *IsoRenderer::_getRegion(
 	if (_type == DvrParams::DVR_RAY_CASTER) {
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
-				ts, varname, numxforms, -1, min, max,
+				ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
 		}
 		else {
 			data = data_mgr->GetRegionUInt16(
-				ts, varname, numxforms, -1, min, max,
+				ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
@@ -137,14 +137,14 @@ void *IsoRenderer::_getRegion(
 
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
-				ts, varname, map_varname.c_str(), numxforms, -1, min, max,
+				ts, varname, map_varname.c_str(), numxforms, rp->GetCompressionLevel(), min, max,
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);
 		}
 		else {
 			data = data_mgr->GetRegionUInt16(
-				ts, varname, map_varname.c_str(), numxforms, -1, min, max,
+				ts, varname, map_varname.c_str(), numxforms, rp->GetCompressionLevel(), min, max,
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);

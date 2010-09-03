@@ -189,6 +189,7 @@ ProbeEventRouter::hookUpTab()
 	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
 	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
@@ -261,6 +262,7 @@ void ProbeEventRouter::updateTab(){
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
+	lodCombo->setCurrentIndex(probeParams->GetCompressionLevel());
 	int pType = probeParams->getProbeType();
 	probeTypeCombo->setCurrentIndex(pType);
 	if (pType == 1) {
@@ -1354,6 +1356,16 @@ reinitTab(bool doOverride){
 	for (int i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	if (dataMgr){
+		vector<size_t> cRatios = dataMgr->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
 	if (histogramList) {
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
@@ -1733,7 +1745,22 @@ guiSetZSize(int sliderval){
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
 }
-
+void ProbeEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	if (num == pParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "set compression level");
+	
+	pParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, pParams);
+	setProbeDirty(pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);	
+}
 void ProbeEventRouter::
 guiSetNumRefinements(int n){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();

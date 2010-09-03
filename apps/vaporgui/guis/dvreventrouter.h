@@ -116,6 +116,7 @@ protected slots:
 	void guiSetLighting(bool val);
 	void guiSetPreintegration(bool val);
 	void guiSetNumRefinements(int num);
+	void guiSetCompRatio(int num);
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 

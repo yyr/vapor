@@ -342,7 +342,7 @@ PyObject* PythonControl::get_3Dvariable(PyObject *self, PyObject* args){
 	if (pydims[i] > maxPySize) pydims[i] = maxPySize;
     }
     
-    regData = derVarDataMgr->GetRegion(tstep, varname, reflevel, -1, minblkreg, maxblkreg, 0);
+    regData = derVarDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
     if (regData) fprintf(stderr,"obtained region data, dims %d %d %d\n",
                 pydims[0],pydims[1],pydims[2]);
     //Create a new array to pass to python:
@@ -428,7 +428,7 @@ PyObject* PythonControl::get_2Dvariable(PyObject *self, PyObject* args){
 		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
     }
     
-    regData = derVarDataMgr->GetRegion(tstep, varname, reflevel, -1, minblkreg, maxblkreg, 0);
+    regData = derVarDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
     if (regData) fprintf(stderr,"obtained 2D region data, dims %d %d\n",
                 pydims[0],pydims[1]);
     //fill in unused space:

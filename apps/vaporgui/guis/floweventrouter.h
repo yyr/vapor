@@ -123,6 +123,7 @@ protected slots:
 	void guiSetFlowType(int typenum);
 	void guiSetFLAOption(int choice);
 	void guiSetNumRefinements(int numtrans);
+	void guiSetCompRatio(int num);
 	void guiSetXComboSteadyVarNum(int varnum);
 	void guiSetYComboSteadyVarNum(int varnum);
 	void guiSetZComboSteadyVarNum(int varnum);

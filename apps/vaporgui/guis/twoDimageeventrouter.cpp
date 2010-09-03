@@ -127,6 +127,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (applyTerrainCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiApplyTerrain(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
@@ -176,6 +177,7 @@ void TwoDImageEventRouter::updateTab(){
 	ses->blockRecording();
     
 	refinementCombo->setCurrentIndex(twoDParams->getNumRefinements());
+	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
 	int orientation = twoDParams->getOrientation();
 	
 	orientationCombo->setCurrentIndex(orientation);
@@ -756,6 +758,17 @@ reinitTab(bool doOverride){
 	for (int i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	if (dataMgr){
+		vector<size_t> cRatios = dataMgr->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
+	
 	updateTab();
 }
 
@@ -953,7 +966,22 @@ guiSetYSize(int sliderval){
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 
 }
-
+void TwoDImageEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	TwoDImageParams* iParams = VizWinMgr::getActiveTwoDImageParams();
+	if (num == iParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set compression level");
+	
+	iParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, iParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(iParams,TwoDTextureBit,true);
+	
+}
 
 void TwoDImageEventRouter::
 guiSetNumRefinements(int n){

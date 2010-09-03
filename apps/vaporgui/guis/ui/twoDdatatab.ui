@@ -293,7 +293,7 @@ create new 2D planar instances.</string>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="lodCombo">
             <item>
              <property name="text">
               <string>1:1</string>

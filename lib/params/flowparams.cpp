@@ -2208,7 +2208,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			opacRefLevel, -1, min_obdim, max_bdim,  0);
+			opacRefLevel, GetCompressionLevel(), min_obdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!opacRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
@@ -2248,7 +2248,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			colorRefLevel, -1, min_cbdim, max_bdim,  0);
+			colorRefLevel, GetCompressionLevel(), min_cbdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!colorRegion){
 			if (DataStatus::getInstance()->warnIfDataMissing())
@@ -2677,7 +2677,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 		else {
 			varData[var] = dataMgr->GetRegion((size_t)timeStep,
 				DataStatus::getInstance()->getVariableName(steadyVarNum[var]-1).c_str(),
-				availRefLevel, -1, min_bdim, max_bdim,  1);
+				availRefLevel, GetCompressionLevel(), min_bdim, max_bdim,  1);
 			if (!varData[var]) {
 				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]);
 				//release currently locked regions:
@@ -2836,7 +2836,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
-	flowLib->SetRegion(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
+	flowLib->SetRegion(availRefLevel, GetCompressionLevel(), min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
 	// Also, specify the bounds of the rake, in case it is needed:
 	double rakeMinCoords[3];
 	double rakeMaxCoords[3];

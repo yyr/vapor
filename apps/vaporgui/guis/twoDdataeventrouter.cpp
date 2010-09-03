@@ -134,6 +134,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (applyTerrainCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiApplyTerrain(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
@@ -206,7 +207,7 @@ void TwoDDataEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
-	
+	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
 	
 	int orientation = 2; //x-y aligned
 	//set up the cursor position
@@ -817,6 +818,17 @@ reinitTab(bool doOverride){
 	for (int i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	if (dataMgr){
+		vector<size_t> cRatios = dataMgr->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
+	
 	if (histogramList) {
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
@@ -1211,7 +1223,22 @@ void TwoDDataEventRouter::guiFitToRegion(){
 	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
 
 }
+void TwoDDataEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	TwoDDataParams* dParams = VizWinMgr::getActiveTwoDDataParams();
+	if (num == dParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set compression level");
+	
+	dParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, dParams);
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
 
+}
 void TwoDDataEventRouter::
 guiSetNumRefinements(int n){
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();

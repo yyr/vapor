@@ -104,6 +104,7 @@ IsoEventRouter::hookUpTab()
 	
 	
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
+	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (mapVariableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetMapComboVarNum(int) ) );
 	connect (numBitsCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumBits(int)));
@@ -234,6 +235,7 @@ void IsoEventRouter::updateTab(){
 	}
 		
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
+	lodCombo->setCurrentIndex(isoParams->GetCompressionLevel());
 	//setup the transfer function editor:
 	if(mapComboVarNum > 0 && isoParams->getMapperFunc()) {
 		transferFunctionFrame->setMapperFunction(isoParams->getMapperFunc());
@@ -734,6 +736,17 @@ reinitTab(bool doOverride){
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->addItem(QString::number(i));
 	}
+	
+	if (dataMgr){
+		vector<size_t> cRatios = dataMgr->GetCRatios();
+		lodCombo->clear();
+		lodCombo->setMaxCount(cRatios.size());
+		for (int i = 0; i<cRatios.size(); i++){
+			QString s = QString::number(cRatios[i]);
+			s += ":1";
+			lodCombo->addItem(s);
+		}
+	}
 	if (histogramList){
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
@@ -748,7 +761,20 @@ reinitTab(bool doOverride){
 	updateTab();
 }
 
-
+void IsoEventRouter::
+guiSetCompRatio(int num){
+	confirmText(false);
+	//make sure we are changing it
+	ParamsIso* iParams = getActiveIsoParams();
+	if (num == iParams->GetCompressionLevel()) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set compression level");
+	
+	iParams->SetCompressionLevel(num);
+	lodCombo->setCurrentIndex(num);
+	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->setVizDirty(iParams,RegionBit);
+}
 void IsoEventRouter::
 guiSetNumRefinements(int num){
 	confirmText(false);

@@ -232,7 +232,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	min_bdim[2] = max_bdim[2] = 0;
 	//Then, ask the Datamgr to retrieve the HGT data
 	
-	hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, -1, min_bdim, max_bdim, 0);
+	hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, tParams->GetCompressionLevel(), min_bdim, max_bdim, 0);
 	
 	if (!hgtData) {
 		setBypass(timeStep);
