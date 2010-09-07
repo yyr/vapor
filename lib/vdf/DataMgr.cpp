@@ -263,7 +263,8 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	// Interleaved array is not in cache so we'll need to
 	// construct it
 	//
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
 
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
@@ -392,7 +393,8 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	// Interleaved array is not in cache so we'll need to
 	// construct it
 	//
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
 
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
@@ -697,7 +699,8 @@ unsigned char	*DataMgr::get_quantized_region(
 
 	// Quantize the floating point data;
 
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
 
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
@@ -843,7 +846,7 @@ int DataMgr::GetDataRange(
 	VarType_T vtype = GetVarType(varname);
 
 	size_t bs[3];
-	GetBlockSize(bs, -1);
+	GetBlockSize(bs, reflevel);
 
 	size_t size;
 	switch (vtype) {
@@ -1058,7 +1061,8 @@ void	*DataMgr::alloc_region(
 	if (! _blk_mem_mgr) {
 
 
-		const size_t *bs = GetBlockSize();
+		size_t bs[3];
+		GetBlockSize(bs, -1);
 		mem_block_size = bs[0]*bs[1]*bs[2];
 
 		size_t num_blks = (_mem_size * 1024 * 1024) / mem_block_size;
