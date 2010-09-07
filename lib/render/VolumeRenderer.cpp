@@ -391,7 +391,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //is mapped to the center of the cube with the largest dimension equal to 1.
   //Then determine what is the subvolume we are dealing with as a portion
   //of the full mapped data.
-	int numxforms;
+	int numxforms, lod;
 
 	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
 	{
@@ -404,9 +404,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			setClutDirty(); 
 			myGLWindow->setDvrRegionNavigating(true);
 		}
+		lod = 0;
 	} else {
 
 		numxforms = currentRenderParams->getNumRefinements();
+		lod = currentRenderParams->GetCompressionLevel();
 	    
 		if (_driver->GetRenderFast())
 		{
@@ -526,7 +528,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 		void* data = _getRegion(
 			dataMgr, currentRenderParams, myRegionParams, timeStep,
-			varname, numxforms, min_bdim, max_bdim
+			varname, numxforms, lod, min_bdim, max_bdim
 		);
 
 		//Turn it back on:
@@ -752,21 +754,21 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
 
 void *VolumeRenderer::_getRegion(
 	DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-	size_t ts, const char *varname, int numxforms, 
+	size_t ts, const char *varname, int numxforms, int lod,
 	const size_t min[3], const size_t max[3]
 ) {
 	void *data;
 
 	if (_voxelType == GL_UNSIGNED_BYTE) {
 		data =  data_mgr->GetRegionUInt8(
-			ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
+			ts, varname, numxforms, lod, min, max,
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);
 	}
 	else {
 		data = data_mgr->GetRegionUInt16(
-			ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
+			ts, varname, numxforms, lod, min, max,
 			rp->getCurrentDatarange(),
 			0 // Don't lock!
 		);

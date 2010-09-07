@@ -108,7 +108,7 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 
 void *IsoRenderer::_getRegion(
     DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-    size_t ts, const char *varname, int numxforms,
+    size_t ts, const char *varname, int numxforms, int lod,
     const size_t min[3], const size_t max[3]
 ) {
     ParamsIso *myParamsIso = (ParamsIso *) rp;
@@ -119,14 +119,14 @@ void *IsoRenderer::_getRegion(
 	if (_type == DvrParams::DVR_RAY_CASTER) {
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
-				ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
+				ts, varname, numxforms, lod, min, max,
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
 		}
 		else {
 			data = data_mgr->GetRegionUInt16(
-				ts, varname, numxforms, rp->GetCompressionLevel(), min, max,
+				ts, varname, numxforms, lod, min, max,
 				myParamsIso->GetHistoBounds(),
 				0 // Don't lock!
 			);
@@ -137,14 +137,14 @@ void *IsoRenderer::_getRegion(
 
 		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data =  data_mgr->GetRegionUInt8(
-				ts, varname, map_varname.c_str(), numxforms, rp->GetCompressionLevel(), min, max,
+				ts, varname, map_varname.c_str(), numxforms, lod, min, max,
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);
 		}
 		else {
 			data = data_mgr->GetRegionUInt16(
-				ts, varname, map_varname.c_str(), numxforms, rp->GetCompressionLevel(), min, max,
+				ts, varname, map_varname.c_str(), numxforms, lod, min, max,
 				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
 				0 // Don't lock!
 			);

@@ -69,7 +69,7 @@ namespace VAPoR {
 
 	virtual void *_getRegion(
 		DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-		size_t ts, const char *varname, int numxforms,
+		size_t ts, const char *varname, int numxforms, int lod,
 		const size_t min[3], const size_t max[3]
 	);
 	virtual void _updateDriverRenderParamsSpec(RenderParams *rp);
