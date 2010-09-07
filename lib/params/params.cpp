@@ -578,6 +578,8 @@ bool Params::IsRenderingEnabled(int winnum){
 Params::Params(const Params& p) :
 	ParamsBase(p)
 {
+	local = p.local;
+	vizNum = p.vizNum;
 }
 Params* Params::deepCopy(ParamNode* ){
 	//Start with default copy  
