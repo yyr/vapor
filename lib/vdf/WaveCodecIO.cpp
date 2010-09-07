@@ -64,12 +64,6 @@ const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
 
 
 
-namespace {
-	bool rcmp (size_t a, size_t b) {return a > b;}
-};
-
-
-
 int WaveCodecIO::_WaveCodecIO() {
 
 	
@@ -92,7 +86,6 @@ int WaveCodecIO::_WaveCodecIO() {
 	_pad = true;
 
 	_cratios3D = GetCRatios();
-	sort(_cratios3D.begin(), _cratios3D.end(), rcmp);
 	_cratios = _cratios3D;
 
 	//
@@ -158,9 +151,7 @@ WaveCodecIO::WaveCodecIO(
 	const vector <size_t> cratios,
 	const string &wname, const string &filebase
 ) {
-	// cratios need to be sorted, largest to smallest. 
 	_cratios3D = GetCRatios();
-	sort(_cratios3D.begin(), _cratios3D.end(), rcmp);
 
 	// validity check on cratios
 }

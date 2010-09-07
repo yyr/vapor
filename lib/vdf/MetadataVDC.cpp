@@ -244,6 +244,10 @@ int MetadataVDC::_init1(
 	return(_init());
 }
 
+namespace {
+    bool rcmp (size_t a, size_t b) {return a > b;}
+};
+
 // Initialize the class object
 //
 int MetadataVDC::_init2(
@@ -271,6 +275,10 @@ int MetadataVDC::_init2(
 	_vdcType = 2;
 	_cratios = cratios;
 
+	//
+	// Sort compression ratios so that index 0 maps to coarsest approximation
+	//
+    sort(_cratios.begin(), _cratios.end(), rcmp);
 
 	for(int i=0; i<3; i++) {
 		_bs[i] = bs[i];
