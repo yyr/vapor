@@ -204,6 +204,7 @@ int main(int argc, char **argv) {
 		vname = datamgr->GetVariableNames()[0];
 	}
 
+
 	const size_t *bs = datamgr->GetBlockSize();
 	FILE *fp = NULL;
 
@@ -238,6 +239,10 @@ int main(int argc, char **argv) {
 				if (! fp) {
 					cerr << "Can't open output file " << path << endl;
 				}
+			}
+			if (! datamgr->VariableExists(ts,vname.c_str(),opt.level,opt.lod)) {
+				cerr << "Variable " << vname << " does not exist" << endl;
+				break;
 			}
 
 			if (strcmp(opt.dtype, "float") == 0) {
@@ -294,6 +299,14 @@ int main(int argc, char **argv) {
 					fclose(fp);
 				}
 			}
+			size_t min[3], max[3];
+			int rc = datamgr->GetValidRegion(ts,vname.c_str(),opt.level,min,max);
+			assert(rc >= 0);
+			cout << "Valid Region : [" 
+				<< min[0] << ", " << min[2] << ", " << min[2] << "] ["
+				<< max[0] << ", " << max[2] << ", " << max[2] << "]" << endl;
+
+
 			float r[2];
 			datamgr->GetDataRange(ts, vname.c_str(), r);
 			cout << "Data Range : [" << r[0] << ", " << r[1] << "]" << endl;
