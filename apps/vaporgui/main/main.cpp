@@ -73,8 +73,13 @@ int main( int argc, char ** argv ) {
 
 
 	app = &a;
-	a.setStyle("windows");
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
+#ifdef Darwin
+	a.setStyle("macintosh");
+#else
+	a.setStyle("windows");
+#endif
+	
 	//Depending on the platform, we may want nondefault fonts!
 	
 	//The pointsize of 10 works ok on linux and irix, not windows
@@ -107,7 +112,6 @@ int main( int argc, char ** argv ) {
 	QString fileName("");
     if (argc > 1) fileName = argv[1];
     MainForm* mw = new MainForm(fileName,app);
-	
 	
     mw->setWindowTitle( "VAPOR User Interface" );
     mw->show();
