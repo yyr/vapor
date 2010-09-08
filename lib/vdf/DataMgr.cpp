@@ -1487,7 +1487,9 @@ float *DataMgr::execute_pipeline(
 	size_t bs[3];
 	GetBlockSize(bs, reflevel);
 
-	int rc = pipeline->Calculate(in_blkptrs, out_blkptrs, bs, min, max);
+	int rc = pipeline->Calculate(
+		in_blkptrs, out_blkptrs, ts, reflevel, lod, bs, min, max
+	);
 
 	//
 	// Unlock input variables and output variables that are not 

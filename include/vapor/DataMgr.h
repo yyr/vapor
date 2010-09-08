@@ -73,6 +73,9 @@ public:
 		virtual int Calculate (
 			vector <const float *> input_blks,
 			vector <float *> output_blks,	// space for the output variables
+			size_t ts, // current time step
+			int reflevel, // refinement level
+			int lod, //
 			const size_t bs[3], // block dimensions
 			const size_t min[3],	// dimensions of all variables (in blocks)
 			const size_t max[3]
