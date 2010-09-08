@@ -122,7 +122,8 @@ void GLProbeWindow::resizeGL( int width, int height )
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
-	qglClearColor( QColor(233,236,216) ); 		// same as frame
+	qglClearColor(palette().color(QPalette::Window));
+	
 
 	//Calculate the lower-left and upper right positions for the 
 	//texture to be mapped
@@ -168,7 +169,7 @@ void GLProbeWindow::paintGL()
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 	
-    qglClearColor( QColor(233,236,216) ); 		// same as frame
+   qglClearColor(palette().color(QPalette::Window));	// same as frame
 	
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
@@ -269,7 +270,7 @@ void GLProbeWindow::initializeGL()
 	glGenTextures(1, &_probeTexid);
 	glBindTexture(GL_TEXTURE_2D, _probeTexid);
 	if(GLEW_EXT_framebuffer_object) glGenFramebuffersEXT(1, &_fbid);
-	qglClearColor( QColor(233,236,216) ); 		// same as frame
+	qglClearColor(palette().color(QPalette::Window));
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glDisable(GL_LIGHTING);

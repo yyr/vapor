@@ -83,7 +83,7 @@ void GLTwoDWindow::resizeGL( int width, int height )
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
-	qglClearColor( QColor(233,236,216) ); 		// same as frame
+	qglClearColor(palette().color(QPalette::Window));		// same as frame
 
 	//Calculate the lower-left and upper right positions for the 
 	//texture to be mapped
@@ -132,7 +132,7 @@ void GLTwoDWindow::paintGL()
 	
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
-    qglClearColor( QColor(233,236,216) ); 		// same as frame
+    qglClearColor(palette().color(QPalette::Window));		// same as frame
 	
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
@@ -206,7 +206,7 @@ void GLTwoDWindow::initializeGL()
 	if (GLWindow::isRendering()) return;
    	makeCurrent();
 	
-	qglClearColor( QColor(233,236,216) ); 		// same as frame
+	qglClearColor(palette().color(QPalette::Window));	// same as frame
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glDisable(GL_LIGHTING);
