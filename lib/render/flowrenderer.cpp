@@ -1610,7 +1610,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
 					
 					/* add first ring before looping through the rest */
-					makeRing(vertexArray, &curVaIndex, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), prevVertex, currentB, currentU, radius, constMap);
+					makeRing(vertexArray, &curVaIndex, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, currentB, currentU, radius, constMap);
 				}
 				drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, endPoint, currentB, currentU, radius, constMap,
 					prevNormal, prevVertex, currentNormal, currentVertex);
