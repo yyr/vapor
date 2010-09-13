@@ -14,10 +14,11 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 	SetClassName("WaveletBlock3DReader");
 
 	slab_cntr_c = 0;
-	scratch_block_c = new float[_block_size];
 
 	const size_t *bs = GetBlockSize();
 	_block_size = bs[0]*bs[1]*bs[2];
+
+	scratch_block_c = new float[_block_size];
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
