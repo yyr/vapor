@@ -11,6 +11,10 @@ ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"COMMON_EXPORTS"
 endif
 
+ifneq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += -DENABLE_THREADS
+endif
+
 #LIB_DEFS = common.def
 
 #
