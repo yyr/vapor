@@ -17,6 +17,8 @@ public:
  ~EasyThreads();
  int	ParRun(void *(*start)(void *), void **arg);
  int	Barrier();
+ int	MutexLock();
+ int	MutexUnlock();
  static void	Decompose(int n, int size, int rank, int *offset, int *length);
  static int	NProc();
 
@@ -26,7 +28,8 @@ private:
  pthread_t	*threads_c;
  pthread_attr_t	attr_c;
  pthread_cond_t	cond_c;
- pthread_mutex_t	lock_c;
+ pthread_mutex_t	barrier_lock_c;
+ pthread_mutex_t	mutex_lock_c;
 #endif
 
  int	block_c;

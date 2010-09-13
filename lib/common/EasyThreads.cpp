@@ -13,11 +13,11 @@ EasyThreads::EasyThreads(
 	int	nthreads
 ) {
 #ifndef ENABLE_THREADS
-	assert(nthreads == 1);
 	
 #else
 	int	rc;
 	threads_c = NULL;
+	if (nthreads < 1) nthreads = NProc();
 #endif
 	
 
@@ -38,7 +38,13 @@ EasyThreads::EasyThreads(
 		return;
 	}
 
-	rc = pthread_mutex_init(&lock_c, NULL);
+	rc = pthread_mutex_init(&barrier_lock_c, NULL);
+	if (rc < 0) {
+		SetErrMsg("pthread_mutex_init() : %s", strerror(errno));
+		return;
+	}
+
+	rc = pthread_mutex_init(&mutex_lock_c, NULL);
 	if (rc < 0) {
 		SetErrMsg("pthread_mutex_init() : %s", strerror(errno));
 		return;
@@ -110,7 +116,7 @@ int	EasyThreads::Barrier()
 	int	rc;
 
 	if(nthreads_c>1) {
-		rc = pthread_mutex_lock(&lock_c);
+		rc = pthread_mutex_lock(&barrier_lock_c);
 		if (rc < 0) {
 			SetErrMsg("pthread_mutex_lock() : %s", strerror(errno));
 			return(-1);
@@ -127,19 +133,47 @@ int	EasyThreads::Barrier()
 			}
 		}
 		while(local==count_c) {
-			rc = pthread_cond_wait(&cond_c,&lock_c);
+			rc = pthread_cond_wait(&cond_c,&barrier_lock_c);
 			if (rc < 0) {
 				SetErrMsg("pthread_cond_wait() : %s", strerror(errno));
 				return(-1);
 			}
 		}
-		rc = pthread_mutex_unlock(&lock_c);
+		rc = pthread_mutex_unlock(&barrier_lock_c);
 		if (rc < 0) {
 			SetErrMsg("pthread_mutex_unlock() : %s", strerror(errno));
 			return(-1);
 		}
 	}
 #endif //ENABLE_THREADS
+	return(0);
+}
+
+int	EasyThreads::MutexLock()
+{
+#ifdef ENABLE_THREADS
+	if(nthreads_c>1) {
+		int rc = pthread_mutex_lock(&mutex_lock_c);
+		if (rc < 0) {
+			SetErrMsg("pthread_mutex_lock() : %s", strerror(errno));
+			return(-1);
+		}
+	}
+#endif
+	return(0);
+}
+
+int	EasyThreads::MutexUnlock()
+{
+#ifdef ENABLE_THREADS
+	if(nthreads_c>1) {
+		int rc = pthread_mutex_unlock(&mutex_lock_c);
+		if (rc < 0) {
+			SetErrMsg("pthread_mutex_unlock() : %s", strerror(errno));
+			return(-1);
+		}
+	}
+#endif
 	return(0);
 }
 
