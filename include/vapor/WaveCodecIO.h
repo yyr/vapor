@@ -7,6 +7,7 @@
 #include <vapor/VDFIOBase.h>
 #include <vapor/SignificanceMap.h>
 #include <vapor/Compressor.h>
+#include <vapor/EasyThreads.h>
 
 namespace VAPoR {
 
@@ -29,12 +30,26 @@ namespace VAPoR {
 //! their wavelet representation. The level-of-detail is controled with
 //! the \p lod parameter.
 //
-class VDF_API WaveCodecIO : public VDFIOBase {
+class VDF_API WaveCodecIO : public VDFIOBase, protected VetsUtil::EasyThreads {
 public:
 
- WaveCodecIO(const MetadataVDC &metadata);
+ //! \copydoc VDFIOBase::VDFIOBase(MetadataVDC &)
+ //!
+ //! \param[in] nthreads Number of execution threads that may be used by
+ //! the class for parallel execution. If zero, the system hardware will
+ //! be queried via sysconf to determine the number of processors 
+ //! available and this value will be used.
+ //
+ WaveCodecIO(const MetadataVDC &metadata, int nthreads = 0);
 
- WaveCodecIO(const string &metafile);
+ //! \copydoc VDFIOBase::VDFIOBase(const string &)
+ //!
+ //! \param[in] nthreads Number of execution threads that may be used by
+ //! the class for parallel execution. If zero, the system hardware will
+ //! be queried via sysconf to determine the number of processors 
+ //! available and this value will be used.
+ //
+ WaveCodecIO(const string &metafile, int nthreads = 0);
 
 #ifdef	DEAD
  WaveCodecIO(
@@ -304,10 +319,6 @@ public:
  //
  const float *GetDataRange() const {return (_dataRange);}
 
- // Returns extents of minimum and maximum valid block (voxel?). There 
- // may be holes in the data if not all blocks were written
- //
-
  //! Return the valid region bounds for the currently opened
  //! variable
  //!
@@ -327,7 +338,6 @@ public:
  void    GetValidRegion(
 	size_t min[3], size_t max[3], int reflevel
  ) const;
-
 
  //! Returns true if the indicated data volume exists on disk
  //!
@@ -369,18 +379,62 @@ public:
  //! 
  static size_t GetMaxCRatio(const size_t bs[3], string wavename, string wmode);
 
+ //! \copydoc Metadata::GetNumTransforms()
+ //
  virtual int GetNumTransforms() const;
+
+ //! \copydoc Metadata::GetBlockSize(size_t, int)
+ //
  virtual void GetBlockSize(size_t bs[3], int reflevel) const;
 
+ friend void     *RunBlockReadRegionThread(void *object);
 
 private:
+
+ //
+ // Threaded read object for parallel inverse transforms 
+ // (data reconstruction)
+ //
+ class ReadThreadObj {
+ public:
+	ReadThreadObj(
+		WaveCodecIO *wc,
+		int id,
+		float *region,
+		const size_t bmin_p[3],
+		const size_t bmax_p[3],
+		const size_t bs_p[3],
+		int unblock
+	);
+	void BlockReadRegionThread();
+	
+ private:
+	WaveCodecIO *_wc;
+	int _id;	// thread id
+	float *_region;	// destination buffer for read
+	const size_t *_bmin_p;
+	const size_t *_bmax_p;	// block coordinates of data
+	const size_t *_bs_p;	// dimensions of block
+	int _unblock;
+	int _FetchBlock(
+		size_t bx, size_t by, size_t bz
+	);
+ };
+ 
+
+ int _nthreads; // num execution threads
+ int _next_block;
+ int _threadStatus;
+ ReadThreadObj **_read_thread_objs;
  SignificanceMap **_sigmaps;
+ vector <SignificanceMap **> _sigmapsThread;	// one set for each thread
  vector <size_t> _sigmapsizes;	// size of each encoded sig map
  Compressor *_compressor3D;	// 3D compressor
  Compressor *_compressor2DXY;
  Compressor *_compressor2DXZ;
  Compressor *_compressor2DYZ;
  Compressor *_compressor;	// compressor for currently opened variable
+ vector <Compressor *> _compressorThread;
 
  VarType_T _vtype;  // Type (2d, or 3d) of currently opened variable
  VarType_T _compressorType;  // Type (2d, or 3d) of current _compressor
@@ -398,9 +452,12 @@ private:
  vector <int> _nc_wave_vars; 
  float *_cvector;	// storage for wavelet coefficients
  size_t _cvectorsize;	// amount of space allocated to _cvector 
+ vector <float *> _cvectorThread;	
  unsigned char *_svector;	// storage for encoded signficance map 
  size_t _svectorsize;	// amount of space allocated to _svector 
+ vector <unsigned char *> _svectorThread;
  float *_block;	// storage for a block
+ vector <float *> _blockThread;
  float *_blockReg;	// more storage
  bool _firstWrite; // false after first block written;
  float _dataRange[2];
@@ -417,10 +474,9 @@ private:
 
  int _OpenVarWrite(const string &basename);
  int _OpenVarRead(const string &basename);
- int _WaveCodecIO();
+ int _WaveCodecIO(int nthreads);
  int _SetupCompressor();
  int _WriteBlock(size_t bx, size_t by, size_t bz);
- int _FetchBlock(size_t bx, size_t by, size_t bz);
  void _pad_line( float *line_start, size_t l1, size_t l2, long stride) const;
 
  void _UnpackCoord(
