@@ -108,6 +108,9 @@ public:
  //! For data sets offering level-of-detail, the method returns a 
  //! vector of integers, each specifying an available compression factor.
  //! For example, a factor of 10 indicates a compression ratio of 10:1.
+ //! The vector returned is sorted from highest compression ratio
+ //! to lowest. I.e. the most compressed data maps to index 0 in
+ //! the returned vector.
  //!
  //! \retval cr A vector of one or more compression factors
  //

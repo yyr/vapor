@@ -30,8 +30,6 @@ public:
  //! Constructor for the VDFIOBase class.
  //! \param[in] metadata Pointer to a metadata class object for which all
  //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!
@@ -44,8 +42,6 @@ public:
  //! Constructor for the VDFIOBase class.
  //! \param[in] metafile Path to a metadata file for which all
  //! future class operations will apply
- //! \param[in] nthreads Number of execution threads that may be used by
- //! the class for parallel execution.
  //! \note The success or failure of this constructor can be checked
  //! with the GetErrCode() method.
  //!

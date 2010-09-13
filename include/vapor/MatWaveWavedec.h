@@ -183,7 +183,7 @@ public:
 
  //! Multi-level discrete 3D wavelet reconstruction
  //!
- //! This method performs a multi-level, two-dimensional wavelet
+ //! This method performs a multi-level, three-dimensional wavelet
  //! reconstruction with respect to the current wavelet.
  //! The number of reconstructions to apply is \p n.
  //!
