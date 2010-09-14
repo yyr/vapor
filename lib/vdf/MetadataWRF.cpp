@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <cstdarg>
@@ -247,7 +248,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
 
       bool found_flag = false;
       for(int j = 0; j < tt_latlon_exts.size(); j++) {
-      found_flag = false;
+        found_flag = false;
         Time_latlon_extents.push_back(tt_latlon_exts[j]);
         for(int k = 0; k < Timestep_filename.size(); k++) {
           if(Timestep_filename[k].first == tt_latlon_exts[j].first) {
@@ -308,8 +309,10 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
       daysperyear = Global_attrib[i].second;
   }
   if(daysperyear) {
-    if(Global_attrib[i].first == "P2SI")
-      p2si = Global_attrib[i].second;
+    for(int i = 0; i < Global_attrib.size(); i++) {
+      if(Global_attrib[i].first == "P2SI")
+        p2si = Global_attrib[i].second;
+    }
     for(int i = 0; i < Time_latlon_extents.size(); i++) {
       Time_latlon_extents[i].first *= p2si;
     }
@@ -325,6 +328,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
     ttime_str.clear();
     ts_now = Time_latlon_extents[i].first;
     if(daysperyear) {
+      ts_now = tt_latlon_exts[i].first;
       WRF::EpochToWRFTimeStr(ts_now, ttime_str, daysperyear);
     }
     else {
@@ -546,3 +550,13 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
 
   return (retval);
 } // End of ReprojectTsLatLon.
+
+//bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
+//{
+ // return true;
+//}
+
+//bool MetadataWRF::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
+ // return true;
+//}
+
