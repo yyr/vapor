@@ -1,5 +1,5 @@
 /* XPM */
-static char *toBegin_[] = {
+static const char *toBegin_[] = {
 /* columns rows colors chars-per-pixel */
 "24 17 91 1",
 "  c black",

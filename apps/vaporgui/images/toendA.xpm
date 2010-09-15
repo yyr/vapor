@@ -1,5 +1,5 @@
 /* XPM */
-static char *toEnd_[] = {
+static const char *toEnd_[] = {
 /* columns rows colors chars-per-pixel */
 "24 17 91 1",
 "  c black",

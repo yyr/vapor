@@ -1,5 +1,5 @@
 /* XPM */
-static char *replay_[] = {
+static const char *replay_[] = {
 /* columns rows colors chars-per-pixel */
 "24 17 196 2",
 "   c black",
