@@ -12,8 +12,9 @@ FILES = \
 	twoDimageparams twoDdataparams \
 	animationparams	viewpointparams ParamsBase \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
-	MapperFunctionBase OpacityMapBase TransferFunctionLite
-
+	MapperFunctionBase OpacityMapBase TransferFunctionLite \
+	pythonpipeline
+	
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
 	TransferFunctionLite tfinterpolator ParamsBase ParamNode
 

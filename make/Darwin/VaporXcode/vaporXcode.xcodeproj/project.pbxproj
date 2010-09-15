@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		E70180F3124014CE00478E12 /* pythonpipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pythonpipeline.h; sourceTree = "<group>"; };
+		E70180F4124014CE00478E12 /* pythonpipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pythonpipeline.cpp; sourceTree = "<group>"; };
 		E7041383123042460083F569 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = ../../../lib/common/Base64.cpp; sourceTree = SOURCE_ROOT; };
 		E7041384123042460083F569 /* Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Base64.h; path = ../../../lib/common/Base64.h; sourceTree = SOURCE_ROOT; };
 		E7041385123042460083F569 /* CFuncs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CFuncs.cpp; path = ../../../lib/common/CFuncs.cpp; sourceTree = SOURCE_ROOT; };
@@ -282,8 +284,6 @@
 		E704149B123042460083F569 /* MetadataVDC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MetadataVDC.h; path = ../../../lib/vdf/MetadataVDC.h; sourceTree = SOURCE_ROOT; };
 		E704149C123042460083F569 /* MetadataWRF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MetadataWRF.cpp; path = ../../../lib/vdf/MetadataWRF.cpp; sourceTree = SOURCE_ROOT; };
 		E704149D123042460083F569 /* MetadataWRF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MetadataWRF.h; path = ../../../lib/vdf/MetadataWRF.h; sourceTree = SOURCE_ROOT; };
-		E704149E123042460083F569 /* PythonControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PythonControl.cpp; path = ../../../lib/vdf/PythonControl.cpp; sourceTree = SOURCE_ROOT; };
-		E704149F123042460083F569 /* PythonControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PythonControl.h; path = ../../../lib/vdf/PythonControl.h; sourceTree = SOURCE_ROOT; };
 		E70414A0123042460083F569 /* SignificanceMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SignificanceMap.cpp; path = ../../../lib/vdf/SignificanceMap.cpp; sourceTree = SOURCE_ROOT; };
 		E70414A1123042460083F569 /* SignificanceMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SignificanceMap.h; path = ../../../lib/vdf/SignificanceMap.h; sourceTree = SOURCE_ROOT; };
 		E70414A2123042460083F569 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TODO; path = ../../../lib/vdf/TODO; sourceTree = SOURCE_ROOT; };
@@ -809,6 +809,8 @@
 		E70413FB123042460083F569 /* params */ = {
 			isa = PBXGroup;
 			children = (
+				E70180F3124014CE00478E12 /* pythonpipeline.h */,
+				E70180F4124014CE00478E12 /* pythonpipeline.cpp */,
 				E70413FC123042460083F569 /* animationparams.cpp */,
 				E70413FD123042460083F569 /* animationparams.h */,
 				E70413FE123042460083F569 /* Colormap.cpp */,
@@ -993,8 +995,6 @@
 				E704149B123042460083F569 /* MetadataVDC.h */,
 				E704149C123042460083F569 /* MetadataWRF.cpp */,
 				E704149D123042460083F569 /* MetadataWRF.h */,
-				E704149E123042460083F569 /* PythonControl.cpp */,
-				E704149F123042460083F569 /* PythonControl.h */,
 				E70414A0123042460083F569 /* SignificanceMap.cpp */,
 				E70414A1123042460083F569 /* SignificanceMap.h */,
 				E70414A2123042460083F569 /* TODO */,

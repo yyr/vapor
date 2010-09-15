@@ -408,9 +408,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	QApplication::restoreOverrideCursor();
 	//Now process the python variables.
 	//They must be added to the session variables.
-	//Also the dataMgr must be told where to look for the python info
-	dataMgr->UpdateDerivedMappings(&derivedMethodMap,&derived2DInputMap,&derived3DInputMap,&derived2DOutputMap,&derived3DOutputMap);
-	//Set up the active variable mapping initially to coincide with the metadata variable mapping,
+		//Set up the active variable mapping initially to coincide with the metadata variable mapping,
 	//then add entries for python variables.
 	
 	for (int i = 0; i< numMetadataVariables; i++)
@@ -876,7 +874,14 @@ int DataStatus::replaceDerivedScript(int id, const vector<string>& in2DVars, con
 								 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
 
     //Must purge cache of the previous output variables of the script
-	dataMgr->PurgeScriptOutputs(id);
+	vector<string> oldOut2dvars = getDerived2DOutputVars(id);
+	for (int i = 0; i<oldOut2dvars.size(); i++){
+		dataMgr->PurgeVariable(oldOut2dvars[i]);
+	}	
+	vector<string> oldOut3dvars = getDerived3DOutputVars(id);
+	for (int i = 0; i<oldOut3dvars.size(); i++){
+		dataMgr->PurgeVariable(oldOut3dvars[i]);
+	}	
 	removeDerivedScript(id);
 	return (addDerivedScript(in2DVars, out2DVars, in3DVars, out3DVars, script));
 }
@@ -923,8 +928,8 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 	//Initialize to default values.	
 	for (int k = 0; k<numTimesteps; k++){
 		maxNumTransforms[sesvarnum][k] = numTransforms;
-		dataMin[sesvarnum][k] = -1.f;
-		dataMax[sesvarnum][k] = 1.f;
+		dataMin[sesvarnum][k] = 1.e30f;
+		dataMax[sesvarnum][k] = -1.e30f;
 	}
 	bool varexists = true;
 	//Then check all the input 2D variables for max num transforms
@@ -1035,8 +1040,8 @@ int DataStatus::setDerivedVariable2D(const string& varName){
 	
 	for (int k = 0; k<numTimesteps; k++){
 		maxNumTransforms2D[sesvarnum][k] = numTransforms;
-		dataMin2D[sesvarnum][k] = -1.f;
-		dataMax2D[sesvarnum][k] = 1.f;
+		dataMin2D[sesvarnum][k] = 1.e30f;
+		dataMax2D[sesvarnum][k] = -1.e30f;
 	}
 	bool varexists = true;
 	//Then check all the input 2d variables for max num transforms

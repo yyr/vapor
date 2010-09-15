@@ -2,9 +2,10 @@
 #include "pythonedit.h"
 #include "vapor/DataMgr.h"
 #include "vapor/DataMgrFactory.h"
-#include "vapor/PythonControl.h"
+#include "pythonpipeline.h"
 #include "datastatus.h"
 #include "vizwinmgr.h"
+#include "vizwin.h"
 #include "messagereporter.h"
 #include <vector>
 #include <string>
@@ -314,7 +315,6 @@ void PythonEdit::testScript(){
 	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int reflevel = 0;
 
-	DataMgr* dataMgr = ds->getDataMgr();
 	const string script = pythonEdit->toPlainText().toStdString();
 	
 	if (script.length()==0){
@@ -348,20 +348,25 @@ void PythonEdit::testScript(){
 			return;
 		}
 	}
-	vector<string> inVars2, outVars2, inVars3, outVars3;
-	/*for (int i = 2; i<inputVars3->count()-3; i++) inVars3.push_back(inputVars3->itemText(i).toStdString());
-	for (int i = 2; i<outputVars3->count()-3; i++) outVars3.push_back(outputVars3->itemText(i).toStdString());
-	for (int i = 2; i<inputVars2->count()-3; i++) inVars2.push_back(inputVars2->itemText(i).toStdString());
-	for (int i = 2; i<outputVars2->count()-3; i++) outVars2.push_back(outputVars2->itemText(i).toStdString());*/
+	vector<string>  inVars3D, inVars2D;
+	
+	for (int i = 2; i<inputVars3->count()-3; i++) inVars3D.push_back(inputVars3->itemText(i).toStdString());
+	for (int i = 2; i<inputVars2->count()-3; i++) inVars2D.push_back(inputVars2->itemText(i).toStdString());
+		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
 	rParams->getRegionVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, timeStep);
-
-	const string& rettxt =  dataMgr->GetPythonControl()->python_test_wrapper(script, inVars2, outVars2, inVars3, outVars3, 
-						timeStep,reflevel,min_bdim,max_bdim);
+	DataMgr* dmgr = ds->getDataMgr();
+	vector<string> testIn;
+	vector<pair<string, Metadata::VarType_T> > testOut;
+	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
+	
+	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, timeStep, reflevel, min_bdim, max_bdim);
+	
 	if (rettxt.size() > 0){
 		QMessageBox::information(this,"Python Script Output",rettxt.c_str());
 	}
+	delete pipe;
 
 }
 void PythonEdit::applyScript(){
@@ -436,15 +441,48 @@ void PythonEdit::applyScript(){
 	} 
 	else {
 	//Update existing script:
+		//Need to remove old pipeline, too.
+		string name;
+		if (ds->getDerived3DOutputVars(scriptID).size()>0)
+			name = ds->getDerived3DOutputVars(scriptID)[0];
+		else 
+			name = ds->getDerived2DOutputVars(scriptID)[0];
+		ds->getDataMgr()->RemovePipeline(name);
 		
 		int rc = ds->replaceDerivedScript(scriptID, in2dVars, out2dVars, in3dVars, out3dVars, pythonProg);
 		if (rc < 0) {
 			MessageReporter::errorMsg(" Invalid script variable changes");
 			return;
 		}
+		//refresh the visualizers:
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		for (int i = 0; i< MAXVIZWINS; i++){
+			VizWin* win = vizMgr->getVizWin(i);
+			if(win) {
+				win->setRegionDirty(true);
+				win->updateGL();
+			}
+		}
 	}
-	//Update them in the DataMgr:
-	ds->updateDerivedMappings();
+	
+	//Create a new PythonPipeline:
+	vector<string>inputs;
+	for (int i = 0; i< in2dVars.size(); i++) inputs.push_back(in2dVars[i]);
+	for (int i = 0; i< in3dVars.size(); i++) inputs.push_back(in3dVars[i]);
+	vector<pair<string, Metadata::VarType_T> > outpairs;
+	for (int i = 0; i < out3dVars.size(); i++){
+		outpairs.push_back( make_pair(out3dVars[i],Metadata::VAR3D));
+	}
+	for (int i = 0; i < out2dVars.size(); i++){
+		outpairs.push_back( make_pair(out2dVars[i],Metadata::VAR2D_XY));
+	}
+	string pname;
+	if (out3dVars.size() > 0) pname = out3dVars[0]; else pname = out2dVars[0];
+	
+	DataMgr* dmgr = ds->getDataMgr();
+	PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dmgr);
+	dmgr->NewPipeline(pipe);
+	
 	//Update the variables in the gui and the params
 	VizWinMgr::getInstance()->reinitializeVariables();
 	close();

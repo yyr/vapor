@@ -450,9 +450,7 @@ public:
 	//It should already be removed from the python variable mapping
 	static bool removeDerivedVariable2D(const string& derivedVarName);
 	static bool removeDerivedVariable3D(const string& derivedVarName);
-	void updateDerivedMappings(){
-		dataMgr->UpdateDerivedMappings(&derivedMethodMap,&derived2DInputMap,&derived3DInputMap,&derived2DOutputMap,&derived3DOutputMap);
-	}
+	
 	
 private:
 	

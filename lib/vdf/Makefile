@@ -16,7 +16,7 @@ FILES = \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory
+	DataMgrFactory 
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -37,8 +37,6 @@ HEADER_FILES = \
 
 ifeq ($(BUILD_GUI),1)
 MAKEFILE_CXXFLAGS += -D"BUILD_GUI"
-HEADER_FILES += PythonControl
-FILES += PythonControl
 endif
 
 ifeq ($(ARCH),WIN32)

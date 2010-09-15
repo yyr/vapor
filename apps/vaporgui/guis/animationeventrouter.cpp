@@ -88,7 +88,7 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : 
 	QPixmap* playReverseIcon = new QPixmap(playreverse);
 	playReverseButton->setIcon(QIcon(*playReverseIcon));
 	playReverseButton->setIconSize(QSize(30,18));
-	QPixmap* pauseIcon = new QPixmap(pause_);
+	QPixmap* pauseIcon = new QPixmap((const char* const) pause_);
 	pauseButton->setIcon(QIcon(*pauseIcon));
 	pauseButton->setIconSize(QSize(30,18));
 	QPixmap* toBeginIcon = new QPixmap(toBegin_);
@@ -97,7 +97,7 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : 
 	QPixmap* toEndIcon = new QPixmap(toEnd_);
 	toEndButton->setIcon(QIcon(*toEndIcon));
 	toEndButton->setIconSize(QSize(30,18));
-	QPixmap* replayIcon = new QPixmap(replay_);
+	QPixmap* replayIcon = new QPixmap((const char* const) replay_);
 	replayButton->setIcon(QIcon(*replayIcon));
 	replayButton->setIconSize(QSize(30,18));
 	QPixmap* stepfwdIcon = new QPixmap(stepfwd);

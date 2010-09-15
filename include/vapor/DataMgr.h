@@ -15,7 +15,9 @@
 #include "vaporinternal/common.h"
 
 namespace VAPoR {
-class PythonControl;
+class PipeLine;
+
+
 //
 //! \class DataMgr
 //! \brief A cache based data reader
@@ -34,74 +36,6 @@ class PythonControl;
 class VDF_API DataMgr : public Metadata, public VetsUtil::MyBase {
 
 public:
-
-	//! \class DataMgr::PipeLine
-	//!
-	//! The PipeLine abstract class declares pure virtual methods
-	//! that may be defined to allow the construction of a data 
-	//! transformation pipeline. 
-	//!
-	class PipeLine {
-	public:
-
-		//! PipeLine stage constructor
-		//!
-		//! \param[in] name an identifier
-		//! \param[in] inputs A list of variable names required as inputs
-		//! \param[out] outputs A list of variable names and variable
-		//! type pairs that will be output by the Calculate() method.
-		//!
-		PipeLine(
-			string name,
-			vector <string> inputs, 
-			vector <pair <string, VarType_T> > outputs
-		) {
-			_name = name;
-			_inputs = inputs;
-			_outputs = outputs;
-		}
-		virtual ~PipeLine(); 
-
-		//! Execute the pipeline stage
-		//!
-		//! This pure virtual method is called from the DataMgr whenever 
-		//! a variable 
-		//! is requested whose name matches one of the output variable
-		//! names. All output variables computed - including the requested
-		//! one - will be stored in the cache for subsequent retrieval
-		//
-		virtual int Calculate (
-			vector <const float *> input_blks,
-			vector <float *> output_blks,	// space for the output variables
-			size_t ts, // current time step
-			int reflevel, // refinement level
-			int lod, //
-			const size_t bs[3], // block dimensions
-			const size_t min[3],	// dimensions of all variables (in blocks)
-			const size_t max[3]
-		) = 0;
-
-		//! Returns the PipeLine stages name
-		//
-		const string &GetName() const {return (_name); };
-
-		//! Returns the PipeLine inputs
-		//
-		const vector <string> &GetInputs() const {return (_inputs); };
-
-		//! Returns the PipeLine outputs
-		//
-		const vector <pair <string, VarType_T> > &GetOutputs() const { 
-			return (_outputs); 
-		};
-
-	private:
-		string _name;
-		vector <string> _inputs;
-		vector <pair <string, VarType_T> > _outputs;
-	};
-
-
 
  //! Constructor for the DataMgr class. 
  //!
@@ -501,49 +435,13 @@ public:
 
  virtual VarType_T GetVarType(const string &varname) const; 
 
- //! Specify pointers to mappings that are used for derived variables
- //!
- //! \param[in] methodMapPtr pointer to a std::map, from int (script id) to a std::string script.
- //! \param[in] input2DMapPtr pointer to a std::map, from int (script id) to a vector of input 2D variables
- //! \param[in] input3DMapPtr pointer to a std::map, from int (script id) to a vector of input 3D variables
- //! \param[in] output2DMapPtr pointer to a std::map, from int (script id) to a vector of output 2D variables
- //! \param[in] output3DMapPtr pointer to a std::map, from int (script id) to a vector of output 3D variables
- //!
-void UpdateDerivedMappings(
-	std::map<int,string> *methodMapPtr,
-	std::map<int,std::vector<string> > *input2DMapPtr,
-	std::map<int,std::vector<string> > *input3DMapPtr,
-	std::map<int,std::vector<string> > *output2DMapPtr,
-	std::map<int,std::vector<string> > *output3DMapPtr) {
-		derivedMethodMapPtr = methodMapPtr;
-		derived2DInputMapPtr = input2DMapPtr;
-		derived3DInputMapPtr = input3DMapPtr;
-		derived2DOutputMapPtr = output2DMapPtr;
-		derived3DOutputMapPtr = output3DMapPtr;
- }
 	
-//! Purge the cache of all the output variables of a Python script
+//! Purge the cache of a variable
 //!
-//! \param[in] scriptId is the index of the associated script
+//! \param[in] varname is the variable name
 //!
-void PurgeScriptOutputs(int scriptId);
+void PurgeVariable(string varname);
 
-//! Obtain the PythonControl associated with the DataMgr.
-//! Needed for executing python scripts. 
-//!
-PythonControl* GetPythonControl(){
-	return pyControl;
-}
-
- int getDerivedScriptId(const string& outvar) const;
- const string& getDerivedScript(int id) const;
- const string& getDerivedScript(const string& outvar) const{
-	 return getDerivedScript(getDerivedScriptId(outvar));
- }
- const vector<string>& getDerived2DInputs(int id) const;
- const vector<string>& getDerived2DOutputs(int id) const;
- const vector<string>& getDerived3DInputs(int id) const;
- const vector<string>& getDerived3DOutputs(int id) const;
 
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
  void    *alloc_region(
@@ -560,7 +458,6 @@ PythonControl* GetPythonControl(){
 
 protected:
  const vector<string> emptyVec;
- PythonControl* pyControl;
  
 
  // The protected methods below are pure virtual and must be implemented by any 
@@ -812,24 +709,74 @@ private:
 
  PipeLine *get_pipeline_for_var(string varname) const;
 
-
-//DataMgr holds pointers to derived variable mappings.
-//The mappings themselves are also kept in the DataStatus
-//The datastatus updates the pointers whenever a
-//new DataMgr is loaded.
-//
-//mapping from index to Python function
-map<int,string> *derivedMethodMapPtr;
-//mapping from index to input 2D variables
-map<int,vector<string> > *derived2DInputMapPtr;
-//mapping from index to input 3D variables
-map<int,vector<string> > *derived3DInputMapPtr;
-//mapping to 2d outputs
-map<int,vector<string> > *derived2DOutputMapPtr;
-//mapping from index to output 3D variables
-map<int,vector<string> > *derived3DOutputMapPtr;
-
 };
+
+//! \class PipeLine
+//!
+//! The PipeLine abstract class declares pure virtual methods
+//! that may be defined to allow the construction of a data 
+//! transformation pipeline. 
+//!
+class VDF_API PipeLine {
+    public:
+
+	//! PipeLine stage constructor
+	//!
+	//! \param[in] name an identifier
+	//! \param[in] inputs A list of variable names required as inputs
+	//! \param[out] outputs A list of variable names and variable
+	//! type pairs that will be output by the Calculate() method.
+	//!
+	PipeLine(
+		string name,
+		vector <string> inputs, 
+		vector <pair <string, Metadata::VarType_T> > outputs
+	) {
+		_name = name;
+		_inputs = inputs;
+		_outputs = outputs;
+	}
+	virtual ~PipeLine(){
+	}
+
+	//! Execute the pipeline stage
+	//!
+	//! This pure virtual method is called from the DataMgr whenever 
+	//! a variable 
+	//! is requested whose name matches one of the output variable
+	//! names. All output variables computed - including the requested
+	//! one - will be stored in the cache for subsequent retrieval
+	//
+	virtual int Calculate (
+		vector <const float *> input_blks,
+		vector <float *> output_blks,	// space for the output variables
+		size_t ts, // current time step
+		int reflevel, // refinement level
+		int lod, //
+		const size_t bs[3], // block dimensions
+		const size_t min[3],	// dimensions of all variables (in blocks)
+		const size_t max[3]
+	) = 0;
+
+	//! Returns the PipeLine stages name
+	//
+	const string &GetName() const {return (_name); };
+
+	//! Returns the PipeLine inputs
+	//
+	const vector <string> &GetInputs() const {return (_inputs); };
+
+	//! Returns the PipeLine outputs
+	//
+	const vector <pair <string, Metadata::VarType_T> > &GetOutputs() const { 
+		return (_outputs); 
+	};
+    private:
+	string _name;
+	vector <string> _inputs;
+	vector<pair<string, Metadata::VarType_T> > _outputs;
+    };
+
 
 };
 
