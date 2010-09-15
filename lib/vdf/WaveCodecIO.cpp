@@ -20,7 +20,6 @@ const string _volumeDimNbxName = "VolumeDimNbx";	// dim of volume in blocks
 const string _volumeDimNbyName = "VolumeDimNby";
 const string _volumeDimNbzName = "VolumeDimNbz";
 const string _coeffDimName = "CoeffDim";	// num. coeff per block
-const string _sigMapDimName = "SigMapDim";	// size of sig map per block
 
 //
 // ncdf attribute names
@@ -63,6 +62,7 @@ const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
         return(-1); \
     }
 
+#define	NC_FLOAT_SZ 4
 
 
 int WaveCodecIO::_WaveCodecIO(int nthreads) {
@@ -76,7 +76,7 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	}
 	
 	_nthreads = nthreads;
-	_threadStatus = 0;
+	_threadStatus = 0;	// global thread status
 	_compressorThread.resize(_nthreads, NULL);
 	_compressor = NULL;
 	_compressor3D = NULL;
@@ -113,6 +113,10 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	}
 
 	
+	//
+	// One collection of sigmaps for each thread, each collection contains
+	// a signficance map for each compression level
+	//
 	_sigmapsThread.resize(_nthreads, NULL);
 	for (int t=0; t<_nthreads; t++) {
 		_sigmaps = new SignificanceMap* [_cratios.size()];
@@ -123,12 +127,15 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	}
 	const size_t *bs =  VDFIOBase::GetBlockSize();
 
+	//
+	// Don't allocate storage for blocks until later
+	//
 	_block = NULL;
 	_blockThread.resize(_nthreads, NULL);
 	_blockReg = NULL;
 
 	//
-	// Set up the default compressor - a 3D one.
+	// Set up the default compressor - a 3D one for each thread.
 	//
 	vector <size_t> bdims;
 	bdims.push_back(bs[0]);
@@ -147,6 +154,9 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	}
 	_compressor = _compressor3D;
 
+	//
+	// Finally, create thread read objects
+	//
 	_read_thread_objs = new ReadThreadObj * [_nthreads];
 	for (int t=0; t<_nthreads; t++) _read_thread_objs[t] = NULL;
 
@@ -452,7 +462,6 @@ int WaveCodecIO::CloseVariable() {
 		}
 		_ncids[j] = -1;
 		_nc_wave_vars[j] = -1;
-		_nc_sig_vars[j] = -1;
 	}
 				
 	_isOpen = false;
@@ -866,7 +875,8 @@ int WaveCodecIO::BlockWriteRegion(
 
 
 		_XFormTimerStart();
-		int rc = _compressor->Decompose(
+		int rc = 0;
+		rc = _compressor->Decompose(
 			blockptr, _cvector, _ncoeffs, _sigmaps, _ncoeffs.size()
 		); 
 		_XFormTimerStop();
@@ -1570,7 +1580,6 @@ int WaveCodecIO::_OpenVarRead(
 	_ncpaths.clear();
 	_ncids.clear();
 	_nc_wave_vars.clear();
-	_nc_sig_vars.clear();
 
 	int ncdimid;
 	size_t ncdim;
@@ -1638,22 +1647,27 @@ int WaveCodecIO::_OpenVarRead(
             return(-1);
 		}
 
+		//
+		// if there is not compression at lod j we reconstruct 
+		// the sig map from all the other sig maps. 
+		//
+		bool reconstruct_sigmap = 
+			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+
+		//
+		// Final dimension is the number of wavelet coefficients
+		// + the sigmap size / 4
+		//
+		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
+		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
+
         rc = nc_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
 		NC_ERR_READ(rc,path)
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
         NC_ERR_READ(rc,path)
-        if (ncdim != _ncoeffs[j]) {
-            SetErrMsg("Metadata file and data file mismatch");
-            return(-1);
-		}
-
-        rc = nc_inq_dimid(_ncids[j], _sigMapDimName.c_str(), &ncdimid);
-		NC_ERR_READ(rc,path)
-        rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
-        NC_ERR_READ(rc,path)
-        if (ncdim != _sigmapsizes[j]) {
-            SetErrMsg("Metadata file and data file mismatch");
-            return(-1);
+		if (ncdim != l) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
 		}
 
 		rc = nc_get_att_float(
@@ -1682,15 +1696,6 @@ int WaveCodecIO::_OpenVarRead(
 		NC_ERR_READ(rc,path)
 		_nc_wave_vars.push_back(ncvar);
 
-		bool reconstruct_sigmap = 
-			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
-
-		if (! reconstruct_sigmap) {
-			rc = nc_inq_varid(_ncids[j], _sigMapName.c_str(), &ncvar);
-			NC_ERR_READ(rc,path)
-			_nc_sig_vars.push_back(ncvar);
-		}
-
 	}
 	return(0);
 		
@@ -1714,7 +1719,6 @@ int WaveCodecIO::_OpenVarWrite(
 	_ncpaths.clear();
 	_ncids.clear();
 	_nc_wave_vars.clear();
-	_nc_sig_vars.clear();
 	for(int j=0; j<=_lod; j++) {
 		int rc;
 
@@ -1756,23 +1760,24 @@ int WaveCodecIO::_OpenVarWrite(
 		);
 		NC_ERR_WRITE(rc,path)
 
-		int coeff_dim_id;
-		rc = nc_def_dim(
-			_ncids[j],_coeffDimName.c_str(),_ncoeffs[j], &coeff_dim_id
-		);
-		NC_ERR_WRITE(rc,path)
+		bool reconstruct_sigmap = 
+				 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
 
-		int sig_map_dim_id;
+		//
+		// Final dimension is the number of wavelet coefficients
+		// + the sigmap size / 4
+		//
+		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
+
+		int coeff_dim_id;
+		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
 		rc = nc_def_dim(
-			_ncids[j],_sigMapDimName.c_str(),_sigmapsizes[j], &sig_map_dim_id
+			_ncids[j],_coeffDimName.c_str(),l, &coeff_dim_id
 		);
 		NC_ERR_WRITE(rc,path)
 
 		int wave_dim_ids[4];
-		int sig_dim_ids[4];
 		int ndims = 0;
-		bool reconstruct_sigmap = 
-				 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
 
 		switch (_vtype) {
 		case VAR2D_XY:
@@ -1781,9 +1786,6 @@ int WaveCodecIO::_OpenVarWrite(
 			wave_dim_ids[1] = vol_dim_ids[0];
 			wave_dim_ids[2] = coeff_dim_id;
 
-			sig_dim_ids[0] = vol_dim_ids[1];
-			sig_dim_ids[1] = vol_dim_ids[0];
-			sig_dim_ids[2] = sig_map_dim_id;
 		break;
 		case VAR2D_XZ:
 			ndims = 3;
@@ -1791,9 +1793,6 @@ int WaveCodecIO::_OpenVarWrite(
 			wave_dim_ids[1] = vol_dim_ids[0];
 			wave_dim_ids[2] = coeff_dim_id;
 
-			sig_dim_ids[0] = vol_dim_ids[2];
-			sig_dim_ids[1] = vol_dim_ids[0];
-			sig_dim_ids[2] = sig_map_dim_id;
 		break;
 		case VAR2D_YZ:
 			ndims = 3;
@@ -1801,9 +1800,6 @@ int WaveCodecIO::_OpenVarWrite(
 			wave_dim_ids[1] = vol_dim_ids[1];
 			wave_dim_ids[2] = coeff_dim_id;
 
-			sig_dim_ids[0] = vol_dim_ids[2];
-			sig_dim_ids[1] = vol_dim_ids[1];
-			sig_dim_ids[2] = sig_map_dim_id;
 		break;
 		case VAR3D:
 			ndims = 4;
@@ -1812,10 +1808,6 @@ int WaveCodecIO::_OpenVarWrite(
 			wave_dim_ids[2] = vol_dim_ids[0];
 			wave_dim_ids[3] = coeff_dim_id;
 
-			sig_dim_ids[0] = vol_dim_ids[2];
-			sig_dim_ids[1] = vol_dim_ids[1];
-			sig_dim_ids[2] = vol_dim_ids[0];
-			sig_dim_ids[3] = sig_map_dim_id;
 		break;
 		default:
 			assert(0);
@@ -1828,15 +1820,15 @@ int WaveCodecIO::_OpenVarWrite(
 		NC_ERR_WRITE(rc,path)
 		_nc_wave_vars.push_back(ncid);
 
-		if (! reconstruct_sigmap) {
-			rc = nc_def_var(
-				_ncids[j], _sigMapName.c_str(), NC_BYTE,
-				ndims, sig_dim_ids, &ncid
-			);
-			NC_ERR_WRITE(rc,path)
-			_nc_sig_vars.push_back(ncid);
-		}
+		oss.str("");
+		oss << "Floating point wavelet coefficients (" << _ncoeffs[j] <<
+		") byte encoded signficant map (" << _sigmapsizes[j] << ")";
 
+		rc = nc_put_att_text(
+			_ncids[j],ncid,"description", oss.str().length(), 
+			oss.str().c_str()
+		);
+		NC_ERR_WRITE(rc,path)
 
 		//
 		// Define netCDF global attributes
@@ -1913,32 +1905,34 @@ int WaveCodecIO::_WriteBlock(
 
 	_WriteTimerStart();
 
-	size_t start[] = {0,0,0,0};
-	size_t wcount[] = {1,1,1,1};
-	size_t scount[] = {1,1,1,1};
 
 	for(int j=0; j<=_lod; j++) {
+		size_t start[] = {0,0,0,0};
+		size_t wcount[] = {1,1,1,1};
+		size_t scount[] = {1,1,1,1};
 
 		const unsigned char *map;
 		size_t maplen;
 		_sigmaps[j]->GetMap(&map, &maplen);
-		assert(maplen == _sigmapsizes[j]);
+//		assert(maplen == _sigmapsizes[j]);
 
 		bool reconstruct_sigmap = 
 			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+
+        size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
 
 		if (_vtype == VAR3D) {
 			start[0] = bz;
 			start[1] = by;
 			start[2] = bx;
 			wcount[3] = _ncoeffs[j];
-			scount[3] = _sigmapsizes[j];
+			scount[3] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
 		}
 		else {
 			start[0] = by;
 			start[1] = bx;
 			wcount[2] = _ncoeffs[j];
-			scount[2] = _sigmapsizes[j];
+			scount[2] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
 		}
 
 		rc = nc_put_vars_float(
@@ -1953,8 +1947,17 @@ int WaveCodecIO::_WriteBlock(
 		// data (cratio == 1).
 		//
 		if (! reconstruct_sigmap) {
-			rc = nc_put_vars_uchar(
-				_ncids[j], _nc_sig_vars[j], start, scount, NULL, map
+			if (_vtype == VAR3D) 
+				start[3] += _ncoeffs[j];
+			else
+				start[2] += _ncoeffs[j];
+
+			//
+			// Signficance map is concatenated to the wavelet coefficients
+			// variable to improve IO performance
+			//
+			rc = nc_put_vars(
+				_ncids[j], _nc_wave_vars[j], start, scount, NULL, map
 			);
 			NC_ERR_WRITE(rc, _ncpaths[j]);
 		}
@@ -2304,27 +2307,29 @@ int WaveCodecIO::ReadThreadObj::_FetchBlock(
 	//
 	_wc->_ReadTimerStart();
 
-	size_t start[] = {0,0,0,0};
-	size_t wcount[] = {1,1,1,1};
-	size_t scount[] = {1,1,1,1};
 
 	for(int j=0; j<=_wc->_lod; j++) {
+		size_t start[] = {0,0,0,0};
+		size_t wcount[] = {1,1,1,1};
+		size_t scount[] = {1,1,1,1};
 
 		bool reconstruct_sigmap = 
 				 ((_wc->_cratios.size() == (j+1)) && (_wc->_cratios[j] == 1));
+
+        size_t sms = reconstruct_sigmap ? 0 : _wc->_sigmapsizes[j];
 
 		if (_wc->_vtype == VAR3D) {
 			start[0] = bz;
 			start[1] = by;
 			start[2] = bx;
 			wcount[3] = _wc->_ncoeffs[j];
-			scount[3] = _wc->_sigmapsizes[j];
+			scount[3] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
 		}
 		else {
 			start[0] = by;
 			start[1] = bx;
 			wcount[2] = _wc->_ncoeffs[j];
-			scount[2] = _wc->_sigmapsizes[j];
+			scount[2] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
 		}
 
 		rc = nc_get_vars_float(
@@ -2333,10 +2338,25 @@ int WaveCodecIO::ReadThreadObj::_FetchBlock(
 		NC_ERR_READ(rc, _wc->_ncpaths[j]);
 		cvectorptr += _wc->_ncoeffs[j];
 
+		//
+		// Signficance map is concatenated to the end of the wavelet
+		// coefficients for each block. This improves write
+		// performance signficantly over having two separate 
+		// variables (one for coefficients and one for sig map)
+		//
 		if (! reconstruct_sigmap) {
-			rc = nc_get_vars_uchar(
-				_wc->_ncids[j], _wc->_nc_sig_vars[j], start, scount, NULL, svectorptr
+			if (_wc->_vtype == VAR3D) 
+				start[3] += _wc->_ncoeffs[j];
+			else
+				start[2] += _wc->_ncoeffs[j];
+
+			// 
+			// Read sig map as untyped quantity to avoid data conversion
+			//
+			rc = nc_get_vars(
+				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr
 			);
+
 			NC_ERR_READ(rc, _wc->_ncpaths[j]);
 
 			rc = _wc->_sigmapsThread[_id][j]->SetMap(svectorptr);
