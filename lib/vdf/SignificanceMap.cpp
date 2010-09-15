@@ -61,7 +61,6 @@ size_t SignificanceMap::_GetBitsPerIdx(vector <size_t> dims) {
 
 int SignificanceMap::_SignificanceMap(vector <size_t> dims) {
 
-
 	_dimsVec.clear();
 	_sigMapVec.clear();
 	_sigMapSize = 1;
@@ -83,8 +82,6 @@ int SignificanceMap::_SignificanceMap(vector <size_t> dims) {
     if (dims.size() >= 4) _nt = dims[3];
 	
 
-	_sigMapEncode = NULL;
-	_sigMapEncodeSize = 0;
 
 	// Compute # bits needed per entry for encoded form of sigMapVec
 	//
@@ -112,6 +109,8 @@ SignificanceMap::SignificanceMap() {
 	vector <size_t> dims;
 	dims.push_back(1);
 
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(dims) < 0) return;
 }
 
@@ -124,10 +123,15 @@ SignificanceMap::SignificanceMap(size_t nx, size_t ny, size_t nz, size_t nt) {
 	dims.push_back(nz);
 	dims.push_back(nt);
 
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(dims) < 0) return;
 }
 
 SignificanceMap::SignificanceMap(vector <size_t> dims) {
+
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(dims) < 0) return;
 }
 
@@ -145,6 +149,8 @@ SignificanceMap::SignificanceMap(
 	dims.push_back(nz);
 	dims.push_back(nt);
 
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(map, dims) < 0) return;
 
 }
@@ -152,7 +158,8 @@ SignificanceMap::SignificanceMap(
 SignificanceMap::SignificanceMap(
 	const unsigned char *map, vector <size_t> dims
 ) {
-
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(map, dims) < 0) return;
 
 }
@@ -164,6 +171,8 @@ SignificanceMap::SignificanceMap(const SignificanceMap &map) {
 	for (int i=0; i<map._dimsVec.size(); i++) {
 			dims.push_back(_dimsVec[i]);
 	}
+	_sigMapEncode = NULL;
+	_sigMapEncodeSize = 0;
 	if (_SignificanceMap(dims) < 0) return;
 
 	for (size_t i = 0; i<map._sigMapVec.size(); i++) {
@@ -174,7 +183,9 @@ SignificanceMap::SignificanceMap(const SignificanceMap &map) {
 
 SignificanceMap::~SignificanceMap() {
 
-	if (_sigMapEncode) delete [] _sigMapEncode;
+	if (_sigMapEncode) {
+		delete [] _sigMapEncode;
+	}
 
 	_sigMapEncode = NULL;
 
@@ -405,9 +416,13 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 	size_t mapsize = GetMapSize();
 
 	if (_sigMapEncodeSize < mapsize) {
-		if (_sigMapEncode) delete [] _sigMapEncode;
-		_sigMapEncode = new unsigned char[mapsize];
-		_sigMapEncodeSize = mapsize;
+		size_t l = mapsize;
+		while (l % 4) l++;
+		if (_sigMapEncode) {
+			delete [] _sigMapEncode;
+		}
+		_sigMapEncode = new unsigned char[l];
+		_sigMapEncodeSize = l;
 	}
 	memset(_sigMapEncode, 0, mapsize);
 
