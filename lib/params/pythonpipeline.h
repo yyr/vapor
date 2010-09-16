@@ -56,6 +56,9 @@ public:
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
 						size_t ts, int reflevel,const size_t min[3],const size_t max[3]);
+
+	static std::string& getStartupScript() {return startupScript;}
+	static void setStartupScript(const std::string& newScript) {startupScript = newScript;}
 protected:
 	int python_wrapper(int scriptId,size_t ts,int reflevel,
 		const size_t min[3],const size_t max[3], 

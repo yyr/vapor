@@ -142,11 +142,9 @@ private:
 	//
     QAction* editVizFeaturesAction;
     QAction* editPreferencesAction;
-	//Derived Variables Menu
-	//
+	QAction* editPythonStartupAction;
 	QMenu* editPythonMenu;
 	QAction* newPythonAction;
-	QMenu* deletePythonMenu;
     
     //Help menu
     QAction* helpContentsAction;
@@ -227,7 +225,7 @@ public slots:
 	virtual void launchVizFeaturesPanel();
 	virtual void launchPythonEditor(QAction* act);
 	virtual void newPythonEditor();
-	virtual void deleteVariable(QAction* act);
+	virtual void editPythonStartup();
 	virtual void launchPreferencesPanel();
 	virtual void startJpegCapture();
 	virtual void endJpegCapture();
@@ -263,9 +261,6 @@ public slots:
 	virtual void stepBack();
 	virtual void setTimestep();
 
-	//Whenever the UndoRedo menu is displayed, need to supply the right text:
-	//
-	virtual void setupUndoRedoText();
 
 protected:
 	virtual void paintEvent(QPaintEvent* e);
@@ -298,7 +293,7 @@ protected:
 protected slots:
     virtual void languageChange();
 	void initCaptureMenu();
-	void setupPythonMenu();
+	void setupEditMenu();
 	void setInteractiveRefLevel(int);
 
 };

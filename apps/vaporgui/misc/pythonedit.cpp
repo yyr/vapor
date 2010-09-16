@@ -6,7 +6,9 @@
 #include "datastatus.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "session.h"
 #include "messagereporter.h"
+#include "string.h"
 #include <vector>
 #include <string>
 #include <QAction>
@@ -26,49 +28,55 @@ using namespace VAPoR;
 PythonEdit::PythonEdit(QWidget *parent, QString varname)
     : QDialog(parent)
 {
+	variableName = varname;
+	if(varname == "startup script") startUp = true; 
+	else startUp = false;
 	changeFlag = false;
 	QVBoxLayout* mainLayout = new QVBoxLayout(this);
     QHBoxLayout* hlayout = new QHBoxLayout();
 	QHBoxLayout* buttonLayout1 = new QHBoxLayout();
     
-    setWindowTitle("Python Script Editor");
+    if (startUp) setWindowTitle("Python Startup Script Editor");
+	else setWindowTitle("Python Derived Variable Script Editor");
 
     pythonEdit = new QTextEdit(this);
     pythonEdit->setFocus();
 	pythonEdit->setAcceptRichText(false);
-	inputVars2 = new QComboBox(this);
-	hlayout->addWidget(inputVars2);
-	outputVars2 = new QComboBox(this);
-	hlayout->addWidget(outputVars2);
-	inputVars3 = new QComboBox(this);
-	hlayout->addWidget(inputVars3);
-	outputVars3 = new QComboBox(this);
-	hlayout->addWidget(outputVars3);
+	if (!startUp){
+		inputVars2 = new QComboBox(this);
+		hlayout->addWidget(inputVars2);
+		outputVars2 = new QComboBox(this);
+		hlayout->addWidget(outputVars2);
+		inputVars3 = new QComboBox(this);
+		hlayout->addWidget(inputVars3);
+		outputVars3 = new QComboBox(this);
+		hlayout->addWidget(outputVars3);
 
-	outputVars2->addItem("2D Output Variables");
-	outputVars2->addItem("Remove Variable");
-	outputVars2->addItem("Add Variable");
+		outputVars2->addItem("2D Output Variables");
+		outputVars2->addItem("Remove Variable");
+		outputVars2->addItem("Add Variable");
 
-	inputVars2->addItem("2D Input Variables");
-	inputVars2->addItem("Remove Variable");
-	inputVars2->addItem("Add Variable");
+		inputVars2->addItem("2D Input Variables");
+		inputVars2->addItem("Remove Variable");
+		inputVars2->addItem("Add Variable");
 
-	outputVars3->addItem("3D Output Variables");
-	outputVars3->addItem("Remove Variable");
-	outputVars3->addItem("Add Variable");
+		outputVars3->addItem("3D Output Variables");
+		outputVars3->addItem("Remove Variable");
+		outputVars3->addItem("Add Variable");
 
-	inputVars3->addItem("3D Input Variables");
-	inputVars3->addItem("Remove Variable");
-	inputVars3->addItem("Add Variable");
-	
-	connect(inputVars2, SIGNAL(activated(int)), this, SLOT(inputVarsActive2(int)));
-	connect(outputVars2, SIGNAL(activated(int)), this, SLOT(outputVarsActive2(int)));
-	connect(inputVars3, SIGNAL(activated(int)), this, SLOT(inputVarsActive3(int)));
-	connect(outputVars3, SIGNAL(activated(int)), this, SLOT(outputVarsActive3(int)));
-	inputVars2->setFocusPolicy(Qt::NoFocus);
-	inputVars3->setFocusPolicy(Qt::NoFocus);
-	outputVars2->setFocusPolicy(Qt::NoFocus);
-	outputVars3->setFocusPolicy(Qt::NoFocus);
+		inputVars3->addItem("3D Input Variables");
+		inputVars3->addItem("Remove Variable");
+		inputVars3->addItem("Add Variable");
+		
+		connect(inputVars2, SIGNAL(activated(int)), this, SLOT(inputVarsActive2(int)));
+		connect(outputVars2, SIGNAL(activated(int)), this, SLOT(outputVarsActive2(int)));
+		connect(inputVars3, SIGNAL(activated(int)), this, SLOT(inputVarsActive3(int)));
+		connect(outputVars3, SIGNAL(activated(int)), this, SLOT(outputVarsActive3(int)));
+		inputVars2->setFocusPolicy(Qt::NoFocus);
+		inputVars3->setFocusPolicy(Qt::NoFocus);
+		outputVars2->setFocusPolicy(Qt::NoFocus);
+		outputVars3->setFocusPolicy(Qt::NoFocus);
+	}
 	
 	QPushButton* saveButton = new QPushButton("Save to File",this);
 	buttonLayout1->addWidget(saveButton);
@@ -78,6 +86,12 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	buttonLayout1->addWidget(testButton);
 	QPushButton* applyButton = new QPushButton("Apply",this);
 	buttonLayout1->addWidget(applyButton);
+	
+	if (!startUp && varname != ""){
+		QPushButton* deleteButton = new QPushButton("Delete",this);
+		buttonLayout1->addWidget(deleteButton);
+		connect(deleteButton, SIGNAL(pressed()), this, SLOT(deleteScript()));
+	}
 	QPushButton* quitButton = new QPushButton("Cancel",this);
 	buttonLayout1->addWidget(quitButton);
 	
@@ -85,22 +99,26 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	connect(applyButton, SIGNAL(pressed()), this, SLOT(applyScript()));
 	connect(quitButton, SIGNAL(pressed()), this, SLOT(quit()));
 	connect(pythonEdit, SIGNAL(textChanged()), this, SLOT(textChanged()) );
+	connect(saveButton, SIGNAL(pressed()), this, SLOT(saveScript()));
+	connect(loadButton, SIGNAL(pressed()), this, SLOT(loadScript()));
 
 	
 	mainLayout->addLayout(hlayout);
 	mainLayout->addWidget(pythonEdit);
 	mainLayout->addLayout(buttonLayout1);
 
-	inputVars3->insertSeparator(1);
-	inputVars2->insertSeparator(1);
-	outputVars3->insertSeparator(1);
-	outputVars2->insertSeparator(1);
-	inputVars3->insertSeparator(2);
-	inputVars2->insertSeparator(2);
-	outputVars3->insertSeparator(2);
-	outputVars2->insertSeparator(2);
+	if (!startUp){
+		inputVars3->insertSeparator(1);
+		inputVars2->insertSeparator(1);
+		outputVars3->insertSeparator(1);
+		outputVars2->insertSeparator(1);
+		inputVars3->insertSeparator(2);
+		inputVars2->insertSeparator(2);
+		outputVars3->insertSeparator(2);
+		outputVars2->insertSeparator(2);
+	}
 	
-	if (varname != ""){
+	if (!startUp && varname != ""){
 		//Set up combos for specified output variable
 		DataStatus* ds = DataStatus::getInstance();
 		int scriptID = ds->getDerivedScriptId(varname.toStdString());
@@ -124,6 +142,9 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 			outputVars3->insertItem(2,varnames[i].c_str());
 		}
 	
+	} 
+	if (startUp){
+		pythonEdit->setText(PythonPipeLine::getStartupScript().c_str());
 	}
     show();
 }
@@ -370,6 +391,12 @@ void PythonEdit::testScript(){
 
 }
 void PythonEdit::applyScript(){
+	if (startUp){
+		string pythonProg = pythonEdit->toPlainText().toStdString();
+		PythonPipeLine::setStartupScript(pythonProg);
+		close();
+		return;
+	}
 	//Setup the variables in the datastatus
 	DataStatus* ds = DataStatus::getInstance();
 	//Check if this script already exists
@@ -487,6 +514,55 @@ void PythonEdit::applyScript(){
 	VizWinMgr::getInstance()->reinitializeVariables();
 	close();
 }
+void PythonEdit::saveScript(){
+	
+	QString filename = QFileDialog::getSaveFileName(this,
+		"Choose a file name to save this Python program",
+		Session::getInstance()->getSessionDirectory().c_str(),
+		"Python Files (*.py)");
+
+	if(filename.length() == 0) return;
+		
+	
+	FILE* pythonFile = fopen((const char*)filename.toAscii(), "w");
+	if (!pythonFile) {
+		MessageReporter::errorMsg("File Save Error: Error opening \noutput Python file: \n%s",(const char*)filename.toAscii());
+		return;
+	}
+	string prog = pythonEdit->toPlainText().toStdString();
+
+	if (0 == fprintf(pythonFile, "%s", prog.c_str())){
+		MessageReporter::errorMsg("File Save Error: Error writing \noutput Python file: \n%s",(const char*)filename.toAscii());
+	}
+	fclose(pythonFile);
+	changeFlag = false;
+}
+void PythonEdit::loadScript(){
+	QString filename = QFileDialog::getOpenFileName(this,
+		"Specify a Python file name to append to current Python program",
+		Session::getInstance()->getSessionDirectory().c_str(),
+		"Python Files (*.py)");
+
+	if(filename.length() == 0) return;
+		
+	QFileInfo finfo(filename);
+	
+	int filesize = finfo.size();
+	char* buf = new char[filesize];
+	FILE* pythonFile = fopen((const char*)filename.toAscii(), "r");
+	if (!pythonFile) {
+		MessageReporter::errorMsg("File Open Error: Error opening \ninput Python file: \n%s",(const char*)filename.toAscii());
+		return;
+	}
+	if(0 == fscanf(pythonFile, "%s", buf)){
+		MessageReporter::errorMsg("File Read Error: Error reading \ninput Python file: \n%s",(const char*)filename.toAscii());
+		return;
+	}
+	pythonEdit->append(QString(buf));
+	textChanged();
+	fclose(pythonFile);
+	return;
+}
 void PythonEdit::quit(){
 	if(changeFlag){
 		QMessageBox msgBox;
@@ -505,4 +581,20 @@ void PythonEdit::quit(){
 }
 void PythonEdit::textChanged(){
 	changeFlag = true;
+}
+void PythonEdit::deleteScript(){
+	
+	QMessageBox msgBox;
+	msgBox.setText("Discarding Python script");
+	msgBox.setInformativeText("Do you want to discard this script, removing all the variables that it defines?");
+	msgBox.setStandardButtons(QMessageBox::Discard | QMessageBox::Cancel);
+	msgBox.setDefaultButton(QMessageBox::Discard);
+	int ret = msgBox.exec();
+	if(ret == QMessageBox::Cancel) return;
+	//Remove the script and its variables..
+	DataStatus* ds = DataStatus::getInstance();
+	
+	int id = ds->getDerivedScriptId(variableName.toStdString());
+	if (id >=0) ds->removeDerivedScript(id);
+	close();
 }

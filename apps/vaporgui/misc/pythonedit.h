@@ -66,12 +66,17 @@ private slots:
 	void outputVarsActive3(int);
 	void testScript();
 	void applyScript();
+	void saveScript();
+	void loadScript();
 	void quit();
 	void textChanged();
+	void deleteScript();
    
 
 private:
    bool changeFlag;
+   bool startUp;
+   QString variableName;
    
 
     QAction *actionSave,

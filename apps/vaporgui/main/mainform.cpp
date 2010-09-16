@@ -382,7 +382,6 @@ void MainForm::hookupSignals() {
 	connect( editVizFeaturesAction, SIGNAL(triggered()), this, SLOT(launchVizFeaturesPanel()));
 	connect( editPreferencesAction, SIGNAL(triggered()), this, SLOT(launchPreferencesPanel()));
 	
-	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
     connect( helpAboutAction, SIGNAL( triggered() ), this, SLOT( helpAbout() ) );
     
 	connect( dataMerge_MetafileAction, SIGNAL( triggered() ), this, SLOT( mergeData() ) );
@@ -394,9 +393,9 @@ void MainForm::hookupSignals() {
 	connect( dataExportToIDLAction, SIGNAL(triggered()), this, SLOT( exportToIDL()));
 	connect(captureMenu, SIGNAL(aboutToShow()), this, SLOT(initCaptureMenu()));
    
-	connect(pythonMenu, SIGNAL(aboutToShow()), this, SLOT (setupPythonMenu()));
+	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupEditMenu()));
 	connect( newPythonAction, SIGNAL(triggered()), this, SLOT(newPythonEditor()));
-	connect(deletePythonMenu,SIGNAL(triggered(QAction*)), this, SLOT(deleteVariable(QAction*)));
+	connect(editPythonStartupAction,SIGNAL(triggered()), this, SLOT(editPythonStartup()));
 	connect(editPythonMenu,SIGNAL(triggered(QAction*)), this, SLOT(launchPythonEditor(QAction*)));
 	connect( captureStartJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( startJpegCapture() ) );
 	connect( captureEndJpegCaptureAction, SIGNAL( triggered() ), this, SLOT( endJpegCapture() ) );
@@ -445,6 +444,13 @@ void MainForm::createMenus(){
 	Edit->addAction(editRedoAction);
 	Edit->addAction(editVizFeaturesAction);
 	Edit->addAction(editPreferencesAction);
+	Edit->addSeparator();
+
+	editPythonMenu = new QMenu("Edit script defining variable");
+	Edit->addAction(newPythonAction);
+	Edit->addMenu(editPythonMenu);
+	Edit->addAction(editPythonStartupAction);
+	
 	
 
     Data = menuBar()->addMenu(tr("Data"));
@@ -461,12 +467,8 @@ void MainForm::createMenus(){
     
 	Main_Form->addMenu(Data);
 
-    pythonMenu = menuBar()->addMenu(tr("Derived Variables"));
-	editPythonMenu = new QMenu("Edit script defining variable");
-	deletePythonMenu = new QMenu("Delete script defining variable");
-	pythonMenu->addMenu(editPythonMenu);
-	pythonMenu->addMenu(deletePythonMenu);
-	pythonMenu->addAction(newPythonAction);
+    
+	
 
 	//Note that the ordering of the following 4 is significant, so that image
 	//capture actions correctly activate each other.
@@ -510,6 +512,7 @@ void MainForm::createActions(){
 	editPreferencesAction = new QAction(this);
 
 	newPythonAction = new QAction(this);
+	editPythonStartupAction = new QAction(this);
 	
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
@@ -715,12 +718,12 @@ void MainForm::languageChange()
 	editPreferencesAction->setText(tr("Edit User Preferences "));
 	
 	editPreferencesAction->setToolTip(tr("View or change various user preference settings"));
-	editPythonMenu->setTitle(tr("Edit program defining existing derived variable"));
-	editPythonMenu->setToolTip(tr("Edit a python program defining existing variable"));
-	newPythonAction->setText(tr("Create program defining a new variable"));
-	newPythonAction->setToolTip(tr("Create python program defining a new variable"));
-	deletePythonMenu->setTitle(tr("Delete a derived variable"));
-	deletePythonMenu->setToolTip(tr("Delete a derived variable"));
+	editPythonMenu->setTitle(tr("Edit Python Program defining existing variable"));
+	editPythonMenu->setToolTip(tr("Edit the Python program that defines an existing variable"));
+	newPythonAction->setText(tr("Edit Python program defining a new variable"));
+	newPythonAction->setToolTip(tr("Edit Python program defining a new variable"));
+	editPythonStartupAction->setText(tr("Edit Python startup script"));
+	editPythonStartupAction->setToolTip(tr("Edit Python script that will be executed at Python startup"));
 
 	captureStartJpegCaptureAction->setText( tr( "Begin image capture sequence " ) );
     
@@ -945,20 +948,7 @@ void MainForm::undo(){
 void MainForm::redo(){
 	Session::getInstance()->advanceQueue();
 }
-void MainForm::setupUndoRedoText(){
-	Session* currentSession = Session::getInstance();
-	QString undoText("Undo ");
-	QString redoText("Redo ");
-	//If it's not active, just set default text:
-	if (editUndoAction->isEnabled()) {
-		undoText += currentSession->currentUndoCommand()->getDescription();
-	}
-	if (editRedoAction->isEnabled()) {
-		redoText += currentSession->currentRedoCommand()->getDescription();
-	}
-	editUndoAction->setText( undoText );
-	editRedoAction->setText( redoText );
-}
+
 // Disable the undo/redo actions, for when the 
 // command queue is reinitialized
 //
@@ -1603,14 +1593,24 @@ void MainForm::setRegionSelect(bool on)
 		statusBar()->addWidget(modeStatusWidget,2);
 	}
 }
-void MainForm::setupPythonMenu(){
+void MainForm::setupEditMenu(){
+	//Setup undo/redo text
+	Session* currentSession = Session::getInstance();
+	QString undoText("Undo ");
+	QString redoText("Redo ");
+	//If it's not active, just set default text:
+	if (editUndoAction->isEnabled()) {
+		undoText += currentSession->currentUndoCommand()->getDescription();
+	}
+	if (editRedoAction->isEnabled()) {
+		redoText += currentSession->currentRedoCommand()->getDescription();
+	}
+	editUndoAction->setText( undoText );
+	editRedoAction->setText( redoText );
 	//set up the menus based on what derived variables are available
 	DataStatus* ds = DataStatus::getInstance();
 	
-	
-	deletePythonMenu->clear();
 	editPythonMenu->clear();
-		
 	newPythonAction->setEnabled(true);
 	bool haveVars = false;
 	
@@ -1621,7 +1621,6 @@ void MainForm::setupPythonMenu(){
 		const vector<string> varnames = var_Iter->second;
 		for (int i = 0; i<varnames.size(); i++){
 			const QString varname = QString(varnames[i].c_str());
-			deletePythonMenu->addAction(varname);
 			editPythonMenu->addAction(varname);
 			haveVars = true;
 		}
@@ -1634,15 +1633,12 @@ void MainForm::setupPythonMenu(){
 		const vector<string> varnames = var_Iter->second;
 		for (int i = 0; i<varnames.size(); i++){
 			const QString varname = QString(varnames[i].c_str());
-			deletePythonMenu->addAction(varname);
 			editPythonMenu->addAction(varname);
 			haveVars = true;
 		}
 		var_Iter++;
 	}
 	editPythonMenu->setEnabled(haveVars);
-	deletePythonMenu->setEnabled(haveVars);
-	
 
 }
 //Enable or disable the View menu options:
@@ -1878,13 +1874,9 @@ void MainForm::launchPreferencesPanel(){
 	UserPreferences uPref;
 	uPref.launch();
 }
-void MainForm::deleteVariable(QAction* act){
-	QString str = act->text();
-	DataStatus* ds = DataStatus::getInstance();
-	
-	int id = ds->getDerivedScriptId(str.toStdString());
-	if (id >=0) ds->removeDerivedScript(id);
-	
+void MainForm::editPythonStartup(){
+	PythonEdit* pythonEditor = new PythonEdit(this, "startup script");
+	pythonEditor->show();
 }
 void MainForm::newPythonEditor(){
 	PythonEdit* pythonEditor = new PythonEdit(this);
