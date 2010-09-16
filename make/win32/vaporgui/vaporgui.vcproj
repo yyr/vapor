@@ -174,7 +174,7 @@
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\Python26_d\libs;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="true"

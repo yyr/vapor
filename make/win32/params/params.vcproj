@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_WINDOWS;PARAMS_EXPORTS;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_LARGEFILE_SUPPORT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
@@ -67,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib QtCored4.lib QtGuid4.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib QtCored4.lib QtGuid4.lib opengl32.lib libtiff.lib geotiff.lib glu32.lib proj.lib python26_d.lib"
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/params.pdb"
@@ -127,7 +127,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
@@ -263,6 +263,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\pythonpipeline.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\regionparams.cpp"
 				>
 			</File>
@@ -374,6 +378,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\probeparams.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\pythonpipeline.h"
 				>
 			</File>
 			<File

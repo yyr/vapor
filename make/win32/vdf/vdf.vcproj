@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(PROJ_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
+				AdditionalIncludeDirectories="&quot;$(PROJ_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="BUILD_GUI;WIN32;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -68,10 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib python26_d.lib proj.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib proj.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Python26_d\libs;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
@@ -131,7 +131,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
-				AdditionalIncludeDirectories="&quot;$(PROJ_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
+				AdditionalIncludeDirectories="&quot;$(PROJ_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="BUILD_GUI;WIN32;_WINDOWS;_USRDLL;VDF_EXPORTS"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
@@ -153,10 +153,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib python26.lib proj.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib  proj.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -288,10 +288,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\MetadataWRF.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\PythonControl.cpp"
 				>
 			</File>
 			<File
@@ -458,10 +454,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\MetadataWRF.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\PythonControl.h"
 				>
 			</File>
 			<File
