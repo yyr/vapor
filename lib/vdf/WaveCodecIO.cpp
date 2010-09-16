@@ -715,7 +715,6 @@ int WaveCodecIO::BlockWriteRegion(
 	if (! _block) {
 		size_t sz = bs[0]*bs[1]*bs[2];
 		_block = new float [sz];
-		_blockThread[0] = _block;
 	}
 
 	size_t bs_p[3];	// packed copy of bs
