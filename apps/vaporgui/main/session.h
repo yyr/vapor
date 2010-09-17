@@ -331,7 +331,6 @@ protected:
 	static const string _interactiveRefLevelAttr;
 	static const string _pythonScriptsTag;
 	static const string _setupScriptTag;
-	static const string _pythonDerivedScriptsTag;
 	static const string _scriptNameAttr;
 	static const string _pythonDerivedScriptTag;
 	static const string _pythonProgramTag;
@@ -411,6 +410,12 @@ protected:
 	int autoSaveInterval;
 	static string prefFile;
 	bool metadataSaved;
+
+	string parsedPythonProgram;
+	vector<string> parsed2DInputVars;
+	vector<string> parsed3DInputVars;
+	vector<string> parsed2DOutputVars;
+	vector<string> parsed3DOutputVars;
 	
 
 };

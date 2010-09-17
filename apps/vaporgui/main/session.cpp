@@ -94,7 +94,6 @@ const string Session::_VAPORVersionAttr = "VaporVersion";
 
 const string Session::_pythonScriptsTag = "PythonScripts";
 const string Session::_setupScriptTag = "PythonSetupScript";
-const string Session::_pythonDerivedScriptsTag = "DerivedVariables";
 const string Session::_scriptNameAttr = "ScriptName";
 const string Session::_pythonDerivedScriptTag = "DerivedVariableDefinition";
 const string Session::_pythonProgramTag = "PythonProgram";
@@ -373,7 +372,6 @@ buildNode() {
 	//Iterate through the derived variable scripts
 	
 	if (ds->getNumDerivedScripts() > 0){
-		ParamNode* derVarNode = new ParamNode(_pythonDerivedScriptsTag, ds->getNumDerivedScripts());
 		//Iterate through the scripts
 		for (int indx = 1; indx < ds->getMaxDerivedScriptId(); indx++){
 			string name = ds->getDerivedScriptName(indx);
@@ -394,9 +392,8 @@ buildNode() {
 				scriptNode->SetElementString(_python2DOutputsTag, ds->getDerived2DOutputVars(indx));
 			if (ds->getDerived3DOutputVars(indx).size()>0)
 				scriptNode->SetElementString(_python3DOutputsTag, ds->getDerived3DOutputVars(indx));
-			derVarNode->AddChild(scriptNode);
+			pythonNode->AddChild(scriptNode);
 		}
-		pythonNode->AddChild(derVarNode);
 	}
 	mainNode->AddChild(pythonNode);
 	//have vizwinmgr populate the vizwin nodes
@@ -429,14 +426,17 @@ loadFromFile(ifstream& ifs){
 }
 bool Session::
 elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char **attrs){
+	ExpatStackElement *state = pm->getStateStackTop();
+	state->has_data = 0;
 	switch (depth){
 	//Parse the global session parameters, depth = 0
 		case(0): 
 		{
-			
 			if (StrCmpNoCase(tag, _sessionTag) != 0) return false;
 			//Initialize session string to 1.2.2, didn't have session strings before that
 			sessionVersionString = "1.2.2";
+			//Default setup script:
+			PythonPipeLine::setStartupScript("");
 			//Start with default stretch factors
 			float stretchFac[3];
 			stretchFac[0]=stretchFac[1]=stretchFac[2] = 1.f;
@@ -574,6 +574,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				int varnum = mergeVariableName(varName);
 				DataStatus::getInstance()->setOutsideValues(varnum, belowVal, aboveVal, extendDown, extendUp);
 				return true;
+			} else if (StrCmpNoCase(tag, _pythonScriptsTag) == 0){
+				return true;
 			}
 			return false;
 
@@ -590,6 +592,35 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				tempParsedPanel = Params::CreateDefaultParams(Params::GetTypeFromTag(tag));
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, _setupScriptTag) == 0){
+				state->has_data = 1;
+				return true;
+			} else if (StrCmpNoCase(tag, _pythonDerivedScriptTag) == 0){
+				//Prepare to parse a program:
+				parsedPythonProgram = "";
+				parsed2DInputVars.clear();
+				parsed3DInputVars.clear();
+				parsed2DOutputVars.clear();
+				parsed3DOutputVars.clear();
+				return true;
+			}
+			else return false;
+		case (3):
+			if (StrCmpNoCase(tag, _pythonProgramTag) == 0){
+				state->has_data = 1;
+				return true;
+			} else if (StrCmpNoCase(tag, _python2DInputsTag) == 0){
+				state->has_data = 1;
+				return true;
+			} else if (StrCmpNoCase(tag, _python3DInputsTag) == 0){
+				state->has_data = 1;
+				return true;
+			} else if (StrCmpNoCase(tag, _python2DOutputsTag) == 0){
+				state->has_data = 1;
+				return true;
+			} else if (StrCmpNoCase(tag, _python3DOutputsTag) == 0){
+				state->has_data = 1;
 				return true;
 			} else return false;
 		default: return false;
@@ -611,8 +642,9 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			if (StrCmpNoCase(tag, _globalParameterPanelsTag) == 0) return true;
 			if (StrCmpNoCase(tag, VizWinMgr::_visualizersTag) == 0) return true;
 			if (StrCmpNoCase(tag, _sessionVariableTag) == 0) return true;
+			if (StrCmpNoCase(tag, _pythonScriptsTag) == 0) return true;
 			return false;
-		case (2): //process transfer functions and global parameter panels
+		case (2): //process transfer functions and global parameter panels and python startup script
 			if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
 				//At completion of parsing a transfer function, save it.
 				assert(tempParsedTF);
@@ -671,7 +703,39 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
                 vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_flowParamsTag));
 				tempParsedPanel = 0;
 				return true;
-			} else return false;
+			} else if (StrCmpNoCase(tag, _setupScriptTag) == 0){
+				const string &strdata = pm->getStringData();
+				PythonPipeLine::setStartupScript(strdata);
+				return true;
+			} else if (StrCmpNoCase(tag, _pythonDerivedScriptTag) == 0){
+				//Completed parsing of a program:
+				int id = DataStatus::getInstance()->addDerivedScript(
+					parsed2DInputVars,parsed2DOutputVars,
+					parsed3DInputVars,parsed3DOutputVars,
+					parsedPythonProgram);
+				if (id > 0) return true;
+				else return false;
+			}
+			else return false;
+		case(4):
+			if (StrCmpNoCase(tag, _pythonProgramTag) == 0){
+				parsedPythonProgram = pm->getStringData();
+				return true;
+			} else if (StrCmpNoCase(tag, _python2DInputsTag) == 0){
+				StrToWordVec(pm->getStringData(),parsed2DInputVars);
+				return true;
+			} else if (StrCmpNoCase(tag, _python3DInputsTag) == 0){
+				StrToWordVec(pm->getStringData(),parsed3DInputVars);
+				return true;
+			} else if (StrCmpNoCase(tag, _python2DOutputsTag) == 0){
+				StrToWordVec(pm->getStringData(),parsed2DOutputVars);
+				return true;
+			} else if (StrCmpNoCase(tag, _python3DOutputsTag) == 0){
+				StrToWordVec(pm->getStringData(),parsed3DOutputVars);
+				return true;
+			}
+			else return false;
+
 		default: return false;
 	}
 }
