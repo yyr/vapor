@@ -33,7 +33,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	variableName = varname;
 	if(varname == "startup script") startUp = true; 
 	else startUp = false;
-	changeFlag = false;
+	
 	QVBoxLayout* mainLayout = new QVBoxLayout(this);
     QHBoxLayout* hlayout = new QHBoxLayout();
 	QHBoxLayout* buttonLayout1 = new QHBoxLayout();
@@ -82,7 +82,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	
 	QPushButton* saveButton = new QPushButton("Save to File",this);
 	buttonLayout1->addWidget(saveButton);
-	QPushButton* loadButton = new QPushButton("Load from File",this);
+	QPushButton* loadButton = new QPushButton("Load (Append) from File",this);
 	buttonLayout1->addWidget(loadButton);
 	QPushButton* testButton = new QPushButton("Test",this);
 	buttonLayout1->addWidget(testButton);
@@ -148,6 +148,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	if (startUp){
 		pythonEdit->setText(PythonPipeLine::getStartupScript().c_str());
 	}
+	changeFlag = false;
     show();
 }
 
