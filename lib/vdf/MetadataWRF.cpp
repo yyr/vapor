@@ -242,6 +242,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
       if (vertexts[1] < Extents[5])
         Extents[5] = vertexts[1];
 
+
 // Copy over all the timesteps and lat-lon extents from this file.
 // Save timestamp and filename for future lookup make sure that the
 // timestamp is unique here.
@@ -266,11 +267,6 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
 // Finished all the input files, now can process over 
 // all of the colllected data.
 
-  if(Time_latlon_extents.size() == 0) {
-    ErrMsgStr.assign("Warning no Files were read in!");
-    MyBase::SetErrMsg(ErrMsgStr.c_str());
-    MyBase::SetErrCode(0);
-  }
 
 // sort the time steps and remove duplicates
 

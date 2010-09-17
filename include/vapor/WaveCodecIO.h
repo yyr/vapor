@@ -448,7 +448,6 @@ private:
  string _varName;	// Currently opened variable
  vector <string> _ncpaths; 
  vector <int> _ncids; 
- vector <int> _nc_sig_vars;	// ncdf ids for wave and sig vars 
  vector <int> _nc_wave_vars; 
  float *_cvector;	// storage for wavelet coefficients
  size_t _cvectorsize;	// amount of space allocated to _cvector 
