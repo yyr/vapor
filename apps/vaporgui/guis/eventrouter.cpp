@@ -276,12 +276,7 @@ fileSaveTF(RenderParams* rParams){
 	if (!s.endsWith(".vtf")){
 		s += ".vtf";
 	}
-	QFileInfo finfo(s);
-	if (finfo.exists()){
-		int rc = QMessageBox::warning(0, "Transfer Function File Exists", QString("OK to replace transfer function file \n%1 ?").arg(s), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
+	
 	ofstream fileout;
 	fileout.open((const char*)s.toAscii());
 	if (! fileout) {

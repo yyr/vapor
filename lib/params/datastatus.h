@@ -404,6 +404,10 @@ public:
 	//Support for Python methods
 	//Specify a new python script, return the integer ID (-1 if error)
 	int addDerivedScript(const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::string &);
+	//Determine how many scripts there are
+	int getNumDerivedScripts(){
+		return (derivedMethodMap.size());
+	}
 	//Replace an existing python script with a new one.  -1 if error
 	int replaceDerivedScript(int id, const vector<string> &in2DVars, const vector<string> &out2DVars, const vector<string>& in3Dvars, const vector<string>& out3Dvars, const string& script);
 	//Obtain the id for a given output variable, return -1 if it does not exist
@@ -432,6 +436,8 @@ public:
 	
 	int getDerivedScriptId(const string& outvar) const;
 	const string& getDerivedScript(int id) const;
+	int getMaxDerivedScriptId();
+	const string& getDerivedScriptName(int id);
 	const vector<string>& getDerived2DInputVars(int id) const;
 	const vector<string>& getDerived3DInputVars(int id) const;
 	const vector<string>& getDerived2DOutputVars(int id) const;
@@ -456,6 +462,7 @@ private:
 	
 	static DataStatus* theDataStatus;
 	const vector<string> emptyVec;
+	static const string _emptyString;
 	//Python script mappings:
 	//mapping from index to Python function
 	map<int,string> derivedMethodMap;

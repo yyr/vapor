@@ -25,6 +25,7 @@
 #include "session.h"
 #include "dvrparams.h"
 #include "vapor/DataMgr.h"
+#include "pythonpipeline.h"
 #include "vapor/DataMgrWB.h"
 #include "vapor/LayeredIO.h"
 #include "vapor/DataMgrFactory.h"
@@ -90,6 +91,17 @@ const string Session::_belowGridAttr = "BelowGridValue";
 const string Session::_extendUpAttr = "ExtendAboveGrid";
 const string Session::_extendDownAttr = "ExtendBelowGrid";
 const string Session::_VAPORVersionAttr = "VaporVersion";
+
+const string Session::_pythonScriptsTag = "PythonScripts";
+const string Session::_setupScriptTag = "PythonSetupScript";
+const string Session::_pythonDerivedScriptsTag = "DerivedVariables";
+const string Session::_scriptNameAttr = "ScriptName";
+const string Session::_pythonDerivedScriptTag = "DerivedVariableDefinition";
+const string Session::_pythonProgramTag = "PythonProgram";
+const string Session::_python2DInputsTag = "Python2DInputs";
+const string Session::_python3DInputsTag = "Python3DInputs";
+const string Session::_python2DOutputsTag = "Python2DOutputs";
+const string Session::_python3DOutputsTag = "Python3DOutputs";
 
 string Session::prefFile = "";
 Session::Session() {
@@ -353,6 +365,40 @@ buildNode() {
 	if(animNode) globalPanels->AddChild(animNode);
 	ParamNode* vpNode = vizMgr->getGlobalParams(ParamsBase::GetTypeFromTag(Params::_viewpointParamsTag))->buildNode();
 	if (vpNode) globalPanels->AddChild(vpNode);
+
+	//Create a pythonScript node and populate it
+	DataStatus* ds = DataStatus::getInstance();
+	ParamNode* pythonNode = new ParamNode(_pythonScriptsTag,1+ds->getNumDerivedScripts());
+	pythonNode->SetElementString(_setupScriptTag,PythonPipeLine::getStartupScript());
+	//Iterate through the derived variable scripts
+	
+	if (ds->getNumDerivedScripts() > 0){
+		ParamNode* derVarNode = new ParamNode(_pythonDerivedScriptsTag, ds->getNumDerivedScripts());
+		//Iterate through the scripts
+		for (int indx = 1; indx < ds->getMaxDerivedScriptId(); indx++){
+			string name = ds->getDerivedScriptName(indx);
+			if(name == "") continue;
+			std::map <string, string> attrs;
+			attrs.clear();
+			ostringstream oss;
+			oss.str(empty);
+			oss << name;
+			attrs[_scriptNameAttr] = oss.str();
+			ParamNode* scriptNode = new ParamNode(_pythonDerivedScriptTag,attrs,3);
+			scriptNode->SetElementString(_pythonProgramTag,ds->getDerivedScript(indx));
+			if (ds->getDerived2DInputVars(indx).size()>0)
+				scriptNode->SetElementString(_python2DInputsTag, ds->getDerived2DInputVars(indx));
+			if (ds->getDerived3DInputVars(indx).size()>0)
+				scriptNode->SetElementString(_python3DInputsTag, ds->getDerived3DInputVars(indx));
+			if (ds->getDerived2DOutputVars(indx).size()>0)
+				scriptNode->SetElementString(_python2DOutputsTag, ds->getDerived2DOutputVars(indx));
+			if (ds->getDerived3DOutputVars(indx).size()>0)
+				scriptNode->SetElementString(_python3DOutputsTag, ds->getDerived3DOutputVars(indx));
+			derVarNode->AddChild(scriptNode);
+		}
+		pythonNode->AddChild(derVarNode);
+	}
+	mainNode->AddChild(pythonNode);
 	//have vizwinmgr populate the vizwin nodes
 	mainNode->AddChild(vizMgr->buildNode());
 	

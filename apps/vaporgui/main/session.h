@@ -329,6 +329,16 @@ protected:
 	static const string _extendDownAttr;
 	static const string _extendUpAttr;
 	static const string _interactiveRefLevelAttr;
+	static const string _pythonScriptsTag;
+	static const string _setupScriptTag;
+	static const string _pythonDerivedScriptsTag;
+	static const string _scriptNameAttr;
+	static const string _pythonDerivedScriptTag;
+	static const string _pythonProgramTag;
+	static const string _python2DInputsTag;
+	static const string _python3DInputsTag;
+	static const string _python2DOutputsTag;
+	static const string _python3DOutputsTag;
 	
 
 	ParamNode* buildNode();

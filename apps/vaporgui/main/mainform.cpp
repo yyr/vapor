@@ -907,12 +907,7 @@ void MainForm::fileSaveAs()
 	if (!filename.endsWith(".vss")){
 		filename += ".vss";
 	}
-	QFileInfo finfo(filename);
-	if (finfo.exists()){
-		int rc = QMessageBox::warning(0, "Session File Exists", QString("OK to replace session file?\n %1 ").arg(filename), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
+	
 	ofstream fileout;
 	fileout.open(filename.toAscii());
 	if (! fileout) {

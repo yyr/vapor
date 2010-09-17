@@ -49,6 +49,7 @@ using namespace VetsUtil;
 //This is a singleton class, but it's created by the Session.
 //Following are static, must persist even when there is no instance:
 DataStatus* DataStatus::theDataStatus = 0;
+const std::string DataStatus::_emptyString = "";
 std::vector<std::string> DataStatus::variableNames;
 std::vector<float> DataStatus::aboveValues;
 std::vector<float> DataStatus::belowValues;
@@ -776,6 +777,14 @@ int DataStatus::getDerivedScriptId(const string& outvar) const{
 	}
 	return -1;
 }
+const string& DataStatus::getDerivedScriptName(int id){
+	const vector<string>& vars3 = getDerived3DOutputVars(id);
+	if(vars3.size()>0) return vars3[0];
+	const vector<string>& vars2 = getDerived2DOutputVars(id);
+	if(vars2.size()>0) return vars2[0];
+	return (_emptyString);
+}
+
 const string& DataStatus::getDerivedScript(int id) const{
 	map<int,string> :: const_iterator iter = derivedMethodMap.find(id);
 	if (iter == derivedMethodMap.end()) return *(new string(""));
@@ -868,6 +877,17 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
 	
 	return newIndex;
 }
+ //Find the largest index that is used for a scriptID, or 0 if there are none.
+ int DataStatus::getMaxDerivedScriptId(){
+	 int lastIndex = 0;
+	 map<int,string> :: const_iterator iter = derivedMethodMap.begin();
+	 while (iter != derivedMethodMap.end()) {
+		 int index = iter->first;
+		 if (index > lastIndex) lastIndex = index;
+	 }
+	 return lastIndex;
+ }
+	
 //Replace an existing derived script with a new one.  
 //
 int DataStatus::replaceDerivedScript(int id, const vector<string>& in2DVars, const vector<string>& out2DVars,
