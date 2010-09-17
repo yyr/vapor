@@ -58,7 +58,11 @@ public:
 						size_t ts, int reflevel,const size_t min[3],const size_t max[3]);
 
 	static std::string& getStartupScript() {return startupScript;}
-	static void setStartupScript(const std::string& newScript) {startupScript = newScript;}
+	static void setStartupScript(const std::string& newScript) {
+		startupScript = newScript;
+		initialized = false;
+	}
+	
 protected:
 	int python_wrapper(int scriptId,size_t ts,int reflevel,
 		const size_t min[3],const size_t max[3], 
@@ -67,7 +71,7 @@ protected:
   		vector<pair<string, Metadata::VarType_T> > outputs, 
 		vector<float*> outData);
 	
-	
+	void initialize();
 	std::string pythonOutputText;
 	
 	
@@ -87,6 +91,7 @@ protected:
 	static PyMethodDef vaporMethodDefinitions[];
 	
 	static DataMgr* currentDataMgr;
+	static bool initialized;
        
 		
 };

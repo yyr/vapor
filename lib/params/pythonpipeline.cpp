@@ -14,7 +14,10 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 std::string PythonPipeLine::startupScript = "";
+//myErr = StringIO.StringIO()"+"sys.stderr = myErr";
+
 DataMgr* PythonPipeLine::currentDataMgr = 0;
+bool PythonPipeLine::initialized = false;
 
 PythonPipeLine::PythonPipeLine(string name, vector<string> inputs, 
 		vector < pair < string, Metadata::VarType_T > > outputs, DataMgr* dmgr) :
@@ -65,6 +68,44 @@ void PythonPipeLine::initvapor(void)
         PyModule_AddObject(m, "error", vaporerror);
 }
 
+void PythonPipeLine::initialize(){
+	// Specify some standard imports
+	if(initialized) return;
+	
+	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
+		
+	Py_Initialize();
+	
+	PyObject* mainModule = PyImport_AddModule("__main__");
+	PyObject* mainDict = PyModule_GetDict(mainModule);
+	
+	if (startupScript != ""){
+		PyObject* retObj = PyRun_String(startupScript.c_str(),Py_file_input, mainDict,mainDict);
+		if (!retObj){
+			PyErr_Print();
+			//Put stderr into MyBase error message
+			//Find myErr in the dictionary
+			PyObject* myErrString = PyString_FromFormat("myErr");
+			PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
+			if (myErr){
+				//Find size of StringIO:
+				PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
+				int szval = PyInt_AsLong(sz);
+				if(szval > 0){
+					//Get the text
+					PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
+					const char* strtext = PyString_AsString(txt);
+					//post it as Error 
+					
+					MyBase::SetErrMsg(" Python startup execution error:\n%s\n",strtext);
+				}
+			}
+			return;
+		}
+	}
+	initialized = true;
+		
+}
 //Wrapper for calling a python script from the PipeLine
 int PythonPipeLine::python_wrapper(
 	int scriptId,size_t ts,int reflevel,
@@ -74,33 +115,13 @@ int PythonPipeLine::python_wrapper(
   	vector<pair<string, Metadata::VarType_T> > outputs, 
 	vector<float*> outputData)
 {
-   static int numtries = 0;
-	
-	
-	string pretext = "import sys\n";
-	pretext += "import StringIO\n";
-	pretext += "myErr = StringIO.StringIO()\n";
-	pretext += "sys.stderr = myErr\n";
-
-		 
-	string posttext = "\n";
-	DataStatus* ds = DataStatus::getInstance();	
-	string pythonMethod = pretext + ds->getDerivedScript(scriptId) + posttext;
-   
-// Name the built-in modules to be imported:
-	if(numtries == 0){
-		PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
+   	
 		
-		Py_Initialize();
-		PyObject* numpyname = PyString_FromFormat("numpy");
-		PyObject* mod = PyImport_Import(numpyname);
-		PyObject* vaporname = PyString_FromFormat("vapor");
-		mod = PyImport_Import(vaporname);
-						
-	}
-	numtries++;
-	
-  
+	DataStatus* ds = DataStatus::getInstance();	
+	string pythonMethod =  ds->getDerivedScript(scriptId);
+   
+		
+    if(!initialized) initialize();
 	
 	//must convert input block extents to actual region extents
 	size_t dim[3];
@@ -129,11 +150,20 @@ int PythonPipeLine::python_wrapper(
         if (pydims[i] > maxPySize) pydims[i] = maxPySize;
 		
 	}
-	PyObject* mainModule = PyImport_AddModule("__main__");
-	PyObject* mainDict = PyModule_GetDict(mainModule);
+			
+		
 
 	//Convert the input arrays and put into dictionary:
+	PyObject* mainModule = PyImport_AddModule("__main__");
+	PyObject* mainDict = PyModule_GetDict(mainModule);
 	
+	string pretext = "import sys\n";
+	pretext += "import StringIO\n";
+	pretext += "import vapor\n";
+	pretext += "myErr = StringIO.StringIO()\n";
+	pretext += "sys.stderr = myErr\n";
+	
+
 	for (int i = 0; i< inputData.size(); i++){
 		string vname = inputs[i];
 		Metadata::VarType_T datatype = currentDataMgr->GetVarType(vname);
@@ -169,7 +199,9 @@ int PythonPipeLine::python_wrapper(
 	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
 
-    PyObject* retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
+	string program = pretext+pythonMethod;
+	
+    PyObject* retObj = PyRun_String(program.c_str(),Py_file_input, mainDict,mainDict);
     if (!retObj){
 		PyErr_Print();
 			//Put stderr into MyBase error message
@@ -226,14 +258,13 @@ std::string& PythonPipeLine::
 python_test_wrapper(const string& script, const vector<string>& inputVars2, 
 					const vector<string>& inputVars3, 
 					size_t ts,int reflevel,const size_t min[3],const size_t max[3]){
-	static int numtries = 0;
- 
+		
+	if(!initialized) initialize();
 	
 	
-	string pretext = "import numpy\n";
-	pretext += "import vapor\n";
-	pretext += "import sys\n";
+	string pretext = "import sys\n";
 	pretext += "import StringIO\n";
+	pretext += "import vapor\n";
 	pretext += "myIO = StringIO.StringIO()\n";
 	pretext += "myErr = StringIO.StringIO()\n";
 	pretext += "sys.stdout = myIO\n";
@@ -244,15 +275,11 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	for (int i = 0; i< inputVars2.size(); i++){
 		pretext += inputVars2[i] + " = vapor.Get2DVariable('" + inputVars2[i] + "',__TIMESTEP__,__REFINEMENT__,__BOUNDS__)\n";
 	}
-	string posttext = "\n";
 	
-	string pythonMethod = pretext + script + posttext;
 	
-	// Name the built-in module to be imported:
-	if(numtries == 0){
-		PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
-		Py_Initialize();
-	}
+	string pythonMethod = pretext + script ;
+	
+	
 	//must convert input block extents to actual region extents
 	size_t dim[3];
 	size_t blksize[3];

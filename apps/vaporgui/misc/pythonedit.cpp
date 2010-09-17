@@ -11,6 +11,8 @@
 #include "string.h"
 #include <vector>
 #include <string>
+#include <QFile>
+#include <QTextStream>
 #include <QAction>
 #include <QComboBox>
 #include <QPushButton>
@@ -343,36 +345,39 @@ void PythonEdit::testScript(){
 		return;
 	}
 	//check that all input and output variables appear in script:
-	QString prog = pythonEdit->toPlainText();
-	for (int i = 2; i< inputVars2->count()-3; i++){ 
-		if (!prog.contains(inputVars2->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars2->itemText(i).toAscii().data());
-			return;
-		}
-	}
-	for (int i = 2; i< inputVars3->count()-3; i++){ 
-		if (!prog.contains(inputVars3->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars3->itemText(i).toAscii().data());
-			return;
-		}
-	}
-
-	for (int i = 2; i< outputVars2->count()-3; i++){ 
-		if (!prog.contains(outputVars2->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars2->itemText(i).toAscii().data());
-			return;
-		}
-	}
-	for (int i = 2; i< outputVars3->count()-3; i++){ 
-		if (!prog.contains(outputVars3->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars3->itemText(i).toAscii().data());
-			return;
-		}
-	}
 	vector<string>  inVars3D, inVars2D;
+	if(!startUp){
+		QString prog = pythonEdit->toPlainText();
+		for (int i = 2; i< inputVars2->count()-3; i++){ 
+			if (!prog.contains(inputVars2->itemText(i))) {
+				MessageReporter::errorMsg(" Program does not contain variable %s", inputVars2->itemText(i).toAscii().data());
+				return;
+			}
+		}
+		for (int i = 2; i< inputVars3->count()-3; i++){ 
+			if (!prog.contains(inputVars3->itemText(i))) {
+				MessageReporter::errorMsg(" Program does not contain variable %s", inputVars3->itemText(i).toAscii().data());
+				return;
+			}
+		}
+
+		for (int i = 2; i< outputVars2->count()-3; i++){ 
+			if (!prog.contains(outputVars2->itemText(i))) {
+				MessageReporter::errorMsg(" Program does not contain variable %s", outputVars2->itemText(i).toAscii().data());
+				return;
+			}
+		}
+		for (int i = 2; i< outputVars3->count()-3; i++){ 
+			if (!prog.contains(outputVars3->itemText(i))) {
+				MessageReporter::errorMsg(" Program does not contain variable %s", outputVars3->itemText(i).toAscii().data());
+				return;
+			}
+		}
+		
 	
-	for (int i = 2; i<inputVars3->count()-3; i++) inVars3D.push_back(inputVars3->itemText(i).toStdString());
-	for (int i = 2; i<inputVars2->count()-3; i++) inVars2D.push_back(inputVars2->itemText(i).toStdString());
+		for (int i = 2; i<inputVars3->count()-3; i++) inVars3D.push_back(inputVars3->itemText(i).toStdString());
+		for (int i = 2; i<inputVars2->count()-3; i++) inVars2D.push_back(inputVars2->itemText(i).toStdString());
+	}
 		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
@@ -545,22 +550,24 @@ void PythonEdit::loadScript(){
 
 	if(filename.length() == 0) return;
 		
-	QFileInfo finfo(filename);
-	
-	int filesize = finfo.size();
-	char* buf = new char[filesize];
-	FILE* pythonFile = fopen((const char*)filename.toAscii(), "r");
-	if (!pythonFile) {
+	QFile file(filename);
+	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
 		MessageReporter::errorMsg("File Open Error: Error opening \ninput Python file: \n%s",(const char*)filename.toAscii());
 		return;
 	}
-	if(0 == fscanf(pythonFile, "%s", buf)){
+	QTextStream in(&file);
+	int numlines = 0;
+	while (!in.atEnd()){
+		QString line = in.readLine();
+		pythonEdit->append(line);
+		numlines++;
+	}
+	file.close();
+	if(numlines == 0){
 		MessageReporter::errorMsg("File Read Error: Error reading \ninput Python file: \n%s",(const char*)filename.toAscii());
 		return;
 	}
-	pythonEdit->append(QString(buf));
 	textChanged();
-	fclose(pythonFile);
 	return;
 }
 void PythonEdit::quit(){
