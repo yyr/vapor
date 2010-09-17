@@ -46,7 +46,6 @@
 #include <vapor/WRFReader.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
-#include <vapor/WRF.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -67,11 +66,9 @@ using namespace VAPoR;
 //
 struct opt_t {
 	vector<string> varnames;
-	int tsincr;
 	int numts;
-	char * tsstart;
-	char * tsend;
 	int level;
+	float tolerance;
 	OptionParser::Boolean_T	noelev;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
@@ -80,11 +77,9 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"varnames",1, 	"",	"Colon delimited list of variable names in WRF file to convert. The default is to convert variables in the set intersection of those variables found in the VDF file and those in the WRF file."},
-	{"tsincr",	1,	"1","Increment between Vapor times steps to convert (e.g., 3=every third), from Vapor time step 0 (NOT CURRENTLY SUPPORTED!!!)"},
 	{"numts",	1,	"-1","Maximum number of time steps that may be converted. A -1 implies the conversion of all time steps found"},
-	{"tsstart", 1,  "", "Starting time stamp for conversion (default is found in VDF)"},
-	{"tsend",	1,  "", "Last time stamp to convert (default is latest time stamp)"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"tolerance",	1, 	"0.0000001","Tolerance for comparing relative user times"},
 	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui."},
 	{"help",	0,	"",	"Print this message and exit."},
 	{"debug",	0,	"",	"Enable debugging."},
@@ -94,11 +89,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
-	{"tsincr", VetsUtil::CvtToInt, &opt.tsincr, sizeof(opt.tsincr)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
-	{"tsstart", VetsUtil::CvtToString, &opt.tsstart, sizeof(opt.tsstart)},
-	{"tsend", VetsUtil::CvtToString, &opt.tsend, sizeof(opt.tsend)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"tolerance", VetsUtil::CvtToFloat, &opt.tolerance, sizeof(opt.tolerance)},
 	{"noelev", VetsUtil::CvtToBoolean, &opt.noelev, sizeof(opt.noelev)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
@@ -108,61 +101,448 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
-//
-// Backup a .vdf file
-//
-void save_file(const char *file) {
-	FILE	*ifp, *ofp;
-	int	c;
+float DX = 1.0;
+float DY = 1.0;
 
-	string oldfile(file);
-	oldfile.append(".old");
+int CopyVariable(
+	WRFReader *wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
+	string varname,
+	const size_t dim[3],
+	size_t tsWRF,
+	size_t tsVDC,
+	const map <string, string> &wrfNames
+) {
 
-	ifp = fopen(file, "rb");
-	if (! ifp) {
-		cerr << ProgName << ": Could not open file \"" << 
-			file << "\" : " <<strerror(errno) << endl;
-		exit(1);
+	static size_t sliceBufferSize = 0;
+	static float *sliceBuffer = NULL;
+
+	const map <string, string>::const_iterator itr = wrfNames.find(varname);
+	if (itr != wrfNames.end()) varname = itr->second;
+
+	int rc;
+	rc = wrfreader->OpenVariableRead(tsWRF, varname.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
 	}
 
-	ofp = fopen(oldfile.c_str(), "wb");
-	if (! ifp) {
-		cerr << ProgName << ": Could not open file \"" << 
-			oldfile << "\" : " <<strerror(errno) << endl;
-		exit(1);
+	rc = wbwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
 	}
 
-	do {
-		c = fgetc(ifp);
-		if (c != EOF) c = fputc(c,ofp); 
+	size_t slice_sz = dim[0] * dim[1];
 
-	} while (c != EOF);
-
-	if (ferror(ifp)) {
-		cerr << ProgName << ": Error reading file \"" << 
-			file << "\" : " <<strerror(errno) << endl;
-		exit(1);
+	if (sliceBufferSize < slice_sz) {
+		if (sliceBuffer ) delete [] sliceBuffer;
+		sliceBuffer = new float[slice_sz];
+		sliceBufferSize = slice_sz;
 	}
 
-	if (ferror(ofp)) {
-		cerr << ProgName << ": Error writing file \"" << 
-			oldfile << "\" : " <<strerror(errno) << endl;
-		exit(1);
+	for (size_t z = 0; z<dim[2]; z++) {
+		if (wrfreader->ReadSlice(z, sliceBuffer) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to copy WRF variable %s at WRF time step %d",
+				varname.c_str(), tsWRF
+			);
+			return (-1);
+		}
+		if (wbwriter->WriteSlice(sliceBuffer) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to copy WRF variable %s at WRF time step %d",
+				varname.c_str(), tsWRF
+			);
+			return (-1);
+		}
+	}
+
+	wrfreader->CloseVariable();
+	wbwriter->CloseVariable();
+
+	return(0);
+}
+
+void CalculateTheta(const float *t, float *theta, const size_t dim[3]) {
+	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
+		theta[i] = t[i] + 300.0;
 	}
 }
 
-// Takes the start through the (start+lenth-1) elements of fullTime and puts
-// them into pieceTime, with a null character on the end.  N.B., pieceTime must
-// be of size at least length+1.
-// Opens a WRF netCDF file, gets the file's ID, the number of dimensions,
+void CalculateTK(const float *t, const float *p, const float *pb, float *tk, const size_t dim[3]) {
 
-int OpenWrfFile(
-	const char * netCDFfile, // Path of WRF output file to be opened (input)
-	int & ncid // ID of netCDF file (output)
+	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
+		tk[i] = (t[i] + 300.0) * pow( (float)(p[i] + pb[i]), 0.286f ) / pow( 100000.0f, 0.286f );
+	}
+}
+
+
+void CalculateDeriv2D(const float *a, const float *b, float *c, const size_t dim[3]) {
+
+	double dVdx, dUdy; // Holds derivatives used in calculation of curl
+	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
+	{
+		// On the boundaries of the domain, use forward or backward
+		// finite differences
+		if ( i % dim[0] == 0 ) // On left edge of domain
+			dVdx = (b[i + 1] - b[i])/DX;
+		else if ( (i + 1) % dim[0] == 0 ) // On right edge
+			dVdx = (b[i] - b[i - 1])/DX;
+		else // In the middle--use centered difference
+			dVdx = (b[i + 1] - b[i - 1])/(2.0*DX);
+		if ( i >= 0 && i < dim[0] ) // On the bottom edge
+			dUdy = (a[i + dim[0]] - a[i])/DY;
+		else if ( i >= dim[0]*(dim[1] - 1) ) // On top edge
+			dUdy = (a[i] - a[i - dim[0]])/DY;
+		else // In the middle
+			dUdy = (a[i + dim[0]] - a[i - dim[0]])/(2.0*DY);
+		// Calculate the vertical vorticity at that grid point
+		c[i] = dVdx - dUdy;
+	}
+}
+
+// mag == sqrt(a^2 + b^2)
+//
+void CalculateMag2D(const float *a, const float *b, float *c, const size_t dim[3]) {
+
+	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
+		c[i] = sqrt((a[i]*a[i]) + (b[i]*b[i]));
+	}
+}
+
+// mag == sqrt(a^2 + b^2 + c^2)
+//
+void CalculateMag3D(const float *a, const float *b, const float *c, float *d, const size_t dim[3]) {
+	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
+		d[i] = sqrt((a[i]*a[i]) + (b[i]*b[i]) + (c[i]*c[i]));
+	}
+}
+
+// Phnorm == (ph + phb) / phb
+//
+void CalculatePHNorm(const float *ph, const float *phb, float *norm, const size_t dim[3]) {
+
+	for (size_t i=0; i < dim[0]*dim[1]; i++) {
+		norm[i] = (ph[i] + phb[i]) / phb[i];
+	}
+}
+// PNorm == p / pb + 1.0
+//
+void CalculatePNorm(const float *p, const float *pb, float *norm, const size_t dim[3]) {
+
+	for (size_t i=0; i < dim[0]*dim[1]; i++) {
+		norm[i] = p[i]/pb[i] + 1.0;
+	}
+}
+
+void CalculatePFull(const float *p, const float *pb, float *norm, const size_t dim[3]) {
+
+	for (size_t i=0; i < dim[0]*dim[1]; i++) {
+		norm[i] = p[i] + pb[i];
+	}
+}
+
+int DeriveVar1(
+	WRFReader *wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
+	string varwrfA,
+	string varvdc,
+	const size_t dim[3],
+	size_t tsWRF,
+	size_t tsVDC, 
+	void (*calculate)(const float *, float *, const size_t *)
 ) {
-	
-	int nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid );
-	NC_ERR_READ( nc_status );
+	//
+	// Static resources that never get freed :-(
+	//
+	static float *sliceBufferA = NULL;
+	static float *sliceBufferB = NULL;
+	static size_t sliceBufferSize = 0;
+
+	int rc;
+	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfA.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to write VDC variable %s at VDC time step %d",
+			varvdc.c_str(), tsVDC
+		);
+		return (-1);
+	}
+
+	size_t slice_sz = dim[0] * dim[1];
+
+	if (sliceBufferSize < slice_sz) {
+		if (sliceBufferA ) delete [] sliceBufferA;
+		if (sliceBufferB ) delete [] sliceBufferB;
+		sliceBufferA = new float[slice_sz];
+		sliceBufferB = new float[slice_sz];
+		sliceBufferSize = slice_sz;
+	}
+
+	for (size_t z = 0; z<dim[2]; z++) {
+		if (wrfreader->ReadSlice(z, sliceBufferA) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfA.c_str(), tsWRF
+			);
+			return (-1);
+		}
+
+		calculate(sliceBufferA, sliceBufferB, dim);
+
+		if (wbwriter->WriteSlice(sliceBufferB) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write VDC variable %s at VDC time step %d",
+				varvdc.c_str(), tsVDC
+			);
+			return (-1);
+		}
+	}
+
+	wrfreader->CloseVariable();
+	wbwriter->CloseVariable();
+
+	return(0);
+}
+
+int DeriveVar2(
+	WRFReader *wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
+	string varwrfA,
+	string varwrfB,
+	string varvdc,
+	const size_t dim[3],
+	size_t tsWRF,
+	size_t tsVDC, 
+	void (*calculate)(const float *, const float *, float *, const size_t *)
+) {
+	//
+	// Static resources that never get freed :-(
+	//
+	static float *sliceBufferA = NULL;
+	static float *sliceBufferB = NULL;
+	static float *sliceBufferC = NULL;
+	static size_t sliceBufferSize = 0;
+	static  WRFReader *wrfreaderB = NULL; 
+
+	if (! wrfreaderB) {
+		wrfreaderB = new WRFReader (*wrfreader);
+	}
+
+	int rc;
+	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfA.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wrfreaderB->OpenVariableRead(tsWRF, varwrfB.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfB.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to write VDC variable %s at VDC time step %d",
+			varvdc.c_str(), tsVDC
+		);
+		return (-1);
+	}
+
+	size_t slice_sz = dim[0] * dim[1];
+
+	if (sliceBufferSize < slice_sz) {
+		if (sliceBufferA ) delete [] sliceBufferA;
+		if (sliceBufferB ) delete [] sliceBufferB;
+		if (sliceBufferC ) delete [] sliceBufferC;
+		sliceBufferA = new float[slice_sz];
+		sliceBufferB = new float[slice_sz];
+		sliceBufferC = new float[slice_sz];
+		sliceBufferSize = slice_sz;
+	}
+
+	for (size_t z = 0; z<dim[2]; z++) {
+		if (wrfreader->ReadSlice(z, sliceBufferA) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfA.c_str(), tsWRF
+			);
+			return (-1);
+		}
+
+		if (wrfreaderB->ReadSlice(z, sliceBufferB) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfB.c_str(), tsWRF
+			);
+			return (-1);
+		}
+
+		calculate(sliceBufferA, sliceBufferB, sliceBufferC, dim);
+
+		if (wbwriter->WriteSlice(sliceBufferC) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write VDC variable %s at VDC time step %d",
+				varvdc.c_str(), tsVDC
+			);
+			return (-1);
+		}
+	}
+
+	wrfreader->CloseVariable();
+	wrfreaderB->CloseVariable();
+	wbwriter->CloseVariable();
+
+	return(0);
+}
+
+int DeriveVar3(
+	WRFReader *wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
+	string varwrfA,
+	string varwrfB,
+	string varwrfC,
+	string varvdc,
+	const size_t dim[3],
+	size_t tsWRF,
+	size_t tsVDC, 
+	void (*calculate)(const float *, const float *, const float *, float *, const size_t *)
+) {
+	//
+	// Static resources that never get freed :-(
+	//
+	static float *sliceBufferA = NULL;
+	static float *sliceBufferB = NULL;
+	static float *sliceBufferC = NULL;
+	static float *sliceBufferD = NULL;
+	static size_t sliceBufferSize = 0;
+	static  WRFReader *wrfreaderB = NULL; 
+	static  WRFReader *wrfreaderC = NULL; 
+
+	if (! wrfreaderB) {
+		wrfreaderB = new WRFReader (*wrfreader);
+	}
+	if (! wrfreaderC) {
+		wrfreaderC = new WRFReader (*wrfreader);
+	}
+
+	int rc;
+	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfA.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wrfreaderB->OpenVariableRead(tsWRF, varwrfB.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfB.c_str(), tsWRF
+		);
+		return (-1);
+	}
+	rc = wrfreaderC->OpenVariableRead(tsWRF, varwrfC.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to read WRF variable %s at WRF time step %d",
+			varwrfC.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wbwriter->OpenVariableWrite(tsVDC, varvdc.c_str(), level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to write VDC variable %s at VDC time step %d",
+			varvdc.c_str(), tsVDC
+		);
+		return (-1);
+	}
+
+	size_t slice_sz = dim[0] * dim[1];
+
+	if (sliceBufferSize < slice_sz) {
+		if (sliceBufferA ) delete [] sliceBufferA;
+		if (sliceBufferB ) delete [] sliceBufferB;
+		if (sliceBufferC ) delete [] sliceBufferC;
+		if (sliceBufferD ) delete [] sliceBufferD;
+		sliceBufferA = new float[slice_sz];
+		sliceBufferB = new float[slice_sz];
+		sliceBufferC = new float[slice_sz];
+		sliceBufferD = new float[slice_sz];
+		sliceBufferSize = slice_sz;
+	}
+
+	for (size_t z = 0; z<dim[2]; z++) {
+		if (wrfreader->ReadSlice(z, sliceBufferA) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfA.c_str(), tsWRF
+			);
+			return (-1);
+		}
+
+		if (wrfreaderB->ReadSlice(z, sliceBufferB) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfB.c_str(), tsWRF
+			);
+			return (-1);
+		}
+		if (wrfreaderC->ReadSlice(z, sliceBufferC) < 0 ) {
+			MyBase::SetErrMsg(
+				"Failed to read WRF variable %s at WRF time step %d",
+				varwrfC.c_str(), tsWRF
+			);
+			return (-1);
+		}
+
+		calculate(sliceBufferA, sliceBufferB, sliceBufferC, sliceBufferD, dim);
+
+		if (wbwriter->WriteSlice(sliceBufferD) < 0) {
+			MyBase::SetErrMsg(
+				"Failed to write VDC variable %s at VDC time step %d",
+				varvdc.c_str(), tsVDC
+			);
+			return (-1);
+		}
+	}
+
+	wrfreader->CloseVariable();
+	wrfreaderB->CloseVariable();
+	wrfreaderC->CloseVariable();
+	wbwriter->CloseVariable();
 
 	return(0);
 }
@@ -173,201 +553,63 @@ int OpenWrfFile(
 // and the original variables.
 
 int DoGeopotStuff(
-	WRFReader * WRFRead,
+	WRFReader * wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
 	const size_t dim[3],
-	const map<string, WRF::varInfo_t *> &var_info_map, 
-	size_t aVaporTs, 
-	int wrfT, 
-	MetadataVDC &metadata, 
-	const WRF::atypVarNames_t &wrfNames,
-	vector<string> &varnames, 
-	double extents[2],
-	double grav
+	size_t tsWRF, 
+	size_t tsVDC, 
+	const map <string, string> &wrfNames,
+	vector<string> &varnames
 ) {
+	map <string, string>::const_iterator iter;
+
+	iter = wrfNames.find("PH"); assert(iter != wrfNames.end());
+	string PHname = iter->second;
+	iter = wrfNames.find("PHB"); assert(iter != wrfNames.end());
+	string PHBname = iter->second;
+
+
 	int rc = 0;
 	bool wantEle = find(varnames.begin(),varnames.end(),"ELEVATION")!=varnames.end();
-	bool wantPh = find(varnames.begin(),varnames.end(),wrfNames.PH)!=varnames.end();
-	bool wantPhb = find(varnames.begin(),varnames.end(),wrfNames.PHB)!=varnames.end();
+	bool wantPh = find(varnames.begin(),varnames.end(),PHname)!=varnames.end();
+	bool wantPhb = find(varnames.begin(),varnames.end(),PHBname)!=varnames.end();
 	bool wantPhnorm = find(varnames.begin(),varnames.end(),"PHNorm_")!=varnames.end();
 
 	if (! (wantEle || wantPh || wantPhb || wantPhnorm)) return(0);
 
-	map<string, WRF::varInfo_t *>::const_iterator itr;
-
-	itr = var_info_map.find(wrfNames.PH);
-	WRF::varInfo_t  *phInfoPtr = itr==var_info_map.end() ? NULL : itr->second; 
-
-	itr = var_info_map.find(wrfNames.PHB);
-	WRF::varInfo_t  *phbInfoPtr = itr==var_info_map.end() ? NULL : itr->second; 
-
-	assert(phInfoPtr != NULL);
-	assert(phbInfoPtr != NULL);
-	
-	// Allocate static storage array
-
-	static float * phBuffer = NULL; // PH
-	static float * phbBuffer = NULL; // Holds a slice of PHB
-	static float * workBuffer = NULL; // ELEVATION and PHNorm_
-	size_t slice_sz;
-
-	slice_sz = dim[0] * dim[1];
-	if (! phBuffer && phInfoPtr) {
-		if (! phBuffer) phBuffer = new float[slice_sz];
-
+	if (wantPh) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "PH", dim, tsWRF, tsVDC, wrfNames 
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "PH"));
 	}
-	if (! phbBuffer && phbInfoPtr) {
-		if (! phbBuffer) phbBuffer = new float[slice_sz];
+	if (wantPhb) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "PHB", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "PHB"));
 	}
-	if (! workBuffer ) {
-		if (! workBuffer) workBuffer = new float[slice_sz];
-	}
-
-	// Prepare wavelet block writers
-	
-	WaveletBlock3DBufWriter * eleWriter = NULL;
-	WaveletBlock3DBufWriter * phWriter = NULL;
-	WaveletBlock3DBufWriter * phbWriter = NULL;
-	WaveletBlock3DBufWriter * phnormWriter = NULL;
-
-	if ( wantEle ) {
-		eleWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		eleWriter->OpenVariableWrite(aVaporTs, "ELEVATION", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+	if (wantEle) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "ELEVATION", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "ELEVATION"));
 	}
 
-	if ( wantPh ) {
-		phWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		phWriter->OpenVariableWrite(aVaporTs, wrfNames.PH.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.PH));
-	}
-
-	if ( wantPhb ) {
-		phbWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		phbWriter->OpenVariableWrite(aVaporTs, wrfNames.PHB.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.PHB));
-	}
-
-	if ( wantPhnorm ) {
-		phnormWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		phnormWriter->OpenVariableWrite(aVaporTs, "PHNorm_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+	//
+	// Ugh. have to calcualte PHNorm if needed
+	//
+	if (wantPhnorm) {
+		DeriveVar2(
+			wrfreader, wbwriter, level, PHname, PHBname,
+			"PHNorm_", dim, tsWRF, tsVDC, CalculatePHNorm
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PHNorm_"));
-	}
-
-	// Loop over z slices
-
-	for ( size_t z = 0 ; z < dim[2] ; z++ ) {
-
-		// Read needed slices
-
-		if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.PH.c_str()) != 0 ) {
-			WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.PH.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->ReadSlice(z, phBuffer) != 0 ) {
-			WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.PH.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->CloseVariable() != 0 ) {
-			WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.PH.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.PHB.c_str()) != 0 ) {
-			WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.PHB.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->ReadSlice(z, phbBuffer) != 0 ) {
-			WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.PHB.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->CloseVariable() != 0 ) {
-			WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.PHB.c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-	
-		// Write PH and/or PHB, if desired
-		if ( wantPh ) phWriter->WriteSlice( phBuffer );
-		if ( wantPhb ) phbWriter->WriteSlice( phbBuffer );
-
-		// Write geopotential height, with name ELEVATION.  This is required by Vapor
-		// to handle leveled data.
-		for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
-			workBuffer[i] = (phBuffer[i] + phbBuffer[i])/grav;
-		}
-
-		// Want to find the bottom of the bottom layer and the bottom of the
-		// top layer so that we can output them
-		if (z == 0) {
-			extents[0] = workBuffer[0]; 
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
-				if (workBuffer[i] < extents[0] ) {
-					// Bottom of bottom for this time step
-					extents[0] = workBuffer[i]; 
-				}
-			}
-		}
-		if ( z == dim[2] - 1 ) {
-			extents[1] = workBuffer[0]; 
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
-				if ( workBuffer[i] < extents[1] ) {
-					// Bottom of top for this time step
-					extents[1] = workBuffer[i]; 
-				}
-			}
-		}
-
-		if ( wantEle ) eleWriter->WriteSlice( workBuffer );
-
-				
-		// Find and write normalized geopotential, if desired
-		if ( wantPhnorm )
-		{
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] *= grav/phbBuffer[i];
-			phnormWriter->WriteSlice( workBuffer );
-		}
-
-	}
-
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-
-	// Close the variables. We're done writing.
-	if (eleWriter) {
-		eleWriter->CloseVariable();
-		delete eleWriter;
-	}
-
-	if (phWriter) {
-		phWriter->CloseVariable();
-		delete phWriter;
-	}
-
-	if (phbWriter) {
-		phbWriter->CloseVariable();
-		delete phbWriter;
-	}
-
-	if (phnormWriter) {
-		phnormWriter->CloseVariable();
-		delete phnormWriter;
 	}
 
 	return(rc);
@@ -377,21 +619,28 @@ int DoGeopotStuff(
 // 2D wind speed (U-V plane), 3D wind speed, and vertical vorticity (relative to
 // a WRF level, i.e., not vertically interpolated to a Cartesian grid)
 int DoWindStuff(
-	WRFReader * WRFRead,
+	WRFReader * wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
 	const size_t dim[3],
-	double dx, // Grid spacings from WRF file
-	double dy,
-	const map<string, WRF::varInfo_t *> &var_info_map, 
-	size_t aVaporTs, 
-	int wrfT, 
-	MetadataVDC &metadata,
-	const WRF::atypVarNames_t &wrfNames,
+	size_t tsWRF, 
+	size_t tsVDC, 
+	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
+	map <string, string>::const_iterator iter;
+
+	iter = wrfNames.find("U"); assert(iter != wrfNames.end());
+	string Uname = iter->second;
+	iter = wrfNames.find("V"); assert(iter != wrfNames.end());
+	string Vname = iter->second;
+	iter = wrfNames.find("W"); assert(iter != wrfNames.end());
+	string Wname = iter->second;
+
 	int rc = 0;
-	bool wantU = find(varnames.begin(),varnames.end(),wrfNames.U)!=varnames.end();
-	bool wantV = find(varnames.begin(),varnames.end(),wrfNames.V)!=varnames.end();
-	bool wantW = find(varnames.begin(),varnames.end(),wrfNames.W)!=varnames.end();
+	bool wantU = find(varnames.begin(),varnames.end(),Uname)!=varnames.end();
+	bool wantV = find(varnames.begin(),varnames.end(),Vname)!=varnames.end();
+	bool wantW = find(varnames.begin(),varnames.end(),Wname)!=varnames.end();
 	bool wantUV = find(varnames.begin(),varnames.end(),"UV_")!=varnames.end();
 	bool wantUVW = find(varnames.begin(),varnames.end(),"UVW_")!=varnames.end();
 	bool wantOmZ = find(varnames.begin(),varnames.end(),"omZ_")!=varnames.end();
@@ -400,684 +649,211 @@ int DoWindStuff(
 
 	if (! (wantU || wantV || wantW || wantUV || wantUVW || wantOmZ)) return(0);
 
-	map<string, WRF::varInfo_t *>::const_iterator itr;
-
-	// Allocate static storage array
-	static float * uBuffer = NULL; 
-	static float * vBuffer = NULL;
-	static float * wBuffer = NULL;
-	static float * uvBuffer = NULL;
-	static float * uvwBuffer = NULL;
-	static float * omZBuffer = NULL;
-	size_t slice_sz = dim[0] * dim[1];
-
-	if (wantU || wantUV || wantUVW || wantOmZ) {
-		if (! uBuffer) uBuffer = new float[slice_sz];
+	if (wantU) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "U", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "U"));
 	}
-	if (wantV || wantUV || wantUVW || wantOmZ) {
-		if (! vBuffer) vBuffer = new float[slice_sz];
+	if (wantV) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "V", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "V"));
 	}
-	if (wantW || wantUVW) {
-		if (! wBuffer) wBuffer = new float[slice_sz];
-	}
-	if ( wantUV ) {
-		if (! uvBuffer) uvBuffer = new float[slice_sz];
-	}
-	if ( wantUVW ) {
-		if (! uvwBuffer) uvwBuffer = new float[slice_sz];
-	}
-	if ( wantOmZ ) {
-		if (! omZBuffer) omZBuffer = new float[slice_sz];
+	if (wantW) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "W", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "W"));
 	}
 
-	// Prepare wavelet block writers
 
-	WaveletBlock3DBufWriter * uWriter = NULL;
-	WaveletBlock3DBufWriter * vWriter = NULL;
-	WaveletBlock3DBufWriter * wWriter = NULL;
-	WaveletBlock3DBufWriter * uvWriter = NULL;
-	WaveletBlock3DBufWriter * uvwWriter = NULL;
-	WaveletBlock3DBufWriter * omZWriter = NULL;
-
-	if ( wantU ) {
-		uWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		uWriter->OpenVariableWrite(aVaporTs, wrfNames.U.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.U));
-	}
-	if ( wantV ) {
-		vWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		vWriter->OpenVariableWrite(aVaporTs, wrfNames.V.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.V));
-	}
-	if ( wantW ) {
-		wWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		wWriter->OpenVariableWrite(aVaporTs, wrfNames.W.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.W));
-	}
-	if ( wantUV ) {
-		uvWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		uvWriter->OpenVariableWrite(aVaporTs, "UV_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+	if (wantUV) {
+		DeriveVar2(
+			wrfreader, wbwriter, level, Uname, Vname,
+			"UV_", dim, tsWRF, tsVDC, CalculateMag2D
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "UV_"));
 	}
-	if ( wantUVW ) {
-		uvwWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		uvwWriter->OpenVariableWrite(aVaporTs, "UVW_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+
+	if (wantUVW) {
+		DeriveVar3(
+			wrfreader, wbwriter, level, Uname, Vname, Wname,
+			"UVW_", dim, tsWRF, tsVDC, CalculateMag3D
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "UVW_"));
 	}
-	if ( wantOmZ ) {
-		omZWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		omZWriter->OpenVariableWrite(aVaporTs, "omZ_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+
+	if (wantOmZ) {
+
+		DeriveVar2(
+			wrfreader, wbwriter, level, Uname, Vname,
+			"omZ_", dim, tsWRF, tsVDC, CalculateDeriv2D
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "omZ_"));
-	}
-
-	// Read, calculate, and write the data
-
-	for ( size_t z = 0 ; z < dim[2] ; z++ )
-	{
-		// Read (if desired or needed)
-		if ( wantU || wantUV || wantUVW || wantOmZ ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.U.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.U.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, uBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.U.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.U.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-
-		if ( wantV || wantUV || wantUVW || wantOmZ ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.V.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.V.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, vBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.V.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.V.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-
-		if ( wantW || wantUVW ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.W.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.W.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, wBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.W.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.W.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-
-		// Write U, V, W (if desired)
-		if ( wantU ) uWriter->WriteSlice( uBuffer );
-		if ( wantV ) vWriter->WriteSlice( vBuffer );
-		if ( wantW ) wWriter->WriteSlice( wBuffer );
-
-		// Calculate and write 2D wind (if desired or needed)
-		if ( wantUV ) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				uvBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] );
-			uvWriter->WriteSlice( uvBuffer );
-		}
-		// Calculate and write 3D wind (if desired)
-		if ( wantUVW ) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				uvwBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] + wBuffer[i]*wBuffer[i] );
-			uvwWriter->WriteSlice( uvwBuffer );
-		}
-		// Calculate and write vertical vorticity (if desired)
-		if ( wantOmZ ) {
-			double dVdx, dUdy; // Holds derivatives used in calculation of curl
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-			{
-				// On the boundaries of the domain, use forward or backward
-				// finite differences
-				if ( i % dim[0] == 0 ) // On left edge of domain
-					dVdx = (vBuffer[i + 1] - vBuffer[i])/dx;
-				else if ( (i + 1) % dim[0] == 0 ) // On right edge
-					dVdx = (vBuffer[i] - vBuffer[i - 1])/dx;
-				else // In the middle--use centered difference
-					dVdx = (vBuffer[i + 1] - vBuffer[i - 1])/(2.0*dx);
-				if ( i >= 0 && i < dim[0] ) // On the bottom edge
-					dUdy = (uBuffer[i + dim[0]] - uBuffer[i])/dy;
-				else if ( i >= dim[0]*(dim[1] - 1) ) // On top edge
-					dUdy = (uBuffer[i] - uBuffer[i - dim[0]])/dy;
-				else // In the middle
-					dUdy = (uBuffer[i + dim[0]] - uBuffer[i - dim[0]])/(2.0*dy);
-				// Calculate the vertical vorticity at that grid point
-				omZBuffer[i] = dVdx - dUdy;
-			}
-			omZWriter->WriteSlice( omZBuffer );
-		}
-	}
-
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-
-	// Close the variables. We're done writing.
-	if (uWriter) {
-		uWriter->CloseVariable();
-		delete uWriter;
-	}
-	if (vWriter) {
-		vWriter->CloseVariable();
-		delete vWriter;
-	}
-	if (wWriter) {
-		wWriter->CloseVariable();
-		delete wWriter;
-	}
-	if (uvWriter) {
-		uvWriter->CloseVariable();
-		delete uvWriter;
-	}
-	if (uvwWriter) {
-		uvwWriter->CloseVariable();
-		delete uvwWriter;
-	}
-	if (omZWriter) {
-		omZWriter->CloseVariable();
-		delete omZWriter;
 	}
 
 	return(rc);
 }
 
+
 // Read/calculates and outputs some or all of P, PB, PFull_, PNorm_,
 // T, Theta_, and TK_.  Sets flags so that variables are not read twice.
 int DoPTStuff(
-	WRFReader * WRFRead,
+	WRFReader * wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
 	const size_t dim[3],
-	const map<string, WRF::varInfo_t *> &var_info_map, 
-	size_t aVaporTs, 
-	int wrfT, 
-	MetadataVDC &metadata,
-	const WRF::atypVarNames_t &wrfNames,
+	size_t tsWRF, 
+	size_t tsVDC, 
+	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
-	bool wantP = find(varnames.begin(),varnames.end(),wrfNames.P)!=varnames.end();
-	bool wantPb = find(varnames.begin(),varnames.end(),wrfNames.PB)!=varnames.end();
-	bool wantT = find(varnames.begin(),varnames.end(),wrfNames.T)!=varnames.end();
+	int rc = 0;
+
+	map <string, string>::const_iterator iter;
+
+	iter = wrfNames.find("P"); assert(iter != wrfNames.end());
+	string Pname = iter->second;
+	iter = wrfNames.find("PB"); assert(iter != wrfNames.end());
+	string PBname = iter->second;
+	iter = wrfNames.find("T"); assert(iter != wrfNames.end());
+	string Tname = iter->second;
+
+	bool wantP = find(varnames.begin(),varnames.end(),Pname)!=varnames.end();
+	bool wantPb = find(varnames.begin(),varnames.end(),PBname)!=varnames.end();
+	bool wantT = find(varnames.begin(),varnames.end(),Tname)!=varnames.end();
 	bool wantPfull = find(varnames.begin(),varnames.end(),"PFull_")!=varnames.end();
 	bool wantPnorm = find(varnames.begin(),varnames.end(),"PNorm_")!=varnames.end();
 	bool wantTheta = find(varnames.begin(),varnames.end(),"Theta_")!=varnames.end();
 	bool wantTk = find(varnames.begin(),varnames.end(),"TK_")!=varnames.end();
 
-	size_t slice_sz = dim[0] * dim[1];
-
 	// Make sure we have work to do.
 
 	if (! (wantP || wantPb || wantT || wantPfull || wantPnorm || wantTheta || wantTk)) return(0);
 
-	// Allocate static storage array
-	static float * pBuffer = NULL; 
-	static float * pbBuffer = NULL;
-	static float * tBuffer = NULL;
-	static float * workBuffer = NULL;
-
-	if ( wantP || wantPfull || wantPnorm || wantTk ) {
-		if (! pBuffer) pBuffer = new float[slice_sz];
-	}
-	if ( wantPb || wantPfull || wantPnorm || wantTk ) {
-		if (! pbBuffer) pbBuffer = new float[slice_sz];
-	}
-	if ( wantT || wantTheta || wantTk ) {
-		if (! tBuffer) tBuffer = new float[slice_sz];
-	}
-	if ( wantPfull || wantPnorm || wantTheta || wantTk ) {
-		if (! workBuffer) workBuffer = new float[dim[0]*dim[1]];
+	if (wantP) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "P", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "P"));
 	}
 
-	// Prepare wavelet block writers
-	//
-	WaveletBlock3DBufWriter * pWriter = NULL;
-	WaveletBlock3DBufWriter * pbWriter = NULL;
-	WaveletBlock3DBufWriter * tWriter = NULL;
-	WaveletBlock3DBufWriter * pfullWriter = NULL;
-	WaveletBlock3DBufWriter * pnormWriter = NULL;
-	WaveletBlock3DBufWriter * thetaWriter = NULL;
-	WaveletBlock3DBufWriter * tkWriter = NULL;
+	if (wantPb) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "PB", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "PB"));
+	}
 
-	if ( wantP ) {
-		pWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		pWriter->OpenVariableWrite(aVaporTs, wrfNames.P.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.P));
+	if (wantT) {
+		CopyVariable(
+			wrfreader, wbwriter, level, "T", dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "T"));
 	}
-	if ( wantPb ) {
-		pbWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		pbWriter->OpenVariableWrite(aVaporTs, wrfNames.PB.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.PB));
-	}
-	if ( wantT ) {
-		tWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		tWriter->OpenVariableWrite(aVaporTs, wrfNames.T.c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), wrfNames.T));
-	}
-	if ( wantPfull ) {
-		pfullWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		pfullWriter->OpenVariableWrite(aVaporTs, "PFull_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), "PFull_"));
-	}
-	if ( wantPnorm ) {
-		pnormWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		pnormWriter->OpenVariableWrite(aVaporTs, "PNorm_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		varnames.erase(find(varnames.begin(), varnames.end(), "PNorm_"));
-	}
+
 	if ( wantTheta ) {
-		thetaWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		thetaWriter->OpenVariableWrite(aVaporTs, "Theta_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+		DeriveVar1(
+			wrfreader, wbwriter, level, Tname, 
+			"Theta_", dim, tsWRF, tsVDC, CalculateTheta
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "Theta_"));
 	}
-	if ( wantTk ) {
-		tkWriter = new WaveletBlock3DBufWriter(metadata);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		tkWriter->OpenVariableWrite(aVaporTs, "TK_", opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+
+	if ( wantPnorm ) {
+		DeriveVar2(
+			wrfreader, wbwriter, level, Pname, PBname,
+			"PNorm_", dim, tsWRF, tsVDC, CalculatePNorm
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "PNorm_"));
+	}
+
+	if ( wantPfull ) {
+		DeriveVar2(
+			wrfreader, wbwriter, level, Pname, PBname,
+			"PFull_", dim, tsWRF, tsVDC, CalculatePFull
+		);
+		MyBase::SetErrCode(0);
+		varnames.erase(find(varnames.begin(), varnames.end(), "PFull_"));
+	}
+
+	if ( wantTk ) {	
+		DeriveVar3(
+			wrfreader, wbwriter, level, Tname, Pname, PBname,
+			"TK_", dim, tsWRF, tsVDC, CalculateTK
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "TK_"));
 	}
-
-	// Read, calculate, and write
-	int rc = 0;
-	for ( size_t z = 0 ; z < dim[2] ; z++ )
-	{
-		// Read
-		if ( wantP || wantPfull || wantPnorm || wantTk ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.P.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.P.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, pBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.P.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.P.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-		if ( wantPb || wantPfull || wantPnorm || wantTk ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.PB.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.PB.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, pbBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.PB.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.PB.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-		if ( wantT || wantTheta || wantTk ) {
-			if (WRFRead->OpenVariableRead(aVaporTs, wrfNames.T.c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", wrfNames.T.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, tBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", wrfNames.T.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", wrfNames.T.c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-		}
-
-		// Write out any desired WRF variables
-		if ( wantP ) pWriter->WriteSlice( pBuffer );
-		if ( wantPb ) pbWriter->WriteSlice( pbBuffer );
-		if ( wantT ) tWriter->WriteSlice( tBuffer );
-
-		// Find and write Theta (if desired)
-		if ( wantTheta ) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] = tBuffer[i] + 300.0;
-			thetaWriter->WriteSlice( workBuffer );
-		}
-
-		// Find and write PNorm_ (if desired)
-		if ( wantPnorm ) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] = pBuffer[i]/pbBuffer[i] + 1.0;
-			pnormWriter->WriteSlice( workBuffer );
-		}
-		// Find and write PFull_ (if desired)
-		if ( wantPfull && wantPnorm) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] *= pbBuffer[i];
-			pfullWriter->WriteSlice( workBuffer );
-		}
-		if ( wantPfull && !wantPnorm ) {
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] = pBuffer[i] + pbBuffer[i];
-			pfullWriter->WriteSlice( workBuffer );
-		}
-		// Find and write TK_ (if desired).  Forget optimizations.
-		if ( wantTk ) {	
-			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
-				workBuffer[i] = (tBuffer[i] + 300.0)
-								* pow( (float)(pBuffer[i] + pbBuffer[i]), 0.286f )
-								/ pow( 100000.0f, 0.286f );
-			tkWriter->WriteSlice( workBuffer );
-		}
-	}
-
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-
-	// Close the variables. We're done writing.
-	if (pWriter) {
-		pWriter->CloseVariable();
-		delete pWriter;
-	}
-	if (pbWriter) {
-		pbWriter->CloseVariable();
-		delete pbWriter;
-	}
-	if (tWriter) {
-		tWriter->CloseVariable();
-		delete tWriter;
-	}
-	if (pfullWriter) {
-		pfullWriter->CloseVariable();
-		delete pfullWriter;
-	}
-	if (pnormWriter) {
-		pnormWriter->CloseVariable();
-		delete pnormWriter;
-	}
-	if (thetaWriter) {
-		thetaWriter->CloseVariable();
-		delete thetaWriter;
-	}
-	if (tkWriter) {
-		tkWriter->CloseVariable();
-		delete tkWriter;
-	}
-
 	return(rc);
 }
 
 int DoIndependentVars3d(
-	WRFReader * WRFRead,
+	WRFReader * wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
 	const size_t dim[3],
-	const map<string, WRF::varInfo_t *> &var_info_map, 
-	size_t aVaporTs, 
-	int wrfT, 
-	MetadataVDC &metadata,
-	const WRF::atypVarNames_t &wrfNames,
+	size_t tsWRF, 
+	size_t tsVDC, 
+	const map <string, string> &wrfNames,
 	vector<string> &varnames
-
 ) {
-	static float * varBuffer = NULL; 
-	WaveletBlock3DBufWriter * varWriter = NULL;
-
-	varWriter = new WaveletBlock3DBufWriter(metadata);
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-
-	if (! varBuffer) {
-		// allocate buffer for a slice. Leave space for horizontally staggered
-		// vars.
-		//
-		varBuffer = new float[(dim[0]+1)*(dim[1]+1)]; 
-	}
 
 	int rc = 0;
 
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
-
-		VDFIOBase::VarType_T vtype = metadata.GetVarType(vn_copy[i]);
-
-		if (vtype != VDFIOBase::VAR3D) continue;
-
-		map<string, WRF::varInfo_t *>::const_iterator itr;
-
-		itr = var_info_map.find(vn_copy[i]);
-		WRF::varInfo_t  *varInfoPtr = itr==var_info_map.end() ? NULL : itr->second; 
-
-		assert(varInfoPtr != NULL);
-
-		varWriter->OpenVariableWrite(aVaporTs, vn_copy[i].c_str(), opt.level);
-		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+		CopyVariable(
+			wrfreader, wbwriter, level, vn_copy[i], dim, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
-
-		// Switches to prevent redundant reads in the case of 
-		// vertical staggering
-
-		// Read and write
-		for ( size_t z = 0 ; z < dim[2] ; z++ ) {
-			// Read
-			if (WRFRead->OpenVariableRead(aVaporTs, vn_copy[i].c_str()) != 0 ) {
-				WRF::SetErrMsg("Error opening variable \"%s\"", vn_copy[i].c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->ReadSlice(z, varBuffer) != 0 ) {
-				WRF::SetErrMsg("Error reading variable \"%s\"", vn_copy[i].c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			if (WRFRead->CloseVariable() != 0 ) {
-				WRF::SetErrMsg("Error closing variable \"%s\"", vn_copy[i].c_str());
-				WRF::SetErrCode(0);
-				break;
-			}
-
-			varWriter->WriteSlice( varBuffer );
-
-		}
-
-		varWriter->CloseVariable();
-	}
-
-	if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-
-	// Close the variables. We're done writing.
-	if (varWriter) {
-		delete varWriter;
 	}
 
 	return(rc);
 }
 
 int DoIndependentVars2d(
-	WRFReader * WRFRead,
+	WRFReader * wrfreader,
+	WaveletBlock3DBufWriter *wbwriter,
+	int level,
 	const size_t dim[3],
-	const map<string, WRF::varInfo_t *> &var_info_map, 
-	size_t aVaporTs, 
-	int wrfT, 
-	MetadataVDC &metadata,
-	const WRF::atypVarNames_t &wrfNames,
+	size_t tsWRF, 
+	size_t tsVDC, 
+	const map <string, string> &wrfNames,
 	vector<string> &varnames
-
 ) {
-	static float * varBuffer = NULL; 
-	WaveletBlock3DRegionWriter * varWriter = NULL;
-
-	varWriter = new WaveletBlock3DRegionWriter(metadata);
-	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
-
-	// Allocate buffer big enough for staggered variables
-	
-	if (! varBuffer) varBuffer = new float[(dim[0]+1)*(dim[1]+1)]; 
 
 	int rc = 0;
 
+	size_t dim2d[] = {dim[0], dim[1], 1};
+
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
-
-		VDFIOBase::VarType_T vtype = metadata.GetVarType(vn_copy[i]);
-
-		if (vtype != VDFIOBase::VAR2D_XY) continue;
-
-		map<string, WRF::varInfo_t *>::const_iterator itr;
-
-		itr = var_info_map.find(vn_copy[i]);
-		WRF::varInfo_t  *varInfoPtr = itr==var_info_map.end() ? NULL : itr->second; 
-
-		assert(varInfoPtr != NULL);
-
-		varWriter->OpenVariableWrite(aVaporTs, vn_copy[i].c_str(), opt.level);
-		if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
+		CopyVariable(
+			wrfreader,wbwriter,level, vn_copy[i], dim2d, tsWRF, tsVDC, wrfNames
+		);
+		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
-
-		if (WRFRead->OpenVariableRead(aVaporTs, vn_copy[i].c_str()) != 0 ) {
-			WRF::SetErrMsg("Error opening variable \"%s\"", vn_copy[i].c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->ReadSlice(0, varBuffer) != 0 ) {
-			WRF::SetErrMsg("Error reading variable \"%s\"", vn_copy[i].c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		if (WRFRead->CloseVariable() != 0 ) {
-			WRF::SetErrMsg("Error closing variable \"%s\"", vn_copy[i].c_str());
-			WRF::SetErrCode(0);
-			break;
-		}
-
-		varWriter->WriteRegion( varBuffer );
-
-		varWriter->CloseVariable();
 	}
-
-	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) return(-1);
-
-	if (varWriter) delete varWriter;
 
 	return(rc);
 }
 
-int GetVDFInfo(
-	const char *metafile,
-	vector <string> &vars,
-	vector <TIME64_T>	&timestamps,
-	WRF::atypVarNames_t  &wrfNames,
-	size_t dims[3],
-	vector <double> &extents
-) {
 
-	MetadataVDC *metadata;
-
-	vars.clear();
-	timestamps.clear();
-
-	metadata = new MetadataVDC(metafile);
-
-	if (MetadataVDC::GetErrCode() != 0) {
-		return(-1);
-    }
-
-	vars = metadata->GetVariableNames();
-
-	long numts = metadata->GetNumTimeSteps();
-	if (numts < 0) return(-1);
-
-	for (size_t t = 0; t<numts; t++) {
-		TIME64_T t0;
-		t0 = metadata->GetTSUserTime(t);
-		timestamps.push_back(t0);
-	}
-
-	const size_t *dptr = metadata->GetDimension();
-	for (int i=0; i<3; i++) dims[i] = dptr[i];
-
-	extents = metadata->GetExtents();
-
-	string tag("DependentVarNames");
-	string s = metadata->GetUserDataString(tag);
-	vector <string> svec;
-	CvtToStrVec(s.c_str(), &svec);
-	if (svec.size() != 8) {
-		MyBase::SetErrMsg("Failed to get Dependent Variable Names");
-		return(-1);
-	}
-		
-	// Default values
-	wrfNames.U = svec[0];
-	wrfNames.V = svec[1];
-	wrfNames.W = svec[2];
-	wrfNames.PH = svec[3];
-	wrfNames.PHB = svec[4];
-	wrfNames.P = svec[5];
-	wrfNames.PB = svec[6];
-	wrfNames.T = svec[7];
-
-	delete metadata;
-
-	return(0);
-}
 
 // Create a list of variables to be translated based on what the user
 // wants (via command line option, 'opt.varnames', if not empty, else
@@ -1089,10 +865,29 @@ void SelectVariables(
 	const vector <string> &vdf_vars, 
 	const vector <string> &wrf_vars, 
 	const vector <string> &opt_varnames, 
-	const WRF::atypVarNames_t &wrfNames,
+	const map <string, string> &wrfNames,
 	vector <string> &copy_vars,
 	bool noelev
 ) {
+	map <string, string>::const_iterator iter;
+
+	iter = wrfNames.find("PH"); assert(iter != wrfNames.end());
+	string PHname = iter->second;
+	iter = wrfNames.find("PHB"); assert(iter != wrfNames.end());
+	string PHBname = iter->second;
+	iter = wrfNames.find("U"); assert(iter != wrfNames.end());
+	string Uname = iter->second;
+	iter = wrfNames.find("V"); assert(iter != wrfNames.end());
+	string Vname = iter->second;
+	iter = wrfNames.find("W"); assert(iter != wrfNames.end());
+	string Wname = iter->second;
+	iter = wrfNames.find("P"); assert(iter != wrfNames.end());
+	string Pname = iter->second;
+	iter = wrfNames.find("PB"); assert(iter != wrfNames.end());
+	string PBname = iter->second;
+	iter = wrfNames.find("T"); assert(iter != wrfNames.end());
+	string Tname = iter->second;
+
 	copy_vars.clear();
 
 	vector <string> candidates; // Candidate variables for selection
@@ -1121,8 +916,8 @@ void SelectVariables(
 			// sure variable isn't already on the copy list.
 			//
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.PH)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.PHB) !=wrf_vars.end())&&
+				(find(wrf_vars.begin(),wrf_vars.end(),PHname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),PHBname) !=wrf_vars.end())&&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1130,7 +925,7 @@ void SelectVariables(
 		}
 		else if (v.compare("PHNorm_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.PHB)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),PHBname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1138,8 +933,8 @@ void SelectVariables(
 		}
 		else if ((v.compare("PFull_")==0) || (v.compare("PNorm_")==0)) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.P)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.PB)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Pname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),PBname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1147,7 +942,7 @@ void SelectVariables(
 		}
 		else if (v.compare("Theta_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.T)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Tname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1155,9 +950,9 @@ void SelectVariables(
 		}
 		else if (v.compare("TK_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.P)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.PB)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.T)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Pname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),PBname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Tname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1165,8 +960,8 @@ void SelectVariables(
 		}
 		else if (v.compare("UV_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.U)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.V)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1174,9 +969,9 @@ void SelectVariables(
 		}
 		else if (v.compare("UVW_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.U)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.V)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.W)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Wname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1184,8 +979,8 @@ void SelectVariables(
 		}
 		else if (v.compare("omZ_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.U)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.V)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1204,211 +999,86 @@ void SelectVariables(
 
 }
 
-int get_dep_var_info(
-	int ncid, 
-	const vector <WRF::ncdim_t> &ncdims,
-	const string &vname,
-	map <string, WRF::varInfo_t *> &var_info_map
-) {
-	if (var_info_map.find(vname) == var_info_map.end()) {
-		var_info_map[vname] = new WRF::varInfo_t();
-		if (WRF::GetVarInfo(ncid, vname.c_str(), ncdims, *(var_info_map[vname])) < 0) {
-			return(-1);
-		}
-	}
-	return(0);
-}
 	
-// Get info for all the variables we will have to read. This includes
-// both variables that we will write (derived or native), as well as 
-// those that are
-// only needed to compute derived quantities. Variable info 
-// will be stored in 'var_info_map'. 
-
-int GetVarsInfo(
-	int ncid,
-	const vector <string> &copy_vars, 
-	const WRF::atypVarNames_t &wrfNames,
-	map <string, WRF::varInfo_t *> &var_info_map
-) {
-	int nvars;          // number of variables (not used)
-	int ngatts;         // number of global attributes
-	int xdimid;         // id of unlimited dimension (not used)
-	int ndims;
-
-	int nc_status;
-
-	
-	// Find the number of dimensions, variables, and global 
-	// attributes, and check
-	// the existance of the unlimited dimension
-	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid );
-	NC_ERR_READ( nc_status );
-
-	// build list of all dimensions found in the file
-	//
-	vector <WRF::ncdim_t> ncdims;
-	for (int dimid = 0; dimid < ndims; dimid++) {
-		WRF::ncdim_t dim;
-
-		nc_status = nc_inq_dim(
-			ncid, dimid, dim.name, &dim.size
-		);
-		NC_ERR_READ(nc_status);
-		ncdims.push_back(dim);
-	}
-
-	vector <string> derived;
-	derived.push_back("ELEVATION");
-	derived.push_back("PHNorm_");
-	derived.push_back("PFull_");
-	derived.push_back("PNorm_");
-	derived.push_back("Theta_");
-	derived.push_back("TK_");
-	derived.push_back("UV_");
-	derived.push_back("UVW_");
-	derived.push_back("omZ_");
-
-	// Get variable info for all variables
-	//
-	for (int i=0; i<copy_vars.size(); i++) {
-		string vn = copy_vars[i];
-
-		// Get Info for variable if not a derived quantity.
-		//
-		if (find(derived.begin(), derived.end(), vn) == derived.end()) {
-			var_info_map[vn] = new WRF::varInfo_t();
-
-			if (WRF::GetVarInfo(ncid, vn.c_str(), ncdims,*(var_info_map[vn]))<0)
-				return(-1);
-		}
-	}
-
-	// For all derivied quantities, get variable info for
-	// dependent variables, if it doesn't already exist, 
-
-	vector <string>::const_iterator itr;
-	itr = find(copy_vars.begin(), copy_vars.end(), "ELEVATION");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PH, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PHB, var_info_map) < 0)
-			return(-1);
-
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "PHNorm_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PHB, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "PFull_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.P, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PB, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "PNorm_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.P, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PB, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "Theta_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.T, var_info_map) < 0)
-			return(-1);
-
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "TK_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.P, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.PB, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.T, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "UV_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.U, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.V, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "UVW_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.U, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.V, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.W, var_info_map) < 0)
-			return(-1);
-	}
-
-	itr = find(copy_vars.begin(), copy_vars.end(), "omZ_");
-	if (itr != copy_vars.end()) {
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.U, var_info_map) < 0)
-			return(-1);
-
-		if (get_dep_var_info(ncid, ncdims, wrfNames.V, var_info_map) < 0)
-			return(-1);
-	}
-
-	return(0);
-}
 
 void ErrMsgCBHandler(const char *msg, int) {
 	cerr << ProgName << " : " << msg << endl;
 }
 
+bool file_ok(
+	const MetadataWRF *metadataWRF, 
+	const MetadataVDC *metadataVDC
+) {
+	size_t dimWRF[3], dimVDC[3];
+
+	metadataWRF->GetDim(dimWRF, -1);
+	metadataVDC->GetDim(dimVDC, -1);
+	for (int i=0; i<3; i++) {
+		if (dimWRF[i] != dimVDC[i]) {
+			MyBase::SetErrMsg("Dimension mismatch");
+			return(false);
+		}
+	}
+
+	vector <double> extentsWRF = metadataWRF->GetExtents();
+	vector <double> extentsVDC = metadataVDC->GetExtents();
+
+	if ((extentsWRF.size() != 6) || (extentsVDC.size() != 6)) {
+		MyBase::SetErrMsg("Incomplete user extents");
+		return(false);
+	}
+
+	// Check vertical extents
+	//
+	if (extentsWRF[0] < (extentsVDC[0]-0.000001)) {
+		MyBase::SetErrMsg("Minimum vertical user extents out of range");
+		return(false);
+	}
+	if (extentsWRF[5] < (extentsVDC[5]-0.000001)) {
+		MyBase::SetErrMsg("Maximum vertical user extents out of range");
+		return(false);
+	}
+
+	for (int i=0; i<2; i++) {
+		if (extentsWRF[i] < (extentsVDC[i]-0.000001)) {
+			MyBase::SetErrMsg("Minimum horizontal user extents out of range");
+			return(false);
+		}
+	}
+	for (int i=3; i<5; i++) {
+		if (extentsWRF[i] > (extentsVDC[i]+0.000001)) {
+			MyBase::SetErrMsg("Maximum horizontal user extents out of range");
+			return(false);
+		}
+	}
+	return(true);
+}
+
+bool map_VDF2WRF_time(
+	MetadataWRF *metadataWRF, 
+	size_t tsWRF, 
+	MetadataVDC *metadataVDC,
+	size_t *tsVDC,
+	double tolerance
+) {
+	double userTimeWRF = metadataWRF->GetTSUserTime(tsWRF);
+
+	for (size_t ts = 0; ts<metadataVDC->GetNumTimeSteps(); ts++) {
+		double userTimeVDC = metadataVDC->GetTSUserTime(ts);
+		if (abs((userTimeWRF - userTimeVDC) / userTimeVDC) < tolerance) {
+			*tsVDC = ts;
+			return(true);
+		}
+	}
+	return(false);
+}
+		
+
 int	main(int argc, char **argv) {
 	OptionParser op;
-	float vertexts[2] = {0.0, 0.0};
-	float *vertexts_ptr = vertexts;
-	vector<string> twrfvars3d, twrfvars2d;
-	vector<pair< TIME64_T, vector <float> > > wrf_timesExtents;
-	vector<pair<string, double> > tgl_attr;
-	vector<pair<string, double> >::iterator sf_pair_iter;
-	vector<string> infiles;
-	pair<string, double> attr;string startdate, tstartdate;
-	string mapprocetion, tmapprojection;
-	string ErrMsgStr;
-	float dx, dy; // Not really needed for vorticity calculation, since its in metadata
-	int ncid;
-	
-	const char	*metafile;
-	
-	string	s;
-	MetadataVDC	*metadata;
 
-	infiles.clear();
-
+	int estatus = 0;
+	
 	// Parse command line arguments and check for errors
 	ProgName = Basename(argv[0]);
 	if (op.AppendOptions(set_opts) < 0) {
@@ -1436,243 +1106,105 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	WRF::atypVarNames_t wrfNames;
-
-	argv++;
-	argc--;
-	metafile = *argv;
-
-	argv++;
-	argc--;
-
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	// Get all the metadata info we need from the VDC metafile
-	//
-	vector <string> vdf_vars;		// vars contained in VDF
-	vector <TIME64_T> vdf_timestamps;	// User timestamps contained in VDF
-	size_t vdf_dims[3];				// VDF dimensions
-	vector <double> vdf_extents;
-	int rc;
-	rc = GetVDFInfo(
-		metafile, vdf_vars, vdf_timestamps, wrfNames, vdf_dims, vdf_extents
-	);
-	if (rc < 0) exit(1);
-	//Calculate DX and DY from vdf metadata
-	float DX,DY;
-	DX = (vdf_extents[3]-vdf_extents[0])/(float)(vdf_dims[0]-1);
-	DY = (vdf_extents[4]-vdf_extents[1])/(float)(vdf_dims[1]-1);
+	argv++;
+	argc--;
+
+	string metafile = *argv;
+	MetadataVDC	*metadataVDC = new MetadataVDC(metafile);
+	if (MetadataVDC::GetErrCode() != 0) { 
+		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
+		exit(1);
+	}
+
+	WaveletBlock3DBufWriter *wbwriter = new WaveletBlock3DBufWriter(*metadataVDC);
+	if (WaveletBlock3DBufWriter::GetErrCode() != 0) { 
+		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
+		exit(1);
+	}
+
+	vector <string> varsVDC = metadataVDC->GetVariableNames();
+	const size_t *dimsVDC = metadataVDC->GetDimension();
 
 	for (vector<string>::iterator itr = opt.varnames.begin(); itr!=opt.varnames.end(); itr++) {
-		if (find(vdf_vars.begin(),vdf_vars.end(),*itr)==vdf_vars.end()) {
+		if (find(varsVDC.begin(),varsVDC.end(),*itr)==varsVDC.end()) {
 			MyBase::SetErrMsg(
 				"Requested variable \"%s\" not found in VDF file %s",
-				itr->c_str(), metafile);
+				itr->c_str(), metafile.c_str());
 			exit(1);
 		}
 	}
-
-	// Process the netCDF files
-
-	metadata = new MetadataVDC(metafile);
-	if (MetadataVDC::GetErrCode() != 0) {
-		cerr << "Unable to process VDC !" << endl;
-		exit(1);
-	}
-
-	int MaxTimeSteps = (opt.numts < 0) ? INT_MAX : opt.numts;
-	size_t TotalTimeSteps = 0;
-	vector <string> copy_vars;		// list of vars to copy
-	vector <long> copy_vdf_timesteps;	// time steps to copy to in VDC
-	vector <long> copy_wrf_timesteps;	// time steps to copy from in netCDF file
-        float p2si = 1.0;
-	bool p2si_flag = false;
-
-	for (int arg = 0; arg<argc && TotalTimeSteps < MaxTimeSteps; arg++) {
-
-		vector <string> wrf_vars;		// vars contained in netCDF file
-		size_t wrf_dims[4];				// dims of 3d vars
-
-		WRF wrf(argv[arg]);
-		if (WRF::GetErrCode() != 0) {
-			WRF::SetErrMsg(
-				"Error processing file %s, skipping.", argv[arg]);
-			WRF::SetErrCode(0);
-			continue;
-
-		}
-		wrf.GetWRFMeta(
-			vertexts_ptr,wrf_dims,tstartdate,tmapprojection,twrfvars3d,
-			twrfvars2d,tgl_attr,wrf_timesExtents);
-
-		if (vertexts_ptr[0] >= vertexts_ptr[1]) {
-		WRF::SetErrMsg(
-			"Error processing file %s (invalid vertical extents), skipping.",
-				argv[arg]);
-			WRF::SetErrCode(0);
-			continue;
-		}
-
-		// Grab the dx and dy values from attrib list;
-        	// Grab the P2SI value if there, Used to convert PlanetWRF timestamps to SI times. 
-
-		for(sf_pair_iter= tgl_attr.begin();sf_pair_iter< tgl_attr.end();sf_pair_iter++) {
-			attr = *sf_pair_iter;
-			if (attr.first == "DX") 
-				dx = attr.second;
-			if (attr.first == "DY") 
-				dy = attr.second;
-			if(attr.first == "P2SI") {
-				p2si = attr.second;
-				p2si_flag = true;
-			}
-		}
-		if(dx < 0.0 || dy < 0.0) {
-			ErrMsgStr.assign("Error: DX and DY attributes not found in ");
-			ErrMsgStr += argv[arg];
-			ErrMsgStr.append(", skipping.");
-			WRF::SetErrMsg(ErrMsgStr.c_str());
-			WRF::SetErrCode(0);
-			continue;
-		}
-
-		if (dx < 0.f) dx = DX;
-		if (dy < 0.f) dy = DY;
-
-		if (
-			vdf_dims[0] != wrf_dims[0] || 
-			vdf_dims[1] != wrf_dims[1] ||
-			vdf_dims[2] != wrf_dims[2]
-		) {
-
-			cerr << "Dimension mismatch, skipping file " << argv[arg] << endl;
-			continue;
-		}
-
-		// Figure out which timesteps we're copying 
 		
-		TIME64_T tfirst = *(vdf_timestamps.begin());
-		TIME64_T tlast = *(vdf_timestamps.end()-1);
-		if (strlen(opt.tsstart) != 0) {
-			if (WRF::WRFTimeStrToEpoch(opt.tsstart, &tfirst) < 0) exit(1);
+	argv++;
+	argc--;
+
+	// legacy crap
+	//
+	map <string, string> wrfNames;
+	wrfNames["U"] = "U";
+	wrfNames["V"] = "V";
+	wrfNames["W"] = "W";
+	wrfNames["PH"] = "PH";
+	wrfNames["PHB"] = "PHB";
+	wrfNames["P"] = "P";
+	wrfNames["PB"] = "PB";
+	wrfNames["T"] = "T";
+
+	size_t TotalTimeSteps = 0;
+	for (int arg = 0; arg<argc; arg++) {
+		vector <string> wrf_file;
+		wrf_file.push_back(argv[arg]);
+
+
+		MetadataWRF	*metadataWRF = new MetadataWRF(wrf_file);
+		if ((MetadataWRF::GetErrCode()!=0)||(metadataWRF->GetNumTimeSteps()==0)){ 
+			MyBase::SetErrMsg(
+				"Error processing WRF file %s, skipping", wrf_file[0].c_str()
+			);
+			MyBase::SetErrCode(0);
+			estatus++;
+			continue;
 		}
-		if (strlen(opt.tsend) != 0) {
-			if (WRF::WRFTimeStrToEpoch(opt.tsend, &tlast) < 0) exit(1);
+
+		//
+		// Make sure WRF and VDC metadata agree
+		//
+		if (! file_ok(metadataWRF, metadataVDC)) {
+			MyBase::SetErrMsg(
+				"Error processing WRF file %s, skipping", wrf_file[0].c_str()
+			);
+			MyBase::SetErrCode(0);
+			estatus++;
+			continue;
+		} 
+
+		WRFReader *wrfreader = new WRFReader(*metadataWRF);
+		if (WRFReader::GetErrCode() != 0) { 
+			MyBase::SetErrMsg(
+				"Error processing WRF file %s, skipping", wrf_file[0].c_str()
+			);
+			MyBase::SetErrCode(0);
+			estatus++;
+			continue;
 		}
-			
-		for (size_t t=0; t<wrf_timesExtents.size(); t++) {
-			TIME64_T tstamp = wrf_timesExtents[t].first;
-			if(p2si_flag) {
-				tstamp *= p2si;
-			}
-			vector <TIME64_T>::iterator itr;
-			if (
-				tstamp >= tfirst && 
-				tstamp <= tlast &&
-				((itr = find(vdf_timestamps.begin(), vdf_timestamps.end(), tstamp))!=vdf_timestamps.end())
-			) {
-				infiles.push_back(argv[arg]);
-				copy_wrf_timesteps.push_back(t);
-				copy_vdf_timesteps.push_back(itr-vdf_timestamps.begin());
-			}
-		} // End for t.
 
-		// Create one list of wrf variables.
+		vector <pair <string, double> > ga = wrfreader->GetGlobalAttributes();
+		for (int i=0; i<ga.size(); i++) {
+			if (ga[i].first.compare("DX") == 0) DX = ga[i].second;
+			if (ga[i].first.compare("DY") == 0) DY = ga[i].second;
+		}
 
-		for(size_t vt=0; vt <twrfvars2d.size(); vt++)
-			wrf_vars.push_back(twrfvars2d[vt]); 
-		for(size_t vt=0; vt <twrfvars3d.size(); vt++)
-			wrf_vars.push_back(twrfvars3d[vt]); 
+		vector <string> varsWRF = metadataWRF->GetVariableNames();
 
-		// Figure out which variables we're copying
-
+		vector <string> copy_vars;
 		SelectVariables(
-			vdf_vars, wrf_vars, opt.varnames, wrfNames, copy_vars,
-			(opt.noelev != 0));
-
-		if (! opt.noelev && find(copy_vars.begin(),copy_vars.end(),"ELEVATION")==copy_vars.end()) {
-			cerr << "Elevation could not be computed, skipping file " << argv[arg] << endl;
-			continue;
-		}
-
-		nc_close(ncid); // Close the netCDF file
-
-	} // End for arg, files from command line.
-
-	MetadataWRF *WRFMeta;
-	WRFMeta = new MetadataWRF(infiles);
-	if (!WRFMeta) {
-		WRF::SetErrMsg("Unable to create MetadataWRF object!");
-		exit(1);
-	}
-	WRFReader *WRFRead;
-	WRFRead = new WRFReader(*WRFMeta);
-	if (!WRFRead) {
-		WRF::SetErrMsg("Unable to create WRFReader object!");
-		exit(1);
-	}
-
-	// Grab the gravity value if there or set to Earth's value.
-
-	double grav = 9.81;
-	vector < pair <string, double> > global_attr = WRFMeta->GetGlobalAttributes();
-	for (int i=0; i < global_attr.size(); i++) {
-		if (global_attr[i].first == "G")
-			grav = global_attr[i].second;
-	}
-
-	// Copy the current file, one timestep at a time
-
-	for (int t=0; t<copy_wrf_timesteps.size() && TotalTimeSteps < MaxTimeSteps; t++) {
-		double wrf_vexts[2];		// vertical extents of wrf time step
-
-		int wrf_ts = copy_wrf_timesteps[t]; 
-		size_t vdf_ts = copy_vdf_timesteps[t];
-		size_t tmp_vdf_ts = -1;
-		vector <string> wrk_vars = copy_vars;
-		string wrf_filename;
-		size_t tmp_wrf_ts;
-		map <string, WRF::varInfo_t *> var_info_map;
-
-		// Since maybe a mismatch between what the MetadataWRF and the
-		// MetadataVDC with the vdf timestep.  This is due the processing
-		// not all of the datafiles at the same time.  But there is a way
-		// to solve this.
-
-		for(int i = 0; i < WRFMeta->GetNumTimeSteps(); i++) {
-			if( metadata->GetTSUserTime(vdf_ts) == WRFMeta->GetTSUserTime(i)) {
-				tmp_vdf_ts = i;
-				break;
-			}
-		}
-	
-		WRFMeta->MapVDCTimestep(tmp_vdf_ts, wrf_filename, tmp_wrf_ts);
-
-		// Open the netCDF file for reading
-		//
-		rc = OpenWrfFile(wrf_filename.c_str(), ncid);
-		if (rc<0) {
-			WRF::SetErrMsg("Failed to open, skipping file \"%s\"",
-				wrf_filename.c_str());
-			continue;
-		}
-
-		// Get info about specific netCDF variables
-		//
-
-		if (GetVarsInfo(ncid, wrk_vars, wrfNames, var_info_map)  < 0) {
-			WRF::SetErrMsg("Couldn't get needed metadata, skipping file \"%s\"",
-				wrf_filename.c_str());
-			continue;
-		}
+			varsVDC, varsWRF, opt.varnames, wrfNames, copy_vars,
+			(opt.noelev != 0)
+		);
 
 		if (! opt.quiet) {
-			cout << endl << "\tTime step : " << vdf_ts << " (VDC), " << wrf_ts << 
-				" (WRF)" << endl;
-		}
-
-		if (! opt.quiet) {
-			cout << "Processing file : " << wrf_filename.c_str() << endl;
+			cout << "Processing file : " << wrf_file[0].c_str() << endl;
 			cout << "\tTransforming variables : ";
 			for (int i=0; i<copy_vars.size(); i++) {
 				cout << copy_vars[i] << " ";
@@ -1680,66 +1212,65 @@ int	main(int argc, char **argv) {
 			cout << endl;
 		}
 
-		// Loop over the variables.
+		size_t numTimeStepsWRF = metadataWRF->GetNumTimeSteps();
+		for (size_t tsWRF=0; tsWRF<numTimeStepsWRF; tsWRF++) {
 
-		while(wrk_vars.size() > 0) {
 
-			rc = DoGeopotStuff(
-				WRFRead, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				*metadata, wrfNames, wrk_vars, wrf_vexts, grav);
-
-			if ((wrf_vexts[0] < (vdf_extents[2]-0.000001)) && ! opt.quiet && ! opt.noelev) {
-				cerr << ProgName << " : Warning, extents of file " << wrf_filename << " out of range\n";
+			size_t tsVDC;
+			if (!map_VDF2WRF_time(metadataWRF, tsWRF, metadataVDC, &tsVDC, opt.tolerance)) {
+				MyBase::SetErrMsg(
+					"Error processing WRF file %s, at time step %d : no matching VDC user time, skipping", 
+					wrf_file[0].c_str(), tsWRF
+				);
+				MyBase::SetErrCode(0);
+				estatus++;
+				continue;
 			}
-			if ((wrf_vexts[1] < (vdf_extents[5]-0.000001)) && ! opt.quiet && ! opt.noelev) {
-				cerr << ProgName << " : Warning, extents of file " << wrf_filename << " out of range\n";
+
+			if (! opt.quiet) {
+				cout << endl << "\tTime step : " << tsVDC << " (VDC), " 
+				<< tsWRF << " (WRF)" << endl;
 			}
-			
+
+			vector <string> wrk_vars = copy_vars;
+
+			DoGeopotStuff(
+				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfNames, wrk_vars
+			);
+
 			// Find wind speeds, if necessary
-			rc = DoWindStuff( 
-				WRFRead, vdf_dims, dx, dy, var_info_map, vdf_ts, wrf_ts,
-				*metadata, wrfNames, wrk_vars);
-			if (rc<0) MyBase::SetErrCode(0);
+			DoWindStuff( 
+				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfNames, wrk_vars
+			);
 
-			// Find P- or T-related derived variables, if necessary
-			rc = DoPTStuff(
-				WRFRead, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				*metadata, wrfNames, wrk_vars);
-			if (rc<0) MyBase::SetErrCode(0);
+			DoPTStuff( 
+				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfNames, wrk_vars
+			);
 
 			// Remaining 3D variables
-			rc = DoIndependentVars3d(
-				WRFRead, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				*metadata, wrfNames, wrk_vars);
-			if (rc<0) MyBase::SetErrCode(0);
+			DoIndependentVars3d(
+				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfNames, wrk_vars
+			);
 
 			// Remaining 2D variables
-			rc = DoIndependentVars2d(
-				WRFRead, vdf_dims, var_info_map, vdf_ts, wrf_ts,
-				*metadata, wrfNames, wrk_vars);
-			if (rc<0) MyBase::SetErrCode(0);
+			DoIndependentVars2d(
+				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfNames, wrk_vars
+			);
 
-			// Free elements from var_info_map, which are dynmically allocated
-
-			map<string, WRF::varInfo_t *>::iterator iter;
-			for( iter = var_info_map.begin(); iter != var_info_map.end(); iter++ ) {
-				if (iter->second) delete iter->second;
-				iter->second = NULL;
-			}
-			var_info_map.clear();
-
-			// Shouldn't have any variables left to process
 			assert(wrk_vars.size() == 0);
-			wrk_vars.clear();
-
-		} // End of while (wrk_vars).
+		}
 		TotalTimeSteps++;
-	} // End of for t.
+	}
 
 	if (! opt.quiet) {
 		cout << endl;
 		cout << "Transformed " << TotalTimeSteps << " time steps" << endl;
 	}
 
-	exit(0);
+	exit(estatus);
 }
