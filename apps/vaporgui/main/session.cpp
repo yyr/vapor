@@ -373,7 +373,8 @@ buildNode() {
 	
 	if (ds->getNumDerivedScripts() > 0){
 		//Iterate through the scripts
-		for (int indx = 1; indx < ds->getMaxDerivedScriptId(); indx++){
+		int maxID = ds->getMaxDerivedScriptId();
+		for (int indx = 1; indx <= maxID; indx++){
 			string name = ds->getDerivedScriptName(indx);
 			if(name == "") continue;
 			std::map <string, string> attrs;
@@ -717,7 +718,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				else return false;
 			}
 			else return false;
-		case(4):
+		case(3):
 			if (StrCmpNoCase(tag, _pythonProgramTag) == 0){
 				parsedPythonProgram = pm->getStringData();
 				return true;

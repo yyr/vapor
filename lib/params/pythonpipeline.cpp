@@ -75,6 +75,10 @@ void PythonPipeLine::initialize(){
 	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
 		
 	Py_Initialize();
+	PyObject* numpyname = PyString_FromFormat("numpy");
+	PyObject* mod = PyImport_Import(numpyname);
+	PyObject* vaporname = PyString_FromFormat("vapor");
+	mod = PyImport_Import(vaporname);
 	
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
@@ -157,12 +161,18 @@ int PythonPipeLine::python_wrapper(
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
 	
-	string pretext = "import sys\n";
+	/*string pretext = "import sys\n";
 	pretext += "import StringIO\n";
 	pretext += "import vapor\n";
 	pretext += "myErr = StringIO.StringIO()\n";
+	pretext += "sys.stderr = myErr\n";*/
+	string pretext = "import sys\n";
+	pretext += "import StringIO\n";
+	pretext += "import vapor\n";
+	pretext += "myIO = StringIO.StringIO()\n";
+	pretext += "myErr = StringIO.StringIO()\n";
+	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
-	
 
 	for (int i = 0; i< inputData.size(); i++){
 		string vname = inputs[i];
