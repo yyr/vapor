@@ -930,6 +930,7 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 	 while (iter != derivedMethodMap.end()) {
 		 int index = iter->first;
 		 if (index > lastIndex) lastIndex = index;
+		 iter++;
 	 }
 	 return lastIndex;
  }

@@ -604,5 +604,6 @@ void PythonEdit::deleteScript(){
 	
 	int id = DataStatus::getDerivedScriptId(variableName.toStdString());
 	if (id >=0) DataStatus::removeDerivedScript(id);
+	VizWinMgr::getInstance()->reinitializeVariables();
 	close();
 }
