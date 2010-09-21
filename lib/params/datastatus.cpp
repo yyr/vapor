@@ -22,6 +22,7 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include "datastatus.h"
+#include "pythonpipeline.h"
 
 #include <cassert>
 #include <cstring>
@@ -50,6 +51,7 @@ using namespace VetsUtil;
 //Following are static, must persist even when there is no instance:
 DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
+const vector<string> DataStatus::emptyVec;
 std::vector<std::string> DataStatus::variableNames;
 std::vector<float> DataStatus::aboveValues;
 std::vector<float> DataStatus::belowValues;
@@ -78,6 +80,17 @@ size_t DataStatus::cacheMB = 0;
 int DataStatus::interactiveRefLevel = 0;
 
 
+	//Python script mappings:
+	//mapping from index to Python function
+map<int,string> DataStatus::derivedMethodMap;
+	//mapping from index to input 2D variables
+map<int,vector<string> > DataStatus::derived2DInputMap;
+	//mapping from index to input 3D variables
+map<int,vector<string> > DataStatus::derived3DInputMap;
+	//mapping to 2d outputs
+map<int,vector<string> > DataStatus::derived2DOutputMap;
+	//mapping from index to output 3D variables
+map<int,vector<string> > DataStatus::derived3DOutputMap;
 const string DataStatus::_backgroundColorAttr = "BackgroundColor";
 const string DataStatus::_regionFrameColorAttr = "DomainFrameColor";
 const string DataStatus::_subregionFrameColorAttr = "SubregionFrameColor";
@@ -409,9 +422,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	QApplication::restoreOverrideCursor();
 	//Now process the python variables.
 	//They must be added to the session variables.
-		//Set up the active variable mapping initially to coincide with the metadata variable mapping,
+	//Set up the active variable mapping initially to coincide with the metadata variable mapping,
 	//then add entries for python variables.
-	
+	//A pipeline must be created for each python variable
+
 	for (int i = 0; i< numMetadataVariables; i++)
 		getInstance()->activeVariableNums3D.push_back(mapMetadataVars[i]);
 	for (int i = 0; i< numMetadataVariables2D; i++)
@@ -423,6 +437,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		for (int i = 0; i<vars.size(); i++){
 			setDerivedVariable2D(vars[i]);
 		}
+		outIter++;
 	}
 	outIter = derived3DOutputMap.begin();
 	while (outIter != derived3DOutputMap.end()){
@@ -430,6 +445,33 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		for (int i = 0; i<vars.size(); i++){
 			setDerivedVariable3D(vars[i]);
 		}
+		outIter++;
+	}
+	std::map<int, string > :: const_iterator methodIter = derivedMethodMap.begin();
+	while (methodIter != derivedMethodMap.end()){
+		int scriptId = methodIter->first;
+		string method = methodIter->second;
+		//Create string vectors for input and output variables
+		vector<string> inputs;
+		vector<string> in2dVars = getDerived2DInputVars(scriptId);
+		vector<string> in3dVars = getDerived3DInputVars(scriptId);
+		for (int i = 0; i<in2dVars.size(); i++) inputs.push_back(in2dVars[i]);
+		for (int i = 0; i<in3dVars.size(); i++) inputs.push_back(in3dVars[i]);
+
+		vector<string> out2dVars = getDerived2DOutputVars(scriptId);
+		vector<string> out3dVars = getDerived3DOutputVars(scriptId);
+		vector<pair<string, Metadata::VarType_T> > outpairs;
+		for (int i = 0; i < out3dVars.size(); i++){
+			outpairs.push_back( make_pair(out3dVars[i],Metadata::VAR3D));
+		}
+		for (int i = 0; i < out2dVars.size(); i++){
+			outpairs.push_back( make_pair(out2dVars[i],Metadata::VAR2D_XY));
+		}
+		string pname;
+		if (out3dVars.size() > 0) pname = out3dVars[0]; else pname = out2dVars[0];
+		PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
+		dataMgr->NewPipeline(pipe);
+		methodIter++;
 	}
 
 	minTimeStep = (size_t)mints;
@@ -758,7 +800,7 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 //Derived var support
 //Obtain the id for a given output variable, return -1 if it does not exist
 //More or less the same as the method on DataMgr, but valid even if there is not DataMgr
-int DataStatus::getDerivedScriptId(const string& outvar) const{
+int DataStatus::getDerivedScriptId(const string& outvar) {
 	map <int, vector<string> > :: const_iterator outIter = derived2DOutputMap.begin();
 	while (outIter != derived2DOutputMap.end()){
 		vector<string> vars = outIter->second;
@@ -785,27 +827,27 @@ const string& DataStatus::getDerivedScriptName(int id){
 	return (_emptyString);
 }
 
-const string& DataStatus::getDerivedScript(int id) const{
+const string& DataStatus::getDerivedScript(int id) {
 	map<int,string> :: const_iterator iter = derivedMethodMap.find(id);
 	if (iter == derivedMethodMap.end()) return *(new string(""));
 	else return iter->second;
 }
-const vector<string>& DataStatus::getDerived2DInputVars(int id) const{
+const vector<string>& DataStatus::getDerived2DInputVars(int id) {
 	map<int,vector<string> > :: const_iterator iter = derived2DInputMap.find(id);
 	if (iter == derived2DInputMap.end()) return emptyVec;
 	else return iter->second;
 }
-const vector<string>& DataStatus::getDerived3DInputVars(int id) const{
+const vector<string>& DataStatus::getDerived3DInputVars(int id) {
 	map<int,vector<string> > :: const_iterator iter = derived3DInputMap.find(id);
 	if (iter == derived3DInputMap.end()) return emptyVec;
 	else return iter->second;
 }
-const vector<string>& DataStatus::getDerived2DOutputVars(int id) const{
+const vector<string>& DataStatus::getDerived2DOutputVars(int id) {
 	map<int,vector<string> > :: const_iterator iter = derived2DOutputMap.find(id);
 	if (iter == derived2DOutputMap.end()) return emptyVec;
 	else return iter->second;
 }
-const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
+const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 	map<int,vector<string> > :: const_iterator iter = derived3DOutputMap.find(id);
 	if (iter == derived3DOutputMap.end()) return emptyVec;
 	else return iter->second;
@@ -841,7 +883,8 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
 	return true;
  }
  int DataStatus::addDerivedScript(const vector<string>& in2DVars, const vector<string>& out2DVars, 
-							 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
+							 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script,
+							 bool useMetadata){
 	//First test to make sure that none of the outvars are in other scripts:
 	for (int i = 0; i<out2DVars.size(); i++){
 		if (getDerivedScriptId(out2DVars[i]) >= 0) return -1;
@@ -865,14 +908,17 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
 	derived2DOutputMap[newIndex] = out2DVars;
 	derived3DOutputMap[newIndex] = out3DVars;
 
-	//Add the new derived variables
-	for (int i = 0; i<out2DVars.size(); i++){
-		int sesid = setDerivedVariable2D(out2DVars[i]);
-		if (sesid < 0) return -1;
-	}
-	for (int i = 0; i<out3DVars.size(); i++){
-		int sesid = setDerivedVariable3D(out3DVars[i]);
-		if (sesid < 0) return -1;
+	if (useMetadata){
+		//Add the new derived variables to existing variables
+		//in the datastatus
+		for (int i = 0; i<out2DVars.size(); i++){
+			int sesid = setDerivedVariable2D(out2DVars[i]);
+			if (sesid < 0) return -1;
+		}
+		for (int i = 0; i<out3DVars.size(); i++){
+			int sesid = setDerivedVariable3D(out3DVars[i]);
+			if (sesid < 0) return -1;
+		}
 	}
 	
 	return newIndex;
@@ -884,7 +930,6 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) const{
 	 while (iter != derivedMethodMap.end()) {
 		 int index = iter->first;
 		 if (index > lastIndex) lastIndex = index;
-		 iter++;
 	 }
 	 return lastIndex;
  }
@@ -931,7 +976,7 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 	}
 	
 	//Is it already in session?
-	int sesvarnum = getSessionVariableNum2D(derivedVarName);
+	int sesvarnum = getSessionVariableNum(derivedVarName);
 	if (sesvarnum < 0){
 		
 		sesvarnum = mergeVariableName(derivedVarName);

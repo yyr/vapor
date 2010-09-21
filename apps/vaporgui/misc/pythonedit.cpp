@@ -122,24 +122,24 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	
 	if (!startUp && varname != ""){
 		//Set up combos for specified output variable
-		DataStatus* ds = DataStatus::getInstance();
-		int scriptID = ds->getDerivedScriptId(varname.toStdString());
+		
+		int scriptID = DataStatus::getDerivedScriptId(varname.toStdString());
 		assert(scriptID >= 0);
-		pythonEdit->setText(ds->getDerivedScript(scriptID).c_str());
+		pythonEdit->setText(DataStatus::getDerivedScript(scriptID).c_str());
 		//Set up the input and output variable combos
-		vector<string> varnames = ds->getDerived2DInputVars(scriptID);
+		vector<string> varnames = DataStatus::getDerived2DInputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
 			inputVars2->insertItem(2,varnames[i].c_str());
 		}
-		varnames = ds->getDerived3DInputVars(scriptID);
+		varnames = DataStatus::getDerived3DInputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
 			inputVars3->insertItem(2,varnames[i].c_str());
 		}
-		varnames = ds->getDerived2DOutputVars(scriptID);
+		varnames = DataStatus::getDerived2DOutputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
 			outputVars2->insertItem(2,varnames[i].c_str());
 		}
-		varnames = ds->getDerived3DOutputVars(scriptID);
+		varnames = DataStatus::getDerived3DOutputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
 			outputVars3->insertItem(2,varnames[i].c_str());
 		}
@@ -600,9 +600,9 @@ void PythonEdit::deleteScript(){
 	int ret = msgBox.exec();
 	if(ret == QMessageBox::Cancel) return;
 	//Remove the script and its variables..
-	DataStatus* ds = DataStatus::getInstance();
 	
-	int id = ds->getDerivedScriptId(variableName.toStdString());
-	if (id >=0) ds->removeDerivedScript(id);
+	
+	int id = DataStatus::getDerivedScriptId(variableName.toStdString());
+	if (id >=0) DataStatus::removeDerivedScript(id);
 	close();
 }

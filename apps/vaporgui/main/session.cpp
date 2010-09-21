@@ -366,16 +366,16 @@ buildNode() {
 	if (vpNode) globalPanels->AddChild(vpNode);
 
 	//Create a pythonScript node and populate it
-	DataStatus* ds = DataStatus::getInstance();
-	ParamNode* pythonNode = new ParamNode(_pythonScriptsTag,1+ds->getNumDerivedScripts());
+	
+	ParamNode* pythonNode = new ParamNode(_pythonScriptsTag,1+DataStatus::getNumDerivedScripts());
 	pythonNode->SetElementString(_setupScriptTag,PythonPipeLine::getStartupScript());
 	//Iterate through the derived variable scripts
 	
-	if (ds->getNumDerivedScripts() > 0){
+	if (DataStatus::getNumDerivedScripts() > 0){
 		//Iterate through the scripts
-		int maxID = ds->getMaxDerivedScriptId();
+		int maxID = DataStatus::getMaxDerivedScriptId();
 		for (int indx = 1; indx <= maxID; indx++){
-			string name = ds->getDerivedScriptName(indx);
+			string name = DataStatus::getDerivedScriptName(indx);
 			if(name == "") continue;
 			std::map <string, string> attrs;
 			attrs.clear();
@@ -384,15 +384,15 @@ buildNode() {
 			oss << name;
 			attrs[_scriptNameAttr] = oss.str();
 			ParamNode* scriptNode = new ParamNode(_pythonDerivedScriptTag,attrs,3);
-			scriptNode->SetElementString(_pythonProgramTag,ds->getDerivedScript(indx));
-			if (ds->getDerived2DInputVars(indx).size()>0)
-				scriptNode->SetElementString(_python2DInputsTag, ds->getDerived2DInputVars(indx));
-			if (ds->getDerived3DInputVars(indx).size()>0)
-				scriptNode->SetElementString(_python3DInputsTag, ds->getDerived3DInputVars(indx));
-			if (ds->getDerived2DOutputVars(indx).size()>0)
-				scriptNode->SetElementString(_python2DOutputsTag, ds->getDerived2DOutputVars(indx));
-			if (ds->getDerived3DOutputVars(indx).size()>0)
-				scriptNode->SetElementString(_python3DOutputsTag, ds->getDerived3DOutputVars(indx));
+			scriptNode->SetElementString(_pythonProgramTag,DataStatus::getDerivedScript(indx));
+			if (DataStatus::getDerived2DInputVars(indx).size()>0)
+				scriptNode->SetElementString(_python2DInputsTag, DataStatus::getDerived2DInputVars(indx));
+			if (DataStatus::getDerived3DInputVars(indx).size()>0)
+				scriptNode->SetElementString(_python3DInputsTag, DataStatus::getDerived3DInputVars(indx));
+			if (DataStatus::getDerived2DOutputVars(indx).size()>0)
+				scriptNode->SetElementString(_python2DOutputsTag, DataStatus::getDerived2DOutputVars(indx));
+			if (DataStatus::getDerived3DOutputVars(indx).size()>0)
+				scriptNode->SetElementString(_python3DOutputsTag, DataStatus::getDerived3DOutputVars(indx));
 			pythonNode->AddChild(scriptNode);
 		}
 	}
@@ -713,9 +713,10 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				int id = DataStatus::getInstance()->addDerivedScript(
 					parsed2DInputVars,parsed2DOutputVars,
 					parsed3DInputVars,parsed3DOutputVars,
-					parsedPythonProgram);
-				if (id > 0) return true;
-				else return false;
+					parsedPythonProgram, false);
+				if (id <= 0) 
+					MessageReporter::errorMsg(" Invalid Python program in session file");
+				return true;
 			}
 			else return false;
 		case(3):

@@ -1603,13 +1603,12 @@ void MainForm::setupEditMenu(){
 	editUndoAction->setText( undoText );
 	editRedoAction->setText( redoText );
 	//set up the menus based on what derived variables are available
-	DataStatus* ds = DataStatus::getInstance();
 	
 	editPythonMenu->clear();
 	newPythonAction->setEnabled(true);
 	bool haveVars = false;
 	
-	map<int,vector<string> > pyMap = ds->getDerived3DOutputMap();
+	map<int,vector<string> > pyMap = DataStatus::getDerived3DOutputMap();
 	//Iterate through the maps, getting all 3D variables
 	map <int,vector<string> > :: const_iterator var_Iter = pyMap.begin();
 	while (var_Iter != pyMap.end()){
@@ -1621,7 +1620,7 @@ void MainForm::setupEditMenu(){
 		}
 		var_Iter++;
 	}
-	pyMap = ds->getDerived2DOutputMap();
+	pyMap = DataStatus::getDerived2DOutputMap();
 	//Iterate through the maps, getting all 2D variables
 	var_Iter = pyMap.begin();
 	while (var_Iter != pyMap.end()){

@@ -307,6 +307,7 @@ public:
 		extendUp.clear();
 		extendDown.clear();
 		variableNames2D.clear();
+		clearDerivedVars();
 	}
 	static void removeMetadataVars(){
 		if (mapMetadataVars) delete mapMetadataVars;
@@ -318,6 +319,15 @@ public:
 		mapMetadataVars = 0; numMetadataVariables = 0;
 		mapMetadataVars2D = 0; numMetadataVariables2D = 0;
 	}
+	static void clearDerivedVars() {
+		clearActiveVars();
+		derivedMethodMap.clear();
+		derived2DInputMap.clear();
+		derived3DInputMap.clear();
+		derived2DOutputMap.clear();
+		derived3DOutputMap.clear();
+	}
+
 	//Get full stretched data extents in cube coords
 	void getMaxStretchedExtentsInCube(float maxExtents[3]);
 	const float* getStretchFactors() {return stretchFactors;}
@@ -403,9 +413,10 @@ public:
 
 	//Support for Python methods
 	//Specify a new python script, return the integer ID (-1 if error)
-	int addDerivedScript(const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,const std::string &);
+	int addDerivedScript(const std::vector<string> &,const std::vector<string> &,const std::vector<string> &,
+		const std::vector<string> &,const std::string &, bool useMetadata = true);
 	//Determine how many scripts there are
-	int getNumDerivedScripts(){
+	static int getNumDerivedScripts(){
 		return (derivedMethodMap.size());
 	}
 	//Replace an existing python script with a new one.  -1 if error
@@ -413,36 +424,36 @@ public:
 	//Obtain the id for a given output variable, return -1 if it does not exist
 	//mapping from index to output 2D variables
 	//Client classes need to iterate (read-only) over these
-	const map<int,vector<string> >& getDerived2DOutputMap() const {return derived2DOutputMap;}
-	const map<int,vector<string> >& getDerived3DOutputMap() const {return derived3DOutputMap;}
+	static const map<int,vector<string> >& getDerived2DOutputMap() {return derived2DOutputMap;}
+	static const map<int,vector<string> >& getDerived3DOutputMap() {return derived3DOutputMap;}
 	//Remove a python script and associated variable lists.  Return false if it's already gone
-	bool removeDerivedScript(int index);
+	static bool removeDerivedScript(int index);
 
-	bool isDerivedVariable(std::string varname) const{
+	static bool isDerivedVariable(std::string varname) {
 		return (getDerivedScriptId(varname) >= 0);
 	}
-	const std::string getDerivedMethod(std::string varname) const{
+	static const std::string getDerivedMethod(std::string varname) {
 		int id = getDerivedScriptId(varname);
 		if (id <0) return string("");
 		return (getDerivedScript(id)); 
 	}
 	 //Change the just the method on an existing script
-	 bool setDerivedMethod(const std::string varname, const std::string& method){
+	 static bool setDerivedMethod(const std::string varname, const std::string& method){
 		 int id = getDerivedScriptId(varname);
 		 if (id <0) return false;
 		 derivedMethodMap[id] = method;
 		 return true;
 	}
 	
-	int getDerivedScriptId(const string& outvar) const;
-	const string& getDerivedScript(int id) const;
-	int getMaxDerivedScriptId();
-	const string& getDerivedScriptName(int id);
-	const vector<string>& getDerived2DInputVars(int id) const;
-	const vector<string>& getDerived3DInputVars(int id) const;
-	const vector<string>& getDerived2DOutputVars(int id) const;
-	const vector<string>& getDerived3DOutputVars(int id) const;
-	const string& getDerivedScript(const string& outvar) const{
+	static int getDerivedScriptId(const string& outvar) ;
+	static const string& getDerivedScript(int id) ;
+	static int getMaxDerivedScriptId();
+	static const string& getDerivedScriptName(int id);
+	static const vector<string>& getDerived2DInputVars(int id) ;
+	static const vector<string>& getDerived3DInputVars(int id) ;
+	static const vector<string>& getDerived2DOutputVars(int id) ;
+	static const vector<string>& getDerived3DOutputVars(int id) ;
+	static const string& getDerivedScript(const string& outvar) {
 		return getDerivedScript(getDerivedScriptId(outvar));
 	}
 	//Add a python variable to the session, update mappings, bounds, etc. appropriately.
@@ -461,19 +472,19 @@ public:
 private:
 	
 	static DataStatus* theDataStatus;
-	const vector<string> emptyVec;
+	static const vector<string> emptyVec;
 	static const string _emptyString;
 	//Python script mappings:
 	//mapping from index to Python function
-	map<int,string> derivedMethodMap;
+	static map<int,string> derivedMethodMap;
 	//mapping from index to input 2D variables
-	map<int,vector<string> > derived2DInputMap;
+	static map<int,vector<string> > derived2DInputMap;
 	//mapping from index to input 3D variables
-	map<int,vector<string> > derived3DInputMap;
+	static map<int,vector<string> > derived3DInputMap;
 	//mapping to 2d outputs
-	map<int,vector<string> > derived2DOutputMap;
+	static map<int,vector<string> > derived2DOutputMap;
 	//mapping from index to output 3D variables
-	map<int,vector<string> > derived3DOutputMap;
+	static map<int,vector<string> > derived3DOutputMap;
 
 	void calcDataRange(int sesvarnum, int ts);
 	void calcDataRange2D(int sesvarnum, int ts);
