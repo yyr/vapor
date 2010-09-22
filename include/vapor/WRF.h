@@ -8,8 +8,8 @@
 
 
 #include <iostream>
-//#include <string>
 #include <vector>
+#include <map>
 #include <sstream>
 #include <netcdf.h>
 #include <vapor/PVTime.h>
@@ -19,21 +19,10 @@ namespace VAPoR {
 class VDF_API WRF : public VetsUtil::MyBase {
 public:
 
- // A struct for storing names of certain WRF variables
- typedef struct atypVarNames {
-    string U;
-    string V;
-    string W;
-    string PH;
-    string PHB;
-    string P;
-    string PB;
-    string T;
- } atypVarNames_t;
-
  // A struct for storing info about a netCDF variable
  typedef struct {
-	string name; // Name of the variable in the VDF and WRF file
+	string wrfvname; // Name of the variable as it appears in the WRF file
+	string alias; // alias for wrfvname
 	int varid; // Variable ID in netCDF file
 	vector <int> dimids; // Array of dimension IDs that this variable uses
 	vector <size_t> dimlens; // Array of dimensions from netCDF file
@@ -42,6 +31,7 @@ public:
 				// are staggered. N.B. order of array is reversed from
 				// netCDF convection. I.e. stag[0] == X, stag[2] == Z.
  } varInfo_t;
+
 
  // File handle
  //
@@ -53,7 +43,8 @@ public:
  } varFileHandle_t;
 
  WRF(const string &wrfname);
- WRF(const string &wrfname, const atypVarNames_t &atypnames);
+
+ WRF(const string &wrfname, const map <string, string> &atypnames);
  virtual ~WRF();
 
  varFileHandle_t *Open(const string &varname);
@@ -69,13 +60,6 @@ public:
 
 
 
- // Gets info about a 2D or 3D variable and stores that info in thisVar.
- static int	GetVarInfo(
-	int ncid, // ID of the file we're reading
-	const char *name,
-	const vector <ncdim_t> &ncdims,
-	varInfo_t & thisVar // Variable info
- );
 
  // Reads a horizontal slice of the variable indicated by thisVar, 
  // and interpolates any points on a staggered grid to an unstaggered grid
@@ -113,9 +97,14 @@ public:
 
 
 private:
- int _ncid;
- atypVarNames_t _atypnames;
 
+ // A mapping between required WRF variable names and how  these
+ // names may appear in the file. The first string is the alias,
+ // the second is the name of the var as it appears in the file
+ //
+ map <string, string> _atypnames;
+
+ int _ncid;
  float _vertExts[2]; // Vertical extents
  size_t _dimLens[4]; // Lengths of x, y, z, and time dimensions (unstaggered)
  string _startDate; // Place to put START_DATE attribute 
@@ -125,9 +114,8 @@ private:
  vector <pair<string, double> > _gl_attrib;
  vector <pair< TIME64_T, vector <float> > > _tsExtents; //Times in seconds, lat/lon corners
 
- vector<varInfo_t> _wrfVarInfo;
 
- int _WRF(const string &wrfname, const atypVarNames_t &atypnames);
+ int _WRF(const string &wrfname, const map <string, string> &atypnames);
 
  void _InterpHorizSlice(
 	float * fbuffer, // The slice of data to interpolate
@@ -173,6 +161,17 @@ private:
     vector<varInfo_t> &wrfVarInfo,
     vector<pair<string, double> > &gl_attrib,
     vector <pair< TIME64_T, vector <float> > > &tsExtents //Times in seconds, lat/lon corners (out)
+ );
+
+
+ vector<varInfo_t> _wrfVarInfo;
+
+ // Gets info about a 2D or 3D variable and stores that info in thisVar.
+ int	_GetVarInfo(
+	int ncid, // ID of the file we're reading
+	string name,	// actual name of variable in WRF file (not atypical name)
+	const vector <ncdim_t> &ncdims,
+	varInfo_t & thisVar // Variable info
  );
 
 

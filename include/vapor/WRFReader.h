@@ -40,12 +40,28 @@ public:
 
  //!
  //! Create a WRFReader object from a list of netCDF files comprising
+ //! a single WRF data set.  The \p atypnames provides a mapping
+ //! from standard to non-standard WRF variable names for the required WRF
+ //! variables: U:V:W:PH:PHB:P:PB:T
+ //!
+ //! \param[in] metadata A MetadataWRF object that has already
+ //! been initialized with a WRF data set.
+ //! \param[in] atypnames A mapping of non-standard to standard 
+ //! WRF variable names. The first element is the standard name
+ //! the second element is the non standard name (the name as it appears
+ //! in the file);
+ //!
+ WRFReader(const vector<string> &infiles, const map <string,string> &atypnames);
+
+ //!
+ //! Create a WRFReader object from a list of netCDF files comprising
  //! a single WRF data set. 
  //!
  //! \param[in] metadata A MetadataWRF object that has already
  //!  been initialized with a WRF data set.
  //!
  WRFReader(const vector<string> &infiles);
+
 
  virtual ~WRFReader();
 
@@ -153,6 +169,8 @@ private:
  WRF::varFileHandle_t *_wrf_fh2;
  double _grav;
  float *_slice_buf;
+
+ map <string, string> _atypnames;
 
  int _WRFReader();
 

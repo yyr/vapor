@@ -19,13 +19,14 @@
 
 namespace VAPoR {
 
-class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
-	// , public ParsedXml 
-  {
-    public:
-      MetadataWRF();
-      MetadataWRF (const vector<string> &files);
-      ~MetadataWRF();
+class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase {
+public:
+ MetadataWRF ();
+ MetadataWRF (const vector<string> &files);
+ MetadataWRF (
+	const vector<string> &files, const map <string, string> &atypnames
+ );
+ ~MetadataWRF();
 
 //! Return the internal blocking factor use for WaveletBlock files
 //!
@@ -247,7 +248,10 @@ class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
         size_t &timestep 
       );
 
-    private:
+protected:
+ map <string, string> GetAtypNames() const {return(_atypnames); };
+
+private:
       vector<pair<string, double> > Global_attrib;
       vector <pair< TIME64_T, vector <float> > > Time_latlon_extents;
       vector<pair<TIME64_T, vector<double> > > Time_extents;
@@ -261,10 +265,14 @@ class VDF_API MetadataWRF : public Metadata, public VetsUtil::MyBase
       float minLat, minLon, maxLat, maxLon;
       double Reflevel;
 
-      //bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
-      //bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
+ map <string, string> _atypnames;
 
-  }; // End of class.
+ void _MetadataWRF (
+	const vector<string> &files, const map <string, string> &atypnames
+ );
+
+
+}; // End of class.
 
 }; // End of namespace.
 
