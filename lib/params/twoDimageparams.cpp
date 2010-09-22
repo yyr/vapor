@@ -1018,3 +1018,7 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 	return true;
 	
 }
+bool TwoDImageParams::
+usingVariable(const string& varname){
+	return (varname == "HGT" && isMappedToTerrain());
+}

@@ -2148,6 +2148,12 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	*/
 
 }
+bool ProbeParams::
+usingVariable(const string& varname){
+	int varnum = DataStatus::getInstance()->getSessionVariableNum(varname);
+	return (variableIsSelected(varnum));
+}
+
 bool ProbeParams::isOpaque(){
 	if(getMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
 	return false;

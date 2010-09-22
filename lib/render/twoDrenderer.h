@@ -46,6 +46,8 @@ public:
     virtual void		paintGL()=0;
 
 	static unsigned char* getTwoDTexture(TwoDParams*, int frameNum, bool doCache);
+	void setAllDataDirty(){ ((TwoDParams*)getRenderParams())->setTwoDDirty();}
+	
 	
 protected:
 	GLuint _twoDid;

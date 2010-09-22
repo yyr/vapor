@@ -53,6 +53,7 @@ public:
 	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, bool doCache, GLuint fbid, GLuint fbtexid);
 	static void pushState(int width, int height, GLuint fbid, GLuint fbtexid, bool first);
 	static void popState();
+	void setAllDataDirty(){ ((ProbeParams*)getRenderParams())->setProbeDirty();}
 	
 protected:
 	GLuint _probeTexid, _fbTexid;

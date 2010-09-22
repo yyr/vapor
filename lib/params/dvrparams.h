@@ -63,6 +63,10 @@ public:
 	static ParamsBase* CreateDefaultInstance() {return new DvrParams(-1);}
 	
 	virtual Params* deepCopy(ParamNode* = 0); 
+	virtual bool usingVariable(const string& varname){
+		return (DataStatus::getInstance()->getVariableName(varNum) == varname);
+	}
+
 	
 	void setNumBits(int val) {numBits = val;}
 	int getNumBits() {return numBits;}

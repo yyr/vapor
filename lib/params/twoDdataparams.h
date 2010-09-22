@@ -83,6 +83,8 @@ public:
 	virtual void setMaxColorMapBound(float val);
 	virtual void setMinOpacMapBound(float val);
 	virtual void setMaxOpacMapBound(float val);
+
+	virtual bool usingVariable(const string& varname);
 	
 	void setMinEditBound(float val) {
 		setMinColorEditBound(val, firstVarNum);

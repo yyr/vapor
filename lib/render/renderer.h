@@ -64,6 +64,8 @@ public:
 	bool doAlwaysBypass(int ts) {
 		return (currentRenderParams && currentRenderParams->doAlwaysBypass(ts));}
 	string getMyName() const {return(_myName);};
+	//General method to force a renderer to re-obtain its data.
+	virtual void setAllDataDirty() = 0;
 signals:
 
     void statusMessage(const QString&);

@@ -431,6 +431,9 @@ public:
 		
 	bool isEnabled(){return enabled;}
 	virtual void setEnabled(bool value) {enabled = value; stopFlag = false;}
+
+	//return true if specified variable is currently being used by this renderParams.
+	virtual bool usingVariable(const std::string& varname) = 0;
 	
 	virtual int getNumRefinements()=0;
 	virtual int GetCompressionLevel()=0;

@@ -323,6 +323,22 @@ deepCopy(ParamNode*){
 	return newFlowParams;
 }
 
+bool FlowParams::usingVariable(const string& varname){
+	int varnum = DataStatus::getInstance()->getSessionVariableNum(varname);
+	if (flowType == 0 || flowType == 2){
+		if ((steadyVarNum[0] == varnum )|| (steadyVarNum[1] == varnum) || (steadyVarNum[1] == varnum)) return true;
+	}
+	if (flowType == 1){
+		if ((unsteadyVarNum[0] == varnum )|| (unsteadyVarNum[1] == varnum) || (unsteadyVarNum[1] == varnum)) return true;
+	}
+	if (randomGen && seedDistBias != 0.f){
+		if ((seedDistVarNum[0] == varnum )|| (seedDistVarNum[1] == varnum) || (seedDistVarNum[1] == varnum)) return true;
+	}
+	if (flowType == 2){
+		if ((priorityVarNum[0] == varnum )|| (priorityVarNum[1] == varnum) || (priorityVarNum[1] == varnum)) return true;
+	}
+	return false;
+}
 //Reinitialize settings, session has changed
 //If dooverride is true, then go back to default state.  If it's false, try to 
 //make use of previous settings

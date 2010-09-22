@@ -48,6 +48,8 @@ public:
 	void setTab(FlowTab* tab); 
 	
 	virtual Params* deepCopy(ParamNode* =0);
+
+	virtual bool usingVariable(const string& varname);
 	
 	virtual int GetCompressionLevel() {return compressionLevel;}
 	virtual void SetCompressionLevel(int val) {compressionLevel = val; }

@@ -54,7 +54,7 @@ public:
 		return (!twoDDataTextures || twoDDataTextures[0] == 0 || cachedTimestep != timestep);
 	}
 	virtual void getTextureSize(int sze[2], int){sze[0] = textureSizes[0]; sze[1] = textureSizes[1];}
-	
+	virtual bool usingVariable(const string& varname);
 	
 	virtual int getSessionVarNum() {return -1;}  //following not used by this params
 	virtual void setMinColorMapBound(float ){}

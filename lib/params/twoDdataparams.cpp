@@ -116,7 +116,12 @@ refreshCtab() {
 	((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
 }
 	
-
+bool TwoDDataParams::
+usingVariable(const string& varname){
+	if (varname == "HGT" && isMappedToTerrain()) return true;
+	int varnum = DataStatus::getInstance()->getSessionVariableNum2D(varname);
+	return (variableIsSelected(varnum));
+}
 
 
 void TwoDDataParams::

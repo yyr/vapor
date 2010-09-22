@@ -49,6 +49,8 @@ public:
 	const std::string& getShortName() {return _shortName;}
 	
 	virtual Params* deepCopy(ParamNode* = 0); 
+
+	virtual bool usingVariable(const string& varname);
 	
 	bool probeIsDirty(int timestep) {
 		if (probeType == 0) return (!probeDataTextures || probeDataTextures[timestep] == 0);

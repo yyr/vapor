@@ -39,6 +39,7 @@ namespace VAPoR {
 	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
 	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
 	virtual void clearDatarangeDirty(){datarangeDirtyBit = false;}
+	virtual void setAllDataDirty() {setDatarangeDirty();}
 
     VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp, string name = "VolumeRenderer");
     virtual ~VolumeRenderer();

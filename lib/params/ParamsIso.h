@@ -107,6 +107,14 @@ public:
 	 return DataStatus::getInstance()->getSessionVariableNum(
 		 GetIsoVariableName());
  }
+ //!
+ //! Determine if the specified variable is being used
+ //!
+ virtual bool usingVariable(const std::string& varname){
+	if(GetIsoVariableName() == varname) return true;
+	if(GetMapVariableName() == varname) return true;
+	return false;
+ }
  //! Following Get/Set methods are for 
  //! parameters used in defining an isosurface
  //! All of them are implemented in the XML

@@ -96,6 +96,7 @@ public:
 	//When a bit is set dirty, must set appropriate bits for 
 	//all timesteps.
 	void setDataDirty(bool doInterrupt = true);
+	virtual void setAllDataDirty() {setDataDirty();}
 	void setDisplayListDirty();
 	void setGraphicsDirty();
 
