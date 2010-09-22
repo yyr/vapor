@@ -111,15 +111,11 @@ int CopyVariable(
 	string varname,
 	const size_t dim[3],
 	size_t tsWRF,
-	size_t tsVDC,
-	const map <string, string> &wrfNames
+	size_t tsVDC
 ) {
 
 	static size_t sliceBufferSize = 0;
 	static float *sliceBuffer = NULL;
-
-	const map <string, string>::const_iterator itr = wrfNames.find(varname);
-	if (itr != wrfNames.end()) varname = itr->second;
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varname.c_str());
@@ -559,42 +555,35 @@ int DoGeopotStuff(
 	const size_t dim[3],
 	size_t tsWRF, 
 	size_t tsVDC, 
-	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
 	map <string, string>::const_iterator iter;
 
-	iter = wrfNames.find("PH"); assert(iter != wrfNames.end());
-	string PHname = iter->second;
-	iter = wrfNames.find("PHB"); assert(iter != wrfNames.end());
-	string PHBname = iter->second;
-
-
 	int rc = 0;
 	bool wantEle = find(varnames.begin(),varnames.end(),"ELEVATION")!=varnames.end();
-	bool wantPh = find(varnames.begin(),varnames.end(),PHname)!=varnames.end();
-	bool wantPhb = find(varnames.begin(),varnames.end(),PHBname)!=varnames.end();
+	bool wantPh = find(varnames.begin(),varnames.end(),"PH")!=varnames.end();
+	bool wantPhb = find(varnames.begin(),varnames.end(),"PHB")!=varnames.end();
 	bool wantPhnorm = find(varnames.begin(),varnames.end(),"PHNorm_")!=varnames.end();
 
 	if (! (wantEle || wantPh || wantPhb || wantPhnorm)) return(0);
 
 	if (wantPh) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "PH", dim, tsWRF, tsVDC, wrfNames 
+			wrfreader, wbwriter, level, "PH", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PH"));
 	}
 	if (wantPhb) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "PHB", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "PHB", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PHB"));
 	}
 	if (wantEle) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "ELEVATION", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "ELEVATION", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "ELEVATION"));
@@ -605,7 +594,7 @@ int DoGeopotStuff(
 	//
 	if (wantPhnorm) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, PHname, PHBname,
+			wrfreader, wbwriter, level, "PH", "PHB",
 			"PHNorm_", dim, tsWRF, tsVDC, CalculatePHNorm
 		);
 		MyBase::SetErrCode(0);
@@ -625,22 +614,14 @@ int DoWindStuff(
 	const size_t dim[3],
 	size_t tsWRF, 
 	size_t tsVDC, 
-	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
 	map <string, string>::const_iterator iter;
 
-	iter = wrfNames.find("U"); assert(iter != wrfNames.end());
-	string Uname = iter->second;
-	iter = wrfNames.find("V"); assert(iter != wrfNames.end());
-	string Vname = iter->second;
-	iter = wrfNames.find("W"); assert(iter != wrfNames.end());
-	string Wname = iter->second;
-
 	int rc = 0;
-	bool wantU = find(varnames.begin(),varnames.end(),Uname)!=varnames.end();
-	bool wantV = find(varnames.begin(),varnames.end(),Vname)!=varnames.end();
-	bool wantW = find(varnames.begin(),varnames.end(),Wname)!=varnames.end();
+	bool wantU = find(varnames.begin(),varnames.end(),"U")!=varnames.end();
+	bool wantV = find(varnames.begin(),varnames.end(),"V")!=varnames.end();
+	bool wantW = find(varnames.begin(),varnames.end(),"W")!=varnames.end();
 	bool wantUV = find(varnames.begin(),varnames.end(),"UV_")!=varnames.end();
 	bool wantUVW = find(varnames.begin(),varnames.end(),"UVW_")!=varnames.end();
 	bool wantOmZ = find(varnames.begin(),varnames.end(),"omZ_")!=varnames.end();
@@ -651,21 +632,21 @@ int DoWindStuff(
 
 	if (wantU) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "U", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "U", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "U"));
 	}
 	if (wantV) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "V", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "V", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "V"));
 	}
 	if (wantW) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "W", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "W", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "W"));
@@ -674,7 +655,7 @@ int DoWindStuff(
 
 	if (wantUV) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, Uname, Vname,
+			wrfreader, wbwriter, level, "U", "V",
 			"UV_", dim, tsWRF, tsVDC, CalculateMag2D
 		);
 		MyBase::SetErrCode(0);
@@ -683,7 +664,7 @@ int DoWindStuff(
 
 	if (wantUVW) {
 		DeriveVar3(
-			wrfreader, wbwriter, level, Uname, Vname, Wname,
+			wrfreader, wbwriter, level, "U", "V", "W",
 			"UVW_", dim, tsWRF, tsVDC, CalculateMag3D
 		);
 		MyBase::SetErrCode(0);
@@ -693,7 +674,7 @@ int DoWindStuff(
 	if (wantOmZ) {
 
 		DeriveVar2(
-			wrfreader, wbwriter, level, Uname, Vname,
+			wrfreader, wbwriter, level, "U", "V",
 			"omZ_", dim, tsWRF, tsVDC, CalculateDeriv2D
 		);
 		MyBase::SetErrCode(0);
@@ -713,23 +694,15 @@ int DoPTStuff(
 	const size_t dim[3],
 	size_t tsWRF, 
 	size_t tsVDC, 
-	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
 	int rc = 0;
 
 	map <string, string>::const_iterator iter;
 
-	iter = wrfNames.find("P"); assert(iter != wrfNames.end());
-	string Pname = iter->second;
-	iter = wrfNames.find("PB"); assert(iter != wrfNames.end());
-	string PBname = iter->second;
-	iter = wrfNames.find("T"); assert(iter != wrfNames.end());
-	string Tname = iter->second;
-
-	bool wantP = find(varnames.begin(),varnames.end(),Pname)!=varnames.end();
-	bool wantPb = find(varnames.begin(),varnames.end(),PBname)!=varnames.end();
-	bool wantT = find(varnames.begin(),varnames.end(),Tname)!=varnames.end();
+	bool wantP = find(varnames.begin(),varnames.end(),"P")!=varnames.end();
+	bool wantPb = find(varnames.begin(),varnames.end(),"PB")!=varnames.end();
+	bool wantT = find(varnames.begin(),varnames.end(),"T")!=varnames.end();
 	bool wantPfull = find(varnames.begin(),varnames.end(),"PFull_")!=varnames.end();
 	bool wantPnorm = find(varnames.begin(),varnames.end(),"PNorm_")!=varnames.end();
 	bool wantTheta = find(varnames.begin(),varnames.end(),"Theta_")!=varnames.end();
@@ -741,7 +714,7 @@ int DoPTStuff(
 
 	if (wantP) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "P", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "P", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "P"));
@@ -749,7 +722,7 @@ int DoPTStuff(
 
 	if (wantPb) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "PB", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "PB", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PB"));
@@ -757,7 +730,7 @@ int DoPTStuff(
 
 	if (wantT) {
 		CopyVariable(
-			wrfreader, wbwriter, level, "T", dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, "T", dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), "T"));
@@ -765,7 +738,7 @@ int DoPTStuff(
 
 	if ( wantTheta ) {
 		DeriveVar1(
-			wrfreader, wbwriter, level, Tname, 
+			wrfreader, wbwriter, level, "T", 
 			"Theta_", dim, tsWRF, tsVDC, CalculateTheta
 		);
 		MyBase::SetErrCode(0);
@@ -774,7 +747,7 @@ int DoPTStuff(
 
 	if ( wantPnorm ) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, Pname, PBname,
+			wrfreader, wbwriter, level, "P", "PB",
 			"PNorm_", dim, tsWRF, tsVDC, CalculatePNorm
 		);
 		MyBase::SetErrCode(0);
@@ -783,7 +756,7 @@ int DoPTStuff(
 
 	if ( wantPfull ) {
 		DeriveVar2(
-			wrfreader, wbwriter, level, Pname, PBname,
+			wrfreader, wbwriter, level, "P", "PB",
 			"PFull_", dim, tsWRF, tsVDC, CalculatePFull
 		);
 		MyBase::SetErrCode(0);
@@ -792,7 +765,7 @@ int DoPTStuff(
 
 	if ( wantTk ) {	
 		DeriveVar3(
-			wrfreader, wbwriter, level, Tname, Pname, PBname,
+			wrfreader, wbwriter, level, "T", "P", "PB",
 			"TK_", dim, tsWRF, tsVDC, CalculateTK
 		);
 		MyBase::SetErrCode(0);
@@ -808,7 +781,6 @@ int DoIndependentVars3d(
 	const size_t dim[3],
 	size_t tsWRF, 
 	size_t tsVDC, 
-	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
 
@@ -817,7 +789,7 @@ int DoIndependentVars3d(
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
 		CopyVariable(
-			wrfreader, wbwriter, level, vn_copy[i], dim, tsWRF, tsVDC, wrfNames
+			wrfreader, wbwriter, level, vn_copy[i], dim, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
@@ -833,7 +805,6 @@ int DoIndependentVars2d(
 	const size_t dim[3],
 	size_t tsWRF, 
 	size_t tsVDC, 
-	const map <string, string> &wrfNames,
 	vector<string> &varnames
 ) {
 
@@ -844,7 +815,7 @@ int DoIndependentVars2d(
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
 		CopyVariable(
-			wrfreader,wbwriter,level, vn_copy[i], dim2d, tsWRF, tsVDC, wrfNames
+			wrfreader,wbwriter,level, vn_copy[i], dim2d, tsWRF, tsVDC
 		);
 		MyBase::SetErrCode(0);
 		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
@@ -865,29 +836,10 @@ void SelectVariables(
 	const vector <string> &vdf_vars, 
 	const vector <string> &wrf_vars, 
 	const vector <string> &opt_varnames, 
-	const map <string, string> &wrfNames,
 	vector <string> &copy_vars,
 	bool noelev
 ) {
 	map <string, string>::const_iterator iter;
-
-	iter = wrfNames.find("PH"); assert(iter != wrfNames.end());
-	string PHname = iter->second;
-	iter = wrfNames.find("PHB"); assert(iter != wrfNames.end());
-	string PHBname = iter->second;
-	iter = wrfNames.find("U"); assert(iter != wrfNames.end());
-	string Uname = iter->second;
-	iter = wrfNames.find("V"); assert(iter != wrfNames.end());
-	string Vname = iter->second;
-	iter = wrfNames.find("W"); assert(iter != wrfNames.end());
-	string Wname = iter->second;
-	iter = wrfNames.find("P"); assert(iter != wrfNames.end());
-	string Pname = iter->second;
-	iter = wrfNames.find("PB"); assert(iter != wrfNames.end());
-	string PBname = iter->second;
-	iter = wrfNames.find("T"); assert(iter != wrfNames.end());
-	string Tname = iter->second;
-
 	copy_vars.clear();
 
 	vector <string> candidates; // Candidate variables for selection
@@ -916,8 +868,8 @@ void SelectVariables(
 			// sure variable isn't already on the copy list.
 			//
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),PHname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),PHBname) !=wrf_vars.end())&&
+				(find(wrf_vars.begin(),wrf_vars.end(),"PH")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"PHB") !=wrf_vars.end())&&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -925,7 +877,7 @@ void SelectVariables(
 		}
 		else if (v.compare("PHNorm_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),PHBname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"PHB")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -933,8 +885,8 @@ void SelectVariables(
 		}
 		else if ((v.compare("PFull_")==0) || (v.compare("PNorm_")==0)) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Pname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),PBname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"P")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"PB")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -942,7 +894,7 @@ void SelectVariables(
 		}
 		else if (v.compare("Theta_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Tname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"T")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -950,9 +902,9 @@ void SelectVariables(
 		}
 		else if (v.compare("TK_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Pname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),PBname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),Tname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"P")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"PB")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"T")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -960,8 +912,8 @@ void SelectVariables(
 		}
 		else if (v.compare("UV_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"U")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"V")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -969,9 +921,9 @@ void SelectVariables(
 		}
 		else if (v.compare("UVW_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),Wname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"U")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"V")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"W")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -979,8 +931,8 @@ void SelectVariables(
 		}
 		else if (v.compare("omZ_")==0) {
 			if (
-				(find(wrf_vars.begin(),wrf_vars.end(),Uname)!=wrf_vars.end()) &&
-				(find(wrf_vars.begin(),wrf_vars.end(),Vname)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"U")!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),"V")!=wrf_vars.end()) &&
 				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
 			) {
 				copy_vars.push_back(v);
@@ -1139,25 +1091,37 @@ int	main(int argc, char **argv) {
 	argv++;
 	argc--;
 
-	// legacy crap
 	//
-	map <string, string> wrfNames;
-	wrfNames["U"] = "U";
-	wrfNames["V"] = "V";
-	wrfNames["W"] = "W";
-	wrfNames["PH"] = "PH";
-	wrfNames["PHB"] = "PHB";
-	wrfNames["P"] = "P";
-	wrfNames["PB"] = "PB";
-	wrfNames["T"] = "T";
+	// Deal with required variables that may have atypical names
+	//
+	map <string, string> atypnames;
+    string tag("DependentVarNames");
+    string s = metadataVDC->GetUserDataString(tag);
+	if (! s.empty()) {
+		vector <string> svec;
+		CvtToStrVec(s.c_str(), &svec);
+		if (svec.size() != 8) {
+			MyBase::SetErrMsg("Invalid DependentVarNames tag: %s",tag.c_str());
+			return(-1);
+		}
+		atypnames["U"] = svec[0];
+		atypnames["V"] = svec[1];
+		atypnames["W"] = svec[2];
+		atypnames["PH"] = svec[3];
+		atypnames["PHB"] = svec[4];
+		atypnames["P"] = svec[5];
+		atypnames["PB"] = svec[6];
+		atypnames["T"] = svec[7];
+	}
 
 	size_t TotalTimeSteps = 0;
-	for (int arg = 0; arg<argc; arg++) {
+	bool done = false;
+	for (int arg = 0; arg<argc && ! done; arg++) {
 		vector <string> wrf_file;
 		wrf_file.push_back(argv[arg]);
 
 
-		MetadataWRF	*metadataWRF = new MetadataWRF(wrf_file);
+		MetadataWRF	*metadataWRF = new MetadataWRF(wrf_file, atypnames);
 		if ((MetadataWRF::GetErrCode()!=0)||(metadataWRF->GetNumTimeSteps()==0)){ 
 			MyBase::SetErrMsg(
 				"Error processing WRF file %s, skipping", wrf_file[0].c_str()
@@ -1199,7 +1163,7 @@ int	main(int argc, char **argv) {
 
 		vector <string> copy_vars;
 		SelectVariables(
-			varsVDC, varsWRF, opt.varnames, wrfNames, copy_vars,
+			varsVDC, varsWRF, opt.varnames, copy_vars,
 			(opt.noelev != 0)
 		);
 
@@ -1213,7 +1177,7 @@ int	main(int argc, char **argv) {
 		}
 
 		size_t numTimeStepsWRF = metadataWRF->GetNumTimeSteps();
-		for (size_t tsWRF=0; tsWRF<numTimeStepsWRF; tsWRF++) {
+		for (size_t tsWRF=0; tsWRF<numTimeStepsWRF && ! done ; tsWRF++) {
 
 
 			size_t tsVDC;
@@ -1236,35 +1200,38 @@ int	main(int argc, char **argv) {
 
 			DoGeopotStuff(
 				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
-				wrfNames, wrk_vars
+				wrk_vars
 			);
 
 			// Find wind speeds, if necessary
 			DoWindStuff( 
 				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
-				wrfNames, wrk_vars
+				wrk_vars
 			);
 
 			DoPTStuff( 
 				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
-				wrfNames, wrk_vars
+				wrk_vars
 			);
 
 			// Remaining 3D variables
 			DoIndependentVars3d(
 				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
-				wrfNames, wrk_vars
+				wrk_vars
 			);
 
 			// Remaining 2D variables
 			DoIndependentVars2d(
 				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
-				wrfNames, wrk_vars
+				wrk_vars
 			);
 
 			assert(wrk_vars.size() == 0);
+			TotalTimeSteps++;
+			if (opt.numts > 0 && TotalTimeSteps >= opt.numts) {
+				done = true;
+			}
 		}
-		TotalTimeSteps++;
 	}
 
 	if (! opt.quiet) {

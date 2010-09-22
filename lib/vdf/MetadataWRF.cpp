@@ -66,7 +66,9 @@ MetadataWRF::MetadataWRF() {
 //! The constructor with a vector of inpuut files.
 //
 
-MetadataWRF::MetadataWRF(const vector<string> &infiles) {
+void MetadataWRF::_MetadataWRF(
+	const vector<string> &infiles, const map <string, string> &atypnames
+) {
   vector<string> twrfvars3d, twrfvars2d;
   vector <pair< TIME64_T, vector <float> > > tt_latlon_exts;
   vector<pair<string, double> > tgl_attr;
@@ -121,8 +123,7 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
     tgl_attr.clear();
     tt_latlon_exts.clear();
 
-    //WRF wrf(infiles[i], atypnames);
-    WRF wrf(infiles[i]);
+    WRF wrf(infiles[i], atypnames);
 	if (WRF::GetErrCode() != 0) {
 		WRF::SetErrMsg(
 			"Error processing file %s, skipping.",infiles[i].c_str()
@@ -358,6 +359,19 @@ MetadataWRF::MetadataWRF(const vector<string> &infiles) {
   }
 
 } // End of constructor.
+
+MetadataWRF::MetadataWRF(const vector<string> &infiles) {
+
+	map <string, string> atypnames;	// no atypical names
+	_MetadataWRF(infiles, atypnames);
+}
+
+MetadataWRF::MetadataWRF(
+	const vector<string> &infiles, const map <string, string> &atypnames
+) {
+	_atypnames = atypnames;
+	_MetadataWRF(infiles, _atypnames);
+}
 
 //
 //! The destructor.

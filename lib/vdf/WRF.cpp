@@ -29,14 +29,25 @@ using namespace VAPoR;
     } \
     }
 
-
-
 int WRF::_WRF(
-	const string &wrfname, const atypVarNames_t &atypnames
+	const string &wrfname, const map <string, string> &names
 ) {
 
 	_ncid = 0;
-	_atypnames = atypnames;
+
+	//
+	// Deal with non-standard names for required variables
+	//
+	map <string, string>::const_iterator itr;
+	_atypnames["U"] = ((itr=names.find("U"))!=names.end()) ? itr->second : "U";
+	_atypnames["V"] = ((itr=names.find("V"))!=names.end()) ? itr->second : "V";
+	_atypnames["W"] = ((itr=names.find("W"))!=names.end()) ? itr->second : "W";
+	_atypnames["PH"] = ((itr=names.find("PH"))!=names.end()) ? itr->second : "PH";
+	_atypnames["PHB"] = ((itr=names.find("PHB"))!=names.end()) ? itr->second : "PHB";
+	_atypnames["P"] = ((itr=names.find("P"))!=names.end()) ? itr->second : "P";
+	_atypnames["PB"] = ((itr=names.find("PB"))!=names.end()) ? itr->second : "PB";
+	_atypnames["T"] = ((itr=names.find("T"))!=names.end()) ? itr->second : "T";
+
 	_vertExts[0] = _vertExts[1] = 0.0;
 	_dimLens[0] = _dimLens[1] = _dimLens[2] = _dimLens[3] = 1;
 
@@ -52,24 +63,23 @@ int WRF::_WRF(
 }
 
 WRF::WRF(const string &wrfname) {
-	atypVarNames_t atypnames;
+	map <string, string> atypnames;
 
-	atypnames.U = "U";
-	atypnames.V = "V";
-	atypnames.W = "U";
-	atypnames.PH = "PH";
-	atypnames.PHB = "PHB";
-	atypnames.P = "P";
-	atypnames.PB = "PB";
-	atypnames.T = "T";
+	atypnames["U"] = "U";
+	atypnames["V"] = "V";
+	atypnames["W"] = "W";
+	atypnames["PH"] = "PH";
+	atypnames["PHB"] = "PHB";
+	atypnames["P"] = "P";
+	atypnames["PB"] = "PB";
+	atypnames["T"] = "T";
 
 	(void) _WRF(wrfname, atypnames);
 }
 
-WRF::WRF(const string &wrfname, const atypVarNames_t &atypnames) {
+WRF::WRF(const string &wrfname, const map <string, string> &atypnames) {
 
 	(void) _WRF(wrfname, atypnames);
-
 }
 
 WRF::~WRF() {
@@ -88,7 +98,7 @@ WRF::varFileHandle_t *WRF::Open(
 	//
 	bool found = false;
 	for (int i=0; i<_wrfVarInfo.size(); i++) {
-		if (varname.compare(_wrfVarInfo[i].name) == 0) {
+		if (varname.compare(_wrfVarInfo[i].alias) == 0) {
 			fh.thisVar = _wrfVarInfo[i];
 			found = true;
 		}
@@ -270,19 +280,27 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 }
 
 // Gets info about a  variable and stores that info in thisVar.
-int	WRF::GetVarInfo(
+int	WRF::_GetVarInfo(
 	int ncid, // ID of the file we're reading
-	const char *name,
+	string wrfvname,	// name of variable as it appears in file
 	const vector <ncdim_t> &ncdims,
 	varInfo_t & thisVar // Variable info
 ) {
 
-	thisVar.name.assign(name);
+	thisVar.wrfvname = wrfvname;
+	thisVar.alias = wrfvname;
 
-	int nc_status = nc_inq_varid(ncid, thisVar.name.c_str(), &thisVar.varid);
+    map <string, string>::const_iterator itr;
+	for (itr = _atypnames.begin(); itr != _atypnames.end(); itr++) {
+		if (wrfvname.compare(itr->second) == 0) {
+			thisVar.alias = itr->first;
+		}
+	} 
+
+	int nc_status = nc_inq_varid(ncid, thisVar.wrfvname.c_str(), &thisVar.varid);
 	if (nc_status != NC_NOERR) {
 		MyBase::SetErrMsg(
-			"Variable %s not found in netCDF file", thisVar.name.c_str()
+			"Variable %s not found in netCDF file", thisVar.wrfvname.c_str()
 		);
 		return(-1);
 	}
@@ -434,7 +452,7 @@ void WRF::_InterpHorizSlice(
 	bufptr = fbuffer;
 	if ( thisVar.stag[1] ) {
 		for (size_t x = 0; x<xUnstagDim; x++) {
-		for (size_t y = 0; y<xUnstagDim; y++) {
+		for (size_t y = 0; y<yUnstagDim; y++) {
 			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
 			bufptr++;
 		}
@@ -784,7 +802,7 @@ int WRF::_GetWRFMeta(
 		varInfo_t varinfo;
 		char name[NC_MAX_NAME+1];
 		NC_ERR_READ( nc_inq_varname(ncid, i, name ) );
-		if (GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
+		if (_GetVarInfo(ncid, name, ncdims, varinfo) < 0) continue;
 #ifdef WIN32
 //On windows, CON is not a valid vapor variable name because windows does
 //not permit CON to be directory name
@@ -800,14 +818,14 @@ int WRF::_GetWRFMeta(
 			((varinfo.dimids[2] ==  snId) || (varinfo.dimids[2] == snsId)) &&
 			((varinfo.dimids[3] ==  weId) || (varinfo.dimids[3] == wesId))) {
 
-			wrfVars3d.push_back( name );
+			wrfVars3d.push_back(varinfo.alias);
 		}
 		else if ((varinfo.dimids.size() == 3) && 
 			(varinfo.dimids[0] ==  timeId) &&
 			((varinfo.dimids[1] ==  snId) || (varinfo.dimids[1] == snsId)) &&
 			((varinfo.dimids[2] ==  weId) || (varinfo.dimids[2] == wesId))) {
 
-			wrfVars2d.push_back( name );
+			wrfVars2d.push_back(varinfo.alias);
 		}
 	}
 
@@ -820,7 +838,12 @@ int WRF::_GetWRFMeta(
 		varInfo_t phInfo; // structs for variable information
 		varInfo_t phbInfo;
 
-		if (GetVarInfo( ncid, _atypnames.PH.c_str(), ncdims, phInfo) < 0) return(-1);
+		// GetVarInfo takes actual file names
+		//
+		map <string, string>::const_iterator itr = _atypnames.find("PH");
+		string varname = (itr != _atypnames.end()) ? itr->second : "PH";
+
+		if (_GetVarInfo( ncid, varname, ncdims, phInfo) < 0) return(-1);
 		if (phInfo.dimids.size() != 4) {
 			MyBase::SetErrMsg("Variable %s has wrong # dims", "PH");
 			return(-1);
@@ -828,11 +851,15 @@ int WRF::_GetWRFMeta(
 		size_t ph_slice_sz = phInfo.dimlens[phInfo.dimids.size()-1] * 
 			phInfo.dimlens[phInfo.dimids.size()-2];
 
-		if (GetVarInfo( ncid, _atypnames.PHB.c_str(), ncdims, phbInfo) < 0) return(-1);
+		itr = _atypnames.find("PHB");
+		varname = (itr != _atypnames.end()) ? itr->second : "PHB";
+
+		if (_GetVarInfo( ncid, varname, ncdims, phbInfo) < 0) return(-1);
 		if (phbInfo.dimids.size() != 4) {
 			MyBase::SetErrMsg("Variable %s has wrong # dims", "PHB");
 			return(-1);
 		}
+
 		size_t phb_slice_sz = phbInfo.dimlens[phbInfo.dimids.size()-1] * 
 			phbInfo.dimlens[phbInfo.dimids.size()-2];
 			
@@ -846,10 +873,10 @@ int WRF::_GetWRFMeta(
 
 		varFileHandle_t *fh_ph, *fh_phb;
 
-		fh_ph = Open(_atypnames.PH);
+		fh_ph = Open("PH");
 		if (! fh_ph) return(-1);
 
-		fh_phb = Open(_atypnames.PHB);
+		fh_phb = Open("PHB");
 		if (! fh_phb) return(-1);
 
 		for (size_t t = 0; t<dimLens[3]; t++) {
@@ -918,13 +945,23 @@ int WRF::_GetWRFMeta(
 
 	if (haveLatLon) haveLatLon = ( NC_NOERR ==  nc_inq_varid(ncid, "XLONG", &vid));
 
+	map <string,string>::const_iterator itr;
 	if (haveLatLon){
-		if(GetVarInfo(ncid, "XLAT", ncdims, latInfo) < 0) haveLatLon = false;
-		if(GetVarInfo(ncid, "XLONG", ncdims, lonInfo) < 0) haveLatLon = false;
+
+		itr = _atypnames.find("XLAT");
+		string varname = (itr != _atypnames.end()) ? itr->second : "XLAT";
+
+		if(_GetVarInfo(ncid, varname, ncdims, latInfo) < 0) haveLatLon = false;
+
+		itr = _atypnames.find("XLONG");
+		varname = (itr != _atypnames.end()) ? itr->second : "XLONG";
+		if(_GetVarInfo(ncid, varname, ncdims, lonInfo) < 0) haveLatLon = false;
 	}
 
 
-	if (GetVarInfo( ncid, "Times", ncdims, timeInfo) < 0) return(-1);
+	itr = _atypnames.find("Times");
+	string varname = (itr != _atypnames.end()) ? itr->second : "Times";
+	if (_GetVarInfo( ncid, varname, ncdims, timeInfo) < 0) return(-1);
 	if (timeInfo.dimids.size() != 2) {
 		MyBase::SetErrMsg("Variable %s has wrong # dims", "Times");
 		return(-1);

@@ -56,7 +56,15 @@ WRFReader::WRFReader(
 	if (_WRFReader() < 0) return;
 }
 
+WRFReader::WRFReader(
+	const vector<string> &infiles,
+	const map <string,string> &atypnames
+) : MetadataWRF(infiles, atypnames) {
 
+	if (MetadataWRF::GetErrCode()) return;
+
+	if (_WRFReader() < 0) return;
+}
 
 WRFReader::~WRFReader() {
 	CloseVariable();
@@ -106,7 +114,7 @@ int WRFReader::OpenVariableRead(
 	if (! _wrf || (_current_file.compare(wrf_fname) != 0)) {
 		if (_wrf) delete _wrf;
 
-		_wrf = new WRF(wrf_fname);
+		_wrf = new WRF(wrf_fname, GetAtypNames());
 		if (WRF::GetErrCode() != 0) return(-1);
 		_current_file = wrf_fname;
 		_current_var.clear();
