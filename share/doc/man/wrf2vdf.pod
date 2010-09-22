@@ -30,32 +30,6 @@ The variable B<ELEVATION> will always be converted (unless the B<-noelev>
 option is present).  The default is all 3D and 2D variables defined in
 both the .vdf file and the WRF netCDF file.
 
-=item -dervars E<lt>varsE<gt>
-
-A Colon delimited list of derived variables to convert.  These must have
-been specified in the .vdf file.  The default is to convert all derived
-variables defined in the .vdf file.
-
-=item -tsstart E<lt>yyyy-mm-dd_hh:mm:ssE<gt>
-
-First time stamp to convert.  All WRF time steps with time stamps (as
-determined by the B<Times> variable) which precede this date and time
-will not be converted, even if they come after the starting time stamp
-given in the .vdf file.  The default is to convert all time steps present
-in the WRF netCDF file for which a match is found in the .vdf file.
-
-The format of the option argument is I<yyyy-mm-dd_hh:mm:ss>, where I<yyyy>
-is the four-digit year,  I<mm> is the two-digit month (January == 1),
-I<dd> is the day of the month, I<hh> is the hour, I<mm> is the minute,
-and I<ss> is the second.
-
-=item -tsend E<lt>yyyy-mm-dd_hh:mm:ssE<gt>
-
-Last time stamp to convert.  All WRF time steps with time stamps (as
-determined by the B<Times> variable) which follow this date and time
-will not be converted. The default is to convert all time steps present
-in the WRF netCDF file for which a match is found in the .vdf file.
-
 =item -numts E<lt>numberE<gt>
 
 Specify the maximum number of time steps to convert. After converting
@@ -94,13 +68,10 @@ match the variable names and time stamps found in B<mydata.vdf>.
 
 The command 
 
-    wrf2vdf -vars3d U:V:W -tsstart 1996-03-01_00:00:00 -tsend \
-    1996-03-30_00:00:00 mydata.vdf wrfout1.ncdf wrfout2.ncdf wrfout3.ncdf 
+    wrf2vdf -vars3d U:V:W mydata.vdf wrfout1.ncdf wrfout2.ncdf wrfout3.ncdf 
 
 is similar to the above example except that the variables are limited
-to the three 3D wind components, B<U>, B<V>, and B<W>, and 
-the time stamps must be in the range from B<1996-03-01_00:00:00> to 
-B<1996-03-30_00:00:00>.
+to the three 3D wind components, B<U>, B<V>, and B<W>.
 
 =head1 SEE ALSO
 
