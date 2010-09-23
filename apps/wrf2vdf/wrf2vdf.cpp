@@ -167,6 +167,67 @@ int CopyVariable(
 	return(0);
 }
 
+int CopyVariable2D(
+	WRFReader *wrfreader,
+	WaveletBlock3DRegionWriter *wb2dwriter,
+	int level,
+	string varname,
+	const size_t dim[3],
+	size_t tsWRF,
+	size_t tsVDC
+) {
+
+	static size_t sliceBufferSize = 0;
+	static float *sliceBuffer = NULL;
+
+	int rc;
+	rc = wrfreader->OpenVariableRead(tsWRF, varname.c_str());
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	rc = wb2dwriter->OpenVariableWrite(tsVDC, varname.c_str(), level);
+	if (rc<0) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	size_t slice_sz = dim[0] * dim[1];
+
+	if (sliceBufferSize < slice_sz) {
+		if (sliceBuffer ) delete [] sliceBuffer;
+		sliceBuffer = new float[slice_sz];
+		sliceBufferSize = slice_sz;
+	}
+
+	if (wrfreader->ReadSlice(0, sliceBuffer) < 0 ) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
+	}
+	if (wb2dwriter->WriteRegion(sliceBuffer) < 0) {
+		MyBase::SetErrMsg(
+			"Failed to copy WRF variable %s at WRF time step %d",
+			varname.c_str(), tsWRF
+		);
+		return (-1);
+	}
+
+	wrfreader->CloseVariable();
+	wb2dwriter->CloseVariable();
+
+	return(0);
+}
+
 void CalculateTheta(const float *t, float *theta, const size_t dim[3]) {
 	for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ ) {
 		theta[i] = t[i] + 300.0;
@@ -788,11 +849,13 @@ int DoIndependentVars3d(
 
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
-		CopyVariable(
-			wrfreader, wbwriter, level, vn_copy[i], dim, tsWRF, tsVDC
-		);
-		MyBase::SetErrCode(0);
-		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
+		if (wrfreader->GetVarType(vn_copy[i]) == Metadata::VAR3D) {
+			CopyVariable(
+				wrfreader, wbwriter, level, vn_copy[i], dim, tsWRF, tsVDC
+			);
+			MyBase::SetErrCode(0);
+			varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
+		}
 	}
 
 	return(rc);
@@ -800,7 +863,7 @@ int DoIndependentVars3d(
 
 int DoIndependentVars2d(
 	WRFReader * wrfreader,
-	WaveletBlock3DBufWriter *wbwriter,
+	WaveletBlock3DRegionWriter *wb2dwriter,
 	int level,
 	const size_t dim[3],
 	size_t tsWRF, 
@@ -814,11 +877,13 @@ int DoIndependentVars2d(
 
 	vector <string> vn_copy = varnames;
 	for (int i=0; i<vn_copy.size(); i++) {
-		CopyVariable(
-			wrfreader,wbwriter,level, vn_copy[i], dim2d, tsWRF, tsVDC
-		);
-		MyBase::SetErrCode(0);
-		varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
+		if (wrfreader->GetVarType(vn_copy[i]) == Metadata::VAR2D_XY) {
+			CopyVariable2D(
+				wrfreader,wb2dwriter,level, vn_copy[i], dim2d, tsWRF, tsVDC
+			);
+			MyBase::SetErrCode(0);
+			varnames.erase(find(varnames.begin(), varnames.end(), vn_copy[i]));
+		}
 	}
 
 	return(rc);
@@ -1076,6 +1141,15 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	//
+	// Ugh! WaveletBlock3DBufWriter class does not handle 2D data!!!
+	//
+	WaveletBlock3DRegionWriter *wb2dwriter = new WaveletBlock3DRegionWriter(*metadataVDC);
+	if (WaveletBlock3DRegionWriter::GetErrCode() != 0) { 
+		MyBase::SetErrMsg("Error processing VDC metafile : %s",metafile.c_str());
+		exit(1);
+	}
+
 	vector <string> varsVDC = metadataVDC->GetVariableNames();
 	const size_t *dimsVDC = metadataVDC->GetDimension();
 
@@ -1169,9 +1243,20 @@ int	main(int argc, char **argv) {
 
 		if (! opt.quiet) {
 			cout << "Processing file : " << wrf_file[0].c_str() << endl;
-			cout << "\tTransforming variables : ";
+			cout << "\tTransforming 3D variables : ";
 			for (int i=0; i<copy_vars.size(); i++) {
-				cout << copy_vars[i] << " ";
+				if (metadataWRF->GetVarType(copy_vars[i]) == Metadata::VAR3D) {
+					cout << copy_vars[i] << " ";
+				}
+			}
+			cout << endl;
+			cout << endl;
+
+			cout << "\tTransforming 2D variables : ";
+			for (int i=0; i<copy_vars.size(); i++) {
+				if (metadataWRF->GetVarType(copy_vars[i]) != Metadata::VAR3D) {
+					cout << copy_vars[i] << " ";
+				}
 			}
 			cout << endl;
 		}
@@ -1222,7 +1307,7 @@ int	main(int argc, char **argv) {
 
 			// Remaining 2D variables
 			DoIndependentVars2d(
-				wrfreader, wbwriter, opt.level,dimsVDC, tsWRF, tsVDC,
+				wrfreader, wb2dwriter, opt.level,dimsVDC, tsWRF, tsVDC,
 				wrk_vars
 			);
 
