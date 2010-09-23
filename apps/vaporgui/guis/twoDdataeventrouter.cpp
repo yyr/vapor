@@ -593,10 +593,7 @@ setTwoDEnabled(bool val, int instance){
 		performGuiChangeInstance(instance);
 	}
 	guiSetEnabled(val, instance);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(pParams,!val, false);
-	setDatarangeDirty(pParams);
+	
 }
 
 void TwoDDataEventRouter::
@@ -952,6 +949,10 @@ guiSetEnabled(bool value, int instance){
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
 	
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(pParams,!value, false);
+	setDatarangeDirty(pParams);
 	//Need to rerender the texture:
 	pParams->setTwoDDirty();
 	//and refresh the gui
@@ -962,6 +963,7 @@ guiSetEnabled(bool value, int instance){
 	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
 	update();
 	guiSetTextChanged(false);
+
 }
 
 

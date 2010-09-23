@@ -1375,9 +1375,7 @@ setFlowEnabled(bool val, int instance){
 		performGuiChangeInstance(instance);
 	}
 	guiSetEnabled(val, instance);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(myFlowParams, !val, false);
+	
 }
 
 void FlowEventRouter::
@@ -1684,6 +1682,9 @@ guiSetEnabled(bool on, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
 	fParams->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(fParams, !on, false);
 	updateTab();
 }
 //Respond to a change in opacity scale factor

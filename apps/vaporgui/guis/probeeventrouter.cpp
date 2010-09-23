@@ -990,10 +990,7 @@ setProbeEnabled(bool val, int instance){
 		}
 	}
 	guiSetEnabled(val, instance);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(pParams,!val, false);
-	setDatarangeDirty(pParams);
+	
 }
 
 void ProbeEventRouter::
@@ -1512,14 +1509,19 @@ guiSetEnabled(bool value, int instance){
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
 	ibfvPause();
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(pParams,!value, false);
+	setDatarangeDirty(pParams);
 	//Need to rerender the texture:
 	pParams->setProbeDirty();
-	//and refresh the gui
-	updateTab();
+	
 	setDatarangeDirty(pParams);
 	setEditorDirty();
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	//and refresh the gui
+	updateTab();
 	update();
 }
 

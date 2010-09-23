@@ -637,12 +637,7 @@ setIsoEnabled(bool val, int instance){
 	}
 	guiSetEnabled(val,instance);
 	
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(iParams,!val, false);
 	
-	
-	updateTab();
 }
 //Slot that changes the isovalue to be the function value at the selectionPoint
 //Must Evaluate the current variable at the selection point, 
@@ -829,8 +824,14 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, iParams);
+
 	RegionParams* rParams = vizWinMgr->getActiveRegionParams();
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(iParams,!value, false);
+	
 	vizWinMgr->setRegionDirty(rParams);
+	updateTab();
 }
 
 /*
