@@ -4,6 +4,7 @@
 #include "vapor/DataMgrFactory.h"
 #include "pythonpipeline.h"
 #include "datastatus.h"
+#include "command.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "session.h"
@@ -40,7 +41,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
     
     if (startUp) setWindowTitle("Python Startup Script Editor");
 	else setWindowTitle("Python Derived Variable Script Editor");
-
+	
     pythonEdit = new QTextEdit(this);
     pythonEdit->setFocus();
 	pythonEdit->setAcceptRichText(false);
@@ -119,12 +120,12 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 		outputVars3->insertSeparator(2);
 		outputVars2->insertSeparator(2);
 	}
-	
+	int scriptID;
 	if (!startUp && varname != ""){
 		//Set up combos for specified output variable
 		
-		int scriptID = DataStatus::getDerivedScriptId(varname.toStdString());
-		assert(scriptID >= 0);
+		scriptID = DataStatus::getDerivedScriptId(varname.toStdString());
+		assert(scriptID > 0);
 		pythonEdit->setText(DataStatus::getDerivedScript(scriptID).c_str());
 		//Set up the input and output variable combos
 		vector<string> varnames = DataStatus::getDerived2DInputVars(scriptID);
@@ -148,6 +149,22 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	if (startUp){
 		pythonEdit->setText(PythonPipeLine::getStartupScript().c_str());
 	}
+	//Three cases for command:  startup, new, or edit, result in scriptID = -1, 0, or actual value
+	if (startUp) {
+		currentCommand = ScriptCommand::captureStart(-1, "Edit Python Startup script");
+		currentScriptId = -1;
+	}
+
+	else if (varname == ""){
+		currentCommand = ScriptCommand::captureStart(0, "Create new Python-derived variable"); 
+		currentScriptId = 0;
+	}
+
+	else {
+		currentCommand = ScriptCommand::captureStart(scriptID, "Edit existing Python-derived variable");
+		currentScriptId = scriptID;
+	}
+
 	changeFlag = false;
     show();
 }
@@ -400,7 +417,9 @@ void PythonEdit::applyScript(){
 	if (startUp){
 		string pythonProg = pythonEdit->toPlainText().toStdString();
 		PythonPipeLine::setStartupScript(pythonProg);
+		VizWinMgr::getInstance()->refreshRenderData();
 		close();
+		ScriptCommand::captureEnd(currentCommand, -1);
 		return;
 	}
 	//Setup the variables in the datastatus
@@ -462,9 +481,10 @@ void PythonEdit::applyScript(){
 	for (int i = 2; i< outputVars2->count()-3; i++) out2dVars.push_back(outputVars2->itemText(i).toStdString());
 	for (int i = 2; i< outputVars3->count()-3; i++) out3dVars.push_back(outputVars3->itemText(i).toStdString());
 	
-	int scriptID = ds->getDerivedScriptId(outvar);
-	//If scriptID is negative, there is no script
-	if (scriptID < 0) {
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	//If scriptID is 0, there is no script
+	int scriptID = currentScriptId;
+	if (currentScriptId == 0) {
 
 		scriptID = ds->addDerivedScript(in2dVars, out2dVars, in3dVars, out3dVars, pythonProg);
 		if (scriptID < 0) {
@@ -473,51 +493,23 @@ void PythonEdit::applyScript(){
 		}
 	} 
 	else {
-	//Update existing script:
-		//Need to remove old pipeline, too.
-		string name;
-		if (ds->getDerived3DOutputVars(scriptID).size()>0)
-			name = ds->getDerived3DOutputVars(scriptID)[0];
-		else 
-			name = ds->getDerived2DOutputVars(scriptID)[0];
-		ds->getDataMgr()->RemovePipeline(name);
+		//Turn off renderers that use previous outputs:
 		
-		int rc = ds->replaceDerivedScript(scriptID, in2dVars, out2dVars, in3dVars, out3dVars, pythonProg);
-		if (rc < 0) {
+		vizMgr->disableRenderers(ds->getDerived2DOutputVars(scriptID),ds->getDerived3DOutputVars(scriptID));
+		//Update existing script:
+		scriptID = ds->replaceDerivedScript(currentScriptId, in2dVars, out2dVars, in3dVars, out3dVars, pythonProg);
+		if (scriptID < 0) {
 			MessageReporter::errorMsg(" Invalid script variable changes");
 			return;
 		}
-		//refresh the visualizers:
-		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		for (int i = 0; i< MAXVIZWINS; i++){
-			VizWin* win = vizMgr->getVizWin(i);
-			if(win) {
-				win->setRegionDirty(true);
-				win->updateGL();
-			}
-		}
+		
 	}
 	
-	//Create a new PythonPipeline:
-	vector<string>inputs;
-	for (int i = 0; i< in2dVars.size(); i++) inputs.push_back(in2dVars[i]);
-	for (int i = 0; i< in3dVars.size(); i++) inputs.push_back(in3dVars[i]);
-	vector<pair<string, Metadata::VarType_T> > outpairs;
-	for (int i = 0; i < out3dVars.size(); i++){
-		outpairs.push_back( make_pair(out3dVars[i],Metadata::VAR3D));
-	}
-	for (int i = 0; i < out2dVars.size(); i++){
-		outpairs.push_back( make_pair(out2dVars[i],Metadata::VAR2D_XY));
-	}
-	string pname;
-	if (out3dVars.size() > 0) pname = out3dVars[0]; else pname = out2dVars[0];
-	
-	DataMgr* dmgr = ds->getDataMgr();
-	PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dmgr);
-	dmgr->NewPipeline(pipe);
-	
+		
 	//Update the variables in the gui and the params
-	VizWinMgr::getInstance()->reinitializeVariables();
+	vizMgr->reinitializeVariables();
+	
+	ScriptCommand::captureEnd(currentCommand, scriptID);
 	close();
 }
 void PythonEdit::saveScript(){
@@ -585,6 +577,8 @@ void PythonEdit::quit(){
 			return;
 		}
 	}
+	delete currentCommand;
+	currentCommand = 0;
 	close();
 }
 void PythonEdit::textChanged(){
@@ -601,9 +595,15 @@ void PythonEdit::deleteScript(){
 	if(ret == QMessageBox::Cancel) return;
 	//Remove the script and its variables..
 	
-	
+	DataStatus* ds = DataStatus::getInstance();
 	int id = DataStatus::getDerivedScriptId(variableName.toStdString());
-	if (id >=0) DataStatus::removeDerivedScript(id);
-	VizWinMgr::getInstance()->reinitializeVariables();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+
+	if (id > 0) {
+		vizMgr->disableRenderers(ds->getDerived2DOutputVars(id),ds->getDerived3DOutputVars(id));
+		ds->removeDerivedScript(id);
+	}
+	vizMgr->reinitializeVariables();
+	ScriptCommand::captureEnd(currentCommand, -2);
 	close();
 }

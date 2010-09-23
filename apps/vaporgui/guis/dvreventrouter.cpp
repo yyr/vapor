@@ -250,12 +250,7 @@ setDvrEnabled(bool val, int instance){
 	}
 	guiSetEnabled(val,instance);
 	typeCombo->setEnabled(!val);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(dParams,!val, false);
 	
-	setEditorDirty();
-	updateTab();
 }
 
 void DvrEventRouter::
@@ -589,9 +584,14 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled", instance);
 	dParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, dParams);
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(dParams,!value, false);
 	
-	setDatarangeDirty(dParams);
 	setEditorDirty();
+	updateTab();
+	setDatarangeDirty(dParams);
+	
 	vizWinMgr->setClutDirty(dParams);
 	vizWinMgr->setVizDirty(dParams,DvrRegionBit,true);
 	vizWinMgr->setVizDirty(dParams,LightingBit, true);

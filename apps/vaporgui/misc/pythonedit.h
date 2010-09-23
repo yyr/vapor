@@ -31,7 +31,9 @@ class QTextEdit;
 class QMenu;
 
 
+
 namespace VAPoR {
+class ScriptCommand;
 class PythonEdit : public QDialog
 {
     Q_OBJECT
@@ -74,9 +76,11 @@ private slots:
    
 
 private:
+	ScriptCommand* currentCommand;
    bool changeFlag;
    bool startUp;
    QString variableName;
+	int currentScriptId;
    
 
     QAction *actionSave,

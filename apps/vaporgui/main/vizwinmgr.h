@@ -319,6 +319,11 @@ public:
 	//
 	bool cameraBeyondRegionCenter(int coord, int vizWinNum);
 
+	//Force all renderers to re-obtain render data
+	void refreshRenderData();
+	//
+	//Disable all renderers that use specified variables
+	void disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D);
 	//Following methods notify all params that are associated with a
 	//specific window.
 	//Set the dirty bits in all the visualizers that use a

@@ -1285,6 +1285,48 @@ reinitializeVariables(){
 	}
 	getGlobalAnimationParams()->reinit(false);
 }
+//Force all renderers to re-obtain render data
+void VizWinMgr::refreshRenderData(){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]){
+			GLWindow* glwin= vizWin[i]->getGLWindow();
+			for (int j = 0; j< glwin->getNumRenderers(); j++){
+				Renderer* ren = glwin->getRenderer(j);
+				ren->setAllDataDirty();
+			}
+			vizWin[i]->updateGL();
+		}
+	}
+}
+//
+//Disable all renderers that use specified variables
+void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]){
+			GLWindow* glwin= vizWin[i]->getGLWindow();
+			for (int j = 0; j< glwin->getNumRenderers(); j++){
+				Renderer* ren = glwin->getRenderer(j);
+				RenderParams* rParams = ren->getRenderParams();
+				for (int k = 0; k<vars2D.size(); k++){
+					if(rParams->usingVariable(vars2D[k])){
+						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+						int instance = findInstanceIndex(i, rParams, t);
+						EventRouter* er = getEventRouter(t);
+						er->guiSetEnabled(false,instance);
+					}
+				}
+				for (int k = 0; k<vars3D.size(); k++){
+					if(rParams->usingVariable(vars3D[k])){
+						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+						int instance = findInstanceIndex(i, rParams, t);
+						EventRouter* er = getEventRouter(t);
+						er->guiSetEnabled(false,instance);
+					}
+				}
+			}
+		}
+	}
+}
 void VizWinMgr::
 setSelectionMode( GLWindow::mouseModeType m){ 
 	GLWindow::setCurrentMouseMode(m);

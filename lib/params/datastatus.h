@@ -427,7 +427,7 @@ public:
 	static const map<int,vector<string> >& getDerived2DOutputMap() {return derived2DOutputMap;}
 	static const map<int,vector<string> >& getDerived3DOutputMap() {return derived3DOutputMap;}
 	//Remove a python script and associated variable lists.  Return false if it's already gone
-	static bool removeDerivedScript(int index);
+	bool removeDerivedScript(int index);
 
 	static bool isDerivedVariable(std::string varname) {
 		return (getDerivedScriptId(varname) >= 0);

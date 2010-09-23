@@ -858,6 +858,13 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
  bool DataStatus::removeDerivedScript(int id){
 	map<int,string> :: iterator iter = derivedMethodMap.find(id);
 	if (iter == derivedMethodMap.end()) return false;
+	 
+	 string name;
+	 if (getDerived3DOutputVars(id).size()>0)
+		 name = getDerived3DOutputVars(id)[0];
+	 else 
+		 name = getDerived2DOutputVars(id)[0];
+	 
 	derivedMethodMap.erase(iter);
 
 	map<int,vector<string> > :: iterator iter1 = derived2DOutputMap.find(id);
@@ -880,6 +887,8 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 	if (iter1 != derived2DInputMap.end()) derived2DInputMap.erase(iter1);
 	iter1 = derived3DInputMap.find(id);
 	if (iter1 != derived3DInputMap.end()) derived3DInputMap.erase(iter1);
+	 
+	 dataMgr->RemovePipeline(name);
 	return true;
  }
  int DataStatus::addDerivedScript(const vector<string>& in2DVars, const vector<string>& out2DVars, 
@@ -919,6 +928,24 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 			int sesid = setDerivedVariable3D(out3DVars[i]);
 			if (sesid < 0) return -1;
 		}
+		//Create a new pipeline:
+		string pname;
+		if (out3DVars.size() > 0) pname = out3DVars[0]; else pname = out2DVars[0];
+		
+		vector<string>inputs;
+		for (int i = 0; i< in2DVars.size(); i++) inputs.push_back(in2DVars[i]);
+		for (int i = 0; i< in3DVars.size(); i++) inputs.push_back(in3DVars[i]);
+		vector<pair<string, Metadata::VarType_T> > outpairs;
+		for (int i = 0; i < out3DVars.size(); i++){
+			outpairs.push_back( make_pair(out3DVars[i],Metadata::VAR3D));
+		}
+		for (int i = 0; i < out2DVars.size(); i++){
+			outpairs.push_back( make_pair(out2DVars[i],Metadata::VAR2D_XY));
+		}
+		
+		PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
+		dataMgr->NewPipeline(pipe);
+		
 	}
 	
 	return newIndex;
@@ -940,6 +967,7 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 int DataStatus::replaceDerivedScript(int id, const vector<string>& in2DVars, const vector<string>& out2DVars,
 								 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
 
+		
     //Must purge cache of the previous output variables of the script
 	vector<string> oldOut2dvars = getDerived2DOutputVars(id);
 	for (int i = 0; i<oldOut2dvars.size(); i++){

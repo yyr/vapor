@@ -121,6 +121,32 @@ protected:
 	UserPreferences* currentPrefs;
 
 };
+//Subclass to deal with changes in scripts for derived variables
+//
+class ScriptCommand : public Command{
+public:
+	ScriptCommand(const char* descr);
+	virtual ~ScriptCommand();
+	virtual void unDo();
+	virtual void reDo();
+	static ScriptCommand* captureStart(int scriptID,  const char* description);
+	static void captureEnd(ScriptCommand* sCom, int scriptId);
+protected:
+	string prevProgram;
+	string nextProgram;
+	vector<string>prev2DInputs;
+	vector<string>next2DInputs;
+	vector<string>prev3DInputs;
+	vector<string>next3DInputs;
+	vector<string>prev2DOutputs;
+	vector<string>next2DOutputs;
+	vector<string>prev3DOutputs;
+	vector<string>next3DOutputs;
+	int prevId;
+	int nextId;
+		
+};
+	
 };
 #endif
  
