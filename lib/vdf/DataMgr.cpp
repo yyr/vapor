@@ -1205,6 +1205,46 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 		else itr++;
 	}
 
+	// Remove min and max data ranges from cache.
+	//
+	{
+	map <size_t, map<string, float> >::iterator itr1;
+	for (itr1=_dataRangeMinMap.begin(); itr1 !=_dataRangeMinMap.end(); itr1++) {
+		map<string, float> &m = itr1->second;
+
+		map<string, float>::iterator itr2 = m.find(varname);
+		if (itr2 != m.end()) {
+			m.erase(itr2);
+		}
+	}
+	}
+
+	{
+	map <size_t, map<string, float> >::iterator itr1;
+	for (itr1=_dataRangeMaxMap.begin(); itr1 !=_dataRangeMaxMap.end(); itr1++) {
+		map<string, float> &m = itr1->second;
+
+		map<string, float>::iterator itr2 = m.find(varname);
+		if (itr2 != m.end()) {
+			m.erase(itr2);
+		}
+	}
+	}
+
+	// Purge variable from valid min/max region cache
+	//
+	{
+	map <size_t, map<string, map<int, vector <size_t> > > >::iterator itr1;
+	for (itr1=_validRegMinMaxMap.begin(); itr1 !=_validRegMinMaxMap.end(); itr1++) {
+		map<string, map<int, vector <size_t> > >&m = itr1->second;
+
+		map<string, map<int, vector <size_t> > >::iterator itr2 = m.find(varname);
+		if (itr2 != m.end()) {
+			m.erase(itr2);
+		}
+	}
+	}
+
 }
 
 
