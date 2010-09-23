@@ -81,7 +81,7 @@ void MetadataWRF::_MetadataWRF(
   size_t tdimlens[4];
   float vertexts[2] = {0.0, 0.0};
   float *vertexts_ptr = vertexts;
-  float dx, tdx, dy, tdy;
+  float dx = 0.0, tdx = 0.0, dy = 0.0, tdy = 0.0;
   int i = 0;
   bool first_file_flag = true;
   bool mismatch_flag = false;
@@ -159,8 +159,8 @@ void MetadataWRF::_MetadataWRF(
         ErrMsgStr.assign("Error: DX and DY attributes not found in ");
         ErrMsgStr += infiles[i];
         ErrMsgStr.append(", skipping.");
-        MyBase::SetErrMsg(ErrMsgStr.c_str());
-        MyBase::SetErrCode(0);
+        SetErrMsg(ErrMsgStr.c_str());
+        SetErrCode(0);
         continue;
       }
 
@@ -229,8 +229,8 @@ void MetadataWRF::_MetadataWRF(
         if(mismatch_flag) {
           ErrMsgStr.assign("File mismatch, skipping file ");
           ErrMsgStr += infiles[i];
-          MyBase::SetErrMsg(ErrMsgStr.c_str());
-          MyBase::SetErrCode(0);
+          SetErrMsg(ErrMsgStr.c_str());
+          SetErrCode(0);
           continue;
         }
       } // end else first_file_flag.
@@ -345,7 +345,8 @@ void MetadataWRF::_MetadataWRF(
   } // end for time_latlon_extents.
   if(ReprojectTsLatLon(MapProjection)) {
     ErrMsgStr.assign("Error in map reprojection.");
-    MyBase::SetErrMsg(ErrMsgStr.c_str());
+    SetErrMsg(ErrMsgStr.c_str());
+    SetErrCode(0);	// Warning
   }
 
 // Need to make sure that both HGT and ELEVATION variables are
@@ -444,7 +445,7 @@ int MetadataWRF::MapWRFTimestep(
   const string &wrf_fname,
   size_t wrf_ts,
   size_t &timestep) {
-  size_t tmp_usertime;
+  size_t tmp_usertime = 0;
   int retval = 0;
   bool found_flag = false;
   timestep = 0;
@@ -480,12 +481,13 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
   const double DEG2RAD = 3.141592653589793/180.;
   int retval = 0;
 
+  Time_extents.clear();
   if (mapprojstr.size() > 0 ) {
     projPJ p = pj_init_plus(mapprojstr.c_str());
     if (!p) {
       //Invalid string. Get the error code:
       int *pjerrnum = pj_get_errno_ref();
-      fprintf(stderr, "Invalid geo-referencing in WRF output\n %s\n",
+      SetErrMsg("Invalid geo-referencing in WRF output : %s",
         pj_strerrno(*pjerrnum));
     }
     if(p) {
@@ -515,7 +517,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       projPJ latlon_p = pj_init_plus(latLongProjString);
       if(!latlon_p) {
         ErrMsgStr.assign("Error in creating map reprojection string!");
-        MyBase::SetErrMsg(ErrMsgStr.c_str());
+        SetErrMsg(ErrMsgStr.c_str());
         exit(1);
       }
 
@@ -532,7 +534,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
           retval = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
           if (retval){
             int *pjerrnum = pj_get_errno_ref();
-            fprintf(stderr, "Error geo-referencing WRF domain extents\n %s\n",
+            SetErrMsg("Error geo-referencing WRF domain extents : %s",
               pj_strerrno(*pjerrnum));
           }
         }
@@ -544,6 +546,15 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
         //Put the reprojected extents into the vdf
         //Use the global specified extents for vertical coords
 
+        if ((dbextents[0] >= dbextents[2])||(dbextents[1] >= dbextents[3])) {
+          retval = -1;
+          SetErrMsg(
+            "Invalid geo-referencing WRF domain extents : min(%f,%f), max(%f,%f)",
+            dbextents[0], dbextents[1], dbextents[2], dbextents[3]
+          );
+          SetErrCode(0);
+        }
+
         if (!retval){
           currExtents.clear();
           currExtents.push_back(dbextents[0]);
@@ -552,8 +563,16 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
           currExtents.push_back(dbextents[2]);
           currExtents.push_back(dbextents[3]);
           currExtents.push_back(Extents[5]);
-          Time_extents.push_back(make_pair(Time_latlon_extents[t].first, currExtents));
         }
+		else {
+          currExtents.clear();
+          currExtents.push_back(Extents[0]);
+          currExtents.push_back(Extents[1]);
+          currExtents.push_back(Extents[2]);
+          currExtents.push_back(Extents[3]);
+          currExtents.push_back(Extents[4]);
+          currExtents.push_back(Extents[5]);
+		}
       } // End of for t.
     } // End if p .
   } // End if mapprojstr.size . 
