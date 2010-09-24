@@ -12,7 +12,7 @@
 #define	FLOWLINEDATA_H
 
 #include "assert.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 #define END_FLOW_FLAG 1.e30f
 #define STATIONARY_STREAM_FLAG -1.e30f

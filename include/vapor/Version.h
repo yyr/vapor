@@ -22,19 +22,6 @@
 //	Description:	Version information.
 //
 
-#ifndef	_Version_h_
-#define	_Version_h_
-
-#include <string>
-#include <cstdlib>
-#include "vapor/MyBase.h"
-#include "vaporinternal/common.h"
-
-using namespace std;
-
-namespace VetsUtil {
-
-
 //! \class Version
 //! \brief Return version information
 //! \author John Clyne
@@ -42,6 +29,19 @@ namespace VetsUtil {
 //! A collection of general purpose utilities - things that
 //!                  probably should be in the STL but aren't.
 //!
+
+
+#ifndef	_Version_h_
+#define	_Version_h_
+
+#include <string>
+#include <cstdlib>
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
+
+using namespace std;
+
+namespace VetsUtil {
 
 //
 class COMMON_API Version : public MyBase {

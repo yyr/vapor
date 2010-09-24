@@ -15,7 +15,7 @@
 #include <cmath>
 #include <string>
 #include <ctime>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 #ifndef TIME64_T
 #ifdef WIN32

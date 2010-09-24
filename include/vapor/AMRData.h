@@ -25,7 +25,7 @@
 #define	_AMRData_h_
 
 #include <vector>
-#include <vaporinternal/common.h>
+#include <vapor/common.h>
 #include <vapor/MyBase.h>
 #include <vapor/AMRTree.h>
 

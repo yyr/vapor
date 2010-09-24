@@ -9,9 +9,9 @@
 #include <stack>
 #include <expat.h>
 #include <vapor/MyBase.h>
-#include <vaporinternal/common.h>
-#include "vapor/XmlNode.h"
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/common.h>
+#include <vapor/XmlNode.h>
+#include <vapor/ExpatParseMgr.h>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif

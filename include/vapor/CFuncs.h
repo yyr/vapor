@@ -26,7 +26,7 @@
 
 #include <cmath>
 #include <string>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 
 using namespace std;

@@ -32,7 +32,7 @@
 #include <cmath>
 #include <vector>
 #include <vapor/MyBase.h>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 #ifdef WIN32
 //Silence an annoying and unnecessary compiler warning

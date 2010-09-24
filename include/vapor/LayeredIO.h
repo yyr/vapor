@@ -8,7 +8,7 @@
 
 #include <vector>
 #include <string>
-#include "vapor/DataMgr.h"
+#include <vapor/DataMgr.h>
 
 namespace VAPoR {
 

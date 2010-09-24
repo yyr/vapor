@@ -8,9 +8,9 @@
 
 #include <vector>
 #include <string>
-#include "vapor/LayeredIO.h"
-#include "vapor/WRFReader.h"
-#include "vaporinternal/common.h"
+#include <vapor/LayeredIO.h>
+#include <vapor/WRFReader.h>
+#include <vapor/common.h>
 
 namespace VAPoR {
 

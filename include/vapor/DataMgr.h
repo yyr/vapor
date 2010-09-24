@@ -10,9 +10,9 @@
 #include <string>
 #include <vector>
 #include <vapor/MyBase.h>
-#include "vapor/BlkMemMgr.h"
-#include "vapor/Metadata.h"
-#include "vaporinternal/common.h"
+#include <vapor/BlkMemMgr.h>
+#include <vapor/Metadata.h>
+#include <vapor/common.h>
 
 namespace VAPoR {
 class PipeLine;

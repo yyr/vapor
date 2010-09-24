@@ -8,9 +8,9 @@
 
 #include <vector>
 #include <string>
-#include "vapor/WaveletBlock3DRegionReader.h"
-#include "vapor/LayeredIO.h"
-#include "vaporinternal/common.h"
+#include <vapor/WaveletBlock3DRegionReader.h>
+#include <vapor/LayeredIO.h>
+#include <vapor/common.h>
 
 namespace VAPoR {
 

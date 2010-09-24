@@ -23,11 +23,11 @@
 #ifndef ParamsBase_H
 #define ParamsBase_H
 
-#include "vapor/XmlNode.h"
-#include "vapor/ParamNode.h"
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ParamNode.h>
+#include <vapor/ExpatParseMgr.h>
 #include "assert.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 
 using namespace VetsUtil;

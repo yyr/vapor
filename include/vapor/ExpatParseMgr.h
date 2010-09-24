@@ -9,7 +9,7 @@
 #include <expat.h>
 #include <vector>
 #include <vapor/MyBase.h>
-#include <vaporinternal/common.h>
+#include <vapor/common.h>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif

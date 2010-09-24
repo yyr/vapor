@@ -28,7 +28,7 @@
 #include <vapor/OpacityMapBase.h>
 #include <vapor/ColorMapBase.h>
 #include <vapor/tfinterpolator.h>
-#include "vapor/ParamsBase.h"
+#include <vapor/ParamsBase.h>
 
 namespace VAPoR {
 class XmlNode;

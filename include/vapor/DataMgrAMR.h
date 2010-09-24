@@ -8,9 +8,9 @@
 
 #include <vector>
 #include <string>
-#include "vapor/DataMgr.h"
-#include "vapor/AMRIO.h"
-#include "vaporinternal/common.h"
+#include <vapor/DataMgr.h>
+#include <vapor/AMRIO.h>
+#include <vapor/common.h>
 
 namespace VAPoR {
 

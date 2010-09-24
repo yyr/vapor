@@ -11,10 +11,10 @@
 #ifndef	_VaporFlow_h_
 #define	_VaporFlow_h_
 
-#include "vapor/DataMgr.h"
-#include "vapor/MyBase.h"
-#include "vaporinternal/common.h"
-#include "vapor/flowlinedata.h"
+#include <vapor/DataMgr.h>
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
+#include <vapor/flowlinedata.h>
 
 
 

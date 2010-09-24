@@ -6,7 +6,7 @@
 #ifndef	_MetadataSpherical_h_
 #define	_MetadataSpherical_h_
 
-#include "vapor/MetadataVDC.h"
+#include <vapor/MetadataVDC.h>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif

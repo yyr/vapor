@@ -29,7 +29,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 #ifdef	NEW_DEBUG
 #include <new>

@@ -6,7 +6,7 @@
 #ifndef	_WavletBlock3DBufWriter_h_
 #define	_WavletBlock3DBufWriter_h_
 
-#include "vapor/WaveletBlock3DWriter.h"
+#include <vapor/WaveletBlock3DWriter.h>
 
 namespace VAPoR {
 

@@ -6,7 +6,7 @@
 #define	_WavletBlock3DWriter_h_
 
 #include <vapor/MyBase.h>
-#include "vapor/WaveletBlockIOBase.h"
+#include <vapor/WaveletBlockIOBase.h>
 
 namespace VAPoR {
 
