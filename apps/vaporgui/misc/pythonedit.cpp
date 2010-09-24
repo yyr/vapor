@@ -79,6 +79,11 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 		inputVars3->setFocusPolicy(Qt::NoFocus);
 		outputVars2->setFocusPolicy(Qt::NoFocus);
 		outputVars3->setFocusPolicy(Qt::NoFocus);
+
+		inputVars2->setToolTip("Specify the names of 2D variables that are used as input to this python script");
+		inputVars3->setToolTip("Specify the names of 3D variables that are used as input to this python script");
+		outputVars2->setToolTip("Specify the names of 2D variables that are output by this python script");
+		outputVars3->setToolTip("Specify the names of 3D variables that are output by this python script");
 	}
 	
 	QPushButton* saveButton = new QPushButton("Save to File",this);
@@ -89,8 +94,18 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	buttonLayout1->addWidget(testButton);
 	QPushButton* applyButton = new QPushButton("Apply",this);
 	buttonLayout1->addWidget(applyButton);
+
+	saveButton->setToolTip("Click to save this python script to a file");
+	loadButton->setToolTip("Click to append the python code in a file to this script");
+	if (startUp) 
+		testButton->setToolTip("Click to execute this startup script, displaying output text");
+	else testButton->setToolTip("Click to execute this script, displaying output text but without defining new variables");
+	if (startUp)
+		applyButton->setToolTip("Click to install this startup script; it will then execute before any other python scripts");
+	else applyButton->setToolTip("Click to use this script as the definition of variables in this session");
+
 	
-	if (!DataStatus::getInstance()->getDataMgr()){
+	if (!DataStatus::getInstance()->getDataMgr() && !startUp){
 		testButton->setEnabled(false);
 		applyButton->setEnabled(false);
 	}
@@ -99,8 +114,10 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 		QPushButton* deleteButton = new QPushButton("Delete",this);
 		buttonLayout1->addWidget(deleteButton);
 		connect(deleteButton, SIGNAL(pressed()), this, SLOT(deleteScript()));
+		deleteButton->setToolTip("Click to remove this script, and the variables it defines, from the session");
 	}
 	QPushButton* quitButton = new QPushButton("Cancel",this);
+	quitButton->setToolTip("Click to stop editing this python script, ignoring all changes");
 	buttonLayout1->addWidget(quitButton);
 	
 	connect(testButton, SIGNAL(pressed()), this, SLOT(testScript()));

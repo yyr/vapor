@@ -291,29 +291,30 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	//must convert input block extents to actual region extents
 	size_t dim[3];
 	size_t blksize[3];
-	currentDataMgr->GetBlockSize(blksize,reflevel);
-	
-	currentDataMgr->GetDim(dim, reflevel);	
-	
-	int regmin[3],regmax[3];
-	for (int i = 0; i<3; i++){
-		regmin[i] = min[i]*blksize[i];
-		regmax[i] = (max[i]+1)*blksize[i]-1;
-		if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
-	}
-	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
-	PyObject* refinement = Py_BuildValue("i",reflevel);
-	PyObject* timestep = Py_BuildValue("i",ts);
-	
+
 	//get the module dictionary...
-    PyObject* mainModule = PyImport_AddModule("__main__");
-	
-	
-    PyObject* mainDict = PyModule_GetDict(mainModule);
-	int rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
-	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
-	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
-	
+	PyObject* mainModule = PyImport_AddModule("__main__");
+	PyObject* mainDict = PyModule_GetDict(mainModule);
+
+	if (currentDataMgr){
+		currentDataMgr->GetBlockSize(blksize,reflevel);
+		
+		currentDataMgr->GetDim(dim, reflevel);	
+		
+		int regmin[3],regmax[3];
+		for (int i = 0; i<3; i++){
+			regmin[i] = min[i]*blksize[i];
+			regmax[i] = (max[i]+1)*blksize[i]-1;
+			if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
+		}
+		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
+		PyObject* refinement = Py_BuildValue("i",reflevel);
+		PyObject* timestep = Py_BuildValue("i",ts);
+		
+		int rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
+		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
+		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
+	}
 	
 	// RUN THE INTERPRETER!!!
     PyObject* retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
