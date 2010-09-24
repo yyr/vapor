@@ -36,9 +36,10 @@ LIB_SEARCH_DIRS =
 
 # Set INC_SEARCH_DIRS to a list of directories containing include files
 # not on the default search path for the compiler. Typically 3rd party 
-# dependencies (e.g. netCDF, IDL) are not installed in a location
-where # compiler normally checks. The compiler will search the
-directories # in the order specified.  # INC_SEARCH_DIRS =
+# dependencies (e.g. netCDF, IDL) are not installed in a location where 
+# compiler normally checks. The compiler will search the directories 
+# in the order specified.  
+INC_SEARCH_DIRS =
 
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
