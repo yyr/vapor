@@ -26,10 +26,6 @@ DEBUG=0
 BENCHMARK=0
 PROFILING=0
 
-# Set SPHERICAL_GRID to 1 to enable spherical grid rendering proof-of-concept
-# code.
-SPHERICAL_GRID=1
-
 # Set LIB_SEARCH_DIRS to a list of directories containing libraries
 # not on the default search path for the linker. Typically 3rd party 
 # dependencies (e.g. netCDF) are not installed in a location where 
@@ -40,11 +36,9 @@ LIB_SEARCH_DIRS =
 
 # Set INC_SEARCH_DIRS to a list of directories containing include files
 # not on the default search path for the compiler. Typically 3rd party 
-# dependencies (e.g. netCDF, IDL) are not installed in a location where 
-# compiler normally checks. The compiler will search the directories
-# in the order specified.
-#
-INC_SEARCH_DIRS = 
+# dependencies (e.g. netCDF, IDL) are not installed in a location
+where # compiler normally checks. The compiler will search the
+directories # in the order specified.  # INC_SEARCH_DIRS =
 
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
