@@ -90,6 +90,11 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	QPushButton* applyButton = new QPushButton("Apply",this);
 	buttonLayout1->addWidget(applyButton);
 	
+	if (!DataStatus::getInstance()->getDataMgr()){
+		testButton->setEnabled(false);
+		applyButton->setEnabled(false);
+	}
+	
 	if (!startUp && varname != ""){
 		QPushButton* deleteButton = new QPushButton("Delete",this);
 		buttonLayout1->addWidget(deleteButton);
@@ -603,7 +608,8 @@ void PythonEdit::deleteScript(){
 		vizMgr->disableRenderers(ds->getDerived2DOutputVars(id),ds->getDerived3DOutputVars(id));
 		ds->removeDerivedScript(id);
 	}
-	vizMgr->reinitializeVariables();
+	if (ds->getDataMgr()) vizMgr->reinitializeVariables();
+	currentCommand->setDescription(*(new QString("Delete Python-derived variable")));
 	ScriptCommand::captureEnd(currentCommand, -2);
 	close();
 }

@@ -888,7 +888,7 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 	iter1 = derived3DInputMap.find(id);
 	if (iter1 != derived3DInputMap.end()) derived3DInputMap.erase(iter1);
 	 
-	 dataMgr->RemovePipeline(name);
+	if (dataMgr) dataMgr->RemovePipeline(name);
 	return true;
  }
  int DataStatus::addDerivedScript(const vector<string>& in2DVars, const vector<string>& out2DVars, 
@@ -917,7 +917,7 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 	derived2DOutputMap[newIndex] = out2DVars;
 	derived3DOutputMap[newIndex] = out3DVars;
 
-	if (useMetadata){
+	if (useMetadata  && dataMgr){
 		//Add the new derived variables to existing variables
 		//in the datastatus
 		for (int i = 0; i<out2DVars.size(); i++){
@@ -967,16 +967,17 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 int DataStatus::replaceDerivedScript(int id, const vector<string>& in2DVars, const vector<string>& out2DVars,
 								 const vector<string>& in3DVars, const vector<string>& out3DVars, const string& script){
 
-		
-    //Must purge cache of the previous output variables of the script
-	vector<string> oldOut2dvars = getDerived2DOutputVars(id);
-	for (int i = 0; i<oldOut2dvars.size(); i++){
-		dataMgr->PurgeVariable(oldOut2dvars[i]);
-	}	
-	vector<string> oldOut3dvars = getDerived3DOutputVars(id);
-	for (int i = 0; i<oldOut3dvars.size(); i++){
-		dataMgr->PurgeVariable(oldOut3dvars[i]);
-	}	
+	if (dataMgr){
+		//Must purge cache of the previous output variables of the script
+		vector<string> oldOut2dvars = getDerived2DOutputVars(id);
+		for (int i = 0; i<oldOut2dvars.size(); i++){
+			dataMgr->PurgeVariable(oldOut2dvars[i]);
+		}	
+		vector<string> oldOut3dvars = getDerived3DOutputVars(id);
+		for (int i = 0; i<oldOut3dvars.size(); i++){
+			dataMgr->PurgeVariable(oldOut3dvars[i]);
+		}
+	}
 	removeDerivedScript(id);
 	return (addDerivedScript(in2DVars, out2DVars, in3DVars, out3DVars, script));
 }
@@ -1089,7 +1090,7 @@ bool DataStatus::removeDerivedVariable3D(const string& derivedVarName){
 	int sesnum = getSessionVariableNum(derivedVarName);
 	if (sesnum < 0 ) return false;
 	int activeNum = mapSessionToActiveVarNum3D(sesnum);
-	if (activeNum < 0) assert(0);  //Not active
+	if (activeNum < 0) return false;  //Not active
 	else activeVariableNums3D.erase(activeVariableNums3D.begin()+activeNum);
 	return true;
 }

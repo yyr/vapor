@@ -48,7 +48,7 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
 		{"Get2DVariable",PythonPipeLine::get_2Dvariable, METH_VARARGS,
                         "Get a variable from the DataMgr cache"},
 		{"GetExtents",PythonPipeLine::get_extents, METH_VARARGS,
-						"Return extents at specified bounds, timestep, and refinement"},
+						"Return extents at specified timestep, refinement and bounds"},
 		{NULL,NULL,0,NULL}
  };
 
@@ -474,7 +474,7 @@ PyObject* PythonPipeLine::get_extents(PyObject *self, PyObject* args){
 	currentDataMgr->MapVoxToUser(timestep,voxmin, userExts, reflevel);
 	currentDataMgr->MapVoxToUser(timestep, voxmax, userExts+3, reflevel);
     
-    return Py_BuildValue("(DDDDDD)", userExts[0],userExts[1],userExts[2],userExts[3],userExts[4],userExts[5]);
+    return Py_BuildValue("(dddddd)", userExts[0],userExts[1],userExts[2],userExts[3],userExts[4],userExts[5]);
 }
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
