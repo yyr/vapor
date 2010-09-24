@@ -3,7 +3,7 @@
 //
 #include <iostream>
 #include <cstring>
-#include "vapor/SignificanceMap.h"
+#include <vapor/SignificanceMap.h>
 
 using namespace VAPoR;
 

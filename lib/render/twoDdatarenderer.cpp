@@ -26,9 +26,9 @@
 #include "glwindow.h"
 #include "glutil.h"
 
-#include "vapor/errorcodes.h"
-#include "vapor/DataMgr.h"
-#include "vapor/LayeredIO.h"
+#include <vapor/errorcodes.h>
+#include <vapor/DataMgr.h>
+#include <vapor/LayeredIO.h>
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>

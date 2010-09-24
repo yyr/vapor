@@ -24,13 +24,13 @@
 #include "GL/glew.h"
 #include "session.h"
 #include "dvrparams.h"
-#include "vapor/DataMgr.h"
+#include <vapor/DataMgr.h>
 #include "pythonpipeline.h"
-#include "vapor/DataMgrWB.h"
-#include "vapor/LayeredIO.h"
-#include "vapor/DataMgrFactory.h"
-#include "vapor/LayeredIO.h"
-#include "vapor/ParamNode.h"
+#include <vapor/DataMgrWB.h>
+#include <vapor/LayeredIO.h>
+#include <vapor/DataMgrFactory.h>
+#include <vapor/LayeredIO.h>
+#include <vapor/ParamNode.h>
 
 #include "vizwinmgr.h"
 #include "mainform.h"
@@ -48,8 +48,8 @@
 #include <fstream>
 #include <sstream>
 #include "histo.h"
-#include "vapor/ImpExp.h"
-#include "vapor/Version.h"
+#include <vapor/ImpExp.h>
+#include <vapor/Version.h>
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include "floweventrouter.h"

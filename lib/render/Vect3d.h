@@ -12,7 +12,7 @@
 
 #include <math.h>
 #include <iostream>
-#include "common.h"
+#include <vapor/common.h>
 #include "Point3d.h"
 
 class RENDER_API Vect3d

@@ -20,7 +20,7 @@
 #define CUSTOMCONTEXT_H
 #include <qapplication.h>
 #include <qgl.h>
-#include "common.h"
+#include <vapor/common.h>
 #if defined(Q_WS_X11)  //for X11 platforms...
 #include <GL/glx.h> 
 #elif defined(Q_WS_MAC)

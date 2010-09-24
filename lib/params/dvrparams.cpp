@@ -38,7 +38,7 @@
 #include <math.h>
 #include <vapor/Version.h>
 
-#include "common.h"
+#include <vapor/common.h>
 
 using namespace VAPoR;
 const string DvrParams::_shortName = "DVR";

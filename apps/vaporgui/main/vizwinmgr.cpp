@@ -82,9 +82,9 @@
 #include "VolumeRenderer.h"
 #include "flowrenderer.h"
 
-#include "vapor/XmlNode.h"
-#include "vapor/ExpatParseMgr.h"
-#include "vapor/ParamNode.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ExpatParseMgr.h>
+#include <vapor/ParamNode.h>
 
 
 using namespace VAPoR;

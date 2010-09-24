@@ -36,11 +36,11 @@
 #include <algorithm>
 #include <vapor/CFuncs.h>
 #include <vapor/TransferFunctionLite.h>
-#include <vaporinternal/common.h>
+#include <vapor/common.h>
 
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 #include <vapor/tfinterpolator.h>
 #include "transferfunction.h"
 

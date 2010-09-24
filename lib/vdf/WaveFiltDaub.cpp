@@ -22,7 +22,7 @@
 
 #include <cmath>
 #include <cassert>
-#include "vapor/WaveFiltDaub.h"
+#include <vapor/WaveFiltDaub.h>
 
 
 using namespace VAPoR;

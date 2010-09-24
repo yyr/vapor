@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
-#include "vapor/WaveletBlock1D.h"
+#include <vapor/WaveletBlock1D.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

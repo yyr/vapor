@@ -29,9 +29,9 @@
 #include <sstream>
 
 #include "viewpoint.h"
-#include "vapor/MyBase.h"
-#include "vapor/XmlNode.h"
-#include "vapor/ParamNode.h"
+#include <vapor/MyBase.h>
+#include <vapor/XmlNode.h>
+#include <vapor/ParamNode.h>
 
 
 

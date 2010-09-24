@@ -26,8 +26,8 @@
 #define _ParamsIso_h_
 
 
-#include "vapor/XmlNode.h"
-#include "vapor/ParamNode.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ParamNode.h>
 #include "params.h"
 #include "datastatus.h"
 #include "mapperfunction.h"

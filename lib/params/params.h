@@ -21,13 +21,13 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include "vapor/XmlNode.h"
-#include "vapor/ExpatParseMgr.h"
-#include "vapor/ParamNode.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ExpatParseMgr.h>
+#include <vapor/ParamNode.h>
 #include <qwidget.h>
 #include "assert.h"
-#include "vaporinternal/common.h"
-#include "vapor/ParamsBase.h"
+#include <vapor/common.h>
+#include <vapor/ParamsBase.h>
 
 class QWidget;
 using namespace VetsUtil;

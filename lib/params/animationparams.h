@@ -24,7 +24,7 @@
 
 
 #include "params.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 
 namespace VAPoR {

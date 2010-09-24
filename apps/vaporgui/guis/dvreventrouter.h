@@ -26,7 +26,7 @@
 #include "params.h"
 #include "dvrparams.h"
 #include "eventrouter.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "dvr.h"
 
 class QTimer;

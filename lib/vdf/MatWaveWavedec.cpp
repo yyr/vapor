@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#include "vapor/MatWaveWavedec.h"
+#include <vapor/MatWaveWavedec.h>
 
 using namespace VAPoR;
 

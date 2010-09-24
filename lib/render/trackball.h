@@ -50,7 +50,7 @@
 //#include <GL/gl.h>
 #include <qthread.h>
 #include <qgl.h>
-#include "common.h"
+#include <vapor/common.h>
 
 /* These vector and quaternion macros complement similar
  * routines.

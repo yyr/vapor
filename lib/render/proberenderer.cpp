@@ -25,7 +25,7 @@
 #include "datastatus.h"
 #include "glwindow.h"
 #include "glutil.h"
-#include "vapor/errorcodes.h"
+#include <vapor/errorcodes.h>
 
 #include <qgl.h>
 #include <qcolor.h>

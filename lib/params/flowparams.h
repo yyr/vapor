@@ -25,7 +25,7 @@
 #include <qcolor.h>
 #include "params.h"
 #include "glutil.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 class FlowTab;
 #define IGNORE_FLAG 2.e30f
 namespace VAPoR {

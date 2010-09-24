@@ -29,7 +29,7 @@
 #endif
 #include <sys/types.h>
 #include "messagereporter.h"
-#include "vapor/DataMgr.h"
+#include <vapor/DataMgr.h>
 #include "mainform.h"
 #include "tabmanager.h"
 #include "session.h"

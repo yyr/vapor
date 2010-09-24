@@ -26,7 +26,7 @@
 #include "ParamsIso.h"
 #include "mapperfunction.h"
 #include "transferfunction.h"
-#include "vapor/Version.h"
+#include <vapor/Version.h>
 
 #include <string>
 #include <iostream>

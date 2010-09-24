@@ -18,7 +18,7 @@
 //		It performs the opengl rendering for visualizers
 //
 #include <GL/glew.h>
-#include "vapor/LayeredIO.h"
+#include <vapor/LayeredIO.h>
 
 #include "glwindow.h"
 #include "trackball.h"
@@ -34,7 +34,7 @@
 #include "animationparams.h"
 #include "manip.h"
 #include "datastatus.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 
 #include <algorithm>
 #include <vector>
@@ -47,12 +47,11 @@
 #include <qmutex.h>
 #include "tiffio.h"
 #include "assert.h"
-#include "vaporinternal/jpegapi.h"
-#include "common.h"
+#include <vaporinternal/jpegapi.h>
+#include <vapor/common.h>
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
 
-#include "vapor/LayeredIO.h"
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;

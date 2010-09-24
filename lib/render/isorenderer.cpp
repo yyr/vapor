@@ -66,7 +66,7 @@
 #include "glutil.h"
 #include "dvrparams.h"
 #include "ParamsIso.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

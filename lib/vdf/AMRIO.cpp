@@ -29,12 +29,12 @@
 #include <unistd.h>
 #else
 #include "windows.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "vapor/AMRIO.h"
-#include "vapor/MyBase.h"
+#include <vapor/AMRIO.h>
+#include <vapor/MyBase.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

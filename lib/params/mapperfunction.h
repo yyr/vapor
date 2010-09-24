@@ -27,7 +27,7 @@
 #include <vapor/tfinterpolator.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/MapperFunctionBase.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 #include "OpacityMap.h"
 #include "Colormap.h"
 

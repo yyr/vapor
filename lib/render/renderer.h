@@ -22,8 +22,8 @@
 #define RENDERER_H
 #include <qobject.h>
 #include <qimage.h>
-#include "vapor/MyBase.h"
-#include "common.h"
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
 #include "params.h"
 using namespace VetsUtil;
 

@@ -46,7 +46,7 @@ class QTimer;
 #include "flowparams.h"
 #include "dvrparams.h"
 #include "animationparams.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #include "params.h"
 #include "command.h"
 

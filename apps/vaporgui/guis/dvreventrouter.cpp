@@ -62,7 +62,7 @@
 #include "params.h"
 #include "dvr.h"
 #include "transferfunction.h"
-#include "vapor/XmlNode.h"
+#include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "glutil.h"
 #include "dvrparams.h"

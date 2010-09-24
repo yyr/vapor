@@ -12,10 +12,10 @@
 #include <sstream>
 #include <algorithm>
 #include <vapor/XmlNode.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 #include "assert.h"
 #include "Colormap.h"
-#include "vapor/MapperFunctionBase.h"
+#include <vapor/MapperFunctionBase.h>
 
 using namespace std;
 using namespace VAPoR;

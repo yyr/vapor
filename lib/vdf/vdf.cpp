@@ -2,7 +2,7 @@
 //
 #ifdef WIN32
 #include "windows.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 

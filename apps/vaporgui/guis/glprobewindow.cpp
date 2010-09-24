@@ -20,8 +20,8 @@
 
 #include "glprobewindow.h"
 #include "proberenderer.h"
-#include "vapor/MyBase.h"
-#include "vapor/errorcodes.h"
+#include <vapor/MyBase.h>
+#include <vapor/errorcodes.h>
 #include "glutil.h"
 #include "probeframe.h"
 #include "probeparams.h"

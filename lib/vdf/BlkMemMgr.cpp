@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif
 
-#include "vapor/BlkMemMgr.h"
+#include <vapor/BlkMemMgr.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

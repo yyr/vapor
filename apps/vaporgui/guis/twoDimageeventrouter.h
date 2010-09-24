@@ -25,7 +25,7 @@
 #include "GL/glew.h"
 #include "params.h"
 #include "eventrouter.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "twoDimageparams.h"
 #include "twoDimagetab.h"
 #include "twoDeventrouter.h"

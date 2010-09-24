@@ -26,7 +26,7 @@
 #include <qwidget.h>
 #include "params.h"
 #include "datastatus.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 #include <vector>
 #include <string>

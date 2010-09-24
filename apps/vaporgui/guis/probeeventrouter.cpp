@@ -62,8 +62,8 @@
 #include "../images/pauseA.xpm"
 #include "params.h"
 #include "probetab.h"
-#include "vaporinternal/jpegapi.h"
-#include "vapor/XmlNode.h"
+#include <vaporinternal/jpegapi.h>
+#include <vapor/XmlNode.h>
 #include "GetAppPath.h"
 #include "tabmanager.h"
 #include "glutil.h"

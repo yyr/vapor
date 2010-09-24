@@ -5,7 +5,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cassert>
-#include "vapor/WaveletBlock3DRegionWriter.h"
+#include <vapor/WaveletBlock3DRegionWriter.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif

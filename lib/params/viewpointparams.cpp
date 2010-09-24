@@ -31,8 +31,8 @@
 #include "params.h"
 #include "glutil.h"
 #include "viewpoint.h"
-#include "vapor/XmlNode.h"
-#include "vapor/ParamNode.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ParamNode.h>
 #include "datastatus.h"
 #include "regionparams.h"
 

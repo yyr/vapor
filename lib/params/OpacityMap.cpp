@@ -13,9 +13,9 @@
 #include <vector>
 #include <algorithm>
 #include <vapor/XmlNode.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 #include "OpacityMap.h"
-#include "vapor/MapperFunctionBase.h"
+#include <vapor/MapperFunctionBase.h>
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

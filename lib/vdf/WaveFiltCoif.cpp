@@ -22,7 +22,7 @@
 
 #include <cmath>
 #include <cassert>
-#include "vapor/WaveFiltCoif.h"
+#include <vapor/WaveFiltCoif.h>
 
 
 using namespace VAPoR;

@@ -47,7 +47,7 @@
 #include <qstring.h>
 #include <qstatusbar.h>
 
-#include "vapor/MetadataSpherical.h"
+#include <vapor/MetadataSpherical.h>
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
@@ -74,7 +74,7 @@
 #include "glutil.h"
 #include "dvrparams.h"
 #include "ParamsIso.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 
 // Floating-point equivalience comparison
 #define EPSILON 5.960464478e-8

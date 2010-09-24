@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#include "vapor/MatWaveDwt.h"
+#include <vapor/MatWaveDwt.h>
 #ifdef WIN32
 #include <float.h>
 #define isfinite _finite

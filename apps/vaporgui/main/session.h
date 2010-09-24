@@ -106,9 +106,9 @@
 #include <vector>
 #include <string>
 #include <assert.h>
-#include "vapor/DataMgr.h"
-#include "vapor/MyBase.h"
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/DataMgr.h>
+#include <vapor/MyBase.h>
+#include <vapor/ExpatParseMgr.h>
 #include "datastatus.h"
 #include "userpreferences.h"
 #include "messagereporter.h"

@@ -47,7 +47,7 @@
 //#include <GL/gl.h>
 #include <QGLWidget>
 #include <math.h>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 /* These vector and quaternion macros complement similar
  * routines.

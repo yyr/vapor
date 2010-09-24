@@ -60,7 +60,7 @@
 #include "params.h"
 #include "isotab.h"
 
-#include "vapor/XmlNode.h"
+#include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "glutil.h"
 #include "ParamsIso.h"

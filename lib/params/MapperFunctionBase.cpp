@@ -33,13 +33,13 @@
 #include <vapor/CFuncs.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/MapperFunctionBase.h>
-#include <vaporinternal/common.h>
+#include <vapor/common.h>
 #include <vapor/ColorMapBase.h>
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/ParamsBase.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

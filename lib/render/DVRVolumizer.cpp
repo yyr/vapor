@@ -28,7 +28,7 @@
 #include "qgl.h"
 #include <Volumizer2/Error.h>
 #include <Volumizer2/TMFragmentProgram.h>
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 
 #include "DVRVolumizer.h"
 #include "renderer.h"

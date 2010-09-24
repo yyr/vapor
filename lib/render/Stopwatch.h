@@ -8,7 +8,7 @@
 
 #ifndef Stopwatch_h
 #define Stopwatch_h
-#include "common.h"
+#include <vapor/common.h>
 #ifndef WIN32
 #include <sys/time.h>
 #endif

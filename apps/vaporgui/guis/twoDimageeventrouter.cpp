@@ -60,8 +60,8 @@
 
 #include "params.h"
 #include "twoDimagetab.h"
-#include "vaporinternal/jpegapi.h"
-#include "vapor/XmlNode.h"
+#include <vaporinternal/jpegapi.h>
+#include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "glutil.h"
 #include "twoDimageparams.h"

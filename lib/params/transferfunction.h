@@ -25,10 +25,10 @@
 #ifndef TRANSFERFUNCTION_H
 #define TRANSFERFUNCTION_H
 #define MAXCONTROLPOINTS 50
-#include "vapor/tfinterpolator.h"
+#include <vapor/tfinterpolator.h>
 //#include "params.h"
 #include "mapperfunction.h"
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/ExpatParseMgr.h>
 #include <qcolor.h>
 
 namespace VAPoR {

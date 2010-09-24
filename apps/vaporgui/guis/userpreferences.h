@@ -24,8 +24,8 @@
  
 #include <qwidget.h>
 #include <qdialog.h>
-#include "vapor/XmlNode.h"
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/XmlNode.h>
+#include <vapor/ExpatParseMgr.h>
 #include "preferences.h"
 
 

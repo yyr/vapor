@@ -43,8 +43,8 @@
 #include "animationparams.h"
 
 #include <math.h>
-#include "vapor/DataMgr.h"
-#include "vapor/errorcodes.h"
+#include <vapor/DataMgr.h>
+#include <vapor/errorcodes.h>
 
 
 using namespace VAPoR;

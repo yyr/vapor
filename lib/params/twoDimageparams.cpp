@@ -40,10 +40,9 @@
 #include "animationparams.h"
 #include "viewpointparams.h"
 
-#include <math.h>
-#include "vapor/DataMgr.h"
-#include "vapor/errorcodes.h"
-#include "vapor/WRF.h"
+#include <vapor/DataMgr.h>
+#include <vapor/errorcodes.h>
+#include <vapor/WRF.h>
 #include "sys/stat.h"
 //tiff stuff:
 

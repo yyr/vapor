@@ -25,9 +25,9 @@
 #include <qwidget.h>
 #include <vector>
 #include <map>
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #include "params.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 
 
 using namespace VetsUtil;

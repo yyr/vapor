@@ -61,7 +61,7 @@
 #include "mainform.h"
 #include "assert.h"
 #include "session.h"
-#include "vaporinternal/jpegapi.h"
+#include <vaporinternal/jpegapi.h>
 #include "images/vapor-icon-32.xpm"
 
 using namespace VAPoR;

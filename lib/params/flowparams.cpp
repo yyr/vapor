@@ -29,17 +29,17 @@
 #include "flowparams.h"
 #include "regionparams.h"
 #include "datastatus.h"
-#include "vapor/VaporFlow.h"
-#include "vapor/flowlinedata.h"
+#include <vapor/VaporFlow.h>
+#include <vapor/flowlinedata.h>
 #include "glutil.h"
-#include "vapor/errorcodes.h"
+#include <vapor/errorcodes.h>
 
 #include <qapplication.h>
 #include <qcursor.h>
 
 #include "mapperfunction.h"
 
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 //Step sizes for integration accuracy:
 #define SMALLEST_MIN_STEP 0.01f
 #define SMALLEST_MAX_STEP 0.25f

@@ -18,20 +18,20 @@
 //		These are  abstract classes for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 //
-#include "vapor/XmlNode.h"
+#include <vapor/XmlNode.h>
 #include <cstring>
 #include <qwidget.h>
 #include <qapplication.h>
 #include <string>
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "datastatus.h"
 #include "assert.h"
 #include "params.h"
 #include "mapperfunction.h"
 #include "glutil.h"
-#include "vapor/ParamNode.h"
-#include "vapor/DataMgr.h"
-#include "vapor/errorcodes.h"
+#include <vapor/ParamNode.h>
+#include <vapor/DataMgr.h>
+#include <vapor/errorcodes.h>
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"

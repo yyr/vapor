@@ -30,9 +30,9 @@
 #include "qlabel.h"
 #include "params.h"
 #include "manip.h"
-#include "vapor/MyBase.h"
-#include "common.h"
-#include "vaporinternal/jpegapi.h"
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
+#include <vaporinternal/jpegapi.h>
 #include "datastatus.h"
 
 //No more than 20 renderers in a window:

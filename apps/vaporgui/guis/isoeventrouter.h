@@ -26,7 +26,7 @@
 #include "params.h"
 #include "ParamsIso.h"
 #include "eventrouter.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "isotab.h"
 #include "transferfunction.h"
 

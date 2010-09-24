@@ -26,15 +26,15 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
-#include "vapor/tfinterpolator.h"
+#include <vapor/tfinterpolator.h>
 #include "transferfunction.h"
 #include "assert.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #include "dvrparams.h"
 
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -44,7 +44,7 @@
 #include <cassert>
 #include <algorithm>
 #include <vapor/CFuncs.h>
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/ExpatParseMgr.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

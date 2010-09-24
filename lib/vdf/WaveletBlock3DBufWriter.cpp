@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
-#include "vapor/WaveletBlock3DBufWriter.h"
+#include <vapor/WaveletBlock3DBufWriter.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif

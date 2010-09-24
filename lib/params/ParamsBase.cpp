@@ -20,12 +20,12 @@
 //		It is a base class for Params, MapperFunction and other classes
 //		that retain their state in xml nodes
 //
-#include "vapor/XmlNode.h"
+#include <vapor/XmlNode.h>
 #include <string>
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "assert.h"
-#include "vapor/ParamNode.h"
-#include "vapor/ParamsBase.h"
+#include <vapor/ParamNode.h>
+#include <vapor/ParamsBase.h>
 #include "params.h"
 #include "ParamsIso.h"
 #include "dvrparams.h"

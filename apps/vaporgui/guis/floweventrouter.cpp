@@ -65,9 +65,9 @@
 
 #include "params.h"
 #include "flowtab.h"
-#include "vapor/XmlNode.h"
-#include "vapor/flowlinedata.h"
-#include "vapor/VaporFlow.h"
+#include <vapor/XmlNode.h>
+#include <vapor/flowlinedata.h>
+#include <vapor/VaporFlow.h>
 
 #include "tabmanager.h"
 #include "glutil.h"

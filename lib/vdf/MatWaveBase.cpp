@@ -1,11 +1,11 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
-#include "vapor/MatWaveBase.h"
-#include "vapor/WaveFiltDaub.h"
-#include "vapor/WaveFiltCoif.h"
-#include "vapor/WaveFiltBior.h"
-#include "vapor/WaveFiltHaar.h"
+#include <vapor/MatWaveBase.h>
+#include <vapor/WaveFiltDaub.h>
+#include <vapor/WaveFiltCoif.h>
+#include <vapor/WaveFiltBior.h>
+#include <vapor/WaveFiltHaar.h>
 
 using namespace VAPoR;
 

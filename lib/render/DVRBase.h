@@ -21,9 +21,9 @@
 
 #include <stdio.h>
 #include <vector>
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "renderer.h"
-#include "vapor/errorcodes.h"
+#include <vapor/errorcodes.h>
 
 using namespace VetsUtil;
 namespace VAPoR {

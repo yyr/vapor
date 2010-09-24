@@ -24,7 +24,7 @@
 #endif
 
 #include "regionparams.h"
-#include "vapor/errorcodes.h"
+#include <vapor/errorcodes.h>
 
 #include "datastatus.h"
 
@@ -41,10 +41,10 @@
 #include <sstream>
 
 #include "params.h"
-#include "vapor/DataMgr.h"
-#include "vapor/LayeredIO.h"
-#include "vapor/XmlNode.h"
-#include "vapor/ParamNode.h"
+#include <vapor/DataMgr.h>
+#include <vapor/LayeredIO.h>
+#include <vapor/XmlNode.h>
+#include <vapor/ParamNode.h>
 //#include "glutil.h"
 
 

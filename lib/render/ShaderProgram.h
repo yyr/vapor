@@ -11,7 +11,7 @@
 #ifndef ShaderProgram_h
 #define ShaderProgram_h
 
-#include "common.h"
+#include <vapor/common.h>
 #include <GL/glew.h>
 
 #ifdef Darwin

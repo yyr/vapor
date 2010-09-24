@@ -22,7 +22,7 @@
 
 #include <cmath>
 #include <cassert>
-#include "vapor/WaveFiltBior.h"
+#include <vapor/WaveFiltBior.h>
 
 using namespace VAPoR;
 

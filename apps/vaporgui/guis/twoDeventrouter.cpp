@@ -58,8 +58,8 @@
 #include <sstream>
 
 #include "params.h"
-#include "vaporinternal/jpegapi.h"
-#include "vapor/XmlNode.h"
+#include <vaporinternal/jpegapi.h>
+#include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "glutil.h"
 #include "twoDparams.h"

@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
-#include "vapor/WaveletBlock3DBufReader.h"
+#include <vapor/WaveletBlock3DBufReader.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif

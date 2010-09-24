@@ -22,7 +22,7 @@
 #define MANIP_H
 //Handle diameter in pixels:
 #define HANDLE_DIAMETER 15
-#include "common.h"
+#include <vapor/common.h>
 namespace VAPoR {
 
 class GLWindow;

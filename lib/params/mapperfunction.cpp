@@ -31,18 +31,18 @@
 #include <cassert>
 #include <algorithm>
 
-#include "vapor/ParamsBase.h"
+#include <vapor/ParamsBase.h>
 #include <vapor/CFuncs.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
-#include <vaporinternal/common.h>
+#include <vapor/common.h>
 #include <qcolor.h>
 #include "mapperfunction.h"
 #include "params.h"
 #include "ParamsIso.h"
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

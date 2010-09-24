@@ -91,7 +91,7 @@
 #include <vapor/DataMgrWB.h>
 #include <vapor/LayeredIO.h>
 #include <vapor/MetadataVDC.h>
-#include "vapor/Version.h"
+#include <vapor/Version.h>
 //Following shortcuts are provided:
 // CTRL_N: new session
 // CTRL_O: open session

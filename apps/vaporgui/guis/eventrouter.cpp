@@ -30,8 +30,8 @@
 #include <qmessagebox.h>
 #include <qfileinfo.h>
 #include <QFileDialog>
-#include "vapor/DataMgr.h"
-#include "vapor/errorcodes.h"
+#include <vapor/DataMgr.h>
+#include <vapor/errorcodes.h>
 #include "GetAppPath.h"
 #include "session.h"
 #include "messagereporter.h"

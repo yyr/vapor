@@ -21,8 +21,8 @@
 //
 #include <iostream>
 #include <cassert>
-#include "vapor/Base64.h"
-#include "vapor/XmlNode.h"
+#include <vapor/Base64.h>
+#include <vapor/XmlNode.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;

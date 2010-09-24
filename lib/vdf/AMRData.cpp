@@ -30,7 +30,7 @@
 #include <unistd.h>
 #else
 #include "windows.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #endif
 
 #include <vapor/AMRData.h>

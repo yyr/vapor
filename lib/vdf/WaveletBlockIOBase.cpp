@@ -12,13 +12,13 @@
 #else
 #pragma warning(disable : 4996)
 #include "windows.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "vapor/WaveletBlockIOBase.h"
-#include "vapor/MyBase.h"
-#include "vapor/errorcodes.h"
+#include <vapor/WaveletBlockIOBase.h>
+#include <vapor/MyBase.h>
+#include <vapor/errorcodes.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
-#include "vapor/Compressor.h"
+#include <vapor/Compressor.h>
 
 using namespace VAPoR;
 using namespace std;

@@ -19,8 +19,8 @@
 
 #include "params.h"
 #include "flowrenderer.h"
-#include "vapor/VaporFlow.h"
-#include "vapor/errorcodes.h"
+#include <vapor/VaporFlow.h>
+#include <vapor/errorcodes.h>
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"

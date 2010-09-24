@@ -3,7 +3,7 @@
 /*
 * This class describes a viewpoint
 */
-#include "vapor/ExpatParseMgr.h"
+#include <vapor/ExpatParseMgr.h>
 #include "datastatus.h"
 namespace VAPoR {
 class XmlNode;

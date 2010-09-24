@@ -22,7 +22,7 @@
 #define	VolumeRenderer_H
 
 #include <stdio.h>
-#include "vapor/DataMgr.h"
+#include <vapor/DataMgr.h>
 #include "DVRBase.h"
 #include "renderer.h"
 #include "glwindow.h"

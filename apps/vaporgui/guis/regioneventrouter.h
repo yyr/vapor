@@ -24,7 +24,7 @@
 #include <qobject.h>
 #include "params.h"
 #include "eventrouter.h"
-#include "vapor/MyBase.h"
+#include <vapor/MyBase.h>
 #include "regiontab.h"
 
 

@@ -36,13 +36,13 @@
 #include "animationparams.h"
 #include "flowparams.h"
 #include "regionparams.h"
-#include "vapor/ParamNode.h"
+#include <vapor/ParamNode.h>
 
 #include "../images/fileopen.xpm"
 #include "messagereporter.h"
 #include "mainform.h"
 #include "session.h"
-#include "vapor/Version.h"
+#include <vapor/Version.h>
 #include <qtooltip.h>
 #include <qlineedit.h>
 #include <QFileDialog>

@@ -8,7 +8,7 @@
 #else
 #include "windows.h"
 #include "Winbase.h"
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,8 +18,8 @@
 #include <mach/mach_time.h>
 #endif
 
-#include "vapor/VDFIOBase.h"
-#include "vapor/MyBase.h"
+#include <vapor/VDFIOBase.h>
+#include <vapor/MyBase.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
