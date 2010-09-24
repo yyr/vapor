@@ -27,8 +27,8 @@
 #include <iterator>
 #include <fcntl.h>
 
-#include "vapor/MyBase.h"
-#include "vaporinternal/common.h"
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
 
 
 #endif

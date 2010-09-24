@@ -2,9 +2,9 @@
 #pragma warning(disable : 4244 4251 4267 4100 4996)
 #endif
 
-#include "vapor/VaporFlow.h"
-#include "vapor/flowlinedata.h"
-#include "vapor/errorcodes.h"
+#include <vapor/VaporFlow.h>
+#include <vapor/flowlinedata.h>
+#include <vapor/errorcodes.h>
 #include "Rake.h"
 #include "VTFieldLine.h"
 #include "math.h"

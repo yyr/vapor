@@ -12,9 +12,9 @@
 #define	_RAKE_h_
 
 #include <time.h>
-#include "vapor/DataMgr.h"
-#include "vapor/MyBase.h"
-#include "vaporinternal/common.h"
+#include <vapor/DataMgr.h>
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
 #include "Interpolator.h"
 #include "assert.h"
 

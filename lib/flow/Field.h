@@ -15,7 +15,7 @@
 #include "header.h"
 #include "Grid.h"
 #include "Solution.h"
-#include "vapor/DataMgr.h"
+#include <vapor/DataMgr.h>
 
 //////////////////////////////////////////////////////////////////////////
 // vector field class

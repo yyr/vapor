@@ -2,10 +2,10 @@
 #pragma warning(disable : 4251 4100)
 #endif
 
-#include "vapor/VaporFlow.h"
+#include <vapor/VaporFlow.h>
 #include "Rake.h"
 #include "VTFieldLine.h"
-#include "vapor/flowlinedata.h"
+#include <vapor/flowlinedata.h>
 using namespace VetsUtil;
 using namespace VAPoR;
 

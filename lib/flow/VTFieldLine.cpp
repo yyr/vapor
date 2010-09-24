@@ -13,9 +13,9 @@
 #endif
 
 #include "VTFieldLine.h"
-#include "vapor/VaporFlow.h"
-#include "vapor/flowlinedata.h"
-#include "vapor/errorcodes.h"
+#include <vapor/VaporFlow.h>
+#include <vapor/flowlinedata.h>
+#include <vapor/errorcodes.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
