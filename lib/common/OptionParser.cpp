@@ -2,12 +2,12 @@
 #include <cstdlib>
 #include <vector>
 #include <cstring>
-#include "vapor/OptionParser.h"
+#include <vapor/OptionParser.h>
 #include <cassert>
 #include <cctype>
 #include <sstream>
 #include <locale>
-#include "vapor/Version.h"
+#include <vapor/Version.h>
 #ifdef WIN32
 #pragma warning( disable : 4996 )
 #endif

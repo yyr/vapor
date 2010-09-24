@@ -4,7 +4,7 @@
 #include <cstring>
 #include <cassert>
 #include <cerrno>
-#include "vapor/CFuncs.h"
+#include <vapor/CFuncs.h>
 
 #include <iostream>
 #ifdef WIN32

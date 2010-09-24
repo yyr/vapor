@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include "vapor/Version.h"
+#include <vapor/Version.h>
 
 
 using namespace VetsUtil;

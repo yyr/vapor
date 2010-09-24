@@ -36,8 +36,8 @@
 
 #include <string>
 #include <cstdlib>
-#include "vapor/MyBase.h"
-#include "vaporinternal/common.h"
+#include <vapor/MyBase.h>
+#include <vapor/common.h>
 
 using namespace std;
 
