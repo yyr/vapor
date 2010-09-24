@@ -6,9 +6,9 @@
 #include <cassert>
 #include <vector>
 #include <map>
-#include "vapor/DataMgr.h"
-#include "vaporinternal/common.h"
-#include "vapor/errorcodes.h"
+#include <vapor/DataMgr.h>
+#include <vapor/common.h>
+#include <vapor/errorcodes.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;

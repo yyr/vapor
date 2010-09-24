@@ -27,7 +27,7 @@
 #include "jmorecfg.h"		/* seldom changed options */
 
 
-#include "common.h"
+#include <vapor/common.h>
 
 /* Version ID for the JPEG library.
  * Might be useful for tests like "#if JPEG_LIB_VERSION >= 60".

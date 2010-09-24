@@ -30,22 +30,22 @@
 #include <fstream>
 #include <sstream>
 
-#include "vapor/ImpExp.h"
-#include "vapor/MyBase.h"
-#include "vapor/DataMgr.h"
-#include "vapor/DataMgrWB.h"
-#include "vapor/LayeredIO.h"
-#include "vapor/Version.h"
+#include <vapor/ImpExp.h>
+#include <vapor/MyBase.h>
+#include <vapor/DataMgr.h>
+#include <vapor/DataMgrWB.h>
+#include <vapor/LayeredIO.h>
+#include <vapor/Version.h>
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qcolor.h>
-#include "vapor/errorcodes.h"
+#include <vapor/errorcodes.h>
 #include "proj_api.h"
 #include "math.h"
 using namespace VAPoR;
 using namespace VetsUtil;
-#include "vaporinternal/common.h"
+#include <vapor/common.h>
 
 //This is a singleton class, but it's created by the Session.
 //Following are static, must persist even when there is no instance:

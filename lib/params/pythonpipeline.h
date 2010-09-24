@@ -12,10 +12,10 @@
 #include <string>
 #include <vector>
 #include <vapor/MyBase.h>
-#include "vapor/BlkMemMgr.h"
-#include "vapor/Metadata.h"
-#include "vapor/DataMgr.h"
-#include "vaporinternal/common.h"
+#include <vapor/BlkMemMgr.h>
+#include <vapor/Metadata.h>
+#include <vapor/DataMgr.h>
+#include <vapor/common.h>
 #include "datastatus.h"
 
 namespace VAPoR {
