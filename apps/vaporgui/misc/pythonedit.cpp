@@ -1,7 +1,7 @@
 
 #include "pythonedit.h"
-#include "vapor/DataMgr.h"
-#include "vapor/DataMgrFactory.h"
+#include <vapor/DataMgr.h>
+#include <vapor/DataMgrFactory.h>
 #include "pythonpipeline.h"
 #include "datastatus.h"
 #include "command.h"
