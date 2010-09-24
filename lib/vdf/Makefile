@@ -30,7 +30,7 @@ HEADER_FILES = \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory
+	DataMgrFactory Lifting1D Transpose 
 
 
 #LIB_DEFS = vdf.def

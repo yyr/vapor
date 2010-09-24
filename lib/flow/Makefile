@@ -8,6 +8,8 @@ FILES = \
 	VTFieldLine VTPathLine VTStreamLine VTStreakLine VTTimeLine \
 	VTTimeVaryingFieldLine VaporFlow VectorMatrix
 
+HEADER_FILES = VaporFlow flowlinedata
+
 #LIB_DEFS = vdf.def
   
 ifeq ($(ARCH),WIN32)
