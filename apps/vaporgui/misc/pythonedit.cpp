@@ -25,9 +25,22 @@
 #include <QDialog>
 #include <QBoxLayout>
 
-
-
 using namespace VAPoR;
+const QString PythonEdit::startupWhatsThisText = 
+	"This window is used to edit a Python script that will be \
+executed once before any variable-defining scripts are executed.  It can be \
+used to define functions, variables or constants that will be later \
+used in variable-defining scripts.";
+const QString PythonEdit::varDefWhatsThisText = 
+	"This window is used to edit a Python script that defines one or more \
+derived variables.  Array operations (using NumPy) can be used to define \
+new variables as arithmetic expressions applied to existing variables.  \
+You must indicate any existing variables that will be referenced in the \
+script using the Input variable selectors at the top of this window.  Any derived \
+variables that are defined by this script must be identified using the \
+Output variable selectors above.";
+
+
 PythonEdit::PythonEdit(QWidget *parent, QString varname)
     : QDialog(parent)
 {
@@ -45,7 +58,9 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
     pythonEdit = new QTextEdit(this);
     pythonEdit->setFocus();
 	pythonEdit->setAcceptRichText(false);
+	
 	if (!startUp){
+		pythonEdit->setWhatsThis(varDefWhatsThisText);
 		inputVars2 = new QComboBox(this);
 		hlayout->addWidget(inputVars2);
 		outputVars2 = new QComboBox(this);
@@ -84,6 +99,8 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 		inputVars3->setToolTip("Specify the names of 3D variables that are used as input to this python script");
 		outputVars2->setToolTip("Specify the names of 2D variables that are output by this python script");
 		outputVars3->setToolTip("Specify the names of 3D variables that are output by this python script");
+	} else {
+		pythonEdit->setWhatsThis(startupWhatsThisText);
 	}
 	
 	QPushButton* saveButton = new QPushButton("Save to File",this);

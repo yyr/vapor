@@ -59,6 +59,8 @@ private:
 	QComboBox* outputVars2;
 	QComboBox* inputVars3;
 	QComboBox* outputVars3;
+	static const QString varDefWhatsThisText;
+	static const QString startupWhatsThisText;
 
 private slots:
 	
