@@ -1121,6 +1121,16 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 		return 0;
 	}
 	
+	//Make the z -extents equal to the full z-extents of the global region.  This is in case the
+	//2D variable is the output of a script, and there is a 3D input to the script. This way the 3D extents of
+	//the 3D input variable are determined by the current global variable.
+	RegionParams* rParams = (RegionParams*) GetDefaultParams(Params::_regionParamsTag);
+	size_t regBlockExtents[6], regExts[6];
+	rParams->getRegionVoxelCoords(refLevel, regExts, regExts+3, regBlockExtents,regBlockExtents+3, ts);
+	blkMin[2] = regBlockExtents[2];
+	blkMax[2] = regBlockExtents[5];
+	
+
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable 
 	float** planarData = new float*[numVars];

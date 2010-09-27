@@ -112,7 +112,7 @@ WaveletBlock3D::~WaveletBlock3D() {
 	_objInitialized = 0;
 }
 
-#include "Transpose.h"
+#include <vapor/Transpose.h>
 
 void	WaveletBlock3D::ForwardTransform(
 	const float *src_super_blk[8],

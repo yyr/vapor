@@ -73,7 +73,7 @@ WaveletBlock2D::~WaveletBlock2D() {
 	_objInitialized = 0;
 }
 
-#include "Transpose.h"
+#include <vapor/Transpose.h>
 
 void	WaveletBlock2D::ForwardTransform(
 	const float *src_super_tile[4],

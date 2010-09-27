@@ -493,6 +493,8 @@ void PythonEdit::applyScript(){
 		}
 	}
 
+	
+
 	//Create string vectors for input and output variables
 	vector<string> in2dVars;
 	vector<string> out2dVars;
@@ -503,6 +505,14 @@ void PythonEdit::applyScript(){
 	for (int i = 2; i< outputVars2->count()-3; i++) out2dVars.push_back(outputVars2->itemText(i).toStdString());
 	for (int i = 2; i< outputVars3->count()-3; i++) out3dVars.push_back(outputVars3->itemText(i).toStdString());
 	
+	//Check for use of 2D outputs with 3D inputs.  Issue a warning in that case
+	if (out2dVars.size() > 0 && in3dVars.size()>0){
+		MessageReporter::warningMsg("Note: When deriving a 2D output variable from 3D input variables\n%s\n%s",
+			"The vertical extents of the 3D variables will be the same as",
+			"the vertical extents of the global 3D region.");
+	}
+
+
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//If scriptID is 0, there is no script
 	int scriptID = currentScriptId;

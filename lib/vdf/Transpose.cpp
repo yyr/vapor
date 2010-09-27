@@ -3,7 +3,7 @@
 //
 
 
-#include "Transpose.h"
+#include <vapor/Transpose.h>
 
 #define Minimum(a,b) ((a<b)?a:b)
 #define BlockSize 32
