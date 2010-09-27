@@ -74,11 +74,7 @@ BUILD_IDL_WRAPPERS = 0
 #
 IDLDIR =
 
-# Set to 1 if you want the Python intepreter built
-#
-BUILD_PYTHON = 0
-
-# If BUILD_PYTHON is set to 1, set PYTHONDIR to the root of the 
+# Set PYTHONDIR to the root of the 
 # Python directory where the sub directories 'lib', and 'include' 
 # may be found. 
 #
