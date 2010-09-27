@@ -70,7 +70,7 @@ void	process_volume_vdc1(
 	double *timer
 ) {
 	size_t	size;
-	float	*buf;
+	float	*buf = NULL;
 	WaveletBlock3DBufReader *wbreader3D = 0;
 	size_t dim[3];
 	double t0, t1;
@@ -163,6 +163,7 @@ void	process_volume_vdc1(
 	*read_timer = wbreader3D->GetReadTimer();
 	wbreader3D->CloseVariable();
 
+	if (buf) delete [] buf;
 	delete wbreader3D;
 }
 
@@ -172,7 +173,7 @@ void	process_volume_vdc2(
 	double *timer
 ) {
 	size_t	size;
-	float	*buf;
+	float	*buf = NULL;
 	WaveCodecIO *wcreader = NULL;
 	size_t dim[3];
 	double t0, t1;
@@ -241,6 +242,7 @@ void	process_volume_vdc2(
 	*read_timer = wcreader->GetReadTimer();
 	wcreader->CloseVariable();
 
+	if (buf) delete [] buf;
 	delete wcreader;
 }
 

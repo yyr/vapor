@@ -324,6 +324,8 @@ void	process_volume_vdc2(
 
 	*write_timer = wcwriter->GetWriteTimer();
 	*xform_timer = wcwriter->GetXFormTimer();
+
+	delete [] slice;
 }
 
 void	process_volume_vdc1(
@@ -401,6 +403,8 @@ void	process_volume_vdc1(
 
 	*write_timer = wbwriter->GetWriteTimer();
 	*xform_timer = wbwriter->GetXFormTimer();
+
+	delete [] slice;
 }
 
 float *read_region(

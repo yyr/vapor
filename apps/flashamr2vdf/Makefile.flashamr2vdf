@@ -8,12 +8,6 @@ FILES = flashamr2vdf flashhdf5
 
 MAKEFILE_CXXFLAGS += -DH5_USE_16_API
 
-ifeq ($(BUILD_GUI),1)
-LIBRARIES = pthread dl util m vdf python2.6 common hdf5 netcdf expat
-else
-LIBRARIES = vdf common hdf5 netcdf expat
-endif
-
-
+LIBRARIES = vdf proj common netcdf hdf5 expat
 
 include ${TOP}/make/config/base.mk
