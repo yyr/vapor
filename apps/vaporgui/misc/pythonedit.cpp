@@ -37,10 +37,10 @@ const QString PythonEdit::varDefWhatsThisText =
 	"This window is used to edit a Python script that defines one or more \
 derived variables.  Array operations (using NumPy) can be used to define \
 new variables as arithmetic expressions applied to existing variables.  \
-You must indicate any existing variables that will be referenced in the \
-script using the Input variable selectors at the top of this window.  Any derived \
-variables that are defined by this script must be identified using the \
-Output variable selectors above.";
+You must indicate any existing variables that are referenced in the \
+script, by checking the variable names in the input 2D or 3D variable check-boxes.  All derived \
+(output) variables that are defined by this script must be identified in the \
+2D and 3D output variable lists above.";
 
 
 PythonEdit::PythonEdit(QWidget *parent, QString varname)
