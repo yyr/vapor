@@ -29,6 +29,8 @@ class QComboBox;
 class QPushButton;
 class QTextEdit;
 class QMenu;
+class QListWidgetItem;
+class QListWidget;
 
 
 
@@ -47,27 +49,25 @@ public:
 private:
    
     bool checkScript();
-	void addInputVar2();
-	void addOutputVar2();
-	void delInputVar2();
-	void delOutputVar2();
-	void addInputVar3();
-	void addOutputVar3();
-	void delInputVar3();
-	void delOutputVar3();
-	QComboBox* inputVars2;
-	QComboBox* outputVars2;
-	QComboBox* inputVars3;
-	QComboBox* outputVars3;
+	
+	QListWidget* inputVars2;
+	QListWidget* inputVars3;
+	QListWidget* outputVars2;
+	QListWidget* outputVars3;
+	QPushButton* add3DVar;
+	QPushButton* add2DVar;
+	QPushButton* rem3DVar;
+	QPushButton* rem2DVar;
 	static const QString varDefWhatsThisText;
 	static const QString startupWhatsThisText;
 
 private slots:
-	
-	void inputVarsActive2(int);
-	void outputVarsActive2(int);
-	void inputVarsActive3(int);
-	void outputVarsActive3(int);
+	void addOutputVar2();
+	void delOutputVar2();
+	void addOutputVar3();
+	void delOutputVar3();
+	void inputVarsActive2(QListWidgetItem*);
+	void inputVarsActive3(QListWidgetItem*);
 	void testScript();
 	void applyScript();
 	void saveScript();

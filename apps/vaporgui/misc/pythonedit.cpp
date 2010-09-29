@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 #include <QFile>
+#include <QListWidgetItem>
+#include <QListWidget>
 #include <QTextStream>
 #include <QAction>
 #include <QComboBox>
@@ -61,42 +63,73 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	
 	if (!startUp){
 		pythonEdit->setWhatsThis(varDefWhatsThisText);
-		inputVars2 = new QComboBox(this);
-		hlayout->addWidget(inputVars2);
-		outputVars2 = new QComboBox(this);
-		hlayout->addWidget(outputVars2);
-		inputVars3 = new QComboBox(this);
-		hlayout->addWidget(inputVars3);
-		outputVars3 = new QComboBox(this);
-		hlayout->addWidget(outputVars3);
-
-		outputVars2->addItem("2D Output Variables");
-		outputVars2->addItem("Remove Variable");
-		outputVars2->addItem("Add Variable");
-
-		inputVars2->addItem("2D Input Variables");
-		inputVars2->addItem("Remove Variable");
-		inputVars2->addItem("Add Variable");
-
-		outputVars3->addItem("3D Output Variables");
-		outputVars3->addItem("Remove Variable");
-		outputVars3->addItem("Add Variable");
-
-		inputVars3->addItem("3D Input Variables");
-		inputVars3->addItem("Remove Variable");
-		inputVars3->addItem("Add Variable");
+		QVBoxLayout* vlayout = new QVBoxLayout();
+		QLabel* colLabel = new QLabel("Input 2D Variables");
+		colLabel->setAlignment(Qt::AlignHCenter);
+		vlayout->addWidget(colLabel);
+		vlayout->addStretch();
+		inputVars2 = new QListWidget(this);
+		inputVars2->setMaximumHeight(120);
 		
-		connect(inputVars2, SIGNAL(activated(int)), this, SLOT(inputVarsActive2(int)));
-		connect(outputVars2, SIGNAL(activated(int)), this, SLOT(outputVarsActive2(int)));
-		connect(inputVars3, SIGNAL(activated(int)), this, SLOT(inputVarsActive3(int)));
-		connect(outputVars3, SIGNAL(activated(int)), this, SLOT(outputVarsActive3(int)));
+		vlayout->addWidget(inputVars2);
+		hlayout->addLayout(vlayout);
+		
+		vlayout = new QVBoxLayout();
+		colLabel = new QLabel("Output 2D Variables");
+		colLabel->setAlignment(Qt::AlignHCenter);
+		vlayout->addWidget(colLabel);
+		vlayout->addStretch();
+		outputVars2 = new QListWidget(this);
+		outputVars2->setMaximumHeight(50);
+		vlayout->addWidget(outputVars2);
+		add2DVar = new QPushButton("Add 2D Variable");
+		vlayout->addWidget(add2DVar);
+		rem2DVar = new QPushButton("Remove Selected Variable");
+		vlayout->addWidget(rem2DVar);
+		hlayout->addLayout(vlayout);
+
+		vlayout = new QVBoxLayout();
+		colLabel = new QLabel("Input 3D Variables");
+		colLabel->setAlignment(Qt::AlignHCenter);
+		vlayout->addWidget(colLabel);
+		vlayout->addStretch();
+		inputVars3 = new QListWidget(this);
+		inputVars3->setMaximumHeight(120);
+		vlayout->addWidget(inputVars3);
+		hlayout->addLayout(vlayout);
+
+		vlayout = new QVBoxLayout();
+		colLabel = new QLabel("Output 3D Variables");
+		colLabel->setAlignment(Qt::AlignHCenter);
+		vlayout->addWidget(colLabel);
+		vlayout->addStretch();
+		outputVars3 = new QListWidget(this);
+		outputVars3->setMaximumHeight(50);
+		vlayout->addWidget(outputVars3);
+		add3DVar = new QPushButton("Add 3D Variable");
+		vlayout->addWidget(add3DVar);
+		rem3DVar = new QPushButton("Remove Selected Variable");
+		vlayout->addWidget(rem3DVar);
+		hlayout->addLayout(vlayout);
+		
+
+	
+
+		
+		connect(inputVars2, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive2(QListWidgetItem)));
+		connect(inputVars3, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive3(QListWidgetItem)));
+		connect(add3DVar, SIGNAL(clicked()), this, SLOT(addOutputVar3()));
+		connect(add2DVar, SIGNAL(clicked()), this, SLOT(addOutputVar2()));
+		connect(rem3DVar, SIGNAL(clicked()), this, SLOT(delOutputVar3()));
+		connect(rem2DVar, SIGNAL(clicked()), this, SLOT(delOutputVar2()));
+		
 		inputVars2->setFocusPolicy(Qt::NoFocus);
 		inputVars3->setFocusPolicy(Qt::NoFocus);
 		outputVars2->setFocusPolicy(Qt::NoFocus);
 		outputVars3->setFocusPolicy(Qt::NoFocus);
 
-		inputVars2->setToolTip("Specify the names of 2D variables that are used as input to this python script");
-		inputVars3->setToolTip("Specify the names of 3D variables that are used as input to this python script");
+		inputVars2->setToolTip("Check the names of 2D variables that are used as input to this python script");
+		inputVars3->setToolTip("Check the names of 3D variables that are used as input to this python script");
 		outputVars2->setToolTip("Specify the names of 2D variables that are output by this python script");
 		outputVars3->setToolTip("Specify the names of 3D variables that are output by this python script");
 	} else {
@@ -149,39 +182,61 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	mainLayout->addWidget(pythonEdit);
 	mainLayout->addLayout(buttonLayout1);
 
-	if (!startUp){
-		inputVars3->insertSeparator(1);
-		inputVars2->insertSeparator(1);
-		outputVars3->insertSeparator(1);
-		outputVars2->insertSeparator(1);
-		inputVars3->insertSeparator(2);
-		inputVars2->insertSeparator(2);
-		outputVars3->insertSeparator(2);
-		outputVars2->insertSeparator(2);
+	
+	int scriptID = -1;
+	if (!startUp && varname != "") scriptID = DataStatus::getDerivedScriptId(varname.toStdString());
+	
+	if (!startUp) {  //Build the variable list
+		for (int i = 0; i< DataStatus::getNumMetadataVariables2D(); i++){
+			QListWidgetItem *currItem = new QListWidgetItem(DataStatus::getMetadataVarName2D(i).c_str()) ;
+			inputVars2->addItem(currItem);
+			currItem->setCheckState(Qt::Unchecked);
+			if (varname != "") {
+				//see if it's in the input list
+				for (int i = 0; i< DataStatus::getDerived2DInputVars(scriptID).size(); i++){
+					if (DataStatus::getDerived2DInputVars(scriptID)[i] == currItem->text().toStdString())
+						currItem->setCheckState(Qt::Checked);
+				}
+
+
+			}
+
+		}
+		for (int i = 0; i< DataStatus::getNumMetadataVariables(); i++){
+			QListWidgetItem *currItem = new QListWidgetItem(DataStatus::getMetadataVarName(i).c_str()) ;
+			inputVars3->addItem(currItem);
+			currItem->setCheckState(Qt::Unchecked);
+			if (varname != "") {
+				//see if it's in the input list
+				for (int i = 0; i< DataStatus::getDerived3DInputVars(scriptID).size(); i++){
+					if (DataStatus::getDerived3DInputVars(scriptID)[i] == currItem->text().toStdString())
+						currItem->setCheckState(Qt::Checked);
+				}
+
+
+			}
+
+		}
 	}
-	int scriptID;
 	if (!startUp && varname != ""){
-		//Set up combos for specified output variable
+		//Set up lists output variables
 		
 		scriptID = DataStatus::getDerivedScriptId(varname.toStdString());
 		assert(scriptID > 0);
 		pythonEdit->setText(DataStatus::getDerivedScript(scriptID).c_str());
 		//Set up the input and output variable combos
 		vector<string> varnames = DataStatus::getDerived2DInputVars(scriptID);
-		for (int i = 0; i< varnames.size(); i++){
-			inputVars2->insertItem(2,varnames[i].c_str());
-		}
-		varnames = DataStatus::getDerived3DInputVars(scriptID);
-		for (int i = 0; i< varnames.size(); i++){
-			inputVars3->insertItem(2,varnames[i].c_str());
-		}
+		
+		
 		varnames = DataStatus::getDerived2DOutputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
-			outputVars2->insertItem(2,varnames[i].c_str());
+			QListWidgetItem *currItem = new QListWidgetItem(varnames[i].c_str()) ;
+			outputVars2->addItem(currItem);
 		}
 		varnames = DataStatus::getDerived3DOutputVars(scriptID);
 		for (int i = 0; i< varnames.size(); i++){
-			outputVars3->insertItem(2,varnames[i].c_str());
+			QListWidgetItem *currItem = new QListWidgetItem(varnames[i].c_str()) ;
+			outputVars3->addItem(currItem);
 		}
 	
 	} 
@@ -211,26 +266,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 using namespace VetsUtil;
 using namespace VAPoR;
 
-void PythonEdit::addInputVar2(){
-	//Create a QStringList with all the MD 2D variables
-	DataStatus* ds = DataStatus::getInstance();
-	QStringList qsList;
-	for (int i = 0; i<ds->getNumMetadataVariables2D(); i++){
-		int m = ds->mapMetadataToSessionVarNum2D(i);
-		if (ds->variableIsPresent2D(m))
-			qsList << QString(ds->getMetadataVarName2D(i).c_str());	
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Add 2D Input Variable",
-		"Specify 2D Input Variable Name:", qsList, 0, false, &ok);
-	if (ok){
-		//Make sure the selected variable is not already being used
-		int location = inputVars2->findText(text);
-		if (location >= 0) return;
-		inputVars2->insertItem(2,text);
-	}
-}
+
 void PythonEdit::addOutputVar2(){
 	bool ok;
     QString text = QInputDialog::getText(this, "Add 2D Output Variable",
@@ -240,155 +276,85 @@ void PythonEdit::addOutputVar2(){
 		DataStatus* ds;
 		ds = DataStatus::getInstance();
 		//Make sure it isn't already used in metadata or as output to this script
-		for (int i = 2; i<outputVars3->count()-3; i++)
-			if(outputVars3->itemText(i) == text) return;
-		for (int i = 2; i<outputVars2->count()-3; i++)
-			if(outputVars2->itemText(i) == text) return;
+		for (int i = 0; i<outputVars3->count(); i++)
+			if(outputVars3->item(i)->text() == text) return;
+		for (int i = 0; i<outputVars2->count(); i++)
+			if(outputVars2->item(i)->text() == text) return;
 		
 		for (int i = 0; i< ds->getNumMetadataVariables(); i++)
 			if (ds->getMetadataVarName(i) == text.toStdString()) return;
 		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++)
 			if (ds->getMetadataVarName2D(i) == text.toStdString()) return;
-		outputVars2->insertItem(2,text);
+		outputVars2->addItem(new QListWidgetItem(text));
+		changeFlag = true;
 	}
 
 }
-void PythonEdit::delInputVar2(){
-	//Create a QStringList with all the 2D input variables
-	
-	QStringList qsList;
-	for (int i = 2; i<inputVars2->count()-3; i++){
-		qsList << inputVars2->itemText(i);
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Remove 2D Input Variable",
-		"Select 2D Input Variable to Remove:", qsList, 0, false, &ok);
-	if (ok){
-		int location = inputVars2->findText(text);
-		if (location < 1 ) return;
-		inputVars2->removeItem(location);
-		changeFlag = true;
-	}
-}
+
 void PythonEdit::delOutputVar2(){
-	//Create a QStringList with all the 2D output variables
-	QStringList qsList;
-	for (int i = 2; i<outputVars2->count()-3; i++){
-		qsList << outputVars2->itemText(i);
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Remove 2D Output Variable",
-		"Select 2D Output Variable to Remove:", qsList, 0, false, &ok);
-	if (ok){
-		int location = outputVars2->findText(text);
-		if (location < 1 ) return;
-		outputVars2->removeItem(location);
-		changeFlag = true;
-	}
+	//See if a variable is selected
 	
-}
-void PythonEdit::inputVarsActive2(int index){
-	if (index == inputVars2->count()-2) delInputVar2();
-	else if (index == inputVars2->count()-1) addInputVar2();
-	inputVars2->setCurrentIndex(0);
-}
-void PythonEdit::outputVarsActive2(int index){
-	if (index == outputVars2->count()-2) delOutputVar2();
-	else if (index == outputVars2->count()-1) addOutputVar2();
-	outputVars2->setCurrentIndex(0);
-}
-void PythonEdit::addInputVar3(){
-	//Create a QStringList with all the MD 3D variables
-	DataStatus* ds = DataStatus::getInstance();
-	QStringList qsList;
-	for (int i = 0; i<ds->getNumMetadataVariables(); i++){
-		int m = ds->mapMetadataToSessionVarNum(i);
-		if (ds->variableIsPresent(m))
-			qsList << QString(ds->getMetadataVarName(i).c_str());	
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Add 3D Input Variable",
-		"Specify 3D Input Variable Name:", qsList, 0, false, &ok);
-	if (ok){
-		//Make sure the selected variable is not already being used
-		int location = inputVars3->findText(text);
-		if (location > 0 ) return;
-		inputVars3->insertItem(2,text);
-		changeFlag = true;
+	for (int i = 0; i< outputVars2->count(); i++){
+		QListWidgetItem* item = outputVars2->item(i);
+		if (item->isSelected()){
+			outputVars2->removeItemWidget(item);
+			delete item;
+			changeFlag = true;
+			return;
+		}
 	}
 }
+void PythonEdit::inputVarsActive2(QListWidgetItem* item){
+	if (item->checkState() == Qt::Unchecked)
+		item->setCheckState(Qt::Checked);
+	else item->setCheckState(Qt::Unchecked);
+	changeFlag = true;
+}
+void PythonEdit::inputVarsActive3(QListWidgetItem* item){
+	if (item->checkState() == Qt::Unchecked)
+		item->setCheckState(Qt::Checked);
+	else item->setCheckState(Qt::Unchecked);
+	changeFlag = true;
+}
+
 void PythonEdit::addOutputVar3(){
 	bool ok;
-	DataStatus* ds;
     QString text = QInputDialog::getText(this, "Add 3D Output Variable",
 		"Specify 3D Output Variable Name:", QLineEdit::Normal,
                                           "", &ok);
 	if (ok && !text.isEmpty()){
+		DataStatus* ds;
 		ds = DataStatus::getInstance();
 		//Make sure it isn't already used in metadata or as output to this script
-		for (int i = 2; i<outputVars3->count()-3; i++)
-			if(outputVars3->itemText(i) == text) return;
-		for (int i = 2; i<outputVars2->count()-3; i++)
-			if(outputVars2->itemText(i) == text) return;
+		for (int i = 0; i<outputVars3->count(); i++)
+			if(outputVars3->item(i)->text() == text) return;
+		for (int i = 0; i<outputVars2->count(); i++)
+			if(outputVars2->item(i)->text() == text) return;
 		
 		for (int i = 0; i< ds->getNumMetadataVariables(); i++)
 			if (ds->getMetadataVarName(i) == text.toStdString()) return;
 		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++)
 			if (ds->getMetadataVarName2D(i) == text.toStdString()) return;
-		outputVars3->insertItem(2,text);
-		changeFlag = true;
-		
-	}
-}
-void PythonEdit::delInputVar3(){
-	//Create a QStringList with all the 3D input variables
-	
-	QStringList qsList;
-	for (int i = 2; i<inputVars3->count()-3; i++){
-		qsList << inputVars3->itemText(i);
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Remove 3D Input Variable",
-		"Specify 3D Input Variable Name:", qsList, 0, false, &ok);
-	if (ok){
-		int location = inputVars3->findText(text);
-		if (location < 1) return;
-		inputVars3->removeItem(location);
+		outputVars3->addItem(new QListWidgetItem(text));
 		changeFlag = true;
 	}
+
 }
 void PythonEdit::delOutputVar3(){
-	//Create a QStringList with all the 2D output variables
+	//See if a variable is selected
 	
-	QStringList qsList;
-	for (int i = 2; i<outputVars3->count()-3; i++){
-		qsList << outputVars3->itemText(i);
-	}
-	if (qsList.isEmpty()) return;
-	bool ok;
-	QString text = QInputDialog::getItem(this, "Remove 3D Output Variable",
-		"Specify 3D Output Variable Name:", qsList, 0, false, &ok);
-	if (ok){
-		int location = outputVars3->findText(text);
-		if (location < 1 ) return;
-		outputVars3->removeItem(location);
-		changeFlag = true;
+	for (int i = 0; i< outputVars3->count(); i++){
+		QListWidgetItem* item = outputVars3->item(i);
+		if (item->isSelected()){
+			outputVars3->removeItemWidget(item);
+			delete item;
+			changeFlag = true;
+			return;
+		}
 	}
 }
-void PythonEdit::inputVarsActive3(int index){
-	if (index == inputVars3->count()-2) delInputVar3();
-	else if (index == inputVars3->count()-1) addInputVar3();
-	inputVars3->setCurrentIndex(0);
-}
-void PythonEdit::outputVarsActive3(int index){
-	if (index == outputVars3->count()-2) delOutputVar3();
-	else if (index == outputVars3->count()-1) addOutputVar3();
-	outputVars3->setCurrentIndex(0);
-}
+
+
 void PythonEdit::testScript(){
 	size_t min_dim[3],max_dim[3],min_bdim[3],max_bdim[3];
 	DataStatus* ds = DataStatus::getInstance();
@@ -405,35 +371,41 @@ void PythonEdit::testScript(){
 	vector<string>  inVars3D, inVars2D;
 	if(!startUp){
 		QString prog = pythonEdit->toPlainText();
-		for (int i = 2; i< inputVars2->count()-3; i++){ 
-			if (!prog.contains(inputVars2->itemText(i))) {
-				MessageReporter::errorMsg(" Program does not contain variable %s", inputVars2->itemText(i).toAscii().data());
-				return;
+		
+		for (int i = 0; i<inputVars2->count(); i++){
+			QListWidgetItem* item = inputVars2->item(i);
+			if (item->checkState() == Qt::Checked){
+				if (!prog.contains(item->text())) {
+					MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
+					return;
+				}
 			}
+			inVars2D.push_back(item->text().toStdString());
 		}
-		for (int i = 2; i< inputVars3->count()-3; i++){ 
-			if (!prog.contains(inputVars3->itemText(i))) {
-				MessageReporter::errorMsg(" Program does not contain variable %s", inputVars3->itemText(i).toAscii().data());
-				return;
+		for (int i = 0; i<inputVars3->count(); i++){
+			QListWidgetItem* item = inputVars3->item(i);
+			if (item->checkState() == Qt::Checked){
+				if (!prog.contains(item->text())) {
+					MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
+					return;
+				}
 			}
+			inVars3D.push_back(item->text().toStdString());
 		}
 
-		for (int i = 2; i< outputVars2->count()-3; i++){ 
-			if (!prog.contains(outputVars2->itemText(i))) {
-				MessageReporter::errorMsg(" Program does not contain variable %s", outputVars2->itemText(i).toAscii().data());
+		for (int i = 0; i< outputVars2->count(); i++){ 
+			if (!prog.contains(outputVars2->item(i)->text())) {
+				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars2->item(i)->text().toAscii().data());
 				return;
 			}
 		}
-		for (int i = 2; i< outputVars3->count()-3; i++){ 
-			if (!prog.contains(outputVars3->itemText(i))) {
-				MessageReporter::errorMsg(" Program does not contain variable %s", outputVars3->itemText(i).toAscii().data());
+		for (int i = 0; i< outputVars3->count(); i++){ 
+			if (!prog.contains(outputVars3->item(i)->text())) {
+				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars3->item(i)->text().toAscii().data());
 				return;
 			}
 		}
 		
-	
-		for (int i = 2; i<inputVars3->count()-3; i++) inVars3D.push_back(inputVars3->itemText(i).toStdString());
-		for (int i = 2; i<inputVars2->count()-3; i++) inVars2D.push_back(inputVars2->itemText(i).toStdString());
 	}
 		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -466,12 +438,11 @@ void PythonEdit::applyScript(){
 	//Check if this script already exists
 	//If there are no output variables, issue an error message;
 	string outvar;
-	//There need to be at least 6 entries in the pulldown menu for there to be any variables
-	//since there are two horizonal bars and 3 predefined text items
-	if (outputVars3->count() > 5){
-		outvar = outputVars3->itemText(2).toStdString();
-	} else if (outputVars2->count() > 5){
-		outvar = outputVars2->itemText(2).toStdString();
+	
+	if (outputVars3->count() > 0){
+		outvar = outputVars3->item(0)->text().toStdString();
+	} else if (outputVars2->count() > 0){
+		outvar = outputVars2->item(0)->text().toStdString();
 	} else {
 		MessageReporter::errorMsg(" No output variables are specified");
 		return;
@@ -484,28 +455,37 @@ void PythonEdit::applyScript(){
 	}
 	//check that all variables appear in script:
 	QString prog = pythonEdit->toPlainText();
-	for (int i = 2; i< inputVars2->count()-3; i++){ 
-		if (!prog.contains(inputVars2->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars2->itemText(i).toAscii().data());
-			return;
+	vector<string> in2dVars, in3dVars;
+	for (int i = 0; i<inputVars2->count(); i++){
+		QListWidgetItem* item = inputVars2->item(i);
+		if (item->checkState() == Qt::Checked){
+			if (!prog.contains(item->text())) {
+				MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
+				return;
+			}
+			in2dVars.push_back(item->text().toStdString());
 		}
 	}
-	for (int i = 2; i< inputVars3->count()-3; i++){ 
-		if (!prog.contains(inputVars3->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", inputVars3->itemText(i).toAscii().data());
-			return;
+	for (int i = 0; i<inputVars3->count(); i++){
+		QListWidgetItem* item = inputVars3->item(i);
+		if (item->checkState() == Qt::Checked){
+			if (!prog.contains(item->text())) {
+				MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
+				return;
+			}
+			in3dVars.push_back(item->text().toStdString());
 		}
 	}
 
-	for (int i = 2; i< outputVars2->count()-3; i++){ 
-		if (!prog.contains(outputVars2->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars2->itemText(i).toAscii().data());
+	for (int i = 0; i< outputVars2->count(); i++){ 
+		if (!prog.contains(outputVars2->item(i)->text())) {
+			MessageReporter::errorMsg(" Program does not contain 2D variable %s", outputVars2->item(i)->text().toAscii().data());
 			return;
 		}
 	}
-	for (int i = 2; i< outputVars3->count()-3; i++){ 
-		if (!prog.contains(outputVars3->itemText(i))) {
-			MessageReporter::errorMsg(" Program does not contain variable %s", outputVars3->itemText(i).toAscii().data());
+	for (int i = 0; i< outputVars3->count(); i++){ 
+		if (!prog.contains(outputVars3->item(i)->text())) {
+			MessageReporter::errorMsg(" Program does not contain 3D variable %s", outputVars3->item(i)->text().toAscii().data());
 			return;
 		}
 	}
@@ -513,14 +493,12 @@ void PythonEdit::applyScript(){
 	
 
 	//Create string vectors for input and output variables
-	vector<string> in2dVars;
+	
 	vector<string> out2dVars;
-	vector<string> in3dVars;
 	vector<string> out3dVars;
-	for (int i = 2; i< inputVars2->count()-3; i++) in2dVars.push_back(inputVars2->itemText(i).toStdString());
-	for (int i = 2; i< inputVars3->count()-3; i++) in3dVars.push_back(inputVars3->itemText(i).toStdString());
-	for (int i = 2; i< outputVars2->count()-3; i++) out2dVars.push_back(outputVars2->itemText(i).toStdString());
-	for (int i = 2; i< outputVars3->count()-3; i++) out3dVars.push_back(outputVars3->itemText(i).toStdString());
+	
+	for (int i = 0; i< outputVars3->count(); i++) out3dVars.push_back(outputVars3->item(i)->text().toStdString());
+	for (int i = 0; i< outputVars2->count(); i++) out2dVars.push_back(outputVars2->item(i)->text().toStdString());
 	
 	//Check for use of 2D outputs with 3D inputs.  Issue a warning in that case
 	if (out2dVars.size() > 0 && in3dVars.size()>0){
