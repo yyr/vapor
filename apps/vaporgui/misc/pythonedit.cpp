@@ -116,8 +116,8 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	
 
 		
-		connect(inputVars2, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive2(QListWidgetItem)));
-		connect(inputVars3, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive3(QListWidgetItem)));
+		connect(inputVars2, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive2(QListWidgetItem*)));
+		connect(inputVars3, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(inputVarsActive3(QListWidgetItem*)));
 		connect(add3DVar, SIGNAL(clicked()), this, SLOT(addOutputVar3()));
 		connect(add2DVar, SIGNAL(clicked()), this, SLOT(addOutputVar2()));
 		connect(rem3DVar, SIGNAL(clicked()), this, SLOT(delOutputVar3()));
@@ -132,6 +132,10 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 		inputVars3->setToolTip("Check the names of 3D variables that are used as input to this python script");
 		outputVars2->setToolTip("Specify the names of 2D variables that are output by this python script");
 		outputVars3->setToolTip("Specify the names of 3D variables that are output by this python script");
+		add2DVar->setToolTip("Click to specify another 2D output variable");
+		add3DVar->setToolTip("Click to specify another 3D output variable");
+		rem3DVar->setToolTip("Click to remove the selected 3D output variable");
+		rem2DVar->setToolTip("Click to remove the selected 2D output variable");
 	} else {
 		pythonEdit->setWhatsThis(startupWhatsThisText);
 	}
@@ -260,6 +264,7 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
 	}
 
 	changeFlag = false;
+	setWindowModality(Qt::ApplicationModal);
     show();
 }
 
@@ -503,8 +508,8 @@ void PythonEdit::applyScript(){
 	//Check for use of 2D outputs with 3D inputs.  Issue a warning in that case
 	if (out2dVars.size() > 0 && in3dVars.size()>0){
 		MessageReporter::warningMsg("Note: When deriving a 2D output variable from 3D input variables\n%s\n%s",
-			"The vertical extents of the 3D variables will be the same as",
-			"the vertical extents of the global 3D region.");
+			"The vertical extents of the 3D input variable arrays will be the same as",
+			"the vertical extents of the global 3D region being rendered in VAPOR.");
 	}
 
 
