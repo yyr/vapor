@@ -163,6 +163,9 @@ int PythonPipeLine::python_wrapper(
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
 	
+	//Make a copy (needed for later cleanup)
+	PyObject* copyDict = PyDict_Copy(mainDict);
+
 	
 	string pretext = "import sys\n";
 	pretext += "import StringIO\n";
@@ -171,7 +174,13 @@ int PythonPipeLine::python_wrapper(
 	pretext += "myErr = StringIO.StringIO()\n";
 	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
-
+	
+    PyObject* retObj = PyRun_String(pretext.c_str(),Py_file_input, mainDict,mainDict);
+	if (!retObj){
+		PyErr_Print();
+		MyBase::SetErrMsg(VAPOR_ERROR,"Python interpreter preparation error");
+		return -1;
+	}
 	for (int i = 0; i< inputData.size(); i++){
 		string vname = inputs[i];
 		Metadata::VarType_T datatype = currentDataMgr->GetVarType(vname);
@@ -207,12 +216,11 @@ int PythonPipeLine::python_wrapper(
 	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
 
-	string program = pretext+pythonMethod;
 	
-    PyObject* retObj = PyRun_String(program.c_str(),Py_file_input, mainDict,mainDict);
+	retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
     if (!retObj){
 		PyErr_Print();
-			//Put stderr into MyBase error message
+		//Put stderr into MyBase error message
 		//Find myErr in the dictionary
 		PyObject* myErrString = PyString_FromFormat("myErr");
 		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
@@ -229,32 +237,72 @@ int PythonPipeLine::python_wrapper(
 				MyBase::SetErrMsg(" Python execution error:\n%s\n",strtext);
 			}
 		}
-	return -1;
+		return -1;
     }
    
 	
 	//Retrieve all the output variables using the dictionary.  First do 3d, then 2d
 	for (int i = 0; i< outputs.size(); i++) {
-		if (outputs[i].second == Metadata::VAR3D) {
-			const char* vname = outputs[i].first.c_str();
+		const char* vname = outputs[i].first.c_str();
+		int dimen = 2;
+		if (outputs[i].second == Metadata::VAR3D) dimen = 3;
+		PyObject* ky = Py_BuildValue("s",vname);
 		
-			PyObject* ky = Py_BuildValue("s",vname);
+		PyObject* varArray = PyDict_GetItem(mainDict, ky);
+		if (! varArray){
+			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s not produced by script",vname);
+			return -1;
+		}
+		//check shape and type of data:
+		int nd = PyArray_NDIM(varArray);
+		if (nd != dimen){
+			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s is not %d-dimensional", vname, dimen);
+			return -1;
+		}
+		int datatype = PyArray_TYPE(varArray);
+		if (datatype != 11){
+			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s data is not float32",vname);
+			return -1;
+		}
+		npy_intp* dims = PyArray_DIMS(varArray);
+		for (int j = 0; j< nd; j++) {
+			if (dims[j] != (regmax[j] - regmin[j]+1)){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
+				return -1;
+			}
+		}
+		float *dataArray = (float*)PyArray_DATA(varArray);
 			
-			PyObject* varArray = PyDict_GetItem(mainDict, ky);
-			float *dataArray = (float*)PyArray_DATA(varArray);
+		if (dimen == 3) {
 			//Realign, put into DataMgr's allocated region
 			realign3DArray(dataArray, regsize, outputData[i], blkregsize);
 			
-		} else if (outputs[i].second == Metadata::VAR2D_XY) {
-			PyObject* ky = Py_BuildValue("s",(outputs[i].first).c_str());
-			
-			PyObject* varArray = PyDict_GetItem(mainDict, ky);
-			float *dataArray = (float*)PyArray_DATA(varArray);
-			//Realign, put into DataMgr's allocated region
+		} else {
 			realign2DArray(dataArray, regsize, outputData[i], blkregsize);
 		}
-		else assert(0);  // no other 2d orientations supported
+		
 	}
+	//Cleanup:  Remove anything that was added to the dictionary:
+	Py_ssize_t pos = 0;
+	std::vector<PyObject*> newObjects;
+	while(1){
+		PyObject* key;
+		PyObject* val;
+		int rc = PyDict_Next(mainDict,&pos, &key, &val);
+		if (!rc) break;
+		if (PyDict_Contains(copyDict,key)) {
+			//printf("Matching key found: %s\n", PyString_AsString(key));
+			continue;
+		}
+		newObjects.push_back(key);
+	}
+	for (int i = 0; i<newObjects.size(); i++){
+		char* keyString = PyString_AsString(newObjects[i]);
+		//printf("deleting object with key %s\n",keyString);
+		PyObject_DelItem(mainDict,newObjects[i]);
+		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
+	}
+	
 		
 	return 0;
 }
@@ -265,6 +313,7 @@ int PythonPipeLine::python_wrapper(
 std::string& PythonPipeLine::
 python_test_wrapper(const string& script, const vector<string>& inputVars2, 
 					const vector<string>& inputVars3, 
+					vector<pair<string, Metadata::VarType_T> > outputs,
 					size_t ts,int reflevel,const size_t min[3],const size_t max[3]){
 		
 	if(!initialized) initialize();
@@ -285,7 +334,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	}
 	
 	
-	string pythonMethod = pretext + script ;
+	string pythonMethod = script ;
 	
 	
 	//must convert input block extents to actual region extents
@@ -295,13 +344,28 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	//get the module dictionary...
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
+	
+	//Make a copy (needed for later cleanup)
+	PyObject* copyDict = PyDict_Copy(mainDict);
+	//Print out the contents of the dictionary:
+	/*printf("Dictionary prior to test execution\n");
+	Py_ssize_t poss = 0;
+	while(1){
+		PyObject* key;
+		PyObject* val;
+		int rc = PyDict_Next(mainDict,&poss, &key, &val);
+		if (!rc) break;
+		printf("Key: %s\n", PyString_AsString(key));
+	}*/
 
+	int regmin[3],regmax[3];
+	
 	if (currentDataMgr){
 		currentDataMgr->GetBlockSize(blksize,reflevel);
 		
 		currentDataMgr->GetDim(dim, reflevel);	
 		
-		int regmin[3],regmax[3];
+		
 		for (int i = 0; i<3; i++){
 			regmin[i] = min[i]*blksize[i];
 			regmax[i] = (max[i]+1)*blksize[i]-1;
@@ -315,9 +379,16 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
 	}
-	
-	// RUN THE INTERPRETER!!!
-    PyObject* retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
+	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
+	if (!retObj){
+		PyErr_Print();
+		MyBase::SetErrMsg(VAPOR_ERROR,"Python interpreter preparation error");
+		pythonOutputText = "preparation script error";
+		return pythonOutputText;
+	}
+		
+	// execute the program...
+    retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
 	
 	
     if (!retObj){
@@ -339,7 +410,44 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 				MyBase::SetErrMsg(" Python execution error:\n%s\n",strtext);
 			}
 		}
+	} else {
+		//Check all the output variables using the dictionary.  First do 3d, then 2d
+		for (int i = 0; i< outputs.size(); i++) {
+			const char* vname = outputs[i].first.c_str();
+			int dimen = 2;
+			if (outputs[i].second == Metadata::VAR3D) dimen = 3;
+			PyObject* ky = Py_BuildValue("s",vname);
+		
+			PyObject* varArray = PyDict_GetItem(mainDict, ky);
+			if (! varArray){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s not produced by script",vname);
+				pythonOutputText = "Output data error";
+				return pythonOutputText;
+			}
+			//check shape and type of data:
+			int nd = PyArray_NDIM(varArray);
+			if (nd != dimen){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s is not %d-dimensional", vname, dimen);
+				pythonOutputText = "Output data error";
+				return pythonOutputText;
+			}
+			int datatype = PyArray_TYPE(varArray);
+			if (datatype != 11){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Variable %s data is not float32",vname);
+				pythonOutputText = "Output data error";
+				return pythonOutputText;
+			}
+			npy_intp* dims = PyArray_DIMS(varArray);
+			for (int i = 0; i< nd; i++) {
+				if (dims[i] != (regmax[i] - regmin[i]+1)){
+					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
+					pythonOutputText = "Output data error";
+					return pythonOutputText;
+				}
+			}
+		}
 	}
+	
     
 	
 	//Find myIO in the dictionary
@@ -360,6 +468,39 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			pythonOutputText = strtext;
 		}
 	}
+	//Print out the contents of the dictionary:
+	/*
+	printf("Dictionary following test execution\n");
+	poss=0;
+	while(1){
+		PyObject* key;
+		PyObject* val;
+		int rc = PyDict_Next(mainDict,&poss, &key, &val);
+		if (!rc) break;
+		printf("Key: %s\n", PyString_AsString(key));
+	}*/
+	
+	//Cleanup:  Remove anything that was added to the dictionary:
+	Py_ssize_t pos = 0;
+	std::vector<PyObject*> newObjects;
+	while(1){
+		PyObject* key;
+		PyObject* val;
+		int rc = PyDict_Next(mainDict,&pos, &key, &val);
+		if (!rc) break;
+		if (PyDict_Contains(copyDict,key)) {
+			//printf("Matching key found: %s\n", PyString_AsString(key));
+			continue;
+		}
+		newObjects.push_back(key);
+	}
+	for (int i = 0; i<newObjects.size(); i++){
+		char* keyString = PyString_AsString(newObjects[i]);
+		//printf("deleting object with key %s\n",keyString);
+		PyObject_DelItem(mainDict,newObjects[i]);
+		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
+	}
+	
 	return pythonOutputText;
 }
 
@@ -397,6 +538,10 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     }
     
     regData = currentDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
+	if (!regData){
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
+		return NULL;
+	}
 	//Create a new array to pass to python:
     float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
     if(!pyData) return NULL;
@@ -436,6 +581,10 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     }
     
     regData = currentDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
+	if (!regData){
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
+		return NULL;
+	}
     
     //fill in unused space:
     for (int j = 0; j< blockedRegionSize[1]; j++){

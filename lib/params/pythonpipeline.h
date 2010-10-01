@@ -55,6 +55,7 @@ public:
 	std::string& python_test_wrapper(const string& script, 
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
+						vector<pair<string, Metadata::VarType_T> > outputs,
 						size_t ts, int reflevel,const size_t min[3],const size_t max[3]);
 
 	static std::string& getStartupScript() {return startupScript;}

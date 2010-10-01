@@ -374,6 +374,7 @@ void PythonEdit::testScript(){
 	}
 	//check that all input and output variables appear in script:
 	vector<string>  inVars3D, inVars2D;
+	vector<pair<string, Metadata::VarType_T> > outputs;
 	if(!startUp){
 		QString prog = pythonEdit->toPlainText();
 		
@@ -384,8 +385,9 @@ void PythonEdit::testScript(){
 					MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
 					return;
 				}
+				inVars2D.push_back(item->text().toStdString());
 			}
-			inVars2D.push_back(item->text().toStdString());
+			
 		}
 		for (int i = 0; i<inputVars3->count(); i++){
 			QListWidgetItem* item = inputVars3->item(i);
@@ -394,8 +396,9 @@ void PythonEdit::testScript(){
 					MessageReporter::errorMsg(" Program does not contain input variable %s", item->text().toAscii().data());
 					return;
 				}
+				inVars3D.push_back(item->text().toStdString());
 			}
-			inVars3D.push_back(item->text().toStdString());
+			
 		}
 
 		for (int i = 0; i< outputVars2->count(); i++){ 
@@ -403,15 +406,19 @@ void PythonEdit::testScript(){
 				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars2->item(i)->text().toAscii().data());
 				return;
 			}
+			outputs.push_back( make_pair(outputVars2->item(i)->text().toStdString(),Metadata::VAR2D_XY));
 		}
 		for (int i = 0; i< outputVars3->count(); i++){ 
 			if (!prog.contains(outputVars3->item(i)->text())) {
 				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars3->item(i)->text().toAscii().data());
 				return;
 			}
+			outputs.push_back(make_pair(outputVars3->item(i)->text().toStdString(),Metadata::VAR3D));
 		}
 		
 	}
+	
+	
 		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
@@ -421,7 +428,7 @@ void PythonEdit::testScript(){
 	vector<pair<string, Metadata::VarType_T> > testOut;
 	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
 	
-	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, timeStep, reflevel, min_bdim, max_bdim);
+	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, min_bdim, max_bdim);
 	
 	if (rettxt.size() > 0){
 		QMessageBox::information(this,"Python Script Output",rettxt.c_str());
@@ -600,8 +607,13 @@ void PythonEdit::quit(){
 		QMessageBox msgBox;
 		msgBox.setText("The script has been changed.");
 		msgBox.setInformativeText("Do you want to discard your changes?");
-		msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Discard | QMessageBox::Cancel);
-		msgBox.setDefaultButton(QMessageBox::Discard);
+		if (DataStatus::getInstance()->getDataMgr()){
+			msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Discard | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Discard);
+		} else {
+			msgBox.setStandardButtons(QMessageBox::Discard | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Discard);
+		}
 		int ret = msgBox.exec();
 		if(ret == QMessageBox::Cancel) return;
 		if(ret == QMessageBox::Apply) {

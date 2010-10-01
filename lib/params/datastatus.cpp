@@ -544,12 +544,12 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		//Trap errors:
 		//
 		ErrMsgCB_T errorCallback = GetErrMsgCB();
-		SetErrMsgCB(0);
+		//SetErrMsgCB(0);
 		float mnmx[2];
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName(varnum).c_str(), mnmx);
 		//Turn it back on:
-		SetErrMsgCB(errorCallback);
+		//SetErrMsgCB(errorCallback);
 					
 		if(rc<0){
 			//Post an error:
@@ -573,12 +573,12 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 		//Trap errors:
 		//
 		ErrMsgCB_T errorCallback = GetErrMsgCB();
-		SetErrMsgCB(0);
+		//SetErrMsgCB(0);
 		float mnmx[2];
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName2D(varnum).c_str(), mnmx);
 		//Turn it back on:
-		SetErrMsgCB(errorCallback);
+		//SetErrMsgCB(errorCallback);
 					
 		if(rc<0){
 			//Post an error:
