@@ -50,6 +50,30 @@ sub mysystem {
 	}
 }
 
+sub copy_dir{
+	my($srcdir, $destdir) = @_;
+
+	my($volume, $parentdir, $file) = File::Spec->splitpath($srcdir);
+
+	$tmpfile =  "/tmp/$ProgName.$$.tar";
+
+	$cwd = getcwd();
+	chdir $parentdir or die "$ProgName: Can't cd to $parentdir: $!\n";
+	@cmd = ("tar", "-cf", $tmpfile, "$file");
+	mysystem(@cmd);
+
+	chdir $cwd or die "$ProgName: Can't cd to $cwd: $!\n";
+	chdir $destdir or die "$ProgName: Can't cd to $destdir: $!\n";
+
+	@cmd = ("tar", "-xf", $tmpfile);
+	mysystem(@cmd);
+
+	chdir $cwd or die "$ProgName: Can't cd to $cwd: $!\n";
+
+	unlink $tmpfile;
+}
+
+
 sub chaselink {
     my($path) = @_;
 
@@ -216,7 +240,7 @@ while (defined($target = shift(@Targets))) {
 		if ($Debug) {print "Dep = $dep\n";}
 
 		if (! -f $dep) {
-			printf STDERR "$ProgName: Library dependency $lib not found\n";
+			printf STDERR "$ProgName: Library dependency $dep not found\n";
 			exit(1);
 		}
 
@@ -243,14 +267,22 @@ foreach $_ (@cpfiles) {
 	$dirname = abs_path(dirname($_));
 	if ($dirname ne $Libdir) {
 
-		my($volume, $dir, $file) = File::Spec->splitpath($_);
+		if (! (($Arch eq "Darwin") && $_ =~ /framework/)) {
 
-		my ($target) = File::Spec->catpath("", $Libdir, $file);
+			my($volume, $dir, $file) = File::Spec->splitpath($_);
 
-		print "Copying $_ to $target\n";
-		copy($_,$target) || die "$ProgName: file copy failed - $!\n";
-		my(@cmd) = ("/bin/chmod", "+x", $target);
-		mysystem(@cmd);
+			my ($target) = File::Spec->catpath("", $Libdir, $file);
+
+			print "Copying $_ to $target\n";
+			copy($_,$target) || die "$ProgName: file copy failed - $!\n";
+			my(@cmd) = ("/bin/chmod", "+x", $target);
+			mysystem(@cmd);
+		}
+		else {
+			$dirname = $_;
+			$dirname =~ s/(.*framework).*/$1/;
+			copy_dir($dirname, $Libdir);
+		}
 	}
 }
 

@@ -34,7 +34,7 @@ install-dep::
 	$(CP) -R $(QTDIR)/plugins/* $(INSTALL_PLUGINSDIR)
 	$(RM) $(INSTALL_PLUGINSDIR)/*/*debug*
 	@$(ECHO) "Copying Qt plugin library dependencies to $(INSTALL_LIBDIR)"
-	for i in $(INSTALL_PLUGINSDIR)/*/*;  do $(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $$i $(INSTALL_LIBDIR); done
+	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(INSTALL_PLUGINSDIR)/*/* $(INSTALL_LIBDIR)
 	@$(ECHO) "Copying Python modules $(INSTALL_LIBDIR)"
 	$(CP) -R $(PYTHONDIR)/lib/python$(PYTHONVERSION) $(INSTALL_LIBDIR)
 
