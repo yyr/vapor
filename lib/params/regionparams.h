@@ -90,6 +90,8 @@ public:
 	static int getFullGridHeight(){ return fullHeight;}
 	static void setFullGridHeight(size_t val);//will purge if necessary
 	//Version of DataMgr::GetValidRegion that knows about layered data
+	//Callers must supply the full voxel extents, these get reduced depending on what data is available for
+	//the specified variable, or (for derived variables) the input variables to the script.
 	static int getValidRegion(size_t timestep, const char* varname, int minRefLevel, size_t min_coord[3], size_t max_coord[3]);
 	
 	//Determine how many megabytes will be needed for one variable at specified

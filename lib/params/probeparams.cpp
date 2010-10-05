@@ -1052,6 +1052,10 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	size_t bs[3];
 	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, numRefs);
 	size_t temp_min[3],temp_max[3];
+	for (int j = 0; j< 3; j++){
+		temp_min[j] = boxMin[j];
+		temp_max[j] = boxMax[j];
+	}
 	bool retVal = true;
 	int i;
 	//Now intersect with available bounds based on variables:

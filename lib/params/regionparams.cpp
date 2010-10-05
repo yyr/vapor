@@ -338,6 +338,11 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	//Now intersect with available bounds based on variables:
 	size_t temp_min[3], temp_max[3];
+	for (int j = 0; j<3; j++){
+		temp_min[j] = min_dim[j];
+		temp_max[j] = max_dim[j];
+	}
+
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		const string varName = ds->getVariableName(varNums[varIndex]);
 		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
@@ -439,6 +444,10 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	}
 	//Now intersect with available bounds based on variables:
 	size_t temp_min[3], temp_max[3];
+	for (int j = 0; j<3; j++){
+		temp_min[j] = min_dim[j];
+		temp_max[j] = max_dim[j];
+	}
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		string varName;
 		if (twoDim)
@@ -820,14 +829,15 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	int rc;
 	if (scriptid >= 0){
 		size_t temp_min[3], temp_max[3]; 
-		size_t curr_min[3] = {1000000000,1000000000,1000000000}, curr_max[3] = {0,0,0};
+		size_t curr_min[3], curr_max[3];
+		for (int j = 0; j<3; j++) {
+			curr_min[j] = min_coord[j];
+			curr_max[j] = max_coord[j];
+		}
+
 		const vector<string> invars3d = ds->getDerived3DInputVars(scriptid);
 		const vector<string> invars2d = ds->getDerived2DInputVars(scriptid);
-		//If there are no 3d inputs, make the 3D min/max be the full data size
-		if (invars3d.size() == 0){
-			curr_min[2] = 0;
-			curr_max[2] = ds->getFullSizeAtLevel(minRefLevel,2); 
-		}
+		
 		//Intersect the valid regions of all the input variables:
 		for (int i = 0; i<invars3d.size(); i++){
 			rc = dm->GetValidRegion(timestep, invars3d[i].c_str(), minRefLevel, temp_min, temp_max);
