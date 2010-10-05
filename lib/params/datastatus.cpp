@@ -455,11 +455,33 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		vector<string> inputs;
 		vector<string> in2dVars = getDerived2DInputVars(scriptId);
 		vector<string> in3dVars = getDerived3DInputVars(scriptId);
-		for (int i = 0; i<in2dVars.size(); i++) inputs.push_back(in2dVars[i]);
-		for (int i = 0; i<in3dVars.size(); i++) inputs.push_back(in3dVars[i]);
-
 		vector<string> out2dVars = getDerived2DOutputVars(scriptId);
 		vector<string> out3dVars = getDerived3DOutputVars(scriptId);
+		string pname;
+		if (out3dVars.size() > 0) pname = out3dVars[0]; else pname = out2dVars[0];
+		
+		//Check to make sure all input variables are present:
+		bool validInputs = true;
+		for (int i = 0; i<in2dVars.size(); i++) {
+			inputs.push_back(in2dVars[i]);
+			if (getMetadataVarNum2D(in2dVars[i]) < 0){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, 
+								  "Script defining %s is missing input variable %s",pname.c_str(),
+								  in2dVars[i].c_str());
+				validInputs = false;
+			}
+		}
+		
+		for (int i = 0; i<in3dVars.size(); i++){
+			inputs.push_back(in3dVars[i]);
+			if (getMetadataVarNum(in3dVars[i]) < 0){
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, 
+								  "Script defining %s is missing input variable %s",pname.c_str(),
+								  in3dVars[i].c_str());
+				validInputs = false;
+			}
+		}
+		
 		vector<pair<string, Metadata::VarType_T> > outpairs;
 		for (int i = 0; i < out3dVars.size(); i++){
 			outpairs.push_back( make_pair(out3dVars[i],Metadata::VAR3D));
@@ -467,10 +489,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		for (int i = 0; i < out2dVars.size(); i++){
 			outpairs.push_back( make_pair(out2dVars[i],Metadata::VAR2D_XY));
 		}
-		string pname;
-		if (out3dVars.size() > 0) pname = out3dVars[0]; else pname = out2dVars[0];
-		PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
-		dataMgr->NewPipeline(pipe);
+		if (validInputs){
+			PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
+			dataMgr->NewPipeline(pipe);
+		}		
 		methodIter++;
 	}
 
