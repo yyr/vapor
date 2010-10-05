@@ -170,10 +170,12 @@ int PythonPipeLine::python_wrapper(
 	string pretext = "import sys\n";
 	pretext += "import StringIO\n";
 	pretext += "import vapor\n";
+	pretext += "import numpy\n";
 	pretext += "myIO = StringIO.StringIO()\n";
 	pretext += "myErr = StringIO.StringIO()\n";
 	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
+	
 	
     PyObject* retObj = PyRun_String(pretext.c_str(),Py_file_input, mainDict,mainDict);
 	if (!retObj){
@@ -321,10 +323,12 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	string pretext = "import sys\n";
 	pretext += "import StringIO\n";
 	pretext += "import vapor\n";
+	pretext += "import numpy\n";
 	pretext += "myIO = StringIO.StringIO()\n";
 	pretext += "myErr = StringIO.StringIO()\n";
 	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
+	
 	for (int i = 0; i< inputVars3.size(); i++){
 		pretext += inputVars3[i] + " = vapor.Get3DVariable('" + inputVars3[i] + "',__TIMESTEP__,__REFINEMENT__,__BOUNDS__)\n";
 	}
@@ -494,7 +498,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		newObjects.push_back(key);
 	}
 	for (int i = 0; i<newObjects.size(); i++){
-		char* keyString = PyString_AsString(newObjects[i]);
+		//char* keyString = PyString_AsString(newObjects[i]);
 		//printf("deleting object with key %s\n",keyString);
 		PyObject_DelItem(mainDict,newObjects[i]);
 		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
