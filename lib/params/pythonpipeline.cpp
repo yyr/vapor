@@ -225,7 +225,7 @@ int PythonPipeLine::python_wrapper(
 		PyObject* myErrString = PyString_FromFormat("myErr");
 		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
 		if (myErr){
-				//Find size of StringIO:
+			//Find size of StringIO:
 			PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
 			int szval = PyInt_AsLong(sz);
 			if(szval > 0){
@@ -291,14 +291,13 @@ int PythonPipeLine::python_wrapper(
 		int rc = PyDict_Next(mainDict,&pos, &key, &val);
 		if (!rc) break;
 		if (PyDict_Contains(copyDict,key)) {
-			//printf("Matching key found: %s\n", PyString_AsString(key));
 			continue;
 		}
 		newObjects.push_back(key);
 	}
 	for (int i = 0; i<newObjects.size(); i++){
 		char* keyString = PyString_AsString(newObjects[i]);
-		//printf("deleting object with key %s\n",keyString);
+		
 		PyObject_DelItem(mainDict,newObjects[i]);
 		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
 	}

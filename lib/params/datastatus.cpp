@@ -541,16 +541,10 @@ void DataStatus::calcDataRange(int varnum, int ts){
 	
 	if (maxNumTransforms[varnum][ts] >= 0){
 		
-		//Trap errors:
-		//
-		ErrMsgCB_T errorCallback = GetErrMsgCB();
-		//SetErrMsgCB(0);
 		float mnmx[2];
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName(varnum).c_str(), mnmx);
-		//Turn it back on:
-		//SetErrMsgCB(errorCallback);
-					
+		
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d",
@@ -570,15 +564,9 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 	
 	if (maxNumTransforms2D[varnum][ts] >= 0){
 		
-		//Trap errors:
-		//
-		ErrMsgCB_T errorCallback = GetErrMsgCB();
-		//SetErrMsgCB(0);
 		float mnmx[2];
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName2D(varnum).c_str(), mnmx);
-		//Turn it back on:
-		//SetErrMsgCB(errorCallback);
 					
 		if(rc<0){
 			//Post an error:
