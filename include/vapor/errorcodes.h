@@ -29,7 +29,14 @@ namespace VAPoR
 {
   enum errorcodes
   {
-    // VDF Errors: 0x1 - 0xFF:  Handled specially
+    // VDF Errors: 0x1 - 0xFF:  Handled specially:
+	// The Vaporgui application will not clear
+	// error codes less than 0xfff, until the
+	// error is later detected in the application.
+	// Any errors discovered in the application
+	// must be set with an error code > 0xfff, or
+	// the error will cause methods
+	// in the VDF library to fail.
     VAPOR_ERROR_VDF				= 0x1,
 	VAPOR_ERROR_XML				= 0x2,
     // Diagnostic Codes  0x1001 - 0x1FFF
@@ -65,6 +72,7 @@ namespace VAPoR
 	VAPOR_ERROR_TWO_D				= 0x4012,
 	VAPOR_ERROR_GEOREFERENCE		= 0x4013,
 	VAPOR_ERROR_SCRIPTING			= 0x4014,
+	VAPOR_ERROR_PARSING				= 0x4015,
 
 	//Flow errors
 	VAPOR_ERROR_FLOW = 0x4100,

@@ -103,7 +103,7 @@ void PythonPipeLine::initialize(){
 					const char* strtext = PyString_AsString(txt);
 					//post it as Error 
 					
-					MyBase::SetErrMsg(" Python startup execution error:\n%s\n",strtext);
+					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python startup execution error:\n%s\n",strtext);
 				}
 			}
 			return;
@@ -180,7 +180,7 @@ int PythonPipeLine::python_wrapper(
     PyObject* retObj = PyRun_String(pretext.c_str(),Py_file_input, mainDict,mainDict);
 	if (!retObj){
 		PyErr_Print();
-		MyBase::SetErrMsg(VAPOR_ERROR,"Python interpreter preparation error");
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Python interpreter preparation error");
 		return -1;
 	}
 	for (int i = 0; i< inputData.size(); i++){
@@ -238,7 +238,7 @@ int PythonPipeLine::python_wrapper(
 				const char* strtext = PyString_AsString(txt);
 				//post it as Error 
 			
-				MyBase::SetErrMsg(" Python execution error:\n%s\n",strtext);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python execution error:\n%s\n",strtext);
 			}
 		}
 		return -1;
@@ -389,7 +389,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
 	if (!retObj){
 		PyErr_Print();
-		MyBase::SetErrMsg(VAPOR_ERROR,"Python interpreter preparation error");
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Python interpreter preparation error");
 		pythonOutputText = "preparation script error";
 		return pythonOutputText;
 	}
@@ -400,7 +400,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	
     if (!retObj){
 		PyErr_Print();
-		MyBase::SetErrMsg(VAPOR_ERROR,"Python interpreter failure");
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Python interpreter failure");
 		//Put stderr into MyBase error message
 		//Find myErr in the dictionary
 		PyObject* myErrString = PyString_FromFormat("myErr");
@@ -414,7 +414,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 				PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
 				const char* strtext = PyString_AsString(txt);
 				//post it as Error 
-				MyBase::SetErrMsg(" Python execution error:\n%s\n",strtext);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python execution error:\n%s\n",strtext);
 			}
 		}
 	} else {

@@ -573,7 +573,7 @@ const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath) con
 	if (p == currNode->_longmap.end()) { 
 		if (_errOnMissing) {
 			SetErrMsg(
-				ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str()
+				VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
 			);
 		}
 		return(_emptyLongVec);
@@ -597,7 +597,7 @@ const vector<double> &ParamNode::GetElementDouble(const vector<string> &tagpath)
 	if (p == currNode->_doublemap.end()) { 
 		if (_errOnMissing) {
 			SetErrMsg(
-				ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str()
+				VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
 			);
 		}
 		return(_emptyDoubleVec);
