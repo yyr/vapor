@@ -365,6 +365,7 @@ void PythonEdit::testScript(){
 	DataStatus* ds = DataStatus::getInstance();
 	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int reflevel = 0;
+	int compression = 0;
 
 	const string script = pythonEdit->toPlainText().toStdString();
 	
@@ -428,7 +429,7 @@ void PythonEdit::testScript(){
 	vector<pair<string, Metadata::VarType_T> > testOut;
 	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
 	
-	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, min_bdim, max_bdim);
+	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, compression, min_bdim, max_bdim);
 	
 	if (rettxt.size() > 0){
 		QMessageBox::information(this,"Python Script Output",rettxt.c_str());
