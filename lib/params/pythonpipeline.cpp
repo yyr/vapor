@@ -30,14 +30,14 @@ int PythonPipeLine::Calculate (
 							   vector <float *> output_blks,	// space for the output variables
 							   size_t ts, // current time step
 							   int reflevel, // refinement level
-							   int lod, //
+							   int lod, // compression level
 							   const size_t bs[3], // block dimensions
 							   const size_t min[3],	// dimensions of all variables (in blocks)
 							   const size_t max[3]
 							   ) {
 	//call python wrapper.
 	int scriptId = DataStatus::getInstance()->getDerivedScriptId(GetName());
-	return python_wrapper(scriptId,ts,reflevel,min,max, 
+	return python_wrapper(scriptId,ts,reflevel,lod,min,max, 
 						  GetInputs(), input_blks,
 						  GetOutputs(), output_blks);
 }
@@ -114,7 +114,7 @@ void PythonPipeLine::initialize(){
 }
 //Wrapper for calling a python script from the PipeLine
 int PythonPipeLine::python_wrapper(
-	int scriptId,size_t ts,int reflevel,
+	int scriptId,size_t ts,int reflevel, int compression,
 	const size_t min[3],const size_t max[3],
   	vector<string>  inputs, 
 	vector<const float*> inputData,
@@ -211,12 +211,14 @@ int PythonPipeLine::python_wrapper(
 	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
     PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
+	PyObject* lod = Py_BuildValue("i",compression);
 	
 	int rc;
 	
 	rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
 	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
+	rc = PyDict_SetItemString(mainDict, "__LOD__", lod);
 
 	
 	retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
@@ -315,7 +317,7 @@ std::string& PythonPipeLine::
 python_test_wrapper(const string& script, const vector<string>& inputVars2, 
 					const vector<string>& inputVars3, 
 					vector<pair<string, Metadata::VarType_T> > outputs,
-					size_t ts,int reflevel,const size_t min[3],const size_t max[3]){
+					size_t ts,int reflevel,int compression, const size_t min[3],const size_t max[3]){
 		
 	if(!initialized) initialize();
 	
@@ -330,10 +332,10 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	pretext += "sys.stderr = myErr\n";
 	
 	for (int i = 0; i< inputVars3.size(); i++){
-		pretext += inputVars3[i] + " = vapor.Get3DVariable('" + inputVars3[i] + "',__TIMESTEP__,__REFINEMENT__,__BOUNDS__)\n";
+		pretext += inputVars3[i] + " = vapor.Get3DVariable('" + inputVars3[i] + "',__TIMESTEP__,__REFINEMENT__,__LOD__,__BOUNDS__)\n";
 	}
 	for (int i = 0; i< inputVars2.size(); i++){
-		pretext += inputVars2[i] + " = vapor.Get2DVariable('" + inputVars2[i] + "',__TIMESTEP__,__REFINEMENT__,__BOUNDS__)\n";
+		pretext += inputVars2[i] + " = vapor.Get2DVariable('" + inputVars2[i] + "',__TIMESTEP__,__REFINEMENT__,__LOD__,__BOUNDS__)\n";
 	}
 	
 	
@@ -377,9 +379,11 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
+		PyObject* lod = Py_BuildValue("i",compression);
 		
 		int rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
 		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
+		rc = PyDict_SetItemString(mainDict, "__LOD__",lod);
 		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
 	}
 	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
@@ -519,10 +523,10 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     Py_ssize_t pydims[3];
     size_t blockedRegionSize[3];
 
-    int tstep, reflevel;
+    int tstep, reflevel, lod;
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
-    if (!PyArg_ParseTuple(args,"sii(iiiiii)",&varname,&tstep,&reflevel,
+    if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
 		minreg,minreg+1,minreg+2,maxreg,maxreg+1,maxreg+2)) return NULL; 
     
     //Need to convert min,max extents to block extents
@@ -540,7 +544,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
     }
     
-    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
+    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
 	if (!regData){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;
@@ -565,10 +569,10 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     Py_ssize_t pydims[2];
     size_t blockedRegionSize[2];
 
-    int tstep, reflevel;
+    int tstep, reflevel,lod;
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
-    if (!PyArg_ParseTuple(args,"sii(iiiiii)",&varname,&tstep,&reflevel,
+    if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
 		minreg,minreg+1,minreg+2,maxreg,maxreg+1,maxreg+2)) return NULL; 
 	//Need to convert min,max extents to block extents
     size_t blksize[3];
@@ -583,7 +587,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
     }
     
-    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, 0, minblkreg, maxblkreg, 0);
+    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
 	if (!regData){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;

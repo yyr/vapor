@@ -56,7 +56,7 @@ public:
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
 						vector<pair<string, Metadata::VarType_T> > outputs,
-						size_t ts, int reflevel,const size_t min[3],const size_t max[3]);
+						size_t ts, int reflevel, int compression, const size_t min[3],const size_t max[3]);
 
 	static std::string& getStartupScript() {return startupScript;}
 	static void setStartupScript(const std::string& newScript) {
@@ -65,7 +65,7 @@ public:
 	}
 	
 protected:
-	int python_wrapper(int scriptId,size_t ts,int reflevel,
+	int python_wrapper(int scriptId,size_t ts,int reflevel, int compression,
 		const size_t min[3],const size_t max[3], 
   		const vector<string > inputs, 
 		vector<const float*> inData,
