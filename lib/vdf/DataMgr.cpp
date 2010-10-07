@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <cmath>
 #include <vector>
 #include <map>
 #include <vapor/DataMgr.h>
@@ -104,9 +105,9 @@ float	*DataMgr::GetRegion(
 	// See if the variable is derived from another variable 
 	//
 	if (IsVariableDerived(varname)) {
-		return(execute_pipeline(
-			ts, string(varname), reflevel, lod, min, max, lock)
-		);
+		return (execute_pipeline(
+			ts, string(varname), reflevel, lod, min, max, lock
+		));
 	}
 
 	// Else, read it from disk
@@ -139,8 +140,37 @@ float	*DataMgr::GetRegion(
 	}
 
 	CloseVariable();
-	
 	SetDiagMsg("DataMgr::GetRegion() - data not in cache %xll\n", blks);
+	
+	//
+	// Make sure we have a valid floating point value
+	//
+
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
+
+	size_t size;
+	switch (vtype) {
+	case VAR2D_XY:
+		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]);
+		break;
+	case VAR2D_XZ:
+		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[2]);
+		break;
+	case VAR2D_YZ:
+		size = ((max[0]-min[0]+1)*bs[1]) * ((max[1]-min[1]+1)*bs[2]);
+		break;
+	case VAR3D:
+		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) *
+			((max[2]-min[2]+1)*bs[2]);
+		break;
+	default: 
+		size = 0;
+	}
+	for (size_t i=0; i<size; i++) {
+//		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
+		if (! isnormal(blks[i]))  blks[i] = 99;
+	}
 
 	return(blks);
 }
@@ -1506,6 +1536,36 @@ float *DataMgr::execute_pipeline(
 	}
 
 	if (rc < 0) return(NULL);
+
+	for (int i=0; i<output_vars.size(); i++) {
+
+		string v = output_vars[i].first;
+		VarType_T vtype = output_vars[i].second;
+		float *blks = out_blkptrs[i];
+
+		size_t size;
+		switch (vtype) {
+		case VAR2D_XY:
+			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]);
+			break;
+		case VAR2D_XZ:
+			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[2]);
+			break;
+		case VAR2D_YZ:
+			size = ((max[0]-min[0]+1)*bs[1]) * ((max[1]-min[1]+1)*bs[2]);
+			break;
+		case VAR3D:
+			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) *
+				((max[2]-min[2]+1)*bs[2]);
+			break;
+		default: 
+			size = 0;
+		}
+		for (size_t i=0; i<size; i++) {
+	//		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
+			if (! isnormal(blks[i]))  blks[i] = 99;
+		}
+	}
 
 	return(out_blkptrs[output_index]);
 }
