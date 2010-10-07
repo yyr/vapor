@@ -6,9 +6,12 @@
 #include <cassert>
 #include <vector>
 #include <map>
+#include <fstream>
+#include <iostream>
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
+#include "GetAppPath.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -84,6 +87,32 @@ void PythonPipeLine::initialize(){
 	
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
+
+	//See if there is a system startup file:
+	//Get the path from the environment:
+	vector <string> paths;
+	paths.push_back("python");
+	string pythonSystemPath = GetAppPath("VAPOR", "share", paths);
+	string pythonSysFilename = pythonSystemPath+"/.pythonSystemStartup.py";
+	string sysProg;
+	ifstream pythonSysFile(pythonSysFilename.c_str(),ios_base::in);
+	if (pythonSysFile.is_open()){
+		char readBuffer[400];
+		while (1){
+			pythonSysFile.getline(readBuffer, 400);
+			if (pythonSysFile.gcount()<=0) break;
+			sysProg += readBuffer;
+			sysProg += "\n";
+		}
+		pythonSysFile.close();
+	}
+	if (sysProg.size()>0){
+		PyObject* retObj = PyRun_String(sysProg.c_str(),Py_file_input, mainDict,mainDict);
+		if (!retObj){
+			PyErr_Print();
+			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Error executing Python system startup program:\n%s\n",sysProg.c_str());
+		}
+	}
 	
 	if (startupScript != ""){
 		PyObject* retObj = PyRun_String(startupScript.c_str(),Py_file_input, mainDict,mainDict);
@@ -97,13 +126,12 @@ void PythonPipeLine::initialize(){
 				//Find size of StringIO:
 				PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
 				int szval = PyInt_AsLong(sz);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python startup script execution error\n");
 				if(szval > 0){
 					//Get the text
 					PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
 					const char* strtext = PyString_AsString(txt);
-					//post it as Error 
-					
-					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python startup execution error:\n%s\n",strtext);
+					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," error output:\n%s\n",strtext);
 				}
 			}
 			return;

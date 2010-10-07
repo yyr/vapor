@@ -564,9 +564,15 @@ void DataStatus::calcDataRange(int varnum, int ts){
 	if (maxNumTransforms[varnum][ts] >= 0){
 		
 		float mnmx[2];
+		//Turn off messages from datamgr. 
+		//Not sure if this is necessary, but it does at least prevent
+		//redundant messages
+		ErrMsgCB_T errorCallback = GetErrMsgCB();
+		SetErrMsgCB(0);
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName(varnum).c_str(), mnmx);
-		
+		//Turn messages back on
+		SetErrMsgCB(errorCallback);
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d",
@@ -587,9 +593,15 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 	if (maxNumTransforms2D[varnum][ts] >= 0){
 		
 		float mnmx[2];
+		//Turn off messages from datamgr. 
+		//Not sure if this is necessary, but it does at least prevent
+		//redundant messages
+		ErrMsgCB_T errorCallback = GetErrMsgCB();
+		SetErrMsgCB(0);
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName2D(varnum).c_str(), mnmx);
-					
+		//Turn messages back on
+		SetErrMsgCB(errorCallback);			
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in 2D variable %s, at timestep %d \n Interval [0,1] assumed",
