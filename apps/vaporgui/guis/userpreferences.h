@@ -84,6 +84,7 @@ protected slots:
 	void chooseJpegPath();
 	void chooseTFPath();
 	void chooseFlowPath();
+	void choosePythonPath();
 	void changeTextureSize(bool);
 	void regionChanged(bool);
 	void subregionChanged(bool);
@@ -107,6 +108,7 @@ protected slots:
 	void copyLatestTF();
 	void copyLatestImage();
 	void copyLatestFlow();
+	void copyLatestPython();
 	
 protected:
 	static const string _preferencesTag;
@@ -114,6 +116,7 @@ protected:
 	static const string _exportFileNameTag;
 	static const string _imageCapturePathTag;
 	static const string _flowDirectoryPathTag;
+	static const string _pythonDirectoryPathTag;
 	static const string _logFileNameTag;
 	static const string _tfPathTag;
 	static const string _metadataPathTag;
@@ -183,6 +186,7 @@ protected:
 	string logFileName;
 	string jpegPath;
 	string flowPath;
+	string pythonPath;
 	string tfPath;
 	bool texSizeSpecified;
 	bool useLowerRefinement;

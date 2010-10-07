@@ -214,12 +214,14 @@ public:
 	string& getPrefMetadataDir(){return preferenceMetadataDir;}
 	string& getPrefJpegDirectory() {return preferenceJpegDirectory;}
 	string& getPrefFlowDirectory() {return preferenceFlowDirectory;}
+	string& getPrefPythonDirectory() {return preferencePythonDirectory;}
 	string& getPrefSessionDirectory() {return preferenceSessionDirectory;}
 
 	string& getMetadataFile(){return currentMetadataFile;}
 	string& getMetadataDir(){return currentMetadataDir;}
 	string& getJpegDirectory() {return currentJpegDirectory;}
 	string& getFlowDirectory() {return currentFlowDirectory;}
+	string& getPythonDirectory() {return currentPythonDirectory;}
 	string& getSessionDirectory() {return currentSessionDirectory;}
 	void makeSessionFilepath(std::string& path);
 	string& getSessionFilename() {return sessionFilename;}
@@ -231,6 +233,7 @@ public:
 	void setPrefSessionDirectory(const char* dir) {preferenceSessionDirectory = dir;}
 	void setPrefJpegDirectory(const char* dir) {preferenceJpegDirectory = dir;}
 	void setPrefFlowDirectory(const char* dir) {preferenceFlowDirectory = dir;}
+	void setPrefPythonDirectory(const char* dir) {preferencePythonDirectory = dir;}
 	void setPrefTFFilePath(const char* path){preferenceTFPath = path;}
 	void setPrefMetadataDirectory(const char* md){preferenceMetadataDir = md;}
 
@@ -239,6 +242,7 @@ public:
 	void setAutoSaveSessionFilename(const char* name) {autoSaveSessionFilename = name;}
 	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
 	void setFlowDirectory(const char* dir) {currentFlowDirectory = dir;}
+	void setPythonDirectory(const char* dir) {currentPythonDirectory = dir;}
 	void setExportFile(const char* filename){currentExportFile = filename;}
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
@@ -316,6 +320,7 @@ protected:
 	static const string _transferFunctionPathAttr;
 	static const string _imageCapturePathAttr;
 	static const string _flowDirectoryPathAttr;
+	static const string _pythonDirectoryPathAttr;
 	static const string _logFileNameAttr;
 	static const string _exportFileNameAttr;
 	static const string _sessionTag;
@@ -396,6 +401,7 @@ protected:
 	string currentMetadataDir;
 	string currentJpegDirectory;
 	string currentFlowDirectory;
+	string currentPythonDirectory;
 	string currentSessionDirectory;
 	string sessionFilename;
 
@@ -403,6 +409,7 @@ protected:
 	string preferenceMetadataDir;
 	string preferenceJpegDirectory;
 	string preferenceFlowDirectory;
+	string preferencePythonDirectory;
 	string preferenceSessionDirectory;
 	
 	string sessionVersionString;

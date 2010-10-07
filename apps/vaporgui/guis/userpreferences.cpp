@@ -63,6 +63,7 @@ const string UserPreferences::_sceneColorsTag = "SceneColors";
 const string UserPreferences::_exportFileNameTag = "ExportFileName";
 const string UserPreferences::_imageCapturePathTag = "ImageCapturePath";
 const string UserPreferences::_flowDirectoryPathTag = "FlowPath";
+const string UserPreferences::_pythonDirectoryPathTag = "PythonPath";
 const string UserPreferences::_logFileNameTag = "LogFileName";
 const string UserPreferences::_tfPathTag = "TransferFunctionPath";
 const string UserPreferences::_metadataPathTag  = "MetadataPath";
@@ -128,6 +129,7 @@ UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
 	jpegPathButton->setIcon(QIcon(*fileopenIcon));
 	tfPathButton->setIcon(QIcon(*fileopenIcon));
 	flowPathButton->setIcon(QIcon(*fileopenIcon));
+	pythonPathButton->setIcon(QIcon(*fileopenIcon));
 	autoSaveButton->setIcon(QIcon(*fileopenIcon));
 
 }
@@ -143,6 +145,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->logFileName=logFileName;
 	newPrefs->jpegPath=jpegPath;
 	newPrefs->flowPath=flowPath;
+	newPrefs->pythonPath=pythonPath;
 	newPrefs->tfPath=tfPath;
 	newPrefs->subregionFrameEnabled=subregionFrameEnabled;
 	newPrefs->regionFrameEnabled=regionFrameEnabled;
@@ -234,6 +237,7 @@ void UserPreferences::launch(){
 	connect (buttonLatestMetadata, SIGNAL(clicked()),this, SLOT(copyLatestMetadata()));
 	connect (buttonLatestTF, SIGNAL(clicked()),this, SLOT(copyLatestTF()));
 	connect (buttonLatestFlow, SIGNAL(clicked()),this, SLOT(copyLatestFlow()));
+	connect (buttonLatestPython, SIGNAL(clicked()),this, SLOT(copyLatestPython()));
 	connect (buttonLatestImage, SIGNAL(clicked()),this, SLOT(copyLatestImage()));
 	connect (showDefaultsButton, SIGNAL(clicked()),this, SLOT(showAllDefaults()));
 	connect (buttonDefault, SIGNAL(clicked()), this, SLOT(setDefaultDialog()));
@@ -245,6 +249,7 @@ void UserPreferences::launch(){
 	connect (jpegPathButton, SIGNAL(clicked()), this, SLOT(chooseJpegPath()));
 	connect (tfPathButton, SIGNAL(clicked()), this, SLOT(chooseTFPath()));
 	connect (flowPathButton, SIGNAL(clicked()), this, SLOT(chooseFlowPath()));
+	connect (pythonPathButton, SIGNAL(clicked()), this, SLOT(choosePythonPath()));
 	connect (backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
 	connect (regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
@@ -273,6 +278,7 @@ void UserPreferences::launch(){
 	connect (tfPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (logFilePathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (flowPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
+	connect (pythonPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (jpegPathEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxInfoLog, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (maxInfoPopup, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -471,6 +477,20 @@ void UserPreferences::chooseFlowPath(){
 		dialogChanged = true;
 	}
 }
+void UserPreferences::choosePythonPath(){
+	//Launch a directory-chooser dialog, just choosing the directory
+	QString dir;
+	if (Session::getInstance()->getPrefPythonDirectory() == ".") dir = QDir::currentPath();
+	else dir = Session::getInstance()->getPrefPythonDirectory().c_str();
+	QString s = QFileDialog::getExistingDirectory(this,
+            "Choose the Python script file directory",
+		dir);
+	if (s != "") {
+		pythonPathEdit->setText(s);
+		pythonPath = s.toStdString();
+		dialogChanged = true;
+	}
+}
 void UserPreferences::changeTextureSize(bool canChange){
 	textureSizeEdit->setEnabled(canChange);
 	if (canChange) 
@@ -504,6 +524,11 @@ void UserPreferences::copyLatestImage(){
 void UserPreferences::copyLatestFlow(){
 	flowPath = Session::getInstance()->getFlowDirectory();
 	flowPathEdit->setText(flowPath.c_str());
+	dialogChanged = true;
+}
+void UserPreferences::copyLatestPython(){
+	pythonPath = Session::getInstance()->getPythonDirectory();
+	pythonPathEdit->setText(pythonPath.c_str());
 	dialogChanged = true;
 }
 void UserPreferences::
@@ -602,6 +627,7 @@ setDialog(){
 	jpegPath = ses->getPrefJpegDirectory();
 	tfPath = ses->getPrefTFFilePath();
 	flowPath = ses->getPrefFlowDirectory();
+	pythonPath = ses->getPrefPythonDirectory();
 	autoSaveFilename = ses->getAutoSaveSessionFilename();
 
 	//Directories:
@@ -612,6 +638,7 @@ setDialog(){
 	jpegPathEdit->setText(ses->getPrefJpegDirectory().c_str());
 	tfPathEdit->setText(ses->getPrefTFFilePath().c_str());
 	flowPathEdit->setText(ses->getPrefFlowDirectory().c_str());
+	pythonPathEdit->setText(ses->getPrefPythonDirectory().c_str());
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	for (int i = 0; i< 3; i++){
 		popupNum[i] = mReporter->getMaxPopup((MessageReporter::messagePriority)i);
@@ -738,6 +765,7 @@ applyToState(){
 	ses->setPrefJpegDirectory(jpegPath.c_str());
 	ses->setPrefTFFilePath(tfPath.c_str());
 	ses->setPrefFlowDirectory(flowPath.c_str());
+	ses->setPrefPythonDirectory(pythonPath.c_str());
 	ses->setAutoSaveSessionFilename(autoSaveFilename.c_str());
 	
 
@@ -921,6 +949,7 @@ ParamNode* UserPreferences::buildNode(){
 	mainNode->SetElementString(_tfPathTag, ses->getPrefTFFilePath());
 	mainNode->SetElementString(_imageCapturePathTag, ses->getPrefJpegDirectory());
 	mainNode->SetElementString(_flowDirectoryPathTag, ses->getPrefFlowDirectory());
+	mainNode->SetElementString(_pythonDirectoryPathTag, ses->getPrefPythonDirectory());
 	mainNode->SetElementString(_exportFileNameTag, ses->getExportFile());
 	mainNode->SetElementString(_logFileNameTag, ses->getLogfileName());
 	
@@ -1291,6 +1320,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 			} else if (StrCmpNoCase(tag, _exportFileNameTag) == 0 ||
 				StrCmpNoCase(tag, _imageCapturePathTag) == 0 ||
 				StrCmpNoCase(tag, _flowDirectoryPathTag) == 0 ||
+				StrCmpNoCase(tag, _pythonDirectoryPathTag) == 0 ||
 				StrCmpNoCase(tag, _logFileNameTag) == 0 ||
 				StrCmpNoCase(tag, _tfPathTag) == 0 ||
 				StrCmpNoCase(tag, _sessionPathTag) == 0 ||
@@ -1559,6 +1589,8 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 		ses->setPrefJpegDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _flowDirectoryPathTag) == 0){
 		ses->setPrefFlowDirectory(strdata.c_str());
+	} else if (StrCmpNoCase(tag, _pythonDirectoryPathTag) == 0){
+		ses->setPrefPythonDirectory(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _logFileNameTag) == 0){
 		ses->setLogfileName(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _tfPathTag) == 0){
@@ -1597,6 +1629,7 @@ bool UserPreferences::loadPreferences(const char* filename){
 	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
 	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
 	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setPythonDirectory(ses->getPrefPythonDirectory().c_str());
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
 
 	delete userPrefs;
@@ -1627,6 +1660,7 @@ void UserPreferences::setDefaultDialog(){
 	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
 	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
 	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setPythonDirectory(ses->getPrefPythonDirectory().c_str());
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
 
 	//Then load the values into this:
@@ -1667,6 +1701,9 @@ void UserPreferences::getTextChanges(){
 	flowPath = flowPathEdit->text().toStdString();
 	if (flowPath == "" || flowPath == "./" || flowPath == ".\\")
 		flowPath = ".";
+	pythonPath = pythonPathEdit->text().toStdString();
+	if (pythonPath == "" || pythonPath == "./" || pythonPath == ".\\")
+		pythonPath = ".";
 	jpegPath = jpegPathEdit->text().toStdString();
 	if (jpegPath == "" || jpegPath == "./" || jpegPath == ".\\")
 		jpegPath = ".";
@@ -1744,6 +1781,7 @@ bool UserPreferences::loadDefault(){
 	ses->setMetadataDirectory(ses->getPrefMetadataDir().c_str());
 	ses->setTFFilePath(ses->getPrefTFFilePath().c_str());
 	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
+	ses->setPythonDirectory(ses->getPrefPythonDirectory().c_str());
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
 	MessageReporter::infoMsg("Set user preferences to defaults");
 	return false;

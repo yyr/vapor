@@ -556,11 +556,14 @@ void PythonEdit::saveScript(){
 	
 	QString filename = QFileDialog::getSaveFileName(this,
 		"Choose a file name to save this Python program",
-		Session::getInstance()->getSessionDirectory().c_str(),
+		Session::getInstance()->getPythonDirectory().c_str(),
 		"Python Files (*.py)");
 
 	if(filename.length() == 0) return;
-		
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future python I/O
+	Session::getInstance()->setPythonDirectory((const char*)fileInfo->absolutePath().toAscii());
 	
 	FILE* pythonFile = fopen((const char*)filename.toAscii(), "w");
 	if (!pythonFile) {
@@ -578,11 +581,16 @@ void PythonEdit::saveScript(){
 void PythonEdit::loadScript(){
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Specify a Python file name to append to current Python program",
-		Session::getInstance()->getSessionDirectory().c_str(),
+		Session::getInstance()->getPythonDirectory().c_str(),
 		"Python Files (*.py)");
 
 	if(filename.length() == 0) return;
-		
+
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future python I/O
+	Session::getInstance()->setPythonDirectory((const char*)fileInfo->absolutePath().toAscii());
+
 	QFile file(filename);
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
 		MessageReporter::errorMsg("File Open Error: Error opening \ninput Python file: \n%s",(const char*)filename.toAscii());

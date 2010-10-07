@@ -74,6 +74,7 @@ const string Session::_metadataPathAttr = "MetadataPath";
 const string Session::_transferFunctionPathAttr = "TransferFunctionPath";
 const string Session::_imageCapturePathAttr = "JpegPath";
 const string Session::_flowDirectoryPathAttr = "FlowPath";
+const string Session::_pythonDirectoryPathAttr = "PythonPath";
 const string Session::_autoSaveIntervalAttr = "AutoSaveInterval";
 
 const string Session::_logFileNameAttr = "LogFileName";
@@ -221,6 +222,7 @@ void Session::init() {
 	setTFFilePath(preferenceTFPath.c_str());
 	setJpegDirectory(preferenceJpegDirectory.c_str());
 	setFlowDirectory(preferenceFlowDirectory.c_str());
+	setPythonDirectory(preferencePythonDirectory.c_str());
 	setSessionDirectory(preferenceSessionDirectory.c_str());
 	MainForm::getInstance()->setInteractiveRefinementSpin(0);
 	
@@ -267,6 +269,7 @@ void Session::setDefaultPrefs(){
 	preferenceMetadataDir = defaultDir;
 	preferenceJpegDirectory = defaultDir;	
 	preferenceFlowDirectory = defaultDir;
+	preferencePythonDirectory = defaultDir;
 	preferenceSessionDirectory = defaultDir;
 	preferenceTFPath = defaultDir;
 	autoSaveInterval = 10;
@@ -308,6 +311,7 @@ buildNode() {
 	attrs[_transferFunctionPathAttr] = currentTFPath;
 	attrs[_imageCapturePathAttr] = currentJpegDirectory;
 	attrs[_flowDirectoryPathAttr] = currentFlowDirectory;
+	attrs[_pythonDirectoryPathAttr] = currentPythonDirectory;
 	attrs[_metadataPathAttr] = currentMetadataFile;
 	oss.str(empty);
 	oss << DataStatus::getInteractiveRefinementLevel();
@@ -485,6 +489,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				else if (StrCmpNoCase(attr, _flowDirectoryPathAttr) == 0) {
 					if (value != "")
 						currentFlowDirectory = value;
+				}
+				else if (StrCmpNoCase(attr, _pythonDirectoryPathAttr) == 0) {
+					if (value != "")
+						currentPythonDirectory = value;
 				}
 				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
 					currentMetadataFile = value;
