@@ -184,12 +184,7 @@ void	process_volume(
 	
 	float minz = opt.minZExtent;
 	float maxz = opt.maxZExtent;
-
 	
-	size_t* start = 0;
-	size_t* count = 0;
-	size_t* outCount = 0, *inCount = 0;
-
 	FILE *fp = 0;
 	
 	//data is in binary file
