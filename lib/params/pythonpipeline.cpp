@@ -93,7 +93,7 @@ void PythonPipeLine::initialize(){
 	vector <string> paths;
 	paths.push_back("python");
 	string pythonSystemPath = GetAppPath("VAPOR", "share", paths);
-	string pythonSysFilename = pythonSystemPath+"/.pythonSystemStartup.py";
+	string pythonSysFilename = pythonSystemPath+"/pythonSystemStartup.py";
 	string sysProg;
 	ifstream pythonSysFile(pythonSysFilename.c_str(),ios_base::in);
 	if (pythonSysFile.is_open()){
