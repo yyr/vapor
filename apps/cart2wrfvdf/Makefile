@@ -2,8 +2,8 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-PROGRAM = cart2wrfvdf
-FILES = cart2wrfvdf
+PROGRAM = cart2layer
+FILES = cart2layer
 
 
 #LIB_DEFS = vdf.def
