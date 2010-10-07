@@ -1,0 +1,112 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+B<cart2layer> - Insert a Cartesian-gridded variable into a layered VDC
+
+=head1 SYNOPSIS
+
+B<cart2layer> [options] I<vdffile> I<Cartesian_data_file>
+
+=head1 DESCRIPTION
+
+B<cart2layer> reads a 3D Cartesian grid of data from disk, and 
+inserts it into an existing layered (eg. WRF) VDC.  This is useful, for example, when one needs to visualize Cartesian data from an external source in
+the same 3D space as WRF output.  This application was developed in
+order to facilitate 3D visualization of radar data with WRF output data.
+
+The Cartesian data volume must be stored on disk as a contiguous array of
+unformatted binary floating point values (32bit precision)
+The x- and y-dimensions of the raw data
+volume must match those specified in I<vdffile>.  The z dimension of the
+raw data grid is specified with the -zlevels options.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -ts E<lt>nE<gt>
+
+The B<-ts> option specifies the integer time step of the data volume. The
+default value is 0, which corresponds to the first allowable time step
+in a VDC.
+
+=item -zlevels E<lt>numE<gt> 
+
+This option specifies the vertical dimension of the Cartesian grid.  This is required.
+
+=item -varname E<lt>nameE<gt>
+
+This option specifies the name of the variable that the raw data volume 
+corresponds to. The name must match a 3D variable name
+in the VDF indicated by I<vdffile>.  If the variable does not already exist
+in the VDC, it can be added with the application I<vdfedit>. 
+
+=item -maxz E<lt>ztopE<gt>
+
+This option specifies the z-coordinate, in user coordinates, 
+corresponding to the top plane of the Cartesian grid.  
+This value defaults to 1.0.
+
+=item -minz E<lt>zbotE<gt> 
+
+This option specifies the z-coordinate, in user coordinates, 
+corresponding to the bottom plane of the Cartesian grid.  
+This value defaults to 0.0.
+
+=item -missval E<lt>valE<gt>
+
+This option specifies the value used to identify missing data in
+the source Cartesian grid.  It defaults to -999.0.  Points in the source data that match this value will be mapped to the value specified by the -missout option.
+
+=item -missout E<lt>valE<gt>
+
+This option specifies the value that will be assigned to the VDC variable
+at points in the layered grid corresponding to missing values from the
+Cartesian data grid.  It defaults to -999.0.
+
+=item -topval E<lt>valE<gt>
+
+This option specifies the value that will be assigned to the VDC variable
+at points above the top layer of the Cartesian grid. It defaults to -999.0.
+
+=item -botval E<lt>valE<gt>
+
+This option specifies the value that will be assigned to the VDC variable
+at points below the bottom layer of the Cartesian grid. It defaults to -999.0.
+
+=item -quiet
+
+Operate quietly without reporting any informational messages. 
+
+=item -help
+
+Provide a short description and exit.
+
+=back
+
+=head1 EXAMPLES
+
+The command 
+
+C<cart2layer -ts 0 -varname dens -zlevels 45 -minz 0 -maxz 10000 foo.vdf dens.raw >
+
+would transform the volume stored in the file B<dens.raw> and write it into 
+the VDC associated with the B<foo.vdf> VDF file. The time step and variable 
+would be B<0> and B<dens>, 
+respectively.  The Cartesian grid is of height 45, and is uniformly spaced vertically from height 0 to height 10000 in the user coordinates of the VDC.  
+The variable B<dens> will be assigned the value -999.0 at points above and below the Cartesian grid extents. 
+
+=head1 SEE ALSO
+
+wrfvdfcreate, vdfcreate, vdfedit. 
+
+
+=head1 HISTORY
+
+Last updated on $Date$
+
