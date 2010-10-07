@@ -3,7 +3,6 @@ MISC_FILES := \
 	sharedcontrollerthread\
 	unsharedcontrollerthread \
 	vizfeatureparams \
-	GetAppPath \
 	pythonedit
 
 
