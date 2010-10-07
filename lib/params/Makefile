@@ -13,7 +13,7 @@ FILES = \
 	animationparams	viewpointparams ParamsBase \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
-	pythonpipeline
+	pythonpipeline GetAppPath
 	
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
 	TransferFunctionLite tfinterpolator ParamsBase ParamNode
