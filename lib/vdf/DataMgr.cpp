@@ -8,6 +8,9 @@
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
 #include <vapor/Metadata.h>
+#ifdef WIN32
+#include <float.h>
+#endif
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -168,8 +171,12 @@ float	*DataMgr::GetRegion(
 		size = 0;
 	}
 	for (size_t i=0; i<size; i++) {
+#ifdef WIN32
+			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = 99;
+#else
 //		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
 		if (! isnormal(blks[i]))  blks[i] = 99;
+#endif
 	}
 
 	return(blks);
@@ -1562,8 +1569,12 @@ float *DataMgr::execute_pipeline(
 			size = 0;
 		}
 		for (size_t i=0; i<size; i++) {
+#ifdef WIN32
+			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = 99;
+#else
 	//		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
 			if (! isnormal(blks[i]))  blks[i] = 99;
+#endif
 		}
 	}
 
