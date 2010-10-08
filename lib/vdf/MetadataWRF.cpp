@@ -299,11 +299,11 @@ void MetadataWRF::_MetadataWRF(
 
   string ttime_str;
   float p2si = 1.0;
-  double ts_now;
+  TIME64_T ts_now;
   int daysperyear = 0;
   for(int i = 0; i < Global_attrib.size(); i++) {
     if(Global_attrib[i].first == "PLANET_YEAR") 
-      daysperyear = Global_attrib[i].second;
+      daysperyear = (int) Global_attrib[i].second;
   }
   if(daysperyear) {
     for(int i = 0; i < Global_attrib.size(); i++) {
@@ -311,11 +311,11 @@ void MetadataWRF::_MetadataWRF(
         p2si = Global_attrib[i].second;
     }
     for(int i = 0; i < Time_latlon_extents.size(); i++) {
-      Time_latlon_extents[i].first *= p2si;
+      Time_latlon_extents[i].first = (TIME64_T) (Time_latlon_extents[i].first * p2si);
     }
     for(int i = 0; i < Timestep_filename.size(); i++) {
-      Timestep_filename[i].first *= p2si;
-      Timestep_offset[i].first *= p2si;
+      Timestep_filename[i].first = (TIME64_T) (Timestep_filename[i].first * p2si);
+      Timestep_offset[i].first = (TIME64_T) (Timestep_offset[i].first * p2si);
     }
   } // End if daysperyear.
   minLat = minLon = 500.0;
@@ -494,7 +494,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       //reproject latlon to current coord projection.
       //Must convert to radians:
       string projwrkstr = "+proj=latlong";
-      int radius = 0;
+      double radius = 0.0;
 
       for(int i = 0; i < Global_attrib.size(); i++ ) {
         if (Global_attrib[i].first == "RADIUS")

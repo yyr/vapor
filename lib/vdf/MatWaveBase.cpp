@@ -121,10 +121,6 @@ void
 MatWaveBase::_wave_len_validate (
 	size_t sigInLen, int waveLength, size_t *lev, size_t *val
 ) const {
-	int n;
-	int m;
-	int n1;
-	int m1;
 	double di;
 
 	*val = 1;

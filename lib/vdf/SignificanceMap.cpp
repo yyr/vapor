@@ -53,7 +53,7 @@ size_t SignificanceMap::_GetBitsPerIdx(vector <size_t> dims) {
 	//
 	size_t bits_per_idx = 1;
 	size--;
-	while (size = (size >> 1)) bits_per_idx++;
+	while ((size = (size >> 1))) bits_per_idx++;
 
 	return(bits_per_idx);
 }

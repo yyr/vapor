@@ -451,12 +451,14 @@ void	process_region(
 			if (vtype == Metadata::VAR3D) {
 				fprintf(
 					stdout, "Wrote %dx%dx%d volume\n", 
-					bdim[0]*bs[0], bdim[1]*bs[1],bdim[2]*bs[2]
+					(int) (bdim[0]*bs[0]), (int) (bdim[1]*bs[1]),
+					(int) (bdim[2]*bs[2])
 				);
 			}
 			else {
 				fprintf(
-					stdout, "Wrote %dx%d plane\n", bdim[0]*bs[0], bdim[1]*bs[1]
+					stdout, "Wrote %dx%d plane\n",
+					(int) (bdim[0]*bs[0]), (int) (bdim[1]*bs[1])
 				);
 			}
 		}
