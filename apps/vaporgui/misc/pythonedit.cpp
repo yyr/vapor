@@ -553,10 +553,13 @@ void PythonEdit::applyScript(){
 	close();
 }
 void PythonEdit::saveScript(){
-	
+	string path; 
+	if (startUp) path = Session::getInstance()->getPythonDirectory() + "/pythonUserStartup.py";
+	else path = Session::getInstance()->getPythonDirectory();
+
 	QString filename = QFileDialog::getSaveFileName(this,
 		"Choose a file name to save this Python program",
-		Session::getInstance()->getPythonDirectory().c_str(),
+		path.c_str(),
 		"Python Files (*.py)");
 
 	if(filename.length() == 0) return;
@@ -579,9 +582,13 @@ void PythonEdit::saveScript(){
 	changeFlag = false;
 }
 void PythonEdit::loadScript(){
+	string path; 
+	if (startUp) path = Session::getInstance()->getPythonDirectory() + "/pythonUserStartup.py";
+	else path = Session::getInstance()->getPythonDirectory();
+
 	QString filename = QFileDialog::getOpenFileName(this,
 		"Specify a Python file name to append to current Python program",
-		Session::getInstance()->getPythonDirectory().c_str(),
+		path.c_str(),
 		"Python Files (*.py)");
 
 	if(filename.length() == 0) return;
@@ -610,6 +617,31 @@ void PythonEdit::loadScript(){
 	}
 	textChanged();
 	return;
+}
+bool PythonEdit::loadUserStartupScript(){
+	string filename = Session::getInstance()->getPythonDirectory();
+	string startupScript;
+	filename += "/pythonUserStartup.py";
+	PythonPipeLine::getStartupScript().clear();
+	QFile file(filename.c_str());
+	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+		return false;
+	}
+	QTextStream in(&file);
+	int numlines = 0;
+	while (!in.atEnd()){
+		QString line = in.readLine();
+		line += "\n";
+		startupScript.append(line.toStdString());
+		numlines++;
+	}
+	file.close();
+	if(numlines == 0){
+		return false;
+	}
+	PythonPipeLine::setStartupScript(startupScript);
+	return true;
+
 }
 void PythonEdit::quit(){
 	if(changeFlag){

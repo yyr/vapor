@@ -112,6 +112,7 @@
 #include "datastatus.h"
 #include "userpreferences.h"
 #include "messagereporter.h"
+#include "pythonedit.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -137,6 +138,7 @@ public:
 		if (!theSession){
 			theSession = new Session();
 			UserPreferences::loadDefault();
+			PythonEdit::loadUserStartupScript();
 		}
 		return theSession;
 	}

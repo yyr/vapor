@@ -1167,6 +1167,7 @@ void MainForm::newSession()
 	Session::getInstance()->resetMetadata(files, false, false);
 	//Reload preferences:
 	UserPreferences::loadDefault();
+	PythonEdit::loadUserStartupScript();
 	MessageReporter::getInstance()->resetCounts();
 	
 }

@@ -43,8 +43,9 @@ class PythonEdit : public QDialog
 public:
    
 	PythonEdit(QWidget *parent, QString varname = "");
-
-
+	//Load the user startup script (if it exists) from default location
+	//Performed right after preferences are loaded.
+	static bool loadUserStartupScript();
 
 private:
    
