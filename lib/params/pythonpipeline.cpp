@@ -17,7 +17,6 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 std::string PythonPipeLine::startupScript = "";
-//myErr = StringIO.StringIO()"+"sys.stderr = myErr";
 
 DataMgr* PythonPipeLine::currentDataMgr = 0;
 bool PythonPipeLine::initialized = false;
@@ -218,13 +217,14 @@ int PythonPipeLine::python_wrapper(
 			// convert the float array a python array:
 			//Create a new array to pass into python:
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
-			if(!pyData) return NULL;
+			if(!pyData) return 0;
 			//Now realign the array...
 			realign3DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
 			pyRegion = PyArray_SimpleNewFromData(3, pydims, PyArray_FLOAT, pyData);
 		} else {
 			float* pyData = new float[pydims[0]*pydims[1]];
-			if(!pyData) return NULL;
+			if(!pyData) return 0;
+
 			//Now realign the array...
 			realign2DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
 			pyRegion = PyArray_SimpleNewFromData(2, pydims, PyArray_FLOAT, pyData);
@@ -328,8 +328,6 @@ int PythonPipeLine::python_wrapper(
 		newObjects.push_back(key);
 	}
 	for (int i = 0; i<newObjects.size(); i++){
-		char* keyString = PyString_AsString(newObjects[i]);
-		
 		PyObject_DelItem(mainDict,newObjects[i]);
 		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
 	}
