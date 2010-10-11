@@ -172,7 +172,7 @@ float	*DataMgr::GetRegion(
 	}
 	for (size_t i=0; i<size; i++) {
 #ifdef WIN32
-		if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = __FLT_MAX__;
+		if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = FLT_MAX;
 #else
 		if (! isnormal(blks[i]))  blks[i] = __FLT_MAX__;
 #endif
@@ -1569,7 +1569,7 @@ float *DataMgr::execute_pipeline(
 		}
 		for (size_t i=0; i<size; i++) {
 #ifdef WIN32
-			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = __FLT_MAX__;
+			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = FLT_MAX;
 #else
 			if (! isnormal(blks[i]))  blks[i] = __FLT_MAX__;
 #endif
