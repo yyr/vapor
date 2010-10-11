@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
-#include <cmath>
+#include <cfloat>
 #include <vector>
 #include <map>
 #include <vapor/DataMgr.h>
@@ -172,10 +172,9 @@ float	*DataMgr::GetRegion(
 	}
 	for (size_t i=0; i<size; i++) {
 #ifdef WIN32
-			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = 99;
+		if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = __FLT_MAX__;
 #else
-//		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
-		if (! isnormal(blks[i]))  blks[i] = 99;
+		if (! isnormal(blks[i]))  blks[i] = __FLT_MAX__;
 #endif
 	}
 
@@ -1570,10 +1569,9 @@ float *DataMgr::execute_pipeline(
 		}
 		for (size_t i=0; i<size; i++) {
 #ifdef WIN32
-			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = 99;
+			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = __FLT_MAX__;
 #else
-	//		if (! isnormal(blks[i]))  blks[i] = MAXFLOAT;
-			if (! isnormal(blks[i]))  blks[i] = 99;
+			if (! isnormal(blks[i]))  blks[i] = __FLT_MAX__;
 #endif
 		}
 	}
