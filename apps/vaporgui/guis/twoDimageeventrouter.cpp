@@ -626,6 +626,7 @@ setTwoDEnabled(bool val, int instance){
 		performGuiChangeInstance(instance);
 	}
 	
+	guiSetEnabled(val, instance);
 	
 }
 
@@ -845,7 +846,7 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle twoDImage enabled",instance);
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
-	guiSetEnabled(value, instance);
+	
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(pParams,!value, false);
