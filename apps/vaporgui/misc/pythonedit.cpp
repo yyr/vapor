@@ -418,6 +418,18 @@ void PythonEdit::testScript(){
 		}
 		
 	}
+	else { 
+		Py_Initialize();
+		//get the module dictionary...
+		PyObject* mainModule = PyImport_AddModule("__main__");
+		PyObject* mainDict = PyModule_GetDict(mainModule);
+	
+		PyObject* retObj = PyRun_String(script.c_str(), Py_file_input, mainDict,mainDict);
+		if (!retObj){
+			PyErr_Print();
+		
+		}
+	}
 	
 	
 		
