@@ -154,7 +154,7 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;;&quot;$(GTIFF_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="true"
+				GenerateDebugInformation="false"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -216,6 +216,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\flowparams.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GetAppPath.cpp"
 				>
 			</File>
 			<File
@@ -334,6 +338,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\flowparams.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\GetAppPath.h"
 				>
 			</File>
 			<File

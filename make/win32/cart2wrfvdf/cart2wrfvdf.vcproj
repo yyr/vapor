@@ -189,7 +189,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\apps\cart2wrfvdf\cart2wrfvdf.cpp"
+				RelativePath="..\..\..\apps\cart2wrfvdf\cart2layer.cpp"
 				>
 			</File>
 		</Filter>
