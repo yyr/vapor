@@ -200,9 +200,10 @@ reinit(bool doOverride){
 	} //end if(doOverride)
 
 	//Delete all existing variable nodes
-	GetRootNode()->GetNode(_variablesTag)->DeleteAll();
-	
-	assert(GetRootNode()->GetNode(_variablesTag)->GetNumChildren() == 0);
+	if (GetRootNode()->GetNode(_variablesTag)){
+		GetRootNode()->GetNode(_variablesTag)->DeleteAll();
+		assert(GetRootNode()->GetNode(_variablesTag)->GetNumChildren() == 0);
+	}
 	//Extend the histo ranges to include the isovalues:
 	for (int i = 0; i<totNumVariables; i++){
 		float leftside = newIsoControls[i]->getMinHistoValue();
@@ -220,6 +221,10 @@ reinit(bool doOverride){
 	}
 	//Create new variable nodes, add them to the tree
 	ParamNode* varsNode = GetRootNode()->GetNode(_variablesTag);
+	if (!varsNode) { 
+		varsNode = new ParamNode(_variablesTag, totNumVariables);
+		GetRootNode()->AddNode(_variablesTag,varsNode);
+	}
 	for (int i = 0; i<totNumVariables; i++){
 		std::string& varname = ds->getVariableName(i);
 		ParamNode* varNode = new ParamNode(varname, 2);
@@ -590,7 +595,7 @@ bool ParamsIso::elementStartHandler(
 
 	if (StrCmpNoCase(tag, _variableTag) == 0){
 		_parseDepth++;
-		//Variable tag:  create a variable 
+		//Variable tag:  create a variable
 		// The supported attributes are the variable name and opacity scale
 		string varName;
 		
@@ -708,11 +713,13 @@ bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 		if (_parseDepth == 1 && noIsoControlTags) {//For backwards compatibility..
 				//Get the value of the isocontrol stuff from the obsolete tags:
 				
+			SetMapVariableName("Constant");
 			const vector <double> &histBnds = GetRootNode()->GetElementDouble(_HistoBoundsTag);
 			const vector <double> &isoval = GetRootNode()->GetElementDouble(_IsoValueTag);
 			oldIsoValue = isoval[0];
 			oldHistoBounds[0] = histBnds[0];
 			oldHistoBounds[1] = histBnds[1];
+			
 		}
 		
 		return ParamsBase::elementEndHandler(pm, depth, tag);

@@ -395,7 +395,6 @@ XmlNode	*XmlNode::GetChild(const string &tag) const {
 		if (StrCmpNoCase(child->_tag, tag) == 0) return(child);
 	}
 
-	SetErrMsg("Invalid child tag : %s", tag.c_str());
 	return(NULL);
 }
 
