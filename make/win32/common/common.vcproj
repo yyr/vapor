@@ -149,7 +149,7 @@
 				OutputFile="../../../targets/win32/bin/common.dll"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

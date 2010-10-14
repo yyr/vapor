@@ -155,7 +155,7 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(PYTHON_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

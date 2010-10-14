@@ -599,13 +599,13 @@ void FlowEventRouter::updateTab(){
 
 	refreshButton->setEnabled(!fParams->refreshIsAuto() && VizWinMgr::getInstance()->flowDataIsDirty(fParams));
 	autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
-	QPalette pal;
+	QPalette pal(autoRefreshCheckbox->palette());
 	if (fParams->refreshIsAuto()) {
-		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::black));
 		autoRefreshCheckbox->setPalette(pal);
 	}
 	else {
-		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::red));
 		autoRefreshCheckbox->setPalette(pal);
 	}
 	//Always allow at least 4 variables in combo:
@@ -812,13 +812,13 @@ void FlowEventRouter::updateUrgentTabState(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (fParams) {
 		autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
-		QPalette pal;
+		QPalette pal(autoRefreshCheckbox->palette());
 		if (fParams->refreshIsAuto()) {
-			pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+			pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::black));
 			autoRefreshCheckbox->setPalette(pal);
 		}
 		else {
-			pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+			pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::red));
 			autoRefreshCheckbox->setPalette(pal);
 		}
 	}
@@ -2200,13 +2200,13 @@ guiSetAutoRefresh(bool autoOn){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
-	QPalette pal;
+	QPalette pal(autoRefreshCheckbox->palette());
 	if (autoOn) {
-		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(236,233,216));
+		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::black));
 		autoRefreshCheckbox->setPalette(pal);
 	}
 	else {
-		pal.setColor(autoRefreshCheckbox->backgroundRole(),QColor(Qt::red));
+		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::red));
 		autoRefreshCheckbox->setPalette(pal);
 	}
 	

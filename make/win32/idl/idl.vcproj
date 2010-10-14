@@ -154,7 +154,7 @@
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				ModuleDefinitionFile="idl.def"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -219,7 +219,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/IDLMetadataAuto.cpp.template &gt; ../../../lib/idl/IDLMetadataAuto.cpp"
+						CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/IDLMetadataAuto.cpp.template &gt; ../../../lib/idl/IDLMetadataAuto.cpp&#x0D;&#x0A;"
 						Outputs="../../../lib/idl/IDLMetadataAuto.cpp"
 					/>
 				</FileConfiguration>
@@ -228,7 +228,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/IDLMetadataAuto.cpp.template &gt; ../../../lib/idl/IDLMetadataAuto.cpp"
+						CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/IDLMetadataAuto.cpp.template &gt; ../../../lib/idl/IDLMetadataAuto.cpp&#x0D;&#x0A;"
 						Outputs="../../../lib/idl/IDLMetadataAuto.cpp"
 					/>
 				</FileConfiguration>
