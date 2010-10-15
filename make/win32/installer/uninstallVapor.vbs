@@ -1,4 +1,4 @@
-MsgBox("Starting uninstall script")
+
 inputstring = Session.Property("CustomActionData")
 'inputstring = "1<>C:\Program Files\NCAR\"
 ' the inputstring either starts with <>, or it has a "1<>" at the start.
@@ -17,8 +17,8 @@ vaporbin = vaporhome & "\bin;"
 vaporshare = vaporhome & "\share"
 vaporidl = vaporhome & "\bin"
 vaporidl2 = vaporhome & "\bin;"
-vaporpython = vaporhome & "\lib\Python2.6.6\lib\site-packages"
-vaporpythonhome = vaporhome & "\lib\Python2.6.6"
+vaporpython = vaporhome & "\lib\Python266\lib\site-packages"
+vaporpythonhome = vaporhome & "\lib\Python266"
 
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
@@ -27,7 +27,7 @@ Else
 	set sysEnv = shell.Environment("USER")
 
 End If
-MsgBox("Unsetting vapor home")
+
 '  unset the VAPOR_HOME variable:
 envVar = sysEnv("VAPOR_HOME")
 if (Len(envVar) > 0) then
@@ -37,7 +37,6 @@ envVar = sysEnv("VAPOR_SHARE")
 if (Len(envVar) > 0) then
     sysEnv.Remove("VAPOR_SHARE")
 end if
-
 
 '  Find VAPOR_HOME\bin; in the path
 pathvar = sysEnv("path")
@@ -63,20 +62,6 @@ if  posn <> 0 Then
 	SysEnv("PYTHONPATH") = pathvar
 End If
 
-MsgBox("removing python directory")
-' Remove the python directory
-Set fso = CreateObject("Scripting.FileSystemObject")
-
-
-' Remove the python directory
-folder = vaporpythonhome
-Set fso = CreateObject("Scripting.FileSystemObject")
-if (fso.FolderExists(folder)) then
-    fso.DeleteFolder(folder)
-end if
-
-Set fso = Nothing
-
 idlpath = sysenv("IDL_DLM_PATH")
 ' the dlm path may either be followed by a : or not:
 posn = inStr(idlpath,vaporidl2)
@@ -96,3 +81,23 @@ Else
 		End If
 	End If
 End If
+
+Set fso = CreateObject("Scripting.FileSystemObject")
+
+'Delete shortcuts to vaporgui
+DesktopPath = shell.SpecialFolders("Desktop")
+if (fso.FileExists(DesktopPath & "\vaporgui.lnk")) then
+    fso.DeleteFile (DesktopPath & "\vaporgui.lnk")
+end if
+    
+if(allUserProp) then
+    ProgramPath = shell.SpecialFolders("AllUsersPrograms")
+else
+    ProgramPath = shell.SpecialFolders("Programs")
+end if
+
+if (fso.FileExists(ProgramPath & "\vaporgui.lnk")) then
+    fso.DeleteFile (ProgramPath & "\vaporgui.lnk")
+end if
+
+Set fso = Nothing

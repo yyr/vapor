@@ -145,7 +145,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="netcdf.lib"
-				OutputFile="..\..\..\targets\win32\bin\cart2wrfvdf.exe"
+				OutputFile="..\..\..\targets\win32\bin\cart2layer.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
