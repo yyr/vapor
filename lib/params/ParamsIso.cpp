@@ -712,8 +712,9 @@ bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 	else {
 		if (_parseDepth == 1 && noIsoControlTags) {//For backwards compatibility..
 				//Get the value of the isocontrol stuff from the obsolete tags:
-				
+			SetCompressionLevel(0);
 			SetMapVariableName("Constant");
+			SetHistoStretch(1.0);
 			const vector <double> &histBnds = GetRootNode()->GetElementDouble(_HistoBoundsTag);
 			const vector <double> &isoval = GetRootNode()->GetElementDouble(_IsoValueTag);
 			oldIsoValue = isoval[0];
