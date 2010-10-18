@@ -670,9 +670,12 @@ void MappingFrame::initWidgets()
   QAction* addact = _compTypeSubMenu->addAction("Addition");
   addact->setCheckable(true);
   addact->setChecked(true);
+  addact->setData(MapperFunction::ADDITION);
+
   QAction* multact = _compTypeSubMenu->addAction("Multiplication");
   multact->setCheckable(true);
   multact->setChecked(false);
+  multact->setData(MapperFunction::MULTIPLICATION);
                               
  
 
