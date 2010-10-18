@@ -751,7 +751,6 @@ reinitTab(bool doOverride){
 		numHistograms = 0;
 	}
 	
-	isoSelectionFrame->updateParams();
 	setBindButtons(false);
 	updateTab();
 }

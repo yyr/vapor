@@ -424,7 +424,9 @@ loadFromFile(ifstream& ifs){
 	MainForm::getInstance()->timestepEdit->setText(QString::number(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber()));
 	//Reopen the logfile
 	MessageReporter::getInstance()->reset(currentLogfileName.c_str());
-	//We should return pointer to 0 when done!
+
+	//Reset the front tab to the DVR:
+	MainForm::getInstance()->getTabManager()->moveToFront(Params::GetTypeFromTag(Params::_dvrParamsTag));
 	
 	//Don't activate anything until user opens a new metadata file.
 	return true;

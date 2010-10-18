@@ -97,6 +97,7 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 	int posn = findWidget(widgetBaseType);
 	if (posn < 0) return -1;
 	int lastCurrentPage = currentIndex();
+	currentFrontPage = posn;
 	if (lastCurrentPage == posn) return posn; //No change!
 	setCurrentIndex(posn);
 	return posn;
