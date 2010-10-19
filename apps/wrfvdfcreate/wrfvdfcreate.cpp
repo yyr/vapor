@@ -136,6 +136,11 @@ int	main(int argc, char **argv) {
 	argv++;
 	argc--;
 
+	if (argc < 2) {
+		Usage(op, "No files to process");
+		exit(1);
+	}
+
 	//
 	// At this point there is at last one WRF file to work with.
 	// The format is wrf-file+ vdf-file.
