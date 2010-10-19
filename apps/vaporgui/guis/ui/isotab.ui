@@ -2501,12 +2501,6 @@ depending on which button is clicked.</string>
             </item>
             <item>
              <widget class="QPushButton" name="fitDataButton">
-              <property name="maximumSize">
-               <size>
-                <width>60</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="toolTip">
                <string>Fit TF domain bounds to data bounds</string>
               </property>

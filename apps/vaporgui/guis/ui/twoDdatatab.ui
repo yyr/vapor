@@ -2948,12 +2948,6 @@ specified range.</string>
                </item>
                <item>
                 <widget class="QPushButton" name="ColorBindButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>140</width>
-                   <height>0</height>
-                  </size>
-                 </property>
                  <property name="toolTip">
                   <string>Move selected color to same x coord as selected opacity </string>
                  </property>
@@ -2990,12 +2984,6 @@ depending on which button is clicked.</string>
                </item>
                <item>
                 <widget class="QPushButton" name="OpacityBindButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>140</width>
-                   <height>0</height>
-                  </size>
-                 </property>
                  <property name="toolTip">
                   <string>Move selected opacity to same x coord as selected color</string>
                  </property>
@@ -3032,12 +3020,6 @@ depending on which button is clicked.</string>
                </item>
                <item>
                 <widget class="QPushButton" name="fitDataButton">
-                 <property name="maximumSize">
-                  <size>
-                   <width>60</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
                  <property name="toolTip">
                   <string>Fit TF domain bounds to data bounds</string>
                  </property>
