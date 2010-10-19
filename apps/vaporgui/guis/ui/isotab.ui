@@ -1383,7 +1383,7 @@ specified range.</string>
                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
               </property>
               <property name="text">
-               <string>Constant Color:</string>
+               <string>Constant Color</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1395,15 +1395,22 @@ specified range.</string>
             </item>
             <item>
              <widget class="QPushButton" name="constantColorButton">
+              <property name="text">
+               <string>Select</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="constantColorEdit">
               <property name="minimumSize">
                <size>
-                <width>60</width>
+                <width>30</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>75</width>
+                <width>52</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -1831,6 +1838,9 @@ specified range.</string>
               <property name="text">
                <string/>
               </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -1855,7 +1865,7 @@ specified range.</string>
                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
               </property>
               <property name="text">
-               <string>Constant Opacity:</string>
+               <string>Opacity:</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1869,7 +1879,7 @@ specified range.</string>
              <widget class="QLineEdit" name="constantOpacityEdit">
               <property name="minimumSize">
                <size>
-                <width>60</width>
+                <width>50</width>
                 <height>0</height>
                </size>
               </property>

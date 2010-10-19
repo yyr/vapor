@@ -767,8 +767,8 @@ void FlowEventRouter::updateTab(){
 	diamondSizeEdit->setText(QString::number(fParams->getDiamondDiameter()));
 	arrowheadEdit->setText(QString::number(fParams->getArrowDiameter()));
 	constantOpacityEdit->setText(QString::number(fParams->getConstantOpacity()));
-	pal.setColor(constantColorButton->backgroundRole(),QColor(fParams->getConstantColor()));
-	constantColorButton->setPalette(pal);
+	pal.setColor(constantColorEdit->backgroundRole(),QColor(fParams->getConstantColor()));
+	constantColorEdit->setPalette(pal);
 	if (fParams->getMapperFunc()){
 		minColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMinColorMapValue()));
 		maxColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMaxColorMapValue()));
@@ -1406,11 +1406,11 @@ setBiasFromSlider3(int val){
  */
 void FlowEventRouter::
 setFlowConstantColor(){
-	QPalette pal(constantColorButton->palette());
-	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Background), this);
+	QPalette pal(constantColorEdit->palette());
+	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
 	
-	pal.setColor(constantColorButton->backgroundRole(), newColor);
-	constantColorButton->setPalette(pal);
+	pal.setColor(QPalette::Base, newColor);
+	constantColorEdit->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:
 	guiSetConstantColor(newColor);
 }

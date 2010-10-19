@@ -354,30 +354,30 @@ panelChanged(){
 //Slots to respond to color changes:
 void UserPreferences::
 selectRegionFrameColor(){
-	QPalette pal(regionFrameColorButton->palette());
-	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(regionFrameColorButton->backgroundRole(),frameColor);
-	regionFrameColorButton->setPalette(pal);
+	QPalette pal(regionFrameColorEdit->palette());
+	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	pal.setColor(QPalette::Base,frameColor);
+	regionFrameColorEdit->setPalette(pal);
 	regionFrameColor = frameColor;
 	dialogChanged = true;
 }
 
 void UserPreferences::
 selectSubregionFrameColor(){
-	QPalette pal(subregionFrameColorButton->palette());
-	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(subregionFrameColorButton->backgroundRole(),frameColor);
-	subregionFrameColorButton->setPalette(pal);
+	QPalette pal(subregionFrameColorEdit->palette());
+	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	pal.setColor(QPalette::Base,frameColor);
+	subregionFrameColorEdit->setPalette(pal);
 	subregionFrameColor = frameColor;
 	dialogChanged = true;
 }
 void UserPreferences::
 selectBackgroundColor(){
 	//Launch colorselector, put result into the button
-	QPalette pal(backgroundColorButton->palette());
-	QColor bgColor = QColorDialog::getColor(pal.color(QPalette::Background));
-	pal.setColor(backgroundColorButton->backgroundRole(),bgColor);
-	backgroundColorButton->setPalette(pal);
+	QPalette pal(backgroundColorEdit->palette());
+	QColor bgColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	pal.setColor(QPalette::Base,bgColor);
+	backgroundColorEdit->setPalette(pal);
 	backgroundColor = bgColor;
 	dialogChanged = true;
 }
@@ -650,15 +650,15 @@ setDialog(){
 	maxInfoLog->setText(QString::number(mReporter->getMaxLog((MessageReporter::messagePriority)0)));
 	maxWarnLog->setText(QString::number(mReporter->getMaxLog((MessageReporter::messagePriority)1)));
 	maxErrorLog->setText(QString::number(mReporter->getMaxLog((MessageReporter::messagePriority)2)));
-	QPalette pal(backgroundColorButton->palette());
-	pal.setColor(backgroundColorButton->backgroundRole(),DataStatus::getBackgroundColor());
-	backgroundColorButton->setPalette(pal);
+	QPalette pal(backgroundColorEdit->palette());
+	pal.setColor(QPalette::Base,DataStatus::getBackgroundColor());
+	backgroundColorEdit->setPalette(pal);
 	regionCheckbox->setChecked(DataStatus::regionFrameIsEnabled());
-	pal.setColor(regionFrameColorButton->backgroundRole(),DataStatus::getRegionFrameColor());
-	regionFrameColorButton->setPalette(pal);
+	pal.setColor(QPalette::Base,DataStatus::getRegionFrameColor());
+	regionFrameColorEdit->setPalette(pal);
 	subregionCheckbox->setChecked(DataStatus::subregionFrameIsEnabled());
-	pal.setColor(subregionFrameColorButton->backgroundRole(),DataStatus::getSubregionFrameColor());
-	subregionFrameColorButton->setPalette(pal);
+	pal.setColor(QPalette::Base,DataStatus::getSubregionFrameColor());
+	subregionFrameColorEdit->setPalette(pal);
 	backgroundColor = DataStatus::getBackgroundColor();
 	regionFrameColor = DataStatus::getRegionFrameColor();
 	subregionFrameColor = DataStatus::getSubregionFrameColor();

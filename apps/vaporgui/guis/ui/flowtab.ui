@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>2611</height>
+    <height>3206</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -6479,6 +6479,13 @@ in this panel.</string>
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="constantColorButton">
+              <property name="text">
+               <string>Select</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="spacer75">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -6495,18 +6502,97 @@ in this panel.</string>
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="constantColorButton">
+             <widget class="QLineEdit" name="constantColorEdit">
               <property name="minimumSize">
                <size>
-                <width>120</width>
+                <width>30</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="palette">
+               <palette>
+                <active>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>6</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>232</red>
+                    <green>0</green>
+                    <blue>8</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </active>
+                <inactive>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>6</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>232</red>
+                    <green>0</green>
+                    <blue>8</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </inactive>
+                <disabled>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>232</red>
+                    <green>0</green>
+                    <blue>8</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>232</red>
+                    <green>0</green>
+                    <blue>8</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </disabled>
+               </palette>
+              </property>
+              <property name="cursor">
+               <cursorShape>ArrowCursor</cursorShape>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::StrongFocus</enum>
+              </property>
+              <property name="acceptDrops">
+               <bool>true</bool>
               </property>
               <property name="toolTip">
                <string>Clisk to specify color used in constant map</string>
               </property>
+              <property name="inputMask">
+               <string notr="true"/>
+              </property>
               <property name="text">
-               <string/>
+               <string>    </string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -6514,7 +6600,7 @@ in this panel.</string>
              <widget class="QLineEdit" name="constantOpacityEdit">
               <property name="minimumSize">
                <size>
-                <width>120</width>
+                <width>50</width>
                 <height>0</height>
                </size>
               </property>

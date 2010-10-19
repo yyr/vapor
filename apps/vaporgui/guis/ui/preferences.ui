@@ -10,6 +10,12 @@
     <height>1334</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
     <width>0</width>
@@ -1114,6 +1120,12 @@
                    </item>
                    <item>
                     <widget class="QLabel" name="textLabel2_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>150</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Background color</string>
                      </property>
@@ -1150,10 +1162,29 @@
                       <string>Click to edit the background color</string>
                      </property>
                      <property name="text">
-                      <string/>
+                      <string>Select</string>
                      </property>
                      <property name="autoDefault">
                       <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="backgroundColorEdit">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>50</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1247,6 +1278,12 @@
                    </item>
                    <item>
                     <widget class="QLabel" name="textLabel2_2_2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Domain frame color:</string>
                      </property>
@@ -1286,10 +1323,29 @@
                       <string>click to specify color of region frame</string>
                      </property>
                      <property name="text">
-                      <string/>
+                      <string>Select</string>
                      </property>
                      <property name="autoDefault">
                       <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="regionFrameColorEdit">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>50</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1383,6 +1439,12 @@
                    </item>
                    <item>
                     <widget class="QLabel" name="textLabel2_6">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Subregion frame color:</string>
                      </property>
@@ -1425,10 +1487,29 @@
                       <string>Click to specify color of subregionframe</string>
                      </property>
                      <property name="text">
-                      <string/>
+                      <string>Select</string>
                      </property>
                      <property name="autoDefault">
                       <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="subregionFrameColorEdit">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>50</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1502,6 +1583,12 @@
                   <layout class="QGridLayout" name="gridLayout">
                    <item row="0" column="0">
                     <widget class="QLabel" name="textLabel1_2_3_2_2_2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Session file </string>
                      </property>
@@ -1578,6 +1665,12 @@
                    </item>
                    <item row="1" column="0">
                     <widget class="QLabel" name="textLabel1_2_3_2_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Metadata </string>
                      </property>
@@ -1654,6 +1747,12 @@
                    </item>
                    <item row="2" column="0">
                     <widget class="QLabel" name="textLabel1_2_4_2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Images</string>
                      </property>
@@ -1727,6 +1826,12 @@
                    </item>
                    <item row="3" column="0">
                     <widget class="QLabel" name="textLabel1_2_5_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Transfer function</string>
                      </property>
@@ -1800,6 +1905,12 @@
                    </item>
                    <item row="4" column="0">
                     <widget class="QLabel" name="textLabel1_2_5_2_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Flow </string>
                      </property>
@@ -1873,6 +1984,12 @@
                    </item>
                    <item row="5" column="0">
                     <widget class="QLabel" name="textLabel1_2_5_4">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>25</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Python scripts</string>
                      </property>

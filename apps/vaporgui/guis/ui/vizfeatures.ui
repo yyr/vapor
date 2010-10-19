@@ -885,6 +885,12 @@ p, li { white-space: pre-wrap; }
              <layout class="QVBoxLayout">
               <item>
                <widget class="QLabel" name="textLabel1_3">
+                <property name="minimumSize">
+                 <size>
+                  <width>25</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Axis origin</string>
                 </property>
@@ -974,11 +980,17 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QPushButton" name="axisColorButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>click to specify color of axes, tic marks, and axis labels</string>
                 </property>
                 <property name="text">
-                 <string/>
+                 <string>Select</string>
                 </property>
                 <property name="autoDefault">
                  <bool>false</bool>
@@ -986,6 +998,19 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="axisColorEdit">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="spacer125">
@@ -1073,6 +1098,12 @@ p, li { white-space: pre-wrap; }
              <layout class="QVBoxLayout">
               <item>
                <widget class="QLabel" name="textLabel2_7_2_4">
+                <property name="minimumSize">
+                 <size>
+                  <width>25</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Digits</string>
                 </property>
@@ -1812,6 +1843,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QLineEdit" name="timeSizeEdit">
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Point size of time annotation</string>
               </property>
@@ -1858,7 +1895,7 @@ p, li { white-space: pre-wrap; }
                <string>click to specify color of time annotation</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Select</string>
               </property>
               <property name="autoDefault">
                <bool>false</bool>
@@ -1880,6 +1917,19 @@ p, li { white-space: pre-wrap; }
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="timeColorEdit">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1922,6 +1972,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QCheckBox" name="surfaceCheckbox">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Enable rendering of surface as determined by HGT variable</string>
               </property>
@@ -1951,6 +2007,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QLabel" name="textLabel2">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Color:</string>
               </property>
@@ -1970,14 +2032,33 @@ p, li { white-space: pre-wrap; }
               <property name="enabled">
                <bool>true</bool>
               </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Click to specify color of surface</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Select</string>
               </property>
               <property name="autoDefault">
                <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="surfaceColorEdit">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>33</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -2019,6 +2100,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>The refinement level specifies the resolution of data that is used in the surface rendering</string>
               </property>
@@ -2386,6 +2473,12 @@ p, li { white-space: pre-wrap; }
            <layout class="QGridLayout">
             <item row="0" column="0">
              <widget class="QLabel" name="textLabel4_4">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Color scale lower-left coords</string>
               </property>
@@ -2507,6 +2600,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="textLabel4_2_2">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Color scale size</string>
               </property>
@@ -2608,17 +2707,36 @@ p, li { white-space: pre-wrap; }
               <property name="minimumSize">
                <size>
                 <width>120</width>
-                <height>25</height>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="toolTip">
                <string>Click to specify background color of color scale text</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Select</string>
               </property>
               <property name="autoDefault">
                <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="colorbarBackgroundEdit">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>

@@ -595,8 +595,6 @@
 		E70415E8123042CB0083F569 /* animationcontroller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = animationcontroller.cpp; path = ../../../apps/vaporgui/misc/animationcontroller.cpp; sourceTree = SOURCE_ROOT; };
 		E70415E9123042CB0083F569 /* animationcontroller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = animationcontroller.h; path = ../../../apps/vaporgui/misc/animationcontroller.h; sourceTree = SOURCE_ROOT; };
 		E70415EA123042CB0083F569 /* controllerthread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = controllerthread.h; path = ../../../apps/vaporgui/misc/controllerthread.h; sourceTree = SOURCE_ROOT; };
-		E70415EB123042CB0083F569 /* GetAppPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GetAppPath.cpp; path = ../../../apps/vaporgui/misc/GetAppPath.cpp; sourceTree = SOURCE_ROOT; };
-		E70415EC123042CB0083F569 /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GetAppPath.h; path = ../../../apps/vaporgui/misc/GetAppPath.h; sourceTree = SOURCE_ROOT; };
 		E70415ED123042CB0083F569 /* helpwindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = helpwindow.cpp; path = ../../../apps/vaporgui/misc/helpwindow.cpp; sourceTree = SOURCE_ROOT; };
 		E70415EE123042CB0083F569 /* helpwindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = helpwindow.h; path = ../../../apps/vaporgui/misc/helpwindow.h; sourceTree = SOURCE_ROOT; };
 		E70415EF123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/vaporgui/misc/Makefile; sourceTree = SOURCE_ROOT; };
@@ -1473,8 +1471,6 @@
 				E70415E8123042CB0083F569 /* animationcontroller.cpp */,
 				E70415E9123042CB0083F569 /* animationcontroller.h */,
 				E70415EA123042CB0083F569 /* controllerthread.h */,
-				E70415EB123042CB0083F569 /* GetAppPath.cpp */,
-				E70415EC123042CB0083F569 /* GetAppPath.h */,
 				E70415ED123042CB0083F569 /* helpwindow.cpp */,
 				E70415EE123042CB0083F569 /* helpwindow.h */,
 				E70415EF123042CB0083F569 /* Makefile */,
