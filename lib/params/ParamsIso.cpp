@@ -749,8 +749,8 @@ void ParamsIso::setOpacityScale(float val)
 }
 bool ParamsIso::isOpaque(){
 	if(GetMapVariableNum() < 0) {
-		if(GetConstantColor()[3] < 0.99f) return true;
-		else return false;
+		if(GetConstantColor()[3] < 0.99f) return false;
+		else return true;
 	}
 	if (!GetTransFunc(GetMapVariableNum())) return true;
 	if(GetTransFunc(GetMapVariableNum())->isOpaque() && getOpacityScale() > 0.99f) return true;

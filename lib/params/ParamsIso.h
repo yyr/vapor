@@ -268,6 +268,12 @@ int GetIsoVariableNum(){
  const string& GetMapVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
+	
+//Override the default camera distance, so that IsoSurfaces are always slightly
+//behind volume renderers.  
+virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
+	return (1.001f*RenderParams::getCameraDistance(vpp,rpp,timestep));
+}
 
  
  float (&getClut())[256][4] {
