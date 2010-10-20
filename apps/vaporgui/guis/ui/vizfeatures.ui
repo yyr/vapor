@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>1300</height>
+    <height>2000</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1309,10 +1309,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="xMinTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1328,10 +1334,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="yMinTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1347,10 +1359,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="zMinTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1383,10 +1401,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="xMaxTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1402,10 +1426,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="yMaxTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1421,10 +1451,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="zMaxTicEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1457,10 +1493,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="xNumTicsEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1476,10 +1518,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="yNumTicsEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1495,10 +1543,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="zNumTicsEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1531,10 +1585,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="xTicSizeEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1550,10 +1610,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="yTicSizeEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1569,10 +1635,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLineEdit" name="zTicSizeEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1605,10 +1677,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="xTicOrientCombo">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1628,10 +1706,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="yTicOrientCombo">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -1651,10 +1735,16 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="zTicOrientCombo">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>25</height>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="toolTip">
