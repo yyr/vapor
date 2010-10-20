@@ -1067,8 +1067,8 @@ void TwoDDataParams::adjustTextureSize(int sz[2]){
 	int ydist = (int)(relHt*dataSize[ycrd]);
 	texSize[0] = 1<<(VetsUtil::ILog2(xdist));
 	texSize[1] = 1<<(VetsUtil::ILog2(ydist));
-	if (texSize[0] < 256) texSize[0] = 256;
-	if (texSize[1] < 256) texSize[1] = 256;
+	if (texSize[0] < 2) texSize[0] = 2;
+	if (texSize[1] < 2) texSize[1] = 2;
 	
 	sz[0] = texSize[0];
 	sz[1] = texSize[1];

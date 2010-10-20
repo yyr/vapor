@@ -362,7 +362,7 @@ visualizerSelected(int comboIndex){
 void VizFeatureParams::
 selectTimeTextColor(){
 	QPalette pal(vizFeatureDlg->timeColorEdit->palette());
-	tempTimeAnnotColor = QColorDialog::getColor(pal.color(QPalette::Background));
+	tempTimeAnnotColor = QColorDialog::getColor(pal.color(QPalette::Base));
 	pal.setColor(QPalette::Base,tempTimeAnnotColor);
 	vizFeatureDlg->timeColorEdit->setPalette(pal);
 	dialogChanged = true;
@@ -524,9 +524,9 @@ setDialog(){
 	
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
 	tempColorbarBackgroundColor = colorbarBackgroundColor;
-	QPalette pal2(vizFeatureDlg->colorbarBackgroundButton->palette());
-	pal2.setColor(vizFeatureDlg->colorbarBackgroundButton->backgroundRole(), colorbarBackgroundColor);
-	vizFeatureDlg->colorbarBackgroundButton->setPalette(pal2);
+	QPalette pal2(vizFeatureDlg->colorbarBackgroundEdit->palette());
+	pal2.setColor(QPalette::Base, colorbarBackgroundColor);
+	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal2);
 
 	int numRefs = ds->getNumTransforms();
 	//if (isLayered){

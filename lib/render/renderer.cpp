@@ -120,7 +120,7 @@ buildColorscaleImage(){
 		int ticPos = i*(imgHeight/numtics)+(imgHeight/(2*numtics));
 		painter.drawLine((int)(imgWidth*.35), ticPos, (int)(imgWidth*.45), ticPos);
 		double ycoord = myTransFunc->getMinMapValue() + (1.f - (float)i/(float)(numtics-1.f))*(myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue());
-		QString ytext = QString::number(ycoord);
+		QString ytext = QString::number(ycoord,'g',3);
 		painter.drawText(imgWidth/2 , ticPos - textHeight/2, imgWidth/2, textHeight, Qt::AlignLeft, ytext);
 	}
 	
