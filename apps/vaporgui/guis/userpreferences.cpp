@@ -903,6 +903,7 @@ showAllDefaults(){
 	featureHolder->setGeometry(50, 50, w+swidth,h);
 
 	sv->resize(w,h);
+	adjustSize();
 	featureHolder->updateGeometry();
 	featureHolder->adjustSize();
 	featureHolder->update();
