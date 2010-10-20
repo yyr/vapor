@@ -812,6 +812,17 @@ int DataMgr::GetDataRange(
 			range[0] = r[0];
 			range[1] = r[1];
 
+#ifdef WIN32
+			if (! _finite(range[0]) || _isnan(range[0])) range[0] = FLT_MIN;
+#else
+			if (! finite(range[0]) || isnan(range[0])) range[0] = FLT_MIN;
+#endif
+#ifdef WIN32
+			if (! _finite(range[1]) || _isnan(range[1])) range[1] = FLT_MIN;
+#else
+			if (! finite(range[1]) || isnan(range[1])) range[1] = FLT_MIN;
+#endif
+
 			// Use of []'s creates an entry in map
 			_dataRangeMinMap[ts][varname] = range[0];
 			_dataRangeMaxMap[ts][varname] = range[1];
