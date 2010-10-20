@@ -367,7 +367,6 @@
 		E70414F2123042930083F569 /* ParamNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParamNode.h; path = ../../../include/vapor/ParamNode.h; sourceTree = SOURCE_ROOT; };
 		E70414F3123042930083F569 /* ParamsBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParamsBase.h; path = ../../../include/vapor/ParamsBase.h; sourceTree = SOURCE_ROOT; };
 		E70414F4123042930083F569 /* PVTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PVTime.h; path = ../../../include/vapor/PVTime.h; sourceTree = SOURCE_ROOT; };
-		E70414F5123042930083F569 /* PythonControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PythonControl.h; path = ../../../include/vapor/PythonControl.h; sourceTree = SOURCE_ROOT; };
 		E70414F6123042930083F569 /* SignificanceMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SignificanceMap.h; path = ../../../include/vapor/SignificanceMap.h; sourceTree = SOURCE_ROOT; };
 		E70414F7123042930083F569 /* tfinterpolator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tfinterpolator.h; path = ../../../include/vapor/tfinterpolator.h; sourceTree = SOURCE_ROOT; };
 		E70414F8123042930083F569 /* TransferFunctionLite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransferFunctionLite.h; path = ../../../include/vapor/TransferFunctionLite.h; sourceTree = SOURCE_ROOT; };
@@ -1094,7 +1093,6 @@
 				E70414F2123042930083F569 /* ParamNode.h */,
 				E70414F3123042930083F569 /* ParamsBase.h */,
 				E70414F4123042930083F569 /* PVTime.h */,
-				E70414F5123042930083F569 /* PythonControl.h */,
 				E70414F6123042930083F569 /* SignificanceMap.h */,
 				E70414F7123042930083F569 /* tfinterpolator.h */,
 				E70414F8123042930083F569 /* TransferFunctionLite.h */,

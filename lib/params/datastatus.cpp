@@ -792,9 +792,14 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 	//Set up proj.4 to convert to latlon
 	if (getProjectionString().size() == 0) return false;
 	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
-	if (!vapor_proj) return false;
-	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
-	if (!latlon_proj) return false;
+	projPJ latlon_proj = 0;
+	if (vapor_proj) latlon_proj = pj_latlong_from_proj( vapor_proj); 
+	if (!latlon_proj) {
+		MyBase::SetErrMsg(VAPOR_ERROR_GEOREFERENCE, "Georeferencing error.  Georeferencing will be disabled; \n Projection string = \n%s",
+				getProjectionString().c_str());
+		projString.clear();
+		return false;
+	}
 	if (timestep >= 0){
 		const float * globExts = DataStatus::getInstance()->getExtents();
 		//Apply projection offset to convert vapor local coords to projection space:
