@@ -454,8 +454,6 @@ void GLWindow::paintEvent(QPaintEvent*)
 	printOpenGLError();
 	for (int i = 0; i< getNumRenderers(); i++){
 		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
-
-
 			renderer[i]->paintGL();
 			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 		}

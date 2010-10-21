@@ -111,6 +111,7 @@ VolumeRenderer::~VolumeRenderer()
 {
   if (_driver) delete _driver;
   _driver = NULL;
+	if (_colorbarTexid) glDeleteTextures(1,&_colorbarTexid);
 }
 
 //----------------------------------------------------------------------------
@@ -132,6 +133,7 @@ void VolumeRenderer::initializeGL()
       initialized = false;
   } else
 	initialized = true;
+	glGenTextures(1,&_colorbarTexid);
   return;
 }
 

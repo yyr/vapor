@@ -25,6 +25,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "params.h"
+#include <qgl.h>
 using namespace VetsUtil;
 
 namespace VAPoR {
@@ -87,6 +88,7 @@ protected:
 	float subregionFrameColor[3];
 	int savedNumXForms;
 	bool initialized;
+	GLuint _colorbarTexid;
 	
 private:
 	bool clutDirtyBit;

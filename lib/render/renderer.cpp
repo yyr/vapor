@@ -165,6 +165,7 @@ void Renderer::
 renderColorscale(bool dorebuild){
 	if (dorebuild) buildColorscaleImage();
 	myGLWindow->setColorbarDirty(false);
+	glBindTexture(GL_TEXTURE_2D,_colorbarTexid);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	//Disable z-buffer compare, always overwrite:

@@ -84,6 +84,7 @@ namespace VAPoR {
 
   private:
     bool datarangeDirtyBit;
+	  
   };
 };
 
