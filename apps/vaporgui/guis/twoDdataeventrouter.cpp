@@ -482,9 +482,11 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	twoDParams->setBox(boxmin,boxmax);
 	adjustBoxSize(twoDParams);
 	//set the center sliders:
+	setIgnoreBoxSliderEvents(true);
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
 	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	setIgnoreBoxSliderEvents(false);
 	resetTextureSize(twoDParams);
 	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 	setTwoDDirty(twoDParams);
