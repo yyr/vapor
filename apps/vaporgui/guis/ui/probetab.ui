@@ -648,7 +648,7 @@ where the center of the probe is
 positioned.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
@@ -756,7 +756,7 @@ where the center of the probe is
 positioned.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
@@ -864,7 +864,7 @@ where the center of the probe is
 positioned.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
@@ -1000,7 +1000,7 @@ Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
@@ -1118,7 +1118,7 @@ Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
@@ -1239,7 +1239,7 @@ Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
                        </property>
                        <property name="minimum">
-                        <number>100</number>
+                        <number>0</number>
                        </property>
                        <property name="maximum">
                         <number>256</number>
