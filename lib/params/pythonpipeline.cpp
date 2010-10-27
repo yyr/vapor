@@ -220,21 +220,44 @@ int PythonPipeLine::python_wrapper(
 			if(!pyData) return 0;
 			//Now realign the array...
 			realign3DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
-			pyRegion = PyArray_SimpleNewFromData(3, pydims, PyArray_FLOAT, pyData);
+			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
+								   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 		} else {
 			float* pyData = new float[pydims[0]*pydims[1]];
 			if(!pyData) return 0;
 
 			//Now realign the array...
 			realign2DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
-			pyRegion = PyArray_SimpleNewFromData(2, pydims, PyArray_FLOAT, pyData);
+			pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
+								   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			
 			
 		}
-		;
+		
 		//Put it into the dictionary:
 		PyObject* ky = Py_BuildValue("s",inputs[i].c_str());
 		PyObject_SetItem(mainDict,ky,pyRegion);
 	}
+	
+	//Find myIO in the dictionary, send output to diagnostics
+	PyObject* myIOString = PyString_FromFormat("myIO");
+	PyObject* myIO = PyDict_GetItem(mainDict, myIOString);
+	pythonOutputText.clear();
+	if (myIO){
+		//Find size of StringIO:
+		PyObject* sz = PyObject_CallMethod(myIO,"tell",(char*)NULL);
+		int szval = PyInt_AsLong(sz);
+		if(szval > 0){
+			//Get the text
+			PyObject* txt = PyObject_CallMethod(myIO,"getvalue",NULL);
+			const char* strtext = PyString_AsString(txt);
+			//post it to diagnostics
+			
+			MyBase::SetDiagMsg(" Python output text:\n%s\n",strtext);
+			pythonOutputText = strtext;
+		}
+	}
+	
 	 
 	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
     PyObject* refinement = Py_BuildValue("i",reflevel);
@@ -581,7 +604,8 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 
 	//Now realign the array...
     realign3DArray(regData,blockedRegionSize, pyData, (size_t*)pydims); 
-    pyRegion = PyArray_SimpleNewFromData(3, pydims, PyArray_FLOAT, pyData);
+	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
+						   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     return Py_BuildValue("O", pyRegion);
 }
 //get/set 2D called by Python interpreter:
@@ -633,7 +657,8 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 
 	//Now realign the array...
     realign2DArray(regData,blockedRegionSize, pyData, (size_t*)pydims); 
-    pyRegion = PyArray_SimpleNewFromData(2, pydims, PyArray_FLOAT, pyData);
+    pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
+						   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     
     return Py_BuildValue("O", pyRegion);
 }
