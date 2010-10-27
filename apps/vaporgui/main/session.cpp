@@ -956,9 +956,6 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 		if(!dataExists) {
 			MessageReporter::errorMsg(
 				"Session: No data in specified dataset,\nor data in specified files cannot be read");
-			delete dataMgr;
-			dataMgr = 0;
-			return false;
 		}
 
 		
