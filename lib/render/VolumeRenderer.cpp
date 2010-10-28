@@ -198,11 +198,7 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
 
      case DvrParams::DVR_SPHERICAL_SHADER:
      {
-#    ifdef SPHERICAL_GRID
        return DVRSpherical::supported() && spherical;
-#    else
-       return false;
-#    endif
      }
 
      case DvrParams::DVR_RAY_CASTER:
