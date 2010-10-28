@@ -58,7 +58,7 @@ install-dep::
 endif
 
 
-MAC_BUNDLE_DIR = /tmp/vapor-macbundle
+MAC_BUNDLE_DIR = /Users/clyne/tmp/vapor-macbundle
 
 macbundle:: install-dep macbundle-scripts
 
@@ -68,4 +68,7 @@ macbundle-scripts::
 	$(TOP)/buildutils/macbundle.pl $(INSTALL_PREFIX_DIR) $(TOP)/MacBundle/VAPOR.app $(MAC_BUNDLE_DIR) $(VERSION) 
 	if test ! -d $(MAC_BUNDLE_DIR)/Install_Resources; then $(MKDIR) $(MAC_BUNDLE_DIR)/Install_Resources; fi
 	$(CP) $(TOP)/buildutils/postflight $(MAC_BUNDLE_DIR)/Install_Resources
+	$(CP) $(TOP)/buildutils/postupgrade $(MAC_BUNDLE_DIR)/Install_Resources
+	$(CP) $(TOP)/buildutils/postinstall $(MAC_BUNDLE_DIR)/Install_Resources
 	$(CP) $(TOP)/Images/splash.jpg $(MAC_BUNDLE_DIR)/Install_Resources
+	$(MKDIR) $(MAC_BUNDLE_DIR)/VAPOR.app/Contents/MacOS/lib && $(MV) $(MAC_BUNDLE_DIR)/VAPOR.app/Contents/MacOS/python$(PYTHONVERSION) $(MAC_BUNDLE_DIR)/VAPOR.app/Contents/MacOS/lib
