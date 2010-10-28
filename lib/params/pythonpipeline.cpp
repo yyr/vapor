@@ -239,6 +239,44 @@ int PythonPipeLine::python_wrapper(
 		PyObject_SetItem(mainDict,ky,pyRegion);
 	}
 	
+		
+	 
+	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
+    PyObject* refinement = Py_BuildValue("i",reflevel);
+	PyObject* timestep = Py_BuildValue("i",ts);
+	PyObject* lod = Py_BuildValue("i",compression);
+	
+	int rc;
+	
+	rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
+	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
+	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
+	rc = PyDict_SetItemString(mainDict, "__LOD__", lod);
+
+	
+	retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
+    if (!retObj){
+		PyErr_Print();
+		//Put stderr into MyBase diagnostic message
+		//Find myErr in the dictionary
+		PyObject* myErrString = PyString_FromFormat("myErr");
+		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
+		if (myErr){
+			//Find size of StringIO:
+			PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
+			int szval = PyInt_AsLong(sz);
+			if(szval > 0){
+				//Get the text
+				PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
+				const char* strtext = PyString_AsString(txt);
+				//post it as Diagnostic.
+				//There will be an error message too, but
+				//the error callback fcn is disabled here.
+				MyBase::SetDiagMsg(" Python execution error:\n%s\n",strtext);
+			}
+		}
+		return -1;
+    }
 	//Find myIO in the dictionary, send output to diagnostics
 	PyObject* myIOString = PyString_FromFormat("myIO");
 	PyObject* myIO = PyDict_GetItem(mainDict, myIOString);
@@ -258,42 +296,6 @@ int PythonPipeLine::python_wrapper(
 		}
 	}
 	
-	 
-	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
-    PyObject* refinement = Py_BuildValue("i",reflevel);
-	PyObject* timestep = Py_BuildValue("i",ts);
-	PyObject* lod = Py_BuildValue("i",compression);
-	
-	int rc;
-	
-	rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
-	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
-	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
-	rc = PyDict_SetItemString(mainDict, "__LOD__", lod);
-
-	
-	retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
-    if (!retObj){
-		PyErr_Print();
-		//Put stderr into MyBase error message
-		//Find myErr in the dictionary
-		PyObject* myErrString = PyString_FromFormat("myErr");
-		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
-		if (myErr){
-			//Find size of StringIO:
-			PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
-			int szval = PyInt_AsLong(sz);
-			if(szval > 0){
-				//Get the text
-				PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
-				const char* strtext = PyString_AsString(txt);
-				//post it as Error 
-			
-				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python execution error:\n%s\n",strtext);
-			}
-		}
-		return -1;
-    }
    
 	
 	//Retrieve all the output variables using the dictionary.  First do 3d, then 2d
