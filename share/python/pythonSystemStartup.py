@@ -15,7 +15,7 @@ def mag2d(a1,a2):
 #       differences in regular Cartesian grids
 #
 # CALLING SEQUENCE:
-#       DERIV_FINDIFF,IN,OUT,DIR,DX
+#       APRIME = DERIV_FINDIFF,IN,DIR,DX
 #
 # PARAMETERS:
 #       A[in]:   3D array with the field component
@@ -87,7 +87,7 @@ def deriv_findiff(a,dir,dx):
 #       order finite differences in regular Cartesian grids
 #
 # CALLING SEQUENCE:
-#       CURL_FINDIFF,INX,INY,INZ,OUTX,OUTY,OUTZ,DX,DY,DZ
+#       OUTX,OUTY,OUTZ = CURL_FINDIFF,INX,INY,INZ,DX,DY,DZ
 #
 # PARAMETERS:
 #       INX[in]:   3D array with the x component of the field
