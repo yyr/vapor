@@ -217,8 +217,14 @@ mousePressEvent(QMouseEvent* e){
 	//value of y:
 	screenCoords[1] = (float)(height() - e->y()) - 5.f;
 	int buttonNum = 0;
-	if (e->button()== Qt::LeftButton) buttonNum = 1;
+	if ((e->buttons() & Qt::LeftButton) &&  (e->buttons() & Qt::RightButton))
+		;//do nothing
+	else if (e->button()== Qt::LeftButton) buttonNum = 1;
 	else if (e->button() == Qt::RightButton) buttonNum = 2;
+	//If ctrl + left button is pressed, only respond in navigation mode
+	if((buttonNum == 1) && ((e->modifiers() & Qt::ControlModifier)))
+			buttonNum = 0;
+
 	//possibly navigate after other activities
 	bool doNavigate = false;
 	endSpin();
@@ -443,8 +449,12 @@ mousePressEvent(QMouseEvent* e){
 	if (doNavigate){
 		ViewpointEventRouter* vep = VizWinMgr::getInstance()->getViewpointRouter();
 					vep->captureMouseDown();
-		
-		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
+		Qt::MouseButton btn = e->button();
+		//Left button + ctrl = mid button:
+		if ((e->buttons() & Qt::LeftButton) &&  (e->buttons() & Qt::RightButton)) btn = Qt::MidButton;
+		else if(btn == Qt::LeftButton && ((e->modifiers() & Qt::ControlModifier)))
+			btn = Qt::MidButton;
+		myTrackball->MouseOnTrackball(0, btn, e->x(), e->y(), width(), height());
 		setMouseDown(true);
 		mouseDownPosition = e->pos();
 		//Don't: Force an update of dvr region params, so low res is shown
