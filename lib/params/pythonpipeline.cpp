@@ -157,7 +157,7 @@ int PythonPipeLine::python_wrapper(
     if(!initialized) initialize();
 	
 	//must convert input block extents to actual region extents
-	size_t dim[3];
+	size_t dim[3], revPydims[3];
 	size_t blksize[3];
 	size_t regsize[3];
 	size_t minblkreg[3],maxblkreg[3], blkregsize[3];
@@ -178,9 +178,12 @@ int PythonPipeLine::python_wrapper(
 		blkregsize[i] = (maxblkreg[i] - minblkreg[i] + 1)*blksize[i];
 		assert(minblkreg[i] == min[i]);
 		assert(maxblkreg[i] == max[i]);
-		pydims[i] = blkregsize[i];
-        int maxPySize = (dim[i]-regmin[i]);
+	}
+	for(int i = 0; i< 3; i++){
+		pydims[i] = blkregsize[2-i];
+        int maxPySize = (dim[2-i]-regmin[2-i]);
         if (pydims[i] > maxPySize) pydims[i] = maxPySize;
+		revPydims[2-i]=pydims[i];
 		
 	}
 			
@@ -202,7 +205,7 @@ int PythonPipeLine::python_wrapper(
 	pretext += "myErr = StringIO.StringIO()\n";
 	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
-	
+	int flags;
 	
     PyObject* retObj = PyRun_String(pretext.c_str(),Py_file_input, mainDict,mainDict);
 	if (!retObj){
@@ -219,17 +222,19 @@ int PythonPipeLine::python_wrapper(
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			//Now realign the array...
-			realign3DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
+			realign3DArray(inputData[i],blkregsize, pyData, revPydims);
 			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			flags = PyArray_FLAGS(pyRegion);
 		} else {
-			float* pyData = new float[pydims[0]*pydims[1]];
+			float* pyData = new float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 
 			//Now realign the array...
-			realign2DArray(inputData[i],blkregsize, pyData, (size_t*)pydims);
-			pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			realign2DArray(inputData[i],blkregsize, pyData, revPydims);
+			pyRegion = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_FLOAT,NULL,pyData,0,
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			
 			
 			
 		}
@@ -241,7 +246,7 @@ int PythonPipeLine::python_wrapper(
 	
 		
 	 
-	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
+	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
     PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
 	PyObject* lod = Py_BuildValue("i",compression);
@@ -323,19 +328,20 @@ int PythonPipeLine::python_wrapper(
 		}
 		npy_intp* dims = PyArray_DIMS(varArray);
 		for (int j = 0; j< nd; j++) {
-			if (dims[j] != (regmax[j] - regmin[j]+1)){
+			if (dims[j] != (regmax[nd-1-j] - regmin[nd-1-j]+1)){
 				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
 				return -1;
 			}
 		}
+		flags = PyArray_FLAGS(varArray);
 		float *dataArray = (float*)PyArray_DATA(varArray);
 			
 		if (dimen == 3) {
 			//Realign, put into DataMgr's allocated region
-			realign3DArray(dataArray, regsize, outputData[i], blkregsize);
+			realign3DArray(dataArray, revPydims, outputData[i], blkregsize);
 			
 		} else {
-			realign2DArray(dataArray, regsize, outputData[i], blkregsize);
+			realign2DArray(dataArray, revPydims, outputData[i], blkregsize);
 		}
 		
 	}
@@ -427,7 +433,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			regmax[i] = (max[i]+1)*blksize[i]-1;
 			if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
 		}
-		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
+		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
 		PyObject* lod = Py_BuildValue("i",compression);
@@ -497,7 +503,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			}
 			npy_intp* dims = PyArray_DIMS(varArray);
 			for (int i = 0; i< nd; i++) {
-				if (dims[i] != (regmax[i] - regmin[i]+1)){
+				if (dims[i] != (regmax[nd-1-i] - regmin[nd-1-i]+1)){
 					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
 					pythonOutputText = "Output data error";
 					return pythonOutputText;
@@ -570,7 +576,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
     static float *regData = 0;
     PyObject *pyRegion;
-    size_t dims[3];
+    size_t dims[3], revPydims[3];
     Py_ssize_t pydims[3];
     size_t blockedRegionSize[3];
 
@@ -578,7 +584,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
     if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
-		minreg,minreg+1,minreg+2,maxreg,maxreg+1,maxreg+2)) return NULL; 
+		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
     
     //Need to convert min,max extents to block extents
 	size_t blksize[3];
@@ -590,9 +596,12 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 		minblkreg[i] = minreg[i]/blksize[i];
 		maxblkreg[i] = maxreg[i]/blksize[i];
 		blockedRegionSize[i] = (maxblkreg[i]-minblkreg[i]+1)*blksize[i];
-		pydims[i] = blockedRegionSize[i];
-		int maxPySize = (dims[i]-minreg[i]); 
+	}
+	for (int i = 0; i<3; i++){
+		pydims[i] = blockedRegionSize[2-i];
+		int maxPySize = (dims[2-i]-minreg[2-i]); 
 		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
+		revPydims[2-i] = pydims[i];
     }
     
     regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
@@ -605,9 +614,9 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     if(!pyData) return NULL;
 
 	//Now realign the array...
-    realign3DArray(regData,blockedRegionSize, pyData, (size_t*)pydims); 
+    realign3DArray(regData,blockedRegionSize, pyData, revPydims); 
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     return Py_BuildValue("O", pyRegion);
 }
 //get/set 2D called by Python interpreter:
@@ -617,7 +626,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
     static float *regData = 0;
     PyObject *pyRegion;
-    size_t dims[3];
+    size_t dims[3], revPydims[2];
     Py_ssize_t pydims[2];
     size_t blockedRegionSize[2];
 
@@ -625,7 +634,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
     if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
-		minreg,minreg+1,minreg+2,maxreg,maxreg+1,maxreg+2)) return NULL; 
+		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
 	//Need to convert min,max extents to block extents
     size_t blksize[3];
 	currentDataMgr->GetBlockSize(blksize,reflevel);
@@ -634,9 +643,12 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 		minblkreg[i] = minreg[i]/blksize[i];
 		maxblkreg[i] = maxreg[i]/blksize[i];
 		blockedRegionSize[i] = (maxblkreg[i]-minblkreg[i]+1)*blksize[i];
-		pydims[i] = blockedRegionSize[i];
-		int maxPySize = (dims[i]-minreg[i]); 
+	}
+	for (int i = 0; i<2; i++){
+		pydims[i] = blockedRegionSize[1-i];
+		int maxPySize = (dims[1-i]-minreg[1-i]); 
 		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
+		revPydims[1-i] = pydims[i];
     }
     
     regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
@@ -658,9 +670,9 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     assert(pyData);
 
 	//Now realign the array...
-    realign2DArray(regData,blockedRegionSize, pyData, (size_t*)pydims); 
+    realign2DArray(regData,blockedRegionSize, pyData, revPydims); 
     pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_F_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     
     return Py_BuildValue("O", pyRegion);
 }
@@ -684,12 +696,13 @@ PyObject* PythonPipeLine::get_extents(PyObject *self, PyObject* args){
 	currentDataMgr->MapVoxToUser(timestep,voxmin, userExts, reflevel);
 	currentDataMgr->MapVoxToUser(timestep, voxmax, userExts+3, reflevel);
     
-    return Py_BuildValue("(dddddd)", userExts[0],userExts[1],userExts[2],userExts[3],userExts[4],userExts[5]);
+    return Py_BuildValue("(dddddd)", userExts[2],userExts[1],userExts[0],userExts[5],userExts[4],userExts[3]);
 }
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
 // Also useful to copy smaller region back to full domain bounds.  Source and
 // destination region share the same (0,0,0) origin, but dest may be larger or smaller.
+// Source and destination have opposite ordering of array bounds
 void PythonPipeLine::realign3DArray(const float* srcArray, size_t srcSize[3], float* destArray, size_t destSize[3]){
         int xmax = (srcSize[0] < destSize[0]) ? srcSize[0] : destSize[0];
         int ymax = (srcSize[1] < destSize[1]) ? srcSize[1] : destSize[1];
