@@ -236,24 +236,14 @@ vizAboutToDisappear(int i)  {
 	}
 	if(activeViz >= 0) setActiveViz(activeViz);
 	
-	/*Params* vpParams = Params::GetNondefaultParamsInstance(Params::_viewpointParamsTag, i);
-	Params* rgParams = Params::GetNondefaultParamsInstance(Params::_regionParamsTag, i);
-	Params* animParams = Params::GetNondefaultParamsInstance(Params::_animationParamsTag, i);
-	if(vpParams) delete vpParams;
-	if (rgParams) delete rgParams;
-	*/
-	
-	
 	for (int j = 1; j<= Params::GetNumParamsClasses(); j++){
-		for (int k = 0; k< Params::GetNumParamsInstances(j,i); k++){
+		for (int k = Params::GetNumParamsInstances(j,i)-1; k >=0; k--){
 			getEventRouter(j)->cleanParams(Params::GetParamsInstance(j,i,k));
 			Params::RemoveParamsInstance(j,i,k);
 		}
 	}
 
 
-	//if (animParams) delete animParams;
-    
 	emit (removeViz(i));
 	
 	
