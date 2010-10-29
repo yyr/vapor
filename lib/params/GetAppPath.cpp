@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cctype>
 #include <cassert>
+#include <sys/stat.h>
 #ifdef  Darwin
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
@@ -92,23 +93,29 @@ std::string VetsUtil::GetAppPath(
 		(resource.compare("lib") == 0) || 
 		(resource.compare("bin") == 0) ||
 		(resource.compare("share") == 0) ||
-		(resource.compare("plugins") == 0)
+		(resource.compare("plugins") == 0) ||
+		(resource.compare("") == 0)
 	)) {
-		return(path);	// empty path, invalid resource
+		return("");	// empty path, invalid resource
 	}
 
 
     if (char *s = getenv(env.c_str())) {
 		path.assign(s);
-		path.append(separator);
-		path.append(resource);
+		if (! resource.empty()) {
+			path.append(separator);
+			path.append(resource);
+		}
 	}
 #ifdef	Darwin
 	else {
 		path = get_path_from_bundle(myapp);
 		if (! path.empty()) {
 			path.append("Contents/");
-			if ((resource.compare("lib")==0) || (resource.compare("bin")==0)) {
+			if (
+				(resource.compare("lib")==0) || 
+				(resource.compare("bin")==0) || 
+				(resource.compare("")==0)) {
 				path.append("MacOS");
 			}
 			else if (resource.compare("share") == 0) {
@@ -133,19 +140,23 @@ std::string VetsUtil::GetAppPath(
 			path.append(separator);
 			path.append("share");
 		}
-		else {	// must be plugins
+		else if (resource.compare("plugins") == 0) {
 			path.append(QTDIR);
 			path.append(separator);
 			path.append("plugins");
 		}
 	}
 #endif
-
 	if (path.empty()) return(path);
 
 	for (int i=0; i<paths.size(); i++) {
 		path.append(separator);
 		path.append(paths[i]);
+	}
+
+	struct STAT64 statbuf;
+	if (STAT64(path.c_str(), &statbuf) < 0) {
+		return("");
 	}
 
 //cerr << "End GetAppPath " << path << endl;
