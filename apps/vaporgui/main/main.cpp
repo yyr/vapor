@@ -72,22 +72,39 @@ int main( int argc, char ** argv ) {
     QCoreApplication::setLibraryPaths(filePaths);
 	
 	const char* phome = getenv("PYTHONHOME");
+	string python ("python");
+	python += PYTHONVERSION;
 	if (phome){
 		string msg("The PYTHONHOME variable is already specified as: \n");
 		msg += phome;
 		msg += "\n";
-		msg += "The VAPOR Python 2.6 environment will operate in this path\n";
-		msg += "Unset the PYTHONHOME environment to revert to the installed VAPOR Python 2.6 environment.";
+		msg += "The VAPOR ";
+		msg += python;
+		msg += " environment will operate in this path\n";
+		msg += "Unset the PYTHONHOME environment to revert to the installed ";
+		msg += "VAPOR " + python + " environment.";
 		QMessageBox::warning(0,"PYTHONHOME warning", msg.c_str());
 	} else {
 		vector <string> ppaths;
-		ppaths.push_back("Python2.6");
-		string pPath =  GetAppPath("VAPOR", "lib", ppaths).c_str();
+		ppaths.push_back("lib");
+		ppaths.push_back(python);
+		string pPath =  GetAppPath("VAPOR", "", ppaths).c_str();
+		if (! pPath.empty()) {
 #ifdef WIN32
-		SetEnvironmentVariable("PYTHONHOME",pPath.c_str());
+			string s = "lib";
+			s.append("/");
+			s.append(python);
+			pPath.erase(pPath.rfind(s));
+			SetEnvironmentVariable("PYTHONHOME",pPath.c_str());
 #else
-		setenv("PYTHONPATH",pPath.c_str(),1);
+			string s = "lib";
+			s.append("/");
+			s.append(python);
+			pPath.erase(pPath.rfind(s));
+			setenv("PYTHONHOME",pPath.c_str(),1);
 #endif
+		MyBase::SetDiagMsg("setenv(PYTHONMOME) = %s", pPath.c_str());
+		}
 	}
 							   
 		

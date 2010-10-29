@@ -16,6 +16,11 @@ MAKEFILE_INCLUDE_DIRS += -I/System/Library/Frameworks/AGL.framework/Headers
 
 endif
 
+ifneq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += -DPYTHONVERSION=\"$(PYTHONVERSION)\"
+endif
+
+
 VPATH = ../misc ../guis 
 
 MOC_DIR = ../moc
