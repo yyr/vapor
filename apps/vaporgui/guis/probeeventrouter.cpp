@@ -2148,7 +2148,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 //Obtain a new histogram for the current selected variables.
 //Save it at the position associated with firstVarNum
 void ProbeEventRouter::
-refreshHistogram(RenderParams* p){
+refreshHistogram(RenderParams* p, int, const float[2]){
 	ProbeParams* pParams = (ProbeParams*)p;
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();

@@ -23,6 +23,10 @@
 #include <QMessageBox>
 #include "messagereporter.h"
 #include "GetAppPath.h"
+#include "Windows.h"
+#ifdef WIN32
+#define PYTHONVERSION "2.6"
+#endif
 using namespace VAPoR;
 void myMessageOutput( QtMsgType type, const char *msg )
 {
@@ -95,7 +99,7 @@ int main( int argc, char ** argv ) {
 			s.append("/");
 			s.append(python);
 			pPath.erase(pPath.rfind(s));
-			SetEnvironmentVariable("PYTHONHOME",pPath.c_str());
+			SetEnvironmentVariableA("PYTHONHOME",pPath.c_str());
 #else
 			string s = "lib";
 			s.append("/");

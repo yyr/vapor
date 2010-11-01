@@ -1533,7 +1533,7 @@ guiEndCursorMove(){
 //Obtain a new histogram for the current selected variables.
 //Save histogram at the position associated with firstVarNum
 void TwoDDataEventRouter::
-refreshHistogram(RenderParams* p){
+refreshHistogram(RenderParams* p, int, const float[2]){
 	TwoDDataParams* pParams = (TwoDDataParams*)p;
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();
@@ -1589,7 +1589,9 @@ refreshHistogram(RenderParams* p){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current twoD and resolution.\n%s \n%s",
 			"Lower the refinement level,\nreduce the plane size,\nor increase the cache size.",
 			"Rendering has been disabled.");
-		pParams->setEnabled(false);
+		int instance = Params::GetCurrentParamsInstanceIndex(pParams->GetParamsBaseTypeId(),pParams->getVizNum());
+		assert(instance >= 0);
+		guiSetEnabled(false, instance);
 		updateTab();
 		return;
 	}
