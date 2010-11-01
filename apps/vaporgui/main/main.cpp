@@ -23,8 +23,8 @@
 #include <QMessageBox>
 #include "messagereporter.h"
 #include "GetAppPath.h"
-#include "Windows.h"
 #ifdef WIN32
+#include "Windows.h"
 #define PYTHONVERSION "2.6"
 #endif
 using namespace VAPoR;
