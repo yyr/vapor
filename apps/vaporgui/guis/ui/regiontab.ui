@@ -1537,7 +1537,7 @@ share the same region settings.</string>
                <string>Specify a refinement level for region information</string>
               </property>
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <item>
                <property name="text">

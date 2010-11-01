@@ -572,7 +572,7 @@ refreshRegionInfo(RegionParams* rParams){
 		maxYVoxSelectedLabel->setText("");
 		maxZVoxSelectedLabel->setText("");
 	}
-	if (refLevel > maxRefLevel) refLevel = 0;
+	
 	if (ds){
 		//Entire region size in voxels
 		for (int i = 0; i<3; i++){
@@ -630,6 +630,12 @@ refreshRegionInfo(RegionParams* rParams){
 		maxVarXLabel->setText("");
 		maxVarYLabel->setText("");
 		maxVarZLabel->setText("");
+		minXVoxFullLabel->setText("");
+		minYVoxFullLabel->setText("");
+		minZVoxFullLabel->setText("");
+		maxXVoxFullLabel->setText("");
+		maxYVoxFullLabel->setText("");
+		maxZVoxFullLabel->setText("");
 	}
 
 	switch (orientation){
@@ -666,26 +672,29 @@ refreshRegionInfo(RegionParams* rParams){
 		default:
 			break;
 	}
-	size_t bs[3] = {32,32,32};
-	if (ds && ds->getDataMgr())
-		ds->getDataMgr()->GetBlockSize(bs, refLevel);
-	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
-	float newFullMB;
-	if (is3D)
-		newFullMB = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
-	else {
-		//get other coords:
-		int crd0 = 0, crd1 = 1;
-		if (orientation < 2) crd1++;
-		if (orientation < 1) crd0++;
-		newFullMB = (float)(bs[0]*bs[1]*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
-	}
-	
-	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
-	newFullMB /= 262144.f;
+	if (rc >= 0){
+		size_t bs[3] = {32,32,32};
+		if (ds && ds->getDataMgr())
+			ds->getDataMgr()->GetBlockSize(bs, refLevel);
+		//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
+		float newFullMB;
+		if (is3D)
+			newFullMB = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+		else {
+			//get other coords:
+			int crd0 = 0, crd1 = 1;
+			if (orientation < 2) crd1++;
+			if (orientation < 1) crd0++;
+			newFullMB = (float)(bs[0]*bs[1]*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
+		}
+		
+		//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
+		newFullMB /= 262144.f;
 
-	
-	selectedDataSizeLabel->setText(QString::number(newFullMB,'g',8));
+		selectedDataSizeLabel->setText(QString::number(newFullMB,'g',8));
+	}
+	else
+		selectedDataSizeLabel->setText("Data not present in VDC");
 }
 
 //Methods in support of undo/redo:
