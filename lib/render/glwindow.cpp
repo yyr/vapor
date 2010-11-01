@@ -281,11 +281,13 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 
 void GLWindow::paintEvent(QPaintEvent*)
 {
+	MyBase::SetDiagMsg("GLWindow::paintGL()");
+	removeDisabledRenderers();
 	if(!renderMutex.tryLock()) return;
 	makeCurrent();
 	printOpenGLError();
 	
-	MyBase::SetDiagMsg("GLWindow::paintGL()");
+	
 	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
 	float maxFull[3] = {1.f,1.f,1.f};
@@ -2543,5 +2545,22 @@ sortRenderers(int timestep){
 		delete sortList[i];
 	}
 	return;
-
 }
+void GLWindow::removeDisabledRenderers(){
+	//Repeat until we don't find any renderers to disable:
+	
+	while(1){
+		bool retry = false;
+		for (int i = 0; i< numRenderers; i++){
+			RenderParams* rParams = renderer[i]->getRenderParams();
+			if (!rParams->isEnabled()) {
+				removeRenderer(rParams);
+				retry = true;
+				break;
+			}
+		}
+		if (!retry) break;
+	}
+}
+		
+		

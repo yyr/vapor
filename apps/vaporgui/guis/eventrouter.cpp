@@ -198,7 +198,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current region and resolution.\n%s \n%s",
 			  "Lower the refinement level,\nreduce the region size,\nor increase the cache size.",
 			  "Rendering has been disabled.");
-		  renParams->setEnabled(false);
+		  int instance = Params::GetCurrentParamsInstanceIndex(renParams->GetParamsBaseTypeId(),renParams->getVizNum());
+		  assert(instance >= 0);
+		  guiSetEnabled(false, instance);
 		  updateTab();
 		  return;
 	  }

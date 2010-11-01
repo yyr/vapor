@@ -2201,7 +2201,9 @@ refreshHistogram(RenderParams* p){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
 			"Lower the refinement level,\nreduce the probe size,\nor increase the cache size.",
 			"Rendering has been disabled.");
-		pParams->setEnabled(false);
+		int instance = Params::GetCurrentParamsInstanceIndex(pParams->GetParamsBaseTypeId(),pParams->getVizNum());
+		assert(instance >= 0);
+		guiSetEnabled(false, instance);
 		updateTab();
 		return;
 	}

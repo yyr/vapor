@@ -254,6 +254,8 @@ public:
 	bool removeRenderer(RenderParams* p);  //Return true if successful
 	void removeAllRenderers();
 	void sortRenderers(int timestep);  //Sort all the pri 0 renderers
+	
+	void removeDisabledRenderers();  //Remove renderers whose params are disabled
 	//Find a renderParams in renderer list, if it exists:
 	RenderParams* findARenderer(Params::ParamsBaseType renderertype);
 	
