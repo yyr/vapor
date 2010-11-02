@@ -18,7 +18,7 @@ include ${TOP}/make/config/base.mk
 
 
 install-dep:: install
-	sed -e s#ARCH#$(ARCH)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
+	sed -e s#ARCH#$(ARCH)# -e s#VERSION#$(VERSION)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
 	chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh
 
 
@@ -37,6 +37,7 @@ install-dep::
 	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(INSTALL_PLUGINSDIR)/*/* $(INSTALL_LIBDIR)
 	@$(ECHO) "Copying Python modules $(INSTALL_LIBDIR)"
 	$(CP) -R $(PYTHONDIR)/lib/python$(PYTHONVERSION) $(INSTALL_LIBDIR)
+	$(CP) $(PYTHONDIR)/bin/python $(INSTALL_BINDIR)
 
 endif
 

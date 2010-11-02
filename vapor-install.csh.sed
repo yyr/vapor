@@ -1,6 +1,7 @@
 #!/bin/csh -f
 
 set arch = "ARCH"
+set version = "VERSION"
 
 unset directory
 unset vapor_root
@@ -38,6 +39,7 @@ if ("$directory" !~ /*) then
 	echo "Installatin directory ($directory) must specify an absolute path"
 	exit (1)
 endif
+set directory = "${directory}/vapor-${version}"
 
 
 if (! $?vapor_root) set vapor_root = $directory
