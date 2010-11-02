@@ -483,12 +483,18 @@ refreshRegionInfo(RegionParams* rParams){
 	//This index is only relevant to metadata numbering
 	Session* ses = Session::getInstance();
 	DataStatus* ds= DataStatus::getInstance();
-	if (!ds->getDataMgr()) ds = 0;
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) ds = 0;
 	int timeStep = timestepSpin->value();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
 	int maxRefLevel = 10;
+	double regionMin[3],regionMax[3];
+	for (int i = 0; i<3; i++){
+		regionMin[i] = (double)rParams->getRegionMin(i,timeStep);
+		regionMax[i] = (double)rParams->getRegionMax(i,timeStep);
+	}
 	
 	int varNum = -1;
 	std::string varName;
@@ -540,8 +546,6 @@ refreshRegionInfo(RegionParams* rParams){
 	
 	//For now, the min and max var extents are the whole thing:
 
-	float* regionMin = rParams->getRegionMin(timeStep);
-	float* regionMax = rParams->getRegionMax(timeStep);
 
 	minXSelectedLabel->setText(QString::number(regionMin[0],'g',4));
 	minYSelectedLabel->setText(QString::number(regionMin[1],'g',4));
@@ -556,8 +560,9 @@ refreshRegionInfo(RegionParams* rParams){
 	size_t min_bdim[3], max_bdim[3];
 	
 	// if region isn't valid just don't show the bounds:
-	if (ds && refLevel <= maxRefLevel){
-		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim,timeStep);
+	if (ds){
+		dataMgr->MapUserToVox(timeStep,regionMin,min_dim,refLevel);
+		dataMgr->MapUserToVox(timeStep,regionMax,max_dim,refLevel);
 		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
 		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
 		minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
@@ -667,6 +672,7 @@ refreshRegionInfo(RegionParams* rParams){
 			break;
 	}
 	if (rc >= 0){
+		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim,timeStep);
 		size_t bs[3] = {32,32,32};
 		if (ds && ds->getDataMgr())
 			ds->getDataMgr()->GetBlockSize(bs, refLevel);
