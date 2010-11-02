@@ -630,12 +630,6 @@ refreshRegionInfo(RegionParams* rParams){
 		maxVarXLabel->setText("");
 		maxVarYLabel->setText("");
 		maxVarZLabel->setText("");
-		minXVoxFullLabel->setText("");
-		minYVoxFullLabel->setText("");
-		minZVoxFullLabel->setText("");
-		maxXVoxFullLabel->setText("");
-		maxYVoxFullLabel->setText("");
-		maxZVoxFullLabel->setText("");
 	}
 
 	switch (orientation){

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>454</width>
-    <height>922</height>
+    <width>506</width>
+    <height>1174</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1533,6 +1533,18 @@ share the same region settings.</string>
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>48</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Specify a refinement level for region information</string>
               </property>
@@ -1648,6 +1660,18 @@ share the same region settings.</string>
             </item>
             <item>
              <widget class="QSpinBox" name="timestepSpin">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>67</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>40</width>
