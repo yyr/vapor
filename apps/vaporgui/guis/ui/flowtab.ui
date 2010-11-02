@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>460</width>
+    <width>550</width>
     <height>32767</height>
    </size>
   </property>
@@ -6589,7 +6589,7 @@ in this panel.</string>
                <string notr="true"/>
               </property>
               <property name="text">
-               <string>    </string>
+               <string/>
               </property>
               <property name="readOnly">
                <bool>true</bool>
