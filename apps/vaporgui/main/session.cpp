@@ -264,8 +264,14 @@ void Session::setDefaultPrefs(){
 		MessageReporter::getInstance()->reset(currentLogfileName.c_str());
 	autoSaveSessionFilename = str1;
 	
-	const char* defaultDir = ".";
 	
+#ifdef Darwin
+	char* defDir = getenv("HOME");
+	if (!defDir) defDir = ".";
+	const char* defaultDir = defDir;
+#else
+	const char* defaultDir = ".";
+#endif
 	preferenceMetadataDir = defaultDir;
 	preferenceJpegDirectory = defaultDir;	
 	preferenceFlowDirectory = defaultDir;
