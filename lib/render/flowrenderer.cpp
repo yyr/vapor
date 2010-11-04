@@ -1076,10 +1076,10 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 	glDisable(GL_LIGHTING);
 	
 	/* (re)allocate memory for Vertex Array */
-	if (lastAge > curVaSize || newType) {
+	if (lastAge >= curVaSize || newType) {
 		delete[] vertexArray;
-		vertexArray = new flowTubeVertexData[(lastAge*2)];
-		curVaSize = lastAge;
+		vertexArray = new flowTubeVertexData[((lastAge+1)*2)];
+		curVaSize = lastAge+1;
 	}
 	
 	/* enable client states for vertex arrays*/
