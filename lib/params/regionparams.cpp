@@ -831,8 +831,8 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 		size_t temp_min[3], temp_max[3]; 
 		size_t curr_min[3], curr_max[3];
 		for (int j = 0; j<3; j++) {
-			curr_min[j] = min_coord[j];
-			curr_max[j] = max_coord[j];
+			curr_min[j] = 1000000000;
+			curr_max[j] = 0;
 		}
 
 		const vector<string> invars3d = ds->getDerived3DInputVars(scriptid);
