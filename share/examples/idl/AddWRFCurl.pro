@@ -123,51 +123,23 @@ IF (repeatvariables EQ 0) THEN BEGIN
     IF ( keyword_set(onlymag) ) THEN newvarnames[numvars-newnum] = mag
 ENDIF
 
-
-IF (repeatvariables EQ 0) THEN BEGIN
-    IF ( ~keyword_set(onlymag) ) THEN BEGIN
-        newvarnames[numvars-newnum] = curlx
-        newvarnames[numvars-newnum+1] = curly
-        newvarnames[numvars-newnum+2] = curlz
-    ENDIF
-    IF ( keyword_set(mag) && ~keyword_set(onlymag) ) THEN $
-        newvarnames[numvars-newnum+3] = mag
-    IF ( keyword_set(onlymag) ) THEN newvarnames[numvars-newnum] = mag
-ENDIF
-
-IF (repeatvariables EQ newnum) THEN newvarnames = varnames
 ;
 ;   reset the varnames in mfd to the new value:
-;   provided not all variables are repeated
-;   Note that by default all variable names are 3D
 ;
-if (repeatvariables NE newnum) THEN BEGIN
-        if (nvarnames2dxy gt 0) THEN BEGIN
-                vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
-		print,'varnames: ',[newvarnames,varnames2dxy]
-                vdf_setvariables2DXY,mfd,varnames2dxy
-        ENDIF ELSE BEGIN
-                vdf_setvarnames,mfd,newvarnames
-		print,'varnames2: ',newvarnames
-        ENDELSE
+IF (repeatvariables EQ 0) THEN BEGIN
+	if(nvarnames2dxy gt 0) THEN BEGIN
+		vdf_setvarnames,mfd,[newvarnames,varnames2dxy]
+		vdf_setvariables2dXY,mfd,varnames2dxy
+	ENDIF ELSE BEGIN
+		vdf_setvarnames,mfd,newvarnames
+	ENDELSE	
 ENDIF
- tvarnames = vdf_getvariables3d(mfd)
- tvarnames3d = n_elements(tvarnames)
- tvarnames2 = vdf_getvariables2dXY(mfd)
- tvarnames2d = n_elements(tvarnames2)
-
-print,'current numvars: ',tvarnames3d,' names: ',tvarnames
-print,'current 2d numvars: ',tvarnames2d,' names: ',tvarnames2
-
-savedvdffile = STRING(vdffile,'_temp')
-vdf_write,mfd,savedvdffile
 
 reflevel = vdf_getnumtransforms(mfd)
 
 REPEAT BEGIN
 
 print, "Working on time step ", timestep
-
 
 ;
 ;   Create "Buffered Read" objects for each variable to read the data, passing the
