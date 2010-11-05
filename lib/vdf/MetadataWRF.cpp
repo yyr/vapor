@@ -573,6 +573,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
           currExtents.push_back(Extents[4]);
           currExtents.push_back(Extents[5]);
 		}
+        Time_extents.push_back(make_pair(Time_latlon_extents[t].first, currExtents));
       } // End of for t.
     } // End if p .
   } // End if mapprojstr.size . 
