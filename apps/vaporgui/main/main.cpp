@@ -75,34 +75,49 @@ int main( int argc, char ** argv ) {
     QStringList filePaths(filePath);
     QCoreApplication::setLibraryPaths(filePaths);
 	
-	const char* phome = getenv("PYTHONHOME");
-	string python ("python");
-	python += PYTHONVERSION;
-	if (phome){
+	const char *s = getenv("PYTHONHOME");
+	string phome = s ? s : "";
+	string pythonversion ("python");
+	pythonversion += PYTHONVERSION;
+	if (! phome.empty()) {
 		string msg("The PYTHONHOME variable is already specified as: \n");
 		msg += phome;
 		msg += "\n";
 		msg += "The VAPOR ";
-		msg += python;
+		msg += pythonversion;
 		msg += " environment will operate in this path\n";
 		msg += "Unset the PYTHONHOME environment to revert to the installed ";
-		msg += "VAPOR " + python + " environment.";
+		msg += "VAPOR " + pythonversion + " environment.";
 		QMessageBox::warning(0,"PYTHONHOME warning", msg.c_str());
 	} else {
 		vector <string> ppaths;
-		string pPath =  GetAppPath("VAPOR", "", ppaths).c_str();
-		if (! pPath.empty()) {
-#ifdef WIN32
-			
-			SetEnvironmentVariableA("PYTHONHOME",pPath.c_str());
+		ppaths.push_back("lib");
+		ppaths.push_back(pythonversion);
+		phome =  GetAppPath("VAPOR", "", ppaths).c_str();
+		if (! phome.empty()) {
+
+#ifdef  WIN32
+			const string separator = "\\";
 #else
-			
-			setenv("PYTHONHOME",pPath.c_str(),1);
+			const string separator = "/";
 #endif
-		MyBase::SetDiagMsg("setenv(PYTHONHOME) = %s", pPath.c_str());
+
+			string s = "lib";
+			s.append(separator);
+			s.append(pythonversion);
+			phome.erase(phome.rfind(s)); // remove trailing "lib/pythonX.XX"
 		}
+		else {
+			phome = PYTHONDIR;
+		}
+#ifdef  WIN32
+		SetEnvironmentVariableA("PYTHONHOME",phome.c_str());
+#else
+		setenv("PYTHONHOME",phome.c_str(),1);
+#endif
 	}
-		
+	MyBase::SetDiagMsg("PYTHONMOME = %s", phome.c_str());
+							   
 
 	app = &a;
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
