@@ -253,9 +253,19 @@ void Session::setDefaultPrefs(){
 	char buf[50];
 	char buf1[50];
 	uid_t	uid = getuid();
+#ifdef Darwin
+	char* defDir = getenv("HOME");
+	if (!defDir) defDir = ".";
+	const char* defaultDir = defDir;
+	sprintf (buf, "%s/vaporlog.txt", defaultDir);
+	sprintf (buf1, "%s/VaporAutosave.vss", defaultDir);
 	
-	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
-	sprintf (buf1, "/tmp/VaporAutosave.%6.6d.vss", uid);
+#else
+	const char* defaultDir = ".";
+	sprintf (buf, "/tmp/vaporlog.%6.6d.txt",uid);
+	sprintf (buf1, "/tmp/VaporAutosave.%6.6d.vss",uid);
+#endif
+	
 	str = buf;
 	str1 = buf1;
 #endif
@@ -264,14 +274,6 @@ void Session::setDefaultPrefs(){
 		MessageReporter::getInstance()->reset(currentLogfileName.c_str());
 	autoSaveSessionFilename = str1;
 	
-	
-#ifdef Darwin
-	char* defDir = getenv("HOME");
-	if (!defDir) defDir = ".";
-	const char* defaultDir = defDir;
-#else
-	const char* defaultDir = ".";
-#endif
 	preferenceMetadataDir = defaultDir;
 	preferenceJpegDirectory = defaultDir;	
 	preferenceFlowDirectory = defaultDir;
