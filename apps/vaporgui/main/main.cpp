@@ -90,29 +90,19 @@ int main( int argc, char ** argv ) {
 		QMessageBox::warning(0,"PYTHONHOME warning", msg.c_str());
 	} else {
 		vector <string> ppaths;
-		ppaths.push_back("lib");
-		ppaths.push_back(python);
 		string pPath =  GetAppPath("VAPOR", "", ppaths).c_str();
 		if (! pPath.empty()) {
 #ifdef WIN32
-			string s = "lib";
-			s.append("/");
-			s.append(python);
-			pPath.erase(pPath.rfind(s));
+			
 			SetEnvironmentVariableA("PYTHONHOME",pPath.c_str());
 #else
-			string s = "lib";
-			s.append("/");
-			s.append(python);
-			pPath.erase(pPath.rfind(s));
+			
 			setenv("PYTHONHOME",pPath.c_str(),1);
 #endif
-		MyBase::SetDiagMsg("setenv(PYTHONMOME) = %s", pPath.c_str());
+		MyBase::SetDiagMsg("setenv(PYTHONHOME) = %s", pPath.c_str());
 		}
 	}
-							   
 		
-
 
 	app = &a;
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
