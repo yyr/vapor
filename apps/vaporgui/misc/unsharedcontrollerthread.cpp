@@ -31,6 +31,9 @@
 #include "messagereporter.h"
 #include "dvrparams.h"
 #include "glutil.h"
+#include "tabmanager.h"
+#include "eventrouter.h"
+#include "mainform.h"
 #include <qthread.h>
 using namespace VAPoR;
 
@@ -162,6 +165,11 @@ run(){
 		//qWarning("Wait at end loop for %d",timeToRecheck);
 		myWaitCondition->wait(&myAnimationController->animationMutex,timeToRecheck);
 		myAnimationController->animationMutex.unlock();
+		
+		//Refresh the front tab:
+		TabManager* tmgr = MainForm::getInstance()->getTabManager();
+		EventRouter* eRouter = tmgr->getFrontEventRouter();
+		eRouter->updateTab();
 		
 	}//end while(1) loop
 

@@ -34,6 +34,9 @@
 #include "glutil.h"
 #include "dvrparams.h"
 #include "animationeventrouter.h"
+#include "mainform.h"
+#include "tabmanager.h"
+
 using namespace VAPoR;
 
 SharedControllerThread::SharedControllerThread() : QThread(){
@@ -335,6 +338,13 @@ run(){
 		}  else {//Just unlock, go back to the start
 			myAnimationController->animationMutex.unlock();
 		}
+		
+		//Refresh the front tab:
+		TabManager* tmgr = MainForm::getInstance()->getTabManager();
+		EventRouter* eRouter = tmgr->getFrontEventRouter();
+		eRouter->updateTab();
+		
+		
 		
 		//End of while(1) loop
 	}

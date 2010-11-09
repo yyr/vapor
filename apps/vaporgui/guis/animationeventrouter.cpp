@@ -689,6 +689,6 @@ void AnimationEventRouter::refreshFrontTab(){
 	if (eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDDataParamsTag)||
 			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDImageParamsTag) ||
 			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_probeParamsTag) ){
-		eRouter->refreshGLWindow();
+		eRouter->updateTab();
 	}
 }
