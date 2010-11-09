@@ -30,7 +30,7 @@ ifdef	IDLDIR
 MAKEFILE_INCLUDE_DIRS += -I$(IDLDIR)/external/include
 endif
 
-LIBRARIES = common vdf expat netcdf
+LIBRARIES = vdf common expat netcdf
 
 ifeq ($(ARCH), Darwin)
 DLLSUFFIX = .so
