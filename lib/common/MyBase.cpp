@@ -71,7 +71,7 @@ void	MyBase::_SetErrMsg(
 	va_list args
 ) {
 	int	done = 0;
-	const int alloc_size = 4096;
+	const int alloc_size = 256;
 	int rc;
 //#ifdef WIN32
 	//CHAR szBuf[80]; 
