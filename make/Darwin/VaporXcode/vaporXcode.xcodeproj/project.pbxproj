@@ -618,6 +618,8 @@
 		E704160B123042CB0083F569 /* wrf2vdf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrf2vdf.cpp; path = ../../../apps/wrf2vdf/wrf2vdf.cpp; sourceTree = SOURCE_ROOT; };
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
+		E7D309BB128853190066DF2E /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GetAppPath.h; sourceTree = "<group>"; };
+		E7D30A35128880210066DF2E /* GetAppPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GetAppPath.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -806,6 +808,7 @@
 		E70413FB123042460083F569 /* params */ = {
 			isa = PBXGroup;
 			children = (
+				E7D309BB128853190066DF2E /* GetAppPath.h */,
 				E70180F3124014CE00478E12 /* pythonpipeline.h */,
 				E70180F4124014CE00478E12 /* pythonpipeline.cpp */,
 				E70413FC123042460083F569 /* animationparams.cpp */,
@@ -818,10 +821,10 @@
 				E7041403123042460083F569 /* datastatus.h */,
 				E7041404123042460083F569 /* dvrparams.cpp */,
 				E7041405123042460083F569 /* dvrparams.h */,
-				E7041406123042460083F569 /* flowparams.cpp */,
 				E7041407123042460083F569 /* flowparams.h */,
 				E7041408123042460083F569 /* glutil.cpp */,
 				E7041409123042460083F569 /* glutil.h */,
+				E7041406123042460083F569 /* flowparams.cpp */,
 				E704140A123042460083F569 /* histo.cpp */,
 				E704140B123042460083F569 /* histo.h */,
 				E704140C123042460083F569 /* Makefile */,
@@ -861,6 +864,7 @@
 				E704142E123042460083F569 /* viewpoint.h */,
 				E704142F123042460083F569 /* viewpointparams.cpp */,
 				E7041430123042460083F569 /* viewpointparams.h */,
+				E7D30A35128880210066DF2E /* GetAppPath.cpp */,
 			);
 			name = params;
 			path = ../../../lib/params;
@@ -1605,6 +1609,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
+				VAPOR_HOME = /Users/alan/TEMP;
 			};
 			name = Debug;
 		};

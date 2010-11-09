@@ -83,7 +83,9 @@ protected:
 	//Methods called by Python interpreter:
 	static PyObject* get_3Dvariable(PyObject *self, PyObject* args);
 	static PyObject* get_2Dvariable(PyObject *self, PyObject* args);
-	static PyObject* get_extents(PyObject *self, PyObject* args);
+	static PyObject* mapUserToVox(PyObject *self, PyObject* args);
+	static PyObject* mapVoxToUser(PyObject *self, PyObject* args);
+	
 	static void realign3DArray(const float* srcArray, size_t srcSize[3],float* destArray, size_t destSize[3]);
 	static void realign2DArray(const float* srcArray, size_t srcSize[2],float* destArray, size_t destSize[2]);
 	

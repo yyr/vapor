@@ -18,7 +18,7 @@
 //	Description:	Implements the MessageReporter class 
 //
 
-#define ALLOC_SIZE 256
+#define ALLOC_SIZE 4096
 #ifdef WIN32
 #define VSNPRINTF _vsnprintf
 #include "windows.h"

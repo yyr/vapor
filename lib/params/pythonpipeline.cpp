@@ -49,8 +49,11 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
                         "Get a variable from the DataMgr cache"},
 		{"Get2DVariable",PythonPipeLine::get_2Dvariable, METH_VARARGS,
                         "Get a variable from the DataMgr cache"},
-		{"GetExtents",PythonPipeLine::get_extents, METH_VARARGS,
-						"Return extents at specified timestep, refinement and bounds"},
+		{"MapVoxToUser",PythonPipeLine::mapVoxToUser, METH_VARARGS,
+						"Map voxel to user coordinates at specified refinement level"},
+		{"MapUserToVox",PythonPipeLine::mapUserToVox, METH_VARARGS,
+						"Map user to voxel coordinates at specified refinement level"},
+		
 		{NULL,NULL,0,NULL}
  };
 
@@ -247,7 +250,8 @@ int PythonPipeLine::python_wrapper(
 		
 	 
 	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
-    PyObject* refinement = Py_BuildValue("i",reflevel);
+    PyObject* exts2d = Py_BuildValue("(iiii)",regmin[1],regmin[0],regmax[1],regmax[0]);
+	PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
 	PyObject* lod = Py_BuildValue("i",compression);
 	
@@ -294,10 +298,9 @@ int PythonPipeLine::python_wrapper(
 			//Get the text
 			PyObject* txt = PyObject_CallMethod(myIO,"getvalue",NULL);
 			const char* strtext = PyString_AsString(txt);
-			//post it to diagnostics
 			
+			//post it to diagnostics
 			MyBase::SetDiagMsg(" Python output text:\n%s\n",strtext);
-			pythonOutputText = strtext;
 		}
 	}
 	
@@ -389,10 +392,10 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	pretext += "sys.stderr = myErr\n";
 	
 	for (int i = 0; i< inputVars3.size(); i++){
-		pretext += inputVars3[i] + " = vapor.Get3DVariable('" + inputVars3[i] + "',__TIMESTEP__,__REFINEMENT__,__LOD__,__BOUNDS__)\n";
+		pretext += inputVars3[i] + " = vapor.Get3DVariable(__TIMESTEP__,'" + inputVars3[i] + "',__REFINEMENT__,__LOD__,__BOUNDS__)\n";
 	}
 	for (int i = 0; i< inputVars2.size(); i++){
-		pretext += inputVars2[i] + " = vapor.Get2DVariable('" + inputVars2[i] + "',__TIMESTEP__,__REFINEMENT__,__LOD__,__BOUNDS__)\n";
+		pretext += inputVars2[i] + " = vapor.Get2DVariable(__TIMESTEP__,'" + inputVars2[i] + "',__REFINEMENT__,__LOD__,__BOUNDS__)\n";
 	}
 	
 	
@@ -434,6 +437,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
 		}
 		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
+		PyObject* exts2d = Py_BuildValue("(iiii)",regmin[1],regmin[0],regmax[1],regmax[0]);
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
 		PyObject* lod = Py_BuildValue("i",compression);
@@ -442,6 +446,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 		rc = PyDict_SetItemString(mainDict, "__LOD__",lod);
 		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
+		rc = PyDict_SetItemString(mainDict, "__BOUNDS2D__",exts2d);
 	}
 	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
 	if (!retObj){
@@ -583,7 +588,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     int tstep, reflevel, lod;
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
-    if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
+    if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
     
     //Need to convert min,max extents to block extents
@@ -633,7 +638,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     int tstep, reflevel,lod;
     int minreg[3],maxreg[3];
     size_t minblkreg[3],maxblkreg[3];
-    if (!PyArg_ParseTuple(args,"siii(iiiiii)",&varname,&tstep,&reflevel,&lod,
+    if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
 	//Need to convert min,max extents to block extents
     size_t blksize[3];
@@ -644,6 +649,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 		maxblkreg[i] = maxreg[i]/blksize[i];
 		blockedRegionSize[i] = (maxblkreg[i]-minblkreg[i]+1)*blksize[i];
 	}
+	minblkreg[2]=maxblkreg[2]=0;
 	for (int i = 0; i<2; i++){
 		pydims[i] = blockedRegionSize[1-i];
 		int maxPySize = (dims[1-i]-minreg[1-i]); 
@@ -676,28 +682,44 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     
     return Py_BuildValue("O", pyRegion);
 }
-//calculate extents of specified bounds and refinement level
+//convert voxel to user coordinates at specified refinement level.
 //Note this is static
-PyObject* PythonPipeLine::get_extents(PyObject *self, PyObject* args){
+//The python coordinates are reversed, then converted by DataMgr, then converted values are reversed for Python
+PyObject* PythonPipeLine::mapVoxToUser(PyObject *self, PyObject* args){
 	
     int reflevel;
-	int timestep;
-    int minreg[3],maxreg[3];
+    int ivox[3];
+	size_t voxCrds[3];
+	double userCrds[3];
     
-    if (!PyArg_ParseTuple(args,"ii(iiiiii)",&timestep, &reflevel,
-		minreg,minreg+1,minreg+2,maxreg,maxreg+1,maxreg+2)) return NULL; 
+    if (!PyArg_ParseTuple(args,"(iii)i",
+						  ivox,ivox+1,ivox+2,&reflevel)) return NULL; 
     
-	size_t voxmin[3], voxmax[3];
-	double userExts[6];
-	for (int i = 0; i< 3; i++){
-		voxmin[i] = minreg[i];
-		voxmax[i] = maxreg[i];
-	}
-	currentDataMgr->MapVoxToUser(timestep,voxmin, userExts, reflevel);
-	currentDataMgr->MapVoxToUser(timestep, voxmax, userExts+3, reflevel);
-    
-    return Py_BuildValue("(dddddd)", userExts[2],userExts[1],userExts[0],userExts[5],userExts[4],userExts[3]);
+	for (int i = 0; i< 3; i++) voxCrds[i] = (size_t)ivox[2-i];
+
+	currentDataMgr->MapVoxToUser(-1,voxCrds,userCrds, reflevel);
+	
+    return Py_BuildValue("(ddd)", userCrds[2],userCrds[1],userCrds[0]);
 }
+//convert user to voxel coordinates at specified refinement level.
+//Note this is static
+//The python coordinates are reversed, then converted by DataMgr, then converted values are reversed for Python
+PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
+	
+    int reflevel;
+	double userCrds[3];
+	size_t vox[3];
+	int ivox[3];
+    
+    if (!PyArg_ParseTuple(args,"(ddd)i",
+						  userCrds+2,userCrds+1,userCrds,&reflevel)) return NULL; 
+	
+	currentDataMgr->MapUserToVox(-1, userCrds, vox, reflevel);
+	for(int i = 0; i< 3; i++) ivox[i] = (int)vox[2-i];
+	
+    return Py_BuildValue("(iii)", ivox[0],ivox[1],ivox[2]);
+}
+
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
 // Also useful to copy smaller region back to full domain bounds.  Source and
