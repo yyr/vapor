@@ -242,11 +242,11 @@ restart() {
 	opacMapEntity.push_back("Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
-	minColorEditBounds = new float[3];
-	maxColorEditBounds = new float[3];
-	minOpacEditBounds = new float[3];
-	maxOpacEditBounds = new float[3];
-	for (int i = 0; i< 3; i++){
+	minColorEditBounds = new float[4];
+	maxColorEditBounds = new float[4];
+	minOpacEditBounds = new float[4];
+	maxOpacEditBounds = new float[4];
+	for (int i = 0; i< 4; i++){
 		minColorEditBounds[i]= 0.f;
 		maxColorEditBounds[i]= 1.f;
 		minOpacEditBounds[i]=0.f;
@@ -259,11 +259,11 @@ restart() {
 	maxPoints = 0;
 	maxFrame = 0;
 
-	minOpacBounds = new float[3];
-	maxOpacBounds= new float[3];
-	minColorBounds= new float[3];
-	maxColorBounds= new float[3];
-	for (int k = 0; k<3; k++){
+	minOpacBounds = new float[4];
+	maxOpacBounds= new float[4];
+	minColorBounds= new float[4];
+	maxColorBounds= new float[4];
+	for (int k = 0; k<4; k++){
 		minColorBounds[k] = minOpacBounds[k] = 0.f;
 		maxColorBounds[k] = maxOpacBounds[k] = 1.f;
 	}
