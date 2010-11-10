@@ -40,6 +40,7 @@ AnimationController* AnimationController::theAnimationController = 0;
 
 AnimationController::AnimationController(){
 	
+	maxSharedWait = 0.0;
 	myClock = new QTime();
 	//Initialize status flags 
 	for (int i = 0; i<MAXVIZWINS; i++) {
