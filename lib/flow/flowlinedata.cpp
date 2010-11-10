@@ -44,17 +44,17 @@ FlowLineData::FlowLineData(int numLines, int maxPoints, bool useSpeeds,  int dir
 	}
 }
 FlowLineData::~FlowLineData() {
-	delete startIndices;
-	delete lineLengths;
+	delete [] startIndices;
+	delete [] lineLengths;
 	
 	for (int i = 0; i<nmLines; i++){
-		delete flowLineLists[i];
-		if (speedLists && speedLists[i]) delete speedLists[i];
-		if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+		delete [] flowLineLists[i];
+		if (speedLists && speedLists[i]) delete [] speedLists[i];
+		if (flowRGBAs && flowRGBAs[i]) delete [] flowRGBAs[i];
 	}
-	delete flowLineLists;
-	if (speedLists) delete speedLists;
-	if (flowRGBAs) delete flowRGBAs;
+	if (flowLineLists) delete [] flowLineLists;
+	if (speedLists) delete [] speedLists;
+	if (flowRGBAs) delete [] flowRGBAs;
 }
 void FlowLineData::
 setFlowPoint(int lineNum, int integPos, float x, float y, float z){

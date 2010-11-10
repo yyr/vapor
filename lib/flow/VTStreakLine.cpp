@@ -411,7 +411,7 @@ int vtCStreakLine::addSeeds(int tstep, PathLineData* container)
 		}
 	}
 	m_nNumSeeds = numSeeds;
-	delete usedLines;
+	delete [] usedLines;
 	return numSeeds;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -473,8 +473,8 @@ int vtCStreakLine::addFLASeeds(int tstep, FlowLineData* container, int maxNumSam
 		}
 	}
 	m_nNumSeeds = numSeeds;
-	for (int i = 0; i<numLines; i++) delete sampleIndices[i];
-	delete sampleIndices;
-	delete sampleCount;
+	for (int i = 0; i<numLines; i++) delete [] sampleIndices[i];
+	delete [] sampleIndices;
+	delete [] sampleCount;
 	return numSeeds;
 }

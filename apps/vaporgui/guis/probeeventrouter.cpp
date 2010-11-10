@@ -474,7 +474,7 @@ void ProbeEventRouter::updateTab(){
 		}
 	}
 	float val = calcCurrentValue(probeParams,selectedPoint,sesVarNums, nvars);
-	delete sesVarNums;
+	delete [] sesVarNums;
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
@@ -1367,7 +1367,7 @@ reinitTab(bool doOverride){
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
 		}
-		delete histogramList;
+		delete [] histogramList;
 		histogramList = 0;
 		numHistograms = 0;
 	}
@@ -2141,7 +2141,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 		}
 		varVal = sqrt(varVal);
 	}
-	delete volData;
+	delete [] volData;
 	return varVal;
 }
 
@@ -2457,7 +2457,7 @@ void ProbeEventRouter::captureImage() {
 	}
 		
 	//Don't delete the IBFV image
-	if(pParams->getProbeType()== 0) delete buf;
+	if(pParams->getProbeType()== 0) delete [] buf;
 	
 	
 	
@@ -2471,12 +2471,12 @@ void ProbeEventRouter::captureImage() {
 	//
 	int quality = GLWindow::getJpegQuality();
 	int rc = write_JPEG_file(jpegFile, wid, ht, probeTex, quality);
-	delete probeTex;
+	delete [] probeTex;
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file \n%s",
 			(const char*)filename.toAscii());
-		delete buf;
+		delete [] buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.

@@ -1529,12 +1529,12 @@ void GLWindow::invalidateElevGrid(){
 		delete elevNorm;
 		elevNorm = 0;
 		numElevTimesteps = 0;
-		delete maxXElev;
-		delete maxYElev;
-		delete xfactr;
-		delete yfactr;
-		delete xbeg;
-		delete ybeg;
+		delete [] maxXElev;
+		delete [] maxYElev;
+		delete [] xfactr;
+		delete [] yfactr;
+		delete [] xbeg;
+		delete [] ybeg;
 	}
 }
 bool GLWindow::rebuildElevationGrid(size_t timeStep){
@@ -2210,7 +2210,7 @@ doFrameCapture(){
 		//Error!
 		SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; error obtaining GL data");
 		capturingImage = 0;
-		delete buf;
+		delete [] buf;
 		return;
 	}
 	
@@ -2224,7 +2224,7 @@ doFrameCapture(){
 			SetErrMsg(VAPOR_ERROR_IMAGE_CAPTURE,"Image Capture Error; Error writing jpeg file %s",
 				(const char*)filename.toAscii());
 			capturingImage = 0;
-			delete buf;
+			delete [] buf;
 			return;
 		}
 	} else { //capture the tiff file, one scanline at a time
@@ -2251,7 +2251,7 @@ doFrameCapture(){
 	//If just capturing single frame, turn it off, otherwise advance frame number
 	if(capturingImage > 1) captureNumImage++;
 	else capturingImage = 0;
-	delete buf;
+	delete [] buf;
 	
 }
 

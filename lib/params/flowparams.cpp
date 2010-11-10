@@ -135,10 +135,10 @@ FlowParams::~FlowParams(){
 	
 		
 	if (minColorBounds) {
-		delete minColorBounds;
-		delete minOpacBounds;
-		delete maxColorBounds;
-		delete maxOpacBounds;
+		delete [] minColorBounds;
+		delete [] minOpacBounds;
+		delete [] maxColorBounds;
+		delete [] maxOpacBounds;
 	}
 	
 }
@@ -413,13 +413,13 @@ reinit(bool doOverride){
 	
 	if (newNumVariables == 0 || newNumComboVariables == 0) return false;
 	//Rebuild map bounds arrays:
-	if(minOpacBounds) delete minOpacBounds;
+	if(minOpacBounds) delete [] minOpacBounds;
 	minOpacBounds = new float[newNumComboVariables+4];
-	if(maxOpacBounds) delete maxOpacBounds;
+	if(maxOpacBounds) delete [] maxOpacBounds;
 	maxOpacBounds = new float[newNumComboVariables+4];
-	if(minColorBounds) delete minColorBounds;
+	if(minColorBounds) delete [] minColorBounds;
 	minColorBounds = new float[newNumComboVariables+4];
-	if(maxColorBounds) delete maxColorBounds;
+	if(maxColorBounds) delete [] maxColorBounds;
 	maxColorBounds = new float[newNumComboVariables+4];
 	
 	
@@ -620,10 +620,10 @@ reinit(bool doOverride){
 	}
 	
 		
-	delete minOpacEditBounds;
-	delete minColorEditBounds;
-	delete maxOpacEditBounds;
-	delete maxColorEditBounds;
+	delete [] minOpacEditBounds;
+	delete [] minColorEditBounds;
+	delete [] maxOpacEditBounds;
+	delete [] maxColorEditBounds;
 	
 	minOpacEditBounds = newMinOpacEditBounds;
 	maxOpacEditBounds = newMaxOpacEditBounds;
@@ -716,7 +716,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 		if (flowType == 2){
 			actualNumSeeds = flowLib->GenRakeSeeds(seeds,seedTimeStart, randomSeed, 4);
 			if (actualNumSeeds != nSeeds) {
-				delete seeds; 
+				delete [] seeds; 
 				delete flowLib;
 				return 0;
 			}
@@ -734,7 +734,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 			for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
 				int seedsFound = flowLib->GenRakeSeeds(seeds+4*actualNumSeeds,i, randomSeed, 4);
 				if (seedsFound != calcNumSeedPoints(i)){
-					delete seeds;
+					delete [] seeds;
 					delete flowLib;
 					return 0;
 				}
@@ -751,7 +751,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 		assert(flowType == 0);
 		actualNumSeeds = flowLib->GenRakeSeeds(seeds,timeStep, randomSeed, 4);
 		if (actualNumSeeds != nSeeds) {
-			delete seeds; 
+			delete [] seeds; 
 			delete flowLib;
 			return 0;
 		}
@@ -766,7 +766,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 		float* seeds = new float[nSeeds*4];
 		int seedsFound = flowLib->GenRakeSeeds(seeds,seedTimeStart, randomSeed, 4);
 		if (seedsFound != nSeeds){
-			delete seeds;
+			delete [] seeds;
 			delete flowLib;
 			return 0;
 		}
@@ -1129,7 +1129,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	}
 	if (numValidTimesteps < 2){
 		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient time steps for unsteady advection");
-		delete timeStepList;
+		delete [] timeStepList;
 		return false;
 	}
 	if (numValidTimesteps < numTimesteps && ds->warnIfDataMissing()){
@@ -1284,7 +1284,7 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 		float* seeds = new float[3*calcNumSeedPoints(timeStep)];
 		seedCount = fLib->GenRakeSeeds(seeds, timeStep, randomSeed);
 		if (seedCount < calcNumSeedPoints(timeStep)) {
-			delete seeds;
+			delete [] seeds;
 			return 0;
 		}
 		for (int i = 0; i<seedCount; i++){
@@ -1295,7 +1295,7 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 			if (inside) seedsInRegion++;
 			pathLines->insertSeedAtTime(i, timeStep, seeds[3*i], seeds[3*i+1], seeds[3*i+2]);
 		}
-		delete seeds;
+		delete [] seeds;
 		
 
 	} else { //insert from seedList
@@ -1351,7 +1351,7 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 		float* seeds = new float[3*calcNumSeedPoints(timeStep)];
 		seedCount = fLib->GenRakeSeeds(seeds, timeStep, randomSeed);
 		if (seedCount < calcNumSeedPoints(timeStep)) {
-			delete seeds;
+			delete [] seeds;
 			return 0;
 		}
 		for (int i = 0; i<seedCount; i++){
@@ -1365,7 +1365,7 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 			flowLines->setFlowStart(i,0);
 			flowLines->setFlowEnd(i,0);
 		}
-		delete seeds;
+		delete [] seeds;
 		
 
 	} else { //insert from seedList
@@ -1907,19 +1907,19 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		//by the geometry nodes
 		numComboVariables = newNumVariables;
 		
-		delete minOpacBounds;
-		delete maxOpacBounds;
-		delete minColorBounds;
-		delete maxColorBounds;
+		delete [] minOpacBounds;
+		delete [] maxOpacBounds;
+		delete [] minColorBounds;
+		delete [] maxColorBounds;
 		minOpacBounds = new float[numComboVariables+4];
 		maxOpacBounds = new float[numComboVariables+4];
 		minColorBounds = new float[numComboVariables+4];
 		maxColorBounds = new float[numComboVariables+4];
 		//Do same for edit bounds
-		delete minOpacEditBounds;
-		delete maxOpacEditBounds;
-		delete minColorEditBounds;
-		delete maxColorEditBounds;
+		delete [] minOpacEditBounds;
+		delete [] maxOpacEditBounds;
+		delete [] minColorEditBounds;
+		delete [] maxColorEditBounds;
 		minOpacEditBounds = new float[numComboVariables+4];
 		maxOpacEditBounds = new float[numComboVariables+4];
 		minColorEditBounds = new float[numComboVariables+4];

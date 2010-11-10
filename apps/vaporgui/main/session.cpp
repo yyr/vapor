@@ -174,8 +174,8 @@ Session::~Session(){
 		delete tfNames[i];
 	}
 	if (tfListSize>0){
-		delete keptTFs;
-		delete tfNames;
+		delete [] keptTFs;
+		delete [] tfNames;
 		
 	}
 	
@@ -197,8 +197,8 @@ void Session::init() {
 		delete tfNames[i];
 	}
 	if (tfListSize>0){
-		delete keptTFs;
-		delete tfNames;
+		delete [] keptTFs;
+		delete [] tfNames;
 	}
 	
 	

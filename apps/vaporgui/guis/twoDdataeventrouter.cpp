@@ -282,7 +282,7 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	float val = OUT_OF_BOUNDS;
 	if (numVariables > 0) {val = calcCurrentValue(twoDParams,selectedPoint,sessionVarNums, totVars);
-		delete sessionVarNums;
+		delete [] sessionVarNums;
 	}
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
@@ -832,7 +832,7 @@ reinitTab(bool doOverride){
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
 		}
-		delete histogramList;
+		delete [] histogramList;
 		histogramList = 0;
 		numHistograms = 0;
 	}
@@ -1775,12 +1775,12 @@ void TwoDDataEventRouter::captureImage() {
 	//
 	int quality = GLWindow::getJpegQuality();
 	int rc = write_JPEG_file(jpegFile, wid, ht, twoDTex, quality);
-	delete twoDTex;
+	delete [] twoDTex;
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file: \n%s",
 			(const char*)filename.toAscii());
-		delete buf;
+		delete [] buf;
 		return;
 	}
 	//Provide a message stating the capture in effect.

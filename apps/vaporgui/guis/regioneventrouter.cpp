@@ -987,7 +987,7 @@ guiLoadRegionExtents(){
 			if (numVals > 0 && numregions > 0){
 				MessageReporter::warningMsg("Invalid region extents at timestep %d",ts);
 			}
-			delete exts;
+			delete [] exts;
 			break;
 		}
 		numregions++;

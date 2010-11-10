@@ -505,7 +505,7 @@ reinitTab(bool doOverride){
 		for (int i = 0; i<numHistograms; i++){
 			if (histogramList[i]) delete histogramList[i];
 		}
-		delete histogramList;
+		delete [] histogramList;
 		histogramList = 0;
 		numHistograms = 0;
 	}

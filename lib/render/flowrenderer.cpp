@@ -112,14 +112,14 @@ FlowRenderer::~FlowRenderer()
 		if (steadyFlowRGBAs[i]) delete steadyFlowRGBAs[i];
 		
 	}
-	delete steadyFlowCache;
-	delete steadyFlowRGBAs;
-	if (unsteadyFlowRGBAs) delete unsteadyFlowRGBAs;
+	delete [] steadyFlowCache;
+	delete [] steadyFlowRGBAs;
+	if (unsteadyFlowRGBAs) delete [] unsteadyFlowRGBAs;
 	
-	delete numListSeedPointsUsed;
-	delete needRefreshFlag;
-	delete flowDataDirty;
-	delete flowMapDirty;
+	delete [] numListSeedPointsUsed;
+	delete [] needRefreshFlag;
+	delete [] flowDataDirty;
+	delete [] flowMapDirty;
 	if (myFlowLib) delete myFlowLib;
 
 	/*Clean up memory used for verticies and displaylists*/
@@ -753,7 +753,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				steadyFlowCache[timeStep] = 0;
 			}
 			if (unsteadyFlowCache) {
-				delete unsteadyFlowCache;
+				delete [] unsteadyFlowCache;
 				unsteadyFlowCache = 0;
 			}
 		} else { //Just delete the stuff for this one timestep:
@@ -827,7 +827,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					DataStatus* ds = DataStatus::getInstance();
 					if(interruptFlag) ds->getApp()->processEvents();
 					if (myFlowParams->getStopFlag()){
-						delete unsteadyFlowCache;
+						delete [] unsteadyFlowCache;
 						unsteadyFlowCache = 0;
 						setAllNeedRefresh(false);
 						QApplication::restoreOverrideCursor();
@@ -838,7 +838,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					//The following is time consuming...
 					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, false);
 					if (!OK) {
-						delete unsteadyFlowCache;
+						delete [] unsteadyFlowCache;
 						unsteadyFlowCache = 0;
 						QApplication::restoreOverrideCursor();
 						return false;
@@ -865,7 +865,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 					//Check if we need to do a partial or full rebuild.
 					if (allDataDirtyFlag){
-						if (unsteadyFlowCache) { delete unsteadyFlowCache; unsteadyFlowCache = 0;}
+						if (unsteadyFlowCache) { delete [] unsteadyFlowCache; unsteadyFlowCache = 0;}
 						for (int i = 0; i< numFrames; i++){
 							if (steadyFlowCache[i]) {
 								delete steadyFlowCache[i];

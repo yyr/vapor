@@ -92,19 +92,19 @@ ProbeParams::~ProbeParams(){
 		for (int i = 0; i< numVariables; i++){
 			delete transFunc[i];  //will delete editor
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	if (probeDataTextures) {
 		for (int i = 0; i<= maxTimestep; i++){
 			if (probeDataTextures[i]) delete probeDataTextures[i];
 		}
-		delete probeDataTextures;
+		delete [] probeDataTextures;
 	}
 	if (probeIBFVTextures) {
 		for (int i = 0; i<= maxTimestep; i++){
 			if (probeIBFVTextures[i]) delete probeIBFVTextures[i];
 		}
-		delete probeIBFVTextures;
+		delete [] probeIBFVTextures;
 	}
 	if (ibfvUField) {
 		for (int i = 0; i<= maxTimestep; i++){
@@ -112,9 +112,9 @@ ProbeParams::~ProbeParams(){
 			if (ibfvVField[i]) delete ibfvVField[i];
 			if (ibfvValid[i]) delete ibfvValid[i];
 		}
-		delete ibfvUField;
-		delete ibfvVField;
-		delete ibfvValid;
+		delete [] ibfvUField;
+		delete [] ibfvVField;
+		delete [] ibfvValid;
 	}
 	ibfvMag = -1.f;
 	
@@ -263,7 +263,7 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 		transFunc = 0;
 		numVariables = 0;
 		return false;
@@ -387,9 +387,9 @@ reinit(bool doOverride){
 		}
 	}
 	//Hook up new stuff
-	delete minColorEditBounds;
-	delete maxColorEditBounds;
-	delete transFunc;
+	delete [] minColorEditBounds;
+	delete [] maxColorEditBounds;
+	delete [] transFunc;
 	minColorEditBounds = newMinEdit;
 	maxColorEditBounds = newMaxEdit;
 	//And clone the color edit bounds to use as opac edit bounds:
@@ -406,11 +406,11 @@ reinit(bool doOverride){
 	setEnabled(false);
 	// set up the texture cache
 	setProbeDirty();
-	if (probeDataTextures) delete probeDataTextures;
-	if (probeIBFVTextures) delete probeIBFVTextures;
-	if (ibfvUField) delete ibfvUField;
-	if (ibfvVField) delete ibfvVField;
-	if (ibfvValid) delete ibfvValid;
+	if (probeDataTextures) delete [] probeDataTextures;
+	if (probeIBFVTextures) delete [] probeIBFVTextures;
+	if (ibfvUField) delete [] ibfvUField;
+	if (ibfvVField) delete [] ibfvVField;
+	if (ibfvValid) delete [] ibfvValid;
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	probeDataTextures = 0;
 	probeIBFVTextures = 0;
@@ -430,13 +430,13 @@ restart(){
 	firstVarNum = 0;
 	compressionLevel = 0;
 	setProbeDirty();
-	if (probeDataTextures) delete probeDataTextures;
+	if (probeDataTextures) delete [] probeDataTextures;
 	probeDataTextures = 0;
-	if (probeIBFVTextures) delete probeIBFVTextures;
+	if (probeIBFVTextures) delete [] probeIBFVTextures;
 	probeIBFVTextures = 0;
-	if (ibfvUField) delete ibfvUField;
-	if (ibfvVField) delete ibfvVField;
-	if (ibfvValid) delete ibfvValid;
+	if (ibfvUField) delete [] ibfvUField;
+	if (ibfvVField) delete [] ibfvVField;
+	if (ibfvValid) delete [] ibfvValid;
 	ibfvUField = 0;
 	ibfvVField = 0;
 	ibfvMag = -1.f;
@@ -456,17 +456,17 @@ restart(){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	numVariables = 0;
 	transFunc = 0;
 	cursorCoords[0] = cursorCoords[1] = 0.0f;
 	//Initialize the mapping bounds to [0,1] until data is read
 	
-	if (minColorEditBounds) delete minColorEditBounds;
-	if (maxColorEditBounds) delete maxColorEditBounds;
-	if (minOpacEditBounds) delete minOpacEditBounds;
-	if (maxOpacEditBounds) delete maxOpacEditBounds;
+	if (minColorEditBounds) delete [] minColorEditBounds;
+	if (maxColorEditBounds) delete [] maxColorEditBounds;
+	if (minOpacEditBounds) delete [] minOpacEditBounds;
+	if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 	
 	
 	minColorEditBounds = new float[1];
@@ -615,13 +615,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
-		if (minColorEditBounds) delete minColorEditBounds;
+		if (minColorEditBounds) delete [] minColorEditBounds;
 		minColorEditBounds = new float[numVars];
-		if (maxColorEditBounds) delete maxColorEditBounds;
+		if (maxColorEditBounds) delete [] maxColorEditBounds;
 		maxColorEditBounds = new float[numVars];
-		if (minOpacEditBounds) delete minOpacEditBounds;
+		if (minOpacEditBounds) delete [] minOpacEditBounds;
 		minOpacEditBounds = new float[numVars];
-		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 		maxOpacEditBounds = new float[numVars];
 		
 		variableSelected.clear();
@@ -640,7 +640,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			for (int j = 0; j<numVariables; j++){
 				delete transFunc[j];
 			}
-			delete transFunc;
+			delete [] transFunc;
 		}
 		numVariables = newNumVariables;
 		transFunc = new TransferFunction*[numVariables];
@@ -1193,7 +1193,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
 
 	if(!volData){
-		delete sesVarNums;
+		delete [] sesVarNums;
 		return 0;
 	}
 	size_t bs[3];
@@ -1321,8 +1321,8 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	}//End loop over iy
 	
 	if (doCache) setProbeTexture(probeTexture,ts, 0);
-	delete volData;
-	delete sesVarNums;
+	delete [] volData;
+	delete [] sesVarNums;
 	return probeTexture;
 }
 void ProbeParams::adjustTextureSize(int sz[2]){
@@ -1714,7 +1714,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 		}
 	}
 			
-	delete volData;
+	delete [] volData;
 	return true;
 }
 //General routine that obtains 1 or more variables from the cache in the smallest volume that
@@ -1773,7 +1773,7 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 		if (varindex < 0) {volData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
 		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, false);
 		if (!volData[varnum]) {
-			delete volData;
+			delete [] volData;
 			return 0;
 		}
 	}

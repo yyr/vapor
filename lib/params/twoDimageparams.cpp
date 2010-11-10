@@ -79,12 +79,12 @@ TwoDImageParams::~TwoDImageParams(){
 		
 		if (twoDDataTextures[0]) delete twoDDataTextures[0];
 		
-		delete twoDDataTextures;
-		delete textureSizes;
+		delete [] twoDDataTextures;
+		delete [] textureSizes;
 		if (imageExtents){
-			delete imageExtents;
+			delete [] imageExtents;
 		}
-		if (imageNums) delete imageNums;
+		if (imageNums) delete [] imageNums;
 		imageNums = 0;
 	}
 	
@@ -168,10 +168,10 @@ reinit(bool doOverride){
 	if (twoDDataTextures) {
 		if (twoDDataTextures[0])
 			delete twoDDataTextures[0];
-		delete twoDDataTextures;
-		delete imageExtents;
-		delete textureSizes;
-		if(imageNums) delete imageNums;
+		delete [] twoDDataTextures;
+		delete [] imageExtents;
+		delete [] textureSizes;
+		if(imageNums) delete [] imageNums;
 		imageNums = 0;
 	}
 	
@@ -197,10 +197,10 @@ restart(){
 	setTwoDDirty();
 	if (twoDDataTextures) {
 		if (twoDDataTextures[0]) delete twoDDataTextures[0];
-		delete twoDDataTextures;
-		delete imageExtents;
-		delete textureSizes;
-		if (imageNums) delete imageNums;
+		delete [] twoDDataTextures;
+		delete [] imageExtents;
+		delete [] textureSizes;
+		if (imageNums) delete [] imageNums;
 	}
 	twoDDataTextures = 0;
 	imageExtents = 0;
@@ -441,11 +441,11 @@ void TwoDImageParams::setImagesDirty(){
 		}
 		
 		twoDDataTextures = 0;
-		delete imageExtents;
-		delete textureSizes;
+		delete [] imageExtents;
+		delete [] textureSizes;
 		imageExtents = 0;
 		textureSizes = 0;
-		if (imageNums) delete imageNums;
+		if (imageNums) delete [] imageNums;
 		imageNums = 0;
 	}
 	setElevGridDirty(true);
@@ -634,7 +634,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 			else {
 				MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Error reading tiff file:\n %s\n",
 					imageFileName.c_str());
-				delete texture;
+				delete [] texture;
 				return 0;
 			}
 		}

@@ -68,13 +68,13 @@ TwoDDataParams::~TwoDDataParams(){
 		for (int i = 0; i< numVariables; i++){
 			delete transFunc[i];  //will delete editor
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	if (twoDDataTextures) {
 		for (int i = 0; i<= maxTimestep; i++){
 			if (twoDDataTextures[i]) delete twoDDataTextures[i];
 		}
-		delete twoDDataTextures;
+		delete [] twoDDataTextures;
 	}
 	
 }
@@ -222,7 +222,7 @@ reinit(bool doOverride){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 		transFunc = 0;
 		numVariables = 0;
 		return false;
@@ -316,9 +316,9 @@ reinit(bool doOverride){
 	if (hgtvar >= 0)
 		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
 	//Hook up new stuff
-	delete minColorEditBounds;
-	delete maxColorEditBounds;
-	delete transFunc;
+	delete [] minColorEditBounds;
+	delete [] maxColorEditBounds;
+	delete [] transFunc;
 	transFunc = 0;
 	minColorEditBounds = newMinEdit;
 	maxColorEditBounds = newMaxEdit;
@@ -337,7 +337,7 @@ reinit(bool doOverride){
 	// set up the texture cache
 	setTwoDDirty();
 	if (twoDDataTextures) {
-		delete twoDDataTextures;
+		delete [] twoDDataTextures;
 	}
 	
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
@@ -361,7 +361,7 @@ restart(){
 	orientation = 2;
 	setTwoDDirty();
 	if (twoDDataTextures) {
-		delete twoDDataTextures;
+		delete [] twoDDataTextures;
 	}
 	twoDDataTextures = 0;
 
@@ -369,17 +369,17 @@ restart(){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	numVariables = 0;
 	transFunc = 0;
 	cursorCoords[0] = cursorCoords[1] = 0.0f;
 	//Initialize the mapping bounds to [0,1] until data is read
 	
-	if (minColorEditBounds) delete minColorEditBounds;
-	if (maxColorEditBounds) delete maxColorEditBounds;
-	if (minOpacEditBounds) delete minOpacEditBounds;
-	if (maxOpacEditBounds) delete maxOpacEditBounds;
+	if (minColorEditBounds) delete [] minColorEditBounds;
+	if (maxColorEditBounds) delete [] maxColorEditBounds;
+	if (minOpacEditBounds) delete [] minOpacEditBounds;
+	if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 	
 	
 	minColorEditBounds = new float[1];
@@ -499,13 +499,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
-		if (minColorEditBounds) delete minColorEditBounds;
+		if (minColorEditBounds) delete [] minColorEditBounds;
 		minColorEditBounds = new float[numVars];
-		if (maxColorEditBounds) delete maxColorEditBounds;
+		if (maxColorEditBounds) delete [] maxColorEditBounds;
 		maxColorEditBounds = new float[numVars];
-		if (minOpacEditBounds) delete minOpacEditBounds;
+		if (minOpacEditBounds) delete [] minOpacEditBounds;
 		minOpacEditBounds = new float[numVars];
-		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 		maxOpacEditBounds = new float[numVars];
 		
 		variableSelected.clear();
@@ -524,7 +524,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			for (int j = 0; j<numVariables; j++){
 				delete transFunc[j];
 			}
-			delete transFunc;
+			delete [] transFunc;
 		}
 		numVariables = newNumVariables;
 		transFunc = new TransferFunction*[numVariables];
@@ -897,7 +897,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
 
 	if(!planarData){
-		delete sesVarNums;
+		delete [] sesVarNums;
 		setBypass(ts);
 		return 0;
 	}
@@ -1034,8 +1034,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	}//End loop over iy
 	
 	if (doCache) setTwoDTexture(twoDTexture,ts, txsize);
-	delete planarData;
-	delete sesVarNums;
+	delete [] planarData;
+	delete [] sesVarNums;
 	return twoDTexture;
 }
 void TwoDDataParams::adjustTextureSize(int sz[2]){
@@ -1145,7 +1145,7 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 		if (varindex < 0) {planarData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
 		planarData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, true);
 		if (!planarData[varnum]) {
-			delete planarData;
+			delete [] planarData;
 			return 0;
 		}
 	}

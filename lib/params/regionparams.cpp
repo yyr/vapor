@@ -884,7 +884,7 @@ void RegionParams::clearRegionsMap(){
 		map <int, float*> :: iterator eIter;
 		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
 			float *exts = eIter->second;
-			delete exts;
+			delete [] exts;
 		}
 		extentsMap.clear();
 	}

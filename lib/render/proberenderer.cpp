@@ -263,8 +263,8 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
                    GL_RGBA, GL_UNSIGNED_BYTE, pat);
       glEndList();
    }
-   delete phase;
-   delete pat;
+   delete [] phase;
+   delete [] pat;
    return newListNum;
 }
 

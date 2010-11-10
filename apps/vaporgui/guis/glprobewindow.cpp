@@ -251,7 +251,7 @@ void GLProbeWindow::paintGL()
     
 	
 	if ((myParams->getProbeType() == 1) && animatingTexture) {  //animating IBFV texture
-		delete probeTexture;
+		delete [] probeTexture;
 	}
 	printOpenGLErrorMsg("GLProbeWindow");
 	rendering = false;
@@ -363,7 +363,7 @@ doFrameCapture(){
 	if(!getPixelData(minx, miny, sizex,sizey,pixData)){
 		MessageReporter::errorMsg("Image Capture Error; \nerror obtaining GL data");
 		capturing = 0;
-		delete pixData;
+		delete [] pixData;
 		return;
 	}
 	
@@ -375,10 +375,10 @@ doFrameCapture(){
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; \nError writing jpeg file ");
-		delete pixData;
+		delete [] pixData;
 		return;
 	}
-	delete pixData;
+	delete [] pixData;
 	captureNum++;
 }
 

@@ -176,7 +176,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 		}
 		varVal = sqrt(varVal);
 	}
-	delete sliceData;
+	delete [] sliceData;
 	return varVal;
 }
 

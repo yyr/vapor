@@ -66,7 +66,7 @@ DvrParams::~DvrParams(){
 		for (int i = 0; i< numVariables; i++){
 			delete transFunc[i];  //will delete editor
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	
 }
@@ -176,7 +176,7 @@ reinit(bool doOverride){
 		for (i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 		numVariables = 0;
 		return false;
 	}
@@ -251,9 +251,9 @@ reinit(bool doOverride){
 		}
 	}
 	//Hook up new stuff
-	delete minColorEditBounds;
-	delete maxColorEditBounds;
-	delete transFunc;
+	delete [] minColorEditBounds;
+	delete [] maxColorEditBounds;
+	delete [] transFunc;
 	minColorEditBounds = newMinEdit;
 	maxColorEditBounds = newMaxEdit;
 	//And clone the color edit bounds to use as opac edit bounds:
@@ -295,10 +295,10 @@ restart(){
 	transFunc = 0;
 	//Initialize the mapping bounds to [0,1] until data is read
 	
-	if (minColorEditBounds) delete minColorEditBounds;
-	if (maxColorEditBounds) delete maxColorEditBounds;
-	if (minOpacEditBounds) delete minOpacEditBounds;
-	if (maxOpacEditBounds) delete maxOpacEditBounds;
+	if (minColorEditBounds) delete [] minColorEditBounds;
+	if (maxColorEditBounds) delete [] maxColorEditBounds;
+	if (minOpacEditBounds) delete [] minOpacEditBounds;
+	if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 	
 	
 	minColorEditBounds = new float[1];
@@ -401,13 +401,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		if(activeVarName != "")setVarNum(DataStatus::getInstance()->mergeVariableName(activeVarName));
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
-		if (minColorEditBounds) delete minColorEditBounds;
+		if (minColorEditBounds) delete [] minColorEditBounds;
 		minColorEditBounds = new float[numVars];
-		if (maxColorEditBounds) delete maxColorEditBounds;
+		if (maxColorEditBounds) delete [] maxColorEditBounds;
 		maxColorEditBounds = new float[numVars];
-		if (minOpacEditBounds) delete minOpacEditBounds;
+		if (minOpacEditBounds) delete [] minOpacEditBounds;
 		minOpacEditBounds = new float[numVars];
-		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 		maxOpacEditBounds = new float[numVars];
 		
 		//Setup with default values, in case not specified:
@@ -422,7 +422,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			for (int j = 0; j<numVariables; j++){
 				delete transFunc[j];
 			}
-			delete transFunc;
+			delete [] transFunc;
 		}
 		transFunc = 0;
 		numVariables = newNumVariables;

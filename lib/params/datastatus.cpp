@@ -294,7 +294,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 
 	numTransforms = dataMgr->GetNumTransforms();
-	for (int k = 0; k<dataAtLevel.size(); k++) delete dataAtLevel[k];
+	for (int k = 0; k<dataAtLevel.size(); k++) delete [] dataAtLevel[k];
 	dataAtLevel.clear();
 	for (int k = 0; k<= numTransforms; k++){
 		dataAtLevel.push_back(new size_t[3]);
@@ -529,12 +529,12 @@ DataStatus::
 ~DataStatus(){
 	int numVariables = maxNumTransforms.size();
 	for (int i = 0; i< numVariables; i++){
-		delete maxNumTransforms[i];
-		delete dataMin[i];
-		delete dataMax[i];
+		delete [] maxNumTransforms[i];
+		delete [] dataMin[i];
+		delete [] dataMax[i];
 	}
 	for (int i = 0; i< dataAtLevel.size(); i++){
-		delete dataAtLevel[i];
+		delete [] dataAtLevel[i];
 	}
 	theDataStatus = 0;
 }

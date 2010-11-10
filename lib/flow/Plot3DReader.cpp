@@ -43,9 +43,9 @@ CPlot3DReader::CPlot3DReader(const char *fn)
 
 CPlot3DReader::~CPlot3DReader()
 {
-	delete m_strSlnFN;
-	delete m_strNodeFN;
-	delete m_strTetraFN;
+	delete [] m_strSlnFN;
+	delete [] m_strNodeFN;
+	delete [] m_strTetraFN;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -277,8 +277,8 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 void TwoDRenderer::invalidateElevGrid(){
 	
 	if (elevVert){
-		delete elevVert;
-		delete elevNorm;	
+		delete [] elevVert;
+		delete [] elevNorm;	
 		elevVert = 0;
 		elevNorm = 0;
 	}

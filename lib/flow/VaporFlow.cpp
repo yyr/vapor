@@ -63,18 +63,18 @@ VaporFlow::VaporFlow(DataMgr* dm)
 VaporFlow::~VaporFlow()
 {
 	
-	if(xSteadyVarName) delete xSteadyVarName;
-	if(ySteadyVarName) delete ySteadyVarName;
-	if(zSteadyVarName) delete zSteadyVarName;
-	if(xUnsteadyVarName) delete xUnsteadyVarName;
-	if(yUnsteadyVarName) delete yUnsteadyVarName;
-	if(zUnsteadyVarName) delete zUnsteadyVarName;
-	if(xPriorityVarName) delete xPriorityVarName;
-	if(yPriorityVarName) delete yPriorityVarName;
-	if(zPriorityVarName) delete zPriorityVarName;
-	if(xSeedDistVarName) delete xSeedDistVarName;
-	if(ySeedDistVarName) delete ySeedDistVarName;
-	if(zSeedDistVarName) delete zSeedDistVarName;
+	if(xSteadyVarName) delete [] xSteadyVarName;
+	if(ySteadyVarName) delete [] ySteadyVarName;
+	if(zSteadyVarName) delete [] zSteadyVarName;
+	if(xUnsteadyVarName) delete [] xUnsteadyVarName;
+	if(yUnsteadyVarName) delete [] yUnsteadyVarName;
+	if(zUnsteadyVarName) delete [] zUnsteadyVarName;
+	if(xPriorityVarName) delete [] xPriorityVarName;
+	if(yPriorityVarName) delete [] yPriorityVarName;
+	if(zPriorityVarName) delete [] zPriorityVarName;
+	if(xSeedDistVarName) delete [] xSeedDistVarName;
+	if(ySeedDistVarName) delete [] ySeedDistVarName;
+	if(zSeedDistVarName) delete [] zSeedDistVarName;
 	
 	
 }
@@ -694,7 +694,7 @@ bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* uns
 		}
 	}
 	GenStreamLinesNoRake(steadyContainer, seedList);
-	delete seedList;
+	delete [] seedList;
 	if (prioritize){
 		//This had better be a sample time!
 		prioritizeSeeds(steadyContainer, unsteadyContainer, timeStep);

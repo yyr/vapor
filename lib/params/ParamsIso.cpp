@@ -238,13 +238,13 @@ reinit(bool doOverride){
 		for (int k = 0; k<4; k++)
 			bounds->push_back(boundsArrays[i][k]);
 		varNode->SetElementDouble(_editBoundsTag, *bounds);
-		delete boundsArrays[i];
+		delete [] boundsArrays[i];
 		
 	}
 	assert(GetRootNode()->GetNode(_variablesTag)->GetNumChildren() == totNumVariables);
-	delete newTransFunc;
-	delete newIsoControls;
-	delete boundsArrays;
+	delete [] newTransFunc;
+	delete [] newIsoControls;
+	delete [] boundsArrays;
 	
 	if (doOverride) {
 		SetHistoStretch(1.0);

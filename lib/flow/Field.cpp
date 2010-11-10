@@ -292,9 +292,9 @@ void FieldData::setup(CVectorField* fld, CartesianGrid* grd,
 //The destructor unlocks the da
 FieldData::~FieldData(){
 	delete pField;
-	delete pUData;
-	delete pVData;
-	delete pWData;
+	delete [] pUData;
+	delete [] pVData;
+	delete [] pWData;
 }
 void FieldData::releaseData(DataMgr* dataMgr){
 	if (pUData && pUData[0]){

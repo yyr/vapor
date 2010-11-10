@@ -249,8 +249,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	maxXElev = maxx = gridsize[0] +1;
 	maxYElev = maxy = gridsize[1] +1;
 	if (elevVert){
-		delete elevVert;
-		delete elevNorm;
+		delete [] elevVert;
+		delete [] elevNorm;
 	}
 	elevVert = new float[3*maxx*maxy];
 	elevNorm = new float[3*maxx*maxy];
@@ -446,7 +446,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			}
 			
 		}
-		delete elevVertLine;
+		delete [] elevVertLine;
 	} else {
 		//Not georeferenced, but elevation mapped.
 		//Uses twoD extents, not image extents;

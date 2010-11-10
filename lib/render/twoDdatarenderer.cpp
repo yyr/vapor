@@ -250,8 +250,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	int maxx = maxXElev = max_dim[0] - min_dim[0] +1;
 	int maxy = maxYElev = max_dim[1] - min_dim[1] +1;
 	if (elevVert) {
-		delete elevVert; 
-		delete elevNorm;
+		delete [] elevVert; 
+		delete [] elevNorm;
 	}
 	
 	elevVert = new float[3*maxx*maxy];
