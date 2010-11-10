@@ -150,7 +150,8 @@ void ColorMapBase::Color::toRGB(float *rgb)
 ColorMapBase::ControlPoint::ControlPoint() :
   _value(0.0),
   _color(),
-  _selected(false)
+  _selected(false),
+  _type(TFInterpolator::linear)
 {
 }
 
