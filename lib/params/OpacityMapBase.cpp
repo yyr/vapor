@@ -65,7 +65,8 @@ const string OpacityMapBase::_cpValueTag = "Value";
 OpacityMapBase::ControlPoint::ControlPoint() :
   _value(0.0),
   _opacity(1.0),
-  _selected(false)
+  _selected(false),
+  _type(TFInterpolator::linear)
 {
 }
 
@@ -75,7 +76,8 @@ OpacityMapBase::ControlPoint::ControlPoint() :
 OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
   _value(v),
   _opacity(o),
-  _selected(false)
+  _selected(false),
+  _type(TFInterpolator::linear)
 {
 }
 
@@ -85,7 +87,8 @@ OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
 OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
   _value(cp._value),
   _opacity(cp._opacity),
-  _selected(cp._selected)
+  _selected(cp._selected),
+  _type(cp._type)
 {
 }
 

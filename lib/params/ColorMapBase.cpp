@@ -161,7 +161,8 @@ ColorMapBase::ControlPoint::ControlPoint() :
 ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
   _value(v),
   _color(c),
-  _selected(false)
+  _selected(false),
+  _type(TFInterpolator::linear)
 {
 }
 
@@ -171,7 +172,8 @@ ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
 ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
   _value(cp._value),
   _color(cp._color),
-  _selected(cp._selected)
+  _selected(cp._selected),
+  _type(cp._type)
 {
 }
 
