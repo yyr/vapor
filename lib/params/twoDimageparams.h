@@ -103,7 +103,7 @@ public:
 				textureSizes[0] = 0;
 				textureSizes[1] = 0;
 			
-			if (imageExtents) delete imageExtents;
+			if (imageExtents) delete [] imageExtents;
 			imageExtents = 0;
 			if(imExts) 
 				imageExtents = new float [4];

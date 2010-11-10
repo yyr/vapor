@@ -310,8 +310,8 @@ public:
 		clearDerivedVars();
 	}
 	static void removeMetadataVars(){
-		if (mapMetadataVars) delete mapMetadataVars;
-		if (mapMetadataVars2D) delete mapMetadataVars2D;
+		if (mapMetadataVars) delete [] mapMetadataVars;
+		if (mapMetadataVars2D) delete [] mapMetadataVars2D;
 		clearMetadataVars();
 	}
 	

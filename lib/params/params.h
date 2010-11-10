@@ -416,10 +416,10 @@ public:
 	}
 	RenderParams(XmlNode *parent, const string &name, int winnum); 
 	virtual ~RenderParams(){
-		if (minColorEditBounds) delete minColorEditBounds;
-		if (maxColorEditBounds) delete maxColorEditBounds;
-		if (minOpacEditBounds) delete minOpacEditBounds;
-		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		if (minColorEditBounds) delete [] minColorEditBounds;
+		if (maxColorEditBounds) delete [] maxColorEditBounds;
+		if (minOpacEditBounds) delete [] minOpacEditBounds;
+		if (maxOpacEditBounds) delete [] maxOpacEditBounds;
 
 	}
 	
