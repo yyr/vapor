@@ -148,10 +148,10 @@ void ColorMapBase::Color::toRGB(float *rgb)
 // Default constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint() :
+  _type(TFInterpolator::linear),
   _value(0.0),
   _color(),
-  _selected(false),
-  _type(TFInterpolator::linear)
+  _selected(false)
 {
 }
 
@@ -159,10 +159,10 @@ ColorMapBase::ControlPoint::ControlPoint() :
 // Constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
+  _type(TFInterpolator::linear),
   _value(v),
   _color(c),
-  _selected(false),
-  _type(TFInterpolator::linear)
+  _selected(false)
 {
 }
 
@@ -170,10 +170,10 @@ ColorMapBase::ControlPoint::ControlPoint(Color c, float v) :
 // Copy constructor
 //----------------------------------------------------------------------------
 ColorMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
+  _type(cp._type),
   _value(cp._value),
   _color(cp._color),
-  _selected(cp._selected),
-  _type(cp._type)
+  _selected(cp._selected)
 {
 }
 

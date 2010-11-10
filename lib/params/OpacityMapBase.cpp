@@ -63,10 +63,10 @@ const string OpacityMapBase::_cpValueTag = "Value";
 // Default constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint() :
+  _type(TFInterpolator::linear),
   _value(0.0),
   _opacity(1.0),
-  _selected(false),
-  _type(TFInterpolator::linear)
+  _selected(false)
 {
 }
 
@@ -74,10 +74,10 @@ OpacityMapBase::ControlPoint::ControlPoint() :
 // Constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
+  _type(TFInterpolator::linear),
   _value(v),
   _opacity(o),
-  _selected(false),
-  _type(TFInterpolator::linear)
+  _selected(false)
 {
 }
 
@@ -85,10 +85,10 @@ OpacityMapBase::ControlPoint::ControlPoint(float v, float o) :
 // Copy constructor
 //----------------------------------------------------------------------------
 OpacityMapBase::ControlPoint::ControlPoint(const ControlPoint &cp) :
+  _type(cp._type),
   _value(cp._value),
   _opacity(cp._opacity),
-  _selected(cp._selected),
-  _type(cp._type)
+  _selected(cp._selected)
 {
 }
 
