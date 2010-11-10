@@ -287,7 +287,7 @@ restart(){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
 		}
-		delete transFunc;
+		delete [] transFunc;
 	}
 	numVariables = 0;
 	numRefinements = 0;
