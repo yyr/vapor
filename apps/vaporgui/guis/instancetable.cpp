@@ -34,7 +34,7 @@ InstanceTable::InstanceTable(QWidget* parent) : QTableWidget(parent) {
 
 // Table size always 150 wide
 
-	
+	selectedInstance = 0;
 	setRowCount(0);
 	setColumnCount(2);
 	setColumnWidth(0,80);
