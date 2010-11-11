@@ -47,6 +47,7 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_nUserTimeStepInc = 0;
 	m_fUserTimePerVaporTS = 1.f;
 	m_pUserTimeSteps = NULL;
+	m_TimeDir = FORWARD;
 }
 
 Solution::~Solution()

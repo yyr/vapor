@@ -34,8 +34,15 @@ FlowLineData::FlowLineData(int numLines, int maxPoints, bool useSpeeds,  int dir
 
 	for (int i = 0; i<numLines; i++){
 		flowLineLists[i] = new float[3*mxPoints];
-		if (flowRGBAs) flowRGBAs[i] = new float[4*mxPoints];
-		if (useSpeeds) speedLists[i] = new float[mxPoints];
+		for (int j=0; j<3*mxPoints; j++) flowLineLists[i][j] = 0.0;
+		if (flowRGBAs) {
+			flowRGBAs[i] = new float[4*mxPoints];
+			for (int j=0; j<4*mxPoints; j++) flowRGBAs[i][j] = 0.0;
+		}
+		if (useSpeeds) {
+			speedLists[i] = new float[mxPoints];
+			for (int j=0; j<mxPoints; j++) speedLists[i][j] = 0.0;
+		}
 		if (flowDirection > 0) startIndices[i] = 0;
 		else if (flowDirection < 0) startIndices[i] = mxPoints -1;
 		else startIndices[i] = -1; //Invalid value, must be reset to use.

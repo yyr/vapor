@@ -97,6 +97,8 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 	indexArray = NULL;
 	useDisplayLists = false;
 	flowDisplayList = glGenLists(1);
+	wasConstColors = true;
+	dirtyDL = true;
 }
 
 

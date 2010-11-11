@@ -127,6 +127,7 @@ DataStatus()
 	
 	theDataStatus = this;
 	sessionVersion = Version::GetVersionString();
+	theApp = NULL;
 	
 }
 

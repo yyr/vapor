@@ -49,6 +49,16 @@ public:
 public:
 	vtParticleInfo(void)
 	{
+		m_pointInfo.phyCoord.Zero();
+		m_pointInfo.interpolant.Zero();
+		m_pointInfo.fromCell = 0;
+		m_pointInfo.inCell = 0;
+
+		m_fStartTime = 0.0;
+		itsValidFlag = 0;
+		itsNumStepsAlive = 0;
+		ptId = 0;
+		unusedTime = 0.0;
 	}
 
 	vtParticleInfo(vtParticleInfo* source)

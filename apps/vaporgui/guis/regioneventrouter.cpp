@@ -556,8 +556,8 @@ refreshRegionInfo(RegionParams* rParams){
 
 
 	//Now produce the corresponding voxel coords:
-	size_t min_dim[3], max_dim[3];
-	size_t min_bdim[3], max_bdim[3];
+	size_t min_dim[3] = {0,0,0}, max_dim[3] = {0,0,0};
+	size_t min_bdim[3] = {0,0,0}, max_bdim[3] = {0,0,0};
 	
 	// if region isn't valid just don't show the bounds:
 	if (ds){
