@@ -250,7 +250,6 @@ int PythonPipeLine::python_wrapper(
 		
 	 
 	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
-    PyObject* exts2d = Py_BuildValue("(iiii)",regmin[1],regmin[0],regmax[1],regmax[0]);
 	PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
 	PyObject* lod = Py_BuildValue("i",compression);
@@ -446,7 +445,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
 		rc = PyDict_SetItemString(mainDict, "__LOD__",lod);
 		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
-		rc = PyDict_SetItemString(mainDict, "__BOUNDS2D__",exts2d);
+		
 	}
 	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
 	if (!retObj){
@@ -699,7 +698,7 @@ PyObject* PythonPipeLine::mapVoxToUser(PyObject *self, PyObject* args){
 
 	currentDataMgr->MapVoxToUser(-1,voxCrds,userCrds, reflevel);
 	
-    return Py_BuildValue("(ddd)", userCrds[2],userCrds[1],userCrds[0]);
+    return Py_BuildValue("[ddd]", userCrds[2],userCrds[1],userCrds[0]);
 }
 //convert user to voxel coordinates at specified refinement level.
 //Note this is static
@@ -717,7 +716,7 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
 	currentDataMgr->MapUserToVox(-1, userCrds, vox, reflevel);
 	for(int i = 0; i< 3; i++) ivox[i] = (int)vox[2-i];
 	
-    return Py_BuildValue("(iii)", ivox[0],ivox[1],ivox[2]);
+    return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
 }
 
 // static method to copy an array into another one with different dimensioning.

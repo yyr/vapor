@@ -61,7 +61,10 @@ PythonEdit::PythonEdit(QWidget *parent, QString varname)
     pythonEdit->setFocus();
 	pythonEdit->setAcceptRichText(false);
 	
-	pythonEdit->setFontPointSize(12);
+	//pythonEdit->setFontPointSize(12);
+	
+	pythonEdit->setCurrentFont(QFont("Courier", 12));
+	pythonEdit->setTabStopWidth(30);
 	
 	if (!startUp){
 		pythonEdit->setWhatsThis(varDefWhatsThisText);
