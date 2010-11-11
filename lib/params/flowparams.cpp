@@ -198,6 +198,9 @@ restart() {
 	comboUnsteadyVarNum[0]= 1;
 	comboUnsteadyVarNum[1] = 2;
 	comboUnsteadyVarNum[2] = 3;
+	comboSeedDistVarNum[0]= 1;
+	comboSeedDistVarNum[1] = 2;
+	comboSeedDistVarNum[2] = 3;
 	
 	steadyScale = 1.0f;
 	unsteadyScale = 1.0f;
