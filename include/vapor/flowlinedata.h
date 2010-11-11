@@ -86,9 +86,9 @@ namespace VAPoR
 		void releaseSpeeds() {
 			if (speedLists) {
 				for (int i = 0; i<nmLines; i++){
-					if (speedLists[i]) delete speedLists[i];
+					if (speedLists[i]) delete [] speedLists[i];
 				}
-				delete speedLists;
+				delete [] speedLists;
 				speedLists = 0;
 			}
 		}
@@ -179,7 +179,7 @@ class FLOW_API PathLineData : public FlowLineData {
 				samplesPerTStep = sampleRate;
 				actualNumLines = 0;
 		}
-		~PathLineData() { delete seedIndices;}//delete seedTimes?
+		~PathLineData() { delete [] seedIndices;}//delete seedTimes?
 		void setPointAtTime(int lineNum, float timeStep, float x, float y, float z);
 		void setSpeedAtTime(int lineNum, float timeStep, float speed);
 		void setFlowStartAtTime(int lineNum, float startTime);
