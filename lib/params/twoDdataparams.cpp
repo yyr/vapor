@@ -72,7 +72,7 @@ TwoDDataParams::~TwoDDataParams(){
 	}
 	if (twoDDataTextures) {
 		for (int i = 0; i<= maxTimestep; i++){
-			if (twoDDataTextures[i]) delete twoDDataTextures[i];
+			if (twoDDataTextures[i]) delete [] twoDDataTextures[i];
 		}
 		delete [] twoDDataTextures;
 	}
@@ -847,7 +847,7 @@ void TwoDDataParams::setTwoDDirty(){
 	if (twoDDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
 			if (twoDDataTextures[i]) {
-				delete twoDDataTextures[i];
+				delete [] twoDDataTextures[i];
 				twoDDataTextures[i] = 0;
 			}
 		}

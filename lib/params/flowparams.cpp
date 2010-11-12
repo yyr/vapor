@@ -201,6 +201,9 @@ restart() {
 	comboSeedDistVarNum[0]= 1;
 	comboSeedDistVarNum[1] = 2;
 	comboSeedDistVarNum[2] = 3;
+	comboPriorityVarNum[0] = 1;
+	comboPriorityVarNum[1] = 2;
+	comboPriorityVarNum[2] = 3;
 	
 	steadyScale = 1.0f;
 	unsteadyScale = 1.0f;
@@ -271,10 +274,15 @@ restart() {
 		maxColorBounds[k] = maxOpacBounds[k] = 1.f;
 	}
 	
-	
 	doRake = true;
-	
+
+	seedDistIsSteady = false;
+	priorityIsSteady = false;
+
 }
+
+
+
 void FlowParams::setDefaultPrefs(){
 	defaultFlowLength = 1.f;
 	defaultSmoothness = 20.f;

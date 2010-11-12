@@ -518,7 +518,8 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       if(!latlon_p) {
         ErrMsgStr.assign("Error in creating map reprojection string!");
         SetErrMsg(ErrMsgStr.c_str());
-        exit(1);
+        pj_free(p);
+        return(-1);
       }
 
       double dbextents[4];
@@ -575,6 +576,8 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
 		}
         Time_extents.push_back(make_pair(Time_latlon_extents[t].first, currExtents));
       } // End of for t.
+      pj_free(p);
+      pj_free(latlon_p);
     } // End if p .
   } // End if mapprojstr.size . 
 

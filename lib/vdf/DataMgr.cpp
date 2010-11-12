@@ -902,7 +902,9 @@ int DataMgr::GetValidRegion(
 	int	rc;
 
 	SetDiagMsg("DataMgr::GetValidRegion(%d,%s,%d)",ts,varname,reflevel);
-
+	for (int i=0; i<3; i++) {
+		min[i] = max[i] = 0;
+	}
 
 	// See if we've already cache'd it.
 	//
@@ -965,8 +967,8 @@ int DataMgr::GetValidRegion(
 			if (rc<0) return(-1);
 
 			for (int j=0; j<3; j++) {
-				if (min2[i] > min1[i]) min1[i] = min2[i];
-				if (max2[i] < max1[i]) max1[i] = max2[i];
+				if (min2[j] > min1[j]) min1[j] = min2[j];
+				if (max2[j] < max1[j]) max1[j] = max2[j];
 			}
 		}
 		for (int i=0; i<3; i++) {

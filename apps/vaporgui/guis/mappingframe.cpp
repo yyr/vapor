@@ -332,7 +332,7 @@ QString MappingFrame::tipText(const QPoint &pos)
   float yopacity = yVariable(pos);
   float opacity  = getOpacity(variable);
       
-  float hf,sf,vf;
+  float hf = 0.0,sf = 0.0,vf = 0.0;
   int hue, sat, val;
   
   if (_mapper)

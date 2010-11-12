@@ -78,7 +78,16 @@ TwoDEventRouter::TwoDEventRouter(): EventRouter(){
 	ignoreListboxChanges = false;
 	seedAttached = false;
 	notNudgingSliders = false;
-	
+
+    attachedFlow = NULL;
+    lastXSizeSlider = 0;
+	lastYSizeSlider = 0;
+    lastXCenterSlider = 0;
+	lastYCenterSlider = 0;
+	lastZCenterSlider = 0;
+	for (int i=0; i<MAXVIZWINS+1; i++) {
+		copyCount[i] = 0; 
+	}
 }
 
 

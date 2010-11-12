@@ -48,7 +48,7 @@ public:
 	virtual ~EventRouter() {
 		for (int i = 0; i<numHistograms; i++) 
 			if (histogramList[i]) delete histogramList[i];
-		if (histogramList) delete histogramList;
+		if (histogramList) delete [] histogramList;
 	}
 	//Refresh the displayed texture, if there is one..
 	virtual void refreshGLWindow(){}

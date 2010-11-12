@@ -774,6 +774,8 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 		if (rc){
 			MyBase::SetErrMsg(VAPOR_WARNING, "Error in coordinate projection: \n%s",
 				pj_strerrno(rc));
+			pj_free(vapor_proj);
+			pj_free(latlon_proj);
 			return false;
 		}
 	}
@@ -783,6 +785,8 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 		const float* exts = getExtents(timestep);
 		for (int i = 0; i<2*npoints; i++) coords[i] -= (exts[i%2]-globExts[i%2]);
 	}
+	pj_free(vapor_proj);
+	pj_free(latlon_proj);
 	return true;
 	
 }

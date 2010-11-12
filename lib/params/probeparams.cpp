@@ -1135,7 +1135,7 @@ void ProbeParams::setProbeDirty(){
 	if (probeDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
 			if (probeDataTextures[i]) {
-				delete probeDataTextures[i];
+				delete [] probeDataTextures[i];
 				probeDataTextures[i] = 0;
 			}
 		}
@@ -1143,7 +1143,7 @@ void ProbeParams::setProbeDirty(){
 	if (probeIBFVTextures){
 		for (int i = 0; i<=maxTimestep; i++){
 			if (probeIBFVTextures[i]) {
-				delete probeIBFVTextures[i];
+				delete [] probeIBFVTextures[i];
 				probeIBFVTextures[i] = 0;
 			}
 		}
