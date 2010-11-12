@@ -74,7 +74,9 @@ int main( int argc, char ** argv ) {
     QString filePath =  GetAppPath("VAPOR", "plugins", paths).c_str();
     QStringList filePaths(filePath);
     QCoreApplication::setLibraryPaths(filePaths);
-	
+//For Mac and Linux, set the PYTHONHOME in this app
+#ifndef WIN32
+
 	const char *s = getenv("PYTHONHOME");
 	string phome = s ? s : "";
 	string pythonversion ("python");
@@ -94,14 +96,8 @@ int main( int argc, char ** argv ) {
 		ppaths.push_back("lib");
 		ppaths.push_back(pythonversion);
 		phome =  GetAppPath("VAPOR", "", ppaths).c_str();
-		if (! phome.empty()) {
-
-#ifdef  WIN32
-			const string separator = "\\";
-#else
+		if (! phome.empty()) {	
 			const string separator = "/";
-#endif
-
 			string s = "lib";
 			s.append(separator);
 			s.append(pythonversion);
@@ -110,14 +106,12 @@ int main( int argc, char ** argv ) {
 		else {
 			phome = PYTHONDIR;
 		}
-#ifdef  WIN32
-		SetEnvironmentVariableA("PYTHONHOME",phome.c_str());
-#else
+
 		setenv("PYTHONHOME",phome.c_str(),1);
-#endif
 	}
 	MyBase::SetDiagMsg("PYTHONMOME = %s", phome.c_str());
 							   
+#endif
 
 	app = &a;
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));

@@ -19,8 +19,8 @@ vaporhome = Right(inputstring, len(inputstring) - posn -1)
 vaporhome = vaporhome & "VAPOR"
 vaporshare = vaporhome & "\share"
 vaporbin = vaporhome & "\bin"
-vaporpython = vaporhome & "\lib\Python266\lib\site-packages"
-pythonhome = vaporhome & "\lib\Python266"
+
+pythonhome = vaporhome & "\lib\python2.6"
 
 set shell = CreateObject("wscript.shell")
 
@@ -32,6 +32,12 @@ End If
 
 SysEnv("VAPOR_HOME") = vaporhome
 SysEnv("VAPOR_SHARE") = vaporshare
+pythonVar = sysEnv("PYTHONHOME")
+
+if (Len(PythonVar) > 0) Then
+    MsgBox("PYTHONHOME variable is being reset to point to VAPOR Python home")
+End if
+
 SysEnv("PYTHONHOME") = pythonhome
 
 '  Insert VAPOR_HOME\bin at start of path
@@ -39,11 +45,6 @@ pathvar = sysEnv("path")
 pathvar = vaporbin & ";" & pathvar
 SysEnv("path") = pathvar
 
-'  Insert vaporpython at start of pythonpath
-
-pathvar = sysEnv("PYTHONPATH")
-pathvar = vaporpython & ";" & pathvar
-SysEnv("PYTHONPATH") = pathvar
 
 idlpath = sysenv("IDL_DLM_PATH")
 
