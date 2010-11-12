@@ -240,6 +240,10 @@ void Session::setDefaultPrefs(){
 	char* tempDir = getenv("TEMP");
 	if (!tempDir) tempDir = getenv("HOMEDRIVE");
 	if (!tempDir) tempDir = "C:";
+	char* defDir = getenv("HOME");
+	if (!defDir) defDir = getenv("HOMEDRIVE");
+	if (!defDir) defDir = "C:";
+	const char* defaultDir = defDir;
 	char buf2[50];
 	
 	DWORD size = 50;
