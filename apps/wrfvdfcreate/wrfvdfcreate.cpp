@@ -84,7 +84,7 @@ void ErrMsgCBHandler(const char *msg, int) {
 int	main(int argc, char **argv) {
 
 	OptionParser op;
-
+	string s;
 	MetadataWRF *WRFData;
 
 	ProgName = Basename(argv[0]);
@@ -160,7 +160,7 @@ int	main(int argc, char **argv) {
 	}
 
 	size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
-	MetadataVDC *file = new MetadataVDC(WRFData->GetDimension(), opt.level, bs);
+	MetadataVDC *file = new MetadataVDC(WRFData->GetDimension(), opt.level, bs, opt.nfilter, opt.nlifting);
 	if (MetadataVDC::GetErrCode() != 0) exit(1);
 
 	// Copy values over from MetadataWRF to MetadataVDC.
@@ -179,15 +179,15 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 	if(file->SetVariables2DXY(WRFData->GetVariables2DXY())) {
-		cerr << "Error populating Variables3D." << endl;
+		cerr << "Error populating Variables2DXY." << endl;
 		exit(1);
 	}
 	if(file->SetVariables2DXZ(WRFData->GetVariables2DXZ())) {
-		cerr << "Error populating Variables3D." << endl;
+		cerr << "Error populating Variables2DXZ." << endl;
 		exit(1);
 	}
 	if(file->SetVariables2DYZ(WRFData->GetVariables2DYZ())) {
-		cerr << "Error populating Variables3D." << endl;
+		cerr << "Error populating Variables2DYZ." << endl;
 		exit(1);
 	}
 	if(file->SetExtents(WRFData->GetExtents())) {
@@ -224,26 +224,132 @@ int	main(int argc, char **argv) {
 
 	// Handle command line over rides here.
 
+	s.assign(opt.comment);
+	if(file->SetComment(s) < 0) {
+		cerr << "Error populating Comment." << endl;
+		exit(1);
+	}
+
+	if(opt.vars3d.size() > 0) {
+		vector <string> new3dvars;
+		vector <string> cur3dvars;
+		cur3dvars = file->GetVariables3D();
+		new3dvars.clear();
+		for(int i = 0; i < opt.vars3d.size(); i++) {
+			int j;
+			for (j = 0; j < cur3dvars.size(); j++ ) {
+				if (cur3dvars[j] == opt.vars3d[i])
+					break;
+			} // End of for j.
+			if (j < cur3dvars.size()) {
+				int k;
+				for(k = 0 ; k < new3dvars.size(); k++) {
+					if (new3dvars[k] == opt.vars3d[i])
+                                	        break;
+				} // End of for k.
+				if (k < new3dvars.size() || new3dvars.size() == 0)
+					new3dvars.push_back(opt.vars3d[i]);
+			}
+			else {
+				cerr << ProgName << " : Invalid variable : " << opt.vars3d[i] << endl;
+			}
+		} // End of for i.
+		if(file->SetVariables3D(new3dvars)) {
+                	cerr << "Error populating Variables3D." << endl;
+                	exit(1);
+        	}
+	} // End of opt.vars3d
+
+	if(opt.vars2d.size() > 0) {
+		vector <string> new2dvars;
+		vector <string> cur2dvars;
+		cur2dvars = file->GetVariables2DXY();
+		new2dvars.clear();
+		for(int i = 0; i < opt.vars2d.size(); i++) {
+			int j;
+			for (j = 0; j < cur2dvars.size(); j++ ) {
+				if (cur2dvars[j] == opt.vars2d[i])
+					break;
+			} // End of for j.
+			if (j < cur2dvars.size()) {
+				int k;
+				for(k = 0 ; k < new2dvars.size(); k++) {
+					if (new2dvars[k] == opt.vars2d[i])
+                                	        break;
+				} // End of for k.
+				if (k < new2dvars.size() || new2dvars.size() == 0)
+					new2dvars.push_back(opt.vars2d[i]);
+			}
+			else {
+				cerr << ProgName << " : Invalid variable : " << opt.vars2d[i] << endl;
+			}
+		} // End of for i.
+		if(file->SetVariables2DXY(new2dvars)) {
+                	cerr << "Error populating Variables2D." << endl;
+                	exit(1);
+        	}
+	} // End of opt.vars2d
+
+	if(opt.dervars.size() > 0) {
+		vector <string> new3dvars;
+		new3dvars = file->GetVariables3D();
+		for(int i = 0; i < opt.dervars.size(); i++) {
+			if (opt.dervars[i] == "PFull_") {
+				new3dvars.push_back("PFull_");
+			}
+			else if (opt.dervars[i] == "PNorm_") {
+				new3dvars.push_back("PNorm_");
+                        }
+			else if (opt.dervars[i] == "PHNorm_") {
+				new3dvars.push_back("PHNorm_");
+                        }
+			else if (opt.dervars[i] == "Theta_") {
+				new3dvars.push_back("Theta_");
+                        }
+			else if (opt.dervars[i] == "TK_") {
+				new3dvars.push_back("TK_");
+                        }
+			else if (opt.dervars[i] == "UV_") {
+				new3dvars.push_back("UV_");
+                        }
+			else if (opt.dervars[i] == "UVW_") {
+				new3dvars.push_back("UVW_");
+                        }
+			else if (opt.dervars[i] == "omZ_") {
+				new3dvars.push_back("omZ_");
+                        }
+			else {
+				cerr << ProgName << " : Invalid derived variable : " << opt.dervars[i] << endl;
+			}
+		} // End of for.
+		if(file->SetVariables3D(new3dvars)) {
+                	cerr << "Error populating Variables3D." << endl;
+                	exit(1);
+        	}
+	} // End of if opt.dervars.
+
+	// Write file.
+
 	if (file->Write(argv[argc-1]) < 0) {
 		exit(1);
 	}
 
 	if (! opt.quiet && WRFData->GetNumTimeSteps() > 0) {
 		cout << "Created VDF file:" << endl;
-		cout << "\tNum time steps : " << WRFData->GetNumTimeSteps() << endl;
+		cout << "\tNum time steps : " << file->GetNumTimeSteps() << endl;
 		cout << "\t3D Variable names : ";
-		for (int i = 0; i < WRFData->GetVariables3D().size(); i++) {
-			cout << WRFData->GetVariables3D()[i] << " ";
+		for (int i = 0; i < file->GetVariables3D().size(); i++) {
+			cout << file->GetVariables3D()[i] << " ";
 		}
 		cout << endl;
 		cout << "\t2D Variable names : ";
-		for (int i=0; i < WRFData->GetVariables2DXY().size(); i++) {
-			cout << WRFData->GetVariables2DXY()[i] << " ";
+		for (int i=0; i < file->GetVariables2DXY().size(); i++) {
+			cout << file->GetVariables2DXY()[i] << " ";
 		}
 		cout << endl;
 
 		cout << "\tCoordinate extents : ";
-		const vector <double> extptr = WRFData->GetExtents();
+		const vector <double> extptr = file->GetExtents();
 		for(int i=0; i<6; i++) {
 			cout << extptr[i] << " ";
 		}
