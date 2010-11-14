@@ -506,8 +506,7 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 //Uses existing values of prevNormal, PrevVertex
 //
 
-void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3], float endPoint[3], float* currentB, float* currentU, float radius, bool constMap,
-							float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex) {
+void FlowRenderer::drawTube(bool isLit, float* secondColor, float endPoint[3], float* currentB, float* currentU, float radius, bool constMap) {
 
 	// just add a ring around this point to the vertex array, index array will handle the rest
 	makeRing(vertexArray, &curVaIndex, secondColor, endPoint, currentB, currentU, radius, constMap);
@@ -1328,10 +1327,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
 	//Declare values used repeatedly (toggle between even and odd)
 	//Tube will actually be hexagonal
-	float evenVertex[18];
-	float oddVertex[18];
-	float evenNormal[18];
-	float oddNormal[18];
+	
 	float evenU[3];//vector in plane of points, orthog to A
 	float oddU[3];
 	
@@ -1491,16 +1487,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			} 
 			vscale( evenU, 1.f/sqrt(len));
 			vcross(evenU, evenA, currentB);
-			//set up initial even 6 vertices around point P = P(0)
-			//These are P + 
-			for (int i = 0; i<6; i++){
-				vmult(evenU, coses[i], testVec);
-				vmult(currentB, sines[i], testVec2);
-				//Calc outward normal as a sideEffect..
-				vadd(testVec, testVec2, evenNormal+3*i);
-				vmult(evenNormal+3*i, radius, evenVertex+3*i);
-				vadd(evenVertex+3*i, flowLineData->getFlowPoint(tubeNum, tubeStartIndex), evenVertex+3*i);
-			}
+			
 			//copy first normal for endcap
 			vcopy(evenA, startA);
 
@@ -1514,10 +1501,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			float* prevN;
 			float* prevA;
 			float* prevU;
-			float* currentVertex = 0;
-			float* currentNormal;
-			float* prevVertex;
-			float* prevNormal;
+			
 			
 
 			//prepare to render the first cylinder in the tube.
@@ -1539,10 +1523,6 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					prevA = oddA;
 					currentU = evenU;
 					prevU = oddU;
-					currentVertex = evenVertex;
-					prevVertex = oddVertex;
-					currentNormal = evenNormal;
-					prevNormal = oddNormal;
 					currentIsEven = false;
 				} else {
 					currentN = oddN;
@@ -1551,10 +1531,6 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					prevA = evenA;
 					currentU = oddU;
 					prevU = evenU;
-					currentVertex = oddVertex;
-					prevVertex = evenVertex;
-					currentNormal = oddNormal;
-					prevNormal = evenNormal;
 					currentIsEven = true;
 				}
 				
@@ -1602,20 +1578,13 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					if (modifiedCycle) {
 						//remap start point
 						mapPeriodicCycle(point-3, startPoint, newCycle, currentCycle);
-						//also translate the prevVertex by the difference we just applied to startPoint
-						for (int j = 0; j< 6; j++){
-							for (int k = 0; k<3; k++){
-								prevVertex[3*j+k] += startPoint[k]-point[k-3];
-							}
-						}
 					}
 					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
 					
 					/* add first ring before looping through the rest */
 					makeRing(vertexArray, &curVaIndex, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, currentB, currentU, radius, constMap);
 				}
-				drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, endPoint, currentB, currentU, radius, constMap,
-					prevNormal, prevVertex, currentNormal, currentVertex);
+				drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), endPoint, currentB, currentU, radius, constMap);
 
 				//If the tube exited the region (in cyclic case) need to reset the points.  Note that
 				//the direction vectors don't need to be changed:
@@ -1635,13 +1604,8 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					//translated values for prevVertex.  prevNormal is OK.  The resulting values
 					//in currentVertex are translated appropriately, since they are offset from endPoint
 					//The repeated segment needs to translate prevVertex accordingly
-					for (int j = 0; j< 6; j++){
-						for (int k = 0; k<3; k++){
-							prevVertex[3*j+k] += nextStartPoint[k]-startPoint[k];
-						}
-					}
-					drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum, tubeIndex), nextStartPoint, endPoint, currentB, currentU, radius, constMap,
-						prevNormal, prevVertex, currentNormal, currentVertex);
+					
+					drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum, tubeIndex),  endPoint, currentB, currentU, radius, constMap);
 				}
 			}
 

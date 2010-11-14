@@ -136,8 +136,8 @@ protected:
 	void drawArrow(bool isLit, float* firstColor, float* firstPoint, float* endPoint, float* dirVec, float* bVec, 
 		float* UVec, float radius, bool constMap);
 	// draw one cylinder of tube
-	void drawTube(bool isLit, float* secondColor, float* startPoint, float* endPoint, float* currentB, float* currentU, 
-		float radius, bool constMap, float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex);
+	void drawTube(bool isLit, float* secondColor, float* endPoint, float* currentB, float* currentU, 
+		float radius, bool constMap);
 	// add 6 point orthogonal to point_in to storage array at offset
 	void makeRing(flowTubeVertexData* storage, unsigned int* offset, float* color_in, float* point_in, float* B_in, float* U_in, float radius_in, bool constMap);
 

@@ -1163,8 +1163,8 @@
 				E704152C123042CB0083F569 /* ncdf2vdf */,
 				E704152F123042CB0083F569 /* raw2vdf */,
 				E7041532123042CB0083F569 /* tiff2geotiff */,
-				E7041537123042CB0083F569 /* vaporgui */,
 				E70415FA123042CB0083F569 /* vaporversion */,
+				E7041537123042CB0083F569 /* vaporgui */,
 				E70415FD123042CB0083F569 /* vdf2raw */,
 				E7041600123042CB0083F569 /* vdfcreate */,
 				E7041603123042CB0083F569 /* vdfedit */,
@@ -1494,9 +1494,8 @@
 				E70415FB123042CB0083F569 /* Makefile */,
 				E70415FC123042CB0083F569 /* vaporversion.cpp */,
 			);
-			name = vaporversion;
-			path = ../../../apps/vaporversion;
-			sourceTree = SOURCE_ROOT;
+			path = vaporversion;
+			sourceTree = "<group>";
 		};
 		E70415FD123042CB0083F569 /* vdf2raw */ = {
 			isa = PBXGroup;
