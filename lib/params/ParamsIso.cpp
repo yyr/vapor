@@ -163,8 +163,27 @@ reinit(bool doOverride){
 		for (int i = 0; i<totNumVariables; i++){
 			boundsArrays[i] = new float[4];
 			if(i<GetNumVariables()){ //make copy of existing ones, don't set their root nodes yet
-				newTransFunc[i] = (TransferFunction*)GetTransFunc(i)->deepCopy(0);
-				newIsoControls[i] = (IsoControl*)GetIsoControl(i)->deepCopy(0);
+				float dataMin = ds->getDefaultDataMin(i);
+				float dataMax = ds->getDefaultDataMax(i);
+				if (!GetTransFunc(i)){ //for backwards compatibility, create default trans func
+					newTransFunc[i] = new TransferFunction(this, 8);
+					newTransFunc[i]->setOpaque();
+					newTransFunc[i]->setMinMapValue(dataMin);
+					newTransFunc[i]->setMaxMapValue(dataMax);
+					newTransFunc[i]->setVarNum(i);
+				} else {
+					newTransFunc[i] = (TransferFunction*)GetTransFunc(i)->deepCopy(0);
+				}
+				if (GetIsoControl(i)){	
+					newIsoControls[i] = (IsoControl*)GetIsoControl(i)->deepCopy(0);
+				} else {
+					newIsoControls[i] = new IsoControl(this, 8);
+					newIsoControls[i]->setVarNum(i);
+					newIsoControls[i]->setMinHistoValue(dataMin);
+					newIsoControls[i]->setMaxHistoValue(dataMax);
+					newIsoControls[i]->setIsoValue(0.5*(dataMin+dataMax));
+				}
+					
 				newTransFunc[i]->hookup(this, i, i);
 				
 				newIsoControls[i]->setParams(this);
@@ -760,12 +779,18 @@ TransferFunction* ParamsIso::GetTransFunc(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
 	const string& str = ds->getVariableName(sesVarNum);
 	if (str.length() == 0) return 0;
-	return (TransferFunction*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag)->GetParamsBase());
+	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
+		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag))
+		return (TransferFunction*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag)->GetParamsBase());
+	else return NULL;
 }
 IsoControl* ParamsIso::GetIsoControl(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
 	const string& str = ds->getVariableName(sesVarNum);
 	if (str.length() == 0) return 0;
-	return (IsoControl*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag)->GetParamsBase());
+	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
+		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag))
+		return (IsoControl*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag)->GetParamsBase());
+	return 0;
 }
 
