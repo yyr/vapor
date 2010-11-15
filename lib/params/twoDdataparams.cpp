@@ -333,7 +333,7 @@ reinit(bool doOverride){
 	transFunc = newTransFunc;
 	
 	numVariables = newNumVariables;
-	setEnabled(false);
+	
 	// set up the texture cache
 	setTwoDDirty();
 	if (twoDDataTextures) {

@@ -162,7 +162,6 @@ reinit(bool doOverride){
 	if (hgtvar >= 0)
 		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
 	
-	setEnabled(false);
 	// set up the texture cache
 	setTwoDDirty();
 	if (twoDDataTextures) {

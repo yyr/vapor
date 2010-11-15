@@ -403,7 +403,6 @@ reinit(bool doOverride){
 	transFunc = newTransFunc;
 	
 	numVariables = newNumVariables;
-	setEnabled(false);
 	// set up the texture cache
 	setProbeDirty();
 	if (probeDataTextures) delete [] probeDataTextures;
