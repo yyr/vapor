@@ -127,7 +127,7 @@ float	*DataMgr::GetRegion(
 	}
 
 	blks = (float *) alloc_region(
-		ts,varname,vtype, reflevel, lod, DataMgr::FLOAT32,min,max,lock
+		ts,varname,vtype, reflevel, lod, DataMgr::FLOAT32,min,max,lock,false
 	);
 	if (! blks) return(NULL);
 
@@ -137,7 +137,7 @@ float	*DataMgr::GetRegion(
 			"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
 			varname, ts, reflevel, lod
 		);
-		(void) free_region(ts,varname,reflevel,lod,FLOAT32,min,max);
+		free_region(ts,varname,reflevel,lod,FLOAT32,min,max);
 		CloseVariable();
 		return (NULL);
 	}
@@ -285,7 +285,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 
 	ublks = (unsigned char *) alloc_region(
 		ts,varname.c_str(),vtype1, reflevel,lod, DataMgr::UINT16,
-		min,max, lock
+		min,max, lock,false
 	);
 	if (! ublks) return(NULL);
 
@@ -415,7 +415,7 @@ unsigned char	*DataMgr::GetRegionUInt16(
 
 	ublks = (unsigned char *) alloc_region(
 		ts,varname.c_str(),vtype1, reflevel,lod, DataMgr::UINT32,
-		min,max, lock
+		min,max, lock,false
 	);
 	if (! ublks) return(NULL);
 
@@ -687,7 +687,7 @@ unsigned char	*DataMgr::get_quantized_region(
 
 	VarType_T vtype = GetVarType(varname);
 	ublks = (unsigned char *) alloc_region(
-		ts,varname,vtype, reflevel,lod, type,min,max, lock
+		ts,varname,vtype, reflevel,lod, type,min,max, lock, false
 	);
 	if (! ublks) {
 		UnlockRegion(blks);
@@ -1064,7 +1064,8 @@ void	*DataMgr::alloc_region(
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
-	int	lock
+	int	lock,
+	bool fill
 ) {
 
 	size_t mem_block_size;
@@ -1085,35 +1086,9 @@ void	*DataMgr::alloc_region(
 	}
 	mem_block_size = BlkMemMgr::GetBlkSize();
 
-	// See if requested region already exists
+	// Free region already exists
 	//
-	list <region_t>::iterator itr;
-	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
-		region_t &region = *itr;
-
-		if (region.ts == ts &&
-			region.varname.compare(varname) == 0 &&
-			region.reflevel == reflevel &&
-			region.lod == lod &&
-			region.min[0] == min[0] &&
-			region.min[1] == min[1] &&
-			region.min[2] == min[2] &&
-			region.max[0] == max[0] &&
-			region.max[1] == max[1] &&
-			region.max[2] == max[2] &&
-			region.type == type) {
-
-			// Reset the lock counter
-			region.lock_counter = lock;
-
-			// Move region to front of list
-			region_t tmp_region = region;
-			_regionsList.erase(itr);
-			_regionsList.push_back(tmp_region);
-
-			return(tmp_region.blks);
-		}
-	}
+	free_region(ts,varname,reflevel,lod,type,min,max);
 
 	int	vs;
 
@@ -1156,7 +1131,7 @@ void	*DataMgr::alloc_region(
 	size_t nblocks = (size_t) ceil((double) size / (double) mem_block_size);
 		
 	float *blks;
-	while (! (blks = (float *) _blk_mem_mgr->Alloc(nblocks))) {
+	while (! (blks = (float *) _blk_mem_mgr->Alloc(nblocks, fill))) {
 		if (free_lru() < 0) {
 			SetErrMsg("Failed to allocate requested memory");
 			return(NULL);
@@ -1184,7 +1159,7 @@ void	*DataMgr::alloc_region(
 	return(region.blks);
 }
 
-int	DataMgr::free_region(
+void	DataMgr::free_region(
 	size_t ts,
 	const char *varname,
 	int reflevel,
@@ -1214,12 +1189,12 @@ int	DataMgr::free_region(
 				if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
 				
 				_regionsList.erase(itr);
-				return(0);
+				return;
 			}
 		}
 	}
 
-	return(-1);
+	return;
 }
 
 void	DataMgr::Clear() {
@@ -1521,7 +1496,8 @@ float *DataMgr::execute_pipeline(
 		}
 
 		float *blks = (float *) alloc_region(
-			ts,v.c_str(),vtype, reflevel, lod, DataMgr::FLOAT32,min,max,my_lock
+			ts,v.c_str(),vtype, reflevel, lod, DataMgr::FLOAT32,min,max,my_lock,
+			true
 		);
 		if (! blks) {
 			// Unlock any locked variables and abort

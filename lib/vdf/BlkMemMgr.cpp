@@ -171,7 +171,8 @@ BlkMemMgr::~BlkMemMgr() {
 }
 
 void	*BlkMemMgr::Alloc(
-	size_t n
+	size_t n,
+	bool fill
 ) {
 	size_t	i,j;
 	long long	index = -1;
@@ -193,6 +194,11 @@ void	*BlkMemMgr::Alloc(
 	if (index < 0) return(NULL);
 				
 	_free_table[index] = n;
+
+	if (fill) {
+		unsigned char *ptr = _blkptr + ((long) index * (long) _blk_size);
+		for (size_t i=0; i<n*_blk_size; i++) ptr[i] = 0;
+	}
 
 	return(_blkptr + ((long) index * (long) _blk_size));
 }
