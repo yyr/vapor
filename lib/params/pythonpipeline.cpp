@@ -280,7 +280,7 @@ int PythonPipeLine::python_wrapper(
 				//post it as Diagnostic.
 				//There will be an error message too, but
 				//the error callback fcn is disabled here.
-				MyBase::SetDiagMsg(" Python execution error:\n%s\n",strtext);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python execution error:\n%s\n",strtext);
 			}
 		}
 		return -1;
