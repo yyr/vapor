@@ -453,7 +453,8 @@ void PurgeVariable(string varname);
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
-	int lock
+	int lock,
+	bool fill
  ); 
 
 protected:
@@ -646,7 +647,7 @@ private:
  );
 
 
- int	free_region(
+ void	free_region(
 	size_t ts,
 	const char *varname,
 	int reflevel,

@@ -37,9 +37,10 @@ public:
  //
  //! Return a pointer to the specified amount of memory from the memory pool
  //! \param[in] num_blks Size of memory region requested in blocks
+ //! \param[in] fill If true, the allocated memory will be cleared to zero
  //! \retval ptr A pointer to the requested memory pool
  //
- void	*Alloc(size_t num_blks);
+ void	*Alloc(size_t num_blks, bool fill = false);
 
  //! Free memory
  //
