@@ -26,13 +26,11 @@ is the recommended usage.
 
 =item -vars3d E<lt>varsE<gt>
 
-A colon-delimited list of names of 3D variables (as they appear in the
-WRF file) to include in the .vdf file.  The arguments to B<-varnames>
-need not exclusively be WRF variables--for example, derived variables
-(such as vorticity) that are stored in a netCDF file with the same
-dimensions and B<PH>, B<PHB>, and B<Times> variables can be converted
-as well. In the first form of the command the default is to convert all
-3D variables found in the first of the WRF netCDF input files.
+A colon-delimited list of names of 3D variables to include in the .vdf
+file.  In general, the list of variables should be a subset of the 3D
+variables found in the WRF input files.  If this option is not present
+the default behavior is to generate the list of 3D from all of the 3D
+variables found in the first of the WRF netCDF input files.
 
 =item -vars2d E<lt>varsE<gt>
 
