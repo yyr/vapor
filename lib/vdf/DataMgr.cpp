@@ -1530,7 +1530,13 @@ float *DataMgr::execute_pipeline(
 		if (i != output_index) UnlockRegion(out_blkptrs[i]);
 	}
 
-	if (rc < 0) return(NULL);
+	if (rc < 0) {
+		for (int i=0; i<output_vars.size(); i++) {
+			string v = output_vars[i].first;
+			free_region(ts,v.c_str(),reflevel,lod,FLOAT32,min,max);
+		}
+		return(NULL);
+	}
 
 	for (int i=0; i<output_vars.size(); i++) {
 
