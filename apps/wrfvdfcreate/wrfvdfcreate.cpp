@@ -174,11 +174,19 @@ int	main(int argc, char **argv) {
 		cerr << "Error populating MapProjection." << endl;
 		exit(1);
 	}
-	if(file->SetVariables3D(WRFData->GetVariables3D())) {
+
+	vector <string> vars3d = 
+		opt.vars3d.size() ? opt.vars3d : WRFData->GetVariables3D();
+
+	if(file->SetVariables3D(vars3d)) {
 		cerr << "Error populating Variables3D." << endl;
 		exit(1);
 	}
-	if(file->SetVariables2DXY(WRFData->GetVariables2DXY())) {
+
+	vector <string> vars2d = 
+		opt.vars2d.size() ? opt.vars2d : WRFData->GetVariables2DXY();
+
+	if(file->SetVariables2DXY(vars2d)) {
 		cerr << "Error populating Variables2DXY." << endl;
 		exit(1);
 	}
@@ -229,66 +237,6 @@ int	main(int argc, char **argv) {
 		cerr << "Error populating Comment." << endl;
 		exit(1);
 	}
-
-	if(opt.vars3d.size() > 0) {
-		vector <string> new3dvars;
-		vector <string> cur3dvars;
-		cur3dvars = file->GetVariables3D();
-		new3dvars.clear();
-		for(int i = 0; i < opt.vars3d.size(); i++) {
-			int j;
-			for (j = 0; j < cur3dvars.size(); j++ ) {
-				if (cur3dvars[j] == opt.vars3d[i])
-					break;
-			} // End of for j.
-			if (j < cur3dvars.size()) {
-				int k;
-				for(k = 0 ; k < new3dvars.size(); k++) {
-					if (new3dvars[k] == opt.vars3d[i])
-                                	        break;
-				} // End of for k.
-				if (k < new3dvars.size() || new3dvars.size() == 0)
-					new3dvars.push_back(opt.vars3d[i]);
-			}
-			else {
-				cerr << ProgName << " : Invalid variable : " << opt.vars3d[i] << endl;
-			}
-		} // End of for i.
-		if(file->SetVariables3D(new3dvars)) {
-                	cerr << "Error populating Variables3D." << endl;
-                	exit(1);
-        	}
-	} // End of opt.vars3d
-
-	if(opt.vars2d.size() > 0) {
-		vector <string> new2dvars;
-		vector <string> cur2dvars;
-		cur2dvars = file->GetVariables2DXY();
-		new2dvars.clear();
-		for(int i = 0; i < opt.vars2d.size(); i++) {
-			int j;
-			for (j = 0; j < cur2dvars.size(); j++ ) {
-				if (cur2dvars[j] == opt.vars2d[i])
-					break;
-			} // End of for j.
-			if (j < cur2dvars.size()) {
-				int k;
-				for(k = 0 ; k < new2dvars.size(); k++) {
-					if (new2dvars[k] == opt.vars2d[i])
-                                	        break;
-				} // End of for k.
-				if (k < new2dvars.size() || new2dvars.size() == 0)
-					new2dvars.push_back(opt.vars2d[i]);
-			}
-			else {
-				cerr << ProgName << " : Invalid variable : " << opt.vars2d[i] << endl;
-			}
-		} // End of for i.
-		if(file->SetVariables2DXY(new2dvars)) {
-                	cerr << "Error populating Variables2D." << endl;
-                	exit(1);
-        	}
-	} // End of opt.vars2d
 
 	if(opt.dervars.size() > 0) {
 		vector <string> new3dvars;
