@@ -1899,6 +1899,7 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 					for (int ii = 0; ii+1 < curVaIndex/12; ii++) glDrawArrays(GL_POLYGON, ii*(2*6+0), 6);
 					for (int ii = 0; ii+1 < curVaIndex/12; ii++) glDrawElements(GL_TRIANGLE_FAN, 8, GL_UNSIGNED_INT, &indexArray[curVaSize*2*7 + ii*8]);
 					curVaIndex = 0;
+					curVaIndex2 = (curVaSize+1)*6*2;
 					
 					//Then render the new (cyclically offset) arrow:
 					drawArrow(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
