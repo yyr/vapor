@@ -11,12 +11,14 @@
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
+#include "pythonpipeline.h"
 #include "GetAppPath.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
 
 std::string PythonPipeLine::startupScript = "";
+bool PythonPipeLine::everInitialized = false;
 
 DataMgr* PythonPipeLine::currentDataMgr = 0;
 bool PythonPipeLine::initialized = false;
@@ -82,6 +84,7 @@ void PythonPipeLine::initialize(){
 	PyImport_AppendInittab((char*)"vapor",&(PythonPipeLine::initvapor));
 		
 	Py_Initialize();
+	everInitialized = true;
 	PyObject* numpyname = PyString_FromFormat("numpy");
 	PyObject* mod = PyImport_Import(numpyname);
 	PyObject* vaporname = PyString_FromFormat("vapor");

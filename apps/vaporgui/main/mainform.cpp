@@ -76,6 +76,7 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
+#include "pythonpipeline.h"
 
 #include "animationparams.h"
 #include "probeparams.h"
@@ -278,6 +279,7 @@ MainForm::~MainForm()
 	if (modeStatusWidget) delete modeStatusWidget;
     //qWarning("mainform destructor start");
 	delete Session::getInstance();
+	PythonPipeLine::terminate();
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
 }
 

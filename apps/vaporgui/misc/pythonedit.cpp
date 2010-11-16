@@ -425,6 +425,7 @@ void PythonEdit::testScript(){
 	}
 	else { 
 		Py_Initialize();
+		PythonPipeLine::setEverInitialized();
 		//get the module dictionary...
 		PyObject* mainModule = PyImport_AddModule("__main__");
 		PyObject* mainDict = PyModule_GetDict(mainModule);

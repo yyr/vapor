@@ -40,6 +40,8 @@ class DataMgr;
 class PARAMS_API PythonPipeLine : public PipeLine {
 public:
 	PythonPipeLine(string name, vector<string> inputs, vector < pair < string, Metadata::VarType_T > > outputs, DataMgr*);
+
+	static void terminate(){ if (everInitialized) Py_Finalize();}
 		
 	virtual int Calculate (
 	   vector <const float *> input_blks,
@@ -63,7 +65,7 @@ public:
 		startupScript = newScript;
 		initialized = false;
 	}
-	
+	static void setEverInitialized() {everInitialized = true;}
 protected:
 	int python_wrapper(int scriptId,size_t ts,int reflevel, int compression,
 		const size_t min[3],const size_t max[3], 
@@ -96,6 +98,7 @@ protected:
 	
 	static DataMgr* currentDataMgr;
 	static bool initialized;
+	static bool everInitialized;
        
 		
 };
