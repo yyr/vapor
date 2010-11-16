@@ -568,12 +568,12 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		//Turn off messages from datamgr. 
 		//Not sure if this is necessary, but it does at least prevent
 		//redundant messages
-		ErrMsgCB_T errorCallback = GetErrMsgCB();
-		SetErrMsgCB(0);
+		//ErrMsgCB_T errorCallback = GetErrMsgCB();
+		//SetErrMsgCB(0);
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
 			getVariableName(varnum).c_str(), mnmx);
 		//Turn messages back on
-		SetErrMsgCB(errorCallback);
+		//SetErrMsgCB(errorCallback);
 		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d",
