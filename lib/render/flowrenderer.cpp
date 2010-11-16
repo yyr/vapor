@@ -1322,9 +1322,7 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 //
 void FlowRenderer::
 renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, int lastAge,  bool constMap ){
-	//Constants are needed for cosines and sines, at 60 degree intervals
-	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
-	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
+	
 	//Declare values used repeatedly (toggle between even and odd)
 	//Tube will actually be hexagonal
 	
@@ -1340,7 +1338,6 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	
 	float len;
 	float testVec[3];
-	float testVec2[3];
 	
 	//Vectors to hold the start and end arrow coordinates.
 	//They may be translated due to periodic boundary conditions.
