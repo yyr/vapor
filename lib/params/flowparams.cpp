@@ -2706,7 +2706,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 				DataStatus::getInstance()->getVariableName(steadyVarNum[var]-1).c_str(),
 				availRefLevel, GetCompressionLevel(), min_bdim, max_bdim,  1);
 			if (!varData[var]) {
-				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]);
+				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]-1);
 				//release currently locked regions:
 				for (int k = 0; k<var; k++){
 					dataMgr->UnlockRegion(varData[k]);
@@ -2727,16 +2727,16 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	bool ynull = (steadyVarNum[1] == 0);
 	bool znull = (steadyVarNum[2] == 0);
 	if (!xnull) {
-		lowx = ds->getBelowValue(steadyVarNum[0]);
-		highx = ds->getAboveValue(steadyVarNum[0]);
+		lowx = ds->getBelowValue(steadyVarNum[0]-1);
+		highx = ds->getAboveValue(steadyVarNum[0]-1);
 	}
 	if (!ynull) {
-		lowy = ds->getBelowValue(steadyVarNum[1]);
-		highy = ds->getAboveValue(steadyVarNum[1]);
+		lowy = ds->getBelowValue(steadyVarNum[1]-1);
+		highy = ds->getAboveValue(steadyVarNum[1]-1);
 	}
 	if (!znull) {
-		lowz = ds->getBelowValue(steadyVarNum[2]);
-		highz = ds->getAboveValue(steadyVarNum[2]);
+		lowz = ds->getBelowValue(steadyVarNum[2]-1);
+		highz = ds->getAboveValue(steadyVarNum[2]-1);
 	}
 	
 	//OK, we got the data. find the sum:
