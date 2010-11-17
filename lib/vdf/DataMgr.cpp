@@ -842,8 +842,8 @@ int DataMgr::GetDataRange(
 	size_t bmin[3], bmax[3];
 	rc = GetValidRegion(ts, varname, reflevel, min, max);
 	if (rc<0) return(-1);
-	MapVoxToBlk(min, bmin, -1);
-	MapVoxToBlk(max, bmax, -1);
+	MapVoxToBlk(min, bmin, reflevel);
+	MapVoxToBlk(max, bmax, reflevel);
 
 	
 	// Get data volume 
@@ -856,35 +856,86 @@ int DataMgr::GetDataRange(
 	size_t bs[3];
 	GetBlockSize(bs, reflevel);
 
-	size_t size;
 	switch (vtype) {
 	case VAR2D_XY:
-		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]);
+		bs[2] = 1;
+		bmin[2] = bmax[2] = 0;
+		min[2] = max[2] = 0;
 		break;
 	case VAR2D_XZ:
-		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[2]);
+		bs[1] = 1;
+		bmin[1] = bmax[1] = 0;
+		min[1] = max[1] = 0;
 		break;
 	case VAR2D_YZ:
-		size = ((bmax[0]-bmin[0]+1)*bs[1]) * ((bmax[1]-bmin[1]+1)*bs[2]);
+		bs[0] = 1;
+		bmin[0] = bmax[0] = 0;
+		min[0] = max[0] = 0;
 		break;
 	case VAR3D:
-		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]) *
-			((bmax[2]-bmin[2]+1)*bs[2]);
 		break;
 	default: 
-		size = 0;
+		break;
 	}
 
 	//
 	// Finally calculate the range. Note this code probably should crop
 	// the extents to the valid extents range returned by GetValidExtents()
 	//
-	range[0] = blks[0];
-	range[1] = blks[0];
-	for (size_t i=0; i<size; i++) {
-		if (blks[i] < range[0]) range[0] = blks[i];
-		if (blks[i] > range[1]) range[1] = blks[i];
+	bool first = true;
+
+	//
+	// These flags are true if this is a boundary block && the volume
+	// dimensions don't match the blocked-volume dimensions
+	//
+	bool xlbdry = (bmin[0]*bs[0] != min[0]);
+	bool ylbdry = (bmin[1]*bs[1] != min[1]);
+	bool zlbdry = (bmin[2]*bs[2] != min[2]);
+
+	bool xrbdry = ((bmax[0]+1)*bs[0]-1 != max[0]);
+	bool yrbdry = ((bmax[1]+1)*bs[1]-1 != max[1]);
+	bool zrbdry = ((bmax[2]+1)*bs[2]-1 != max[2]);
+
+	size_t nx = (bmax[0]-bmin[0]+1)*bs[0];
+	size_t ny = (bmax[1]-bmin[1]+1)*bs[1];
+	size_t nz = (bmax[2]-bmin[2]+1)*bs[2];
+	//
+	// the xyzstop limits are the bounds of the valid data for the block
+	//
+	size_t xstart = 0;
+	size_t ystart = 0;
+	size_t zstart = 0;
+
+	size_t xstop = nx-1;
+	size_t ystop = ny-1;
+	size_t zstop = nz-1;
+
+	if (xlbdry) xstart = min[0] - (bmin[0]*bs[0]);
+	if (ylbdry) ystart = min[1] - (bmin[1]*bs[1]);
+	if (zlbdry) zstart = min[2] - (bmin[2]*bs[2]);
+
+	if (xrbdry) xstop -= ((bmax[0]+1)*bs[0]-1) - max[0]; 
+	if (yrbdry) ystop -= ((bmax[1]+1)*bs[1]-1) - max[1]; 
+	if (zrbdry) zstop -= ((bmax[2]+1)*bs[2]-1) - max[2]; 
+
+
+	for (size_t z=zstart; z<zstop; z++) {
+	for (size_t y=ystart; y<zstop; y++) {
+	for (size_t x=xstart; x<zstop; x++) {
+
+		size_t idx = z*nx*ny + y*nx +x;
+		if (first) {
+			range[0] = range[1] = blks[idx];
+			first = false;
+		}
+
+		if (blks[idx] < range[0]) range[0] = blks[idx];
+		if (blks[idx] > range[1]) range[1] = blks[idx];
+
 	}
+	}
+	}
+
 	// Use of []'s creates an entry in map
 	_dataRangeMinMap[ts][varname] = range[0];
 	_dataRangeMaxMap[ts][varname] = range[1];
