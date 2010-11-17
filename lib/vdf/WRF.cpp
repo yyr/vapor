@@ -90,17 +90,15 @@ WRF::~WRF() {
 WRF::varFileHandle_t *WRF::Open(
 	const string &varname
 ) {
-	varFileHandle_t fh;
-	fh.buffer = NULL;
-
 	//
 	// Make sure we have a record for the variable
 	//
 	bool found = false;
+	int index = -1;
 	for (int i=0; i<_wrfVarInfo.size(); i++) {
 		if (varname.compare(_wrfVarInfo[i].alias) == 0) {
-			fh.thisVar = _wrfVarInfo[i];
 			found = true;
+			index = i;
 		}
 	}
 	if (! found) {
@@ -115,12 +113,13 @@ WRF::varFileHandle_t *WRF::Open(
 	//
 	size_t sz = (_dimLens[0]+1) * (_dimLens[1]+1);
 
-	fh.buffer = new float[sz];
-	fh.z = -1;	// Invalid slice #
-	fh.wrft = -1;	// Invalid time step
-
 	varFileHandle_t *fhptr = new varFileHandle_t();
-	*fhptr = fh;
+	fhptr->buffer = new float[sz];
+	if (! fhptr->buffer) return(NULL);
+
+	fhptr->z = -1;	// Invalid slice #
+	fhptr->wrft = -1;	// Invalid time step
+	fhptr->thisVar = _wrfVarInfo[index];
 
 	return(fhptr);
 }

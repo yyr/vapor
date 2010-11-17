@@ -126,6 +126,7 @@ int WRFReader::OpenVariableRead(
 			if (_wrf_fh) _wrf->Close(_wrf_fh);
 			_wrf_fh = _wrf->Open(varname);
 			if (! _wrf_fh) return(-1);
+			_current_var.assign(varname);
 		}
 		//
 		// Elevation is a derived variable that we calculate from
@@ -135,6 +136,7 @@ int WRFReader::OpenVariableRead(
 			if (_wrf_fh) _wrf->Close(_wrf_fh);
 			_wrf_fh = _wrf->Open("PH");
 			if (! _wrf_fh) return(-1);
+			_current_var.assign("PH");
 
 			if (_wrf_fh2) _wrf->Close(_wrf_fh2);
 			_wrf_fh2 = _wrf->Open("PHB");
@@ -145,7 +147,6 @@ int WRFReader::OpenVariableRead(
 			}
 		}
 	
-		_current_var.assign(varname);
 	}
 
 	_current_wrf_ts = wrf_ts;
@@ -163,6 +164,7 @@ int WRFReader::CloseVariable()
 	_wrf_fh = NULL;
 	_wrf_fh2 = NULL;
 	_current_var.clear();
+	_current_wrf_ts = 0;
 	return(0);
 }
 
