@@ -115,7 +115,8 @@ void PythonPipeLine::initialize(){
 		PyObject* retObj = PyRun_String(sysProg.c_str(),Py_file_input, mainDict,mainDict);
 		if (!retObj){
 			PyErr_Print();
-			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Error executing Python system startup program:\n%s\n",sysProg.substr(0,200).c_str());
+			MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Error executing Python system startup program.\n%s\n%s\n",
+				"PYTHONHOME or VAPOR_HOME may not be properly set",sysProg.substr(0,400).c_str());
 		}
 	}
 	
