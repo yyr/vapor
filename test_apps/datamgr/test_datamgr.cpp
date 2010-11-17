@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <cstdio>
+#include <cassert>
 
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
