@@ -920,8 +920,8 @@ int DataMgr::GetDataRange(
 
 
 	for (size_t z=zstart; z<=zstop; z++) {
-	for (size_t y=ystart; y<=zstop; y++) {
-	for (size_t x=xstart; x<=zstop; x++) {
+	for (size_t y=ystart; y<=ystop; y++) {
+	for (size_t x=xstart; x<=xstop; x++) {
 
 		size_t idx = z*nx*ny + y*nx +x;
 		if (first) {
