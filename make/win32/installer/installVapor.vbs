@@ -60,10 +60,10 @@ sysenv("IDL_DLM_PATH") = vaporbin & idlpath
 DesktopPath = shell.SpecialFolders("Desktop")
 Set link = shell.CreateShortcut(DesktopPath & "\vaporgui.lnk")
 link.Description = "Vaporgui"
-link.IconLocation = "C:\Program Files\NCAR\VAPOR\vapor-win-icon.ico"
-link.TargetPath = "C:\Program Files\NCAR\VAPOR\bin\vaporgui.exe"
+link.IconLocation = vaporhome & "\vapor-win-icon.ico"
+link.TargetPath = vaporhome & "\bin\vaporgui.exe"
 link.WindowStyle = 1
-link.WorkingDirectory = "C:\Program Files\NCAR\VAPOR"
+link.WorkingDirectory = vaporhome
 link.Save
 if (allUserProp) then
     LinkPath = Shell.SpecialFolders("AllUsersPrograms")
@@ -73,8 +73,8 @@ end if
 
 Set link = Shell.CreateShortcut(LinkPath & "\vaporgui.lnk")
 link.Description = "Vaporgui"
-link.IconLocation = "C:\Program Files\NCAR\VAPOR\vapor-win-icon.ico"
-link.TargetPath = "C:\Program Files\NCAR\VAPOR\bin\vaporgui.exe"
+link.IconLocation = vaporhome &"\vapor-win-icon.ico"
+link.TargetPath = vaporhome & "\bin\vaporgui.exe"
 link.WindowStyle = 1
-link.WorkingDirectory = "C:\Program Files\NCAR\VAPOR"
+link.WorkingDirectory = vaporhome
 link.Save
