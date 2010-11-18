@@ -849,7 +849,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 	//is changing.
 	if (DataStatus::getInstance())
 		DataStatus::getInstance()->setRenderReady(false);
-	
+	VizWinMgr::getInstance()->disableAllRenderers();
 	bool defaultSession = (files.size() == 0);
 	//if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
@@ -973,7 +973,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 		
 	}
 	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
-
+	
 	//If we're restarting session: Delete all visualizers, then create one new one.
 	//Do this before setting up params, since they will get deleted if their window
 	//vanishes.

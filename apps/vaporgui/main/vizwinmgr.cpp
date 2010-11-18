@@ -1317,6 +1317,22 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 		}
 	}
 }
+//Disable all renderers 
+void VizWinMgr::disableAllRenderers(){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]){
+			GLWindow* glwin= vizWin[i]->getGLWindow();
+			for (int j = 0; j< glwin->getNumRenderers(); j++){
+				Renderer* ren = glwin->getRenderer(j);
+				RenderParams* rParams = ren->getRenderParams();
+				Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+				int instance = findInstanceIndex(i, rParams, t);
+				EventRouter* er = getEventRouter(t);
+				er->guiSetEnabled(false,instance);	
+			}
+		}
+	}
+}
 void VizWinMgr::
 setSelectionMode( GLWindow::mouseModeType m){ 
 	GLWindow::setCurrentMouseMode(m);

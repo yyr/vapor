@@ -324,6 +324,8 @@ public:
 	//
 	//Disable all renderers that use specified variables
 	void disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D);
+	//Disable all renderers 
+	void disableAllRenderers();
 	//Following methods notify all params that are associated with a
 	//specific window.
 	//Set the dirty bits in all the visualizers that use a
