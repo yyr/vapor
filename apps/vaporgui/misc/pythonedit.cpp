@@ -287,14 +287,30 @@ void PythonEdit::addOutputVar2(){
 		ds = DataStatus::getInstance();
 		//Make sure it isn't already used in metadata or as output to this script
 		for (int i = 0; i<outputVars3->count(); i++)
-			if(outputVars3->item(i)->text() == text) return;
+			if(outputVars3->item(i)->text() == text) {
+				QMessageBox::information(this,"Output variable name invalid",
+						"This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		for (int i = 0; i<outputVars2->count(); i++)
-			if(outputVars2->item(i)->text() == text) return;
+			if(outputVars2->item(i)->text() == text) {
+				QMessageBox::information(this,"Output variable name invalid",
+						"This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		
 		for (int i = 0; i< ds->getNumMetadataVariables(); i++)
-			if (ds->getMetadataVarName(i) == text.toStdString()) return;
+			if (ds->getMetadataVarName(i) == text.toStdString()) {
+				QMessageBox::information(this,"Output variable name invalid",
+										 "This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++)
-			if (ds->getMetadataVarName2D(i) == text.toStdString()) return;
+			if (ds->getMetadataVarName2D(i) == text.toStdString()) {
+				QMessageBox::information(this,"Output variable name invalid",
+										 "This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		outputVars2->addItem(new QListWidgetItem(text));
 		changeFlag = true;
 	}
@@ -337,14 +353,30 @@ void PythonEdit::addOutputVar3(){
 		ds = DataStatus::getInstance();
 		//Make sure it isn't already used in metadata or as output to this script
 		for (int i = 0; i<outputVars3->count(); i++)
-			if(outputVars3->item(i)->text() == text) return;
+			if(outputVars3->item(i)->text() == text) {
+				QMessageBox::information(this,"Output variable name invalid",
+						"This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		for (int i = 0; i<outputVars2->count(); i++)
-			if(outputVars2->item(i)->text() == text) return;
+			if(outputVars2->item(i)->text() == text) {
+				QMessageBox::information(this,"Output variable name invalid",
+						"This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		
 		for (int i = 0; i< ds->getNumMetadataVariables(); i++)
-			if (ds->getMetadataVarName(i) == text.toStdString()) return;
+			if (ds->getMetadataVarName(i) == text.toStdString()) {
+				QMessageBox::information(this,"Output variable name invalid",
+										 "This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		for (int i = 0; i< ds->getNumMetadataVariables2D(); i++)
-			if (ds->getMetadataVarName2D(i) == text.toStdString()) return;
+			if (ds->getMetadataVarName2D(i) == text.toStdString()) {
+				QMessageBox::information(this,"Output variable name invalid",
+										 "This variable name is used already, it cannot be redefined.");
+				return;
+			}
 		outputVars3->addItem(new QListWidgetItem(text));
 		changeFlag = true;
 	}
