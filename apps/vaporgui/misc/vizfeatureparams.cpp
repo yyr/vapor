@@ -363,6 +363,7 @@ void VizFeatureParams::
 selectTimeTextColor(){
 	QPalette pal(vizFeatureDlg->timeColorEdit->palette());
 	tempTimeAnnotColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!tempTimeAnnotColor.isValid()) return;
 	pal.setColor(QPalette::Base,tempTimeAnnotColor);
 	vizFeatureDlg->timeColorEdit->setPalette(pal);
 	dialogChanged = true;
@@ -374,6 +375,7 @@ selectColorbarBackgroundColor(){
 	//Launch colorselector, put result into the button
 	QPalette pal(vizFeatureDlg->colorbarBackgroundEdit->palette());
 	tempColorbarBackgroundColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!tempColorbarBackgroundColor.isValid()) return;
 	pal.setColor(QPalette::Base,tempColorbarBackgroundColor);
 	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal);
 	dialogChanged = true;
@@ -383,6 +385,7 @@ selectElevGridColor(){
 	//Launch colorselector, put result into the button
 	QPalette pal(vizFeatureDlg->surfaceColorEdit->palette());
 	tempElevGridColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!tempElevGridColor.isValid()) return;
 	pal.setColor(QPalette::Base,tempElevGridColor);
 	vizFeatureDlg->surfaceColorEdit->setPalette(pal);
 	dialogChanged = true;
@@ -393,6 +396,7 @@ void VizFeatureParams::
 selectAxisColor(){
 	QPalette pal(vizFeatureDlg->axisColorEdit->palette());
 	tempAxisAnnotationColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!tempAxisAnnotationColor.isValid()) return;
 	pal.setColor(QPalette::Base,tempAxisAnnotationColor);
 	vizFeatureDlg->axisColorEdit->setPalette(pal);
 	dialogChanged = true;

@@ -1115,6 +1115,7 @@ setConstantColor(){
 	//Bring up a color selector dialog:
 	QPalette pal(constantColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
+	if (!newColor.isValid()) return;
 	//Set button color
 	pal.setColor(QPalette::Base,newColor);
 	constantColorEdit->setPalette(pal);

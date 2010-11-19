@@ -1408,7 +1408,7 @@ void FlowEventRouter::
 setFlowConstantColor(){
 	QPalette pal(constantColorEdit->palette());
 	QColor newColor = QColorDialog::getColor(pal.color(QPalette::Base), this);
-	
+	if (!newColor.isValid()) return;
 	pal.setColor(QPalette::Base, newColor);
 	constantColorEdit->setPalette(pal);
 	//Set parameter value of the appropriate parameter set:

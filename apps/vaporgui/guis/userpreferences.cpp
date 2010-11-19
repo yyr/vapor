@@ -356,6 +356,7 @@ void UserPreferences::
 selectRegionFrameColor(){
 	QPalette pal(regionFrameColorEdit->palette());
 	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!frameColor.isValid()) return;
 	pal.setColor(QPalette::Base,frameColor);
 	regionFrameColorEdit->setPalette(pal);
 	regionFrameColor = frameColor;
@@ -366,6 +367,7 @@ void UserPreferences::
 selectSubregionFrameColor(){
 	QPalette pal(subregionFrameColorEdit->palette());
 	QColor frameColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!frameColor.isValid()) return;
 	pal.setColor(QPalette::Base,frameColor);
 	subregionFrameColorEdit->setPalette(pal);
 	subregionFrameColor = frameColor;
@@ -376,6 +378,7 @@ selectBackgroundColor(){
 	//Launch colorselector, put result into the button
 	QPalette pal(backgroundColorEdit->palette());
 	QColor bgColor = QColorDialog::getColor(pal.color(QPalette::Base));
+	if (!bgColor.isValid()) return;
 	pal.setColor(QPalette::Base,bgColor);
 	backgroundColorEdit->setPalette(pal);
 	backgroundColor = bgColor;
