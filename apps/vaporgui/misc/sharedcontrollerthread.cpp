@@ -342,7 +342,7 @@ run(){
 		//Refresh the front tab:
 		TabManager* tmgr = MainForm::getInstance()->getTabManager();
 		EventRouter* eRouter = tmgr->getFrontEventRouter();
-		eRouter->updateTab();
+		//eRouter->updateTab();
 		
 		
 		

@@ -83,9 +83,10 @@ void HelpWindow::createActions()
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
+#ifndef Darwin
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+#endif
 }
 
 
@@ -96,12 +97,14 @@ void HelpWindow::createMenus()
     fileMenu->addAction(clearAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
-
+	menuBar()->addMenu(fileMenu);
+#ifndef Darwin
     helpMenu = new QMenu(tr("&Help"), this);
-    helpMenu->addSeparator();
+    
     helpMenu->addAction(aboutAct);
-    menuBar()->addMenu(fileMenu);
-    menuBar()->addMenu(helpMenu);
+	helpMenu->addSeparator();
+	menuBar()->addMenu(helpMenu);
+#endif
 }
 
 
