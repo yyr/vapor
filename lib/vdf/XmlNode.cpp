@@ -26,7 +26,7 @@
 
 using namespace VAPoR;
 using namespace VetsUtil;
-
+std::string XmlNode::replacement = "";
 XmlNode::XmlNode(
 	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint
@@ -545,3 +545,20 @@ void XmlNode::DeleteAll(){
 	}
 	_children.clear();
 }
+string XmlNode::replaceAll(const string& sourceString, const char* input, const char* output){
+	size_t pos = 1;
+	replacement = sourceString;
+	int inlength = strlen(input);
+	//Repeat at most 1000 times, avoid infinite loop
+	int i = 0;
+	for(i = 0; i< 1000; i++) {
+		pos = replacement.find(input);
+		if (pos != (size_t)-1){		
+			replacement = replacement.replace(pos,inlength,output);
+		}
+		else break;
+	} 
+	if (i == 1000) return 0;
+	return replacement;
+}
+

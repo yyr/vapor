@@ -439,6 +439,13 @@ virtual int SetElementString(
  //Following is a substitute for exporting the "<<" operator in windows.
  //I don't know how to export an operator<< !
  static ostream& streamOut(ostream& os, const XmlNode& node);
+	
+ //help with strings that xml can't parse:
+ // replace all occurrences of 'input' with 'output'
+ //output should not occur in input.
+	
+ static string replaceAll(const string& sourceString, const char* input, const char* output);
+
 protected:
  vector <long> _emptyLongVec;				// empty elements 
  vector <double> _emptyDoubleVec;
@@ -449,6 +456,7 @@ protected:
  map <string, string> _stringmap;		// node's string data
  bool _errOnMissing;
 private:
+ static string replacement; 
  int	_objInitialized;	// has the obj successfully been initialized?
 
  

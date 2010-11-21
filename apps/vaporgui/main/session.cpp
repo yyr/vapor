@@ -384,7 +384,9 @@ buildNode() {
 	//Create a pythonScript node and populate it
 	
 	ParamNode* pythonNode = new ParamNode(_pythonScriptsTag,1+DataStatus::getNumDerivedScripts());
-	pythonNode->SetElementString(_setupScriptTag,PythonPipeLine::getStartupScript());
+	string prog = XmlNode::replaceAll(PythonPipeLine::getStartupScript(), "<","&lt;");
+	prog = XmlNode::replaceAll(prog, ">","&gt;");
+	pythonNode->SetElementString(_setupScriptTag,prog);
 	//Iterate through the derived variable scripts
 	
 	if (DataStatus::getNumDerivedScripts() > 0){
@@ -400,7 +402,9 @@ buildNode() {
 			oss << name;
 			attrs[_scriptNameAttr] = oss.str();
 			ParamNode* scriptNode = new ParamNode(_pythonDerivedScriptTag,attrs,3);
-			scriptNode->SetElementString(_pythonProgramTag,DataStatus::getDerivedScript(indx));
+			string prog = XmlNode::replaceAll(DataStatus::getDerivedScript(indx), "<","&lt;");
+			prog = XmlNode::replaceAll(prog, ">","&gt;");
+			scriptNode->SetElementString(_pythonProgramTag,prog);
 			if (DataStatus::getDerived2DInputVars(indx).size()>0)
 				scriptNode->SetElementString(_python2DInputsTag, DataStatus::getDerived2DInputVars(indx));
 			if (DataStatus::getDerived3DInputVars(indx).size()>0)
@@ -728,10 +732,14 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				return true;
 			} else if (StrCmpNoCase(tag, _setupScriptTag) == 0){
 				const string &strdata = pm->getStringData();
-				PythonPipeLine::setStartupScript(strdata);
+				string prog = XmlNode::replaceAll(strdata, "&lt;","<");
+				prog = XmlNode::replaceAll(prog, "&gt;",">");
+				PythonPipeLine::setStartupScript(prog);
 				return true;
 			} else if (StrCmpNoCase(tag, _pythonDerivedScriptTag) == 0){
 				//Completed parsing of a program:
+				parsedPythonProgram = XmlNode::replaceAll(parsedPythonProgram,"&lt;","<");
+				parsedPythonProgram = XmlNode::replaceAll(parsedPythonProgram,"&gt;",">");
 				int id = DataStatus::getInstance()->addDerivedScript(
 					parsed2DInputVars,parsed2DOutputVars,
 					parsed3DInputVars,parsed3DOutputVars,
