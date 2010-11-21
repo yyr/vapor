@@ -686,11 +686,5 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 void AnimationEventRouter::refreshFrontTab(){
 	TabManager* tmgr = MainForm::getInstance()->getTabManager();
 	EventRouter* eRouter = tmgr->getFrontEventRouter();
-	if (eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDDataParamsTag)||
-			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_twoDImageParamsTag) ||
-			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_probeParamsTag)  ||
-			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_animationParamsTag) ||
-			eRouter->getParamsBaseType() == Params::GetTypeFromTag(Params::_viewpointParamsTag) ){
-		eRouter->updateTab();
-	}
+	eRouter->updateTab();
 }
