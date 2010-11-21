@@ -339,13 +339,6 @@ run(){
 			myAnimationController->animationMutex.unlock();
 		}
 		
-		//Refresh the front tab:
-		TabManager* tmgr = MainForm::getInstance()->getTabManager();
-		EventRouter* eRouter = tmgr->getFrontEventRouter();
-		//eRouter->updateTab();
-		
-		
-		
 		//End of while(1) loop
 	}
 	//qWarning(" animation cancelled!");

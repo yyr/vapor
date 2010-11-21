@@ -166,11 +166,7 @@ run(){
 		myWaitCondition->wait(&myAnimationController->animationMutex,timeToRecheck);
 		myAnimationController->animationMutex.unlock();
 		
-		//Refresh the front tab:
-		TabManager* tmgr = MainForm::getInstance()->getTabManager();
-		EventRouter* eRouter = tmgr->getFrontEventRouter();
-		eRouter->updateTab();
-		
+				
 	}//end while(1) loop
 
 	//Only exit loop if someone set animationCancelled; wait for completion, then return
