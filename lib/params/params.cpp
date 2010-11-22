@@ -450,7 +450,8 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 				refLevel, vname,
 				"This message can be silenced\nin user preferences panel.");
 		}
-		ds->setDataMissing(timeStep,refLevel, sessionVarNum);
+		if(twoDim) ds->setDataMissing2D(timeStep,refLevel, sessionVarNum);
+		else ds->setDataMissing(timeStep,refLevel, sessionVarNum);
 	}
 	return reg;
 }
