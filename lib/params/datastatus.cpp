@@ -1114,7 +1114,8 @@ bool DataStatus::removeDerivedVariable2D(const string& derivedVarName){
 
 	else {
 		//need to erase it from active list
-		//Leave it in the session (no big harm done)
+		//Don't leave it in the session...
+		getInstance()->variableExists2D[sesnum] = false;
 		activeVariableNums2D.erase(activeVariableNums2D.begin()+activeNum);
 	}
 	return true;
@@ -1124,7 +1125,10 @@ bool DataStatus::removeDerivedVariable3D(const string& derivedVarName){
 	if (sesnum < 0 ) return false;
 	int activeNum = mapSessionToActiveVarNum3D(sesnum);
 	if (activeNum < 0) return false;  //Not active
-	else activeVariableNums3D.erase(activeVariableNums3D.begin()+activeNum);
+	else {
+		getInstance()->variableExists[sesnum] = false;
+		activeVariableNums3D.erase(activeVariableNums3D.begin()+activeNum);
+	}
 	return true;
 }
 int DataStatus::setDerivedVariable2D(const string& varName){
