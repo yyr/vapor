@@ -838,6 +838,11 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 		const vector<string> invars3d = ds->getDerived3DInputVars(scriptid);
 		const vector<string> invars2d = ds->getDerived2DInputVars(scriptid);
 		
+		//If there are no input variables, the specified bounds are valid:
+		if (invars2d.size() == 0 && invars3d.size() == 0){
+			return 0;
+		}
+		
 		//Intersect the valid regions of all the input variables:
 		for (int i = 0; i<invars3d.size(); i++){
 			rc = dm->GetValidRegion(timestep, invars3d[i].c_str(), minRefLevel, temp_min, temp_max);
