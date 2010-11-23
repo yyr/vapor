@@ -428,7 +428,7 @@ void TwoDDataEventRouter::updateTab(){
 		}
 	}
 	twoDTextureFrame->setParams(twoDParams, true);
-	
+		
 	vizMgr->getTabManager()->update();
 	twoDTextureFrame->update();
 	guiSetTextChanged(false);
@@ -2263,6 +2263,7 @@ void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
 	
 	 } 
 	QWidget::paintEvent(ev);
+	adjustSize();
 	return;
 	
 }
