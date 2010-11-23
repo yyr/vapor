@@ -419,7 +419,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		}
 		variableExists2D[var] = dataExists; 
 	}
-
+    if (mints == 1000000000) mints = 0;
 	QApplication::restoreOverrideCursor();
 	//Now process the python variables.
 	//They must be added to the session variables.

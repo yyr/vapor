@@ -184,9 +184,12 @@ TwoDDataEventRouter::hookUpTab()
 void TwoDDataEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
 	DataStatus* ds = DataStatus::getInstance();
-	if (isEnabled() && ds->getDataMgr()) 
-			instanceTable->setEnabled(true);
+	if (ds->getDataMgr()&& ds->dataIsPresent2D()){
+		setEnabled(true);
+		instanceTable->setEnabled(true);
+	}
 	else {
+		setEnabled(false);
 		instanceTable->setEnabled(false);
 	}
 	instanceTable->rebuild(this);

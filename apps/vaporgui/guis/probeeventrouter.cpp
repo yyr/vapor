@@ -323,8 +323,9 @@ void ProbeEventRouter::updateTab(){
 	if (probeParams->getMapperFunc()){
 		probeParams->getMapperFunc()->setParams(probeParams);
 		transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+		transferFunctionFrame->updateParams();
 	}
-    transferFunctionFrame->updateParams();
+    
 	int numvars = 0;
 	QString varnames = getMappedVariableNames(&numvars);
 	QString shortVarNames = varnames;
