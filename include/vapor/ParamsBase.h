@@ -222,7 +222,7 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag){
 //! \param[in] isParams set true if the ParamsBase class is derived from Params
 //! \retval classID Returns the ParamsBaseClassId, or 0 on failure 
 //!
-	static int ParamsBase::ReregisterParamsBaseClass(const string& tag, const string& newtag, bool isParams);
+	static int ReregisterParamsBaseClass(const string& tag, const string& newtag, bool isParams);
 //!
 //! Specify the Root ParamNode of a ParamsBase instance 
 //! \param[in] pn  ParamNode of new root 
