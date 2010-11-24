@@ -703,8 +703,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_twoDImageParamsTag));
 				tempParsedPanel = 0;
 				return true;
-			} else if (StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0){
-				// just ignore it
+			} else if ((StrCmpNoCase(tag, Params::_twoDDataParamsTag) == 0) ||
+						(StrCmpNoCase(tag, Params::_twoDParamsTag) == 0)){
 				assert(tempParsedPanel);
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,ParamsBase::GetTypeFromTag(Params::_twoDDataParamsTag));
 				tempParsedPanel = 0;

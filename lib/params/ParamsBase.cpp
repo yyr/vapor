@@ -291,6 +291,8 @@ void ParamsBase::RegisterParamsBaseClasses(){
 	RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_probeParamsTag, ProbeParams::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
+	//For backwards compatibility; the tag changed in vapor 1.5
+	ReregisterParamsBaseClass(Params::_twoDParamsTag, Params::_twoDDataParamsTag, true);
 	RegisterParamsBaseClass(Params::_twoDImageParamsTag, TwoDImageParams::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
 	RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
@@ -324,6 +326,26 @@ int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bo
 	if(isParams) numParamsClasses = newIndex;
 	else numEmbedClasses = -newIndex;
 	return newIndex;
+
+}
+int ParamsBase::ReregisterParamsBaseClass(const string& tag, const string& newtag, bool isParams){
+	// See if tag is registered already, or if newtag is not registered: 
+	// If so, error
+	map <string, int> :: const_iterator getIdIter;
+    getIdIter = classIdFromTagMap.find(tag);
+	if (getIdIter != classIdFromTagMap.end()) {
+		return 0;
+	}
+	getIdIter = classIdFromTagMap.find(newtag);
+	if (getIdIter == classIdFromTagMap.end()) {
+		return 0;
+	}
+	int index = getIdIter->second;
+	if ((isParams && index < 0) || (!isParams && index > 0)) return 0;
+	
+	classIdFromTagMap.insert(pair<string,int>(tag,index));
+	
+	return index;
 
 }
 ParamsBase::ParamsBaseType ParamsBase::GetTypeFromTag(const string&tag){

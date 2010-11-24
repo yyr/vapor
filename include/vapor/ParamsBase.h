@@ -214,6 +214,16 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag){
 //!
 	static int RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bool isParams);
 //!
+//! Static method for registering a tag for an already registered ParamsBaseClass.
+//! This is needed for backwards compatibility when a tag is changed.
+//! The class must first be registered with the new tag.
+//! \param[in] tag  Tag of class to be registered
+//! \param[in] newtag  Previously registered tag (new name of class)
+//! \param[in] isParams set true if the ParamsBase class is derived from Params
+//! \retval classID Returns the ParamsBaseClassId, or 0 on failure 
+//!
+	static int ParamsBase::ReregisterParamsBaseClass(const string& tag, const string& newtag, bool isParams);
+//!
 //! Specify the Root ParamNode of a ParamsBase instance 
 //! \param[in] pn  ParamNode of new root 
 //!
