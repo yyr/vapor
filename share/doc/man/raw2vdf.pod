@@ -43,11 +43,12 @@ will attempt to read a 3D data volume from I<datafile>.
 =item -level E<lt>levelE<gt>
 
 This option can be used to limit the wavelet approximation hierarchy
-written to the VDC. By default, I<level> == -1, and all levels of the
+written to a Type 1 VDC. By default, I<level> == -1, and all levels of the
 approximation hierarchy computed by the wavelet transform are stored
 in the VDC. If I<level> is 0, only the coarsest approximation is saved.
 If I<level> is 1, the coarsest approximation, and first refinement are
-saved. And so on.
+saved. And so on. This option is not supported for VDC Type 2 and is silently
+ignored if present.
 
 =item -quiet
 

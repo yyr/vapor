@@ -23,10 +23,11 @@ outputs to a single numerical simulation. The metadata contents of a
 data volume contained in a VDC (e.g. path names to files containing a
 particular solution variable).
 
-Data volumes in a VDC are represented hiearchically: each volume may
-be accessed at varying, power-of-two coarsened approximations. Moreover,
-two types of VDC files are supported: VDC1 and VDC2. The latter, VDC2,
-supports level-of-detail access in addtion to hierarchical access.
+Data volumes in a VDC are represented hiearchically: each volume
+may be accessed at varying, power-of-two coarsened approximations.
+Moreover, two types of VDC files are supported: VDC Type 1 (VDC1)
+and VDC Type 2 (VDC2).  The latter, VDC2, supports level-of-detail
+access in addtion to hierarchical access. The default type is VDC1.
 
 =head1 OPTIONS
 
@@ -34,10 +35,11 @@ supports level-of-detail access in addtion to hierarchical access.
 
 =item -cratios E<lt>vector<gt>
 
-This option (VDC 2 only) specifies a colon delimited list of
+This option (VDC2 only) specifies a colon delimited list of
 compression ratios. The minimum compression ratio is 1 (indicating no
 compression). The maximum is determined by the wavelet familiy (See
-B<-wname>) and the block dimension (See B<-bs>).
+B<-wname>) and the block dimension (See B<-bs>). The default compression 
+ratio vector is 500:100:10:1.
 
 
 =item -dimension E<lt>NXxNYxNZE<gt>
@@ -68,12 +70,13 @@ the .vdf file, but not more. The default number of time steps is one.
 
 =item -bs E<lt>NXxNYxNZE<gt>
 
-The internal storage blocking factor expressed in voxels. In general this 
-should not be changed from the default value.
+The internal storage blocking factor expressed in voxels. In general
+this should not be changed from the default value (32x32x32 for
+VDC1, and 64x64x64 for VDC2).
 
 =item -level E<lt>levelE<gt>
 
-This option specifies the number of refinement levels in the VDC data
+This option specifies the number of refinement levels in a Type 1 VDC data
 approximation hierarchy. Starting with the native grid resolution, each
 successive level in the hierarchy is a factor of two smaller along each
 dimension. If I<level> is 0 no hiearchy will be created (all data will be
@@ -96,13 +99,14 @@ supports Lambert conformal conic, Mercator, Longitude/Latitude, and polar stereo
 Specifies the number of wavelet filter coefficients to be used when
 constructing a Lifting wavelet for transforming data into
 the VDC. In general this option should not be changed from the default
-value, one.
+value, one. VDC1 only.
 
 =item -nlifting E<lt>nE<gt>
 
 Specifies the number of wavelet lifting coefficients to be used when
-constructing a Lifting wavelet for transforming data into the VDC. In
-general this option should not be changed from the default value, one.
+constructing a Lifting wavelet for transforming data into the VDC.
+In general this option should not be changed from the default value,
+one. VDC1 only.
 
 =item -comment E<lt>stringE<gt>
 
@@ -198,7 +202,7 @@ in the VDF. The default is to include no 2D YZ-plane variables.
 
 =item -vdc2 
 
-Generate a .vdf file for a VDC version 2 data collection.
+Generate a .vdf file for a VDC Type 2 data collection.
 
 =item -wname E<lt>wave_name<gt>
 
@@ -215,15 +219,14 @@ Print a usage statement and then exit.
 
 The command 
 
-C<vdfcreate -dimension 512x512x512 -numts 100 -level 3 -varnames vx:vy:vz
-foo.vdf>
+C<vdfcreate -dimension 512x512x512 -numts 100 -level 3 -varnames vx:vy:vz foo.vdf>
 
-will produce a VDF file named, B<foo.vdf>. This file will describe a VDC
-containing up to 100 time steps, starting from 0 and running through 99; three 
-field variables, B<vx>, B<vy>, and B<vz>; each volume would have a 
-spatial resolution of 512^3; and three wavelet transformations would
-be applied resulting in data approximations at resolutions 64^4, 
-128^3, and 256^3.
+will produce a VDC Type 1 VDF file named, B<foo.vdf>.  This file
+will describe a VDC containing up to 100 time steps, starting from
+0 and running through 99; three field variables, B<vx>, B<vy>, and
+B<vz>; each volume would have a spatial resolution of 512^3; and
+three wavelet transformations would be applied resulting in data
+approximations at resolutions 64^4, 128^3, and 256^3.
 
 =head1 SEE ALSO
 

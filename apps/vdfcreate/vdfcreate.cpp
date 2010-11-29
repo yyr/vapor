@@ -59,7 +59,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"expressed in grid points (NXxNYxNZ). Defaults: 32x32x32 (VDC type 1), "
 		"64x64x64 (VDC type 2"},
 	{"level",	1, 	"0",		"Number of approximation levels in hierarchy. "
-		"0 => no approximations, 1 => one approximation, and so on"},
+		"0 => no approximations, 1 => one approximation, and so on (VDC 1 only)"},
 	{"nfilter",	1, 	"1","Number of wavelet filter coefficients (VDC 1 only)"},
 	{"nlifting",1, 	"1","Number of wavelet lifting coefficients (VDC 1 only)"},
 	{"comment",	1,	"",	"Top-level comment to be included in VDF"},
@@ -93,9 +93,11 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"names to be included in the VDF"},
 	{"vars2dyz",1,	"",			"Colon delimited list of 3D YZ-plane variable "
 		"names to be included in the VDF"},
-	{"cratios",1,	"",			"Colon delimited list compression ratios"},
-	{"vdc2",	0,	"",				"Generate a VDC Type 2 .vdf file"},
-	{"help",	0,	"",				"Print this message and exit"},
+	{"cratios",1,	"",			"Colon delimited list compression ratios. "
+		"The default is 1:10:100:500. " 
+		"The maximum compression ratio is wavelet and block size dependent."},
+	{"vdc2",	0,	"",	"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"},
+	{"help",	0,	"",	"Print this message and exit"},
 	{NULL}
 };
 
@@ -180,6 +182,11 @@ int	main(int argc, char **argv) {
 	s.assign(opt.coordsystem);
 
 	if (opt.vdc2) {
+
+		if (opt.level) {
+			cerr << "The -level option is not supported with VDC2 data" << endl;
+			exit(1);
+		}
 
 		string wname(opt.wname);
 		string wmode;
