@@ -86,6 +86,7 @@ using namespace VAPoR;
 	const string FlowParams::_autoScaleAttr = "AutoScale";
 	const string FlowParams::_flowLineLengthAttr = "FlowLineLength";
 	const string FlowParams::_smoothnessAttr = "Smoothness";
+	const string FlowParams::_useDisplayListsAttr = "UseDisplayLists";
 	
 	
 	
@@ -1558,6 +1559,14 @@ buildNode() {
 	oss << ds->getVariableName(priorityVarNum[0])<<" "<<ds->getVariableName(priorityVarNum[1])<<" "<<ds->getVariableName(priorityVarNum[2]);
 	attrs[_priorityVariableNamesAttr] = oss.str();
 
+	oss.str(empty);
+	if (useDisplayLists)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_useDisplayListsAttr] = oss.str();
+
+
 	ParamNode* flowNode = new ParamNode(_flowParamsTag, attrs, 2+numComboVariables);
 
 	//Now add children:  
@@ -1737,6 +1746,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		steadySmoothness = 20.f;
 		steadyFlowDirection = 1;  //Forward was default for previous versions
 		unsteadyFlowDirection = 1;
+		useDisplayLists = false;
 		//initially set field varnums to -1. 
 		//Once they are set, we compare to steady varnums for setting flags
 		for (int i = 0; i< 3; i++){
@@ -1847,6 +1857,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {//backwards compatibility
 				if (value == "true") setFlowType(0); else setFlowType(1);
+			}
+			else if (StrCmpNoCase(attribName, _useDisplayListsAttr) == 0) {
+				if (value == "true") useDisplayLists = true; else useDisplayLists = false;
 			}
 			else if (StrCmpNoCase(attribName, _flowTypeAttr) == 0) {
 				ist >> flowType;

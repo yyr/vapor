@@ -346,6 +346,7 @@ void FlowEventRouter::updateTab(){
 
 	stopButton->setEnabled( flowType != 0 && fParams->isEnabled());
 	lodCombo->setCurrentIndex(fParams->GetCompressionLevel());
+	displayListCheckbox->setChecked(fParams->usingDisplayLists());
 
 	
 	switch (flowType){

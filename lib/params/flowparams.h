@@ -404,6 +404,7 @@ protected:
 	static const string _autoScaleAttr;
 	static const string _steadyFlowDirectionAttr;
 	static const string _unsteadyFlowDirectionAttr;
+	static const string _useDisplayListsAttr;
 	
 
 
