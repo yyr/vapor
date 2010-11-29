@@ -1894,7 +1894,6 @@ void MainForm::setInteractiveRefinementSpin(int val){
 void MainForm::pauseClick(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
 	aRouter->animationPauseClick();
-	VizWinMgr::getInstance()->stopFlowIntegration();
 }
 void MainForm::playForward(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);

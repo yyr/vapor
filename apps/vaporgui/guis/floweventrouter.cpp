@@ -1181,6 +1181,8 @@ void FlowEventRouter::stopClicked(){
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	if (fParams->flowIsSteady()||!fParams->isEnabled()) return;
 	//Turn off autoRefresh (does this screw up undo/redo queue?
+	MessageReporter::warningMsg("Flow integration stopped.\n%s",
+			"Auto flow refresh has been disabled.");
 	guiSetAutoRefresh(false);
 	fParams->setStopFlag();
 	refreshButton->setEnabled(true);
@@ -2204,10 +2206,16 @@ guiSetAutoRefresh(bool autoOn){
 	if (autoOn) {
 		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::black));
 		autoRefreshCheckbox->setPalette(pal);
+		if (!autoRefreshCheckbox->isChecked()){
+			autoRefreshCheckbox->setChecked(true);
+		}
 	}
 	else {
 		pal.setColor(autoRefreshCheckbox->foregroundRole(),QColor(Qt::red));
 		autoRefreshCheckbox->setPalette(pal);
+		if (autoRefreshCheckbox->isChecked()){
+			autoRefreshCheckbox->setChecked(false);
+		}
 	}
 	
 	PanelCommand::captureEnd(cmd, fParams);
