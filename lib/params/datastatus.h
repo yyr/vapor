@@ -27,6 +27,7 @@
 #include <vapor/common.h>
 
 #include <vapor/DataMgr.h>
+#include <vapor/MetadataVDC.h>
 #include <vapor/MyBase.h>
 #include <qcolor.h>
 #include "regionparams.h"
@@ -355,10 +356,14 @@ public:
 	static void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
 	//Note missing data if a request for the data fails:
 	void setDataMissing(int timestep, int refLevel, int sessionVarNum){
+		MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
+		if(md && md->GetVDCType() ==2) return;
 		if (maxNumTransforms[sessionVarNum][timestep] >= refLevel)
 			maxNumTransforms[sessionVarNum][timestep] = refLevel -1;
 	}
 	void setDataMissing2D(int timestep, int refLevel, int sessionVarNum){
+		MetadataVDC* md = dynamic_cast<MetadataVDC*>(dataMgr);
+		if(md && md->GetVDCType() ==2) return;
 		if (maxNumTransforms2D[sessionVarNum][timestep] >= refLevel)
 			maxNumTransforms2D[sessionVarNum][timestep] = refLevel -1;
 	}
