@@ -39,7 +39,10 @@ if ("$directory" !~ /*) then
 	echo "Installatin directory ($directory) must specify an absolute path"
 	exit (1)
 endif
-set directory = "${directory}/vapor-${version}"
+
+if (! $nocopy) then
+	set directory = "${directory}/vapor-${version}"
+endif
 
 
 if (! $?vapor_root) set vapor_root = $directory
