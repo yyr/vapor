@@ -1,5 +1,3 @@
-# Copyright (c) 2001, Stanford University
-# All rights reserved.
 #
 # See the file LICENSE.txt for information on redistributing this software.
 
@@ -50,7 +48,7 @@ BUILD_GUI = 1
 # where the sub directories 'bin', 'lib', and 'include' may be found. Qt 
 # refers to Trolltech's Qt, available (with some amount of hunting) from
 # http://www.trolltech.com, and when possible, from the vapor
-# web site: www.vapor.ucar.edu.
+# web site: www.vapor.ucar.edu. Qt version 4.6.1 or higher is required.
 #
 QTDIR =
 
@@ -76,7 +74,7 @@ IDLDIR =
 
 # Set PYTHONDIR to the root of the 
 # Python directory where the sub directories 'lib', and 'include' 
-# may be found. 
+# may be found. Python version 2.6.5 or higher is required. 
 #
 PYTHONDIR =
 
