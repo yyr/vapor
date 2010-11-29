@@ -299,6 +299,10 @@ convertText(const char* format, va_list args){
 		messageString = new char[ALLOC_SIZE];
 		messageSize = ALLOC_SIZE;
 	}
+#ifdef Darwin
+	VSNPRINTF(messageString, messageSize, format, args);
+	return messageString;
+#else
 	while (! done) {
 		int rc = VSNPRINTF(messageString, messageSize, format, args);
 		if (rc < (messageSize-1)) {
@@ -311,6 +315,7 @@ convertText(const char* format, va_list args){
 		}
 	}
 	return messageString;
+#endif
 }
 
 //This is 
