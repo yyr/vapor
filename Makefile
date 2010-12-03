@@ -46,7 +46,7 @@ ifeq ($(ARCH), Linux)
 shlibs = $(wildcard $(INSTALL_LIBDIR)/lib*.so $(INSTALL_LIBDIR)/lib*.so.*  $(INSTALL_PLUGINSDIR)/lib*.so)
 install-dep:: 
 	@$(ECHO) "Removing rpaths from shared libraries..."
-	@for i in $(shlibs); do echo "	$$i"; /usr/bin/chrpath -d $$i; done
+	@for i in $(shlibs); do echo "	$$i"; /usr/bin/patchelf --set-rpath "" $$i; done
 endif
 
 ifeq ($(ARCH), Darwin)
