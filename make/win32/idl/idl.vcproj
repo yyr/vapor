@@ -149,7 +149,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib &quot;C:\Program Files\ITT\IDL71\bin\bin.x86\idl.lib&quot;"
 				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
