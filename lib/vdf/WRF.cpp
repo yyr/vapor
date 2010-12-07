@@ -450,9 +450,9 @@ void WRF::_InterpHorizSlice(
 	//
 	bufptr = fbuffer;
 	if ( thisVar.stag[1] ) {
-		for (size_t x = 0; x<xUnstagDim; x++) {
 		for (size_t y = 0; y<yUnstagDim; y++) {
-			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
+		for (size_t x = 0; x<xUnstagDim; x++) {
+			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + xDimNow*(y+1)])/2.0;
 			bufptr++;
 		}
 		}
