@@ -401,7 +401,7 @@ int DeriveVar2(
 	static size_t sliceBufferSize = 0;
 	WRFReader *wrfreaderB = NULL; 
 
-	wrfreaderB = new WRFReader (*wrfreader);
+	wrfreaderB = new WRFReader ((const MetadataWRF &) *wrfreader);
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
@@ -504,8 +504,8 @@ int DeriveVar3(
 	WRFReader *wrfreaderB = NULL; 
 	WRFReader *wrfreaderC = NULL; 
 
-	wrfreaderB = new WRFReader (*wrfreader);
-	wrfreaderC = new WRFReader (*wrfreader);
+	wrfreaderB = new WRFReader ((const MetadataWRF &) *wrfreader);
+	wrfreaderC = new WRFReader ((const MetadataWRF &) *wrfreader);
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
