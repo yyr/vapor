@@ -177,6 +177,9 @@ int	main(int argc, char **argv) {
 
 	vector <string> vars3d = 
 		opt.vars3d.size() ? opt.vars3d : WRFData->GetVariables3D();
+	vector <string>::iterator itr;
+	itr = find(vars3d.begin(), vars3d.end(), "ELEVATION");
+	if (itr == vars3d.end()) vars3d.push_back("ELEVATION");
 
 	if(file->SetVariables3D(vars3d)) {
 		cerr << "Error populating Variables3D." << endl;
@@ -185,6 +188,8 @@ int	main(int argc, char **argv) {
 
 	vector <string> vars2d = 
 		opt.vars2d.size() ? opt.vars2d : WRFData->GetVariables2DXY();
+	itr = find(vars2d.begin(), vars2d.end(), "HGT");
+	if (itr == vars2d.end()) vars2d.push_back("HGT");
 
 	if(file->SetVariables2DXY(vars2d)) {
 		cerr << "Error populating Variables2DXY." << endl;
