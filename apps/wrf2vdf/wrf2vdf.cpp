@@ -399,11 +399,9 @@ int DeriveVar2(
 	static float *sliceBufferB = NULL;
 	static float *sliceBufferC = NULL;
 	static size_t sliceBufferSize = 0;
-	static  WRFReader *wrfreaderB = NULL; 
+	WRFReader *wrfreaderB = NULL; 
 
-	if (! wrfreaderB) {
-		wrfreaderB = new WRFReader (*wrfreader);
-	}
+	wrfreaderB = new WRFReader (*wrfreader);
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
@@ -477,6 +475,8 @@ int DeriveVar2(
 	wrfreaderB->CloseVariable();
 	wbwriter->CloseVariable();
 
+	delete wrfreaderB;
+
 	return(0);
 }
 
@@ -501,15 +501,11 @@ int DeriveVar3(
 	static float *sliceBufferC = NULL;
 	static float *sliceBufferD = NULL;
 	static size_t sliceBufferSize = 0;
-	static  WRFReader *wrfreaderB = NULL; 
-	static  WRFReader *wrfreaderC = NULL; 
+	WRFReader *wrfreaderB = NULL; 
+	WRFReader *wrfreaderC = NULL; 
 
-	if (! wrfreaderB) {
-		wrfreaderB = new WRFReader (*wrfreader);
-	}
-	if (! wrfreaderC) {
-		wrfreaderC = new WRFReader (*wrfreader);
-	}
+	wrfreaderB = new WRFReader (*wrfreader);
+	wrfreaderC = new WRFReader (*wrfreader);
 
 	int rc;
 	rc = wrfreader->OpenVariableRead(tsWRF, varwrfA.c_str());
@@ -600,6 +596,9 @@ int DeriveVar3(
 	wrfreaderB->CloseVariable();
 	wrfreaderC->CloseVariable();
 	wbwriter->CloseVariable();
+
+	delete wrfreaderB;
+	delete wrfreaderC;
 
 	return(0);
 }
