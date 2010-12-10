@@ -756,7 +756,7 @@ applyToViz(int vizNum){
 	}
 	//Normalize so minimum stretch is 1
 	for ( i= 0; i<3; i++){
-		if (stretch[i] != 1.f) stretch[i] /= minStretch;
+		if (minStretch != 1.f) stretch[i] /= minStretch;
 		if (stretch[i] != oldStretch[i]){
 			ratio[i] = stretch[i]/oldStretch[i];
 			stretchChanged = true;
