@@ -1281,10 +1281,12 @@ void IsoEventRouter::guiFitTFToData(){
 	if (!ds->getDataMgr()) return;
 	confirmText(false);
 	ParamsIso* pParams = getActiveIsoParams();
+	int sesvarnum = pParams->GetMapVariableNum();
+	if(sesvarnum < 0) return;
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
 	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	int sesvarnum = pParams->GetMapVariableNum();
+	
 	float minBound = ds->getDataMin(sesvarnum,ts);
 	float maxBound = ds->getDataMax(sesvarnum,ts);
 	
