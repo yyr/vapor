@@ -247,7 +247,8 @@ public slots:
 	
 
 protected:
-	
+	virtual QSize minimumSizeHint() const 
+		{return QSize(400,400);}
 	QString myName;
 	QPoint mouseDownPosition;
 	bool mouseDownHere;
