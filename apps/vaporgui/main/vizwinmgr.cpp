@@ -1543,12 +1543,14 @@ ParamNode* VizWinMgr::buildNode() {
 				ParamNode* twoDNode = getTwoDDataParams(i,inst)->buildNode();
 				if(twoDNode) locals->AddChild(twoDNode);
 			}
-			
-			ParamNode* rgNode = getRealRegionParams(i) ? getRealRegionParams(i)->buildNode(): 0;
+			//Add the current non-render params.  Note that they will indicate by their local/global flag
+			//whether or not the global state is active, and they also will indicate the current local state
+			//even if it is not currently being used.
+			ParamNode* rgNode = Params::GetParamsInstance(Params::_regionParamsTag,i,-1)->buildNode();
 			if(rgNode) locals->AddChild(rgNode);
-			ParamNode* animNode = getRealAnimationParams(i) ? getRealAnimationParams(i)->buildNode() : 0;
+			ParamNode* animNode = Params::GetParamsInstance(Params::_animationParamsTag,i,-1)->buildNode();
 			if(animNode) locals->AddChild(animNode);
-			ParamNode* vpNode = getRealVPParams(i) ? getRealVPParams(i)->buildNode() : 0;
+			ParamNode* vpNode = Params::GetParamsInstance(Params::_viewpointParamsTag,i,-1)->buildNode();
 			if (vpNode) locals->AddChild(vpNode);
 			
 		}
@@ -1829,6 +1831,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				vizWin[parsingVizNum]->getGLWindow()->setActiveParams(parsingParams, typeId);
 			else 
 				vizWin[parsingVizNum]->getGLWindow()->setActiveParams(Params::GetDefaultParams(typeId), typeId);
+		}
+		//Workaround 2.0.0 bug:  viznum may not be properly set in session file
+		if (!parsingParams->isRenderParams()){
+			parsingParams->setVizNum(parsingVizNum);
 		}
 		return true;
 		}

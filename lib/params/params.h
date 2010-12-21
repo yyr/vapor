@@ -318,8 +318,11 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	int getVizNum() {return vizNum;}
 
 //! Specify whether a params is local or global. 
-	virtual void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
-		else local = false;}
+	virtual void setLocal(bool lg){ if (lg) {
+		local = true;
+	}
+		else local = false;
+	}
 
 //! Indicate whether a Params is local or not
 	bool isLocal() {return local;}

@@ -528,7 +528,12 @@ float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, i
 Params* Params::GetParamsInstance(int pType, int winnum, int instance){
 	if (winnum < 0) return defaultParamsInstance[pType];
 	if (instance < 0) instance = currentParamsInstance[make_pair(pType,winnum)];
-	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) return GetDefaultParams(pType);
+	if (instance >= paramsInstances[make_pair(pType, winnum)].size()) {
+		Params* p = GetDefaultParams(pType)->deepCopy();
+		p->setVizNum(winnum);
+		AppendParamsInstance(pType,winnum,p);
+		return p;
+	}
 	return paramsInstances[make_pair(pType, winnum)][instance];
 }
 

@@ -274,16 +274,19 @@ public:
 	VizWin* getVizWin(int i) {return vizWin[i];}
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int win) {
+		if (!vizWin[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_viewpointParamsTag,win,-1);
 		if (p->isLocal()) return (ViewpointParams*)p;
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
 	}
 	RegionParams* getRealRegionParams(int win) {
+		if (!vizWin[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
 		if (p->isLocal()) return (RegionParams*)p;
 		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
 	}
 	AnimationParams* getRealAnimationParams(int win) {
+		if (!vizWin[win]) return 0;
 		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
 		if (p->isLocal()) return (AnimationParams*)p;
 		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
