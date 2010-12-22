@@ -99,6 +99,7 @@ public:
 	
 	void setInteractiveRefinementSpin(int);
 	void setCurrentTimestep(int tstep);
+	VizSelectCombo* getWindowSelector(){return windowSelector;}
 	//following are accessed during undo/redo
 	QAction* navigationAction;
 	QAction* regionSelectAction;

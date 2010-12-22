@@ -167,6 +167,13 @@ activeWin(int index){
 	emit (winActivated(winNum[index]));
 	
 }
+void VizSelectCombo::
+makeConsistent(int currentViz){
+	int indx = currentIndex();
+	if (indx >=0 && indx < count()-1 && indx != currentViz){
+		activeWin(indx);
+	}
+}
 
 
 

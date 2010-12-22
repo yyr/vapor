@@ -21,6 +21,8 @@
 #include <qtabwidget.h>
 #include <qwidget.h>
 #include <QScrollArea>
+#include <QMdiSubWindow>
+#include <QMdiArea>
 #include "tabmanager.h"
 #include "assert.h"
 #include "viztab.h"
@@ -37,6 +39,8 @@
 #include "animationeventrouter.h"
 #include "twoDdataeventrouter.h"
 #include "twoDimageeventrouter.h"
+#include "vizselectcombo.h"
+#include "mainform.h"
 
 using namespace VAPoR;
 TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
@@ -100,6 +104,21 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 	currentFrontPage = posn;
 	if (lastCurrentPage == posn) return posn; //No change!
 	setCurrentIndex(posn);
+	//The following code is inserted as a workaround for bug 3138674.
+	//This is apparently a QT4.6 bug
+	//The problem is that sometimes setCurrentIndex() triggers a QMdiArea event,
+	//bringing the wrong visualizer to the front.  The following code sets
+	//the current visualizer to be consistent with the window selector.
+	MainForm* mainForm = MainForm::getInstance();
+	QMdiSubWindow* subWin = mainForm->getMDIArea()->activeSubWindow();
+	if (subWin){
+		VizWin* viz = (VizWin*)subWin->widget();
+		if (viz){
+			int activeNum = viz->getWindowNum();
+			if (activeNum >=0)
+				MainForm::getInstance()->getWindowSelector()->makeConsistent(activeNum);
+		}
+	}
 	return posn;
 }
 /*

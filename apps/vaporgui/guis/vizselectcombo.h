@@ -32,11 +32,13 @@ class VizSelectCombo : public QComboBox{
 
 public:
 	VizSelectCombo(MainForm* parent, QToolBar* tBar, VizWinMgr* mgr);
+	void makeConsistent(int activeVizNum);
 protected:
 	//Lookup window num associated with slot
 	int winNum[MAXVIZWINS+1];
 	VizWinMgr* vizWinMgr;
 	int currentActive;
+	
 	
 protected slots:
 	// Add a new window to the combobox
