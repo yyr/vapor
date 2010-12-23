@@ -1002,10 +1002,8 @@ setDatarangeDirty(RenderParams* params)
 	const float* currentDatarange = dParams->getCurrentDatarange();
 	float minval = dParams->getMapperFunc()->getMinColorMapValue();
 	float maxval = dParams->getMapperFunc()->getMaxColorMapValue();
-	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
-			dParams->setCurrentDatarange(minval, maxval);
-			VizWinMgr::getInstance()->setDatarangeDirty(dParams);
-	}
+	dParams->setCurrentDatarange(minval, maxval);
+	VizWinMgr::getInstance()->setDatarangeDirty(dParams);
 }
 //Method called when undo/redo changes params.  If prevParams is null, the
 //vizwinmgr will create a new instance.
