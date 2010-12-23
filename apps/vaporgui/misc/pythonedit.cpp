@@ -491,6 +491,7 @@ void PythonEdit::applyScript(){
 	if (startUp){
 		string pythonProg = pythonEdit->toPlainText().toStdString();
 		PythonPipeLine::setStartupScript(pythonProg);
+		DataStatus::purgeAllCachedDerivedVariables();
 		VizWinMgr::getInstance()->refreshRenderData();
 		close();
 		ScriptCommand::captureEnd(currentCommand, -1);

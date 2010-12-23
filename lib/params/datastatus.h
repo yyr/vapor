@@ -328,6 +328,7 @@ public:
 		derived2DOutputMap.clear();
 		derived3DOutputMap.clear();
 	}
+	static void purgeAllCachedDerivedVariables();
 
 	//Get full stretched data extents in cube coords
 	void getMaxStretchedExtentsInCube(float maxExtents[3]);

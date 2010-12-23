@@ -852,6 +852,29 @@ int DataStatus::getDerivedScriptId(const string& outvar) {
 	}
 	return -1;
 }
+
+//Purge all the derived output variables from the datamgr cache
+void DataStatus::purgeAllCachedDerivedVariables() {
+	DataMgr* dataMgr = getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	map <int, vector<string> > :: const_iterator outIter = derived2DOutputMap.begin();
+	while (outIter != derived2DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			dataMgr->PurgeVariable(vars[i]);
+		}
+		outIter++;
+	}
+	outIter = derived3DOutputMap.begin();
+	while (outIter != derived3DOutputMap.end()){
+		vector<string> vars = outIter->second;
+		for (int i = 0; i<vars.size(); i++){
+			dataMgr->PurgeVariable(vars[i]);
+		}
+		outIter++;
+	}
+	return;
+}
 const string& DataStatus::getDerivedScriptName(int id){
 	const vector<string>& vars3 = getDerived3DOutputVars(id);
 	if(vars3.size()>0) return vars3[0];
