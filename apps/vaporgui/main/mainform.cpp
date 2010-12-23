@@ -699,10 +699,10 @@ void MainForm::languageChange()
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
 	
-	dataImportDefaultWRF_Action->setText(tr("Import WRF output files into default session"));
-	dataImportDefaultWRF_Action->setToolTip("Specify one or more WRF output files to import into a new session");
-	dataImportWRF_Action->setText(tr("Import WRF output files into current session"));
-	dataImportWRF_Action->setToolTip("Specify one or more WRF output files to import into the current session");
+	dataImportDefaultWRF_Action->setText(tr("Import WRF-ARW output files into default session"));
+	dataImportDefaultWRF_Action->setToolTip("Specify one or more WRF-ARW output files to import into a new session");
+	dataImportWRF_Action->setText(tr("Import WRF-ARW output files into current session"));
+	dataImportWRF_Action->setToolTip("Specify one or more WRF-ARW output files to import into the current session");
 	dataMerge_MetafileAction->setText( tr( "Merge a VDC Dataset into Current Session" ) );
 	
     
@@ -1098,7 +1098,7 @@ void MainForm::importWRFData()
     //user to choose input WRF output files, then to
 	//use them to create a new data
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
-		"Select the WRF Output Files to import into current session",
+		"Select WRF-ARW Output Files to import into current session",
 		Session::getInstance()->getMetadataFile().c_str(),"");
 	
 	if (filenames.length() > 0){
@@ -1123,7 +1123,7 @@ void MainForm::importDefaultWRFData()
     //user to choose input WRF output files, then to
 	//use them to create a new data
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
-		"Select the WRF Output Files to import into default session",
+		"Select WRF-ARW Output Files to import into default session",
 		Session::getInstance()->getMetadataFile().c_str(),"");
 	
 	if (filenames.length() > 0){
