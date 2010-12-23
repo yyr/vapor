@@ -71,6 +71,7 @@ RegionEventRouter::RegionEventRouter(QWidget* parent, const char* ): QWidget(par
 	setupUi(this);
 	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_regionParamsTag, this);
 	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
+	setIgnoreBoxSliderEvents(false);
 }
 
 
@@ -192,6 +193,7 @@ void RegionEventRouter::copyRegionToProbe(){
 //
 void RegionEventRouter::updateTab(){
 	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	float* regionMin = rParams->getRegionMin(timestep);
@@ -201,6 +203,7 @@ void RegionEventRouter::updateTab(){
 		textToSlider(rParams, i, (regionMin[i]+regionMax[i])*0.5f,
 			regionMax[i]-regionMin[i]);
 	}
+	setIgnoreBoxSliderEvents(true);
 	xSizeEdit->setText(QString::number(regionMax[0]-regionMin[0],'g', 4));
 	xCntrEdit->setText(QString::number(0.5f*(regionMax[0]+regionMin[0]),'g',5));
 	ySizeEdit->setText(QString::number(regionMax[1]-regionMin[1],'g', 4));
@@ -258,6 +261,7 @@ void RegionEventRouter::updateTab(){
 	
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
+	setIgnoreBoxSliderEvents(false);
 }
 
 
@@ -312,6 +316,7 @@ void RegionEventRouter::relabel()
 //
 void RegionEventRouter::
 textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
+	setIgnoreBoxSliderEvents(true);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
@@ -401,6 +406,7 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	
 	guiSetTextChanged(false);
 	update();
+	setIgnoreBoxSliderEvents(false);
 	return;
 }
 //Set text when a slider changes.
@@ -795,6 +801,7 @@ guiSetCenter(const float* coords){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetXCenter(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X center");
@@ -809,6 +816,7 @@ guiSetXCenter(int sliderval){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetYCenter(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y center");
@@ -821,6 +829,7 @@ guiSetYCenter(int sliderval){
 //Following are set when slider is released:
 void RegionEventRouter::
 guiSetZCenter(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z center");
@@ -833,6 +842,7 @@ guiSetZCenter(int sliderval){
 
 void RegionEventRouter::
 guiSetXSize(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region X size");
@@ -843,6 +853,7 @@ guiSetXSize(int sliderval){
 }
 void RegionEventRouter::
 guiSetYSize(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Y size");
@@ -853,6 +864,7 @@ guiSetYSize(int sliderval){
 }
 void RegionEventRouter::
 guiSetZSize(int sliderval){
+	if(ignoreBoxSliderEvents)return;
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "slide region Z size");
@@ -882,6 +894,7 @@ guiSetMaxSize(){
 void RegionEventRouter::
 reinitTab(bool doOverride){
 	int i;
+	setIgnoreBoxSliderEvents(false);
 	const DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	
 	//Set up the combo boxes in the gui based on info in the session:
