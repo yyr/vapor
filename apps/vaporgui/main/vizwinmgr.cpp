@@ -1294,7 +1294,8 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]){
 			GLWindow* glwin= vizWin[i]->getGLWindow();
-			for (int j = 0; j< glwin->getNumRenderers(); j++){
+			int numRens = glwin->getNumRenderers();
+			for (int j = numRens-1; j >= 0; j--){
 				Renderer* ren = glwin->getRenderer(j);
 				RenderParams* rParams = ren->getRenderParams();
 				for (int k = 0; k<vars2D.size(); k++){
