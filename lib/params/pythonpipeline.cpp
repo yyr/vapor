@@ -55,6 +55,8 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
 						"Map voxel to user coordinates at specified refinement level"},
 		{"MapUserToVox",PythonPipeLine::mapUserToVox, METH_VARARGS,
 						"Map user to voxel coordinates at specified refinement level"},
+		{"GetFullVDCDims",PythonPipeLine::getFullVDCDims, METH_VARARGS,
+						"Obtain the full dimensions (x,y,z and time) of the current VDC, at specified ref level"},
 		
 		{NULL,NULL,0,NULL}
  };
@@ -722,7 +724,20 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
 }
-
+//obtain the full voxel and time dimensions of the current VDC
+//Note that the dimensions are in the order x,y,z (user coord order)
+//The python coordinates are reversed, then converted by DataMgr, then converted values are reversed for Python
+PyObject* PythonPipeLine::getFullVDCDims(PyObject *self, PyObject* args){
+	//Need refinement level 
+	int reflevel;
+	size_t dim[3];
+	int idim[4];
+	if (!PyArg_ParseTuple(args,"i",&reflevel)) return NULL; 
+	currentDataMgr->GetDim(dim, reflevel);
+	for (int i = 0; i<3; i++) idim[i] = (int)dim[i];
+	idim[3] = currentDataMgr->GetNumTimeSteps();
+	return Py_BuildValue("[iiii]", idim[0],idim[1],idim[2],idim[3]);
+}
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
 // Also useful to copy smaller region back to full domain bounds.  Source and
