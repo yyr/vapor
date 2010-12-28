@@ -1496,7 +1496,6 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
 	LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
-	assert(dataMgrLayered != NULL);
 
 	float displacement = getDisplacement();
 	//Don't allow the terrain surface to be below the minimum extents:
@@ -1513,10 +1512,10 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	}
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	int refLevel = elevGridRefLevel;
-	if (varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
+	if ( varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
 		varnum = DataStatus::getSessionVariableNum("ELEVATION");
-		if (varnum >= 0) {
+		if (dataMgrLayered && (varnum >= 0)) {
 			// NOTE:  Currently we are clearing cache here just because we need
 			// turn interpolation off.  This will not be so painful if we
 			// allowed both interpolated and uninterpolated volumes to coexist
@@ -1566,7 +1565,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 				timeStep, &varnum, 1, regMin, regMax, true);
 		
 
-		if(refLevel < 0) {
+		if(refLevel < 0 && dataMgrLayered) {
 			dataMgrLayered->SetInterpolateOnOff(true);
 			return false;
 		}
