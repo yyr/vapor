@@ -173,18 +173,7 @@ public:
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
 	QColor& getElevGridColor() {return elevColor;}
-
-	void enableElevGridTexture(bool val){surfaceTextureEnabled = val;
-		if(elevGridTexture) free_image(elevGridTexture);
-		elevGridTexture = 0;
-	}
-	void rotateTexture(int val){textureRotation = val;}
-	void invertTexture(bool val) {textureUpsideDown = val;}
-	void setTextureFile(QString fn){ textureFilename = fn;}
-	bool elevGridTextureEnabled(){return surfaceTextureEnabled;}
-	int getTextureRotation(){return textureRotation;}
-	bool textureInverted() {return textureUpsideDown;}
-	QString& getTextureFile(){return textureFilename;}
+	
 
 	int getTimeAnnotType() {return timeAnnotType;}
 	int getTimeAnnotTextSize() {return timeAnnotTextSize;}
@@ -521,7 +510,7 @@ protected:
 	QColor elevColor;
 	int elevGridRefLevel;
 	bool renderElevGrid;
-	unsigned char* elevGridTexture;
+	
 	int elevGridWidth, elevGridHeight;
 
 	float	wCenter[3]; //World center coords
@@ -557,10 +546,6 @@ protected:
 
 	//values in vizFeature
 	QColor colorbarBackgroundColor;
-	bool surfaceTextureEnabled;
-	int textureRotation;
-	bool textureUpsideDown;
-	QString textureFilename;
 
 	int timeAnnotType;
 	int timeAnnotTextSize;

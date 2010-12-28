@@ -46,7 +46,7 @@ VizFeatureParams::VizFeatureParams(){
 	vizFeatureDlg = 0;
 	featureHolder = 0;
 	currentComboIndex = -1;
-	textureSurface = false;
+	
 	
 	Session* currentSession = Session::getInstance();
 	
@@ -89,10 +89,6 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	showBar = vfParams.showBar;
 	showAxisArrows = vfParams.showAxisArrows;
 	
-	surfaceImageFilename = vfParams.surfaceImageFilename;
-	surfaceRotation = vfParams.surfaceRotation;
-	surfaceUpsideDown = vfParams.surfaceUpsideDown;
-	textureSurface = vfParams.textureSurface;
 	axisArrowCoords[0] = vfParams.axisArrowCoords[0];
 	axisArrowCoords[1] = vfParams.axisArrowCoords[1];
 	axisArrowCoords[2] = vfParams.axisArrowCoords[2];
@@ -262,9 +258,6 @@ void VizFeatureParams::launch(){
 	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
 	connect (vizFeatureDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
 	connect (vizFeatureDlg->buttonHelp2, SIGNAL(released()), this, SLOT(doHelp()));
-	connect (vizFeatureDlg->imageCheckbox, SIGNAL(toggled(bool)), this, SLOT(imageToggled(bool)));
-	connect (vizFeatureDlg->imageRotationCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->imageUpDownCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 
 	connect (vizFeatureDlg->timeLLXEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeLLYEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -551,16 +544,7 @@ setDialog(){
 
 	vizFeatureDlg->refinementCombo->setCurrentIndex(elevGridRefinement);
 	showElevGrid = vizWin->elevGridRenderingEnabled();
-	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
-	textureSurface = vizWin->elevGridTextureEnabled();
-	vizFeatureDlg->imageCheckbox->setChecked(textureSurface);
-	surfaceUpsideDown = vizWin->textureInverted();
-	vizFeatureDlg->imageUpDownCombo->setCurrentIndex(surfaceUpsideDown ? 1 : 0);
-	surfaceRotation = vizWin->getTextureRotation();
-	vizFeatureDlg->imageRotationCombo->setCurrentIndex(surfaceRotation/90);
-	surfaceImageFilename = vizWin->getTextureFile();
-	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
-	
+	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);	
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
@@ -674,11 +658,7 @@ copyFromDialog(){
 
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentIndex();
-	textureSurface = vizFeatureDlg->imageCheckbox->isChecked();
-	surfaceRotation = vizFeatureDlg->imageRotationCombo->currentIndex()*90;
-	surfaceUpsideDown = (vizFeatureDlg->imageUpDownCombo->currentIndex() == 1);
-	surfaceImageFilename = vizFeatureDlg->imageFilenameEdit->text();
-
+	
 	applyToViz(vizNum);
 	
 	
@@ -831,11 +811,7 @@ applyToViz(int vizNum){
 	vizWin->setElevGridColor(elevGridColor);
 	vizWin->enableElevGridRendering(showElevGrid);
 	vizWin->setElevGridRefinementLevel(elevGridRefinement);
-	vizWin->enableElevGridTexture(textureSurface); 
-	vizWin->rotateTexture(surfaceRotation);
-	vizWin->invertTexture(surfaceUpsideDown);
-	vizWin->setTextureFile(surfaceImageFilename);
-
+	
 	vizWin->getGLWindow()->invalidateElevGrid();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
@@ -891,25 +867,6 @@ void VizFeatureParams::okClicked(){
 void VizFeatureParams::
 doHelp(){
 	QWhatsThis::enterWhatsThisMode();
-}
-void VizFeatureParams::
-imageToggled(bool onOff){
-	if (!onOff) {
-		
-		dialogChanged = true;
-	}
-	else { 
-		//select a filename, if succeed turn on textureSurface.
-		QString filename = QFileDialog::getOpenFileName(vizFeatureDlg,
-			"Choose the Image File to map to terrain",
-			surfaceImageFilename,
-			"Image files (*.jpg)");
-		if(filename.length() == 0) return;
-		
-		vizFeatureDlg->imageFilenameEdit->setText(filename);
-		dialogChanged = true;
-	}
-
 }
 void VizFeatureParams::checkSurface(bool on){
 	if (!on) return;

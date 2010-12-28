@@ -106,11 +106,6 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	colorbarBackgroundColor = QColor(Qt::black);
 	elevColor = QColor(150,75,0);
 	renderElevGrid = getDefaultTerrainEnabled();
-	surfaceTextureEnabled = false;
-	textureRotation = 0;
-	textureUpsideDown = false;
-	textureFilename = QString("imageFile.jpg");
-	elevGridTexture = 0;
 	elevGridRefLevel = 0;
 	axisArrowsEnabled = getDefaultAxisArrowsEnabled();
 	axisAnnotationEnabled = false;
@@ -1401,28 +1396,8 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	}
 	//Check if there is a texture to apply:
 	
-	if (elevGridTextureEnabled() && !elevGridTexture){
-		//Read the texture file:
-		
-		int rc = read_JPEG_file((const char*)textureFilename.toAscii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
-		if (!rc) {enableElevGridTexture(false);}
-	}
-	if (elevGridTextureEnabled()){
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glMatrixMode(GL_TEXTURE);
-		glPushMatrix();
-		//Put an identity on the Texture matrix stack.
-		glLoadIdentity();
-		glTranslatef(transX,transY,0.);
-		glScalef(stretchX,stretchY,1.);
-		
-		glMatrixMode(GL_MODELVIEW);
-		glBindTexture(GL_TEXTURE_2D, _elevTexid);
-		glEnable(GL_TEXTURE_2D);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, elevGridWidth, elevGridHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, elevGridTexture);
-	}
+	
+	
 	//Now we can just traverse the elev grid, one row at a time:
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1430,22 +1405,9 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	
 	for (int j = 0; j< mxy-1; j++){
 		glBegin(GL_QUAD_STRIP);
-		//float vert[3], norm[3];
-		if(elevGridTextureEnabled()) for (int i = 0; i< mxx; i++){
 		
-			//Each quad is described by sending 4 vertices, i.e. the points indexed by
-			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j).  Send 2 at a time.
-			
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*mxx));
-			glTexCoord2fv(setTexCrd(i,j+1));
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*mxx));
-			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*mxx));
-			glTexCoord2fv(setTexCrd(i,j));
-			glVertex3fv(elevVert[timeStep]+3*(i+j*mxx));
-		}
 		
-		else for (int i = 0; i< mxx; i++){ //No texture
+		for (int i = 0; i< mxx; i++){ //No texture
 		
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
@@ -1467,47 +1429,8 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 	glDisable(GL_LIGHTING);
-	//undo gl state changes
-	if (elevGridTextureEnabled()){
-		glDepthMask(GL_FALSE);
-		glMatrixMode(GL_TEXTURE);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glDisable(GL_BLEND);
-		glDisable(GL_TEXTURE_2D);
-	}
-
-	printOpenGLError();
-}
-//Handle reorientation of texture by calc of tex coords:
-GLfloat* GLWindow::
-setTexCrd(int i, int j){
-	static GLfloat tcoord[2];
-	switch (textureRotation) {
-		case (0) :
-			tcoord[0] = xbg + (float)i*xfct;
-			tcoord[1] = ybg + (float)j*yfct;
-			break;
-		case (90) :
-			tcoord[0] = ybg + (float)j*yfct;
-			tcoord[1] = xbg + (float)(mxx - i -1)*xfct;
-			break;
-		case(180) :
-			tcoord[0] = xbg + (float)(mxx - i -1)*xfct;
-			tcoord[1] = ybg + (float)(mxy - j -1)*yfct;
-			break;
-		case(270) :
-			tcoord[1] = xbg + (float)i*xfct;
-			tcoord[0] = ybg + (float)(mxy - j -1)*yfct;
-			break;
-		default:
-			assert(0);
-	}
-	if (textureUpsideDown) {
-		tcoord[0] = (mxx-1)*xfct - tcoord[0];
-	}
-	return tcoord;
 	
+	printOpenGLError();
 }
 
 //Invalidate array.  Set pointers to zero before deleting so we

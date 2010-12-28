@@ -89,7 +89,6 @@ protected slots:
 	void annotationChanged();
 	void okClicked();
 	void doHelp();
-	void imageToggled(bool);
 	void setVariableNum(int);
 	void setOutsideVal();
 	void changeOutsideVal(const QString&);
@@ -114,10 +113,6 @@ protected:
 	bool showAxisArrows;
 	bool showElevGrid;
 	bool showAxisAnnotation;
-	bool textureSurface;
-	int surfaceRotation;
-	bool surfaceUpsideDown;
-	QString surfaceImageFilename;
 	int timeAnnotType;//0,1,2 
 
 	float axisArrowCoords[3];
