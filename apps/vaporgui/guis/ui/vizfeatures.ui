@@ -2102,7 +2102,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QFrame" name="frame6">
        <property name="whatsThis">
-        <string>When using layered data, the lowest level (e.g. terrain level) of the data can be rendered as a surface, and a jpeg texture can be applied to that surface.</string>
+        <string>When using layered data, the lowest level (e.g. terrain level) of the data can be rendered as a surface.  To apply an image to the terrain surface, don't use this.  Instead, use the Image tab to speciyf a tiff or geo-tiff image.</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -2647,7 +2647,7 @@ p, li { white-space: pre-wrap; }
                </size>
               </property>
               <property name="toolTip">
-               <string>specify color scale width relative to window width in [0,1]</string>
+               <string>This value scales the font size, with 10 the default.</string>
               </property>
               <property name="text">
                <string>10</string>
@@ -2666,7 +2666,7 @@ p, li { white-space: pre-wrap; }
                </size>
               </property>
               <property name="toolTip">
-               <string>specify color scale height relative to window height in [0,1]</string>
+               <string>Specify the number of digits accuracy for the number at a tic mark</string>
               </property>
               <property name="text">
                <string>1</string>
