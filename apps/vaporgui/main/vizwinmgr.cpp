@@ -112,6 +112,8 @@ const string VizWinMgr::_vizAxisColorAttr = "AxisAnnotationColor";
 const string VizWinMgr::_vizTicWidthAttr = "TicWidth";
 const string VizWinMgr::_vizLabelHeightAttr = "AxisLabelHeight";
 const string VizWinMgr::_vizLabelDigitsAttr = "AxisLabelDigits";
+const string VizWinMgr::_vizColorbarFontsizeAttr = "ColorbarFontsize";
+const string VizWinMgr::_vizColorbarDigitsAttr = "ColorbarDigits";
 const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";
 const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
 const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
@@ -1494,6 +1496,14 @@ ParamNode* VizWinMgr::buildNode() {
 			oss.str(empty);
 			oss << (int) vizWin[i]->getColorbarNumTics();
 			attrs[_vizColorbarNumTicsAttr] = oss.str();
+			
+			oss.str(empty);
+			oss << (int) vizWin[i]->getColorbarDigits();
+			attrs[_vizColorbarDigitsAttr] = oss.str();
+			
+			oss.str(empty);
+			oss << (int) vizWin[i]->getColorbarFontsize();
+			attrs[_vizColorbarFontsizeAttr] = oss.str();
 
 			oss.str(empty);
 			oss << (int) i;
@@ -1584,6 +1594,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		colorbarLLPos[0]=colorbarLLPos[1]=0.f;
 		colorbarURPos[0]=0.1f;
 		colorbarURPos[1]=0.3f;
+		int colorbarFontsize = 10;
+		int colorbarDigits = 3;
 		int colorbarTics = 11;
 		bool axesEnabled = false;
 		bool axisAnnotationEnabled = false;
@@ -1694,6 +1706,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				ist >> r; ist>>g; ist>>b;
 				axisColor.setRgb(r,g,b);
 			}
+			else if (StrCmpNoCase(attr, _vizColorbarDigitsAttr) == 0) {
+				ist >> colorbarDigits;
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarFontsizeAttr) == 0) {
+				ist >> colorbarFontsize;
+			}
 			else if (StrCmpNoCase(attr, _vizColorbarNumTicsAttr) == 0) {
 				ist >> colorbarTics;
 			}
@@ -1775,6 +1793,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);
 		vizWin[parsingVizNum]->setColorbarURCoord(1, colorbarURPos[1]);
 		vizWin[parsingVizNum]->setColorbarNumTics(colorbarTics);
+		vizWin[parsingVizNum]->setColorbarDigits(colorbarDigits);
+		vizWin[parsingVizNum]->setColorbarFontsize(colorbarFontsize);
 		
 		return true;
 		}

@@ -172,6 +172,8 @@ public:
 	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
+	int getColorbarDigits() {return colorbarDigits;}
+	int getColorbarFontsize() {return colorbarFontsize;}
 	QColor& getElevGridColor() {return elevColor;}
 	
 
@@ -219,6 +221,8 @@ public:
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	bool colorbarIsDirty() {return colorbarDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
+	void setColorbarDigits(int ndigs) {colorbarDigits = ndigs;}
+	void setColorbarFontsize(int fsize) {colorbarFontsize = fsize;}
 
 	int getElevGridRefinementLevel() {return elevGridRefLevel;}
 
@@ -554,7 +558,8 @@ protected:
 	
 	bool axisArrowsEnabled;
 	bool axisAnnotationEnabled;
-	
+	int colorbarDigits;
+	int colorbarFontsize;
 	bool colorbarEnabled;
 	float axisArrowCoord[3];
 	float axisOriginCoord[3];

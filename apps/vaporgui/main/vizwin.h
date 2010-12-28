@@ -133,6 +133,11 @@ public:
 	float getColorbarLLCoord(int i) {return myGLWindow->getColorbarLLCoord(i);}
 	float getColorbarURCoord(int i) {return myGLWindow->getColorbarURCoord(i);}
 	int getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
+	int getColorbarDigits() {return myGLWindow->getColorbarDigits();}
+	void setColorbarDigits(int ndigs) {myGLWindow->setColorbarDigits(ndigs);}
+	int getColorbarFontsize() {return myGLWindow->getColorbarFontsize();}
+	void setColorbarFontsize(int sz) {myGLWindow->setColorbarFontsize(sz);}
+
 
 	void setBackgroundColor(QColor& c) {myGLWindow->setBackgroundColor(c);}
 	void setColorbarBackgroundColor(QColor& c) {myGLWindow->setColorbarBackgroundColor( c);}

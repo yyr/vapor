@@ -101,8 +101,11 @@ buildColorscaleImage(){
 	else  textHeight = imgHeight/(2*numtics);
 	if (textHeight > imgHeight/15) textHeight = imgHeight/15;
 	QFont textFont;
+	int fontsize = myGLWindow->getColorbarFontsize();
+	textHeight = (int) (textHeight*fontsize*0.1);
 	textFont.setPixelSize(textHeight);
 	painter.setFont(textFont);
+	int numdigits = myGLWindow->getColorbarDigits();
 
 	//Draw outline:
 	painter.drawLine(0,3, imgWidth, 3);
@@ -120,7 +123,7 @@ buildColorscaleImage(){
 		int ticPos = i*(imgHeight/numtics)+(imgHeight/(2*numtics));
 		painter.drawLine((int)(imgWidth*.35), ticPos, (int)(imgWidth*.45), ticPos);
 		double ycoord = myTransFunc->getMinMapValue() + (1.f - (float)i/(float)(numtics-1.f))*(myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue());
-		QString ytext = QString::number(ycoord,'g',3);
+		QString ytext = QString::number(ycoord,'g',numdigits);
 		painter.drawText(imgWidth/2 , ticPos - textHeight/2, imgWidth/2, textHeight, Qt::AlignLeft, ytext);
 	}
 	

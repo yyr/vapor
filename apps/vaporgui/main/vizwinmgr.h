@@ -469,6 +469,8 @@ protected:
 	static const string _vizTicWidthAttr;
 	static const string _vizLabelHeightAttr;
 	static const string _vizLabelDigitsAttr;
+	static const string _vizColorbarDigitsAttr;
+	static const string _vizColorbarFontsizeAttr;
 	static const string _vizColorbarLLPositionAttr;
 	static const string _vizColorbarURPositionAttr;
 	static const string _vizColorbarNumTicsAttr;

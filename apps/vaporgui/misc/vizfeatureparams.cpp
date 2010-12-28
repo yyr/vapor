@@ -109,6 +109,8 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	labelDigits = vfParams.labelDigits;
 	ticWidth = vfParams.ticWidth;
 
+	colorbarDigits = vfParams.colorbarDigits;
+	colorbarFontsize = vfParams.colorbarFontsize;
 	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
 	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
 	colorbarURCoords[0] = vfParams.colorbarURCoords[0];
@@ -116,6 +118,8 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	numColorbarTics = vfParams.numColorbarTics;
 	
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
+	colorbarDigits = vfParams.colorbarDigits;
+	colorbarFontsize = vfParams.colorbarFontsize;
 	
 	elevGridColor = vfParams.elevGridColor;
 	showElevGrid = vfParams.showElevGrid;
@@ -214,6 +218,8 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarNumDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarFontsizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarLLXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarLLYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarXSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -488,7 +494,10 @@ setDialog(){
 	vizFeatureDlg->axisColorEdit->setPalette(pal0);
 	
 	
-	
+	colorbarDigits = vizWin->getColorbarDigits();
+	colorbarFontsize = vizWin->getColorbarFontsize();
+	vizFeatureDlg->colorbarFontsizeEdit->setText(QString::number(colorbarFontsize));
+	vizFeatureDlg->colorbarNumDigitsEdit->setText(QString::number(colorbarDigits));
 	colorbarLLCoords[0] = vizWin->getColorbarLLCoord(0);
 	colorbarLLCoords[1] = vizWin->getColorbarLLCoord(1);
 	vizFeatureDlg->colorbarLLXEdit->setText(QString::number(colorbarLLCoords[0]));
@@ -626,7 +635,8 @@ copyFromDialog(){
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
 
 	timeAnnotColor = tempTimeAnnotColor;
-
+	colorbarDigits = vizFeatureDlg->colorbarNumDigitsEdit->text().toInt();
+	colorbarFontsize = vizFeatureDlg->colorbarFontsizeEdit->text().toInt();
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
 	float wid = vizFeatureDlg->colorbarXSizeEdit->text().toFloat();
@@ -790,6 +800,9 @@ applyToViz(int vizNum){
 	vizWin->setTicWidth(ticWidth);
 	vizWin->setLabelHeight(labelHeight);
 	vizWin->setLabelDigits(labelDigits);
+	
+	vizWin->setColorbarDigits(colorbarDigits);
+	vizWin->setColorbarFontsize(colorbarFontsize);
 	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
 	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
 	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);

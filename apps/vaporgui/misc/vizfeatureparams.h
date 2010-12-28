@@ -127,6 +127,8 @@ protected:
 	float displacement;
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
+	int colorbarDigits;
+	int colorbarFontsize;
 	float timeAnnotCoords[2];
 	int numColorbarTics;
 	int elevGridRefinement;

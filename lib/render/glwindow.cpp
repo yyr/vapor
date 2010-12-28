@@ -127,6 +127,8 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	ticWidth = 2.f;
 	axisColor = QColor(Qt::white);
 
+	colorbarFontsize = 10;
+	colorbarDigits = 3;
 	colorbarLLCoord[0] = 0.1f;
 	colorbarLLCoord[1] = 0.1f;
 	colorbarURCoord[0] = 0.3f;
