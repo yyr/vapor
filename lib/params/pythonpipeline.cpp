@@ -55,8 +55,6 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
 						"Map voxel to user coordinates at specified refinement level"},
 		{"MapUserToVox",PythonPipeLine::mapUserToVox, METH_VARARGS,
 						"Map user to voxel coordinates at specified refinement level"},
-		{"GetFullVDCDims",PythonPipeLine::getFullVDCDims, METH_VARARGS,
-						"Obtain the full dimensions (x,y,z and time) of the current VDC, at specified ref level"},
 		
 		{NULL,NULL,0,NULL}
  };
@@ -161,6 +159,8 @@ int PythonPipeLine::python_wrapper(
 		
 	DataStatus* ds = DataStatus::getInstance();	
 	string pythonMethod =  ds->getDerivedScript(scriptId);
+	
+	vector<float*> allocatedArrays;
    
 		
     if(!initialized) initialize();
@@ -230,21 +230,20 @@ int PythonPipeLine::python_wrapper(
 			//Create a new array to pass into python:
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
+			allocatedArrays.push_back(pyData);
 			//Now realign the array...
 			realign3DArray(inputData[i],blkregsize, pyData, revPydims);
 			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+								   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			flags = PyArray_FLAGS(pyRegion);
 		} else {
 			float* pyData = new float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
-
+			allocatedArrays.push_back(pyData);
 			//Now realign the array...
 			realign2DArray(inputData[i],blkregsize, pyData, revPydims);
 			pyRegion = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
-			
-			
+								   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			
 		}
 		
@@ -369,6 +368,10 @@ int PythonPipeLine::python_wrapper(
 	for (int i = 0; i<newObjects.size(); i++){
 		PyObject_DelItem(mainDict,newObjects[i]);
 		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
+	}
+	//We need to release the copies of the input arrays:
+	for (int i = 0; i< allocatedArrays.size(); i++){
+		delete allocatedArrays[i];
 	}
 	
 		
@@ -626,7 +629,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	//Now realign the array...
     realign3DArray(regData,blockedRegionSize, pyData, revPydims); 
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+						   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     return Py_BuildValue("O", pyRegion);
 }
 //get/set 2D called by Python interpreter:
@@ -683,7 +686,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 	//Now realign the array...
     realign2DArray(regData,blockedRegionSize, pyData, revPydims); 
     pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+						   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     
     return Py_BuildValue("O", pyRegion);
 }
@@ -724,20 +727,7 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
 }
-//obtain the full voxel and time dimensions of the current VDC
-//Note that the dimensions are in the order x,y,z (user coord order)
-//The python coordinates are reversed, then converted by DataMgr, then converted values are reversed for Python
-PyObject* PythonPipeLine::getFullVDCDims(PyObject *self, PyObject* args){
-	//Need refinement level 
-	int reflevel;
-	size_t dim[3];
-	int idim[4];
-	if (!PyArg_ParseTuple(args,"i",&reflevel)) return NULL; 
-	currentDataMgr->GetDim(dim, reflevel);
-	for (int i = 0; i<3; i++) idim[i] = (int)dim[i];
-	idim[3] = currentDataMgr->GetNumTimeSteps();
-	return Py_BuildValue("[iiii]", idim[0],idim[1],idim[2],idim[3]);
-}
+
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
 // Also useful to copy smaller region back to full domain bounds.  Source and
