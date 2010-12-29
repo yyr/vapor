@@ -17,6 +17,7 @@
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include "datastatus.h"
+class QMutex;
 
 namespace VAPoR {
 
@@ -76,6 +77,9 @@ protected:
 	
 	void initialize();
 	std::string pythonOutputText;
+	static bool needCheckArrays() {return (arrayAllocMap.size()>0);}
+	static void tryDeleteArrayStorage(PyObject*);
+	static void mapArrayObject(PyObject*, float*);
 	
 	
 	//Initialize the python vapor module:
@@ -100,6 +104,9 @@ protected:
 	static DataMgr* currentDataMgr;
 	static bool initialized;
 	static bool everInitialized;
+	
+	static std::map<PyObject*, float*> arrayAllocMap;
+	static QMutex* arrayAllocMutex;
        
 		
 };

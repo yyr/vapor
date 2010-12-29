@@ -13,6 +13,7 @@
 #include <vapor/errorcodes.h>
 #include "pythonpipeline.h"
 #include "GetAppPath.h"
+#include <QMutex>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -22,6 +23,8 @@ bool PythonPipeLine::everInitialized = false;
 
 DataMgr* PythonPipeLine::currentDataMgr = 0;
 bool PythonPipeLine::initialized = false;
+std::map<PyObject*, float*> PythonPipeLine::arrayAllocMap;
+QMutex* PythonPipeLine::arrayAllocMutex = new QMutex();
 
 PythonPipeLine::PythonPipeLine(string name, vector<string> inputs, 
 		vector < pair < string, Metadata::VarType_T > > outputs, DataMgr* dmgr) :
@@ -234,7 +237,7 @@ int PythonPipeLine::python_wrapper(
 			//Now realign the array...
 			realign3DArray(inputData[i],blkregsize, pyData, revPydims);
 			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			flags = PyArray_FLAGS(pyRegion);
 		} else {
 			float* pyData = new float[pydims[1]*pydims[2]];
@@ -243,7 +246,7 @@ int PythonPipeLine::python_wrapper(
 			//Now realign the array...
 			realign2DArray(inputData[i],blkregsize, pyData, revPydims);
 			pyRegion = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_FLOAT,NULL,pyData,0,
-								   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			
 		}
 		
@@ -355,6 +358,7 @@ int PythonPipeLine::python_wrapper(
 	//Cleanup:  Remove anything that was added to the dictionary:
 	Py_ssize_t pos = 0;
 	std::vector<PyObject*> newObjects;
+	std::vector<PyObject*> newKeys;
 	while(1){
 		PyObject* key;
 		PyObject* val;
@@ -363,11 +367,14 @@ int PythonPipeLine::python_wrapper(
 		if (PyDict_Contains(copyDict,key)) {
 			continue;
 		}
-		newObjects.push_back(key);
+		newKeys.push_back(key);
+		newObjects.push_back(val);
 	}
 	for (int i = 0; i<newObjects.size(); i++){
-		PyObject_DelItem(mainDict,newObjects[i]);
-		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
+		PyObject_DelItem(mainDict,newKeys[i]);
+		if(needCheckArrays()){
+			tryDeleteArrayStorage(newObjects[i]);
+		}
 	}
 	//We need to release the copies of the input arrays:
 	for (int i = 0; i< allocatedArrays.size(); i++){
@@ -445,7 +452,6 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
 		}
 		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
-		PyObject* exts2d = Py_BuildValue("(iiii)",regmin[1],regmin[0],regmax[1],regmax[0]);
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
 		PyObject* lod = Py_BuildValue("i",compression);
@@ -545,21 +551,23 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			pythonOutputText = strtext;
 		}
 	}
+	Py_ssize_t pos = 0;
 	//Print out the contents of the dictionary:
 	/*
 	printf("Dictionary following test execution\n");
-	poss=0;
+	Py_ssize_t poss=0;
 	while(1){
 		PyObject* key;
 		PyObject* val;
 		int rc = PyDict_Next(mainDict,&poss, &key, &val);
 		if (!rc) break;
 		printf("Key: %s\n", PyString_AsString(key));
-	}*/
-	
+	}
+	*/
 	//Cleanup:  Remove anything that was added to the dictionary:
-	Py_ssize_t pos = 0;
+	
 	std::vector<PyObject*> newObjects;
+	std::vector<PyObject*> newKeys;
 	while(1){
 		PyObject* key;
 		PyObject* val;
@@ -569,13 +577,16 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			//printf("Matching key found: %s\n", PyString_AsString(key));
 			continue;
 		}
-		newObjects.push_back(key);
+		newKeys.push_back(key);
+		newObjects.push_back(val);
 	}
 	for (int i = 0; i<newObjects.size(); i++){
 		//char* keyString = PyString_AsString(newObjects[i]);
 		//printf("deleting object with key %s\n",keyString);
-		PyObject_DelItem(mainDict,newObjects[i]);
-		if (PyDict_Contains(mainDict,newObjects[i])) assert(0);
+		PyObject_DelItem(mainDict,newKeys[i]);
+		if(needCheckArrays()){
+			tryDeleteArrayStorage(newObjects[i]);
+		}	
 	}
 	
 	return pythonOutputText;
@@ -629,7 +640,8 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	//Now realign the array...
     realign3DArray(regData,blockedRegionSize, pyData, revPydims); 
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+	mapArrayObject(pyRegion, pyData);
     return Py_BuildValue("O", pyRegion);
 }
 //get/set 2D called by Python interpreter:
@@ -681,13 +693,13 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 
     //Create a new array to pass to python:
     float* pyData = new float[pydims[0]*pydims[1]];
-    assert(pyData);
+    if(!pyData) return NULL;
 
 	//Now realign the array...
     realign2DArray(regData,blockedRegionSize, pyData, revPydims); 
     pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
-						   NPY_OWNDATA|NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
-    
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+    mapArrayObject(pyRegion, pyData);
     return Py_BuildValue("O", pyRegion);
 }
 //convert voxel to user coordinates at specified refinement level.
@@ -757,4 +769,24 @@ void PythonPipeLine::realign2DArray(const float* srcArray, size_t srcSize[2], fl
         }
 
 }
-
+void PythonPipeLine::tryDeleteArrayStorage(PyObject* pyobj){
+	if (!arrayAllocMutex->tryLock(10000)){//  <= 10 second wait..
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Thread conflict in array deallocation");
+		return;
+	}
+	map< PyObject*,float*> :: iterator mapiter = arrayAllocMap.find(pyobj);
+	if (mapiter != arrayAllocMap.end()){
+		float* ary = mapiter->second;
+		delete ary;
+		arrayAllocMap.erase(mapiter);
+	}
+	arrayAllocMutex->unlock();
+}
+void PythonPipeLine::mapArrayObject(PyObject* pyobj, float* ary){
+	if (!arrayAllocMutex->tryLock(10000)){//  <= 10 second wait..
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Thread conflict in array allocation");
+		return;
+	}
+	arrayAllocMap[pyobj] = ary;
+	arrayAllocMutex->unlock();
+}
