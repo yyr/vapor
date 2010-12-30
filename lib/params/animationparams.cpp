@@ -89,35 +89,39 @@ bool AnimationParams::
 reinit(bool doOverride){
 	//Session* session = Session::getInstance();
 	//Make min and max conform to new data:
-	minFrame = (int)DataStatus::getInstance()->getMinTimestep();
-	maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
+	//minFrame = (int)DataStatus::getInstance()->getMinTimestep();
+	//maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
+	maxFrame = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps();
+	minFrame = 0;
 	//Narrow the range to the actual data limits:
 	//Find the first framenum with data:
+	int mints = minFrame;
+	int maxts = maxFrame;
 	int i;
 	for (i = minFrame; i<= maxFrame; i++){
 		
 		if(DataStatus::getInstance()->dataIsPresent(i)) break;
 
 	}
-	if(i <= maxFrame) minFrame = i;
+	if(i <= maxts) mints = i;
 	//Find the last framenum with data:
-	for (i = maxFrame; i>= minFrame; i--){
+	for (i = maxts; i>= mints; i--){
 		if(DataStatus::getInstance()->dataIsPresent(i)) break;
 	}
 	
-	if(i >= minFrame) maxFrame = i;
+	if(i >= mints) maxts = i;
 	//force start & end to be consistent:
 	if (doOverride){
-		startFrame = minFrame;
-		endFrame = maxFrame;
+		startFrame = mints;
+		endFrame = maxts;
 		currentFrame = startFrame;
 		maxFrameRate = defaultMaxFPS;
 		maxWait = defaultMaxWait;
 	} else {
-		if (startFrame > maxFrame) startFrame = maxFrame;
-		if (startFrame < minFrame) startFrame = minFrame;
-		if (endFrame < minFrame) endFrame = minFrame;
-		if (endFrame > maxFrame) endFrame = maxFrame;
+		if (startFrame > maxts) startFrame = maxts;
+		if (startFrame < mints) startFrame = mints;
+		if (endFrame < mints) endFrame = mints;
+		if (endFrame > maxts) endFrame = maxts;
 		if (currentFrame < startFrame) currentFrame = startFrame;
 		if (currentFrame > endFrame) currentFrame = endFrame;
 	}

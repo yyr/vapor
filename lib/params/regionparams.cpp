@@ -298,16 +298,25 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 		return -1;
 	}
-	//Check that the data exists for this timestep and refinement:
+	//If variable(s) not derived, check that the data exists for this timestep and refinement:
 	int minRefLevel = numxforms;
-	for (i = 0; i<numVars; i++){
-		minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
-		//Test if it's acceptable, exit if not:
-		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
-			return -1;
+	bool allVarsDerived = true;
+	for (int varIndex = 0; varIndex < numVars; varIndex++){
+		const string varName = ds->getVariableName(varNums[varIndex]);
+		if(!ds->isDerivedVariable(varName)) {
+			allVarsDerived = false;
+			break;
 		}
 	}
-
+	if (!allVarsDerived){
+		for (i = 0; i<numVars; i++){
+			minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
+			//Test if it's acceptable, exit if not:
+			if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
+				return -1;
+			}
+		}
+	}
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	float* regExts = getRegionExtents(timestep);
