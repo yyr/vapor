@@ -32,6 +32,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/XmlNode.h>
 #include <vapor/CFuncs.h>
+#include <vapor/errorcodes.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -435,33 +436,33 @@ int MetadataVDC::Merge(const MetadataVDC &metadata, size_t ts_start) {
 
 	for(int i=0; i<3; i++) {
 		if (dim[i] != mdim[i]) {
-			SetErrMsg("Merge failed: dimension mismatch");
+			SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: dimension mismatch");
 			return(-1);
 		}
 	}
 
 	if (this->GetFilterCoef() != metadata.GetFilterCoef()) {
-		SetErrMsg("Merge failed: filter coefficient mismatch");
+		SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: filter coefficient mismatch");
 		return(-1);
 	}
 
 	if (this->GetLiftingCoef() != metadata.GetLiftingCoef()) {
-		SetErrMsg("Merge failed: lifting coefficient mismatch");
+		SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: lifting coefficient mismatch");
 		return(-1);
 	}
 
 	if (this->GetNumTransforms() != metadata.GetNumTransforms()) {
-		SetErrMsg("Merge failed: num transforms mismatch");
+		SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: num transforms mismatch");
 		return(-1);
 	}
 
 	if (this->GetWaveName().compare(metadata.GetWaveName()) != 0) {
-		SetErrMsg("Merge failed: Wavelet names mismatch");
+		SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: Wavelet names mismatch");
 		return(-1);
 	}
 
 	if (this->GetBoundaryMode().compare(metadata.GetBoundaryMode()) != 0) {
-		SetErrMsg("Merge failed: Wavelet boundary handling mismatch");
+		SetErrMsg(VAPOR_ERROR_VDC_MERGE,"Merge failed: Wavelet boundary handling mismatch");
 		return(-1);
 	}
 

@@ -918,13 +918,20 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 				md = (MetadataVDC*) dataMgrWB;
 			} else if (dataMgrLayered){
 				md = (MetadataVDC*) dataMgrLayered;
-			} else return false;
+			} else {
+				DataStatus::getInstance()->setRenderReady(true);
+				return false;
+			}
 				
 			//Need a non-const pointer to the metadata, since we will modify it:
 			size_t offset = (size_t) mergeOffset;
 			//Use the fileBase, not the currentMetadataFile for the merge.
 			int rc = md->Merge(files[0].c_str(),offset);
-			if (rc < 0) return false;
+			if (rc < 0) {
+				DataStatus::getInstance()->setRenderReady(true);
+				return false;
+			}
+			
 
 		}
 		
