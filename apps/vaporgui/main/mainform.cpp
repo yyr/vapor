@@ -617,12 +617,15 @@ void MainForm::createActions(){
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playForwardAction = new QAction(*playForwardIcon,QString(tr("Play Forward  "))+QString(QKeySequence(tr("Ctrl+P"))) , this);
 	playForwardAction->setShortcut(Qt::CTRL+Qt::Key_P);
+	playForwardAction->setCheckable(true);
 	QPixmap* playBackwardIcon = new QPixmap(playreverse);
 	playBackwardAction = new QAction(*playBackwardIcon,QString(tr("Play Backward  "))+QString(QKeySequence(tr("Ctrl+B"))),this);
 	playBackwardAction->setShortcut(Qt::CTRL+Qt::Key_B);
+	playBackwardAction->setCheckable(true);
 	QPixmap* pauseIcon = new QPixmap(pauseimage);
 	pauseAction = new QAction(*pauseIcon,QString(tr("End animation and unsteady flow integration  "))+QString(QKeySequence(tr("Ctrl+E"))), this);
 	pauseAction->setShortcut(Qt::CTRL+Qt::Key_E);
+	pauseAction->setCheckable(true);
 	QPixmap* stepForwardIcon = new QPixmap(stepfwd);
 	stepForwardAction = new QAction(*stepForwardIcon,QString(tr("Step forward  "))+QString(QKeySequence(tr("Ctrl+F"))), this);
 	stepForwardAction->setShortcut(Qt::CTRL+Qt::Key_F);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>519</height>
+    <height>621</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -451,7 +451,7 @@ step, and will animate in unison.</string>
            <normaloff>../../images/playreverse.JPG</normaloff>../../images/playreverse.JPG</iconset>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -468,7 +468,7 @@ step, and will animate in unison.</string>
            <normaloff>../../images/pause.JPG</normaloff>../../images/pause.JPG</iconset>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="checked">
           <bool>false</bool>
@@ -488,7 +488,7 @@ step, and will animate in unison.</string>
            <normaloff>../../images/playforward.xpm</normaloff>../../images/playforward.xpm</iconset>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
         </widget>
        </item>

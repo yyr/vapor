@@ -106,6 +106,10 @@ AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : 
 	QPixmap* stepbackIcon = new QPixmap(stepback);
 	stepReverseButton->setIcon(QIcon(*stepbackIcon));
 	stepReverseButton->setIconSize(QSize(30,18));
+	MainForm* mf = MainForm::getInstance();
+	mainPlayForwardAction = mf->playForwardAction;
+	mainPlayBackwardAction = mf->playBackwardAction;
+	mainPauseAction = mf->pauseAction;
 }
 
 
@@ -253,15 +257,21 @@ void AnimationEventRouter::updateTab(){
 	int playDirection = aParams->getPlayDirection();
 
 	if (playDirection==0) {//pause
-		//pauseButton->setChecked(true);
+		pauseButton->setChecked(true);
+		mainPauseAction->setChecked(true);
 		playForwardButton->setChecked(false);
+		mainPlayForwardAction->setChecked(false);
 		playReverseButton->setChecked(false);
+		mainPlayBackwardAction->setChecked(false);
 		stepForwardButton->setEnabled(true);
 		stepReverseButton->setEnabled(true);
 	} else if (playDirection==1){//forward play
-		//pauseButton->setChecked(false);
+		pauseButton->setChecked(false);
+		mainPauseAction->setChecked(false);
 		playForwardButton->setChecked(true);
+		mainPlayForwardAction->setChecked(true);
 		playReverseButton->setChecked(false);
+		mainPlayBackwardAction->setChecked(false);
 		if (!aParams->isRepeating() && currentFrame >= endFrame){
 			//kludge to make the buttons update at the end of
 			//the animation sequence.  The problem is that
@@ -271,9 +281,12 @@ void AnimationEventRouter::updateTab(){
 			stepReverseButton->setEnabled(true);
 		}
 	} else {//reverse play
-		//pauseButton->setChecked(false);
+		pauseButton->setChecked(false);
+		mainPauseAction->setChecked(false);
 		playForwardButton->setChecked(false);
+		mainPlayForwardAction->setChecked(false);
 		playReverseButton->setChecked(true);
+		mainPlayBackwardAction->setChecked(true);
 		if (!aParams->isRepeating() && currentFrame <= startFrame){
 			stepForwardButton->setEnabled(true);
 			stepReverseButton->setEnabled(true);
@@ -332,13 +345,21 @@ void AnimationEventRouter::
 animationPauseClick(){
 	playForwardButton->setChecked(false);
 	playReverseButton->setChecked(false);
+	mainPlayForwardAction->setChecked(false);
+	mainPlayBackwardAction->setChecked(false);
+	mainPauseAction->setChecked(true);
+	pauseButton->setChecked(true);
 	guiSetPlay(0);
 }
 void AnimationEventRouter::
 animationPlayReverseClick(){
 	if (!playReverseButton->isDown()){
 		playForwardButton->setChecked(false);
+		mainPlayForwardAction->setChecked(false);
 		playReverseButton->setChecked(true);
+		mainPlayBackwardAction->setChecked(true);
+		pauseButton->setChecked(true);
+		mainPauseAction->setChecked(false);
 		guiSetPlay(-1);
 	}
 }
@@ -346,7 +367,11 @@ void AnimationEventRouter::
 animationPlayForwardClick(){
 	
 	playForwardButton->setChecked(true);
+	mainPlayForwardAction->setChecked(true);
 	playReverseButton->setChecked(false);
+	mainPlayBackwardAction->setChecked(false);
+	mainPauseAction->setChecked(false);
+	pauseButton->setChecked(false);
 	guiSetPlay(1);
 	
 }

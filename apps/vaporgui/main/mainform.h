@@ -112,6 +112,11 @@ public:
 	QAction* editRedoAction;
 	QLineEdit* timestepEdit;
 	QComboBox* alignViewCombo;
+	//Following are public so accessible from animation tab:
+	QAction* playForwardAction;
+	QAction* playBackwardAction;
+	QAction* pauseAction;
+	
 private:
     void createActions(); 
     void createMenus();
@@ -183,12 +188,9 @@ private:
 	QAction* viewAllAction;
 	QAction* viewRegionAction;
 
-	QAction* playForwardAction;
-	QAction* playBackwardAction;
 	QAction* stepForwardAction;
 	QAction* stepBackAction;
-	QAction* pauseAction;
-
+	
 	QSpinBox* interactiveRefinementSpin;
 
     QDockWidget* tabDockWindow;

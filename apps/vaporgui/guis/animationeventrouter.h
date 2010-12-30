@@ -82,6 +82,11 @@ protected:
 	void guiUpdateTimestepList(const char* descr);
 
 	void populateTimestepTable();
+	//Point to actions on main window:
+	QAction* mainPlayForwardAction;
+	QAction* mainPlayBackwardAction;
+	QAction* mainPauseAction;
+	
 	
 protected slots:
 	void guiSetPosition(int sliderposition);
