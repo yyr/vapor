@@ -327,10 +327,13 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		//string s = getVariableName(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		for (int i = 0; i< (int)dataMgr->GetVariables3D().size(); i++){
-			if (dataMgr->GetVariables3D()[i] == getVariableName(var)){
-				inMetadata = true;
-				break;
+		string s = getVariableName(var);
+		if (!dataMgr->IsVariableDerived(s)){
+			for (int i = 0; i< (int)dataMgr->GetVariables3D().size(); i++){
+				if (dataMgr->GetVariables3D()[i] == s){
+					inMetadata = true;
+					break;
+				}
 			}
 		}
 		if (! inMetadata) {
