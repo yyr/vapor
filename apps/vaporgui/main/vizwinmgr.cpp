@@ -859,9 +859,9 @@ animationParamsChanged(AnimationParams* aParams){
 	//and set their latlon or local coords
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		AnimationParams* animationParams = (AnimationParams*)Params::GetParamsInstance(Params::_animationParamsTag,i);
-		if  ( vizWin[i] && (i != vizNum)  &&
-			((!animationParams)||!animationParams->isLocal())){
+		if  (( i != vizNum)  &&  (!animationParams)||!animationParams->isLocal()){
 			ac->paramsChanged(i);
 			ViewpointParams* vp2 = getViewpointParams(i);
 			if (vp2!= vpp){
