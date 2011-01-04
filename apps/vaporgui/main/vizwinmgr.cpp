@@ -926,7 +926,7 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 	for (int i = 0; i< MAXVIZWINS; i++){
 		
 		if  ( vizWin[i] && (i != activeViz)  &&
-				((!getRealAnimationParams(i))||!getRealAnimationParams(i))
+			(getRealAnimationParams(i) == aParams)
 			){
 			ac->startPlay(i);
 			
