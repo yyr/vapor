@@ -216,7 +216,15 @@ endRendering(int vizNum){
 		if (hasEvents) {
 			app->processEvents();
 		}
-	
+		if (aParams->checkLastFrame()){
+			//At the end of animation, update the front tab and
+			//the animation toolbar.
+			TabManager* tmgr = MainForm::getInstance()->getTabManager();
+			EventRouter* eRouter = tmgr->getFrontEventRouter();
+			eRouter->updateTab();
+			//Set the pause button:
+			MainForm::getInstance()->setPause();
+		}
 		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
 		MainForm::getInstance()->setCurrentTimestep(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber());
 	}

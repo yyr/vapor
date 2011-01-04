@@ -82,6 +82,8 @@ public:
 	//needs to be set. 
 	//It advances the currentFrame to the next one
 	bool advanceFrame();
+	//set to pause if last frame is done, return true if done.
+	bool checkLastFrame();
 	int getNextFrame(int dir); //Determine the next frame in the specified direction
 	bool usingTimestepList() {return useTimestepSampleList;}
 	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}

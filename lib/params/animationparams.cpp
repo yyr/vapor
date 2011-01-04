@@ -160,6 +160,14 @@ advanceFrame(){
 		return true;
 	}
 }
+bool AnimationParams::checkLastFrame(){
+	int newFrame = getNextFrame(playDirection);
+	if (newFrame == currentFrame ) {
+		setPlayDirection(0);
+		return true;
+	}
+	else return false;
+}
 //Determine the next frame.  dir must be 1 or -1
 //Returns currentTimestep if no change.
 //If value returned is in opposite direction from dir, then there needs to

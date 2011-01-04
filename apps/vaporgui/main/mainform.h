@@ -116,6 +116,14 @@ public:
 	QAction* playForwardAction;
 	QAction* playBackwardAction;
 	QAction* pauseAction;
+	//Set the animation buttons in pause state,
+	//don't trigger an event:
+	void setPause(){
+		playForwardAction->setChecked(false);
+		playBackwardAction->setChecked(false);
+		pauseAction->setChecked(true);
+	}
+
 	
 private:
     void createActions(); 
