@@ -1,6 +1,9 @@
 //
 // $Id$
 //
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
