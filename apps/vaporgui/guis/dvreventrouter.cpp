@@ -999,7 +999,6 @@ setDatarangeDirty(RenderParams* params)
 {
 	DvrParams* dParams = (DvrParams*)params;
 	if (!dParams->getMapperFunc()) return;
-	const float* currentDatarange = dParams->getCurrentDatarange();
 	float minval = dParams->getMapperFunc()->getMinColorMapValue();
 	float maxval = dParams->getMapperFunc()->getMaxColorMapValue();
 	dParams->setCurrentDatarange(minval, maxval);

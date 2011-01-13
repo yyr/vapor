@@ -302,6 +302,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	int minRefLevel = numxforms;
 	bool allVarsDerived = true;
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
+		if (varNums[varIndex] < 0) continue; //in case of zero field component
 		const string varName = ds->getVariableName(varNums[varIndex]);
 		if(!ds->isDerivedVariable(varName)) {
 			allVarsDerived = false;
@@ -310,6 +311,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	if (!allVarsDerived){
 		for (i = 0; i<numVars; i++){
+			if (varNums[i] < 0) continue; //in case of zero field component
 			minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
 			//Test if it's acceptable, exit if not:
 			if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
@@ -353,11 +355,12 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
+		if (varNums[varIndex] < 0) continue; //in case of zero field component
 		const string varName = ds->getVariableName(varNums[varIndex]);
 		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
 		if (rc < 0) {
-			//Tell the datastatus that the data isn't really there at minRefLevel:
-			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
+			//Tell the datastatus that the data isn't really there at minRefLevel, at any LOD
+			ds->setDataMissing(timestep, minRefLevel, 0, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"VDC access error: \nvariable %s not accessible at timestep %d.",
 					varName.c_str(), timestep);
@@ -465,11 +468,11 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 			varName = ds->getVariableName(varNums[varIndex]);
 		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
 		if (rc < 0) {
-			//Tell the datastatus that the data isn't really there at minRefLevel:
+			//Tell the datastatus that the data isn't really there at minRefLevel at any LOD:
 			if (twoDim)
-				ds->setDataMissing2D(timestep, minRefLevel, varNums[varIndex]);
+				ds->setDataMissing2D(timestep, minRefLevel, 0, varNums[varIndex]);
 			else
-				ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
+				ds->setDataMissing(timestep, minRefLevel, 0, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
 					varName.c_str(),
@@ -855,7 +858,10 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 		//Intersect the valid regions of all the input variables:
 		for (int i = 0; i<invars3d.size(); i++){
 			rc = dm->GetValidRegion(timestep, invars3d[i].c_str(), minRefLevel, temp_min, temp_max);
-			if (rc < 0) return rc;
+			if (rc < 0) {
+				SetErrCode(0);
+				return rc;
+			}
 			for (int j = 0; j<3; j++){
 				if (temp_min[j] < curr_min[j]) curr_min[j] = temp_min[j];
 				if (temp_max[j] > curr_max[j]) curr_max[j] = temp_max[j];
@@ -863,7 +869,10 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 		}
 		for (int i = 0; i<invars2d.size(); i++){
 			rc = dm->GetValidRegion(timestep, invars2d[i].c_str(), minRefLevel, temp_min, temp_max);
-			if (rc < 0) return rc;
+			if (rc < 0) {
+				SetErrCode(0);
+				return rc;
+			}
 			for (int j = 0; j<2; j++){
 				if (temp_min[j] < curr_min[j]) curr_min[j] = temp_min[j];
 				if (temp_max[j] > curr_max[j]) curr_max[j] = temp_max[j];
@@ -876,6 +885,10 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 
 	} else {
 		rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
+		if(rc<0) {
+			SetErrCode(0);
+			return rc;
+		}
 	}
 	if (!ds->dataIsLayered()) return rc;
 	if (rc < 0) return rc;

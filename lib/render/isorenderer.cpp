@@ -150,6 +150,7 @@ void *IsoRenderer::_getRegion(
 			);
 		}
 	}
+	if (!data) data_mgr->SetErrCode(0);
 	return(data);
 }
 

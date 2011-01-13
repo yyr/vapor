@@ -81,23 +81,24 @@ public:
 	static int getInteractiveRefinementLevel() {return interactiveRefLevel;}
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
+	int getVDCType() {return VDCType;}
 	bool dataIsPresent(int sesvarnum, int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists[sesvarnum]) return false;
-		return (maxNumTransforms[sesvarnum][timestep] >= 0);
+		return (maxLevel3D[sesvarnum][timestep] >= 0);
 	}
 	bool dataIsPresent2D(int sesvarnum, int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists2D[sesvarnum]) return false;
-		return (maxNumTransforms2D[sesvarnum][timestep] >= 0);
+		return (maxLevel2D[sesvarnum][timestep] >= 0);
 	}
 	bool dataIsPresent3D(int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		for (int i = 0; i<variableExists.size(); i++){
-			if (variableExists[i] && maxNumTransforms[i][timestep] >= 0)
+			if (variableExists[i] && maxLevel3D[i][timestep] >= 0)
 				return true;
 		}
 		return false;
@@ -106,7 +107,7 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		for (int i = 0; i<variableExists2D.size(); i++){
-			if (variableExists2D[i] && maxNumTransforms2D[i][timestep] >= 0)
+			if (variableExists2D[i] && maxLevel2D[i][timestep] >= 0)
 				return true;
 		}
 		return false;
@@ -115,11 +116,11 @@ public:
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		for (int i = 0; i<variableExists.size(); i++){
-			if (variableExists[i] && maxNumTransforms[i][timestep] >= 0)
+			if (variableExists[i] && maxLevel3D[i][timestep] >= 0)
 				return true;
 		}
 		for (int i = 0; i<variableExists2D.size(); i++){
-			if (variableExists2D[i] && maxNumTransforms2D[i][timestep] >= 0)
+			if (variableExists2D[i] && maxLevel2D[i][timestep] >= 0)
 				return true;
 		}
 		return false;
@@ -170,12 +171,26 @@ public:
 	int maxXFormPresent(int sesvarnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
 		if (!variableExists[sesvarnum]) return -1;
-		return (maxNumTransforms[sesvarnum][timestep]);
+		if (getVDCType()==2) return getNumTransforms();
+		return (maxLevel3D[sesvarnum][timestep]);
 	}
 	int maxXFormPresent2D(int sesvarnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
-		return (maxNumTransforms2D[sesvarnum][timestep]);
+		if (getVDCType()==2) return getNumTransforms();
+		return (maxLevel2D[sesvarnum][timestep]);
+	}
+	int maxLODPresent3D(int sesvarnum, int timestep){
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (!variableExists[sesvarnum]) return -1;
+		if (getVDCType()!=2) return 0;
+		return (maxLevel3D[sesvarnum][timestep]);
+	}
+	int maxLODPresent2D(int sesvarnum, int timestep){
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (!variableExists2D[sesvarnum]) return -1;
+		if (getVDCType()!=2) return 0;
+		return (maxLevel2D[sesvarnum][timestep]);
 	}
 	//Determine if variable is present for *any* timestep 
 	//Needed for setting DVR panel
@@ -189,13 +204,13 @@ public:
 	}
 	//Verify that field data is present at required resolution and timestep.
 	//Ignore variable if varnum is < 0
-	bool fieldDataOK(int refLevel, int tstep, int varx, int vary, int varz);
-	bool fieldDataOK2D(int refLevel, int tstep, int varx, int vary, int varz);
+	bool fieldDataOK(int refLevel, int lod, int tstep, int varx, int vary, int varz);
 	
 	int getNumTimesteps() {return numTimesteps;}
 	//determine the maxnumtransforms in the vdf, may not actually have any data at
 	//that level...
 	int getNumTransforms() {return numTransforms;}
+	int getNumLODs() { return numLODs;}
 	//Find the first timestep that has any data with specified session variable num
 	int getFirstTimestep(int sesvarnum);
 	int getFirstTimestep2D(int sesvarnum);
@@ -356,17 +371,25 @@ public:
 	static void setWarnMissingData(bool val) {doWarnIfDataMissing = val;}
 	static void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
 	//Note missing data if a request for the data fails:
-	void setDataMissing(int timestep, int refLevel, int sessionVarNum){
+	void setDataMissing(int timestep, int refLevel, int lod, int sessionVarNum){
 		MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
-		if(md && md->GetVDCType() ==2) return;
-		if (maxNumTransforms[sessionVarNum][timestep] >= refLevel)
-			maxNumTransforms[sessionVarNum][timestep] = refLevel -1;
+		if(md && md->GetVDCType() == 2) {
+			if (maxLevel3D[sessionVarNum][timestep] >= lod)
+			maxLevel3D[sessionVarNum][timestep] = lod -1;
+			return;
+		}
+		if (maxLevel3D[sessionVarNum][timestep] >= refLevel)
+			maxLevel3D[sessionVarNum][timestep] = refLevel -1;
 	}
-	void setDataMissing2D(int timestep, int refLevel, int sessionVarNum){
+	void setDataMissing2D(int timestep, int refLevel, int lod, int sessionVarNum){
 		MetadataVDC* md = dynamic_cast<MetadataVDC*>(dataMgr);
-		if(md && md->GetVDCType() ==2) return;
-		if (maxNumTransforms2D[sessionVarNum][timestep] >= refLevel)
-			maxNumTransforms2D[sessionVarNum][timestep] = refLevel -1;
+		if(md && md->GetVDCType() == 2) {
+			if (maxLevel2D[sessionVarNum][timestep] >= lod)
+			maxLevel2D[sessionVarNum][timestep] = lod -1;
+			return;
+		}
+		if (maxLevel2D[sessionVarNum][timestep] >= refLevel)
+			maxLevel2D[sessionVarNum][timestep] = refLevel -1;
 	}
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
@@ -500,8 +523,8 @@ private:
 	std::vector<bool> variableExists2D;
 	//for each int variable there is an int vector of num transforms for each time step.
 	//value is -1 if no data at that timestep
-	std::vector<int*> maxNumTransforms;
-	std::vector<int*> maxNumTransforms2D;
+	std::vector<int*> maxLevel3D;
+	std::vector<int*> maxLevel2D;
 	DataMgr* dataMgr;
 	bool renderOK;
 	QApplication* theApp;
@@ -516,6 +539,7 @@ private:
 	size_t minTimeStep;
 	size_t maxTimeStep;
 	int numTransforms;
+	int numLODs;
 	//numTimeSteps may include lots of times that are not used. 
 	int numTimesteps;
 
@@ -569,6 +593,7 @@ private:
 	static int interactiveRefLevel;
 	static std::string projString;
 	static vector <float*> timeVaryingExtents;
+	int VDCType;
 	
 	//Static tables where all ParamsBase classes are registered.
 	//Each class has a unique:

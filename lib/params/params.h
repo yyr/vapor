@@ -511,7 +511,7 @@ public:
 	bool doBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]);}
 	bool doAlwaysBypass(int ts) {return ((ts < bypassFlags.size()) && bypassFlags[ts]>1);}
 	void initializeBypassFlags();
-	//Get a variable region from the datamanager
+	//Get a variable region from the datamanager.  May reduce the compression level, but not the refinement level
 	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
 
 protected:

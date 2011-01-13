@@ -390,7 +390,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //Then determine what is the subvolume we are dealing with as a portion
   //of the full mapped data.
 	int numxforms, lod;
-
+	lod = currentRenderParams->GetCompressionLevel();
+	if (ds->useLowerRefinementLevel())
+		lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
+	
 	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
 	{
 		numxforms = Min(currentRenderParams->getNumRefinements(),
@@ -402,12 +405,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			setClutDirty(); 
 			myGLWindow->setDvrRegionNavigating(true);
 		}
-		lod = 0;
 	} else {
 
 		numxforms = currentRenderParams->getNumRefinements();
-		lod = currentRenderParams->GetCompressionLevel();
-	    
 		if (_driver->GetRenderFast())
 		{
 			_driver->SetRenderFast(false);
@@ -539,11 +539,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			if (numxforms <= DataStatus::getInteractiveRefinementLevel())
 				setBypass(timeStep);
 			else setPartialBypass(timeStep);
+			MyBase::SetErrCode(0);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Volume data unavailable\nfor refinement level %d\nof variable %s, at current timestep.", 
 					numxforms, varname);
 			}
-			ds->setDataMissing(timeStep, numxforms, currentRenderParams->getSessionVarNum());
+			ds->setDataMissing(timeStep, numxforms, lod, currentRenderParams->getSessionVarNum());
 			setBypass(timeStep);
 			return;
 		}
@@ -771,6 +772,7 @@ void *VolumeRenderer::_getRegion(
 			0 // Don't lock!
 		);
 	}
+	if (!data) data_mgr->SetErrCode(0);
 	return(data);
 }
 

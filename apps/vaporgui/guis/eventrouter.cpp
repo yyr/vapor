@@ -189,6 +189,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		}
 		return;
 	}
+	int lod = renParams->GetCompressionLevel();
+	if (ds->useLowerRefinementLevel())
+		lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));
 		
 	//Check if the region/resolution is too big:
 	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(timeStep), rParams->getRegionMax(timeStep), availRefLevel);
@@ -212,7 +215,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 					timeStep, 
 					varname,
 					availRefLevel,
-					renParams->GetCompressionLevel(),
+					lod,
 					min_bdim, max_bdim,
 					dRange,
 					0 //Don't lock!
@@ -220,10 +223,11 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	QApplication::restoreOverrideCursor();
 	//Make sure we can build a histogram
 	if (!data) {
+		dataMgr->SetErrCode(0);
 		if (ds->warnIfDataMissing())
 			renParams->setBypass(timeStep);
 			MessageReporter::errorMsg("Invalid/nonexistent data;\ncannot be histogrammed");
-		ds->setDataMissing(timeStep, availRefLevel, varNum);
+		ds->setDataMissing(timeStep, availRefLevel, lod, varNum);
 		return;
 	}
 

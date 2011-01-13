@@ -338,10 +338,10 @@ deepCopy(ParamNode*){
 bool FlowParams::usingVariable(const string& varname){
 	int varnum = DataStatus::getInstance()->getSessionVariableNum(varname);
 	if (flowType == 0 || flowType == 2){
-		if ((steadyVarNum[0] == varnum )|| (steadyVarNum[1] == varnum) || (steadyVarNum[1] == varnum)) return true;
+		if ((steadyVarNum[0] == varnum+1 )|| (steadyVarNum[1] == varnum+1) || (steadyVarNum[1] == varnum+1)) return true;
 	}
 	if (flowType == 1){
-		if ((unsteadyVarNum[0] == varnum )|| (unsteadyVarNum[1] == varnum) || (unsteadyVarNum[1] == varnum)) return true;
+		if ((unsteadyVarNum[0] == varnum+1 )|| (unsteadyVarNum[1] == varnum+1) || (unsteadyVarNum[1] == varnum+1)) return true;
 	}
 	if (randomGen && seedDistBias != 0.f){
 		if ((seedDistVarNum[0] == varnum )|| (seedDistVarNum[1] == varnum) || (seedDistVarNum[1] == varnum)) return true;
@@ -805,7 +805,8 @@ int FlowParams::
 getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowDir){
 	DataStatus* ds = DataStatus::getInstance();
 	int minRefLevel = numRefinements;
-	if (ds->useLowerRefinementLevel()) minRefLevel = 0;
+	int minLOD = GetCompressionLevel();
+	if (ds->useLowerRefinementLevel()) {minRefLevel = 0; minLOD = 0;}
 	if (unsteadyFlowDir > 0){
 		
 		if (useTimestepSampleList){
@@ -817,6 +818,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 					for (int j = 0; j<3; j++){
 						if (unsteadyVarNum[j] == 0) continue;
 						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+						if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 					}
 					if(!dataOK) continue; //skip this timestep
 					position++; //count the number of acceptable steps 
@@ -835,6 +837,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 				for (int j = 0; j<3; j++){
 					if (unsteadyVarNum[j] == 0) continue;
 					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 				}
 				if(dataOK) break;
 			}
@@ -851,6 +854,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 					for (int j = 0; j<3; j++){
 						if (unsteadyVarNum[j] == 0) continue;
 						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+						if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 					}
 					if(!dataOK) continue; //skip this timestep
 					position++; //count the number of acceptable steps 
@@ -870,6 +874,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 				for (int j = 0; j<3; j++){
 					if (unsteadyVarNum[j] == 0) continue;
 					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 				}
 				if(dataOK) break;
 			}
@@ -1106,7 +1111,8 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	//is not available at the required resolution
 	DataStatus* ds = DataStatus::getInstance();
 	int minRefLevel = numRefinements;
-	if (ds->useLowerRefinementLevel()) minRefLevel = 0;
+	int minLOD = GetCompressionLevel();
+	if (ds->useLowerRefinementLevel()) {minRefLevel = 0; minLOD = 0;}
 	int numTimesteps;
 	int* timeStepList;
 	int numValidTimesteps = 0;
@@ -1116,13 +1122,17 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 		for (int i = 0; i<numTimesteps; i++){
 			bool levelOK = true;
 			for (int j = 0; j<3; j++){
-				if (unsteadyVarNum[j] && ds->maxXFormPresent(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minRefLevel){
-					levelOK = false; break;
+				if (unsteadyVarNum[j]) { 
+					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minRefLevel){
+						levelOK = false; break;
+					}
+					if(ds->maxLODPresent3D(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minLOD){
+						levelOK = false; break;
+					}
 				}
 			}
 			if (levelOK)
 				timeStepList[numValidTimesteps++] = unsteadyTimestepList[i];
-
 		}
 	}
 	else {
@@ -1133,8 +1143,14 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			bool levelOK = true;
 			int tstep = timeSamplingStart + i*timeSamplingInterval;
 			for (int j = 0; j<3; j++){
-				if (unsteadyVarNum[j] && ds->maxXFormPresent(unsteadyVarNum[j]-1, tstep) < minRefLevel)
-					levelOK = false; break;
+				if (unsteadyVarNum[j]){ 
+					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, tstep) < minRefLevel){
+						levelOK = false; break;
+					}
+					if(ds->maxLODPresent3D(unsteadyVarNum[j]-1, tstep) < minLOD){
+						levelOK = false; break;
+					}
+				}
 			}
 			if(levelOK) timeStepList[numValidTimesteps++] = tstep;
 		}
@@ -2237,7 +2253,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
 		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
-		
+		int lod = GetCompressionLevel();
+		if (ds->useLowerRefinementLevel())
+			lod = Min(lod, ds->maxLODPresent3D(opacVarnum, timeStep));
 		for (int i = 0; i<3; i++){
 			opacSize[i] = (max_bdim[i] - min_obdim[i] +1)*bs[i];
 			opacMinMap[i] = min_dim[i];
@@ -2248,12 +2266,13 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			opacRefLevel, GetCompressionLevel(), min_obdim, max_bdim,  0);
+			opacRefLevel, lod, min_obdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!opacRegion){
+			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing(timeStep, opacRefLevel, opacVarnum);
+			DataStatus::getInstance()->setDataMissing(timeStep, opacRefLevel, lod, opacVarnum);
 			return;
 		}
 
@@ -2277,7 +2296,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Color mapping data unavailable");
 			return;
 		}
-		
+		int lod = GetCompressionLevel();
+		if (ds->useLowerRefinementLevel())
+			lod = Min(lod, ds->maxLODPresent3D(colorVarnum, timeStep));
 		for (int i = 0; i<3; i++){
 			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
 			colorMinMap[i] = min_dim[i];
@@ -2288,12 +2309,13 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			colorRefLevel, GetCompressionLevel(), min_cbdim, max_bdim,  0);
+			colorRefLevel, lod, min_cbdim, max_bdim,  0);
 		QApplication::restoreOverrideCursor();
 		if (!colorRegion){
+			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Color mapped variable data unavailable\nfor refinement %d at timestep %d", colorRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing(timeStep, colorRefLevel, colorVarnum);
+			DataStatus::getInstance()->setDataMissing(timeStep, colorRefLevel, lod, colorVarnum);
 			return;
 		}
 		
@@ -2589,7 +2611,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Flow vector field is not available\nat any sampled time steps");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Flow vector field is not available\nat required refinement/lod\nat any sampled time steps");
 		return false;
 	}
 	//was the proposed start invalid?
@@ -2651,10 +2673,14 @@ bool FlowParams::
 validateVectorField(int ts, int refLevel, const int varNums[3]) {
 	DataStatus* dStatus = DataStatus::getInstance();
 	if (!dStatus) return false;
-	if (dStatus->useLowerRefinementLevel()) refLevel = 0;
+	int minLOD = GetCompressionLevel();
+	if (dStatus->useLowerRefinementLevel()) {refLevel = 0; minLOD = 0;}
+	
 	for (int i = 0; i< 3; i++){
 		if (varNums[i] < 0) continue;
 		if(dStatus->maxXFormPresent(varNums[i], ts)< refLevel)
+			return false;
+		if(dStatus->maxLODPresent3D(varNums[i], ts)< minLOD)
 			return false;
 	}
 	return true;
@@ -2707,19 +2733,24 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	if (availRefLevel < 0) {
 		return -1.f;
 	}
-
 	
-	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
+	DataStatus* ds = DataStatus::getInstance();
+	
+	DataMgr* dataMgr = (DataMgr*)(ds->getDataMgr());
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	//Obtain the variables from the dataMgr:
 	for (int var = 0; var<3; var++){
 		if (steadyVarNum[var]== 0) varData[var] = 0;
 		else {
+			int lod = GetCompressionLevel();
+			if (ds->useLowerRefinementLevel())
+				lod = Min(lod, ds->maxLODPresent3D(steadyVarNum[var]-1, timeStep));
 			varData[var] = dataMgr->GetRegion((size_t)timeStep,
-				DataStatus::getInstance()->getVariableName(steadyVarNum[var]-1).c_str(),
-				availRefLevel, GetCompressionLevel(), min_bdim, max_bdim,  1);
+				ds->getVariableName(steadyVarNum[var]-1).c_str(),
+				availRefLevel, lod, min_bdim, max_bdim,  1);
 			if (!varData[var]) {
-				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]-1);
+				dataMgr->SetErrCode(0);
+				ds->setDataMissing(timeStep, availRefLevel,lod, steadyVarNum[var]-1);
 				//release currently locked regions:
 				for (int k = 0; k<var; k++){
 					dataMgr->UnlockRegion(varData[k]);
@@ -2730,10 +2761,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 		}
 	}
 	size_t bs[3];
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs,availRefLevel);
+	ds->getDataMgr()->GetBlockSize(bs,availRefLevel);
 	int numPts = 0;
 	float dataSum = 0.f;
-	DataStatus* ds = DataStatus::getInstance();
 	
 	float lowx = 0.f, highx = 0.f, lowy = 0.f, highy = 0.f, lowz = 0.f, highz = 0.f;
 	bool xnull = (steadyVarNum[0] == 0);
@@ -2796,19 +2826,25 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	int availRefLevel = numRefinements;
+	int lod = GetCompressionLevel();
 	if (flowType == 0 ){
 		int varnums[3];
 		int varcount = 0;
 		for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
 		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, varnums,varcount);
-	
-		if(availRefLevel < 0){
+		
+		if (ds->useLowerRefinementLevel()){
+			for (int i = 0; i<3; i++){
+				if(steadyVarNum[i]>0) lod = Min(lod, ds->maxLODPresent3D(steadyVarNum[i]-1, timeStep));
+			}
+		}
+		if(availRefLevel < 0 || lod < 0){
 			return false;
 		}
 	} else { 
 		//Unsteady flow.  Find the intersection of all the regions for the timesteps to be sampled.
-		// Also get available refinement level which is min of all ones available
+		// Also get available refinement/compression level which is min of all ones available
 		
 		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
 		//Get min refinement level that's OK for all time steps for which there is data.
@@ -2817,11 +2853,15 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			for (int indx = 0; indx < getNumTimestepSamples(); indx++){
 				int ts = getTimestepSample(indx);
 				int levelAtTime = availRefLevel;
+				int lodAtTime = lod;
 				for (int i = 0; i< 3; i++){
-					if (unsteadyVarNum[i])
+					if (unsteadyVarNum[i]){
 						levelAtTime = Min(levelAtTime, ds->maxXFormPresent(unsteadyVarNum[i]-1, ts));
+						lodAtTime = Min(lodAtTime, ds->maxLODPresent3D(unsteadyVarNum[i]-1, ts));
+					}
 				}
 				if (levelAtTime >= 0) availRefLevel = levelAtTime;
+				if (lodAtTime >= 0) lod = lodAtTime;
 			}
 		}
 		//Start with the extents at the start timestep:
@@ -2835,14 +2875,19 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			for (int i = 0; i < 3; i++){
 				if (unsteadyVarNum[i] == 0) continue;
 				if(ds->maxXFormPresent(unsteadyVarNum[i]-1, ts) < 0) {tsIsOK = false;break;}
-				if((!ds->useLowerRefinementLevel())&& ds->maxXFormPresent(unsteadyVarNum[i]-1, ts) < availRefLevel){
-					tsIsOK = false; break;
+				if(!ds->useLowerRefinementLevel()){
+					if ((ds->maxXFormPresent(unsteadyVarNum[i]-1, ts)) < availRefLevel){
+						tsIsOK = false; break;
+					}
+					if ((ds->maxLODPresent3D(unsteadyVarNum[i]-1, ts)) < lod){
+						tsIsOK = false; break;
+					}
 				}
 			}
 			if (!tsIsOK) continue;
 			int varnums[3];
 			int varcount = 0;
-			for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) varnums[varcount++] = unsteadyVarNum[i] -1;}
+			for (int i = 0; i< 3; i++){varnums[varcount++] = unsteadyVarNum[i] -1;}
 			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				ts, varnums, varcount);
 			if(refLevel < 0)
@@ -2869,14 +2914,17 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	//Check that the cache is big enough for all three (or 4) variables
 	float numVoxels = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
 	float nvars =  3.f;
-	
-	//Multiply by 32^3 *4 to get total bytes, divide by 2^20 for mbytes, * num variables
-	if (nvars*numVoxels/8.f >= (float)DataStatus::getInstance()->getCacheMB()){
+	if (flowType != 0) nvars = 6.f;
+	size_t bs[3];
+	ds->getDataMgr()->GetBlockSize(bs, availRefLevel);
+	//Multiply by  *4 to get total bytes, divide by 1M mbytes, * num variables
+	float memreq = nvars*numVoxels*bs[0]*bs[1]*bs[2]/250000.;
+	if (memreq >= (float)DataStatus::getInstance()->getCacheMB()){
 		SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG," Data cache size %d is\ntoo small for this flow integration",
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
-	flowLib->SetRegion(availRefLevel, GetCompressionLevel(), min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
+	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
 	// Also, specify the bounds of the rake, in case it is needed:
 	double rakeMinCoords[3];
 	double rakeMaxCoords[3];
@@ -3056,7 +3104,7 @@ bool FlowParams::validateSettings(int tstep){
 	
 	switch (flowType) {
 		case (0) : 
-			if (!ds->fieldDataOK(numRefinements, tstep, 
+			if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),tstep, 
 						steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)){
 				
 				if (ds->warnIfDataMissing()){
@@ -3073,7 +3121,7 @@ bool FlowParams::validateSettings(int tstep){
 		case (2) :
 			for (int i = 0; i<getNumTimestepSamples(); i++){
 				int ts = getTimestepSample(i);
-				if (!ds->fieldDataOK(numRefinements, ts, 
+				if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
 						steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)){
 					if (ds->warnIfDataMissing()){
 						autoRefresh = false;
@@ -3094,9 +3142,9 @@ bool FlowParams::validateSettings(int tstep){
 		int numLegitimate = 0;
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);
-			if (!ds->fieldDataOK(numRefinements, ts, 
+			if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
 					unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)) continue;
-			if (flowType == 2 && !ds->fieldDataOK(numRefinements, ts, 
+			if (flowType == 2 && !ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
 					steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)) continue;
 			numLegitimate++;
 		}
@@ -3113,7 +3161,7 @@ bool FlowParams::validateSettings(int tstep){
 		if (ds->warnIfDataMissing()){
 			for (int i = 0; i<getNumTimestepSamples(); i++){
 				int ts = getTimestepSample(i);
-				if (!ds->fieldDataOK(numRefinements, ts, 
+				if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
 						unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
@@ -3135,7 +3183,7 @@ bool FlowParams::validateSettings(int tstep){
 	if (seedDistBias != 0.f && doRake && randomGen && ds->warnIfDataMissing()){
 		switch (flowType) {
 			case (0) :
-				if (!ds->fieldDataOK(numRefinements, tstep, 
+				if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),tstep, 
 						seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
@@ -3148,7 +3196,7 @@ bool FlowParams::validateSettings(int tstep){
 			case(1) :
 				for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
 					if (i >= getFirstSampleTimestep() && i <= getLastSampleTimestep()) {
-						if (!ds->fieldDataOK(numRefinements, i, 
+						if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),i, 
 								seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 							autoRefresh = false;
 							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
@@ -3162,7 +3210,7 @@ bool FlowParams::validateSettings(int tstep){
 				break;
 			case(2) :
 				{ 
-					if (!ds->fieldDataOK(numRefinements, seedTimeStart, 
+					if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),seedTimeStart, 
 							seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
 						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
@@ -3181,7 +3229,7 @@ bool FlowParams::validateSettings(int tstep){
 	if (flowType == 2 && ds->warnIfDataMissing()) {
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);
-			if (!ds->fieldDataOK(numRefinements, ts, 
+			if (!ds->fieldDataOK(numRefinements, GetCompressionLevel(),ts, 
 					priorityVarNum[0],priorityVarNum[1], priorityVarNum[2])){
 				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,

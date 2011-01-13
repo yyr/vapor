@@ -1528,13 +1528,10 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			//Try to get requested refinement level or the nearest acceptable level:
 			refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 					timeStep, &varnum, 1, regMin, regMax);
-			
-
 			if(refLevel < 0) {
 				dataMgrLayered->SetInterpolateOnOff(true);
 				return false;
 			}
-				
 			
 			//Modify 3rd coord of region extents to obtain only bottom layer:
 			min_dim[2] = max_dim[2] = 0;
@@ -1545,12 +1542,13 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, 0, min_bdim, max_bdim, 0);
 			dataMgrLayered->SetInterpolateOnOff(true);
 			if (!elevData) {
+				dataMgr->SetErrCode(0);
 				if (ds->warnIfDataMissing()){
 					SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
 						timeStep,
 						"This message can be silenced \nusing the User Preference Panel settings." );
 				}
-				ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
+				ds->setDataMissing(timeStep, refLevel, 0, ds->getSessionVariableNum(std::string("ELEVATION")));
 				return false;
 			}
 		}
@@ -1581,12 +1579,13 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, 0, min_bdim, max_bdim, 0);
 		
 		if (!hgtData) {
+			dataMgr->SetErrCode(0);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.\n %s", 
 					timeStep,
 					"This message can be silenced \nusing the User Preference Panel settings." );
 			}
-			ds->setDataMissing2D(timeStep, refLevel, ds->getSessionVariableNum2D(std::string("HGT")));
+			ds->setDataMissing2D(timeStep, refLevel, 0, ds->getSessionVariableNum2D(std::string("HGT")));
 			return false;
 		}
 	}

@@ -909,12 +909,22 @@ guiSetMapComboVarNum(int val){
 	if (val != 0){ 
 		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 		int sesvarnum = ds->mapActiveToSessionVarNum3D(val-1);
-		int ref = ds->maxXFormPresent(sesvarnum, timeStep);
-		if (ref < 0 || (ref < iParams->GetRefinementLevel() && ds->useLowerRefinementLevel())){
-			//don't change the variable
-			MessageReporter::errorMsg("Selected variable is not available\nat required refinement level\nand at current timestep.");
-			mapVariableCombo->setCurrentIndex(comboVarNum);
-			return;
+		if (ds->getVDCType() != 2){
+			int ref = ds->maxXFormPresent(sesvarnum, timeStep);
+			if (ref < 0 || (ref < iParams->GetRefinementLevel() && !ds->useLowerRefinementLevel())){
+				//don't change the variable
+				MessageReporter::errorMsg("Selected variable is not available\nat required refinement level\nand at current timestep.");
+				mapVariableCombo->setCurrentIndex(comboVarNum);
+				return;
+			}
+		} else {
+			int ref = ds->maxLODPresent3D(sesvarnum, timeStep);
+			if (ref < 0 || (ref < iParams->GetCompressionLevel() && !ds->useLowerRefinementLevel())){
+				//don't change the variable
+				MessageReporter::errorMsg("Selected variable is not available\nat required LOD\nand at current timestep.");
+				mapVariableCombo->setCurrentIndex(comboVarNum);
+				return;
+			}
 		}
 	}
 	//If the change is turning on or off the constant color, then will need to disable and

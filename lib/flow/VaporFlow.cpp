@@ -1272,12 +1272,15 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
 		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, compressLevel, minBlk, maxBlk, 1);
-		if (pUData[0]== 0)
+		if (pUData[0]== 0){
+			dataMgr->SetErrCode(0);
 			return 0;
+		}
 	}
 	if (strcmp(vary,"0")== 0) pVData[0] = 0;
 	else {
 		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk, 1);
+		dataMgr->SetErrCode(0);
 		if (pVData[0] == 0 && pUData[0]) {
 			dataMgr->UnlockRegion(pUData[0]);
 			return 0;
@@ -1287,6 +1290,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	else {
 		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
+			dataMgr->SetErrCode(0);
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
 			return 0;
@@ -1383,6 +1387,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	if (strcmp(varx,"0")== 0) pUData[0] = 0;
 	else {
 		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements,compressLevel, minBlk, maxBlk, 1);
+		dataMgr->SetErrCode(0);
 		if (pUData[0]== 0)
 			return false;
 	}
@@ -1390,6 +1395,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	else {
 		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pVData[0] == 0) {
+			dataMgr->SetErrCode(0);
 			if(pUData[0]) dataMgr->UnlockRegion(pUData[0]);
 			return false;
 		}
@@ -1398,6 +1404,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	else {
 		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
 		if (pWData[0] == 0) {
+			dataMgr->SetErrCode(0);
 			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
 			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
 			return false;
