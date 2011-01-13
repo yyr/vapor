@@ -17,6 +17,9 @@
 //	Description:  Implementation of GLWindow class: 
 //		It performs the opengl rendering for visualizers
 //
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 #include <GL/glew.h>
 #include <vapor/LayeredIO.h>
 

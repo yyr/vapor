@@ -1303,3 +1303,32 @@ int DataStatus::getActiveVarNum2D(const string varname) const{
 	}
 	return -1;
 }
+double DataStatus::getDefaultDataMax(int varnum){
+	int activeNum = mapSessionToActiveVarNum3D(varnum);
+	if (activeNum < 0) return 1.f;
+	string varname = getActiveVarName3D(activeNum);
+	if (isDerivedVariable(varname)) return 1.f;
+	return getDataMax(varnum, (int)minTimeStep);
+}
+double DataStatus::getDefaultDataMin(int varnum){
+	int activeNum = mapSessionToActiveVarNum3D(varnum);
+	if (activeNum < 0) return -1.f;
+	string varname = getActiveVarName3D(activeNum);
+	if (isDerivedVariable(varname)) return -1.f;
+	return getDataMin(varnum, (int)minTimeStep);
+}
+double DataStatus::getDefaultDataMax2D(int varnum){
+	int activeNum = mapSessionToActiveVarNum2D(varnum);
+	if (activeNum < 0) return 1.f;
+	string varname = getActiveVarName2D(activeNum);
+	if (isDerivedVariable(varname)) return 1.f;
+	return getDataMax2D(varnum, (int)minTimeStep);
+}
+double DataStatus::getDefaultDataMin2D(int varnum){
+	int activeNum = mapSessionToActiveVarNum2D(varnum);
+	if (activeNum < 0) return -1.f;
+	string varname = getActiveVarName2D(activeNum);
+	if (isDerivedVariable(varname)) return -1.f;
+	return getDataMin2D(varnum, (int)minTimeStep);
+}
+	

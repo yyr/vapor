@@ -163,10 +163,10 @@ public:
 			calcDataRange2D(sesvarNum,timestep);
 		return dataMin2D[sesvarNum][timestep];
 	}
-	double getDefaultDataMax(int varnum){return getDataMax(varnum, (int)minTimeStep);}
-	double getDefaultDataMin(int varnum){return getDataMin(varnum, (int)minTimeStep);}
-	double getDefaultDataMax2D(int varnum){return getDataMax2D(varnum, (int)minTimeStep);}
-	double getDefaultDataMin2D(int varnum){return getDataMin2D(varnum, (int)minTimeStep);}
+	double getDefaultDataMax(int varnum);
+	double getDefaultDataMin(int varnum);
+	double getDefaultDataMax2D(int varnum);
+	double getDefaultDataMin2D(int varnum);
 	
 	int maxXFormPresent(int sesvarnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;

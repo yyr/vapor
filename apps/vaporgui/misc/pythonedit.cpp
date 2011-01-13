@@ -1,4 +1,26 @@
+//************************************************************************
+//																		*
+//		     Copyright (C)  2010										*
+//     University Corporation for Atmospheric Research					*
+//		     All Rights Reserved										*
+//																		*
+//************************************************************************/
+//
+//	File:		pythonedit.cpp
+//
+//	Author:		Alan Norton
+//			National Center for Atmospheric Research
+//			PO 3000, Boulder, Colorado
+//
+//	Date:		May 2010
+//
+//	Description:	Implementation of window for editing python scripts
+//					
+//
 
+#ifdef WIN32
+#pragma warning(disable : 4996)
+#endif
 #include "pythonedit.h"
 #include <vapor/DataMgr.h>
 #include <vapor/DataMgrFactory.h>

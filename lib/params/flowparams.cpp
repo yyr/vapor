@@ -2526,7 +2526,7 @@ float FlowParams::minRange(int index, int timestep){
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
-				return( DataStatus::getInstance()->getDataMin(varnum, timestep));
+				return( DataStatus::getInstance()->getDefaultDataMin(varnum));
 			}
 			else return 0.f;
 	}
@@ -2560,7 +2560,7 @@ float FlowParams::maxRange(int index, int timestep){
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
-				return( DataStatus::getInstance()->getDataMax(varnum, timestep));
+				return( DataStatus::getInstance()->getDefaultDataMax(varnum));
 			}
 			else return 1.f;
 	}

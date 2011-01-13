@@ -795,13 +795,35 @@ void FlowEventRouter::updateTab(){
 	//These should be the actual range of the variables
 	int var = fParams->getColorMapEntityIndex();
 	int tstep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minColorBound->setText(QString::number(fParams->minRange(var, tstep)));
-	maxColorBound->setText(QString::number(fParams->maxRange(var, tstep)));
+	if (var<4){
+		minColorBound->setText(QString::number(fParams->minRange(var, tstep)));
+		maxColorBound->setText(QString::number(fParams->maxRange(var, tstep)));
+	} else {
+		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
+		float minval= -1.f, maxval = 1.f;
+		if (dStatus->variableIsPresent(varnum)){
+			minval = dStatus->getDataMin(varnum, tstep);
+			maxval = dStatus->getDataMax(varnum, tstep);
+		}
+		minColorBound->setText(QString::number(minval));
+		maxColorBound->setText(QString::number(maxval));
+	}
 	var = fParams->getOpacMapEntityIndex();
-	minOpacityBound->setText(QString::number(fParams->minRange(var, tstep)));
-	maxOpacityBound->setText(QString::number(fParams->maxRange(var, tstep)));
-	updateMapBounds(fParams);
+	if (var < 4){
+		minOpacityBound->setText(QString::number(fParams->minRange(var, tstep)));
+		maxOpacityBound->setText(QString::number(fParams->maxRange(var, tstep)));
+	} else {
+		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
+		float minval= -1.f, maxval = 1.f;
+		if (dStatus->variableIsPresent(varnum)){
+			minval = dStatus->getDataMin(varnum, tstep);
+			maxval = dStatus->getDataMax(varnum, tstep);
+		}
+		minOpacityBound->setText(QString::number(minval));
+		maxOpacityBound->setText(QString::number(maxval));
+	}
 
+	updateMapBounds(fParams);
 	update();
 	guiSetTextChanged(false);
 	
@@ -3271,7 +3293,3 @@ QSize FlowEventRouter::sizeHint() const {
 	if (!showMapEditor) vertsize -= 350;	
 	return QSize(460,vertsize);
 }
-
-
-
-
