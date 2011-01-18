@@ -169,25 +169,25 @@ public:
 	double getDefaultDataMin2D(int varnum);
 	
 	int maxXFormPresent(int sesvarnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
 		return (maxLevel3D[sesvarnum][timestep]);
 	}
 	int maxXFormPresent2D(int sesvarnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
 		return (maxLevel2D[sesvarnum][timestep]);
 	}
 	int maxLODPresent3D(int sesvarnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
 		return (maxLevel3D[sesvarnum][timestep]);
 	}
 	int maxLODPresent2D(int sesvarnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
 		return (maxLevel2D[sesvarnum][timestep]);
