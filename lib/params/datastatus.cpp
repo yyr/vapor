@@ -538,7 +538,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		dataMgrLayered->SetHighVals(vNames, vals);
 	}
 	//For now there are no low high values for 2D variables...
-	return someDataOverall;
+	return true;
 }
 
 
