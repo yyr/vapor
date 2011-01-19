@@ -91,7 +91,7 @@ reinit(bool doOverride){
 	//Make min and max conform to new data:
 	//minFrame = (int)DataStatus::getInstance()->getMinTimestep();
 	//maxFrame = (int)DataStatus::getInstance()->getMaxTimestep();
-	maxFrame = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps();
+	maxFrame = DataStatus::getInstance()->getDataMgr()->GetNumTimeSteps()-1;
 	minFrame = 0;
 	//Narrow the range to the actual data limits:
 	//Find the first framenum with data:

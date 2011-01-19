@@ -537,7 +537,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		}
 		dataMgrLayered->SetHighVals(vNames, vals);
 	}
-	//For now there are no low high values for 2D variables...
+	
+	if (!someDataOverall){
+		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE, "No data found in VDC");
+	}
 	return true;
 }
 
@@ -759,7 +762,7 @@ bool DataStatus::fieldDataOK(int refLevel, int lod, int tstep, int varx, int var
 	else VDCType = 0;
 	int testLevel = refLevel;
 	if (VDCType == 2) testLevel = lod;
-	if (tstep < (int)minTimeStep || tstep > (int)maxTimeStep) return false;
+	if (tstep < 0 || tstep > numTimesteps - 1) return false;
 	if (doUseLowerRefinementLevel) testLevel = 0;
 	if (varx >= 0 && (maxLevel3D[varx][tstep] < testLevel)) return false;
 	if (vary >= 0 && (maxLevel3D[vary][tstep] < testLevel)) return false;

@@ -1003,7 +1003,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 void FlowRenderer::
 setAllNeedRefresh(bool value){
-	int mxframe = DataStatus::getInstance()->getNumTimesteps();
+	int mxframe = DataStatus::getInstance()->getNumTimesteps()-1;
 	for (int i = 0; i< mxframe; i++){
 		needRefreshFlag[i] = value;
 	}

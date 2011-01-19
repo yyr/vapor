@@ -340,7 +340,7 @@ reinit(bool doOverride){
 		delete [] twoDDataTextures;
 	}
 	
-	maxTimestep = DataStatus::getInstance()->getNumTimesteps();
+	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
 	twoDDataTextures = 0;
 	
 	initializeBypassFlags();

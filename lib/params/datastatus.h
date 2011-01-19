@@ -105,7 +105,7 @@ public:
 	}
 	bool dataIsPresent2D(int timestep){
 		if (!dataMgr) return false;
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
+		if (timestep < 0 || timestep >= numTimesteps) return false;
 		for (int i = 0; i<variableExists2D.size(); i++){
 			if (variableExists2D[i] && maxLevel2D[i][timestep] >= 0)
 				return true;
@@ -114,7 +114,7 @@ public:
 	}
 	bool dataIsPresent(int timestep){
 		if (!dataMgr) return false;
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
+		if (timestep < 0 || timestep >= numTimesteps) return false;
 		for (int i = 0; i<variableExists.size(); i++){
 			if (variableExists[i] && maxLevel3D[i][timestep] >= 0)
 				return true;

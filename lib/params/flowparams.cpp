@@ -365,8 +365,8 @@ reinit(bool doOverride){
 	
 	//Make min and max conform to new data.
 	//Start with values in session:
-	int minFrame = (int)(DataStatus::getInstance()->getMinTimestep());
-	maxFrame = (int)(DataStatus::getInstance()->getMaxTimestep());
+	int minFrame = 0;
+	maxFrame = (int)(DataStatus::getInstance()->getNumTimesteps()-1);
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {

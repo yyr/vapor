@@ -410,7 +410,7 @@ reinit(bool doOverride){
 	if (ibfvUField) delete [] ibfvUField;
 	if (ibfvVField) delete [] ibfvVField;
 	if (ibfvValid) delete [] ibfvValid;
-	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
+	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
 	probeDataTextures = 0;
 	probeIBFVTextures = 0;
 	ibfvUField = 0;

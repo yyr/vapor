@@ -174,7 +174,7 @@ reinit(bool doOverride){
 		imageNums = 0;
 	}
 	
-	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
+	maxTimestep = DataStatus::getInstance()->getNumTimesteps()-1;
 	twoDDataTextures = 0;
 	imageExtents = 0;
 	textureSizes = 0;
