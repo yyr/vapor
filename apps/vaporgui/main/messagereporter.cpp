@@ -243,6 +243,9 @@ doPopup(messagePriority t, const char* message){
 	msgBox->move(tabPsn);
 	msgBox->exec();
 	delete msgBox;
+	if (t == Error || t == Fatal){
+		MainForm::getInstance()->pauseClick();
+	}
 	return;
 }
 //This is the last popup before messages are silenced; if users ask for it,

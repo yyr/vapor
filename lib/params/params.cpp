@@ -410,22 +410,24 @@ void RenderParams::setAllBypass(bool val){
 		bypassFlags[i] = ival;
 }
 // used by Probe, TwoD, and Region currently.  Can retrieve either slice or volume
-// Don't reduce the refinement level, but do reduce the compression level (if allowed)
+// reduce the refinement level, or reduce the compression level (if allowed)
 float* RenderParams::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, bool twoDim){
 	//Get the region associated with the specified variable in the 
 	//specified block extents
 	DataStatus* ds = DataStatus::getInstance();
 	char* vname;
-	int maxLOD;
+	int maxLOD, maxRefLevel;
 	int lod = GetCompressionLevel();
 	if (twoDim){
 		vname = (char*) ds->getVariableName2D(sessionVarNum).c_str();
 		maxLOD = ds->maxLODPresent2D(sessionVarNum,timeStep);
+		maxRefLevel = ds->maxXFormPresent2D(sessionVarNum, timeStep);
 	}
 	else {
 		vname = (char*)ds->getVariableName(sessionVarNum).c_str();
 		maxLOD = ds->maxLODPresent3D(sessionVarNum,timeStep);
+		maxRefLevel = ds->maxXFormPresent(sessionVarNum, timeStep);
 	}
 
 	
@@ -439,8 +441,19 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		}
 		return 0;
 	}
+	if (maxRefLevel < 0 || (maxRefLevel < refLevel && !ds->useLowerRefinementLevel())){
+		setBypass(timeStep);
+		if (ds->warnIfDataMissing()){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+				"Data unavailable for Refinement level %d \nof variable %s, at current timestep.\n%s",
+				refLevel, vname,
+				"This message can be silenced\nin user preferences panel.");
+		}
+		return 0;
+	}
 	//Modify lod level if allowed:
 	if (lod > maxLOD) lod = maxLOD;
+	if (refLevel > maxRefLevel) refLevel = maxRefLevel;
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 		vname, refLevel, lod, blkMin, blkMax,  0);
