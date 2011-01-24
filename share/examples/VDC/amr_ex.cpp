@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 
 	// The dimensions of the base level AMR mesh specified in blocks (cells)
 	size_t basedim = (N / CellDim) >> NLevels;
-	assert (basedim >=3);	// we' going to refine the boundaries twice
+	assert (basedim >=5);	// we' going to refine the boundaries twice
 	size_t basedimv[3] = {basedim,basedim,basedim};
 
 	// User coordinate system extents. Can be set to anything
