@@ -26,6 +26,9 @@ int	DataMgrAMR::OpenVariableRead(
     int reflevel,
     int lod
 ) {
+
+    if (reflevel < 0) reflevel = GetNumTransforms();
+
 	int rc = AMRIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc < 0) return (-1);
 

@@ -312,8 +312,8 @@ int	AMRIO::OpenVariableRead(
 		return(-1);
 	}
 	for (int i=0; i<3; i++) {
-		_validRegMin[i] = (cell_dim[i] >> GetNumTransforms()) * bmin[i];
-		_validRegMax[i] = (cell_dim[i] >> GetNumTransforms()) * (bmax[i]+1) - 1;
+		_validRegMin[i] = (cell_dim[i] << GetNumTransforms()) * bmin[i];
+		_validRegMax[i] = (cell_dim[i] << GetNumTransforms()) * (bmax[i]+1) - 1;
 	}
 
 	_dataIsOpen = 1;
@@ -371,8 +371,8 @@ int	AMRIO::VariableWrite(AMRData *data) {
 	const size_t *bs = GetBlockSize();
 	data->GetBounds(bmin, bmax);
 	for (int i=0; i<3; i++) {
-		_validRegMin[i] = (bs[i] >> GetNumTransforms()) * bmin[i];
-		_validRegMax[i] = (bs[i] >> GetNumTransforms()) * (bmax[i]+1) - 1;
+		_validRegMin[i] = (bs[i] << GetNumTransforms()) * bmin[i];
+		_validRegMax[i] = (bs[i] << GetNumTransforms()) * (bmax[i]+1) - 1;
 	}
 
 	return(rc);
