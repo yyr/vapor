@@ -412,6 +412,16 @@ const AMRTreeBranch    *AMRTree::GetBranch(const size_t xyz[3]) const {
 
 
 	int	index = (_baseDim[1] * _baseDim[0] * xyz[2]) + (_baseDim[0] * xyz[1]) + xyz[0];
+
+	if (index >= (_baseDim[0] * _baseDim[1] * _baseDim[2])) return(NULL);
+	return(_treeBranches[index]);
+}
+
+const AMRTreeBranch    *AMRTree::GetBranch(cid_t index) const {
+
+    SetDiagMsg( "AMRTree::GetBranch(%d)", index);
+	if (index >= (_baseDim[0] * _baseDim[1] * _baseDim[2])) return(NULL);
+
 	return(_treeBranches[index]);
 }
 

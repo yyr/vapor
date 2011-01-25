@@ -718,9 +718,13 @@ float	*AMRData::GetBlock(
 
 	_tree->DecodeCellID(cellid, &baseblockidx, &nodeidx);
 
+	const AMRTreeBranch	*tbranch = _tree->GetBranch(baseblockidx);
+
+	long offset = tbranch->GetCellOffset(nodeidx);
+
 	int	stride = _cellDim[0]*_cellDim[1]*_cellDim[2];
 
-	return(&_treeData[baseblockidx][nodeidx*stride]);
+	return(&_treeData[baseblockidx][offset*stride]);
 
 }
 

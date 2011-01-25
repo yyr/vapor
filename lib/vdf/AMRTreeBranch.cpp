@@ -5,6 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include <map>
+#include <queue>
 #include <vapor/AMRTreeBranch.h>
 
 using namespace VAPoR;
@@ -365,6 +366,15 @@ AMRTreeBranch::cid_t	AMRTreeBranch::GetNextCell(
 	return(_octree->get_next(restart));
 }
 
+long AMRTreeBranch::GetCellOffset(
+	cid_t cellid
+) const {
+
+	SetDiagMsg("AMRTreeBranch::GetOffset(%d)", cellid);
+
+	return(_octree->get_offset(cellid));
+}
+
 int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 
 	SetDiagMsg("AMRTreeBranch::SetParentTable()");
@@ -524,6 +534,42 @@ AMRTreeBranch::cid_t AMRTreeBranch::octree::get_next(bool restart) {
 		}
 	}
 	return(cellid);
+}
+
+long AMRTreeBranch::octree::get_offset(cid_t cellid) const {
+
+	if (cellid < 0 || cellid > _tree.size()) return(-1);
+
+	if (cellid == 0) return(0);	// root node
+
+	//
+	// Initialize search with root's children. 
+	//
+	queue <cid_t> children;
+	cid_t child = get_children(0);
+	for (int i=0; i<8; i++) {
+		children.push(child+i);
+	}
+
+	long offset = 1;
+
+	cid_t c = children.front();
+	while (! children.empty()) {
+		c = children.front();
+		if (c==cellid) break;
+		children.pop();
+		if (has_children(c)) {
+			child = get_children(c);
+			for (int i=0; i<8; i++) {
+				children.push(child+i);
+			}
+		}
+		offset++;
+	}
+	if (c != cellid) return (-1);
+
+	return(offset);
+	
 }
 
 int AMRTreeBranch::octree::get_octant(cid_t cellid) const {

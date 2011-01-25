@@ -297,7 +297,19 @@ public:
  //
  AMRTreeBranch::cid_t	RefineCell(cid_t cellid);
 
+ //! \copydoc AMRTree::GetNextCell()
+ //
  AMRTreeBranch::cid_t	GetNextCell(bool restart);
+
+ //! Return the serialized offset of the block with id \param cellid
+ //!
+ //! This method returns the offset to the indicated cell in a breath-first
+ //! traversal of the tree.
+ //!
+ //! \retval offset Returns a negative int of \p cellid is invalid, otherwise
+ //! returns the offset of the cell
+ //
+ long GetCellOffset(cid_t cellid) const;
 
  int SetParentTable(const vector<long> &table);
 
@@ -334,6 +346,8 @@ private:
 	// treversed a negative number is returned.
 	//
 	cid_t get_next(bool restart);
+
+	long get_offset(cid_t cellid) const;
 
 	// 
 	// Return the octant occupied by 'cellid'. Octants are numbered

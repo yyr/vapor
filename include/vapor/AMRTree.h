@@ -234,9 +234,13 @@ public:
  //!
  //! \param[in] xyz The toplogical (i-j-k) coordinates of the base
  //! block tree branch to return
+ //! \param[in] baseblockidx The serialized offset of \p xyz
  //! \retval treebranch A pointer to a AMRTreeBranch object
  //
  const AMRTreeBranch	*GetBranch(const size_t xyz[3]) const;
+
+ //! \copydoc GetBranch()
+ const AMRTreeBranch	*GetBranch(cid_t baseblockidx) const;
 
  //! Return the user coordinate bounds of a cell
  //!
