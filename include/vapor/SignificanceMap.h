@@ -286,8 +286,8 @@ public:
 
 private:
 
-	static const int HEADER_SIZE = 16;
-	static const unsigned char VERSION = 01;
+	static const int HEADER_SIZE = 64;
+	static const unsigned char VERSION = 02;
 	size_t _nx;
 	size_t _ny;
 	size_t _nz;

@@ -82,7 +82,6 @@ int SignificanceMap::_SignificanceMap(vector <size_t> dims) {
     if (dims.size() >= 4) _nt = dims[3];
 	
 
-
 	// Compute # bits needed per entry for encoded form of sigMapVec
 	//
 	//_bits_per_idx = 1;
@@ -412,6 +411,13 @@ size_t SignificanceMap::GetMapSize(size_t num_entries) const {
 }
 
 void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
+
+	unsigned long LSBTest = 1;
+	bool do_swapbytes = false;
+	if (! (*(char *) &LSBTest)) {
+		// swap to MSBFirst
+		do_swapbytes = true;
+	}
 	
 	size_t mapsize = GetMapSize();
 
@@ -432,23 +438,38 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 	//		bytes[0-2] : magic
 	//		bytes[3] : version number
 	//		bytes[4-11] : _sigMapVec.size()
+	//		bytes[12-19] : _dimsVec.size()
+	//		bytes[20-] : _dimsVec[i]
 	//
 	_sigMapEncode[0] = _sigMapEncode[1] = _sigMapEncode[2] = 'c';
 	_sigMapEncode[3] = VERSION;
-	size_t numentries = _sigMapVec.size();
 
-	unsigned long LSBTest = 1;
-    if (! (*(char *) &LSBTest)) {
-        // swap to MSBFirst
-        swapbytes(&numentries, 1);
-    }
+	vector <size_t> header_data;
+	header_data.push_back(_sigMapVec.size());
+	header_data.push_back(_dimsVec.size());
+	for (int i=0; i<_dimsVec.size(); i++) header_data.push_back(_dimsVec[i]);
 
-	for (int i=0; i<sizeof(numentries); i++) {
-		unsigned char *cptr = (unsigned char *) &numentries;
-		_sigMapEncode[4+i] = cptr[i];
-	}
-	for (int i = sizeof(numentries); i<8; i++) {
-		_sigMapEncode[4+i] = 0;
+	// encode num entries and sigmap dimens
+	//
+	unsigned char *ucptr = &_sigMapEncode[4];
+
+	for (int i=0; i<header_data.size(); i++) {
+		size_t entry = header_data[i];
+
+		assert(((ucptr + 8) - _sigMapEncode) <= HEADER_SIZE);
+
+		if (do_swapbytes) {
+			swapbytes(&entry, 1);
+		}
+
+		unsigned char *cptr = (unsigned char *) &entry;
+		for (int j=0; j<sizeof(entry); j++) {
+			ucptr[j] = cptr[j];
+		}
+		for (int j = sizeof(entry); j<8; i++) {
+			ucptr[j] = 0;
+		}
+		ucptr += 8;
 	}
 		
 
@@ -483,32 +504,72 @@ int SignificanceMap::SetMap(const unsigned char *map) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);
 	}
-	if (map[3] != VERSION) {
+	if (map[3] > VERSION) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);
 	}
 
-	size_t numentries = 0;
-    for (int i=0; i<sizeof(numentries); i++) {
-		unsigned char *cptr = (unsigned char *) &numentries;
-		cptr[i] = map[4+i] ;
-    }
-
 	unsigned long LSBTest = 1;
+	bool do_swapbytes = false;
 	if (! (*(char *) &LSBTest)) {
 		// swap to MSBFirst
-		swapbytes(&numentries, 1);
+		do_swapbytes = true;
 	}
 
-	if (numentries > _sigMapSize) {
-		SetErrMsg("SignificanceMap shape does not match encoded map");
-		return(-1);
+	unsigned char version = map[3];
+
+	const unsigned char *ucptr = &map[4];
+	size_t numentries = 0;
+
+	unsigned char *cptr = (unsigned char *) &numentries;
+    for (int i=0; i<sizeof(numentries); i++) {
+		cptr[i] = ucptr[i] ;
+    }
+	ucptr += 8;
+	if (do_swapbytes) swapbytes(&numentries, 1);
+
+	size_t header_size = HEADER_SIZE;
+
+	// Check for old style (version 1) encoding
+	//
+	if (version == 01) {
+
+		if (numentries > _sigMapSize) {
+			SetErrMsg("SignificanceMap shape does not match encoded map");
+			return(-1);
+		}
+		header_size = 16;
+	}
+	else {
+		size_t ndims = 0;
+		cptr = (unsigned char *) &ndims;
+		for (int i=0; i<sizeof(ndims); i++) {
+			cptr[i] = ucptr[i] ;
+		}
+		ucptr += 8;
+		if (do_swapbytes) swapbytes(&ndims, 1);
+
+		vector <size_t> dims;
+		for (int j=0; j<ndims; j++) {
+			size_t dim = 0;
+
+			cptr = (unsigned char *) &dim;
+			for (int i=0; i<sizeof(dim); i++) {
+				cptr[i] = ucptr[i] ;
+			}
+			ucptr += 8;
+			if (do_swapbytes) swapbytes(&dim, 1);
+
+			dims.push_back(dim);
+		
+		}
+		if (_SignificanceMap(dims) < 0) return(-1);
 	}
 
 	_sigMapVec.clear();
 	_sigMapVec.reserve(numentries);
 
-	const unsigned char *ptr = map + HEADER_SIZE;
+	const unsigned char *ptr = map + header_size;
 	int bib = BITSPERBYTE; // bits remaining in current byte
 
 	_sorted = true;
@@ -541,6 +602,10 @@ int SignificanceMap::SetMap(const unsigned char *map) {
 
 int SignificanceMap::Append(const SignificanceMap &smap)
 {
+	if (_sigMapVec.size() == 0) {
+		if (_SignificanceMap(smap._dimsVec) < 0) return(-1);
+	} 
+
 	if (_dimsVec.size() != smap._dimsVec.size()) {
 		SetErrMsg("Dimension mismatch");
 		return(-1);
