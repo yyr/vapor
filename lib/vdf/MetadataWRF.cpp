@@ -265,6 +265,11 @@ void MetadataWRF::_MetadataWRF(
 
   } // End for files to open (i).
 
+  if (Timestep_filename.size() == 0) {
+    SetErrMsg("No valid WRF input files");
+    return;
+  } 
+
 // Finished all the input files, now can process over 
 // all of the colllected data.
 
