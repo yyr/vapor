@@ -15,6 +15,7 @@
 #include <cmath>
 #include <string>
 #include <ctime>
+#include <stdint.h>
 #include <vapor/common.h>
 
 #ifndef TIME64_T

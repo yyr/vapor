@@ -19,6 +19,7 @@
 #ifndef FLOWRENDERER_H
 #define FLOWRENDERER_H
 
+#include <cstdio>
 #include <qgl.h>
 #include "assert.h"
 #include "renderer.h"

@@ -16,6 +16,7 @@
 //
 //	Description:  Main program for vapor gui
 
+#include <cstdio>
 #include <qapplication.h>
 #include "mainform.h"
 #include <qfont.h>
