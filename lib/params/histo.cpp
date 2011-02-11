@@ -92,8 +92,9 @@ void Histo::addToBin(float val) {
 	else if (val > maxData) numAbove++;
 	else {
 		if (maxData == minData) intVal = 0;
-		else intVal = (int)((val - minData)*(float)numBins/(maxData - minData));
-		if (intVal == numBins) intVal--;
+		else intVal = (int)(((double) val - (double) minData)*(double)numBins/((double) maxData - (double) minData));
+		if (intVal >= numBins) intVal = numBins-1;
+		if (intVal <= 0) intVal = 0;
 		binArray[intVal]++;
 		if (binArray[intVal] > maxBinSize) {
 			maxBinSize = binArray[intVal];
