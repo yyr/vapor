@@ -277,6 +277,22 @@ foreach $_ (@cpfiles) {
 			copy($_,$target) || die "$ProgName: file copy failed - $!\n";
 			my(@cmd) = ("/bin/chmod", "+x", $target);
 			mysystem(@cmd);
+
+			my ($baselib) = $target;
+			if ($Arch eq "Darwin") {
+				if ($baselib =~ /(\.[\d+|.]+dylib)/) {
+					$baselib =~ s/$1/.dylib/;
+				}
+			} 
+			else {
+				if ($baselib =~ /(\.so\.[\d+|.]+)/) {
+					$baselib =~ s/$1/.so/;
+				}
+			}
+			if (($baselib ne $target) && ! -e $baselib) {
+				my(@cmd) = ("/bin/ln", "-s", "$file", "$baselib");
+				mysystem(@cmd);
+			}
 		}
 		else {
 			$dirname = $_;

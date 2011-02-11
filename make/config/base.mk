@@ -173,8 +173,13 @@ INCS    := $(addsuffix .h, $(INCS))
 HEADER_FILES    := $(addsuffix .h, $(HEADER_FILES))
 ifdef LIBRARY
 ifdef SHARED
+ifeq ($(ARCH), Darwin)
+	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
+	LIB_SONAME = $(LIBPREFIX)$(LIBRARY).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)$(DLLSUFFIX)
+else
 	LIB_LINKERNAME = $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX)
 	LIB_SONAME = $(LIB_LINKERNAME).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+endif
 	LIB_REALNAME = $(LIB_SONAME)
 	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIB_REALNAME))
 else
@@ -641,6 +646,10 @@ install-dep:: install
 
 install-dep-helper::
 	$(PERL) $(TOP)/buildutils/copylibdeps.pl -arch $(ARCH) $(LDLIBPATHS) $(CLD_EXCLUDE_FLAGS) $(CLD_INCLUDE_FLAGS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+ifeq ($(ARCH), Linux)
+	@$(ECHO) "Removing rpaths from $(PROG_TARGET)"
+	/usr/bin/patchelf --set-rpath "" $(PROG_TARGET)
+endif
 
 endif
 endif
