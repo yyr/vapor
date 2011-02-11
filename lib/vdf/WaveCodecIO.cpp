@@ -1520,9 +1520,7 @@ int WaveCodecIO::_SetupCompressor() {
 	}
 
 	_ncoeffs.clear();
-	_sigmapsizes.clear();
 	size_t naccum = 0;
-	size_t saccum = 0;
 	for (int i = 0; i < _cratios.size(); i++) {
 		if (_cratios[i] > ntotal) break;
 
@@ -1531,10 +1529,6 @@ int WaveCodecIO::_SetupCompressor() {
 
 		_ncoeffs.push_back(n);
 		naccum += n;
-
-		size_t s = _compressor->GetSigMapSize(n);
-		_sigmapsizes.push_back(s);
-		saccum += s;
 
 		vector <size_t> sigdims;
 		_compressor->GetSigMapShape(sigdims);
@@ -1554,14 +1548,6 @@ int WaveCodecIO::_SetupCompressor() {
 		_cvectorsize = naccum;
 	}
 
-	if (_svectorsize < saccum) {
-		if (_svectorsize) delete [] _svector;
-		for (int t=0; t<_nthreads; t++) {
-			_svector = new unsigned char[saccum];
-			_svectorThread[t] = _svector;
-		}
-		_svectorsize = saccum;
-	}
 
 	return(0);
 }
@@ -1584,6 +1570,7 @@ int WaveCodecIO::_OpenVarRead(
 	int ncdimid;
 	size_t ncdim;
 
+	_sigmapsizes.clear();
 	for(int j=0; j<=_lod; j++) {
 		int rc;
 
@@ -1647,28 +1634,15 @@ int WaveCodecIO::_OpenVarRead(
             return(-1);
 		}
 
-		//
-		// if there is not compression at lod j we reconstruct 
-		// the sig map from all the other sig maps. 
-		//
-		bool reconstruct_sigmap = 
-			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
-
-		//
-		// Final dimension is the number of wavelet coefficients
-		// + the sigmap size / 4
-		//
-		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
-		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
-
         rc = nc_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
 		NC_ERR_READ(rc,path)
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
         NC_ERR_READ(rc,path)
-		if (ncdim != l) {
-			SetErrMsg("Metadata file and data file mismatch");
-			return(-1);
-		}
+
+		//
+		// Encoded sigmap is concatenated to wavelet coefficients
+		//
+		_sigmapsizes.push_back(ncdim - _ncoeffs[j]);
 
 		rc = nc_get_att_float(
 			_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),_dataRange
@@ -1697,6 +1671,20 @@ int WaveCodecIO::_OpenVarRead(
 		_nc_wave_vars.push_back(ncvar);
 
 	}
+
+	size_t maxsmap= 0;
+	for (int i = 0; i<_sigmapsizes.size(); i++) {
+		if (_sigmapsizes[i] > maxsmap) maxsmap = _sigmapsizes[i];
+	}
+
+	if (_svectorsize < maxsmap) {
+		if (_svectorsize) delete [] _svector;
+		for (int t=0; t<_nthreads; t++) {
+			_svector = new unsigned char[maxsmap * NC_FLOAT_SZ];
+			_svectorThread[t] = _svector;
+		}
+		_svectorsize = maxsmap;
+	}
 	return(0);
 		
 }
@@ -1719,6 +1707,7 @@ int WaveCodecIO::_OpenVarWrite(
 	_ncpaths.clear();
 	_ncids.clear();
 	_nc_wave_vars.clear();
+	_sigmapsizes.clear();
 	for(int j=0; j<=_lod; j++) {
 		int rc;
 
@@ -1767,10 +1756,16 @@ int WaveCodecIO::_OpenVarWrite(
 		// Final dimension is the number of wavelet coefficients
 		// + the sigmap size / 4
 		//
-		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
+		if (reconstruct_sigmap) {
+			_sigmapsizes.push_back(0);
+		}
+		else {
+			size_t sms = _sigmaps[j]->GetMapSize(_ncoeffs[j]);
+			_sigmapsizes.push_back((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
+		}
+		size_t l = _ncoeffs[j] + _sigmapsizes[j];
 
 		int coeff_dim_id;
-		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
 		rc = nc_def_dim(
 			_ncids[j],_coeffDimName.c_str(),l, &coeff_dim_id
 		);
@@ -1919,20 +1914,18 @@ int WaveCodecIO::_WriteBlock(
 		bool reconstruct_sigmap = 
 			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
 
-        size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
-
 		if (_vtype == VAR3D) {
 			start[0] = bz;
 			start[1] = by;
 			start[2] = bx;
 			wcount[3] = _ncoeffs[j];
-			scount[3] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
+			scount[3] = _sigmapsizes[j];
 		}
 		else {
 			start[0] = by;
 			start[1] = bx;
 			wcount[2] = _ncoeffs[j];
-			scount[2] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
+			scount[2] = _sigmapsizes[j];
 		}
 
 		rc = nc_put_vars_float(
@@ -2316,20 +2309,18 @@ int WaveCodecIO::ReadThreadObj::_FetchBlock(
 		bool reconstruct_sigmap = 
 				 ((_wc->_cratios.size() == (j+1)) && (_wc->_cratios[j] == 1));
 
-        size_t sms = reconstruct_sigmap ? 0 : _wc->_sigmapsizes[j];
-
 		if (_wc->_vtype == VAR3D) {
 			start[0] = bz;
 			start[1] = by;
 			start[2] = bx;
 			wcount[3] = _wc->_ncoeffs[j];
-			scount[3] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
+			scount[3] = _wc->_sigmapsizes[j];
 		}
 		else {
 			start[0] = by;
 			start[1] = bx;
 			wcount[2] = _wc->_ncoeffs[j];
-			scount[2] = (sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ;
+			scount[2] = _wc->_sigmapsizes[j];
 		}
 
 		rc = nc_get_vars_float(
@@ -2378,7 +2369,6 @@ int WaveCodecIO::ReadThreadObj::_FetchBlock(
 			_wc->_sigmapsThread[_id][j]->Invert();
 		}
 
-		svectorptr += _wc->_sigmapsizes[j];
 	}
 
 	_wc->_ReadTimerStop();

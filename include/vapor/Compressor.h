@@ -341,6 +341,24 @@ public:
  //!
  double &ClampMax() {return (_clamp_max); };
 
+ //! Set or get the epsilon attribute
+ //!
+ //! When set, this attribute will compare the absolute value of
+ //! reconstructed data with Epsilon(). If abs(v) is less than epsilon
+ //! the value of v is set to 0.0. 
+ //! By default
+ //! the epsilon comparison is disabled.
+ //!
+ //! \sa Epsilon(), Decompress(), Reconstruct()
+ //!
+ bool &EpsilonOnOff() {return (_epsilon_flag); };
+
+ //! Set or get the epsilon value
+ //!
+ //! \sa EpsilonOnOff(), Decompress(), Reconstruct()
+ //!
+ double &Epsilon() {return (_epsilon); };
+
 private:
 
 	vector <size_t> _dims;	// dimensions of array
@@ -356,8 +374,10 @@ private:
 	bool _keepapp;	// if true, approximation coeffs are not used in compression
 	bool _clamp_min_flag;
 	bool _clamp_max_flag;
+	bool _epsilon_flag;
 	double _clamp_min;
 	double _clamp_max;
+	double _epsilon;
 
 };
 

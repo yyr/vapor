@@ -27,8 +27,10 @@ Compressor::Compressor(
 	_keepapp = true;
     _clamp_min_flag = false;
     _clamp_max_flag = false;
+    _epsilon_flag = false;
     _clamp_min = 0.0;
     _clamp_max = 1.0;
+    _epsilon = 0.0;
 
 
 	for (int i=0; i<dims.size(); i++) {
@@ -321,16 +323,19 @@ int decompress_template(
 	}
 	if (rc<0) return(rc);
 
-	if (cmp->ClampMinOnOff() || cmp->ClampMaxOnOff()) {
+	if (cmp->ClampMinOnOff() || cmp->ClampMaxOnOff() || cmp->EpsilonOnOff()) {
 		bool clamp_min_f = cmp->ClampMinOnOff();
 		double clamp_min = cmp->ClampMin();
 		bool clamp_max_f = cmp->ClampMaxOnOff();
 		double clamp_max = cmp->ClampMax();
+		bool epsilon_f = cmp->EpsilonOnOff();
+		double epsilon = fabs(cmp->Epsilon());
 
 		size_t sz = dst_dim[0]*dst_dim[1]*dst_dim[2];
 		for (size_t i = 0; i<sz; i++) {
 			if (clamp_min_f && dst_arr[i] < clamp_min) dst_arr[i] = clamp_min;
 			if (clamp_max_f && dst_arr[i] > clamp_max) dst_arr[i] = clamp_max;
+			if (epsilon_f && fabs(dst_arr[i]) < epsilon) dst_arr[i] = 0.0;
 		}
 	}
 
