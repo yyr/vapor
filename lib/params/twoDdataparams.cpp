@@ -825,7 +825,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	int constDim = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
 	
 	boxMin[constDim] = temp_min[constDim];
-	boxMax[constDim] = temp_min[constDim];
+	boxMax[constDim] = temp_max[constDim];
 	//Now do the block dimensions:
 	for (int i = 0; i< 3; i++){
 		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i);
