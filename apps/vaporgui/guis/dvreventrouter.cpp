@@ -963,13 +963,11 @@ setEditorDirty(RenderParams *p){
 
     DataStatus *ds;
 	ds = DataStatus::getInstance();
-
-    if (ds->getNumSessionVariables())
+	int varnum = dp->getSessionVarNum();
+    if (ds->getNumSessionVariables()&& varnum >=0 )
     {
-      int varnum = dp->getSessionVarNum();
-      const std::string& varname = ds->getVariableName(varnum);
-      
-      transferFunctionFrame->setVariableName(varname);
+		const std::string& varname = ds->getVariableName(varnum);
+		transferFunctionFrame->setVariableName(varname);
     }
     else
     {
