@@ -1203,7 +1203,7 @@ reinitializeParams(bool doOverride){
 		if (!vizWin[i]) continue;
 		if(getRealVPParams(i)) getRealVPParams(i)->reinit(doOverride);
 		if(getRealRegionParams(i)) getRealRegionParams(i)->reinit(doOverride);
-		//Reinitialize all the render params
+		//Reinitialize all the render params for each window
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){
 			EventRouter* eRouter = getEventRouter(pType);
 			for (int inst = 0; inst < Params::GetNumParamsInstances(pType, i); inst++){
@@ -1211,7 +1211,7 @@ reinitializeParams(bool doOverride){
 				p->reinit(doOverride);
 				if (!p->isRenderParams()) break;
 				RenderParams* rParams = (RenderParams*)p;
-				
+				p->setVizNum(i);  //needed because of iso bug in 2.0.0
 				//turn off rendering
 				rParams->setEnabled(false);
 				eRouter->updateRenderer(rParams, rParams->isEnabled(), false);

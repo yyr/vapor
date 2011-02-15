@@ -545,7 +545,7 @@ void ParamsIso::SetCompressionLevel(int level){
 	vizNum = viznum;
  }
  int ParamsIso::GetVisualizerNum(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
+	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag);
 	return (int)valvec[0];
  }
  int ParamsIso::GetNumBits(){

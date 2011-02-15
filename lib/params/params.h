@@ -315,7 +315,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 //! Identify the visualizer associated with this instance.
 //! With global params this is -1 
-	int getVizNum() {return vizNum;}
+	virtual int getVizNum() {return vizNum;}
 
 //! Specify whether a params is local or global. 
 	virtual void setLocal(bool lg){ if (lg) {
@@ -328,7 +328,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	bool isLocal() {return local;}
 	
 //! Specify the visualizer index of a Params instance.  
-	void setVizNum(int vnum){vizNum = vnum;}
+	virtual void setVizNum(int vnum){vizNum = vnum;}
 	
 //! Virtual method to set up the Params to deal with new metadata.
 //! When a new metadata is read, all params are notified 

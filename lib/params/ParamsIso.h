@@ -250,6 +250,9 @@ float getMaxIsoEditBound() {
 
  void SetVisualizerNum(int viznum);
  int GetVisualizerNum();
+ //For backwards compatibility:  Keep visnum synchronized with xml rep
+ virtual int getVizNum() {return GetVisualizerNum();}
+ virtual void setVizNum(int vnum){SetVisualizerNum(vnum);}
 
  void SetNumBits(int nbits);
  int GetNumBits();

@@ -370,7 +370,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	
 	PanelCommand::captureEnd(cmd, iParams);
 	update();
-	if (renderTextChanged)
+	if (renderTextChanged && iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 		
 	renderTextChanged = false;
@@ -384,7 +384,7 @@ void IsoEventRouter::isoLoadTF(){
 	if (iParams->GetMapVariableNum() < 0) return;
 	loadTF(iParams, iParams->GetMapVariableNum());
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&&iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::isoLoadInstalledTF(){
@@ -403,7 +403,7 @@ void IsoEventRouter::isoLoadInstalledTF(){
 	iParams->SetMaxMapEdit(iParams->GetMapVariableNum(), maxb);
 	setEditorDirty();
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&&iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 
@@ -433,7 +433,7 @@ sessionLoadTF(QString* name){
 	iParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, iParams);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&&iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	setEditorDirty();
 }
@@ -450,7 +450,7 @@ guiSetOpacityScale(int val){
 	opacityScaleSlider->setToolTip("Opacity Scale Value = "+QString::number(sliderVal));
 	PanelCommand::captureEnd(cmd,pi);
 	pi->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (pi->isEnabled())
+	if (pi->isEnabled()&& pi->getVizNum()>= 0)
 		VizWinMgr::getInstance()->getVizWin(pi->getVizNum())->updateGL();
 }
 void IsoEventRouter::guiBindColorToOpac(){
@@ -460,7 +460,7 @@ void IsoEventRouter::guiBindColorToOpac(){
     transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, iParams);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&& iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::guiBindOpacToColor(){
@@ -470,7 +470,7 @@ void IsoEventRouter::guiBindOpacToColor(){
     transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, iParams);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&& iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::setTFNavigateMode(bool mode){
@@ -540,7 +540,7 @@ guiEndChangeMapFcn(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	iParams->SetFlagDirty(ParamsIso::_MapBoundsTag);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&& iParams->getVizNum()>=0 )
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	savedCommand = 0;
 }
@@ -573,7 +573,7 @@ guiEndChangeIsoSelection(){
 	
 	savedCommand = 0;
 	updateTab();
-	if (iParams->isEnabled())
+	if (iParams->isEnabled() && iParams->getVizNum() >=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	
 }
@@ -652,7 +652,8 @@ void IsoEventRouter::guiPassThruPoint(){
 		iParams->SetIsoValue(val);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab(); 
-	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+	if (iParams->getVizNum()>=0)
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 float IsoEventRouter::evaluateSelectedPoint(){
 	ParamsIso* iParams = getActiveIsoParams();
@@ -824,12 +825,10 @@ guiSetEnabled(bool value, int instance){
 	iParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, iParams);
 
-	RegionParams* rParams = vizWinMgr->getActiveRegionParams();
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(iParams,!value, false);
 	
-	vizWinMgr->setRegionDirty(rParams);
 	updateTab();
 }
 
@@ -844,6 +843,7 @@ updateHistoBounds(RenderParams* params){
 	ParamsIso* iParams = (ParamsIso*)params;
 	//Find out what timestep is current:
 	int viznum = iParams->getVizNum();
+	if (viznum < 0) return;
 	DataStatus* ds = DataStatus::getInstance();
 	int varnum = ds->getSessionVariableNum(iParams->GetIsoVariableName());
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
@@ -962,7 +962,7 @@ guiSetMapComboVarNum(int val){
 	
 	updateTab();
 	
-	if (iParams->isEnabled())
+	if (iParams->isEnabled() && iParams->getVizNum()>=0 )
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 
@@ -974,7 +974,7 @@ guiSetLighting(bool val){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "toggle iso lighting");
 	iParams->SetNormalOnOff(val);
 	PanelCommand::captureEnd(cmd, iParams);
-	if (iParams->isEnabled())
+	if (iParams->isEnabled()&& iParams->getVizNum()>=0)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();	
 }
 
@@ -1011,7 +1011,9 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 		//Note that this is only for the cases below where one particular
 		//visualizer is needed
 		viz = vizWinMgr->getVizWin(winnum);
-	} 
+	} else {
+		viz = vizWinMgr->getActiveVisualizer();
+	}
 	
 	//cases to consider:
 	//1.  unchanged disabled renderer; do nothing.
@@ -1073,6 +1075,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 	ParamsIso* iParams = (ParamsIso*)(newParams->deepCopy());
 	iParams->GetRootNode()->SetAllFlags(true);
 	int vizNum = iParams->getVizNum();
+	if (vizNum < 0) return; //defective session file in 2.0.0
 	
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumIsoInstances(vizNum) == instance);
@@ -1145,7 +1148,8 @@ guiSetConstantColor(QColor& newColor){
 	fColor[3] = prevColor[3]; //opacity
 	iParams->SetConstantColor(fColor);
 	PanelCommand::captureEnd(cmd, iParams);
-	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+	if (iParams->getVizNum()>=0)
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
