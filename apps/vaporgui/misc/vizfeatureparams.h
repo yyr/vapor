@@ -113,6 +113,7 @@ protected:
 	bool showAxisArrows;
 	bool showElevGrid;
 	bool showAxisAnnotation;
+	bool enableSpin;
 	int timeAnnotType;//0,1,2 
 
 	float axisArrowCoords[3];

@@ -90,6 +90,7 @@
 using namespace VAPoR;
 VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 std::map<ParamsBase::ParamsBaseType, EventRouter*> VizWinMgr::eventRouterMap;
+bool VizWinMgr::spinAnimate = false;
 const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";

@@ -88,6 +88,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	vizName = vfParams.vizName;
 	showBar = vfParams.showBar;
 	showAxisArrows = vfParams.showAxisArrows;
+	enableSpin = vfParams.enableSpin;
 	
 	axisArrowCoords[0] = vfParams.axisArrowCoords[0];
 	axisArrowCoords[1] = vfParams.axisArrowCoords[1];
@@ -227,6 +228,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->numTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarBackgroundButton, SIGNAL(clicked()), this, SLOT(selectColorbarBackgroundColor()));
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->spinAnimationCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(toggled(bool)), this, SLOT(checkSurface(bool)));
@@ -526,7 +528,11 @@ setDialog(){
 	showBar = vizWin->colorbarIsEnabled();
 	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
 	showAxisArrows = vizWin->axisArrowsAreEnabled();
+
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
+
+	enableSpin = VizWinMgr::spinAnimationEnabled();
+	vizFeatureDlg->spinAnimationCheckbox->setChecked(enableSpin);
 	
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
 	tempColorbarBackgroundColor = colorbarBackgroundColor;
@@ -659,6 +665,8 @@ copyFromDialog(){
 	if (numColorbarTics > 50) numColorbarTics = 50;
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
+
+	enableSpin = vizFeatureDlg->spinAnimationCheckbox->isChecked();
 
 	colorbarBackgroundColor = tempColorbarBackgroundColor;
 
@@ -811,6 +819,8 @@ applyToViz(int vizNum){
 	vizWin->enableColorbar(showBar);
 	vizWin->enableAxisArrows(showAxisArrows);
 	vizWin->enableAxisAnnotation(showAxisAnnotation);
+
+	VizWinMgr::setSpinAnimation(enableSpin);
 	
 	vizWin->setColorbarNumTics(numColorbarTics);
 	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);

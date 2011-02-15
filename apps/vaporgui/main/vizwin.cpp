@@ -571,7 +571,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				myWinMgr->getViewpointParams(myWindowNum));
 		}
 		//Decide whether or not to start a spin animation
-		bool doSpin = (navMode && e->button() == Qt::LeftButton && spinTimer &&
+		bool doSpin = (VizWinMgr::spinAnimationEnabled() && navMode && e->button() == Qt::LeftButton && spinTimer &&
 			!getGLWindow()->getActiveAnimationParams()->isPlaying());
 		
 			//Determine if the motion is sufficient to start a spin animation.

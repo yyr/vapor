@@ -417,6 +417,9 @@ public:
 	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
 	void stopFlowIntegration();
 
+	static bool spinAnimationEnabled(){return spinAnimate;}
+	static void setSpinAnimation(bool on){spinAnimate = on;}
+
 public slots:
 	//arrange the viz windows:
     void cascade();
@@ -534,6 +537,7 @@ protected:
 
     int     benchmark;
     QTimer *benchmarkTimer;
+	static bool spinAnimate;
 
 protected slots:
 	
