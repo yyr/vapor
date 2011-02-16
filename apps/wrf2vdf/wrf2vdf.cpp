@@ -1244,7 +1244,7 @@ int	main(int argc, char **argv) {
 			cout << "Processing file : " << wrf_file[0].c_str() << endl;
 			cout << "\tTransforming 3D variables : ";
 			for (int i=0; i<copy_vars.size(); i++) {
-				if (metadataWRF->GetVarType(copy_vars[i]) == Metadata::VAR3D) {
+				if (metadataVDC->GetVarType(copy_vars[i]) == Metadata::VAR3D) {
 					cout << copy_vars[i] << " ";
 				}
 			}
@@ -1253,7 +1253,7 @@ int	main(int argc, char **argv) {
 
 			cout << "\tTransforming 2D variables : ";
 			for (int i=0; i<copy_vars.size(); i++) {
-				if (metadataWRF->GetVarType(copy_vars[i]) != Metadata::VAR3D) {
+				if (metadataVDC->GetVarType(copy_vars[i]) != Metadata::VAR3D) {
 					cout << copy_vars[i] << " ";
 				}
 			}
