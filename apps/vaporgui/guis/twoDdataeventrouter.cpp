@@ -2147,9 +2147,36 @@ void TwoDDataEventRouter::mapCursor(){
 void TwoDDataEventRouter::updateBoundsText(RenderParams* params){
 	QString strn;
 	TwoDDataParams* twoDParams = (TwoDDataParams*) params;
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(twoDParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(twoDParams->getDataMaxBound(currentTimeStep)));
+	DataStatus* ds = DataStatus::getInstance();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	float mnval = 1.e30f, mxval = -1.30f;
+	float minval, maxval;
+	bool multvars = (twoDParams->getNumVariablesSelected()>1);
+	for (int i = 0; i<ds->getNumSessionVariables2D(); i++){
+		if (twoDParams->variableIsSelected(i) && ds->dataIsPresent2D(i,ts)){
+			if (twoDParams->isEnabled()){
+				minval = ds->getDataMin2D(i, ts);
+				maxval = ds->getDataMax2D(i, ts);
+			} else {
+				minval = ds->getDefaultDataMin2D(i);
+				maxval = ds->getDefaultDataMax2D(i);
+			}
+			if (multvars){
+				maxval = Max(abs(minval),abs(maxval));
+				minval = 0.f;
+			}
+			if (minval < mnval) mnval = minval;
+			if (maxval > mxval) mxval = maxval;
+		}
+	}
+	
+	if (mnval > mxval){ //no data
+		mxval = 1.f;
+		mnval = 0.f;
+	}
+	minDataBound->setText(strn.setNum(mnval));
+	maxDataBound->setText(strn.setNum(mxval));
+	
 	if (twoDParams->getMapperFunc()){
 		leftMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMinColorMapValue(),'g',4));
 		rightMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
@@ -2206,25 +2233,19 @@ void TwoDDataEventRouter::guiFitTFToData(){
 	float maxBound = -1.e30f;
 	//loop over selected variables to calc min/max bound
 	bool multVars = (pParams->getNumVariablesSelected() > 1);
-	float sumsqvals = 0.f;
+	
 	
 	for (int i = 0; i<ds->getNumSessionVariables2D(); i++){
 		if (pParams->variableIsSelected(i) && ds->dataIsPresent2D(i,ts)){
 			float minval = ds->getDataMin2D(i, ts);
 			float maxval = ds->getDataMax2D(i, ts);
 			if (multVars){
-				float mxval = Max(abs(maxval),abs(minval));
-				float mnval = Min(abs(maxval),abs(minval));
-				sumsqvals += mxval*mxval;
-				minval = mnval*mnval;
+				maxval = Max(abs(minval),abs(maxval));
+				minval = 0.f;
 			} 
 			if (minval < minBound) minBound = minval;
 			if (maxval > maxBound) maxBound = maxval;
 		}
-	}
-	if (multVars){
-		minBound = sqrt(minBound);  //sqrt of smallest min*min
-		maxBound = sqrt(sumsqvals); //sqrt of rms of max's
 	}
 	if (minBound > maxBound){ //no data
 		maxBound = 1.f;

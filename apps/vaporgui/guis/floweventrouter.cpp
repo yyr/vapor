@@ -802,8 +802,13 @@ void FlowEventRouter::updateTab(){
 		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
 		float minval= -1.f, maxval = 1.f;
 		if (dStatus->variableIsPresent(varnum)){
-			minval = dStatus->getDataMin(varnum, tstep);
-			maxval = dStatus->getDataMax(varnum, tstep);
+			if (fParams->isEnabled()){
+				minval = dStatus->getDataMin(varnum, tstep);
+				maxval = dStatus->getDataMax(varnum, tstep);
+			} else {
+				minval = dStatus->getDefaultDataMin(varnum);
+				maxval = dStatus->getDefaultDataMax(varnum);
+			}
 		}
 		minColorBound->setText(QString::number(minval));
 		maxColorBound->setText(QString::number(maxval));
@@ -816,8 +821,13 @@ void FlowEventRouter::updateTab(){
 		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
 		float minval= -1.f, maxval = 1.f;
 		if (dStatus->variableIsPresent(varnum)){
-			minval = dStatus->getDataMin(varnum, tstep);
-			maxval = dStatus->getDataMax(varnum, tstep);
+			if (fParams->isEnabled()){
+				minval = dStatus->getDataMin(varnum, tstep);
+				maxval = dStatus->getDataMax(varnum, tstep);
+			} else {
+				minval = dStatus->getDefaultDataMin(varnum);
+				maxval = dStatus->getDefaultDataMax(varnum);
+			}
 		}
 		minOpacityBound->setText(QString::number(minval));
 		maxOpacityBound->setText(QString::number(maxval));

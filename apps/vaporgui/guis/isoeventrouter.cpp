@@ -847,11 +847,18 @@ updateHistoBounds(RenderParams* params){
 	DataStatus* ds = DataStatus::getInstance();
 	int varnum = ds->getSessionVariableNum(iParams->GetIsoVariableName());
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
-	float minData = ds->getDataMin(varnum,currentTimeStep);
-	float maxData = ds->getDataMax(varnum,currentTimeStep);
+	float minval, maxval;
+	if (iParams->isEnabled()){
+		minval = ds->getDataMin(varnum, currentTimeStep);
+		maxval = ds->getDataMax(varnum, currentTimeStep);
+	} else {
+		minval = ds->getDefaultDataMin(varnum);
+		maxval = ds->getDefaultDataMax(varnum);
+	}
+	
 
-	minDataBound->setText(strn.setNum(minData));
-	maxDataBound->setText(strn.setNum(maxData));
+	minDataBound->setText(strn.setNum(minval));
+	maxDataBound->setText(strn.setNum(maxval));
 	
 }
 //Copy the point from the probe to the iso panel.  Don't do anything with it.
@@ -1165,9 +1172,16 @@ updateMapBounds(RenderParams* params){
 	QString strn;
 	
 	if (varNum >= 0){
-	
-		minTFDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMin(varNum, currentTimeStep)));
-		maxTFDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMax(varNum, currentTimeStep)));
+		float minval, maxval;
+		if (isoParams->isEnabled()){
+			minval = DataStatus::getInstance()->getDataMin(varNum, currentTimeStep);
+			maxval = DataStatus::getInstance()->getDataMax(varNum, currentTimeStep);
+		} else {
+			minval = DataStatus::getInstance()->getDefaultDataMin(varNum);
+			maxval = DataStatus::getInstance()->getDefaultDataMax(varNum);
+		}
+		minTFDataBound->setText(strn.setNum(minval));
+		maxTFDataBound->setText(strn.setNum(maxval));
 	
 		if (isoParams->getMapperFunc()){
 			leftMappingEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMinOpacMapValue(),'g',4));

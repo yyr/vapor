@@ -664,8 +664,17 @@ updateMapBounds(RenderParams* params){
 	//Find out what timestep is current:
 	int viznum = dParams->getVizNum();
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(dParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(dParams->getDataMaxBound(currentTimeStep)));
+	float minbnd, maxbnd;
+	int varnum = dParams->getSessionVarNum();
+	if (params->isEnabled()){
+		minbnd = dParams->getDataMinBound(currentTimeStep);
+		maxbnd = dParams->getDataMaxBound(currentTimeStep);
+	} else {
+		minbnd = DataStatus::getInstance()->getDefaultDataMin(varnum);
+		maxbnd = DataStatus::getInstance()->getDefaultDataMax(varnum);
+	}
+	minDataBound->setText(strn.setNum(minbnd));
+	maxDataBound->setText(strn.setNum(maxbnd));
 	if (dParams->getMapperFunc()){
 		leftMappingBound->setText(strn.setNum(dParams->getMapperFunc()->getMinColorMapValue(),'g',7));
 		rightMappingBound->setText(strn.setNum(dParams->getMapperFunc()->getMaxColorMapValue(),'g',7));

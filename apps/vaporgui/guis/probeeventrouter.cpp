@@ -2975,9 +2975,35 @@ void ProbeEventRouter::mapCursor(){
 void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 	ProbeParams* probeParams = (ProbeParams*)rParams;
 	QString strn;
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	minDataBound->setText(strn.setNum(probeParams->getDataMinBound(currentTimeStep)));
-	maxDataBound->setText(strn.setNum(probeParams->getDataMaxBound(currentTimeStep)));
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	DataStatus* ds = DataStatus::getInstance();
+	float mnval = 1.e30f, mxval = -1.30f;
+	bool multvars = (probeParams->getNumVariablesSelected()>1);
+	float minval, maxval;
+	for (int i = 0; i<ds->getNumSessionVariables(); i++){
+		if (probeParams->variableIsSelected(i) && ds->dataIsPresent(i,ts)){
+			if (probeParams->isEnabled()){
+				minval = ds->getDataMin(i, ts);
+				maxval = ds->getDataMax(i, ts);
+			} else {
+				minval = ds->getDefaultDataMin(i);
+				maxval = ds->getDefaultDataMax(i);
+			}
+			if (multvars){
+				maxval = Max(abs(minval),abs(maxval));
+				minval = 0.f;
+			}
+			if (minval < mnval) mnval = minval;
+			if (maxval > mxval) mxval = maxval;
+		}
+	}
+	
+	if (mnval > mxval){ //no data
+		mxval = 1.f;
+		mnval = 0.f;
+	}
+	minDataBound->setText(strn.setNum(mnval));
+	maxDataBound->setText(strn.setNum(mxval));
 	if (probeParams->getMapperFunc()){
 		leftMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMinColorMapValue(),'g',4));
 		rightMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
@@ -3201,39 +3227,31 @@ void ProbeEventRouter::guiFitTFToData(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
 	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	
-	float minBound = 1.e30f;
-	float maxBound = -1.e30f;
+	bool multvars = (pParams->getNumVariablesSelected()>1);
 	//loop over selected variables to calc min/max bound
-	bool multVars = (pParams->getNumVariablesSelected() > 1);
-	float sumsqvals = 0;
-	
+	float mnval = 1.e30f, mxval = -1.e30f;
 	for (int i = 0; i<ds->getNumSessionVariables(); i++){
 		if (pParams->variableIsSelected(i) && ds->dataIsPresent(i,ts)){
+			
 			float minval = ds->getDataMin(i, ts);
 			float maxval = ds->getDataMax(i, ts);
-			if (multVars){
-				float mxval = Max(abs(maxval),abs(minval));
-				float mnval = Min(abs(maxval),abs(minval));
-				sumsqvals += mxval*mxval;
-				minval = mnval*mnval;
-			} 
-			if (minval < minBound) minBound = minval;
-			if (maxval > maxBound) maxBound = maxval;
+			if (multvars){
+				maxval = Max(abs(minval),abs(maxval));
+				minval = 0.f;
+			}
+			if (minval < mnval) mnval = minval;
+			if (maxval > mxval) mxval = maxval;
 		
 		}
 	}
-	if (multVars){
-		minBound = sqrt(minBound);  //sqrt of smallest min*min
-		maxBound = sqrt(sumsqvals); //sqrt of rms of max's
-	}
-	if (minBound > maxBound){ //no data
-		maxBound = 1.f;
-		minBound = 0.f;
+	
+	if (mnval > mxval){ //no data
+		mxval = 1.f;
+		mnval = 0.f;
 	}
 	
-	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
-	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(mnval);
+	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(mxval);
 	PanelCommand::captureEnd(cmd, pParams);
 	setDatarangeDirty(pParams);
 	updateTab();
