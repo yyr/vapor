@@ -7,6 +7,12 @@
 #
 #
 
+#
+# Specify an alternate C++ and C compiler. The default compiler is 
+# platform dependent
+#
+# CXX = 
+# CC = 
 
 # Installation prefix directory. Vapor executables will be installed
 # in $(INSTALL_PREFIX_DIR)/bin, libraries in $(INSTALL_PREFIX_DIR)/lib
