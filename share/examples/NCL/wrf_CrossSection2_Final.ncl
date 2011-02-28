@@ -14,7 +14,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/wrf/WRFUserARW.ncl"
 
 ; Load the wrf2geotiff.ncl library from VAPOR installation:
-load "./wrf2geotiff.ncl"
+load "$(VAPOR_HOME)/share/examples/NCL/wrf2geotiff.ncl"
 
 begin
 ;
