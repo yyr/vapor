@@ -7,12 +7,6 @@
 #
 #
 
-#
-# Specify an alternate C++ and C compiler. The default compiler is 
-# platform dependent
-#
-# CXX = 
-# CC = 
 
 # Installation prefix directory. Vapor executables will be installed
 # in $(INSTALL_PREFIX_DIR)/bin, libraries in $(INSTALL_PREFIX_DIR)/lib
@@ -25,6 +19,13 @@ RELEASE=0
 
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
+
+#
+# Specify an alternate C++ and C compiler. The default compiler is 
+# platform dependent
+#
+# CXX = 
+# CC = 
 
 # Set BENCHMARK or PROFILE to 1 for framerate diagnostics
 BENCHMARK=0
@@ -44,6 +45,14 @@ LIB_SEARCH_DIRS =
 # compiler normally checks. The compiler will search the directories 
 # in the order specified.  
 INC_SEARCH_DIRS =
+
+# Set NETCDF_LIBS to the name of your netCDF library and any library
+# dependencies that netcdf has. The default is simply 'netcdf'. Starting
+# with netCDF version 4, depending on the compile time options used to
+# build netCDF, one or more additional libraries (e.g. hdf and hdf5_hl)
+# might be needed
+#
+NETCDF_LIBS = netcdf
 
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled

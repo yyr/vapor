@@ -39,6 +39,11 @@ CR_CXX = $(CXX)
 OGL_LIB = GL
 GLU_LIB = GLU
 
+ifndef  NETCDF_LIBS
+NETCDF_LIBS = netcdf
+endif
+
+
 ifneq ($(QT_FRAMEWORK), 1) 
 QT_LIB = QtOpenGL QtGui QtCore  
 endif

@@ -8,6 +8,6 @@ FILES = raw2vdf
 
 #LIB_DEFS = vdf.def
 
-LIBRARIES = vdf proj common netcdf expat
+LIBRARIES = vdf proj common $(NETCDF_LIBS) expat
 
 include ${TOP}/make/config/base.mk
