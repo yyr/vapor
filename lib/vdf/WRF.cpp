@@ -255,7 +255,12 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
-		case(6): //cassini or rotated lat/lon  NOT RIGHT:
+		case(6): //cassini or rotated lat/lon  NOT SUPPORTED
+			ErrMsgStr.assign("Cassini map projection is not supported");
+			SetErrMsg(ErrMsgStr.c_str());
+			SetErrCode(0);
+			break;
+			/*
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
 			projString = "+proj=cass";
 
@@ -266,6 +271,7 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
+			*/
 		default:
 
 			ErrMsgStr.assign("Unsupported MAP_PROJ value ");
