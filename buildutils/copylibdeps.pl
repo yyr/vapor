@@ -95,6 +95,15 @@ sub chaselink {
 sub get_deps {
 	my($target) = @_;
 
+	#
+	# ldd generates error message on 32bit version of libQtCore 
+	# "Accessing a corrupted shared library"
+	#
+	if (($Arch eq "Linux") && ( ($target =~ /libQtCore/))) {
+		printf STDERR "$ProgName: SKIPPING $target\n";
+		return();
+	}
+
 	my(@Deps) = ();
 	my($target_is_lib) = 1;
 	my(@lddcmd);
