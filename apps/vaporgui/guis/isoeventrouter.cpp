@@ -283,8 +283,9 @@ void IsoEventRouter::updateTab(){
 	selectedZEdit->setText(QString::number(coords[2]));
 	QPalette pal = constantColorEdit->palette();
 	pal.setColor(QPalette::Base,QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
-	
+	constantColorEdit->setPalette(pal);
 	if(isoParams->getIsoControl()){
+		isoParams->getIsoControl()->setParams(isoParams);
 		isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	}
 	
