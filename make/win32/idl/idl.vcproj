@@ -30,7 +30,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building libidl_vdfmodule.dlm..."
-				CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/ libidl_vdfmodule.dlm.template &gt; ../../../targets/win32/bin/libidl_vdfmodule.dlm"
+				CommandLine="perl ../../../lib/idl/mkmeta.pl &lt; ../../../lib/idl/libidl_vdfmodule.dlm.template &gt; ../../../targets/win32/bin/libidl_vdfmodule.dlm&#x0D;&#x0A;"
 				AdditionalDependencies="../../../lib/idl/mkmeta.pl ../../../lib/idl/libidl_vdfmodule.dlm.template"
 				Outputs="../../../targets/win32/bin/libidl_vdfmodule.dlm"
 			/>
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building libidl_vdfmodule.dlm..."
-				CommandLine="perl ..\..\..\lib\idl\mkmeta.pl &lt; ..\..\..\lib\idl\libidl_vdfmodule.dlm.template &gt; ..\..\..\targets\WIN32\bin\libidl_vdfmodule.dlm"
+				CommandLine="perl ..\..\..\lib\idl\mkmeta.pl &lt; ..\..\..\lib\idl\libidl_vdfmodule.dlm.template &gt; ..\..\..\targets\WIN32\bin\libidl_vdfmodule.dlm&#x0D;&#x0A;"
 				AdditionalDependencies="..\..\..\lib\idl\mkmeta.pl;..\..\..\lib\idl\libidl_vdfmodule.dlm.template"
 				Outputs="..\..\..\targets\WIN32\bin\libidl_vdfmodule.dlm"
 			/>

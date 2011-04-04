@@ -223,6 +223,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\arroweventrouter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ColorbarWidget.cpp"
 				>
 			</File>
@@ -426,6 +430,32 @@
 						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\animationeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\arroweventrouter.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing arroweventrouter..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arroweventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing arroweventrouter.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\arroweventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1071,10 +1101,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing twoDeventrouter.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\twoDeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_twoDeventrouter.cpp"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1311,6 +1341,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_arroweventrouter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_ColorbarWidget.cpp"
 				>
 			</File>
@@ -1444,6 +1478,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\arrow.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\ControlPointEditorBase.h"
 				>
 			</File>
@@ -1520,6 +1558,31 @@
 						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\animationtab.ui -o ..\..\..\apps\vaporgui\guis\ui\animationtab.h&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\animationtab.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\arrow.ui"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\arrow.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="uic&apos;ing arrow.ui.."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\arrow.ui -o ..\..\..\apps\vaporgui\guis\ui\arrow.h&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\arrow.h"
 					/>
 				</FileConfiguration>
 			</File>

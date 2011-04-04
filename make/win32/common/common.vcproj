@@ -248,6 +248,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\ExtensionClasses.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\MyBase.h"
 				>
 			</File>

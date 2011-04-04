@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\arrowparams.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\Colormap.cpp"
 				>
 			</File>
@@ -314,6 +318,10 @@
 			>
 			<File
 				RelativePath="..\..\..\lib\params\animationparams.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\arrowparams.h"
 				>
 			</File>
 			<File
