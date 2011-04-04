@@ -1095,7 +1095,7 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 	
 	int refLevel = getNumRefinements();
 	//reduce reflevel if not all variables are available:
-	if (ds->useLowerRefinementLevel()){
+	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < numVars; varnum++){
 			int sesVarNum = sesVarNums[varnum];
 			if (sesVarNum >= 0){

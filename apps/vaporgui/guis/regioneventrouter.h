@@ -42,9 +42,12 @@ class RegionEventRouter : public QWidget, public Ui_RegionTab, public EventRoute
 	Q_OBJECT
 
 public: 
-	RegionEventRouter(QWidget* parent = 0, const char* name = 0);
+	RegionEventRouter(QWidget* parent = 0);
 	virtual ~RegionEventRouter();
-	
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new RegionEventRouter((QWidget*)tMgr));
+	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);

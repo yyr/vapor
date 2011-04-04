@@ -79,6 +79,7 @@ signals:
 protected slots:
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
+	void rendererChanged(int);
 	
 	void selectTimeTextColor();
 
@@ -106,6 +107,7 @@ protected:
 	ScrollContainer* featureHolder;
 
 	//State of one visualizer is saved here:
+	int colorbarRendererTypeId;
 	int currentComboIndex;
 	bool dialogChanged;
 	QString vizName;
@@ -154,6 +156,7 @@ protected:
 	std::vector<bool> extendUp;
 	std::vector<bool> tempExtendDown;
 	std::vector<bool> tempExtendUp;
+	std::vector<int> rendererTypeLookup;
 	
 	
 };

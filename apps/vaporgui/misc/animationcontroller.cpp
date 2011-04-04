@@ -219,7 +219,7 @@ endRendering(int vizNum){
 		if (aParams->checkLastFrame()){
 			//At the end of animation, update the front tab and
 			//the animation toolbar.
-			TabManager* tmgr = MainForm::getInstance()->getTabManager();
+			TabManager* tmgr = MainForm::getTabManager();
 			EventRouter* eRouter = tmgr->getFrontEventRouter();
 			eRouter->updateTab();
 			//Set the pause button:

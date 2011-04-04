@@ -428,9 +428,17 @@ INPUT                  = 	TOP_OF_TREE/lib/common \
 				TOP_OF_TREE/lib/params/ParamsBase.h \
 				TOP_OF_TREE/lib/params/ParamNode.h \
 				TOP_OF_TREE/lib/params/params.h \
+				TOP_OF_TREE/lib/params/datastatus.h \
 				TOP_OF_TREE/lib/params/mapperfunction.h \
 				TOP_OF_TREE/lib/params/MapperFunctionBase.h \
-				TOP_OF_TREE/lib/params/transferfunction.h 
+				TOP_OF_TREE/lib/params/transferfunction.h \ 
+				TOP_OF_TREE/lib/params/viewpointparams.h \ 
+				TOP_OF_TREE/lib/params/regionparams.h \ 
+				TOP_OF_TREE/lib/params/animationparams.h \ 
+				TOP_OF_TREE/lib/render/renderer.h \ 
+				TOP_OF_TREE/lib/render/glwindow.h \ 
+				TOP_OF_TREE/apps/vaporgui/main/vizwinmgr.h \ 
+				TOP_OF_TREE/apps/vaporgui/guis/eventrouter.h  
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -965,7 +973,7 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator 
 # instead of the = operator.
 
-PREDEFINED             = 
+PREDEFINED             = DOXYGEN_SKIP_THIS 
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 

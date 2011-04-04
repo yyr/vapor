@@ -117,12 +117,8 @@
 #include "images/vapor-icon-32.xpm"
 #include "images/cascade.xpm"
 #include "images/tiles.xpm"
-#include "images/probe.xpm"
-#include "images/twoDData.xpm"
-#include "images/twoDImage.xpm"
-#include "images/rake.xpm"
 #include "images/wheel.xpm"
-#include "images/cube.xpm"
+
 //#include "images/planes.xpm"
 //#include "images/lightbulb.xpm"
 #include "images/home.xpm"
@@ -143,7 +139,7 @@
 using namespace VAPoR;
 //Initialize the singleton to 0:
 MainForm* MainForm::theMainForm = 0;
-
+TabManager* MainForm::tabWidget = 0;
 //Only the main program should call the constructor:
 //
 MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char*, Qt::WFlags )
@@ -151,15 +147,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 	theMainForm = this;
-	theRegionTab = 0;
-	theDvrTab = 0;
-	theIsoTab = 0;
-	theVizTab = 0;
-	theAnimationTab = 0;
-	theFlowTab = 0;
-	theProbeTab = 0;
-	theTwoDDataTab = 0;
-	theTwoDImageTab = 0;
+	
 	theApp = app;
 
 	interactiveRefinementSpin = 0;
@@ -208,10 +196,10 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	myVizMgr->createAllDefaultParams();
 	
 	createToolBars();	
-	
+	myVizMgr->RegisterMouseModes();
     (void)statusBar();
-    	Main_Form->adjustSize();
-    	languageChange();
+    Main_Form->adjustSize();
+    languageChange();
 	hookupSignals();   
 
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
@@ -220,27 +208,13 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	//global params.
 	Session::getInstance()->blockRecording();
 	
-
-	//the following determines the tab ordering from left to right:
-	viewpoint();
-	animationParams();
-	region();
-	launchTwoDDataTab();
-	launchTwoDImageTab();
-	launchProbeTab();
-	launchIsoTab();
-	launchFlowTab();
-	//The last one is in front:
-	renderDVR();
-
-	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 
 	Session::getInstance()->unblockRecording();
 	
     	show();
-	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
+	((DvrEventRouter*)VizWinMgr::getInstance()->getEventRouter(Params::_dvrParamsTag))->initTypes();
 
 	if(fileName != ""){
 		if (fileName.endsWith(".vss")){
@@ -277,7 +251,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 MainForm::~MainForm()
 {
 	if (modeStatusWidget) delete modeStatusWidget;
-    //qWarning("mainform destructor start");
+   
 	delete Session::getInstance();
 	PythonPipeLine::terminate();
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
@@ -286,22 +260,24 @@ MainForm::~MainForm()
 void MainForm::createToolBars(){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // mouse mode toolbar:
-    	modeToolBar = addToolBar(""); 
-//	modeToolBar->setAllowedAreas(Qt::TopToolBarArea);
-	QString qws = QString("The mode buttons are used to enable various manipulation tools ")+
+    modeToolBar = addToolBar("Mouse Modes"); 
+	modeToolBar->addWidget(new QLabel(" Modes: "));
+	QString qws = QString("The mouse modes are used to enable various manipulation tools ")+
 		"that can be used to control the location and position of objects in "+
-		"the 3D scene, by dragging with the mouse in the scene.  These include "+
-		"navigation, region, rake, probe, 2D, and Image tools.";
+		"the 3D scene, by dragging box-handles in the scene. "+
+		"Select the desired mode from the pull-down menu,"+
+		"or revert to the default (Navigation) by clicking the button";
 	modeToolBar->setWhatsThis(qws);
 	//add mode buttons, left to right:
 	modeToolBar->addAction(navigationAction);
-	modeToolBar->addAction(regionSelectAction);
-	modeToolBar->addAction(rakeAction);
-	modeToolBar->addAction(probeAction);
-	modeToolBar->addAction(twoDDataAction);
-	modeToolBar->addAction(twoDImageAction);
+	
+	modeCombo = new QComboBox(this);
+	modeCombo->setToolTip("Select the mouse mode to use in the visualizer");
+	
+	modeToolBar->addWidget(modeCombo);
 	
 
+	
 // Animation Toolbar:
 	animationToolBar = addToolBar("animation control");
 	QIntValidator *v = new QIntValidator(0,99999,animationToolBar);
@@ -372,6 +348,7 @@ void MainForm::createToolBars(){
 void MainForm::hookupSignals() {
     VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     // signals and slots connections
+	connect(modeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT( modeChange(int)));
 	connect( fileNew_SessionAction, SIGNAL( triggered() ), this, SLOT( newSession() ) );
 	connect( fileOpenAction, SIGNAL( triggered() ), this, SLOT( fileOpen() ) );
 	connect( fileSaveAction, SIGNAL( triggered() ), this, SLOT( fileSave() ) );
@@ -408,11 +385,6 @@ void MainForm::hookupSignals() {
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
-	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
-	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
-	connect (twoDDataAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDData(bool)));
-	connect (twoDImageAction, SIGNAL(toggled(bool)), this, SLOT(setTwoDImage(bool)));
-	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
 	connect (cascadeAction, SIGNAL(triggered()), myVizMgr, SLOT(cascade()));
 	connect (tileAction, SIGNAL(triggered()), myVizMgr, SLOT(fitSpace()));
 	connect (homeAction, SIGNAL(triggered()), myVizMgr, SLOT(home()));
@@ -563,35 +535,6 @@ void MainForm::createActions(){
 	navigationAction->setCheckable(true);
 	navigationAction->setChecked(true);
 
-	QPixmap* regionIcon = new QPixmap(cube);
-	regionSelectAction = new QAction(*regionIcon, QString(tr("Region Select Mode  "))+QString(QKeySequence(tr("Ctrl+R"))), mouseModeActions);
-	regionSelectAction->setShortcut(Qt::CTRL+Qt::Key_R);
-	regionSelectAction->setCheckable(true);
-	regionSelectAction->setChecked(false);
-	
-	QPixmap* probeIcon = new QPixmap(probe);
-	probeAction = new QAction(*probeIcon, "Data Probe and Contour Plane Mode", mouseModeActions);
-	probeAction->setCheckable(true);
-	probeAction->setChecked(false);
-
-	
-	QPixmap* twoDDataIcon = new QPixmap(twoDData);
-	twoDDataAction = new QAction(*twoDDataIcon, QString(tr("2D Data Mode  "))+QString(QKeySequence(tr("Ctrl+2"))), mouseModeActions);
-	twoDDataAction->setShortcut(Qt::CTRL+Qt::Key_2);
-	twoDDataAction->setCheckable(true);
-	twoDDataAction->setChecked(false);
-
-	QPixmap* twoDImageIcon = new QPixmap(twoDImage);
-	twoDImageAction = new QAction(*twoDImageIcon, QString(tr("Image Mode  "))+QString(QKeySequence(tr("Ctrl+I"))),mouseModeActions);
-	twoDImageAction->setShortcut(Qt::CTRL+Qt::Key_I);
-	twoDImageAction->setCheckable(true);
-	twoDImageAction->setChecked(false);
-
-	QPixmap* rakeIcon = new QPixmap(rake);
-	rakeAction = new QAction(*rakeIcon,QString(tr("Rake Mode  "))+QString(QKeySequence(tr("Ctrl+K"))), mouseModeActions);
-	rakeAction->setShortcut(Qt::CTRL+Qt::Key_K);
-	rakeAction->setCheckable(true);
-	rakeAction->setChecked(false);
 
 	//Actions for the viztoolbar:
 	QPixmap* homeIcon = new QPixmap(home);
@@ -1184,241 +1127,6 @@ void MainForm::launchVisualizer()
 
 
 /*
- * Method to launch the viewpoint/lights tab into the tabbed dialog
- */
-void MainForm::viewpoint()
-{
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theVizTab){
-		theVizTab = new ViewpointEventRouter(tabWidget, "viztab");
-		//Set the global vp tab to this:
-		
-		myVizMgr->hookUpViewpointTab(theVizTab);
-	}
-    
-	
-	
-	ViewpointEventRouter* myViewpointRouter = myVizMgr->getViewpointRouter();
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_viewpointParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		
-    
-	if (posn < 0){
-		tabWidget->insertWidget(theVizTab, Params::GetTypeFromTag(Params::_viewpointParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_viewpointParamsTag));
-	}
-	myViewpointRouter->updateTab();
-}
-/*
- * Method that launches the region tab into the tabbed dialog
- */
-void MainForm::
-region()
-{
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theRegionTab){
-		theRegionTab = new RegionEventRouter(tabWidget, "regiontab");
-		//Set the global region tab to this:
-		//myVizMgr->getRegionParams(-1)->setTab(theRegionTab);
-		myVizMgr->hookUpRegionTab(theRegionTab);
-	}
-	
-	
-	RegionEventRouter* myRegionRouter = myVizMgr->getRegionRouter();
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_regionParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		
-    
-	if (posn < 0){
-		tabWidget->insertWidget(theRegionTab, Params::GetTypeFromTag(Params::_regionParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_regionParamsTag));
-	}
-	myRegionRouter->updateTab();
-	
-}
-/*
- * Launch the DVR panel
- */
-void MainForm::
-renderDVR(){
-    //Do the DVR panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theDvrTab){
-		theDvrTab = new DvrEventRouter(tabWidget, "DVR");
-		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
-		myVizMgr->hookUpDvrTab(theDvrTab);
-	}
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_dvrParamsTag));
-	//Create a new parameter class to work with the widget
-	if (posn < 0){
-		tabWidget->insertWidget(theDvrTab, Params::GetTypeFromTag(Params::_dvrParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_dvrParamsTag));
-	}
-	theDvrTab->updateTab();
-	
-}
-/*
- * Launch the Isosurface panel
- */
-void MainForm::
-launchIsoTab(){
-    //Do the Iso panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theIsoTab){
-		theIsoTab = new IsoEventRouter(tabWidget, "Iso");
-		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
-		myVizMgr->hookUpIsoTab(theIsoTab);
-	}
-	
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_isoParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		
-    
-	if (posn < 0){
-		tabWidget->insertWidget(theIsoTab, Params::GetTypeFromTag(Params::_isoParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_isoParamsTag));
-	}
-	theIsoTab->updateTab();
-	
-}
-/*
- * Launch the animation panel
- */
-void MainForm::
-animationParams(){
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theAnimationTab){
-		theAnimationTab = new AnimationEventRouter(tabWidget, "animationtab");
-		//Set the global region tab to this:
-		//myVizMgr->getAnimationParams(-1)->setTab(theAnimationTab);
-		myVizMgr->hookUpAnimationTab(theAnimationTab);
-	}
-   
-	AnimationEventRouter* myAnimationRouter = myVizMgr->getAnimationRouter();
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_animationParamsTag));
-         
-	//Create a new parameter class to work with the widget
-    
-	if (posn < 0){
-		tabWidget->insertWidget(theAnimationTab, Params::GetTypeFromTag(Params::_animationParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_animationParamsTag));
-	}
-	myAnimationRouter->updateTab();
-	
-	
-}
-
-/*
- * Launch the Flow rendering tab
- */
-void MainForm::launchFlowTab()
-{
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theFlowTab){
-		theFlowTab = new FlowEventRouter(tabWidget, "Flowtab");
-		//Set the global Flow tab to this:
-		//myVizMgr->getFlowParams(-1)->setTab(theFlowTab);
-		myVizMgr->hookUpFlowTab(theFlowTab);
-	}
-   
-	
-	FlowEventRouter* myFlowRouter = myVizMgr->getFlowRouter();
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_flowParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		
-    
-	if (posn < 0){
-		tabWidget->insertWidget(theFlowTab, Params::GetTypeFromTag(Params::_flowParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_flowParamsTag));
-	}
-	myFlowRouter->updateTab();
-	
-}
-void MainForm::launchProbeTab()
-{
-	//Do the probe panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theProbeTab){
-		theProbeTab = new ProbeEventRouter(tabWidget, "ProbeTab");
-		myVizMgr->hookUpProbeTab(theProbeTab);
-		theProbeTab->attachSeedCheckbox->setToolTip("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		theProbeTab->addSeedButton->setToolTip("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-
-	}
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_probeParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		 
-	if (posn < 0){
-		tabWidget->insertWidget(theProbeTab, Params::GetTypeFromTag(Params::_probeParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_probeParamsTag));
-	}
-}
-void MainForm::launchTwoDDataTab()
-{
-	//Do the probe panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theTwoDDataTab){
-		theTwoDDataTab = new TwoDDataEventRouter(tabWidget, "TwoDDataTab");
-		myVizMgr->hookUpTwoDDataTab(theTwoDDataTab);
-		theTwoDDataTab->attachSeedCheckbox->setToolTip("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-		theTwoDDataTab->addSeedButton->setToolTip("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
-	}
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_twoDDataParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		 
-	if (posn < 0){
-		tabWidget->insertWidget(theTwoDDataTab, Params::GetTypeFromTag(Params::_twoDDataParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_twoDDataParamsTag));
-	}
-}
-void MainForm::launchTwoDImageTab()
-{
-	//Do the probe panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (!theTwoDImageTab){
-		theTwoDImageTab = new TwoDImageEventRouter(tabWidget, "TwoDImageTab");
-		myVizMgr->hookUpTwoDImageTab(theTwoDImageTab);
-//QT4.5		QToolTip::add(theTwoDImageTab->attachSeedCheckbox, QString("Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed"));
-//QT4.5		QToolTip::add(theTwoDImageTab->addSeedButton,QString("Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed"));
-	}
-	
-	int posn = tabWidget->findWidget(Params::GetTypeFromTag(Params::_twoDImageParamsTag));
-         
-	//Create a new parameter class to work with the widget
-		 
-	if (posn < 0){
-		tabWidget->insertWidget(theTwoDImageTab, Params::GetTypeFromTag(Params::_twoDImageParamsTag), true );
-	} else {
-		tabWidget->moveToFront(Params::GetTypeFromTag(Params::_twoDImageParamsTag));
-	}
-}
-/*
  * Respond to toolbar clicks:
  * navigate mode.  Don't change tab menu
  */
@@ -1429,13 +1137,12 @@ void MainForm::setNavigate(bool on)
 	Session* currentSession = Session::getInstance();
 	//Only do something if this is an actual change of mode
 	if (GLWindow::getCurrentMouseMode() != GLWindow::navigateMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
+		int oldMode = GLWindow::getCurrentMouseMode();
 		myVizMgr->setSelectionMode(GLWindow::navigateMode);
 		currentSession->blockRecording();
-		//viewpoint();
+		modeCombo->setCurrentIndex(0);
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::navigateMode));
-		
 		GLWindow::setCurrentMouseMode(GLWindow::navigateMode);
 		VizWinMgr::getInstance()->updateActiveParams();
 		
@@ -1446,154 +1153,9 @@ void MainForm::setNavigate(bool on)
 		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate or spin-animate, right to zoom, middle to translate",this);
 		statusBar()->addWidget(modeStatusWidget,2);
 	}
-	//resetModeButtons();
 }
-void MainForm::setLights(bool  on)
-{
-// Until we implement this, does nothing:
-	Session* currentSession = Session::getInstance();
-	if (!on && moveLightsAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	if (GLWindow::getCurrentMouseMode() != GLWindow::lightMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::lightMode);
-		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::lightMode));
-		GLWindow::setCurrentMouseMode(GLWindow::lightMode);
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-			modeStatusWidget = 0;
-		}
-	}
-	
-}
-void MainForm::setProbe(bool on)
-{
-	
-	if (!on && probeAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	Session* currentSession = Session::getInstance();
-	if (GLWindow::getCurrentMouseMode() != GLWindow::probeMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::probeMode);
-		
-		currentSession->blockRecording();
-		launchProbeTab();
-		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::probeMode));
-		GLWindow::setCurrentMouseMode(GLWindow::probeMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("Probe Mode:  To modify probe in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-		statusBar()->addWidget(modeStatusWidget,2);
-		
-	}
-	
-}
-void MainForm::setTwoDData(bool on)
-{
-	//2d mode is like rake mode
-	if (!on && twoDDataAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	Session* currentSession = Session::getInstance();
-	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDDataMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDDataMode);
-		
-		currentSession->blockRecording();
-		launchTwoDDataTab();
-		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDDataMode));
-		GLWindow::setCurrentMouseMode(GLWindow::twoDDataMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("TwoDData Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-		statusBar()->addWidget(modeStatusWidget,2);
-		
-	}
-	
-}
-void MainForm::setTwoDImage(bool on)
-{
-	//2d image mode is like rake mode
-	if (!on && twoDImageAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	Session* currentSession = Session::getInstance();
-	if (GLWindow::getCurrentMouseMode() != GLWindow::twoDImageMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::twoDImageMode);
-		
-		currentSession->blockRecording();
-		launchTwoDImageTab();
-		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::twoDImageMode));
-		GLWindow::setCurrentMouseMode(GLWindow::twoDImageMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("TwoDImage Mode:  To modify 2D plane in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-		statusBar()->addWidget(modeStatusWidget,2);
-		
-	}
-	
-}
-void MainForm::setRake(bool on)
-{
-	
-	if (!on && rakeAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	Session* currentSession = Session::getInstance();
-	if (GLWindow::getCurrentMouseMode() != GLWindow::rakeMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::rakeMode);
-		//bring up the flowtab, but don't put into history:
-		currentSession->blockRecording();
-		launchFlowTab();
-		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::rakeMode));
-		GLWindow::setCurrentMouseMode(GLWindow::rakeMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("Rake Mode: To modify rake in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-		statusBar()->addWidget(modeStatusWidget,2);
-	}
-	
-}
-void MainForm::setRegionSelect(bool on)
-{
-	Session* currentSession = Session::getInstance();
-	//Only respond to toggling on:
-	if (!on && regionSelectAction->isChecked()){navigationAction->toggle(); return;}
-	if (!on) return;
-	if (GLWindow::getCurrentMouseMode() != GLWindow::regionMode){
-		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
-		VizWinMgr::getInstance()->setSelectionMode(GLWindow::regionMode);
-		//bring up the tab, but don't put into history:
-		currentSession->blockRecording();
-		region();
-		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::regionMode));
-		GLWindow::setCurrentMouseMode(GLWindow::regionMode);
-		VizWinMgr::getInstance()->updateActiveParams();
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-		}
-		modeStatusWidget = new QLabel("Region Mode: To modify region in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
-		statusBar()->addWidget(modeStatusWidget,2);
-	}
-}
+
+
 void MainForm::setupEditMenu(){
 	//Setup undo/redo text
 	Session* currentSession = Session::getInstance();
@@ -1674,7 +1236,8 @@ void MainForm::initCaptureMenu(){
 	}
 	
 	//disable the end capture if no viz, or if active viz is not capturing
-	GLWindow* glWin = viz->getGLWindow();
+	GLWindow* glWin=0;
+	if(viz) glWin= viz->getGLWindow();
 	if (!viz || !glWin->isCapturingImage()){
 		captureEndJpegCaptureAction->setText( "End image capture sequence" );
 		captureEndJpegCaptureAction->setEnabled( false);
@@ -1692,18 +1255,6 @@ void MainForm::initCaptureMenu(){
 	
 }
 
-/*
- * Set all the mode buttons off, except navigation
- */
-void MainForm::resetModeButtons(){
-	navigationAction->setChecked(true);
-	probeAction->setChecked(false);
-	twoDDataAction->setChecked(false);
-	twoDImageAction->setChecked(false);
-	regionSelectAction->setChecked(false);
-	moveLightsAction->setChecked(false);
-	rakeAction->setChecked(false);
-}
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
 	Session::getInstance()->exportData();
@@ -1716,7 +1267,7 @@ void MainForm::startJpegCapture() {
 	QFileDialog fileDialog(this,
 		"Specify first file name for image capture sequence",
 		Session::getInstance()->getJpegDirectory().c_str(),
-		"Jpeg Images (*.jpg)");
+		"Jpeg or Tiff images (*.jpg *.tif)");
 	fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 	fileDialog.move(pos());
 	fileDialog.resize(450,450);
@@ -1742,11 +1293,14 @@ void MainForm::startJpegCapture() {
 		fileBaseName.truncate(lastDigitPos);
 	}
 	QString filePath = fileInfo->absolutePath() + "/" + fileBaseName;
+	//See if it ends with "tif":
+	bool isTif = false;
+	if (fileInfo->suffix() == "tif") isTif = true;
 	//Determine the active window:
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
-		viz->getGLWindow()->startImageCapture(filePath,startFileNum);
+		viz->getGLWindow()->startImageCapture(filePath,startFileNum, isTif);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
 			(const char*)filePath.toAscii());
@@ -1932,4 +1486,35 @@ void MainForm::setCurrentTimestep(int tstep){
 void MainForm::paintEvent(QPaintEvent* e){
 	MessageReporter::infoMsg("MainForm::paintEvent");
 	QMainWindow::paintEvent(e);
+}
+void MainForm::showTab(const std::string& tag){
+	ParamsBase::ParamsBaseType t = Params::GetTypeFromTag(tag);
+	tabWidget->moveToFront(t);
+	EventRouter* eRouter = VizWinMgr::getEventRouter(tag);
+	eRouter->updateTab();
+}
+void MainForm::modeChange(int newmode){
+	if (newmode == 0) {
+		navigationAction->setChecked(true);
+		return;
+	}
+	Session* currentSession = Session::getInstance();
+	int oldMode = GLWindow::getCurrentMouseMode();
+	VizWinMgr::getInstance()->setSelectionMode(newmode);
+	//bring up the tab, but don't put into history:
+	currentSession->blockRecording();
+	navigationAction->setChecked(false);
+	showTab(Params::GetTagFromType(GLWindow::getModeParamType(newmode)));
+	currentSession->unblockRecording();
+	currentSession->addToHistory(new MouseModeCommand(oldMode,  newmode));
+	GLWindow::setCurrentMouseMode(newmode);
+	VizWinMgr::getInstance()->updateActiveParams();
+	if(modeStatusWidget) {
+		statusBar()->removeWidget(modeStatusWidget);
+		delete modeStatusWidget;
+	}
+
+	modeStatusWidget = new QLabel(QString::fromStdString(GLWindow::getModeName(newmode))+" Mode: To modify box in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+	statusBar()->addWidget(modeStatusWidget,2);
+	
 }

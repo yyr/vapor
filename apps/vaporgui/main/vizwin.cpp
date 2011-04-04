@@ -51,9 +51,7 @@
 #include "manip.h"
 #include "regioneventrouter.h"
 #include "viewpointeventrouter.h"
-#include "probeeventrouter.h"
-#include "twoDdataeventrouter.h"
-#include "twoDimageeventrouter.h"
+
 #include "animationeventrouter.h"
 #include "floweventrouter.h"
 #include "flowrenderer.h"
@@ -226,226 +224,92 @@ mousePressEvent(QMouseEvent* e){
 			buttonNum = 0;
 
 	//possibly navigate after other activities
-	bool doNavigate = false;
+	bool doNavigate = true;
 	endSpin();
-	switch (GLWindow::getCurrentMouseMode()){
-		//In region mode,first check for clicks on selected region
-		case GLWindow::regionMode :
-			if (buttonNum > 0){
-				int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-				int faceNum;
-				float boxExtents[6];
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
-				TranslateStretchManip* regionManip = myGLWindow->getRegionManip();
-				regionManip->setParams(rParams);
-				rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
-				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-				if (handleNum >= 0) {
-					//Set up for sliding:
-					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,rParams)){
-						doNavigate = true;
-						break;
-					}
-					float dirVec[3];
-					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(screenCoords, 
-						vParams->getCameraPos(), dirVec);
-					//Remember which handle we hit, highlight it, save the intersection point.
-					regionManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					RegionEventRouter* rep = VizWinMgr::getInstance()->getRegionRouter();
-					rep->captureMouseDown();
-					setMouseDown(true);
-					break;
-				}
+	int mode = GLWindow::getCurrentMouseMode();
+	if (mode > 0 && buttonNum > 0) {  //Not navigation mode:
+		
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int faceNum;
+		float boxExtents[6];
+		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+		ParamsBase::ParamsBaseType t = GLWindow::getModeParamType(mode);
+		
+		Params* rParams = VizWinMgr::getInstance()->getParams(myWindowNum,t);
+		TranslateStretchManip* manip = myGLWindow->getManip(Params::GetTagFromType(t));
+		manip->setParams(rParams);
+		int manipType = GLWindow::getModeManipType(mode);
+		if(manipType != 3) rParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
+		else rParams->calcContainingStretchedBoxExtentsInCube(boxExtents);
+		int handleNum = manip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+
+		if (handleNum >= 0 && myGLWindow->startHandleSlide(screenCoords, handleNum,rParams)){
 			
-			}
-			//Otherwise, fall through to navigate mode:
-			doNavigate = true;
-			break;
-		//Rakemode is like regionmode
-		case GLWindow::rakeMode :
-			if (buttonNum > 0){
-				
-				int faceNum;
-				float boxExtents[6];
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
-				TranslateStretchManip* flowManip = myGLWindow->getFlowManip();
-				flowManip->setParams(fParams);
-				fParams->calcStretchedBoxExtentsInCube(boxExtents, -1);
-				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-				if (handleNum >= 0) {
-					//Set up for sliding:
-					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,fParams)){
-						doNavigate = true;
-						break;
-					}
-					float dirVec[3];
-					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(screenCoords, 
-						vParams->getCameraPos(), dirVec);
-					//Remember which handle we hit, highlight it, save the intersection point.
-					flowManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					VizWinMgr::getInstance()->getFlowRouter()->captureMouseDown();
-					setMouseDown(true);
+			//With manip type 2, need to prevent right mouse slide on orthogonal handle
+			//With manip type 3, need to use orientation
+			bool OK = true;//Flag indicates whether the manip takes the mouse 
+			switch (manipType) {
+				case 1 : //3d box manip
 					break;
-				}
-			}
-			//Otherwise, fall through to navigate mode:
-			doNavigate = true;
-			break;
-		//twoDData mode is like regionmode
-		case GLWindow::twoDDataMode :
-			if (buttonNum > 0){
-				
-				int faceNum;
-				float boxExtents[6];
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				TwoDDataParams* tParams = myWinMgr->getTwoDDataParams(myWindowNum);
-				TranslateStretchManip* twoDDataManip = myGLWindow->getTwoDDataManip();
-				twoDDataManip->setParams(tParams);
-				tParams->calcStretchedBoxExtentsInCube(boxExtents,-1);
-				int handleNum = twoDDataManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-				if (handleNum >= 0) {
+				case 2 : //2d box manip, ok if not right mouse on orthog direction
 					//Do nothing if grabbing orthog direction with right mouse:
-					if (buttonNum == 2 && ((handleNum == (tParams->getOrientation() +3))
-						|| (handleNum == (tParams->getOrientation() -2)))){
-							doNavigate = true;
-							break;
+					if (buttonNum == 2 && ((handleNum == (rParams->getOrientation() +3))
+						|| (handleNum == (rParams->getOrientation() -2)))){
+							OK = false;
 					}
-					//Set up for sliding:
-					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
-						doNavigate = true;
-						break;
-					}
-					float dirVec[3];
-					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(screenCoords, 
-						vParams->getCameraPos(), dirVec);
-					//Remember which handle we hit, highlight it, save the intersection point.
-					twoDDataManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					VizWinMgr::getInstance()->getTwoDDataRouter()->captureMouseDown();
-					setMouseDown(true);
 					break;
-				}
-			
-			}
-			//Otherwise, fall through to navigate mode:
-			doNavigate = true;
-			break;
-			//twoDImage mode is like regionmode
-		case GLWindow::twoDImageMode :
-			if (buttonNum > 0){
-				
-				int faceNum;
-				float boxExtents[6];
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				TwoDImageParams* tParams = myWinMgr->getTwoDImageParams(myWindowNum);
-				TranslateStretchManip* twoDImageManip = myGLWindow->getTwoDImageManip();
-				twoDImageManip->setParams(tParams);
-				tParams->calcStretchedBoxExtentsInCube(boxExtents,-1);
-				int handleNum = twoDImageManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-				if (handleNum >= 0) {
-					//Do nothing if grabbing orthogonal plane with right mouse:
-					if (buttonNum == 2 && ((handleNum == (tParams->getOrientation() +3))
-						|| (handleNum == (tParams->getOrientation() -2)))){
-							doNavigate = true;
-							break;
-					}
-					//Set up for sliding:
-					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,tParams)){
-						doNavigate = true;
-						break;
-					}
-					float dirVec[3];
-					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(screenCoords, 
-						vParams->getCameraPos(), dirVec);
-					//Remember which handle we hit, highlight it, save the intersection point.
-					twoDImageManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					VizWinMgr::getInstance()->getTwoDImageRouter()->captureMouseDown();
-					setMouseDown(true);
-					break;
-				}
-			
-			}
-			//Otherwise, fall through to navigate mode:
-			doNavigate = true;
-			break;
-
-		case GLWindow::probeMode :
-			if ((buttonNum > 0))
-			{
-				int faceNum;
-				float boxExtents[6];
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				ProbeParams* pParams = myWinMgr->getProbeParams(myWindowNum);
-				
-				TranslateRotateManip* probeManip = myGLWindow->getProbeManip();
-				probeManip->setParams(pParams);
-				//pParams->calcBoxExtentsInCube(boxExtents);
-				pParams->calcContainingStretchedBoxExtentsInCube(boxExtents);
-				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
-				if (handleNum >= 0) {
-
-					//Stretching doesn't work well if rotation is not a multiple of 90 deg.
-					if (buttonNum > 1) {
+				case 3 :  //Rotate-stretch:  check if it's rotated too far
+					if (buttonNum <= 1) break;  //OK if left mouse button
+					{
 						bool doStretch = true;
 						//check if the rotation angle is approx a multiple of 90 degrees:
 						int tolerance = 20;
-						int thet = (int)(fabs(pParams->getTheta())+0.5f);
-						int ph = (int)(fabs(pParams->getPhi())+ 0.5f);
-						int ps = (int)(fabs(pParams->getPsi())+ 0.5f);
+						int thet = (int)(fabs(rParams->getTheta())+0.5f);
+						int ph = (int)(fabs(rParams->getPhi())+ 0.5f);
+						int ps = (int)(fabs(rParams->getPsi())+ 0.5f);
 						//Make sure that these are within tolerance of a multiple of 90
 						if (abs(((thet+45)/90)*90 -thet) > tolerance) doStretch = false;
 						if (abs(((ps+45)/90)*90 -ps) > tolerance) doStretch = false;
 						if (abs(((ph+45)/90)*90 -ph) > tolerance) doStretch = false;
 						
 						if (!doStretch) {
-							MessageReporter::warningMsg("Probe is not axis-aligned.\n%s %s %s",
-								"To stretch or shrink the Probe,\n",
-								"You must use the Probe/Contour Size\n",
-								"(sliders or text) in the Probe tab.");
-							break;
+							MessageReporter::warningMsg("Manipulator is not axis-aligned.\n%s %s %s",
+								"To stretch or shrink,\n",
+								"You must use the size\n",
+								"(sliders or text) in the tab.");
+							OK = false;
 						}
 					}
-					//Set up for sliding:
-					if (!myGLWindow->startHandleSlide(screenCoords, handleNum, pParams)){
-						doNavigate = true;
-						break;
-					}
-					float dirVec[3];
-					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(screenCoords, 
-						vParams->getCameraPos(), dirVec);
-					//Remember which handle we hit, highlight it, save the intersection point.
-					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-					per->captureMouseDown();
-					setMouseDown(true);
 					break;
-				}
-			}
-			//Otherwise, fall through to navigate mode:
-			doNavigate = true;
-			break;
-		default:
+				default: assert(0); //Invalid manip type
+			}//end switch
+			if (OK) {
+				doNavigate = false;
+				float dirVec[3];
+				//Find the direction vector of the camera (World coords)
+				myGLWindow->pixelToVector(screenCoords, 
+					vParams->getCameraPos(), dirVec);
+				//Remember which handle we hit, highlight it, save the intersection point.
+				manip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
+				EventRouter* rep = VizWinMgr::getInstance()->getEventRouter(t);
+				rep->captureMouseDown();
+				setMouseDown(true);
+				myGLWindow->update();
+			} //otherwise, fall through to navigation mode
 			
-		case GLWindow::navigateMode : 
-			doNavigate = true;
-			if (e->button() == Qt::LeftButton){
-				//Create a timer to use to measure how long between mouse moves:
-				if (spinTimer) delete spinTimer;
-				spinTimer = new QTime();
-				spinTimer->start();
-				moveCount = 0;
-				olderMoveTime = latestMoveTime = 0;
-			}
-			break;
-			
-		
-	}
+		} 
+		//Set up for spin animation
+	} else if (mode == 0 && buttonNum == 1){ //Navigation mode, prepare for spin
+		// doNavigate is true;
+		//Create a timer to use to measure how long between mouse moves:
+		if (spinTimer) delete spinTimer;
+		spinTimer = new QTime();
+		spinTimer->start();
+		moveCount = 0;
+		olderMoveTime = latestMoveTime = 0;
+	} 
+	//Otherwise, either mode > 0 or buttonNum != 1. OK to navigate 
+
 	if (doNavigate){
 		ViewpointEventRouter* vep = VizWinMgr::getInstance()->getViewpointRouter();
 					vep->captureMouseDown();
@@ -457,8 +321,6 @@ mousePressEvent(QMouseEvent* e){
 		myTrackball->MouseOnTrackball(0, btn, e->x(), e->y(), width(), height());
 		setMouseDown(true);
 		mouseDownPosition = e->pos();
-		//Don't: Force an update of dvr region params, so low res is shown
-		//setDirtyBit(DvrRegionBit,true);
 	}
 	
 }
@@ -472,97 +334,30 @@ mouseReleaseEvent(QMouseEvent*e){
 	bool doNavigate = false;
 	bool navMode = false;
 	TranslateStretchManip* myManip;
-	switch (GLWindow::getCurrentMouseMode()){
-		
-		case GLWindow::regionMode :
-			myManip = myGLWindow->getRegionManip();
-			//Check if the seed bounds were moved
-			if (myManip->draggingHandle() >= 0){
-				float screenCoords[2];
-				screenCoords[0] = (float)e->x();
-				screenCoords[1] = (float)(height() - e->y());
-				setMouseDown(false);
-				//The manip must move the region, and then tells the params to
-				//record end of move
-				myManip->mouseRelease(screenCoords);
-				VizWinMgr::getInstance()->getRegionRouter()->captureMouseUp();
-				break;
-			} //otherwise fall through to navigate mode
+	int mode = GLWindow::getCurrentMouseMode();
+	if (mode > 0) {
+		ParamsBase::ParamsBaseType t = GLWindow::getModeParamType(mode);
+		myManip = myGLWindow->getManip(Params::GetTagFromType(t));
+		//Check if the seed bounds were moved
+		if (myManip->draggingHandle() >= 0){
+			float screenCoords[2];
+			screenCoords[0] = (float)e->x();
+			screenCoords[1] = (float)(height() - e->y());
+			setMouseDown(false);
+			//The manip must move the region, and then tells the params to
+			//record end of move
+			myManip->mouseRelease(screenCoords);
+			VizWinMgr::getInstance()->getEventRouter(t)->captureMouseUp();
+			
+		} else {//otherwise fall through to navigate mode
 			doNavigate = true;
-			break;
-		case GLWindow::rakeMode :
-			myManip = myGLWindow->getFlowManip();
-			//Check if the seed bounds were moved
-			if (myManip->draggingHandle() >= 0){
-				float screenCoords[2];
-				screenCoords[0] = (float)e->x();
-				screenCoords[1] = (float)(height() - e->y());
-				setMouseDown(false);
-				//The manip must move the rake, and then tell the params to
-				//record end of move??
-				myManip->mouseRelease(screenCoords);
-				VizWinMgr::getInstance()->getFlowRouter()->captureMouseUp();
-				break;
-			} //otherwise fall through to navigate mode
-			doNavigate = true;
-			break;
-		case GLWindow::twoDDataMode :
-			myManip = myGLWindow->getTwoDDataManip();
-			//Check if the planar bounds were moved
-			if (myManip->draggingHandle() >= 0){
-				float screenCoords[2];
-				screenCoords[0] = (float)e->x();
-				screenCoords[1] = (float)(height() - e->y());
-				setMouseDown(false);
-				//The manip must move the rake, and then tell the params to
-				//record end of move??
-				myManip->mouseRelease(screenCoords);
-				VizWinMgr::getInstance()->getTwoDDataRouter()->captureMouseUp();
-				break;
-			} //otherwise fall through to navigate mode
-			doNavigate = true;
-			break;
-		case GLWindow::twoDImageMode :
-			myManip = myGLWindow->getTwoDImageManip();
-			//Check if the planar bounds were moved
-			if (myManip->draggingHandle() >= 0){
-				float screenCoords[2];
-				screenCoords[0] = (float)e->x();
-				screenCoords[1] = (float)(height() - e->y());
-				setMouseDown(false);
-				//The manip must move the rake, and then tell the params to
-				//record end of move??
-				myManip->mouseRelease(screenCoords);
-				VizWinMgr::getInstance()->getTwoDImageRouter()->captureMouseUp();
-				break;
-			} //otherwise fall through to navigate mode
-			doNavigate = true;
-			break;
-		case GLWindow::probeMode :
-			myManip = myGLWindow->getProbeManip();
-			if (myManip->draggingHandle() >= 0){
-				float screenCoords[2];
-				screenCoords[0] = (float)e->x();
-				screenCoords[1] = (float)(height() - e->y());
-				setMouseDown(false);
-				//The manip must move the probe, and then tell the params to
-				//record end of move.
-				myManip->mouseRelease(screenCoords);
-				VizWinMgr::getInstance()->getProbeRouter()->captureMouseUp();
-				break;
-			} //otherwise fall through to navigate mode
-			doNavigate = true;
-			break;
-		default:
-		case GLWindow::navigateMode : 
-			doNavigate = true;
-			navMode = true;
-			break;
-
-		
+		}
+	} else {//In true navigation mode
+		doNavigate = true;
+		navMode = true;
 	}
-	if(doNavigate){
 		
+	if(doNavigate){
 		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 		setMouseDown(false);
 		//If it's a right mouse being released, must update near/far distances:
@@ -571,7 +366,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				myWinMgr->getViewpointParams(myWindowNum));
 		}
 		//Decide whether or not to start a spin animation
-		bool doSpin = (VizWinMgr::spinAnimationEnabled() && navMode && e->button() == Qt::LeftButton && spinTimer &&
+		bool doSpin = (GLWindow::spinAnimationEnabled() && navMode && e->button() == Qt::LeftButton && spinTimer &&
 			!getGLWindow()->getActiveAnimationParams()->isPlaying());
 		
 			//Determine if the motion is sufficient to start a spin animation.
@@ -621,7 +416,7 @@ void VizWin::
 mouseMoveEvent(QMouseEvent* e){
 	if (!mouseIsDown()) return;
 
-	bool doNavigate = false;
+	bool doNavigate = true;
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
@@ -629,125 +424,33 @@ mouseMoveEvent(QMouseEvent* e){
 	float projMouseCoords[2];
 	mouseCoords[0] = (float) e->x();
 	mouseCoords[1] = (float) height()-e->y();
-
-	switch (GLWindow::getCurrentMouseMode()){
-		case GLWindow::regionMode :
-			{
-				TranslateStretchManip* myRegionManip = myGLWindow->getRegionManip();
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				int handleNum = myRegionManip->draggingHandle();
-				//In region mode, check first to see if we are dragging face
-				if (handleNum >= 0){
-					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
-					float dirVec[3];
-					myGLWindow->pixelToVector(projMouseCoords, 
-						vParams->getCameraPos(), dirVec);
-					
-					myRegionManip->slideHandle(handleNum, dirVec);
-					myGLWindow->update();
-					break;
-				}
+	int mode = GLWindow::getCurrentMouseMode();
+	ParamsBase::ParamsBaseType t = GLWindow::getModeParamType(mode);
+	if (mode > 0){
+		TranslateStretchManip* manip = myGLWindow->getManip(Params::GetTagFromType(t));
+		bool constrain = manip->getParams()->isDomainConstrained();
+		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+		int handleNum = manip->draggingHandle();
+		//check first to see if we are dragging face
+		if (handleNum >= 0){
+			if (myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) {
+				float dirVec[3];
+				myGLWindow->pixelToVector(projMouseCoords, vParams->getCameraPos(), dirVec);
+				//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
+				manip->slideHandle(handleNum, dirVec,constrain);
+				doNavigate = false;
 			}
-			//Fall through to navigate if not dragging face
-			doNavigate = true;
-			break;
-		case GLWindow::rakeMode :
-			{
-				TranslateStretchManip* myFlowManip = myGLWindow->getFlowManip();
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				int handleNum = myFlowManip->draggingHandle();
-				//In rake mode, check first to see if we are dragging face
-				if (handleNum >= 0){
-					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
-					float dirVec[3];
-					myGLWindow->pixelToVector(projMouseCoords, 
-						vParams->getCameraPos(), dirVec);
-					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
-					myFlowManip->slideHandle(handleNum, dirVec);
-					myGLWindow->update();
-					break;
-				}
-			}
-			//Fall through to navigate if not dragging face
-			doNavigate = true;
-			break;
-		case GLWindow::twoDDataMode :
-			{
-				TranslateStretchManip* myTwoDDataManip = myGLWindow->getTwoDDataManip();
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				int handleNum = myTwoDDataManip->draggingHandle();
-				//In twoDData mode, check first to see if we are dragging face
-				if (handleNum >= 0){
-					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
-					float dirVec[3];
-					myGLWindow->pixelToVector(projMouseCoords, 
-						vParams->getCameraPos(), dirVec);
-					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
-					bool constrain = true;
-					myTwoDDataManip->slideHandle(handleNum, dirVec, constrain);
-					myGLWindow->update();
-					break;
-				}
-			}
-			//Fall through to navigate if not dragging face
-			doNavigate = true;
-			break;
-		case GLWindow::twoDImageMode :
-			{
-				TranslateStretchManip* myTwoDImageManip = myGLWindow->getTwoDImageManip();
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				int handleNum = myTwoDImageManip->draggingHandle();
-				//In twoDImage mode, check first to see if we are dragging face
-				if (handleNum >= 0){
-					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
-					float dirVec[3];
-					myGLWindow->pixelToVector(projMouseCoords, 
-						vParams->getCameraPos(), dirVec);
-					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
-					bool constrain = false;
-					myTwoDImageManip->slideHandle(handleNum, dirVec, constrain);
-					myGLWindow->update();
-					break;
-				}
-			}
-			//Fall through to navigate if not dragging face
-			doNavigate = true;
-			break;
-		case GLWindow::probeMode :
-			{
-				TranslateRotateManip* myProbeManip = myGLWindow->getProbeManip();
-				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				int handleNum = myProbeManip->draggingHandle();
-				//In probe mode, check first to see if we are dragging face
-				if (handleNum >= 0){
-					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
-					float dirVec[3];
-					myGLWindow->pixelToVector(projMouseCoords, 
-						vParams->getCameraPos(), dirVec);
-					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
-					myProbeManip->slideHandle(handleNum, dirVec);
-					myGLWindow->update();
-					break;
-				}
-			}
-			//Fall through to navigate if not dragging face
-			doNavigate = true;
-			break;
-		default:
-		case GLWindow::navigateMode : 
-			doNavigate = true;
-			if (!spinTimer) break;
-			moveCount++;
-			if (moveCount > 0){//find distance from last move event...
-				moveDist = abs(moveCoords[0]-e->x())+abs(moveCoords[1]-e->y());
-			}
-			moveCoords[0] = e->x();
-			moveCoords[1] = e->y();
-			int latestTime = spinTimer->elapsed();
-			olderMoveTime = latestMoveTime;
-			latestMoveTime = latestTime;
-			break;
-		
+		}
+	} else if (spinTimer) { //Navigate mode, handle spin animation
+		moveCount++;
+		if (moveCount > 0){//find distance from last move event...
+			moveDist = abs(moveCoords[0]-e->x())+abs(moveCoords[1]-e->y());
+		}
+		moveCoords[0] = e->x();
+		moveCoords[1] = e->y();
+		int latestTime = spinTimer->elapsed();
+		olderMoveTime = latestMoveTime;
+		latestMoveTime = latestTime;
 	}
 	if(doNavigate){
 		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
@@ -759,7 +462,6 @@ mouseMoveEvent(QMouseEvent* e){
 	myGLWindow->update();
 	return;
 }
-
 
 
 /*
@@ -867,150 +569,7 @@ setGlobalViewpoint(bool setGlobal){
 	setValuesFromGui(vpparms);
 }
 
-//This determines if the specified point is over one of the faces of the regioncube.
-//ScreenCoords are as in OpenGL:  bottom of window is 0
-//
-int VizWin::
-pointOverCube(RegionParams* rParams, float screenCoords[2]){
-	//First get the cube corners into an array of floats
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	float corners[24];
-	float mincrd[3];
-	float maxcrd[3];
-	float* regExts = rParams->getRegionExtents(timestep);
-	for (int i = 0; i<3; i++){
-		mincrd[i] = regExts[i];
-		maxcrd[i] = regExts[i+3];
-	}
-	//Specify corners in counterclockwise order 
-	//(appearing from front, i.e. pos z axis) 
-	//Back first:
-	corners[0+3*0] = mincrd[0];
-	corners[1+3*0] = mincrd[1];
-	corners[2+3*0] = mincrd[2];
-	corners[0+3*1] = maxcrd[0];
-	corners[1+3*1] = mincrd[1];
-	corners[2+3*1] = mincrd[2];
-	corners[0+3*2] = maxcrd[0];
-	corners[1+3*2] = maxcrd[1];
-	corners[2+3*2] = mincrd[2];
-	corners[0+3*3] = mincrd[0];
-	corners[1+3*3] = maxcrd[1];
-	corners[2+3*3] = mincrd[2];
-	//Front (large z)
-	corners[0+3*4] = mincrd[0];
-	corners[1+3*4] = mincrd[1];
-	corners[2+3*4] = maxcrd[2];
-	corners[0+3*5] = maxcrd[0];
-	corners[1+3*5] = mincrd[1];
-	corners[2+3*5] = maxcrd[2];
-	corners[0+3*6] = maxcrd[0];
-	corners[1+3*6] = maxcrd[1];
-	corners[2+3*6] = maxcrd[2];
-	corners[0+3*7] = mincrd[0];
-	corners[1+3*7] = maxcrd[1];
-	corners[2+3*7] = maxcrd[2];
-	
 
-
-	//Then transform them in-place to cube coords.
-	for (int j = 0; j<8; j++)
-		ViewpointParams::worldToStretchedCube(corners+j*3, corners+j*3);
-	//Finally, for each face, test the point:
-	
-	//Back (as viewed from the positive z-axis):
-	if (myGLWindow->pointIsOnQuad(corners+0,corners+9,corners+6,corners+3,
-		screenCoords)) return 0;
-	//Front
-	if (myGLWindow->pointIsOnQuad(corners+12,corners+15,corners+18,corners+21,
-		screenCoords)) return 1;
-	//Bottom
-	if (myGLWindow->pointIsOnQuad(corners+0,corners+3,corners+15,corners+12,
-		screenCoords)) return 2;
-	//Top
-	if (myGLWindow->pointIsOnQuad(corners+6,corners+9,corners+21,corners+18,
-		screenCoords)) return 3;
-	//Left:
-	if (myGLWindow->pointIsOnQuad(corners+9,corners+0,corners+12,corners+21,
-		screenCoords)) return 4;
-	//Right:
-	if (myGLWindow->pointIsOnQuad(corners+3,corners+6,corners+18,corners+15,
-		screenCoords)) return 5;
-	
-	return -1;
-}
-//This determines if the specified point is over one of the faces of the regioncube.
-//ScreenCoords are as in OpenGL:  bottom of window is 0.  Same as code above, except
-//for doing seed region, not subregion
-//
-int VizWin::
-pointOverCube(FlowParams* fParams, float screenCoords[2]){
-	//First get the cube corners into an array of floats
-	
-	float corners[24];
-	float mincrd[3];
-	float maxcrd[3];
-	for (int i = 0; i<3; i++){
-		mincrd[i] = fParams->getSeedRegionMin(i);
-		maxcrd[i] = fParams->getSeedRegionMax(i);
-	}
-	//Specify corners in counterclockwise order 
-	//(appearing from front, i.e. pos z axis) 
-	//Back first:
-	corners[0+3*0] = mincrd[0];
-	corners[1+3*0] = mincrd[1];
-	corners[2+3*0] = mincrd[2];
-	corners[0+3*1] = maxcrd[0];
-	corners[1+3*1] = mincrd[1];
-	corners[2+3*1] = mincrd[2];
-	corners[0+3*2] = maxcrd[0];
-	corners[1+3*2] = maxcrd[1];
-	corners[2+3*2] = mincrd[2];
-	corners[0+3*3] = mincrd[0];
-	corners[1+3*3] = maxcrd[1];
-	corners[2+3*3] = mincrd[2];
-	//Front (large z)
-	corners[0+3*4] = mincrd[0];
-	corners[1+3*4] = mincrd[1];
-	corners[2+3*4] = maxcrd[2];
-	corners[0+3*5] = maxcrd[0];
-	corners[1+3*5] = mincrd[1];
-	corners[2+3*5] = maxcrd[2];
-	corners[0+3*6] = maxcrd[0];
-	corners[1+3*6] = maxcrd[1];
-	corners[2+3*6] = maxcrd[2];
-	corners[0+3*7] = mincrd[0];
-	corners[1+3*7] = maxcrd[1];
-	corners[2+3*7] = maxcrd[2];
-	
-
-
-	//Then transform them in-place to cube coords.
-	for (int j = 0; j<8; j++)
-		ViewpointParams::worldToStretchedCube(corners+j*3, corners+j*3);
-	//Finally, for each face, test the point:
-	
-	//Back (as viewed from the positive z-axis):
-	if (myGLWindow->pointIsOnQuad(corners+0,corners+9,corners+6,corners+3,
-		screenCoords)) return 0;
-	//Front
-	if (myGLWindow->pointIsOnQuad(corners+12,corners+15,corners+18,corners+21,
-		screenCoords)) return 1;
-	//Bottom
-	if (myGLWindow->pointIsOnQuad(corners+0,corners+3,corners+15,corners+12,
-		screenCoords)) return 2;
-	//Top
-	if (myGLWindow->pointIsOnQuad(corners+6,corners+9,corners+21,corners+18,
-		screenCoords)) return 3;
-	//Left:
-	if (myGLWindow->pointIsOnQuad(corners+9,corners+0,corners+12,corners+21,
-		screenCoords)) return 4;
-	//Right:
-	if (myGLWindow->pointIsOnQuad(corners+3,corners+6,corners+18,corners+15,
-		screenCoords)) return 5;
-	
-	return -1;
-}
 /*
  * Obtain current view frame from gl model matrix
  */

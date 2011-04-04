@@ -58,6 +58,10 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
 						"Map voxel to user coordinates at specified refinement level"},
 		{"MapUserToVox",PythonPipeLine::mapUserToVox, METH_VARARGS,
 						"Map user to voxel coordinates at specified refinement level"},
+		{"GetValidRegionMin",PythonPipeLine::getValidRegionMin, METH_VARARGS,
+						"Get min valid coordinate bounds of variable at specified refinement level and timestep"},
+		{"GetValidRegionMax",PythonPipeLine::getValidRegionMax, METH_VARARGS,
+						"Get max valid coordinate bounds of variable at specified refinement level and timestep"},
 		
 		{NULL,NULL,0,NULL}
  };
@@ -739,7 +743,47 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
 }
-
+//Returns min valid coordinate bound (in voxels) for specified variable name, refinement, timestep
+//Arguments are: timestep, variableName, refinementLevel. 
+PyObject* PythonPipeLine::getValidRegionMin(PyObject *self, PyObject* args){
+	
+    int reflevel;
+	size_t minvox[3];
+	size_t maxvox[3];
+	int ivox[3];
+	char* varname;
+	int timestep;
+	size_t ts;
+    
+    if (!PyArg_ParseTuple(args,"isi",
+						  &timestep, &varname,&reflevel)) return NULL; 
+	ts = timestep;
+	currentDataMgr->GetValidRegion(ts, varname, reflevel, minvox, maxvox);
+	for(int i = 0; i< 3; i++) ivox[i] = (int)minvox[i];
+	
+    return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
+}
+//Returns max valid coordinate bound (in voxels) for specified variable name, refinement, timestep
+//Arguments are: timestep, variableName, refinementLevel. 
+PyObject* PythonPipeLine::getValidRegionMax(PyObject *self, PyObject* args){
+	
+    int reflevel;
+	size_t minvox[3];
+	size_t maxvox[3];
+	size_t ts;
+	int ivox[3];
+	char* varname;
+	int timestep;
+	
+    
+    if (!PyArg_ParseTuple(args,"isi",
+						  &timestep,&varname,&reflevel)) return NULL; 
+	ts = timestep;
+	currentDataMgr->GetValidRegion(ts, varname, reflevel, minvox, maxvox);
+	for(int i = 0; i< 3; i++) ivox[i] = (int)maxvox[i];
+	
+    return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
+}
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
 // Also useful to copy smaller region back to full domain bounds.  Source and

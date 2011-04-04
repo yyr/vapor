@@ -76,9 +76,9 @@
 using namespace VAPoR;
 
 
-TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_TwoDDataTab(), TwoDEventRouter(){
+TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent ): QWidget(parent), Ui_TwoDDataTab(), TwoDEventRouter(){
 	setupUi(this);
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_twoDDataParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDDataParamsTag);
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
@@ -182,7 +182,7 @@ TwoDDataEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void TwoDDataEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (ds->getDataMgr()&& ds->dataIsPresent2D()){
 		setEnabled(true);
@@ -503,7 +503,7 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 		twoDTextureFrame->update();
 	}
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(twoDParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(twoDParams);
 	//If we are in twoD mode, force a rerender of all windows using the twoD:
 	if (GLWindow::getCurrentMouseMode() == GLWindow::twoDDataMode){
 		VizWinMgr::getInstance()->refreshTwoDData(twoDParams);
@@ -560,7 +560,7 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	mapCursor();
 	PanelCommand::captureEnd(cmd, dParams); 
 	setTwoDDirty(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(dParams);;
 	updateTab();
 }
 
@@ -780,7 +780,7 @@ guiCopyRegionToTwoD(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	
 }
 
@@ -965,7 +965,7 @@ guiSetEnabled(bool value, int instance){
 	setDatarangeDirty(pParams);
 	setEditorDirty();
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	update();
 	guiSetTextChanged(false);
 
@@ -988,7 +988,7 @@ guiSetOpacityScale(int val){
 	
 	PanelCommand::captureEnd(cmd,pp);
 	
-	VizWinMgr::getInstance()->setVizDirty(pp,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pp);;
 }
 //Respond to a change in transfer function (from color selection or mouse down/release events)
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
@@ -1011,7 +1011,7 @@ guiEndChangeMapFcn(){
 	setTwoDDirty(pParams);
 	setDatarangeDirty(pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 
 void TwoDDataEventRouter::
@@ -1045,7 +1045,7 @@ void TwoDDataEventRouter::guiCenterTwoD(){
 	updateTab();
 	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 
 }
 //Make the probe center at selectedPoint.
@@ -1070,7 +1070,7 @@ void TwoDDataEventRouter::guiCenterProbe(){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	pParams->setProbeDirty();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 
@@ -1139,7 +1139,7 @@ guiChangeVariables(){
 	//Need to update the selected point for the new variables
 	updateTab();
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDDataEventRouter::
 guiSetXCenter(int sliderval){
@@ -1150,7 +1150,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	
 }
 void TwoDDataEventRouter::
@@ -1162,7 +1162,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	
 }
 void TwoDDataEventRouter::
@@ -1174,7 +1174,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 
 }
 void TwoDDataEventRouter::
@@ -1189,7 +1189,7 @@ guiSetXSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 
 }
 void TwoDDataEventRouter::
@@ -1203,7 +1203,7 @@ guiSetYSize(int sliderval){
 	resetTextureSize(pParams);
 	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 
 }
 void TwoDDataEventRouter::guiFitToRegion(){
@@ -1227,7 +1227,7 @@ void TwoDDataEventRouter::guiFitToRegion(){
 	PanelCommand::captureEnd(cmd, tParams);
 	setTwoDDirty(tParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(tParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(tParams);;
 
 }
 void TwoDDataEventRouter::
@@ -1243,7 +1243,7 @@ guiSetCompRatio(int num){
 	lodCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(dParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(dParams);;
 
 }
 void TwoDDataEventRouter::
@@ -1263,7 +1263,7 @@ guiSetNumRefinements(int n){
 	pParams->setNumRefinements(n);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 	
 //Set slider position, based on text change. 
@@ -1356,7 +1356,7 @@ textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize)
 	if(centerChanged) {
 		setTwoDDirty(pParams);
 		twoDTextureFrame->update();
-		VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(pParams);;
 	}
 	update();
 	setIgnoreBoxSliderEvents(false);
@@ -1408,7 +1408,7 @@ sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize)
 	//force a new render with new TwoD data
 	setTwoDDirty(pParams);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	return;
 	
 }	
@@ -1427,7 +1427,7 @@ updateMapBounds(RenderParams* params){
 	setDatarangeDirty(twoDDataParams);
 	setEditorDirty();
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(twoDDataParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(twoDDataParams);
 	
 }
 
@@ -1461,14 +1461,14 @@ captureMouseUp(){
 	resetTextureSize(pParams);
 	setTwoDDirty(pParams);
 	//Update the tab if it's in front:
-	if(MainForm::getInstance()->getTabManager()->isFrontTab(this)) {
+	if(MainForm::getTabManager()->isFrontTab(this)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (pParams == vwm->getTwoDDataParams(viznum)))
 			updateTab();
 	}
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
@@ -1529,7 +1529,7 @@ guiEndCursorMove(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 	
 }
 
@@ -1558,7 +1558,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	//Determine what resolution is available:
 	int refLevel = pParams->getNumRefinements();
 	
-	if (ds->useLowerRefinementLevel()){
+	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
 			if (pParams->variableIsSelected(varnum)) {
 				refLevel = Min(ds->maxXFormPresent2D(varnum, timeStep), refLevel);
@@ -1665,9 +1665,10 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	if (newWin || (formerParams->isEnabled() != pParams->isEnabled())){
 		updateRenderer(pParams, wasEnabled,  newWin);
 	}
-	setDatarangeDirty(pParams);
+	VizWin* viz = VizWinMgr::getInstance()->getVizWin(vizNum);
+	viz->setColorbarDirty(true);
 	twoDTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
@@ -1681,7 +1682,9 @@ setDatarangeDirty(RenderParams* params)
 	float maxval = pParams->getMapperFunc()->getMaxColorMapValue();
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
-			VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+			VizWin* viz = VizWinMgr::getInstance()->getVizWin(pParams->getVizNum());
+			viz->setColorbarDirty(true);
+			VizWinMgr::getInstance()->forceRender(pParams);;
 	}
 	
 }
@@ -1837,7 +1840,7 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setTwoDDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	if (ignoreBoxSliderEvents) return;
@@ -1884,7 +1887,7 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setTwoDDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	if (ignoreBoxSliderEvents) return;
@@ -1931,7 +1934,7 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setTwoDDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	if (ignoreBoxSliderEvents) return;
@@ -1978,7 +1981,7 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setTwoDDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 
 void TwoDDataEventRouter::guiNudgeYSize(int val) {
@@ -2026,7 +2029,7 @@ void TwoDDataEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setTwoDDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,TwoDTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);;
 }
 
 void TwoDDataEventRouter::
@@ -2263,7 +2266,7 @@ void TwoDDataEventRouter::guiFitTFToData(){
 
 #ifdef Darwin
 void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
-	QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+	QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 
 	//First show the texture frame, next time through, show the tf frame
 	//Other order doesn't work.

@@ -1690,6 +1690,7 @@ void MappingFrame::mouseMoveEvent(QMouseEvent* event)
 {
 	if (event->buttons()== Qt::NoButton){
 		if (_isoSliderEnabled) return;
+		if (!DataStatus::trackMouse()) return;
 		QToolTip::showText(event->globalPos(), tipText(event->pos()));
 		return;
 	}

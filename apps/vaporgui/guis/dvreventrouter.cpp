@@ -76,10 +76,10 @@
 using namespace VAPoR;
 
 
-DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_DVR(), EventRouter(){
+DvrEventRouter::DvrEventRouter(QWidget* parent): QWidget(parent), Ui_DVR(), EventRouter(){
         setupUi(this);
 	
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_dvrParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_dvrParamsTag);
 	savedCommand = 0;
     benchmark = DONE;
     benchmarkTimer = 0;
@@ -344,7 +344,7 @@ sessionLoadTF(QString* name){
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	MessageReporter::infoMsg("DvrEventRouter::updateTab()");
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
@@ -405,7 +405,7 @@ void DvrEventRouter::updateTab(){
 	//Force the dvr to refresh  WHY?
 	//VizWinMgr::getInstance()->setClutDirty(dvrParams);
     //VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
-	//VizWinMgr::getInstance()->setVizDirty(dvrParams,DvrRegionBit,true, true);
+	//VizWinMgr::getInstance()->setVizDirty(dvrParams,NavigatingBit,true, true);
 
 	
 	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:
@@ -534,7 +534,7 @@ guiSetCompRatio(int num){
 	dParams->SetCompressionLevel(num);
 	lodCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 }
 
 void DvrEventRouter::
@@ -549,7 +549,7 @@ guiSetNumRefinements(int num){
 	dParams->setNumRefinements(num);
 	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 }
 void DvrEventRouter::
 guiSetEnabled(bool value, int instance){
@@ -593,7 +593,7 @@ guiSetEnabled(bool value, int instance){
 	setDatarangeDirty(dParams);
 	
 	vizWinMgr->setClutDirty(dParams);
-	vizWinMgr->setVizDirty(dParams,DvrRegionBit,true);
+	vizWinMgr->setVizDirty(dParams,NavigatingBit,true);
 	vizWinMgr->setVizDirty(dParams,LightingBit, true);
 
 	if (dParams->getMapperFunc())
@@ -645,7 +645,7 @@ guiSetComboVarNum(int val){
 	
 	dParams->setVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(val));
 	updateMapBounds(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setDatarangeDirty(dParams);
 		
@@ -663,6 +663,7 @@ updateMapBounds(RenderParams* params){
 	DvrParams* dParams = (DvrParams*)params;
 	//Find out what timestep is current:
 	int viznum = dParams->getVizNum();
+	if (viznum < 0) return;
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
 	float minbnd, maxbnd;
 	int varnum = dParams->getSessionVarNum();
@@ -670,8 +671,8 @@ updateMapBounds(RenderParams* params){
 		minbnd = dParams->getDataMinBound(currentTimeStep);
 		maxbnd = dParams->getDataMaxBound(currentTimeStep);
 	} else {
-		minbnd = DataStatus::getInstance()->getDefaultDataMin(varnum);
-		maxbnd = DataStatus::getInstance()->getDefaultDataMax(varnum);
+		minbnd = DataStatus::getInstance()->getDefaultDataMin3D(varnum);
+		maxbnd = DataStatus::getInstance()->getDefaultDataMax3D(varnum);
 	}
 	minDataBound->setText(strn.setNum(minbnd));
 	maxDataBound->setText(strn.setNum(maxbnd));
@@ -901,7 +902,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 	//If we are enabling, make sure the dvrparams are set to a valid type:
 	if (nowEnabled && dParams->getType() == DvrParams::DVR_INVALID_TYPE){
-		dParams->setType(VizWinMgr::getInstance()->getDvrRouter()->getType(0));
+		dParams->setType(getType(0));
 	}
 	
 	VizWin* viz = 0;
@@ -918,7 +919,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		setDatarangeDirty(dParams);
-		VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 		return;
 	}
 	
@@ -945,7 +946,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 		//force the renderer to refresh region data  (why?)
 		
-		VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 		VizWinMgr::getInstance()->setClutDirty(dParams);
 		VizWinMgr::getInstance()->setVizDirty(dParams,LightingBit, true);
 		setDatarangeDirty(dParams);
@@ -973,10 +974,10 @@ setEditorDirty(RenderParams *p){
     DataStatus *ds;
 	ds = DataStatus::getInstance();
 	int varnum = dp->getSessionVarNum();
-    if (ds->getNumSessionVariables()&& varnum >=0 )
+    if (ds->getNumSessionVariables() && varnum >= 0)
     {
-		const std::string& varname = ds->getVariableName(varnum);
-		transferFunctionFrame->setVariableName(varname);
+      const std::string& varname = ds->getVariableName3D(varnum);
+      transferFunctionFrame->setVariableName(varname);
     }
     else
     {
@@ -1317,8 +1318,8 @@ void DvrEventRouter::guiFitTFToData(){
 	//Get bounds from DataStatus:
 	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int sesvarnum = pParams->getSessionVarNum();
-	float minBound = ds->getDataMin(sesvarnum,ts);
-	float maxBound = ds->getDataMax(sesvarnum,ts);
+	float minBound = ds->getDataMin3D(sesvarnum,ts);
+	float maxBound = ds->getDataMax3D(sesvarnum,ts);
 	
 	if (minBound > maxBound){ //no data
 		maxBound = 1.f;
@@ -1338,7 +1339,7 @@ void DvrEventRouter::guiFitTFToData(){
 #ifdef Darwin
 void DvrEventRouter::paintEvent(QPaintEvent* ev){
 	if(!opacityMapShown){
-		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		sArea->ensureWidgetVisible(tfFrame);
 		transferFunctionFrame->show();
 		opacityMapShown = true;

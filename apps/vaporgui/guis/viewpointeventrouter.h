@@ -41,9 +41,12 @@ class ViewpointEventRouter : public QWidget, public Ui_VizTab, public EventRoute
 	Q_OBJECT
 
 public: 
-	ViewpointEventRouter(QWidget* parent = 0, const char* name = 0);
+	ViewpointEventRouter(QWidget* parent = 0);
 	virtual ~ViewpointEventRouter();
-	
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new ViewpointEventRouter((QWidget*)tMgr));
+	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);

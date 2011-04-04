@@ -25,75 +25,92 @@
 #include <string>
 #include <map>
 #include <vapor/common.h>
-
 #include <vapor/DataMgr.h>
 #include <vapor/MetadataVDC.h>
-#include <vapor/MyBase.h>
 #include <qcolor.h>
 #include "regionparams.h"
 class QApplication;
 
 namespace VAPoR {
-// Class used by session to keep track of variables, timesteps, resolutions, datarange.
-// It is constructed by the Session whenever a new metadata is opened.
-// It keeps a value of min/max data for each timestep that can be refreshed.
-// Variables can be referenced either by the varNum (numbering all the variables in
-// the session) or by the varName.  
+//! \class DataStatus
+//! \brief A class for describing the currently loaded dataset
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
 
-
-class PARAMS_API DataStatus : public VetsUtil::MyBase{
+//! The DataStatus class keeps track of available variables, timesteps, resolutions, and data ranges.
+//! It is constructed by the Session whenever a new metadata is loaded.
+//! It keeps a lazily evaluated value of min/max of each variable for each timestep.
+//! Variables can be referenced using the variable name, the session variable num (a numbering all the variables in
+//! the session) or by the active variable num.  Active variables are all those in the metadata plus all
+//! the derived variables, and are a subset of the session variables. 
+//! Session variables are those that were specified in the session plus those that are derived, and these may not all be available in the metadata.
+//! To support using active variables and session variable nums,
+//! mappings are provided between active names/nums and session nums, and also between variable names and
+//! their 2D and 3D session variable numbers and active variable numbers.
+class PARAMS_API DataStatus{
 public:
 	
-	DataStatus();
-	~DataStatus();
+	
+
+	//! static getInstance() method is used to obtain the singleton instance of the Datastatus.
+	//! \retval current DataStatus instance
 	static DataStatus* getInstance() {
 		if (!theDataStatus) theDataStatus = new DataStatus;
 		return theDataStatus;
 	}
-	QApplication* getApp() {return theApp;}
 
-	
-
-	//Reset the datastatus when a new datamgr is opened.
-	//This avoids all "Set" methods:
-	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
-	static void setDefaultPrefs();
-	//Update based on current stretch factor:
-	void stretchExtents(float factor[3]){
-		for (int i = 0; i< 3; i++) {
-			stretchedExtents[i] = extents[i]*factor[i];
-			stretchedExtents[i+3] = extents[i+3]*factor[i];
-			stretchFactors[i] = factor[i];
-		}
-	}
-	// Get methods:
-	//
+	//! Obtain the full extents of the data in user coordinates.
+	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
+	//! \retval const float[6] extents array
 	const float* getExtents() { return extents; }
-	const float* getStretchedExtents() { return stretchedExtents; }
-	
-	//Determine the min and max extents at a level
+
+	//! Determines extents of the data at a particular refinement level.
+	//! \param[in] int level  refinement level
+	//! \param[out] float exts[6]  extents at specified level
 	void getExtentsAtLevel(int level, float exts[6]);
-	
-	static size_t getCacheMB() {return cacheMB;}
-	static void setInteractiveRefinementLevel(int lev) {
-		interactiveRefLevel = lev;
-	}
-	static int getInteractiveRefinementLevel() {return interactiveRefLevel;}
+
+	//! Return the extents of the data in user coordinates multiplied by current stretch factors.
+	//! \retval float[6] stretched extents array
+	const float* getStretchedExtents() { return stretchedExtents; }
+
+	//! Returns the minimum time step for which there is any data.
+	//! \retval size_t value of smallest time step
 	size_t getMinTimestep() {return minTimeStep;}
+
+	//! Returns the maximum time step for which there is any data.
+	//! \retval size_t value of largest time step
 	size_t getMaxTimestep() {return maxTimeStep;}
+
+	//! Tells whether the current VDC is type 1 or 2
+	//! \retval integer VDC type
 	int getVDCType() {return VDCType;}
-	bool dataIsPresent(int sesvarnum, int timestep){
+
+	//! Indicates whether a 3D session variable exists at a particular timestep.
+	//! \param[in] int sesvarnum 3D Session variable number
+	//! \param[in] int timestep Time step
+	//! \retval true if the data exists
+	bool dataIsPresent3D(int sesvarnum, int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists[sesvarnum]) return false;
 		return (maxLevel3D[sesvarnum][timestep] >= 0);
 	}
+
+	//! Indicates whether a 2D session variable exists at a particular timestep.
+	//! \param[in] int sesvarnum 2D Session variable number
+	//! \param[in] int timestep Time step
+	//! \retval true if the data exists
 	bool dataIsPresent2D(int sesvarnum, int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists2D[sesvarnum]) return false;
 		return (maxLevel2D[sesvarnum][timestep] >= 0);
 	}
+
+	//! Indicates whether any 3D variable exists at a particular timestep.
+	//! \param[in] int timestep Time step
+	//! \retval true if the data exists
 	bool dataIsPresent3D(int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
@@ -103,6 +120,10 @@ public:
 		}
 		return false;
 	}
+
+	//! Indicates whether any 2D variable exists at a particular timestep.
+	//! \param[in] int timestep Time step
+	//! \retval true if the data exists
 	bool dataIsPresent2D(int timestep){
 		if (!dataMgr) return false;
 		if (timestep < 0 || timestep >= numTimesteps) return false;
@@ -112,6 +133,10 @@ public:
 		}
 		return false;
 	}
+
+	//! Indicates whether any variable exists at a particular timestep.
+	//! \param[in] int timestep Time step
+	//! \retval true if the data exists
 	bool dataIsPresent(int timestep){
 		if (!dataMgr) return false;
 		if (timestep < 0 || timestep >= numTimesteps) return false;
@@ -125,92 +150,406 @@ public:
 		}
 		return false;
 	}
+
+	//! Indicates whether any 3D variable exists at any timestep. 
+	//! \retval true if the data exists
 	bool dataIsPresent3D(){
 		for (int t = (int)minTimeStep; t <= (int)maxTimeStep; t++) {
 			if (dataIsPresent3D(t)) return true;
 		}
 		return false;
 	}
+
+	//! Indicates whether any 2D variable exists at any timestep.
+	//! \retval true if the data exists
 	bool dataIsPresent2D(){
 		for (int t = (int)minTimeStep; t <= (int)maxTimeStep; t++) {
 			if (dataIsPresent2D(t)) return true;
 		}
 		return false;
 	}
-	bool dataIsLayered();
 
-	double getDataMax(int sesvarNum, int timestep){
-		if (!dataIsPresent(sesvarNum, timestep))return 1.0f;
+	//! Indicates the largest value of a 3D variable at a timestep.
+	//! Returns 1 if the data bounds have not yet been calculated,
+	//! for example if the variable is derived, the bounds will not
+	//! be known until the input data has been retrieved and the
+	//! derived variable has been calculated.
+	//! \param[in] int sesvarNum session variable number
+	//! \param[in] int timestep Time Step
+	//! \retval double maximum value
+	double getDataMax3D(int sesvarNum, int timestep){
+		if (!dataIsPresent3D(sesvarNum, timestep))return 1.0f;
 		if (dataMax[sesvarNum][timestep] == -1.e30f)
 			calcDataRange(sesvarNum,timestep);
 		return dataMax[sesvarNum][timestep];
 	}
+
+	//! Indicates the largest value of a 2D variable at a timestep.
+	//! Returns 1 if the data bounds have not yet been calculated,
+	//! for example, if the variable is derived, the bounds will not
+	//! be known until the input data has been retrieved and the
+	//! derived variable has been calculated.
+	//! \param[in] int sesvarNum 2D session variable number
+	//! \param[in] int timestep Time Step
+	//! \retval double maximum value
 	double getDataMax2D(int sesvarNum, int timestep){
 		if (!dataIsPresent2D(sesvarNum, timestep))return 1.0f;
 		if (dataMax2D[sesvarNum][timestep] == -1.e30f)
 			calcDataRange2D(sesvarNum,timestep);
 		return dataMax2D[sesvarNum][timestep];
 	}
-	double getDataMin(int sesvarNum, int timestep){
-		if (!dataIsPresent(sesvarNum, timestep))return -1.0f;
+
+	//! Indicates the smallest value of a 3D variable at a timestep.
+	//! Returns -1 if the data bounds have not yet been calculated;
+	//! for example, if the variable is derived, the bounds will not
+	//! be known until the input data has been retrieved and the
+	//! derived variable has been calculated.
+	//! \param[in] int sesvarNum 3D session variable number
+	//! \param[in] int timestep Time Step
+	//! \retval double minimum value
+	double getDataMin3D(int sesvarNum, int timestep){
+		if (!dataIsPresent3D(sesvarNum, timestep))return -1.0f;
 		if (dataMin[sesvarNum][timestep] == 1.e30f)
 			calcDataRange(sesvarNum,timestep);
 		return dataMin[sesvarNum][timestep];
 	}
+
+	//! Indicates the smallest value of a 2D variable at a timestep.
+	//! Returns -1 if the data bounds have not yet been calculated;
+	//! for example, if the variable is derived, the bounds will not
+	//! be known until the input data has been retrieved and the
+	//! derived variable has been calculated.
+	//! \param[in] sesvarNum 2D session variable number
+	//! \param[in] timestep Time Step
+	//! \retval double minimum value
 	double getDataMin2D(int sesvarNum, int timestep){
 		if (!dataIsPresent2D(sesvarNum, timestep))return -1.0f;
 		if (dataMin2D[sesvarNum][timestep] == 1.e30f)
 			calcDataRange2D(sesvarNum,timestep);
 		return dataMin2D[sesvarNum][timestep];
 	}
-	double getDefaultDataMax(int varnum);
-	double getDefaultDataMin(int varnum);
+
+	//! Indicates the default maximum value of a 3D variable.
+	//! This is usually the maximum value at the first time step.
+	//! \param[in] int varnum 3D Session variable number
+	//! \retval double maximum value
+	double getDefaultDataMax3D(int varnum);
+
+	//! Indicates the default minimum value of a 3D variable.
+	//! This is usually the minimum value at the first time step.
+	//! \param[in] int varnum Session variable number
+	//! \retval double minimum value
+	double getDefaultDataMin3D(int varnum);
+
+	//! Indicates the default maximum value of a 2D variable.
+	//! This is usually the maximum value at the first time step.
+	//! \param[in] int varnum Session variable number
+	//! \retval double maximum value
 	double getDefaultDataMax2D(int varnum);
+
+	//! Indicates the default minimum value of a 2D variable.
+	//! This is usually the minimum value at the first time step.
+	//! \param[in] int varnum Session variable number
+	//! \retval double minimum value
 	double getDefaultDataMin2D(int varnum);
 	
-	int maxXFormPresent(int sesvarnum, int timestep){
+	//! Indicates the maximum refinement level of a 3D variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] int sesvarnum Session variable number
+	//! \param[in] int timestep  Time Step
+	//! \retval int maximum refinement level
+	int maxXFormPresent3D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
 		return (maxLevel3D[sesvarnum][timestep]);
 	}
+
+	//! Indicates the maximum refinement level of a 2D variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] int sesvarnum Session variable number
+	//! \param[in] int timestep  Time Step
+	//! \retval int maximum refinement level
 	int maxXFormPresent2D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()==2) return getNumTransforms();
 		return (maxLevel2D[sesvarnum][timestep]);
 	}
+
+	//! Indicates the maximum LOD level of a 3D variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] int sesvarnum Session variable number
+	//! \param[in] int timestep  Time Step
+	//! \retval int maximum LOD
 	int maxLODPresent3D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
 		if (!variableExists[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
 		return (maxLevel3D[sesvarnum][timestep]);
 	}
+
+	//! Indicates the maximum LOD level of a 2D variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] int sesvarnum Session variable number
+	//! \param[in] int timestep  Time Step
+	//! \retval int maximum LOD
 	int maxLODPresent2D(int sesvarnum, int timestep){
 		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
 		if (!variableExists2D[sesvarnum]) return -1;
 		if (getVDCType()!=2) return 0;
 		return (maxLevel2D[sesvarnum][timestep]);
 	}
-	//Determine if variable is present for *any* timestep 
-	//Needed for setting DVR panel
-	bool variableIsPresent(int varnum) {
+	
+	//! Indicates the maximum refinement level of a variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] const string& varname Variable name
+	//! \param[in] int timestep Time Step
+	//! \retval int maximum refinement level
+	int maxXFormPresent(const string& varname, int timestep){
+		int dim = 3;
+		int sesvarnum = getSessionVariableNum3D(varname);
+		if (sesvarnum < 0) {
+			sesvarnum = getSessionVariableNum2D(varname);
+			dim = 2;
+			if (sesvarnum < 0) return -1;
+		}
+		if (dim == 3)return maxXFormPresent3D(sesvarnum,timestep);
+		else return maxXFormPresent2D(sesvarnum,timestep);
+	}
+
+	//! Indicates the maximum LOD level of a variable
+	//! that is present at a specified time step.
+	//! Returns -1 if no data is present.
+	//! \param[in] const string& varname Variable name
+	//! \param[in] int timestep Time Step
+	//! \retval int maximum LOD
+	int maxLODPresent(const string& varname, int timestep){
+		int dim = 3;
+		int sesvarnum = getSessionVariableNum3D(varname);
+		if (sesvarnum < 0) {
+			sesvarnum = getSessionVariableNum2D(varname);
+			dim = 2;
+			if (sesvarnum < 0) return -1;
+		}
+		if (dim == 3)return maxLODPresent3D(sesvarnum,timestep);
+		else return maxLODPresent2D(sesvarnum,timestep);
+	}
+
+	//! Indicates if a 3D variable is present at any time step.
+	//! Returns false if no data is present.
+	//! \param[in] int varnum 3D session variable number 
+	//! \retval bool is true if it is present.
+	bool variableIsPresent3D(int varnum) {
 		if (varnum < variableExists.size()) return variableExists[varnum];
 		else return false;
 	}
+
+	//! Indicates if a 2D variable is present at any time step.
+	//! Returns false if no data is present.
+	//! \param[in] int varnum 2D session variable number 
+	//! \retval bool is true if it is present.
 	bool variableIsPresent2D(int varnum) {
 		if (varnum < variableExists2D.size()) return variableExists2D[varnum];
 		else return false;
 	}
-	//Verify that field data is present at required resolution and timestep.
-	//Ignore variable if varnum is < 0
+
+	//! Verify that up to three field variables are present at specified resolution, lod, and timestep.
+	//! Ignores a variable if varnum is < 0.
+	//! Accepts lowered refinement level or lod if user has specified use of lower accuracy when requested accuracy is not available.
+	//! \param[in] int refLevel is requested refinement level
+	//! \param[in] int LOD is requested LOD level
+	//! \param[in] int varx is session variable number of x component, -1 to ignore
+	//! \param[in] int vary is session variable number of y component, -1 to ignore
+	//! \param[in] int varz is session variable number of z component, -1 to ignore
+	//! \retval true if the variable exists at resolution and timestep
 	bool fieldDataOK(int refLevel, int lod, int tstep, int varx, int vary, int varz);
 	
+	//! Indicates the number of time steps in the current VDC.
+	//! \retval int number of timesteps
 	int getNumTimesteps() {return numTimesteps;}
-	//determine the maxnumtransforms in the vdf, may not actually have any data at
-	//that level...
+
+	//! Indicates the number of refinement levels in the VDC.
+	//! \retval int number of refinement levels
 	int getNumTransforms() {return numTransforms;}
+
+	//! Indicates the number of levels of detail in the VDC.
+	//! \retval int number of LOD's
 	int getNumLODs() { return numLODs;}
+
+	//! Specify that a 3D variable is not available at a particular refinement, LOD, timestep.
+	//! Avoids repeated error messages when requested data is not found.
+	//! param[in] int timestep Time Step
+	//! param[in] int refLevel Refinement level
+	//! param[in] int lod	Level of Detail
+	//! param[in] int sessionVarNum Session Variable Number
+	void setDataMissing3D(int timestep, int refLevel, int lod, int sessionVarNum){
+		MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
+		if(md && md->GetVDCType() == 2) {
+			if (maxLevel3D[sessionVarNum][timestep] >= lod)
+			maxLevel3D[sessionVarNum][timestep] = lod -1;
+			return;
+		}
+		if (maxLevel3D[sessionVarNum][timestep] >= refLevel)
+			maxLevel3D[sessionVarNum][timestep] = refLevel -1;
+	}
+
+	//! Specify that a 2D variable is not available at a particular refinement, LOD, timestep.
+	//! Avoids repeated error messages when requested data is not found.
+	//! param[in] int timestep Time Step
+	//! param[in] int refLevel Refinement level
+	//! param[in] int lod	Level of Detail
+	//! param[in] int sessionVarNum Session Variable Number
+	void setDataMissing2D(int timestep, int refLevel, int lod, int sessionVarNum){
+		MetadataVDC* md = dynamic_cast<MetadataVDC*>(dataMgr);
+		if(md && md->GetVDCType() == 2) {
+			if (maxLevel2D[sessionVarNum][timestep] >= lod)
+			maxLevel2D[sessionVarNum][timestep] = lod -1;
+			return;
+		}
+		if (maxLevel2D[sessionVarNum][timestep] >= refLevel)
+			maxLevel2D[sessionVarNum][timestep] = refLevel -1;
+	}
+
+
+	//! Static method to determine the 3D *session* variable name associated with session index.
+	//! \param[in] int sesvarNum 3D Session variable number
+	//! \retval std::string variable name.
+	static std::string& getVariableName3D(int sesvarNum) {return variableNames[sesvarNum];}
+
+	//! Static method to determine the 2D *session* variable name associated with session index.
+	//! \param[in] int sesvarNum 2D Session variable number
+	//! \retval std::string variable name.
+	static std::string& getVariableName2D(int sesvarNum) {return variableNames2D[sesvarNum];}
+
+	//! Identify the 3D session variable num of a name, or -1 if it's not in session.
+	//! \param[in] str std::string variable name
+	//! \retval int 3D session variable number
+	static int getSessionVariableNum3D(const std::string& str);
+
+	//! Identify the 2D session variable num of a name, or -1 if it's not in session.
+	//! \param[in] str std::string variable name
+	//! \retval int 2D session variable number
+	static int getSessionVariableNum2D(const std::string& str);
+	
+	//! Static method indicates the number of active 3D variables.
+	//! \retval int number of active 3D variables
+	static int getNumActiveVariables3D()  {return activeVariableNums3D.size();}
+
+	//! Static method indicates the number of active 2D variables.
+	//! \retval int number of active 2D variables
+	static int getNumActiveVariables2D()  {return activeVariableNums2D.size();}
+		
+	//! Static method maps a 3D active variable num to a session variable num.
+	//! \param[in] varnum active 3D variable number
+	//! \retval int session variable number
+	static int mapActiveToSessionVarNum3D(int varnum)
+		{ if( varnum >= activeVariableNums3D.size()) return -1; 
+		return activeVariableNums3D[varnum];}
+
+	//! Static method maps a 2D active variable num to a session variable num.
+	//! \param[in] varnum active 2D variable number
+	//! \retval int session variable number
+	static int mapActiveToSessionVarNum2D(int varnum) 
+		{ if( varnum >= activeVariableNums2D.size()) return -1; 
+		return activeVariableNums2D[varnum];}
+
+	//! Static method maps a 3D session variable num to an active variable num.
+	//! \param[in] sesvar session 3D variable number
+	//! \retval int active 3D variable number
+	static int mapSessionToActiveVarNum3D(int sesvar);
+
+	//! Static method maps a 2D session variable num to an active variable num.
+	//! \param[in] sesvar session 2D variable number
+	//! \retval int active 2D variable number
+	static int mapSessionToActiveVarNum2D(int sesvar);
+
+	//! Static method finds the name that corresponds to an active 3D variable num.
+	//! Should be the same as getting it from the metadata directly, if it's in metadata.
+	//! If no such index, returns first variable in VDC.
+	//! \param[in] int activevarnum active variable number
+	//! \retval std::string name of variable
+	static std::string& getActiveVarName3D(int activevarnum){
+		if (activeVariableNums3D.size()<= activevarnum) return variableNames[0];
+		return (variableNames[activeVariableNums3D[activevarnum]]);}
+
+	//! Static method finds the name that corresponds to an active 2D variable num.
+	//! Should be the same as getting it from the metadata directly, if it's in metadata.
+	//! If no such index, returns first variable in VDC.
+	//! \param[in] int activevarnum active variable number
+	//! \retval std::string name of variable
+	static std::string& getActiveVarName2D(int activevarnum){
+		if (activeVariableNums2D.size()<= activevarnum) return variableNames2D[0];
+		return (variableNames2D[activeVariableNums2D[activevarnum]]);}
+
+	//! Method finds the active variable number associated with a 3D variable name.
+	//! \param[in] std::string varname  Name of variable
+	//! \retval int active variable number
+	int getActiveVarNum3D(std::string varname) const;
+
+	//! Method finds the active variable number associated with a 2D variable name.
+	//! \param[in] std::string varname  Name of variable
+	//! \retval int active variable number
+	int getActiveVarNum2D(std::string varname) const;
+
+	//! Returns the current data manager (if it exists).
+	//! Returns null if it does not exist.
+	//! \retval DataMgr* pointer to current Data Manager
+	DataMgr* getDataMgr() {return dataMgr;}
+
+	//! Method indicates if user requested a warning when data is missing.
+	//! \retval bool true if warning is requested.
+	static bool warnIfDataMissing() {return doWarnIfDataMissing;}
+
+	//! Method indicates if user requested mouse tracking in TF editors
+	//! \retval bool true if tracking is requested.
+	static bool trackMouse() {return trackMouseInTfe;}
+
+	//! Method indicates if user requests using lower accuracy, when specified LOD or refinement is not available.
+	//! \retval bool true if lower accuracy is requested.
+	static bool useLowerAccuracy() {return doUseLowerAccuracy;}
+
+	//! Map voxel coordinates to user coordinates at a specified refinement level.
+	//! Requires the DataMgr to be available.
+	//! \param[in] int refLevel Refinement level of data.
+	//! \param[in] size_t voxCoords[3] specified voxel coordinates
+	//! \param[out] double userCoords[3] output user coordinates.
+	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
+		dataMgr->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
+	}
+#ifndef DOXYGEN_SKIP_THIS
+	DataStatus();
+	~DataStatus();
+
+	QApplication* getApp() {return theApp;}
+	//Reset the datastatus when a new datamgr is opened.
+	//This avoids all "Set" methods:
+	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
+	static void setDefaultPrefs();
+	//Update based on current stretch factor:
+	void stretchExtents(float factor[3]){
+		for (int i = 0; i< 3; i++) {
+			stretchedExtents[i] = extents[i]*factor[i];
+			stretchedExtents[i+3] = extents[i+3]*factor[i];
+			stretchFactors[i] = factor[i];
+		}
+	}
+	static size_t getCacheMB() {return cacheMB;}
+	static void setInteractiveRefinementLevel(int lev) {
+		interactiveRefLevel = lev;
+	}
+	static int getInteractiveRefinementLevel() {return interactiveRefLevel;}
+	bool dataIsLayered();
+	
 	//Find the first timestep that has any data with specified session variable num
 	int getFirstTimestep(int sesvarnum);
 	int getFirstTimestep2D(int sesvarnum);
@@ -224,10 +563,8 @@ public:
 		return ((extents[dim+3]-extents[dim])/(float)getFullSizeAtLevel(lev,dim));
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
-	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		dataMgr->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
-	}
-	DataMgr* getDataMgr() {return dataMgr;}
+	
+	
 	int get2DOrientation(int mdVarNum); //returns 0,1,2 for XY,YZ, or XZ
 
 	//Used for georeferencing and moving region:
@@ -237,8 +574,6 @@ public:
 	else 
 		return getInstance()->getExtents();
 	}
-
-
 
 	//Get/set methods for global vizfeatures
 	static const QColor getBackgroundColor() {return backgroundColor;}
@@ -251,18 +586,12 @@ public:
 	static void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
 	static bool regionFrameIsEnabled() {return regionFrameEnabled;}
 	static bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
-
-	//find the *session* variable name associated with session index
-	static std::string& getVariableName(int sesvarNum) {return variableNames[sesvarNum];}
-	static std::string& getVariableName2D(int sesvarNum) {return variableNames2D[sesvarNum];}
 	static float getBelowValue(int sesvarNum) {return belowValues[sesvarNum];}
 	static float getAboveValue(int sesvarNum) {return aboveValues[sesvarNum];}
 	static bool isExtendedUp(int sesvarnum) {return extendUp[sesvarnum];}
 	static bool isExtendedDown(int sesvarnum) {return extendDown[sesvarnum];}
 
-	//Find the session num of a name, or -1 if it's not in session
-	static int getSessionVariableNum(const std::string& str);
-	static int getSessionVariableNum2D(const std::string& str);
+	
 	//Insert variableName if necessary; return sessionVariableNum
 	static int mergeVariableName(const std::string& str);
 	static int mergeVariableName2D(const std::string& str);
@@ -366,31 +695,11 @@ public:
 	static int getTextureSize() {return textureSize;}
 	static void setTextureSize(int val) { textureSize = val;}
 
-	static bool warnIfDataMissing() {return doWarnIfDataMissing;}
-	static bool useLowerRefinementLevel() {return doUseLowerRefinementLevel;}
+	
 	static void setWarnMissingData(bool val) {doWarnIfDataMissing = val;}
-	static void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
-	//Note missing data if a request for the data fails:
-	void setDataMissing(int timestep, int refLevel, int lod, int sessionVarNum){
-		MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
-		if(md && md->GetVDCType() == 2) {
-			if (maxLevel3D[sessionVarNum][timestep] >= lod)
-			maxLevel3D[sessionVarNum][timestep] = lod -1;
-			return;
-		}
-		if (maxLevel3D[sessionVarNum][timestep] >= refLevel)
-			maxLevel3D[sessionVarNum][timestep] = refLevel -1;
-	}
-	void setDataMissing2D(int timestep, int refLevel, int lod, int sessionVarNum){
-		MetadataVDC* md = dynamic_cast<MetadataVDC*>(dataMgr);
-		if(md && md->GetVDCType() == 2) {
-			if (maxLevel2D[sessionVarNum][timestep] >= lod)
-			maxLevel2D[sessionVarNum][timestep] = lod -1;
-			return;
-		}
-		if (maxLevel2D[sessionVarNum][timestep] >= refLevel)
-			maxLevel2D[sessionVarNum][timestep] = refLevel -1;
-	}
+	static void setTrackMouse(bool val) {trackMouseInTfe = val;}
+	static void setUseLowerAccuracy(bool val){doUseLowerAccuracy = val;}
+	
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 
@@ -400,31 +709,7 @@ public:
 	static bool convertToLatLon(int timestep, double coords[], int npoints = 1);
 	static bool convertFromLatLon(int timestep, double coords[], int npoints = 1);
 
-	//Active variable names and variable nums refer to variables that either occur in
-	//the metadata or are derived (i.e. output of a python script).  To support them,
-	//there are mappings from active names/nums to session nums
 	
-	static int getNumActiveVariables3D()  {return activeVariableNums3D.size();}
-	static int getNumActiveVariables2D()  {return activeVariableNums2D.size();}
-		
-	static int mapActiveToSessionVarNum3D(int varnum)
-		{ if( varnum >= activeVariableNums3D.size()) return -1; 
-		return activeVariableNums3D[varnum];}
-	static int mapActiveToSessionVarNum2D(int varnum) 
-		{ if( varnum >= activeVariableNums2D.size()) return -1; 
-		return activeVariableNums2D[varnum];}
-	static int mapSessionToActiveVarNum3D(int var);
-	static int mapSessionToActiveVarNum2D(int var);
-	// Find the name that corresponds to an active variable num
-	// should be the same as getting it from the metadata directly,if its in metadata
-	static std::string& getActiveVarName3D(int activevarnum){
-		if (activeVariableNums3D.size()<= activevarnum) return variableNames[0];
-		return (variableNames[activeVariableNums3D[activevarnum]]);}
-	static std::string& getActiveVarName2D(int activevarnum){
-		if (activeVariableNums2D.size()<= activevarnum) return variableNames2D[0];
-		return (variableNames2D[activeVariableNums2D[activevarnum]]);}
-	int getActiveVarNum3D(std::string varname) const;
-	int getActiveVarNum2D(std::string varname) const;
 	
 	static void clearActiveVars() {
 		activeVariableNums2D.clear();
@@ -439,6 +724,7 @@ public:
 	static const string _subregionFrameEnabledAttr;
 	static const string _useLowerRefinementAttr;
 	static const string _missingDataWarningAttr;
+	static const string _trackMouseAttr;
 
 	//Support for Python methods
 	//Specify a new python script, return the integer ID (-1 if error)
@@ -586,7 +872,8 @@ private:
 	static bool subregionFrameEnabled;
 	//Specify how to handle missing data
 	static bool doWarnIfDataMissing;
-	static bool doUseLowerRefinementLevel;
+	static bool trackMouseInTfe;
+	static bool doUseLowerAccuracy;
 	//Cache size in megabytes
 	static size_t cacheMB;
 	//Interactive refinement level:
@@ -603,7 +890,7 @@ private:
 	
 	
 
-	
+#endif //DOXYGEN_SKIP_THIS
 };
 
 }; //end VAPoR namespace

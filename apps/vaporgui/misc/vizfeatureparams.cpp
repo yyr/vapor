@@ -64,6 +64,7 @@ VizFeatureParams::VizFeatureParams(){
 	tempHighValues.clear();
 	tempExtendDown.clear();
 	tempExtendUp.clear();
+	
 
 	DataStatus *ds;
 	ds = DataStatus::getInstance();
@@ -111,6 +112,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	ticWidth = vfParams.ticWidth;
 
 	colorbarDigits = vfParams.colorbarDigits;
+	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
 	colorbarFontsize = vfParams.colorbarFontsize;
 	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
 	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
@@ -120,6 +122,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
 	colorbarDigits = vfParams.colorbarDigits;
+	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
 	colorbarFontsize = vfParams.colorbarFontsize;
 	
 	elevGridColor = vfParams.elevGridColor;
@@ -230,6 +233,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->spinAnimationCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->rendererCombo, SIGNAL(activated(int)), this, SLOT(rendererChanged(int)));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(toggled(bool)), this, SLOT(checkSurface(bool)));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
@@ -285,6 +289,11 @@ void VizFeatureParams::launch(){
 	connect(vizFeatureDlg->stretch2Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	featureHolder->exec();
 	
+}
+void VizFeatureParams::
+rendererChanged(int renIndex){
+	colorbarRendererTypeId = rendererTypeLookup[renIndex];
+	dialogChanged = true;
 }
 void VizFeatureParams::
 setVariableNum(int varNum){
@@ -404,7 +413,7 @@ selectAxisColor(){
 
 }
 //Copy values into 'this' and into the dialog, using current comboIndex
-//Also set up the visualizer combo
+//Also set up the visualizer combo and the rendererCombo
 //
 void VizFeatureParams::
 setDialog(){
@@ -430,7 +439,7 @@ setDialog(){
 		vizFeatureDlg->highValEdit->setText(QString::number(ds->getAboveValue(sessionVariableNum)));
 		vizFeatureDlg->variableCombo->clear();
 		for (int i = 0; i<ds->getNumSessionVariables(); i++){
-			vizFeatureDlg->variableCombo->addItem(ds->getVariableName(i).c_str());
+			vizFeatureDlg->variableCombo->addItem(ds->getVariableName3D(i).c_str());
 		}
 	}
 	int vizNum = getVizNum(currentComboIndex);
@@ -497,6 +506,12 @@ setDialog(){
 	
 	
 	colorbarDigits = vizWin->getColorbarDigits();
+	colorbarRendererTypeId = vizWin->getColorbarParamsTypeId();
+	int indx = 0;
+	for (int i = 0; i< rendererTypeLookup.size(); i++){
+		if(rendererTypeLookup[i] == colorbarRendererTypeId) indx = i;
+	}
+	vizFeatureDlg->rendererCombo->setCurrentIndex(indx);
 	colorbarFontsize = vizWin->getColorbarFontsize();
 	vizFeatureDlg->colorbarFontsizeEdit->setText(QString::number(colorbarFontsize));
 	vizFeatureDlg->colorbarNumDigitsEdit->setText(QString::number(colorbarDigits));
@@ -531,7 +546,7 @@ setDialog(){
 
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
 
-	enableSpin = VizWinMgr::spinAnimationEnabled();
+	enableSpin = GLWindow::spinAnimationEnabled();
 	vizFeatureDlg->spinAnimationCheckbox->setChecked(enableSpin);
 	
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
@@ -560,6 +575,25 @@ setDialog(){
 	vizFeatureDlg->refinementCombo->setCurrentIndex(elevGridRefinement);
 	showElevGrid = vizWin->elevGridRenderingEnabled();
 	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);	
+
+	//Set up the renderer combo.
+	vizFeatureDlg->rendererCombo->clear();
+	rendererTypeLookup.clear();
+	
+	int typeId = vizWin->getColorbarParamsTypeId();
+	int comboIndex = 0;
+	for (int i = 0; i< Params::GetNumParamsClasses(); i++){
+		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
+		if (!p) continue;
+		if (!p->UsesMapperFunction()) continue;
+		const string& s = p->getShortName();
+		vizFeatureDlg->rendererCombo->addItem(s.c_str());
+		rendererTypeLookup.push_back(p->GetParamsBaseTypeId());
+		
+		if (p->GetParamsBaseTypeId() == typeId) 
+			vizFeatureDlg->rendererCombo->setCurrentIndex(comboIndex);
+		comboIndex++;
+	}
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
@@ -641,6 +675,7 @@ copyFromDialog(){
 	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
 
 	timeAnnotColor = tempTimeAnnotColor;
+	colorbarRendererTypeId = rendererTypeLookup[vizFeatureDlg->rendererCombo->currentIndex()];
 	colorbarDigits = vizFeatureDlg->colorbarNumDigitsEdit->text().toInt();
 	colorbarFontsize = vizFeatureDlg->colorbarFontsizeEdit->text().toInt();
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
@@ -724,7 +759,7 @@ applyToViz(int vizNum){
 			std::vector<float> vals;
 			for (int i = 0; i< ds->getNumSessionVariables(); i++){
 				if (!ds->isExtendedDown(i)){
-					vNames.push_back(ds->getVariableName(i));
+					vNames.push_back(ds->getVariableName3D(i));
 					vals.push_back(ds->getBelowValue(i));
 				}
 			}
@@ -732,7 +767,7 @@ applyToViz(int vizNum){
 			vNames.clear();
 			for (int i = 0; i< ds->getNumSessionVariables(); i++){
 				if (!ds->isExtendedUp(i)){
-					vNames.push_back(ds->getVariableName(i));
+					vNames.push_back(ds->getVariableName3D(i));
 					vals.push_back(ds->getAboveValue(i));
 				}
 			}
@@ -810,17 +845,19 @@ applyToViz(int vizNum){
 	vizWin->setLabelDigits(labelDigits);
 	
 	vizWin->setColorbarDigits(colorbarDigits);
+	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
 	vizWin->setColorbarFontsize(colorbarFontsize);
 	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
 	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
 	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);
 	vizWin->setColorbarURCoord(1,colorbarURCoords[1]);
+	vizWin->setColorbarParamsTypeId(colorbarRendererTypeId);
 	
 	vizWin->enableColorbar(showBar);
 	vizWin->enableAxisArrows(showAxisArrows);
 	vizWin->enableAxisAnnotation(showAxisAnnotation);
 
-	VizWinMgr::setSpinAnimation(enableSpin);
+	GLWindow::setSpinAnimation(enableSpin);
 	
 	vizWin->setColorbarNumTics(numColorbarTics);
 	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);

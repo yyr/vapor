@@ -366,14 +366,14 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
 	int varNum = currentRenderParams->getSessionVarNum();
 
-	if (myGLWindow->viewportIsDirty()) {
+	if (myGLWindow->vizIsDirty(ViewportBit)) {
 		const GLint* viewport = myGLWindow->getViewport();
 		_driver->Resize(viewport[2], viewport[3]);
 	}
 	//If the extents are varying, we need to change the clipping planes whenever
 	//the time step changes.
-	if (myGLWindow->projMatrixIsDirty()||
-		(myGLWindow->animationIsDirty() && myRegionParams->extentsAreVarying())) {
+	if (myGLWindow->vizIsDirty(ProjMatrixBit)||
+		(myGLWindow->vizIsDirty(AnimationBit) && myRegionParams->extentsAreVarying())) {
 		GLfloat nearplane, farplane;
 		myGLWindow->getNearFarClippingPlanes(&nearplane, &farplane);
 		_driver->SetNearFar(nearplane, farplane);
@@ -391,7 +391,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //of the full mapped data.
 	int numxforms, lod;
 	lod = currentRenderParams->GetCompressionLevel();
-	if (ds->useLowerRefinementLevel())
+	if (ds->useLowerAccuracy())
 		lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
 	
 	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
@@ -403,7 +403,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 			// Need update sampling rate & opacity correction 
 			setClutDirty(); 
-			myGLWindow->setDvrRegionNavigating(true);
+			myGLWindow->setDirtyBit(NavigatingBit,true);
 		}
 	} else {
 
@@ -415,7 +415,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			// Need update sampling rate & opacity correction
 			setClutDirty();
 			//And force rerender
-			myGLWindow->setDvrRegionNavigating(true);
+			myGLWindow->setDirtyBit(NavigatingBit,true);
 		}
 	}
 
@@ -441,14 +441,14 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		//Set partial bypass if interactive level is available
 		//Provide an error message if bypass was not already set:
 		bool doMsg = true;
-		if ((DataStatus::getInstance()->maxXFormPresent(varNum, timeStep)) < DataStatus::getInteractiveRefinementLevel())
+		if ((DataStatus::getInstance()->maxXFormPresent3D(varNum, timeStep)) < DataStatus::getInteractiveRefinementLevel())
 			setBypass(timeStep);
 		else {
 			doMsg = !doBypass(timeStep);
 			setPartialBypass(timeStep);
 		}
 		if (doMsg) {
-			const char* varname = ds->getVariableName(varNum).c_str();
+			const char* varname = ds->getVariableName3D(varNum).c_str();
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
 				"Data unavailable for variable %s\n at refinement level %d and current time step",
 				varname, numxforms);
@@ -500,9 +500,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	// set up region. Only need to do this if the data
 	// roi changes, or if the datarange has changed.
 	//
-	if (myGLWindow->regionIsDirty() || forceReload
-		|| datarangeIsDirty() || myGLWindow->dvrRegionIsNavigating()
-		|| myGLWindow->animationIsDirty()) 
+	if (myGLWindow->vizIsDirty(RegionBit) || forceReload
+		|| datarangeIsDirty() || myGLWindow->vizIsDirty(NavigatingBit)
+		|| myGLWindow->vizIsDirty(AnimationBit)) 
 	{
 		//Check if the region/resolution is too big:
 		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
@@ -521,7 +521,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		//Turn off error callback, look for memory allocation problem.
 		
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		const char* varname = (DataStatus::getInstance()->getVariableName(currentRenderParams->getSessionVarNum()).c_str());
+		const char* varname = (DataStatus::getInstance()->getVariableName3D(currentRenderParams->getSessionVarNum()).c_str());
 
 
 		void* data = _getRegion(
@@ -544,7 +544,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Volume data unavailable\nfor refinement level %d\nof variable %s, at current timestep.", 
 					numxforms, varname);
 			}
-			ds->setDataMissing(timeStep, numxforms, lod, currentRenderParams->getSessionVarNum());
+			ds->setDataMissing3D(timeStep, numxforms, lod, currentRenderParams->getSessionVarNum());
 			setBypass(timeStep);
 			return;
 		}
@@ -675,7 +675,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	//qWarning("Render done");
 	  
 	//Colorbar is rendered with DVR renderer:
-	if(myGLWindow->colorbarIsEnabled() &&
+	/*if(myGLWindow->colorbarIsEnabled() &&
 		currentRenderParams->GetParamsBaseTypeId() == Params::GetTypeFromTag(Params::_dvrParamsTag)){
 		//Now go to default 2D window
 		glLoadIdentity();
@@ -689,7 +689,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
-	  
+	  */
 	clearClutDirty();
 	clearDatarangeDirty();
 }
@@ -800,7 +800,7 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 	}
 	
 	
-	if (myGLWindow->lightingIsDirty()) {
+	if (myGLWindow->vizIsDirty(LightingBit)) {
 		bool shading = myDVRParams->getLighting();
 
 		_driver->SetLightingOnOff(shading);

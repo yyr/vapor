@@ -233,12 +233,12 @@ doPopup(messagePriority t, const char* message){
 	}
 	QMessageBox* msgBox = new QMessageBox(title,message, msgIcon,
 		QMessageBox::Ok,Qt::NoButton,Qt::NoButton,
-		MainForm::getInstance()->getTabManager());
+		MainForm::getTabManager());
 	
 	msgBox->adjustSize();
-	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
+	QPoint tabPsn = MainForm::getTabManager()->mapToGlobal(QPoint(0,0));
 	tabPsn.setY(tabPsn.y() + (5*count++)%20);
-	MainForm::getInstance()->getTabManager()->scrollFrontToTop();
+	MainForm::getTabManager()->scrollFrontToTop();
 	//pnt is the absolute position of the tab manager?
 	msgBox->move(tabPsn);
 	msgBox->exec();
@@ -281,13 +281,13 @@ doLastPopup(messagePriority t, const char* message){
 	}
 	QMessageBox* msgBox = new QMessageBox(title,longMessage, msgIcon,
 		QMessageBox::Ok,QMessageBox::Cancel,Qt::NoButton,
-		MainForm::getInstance()->getTabManager());
+		MainForm::getTabManager());
 	msgBox->setButtonText(2,"Continue");
 	
 	msgBox->adjustSize();
-	QPoint tabPsn = MainForm::getInstance()->getTabManager()->mapToGlobal(QPoint(0,0));
+	QPoint tabPsn = MainForm::getTabManager()->mapToGlobal(QPoint(0,0));
 	
-	MainForm::getInstance()->getTabManager()->scrollFrontToTop();
+	MainForm::getTabManager()->scrollFrontToTop();
 	//pnt is the absolute position of the tab manager
 	msgBox->move(tabPsn);
 	msgBox->exec();
@@ -338,7 +338,7 @@ void MessageReporter::postMessages(const char* msg, int err_code){
 	} else {
 		MessageReporter::errorMsg((const char*)(QString("Unclassified error: ")+strng).toAscii());
 	}
-	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
+	MainForm::getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 }
 
 void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
@@ -352,7 +352,7 @@ void MessageReporter::addErrorMessageCBFcn(const char* message,int errcode){
 		QApplication::postEvent(MessageReporter::getInstance(), postMessageEvent);
 	}
 	releaseMessageLock();
-	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
+	MainForm::getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 	
 }
 

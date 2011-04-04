@@ -40,6 +40,7 @@
 
 #include "../images/fileopen.xpm"
 #include "messagereporter.h"
+
 #include "mainform.h"
 #include "session.h"
 #include <vapor/Version.h>
@@ -113,6 +114,7 @@ const string UserPreferences::_animationDefaultMaxFPSAttr = "DefaultAnimationMax
 const string UserPreferences::_vizFeatureDefaultsTag = "VizFeatureDefaults";
 const string UserPreferences::_defaultShowAxisArrowsAttr = "DefaultShowAxisArrows";
 const string UserPreferences::_defaultShowTerrainAttr = "DefaultShowTerrain";
+const string UserPreferences::_defaultSpinAnimateAttr = "DefaultEnableSpin";
 
 string UserPreferences::preferencesVersionString = "";
 
@@ -160,6 +162,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->texSizeSpecified=texSizeSpecified;
 	newPrefs->useLowerRefinement=useLowerRefinement;
 	newPrefs->warnDataMissing=warnDataMissing;
+	newPrefs->trackMouse=trackMouse;
 	newPrefs->jpegQuality=jpegQuality;
 	newPrefs->texSize=texSize;
 	newPrefs->cacheMB=cacheMB;
@@ -183,6 +186,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->maxFPS = maxFPS;
 	newPrefs->showAxisArrows = showAxisArrows;
 	newPrefs->showTerrain = showTerrain;
+	newPrefs->spinAnimate = spinAnimate;
 	
 
 	for (int i = 0; i<3; i++){ 
@@ -254,12 +258,14 @@ void UserPreferences::launch(){
 	connect (regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
 	connect (resetCountButton, SIGNAL(clicked()), this, SLOT(resetCounts()));
+	connect (enableSpinCheckbox, SIGNAL(toggled(bool)),this, SLOT(spinChanged(bool)));
 
 	connect (autoSaveCheckbox, SIGNAL(toggled(bool)), this, SLOT(setAutoSave(bool)));
 	connect (regionCheckbox, SIGNAL(toggled(bool)), this, SLOT(regionChanged(bool)));
 	connect (subregionCheckbox, SIGNAL(toggled(bool)), this, SLOT(subregionChanged(bool)));
 	connect (textureSizeCheckbox, SIGNAL(toggled(bool)), this, SLOT(changeTextureSize(bool)));
 	connect (missingDataCheckbox, SIGNAL(toggled(bool)), this, SLOT(warningChanged(bool)));
+	connect (trackMouseCheckbox, SIGNAL(toggled(bool)), this, SLOT(trackMouseChanged(bool)));
 	connect (lowerRefinementCheckbox, SIGNAL(toggled(bool)), this, SLOT(lowerResChanged(bool)));
 	connect (dvrLightingCheckbox, SIGNAL(toggled(bool)), this, SLOT(dvrLightingChanged(bool)));
 	connect (preIntegrationCheckbox, SIGNAL(toggled(bool)), this, SLOT(preIntegrationChanged(bool)));
@@ -551,6 +557,10 @@ void UserPreferences::warningChanged(bool enabled){
 	warnDataMissing = enabled;
 	dialogChanged = true;
 }
+void UserPreferences::trackMouseChanged(bool enabled){
+	trackMouse = enabled;
+	dialogChanged = true;
+}
 void UserPreferences::lowerResChanged(bool enabled){
 	useLowerRefinement = enabled;
 	dialogChanged = true;
@@ -569,6 +579,10 @@ void UserPreferences::axisArrowsChanged(bool val){
 }
 void UserPreferences::showSurfaceChanged(bool val){
 	showTerrain = val;
+	dialogChanged = true;
+}
+void UserPreferences::spinChanged(bool val){
+	spinAnimate = val;
 	dialogChanged = true;
 }
 void UserPreferences::setDvrBits(int comboPos){
@@ -614,7 +628,9 @@ setDialog(){
 	autoSaveCheckbox->setChecked(autoSaveInterval > 0);
 	warnDataMissing = DataStatus::warnIfDataMissing();
 	missingDataCheckbox->setChecked(warnDataMissing);
-	useLowerRefinement = DataStatus::useLowerRefinementLevel();
+	trackMouse = DataStatus::trackMouse();
+	trackMouseCheckbox->setChecked(trackMouse);
+	useLowerRefinement = DataStatus::useLowerAccuracy();
 	lowerRefinementCheckbox->setChecked(useLowerRefinement);
 	texSizeSpecified = ses->textureSizeIsSpecified();
 	textureSizeCheckbox->setChecked(texSizeSpecified);
@@ -735,6 +751,7 @@ setDialog(){
 	maxFPS = AnimationParams::getDefaultMaxFPS();
 	showAxisArrows = GLWindow::getDefaultAxisArrowsEnabled();
 	showTerrain= GLWindow::getDefaultTerrainEnabled();
+	spinAnimate= GLWindow::getDefaultSpinAnimateEnabled();
 	isoBitsCombo->setCurrentIndex((isoBitsPerVoxel == 16) ? 1 : 0);
 	dvrBitsCombo->setCurrentIndex((dvrBitsPerVoxel == 16) ? 1 : 0);
 	dvrLightingCheckbox->setChecked(dvrLighting);
@@ -743,6 +760,7 @@ setDialog(){
 	maxFPSEdit->setText(QString::number(maxFPS));
 	axisArrowsCheckbox->setChecked(showAxisArrows);
 	surfaceCheckbox->setChecked(showTerrain);
+	enableSpinCheckbox->setChecked(spinAnimate);
 
 }
 void UserPreferences::
@@ -756,7 +774,8 @@ applyToState(){
 	ses->setAutoSaveInterval(autoSaveInterval);
 	GLWindow::setJpegQuality(jpegQuality);
 	DataStatus::setWarnMissingData(warnDataMissing);
-	DataStatus::setUseLowerRefinementLevel(useLowerRefinement);
+	DataStatus::setTrackMouse(trackMouse);
+	DataStatus::setUseLowerAccuracy(useLowerRefinement);
 	
 	//Directories:
 	ses->setPrefSessionDirectory(sessionDir.c_str());
@@ -814,6 +833,8 @@ applyToState(){
 	AnimationParams::setDefaultMaxFPS(maxFPS);
 	GLWindow::setDefaultAxisArrows(showAxisArrows);
 	GLWindow::setDefaultShowTerrain(showTerrain);
+	GLWindow::setDefaultSpinAnimate(spinAnimate);
+	GLWindow::setSpinAnimation(spinAnimate);
 	
 }
 void UserPreferences::okClicked(){
@@ -984,7 +1005,14 @@ ParamNode* UserPreferences::buildNode(){
 	attrs[DataStatus::_missingDataWarningAttr] = oss.str();
 
 	oss.str(empty);
-	if (DataStatus::useLowerRefinementLevel())
+	if (DataStatus::trackMouse())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[DataStatus::_trackMouseAttr] = oss.str();
+
+	oss.str(empty);
+	if (DataStatus::useLowerAccuracy())
 		oss << "true";
 	else 
 		oss << "false";
@@ -1166,6 +1194,11 @@ ParamNode* UserPreferences::buildNode(){
 	oss << str;
 	attrs[_defaultShowTerrainAttr] = oss.str();
 
+	oss.str(empty);
+	str = GLWindow::getDefaultSpinAnimateEnabled() ? "true" : "false";
+	oss << str;
+	attrs[_defaultSpinAnimateAttr] = oss.str();
+
 	ParamNode* defaultVizFeatureNode = new ParamNode(_vizFeatureDefaultsTag, attrs, 0);
 	mainNode->AddChild(defaultVizFeatureNode);
 
@@ -1306,13 +1339,19 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						bool boolval;
 						if (value == "true") boolval = true; 
 						else boolval = false; 
-						DataStatus::setUseLowerRefinementLevel(boolval);
+						DataStatus::setUseLowerAccuracy(boolval);
 					}
 					else if (StrCmpNoCase(attr, DataStatus::_missingDataWarningAttr) == 0) {
 						bool boolval;
 						if (value == "true") boolval = true; 
 						else boolval = false; 
 						DataStatus::setWarnMissingData(boolval);
+					}
+					else if (StrCmpNoCase(attr, DataStatus::_trackMouseAttr) == 0) {
+						bool boolval;
+						if (value == "true") boolval = true; 
+						else boolval = false; 
+						DataStatus::setTrackMouse(boolval);
 					}
 					else {
 						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
@@ -1551,6 +1590,14 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						if (boolVal == "true") val = true;
 						else val = false;
 						GLWindow::setDefaultShowTerrain(val);
+					} else if (StrCmpNoCase(attr, _defaultSpinAnimateAttr) == 0) {
+						string boolVal;
+						bool val;
+						ist >> boolVal;
+						if (boolVal == "true") val = true;
+						else val = false;
+						GLWindow::setDefaultSpinAnimate(val);
+						GLWindow::setSpinAnimation(val);
 					} else {
 						pm->parseError("Invalid viz feature preferences tag attribute : \"%s\"", attr.c_str());
 						return false;

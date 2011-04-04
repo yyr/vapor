@@ -30,99 +30,31 @@
 #include <qaction.h>
 using namespace VAPoR;
 //Constructor:  called when a new command is issued.
-MouseModeCommand::MouseModeCommand(GLWindow::mouseModeType oldMode, GLWindow::mouseModeType newMode){
+MouseModeCommand::MouseModeCommand(int oldMode, int newMode){
 	//Make a copy of previous panel:
 	previousMode = oldMode;
 	currentMode = newMode;
 	
-	description = QString("change mode");
+	description = QString("change mode: ");
 	description += modeName(oldMode);
-	description += "to";
+	description += " to ";
 	description += modeName(newMode);
 }
 
 void MouseModeCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	switch (previousMode){
-		case GLWindow::navigateMode:
-			MainForm::getInstance()->navigationAction->setChecked(true);
-			break;
-		case GLWindow::regionMode:
-			MainForm::getInstance()->regionSelectAction->setChecked(true);
-			break;
-		case GLWindow::probeMode:
-			MainForm::getInstance()->probeAction->setChecked(true);
-			break;
-		case GLWindow::twoDDataMode:
-			MainForm::getInstance()->twoDDataAction->setChecked(true);
-			break;
-		case GLWindow::twoDImageMode:
-			MainForm::getInstance()->twoDImageAction->setChecked(true);
-			break;
-		case GLWindow::rakeMode:
-			MainForm::getInstance()->rakeAction->setChecked(true);
-			break;
-		case GLWindow::lightMode:
-			MainForm::getInstance()->moveLightsAction->setChecked(true);
-			break;
-		
-		default:
-			assert(0);
-	}
+	MainForm::getInstance()->setMouseMode(previousMode);
 	Session::getInstance()->unblockRecording();
 }
 void MouseModeCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	switch (currentMode){
-		case GLWindow::navigateMode:
-			MainForm::getInstance()->navigationAction->setChecked(true);
-			break;
-		case GLWindow::regionMode:
-			MainForm::getInstance()->regionSelectAction->setChecked(true);
-			break;
-		case GLWindow::probeMode:
-			MainForm::getInstance()->probeAction->setChecked(true);
-			break;
-		case GLWindow::twoDDataMode:
-			MainForm::getInstance()->twoDDataAction->setChecked(true);
-			break;
-		case GLWindow::twoDImageMode:
-			MainForm::getInstance()->twoDImageAction->setChecked(true);
-			break;
-		case GLWindow::rakeMode:
-			MainForm::getInstance()->rakeAction->setChecked(true);
-			break;
-		case GLWindow::lightMode:
-			MainForm::getInstance()->moveLightsAction->setChecked(true);
-			break;
-		
-		default:
-			assert(0);
-	}
+	MainForm::getInstance()->setMouseMode(currentMode);
 	Session::getInstance()->unblockRecording();
 }
 
 const char* MouseModeCommand::
-modeName(GLWindow::mouseModeType t){
-	switch (t){
-		case GLWindow::navigateMode:
-			return " navigate ";
-		case GLWindow::regionMode:
-			return " region-set ";
-		case GLWindow::probeMode:
-			return " probe-set ";
-		case GLWindow::rakeMode:
-			return " rake-set ";
-		case GLWindow::twoDDataMode:
-			return " 2d planar-set ";
-		case GLWindow::twoDImageMode:
-			return " image planar-set ";
-		case GLWindow::lightMode:
-			return " light-move ";
-		default:  
-			assert(0);
-			return 0;
-	}
+modeName(int t){
+	return GLWindow::getModeName(t).c_str();
 }
 
 TabChangeCommand::TabChangeCommand(Params::ParamsBaseType oldTab, Params::ParamsBaseType newTab){
@@ -140,32 +72,14 @@ TabChangeCommand::TabChangeCommand(Params::ParamsBaseType oldTab, Params::Params
 void TabChangeCommand::unDo(){
 	Session::getInstance()->blockRecording();
 	const string& tag = Params::GetTagFromType(previousTab);
-	if (tag == Params::_viewpointParamsTag) MainForm::getInstance()->viewpoint();
-	else if (tag == Params::_regionParamsTag) MainForm::getInstance()->region();
-	else if (tag == Params::_flowParamsTag) MainForm::getInstance()->launchFlowTab();
-	else if (tag == Params::_dvrParamsTag) MainForm::getInstance()->renderDVR();
-	else if (tag == Params::_isoParamsTag) MainForm::getInstance()->launchIsoTab();
-	else if (tag == Params::_probeParamsTag) MainForm::getInstance()->launchProbeTab();
-	else if (tag == Params::_twoDDataParamsTag) MainForm::getInstance()->launchTwoDDataTab();
-	else if (tag == Params::_twoDImageParamsTag) MainForm::getInstance()->launchTwoDImageTab();
-	else if (tag == Params::_animationParamsTag) MainForm::getInstance()->animationParams();
-	
+	MainForm::showTab(tag);
 	Session::getInstance()->unblockRecording();
 }
 
 void TabChangeCommand::reDo(){
 	Session::getInstance()->blockRecording();
 	const string& tag = Params::GetTagFromType(currentTab);
-	if (tag == Params::_viewpointParamsTag) MainForm::getInstance()->viewpoint();
-	else if (tag == Params::_regionParamsTag) MainForm::getInstance()->region();
-	else if (tag == Params::_flowParamsTag) MainForm::getInstance()->launchFlowTab();
-	else if (tag == Params::_dvrParamsTag) MainForm::getInstance()->renderDVR();
-	else if (tag == Params::_isoParamsTag) MainForm::getInstance()->launchIsoTab();
-	else if (tag == Params::_probeParamsTag) MainForm::getInstance()->launchProbeTab();
-	else if (tag == Params::_twoDDataParamsTag) MainForm::getInstance()->launchTwoDDataTab();
-	else if (tag == Params::_twoDImageParamsTag) MainForm::getInstance()->launchTwoDImageTab();
-	else if (tag == Params::_animationParamsTag) MainForm::getInstance()->animationParams();
-	
+	MainForm::showTab(tag);
 	Session::getInstance()->unblockRecording();
 }
 

@@ -30,15 +30,114 @@
 #include <qobject.h>
 class QWidget;
 
-
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100)
+#endif
 
 namespace VAPoR{
 	class PanelCommand;
 	class Histo;
-	class EventRouter
+
+//! \class EventRouter
+//! \brief A pure virtual class specifying the common properties of all the parameter tabs in the VAPOR GUI
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
+//!	The EventRouter class manages communication between
+//! tabs in the GUI, visualizers, and params.
+//! Includes support for some elements that are common in these tabs
+//
+class EventRouter
 {
 	
 public:
+	
+	//! Virtual method that refreshes any OpenGL windows in the tab.  Does not affect the VAPOR OpenGL visualizers.
+	//! Must be overridden to do anything.
+	virtual void refreshGLWindow(){}
+
+	//! Pure virtual method where all the Qt signals and slots associated with the tab are connected.
+	//! Must include connections that send signals when any QTextEdit box is changed and when enter is pressed.
+	virtual void hookUpTab() = 0;
+
+	//! Pure virtual method to set the values of all the gui elements in the tab based on current params state.
+	//! This is invoked whenever the user changes the tab or whenever the values in the tab need to be refreshed.
+	virtual void updateTab() = 0;
+
+	//! Virtual method to
+	//! update only tab state that is most urgent after an error message.
+	//! In particular, don't update any GL widgets in this method!
+	//! This is to deal with error messages coming from the rendering thread
+	//! that are trapped by the gui thread.
+	//! Default does nothing.
+	virtual void updateUrgentTabState() {return;}
+
+	//! Pure virtual method that installs a new params instance during undo and redo.
+	//! \param[in] Params* prevParams  Params instance that is being replaced
+	//! \param[in] Params* newParams New Params instance being installed.
+	//! \param[in] bool newWin Indicates whether this is a new window.
+	//! \param[in] int instance Indicates the instance index to replace.  Default -1 indicates current instance.
+	//! Instance is -1 for non-render params.
+	//! \param[in] bool reEnable Indicates that the rendering should be disabled and re-enabled.
+	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1, bool reEnable = false) = 0;
+	
+	//! Method to change the current instance index, and perform associated undo/redo capture.
+	//! Child classes can use this to respond to instance selection in the instance selector.
+	//! \param[in] int newCurrent specifies new current index
+	virtual void performGuiChangeInstance(int newCurrent);
+
+	//! Method to create a new instance, and perform associated undo/redo capture.
+	//! Child classes can use this to respond to clicks on the "new" instance button.
+	virtual void performGuiNewInstance();
+
+	//! Method to delete the current instance, and perform associated undo/redo capture.
+	//! Child classes can use this to respond to clicks on the "delete" instance selector.
+	virtual void performGuiDeleteInstance();
+
+	//! Method to make a copy of the current instance with the same visualizer, and perform associated undo/redo capture.
+	//! Child classes can use this to respond to user requests to copy instance to current visualizer.
+	virtual void performGuiCopyInstance();
+
+	//! Method to make a copy of the current instance into another visualizer, and perform associated undo/redo capture.
+	//! Child classes can use this to respond to user requests to copy instance to another visualizer.
+	//! \param[in] int vizwin  Visualizer number of other visualizer
+	virtual void performGuiCopyInstanceToViz(int vizwin);
+
+	//! Set theTextChanged flag.  The flag should be turned on whenever any textbox (affecting the 
+	//! state of the Params) changes in the tab.  The change will not take effect until confirmText() is called.
+	//! The flag will be turned off when confirmText() or updateTab() is called.
+	//! \param[in] bool on : true indicates the flag is set.
+	void guiSetTextChanged(bool on) {textChangedFlag = on;}
+
+	//! Pure virtual method to confirm any change in a text box.  The render argument
+	//! is true if this requires updateRenderer().
+	//! This method is called whenever user presses enter, or changes the state of
+	//! a widget (other than a textEdit) in the tab.
+	virtual void confirmText(bool /*render*/) = 0;
+
+	//! Pure virtual method to set up the content in a tab based on a change in the DataMgr.
+	//! Any widgets that are data-specific, such as variable selectors, must be
+	//! initialized in this method.
+	//! The doOverride argument indicates that the user has requested default settings,
+	//! so any previous setup can be overridden.
+	virtual void reinitTab(bool doOverride) = 0;
+
+	//! Method that must be reimplemented in any EventRouter that is associated with a RenderParams.
+	//! It is invoked whenever the user checks or un-checks the enable checkbox in the instance selector.
+	//! \param[in] bool Turns on (true) or off the instance.
+	//! \param[in] int Instance that is being enabled or disabled.
+	virtual void guiSetEnabled(bool On, int instance ) {assert(0);}
+
+	//! Method for classes that capture mouse event events (i.e. have manipulators)
+	//! This must be reimplemented to respond when the mouse is released.
+	virtual void captureMouseUp() {assert(0);}
+
+	//! Method for classes that capture mouse event events (i.e. have manipulators)
+	//! This must be reimplemented to respond when the mouse is pressed
+	virtual void captureMouseDown() {assert(0);}
+
+#ifndef DOXYGEN_SKIP_THIS
 	EventRouter() {
 		textChangedFlag = 0; savedCommand = 0;
 		histogramList = 0;
@@ -50,23 +149,6 @@ public:
 			if (histogramList[i]) delete histogramList[i];
 		if (histogramList) delete [] histogramList;
 	}
-	//Refresh the displayed texture, if there is one..
-	virtual void refreshGLWindow(){}
-	//Connect signals and slots from tab
-	virtual void hookUpTab() = 0;
-	//Set all the fields in the tab based on current params
-	virtual void updateTab() = 0;
-	//Update only tab state that is most urgent after an error message.
-	//In particular, don't update any GL widgets in the tab.
-	//This is to deal with error messages coming from the rendering thread
-	//that are trapped in the gui thread.
-	//Default does nothing
-	virtual void updateUrgentTabState() {return;}
-	//Method to install a new params for undo and redo.
-	//Instance is -1 for non-render params
-	//reEnable is true if (render) params needs to be disabled and re-enabled
-	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1, bool reEnable = false) = 0;
-	
 	//Methods to change instances (for undo/redo).
 	//Only used by renderer params
 	//Insert an instance (where there was none).
@@ -79,12 +161,7 @@ public:
 	void changeRendererInstance(int winnum, int newInstance);
 	
 	Params::ParamsBaseType getParamsBaseType() {return myParamsBaseType;}
-	virtual void performGuiChangeInstance(int newCurrent);
-	virtual void performGuiNewInstance();
-	virtual void performGuiDeleteInstance();
-	virtual void performGuiCopyInstance();
-	virtual void performGuiCopyInstanceToViz(int vizwin);
-
+	
 	//Make the tab refresh after a scrolling operation.
 	//Helpful on windows only, and only some tabs
 	virtual void refreshTab() {}
@@ -101,13 +178,7 @@ public:
 	//Clone the params and any other related classes.
 	//Default just clones the params:
 	virtual Params* deepCopy(Params* p) {return (p->deepCopy());}
-	//Dirty bit comes on when any text changes in the tab.
-	//Comes off as soon as it gets confirmed, or updateTab called.
-	//
-	void guiSetTextChanged(bool on) {textChangedFlag = on;}
-
-	virtual void guiSetEnabled(bool, int ) {assert(0);}
-
+	
 	virtual void guiSetLocal(Params* p, bool lg){
 		if (textChangedFlag) confirmText(false);
 	
@@ -124,11 +195,7 @@ public:
 		PanelCommand::captureEnd(cmd, localParams);
 		updateTab();
 	}
-	//confirm a change in a text box.  the render argument
-	//is true if this requires updateRenderer()
-	virtual void confirmText(bool /*render*/) = 0;
-	virtual void reinitTab(bool doOverride) = 0;
-
+	
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
@@ -141,9 +208,7 @@ public:
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
 
-	//Method for classes that capture mouse event events in viz win:
-	virtual void captureMouseUp() {assert(0);}
-	virtual void captureMouseDown() {assert(0);}
+	
 
 //Methods for loading/saving transfer functions:
 void saveTF(RenderParams* rParams);
@@ -176,6 +241,7 @@ protected:
 	Params::ParamsBaseType myParamsBaseType;
 	bool textChangedFlag;
 	PanelCommand* savedCommand;
+#endif //DOXYGEN_SKIP_THIS
 };
 };
 #endif // EVENTROUTER_H

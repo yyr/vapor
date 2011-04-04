@@ -336,7 +336,7 @@ deepCopy(ParamNode*){
 }
 
 bool FlowParams::usingVariable(const string& varname){
-	int varnum = DataStatus::getInstance()->getSessionVariableNum(varname);
+	int varnum = DataStatus::getInstance()->getSessionVariableNum3D(varname);
 	if (flowType == 0 || flowType == 2){
 		if ((steadyVarNum[0] == varnum+1 )|| (steadyVarNum[1] == varnum+1) || (steadyVarNum[1] == varnum+1)) return true;
 	}
@@ -470,10 +470,10 @@ reinit(bool doOverride){
 		//See if current steadyvarNum is valid.  If not, 
 		//reset to first variable that is present:
 		if (steadyVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent(steadyVarNum[dim]-1)){
+			if (!DataStatus::getInstance()->variableIsPresent3D(steadyVarNum[dim]-1)){
 				steadyVarNum[dim] = -1;
 				for (i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent(i)){
+					if (DataStatus::getInstance()->variableIsPresent3D(i)){
 						steadyVarNum[dim] = i+1;
 						break;
 					}
@@ -483,29 +483,29 @@ reinit(bool doOverride){
 		//See if current unsteadyvarNum is valid.  If not, 
 		//reset to first variable that is present:
 		if(unsteadyVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent(unsteadyVarNum[dim]-1)){
+			if (!DataStatus::getInstance()->variableIsPresent3D(unsteadyVarNum[dim]-1)){
 				unsteadyVarNum[dim] = -1;
 				for (i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent(i)){
+					if (DataStatus::getInstance()->variableIsPresent3D(i)){
 						unsteadyVarNum[dim] = i+1;
 						break;
 					}
 				}
 			}
 		}
-		if (!DataStatus::getInstance()->variableIsPresent(seedDistVarNum[dim])){
+		if (!DataStatus::getInstance()->variableIsPresent3D(seedDistVarNum[dim])){
 			seedDistVarNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
-				if (DataStatus::getInstance()->variableIsPresent(i)){
+				if (DataStatus::getInstance()->variableIsPresent3D(i)){
 					seedDistVarNum[dim] = i;
 					break;
 				}
 			}
 		}
-		if (!DataStatus::getInstance()->variableIsPresent(priorityVarNum[dim])){
+		if (!DataStatus::getInstance()->variableIsPresent3D(priorityVarNum[dim])){
 			priorityVarNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
-				if (DataStatus::getInstance()->variableIsPresent(i)){
+				if (DataStatus::getInstance()->variableIsPresent3D(i)){
 					priorityVarNum[dim] = i;
 					break;
 				}
@@ -589,11 +589,11 @@ reinit(bool doOverride){
 		newMaxColorEditBounds[2] = maxColorBounds[2];
 		//Other variables:
 		for (i = 0; i< newNumComboVariables; i++){
-			if (DataStatus::getInstance()->variableIsPresent(i)){
-				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax(i);
-				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin(i);
+			if (DataStatus::getInstance()->variableIsPresent3D(i)){
+				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
 			} else {
 				newMinOpacEditBounds[i+4] = 0.f;
 				newMaxOpacEditBounds[i+4] = 1.f;
@@ -614,10 +614,10 @@ reinit(bool doOverride){
 		
 		for (i = 0; i< newNumComboVariables; i++){
 			if (i >= numComboVariables){
-				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax(i);
-				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newMinOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxOpacEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
+				newMinColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxColorEditBounds[i+4] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 			} else {
 				newMinOpacEditBounds[i+4] = minOpacEditBounds[i+4];
 				newMaxOpacEditBounds[i+4] = maxOpacEditBounds[i+4];
@@ -689,9 +689,9 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 	//Prepare the flowLib:
 	
 	if (randomGen){
-		const char* xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
-		const char* yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
-		const char* zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+		const char* xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
+		const char* yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
+		const char* zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 		assert(seedDistBias >= -15.f && seedDistBias <= 15.f);
 		flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
 			xVar, yVar, zVar, seedDistBias);
@@ -806,7 +806,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 	DataStatus* ds = DataStatus::getInstance();
 	int minRefLevel = numRefinements;
 	int minLOD = GetCompressionLevel();
-	if (ds->useLowerRefinementLevel()) {minRefLevel = 0; minLOD = 0;}
+	if (ds->useLowerAccuracy()) {minRefLevel = 0; minLOD = 0;}
 	if (unsteadyFlowDir > 0){
 		
 		if (useTimestepSampleList){
@@ -817,7 +817,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 					bool dataOK = true;
 					for (int j = 0; j<3; j++){
 						if (unsteadyVarNum[j] == 0) continue;
-						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+						if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
 						if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 					}
 					if(!dataOK) continue; //skip this timestep
@@ -836,7 +836,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 				bool dataOK = true;
 				for (int j = 0; j<3; j++){
 					if (unsteadyVarNum[j] == 0) continue;
-					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
 					if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 				}
 				if(dataOK) break;
@@ -853,7 +853,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 					bool dataOK = true;
 					for (int j = 0; j<3; j++){
 						if (unsteadyVarNum[j] == 0) continue;
-						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+						if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
 						if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 					}
 					if(!dataOK) continue; //skip this timestep
@@ -873,7 +873,7 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 				bool dataOK = true;
 				for (int j = 0; j<3; j++){
 					if (unsteadyVarNum[j] == 0) continue;
-					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
 					if (ds->maxLODPresent3D(unsteadyVarNum[j]-1, ts)< minLOD) dataOK = false;
 				}
 				if(dataOK) break;
@@ -963,15 +963,15 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	ds = DataStatus::getInstance();
 	const char* xVar = "0", *yVar = "0", *zVar = "0";
 	
-	if(steadyVarNum[0]>0) xVar = ds->getVariableName(steadyVarNum[0]-1).c_str();
-	if(steadyVarNum[1]>0) yVar = ds->getVariableName(steadyVarNum[1]-1).c_str();
-	if(steadyVarNum[2]>0) zVar = ds->getVariableName(steadyVarNum[2]-1).c_str();
+	if(steadyVarNum[0]>0) xVar = ds->getVariableName3D(steadyVarNum[0]-1).c_str();
+	if(steadyVarNum[1]>0) yVar = ds->getVariableName3D(steadyVarNum[1]-1).c_str();
+	if(steadyVarNum[2]>0) zVar = ds->getVariableName3D(steadyVarNum[2]-1).c_str();
 	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
 
 	if (flowType == 2){ //establish prioritization field variables:
-		xVar = ds->getVariableName(priorityVarNum[0]).c_str();
-		yVar = ds->getVariableName(priorityVarNum[1]).c_str();
-		zVar = ds->getVariableName(priorityVarNum[2]).c_str();
+		xVar = ds->getVariableName3D(priorityVarNum[0]).c_str();
+		yVar = ds->getVariableName3D(priorityVarNum[1]).c_str();
+		zVar = ds->getVariableName3D(priorityVarNum[2]).c_str();
 		myFlowLib->SetPriorityField(xVar, yVar, zVar, priorityMin, priorityMax);
 	}
 	
@@ -992,9 +992,9 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		if (doRake){
 			numSeedPoints = getNumRakeSeedPoints();
 			if (randomGen) {
-				xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
-				yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
-				zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+				xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
+				yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
+				zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 				myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
 					xVar, yVar, zVar, seedDistBias);
 			} else {
@@ -1112,7 +1112,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	DataStatus* ds = DataStatus::getInstance();
 	int minRefLevel = numRefinements;
 	int minLOD = GetCompressionLevel();
-	if (ds->useLowerRefinementLevel()) {minRefLevel = 0; minLOD = 0;}
+	if (ds->useLowerAccuracy()) {minRefLevel = 0; minLOD = 0;}
 	int numTimesteps;
 	int* timeStepList;
 	int numValidTimesteps = 0;
@@ -1123,7 +1123,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			bool levelOK = true;
 			for (int j = 0; j<3; j++){
 				if (unsteadyVarNum[j]) { 
-					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minRefLevel){
+					if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minRefLevel){
 						levelOK = false; break;
 					}
 					if(ds->maxLODPresent3D(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minLOD){
@@ -1144,7 +1144,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			int tstep = timeSamplingStart + i*timeSamplingInterval;
 			for (int j = 0; j<3; j++){
 				if (unsteadyVarNum[j]){ 
-					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, tstep) < minRefLevel){
+					if(ds->maxXFormPresent3D(unsteadyVarNum[j]-1, tstep) < minRefLevel){
 						levelOK = false; break;
 					}
 					if(ds->maxLODPresent3D(unsteadyVarNum[j]-1, tstep) < minLOD){
@@ -1181,9 +1181,9 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	
 	const char* xVar="0", *yVar="0", *zVar="0";
 	
-	if(unsteadyVarNum[0]>0)xVar = ds->getVariableName(unsteadyVarNum[0]-1).c_str();
-	if(unsteadyVarNum[1]>0)yVar = ds->getVariableName(unsteadyVarNum[1]-1).c_str();
-	if(unsteadyVarNum[2]>0)zVar = ds->getVariableName(unsteadyVarNum[2]-1).c_str();
+	if(unsteadyVarNum[0]>0)xVar = ds->getVariableName3D(unsteadyVarNum[0]-1).c_str();
+	if(unsteadyVarNum[1]>0)yVar = ds->getVariableName3D(unsteadyVarNum[1]-1).c_str();
+	if(unsteadyVarNum[2]>0)zVar = ds->getVariableName3D(unsteadyVarNum[2]-1).c_str();
 	flowLib->SetUnsteadyFieldComponents(xVar, yVar, zVar);
 	
 	flowLib->SetUnsteadyTimeSteps(timeStepList,numValidTimesteps);
@@ -1196,9 +1196,9 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	if (doRake){
 		
 		if (randomGen) {
-			xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
-			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
-			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+			xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
+			yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
+			zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 			flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
 				xVar, yVar, zVar, seedDistBias);
 		} else {
@@ -1551,28 +1551,28 @@ buildNode() {
 	oss.str(empty);
 	const char* varnam1[3] = {"0","0","0"};
 	for (int i = 0; i<3; i++){
-		if(steadyVarNum[i]> 0) varnam1[i] = ds->getVariableName(steadyVarNum[i]-1).c_str();
+		if(steadyVarNum[i]> 0) varnam1[i] = ds->getVariableName3D(steadyVarNum[i]-1).c_str();
 	}
 	oss << varnam1[0] <<" " << varnam1[1] <<" "<< varnam1[2];
-		//oss << ds->getVariableName(steadyVarNum[0])<<" "<<ds->getVariableName(steadyVarNum[1])<<" "<<ds->getVariableName(steadyVarNum[2]);
+		//oss << ds->getVariableName3D(steadyVarNum[0])<<" "<<ds->getVariableName3D(steadyVarNum[1])<<" "<<ds->getVariableName3D(steadyVarNum[2]);
 	attrs[_steadyVariableNamesAttr] = oss.str();
 	
 	oss.str(empty);
 	
 	const char* varnam2[3] = {"0","0","0"};
 	for (int i = 0; i<3; i++){
-		if(unsteadyVarNum[i]> 0) varnam2[i] = ds->getVariableName(unsteadyVarNum[i]-1).c_str();
+		if(unsteadyVarNum[i]> 0) varnam2[i] = ds->getVariableName3D(unsteadyVarNum[i]-1).c_str();
 	}
 	oss << varnam2[0] <<" "<< varnam2[1]<<" " << varnam2[2];
-	//oss << ds->getVariableName(unsteadyVarNum[0])<<" "<<ds->getVariableName(unsteadyVarNum[1])<<" "<<ds->getVariableName(unsteadyVarNum[2]);
+	//oss << ds->getVariableName3D(unsteadyVarNum[0])<<" "<<ds->getVariableName3D(unsteadyVarNum[1])<<" "<<ds->getVariableName3D(unsteadyVarNum[2]);
 	attrs[_unsteadyVariableNamesAttr] = oss.str();
 
 	oss.str(empty);
-	oss << ds->getVariableName(seedDistVarNum[0])<<" "<<ds->getVariableName(seedDistVarNum[1])<<" "<<ds->getVariableName(seedDistVarNum[2]);
+	oss << ds->getVariableName3D(seedDistVarNum[0])<<" "<<ds->getVariableName3D(seedDistVarNum[1])<<" "<<ds->getVariableName3D(seedDistVarNum[2]);
 	attrs[_seedDistVariableNamesAttr] = oss.str();
 
 	oss.str(empty);
-	oss << ds->getVariableName(priorityVarNum[0])<<" "<<ds->getVariableName(priorityVarNum[1])<<" "<<ds->getVariableName(priorityVarNum[2]);
+	oss << ds->getVariableName3D(priorityVarNum[0])<<" "<<ds->getVariableName3D(priorityVarNum[1])<<" "<<ds->getVariableName3D(priorityVarNum[2]);
 	attrs[_priorityVariableNamesAttr] = oss.str();
 
 	oss.str(empty);
@@ -1715,7 +1715,7 @@ buildNode() {
 		map <string, string> varAttrs;
 		oss.str(empty);
 		if (i > 3){
-			oss << ds->getVariableName(i-4);
+			oss << ds->getVariableName3D(i-4);
 		} else {
 			if (i == 0) oss << "Constant";
 			else if (i == 1) oss << "Timestep";
@@ -2254,7 +2254,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
 		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
 		int lod = GetCompressionLevel();
-		if (ds->useLowerRefinementLevel())
+		if (ds->useLowerAccuracy())
 			lod = Min(lod, ds->maxLODPresent3D(opacVarnum, timeStep));
 		for (int i = 0; i<3; i++){
 			opacSize[i] = (max_bdim[i] - min_obdim[i] +1)*bs[i];
@@ -2272,7 +2272,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing(timeStep, opacRefLevel, lod, opacVarnum);
+			DataStatus::getInstance()->setDataMissing3D(timeStep, opacRefLevel, lod, opacVarnum);
 			return;
 		}
 
@@ -2297,7 +2297,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			return;
 		}
 		int lod = GetCompressionLevel();
-		if (ds->useLowerRefinementLevel())
+		if (ds->useLowerAccuracy())
 			lod = Min(lod, ds->maxLODPresent3D(colorVarnum, timeStep));
 		for (int i = 0; i<3; i++){
 			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
@@ -2315,7 +2315,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Color mapped variable data unavailable\nfor refinement %d at timestep %d", colorRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing(timeStep, colorRefLevel, lod, colorVarnum);
+			DataStatus::getInstance()->setDataMissing3D(timeStep, colorRefLevel, lod, colorVarnum);
 			return;
 		}
 		
@@ -2525,8 +2525,8 @@ float FlowParams::minRange(int index, int timestep){
 			return (0.f );
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
-			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
-				return( DataStatus::getInstance()->getDefaultDataMin(varnum));
+			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
+				return( DataStatus::getInstance()->getDefaultDataMin3D(varnum));
 			}
 			else return 0.f;
 	}
@@ -2548,10 +2548,10 @@ float FlowParams::maxRange(int index, int timestep){
 				if (flowIsSteady()) var = steadyVarNum[k];
 				else var = unsteadyVarNum[k];
 				if (var == 0) continue;
-				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMax(var-1)))
-					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMax(var-1));
-				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMin(var-1)))
-					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMin(var-1));
+				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMax3D(var-1)))
+					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMax3D(var-1));
+				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMin3D(var-1)))
+					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMin3D(var-1));
 			}
 			return maxSpeed;
 		case (3): // seed Index, from 0 to numseeds-1
@@ -2559,8 +2559,8 @@ float FlowParams::maxRange(int index, int timestep){
 			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
 			int varnum = DataStatus::mapActiveToSessionVarNum3D(index -4);
-			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
-				return( DataStatus::getInstance()->getDefaultDataMax(varnum));
+			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent3D(varnum)){
+				return( DataStatus::getInstance()->getDefaultDataMax3D(varnum));
 			}
 			else return 1.f;
 	}
@@ -2674,11 +2674,11 @@ validateVectorField(int ts, int refLevel, const int varNums[3]) {
 	DataStatus* dStatus = DataStatus::getInstance();
 	if (!dStatus) return false;
 	int minLOD = GetCompressionLevel();
-	if (dStatus->useLowerRefinementLevel()) {refLevel = 0; minLOD = 0;}
+	if (dStatus->useLowerAccuracy()) {refLevel = 0; minLOD = 0;}
 	
 	for (int i = 0; i< 3; i++){
 		if (varNums[i] < 0) continue;
-		if(dStatus->maxXFormPresent(varNums[i], ts)< refLevel)
+		if(dStatus->maxXFormPresent3D(varNums[i], ts)< refLevel)
 			return false;
 		if(dStatus->maxLODPresent3D(varNums[i], ts)< minLOD)
 			return false;
@@ -2743,14 +2743,14 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 		if (steadyVarNum[var]== 0) varData[var] = 0;
 		else {
 			int lod = GetCompressionLevel();
-			if (ds->useLowerRefinementLevel())
+			if (ds->useLowerAccuracy())
 				lod = Min(lod, ds->maxLODPresent3D(steadyVarNum[var]-1, timeStep));
 			varData[var] = dataMgr->GetRegion((size_t)timeStep,
-				ds->getVariableName(steadyVarNum[var]-1).c_str(),
+				ds->getVariableName3D(steadyVarNum[var]-1).c_str(),
 				availRefLevel, lod, min_bdim, max_bdim,  1);
 			if (!varData[var]) {
 				dataMgr->SetErrCode(0);
-				ds->setDataMissing(timeStep, availRefLevel,lod, steadyVarNum[var]-1);
+				ds->setDataMissing3D(timeStep, availRefLevel,lod, steadyVarNum[var]-1);
 				//release currently locked regions:
 				for (int k = 0; k<var; k++){
 					dataMgr->UnlockRegion(varData[k]);
@@ -2834,7 +2834,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, varnums,varcount);
 		
-		if (ds->useLowerRefinementLevel()){
+		if (ds->useLowerAccuracy()){
 			for (int i = 0; i<3; i++){
 				if(steadyVarNum[i]>0) lod = Min(lod, ds->maxLODPresent3D(steadyVarNum[i]-1, timeStep));
 			}
@@ -2849,14 +2849,14 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
 		//Get min refinement level that's OK for all time steps for which there is data.
 		//We will skip timesteps with no data
-		if (ds->useLowerRefinementLevel()) {
+		if (ds->useLowerAccuracy()) {
 			for (int indx = 0; indx < getNumTimestepSamples(); indx++){
 				int ts = getTimestepSample(indx);
 				int levelAtTime = availRefLevel;
 				int lodAtTime = lod;
 				for (int i = 0; i< 3; i++){
 					if (unsteadyVarNum[i]){
-						levelAtTime = Min(levelAtTime, ds->maxXFormPresent(unsteadyVarNum[i]-1, ts));
+						levelAtTime = Min(levelAtTime, ds->maxXFormPresent3D(unsteadyVarNum[i]-1, ts));
 						lodAtTime = Min(lodAtTime, ds->maxLODPresent3D(unsteadyVarNum[i]-1, ts));
 					}
 				}
@@ -2874,9 +2874,9 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			bool tsIsOK = true;
 			for (int i = 0; i < 3; i++){
 				if (unsteadyVarNum[i] == 0) continue;
-				if(ds->maxXFormPresent(unsteadyVarNum[i]-1, ts) < 0) {tsIsOK = false;break;}
-				if(!ds->useLowerRefinementLevel()){
-					if ((ds->maxXFormPresent(unsteadyVarNum[i]-1, ts)) < availRefLevel){
+				if(ds->maxXFormPresent3D(unsteadyVarNum[i]-1, ts) < 0) {tsIsOK = false;break;}
+				if(!ds->useLowerAccuracy()){
+					if ((ds->maxXFormPresent3D(unsteadyVarNum[i]-1, ts)) < availRefLevel){
 						tsIsOK = false; break;
 					}
 					if ((ds->maxLODPresent3D(unsteadyVarNum[i]-1, ts)) < lod){

@@ -162,10 +162,10 @@ reinit(bool doOverride){
 	//See if current varNum is valid.  It needs to correspond to data
 	//if not, reset to first variable that is present:
 	if (varNum >= totNumVariables || 
-		!ds->variableIsPresent(varNum)){
+		!ds->variableIsPresent3D(varNum)){
 		varNum = -1;
 		for (i = 0; i<totNumVariables; i++) {
-			if (ds->variableIsPresent(i)){
+			if (ds->variableIsPresent3D(i)){
 				setVarNum(i);
 				break;
 			}
@@ -208,10 +208,10 @@ reinit(bool doOverride){
 		for (i = 0; i<totNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, numBits);
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -225,10 +225,10 @@ reinit(bool doOverride){
 				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { 
 				newTransFunc[i] = new TransferFunction(this, numBits);
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 				newTransFunc[i]->setVarNum(i);		
 			}
 			
@@ -241,8 +241,8 @@ reinit(bool doOverride){
 	//Make sure edit bounds are valid
 	for(i = 0; i<totNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
@@ -548,7 +548,7 @@ buildNode() {
 
 	//convert the active variable num to a name:
 	if (varNum >=0){
-		string varName = DataStatus::getInstance()->getVariableName(varNum);
+		string varName = DataStatus::getInstance()->getVariableName3D(varNum);
 		oss.str(empty);
 		oss << varName;
 		attrs[_activeVariableNameAttr] = oss.str();
@@ -590,7 +590,7 @@ buildNode() {
 		attrs.clear();
 
 		oss.str(empty);
-		oss << DataStatus::getInstance()->getVariableName(i);
+		oss << DataStatus::getInstance()->getVariableName3D(i);
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);

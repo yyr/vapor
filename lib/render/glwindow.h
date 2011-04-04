@@ -61,12 +61,82 @@ class FlowRenderer;
 class VolumeRenderer;
 class SpinThread;
 
-
+//! \class GLWindow
+//! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
+//!
+//! 
+//! The GLWindow class is an OpenGL rendering window.  There is one instance for 
+//! each of the VAPOR visualizers.  The GLWindow is embedded in a VizWin instance.
+//! It performs basic setup for OpenGL rendering, renders incidental geometry,
+//! and calls all the enabled VAPOR Renderer instances.
+//! The GLWindow maintains "Dirty bits" that indicate window-specific state that
+//! may require refreshing
 class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
 public:
-	typedef void (*ErrMsgReleaseCB_T)(void);
-    GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
+   
+	//! Method for setting window-specific dirty bits.
+	//! All the bits are defined in the params.h file, in the VAPoR namespace.
+	//! \param[in] DirtyBitType t identifies the property being set
+	//! \param[in] bool val sets the bit true (dirty) or false (clean)
+	void setDirtyBit(DirtyBitType t, bool val);
+
+	//! Method for checking window-specific dirty bits.
+	//! All the bits are defined in the params.h file, in the VAPoR namespace.
+	//! \param[in] DirtyBitType t identifies the property being checked
+	//! \retval bool is true if it is dirty.
+	bool vizIsDirty(DirtyBitType t);
+
+	//! Method that returns the ViewpointParams that is active in this window.
+	//! \retval ViewpointParams* current active ViewpointParams
+	ViewpointParams* getActiveViewpointParams() {return (ViewpointParams*)getActiveParams(Params::_viewpointParamsTag);}
+
+	//! Method that returns the RegionParams that is active in this window.
+	//! \retval RegionParams* current active RegionParams
+	RegionParams* getActiveRegionParams() {return (RegionParams*)getActiveParams(Params::_regionParamsTag);}
+
+	//! Method that returns the AnimationParams that is active in this window.
+	//! \retval AnimationParams* current active AnimationParams
+	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
+
+	//MouseMode support
+	//! Static method that indicates the manipulator type that is associated with a mouse mode.
+	//! \sa VizWinMgr
+	//! \param[in] modeIndex is a positive integer indexing the current mouse modes
+	//! \retval int manipulator type is 1 (region box) 2 (2D box) or 3 (rotated 3D box).
+	static int getModeManipType(int modeIndex){
+		return manipFromMode[modeIndex];
+	}
+	//! Static method that returns the Params type associated with a mouse mode.
+	//! \param[in] int modeIndex  The mouse mode.
+	//! \retval ParamsBase::ParamsBaseType  The type of the params associated with the mouse mode.
+	static ParamsBase::ParamsBaseType getModeParamType(int modeIndex){
+		return paramsFromMode[modeIndex];
+	}
+
+	//! Static method that identifies the current mouse mode for a particular params type.
+	//! \param[in] ParamsBase::ParamsBaseType t must be the type of a params with an associated mouse mode
+	//! \retval int Mouse mode
+	static int getModeFromParams(ParamsBase::ParamsBaseType t){return modeFromParams[t];}
+
+	//! Static method that identifies the name associated with a mouse mode.
+	//! This is the text that is displayed in the mouse mode selector.
+	//! \param[in] int Mouse Mode
+	//! \retval const string& Name associated with mode
+	static const string& getModeName(int index) {return modeName[index];}
+
+	//! Static method used to add a new Mouse Mode to the list of available modes.
+	//! \param[in] const string& tag associated with the Params class
+	//! \param[in] int Manipulator type (1,2,or 3)
+	//! \param[in] const char* name of mouse mode
+	//! \retval int Resulting mouse mode
+	static int AddMouseMode(const std::string paramsTag, int manipType, const char* name);
+
+#ifndef DOXYGEN_SKIP_THIS
+	 GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);
     ~GLWindow();
 	Trackball* myTBall;
 	
@@ -76,14 +146,14 @@ public:
 
 	//Enum describes various mouse modes:
 	enum mouseModeType {
-		unknownMode,
-		navigateMode,
-		regionMode,
-		probeMode,
-		twoDDataMode,
-		twoDImageMode,
-		rakeMode,
-		lightMode
+		unknownMode=1000,
+		navigateMode=0,
+		regionMode=1,
+		probeMode=3,
+		twoDDataMode=4,
+		twoDImageMode=5,
+		rakeMode=2,
+		lightMode=6
 	};
 
 	//Reset the GL perspective, so that the near and far clipping planes are wide enough
@@ -132,22 +202,8 @@ public:
 	void setRenderNew() {renderNew = true;}
 	void draw3DCursor(const float position[3]);
 
-	void setDirtyBit(DirtyBitType t, bool val);
-	bool vizIsDirty(DirtyBitType t);
-	bool regionIsDirty() {return vizIsDirty(RegionBit);}
-	bool dvrRegionIsNavigating(){return vizIsDirty(DvrRegionBit);}
 	
-	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
-	bool animationIsDirty() {return vizIsDirty(AnimationBit);}
-	bool projMatrixIsDirty() {return vizIsDirty(ProjMatrixBit);}
-	bool viewportIsDirty() {return vizIsDirty(ViewportBit);}
 	
-	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
-	void setDvrRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
-	void setLightingDirty(bool isDirty) {setDirtyBit(LightingBit,isDirty);}
-
-
-
 	//Get/set methods for vizfeatures
 	QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
 	QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
@@ -156,6 +212,8 @@ public:
 	bool axisArrowsAreEnabled() {return axisArrowsEnabled;}
 	bool axisAnnotationIsEnabled() {return axisAnnotationEnabled;}
 	bool colorbarIsEnabled() {return colorbarEnabled;}
+	int getColorbarParamsTypeId() {return colorbarParamsTypeId;}
+	void setColorbarParamsTypeId(int val) {colorbarParamsTypeId = val;}
 	bool regionFrameIsEnabled() {return DataStatus::getInstance()->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return DataStatus::getInstance()->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
@@ -252,8 +310,8 @@ public:
 	//Find a renderParams in renderer list, if it exists:
 	RenderParams* findARenderer(Params::ParamsBaseType renderertype);
 	
-	static mouseModeType getCurrentMouseMode() {return currentMouseMode;}
-	static void setCurrentMouseMode(mouseModeType t){currentMouseMode = t;}
+	static int getCurrentMouseMode() {return currentMouseMode;}
+	static void setCurrentMouseMode(int t){currentMouseMode = t;}
 	//The glwindow keeps a copy of the params that are currently associated with the current
 	//instance.  This needs to change during:
 	//  -loading session
@@ -265,31 +323,10 @@ public:
 	void setActiveViewpointParams(Params* p) {setActiveParams(p,Params::_viewpointParamsTag);}
 	void setActiveRegionParams(Params* p) {
 		setActiveParams(p,Params::_regionParamsTag);
-		if(myRegionManip)myRegionManip->setParams(p);
+		getManip(Params::_regionParamsTag)->setParams(p);
 	}
 	void setActiveAnimationParams(Params* p) {setActiveParams(p,Params::_animationParamsTag);}
-	void setActiveDvrParams(Params* p) {setActiveParams(p,Params::_dvrParamsTag); }
-	void setActiveIsoParams(Params* p) {setActiveParams(p,Params::_isoParamsTag); }
-	void setActiveFlowParams(Params* p) {
-		setActiveParams(p,Params::_flowParamsTag); 
-		myFlowManip->setParams(p);
-	}
-	void setActiveProbeParams(Params* p) {
-		setActiveParams(p,Params::_probeParamsTag);
-		myProbeManip->setParams(p);
-	}
-	void setActiveTwoDDataParams(Params* p) {
-		setActiveParams(p,Params::_twoDDataParamsTag); 
-		myTwoDDataManip->setParams(p);
-	}
-	void setActiveTwoDImageParams(Params* p) {
-		setActiveParams(p,Params::_twoDImageParamsTag); 
-		myTwoDImageManip->setParams(p);
-	}
-	ViewpointParams* getActiveViewpointParams() {return (ViewpointParams*)getActiveParams(Params::_viewpointParamsTag);}
-	RegionParams* getActiveRegionParams() {return (RegionParams*)getActiveParams(Params::_regionParamsTag);}
-	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
-	DvrParams* getActiveDvrParams() {return (DvrParams*)getActiveParams(Params::_dvrParamsTag);}
+
 	
 	FlowParams* getActiveFlowParams() {return (FlowParams*)getActiveParams(Params::_flowParamsTag);}
 	ProbeParams* getActiveProbeParams() {return (ProbeParams*)getActiveParams(Params::_probeParamsTag);}
@@ -319,11 +356,12 @@ public:
 	bool isCapturingImage() {return (capturingImage != 0);}
 	bool isCapturingFlow() {return (capturingFlow);}
 	bool isSingleCapturingImage() {return (capturingImage == 1);}
-	void startImageCapture(QString& name, int startNum) {
+	void startImageCapture(QString& name, int startNum, bool isTif) {
 		capturingImage = 2;
 		captureNumImage = startNum;
 		captureNameImage = name;
 		newCaptureImage = true;
+		capturingTif = isTif;
 		update();
 	}
 	void startFlowCapture(QString& name) {
@@ -350,11 +388,11 @@ public:
 	QString& getFlowFilename(){return captureNameFlow;}
 	
 
-	TranslateRotateManip* getProbeManip() {return myProbeManip;}
-	TranslateStretchManip* getTwoDDataManip() {return myTwoDDataManip;}
-	TranslateStretchManip* getTwoDImageManip() {return myTwoDImageManip;}
-	TranslateStretchManip* getFlowManip() {return myFlowManip;}
-	TranslateStretchManip* getRegionManip() {return myRegionManip;}
+	TranslateStretchManip* getManip(const std::string& paramTag){
+		int mode = getModeFromParams(ParamsBase::GetTypeFromTag(paramTag));
+		return manipHolder[mode];
+	}
+	
 
 	void setPreRenderCB(renderCBFcn f){preRenderCB = f;}
 	void setPostRenderCB(renderCBFcn f){postRenderCB = f;}
@@ -363,7 +401,9 @@ public:
 	static bool getDefaultAxisArrowsEnabled(){return defaultAxisArrowsEnabled;}
 	static void setDefaultAxisArrows(bool val){defaultAxisArrowsEnabled = val;}
 	static bool getDefaultTerrainEnabled(){return defaultTerrainEnabled;}
+	static bool getDefaultSpinAnimateEnabled(){return defaultSpinAnimateEnabled;}
 	static void setDefaultShowTerrain(bool val){defaultTerrainEnabled = val;}
+	static void setDefaultSpinAnimate(bool val){defaultSpinAnimateEnabled = val;}
 	static void setDefaultPrefs();
 	int getWindowNum() {return winNum;}
 	
@@ -405,8 +445,21 @@ public:
 	//For now, leave it and see if problems occur.
 	static bool isRendering(){return nowPainting;}
 	void setValuesFromGui(ViewpointParams* vpparams);
+	static void setSpinAnimation(bool on){spinAnimate = on;}
+	static bool spinAnimationEnabled(){return spinAnimate;}
 	
 protected:
+	//Mouse Mode tables.  Static since independent of window:
+	static vector<ParamsBase::ParamsBaseType> paramsFromMode;
+	static vector<int> manipFromMode;
+	static vector<string> modeName;
+	static map<ParamsBase::ParamsBaseType, int> modeFromParams;
+	//There's a separate manipholder for each window
+	vector<TranslateStretchManip*> manipHolder;
+	//Register a manip, including an icon and text
+	//Icon must be specified as an xpm or null
+	//Manip type is : 0 for navigation (nothing) 1 for 3D translate/stretch, 2 for 2D translate/stretch, 3 for 3D rotate/stretch
+
 	//Container for sorting renderer list:
 	class RenderListElt {
 		public:
@@ -425,7 +478,7 @@ protected:
 	//the new viewer position
 	//at the next rendering
 	bool newViewerCoords;
-	static mouseModeType currentMouseMode;
+	static int currentMouseMode;
 	std::map<DirtyBitType,bool> vizDirtyBit; 
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamsBaseType renderType[MAXNUMRENDERERS];
@@ -474,7 +527,6 @@ protected:
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
-	void renderRegionBounds(float* extents, int selectedFace, float faceDisplacement);
 	
 	void drawSubregionBounds(float* extents);
 	void drawAxisArrows(float* extents);
@@ -491,11 +543,6 @@ protected:
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:
 	// back, front, bottom, top, left, right
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
-	void drawRegionFace(float* extents, int faceNum, bool isSelected);
-	void drawRegionFaceLines(float* extents, int selectedFace);
-	void drawProbeFace(float* corners, int faceNum, bool isSelected);
-	void drawTwoDFace(float* corners, int faceNum, bool isSelected);
-
 
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
@@ -528,6 +575,7 @@ protected:
 	int capturingImage;
 	int captureNumImage;
 	bool capturingFlow;
+	bool capturingTif;
 	//Flag to set indicating start of capture sequence.
 	bool newCaptureImage;
 	QString captureNameImage;
@@ -541,15 +589,10 @@ protected:
 	GLdouble projectionMatrix[16];
 	static bool nowPainting;
 
-	//Manip stuff:
-	TranslateRotateManip* myProbeManip;
-	TranslateStretchManip* myTwoDDataManip;
-	TranslateStretchManip* myTwoDImageManip;
-	TranslateStretchManip* myFlowManip;
-	TranslateStretchManip* myRegionManip;
-
 	//values in vizFeature
 	QColor colorbarBackgroundColor;
+
+	int colorbarParamsTypeId;
 
 	int timeAnnotType;
 	int timeAnnotTextSize;
@@ -590,8 +633,11 @@ protected:
 	//the region is shared, and the active region is shared.
 	static bool regionShareFlag;
 	static bool defaultTerrainEnabled;
+	static bool defaultSpinAnimateEnabled;
+	static bool spinAnimate;
 	static bool defaultAxisArrowsEnabled;
-
+	
+	
 	int axisLabelNums[3];
 
 	//state to save during handle slide:
@@ -603,9 +649,10 @@ protected:
 	SpinThread* spinThread;
 	bool isSpinning;
 	QTime* spinTimer;
-
+#endif //DOXYGEN_SKIP_THIS
 	
 };
+#ifndef DOXYGEN_SKIP_THIS
 class SpinThread : public QThread{
 public:
 	SpinThread(GLWindow* w, int renderMS) : QThread() {
@@ -619,7 +666,7 @@ private:
 	GLWindow* spinningWindow;
 	int renderTime;
 };
-
+#endif //DOXYGEN_SKIP_THIS
 };
 
 #endif // GLWINDOW_H

@@ -144,7 +144,7 @@ void FlowRenderer::paintGL()
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//If the region is dirty, always need to rebuild:
-	if(myGLWindow->regionIsDirty()) setDataDirty();
+	if(myGLWindow->vizIsDirty(RegionBit)) setDataDirty();
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	int flowType = myFlowParams->getFlowType();
 	int timeStep = currentFrameNum;
@@ -1612,6 +1612,21 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				renderStationary(point-3);
 			
 		} //end of one tube rendering.  
+		//Hack for field line advection:  draw one or two points at end:
+		FlowParams* myFlowParams = (FlowParams*)getRenderParams();
+		if(myFlowParams->getFlowType()==2 && tubeStartIndex+1 < lastIndex){
+			
+			point = flowLineData->getFlowPoint(tubeNum, lastIndex+1);
+			if(*point != END_FLOW_FLAG && *point != STATIONARY_STREAM_FLAG){
+				renderStationary(point);
+				point = flowLineData->getFlowPoint(tubeNum, lastIndex+2);
+				if(*point == STATIONARY_STREAM_FLAG){
+					point = flowLineData->getFlowPoint(tubeNum, lastIndex+3);
+					if(*point != END_FLOW_FLAG && *point != STATIONARY_STREAM_FLAG)
+						renderStationary(point);
+				}
+			}
+		}
 		
 		/* render VA for this tube*/
 		for (int ii = 0; ii+1 < curVaIndex/6; ii++) {

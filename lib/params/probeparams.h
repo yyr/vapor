@@ -51,6 +51,7 @@ public:
 	virtual Params* deepCopy(ParamNode* = 0); 
 
 	virtual bool usingVariable(const string& varname);
+	virtual bool UsesMapperFunction() {return true;}
 	
 	bool probeIsDirty(int timestep) {
 		if (probeType == 0) return (!probeDataTextures || probeDataTextures[timestep] == 0);
@@ -66,9 +67,12 @@ public:
 	void setSelectedPoint(const float point[3]){
 		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
-	const float* getSelectedPoint() {
+	virtual const float* getSelectedPoint() {
 		return selectPoint;
 	}
+	//Override default, allow probe manip to go outside of data:
+	virtual bool isDomainConstrained() {return false;}
+
 	const float* getCursorCoords(){return cursorCoords;}
 	void setCursorCoords(float x, float y){
 		cursorCoords[0]=x; cursorCoords[1]=y;
@@ -108,17 +112,17 @@ public:
 	float getDataMinBound(int currentTimeStep){
 		if(numVariables == 0) return 0.f;
 		if(numVariablesSelected > 1) return (0.f);
-		return (DataStatus::getInstance()->getDataMin(firstVarNum, currentTimeStep));
+		return (DataStatus::getInstance()->getDataMin3D(firstVarNum, currentTimeStep));
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
 		DataStatus* ds = DataStatus::getInstance();
 		if(numVariablesSelected <= 1) 
-			return (ds->getDataMax(firstVarNum, currentTimeStep));
+			return (ds->getDataMax3D(firstVarNum, currentTimeStep));
 		//calc rms of selected variable maxima
 		float sumVal = 0.f;
 		for (int i = 0; i<numVariables; i++){
-			if (variableSelected[i]) sumVal +=  ((ds->getDataMax(i, currentTimeStep)*ds->getDataMax(i, currentTimeStep)));
+			if (variableSelected[i]) sumVal +=  ((ds->getDataMax3D(i, currentTimeStep)*ds->getDataMax3D(i, currentTimeStep)));
 		}
 		return (sqrt(sumVal));
 	}

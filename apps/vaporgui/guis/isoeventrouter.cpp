@@ -73,10 +73,10 @@
 using namespace VAPoR;
 
 
-IsoEventRouter::IsoEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_IsoTab(),  EventRouter(){
+IsoEventRouter::IsoEventRouter(QWidget* parent): QWidget(parent), Ui_IsoTab(),  EventRouter(){
 	setupUi(this);
 	
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_isoParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_isoParamsTag);
 	savedCommand = 0;  
 	renderTextChanged = false;
 	isoSelectionFrame->setOpacityMapping(true);
@@ -192,7 +192,7 @@ IsoEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void IsoEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering()) return;
 	Session *session = Session::getInstance();
@@ -541,8 +541,11 @@ guiEndChangeMapFcn(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	iParams->SetFlagDirty(ParamsIso::_MapBoundsTag);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
-	if (iParams->isEnabled()&& iParams->getVizNum()>=0 )
-		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+	if (iParams->isEnabled()&& iParams->getVizNum()>=0 ){
+		VizWin* viz = VizWinMgr::getInstance()->getVizWin(iParams->getVizNum());
+		viz->setColorbarDirty(true);
+		viz->updateGL();
+	}
 	savedCommand = 0;
 }
 void IsoEventRouter::
@@ -846,15 +849,15 @@ updateHistoBounds(RenderParams* params){
 	int viznum = iParams->getVizNum();
 	if (viznum < 0) return;
 	DataStatus* ds = DataStatus::getInstance();
-	int varnum = ds->getSessionVariableNum(iParams->GetIsoVariableName());
+	int varnum = ds->getSessionVariableNum3D(iParams->GetIsoVariableName());
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
 	float minval, maxval;
 	if (iParams->isEnabled()){
-		minval = ds->getDataMin(varnum, currentTimeStep);
-		maxval = ds->getDataMax(varnum, currentTimeStep);
+		minval = ds->getDataMin3D(varnum, currentTimeStep);
+		maxval = ds->getDataMax3D(varnum, currentTimeStep);
 	} else {
-		minval = ds->getDefaultDataMin(varnum);
-		maxval = ds->getDefaultDataMax(varnum);
+		minval = ds->getDefaultDataMin3D(varnum);
+		maxval = ds->getDefaultDataMax3D(varnum);
 	}
 	
 
@@ -918,8 +921,8 @@ guiSetMapComboVarNum(int val){
 		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 		int sesvarnum = ds->mapActiveToSessionVarNum3D(val-1);
 		if (ds->getVDCType() != 2){
-			int ref = ds->maxXFormPresent(sesvarnum, timeStep);
-			if (ref < 0 || (ref < iParams->GetRefinementLevel() && !ds->useLowerRefinementLevel())){
+			int ref = ds->maxXFormPresent3D(sesvarnum, timeStep);
+			if (ref < 0 || (ref < iParams->GetRefinementLevel() && !ds->useLowerAccuracy())){
 				//don't change the variable
 				MessageReporter::errorMsg("Selected variable is not available\nat required refinement level\nand at current timestep.");
 				mapVariableCombo->setCurrentIndex(comboVarNum);
@@ -927,7 +930,7 @@ guiSetMapComboVarNum(int val){
 			}
 		} else {
 			int ref = ds->maxLODPresent3D(sesvarnum, timeStep);
-			if (ref < 0 || (ref < iParams->GetCompressionLevel() && !ds->useLowerRefinementLevel())){
+			if (ref < 0 || (ref < iParams->GetCompressionLevel() && !ds->useLowerAccuracy())){
 				//don't change the variable
 				MessageReporter::errorMsg("Selected variable is not available\nat required LOD\nand at current timestep.");
 				mapVariableCombo->setCurrentIndex(comboVarNum);
@@ -1030,7 +1033,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		
-		VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(iParams,NavigatingBit,true);
 		return;
 	}
 	
@@ -1056,7 +1059,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 		//force the renderer to refresh region data  (why?)
 		
-		VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(iParams,NavigatingBit,true);
 		VizWinMgr::getInstance()->setClutDirty(iParams);
 		VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit, true);
 		
@@ -1108,7 +1111,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 		if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
 			updateRenderer(iParams, wasEnabled,  newWin);
 		} else { //Just make all the renderer flags dirty
-			VizWinMgr::getInstance()->setVizDirty(iParams,DvrRegionBit,true);
+			VizWinMgr::getInstance()->setVizDirty(iParams,NavigatingBit,true);
 			VizWinMgr::getInstance()->setClutDirty(iParams);
 			VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit, true);
 			VizWinMgr::getInstance()->setDatarangeDirty(iParams);
@@ -1169,17 +1172,17 @@ void IsoEventRouter::
 updateMapBounds(RenderParams* params){
 	ParamsIso* isoParams = (ParamsIso*)params;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	int varNum = DataStatus::getInstance()->getSessionVariableNum(isoParams->GetMapVariableName());
+	int varNum = DataStatus::getInstance()->getSessionVariableNum3D(isoParams->GetMapVariableName());
 	QString strn;
 	
 	if (varNum >= 0){
 		float minval, maxval;
 		if (isoParams->isEnabled()){
-			minval = DataStatus::getInstance()->getDataMin(varNum, currentTimeStep);
-			maxval = DataStatus::getInstance()->getDataMax(varNum, currentTimeStep);
+			minval = DataStatus::getInstance()->getDataMin3D(varNum, currentTimeStep);
+			maxval = DataStatus::getInstance()->getDataMax3D(varNum, currentTimeStep);
 		} else {
-			minval = DataStatus::getInstance()->getDefaultDataMin(varNum);
-			maxval = DataStatus::getInstance()->getDefaultDataMax(varNum);
+			minval = DataStatus::getInstance()->getDefaultDataMin3D(varNum);
+			maxval = DataStatus::getInstance()->getDefaultDataMax3D(varNum);
 		}
 		minTFDataBound->setText(strn.setNum(minval));
 		maxTFDataBound->setText(strn.setNum(maxval));
@@ -1205,6 +1208,8 @@ setEditorDirty(RenderParams* p){
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->updateParams();
 	if(ip->getMapperFunc()&& ip->GetMapVariableNum() >= 0){
+		VizWin* viz = VizWinMgr::getInstance()->getVizWin(ip->getVizNum());
+		viz->setColorbarDirty(true);
 		ip->getMapperFunc()->setParams(ip);
 		transferFunctionFrame->setMapperFunction(ip->getMapperFunc());
 		transferFunctionFrame->updateParams();
@@ -1316,8 +1321,8 @@ void IsoEventRouter::guiFitTFToData(){
 	//Get bounds from DataStatus:
 	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	
-	float minBound = ds->getDataMin(sesvarnum,ts);
-	float maxBound = ds->getDataMax(sesvarnum,ts);
+	float minBound = ds->getDataMin3D(sesvarnum,ts);
+	float maxBound = ds->getDataMax3D(sesvarnum,ts);
 	
 	if (minBound > maxBound){ //no data
 		maxBound = 1.f;
@@ -1335,7 +1340,7 @@ void IsoEventRouter::guiFitTFToData(){
 
 #ifdef Darwin
 void IsoEventRouter::paintEvent(QPaintEvent* ev){
-		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		if(!isoShown ){
 			sArea->ensureWidgetVisible(isoSelectFrame);
 			isoSelectionFrame->show();

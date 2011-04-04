@@ -359,8 +359,8 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 	//bounds test in the runge-kutta is imprecise enough to not detect it.
 	//if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
 
-	//Deal with line that exits instantly (i.e. seed outside of region)
-	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
+	//Deal with line that exits instantly or seed is critical point 
+	if((int)seedTrace->size() == 1 )
 	{
 		if (direction > 0){
 			container->setFlowEnd(lineNum, 0);

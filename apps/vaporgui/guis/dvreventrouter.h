@@ -57,7 +57,7 @@ class DvrEventRouter : public QWidget, public Ui_DVR, public EventRouter {
 public: 
 	
 	void initTypes();
-	DvrEventRouter(QWidget* parent, const char* name);
+	DvrEventRouter(QWidget* parent);
 	virtual ~DvrEventRouter();
 	
 	virtual void updateMapBounds(RenderParams* p);
@@ -88,6 +88,11 @@ public:
 		
 	virtual void reinitTab(bool doOverride);
 	virtual void refreshTab();
+	//Required method to create the tab:
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new DvrEventRouter((QWidget*)tMgr));
+	}
 #ifdef Darwin
 	void paintEvent(QPaintEvent*);
 #endif

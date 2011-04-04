@@ -76,6 +76,9 @@ class TabManager : public QTabWidget{
 		//Make the visible tab scroll to top.
 		void scrollFrontToTop();
 		virtual QSize sizeHint() const { return QSize(460, 800);}
+		virtual void keyPressEvent(QKeyEvent* e){
+			e->accept();// This prevents a "beep" from occuring when you press enter on the Mac.
+		}
 	public slots:
 		void newFrontTab(int);
 		void tabScrolled();

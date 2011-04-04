@@ -2489,7 +2489,14 @@ p, li { white-space: pre-wrap; }
                <string>turn on/off display of color bar of DVR in scene</string>
               </property>
               <property name="text">
-               <string>Display color scale of current DVR</string>
+               <string>Display color scale of current Renderer:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="rendererCombo">
+              <property name="toolTip">
+               <string>Choose the renderer type for color scale display</string>
               </property>
              </widget>
             </item>

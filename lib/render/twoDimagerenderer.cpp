@@ -312,7 +312,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		min_dim[2] = max_dim[2] = 0;
 		min_bdim[2] = max_bdim[2] = 0;
 		int lod = tParams->GetCompressionLevel();
-		if (ds->useLowerRefinementLevel())
+		if (ds->useLowerAccuracy())
 			lod = Min(lod, ds->maxLODPresent2D(varnum, timeStep));
 		//Then, ask the Datamgr to retrieve the HGT data
 		

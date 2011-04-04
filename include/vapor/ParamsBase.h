@@ -197,12 +197,6 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag){
 
 //Methods for registration and tabulation of existing Params instances
 
-//!
-//! Static method for registering all the base classes to be used.
-//! Developers of extension classes should modify this method to 
-//! register any new extension classes 
-//!
-	static void RegisterParamsBaseClasses();
 
 //!
 //! Static method for registering a ParamsBase class.

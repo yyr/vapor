@@ -67,9 +67,9 @@
 using namespace VAPoR;
 
 
-RegionEventRouter::RegionEventRouter(QWidget* parent, const char* ): QWidget(parent), Ui_RegionTab(), EventRouter() {
+RegionEventRouter::RegionEventRouter(QWidget* parent ): QWidget(parent), Ui_RegionTab(), EventRouter() {
 	setupUi(this);
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_regionParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_regionParamsTag);
 	MessageReporter::infoMsg("RegionEventRouter::RegionEventRouter()");
 	setIgnoreBoxSliderEvents(false);
 }
@@ -121,6 +121,9 @@ RegionEventRouter::hookUpTab()
 	connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (variableCombo, SIGNAL(activated(int)), this, SLOT(guiSetVarNum(int)));
 	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(guiSetTimeStep(int)));
+
+	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setRgLocalGlobal(int)));
+	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
 
 }
 /*********************************************************************************
@@ -192,7 +195,7 @@ void RegionEventRouter::copyRegionToProbe(){
 //Insert values from params into tab panel
 //
 void RegionEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -517,8 +520,8 @@ refreshRegionInfo(RegionParams* rParams){
 			}
 		}
 		if (is3D){
-			varNum = ds->getSessionVariableNum(varName);
-			maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
+			varNum = ds->getSessionVariableNum3D(varName);
+			maxRefLevel = ds->maxXFormPresent3D(varNum, timeStep);
 		}
 		else {
 			int mdVarnum = ds->getActiveVarNum2D(varName);

@@ -32,11 +32,46 @@ class ExpatParseMgr;
 
 class XmlNode;
 class ParamNode;
+//! \class AnimationParams
+//! \brief A class that specifies parameters used in animation 
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
+//! When this class is local, it controls the time-steps in one visualizer.
+//! The global (shared) AnimationParams controls the animation in any number of visualizers.
 class PARAMS_API AnimationParams : public Params {
 	
 public: 
+	//! Constructor
+	//! \param[in] int winnum The number of the visualizer, or -1 for a global AnimationParams
 	AnimationParams(int winnum);
+	//! Destructor
 	~AnimationParams();
+
+	//! Identify the current frame being rendered
+	//! \retval int current frame number
+	int getCurrentFrameNumber() {return currentFrame;}
+
+	//! Identify the starting frame number currently set in the UI.
+	//! \retval int starting frame number.
+	int getStartFrameNumber() {return startFrame;}
+
+	//! Identify the ending frame number as currently set in the UI.
+	//! \retval int ending frame number.
+	int getEndFrameNumber() {return endFrame;}
+
+	//! Identify the minimum frame number available in the data.
+	//! \retval int minimum frame number.
+	int getMinFrame() {return minFrame;}
+
+	//! Identify the maximum frame number available in the data
+	//! \retval int maximum frame number.
+	int getMaxFrame() {return maxFrame;}
+
+
+#ifndef DOXYGEN_SKIP_THIS
+
+	//The rest is not part of the public API
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy(ParamNode* n = 0);
@@ -51,11 +86,8 @@ public:
 
 
 	int getMinTimeToRender() {return ((int)(1000.f/maxFrameRate) );}
-	int getCurrentFrameNumber() {return currentFrame;}
-	int getStartFrameNumber() {return startFrame;}
-	int getEndFrameNumber() {return endFrame;}
-	int getMinFrame() {return minFrame;}
-	int getMaxFrame() {return maxFrame;}
+	
+	
 	int getPlayDirection() {return playDirection;}
 	int getFrameStepSize() {return frameStepSize;}
 	float getMaxFrameRate() {return maxFrameRate;}
@@ -118,7 +150,9 @@ protected:
 	bool stateChanged;
 	static float defaultMaxWait;
 	static float defaultMaxFPS;
+#endif /* DOXYGEN_SKIP_THIS */
 	
 };
 };
+
 #endif //ANIMATIONPARAMS_H 

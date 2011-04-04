@@ -249,10 +249,10 @@ reinit(bool doOverride){
 	
 	//See if current firstVarNum is valid
 	//if not, reset to first variable that is present:
-	if (!DataStatus::getInstance()->variableIsPresent(firstVarNum)){
+	if (!DataStatus::getInstance()->variableIsPresent3D(firstVarNum)){
 		firstVarNum = -1;
 		for (int i = 0; i<newNumVariables; i++) {
-			if (DataStatus::getInstance()->variableIsPresent(i)){
+			if (DataStatus::getInstance()->variableIsPresent3D(i)){
 				firstVarNum = i;
 				break;
 			}
@@ -281,7 +281,7 @@ reinit(bool doOverride){
 		//anything that isn't there:
 		for (int i = 0; i<newNumVariables; i++){
 			if (variableSelected[i] && 
-				!DataStatus::getInstance()->variableIsPresent(i))
+				!DataStatus::getInstance()->variableIsPresent3D(i))
 				variableSelected[i] = false;
 		}
 	}
@@ -303,10 +303,10 @@ reinit(bool doOverride){
 		//See if current varNum is valid.  If not, 
 		//reset to first variable that is present:
 		if (ibfvSessionVarNum[dim] > 0) {
-			if (!DataStatus::getInstance()->variableIsPresent(ibfvSessionVarNum[dim]-1)){
+			if (!DataStatus::getInstance()->variableIsPresent3D(ibfvSessionVarNum[dim]-1)){
 				ibfvSessionVarNum[dim] = -1;
 				for (int i = 0; i<newNumVariables; i++) {
-					if (DataStatus::getInstance()->variableIsPresent(i)){
+					if (DataStatus::getInstance()->variableIsPresent3D(i)){
 						ibfvSessionVarNum[dim] = i+1;
 						break;
 					}
@@ -342,10 +342,10 @@ reinit(bool doOverride){
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
 
-			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 
             newTransFunc[i]->setVarNum(i);
 		}
@@ -362,10 +362,10 @@ reinit(bool doOverride){
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin3D(i));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax3D(i));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
@@ -377,8 +377,8 @@ reinit(bool doOverride){
 	//Make sure edit bounds are valid
 	for(int i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin3D(i);
+			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax3D(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){
@@ -833,7 +833,7 @@ buildNode() {
 	oss.str(empty);
 	for (int i = 0; i<3; i++){
 		string varName = "0";
-		if (ibfvSessionVarNum[i]>0) varName = DataStatus::getInstance()->getVariableName(ibfvSessionVarNum[i]-1);
+		if (ibfvSessionVarNum[i]>0) varName = DataStatus::getInstance()->getVariableName3D(ibfvSessionVarNum[i]-1);
 		oss << varName << " ";
 	}
 	attrs[_fieldVarsAttr] = oss.str();
@@ -863,7 +863,7 @@ buildNode() {
 	
 
 		oss.str(empty);
-		oss << DataStatus::getInstance()->getVariableName(i);
+		oss << DataStatus::getInstance()->getVariableName3D(i);
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);
@@ -1060,11 +1060,11 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3],
 	//Now intersect with available bounds based on variables:
 	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables(); varIndex++){
 		if (!variableSelected[varIndex]) continue;
-		if (DataStatus::getInstance()->maxXFormPresent(varIndex,timeStep) < numRefs){
+		if (DataStatus::getInstance()->maxXFormPresent3D(varIndex,timeStep) < numRefs){
 			retVal = false;
 			continue;
 		} else {
-			const string varName = DataStatus::getInstance()->getVariableName(varIndex);
+			const string varName = DataStatus::getInstance()->getVariableName3D(varIndex);
 			int rc = RegionParams::getValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
 			if (rc < 0) {
 				retVal = false;
@@ -1732,11 +1732,11 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 	
 	int refLevel = getNumRefinements();
 	//reduce reflevel if not all variables are available:
-	if (ds->useLowerRefinementLevel()){
+	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < numVars; varnum++){
 			int sesVarNum = sesVarNums[varnum];
 			if (sesVarNum >= 0){
-				refLevel = Min(ds->maxXFormPresent(sesVarNum, ts), refLevel);
+				refLevel = Min(ds->maxXFormPresent3D(sesVarNum, ts), refLevel);
 			}
 		}
 	}
@@ -2153,7 +2153,7 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 }
 bool ProbeParams::
 usingVariable(const string& varname){
-	int varnum = DataStatus::getInstance()->getSessionVariableNum(varname);
+	int varnum = DataStatus::getInstance()->getSessionVariableNum3D(varname);
 	return (variableIsSelected(varnum));
 }
 

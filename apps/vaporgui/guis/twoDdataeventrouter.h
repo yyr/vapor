@@ -42,14 +42,17 @@ class TwoDDataEventRouter : public QWidget, public Ui_TwoDDataTab, public TwoDEv
 	Q_OBJECT
 public: 
 	
-	TwoDDataEventRouter(QWidget* parent, const char* name);
+	TwoDDataEventRouter(QWidget* parent);
 	virtual ~TwoDDataEventRouter();
-
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new TwoDDataEventRouter((QWidget*)tMgr));
+	}
 	virtual void refreshGLWindow();
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		setTwoDDirty((TwoDDataParams*)p);
-		VizWinMgr::getInstance()->setVizDirty(p,TwoDTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(p);
 	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();

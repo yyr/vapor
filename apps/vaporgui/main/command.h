@@ -65,14 +65,14 @@ protected:
 //
 class MouseModeCommand : public Command{
 public:
-	MouseModeCommand(GLWindow::mouseModeType previousMode, GLWindow::mouseModeType newMode);
+	MouseModeCommand(int previousMode, int newMode);
 	virtual ~MouseModeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
 protected:
-	const char* modeName(GLWindow::mouseModeType t);
-	GLWindow::mouseModeType previousMode;
-	GLWindow::mouseModeType currentMode;
+	const char* modeName(int t);
+	int previousMode;
+	int currentMode;
 };
 //Subclass to deal with changes in the front tab panel
 //

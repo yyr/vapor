@@ -85,6 +85,7 @@ public:
 	virtual void setMaxOpacMapBound(float val);
 
 	virtual bool usingVariable(const string& varname);
+	virtual bool UsesMapperFunction() {return true;}
 	
 	void setMinEditBound(float val) {
 		setMinColorEditBound(val, firstVarNum);

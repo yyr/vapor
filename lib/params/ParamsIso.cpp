@@ -138,8 +138,8 @@ reinit(bool doOverride){
 			boundsArrays[i] = new float[4];
 			
 			//will need to set the iso value:
-			float dataMin = ds->getDefaultDataMin(i);
-			float dataMax = ds->getDefaultDataMax(i);
+			float dataMin = ds->getDefaultDataMin3D(i);
+			float dataMax = ds->getDefaultDataMax3D(i);
 			if (dataMin == dataMax){
 				dataMin -= 0.f; dataMax += 0.5;
 			}
@@ -163,8 +163,8 @@ reinit(bool doOverride){
 		for (int i = 0; i<totNumVariables; i++){
 			boundsArrays[i] = new float[4];
 			if(i<GetNumVariables()){ //make copy of existing ones, don't set their root nodes yet
-				float dataMin = ds->getDefaultDataMin(i);
-				float dataMax = ds->getDefaultDataMax(i);
+				float dataMin = ds->getDefaultDataMin3D(i);
+				float dataMax = ds->getDefaultDataMax3D(i);
 				if (!GetTransFunc(i)){ //for backwards compatibility, create default trans func
 					newTransFunc[i] = new TransferFunction(this, 8);
 					newTransFunc[i]->setOpaque();
@@ -194,18 +194,18 @@ reinit(bool doOverride){
 			} else { //create new tfs, isocontrols
 				
 				newIsoControls[i] = new IsoControl(this, 8);
-				newIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin(i));
-				newIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax(i));
-				newIsoControls[i]->setIsoValue(0.5f*(ds->getDefaultDataMin(i)+ds->getDefaultDataMax(i)));
+				newIsoControls[i]->setMinHistoValue(ds->getDefaultDataMin3D(i));
+				newIsoControls[i]->setMaxHistoValue(ds->getDefaultDataMax3D(i));
+				newIsoControls[i]->setIsoValue(0.5f*(ds->getDefaultDataMin3D(i)+ds->getDefaultDataMax3D(i)));
 				newIsoControls[i]->setVarNum(i);
 				newIsoControls[i]->setParams(this);
 				newTransFunc[i] = new TransferFunction(this, 8);
 				newTransFunc[i]->setOpaque();
-				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin(i));
-				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax(i));
+				newTransFunc[i]->setMinMapValue(ds->getDefaultDataMin3D(i));
+				newTransFunc[i]->setMaxMapValue(ds->getDefaultDataMax3D(i));
 				newTransFunc[i]->setVarNum(i);
-				boundsArrays[i][0] = boundsArrays[i][1] = ds->getDefaultDataMin(i);
-				boundsArrays[i][2] = boundsArrays[i][3] = ds->getDefaultDataMax(i);
+				boundsArrays[i][0] = boundsArrays[i][1] = ds->getDefaultDataMin3D(i);
+				boundsArrays[i][2] = boundsArrays[i][3] = ds->getDefaultDataMax3D(i);
 				//For backwards compatibility, if we have read iso from an old session:
 				if (noIsoControlTags){
 					newIsoControls[i]->setIsoValue(oldIsoValue);
@@ -245,7 +245,7 @@ reinit(bool doOverride){
 		GetRootNode()->AddNode(_variablesTag,varsNode);
 	}
 	for (int i = 0; i<totNumVariables; i++){
-		std::string& varname = ds->getVariableName(i);
+		std::string& varname = ds->getVariableName3D(i);
 		ParamNode* varNode = new ParamNode(varname, 2);
 		varsNode->AddChild(varNode);
 		ParamNode* tfNode = new ParamNode(TransferFunction::_transferFunctionTag);
@@ -332,7 +332,7 @@ hookupTF(TransferFunction* tf, int index){
 	vector<string> path;
 	path.push_back(_variablesTag);
 	DataStatus* ds = DataStatus::getInstance();
-	path.push_back(ds->getVariableName(index));
+	path.push_back(ds->getVariableName3D(index));
 	path.push_back(TransferFunction::_transferFunctionTag);
 	
 	tf->hookup(this,index,index);
@@ -662,7 +662,7 @@ bool ParamsIso::elementStartHandler(
 		tf->setVarNum(parsingVarNum);
 		ParamNode* tfNode = new ParamNode(TransferFunction::_transferFunctionTag,0);
 		tfNode->SetParamsBase(tf);
-		string varname = ds->getVariableName(parsingVarNum);
+		string varname = ds->getVariableName3D(parsingVarNum);
 		ParamNode* varNode = GetRootNode()->GetNode(_variablesTag)->GetNode(varname);
 		varNode->AddNode(TransferFunction::_transferFunctionTag,tfNode);
 		
@@ -687,7 +687,7 @@ bool ParamsIso::elementStartHandler(
 		ic->setVarNum(parsingVarNum);
 		ParamNode* icNode = new ParamNode(_IsoControlTag,0);
 		icNode->SetParamsBase(ic);
-		string varname = ds->getVariableName(parsingVarNum);
+		string varname = ds->getVariableName3D(parsingVarNum);
 		ParamNode* varNode = GetRootNode()->GetNode(_variablesTag)->GetNode(varname);
 		varNode->AddNode(_IsoControlTag,icNode);
 
@@ -729,16 +729,19 @@ bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 	}
 
 	else {
-		if (_parseDepth == 1 && noIsoControlTags) {//For backwards compatibility..
-				//Get the value of the isocontrol stuff from the obsolete tags:
+		if (_parseDepth == 1) {//For backwards compatibility..
+			//Compression level was 0 in version 1.5.2 and earlier
 			SetCompressionLevel(0);
-			SetMapVariableName("Constant");
-			SetHistoStretch(1.0);
-			const vector <double> &histBnds = GetRootNode()->GetElementDouble(_HistoBoundsTag);
-			const vector <double> &isoval = GetRootNode()->GetElementDouble(_IsoValueTag);
-			oldIsoValue = isoval[0];
-			oldHistoBounds[0] = histBnds[0];
-			oldHistoBounds[1] = histBnds[1];
+			if (noIsoControlTags) {
+				//Get the value of the isocontrol stuff from the obsolete tags:
+				SetMapVariableName("Constant");
+				SetHistoStretch(1.0);
+				const vector <double> &histBnds = GetRootNode()->GetElementDouble(_HistoBoundsTag);
+				const vector <double> &isoval = GetRootNode()->GetElementDouble(_IsoValueTag);
+				oldIsoValue = isoval[0];
+				oldHistoBounds[0] = histBnds[0];
+				oldHistoBounds[1] = histBnds[1];
+			}
 			
 		}
 		
@@ -777,7 +780,7 @@ bool ParamsIso::isOpaque(){
 }
 TransferFunction* ParamsIso::GetTransFunc(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
-	const string& str = ds->getVariableName(sesVarNum);
+	const string& str = ds->getVariableName3D(sesVarNum);
 	if (str.length() == 0) return 0;
 	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
 		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag))
@@ -786,7 +789,7 @@ TransferFunction* ParamsIso::GetTransFunc(int sesVarNum){
 }
 IsoControl* ParamsIso::GetIsoControl(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
-	const string& str = ds->getVariableName(sesVarNum);
+	const string& str = ds->getVariableName3D(sesVarNum);
 	if (str.length() == 0) return 0;
 	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
 		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag))

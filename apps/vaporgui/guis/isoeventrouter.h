@@ -46,7 +46,7 @@ class IsoEventRouter : public QWidget, public Ui_IsoTab, public EventRouter {
 public: 
 	
 	
-	IsoEventRouter(QWidget* parent, const char* name);
+	IsoEventRouter(QWidget* parent);
 	virtual ~IsoEventRouter();
 
 	//Connect signals and slots from tab
@@ -62,6 +62,11 @@ public:
 	void paintEvent(QPaintEvent*);
 #endif
 
+	//Required method to create the tab:
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new IsoEventRouter((QWidget*)tMgr));
+	}
 	//Convenience method to obtain current ParamsIso Pointer
 	static ParamsIso* getActiveIsoParams(){
 		int activeViz = VizWinMgr::getInstance()->getActiveViz();

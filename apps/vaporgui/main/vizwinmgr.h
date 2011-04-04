@@ -1,5 +1,5 @@
 //************************************************************************
-//																		*
+//																		*tab
 //		     Copyright (C)  2004										*
 //     University Corporation for Atmospheric Research					*
 //		     All Rights Reserved										*
@@ -14,20 +14,10 @@
 //
 //	Date:		Sept 2004
 //
-//	Description:  Definition of VizWinMgr class	
-//		This class manages the VizWin visualizers
-//		Its main function is to catch events from the visualizers and
-//		to route them to the appropriate params class, and in reverse,
-//		to route events from tab panels to the appropriate visualizer.
-//		This class knows about which visualizers are active, and what
-//		state to associate with them, so other classes request the VizWinMgr
-//		to perform tasks that require that information
-//
+
 
 #ifndef VIZWINMGR_H
 #define VIZWINMGR_H
-
-
 
 class QMdiArea;
 class QMdiSubWindow;
@@ -49,9 +39,6 @@ class QTimer;
 #include <vapor/common.h>
 #include "params.h"
 #include "command.h"
-
-
-
 
 
 namespace VAPoR{
@@ -79,7 +66,17 @@ class ViewpointEventRouter;
 class FlowEventRouter;
 class IsoEventRouter;
 
+typedef EventRouter* (EventRouterCreateFcn)();
 
+//! \class VizWinMgr
+//! \brief A class for managing all visualizers
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
+//!	This class manages the VAPOR visualizers.
+//!	Its main function is to keep track of what visualizers are active
+//!	and what EventRouter and Params instances are associated with each visualizer.
+//
 class VizWinMgr : public QObject, public ParsedXml
 {
 	Q_OBJECT
@@ -94,16 +91,131 @@ class VizWinMgr : public QObject, public ParsedXml
     };
 
 public:
+	
+	//! Static method that identifies the currently active params instance of a given type.
+	//! This is the currently selected instance in the current active visualizer.
+	//! \param[in] const std::string& tag  The XML tag associated with a Params class
+	//! \retval Params* Pointer to Params instance that is currently active
+	static Params* getActiveParams(const std::string& tag){
+		return (Params::GetParamsInstance(tag, getInstance()->activeViz));
+	}
+	
+	//! Method that requests a re-rendering for the renderer associated with a particular RenderParams instance.
+	//! The renderer must be enabled or this will have no effect.
+	//! \param[in] RenderParams* pointer to RenderParams instance that is associated with the rendering requested.
+	void forceRender(RenderParams* rp);
+
+	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter
+	//! subclass associated with each tab, and a unique instance of that subclass.
+	//! \param[in] Params::ParamsBaseType TypeId of the Params type
+	//! \retval EventRouter* Pointer to the associated EventRouter instance
+	static EventRouter* getEventRouter(Params::ParamsBaseType typeId);
+
+	//! Static method that creates an eventRouter, and installs it as one of the tabs.
+	//! All extension EventRouter classes must call this during the InstallExtensions() method.
+	//! \param[in] const std::string tag : XML tag identifying the Params class.
+	//! \param[in] EventRouterCreateFcn : the required method that creates the EventRouter.
+	static void InstallTab(const std::string tag, EventRouterCreateFcn fcn);
+
+	//! Static method obtains the EventRouter instance associated with a particular Params tag
+	//! \param[in] const std::string& Tag of the Params 
+	//! \retval EventRouter* pointer to the associated EventRouter instance
+	static EventRouter* getEventRouter(const std::string& tag){
+		return getEventRouter(ParamsBase::GetTypeFromTag(tag));
+	}
+
+	//! Static method that returns the global Params of a given type.
+	//! If the params is a RenderParams type, returns a default instance that
+	//! is not actually used in rendering
+	//! \param[in] Params::ParamsBaseType TypeId of the Params type
+	//! \retval Params* pointer to the associated Params instance
+	static Params* getGlobalParams(Params::ParamsBaseType ptype);
+
+	//! Method that specifies a params instance that is to be associated with a particular instance index in the renderer tab. 
+	//! This is needed during EventRouter::MakeCurrent(), when the
+	//! Params instance changes as a result of Undo/Redo action.
+	//! \param[in] int winNum : Visualizer number
+	//! \param[in] Params* p : Pointer to the new Params instance
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \param[in] int instance : The index of the associated instance, or -1 for the active instance.
+	void setParams(int winNum, Params* p, ParamsBase::ParamsBaseType typeId, int instance = -1);
+
+	//! Method that identifies the params instance associated with a visualizer, type, and instance index. 
+	//! \param[in] int winNum : Visualizer number
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \param[in] int instance : The index of the associated instance, or -1 for the active instance.
+	//! \retval Params*  Pointer to the Params instance
+	Params* getParams(int winNum, Params::ParamsBaseType pType, int instance = -1);
+
+	//! Static method that identifies the number of instances of a Params of a particular type, in a particular visualizer.
+	//! \param[in] int winnum Visualizer number
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \retval int Number of instances
+	static int getNumInstances(int winnum, Params::ParamsBaseType pType);
+
+	//! Static method that identifies the active instance index of a Params in a particular visualizer.
+	//! \param[in] int winnum Visualizer number
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \retval int Current active instance index
+	static int getCurrentInstanceIndex(int winnum, Params::ParamsBaseType t);
+
+	//! Static method that identifies the instance index of a Params instance in a particular renderer tab.
+	//! Each of the renderer instances indicated in the tab are associated with a unique Params instance, whether or
+	//! not the instance has been enabled.  All of the instances are associated with a particular visualizer.
+	//! \param[in] int winnum Visualizer number
+	//! \param[in] Params* Pointer to Params instance
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \retval int Instance index associated with this params or -1 if not found.
+	static int findInstanceIndex(int winnum, Params* params, Params::ParamsBaseType t);
+
+	//! Method that identifies the active index in the active visualizer
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \retval int Current active instance index
+	int getActiveInstanceIndex(Params::ParamsBaseType t){
+		return getCurrentInstanceIndex(activeViz,t);
+	}
+
+	//! Identify the params instance that is current of a particular type (i.e. in a particular tab).
+	//! \param[in] ParamsBase::ParamsBaseType TypeId associated with this Params
+	//! \retval Params* Params instance that is current
+	Params* getApplicableParams(Params::ParamsBaseType t);
+
+	//! Identify the params instance that is currently applied of a particular tag
+	//! \param[in] const std::string& XML tag associated with this Params
+	//! \retval Params* Params instance that is current
+	Params* getApplicableParams(const std::string& tag){
+		return getApplicableParams(ParamsBase::GetTypeFromTag(tag));
+	}
+
+	//! General function for window-specific dirty bit setting.
+	//! Useful when the state of a Params has changed and some window(s) will need to be redrawn.
+	//! Turns on or off the specified dirty bit in all of the windows where the
+	//! specified Params is used.
+	//! Optionally requests a refresh in those windows.
+	//! \param[in] Params* : Pointer to a Params instance.
+	//! \param[in] DirtyBitType bittype : Dirty bit that is being set
+	//! \param[in] bit : Indicates whether it is being set dirty (true, default) or clean.
+	//! \param[in] bool refresh : Indicates whether a refresh is also requested; true by default.
+	void setVizDirty(Params* p, DirtyBitType bittype, bool bit = true, bool refresh = true);
+
+	//! Static method that enables use of a manipulator with a Mouse Mode. 
+	//! \param[in] const std::string Tag associated with Params class that owns the manipulator
+	//! \param[in] int Manipulator type.  Valid types are 1 (3d axis aligned), 2 (2D) and 3 (3D Rotated)
+	//! \param[in] const char* Name of the mouse mode that will be displayed in GUI
+	//! \param[in] const char* const xpmIcon[] An xpm bitmap that will be displayed in the GUI, defaults to no icon.
+	static int RegisterMouseMode(const std::string paramsTag, int manipType, const char* name, const char* const xpmIcon[]=0);
+
+#ifndef DOXYGEN_SKIP_THIS
+	//Following methods are not usually needed for extensibility:
+	~VizWinMgr();
 	static VizWinMgr* getInstance() {
 		if (!theVizWinMgr)
 			theVizWinMgr = new VizWinMgr();
 		return theVizWinMgr;
 	}
-	//Get active params always uses current instance on renderparams.
 	static DvrParams* getActiveDvrParams(){
 		return((DvrParams*)Params::GetParamsInstance(Params::_dvrParamsTag,getInstance()->activeViz,-1));
 	}
-	
 	static ProbeParams* getActiveProbeParams(){
 		return ((ProbeParams*)Params::GetParamsInstance(Params::_probeParamsTag,getInstance()->activeViz,-1));}
 	static TwoDDataParams* getActiveTwoDDataParams(){
@@ -121,19 +233,14 @@ public:
 	static AnimationParams* getActiveAnimationParams(){
 		return (getInstance()->getAnimationParams(getInstance()->activeViz));
 	}
-
-	//Each event router registers itself in its constructor with the vizwinmgr by calling the following
-	static Params::ParamsBaseType RegisterEventRouter(const std::string tag, EventRouter* router);
 	
 	void createAllDefaultParams();
-    ~VizWinMgr();
-	
+	void RegisterMouseModes();
+    
     //Respond to end:
     void closeEvent();
-   
     void vizAboutToDisappear(int i); 
 
-	
     //Public Inlines:
     //Respond to user events,
     //Make sure this state tracks actual window state.
@@ -150,17 +257,6 @@ public:
         isMin[i] = false;
         isMax[i] = false;
     }
-	
-	static EventRouter* getEventRouter(Params::ParamsBaseType typeId);
-	static EventRouter* getEventRouter(const std::string& tag){
-		return getEventRouter(ParamsBase::GetTypeFromTag(tag));
-	}
-
-	Params* getGlobalParams(Params::ParamsBaseType ptype);
-	void setGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
-	//Method that returns the current params that apply in the current
-	//active visualizer if it is local.
-	Params* getLocalParams(Params::ParamsBaseType t);
     //method to launch a viz window, returns vizNum
 	//Default values create a new vis use whatever available number.
 	//If usenum is >= 0 it relaunches a previously used visualizer.
@@ -170,9 +266,7 @@ public:
     
 	void nameChanged(QString& name, int num);
     
-    
     int getNumVisualizers(); 
-    
     TabManager* getTabManager() { return tabManager;}
     
 	//activeViz is -1 if none is active, otherwise is no. of active viz win.
@@ -198,8 +292,6 @@ public:
 	ProbeParams* getProbeParams(int winNum, int instance = -1);
 	TwoDDataParams* getTwoDDataParams(int winNum, int instance = -1);
 	TwoDImageParams* getTwoDImageParams(int winNum, int instance = -1);
-
-	Params* getParams(int winNum, Params::ParamsBaseType pType, int instance = -1);
 	
 	int getNumFlowInstances(int winnum){return Params::GetNumParamsInstances(Params::_flowParamsTag,winnum);}
 	int getNumProbeInstances(int winnum){return Params::GetNumParamsInstances(Params::_probeParamsTag,winnum);}
@@ -211,26 +303,8 @@ public:
 	int getNumIsoInstances(int winnum){
 		return Params::GetNumParamsInstances(Params::_isoParamsTag, winnum);
 	}
-	int getNumInstances(int winnum, Params::ParamsBaseType pType);
-	
-	int getCurrentFlowInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_flowParamsTag,winnum);}
-	int getCurrentDvrInstIndex(int winnum) {
-		return Params::GetCurrentParamsInstanceIndex(Params::_dvrParamsTag,winnum);
-	}
-	int getCurrentIsoInstIndex(int winnum) {
-		return Params::GetCurrentParamsInstanceIndex(Params::GetTypeFromTag(Params::_isoParamsTag),winnum);
-	}
-	int getCurrentProbeInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_probeParamsTag,winnum);}
-	int getCurrentTwoDDataInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_twoDDataParamsTag,winnum);}
-	int getCurrentTwoDImageInstIndex(int winnum) {return Params::GetCurrentParamsInstanceIndex(Params::_twoDImageParamsTag,winnum);}
 	
 	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamsBaseType t);
-	int getCurrentInstanceIndex(int winnum, Params::ParamsBaseType t);
-	int findInstanceIndex(int winnum, Params* params, Params::ParamsBaseType t);
-	int getActiveInstanceIndex(Params::ParamsBaseType t){
-		return getCurrentInstanceIndex(activeViz,t);
-	}
-
 	
 	void appendInstance(int winnum, Params* p);
 	
@@ -241,37 +315,38 @@ public:
 	FlowParams* getFlowParams(int winNum, int instance = -1);
 	AnimationParams* getAnimationParams(int winNum);
 
-	RegionEventRouter* getRegionRouter() {return regionEventRouter;}
-	AnimationEventRouter* getAnimationRouter() {return animationEventRouter;}
-	DvrEventRouter* getDvrRouter() {return dvrEventRouter;}
-	IsoEventRouter* getIsoRouter() {return isoEventRouter;}
-	ProbeEventRouter* getProbeRouter() {return probeEventRouter;}
-	TwoDDataEventRouter* getTwoDDataRouter() {return twoDDataEventRouter;}
-	TwoDImageEventRouter* getTwoDImageRouter() {return twoDImageEventRouter;}
-	ViewpointEventRouter* getViewpointRouter() {return viewpointEventRouter;}
-	FlowEventRouter* getFlowRouter() {return flowEventRouter;}
+	RegionEventRouter* getRegionRouter();
+	AnimationEventRouter* getAnimationRouter(); 
+	ProbeEventRouter* getProbeRouter();
+	TwoDDataEventRouter* getTwoDDataRouter(); 
+	TwoDImageEventRouter* getTwoDImageRouter();
+	ViewpointEventRouter* getViewpointRouter();
+	FlowEventRouter* getFlowRouter();
 
-	//Get whatever params apply to a particular tab
-	Params* getApplicableParams(Params::ParamsBaseType t);
-	Params* getApplicableParams(const std::string& tag){
-		return getApplicableParams(ParamsBase::GetTypeFromTag(tag));
-	}
+	
 	//Make all the params for the current window update their tabs:
 	void updateActiveParams();
-	//Establish connections to this from the viztab.
-	//This class has the responsibility of rerouting messages from
-	//the viz tab to the various viz parameter panels
-	void hookUpViewpointTab(ViewpointEventRouter*);
-	void hookUpRegionTab(RegionEventRouter*);
-	void hookUpDvrTab(DvrEventRouter*);
-	void hookUpIsoTab(IsoEventRouter*);
-	void hookUpProbeTab(ProbeEventRouter*);
-	void hookUpTwoDDataTab(TwoDDataEventRouter*);
-	void hookUpTwoDImageTab(TwoDImageEventRouter*);
-	void hookUpAnimationTab(AnimationEventRouter*);
-	void hookUpFlowTab(FlowEventRouter*);
+	
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return vizWin[i];}
+	
+	
+	void setVizWinName(int winNum, QString& qs);
+	QString& getVizWinName(int winNum) {return vizName[winNum];}
+	bool isMinimized(int winNum) {return isMin[winNum];}
+	bool isMaximized(int winNum) {return isMax[winNum];}
+	
+	
+	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_viewpointParamsTag));}
+	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_regionParamsTag));}
+	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_animationParamsTag));}
+	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
+	void createDefaultParams(int winnum);
+	Params* getCorrespondingLocalParams(Params* p) {
+		return getLocalParams(p->GetParamsBaseTypeId());
+	}
+	
+	void setSelectionMode( int mode);
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int win) {
 		if (!vizWin[win]) return 0;
@@ -279,42 +354,6 @@ public:
 		if (p->isLocal()) return (ViewpointParams*)p;
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
 	}
-	RegionParams* getRealRegionParams(int win) {
-		if (!vizWin[win]) return 0;
-		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
-		if (p->isLocal()) return (RegionParams*)p;
-		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
-	}
-	AnimationParams* getRealAnimationParams(int win) {
-		if (!vizWin[win]) return 0;
-		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
-		if (p->isLocal()) return (AnimationParams*)p;
-		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
-	}
-	ViewpointParams* getGlobalVPParams(){return (ViewpointParams*)(Params::GetDefaultParams(Params::_viewpointParamsTag));}
-	RegionParams* getGlobalRegionParams(){
-		return (RegionParams*)(Params::GetDefaultParams(Params::_regionParamsTag));
-	}
-	AnimationParams* getGlobalAnimationParams(){return (AnimationParams*)(Params::GetDefaultParams(Params::_animationParamsTag));}
-
-	
-	void setVizWinName(int winNum, QString& qs);
-	QString& getVizWinName(int winNum) {return vizName[winNum];}
-	bool isMinimized(int winNum) {return isMin[winNum];}
-	bool isMaximized(int winNum) {return isMax[winNum];}
-	//Setting a params changes the previous params to the
-	//specified one, performs needed ref/unref
-	void setParams(int winNum, Params* p, ParamsBase::ParamsBaseType typeId, int instance = -1);
-	
-	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_viewpointParamsTag));}
-	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_regionParamsTag));}
-	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::GetTypeFromTag(Params::_animationParamsTag));}
-		
-	void replaceGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
-	void createDefaultParams(int winnum);
-	
-	void setSelectionMode( GLWindow::mouseModeType m);
-	
 	Trackball* getGlobalTrackball() {return globalTrackball;}
 	//For a specific coordinate, and a specific window num, determine
 	//whether or not the camera is situated further from the origin than
@@ -359,7 +398,6 @@ public:
 	void setFlowGraphicsDirty(FlowParams* p);
 	void setFlowDataDirty(FlowParams* p, bool doInterrupt = true);
 	void setFlowDisplayListDirty(FlowParams* p);
-	
 	bool flowDataIsDirty(FlowParams* p);
 
 	//Force reconstructing of all elevation grids
@@ -367,7 +405,6 @@ public:
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.
 	//
-	
 	void animationParamsChanged(AnimationParams* );
 	//Reset the near/far distances for all the windows that
 	//share a viewpoint, based on region in specified regionparams
@@ -379,7 +416,6 @@ public:
 	//Change to play state for the specified renderers:
 	//
 	void startPlay(AnimationParams* aParams);
-	
 	//Tell all parameter panels to reinitialize (based on change of 
 	//Metadata).  If the parameter is true, we can override the panels' 
 	//previous state
@@ -396,29 +432,21 @@ public:
 	//Make each window use its viewpoint params
 	void initViews();
 	
-	//Methods to handle save/restore
+	//Methods to handle save/restore of session state
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	//this tag needs to be visible in session class
 	static const string _visualizersTag;
 
-	//General function for all dirty bit setting:
-	void setVizDirty(Params* p, DirtyBitType bittype, bool bit = true, bool refresh = true);
-
-
-	Params* getCorrespondingGlobalParams(Params* p) {
-		return getGlobalParams(p->GetParamsBaseTypeId());
-	}
-	Params* getCorrespondingLocalParams(Params* p) {
-		return getLocalParams(p->GetParamsBaseTypeId());
-	}
+	
+	
 	void setInteractiveNavigating(int level);
 	bool findCoincident2DSurface(int viznum, int orientation, float coordinate, bool terrainMapped);
 	void stopFlowIntegration();
 
-	static bool spinAnimationEnabled(){return spinAnimate;}
-	static void setSpinAnimation(bool on){spinAnimate = on;}
+	
+	
 
 public slots:
 	//arrange the viz windows:
@@ -435,6 +463,11 @@ public slots:
 	void viewAll();
 	void viewRegion();
 	void alignView(int axis);
+	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
+	
+	void setVpLocalGlobal(int val);
+	void setRgLocalGlobal(int val);
+	void setAnimationLocalGlobal(int val);
 	
 signals:
 	//Turn on/off multiple viz options:
@@ -445,6 +478,7 @@ signals:
 	void removeViz(int);
 	void activateViz(int);
 	void changeName(QString&, int);
+
 	
 protected:
 	static const string _vizTimeAnnotColorAttr;
@@ -479,6 +513,7 @@ protected:
 	static const string _vizColorbarNumTicsAttr;
 	static const string _vizAxisArrowsEnabledAttr;
 	static const string _vizColorbarEnabledAttr;
+	static const string _vizColorbarParamsNameAttr;
 	static const string _vizRegionFrameEnabledAttr;
 	static const string _vizSubregionFrameEnabledAttr;
 	static const string _visualizerNumAttr;
@@ -487,6 +522,35 @@ protected:
 	static const string _vizElevGridRotationAttr;
 	static const string _vizElevGridTexturedAttr;
 	static const string _vizElevGridTextureNameAttr;
+
+	
+	RegionParams* getRealRegionParams(int win) {
+		if (!vizWin[win]) return 0;
+		Params* p = Params::GetParamsInstance(Params::_regionParamsTag,win,-1);
+		if (p->isLocal()) return (RegionParams*)p;
+		return (RegionParams*)Params::GetDefaultParams(Params::_regionParamsTag);
+	}
+	AnimationParams* getRealAnimationParams(int win) {
+		if (!vizWin[win]) return 0;
+		Params* p = Params::GetParamsInstance(Params::_animationParamsTag,win,-1);
+		if (p->isLocal()) return (AnimationParams*)p;
+		return (AnimationParams*)Params::GetDefaultParams(Params::_animationParamsTag);
+	}
+	ViewpointParams* getGlobalVPParams(){return (ViewpointParams*)(Params::GetDefaultParams(Params::_viewpointParamsTag));}
+	RegionParams* getGlobalRegionParams(){
+		return (RegionParams*)(Params::GetDefaultParams(Params::_regionParamsTag));
+	}
+	AnimationParams* getGlobalAnimationParams(){return (AnimationParams*)(Params::GetDefaultParams(Params::_animationParamsTag));}
+
+	static Params::ParamsBaseType RegisterEventRouter(const std::string tag, EventRouter* router);
+	static std::map<ParamsBase::ParamsBaseType, EventRouter*> eventRouterMap;
+	
+	// Method that returns the current params instance that applies in the current
+	// active visualizer if it is local.  
+	Params* getLocalParams(Params::ParamsBaseType t);
+	
+	static void setGlobalParams(Params* p, ParamsBase::ParamsBaseType t);
+
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
@@ -512,42 +576,26 @@ protected:
 	}
 	Trackball* globalTrackball;
 
-	RegionEventRouter* regionEventRouter;
-	DvrEventRouter* dvrEventRouter;
-	IsoEventRouter* isoEventRouter;
-	ProbeEventRouter* probeEventRouter;
-	TwoDDataEventRouter* twoDDataEventRouter;
-	TwoDImageEventRouter* twoDImageEventRouter;
-	ViewpointEventRouter* viewpointEventRouter;
-	AnimationEventRouter* animationEventRouter;
-	FlowEventRouter* flowEventRouter;
-	static std::map<ParamsBase::ParamsBaseType, EventRouter*> eventRouterMap;
+	
+
     MainForm* myMainWindow;
-    TabManager* tabManager;
+    static TabManager* tabManager;
    
     int activeViz;
 	vector<int> parsingInstance;
 	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance,parsingTwoDDataInstance,parsingTwoDImageInstance;
 	
     QMdiArea* myMDIArea;
-	
-	
-	
 	FlowTab* myFlowTab;
 
     int     benchmark;
     QTimer *benchmarkTimer;
-	static bool spinAnimate;
+	bool spinAnimate;
 
-protected slots:
+#endif //DOXYGEN_SKIP_THIS
 	
 
-	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
-	//First, the viztab slots:
 	
-	void setVpLocalGlobal(int val);
-	void setRgLocalGlobal(int val);
-	void setAnimationLocalGlobal(int val);
 };
 };
 #endif // VIZWINMGR_H

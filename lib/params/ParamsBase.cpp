@@ -280,24 +280,7 @@ void ParamsBase::SetFlagDirty(const string& flag)
 	_rootParamNode->SetFlagDirty(flag);
 }
 	
-//Static methods for class registration
-//All ParamsBase classes must provide one line in the following method
-void ParamsBase::RegisterParamsBaseClasses(){
-	RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
-	RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
-	RegisterParamsBaseClass(ParamsIso::_IsoControlTag, IsoControl::CreateDefaultInstance, false);
-	RegisterParamsBaseClass(Params::_isoParamsTag, ParamsIso::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_probeParamsTag, ProbeParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
-	//For backwards compatibility; the tag changed in vapor 1.5
-	ReregisterParamsBaseClass(Params::_twoDParamsTag, Params::_twoDDataParamsTag, true);
-	RegisterParamsBaseClass(Params::_twoDImageParamsTag, TwoDImageParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
-	RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
-}
+
 int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bool isParams){
 	// See if tag is registered already 
 	// If so, error
@@ -325,6 +308,7 @@ int ParamsBase::RegisterParamsBaseClass(const string& tag, BaseCreateFcn fcn, bo
 	createDefaultFcnMap.insert(pair<int, BaseCreateFcn>(newIndex, fcn));
 	if(isParams) numParamsClasses = newIndex;
 	else numEmbedClasses = -newIndex;
+	if (isParams) Params::SetDefaultParams(newIndex, Params::CreateDefaultParams(newIndex));
 	return newIndex;
 
 }

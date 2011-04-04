@@ -104,7 +104,7 @@ public:
  //! Obtain the session variable number of the current iso variable
  //!
  virtual int getSessionVarNum(){
-	 return DataStatus::getInstance()->getSessionVariableNum(
+	 return DataStatus::getInstance()->getSessionVariableNum3D(
 		 GetIsoVariableName());
  }
  //!
@@ -126,7 +126,7 @@ public:
  void SetIsoHistoStretch(float scale);
  float GetIsoHistoStretch();
  
- //Following required of render params classes 
+ //Following required of render params classes that have a histogram: 
  virtual const float* getCurrentDatarange(){
 	 return GetHistoBounds();
  }
@@ -135,6 +135,7 @@ public:
 
 //Obtain the current transfer function
 virtual MapperFunction* getMapperFunc(); 
+virtual bool UsesMapperFunction() {return true;}
 //obtain the current iso control
 IsoControl* getIsoControl();
 //Obtain transfer function for a specific variable
@@ -259,10 +260,10 @@ float getMaxIsoEditBound() {
  void RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
 int GetMapVariableNum(){
 	//Note:  -1 is returned if there is no match.  That indicates no mapping.
-	return  DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
+	return  DataStatus::getInstance()->getSessionVariableNum3D(GetMapVariableName());
 }
 int GetIsoVariableNum(){
-	int varnum = DataStatus::getInstance()->getSessionVariableNum(GetIsoVariableName());
+	int varnum = DataStatus::getInstance()->getSessionVariableNum3D(GetIsoVariableName());
 	if (varnum < 0) return 0; else return varnum;
 }
  void SetIsoVariableName(const string& varName);
@@ -284,7 +285,7 @@ virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int tim
 		return ctab;
 	}
  void refreshCtab();
- 
+ //Parsing needed for backwards compatibility
  virtual bool elementStartHandler(
 		ExpatParseMgr* pm, int depth, string& tag, const char ** attribs);
  virtual bool elementEndHandler(ExpatParseMgr* pm, int depth, string& tag);

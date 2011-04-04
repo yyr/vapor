@@ -99,6 +99,7 @@ void EventRouter::performGuiChangeInstance(int newCurrent){
 	Params* p = vizMgr->getParams(winnum, myParamsBaseType);
 	VizWin* vw = vizMgr->getVizWin(winnum);
 	vw->getGLWindow()->setActiveParams(p,myParamsBaseType);
+	vw->setColorbarDirty(true);
 	vw->updateGL();
 }
 void EventRouter::performGuiNewInstance(){
@@ -178,7 +179,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		histogramList[varNum] = 0;
 	}
 	int numTrans = renParams->getNumRefinements();
-	const char* varname = ds->getVariableName(varNum).c_str();
+	const char* varname = ds->getVariableName3D(varNum).c_str();
 	
 	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
 	if(availRefLevel < 0) {
@@ -190,7 +191,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		return;
 	}
 	int lod = renParams->GetCompressionLevel();
-	if (ds->useLowerRefinementLevel())
+	if (ds->useLowerAccuracy())
 		lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));
 		
 	//Check if the region/resolution is too big:
@@ -227,7 +228,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		if (ds->warnIfDataMissing())
 			renParams->setBypass(timeStep);
 			MessageReporter::errorMsg("Invalid/nonexistent data;\ncannot be histogrammed");
-		ds->setDataMissing(timeStep, availRefLevel, lod, varNum);
+		ds->setDataMissing3D(timeStep, availRefLevel, lod, varNum);
 		return;
 	}
 

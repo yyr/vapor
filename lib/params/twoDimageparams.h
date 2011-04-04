@@ -144,6 +144,9 @@ public:
 		return twoDDataTextures[0];
 		
 	}
+	//Override default, allow manip to go outside of data:
+	virtual bool isDomainConstrained() {return false;}
+
 	float * getCurrentTwoDImageExtents(int ){
 		if (!imageExtents) return 0;
 		return imageExtents;

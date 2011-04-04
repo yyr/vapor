@@ -41,14 +41,17 @@ class ProbeEventRouter : public QWidget, public Ui_ProbeTab, public EventRouter 
 	Q_OBJECT
 public: 
 	
-	ProbeEventRouter(QWidget* parent, const char* name);
+	ProbeEventRouter(QWidget* parent);
 	virtual ~ProbeEventRouter();
-
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new ProbeEventRouter((QWidget*)tMgr));
+	}
 	virtual void refreshGLWindow();
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
 		setProbeDirty((ProbeParams*)p);
-		VizWinMgr::getInstance()->setVizDirty(p,ProbeTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(p);
 	}
 	
 	//Connect signals and slots from tab

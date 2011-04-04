@@ -24,6 +24,7 @@
 #include <qwidget.h>
 #include <qcolor.h>
 #include "params.h"
+#include "mapperfunction.h"
 #include "glutil.h"
 #include <vapor/common.h>
 class FlowTab;
@@ -53,6 +54,7 @@ public:
 	
 	virtual int GetCompressionLevel() {return compressionLevel;}
 	virtual void SetCompressionLevel(int val) {compressionLevel = val; }
+	virtual bool UsesMapperFunction() {return true;}
 
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
@@ -66,7 +68,7 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
-	
+	virtual bool isOpaque() { return mapperFunction->isOpaque();}
 	
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//Needed here because the map bounds are saved in params class for each mapped variable

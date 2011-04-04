@@ -40,8 +40,12 @@ class FlowEventRouter : public QWidget, public Ui_FlowTab, public EventRouter {
 	Q_OBJECT
 public: 
 	
-	FlowEventRouter(QWidget* parent, const char* name);
+	FlowEventRouter(QWidget* parent);
 	virtual ~FlowEventRouter();
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new FlowEventRouter((QWidget*)tMgr));
+	}
 
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){

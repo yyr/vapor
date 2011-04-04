@@ -64,7 +64,7 @@ public:
 	
 	virtual Params* deepCopy(ParamNode* = 0); 
 	virtual bool usingVariable(const string& varname){
-		return (DataStatus::getInstance()->getVariableName(varNum) == varname);
+		return (DataStatus::getInstance()->getVariableName3D(varNum) == varname);
 	}
 
 	
@@ -83,10 +83,10 @@ public:
 	void setVarNum(int val); 
 	virtual int getSessionVarNum() {return varNum;}
 	const char* getVariableName() {
-		return (const char*) (DataStatus::getInstance()->getVariableName(varNum).c_str());
+		return (const char*) (DataStatus::getInstance()->getVariableName3D(varNum).c_str());
 	}
 	const std::string& getStdVariableName() {
-		return DataStatus::getInstance()->getVariableName(varNum);
+		return DataStatus::getInstance()->getVariableName3D(varNum);
 	}
 	
 	virtual const float* getCurrentDatarange(){
@@ -143,12 +143,12 @@ public:
 	float getDataMinBound(int currentTimeStep){
 		if(!DataStatus::getInstance() || numVariables == 0) return 0.f;
 		
-		return (DataStatus::getInstance()->getDataMin(varNum, currentTimeStep));
+		return (DataStatus::getInstance()->getDataMin3D(varNum, currentTimeStep));
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(!DataStatus::getInstance() || numVariables == 0) return 1.f;
 		
-		return (DataStatus::getInstance()->getDataMax(varNum, currentTimeStep));
+		return (DataStatus::getInstance()->getDataMax3D(varNum, currentTimeStep));
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
@@ -164,6 +164,7 @@ public:
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
+	virtual bool UsesMapperFunction() {return true;}
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	

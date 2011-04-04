@@ -45,9 +45,13 @@ class AnimationEventRouter : public QWidget, public Ui_AnimationTab, public Even
 	Q_OBJECT
 
 public: 
-	AnimationEventRouter(QWidget* parent = 0, const char* name = 0);
+	AnimationEventRouter(QWidget* parent = 0);
 	~AnimationEventRouter();
-	
+	//Required method to create the tab:
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new AnimationEventRouter((QWidget*)tMgr));
+	}
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);

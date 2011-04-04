@@ -92,26 +92,27 @@ public:
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
 	void setAnimationDirty(bool isDirty){ setDirtyBit(AnimationBit,isDirty);}
-	void setRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
+	void setRegionNavigating(bool isDirty){ setDirtyBit(NavigatingBit,isDirty);}
 	
 	bool regionIsDirty() {return vizIsDirty(RegionBit);}
 
 	
-	bool regionIsNavigating() {return vizIsDirty(DvrRegionBit);}
+	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
 	
 	void setMouseDown(bool downUp) {
 		mouseDownHere = downUp;
 		myGLWindow->setMouseDown(downUp);
 	}
 	bool mouseIsDown() {return mouseDownHere;}
-	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
-	int pointOverCube(FlowParams* rParams, float screenCoords[2]);
+	
 
 	//Access visualizer features
 	const QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
 	const QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
 	const QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
 	QColor& getColorbarBackgroundColor() {return myGLWindow->getColorbarBackgroundColor();}
+	int getColorbarParamsTypeId() {return myGLWindow->getColorbarParamsTypeId();}
+	void setColorbarParamsTypeId(int val) {myGLWindow->setColorbarParamsTypeId(val);}
 	
 	//Pass get/set onto glwindow:
 	bool axisArrowsAreEnabled() {return myGLWindow->axisArrowsAreEnabled();}

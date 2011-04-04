@@ -24,6 +24,7 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include <qapplication.h>
+#include <QIcon>
 #include <qcursor.h>
 #include <qdesktopwidget.h>
 #include <qrect.h>
@@ -58,6 +59,8 @@
 #include "dvrparams.h"
 
 #include "params.h"
+
+#include "vapor/ExtensionClasses.h"
 #include "twoDimageparams.h"
 #include "twoDdataparams.h"
 #include "animationparams.h"
@@ -85,12 +88,19 @@
 #include <vapor/XmlNode.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/ParamNode.h>
-
+#include "images/probe.xpm"
+#include "images/twoDData.xpm"
+#include "images/twoDImage.xpm"
+#include "images/rake.xpm"
+#include "images/wheel.xpm"
+#include "images/cube.xpm"
 
 using namespace VAPoR;
+TabManager* VizWinMgr::tabManager = 0;
 VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 std::map<ParamsBase::ParamsBaseType, EventRouter*> VizWinMgr::eventRouterMap;
-bool VizWinMgr::spinAnimate = false;
+
+
 const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";
@@ -121,6 +131,7 @@ const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
 const string VizWinMgr::_vizAxisArrowsEnabledAttr = "AxesEnabled";
 const string VizWinMgr::_vizAxisAnnotationEnabledAttr = "AxisAnnotationEnabled";
 const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
+const string VizWinMgr::_vizColorbarParamsNameAttr = "ColorbarParamsTag";
 const string VizWinMgr::_vizElevGridEnabledAttr = "ElevGridRenderingEnabled";
 const string VizWinMgr::_vizElevGridTexturedAttr = "ElevGridTextured";
 const string VizWinMgr::_vizElevGridColorAttr = "ElevGridColor";
@@ -142,12 +153,13 @@ VizWinMgr::VizWinMgr()
 {
 	myMainWindow = MainForm::getInstance();
     myMDIArea = myMainWindow->getMDIArea();
-    tabManager = myMainWindow->getTabManager();
+	tabManager = MainForm::getTabManager();
     previousClass = 0;
 	activeViz = -1;
 	activationCount = 0;
     benchmark = DONE;
     benchmarkTimer = NULL;
+	
     for (int i = 0; i< MAXVIZWINS; i++){
         vizWin[i] = 0;
 		vizMdiWin[i] = 0;
@@ -163,20 +175,39 @@ VizWinMgr::VizWinMgr()
 		activationOrder[i] = -1;
     }
 	setSelectionMode(GLWindow::navigateMode);
-	dvrEventRouter = 0;
-	isoEventRouter = 0;
-	regionEventRouter = 0;
-	viewpointEventRouter = 0;
-	probeEventRouter = 0;
-	twoDImageEventRouter = 0;
-	twoDDataEventRouter = 0;
-	animationEventRouter = 0;
-	flowEventRouter = 0;
 }
 //Create the global params and the default renderer params:
 void VizWinMgr::
 createAllDefaultParams() {
-	Params::RegisterParamsBaseClasses();
+
+	ParamsBase::RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
+	ParamsBase::RegisterParamsBaseClass(ParamsIso::_IsoControlTag, IsoControl::CreateDefaultInstance, false);
+	//Animation comes first because others will refer to it.
+	ParamsBase::RegisterParamsBaseClass(Params::_animationParamsTag, AnimationParams::CreateDefaultInstance, true);
+	InstallTab(Params::_animationParamsTag, AnimationEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_viewpointParamsTag, ViewpointParams::CreateDefaultInstance, true);
+	InstallTab(Params::_viewpointParamsTag, ViewpointEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_regionParamsTag, RegionParams::CreateDefaultInstance, true);
+	InstallTab(Params::_regionParamsTag, RegionEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_twoDDataParamsTag, TwoDDataParams::CreateDefaultInstance, true);
+	//For backwards compatibility; the tag changed in vapor 1.5
+	ParamsBase::ReregisterParamsBaseClass(Params::_twoDParamsTag, Params::_twoDDataParamsTag, true);
+	InstallTab(Params::_twoDDataParamsTag, TwoDDataEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_twoDImageParamsTag, TwoDImageParams::CreateDefaultInstance, true);
+	InstallTab(Params::_twoDImageParamsTag, TwoDImageEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_probeParamsTag, ProbeParams::CreateDefaultInstance, true);
+	InstallTab(Params::_probeParamsTag, ProbeEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_isoParamsTag, ParamsIso::CreateDefaultInstance, true);
+	InstallTab(Params::_isoParamsTag, IsoEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_flowParamsTag, FlowParams::CreateDefaultInstance, true);
+	InstallTab(Params::_flowParamsTag, FlowEventRouter::CreateTab);
+	ParamsBase::RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
+	InstallTab(Params::_dvrParamsTag, DvrEventRouter::CreateTab);
+
+	//Install Extension Classes:
+	InstallExtensions();
+	
 	//Create a default parameter set
 	//For non-renderer params, the default ones are the global ones.
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
@@ -358,7 +389,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	return useWindowNum;
 }
 /*
- *  Create params, for a new visualizer.  Just create one instance of renderparams
+ *  Create params, for a new visualizer.  
  */
 void VizWinMgr::
 createDefaultParams(int winnum){
@@ -368,6 +399,7 @@ createDefaultParams(int winnum){
 		//if (!q->isRenderParams()) continue;
 		Params* p = q->deepCopy();
 		p->setVizNum(winnum);
+		//Check for strange error:
 		assert( Params::GetNumParamsInstances(i,winnum) == 0);
 		Params::AppendParamsInstance(i,winnum,p);
 		Params::SetCurrentParamsInstanceIndex(i,winnum,0);
@@ -607,88 +639,7 @@ void VizWinMgr::setParams(int winnum, Params* p, ParamsBase::ParamsBaseType clsI
 	}
 }
 
-/**********************************************************
- * Whenever a new tab is created it must be hooked up here
- ************************************************************/
-void
-VizWinMgr::hookUpViewpointTab(ViewpointEventRouter* vTab)
-{
-	viewpointEventRouter = vTab;
-	
- 	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
-	emit enableMultiViz(getNumVisualizers() > 1);
-	vTab->hookUpTab();
-}
-/**********************************************************
- * Whenever a new regiontab is created it must be hooked up here
- ************************************************************/
-void
-VizWinMgr::hookUpRegionTab(RegionEventRouter* rTab)
-{
-	
-	//Signals and slots:
-	
-	regionEventRouter = rTab;
-	connect (rTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setRgLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), rTab->LocalGlobal, SLOT(setEnabled(bool)));
-	
-	regionEventRouter->hookUpTab();
-	
-}
-void
-VizWinMgr::hookUpDvrTab(DvrEventRouter* dvrTab)
-{
-	dvrEventRouter = dvrTab;
-	dvrEventRouter->hookUpTab();
-}
-void
-VizWinMgr::hookUpIsoTab(IsoEventRouter* isoTab)
-{
-	isoEventRouter = isoTab;
-	isoEventRouter->hookUpTab();
-}
-void
-VizWinMgr::hookUpProbeTab(ProbeEventRouter* probeTab)
-{
-	probeEventRouter = probeTab;
-	probeEventRouter->hookUpTab();
-}
-void
-VizWinMgr::hookUpTwoDImageTab(TwoDImageEventRouter* twoDTab)
-{
-	twoDImageEventRouter = twoDTab;
-	twoDImageEventRouter->hookUpTab();
-}
-void
-VizWinMgr::hookUpTwoDDataTab(TwoDDataEventRouter* twoDTab)
-{
-	twoDDataEventRouter = twoDTab;
-	twoDDataEventRouter->hookUpTab();
-}
-/**********************************************************
- * Whenever a new tab is created it must be hooked up here
- ************************************************************/
-void
-VizWinMgr::hookUpAnimationTab(AnimationEventRouter* aTab)
-{
-	//Signals and slots:
-	animationEventRouter = aTab;
- 	connect (aTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setAnimationLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), aTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyTargetCombo, SLOT(setEnabled(bool)));
-	emit enableMultiViz(getNumVisualizers() > 1);
-	animationEventRouter->hookUpTab();
-	
-}
 
-void
-VizWinMgr::hookUpFlowTab(FlowEventRouter* flowTab)
-{
-	flowEventRouter = flowTab;
-	flowEventRouter->hookUpTab();
-}
 /*
  * Tell the parameter panels when there are or are not multiple viz's
  */
@@ -773,10 +724,9 @@ void VizWinMgr::refreshRegion(RegionParams* rParams){
 	//Is another viz using these region params?
 	if (rParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		RegionParams* rgParams = (RegionParams*)Params::GetParamsInstance(Params::_regionParamsTag,i);
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!rgParams)||!rgParams->isLocal())
-			){
+		if  ( (i != vizNum)  &&((!rgParams)||!rgParams->isLocal())){
 			vizWin[i]->updateGL();
 		}
 	}
@@ -790,8 +740,9 @@ void VizWinMgr::refreshViewpoint(ViewpointParams* vParams){
 	//Is another viz using these viewpoint params?
 	if (vParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag,i);
-		if  ( vizWin[i] && (i != vizNum)  &&
+		if  ( (i != vizNum)  &&
 				((!vpParams)||!vpParams->isLocal())
 			){
 			vizWin[i]->updateGL();
@@ -884,9 +835,9 @@ setViewerCoordsChanged(ViewpointParams* vp){
 	}
 	if(vp->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!vpParams)||!vpParams->isLocal())
+		if  (  (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())
 			){
 			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
 		}
@@ -904,10 +855,9 @@ resetViews(RegionParams* rp, ViewpointParams* vp){
 	}
 	if(vp->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!vpParams)||!vpParams->isLocal())
-			){
+		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())){
 			GLWindow* glw = vizWin[i]->getGLWindow();
 			if(glw) glw->resetView(rp, vp);
 		}
@@ -949,8 +899,8 @@ setAnimationLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(getRealAnimationParams(activeViz))animationEventRouter->guiSetLocal(getRealAnimationParams(activeViz),false);
-		animationEventRouter->updateTab();
+		if(getRealAnimationParams(activeViz))getAnimationRouter()->guiSetLocal(getRealAnimationParams(activeViz),false);
+		getAnimationRouter()->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveAnimationParams(getGlobalAnimationParams());
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -958,12 +908,12 @@ setAnimationLocalGlobal(int val){
 			//create a new parameter panel, copied from global
 			Params::AppendParamsInstance(Params::_animationParamsTag, activeViz, (AnimationParams*)getGlobalAnimationParams()->deepCopy());
 			getRealAnimationParams(activeViz)->setVizNum(activeViz);
-			animationEventRouter->confirmText(true);
+			getAnimationRouter()->confirmText(true);
 			
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			animationEventRouter->guiSetLocal(getRealAnimationParams(activeViz),true);
-			animationEventRouter->updateTab();
+			getAnimationRouter()->guiSetLocal(getRealAnimationParams(activeViz),true);
+			getAnimationRouter()->updateTab();
 			
 		}
 		//set the local params in the glwindow:
@@ -989,8 +939,8 @@ setVpLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		viewpointEventRouter->guiSetLocal((ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, activeViz),false);
-		viewpointEventRouter->updateTab();
+		getViewpointRouter()->guiSetLocal((ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, activeViz),false);
+		getViewpointRouter()->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveViewpointParams((ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag));
 		vizWin[activeViz]->setGlobalViewpoint(true);
 		tabManager->show();
@@ -1000,11 +950,11 @@ setVpLocalGlobal(int val){
 			//create a new parameter panel, copied from global
 			vpParams = (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag)->deepCopy();
 			vpParams->setVizNum(activeViz);
-			viewpointEventRouter->guiSetLocal(vpParams,true);
+			getViewpointRouter()->guiSetLocal(vpParams,true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			viewpointEventRouter->guiSetLocal(vpParams,true);
-			viewpointEventRouter->updateTab();
+			getViewpointRouter()->guiSetLocal(vpParams,true);
+			getViewpointRouter()->updateTab();
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -1030,8 +980,8 @@ setRgLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		regionEventRouter->guiSetLocal(getRegionParams(activeViz),false);
-		regionEventRouter->updateTab();
+		getRegionRouter()->guiSetLocal(getRegionParams(activeViz),false);
+		getRegionRouter()->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveRegionParams(getGlobalRegionParams());
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -1039,11 +989,11 @@ setRgLocalGlobal(int val){
 			//create a new parameter panel, copied from global
 			Params::AppendParamsInstance(Params::_regionParamsTag, activeViz, (RegionParams*)getGlobalRegionParams()->deepCopy());
 			getRealRegionParams(activeViz)->setVizNum(activeViz);
-			regionEventRouter->guiSetLocal(getRealRegionParams(activeViz),true);
+			getRegionRouter()->guiSetLocal(getRealRegionParams(activeViz),true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			regionEventRouter->guiSetLocal(getRegionParams(activeViz),true);
-			regionEventRouter->updateTab();
+			getRegionRouter()->guiSetLocal(getRegionParams(activeViz),true);
+			getRegionRouter()->updateTab();
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -1108,7 +1058,6 @@ getFlowParams(int winNum, int instance){
 Params* VizWinMgr::
 getGlobalParams(Params::ParamsBaseType pType){
 	return Params::GetDefaultParams(pType);
-	
 }
 void VizWinMgr::
 setGlobalParams(Params* p, Params::ParamsBaseType t){
@@ -1148,10 +1097,8 @@ initViews(){
 			ViewpointParams* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag,i);
 			if (vpParams->isLocal()){
 				vizWin[i]->setValuesFromGui(vpParams);
-				
 			}
 			else vizWin[i]->setValuesFromGui(getGlobalVPParams());
-
 			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
 		}
 	}
@@ -1194,7 +1141,7 @@ reinitializeParams(bool doOverride){
 		if (p->isRenderParams())p->reinit(true);
 	}
 
-	regionEventRouter->refreshRegionInfo(getGlobalRegionParams());
+	getRegionRouter()->refreshRegionInfo(getGlobalRegionParams());
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
@@ -1247,14 +1194,15 @@ reinitializeVariables(){
 	}
 	
 	getGlobalRegionParams()->reinit(false);
-	regionEventRouter->reinitTab(false);
-	regionEventRouter->refreshRegionInfo(getGlobalRegionParams());
+	getRegionRouter()->reinitTab(false);
+	getRegionRouter()->refreshRegionInfo(getGlobalRegionParams());
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
 	getGlobalVPParams()->reinit(false);
 	
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if (!vizWin[i]) continue;
 		if(getRealVPParams(i)) getRealVPParams(i)->reinit(false);
 		if(getRealRegionParams(i)) getRealRegionParams(i)->reinit(false);
 		//Reinitialize all the render params, but not the event routers
@@ -1323,22 +1271,22 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 }
 //Disable all renderers 
 void VizWinMgr::disableAllRenderers(){
+	int firstwin = -1;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]){
+			if (firstwin == -1) firstwin = i;
 			GLWindow* glwin= vizWin[i]->getGLWindow();
-			for (int j = 0; j< glwin->getNumRenderers(); j++){
-				Renderer* ren = glwin->getRenderer(j);
-				RenderParams* rParams = ren->getRenderParams();
-				Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-				int instance = findInstanceIndex(i, rParams, t);
-				EventRouter* er = getEventRouter(t);
-				er->guiSetEnabled(false,instance);	
-			}
+			glwin->removeAllRenderers();
 		}
+	}
+	if (firstwin != -1){
+		//Set the "first" one to be active:
+		setActiveViz(firstwin);
+		GLWindow::setActiveWinNum(firstwin);
 	}
 }
 void VizWinMgr::
-setSelectionMode( GLWindow::mouseModeType m){ 
+setSelectionMode( int m){ 
 	GLWindow::setCurrentMouseMode(m);
 	//Update all visualizers:
 	for (int i = 0; i<MAXVIZWINS; i++){
@@ -1484,6 +1432,10 @@ ParamNode* VizWinMgr::buildNode() {
 				else oss << "false";
 			attrs[_vizColorbarEnabledAttr] = oss.str();
 
+			int ptypeId = vizWin[i]->getColorbarParamsTypeId();
+			string pname = Params::GetTagFromType(ptypeId);
+			attrs[_vizColorbarParamsNameAttr] = pname;
+
 			oss.str(empty);
 			oss << (float)vizWin[i]->getColorbarLLCoord(0) << " "
 				<< (float)vizWin[i]->getColorbarLLCoord(1);
@@ -1512,41 +1464,21 @@ ParamNode* VizWinMgr::buildNode() {
 			
 			ParamNode* locals = new ParamNode(_vizWinTag, attrs, 5);
 			vizMgrNode->AddChild(locals);
-			//Now add local params.  One for each instance:
-			for (int inst = 0; inst< getNumDvrInstances(i); inst++){
-				ParamNode* dvrNode = getDvrParams(i,inst)->buildNode();
-				if(dvrNode) locals->AddChild(dvrNode);
-			}
-			for (int inst = 0; inst< getNumIsoInstances(i); inst++){
-				ParamNode* isoNode = Params::GetParamsInstance(Params::_isoParamsTag,i,inst)->buildNode();
-				locals->AddChild(isoNode);
-			}
-			for (int inst = 0; inst< Params::GetNumParamsInstances(Params::_flowParamsTag,i); inst++){
-				ParamNode* flowNode = getFlowParams(i,inst)->buildNode();
-				if(flowNode) locals->AddChild(flowNode);
-			}
-			for (int inst = 0; inst< Params::GetNumParamsInstances(Params::_probeParamsTag,i); inst++){
-				ParamNode* probeNode = getProbeParams(i,inst)->buildNode();
-				if(probeNode) locals->AddChild(probeNode);
-			}
-			for (int inst = 0; inst< getNumTwoDImageInstances(i); inst++){
-				ParamNode* twoDNode = getTwoDImageParams(i,inst)->buildNode();
-				if(twoDNode) locals->AddChild(twoDNode);
-			}
-			for (int inst = 0; inst< getNumTwoDDataInstances(i); inst++){
-				ParamNode* twoDNode = getTwoDDataParams(i,inst)->buildNode();
-				if(twoDNode) locals->AddChild(twoDNode);
-			}
-			//Add the current non-render params.  Note that they will indicate by their local/global flag
-			//whether or not the global state is active, and they also will indicate the current local state
-			//even if it is not currently being used.
-			ParamNode* rgNode = Params::GetParamsInstance(Params::_regionParamsTag,i,-1)->buildNode();
-			if(rgNode) locals->AddChild(rgNode);
-			ParamNode* animNode = Params::GetParamsInstance(Params::_animationParamsTag,i,-1)->buildNode();
-			if(animNode) locals->AddChild(animNode);
-			ParamNode* vpNode = Params::GetParamsInstance(Params::_viewpointParamsTag,i,-1)->buildNode();
-			if (vpNode) locals->AddChild(vpNode);
+			//Loop over all the local params that exist for this window:
 			
+			for (int pclass = 1; pclass<= Params::GetNumParamsClasses(); pclass++){
+				for (int inst = 0; inst<Params::GetNumParamsInstances(pclass,i); inst++){
+					Params* p = Params::GetParamsInstance(pclass,i,inst);
+					ParamNode* pnode = p->buildNode();
+					if (pnode) locals->AddChild(pnode);
+				}
+			}
+			for (int i = 0; i< Params::getNumDummyClasses(); i++){
+				Params* p = Params::getDummyParamsInstance(i);
+				ParamNode* pnode = p->buildNode();
+				if (pnode) locals->AddChild(pnode);
+			}
+
 		}
 	}
 	return vizMgrNode;
@@ -1567,7 +1499,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		//Create a visualizer
 		//Get the name & num
 		string winName;
-		
+		int colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
 		QColor winBgColor = DataStatus::getBackgroundColor();
 		QColor winRgColor = DataStatus::getRegionFrameColor();
 		QColor winSubrgColor = DataStatus::getSubregionFrameColor();
@@ -1738,6 +1670,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				if (value == "true") colorbarEnabled = true; 
 				else colorbarEnabled = false; 
 			}
+			else if (StrCmpNoCase(attr, _vizColorbarParamsNameAttr) == 0) {
+				colorbarParamsTypeId = ParamsBase::GetTypeFromTag(value);
+			}
 			else if (StrCmpNoCase(attr, _vizRegionFrameEnabledAttr) == 0) {
 			if (value == "true") regionEnabled = true; 
 				else regionEnabled = false; 
@@ -1796,6 +1731,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setColorbarNumTics(colorbarTics);
 		vizWin[parsingVizNum]->setColorbarDigits(colorbarDigits);
 		vizWin[parsingVizNum]->setColorbarFontsize(colorbarFontsize);
+		vizWin[parsingVizNum]->setColorbarParamsTypeId(colorbarParamsTypeId);
 		
 		return true;
 		}
@@ -1804,7 +1740,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		//push the subsequent parsing to the params for current window 
 		if (parsingVizNum < 0) return false;//we should have already created a visualizer
 		Params::ParamsBaseType typeId = Params::GetTypeFromTag(tag);
-		if (typeId <= 0) return false;
+		if (typeId <= 0) {
+			MessageReporter::errorMsg("Unrecognized Params tag: %s",tag.c_str());
+			Params* dummyParams = Params::CreateDummyParams(tag);
+			Params::addDummyParamsInstance(dummyParams);
+			pm->pushClassStack(dummyParams);
+			dummyParams->elementStartHandler(pm,depth,tag,attrs);
+			return true;
+		}
 		parsingInstance[typeId]++;
 		Params* parsingParams;
 		if (parsingInstance[typeId] > 0){
@@ -1904,6 +1847,7 @@ void VizWinMgr::setClutDirty(RenderParams* p){
 	if (!glwin) return;
 	Renderer* ren = glwin->getRenderer(p);
 	if (!ren) return;
+	vw->setColorbarDirty(true);
 	ren->setClutDirty();
 	p->setAllBypass(false);
 	vw->updateGL();
@@ -1928,6 +1872,7 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	if (!glwin) return;
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if (!flowRend)return;
+	vw->setColorbarDirty(true);
 	flowRend->setGraphicsDirty();
 	p->setAllBypass(false);
 	vw->updateGL();
@@ -1957,6 +1902,7 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if(flowRend)
 		flowRend->setDataDirty(doInterrupt);
+	vw->setColorbarDirty(true);
 	p->setAllBypass(false);
 	vw->updateGL();
 }
@@ -2029,7 +1975,7 @@ int VizWinMgr::getNumInstances(int winnum, Params::ParamsBaseType pType){
 void VizWinMgr::setInteractiveNavigating(int level){
 	DataStatus::setInteractiveRefinementLevel(level);
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if (vizWin[i]) vizWin[i]->setDirtyBit(DvrRegionBit, true);
+		if (vizWin[i]) vizWin[i]->setDirtyBit(NavigatingBit, true);
 	}
 }
 //Determine (for error checking) if there are any enabled 2d renderers in the window that match
@@ -2079,4 +2025,75 @@ Params::ParamsBaseType VizWinMgr::RegisterEventRouter(const std::string tag, Eve
 	if (t <= 0) return 0;
 	eventRouterMap.insert(pair<int,EventRouter*>(t,router));
 	return t;
+}
+void VizWinMgr::RegisterMouseModes(){
+	RegisterMouseMode(Params::_viewpointParamsTag,0,"Navigation", wheel );
+	RegisterMouseMode(Params::_regionParamsTag,1, "Region",cube );
+	RegisterMouseMode(Params::_flowParamsTag,1, "Flow rake",rake );
+	RegisterMouseMode(Params::_probeParamsTag,3,"Probe", probe);
+	RegisterMouseMode(Params::_twoDDataParamsTag,2,"2D Data", twoDData);
+	RegisterMouseMode(Params::_twoDImageParamsTag,2, "Image",twoDImage);
+	InstallExtensionMouseModes();
+}
+int VizWinMgr::RegisterMouseMode(const std::string paramsTag, int manipType,  const char* name, const char* const xpmIcon[]){
+	QIcon icon;
+	if (xpmIcon){
+		QPixmap qp = QPixmap(xpmIcon);
+		icon = QIcon(qp);
+	}
+	int newMode; 
+	QString qname(name);
+	newMode =  MainForm::getInstance()->addMode(qname,icon);
+	int checkMode = GLWindow::AddMouseMode(paramsTag, manipType, name);
+	assert(checkMode == newMode);
+	return newMode;
+}
+void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
+
+	
+	EventRouter* eRouter = fcn();
+	Params::ParamsBaseType typ = RegisterEventRouter(tag, eRouter);
+	eRouter->hookUpTab();
+	QWidget* tabWidget = dynamic_cast<QWidget*> (eRouter);
+	assert(tabWidget);
+	Session::getInstance()->blockRecording();
+	tabManager->insertWidget(tabWidget, typ, true );
+	Session::getInstance()->unblockRecording();
+	eRouter->updateTab();
+
+	
+}
+AnimationEventRouter* VizWinMgr::
+getAnimationRouter() {
+	return (AnimationEventRouter*)getEventRouter(Params::_animationParamsTag);
+}
+ViewpointEventRouter* VizWinMgr::
+getViewpointRouter() {
+	return (ViewpointEventRouter*)getEventRouter(Params::_viewpointParamsTag);
+}
+RegionEventRouter* VizWinMgr::
+getRegionRouter() {
+	return (RegionEventRouter*)getEventRouter(Params::_regionParamsTag);
+}
+FlowEventRouter* VizWinMgr::
+getFlowRouter() {
+	return (FlowEventRouter*)getEventRouter(Params::_flowParamsTag);
+}
+ProbeEventRouter* VizWinMgr::
+getProbeRouter() {
+	return (ProbeEventRouter*)getEventRouter(Params::_probeParamsTag);
+}
+TwoDDataEventRouter* VizWinMgr::
+getTwoDDataRouter() {
+	return (TwoDDataEventRouter*)getEventRouter(Params::_twoDDataParamsTag);
+}
+TwoDImageEventRouter* VizWinMgr::
+getTwoDImageRouter() {
+	return (TwoDImageEventRouter*)getEventRouter(Params::_twoDImageParamsTag);
+}
+void VizWinMgr::forceRender(RenderParams* rp){
+	if(!rp->isEnabled()) return;
+	int viznum = rp->getVizNum();
+	if (viznum < 0) return;
+	vizWin[viznum]->updateGL();
 }

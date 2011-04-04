@@ -68,7 +68,8 @@ int* DataStatus::mapMetadataVars2D = 0;
 std::vector<int> DataStatus::activeVariableNums3D;
 std::vector<int> DataStatus::activeVariableNums2D;
 bool DataStatus::doWarnIfDataMissing = true;
-bool DataStatus::doUseLowerRefinementLevel = false;
+bool DataStatus::trackMouseInTfe = true;
+bool DataStatus::doUseLowerAccuracy = false;
 QColor DataStatus::backgroundColor =  Qt::black;
 QColor DataStatus::regionFrameColor = Qt::white;
 QColor DataStatus::subregionFrameColor = Qt::red;
@@ -98,6 +99,7 @@ const string DataStatus::_regionFrameEnabledAttr = "DomainFrameEnabled";
 const string DataStatus::_subregionFrameEnabledAttr = "SubregionFrameEnabled";
 const string DataStatus::_useLowerRefinementAttr = "UseLowerRefinementLevel";
 const string DataStatus::_missingDataWarningAttr = "WarnDataMissing";
+const string DataStatus::_trackMouseAttr = "TrackMouseInTFE";
 
 //Default constructor
 //Whether or not it exists on disk, what's its max and min
@@ -204,7 +206,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	for (int i = 0; i<num3dVars; i++){
 		bool match = false;
 		for (int j = 0; j< getNumSessionVariables(); j++){
-			if (getVariableName(j) == dataMgr->GetVariables3D()[i]){
+			if (getVariableName3D(j) == dataMgr->GetVariables3D()[i]){
 				mapMetadataVars[i] = j;
 				match = true;
 				break;
@@ -329,10 +331,10 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	bool someDataOverall = false;
 	for (int var = 0; var< numSesVariables; var++){
 		bool dataExists = false;
-		//string s = getVariableName(var);
+		//string s = getVariableName3D(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		string s = getVariableName(var);
+		string s = getVariableName3D(var);
 		if (!dataMgr->IsVariableDerived(s)){
 			for (int i = 0; i< (int)dataMgr->GetVariables3D().size(); i++){
 				if (dataMgr->GetVariables3D()[i] == s){
@@ -356,7 +358,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 				int xf=0, lod=0;
 				if (getVDCType()==2) lod = lvl; else xf = lvl;
 				if (dataMgr->VariableExists(ts, 
-					getVariableName(var).c_str(),
+					getVariableName3D(var).c_str(),
 					xf,lod)) {
 						maxLevel = lvl;
 						break;
@@ -377,7 +379,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 	for (int var = 0; var< numSesVariables2D; var++){
 		bool dataExists = false;
-		//string s = getVariableName(var);
+		//string s = getVariableName3D(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
 		for (int i = 0; i< (int)dataMgr->GetVariables2DXY().size(); i++){
@@ -509,7 +511,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		if (validInputs){
 			PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
 			int rc = dataMgr->NewPipeline(pipe);
-			if (rc<0)SetErrMsg(VAPOR_ERROR_SCRIPTING,"Invalid Python Script");
+			if (rc<0)MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Invalid Python Script");
 		}		
 		methodIter++;
 	}
@@ -523,7 +525,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		std::vector<float> vals;
 		for (int i = 0; i< getNumSessionVariables(); i++){
 			if (!isExtendedDown(i)){
-				vNames.push_back(getVariableName(i));
+				vNames.push_back(getVariableName3D(i));
 				vals.push_back(getBelowValue(i));
 			}
 		}
@@ -531,7 +533,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		vNames.clear();
 		for (int i = 0; i< getNumSessionVariables(); i++){
 			if (!isExtendedUp(i)){
-				vNames.push_back(getVariableName(i));
+				vNames.push_back(getVariableName3D(i));
 				vals.push_back(getAboveValue(i));
 			}
 		}
@@ -539,7 +541,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	}
 	
 	if (!someDataOverall){
-		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE, "No data found in VDC");
+		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE, "No data found in VDC");
 	}
 	return true;
 }
@@ -561,7 +563,8 @@ DataStatus::
 }
 void DataStatus::setDefaultPrefs(){
 	doWarnIfDataMissing = true;
-	doUseLowerRefinementLevel = false;
+	trackMouseInTfe = true;
+	doUseLowerAccuracy = false;
 	backgroundColor =  Qt::black;
 	regionFrameColor = Qt::white;
 	subregionFrameColor = Qt::red;
@@ -571,7 +574,7 @@ void DataStatus::setDefaultPrefs(){
 int DataStatus::
 getFirstTimestep(int sesvarnum){
 	for (int i = 0; i< numTimesteps; i++){
-		if(dataIsPresent(sesvarnum,i)) return i;
+		if(dataIsPresent3D(sesvarnum,i)) return i;
 	}
 	return -1;
 }
@@ -591,13 +594,13 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		//ErrMsgCB_T errorCallback = GetErrMsgCB();
 		//SetErrMsgCB(0);
 		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
-			getVariableName(varnum).c_str(), mnmx);
+			getVariableName3D(varnum).c_str(), mnmx);
 		//Turn messages back on
 		//SetErrMsgCB(errorCallback);
 		if(rc<0){
 			//Post an error:
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d; Data range [0,1] assumed",
-				getVariableName(varnum).c_str(), ts);
+			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Error accessing variable %s, at timestep %d; Data range [0,1] assumed",
+				getVariableName3D(varnum).c_str(), ts);
 			//Assign default values:
 			dataMax[varnum][ts] = 1.f;
 			dataMin[varnum][ts] = 0.f;
@@ -623,7 +626,7 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 					
 		if(rc<0){
 			//Post an error:
-			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in 2D variable %s, at timestep %d \n Interval [0,1] assumed",
+			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in 2D variable %s, at timestep %d \n Interval [0,1] assumed",
 				getVariableName2D(varnum).c_str(), ts);
 			//Assign default values:
 			dataMax2D[varnum][ts] = 1.f;
@@ -637,7 +640,7 @@ void DataStatus::calcDataRange2D(int varnum, int ts){
 }
 
 //Find which index is associated with a name, or -1 if not metadata:
-int DataStatus::getSessionVariableNum(const string& str){
+int DataStatus::getSessionVariableNum3D(const string& str){
 	for (int i = 0; i<variableNames.size(); i++){
 		if(variableNames[i] == str) return i;
 	}
@@ -763,7 +766,7 @@ bool DataStatus::fieldDataOK(int refLevel, int lod, int tstep, int varx, int var
 	int testLevel = refLevel;
 	if (VDCType == 2) testLevel = lod;
 	if (tstep < 0 || tstep > numTimesteps - 1) return false;
-	if (doUseLowerRefinementLevel) testLevel = 0;
+	if (doUseLowerAccuracy) testLevel = 0;
 	if (varx >= 0 && (maxLevel3D[varx][tstep] < testLevel)) return false;
 	if (vary >= 0 && (maxLevel3D[vary][tstep] < testLevel)) return false;
 	if (varz >= 0 && (maxLevel3D[varz][tstep] < testLevel)) return false;
@@ -1025,7 +1028,7 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 		
 		PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
 		int rc = dataMgr->NewPipeline(pipe);
-		if (rc<0)SetErrMsg(VAPOR_ERROR_SCRIPTING,"Invalid Python Script");
+		if (rc<0)MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Invalid Python Script");
 	}
 	
 	return newIndex;
@@ -1086,7 +1089,7 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 	}
 	
 	//Is it already in session?
-	int sesvarnum = getSessionVariableNum(derivedVarName);
+	int sesvarnum = getSessionVariableNum3D(derivedVarName);
 	if (sesvarnum < 0){
 		
 		sesvarnum = mergeVariableName(derivedVarName);
@@ -1134,7 +1137,7 @@ int DataStatus::setDerivedVariable3D(const string& derivedVarName){
 	if (iter1 != derived3DInputMap.end()) {
 		vector<string> vars = iter1->second;
 		for (int i = 0; i<vars.size(); i++){
-			int sesinvar = getSessionVariableNum(vars[i]);
+			int sesinvar = getSessionVariableNum3D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
 					if(maxLevel3D[sesvarnum][k]>maxLevel3D[sesinvar][k])
@@ -1170,7 +1173,7 @@ bool DataStatus::removeDerivedVariable2D(const string& derivedVarName){
 	return true;
 }
 bool DataStatus::removeDerivedVariable3D(const string& derivedVarName){
-	int sesnum = getSessionVariableNum(derivedVarName);
+	int sesnum = getSessionVariableNum3D(derivedVarName);
 	if (sesnum < 0 ) return false;
 	int activeNum = mapSessionToActiveVarNum3D(sesnum);
 	if (activeNum < 0) return false;  //Not active
@@ -1250,7 +1253,7 @@ int DataStatus::setDerivedVariable2D(const string& varName){
 	if (iter1 != derived3DInputMap.end()) {
 		vector<string> vars = iter1->second;
 		for (int i = 0; i<vars.size(); i++){
-			int sesinvar = getSessionVariableNum(vars[i]);
+			int sesinvar = getSessionVariableNum3D(vars[i]);
 			if(sesinvar >= 0) {
 				for (int k = 0; k<numTimesteps; k++){
 					if(maxLevel2D[sesvarnum][k]>maxLevel3D[sesinvar][k])
@@ -1306,19 +1309,19 @@ int DataStatus::getActiveVarNum2D(const string varname) const{
 	}
 	return -1;
 }
-double DataStatus::getDefaultDataMax(int varnum){
+double DataStatus::getDefaultDataMax3D(int varnum){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return 1.f;
 	string varname = getActiveVarName3D(activeNum);
 	if (isDerivedVariable(varname)) return 1.f;
-	return getDataMax(varnum, (int)minTimeStep);
+	return getDataMax3D(varnum, (int)minTimeStep);
 }
-double DataStatus::getDefaultDataMin(int varnum){
+double DataStatus::getDefaultDataMin3D(int varnum){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return -1.f;
 	string varname = getActiveVarName3D(activeNum);
 	if (isDerivedVariable(varname)) return -1.f;
-	return getDataMin(varnum, (int)minTimeStep);
+	return getDataMin3D(varnum, (int)minTimeStep);
 }
 double DataStatus::getDefaultDataMax2D(int varnum){
 	int activeNum = mapSessionToActiveVarNum2D(varnum);

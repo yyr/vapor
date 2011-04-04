@@ -42,8 +42,12 @@ class TwoDImageEventRouter : public QWidget, public Ui_TwoDImageTab, public TwoD
 	Q_OBJECT
 public: 
 	
-	TwoDImageEventRouter(QWidget* parent, const char* name);
+	TwoDImageEventRouter(QWidget* parent);
 	virtual ~TwoDImageEventRouter();
+	static EventRouter* CreateTab(){
+		TabManager* tMgr = VizWinMgr::getInstance()->getTabManager();
+		return (EventRouter*)(new TwoDImageEventRouter((QWidget*)tMgr));
+	}
 
 	virtual void refreshGLWindow();
 	

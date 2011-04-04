@@ -541,6 +541,7 @@ captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int b
 //Initially calc done in  WORLD coords,
 //Converted to stretched world coords for bounds testing,
 //then final displacement is in cube coords.
+//If constrain is true, the slide will not go out of the full extents of the data.
 //
 
 void TranslateStretchManip::
@@ -659,7 +660,8 @@ void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExte
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT, GL_FILL);
-	if ((handleNum == selectedHandle) || (handleNum ==(5-selectedHandle))) glColor4fv(faceSelectionColor);
+	if ((handleNum == selectedHandle) || (handleNum ==(5-selectedHandle))) 
+		glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
 	glBegin(GL_LINES);
 	glVertex3f(0.5f*(handleExtents[3]+handleExtents[0])+handleDisp[0],0.5f*(handleExtents[4]+handleExtents[1])+handleDisp[1],0.5f*(handleExtents[5]+handleExtents[2])+handleDisp[2]);
@@ -836,21 +838,24 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	//slide or stretch box center out of full domain box.
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
-	//const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	
 	myParams->calcStretchedBoxExtents(boxExtents, -1);
-	//float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
+	
 	if (isStretching){ //don't push through opposite face ..
+		//We really should constrain the stretch to lie inside domain, if constrain is true!
 		dragDistance = constrainStretch(dragDistance);
 	} else { //sliding, not stretching
-		//Previous constraint: Don't slide the center out of the full domain:
-		/*  Constraint removed...
-		if (dragDistance + boxCenter < extents[coord]) {
-			dragDistance = extents[coord] - boxCenter;
+		//with constraint: Don't slide the center out of the full domain:
+		if (constrain) {
+			const float* extents = DataStatus::getInstance()->getStretchedExtents();
+			float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
+			if (dragDistance + boxCenter < extents[coord]) {
+				dragDistance = extents[coord] - boxCenter;
+			}
+			if (dragDistance + boxCenter > extents[coord+3]){
+				dragDistance = extents[coord+3] - boxCenter;
+			} 
 		}
-		if (dragDistance + boxCenter > extents[coord+3]){
-			dragDistance = extents[coord+3] - boxCenter;
-		} 
-		*/
 	}
 
 	//now convert from stretched world to cube coords:

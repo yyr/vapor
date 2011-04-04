@@ -303,7 +303,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	bool allVarsDerived = true;
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		if (varNums[varIndex] < 0) continue; //in case of zero field component
-		const string varName = ds->getVariableName(varNums[varIndex]);
+		const string varName = ds->getVariableName3D(varNums[varIndex]);
 		if(!ds->isDerivedVariable(varName)) {
 			allVarsDerived = false;
 			break;
@@ -312,9 +312,9 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	if (!allVarsDerived){
 		for (i = 0; i<numVars; i++){
 			if (varNums[i] < 0) continue; //in case of zero field component
-			minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
+			minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
 			//Test if it's acceptable, exit if not:
-			if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
+			if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
 				return -1;
 			}
 		}
@@ -356,11 +356,11 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		if (varNums[varIndex] < 0) continue; //in case of zero field component
-		const string varName = ds->getVariableName(varNums[varIndex]);
+		const string varName = ds->getVariableName3D(varNums[varIndex]);
 		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
 		if (rc < 0) {
 			//Tell the datastatus that the data isn't really there at minRefLevel, at any LOD
-			ds->setDataMissing(timestep, minRefLevel, 0, varNums[varIndex]);
+			ds->setDataMissing3D(timestep, minRefLevel, 0, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"VDC access error: \nvariable %s not accessible at timestep %d.",
 					varName.c_str(), timestep);
@@ -390,6 +390,89 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	
 	return minRefLevel;
 }
+int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
+		double* regMin, double* regMax, 
+		size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3]) 
+{
+		
+	DataStatus* ds = DataStatus::getInstance();
+	const DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return -1;
+		
+	//First determine the refinement level we will be using (for all the variables).
+	int minRefLevel = numxforms;
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] == "" || varnames[i] == "0") continue;
+		minRefLevel = Min(ds->maxXFormPresent(varnames[i],(int)timestep), minRefLevel);
+		//Test if it's acceptable, exit if not:
+		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
+					varnames[i].c_str(), timestep);
+			}
+			return -1;
+		}
+	}
+
+	if (ds->dataIsLayered()){
+		setFullGridHeight(fullHeight);
+	}
+	//Do mapping to voxel coords
+	dataMgr->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
+	
+	for(int i = 0; i< 3; i++){
+		//Make sure slab has nonzero thickness 
+		if (min_dim[i] >= max_dim[i])
+			max_dim[i] = min_dim[i] + 1;
+	}
+	
+	//intersect with available bounds based on variables:
+	size_t temp_min[3], temp_max[3];
+	for (int j = 0; j<3; j++){
+		temp_min[j] = min_dim[j];
+		temp_max[j] = max_dim[j];
+	}
+	for (int i = 0; i < varnames.size(); i++){
+		if (varnames[i] == "" || varnames[i] == "0") continue;
+		int rc = getValidRegion(timestep, varnames[i].c_str(), minRefLevel, temp_min, temp_max);
+		if (rc < 0) {
+			//Tell the datastatus that the data isn't really there at minRefLevel at any LOD:
+			int varnum = ds->getSessionVariableNum3D(varnames[i]);
+			if (varnum >= 0)
+				ds->setDataMissing3D(timestep, minRefLevel, 0, varnum);
+			else {//must be 2D
+				varnum = ds->getSessionVariableNum2D(varnames[i]);
+				ds->setDataMissing2D(timestep, minRefLevel, 0, varnum);
+			}
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
+					varnames[i].c_str(),
+					"This message can be silenced \nin the User Preferences Panel.");
+			}
+			return -1;
+		}
+		else for (int j = 0; j< 3; j++){
+			if (min_dim[j] < temp_min[j]) min_dim[j] = temp_min[j];
+			if (max_dim[j] > temp_max[j]) max_dim[j] = temp_max[j];
+			//Again check for validity:
+			if (min_dim[j] > max_dim[j]) minRefLevel = -1;
+		}
+	}
+	//calc block dims
+	size_t bs[3];
+	dataMgr->GetBlockSize(bs, minRefLevel);
+	for (int i = 0; i<3; i++){	
+		min_bdim[i] = min_dim[i] / bs[i];
+		max_bdim[i] = max_dim[i] / bs[i];
+	}
+	//Calculate new bounds:
+	
+	dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+	
+	return minRefLevel;
+}
 int RegionParams::
 shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,
@@ -414,16 +497,16 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		if (twoDim)
 			minRefLevel = Min(ds->maxXFormPresent2D(varNums[i],(int)timestep), minRefLevel);
 		else
-			minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
+			minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
 	
 		//Test if it's acceptable, exit if not:
-		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
+		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
 			if (ds->warnIfDataMissing()){
 				char* vname;
 				if (twoDim)
 					vname = (char*)ds->getVariableName2D(varNums[i]).c_str();
 				else
-					vname = (char*)ds->getVariableName(varNums[i]).c_str();
+					vname = (char*)ds->getVariableName3D(varNums[i]).c_str();
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
 					vname, timestep);
 			}
@@ -465,14 +548,14 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		if (twoDim)
 			varName = ds->getVariableName2D(varNums[varIndex]);
 		else 
-			varName = ds->getVariableName(varNums[varIndex]);
+			varName = ds->getVariableName3D(varNums[varIndex]);
 		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
 		if (rc < 0) {
 			//Tell the datastatus that the data isn't really there at minRefLevel at any LOD:
 			if (twoDim)
 				ds->setDataMissing2D(timestep, minRefLevel, 0, varNums[varIndex]);
 			else
-				ds->setDataMissing(timestep, minRefLevel, 0, varNums[varIndex]);
+				ds->setDataMissing3D(timestep, minRefLevel, 0, varNums[varIndex]);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
 					varName.c_str(),
@@ -776,7 +859,7 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3
 	int voxCoords[3];
 	size_t bs[3];
 	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
-	const char* varname = ds->getVariableName(sessionVarNum).c_str();
+	const char* varname = ds->getVariableName3D(sessionVarNum).c_str();
 	double regMin[3], regMax[3];
 	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
 	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);

@@ -73,6 +73,7 @@ const string Params::_timestepSampleListAttr = "TimestepSampleList";
 std::map<pair<int,int>,vector<Params*> > Params::paramsInstances;
 std::map<pair<int,int>, int> Params::currentParamsInstance;
 std::map<int, Params*> Params::defaultParamsInstance;
+std::vector<Params*> Params::dummyParamsInstances;
 
 
 
@@ -98,6 +99,8 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	enabled = false;
 }
 const std::string& Params::paramName(Params::ParamsBaseType type){
+	Params* p = GetDefaultParams(type);
+	const std::string& name = p->getShortName();
 	return GetDefaultParams(type)->getShortName();
 }
 float RenderParams::getMinColorMapBound(){
@@ -114,7 +117,7 @@ float RenderParams::getMaxOpacMapBound(){
 }
 
 //For params subclasses that have a box:
-void Params::calcStretchedBoxExtentsInCube(float* extents, int timestep){
+void Params::calcStretchedBoxExtentsInCube(float extents[6], int timestep){
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax, timestep);
 	float maxSize = 1.f;
@@ -425,13 +428,13 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		maxRefLevel = ds->maxXFormPresent2D(sessionVarNum, timeStep);
 	}
 	else {
-		vname = (char*)ds->getVariableName(sessionVarNum).c_str();
+		vname = (char*)ds->getVariableName3D(sessionVarNum).c_str();
 		maxLOD = ds->maxLODPresent3D(sessionVarNum,timeStep);
-		maxRefLevel = ds->maxXFormPresent(sessionVarNum, timeStep);
+		maxRefLevel = ds->maxXFormPresent3D(sessionVarNum, timeStep);
 	}
 
 	
-	if (maxLOD < 0 || (maxLOD < lod && !ds->useLowerRefinementLevel())){
+	if (maxLOD < 0 || (maxLOD < lod && !ds->useLowerAccuracy())){
 		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
@@ -441,7 +444,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		}
 		return 0;
 	}
-	if (maxRefLevel < 0 || (maxRefLevel < refLevel && !ds->useLowerRefinementLevel())){
+	if (maxRefLevel < 0 || (maxRefLevel < refLevel && !ds->useLowerAccuracy())){
 		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
@@ -467,7 +470,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 				"This message can be silenced\nin user preferences panel.");
 		}
 		if(twoDim) ds->setDataMissing2D(timeStep,refLevel, lod, sessionVarNum);
-		else ds->setDataMissing(timeStep,refLevel, lod, sessionVarNum);
+		else ds->setDataMissing3D(timeStep,refLevel, lod, sessionVarNum);
 	}
 	return reg;
 }
@@ -475,19 +478,25 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 //Default camera distance just finds distance to region box in stretched coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
 
-	//Intersect region with camera ray.  If no intersection, just shoot ray from
+	return getCameraDistance(vpp, rpp->getRegionExtents(timestep));
+
+}
+	
+//Static method to find distance to a box, in stretched coordinates.
+float RenderParams::getCameraDistance(ViewpointParams* vpp, const float exts[6]){
+
+	//Intersect box with camera ray.  If no intersection, just shoot ray from
 	//camera to region center.
 	const float* camPos = vpp->getCameraPos();
 	const float* camDir = vpp->getViewDir();
-	const float* regExts = rpp->getRegionExtents(timestep);
 
 	//Stretch everything:
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	float cPos[3], rExts[6];
 	for (int i = 0; i<3; i++){
 		cPos[i] = camPos[i]*stretch[i];
-		rExts[i] = regExts[i]*stretch[i];
-		rExts[i+3] = regExts[i+3]*stretch[i];
+		rExts[i] = exts[i]*stretch[i];
+		rExts[i+3] = exts[i+3]*stretch[i];
 	}
 	float hitPoint[3];
 	
@@ -634,4 +643,10 @@ Params* RenderParams::deepCopy(ParamNode* nd){
 
 	renParams->bypassFlags = bypassFlags;
 	return renParams;
+}
+Params* Params::CreateDummyParams(const std::string tag){
+	return ((Params*)(new DummyParams(0,tag,0)));
+}
+DummyParams::DummyParams(XmlNode* parent, const string tag, int winnum) : Params(parent, tag, winnum){
+	myTag = tag;
 }

@@ -12,6 +12,7 @@ FILES = \
 	glwindow renderer twoDrenderer \
 	twoDimagerenderer twoDdatarenderer \
 	manip proberenderer\
+	arrowrenderer \
 	trackball flowrenderer isorenderer\
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \

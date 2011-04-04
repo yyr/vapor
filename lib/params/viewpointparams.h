@@ -34,17 +34,71 @@ class RegionParams;
 class PanelCommand;
 class XmlNode;
 class ParamNode;
-
+//! \class ViewpointParams
+//! \brief A class for describing the viewpoint and lights
+//! \author Alan Norton
+//! \version $Revision$
+//! \date    $Date$
+//! This class provides methods for determining the viewpoint
+//! and the direction of lights.  If it is shared, all windows can
+//! use the same viewpoint and lights.  Local viewpoints are
+//! just applicable to one window.
 class PARAMS_API ViewpointParams : public Params {
 	
 public: 
+	//! Constructor
+	//! \param[in] int window num, indicates the visualizer number, or -1 for a shared ViewpointParams
 	ViewpointParams(int winnum);
-	
+	//! Destructor
 	virtual ~ViewpointParams();
+	
+
+	//! Static method specifies the scale factor that will be used in coordinate transformation, as is
+	//! used to map the full stretched data domain into the unit box.
+	//! The reciprocal of this value is the scale factor that is applied.
+	//! \retval float Maximum side of stretched cube
+	static float getMaxStretchedCubeSide() {return maxStretchedCubeSide;}
+
+	//! This static method returns the minimum coordinates in the stretched
+	//! world.  This is used as the translation needed to put the user coordinates
+	//! at the origin.
+	//! \retval float* Minimum world coordinates stretched domain
+	static float* getMinStretchedCubeCoords() {return minStretchedCubeCoord;}
+
+	//! This method tells how many lights are specified and whether
+	//! lighting is on or not (i.e. if there are more than 0 lights).
+	//! Note that only the first (light 0) is used in DVR and Isosurface rendering.
+	//! \retval int number of lights (0,1,2, or 3)
+	int getNumLights() { return numLights;}
+	
+	//! Obtain the current specular exponent.
+	//! This value should be used in setting the material properties
+	//! of all geometry being rendered.
+	//! \retval float Specular exponent
+	float getExponent() {return specularExp;}
+
+	//! This method gives the current camera position in world coordinates.
+	//! \retval float[3] camera position
+	float* getCameraPos() {return currentViewpoint->getCameraPosLocal();}
+
+	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
+	//! \retval float[3] view direction
+	float* getViewDir() {return currentViewpoint->getViewDir();}
+
+	//! Method that specifies the upward-pointing vector of the current viewpoint.
+	//! \retval float[3] up vector
+	float* getUpVec() {return currentViewpoint->getUpVec();}
+
+	//! Method returns the position used as the center for rotation.
+	//! Usually this is in the center of the view, but it can be changed
+	//! by user translation.
+	//! \retval float[3] Rotation center coordinates
+	float* getRotationCenter(){return currentViewpoint->getRotationCenterLocal();}
+
+#ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
 	const std::string& getShortName() {return _shortName;}
 	virtual Params* deepCopy(ParamNode* n = 0);
-	
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in
 	//latlon mode, it is necessary to perform convertFromLatLon and convertToLatLon
@@ -55,17 +109,17 @@ public:
 	//data set is loaded
 	//When setCameraPos or setRotCenter is called in latlon mode, the new local values
 	//must be converted to latlon values.
-	float* getCameraPos() {return currentViewpoint->getCameraPosLocal();}
+	
 	float getCameraPos(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
 	
 	void setCameraPos(float* val,int timestep ) {
 		currentViewpoint->setCameraPosLocal(val);
 		if (useLatLon) convertToLatLon(timestep);
 	}
-	float* getViewDir() {return currentViewpoint->getViewDir();}
+	
 	void setViewDir(int i, float val) { currentViewpoint->setViewDir(i,val);}
 	void setViewDir(float* val) {currentViewpoint->setViewDir(val);}
-	float* getUpVec() {return currentViewpoint->getUpVec();}
+	
 	void setUpVec(int i, float val) { currentViewpoint->setUpVec(i,val);}
 	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
 	bool hasPerspective(){return currentViewpoint->hasPerspective();}
@@ -74,7 +128,7 @@ public:
 	void setStereoMode(int mode) {stereoMode = mode;}
 	float getStereoSeparation() {return stereoSeparation;}
 	void setStereoSeparation(float angle){stereoSeparation = angle;}
-	int getNumLights() { return numLights;}
+	
 	void setNumLights(int nlights) {numLights = nlights;}
 	const float* getLightDirection(int lightNum){return lightDirection[lightNum];}
 	void setLightDirection(int lightNum,int dir, float val){
@@ -82,7 +136,7 @@ public:
 	}
 	float getDiffuseCoeff(int lightNum) {return diffuseCoeff[lightNum];}
 	float getSpecularCoeff(int lightNum) {return specularCoeff[lightNum];}
-	float getExponent() {return specularExp;}
+	
 	float getAmbientCoeff() {return ambientCoeff;}
 	void setDiffuseCoeff(int lightNum, float val) {diffuseCoeff[lightNum]=val;}
 	void setSpecularCoeff(int lightNum, float val) {specularCoeff[lightNum]=val;}
@@ -101,7 +155,7 @@ public:
 	
 	//Set to default viewpoint for specified region
 	void centerFullRegion(int timestep);
-	float* getRotationCenter(){return currentViewpoint->getRotationCenterLocal();}
+	
 	float* getRotCenterLatLon(){return currentViewpoint->getRotCenterLatLon();}
 	float getRotationCenter(int i){ return currentViewpoint->getRotationCenterLocal(i);}
 	float* getCamPosLatLon() {return currentViewpoint->getCamPosLatLon();}
@@ -135,14 +189,7 @@ public:
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
 	static void worldFromStretchedCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
-	static float* getMinStretchedCubeCoords() {return minStretchedCubeCoord;}
 	
-
-	//Following determines scale factor in coord transformation:
-	//
-	//static float getMaxCubeSide() {return maxCubeSide;}
-	static float getMaxStretchedCubeSide() {return maxStretchedCubeSide;}
-
 	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
 	
 	const double* getModelViewMatrix() {return modelViewMatrix;}
@@ -232,6 +279,7 @@ protected:
 	//GL state saved here since it may be shared...
 	//
 	double modelViewMatrix[16];
+#endif //DOXYGEN_SKIP_THIS
 };
 };
 #endif //VIEWPOINTPARAMS_H 

@@ -79,10 +79,9 @@
 using namespace VAPoR;
 const float ProbeEventRouter::thumbSpeedFactor = 0.0005f;  //rotates ~45 degrees at full thumbwheel width
 
-ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_ProbeTab(), EventRouter(){
+ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTab(), EventRouter(){
 	setupUi(this);
-
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_probeParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_probeParamsTag);
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
@@ -248,7 +247,7 @@ ProbeEventRouter::hookUpTab()
 //Insert values from params into tab panel
 //
 void ProbeEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
@@ -599,7 +598,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		probeTextureFrame->update();
 	}
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(probeParams);
 	//If we are in probe mode, force a rerender of all windows using the probe:
 	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
 		VizWinMgr::getInstance()->refreshProbe(probeParams);
@@ -707,7 +706,7 @@ rotateXWheel(int val){
 	
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	
 	if(!renormalizedRotate) manip->setTempRotation((float)val*thumbSpeedFactor, 0);
 	else {
@@ -725,7 +724,7 @@ void ProbeEventRouter::
 rotateYWheel(int val){
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	
 	if(!renormalizedRotate) manip->setTempRotation(-(float)val*thumbSpeedFactor, 1);
 	else {
@@ -741,7 +740,7 @@ void ProbeEventRouter::
 rotateZWheel(int val){
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	
 	if(!renormalizedRotate) manip->setTempRotation((float)val*thumbSpeedFactor, 2);
 	else {
@@ -772,7 +771,7 @@ guiReleaseXWheel(int val){
 
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	manip->setTempRotation(0.f, 0);
 	//reset the thumbwheel
 
@@ -780,7 +779,7 @@ guiReleaseXWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiReleaseYWheel(int val){
@@ -801,14 +800,14 @@ guiReleaseYWheel(int val){
 
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	manip->setTempRotation(0.f, 1);
 
 	updateTab();
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 void ProbeEventRouter::
@@ -830,14 +829,14 @@ guiReleaseZWheel(int val){
 
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	TranslateRotateManip* manip = (TranslateRotateManip*)viz->getGLWindow()->getManip(Params::_probeParamsTag);
 	manip->setTempRotation(0.f, 2);
 
 	updateTab();
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::guiSetProbeType(int t){
 	//Don't set to texture if not GL_2_0
@@ -868,7 +867,7 @@ void ProbeEventRouter::guiSetProbeType(int t){
 	captureFlowButton->setEnabled(t==1);
 
 	PanelCommand::captureEnd(cmd, pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::ibfvPlay(){
 	//Start playing.  Requires initializing the ibfv sequence,
@@ -905,7 +904,7 @@ guiReleaseAlphaSlider(){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	updateTab();
 }
 void ProbeEventRouter::
@@ -920,7 +919,7 @@ guiReleaseScaleSlider(){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	updateTab();
 }
 void ProbeEventRouter::guiRotate90(int selection){
@@ -937,7 +936,7 @@ void ProbeEventRouter::guiRotate90(int selection){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 void ProbeEventRouter::guiChangeInstance(int inst){
@@ -1132,7 +1131,7 @@ guiTogglePlanar(bool isOn){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiAxisAlign(int choice){
@@ -1197,7 +1196,7 @@ guiAxisAlign(int choice){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }	
 void ProbeEventRouter::
@@ -1281,7 +1280,7 @@ guiFitDomain(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 
@@ -1308,7 +1307,7 @@ guiCopyRegionToProbe(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 
@@ -1520,7 +1519,7 @@ guiSetEnabled(bool value, int instance){
 	setDatarangeDirty(pParams);
 	setEditorDirty();
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	//and refresh the gui
 	updateTab();
 	update();
@@ -1545,7 +1544,7 @@ guiSetOpacityScale(int val){
 	
 	PanelCommand::captureEnd(cmd,pp);
 	
-	VizWinMgr::getInstance()->setVizDirty(pp,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pp);
 }
 //Respond to a change in transfer function (from color selection or mouse down/release events)
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
@@ -1568,7 +1567,7 @@ guiEndChangeMapFcn(){
 	setProbeDirty(pParams);
 	setDatarangeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 
 void ProbeEventRouter::
@@ -1602,7 +1601,7 @@ void ProbeEventRouter::guiCenterProbe(){
 	updateTab();
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 //Following method sets up (or releases) a connection to the Flow 
@@ -1668,7 +1667,7 @@ guiChangeVariables(){
 	
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiSetXCenter(int sliderval){
@@ -1679,7 +1678,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 void ProbeEventRouter::
@@ -1691,7 +1690,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 void ProbeEventRouter::
@@ -1703,7 +1702,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 void ProbeEventRouter::
@@ -1718,7 +1717,7 @@ guiSetXSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 void ProbeEventRouter::
@@ -1732,7 +1731,7 @@ guiSetYSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 void ProbeEventRouter::
@@ -1745,7 +1744,7 @@ guiSetZSize(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
 void ProbeEventRouter::
@@ -1762,7 +1761,7 @@ guiSetCompRatio(int num){
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);	
+	VizWinMgr::getInstance()->forceRender(pParams);	
 }
 void ProbeEventRouter::
 guiSetNumRefinements(int n){
@@ -1782,7 +1781,7 @@ guiSetNumRefinements(int n){
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 	
 //Set slider position, based on text change. 
@@ -1880,7 +1879,7 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	if(centerChanged) {
 		setProbeDirty(pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(pParams);
 	}
 	update();
 	setIgnoreBoxSliderEvents(false);
@@ -1926,7 +1925,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	//force a new render with new Probe data
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	return;
 	
 }	
@@ -1945,7 +1944,7 @@ updateMapBounds(RenderParams* params){
 	setDatarangeDirty(probeParams);
 	setEditorDirty();
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(probeParams);
 	
 }
 
@@ -1979,14 +1978,14 @@ captureMouseUp(){
 	resetTextureSize(pParams);
 	setProbeDirty(pParams);
 	//Update the tab if it's in front:
-	if(MainForm::getInstance()->getTabManager()->isFrontTab(this)) {
+	if(MainForm::getTabManager()->isFrontTab(this)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (pParams == vwm->getProbeParams(viznum)))
 			updateTab();
 	}
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
@@ -2053,7 +2052,7 @@ guiEndCursorMove(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	if (b) ibfvPlay();
 }
 //calculate the variable, or rms of the variables, at a specific point.
@@ -2171,10 +2170,10 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	//Determine what resolution is available:
 	int refLevel = pParams->getNumRefinements();
 	
-	if (ds->useLowerRefinementLevel()){
+	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
 			if (pParams->variableIsSelected(varnum)) {
-				refLevel = Min(ds->maxXFormPresent(varnum, timeStep), refLevel);
+				refLevel = Min(ds->maxXFormPresent3D(varnum, timeStep), refLevel);
 			}
 		}
 		if (refLevel < 0) return;
@@ -2343,6 +2342,8 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 void ProbeEventRouter::
 makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bool) {
 
+	//Always stop animation if it's occurring:
+	ibfvPause();
 	assert(instance >= 0);
 	ProbeParams* pParams = (ProbeParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
@@ -2358,9 +2359,10 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance,bo
 	if (newWin || (formerParams->isEnabled() != pParams->isEnabled())){
 		updateRenderer(pParams, wasEnabled,  newWin);
 	}
-	setDatarangeDirty(pParams);
+	VizWin* viz = VizWinMgr::getInstance()->getVizWin(vizNum);
+	viz->setColorbarDirty(true);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
@@ -2372,9 +2374,12 @@ setDatarangeDirty(RenderParams* params)
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	float minval = pParams->getMapperFunc()->getMinColorMapValue();
 	float maxval = pParams->getMapperFunc()->getMaxColorMapValue();
+	
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
-			VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+			VizWin* viz = VizWinMgr::getInstance()->getVizWin(pParams->getVizNum());
+			viz->setColorbarDirty(true);
+			VizWinMgr::getInstance()->forceRender(pParams);
 	}
 	
 }
@@ -2555,7 +2560,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
 
@@ -2603,7 +2608,7 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
 	
@@ -2651,7 +2656,7 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::guiNudgeZCenter(int val) {
 	
@@ -2699,7 +2704,7 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
@@ -2748,7 +2753,7 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
 	
@@ -2796,7 +2801,7 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 //The following adjusts the sliders associated with box size.
 //Each slider range is the maximum of 
@@ -2880,7 +2885,7 @@ guiSetXIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiSetYIBFVComboVarNum(int varnum){
@@ -2893,7 +2898,7 @@ guiSetYIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiSetZIBFVComboVarNum(int varnum){
@@ -2906,7 +2911,7 @@ guiSetZIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 }
 void ProbeEventRouter::
 guiToggleColorMerge(bool val){
@@ -2916,7 +2921,7 @@ guiToggleColorMerge(bool val){
 	pParams->setIBFVColorMerged(val);
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	updateTab();
 }
 //control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
@@ -2945,7 +2950,7 @@ QString ProbeEventRouter::getMappedVariableNames(int* numvars){
 		//Index by session variable num:
 		if (pParams->variableIsSelected(i)){
 			if (*numvars > 0) names = names + ",";
-			names = names + DataStatus::getInstance()->getVariableName(i).c_str();
+			names = names + DataStatus::getInstance()->getVariableName3D(i).c_str();
 			(*numvars)++;
 		}
 	}
@@ -2981,13 +2986,13 @@ void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 	bool multvars = (probeParams->getNumVariablesSelected()>1);
 	float minval, maxval;
 	for (int i = 0; i<ds->getNumSessionVariables(); i++){
-		if (probeParams->variableIsSelected(i) && ds->dataIsPresent(i,ts)){
+		if (probeParams->variableIsSelected(i) && ds->dataIsPresent3D(i,ts)){
 			if (probeParams->isEnabled()){
-				minval = ds->getDataMin(i, ts);
-				maxval = ds->getDataMax(i, ts);
+				minval = ds->getDataMin3D(i, ts);
+				maxval = ds->getDataMax3D(i, ts);
 			} else {
-				minval = ds->getDefaultDataMin(i);
-				maxval = ds->getDefaultDataMax(i);
+				minval = ds->getDefaultDataMin3D(i);
+				maxval = ds->getDefaultDataMax3D(i);
 			}
 			if (multvars){
 				maxval = Max(abs(minval),abs(maxval));
@@ -3027,7 +3032,7 @@ guiCropToRegion(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(pParams);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to region, insufficient overlap");
 		delete cmd;
@@ -3046,7 +3051,7 @@ guiCropToDomain(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+		VizWinMgr::getInstance()->forceRender(pParams);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to domain, insufficient overlap");
 		delete cmd;
@@ -3067,7 +3072,7 @@ guiFitRegion(){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	VizWinMgr::getInstance()->forceRender(pParams);
 	
 }
 void ProbeEventRouter::
@@ -3231,10 +3236,10 @@ void ProbeEventRouter::guiFitTFToData(){
 	//loop over selected variables to calc min/max bound
 	float mnval = 1.e30f, mxval = -1.e30f;
 	for (int i = 0; i<ds->getNumSessionVariables(); i++){
-		if (pParams->variableIsSelected(i) && ds->dataIsPresent(i,ts)){
+		if (pParams->variableIsSelected(i) && ds->dataIsPresent3D(i,ts)){
 			
-			float minval = ds->getDataMin(i, ts);
-			float maxval = ds->getDataMax(i, ts);
+			float minval = ds->getDataMin3D(i, ts);
+			float maxval = ds->getDataMax3D(i, ts);
 			if (multvars){
 				maxval = Max(abs(minval),abs(maxval));
 				minval = 0.f;
@@ -3262,7 +3267,7 @@ void ProbeEventRouter::guiFitTFToData(){
 #ifdef Darwin
 void ProbeEventRouter::paintEvent(QPaintEvent* ev){
 	
-		QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
 		
 		//First show the texture frame, next time through, show the tf frame
 		//Other order doesn't work.

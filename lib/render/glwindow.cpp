@@ -32,8 +32,7 @@
 
 #include "regionparams.h"
 #include "probeparams.h"
-#include "twoDdataparams.h"
-#include "twoDimageparams.h"
+
 #include "animationparams.h"
 #include "manip.h"
 #include "datastatus.h"
@@ -59,11 +58,17 @@ using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
 bool GLWindow::defaultTerrainEnabled = false;
+bool GLWindow::defaultSpinAnimateEnabled = false;
+bool GLWindow::spinAnimate = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 bool GLWindow::nowPainting = false;
 
 
-VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
+int GLWindow::currentMouseMode = GLWindow::navigateMode;
+vector<int> GLWindow::manipFromMode;
+vector<string> GLWindow::modeName;
+map<ParamsBase::ParamsBaseType, int> GLWindow::modeFromParams;
+vector<ParamsBase::ParamsBaseType> GLWindow::paramsFromMode;
 int GLWindow::jpegQuality = 100;
 GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 : QGLWidget(fmt, parent)
@@ -96,6 +101,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	farDist = 100.f;
 	nearDist = 0.1f;
 	colorbarDirty = true;
+	colorbarParamsTypeId = Params::GetTypeFromTag(Params::_dvrParamsTag);
 	mouseDownHere = false;
 
 	//values of features:
@@ -145,15 +151,11 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	}
 
 	vizDirtyBit.clear();
-	//setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
-	setDirtyBit(ProbeTextureBit, true);
-	setDirtyBit(TwoDTextureBit, true);
-	//setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
+	
 	setDirtyBit(RegionBit, true);
 	
-	setDirtyBit(ColorscaleBit, true);
     setDirtyBit(LightingBit, true);
-	setDirtyBit(DvrRegionBit, true);
+	setDirtyBit(NavigatingBit, true);
 	setDirtyBit(ViewportBit, true);
 	setDirtyBit(ProjMatrixBit, true);
 
@@ -162,13 +164,17 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	capturingImage = false;
 	newCaptureImage = false;
 
-	//Create Manips:
-	
-	myProbeManip = new TranslateRotateManip(this, 0);
-	myTwoDDataManip = new TranslateStretchManip(this, 0);
-	myTwoDImageManip = new TranslateStretchManip(this, 0);
-	myFlowManip = new TranslateStretchManip(this, 0);
-	myRegionManip = new TranslateStretchManip(this, 0);
+	//Create Manips for every mode except 0
+	manipHolder.push_back(0);
+	for (int i = 1; i< manipFromMode.size(); i++){
+		if (manipFromMode[i]==1 || manipFromMode[i] == 2){
+			TranslateStretchManip* manip = new TranslateStretchManip(this,0);
+			manipHolder.push_back(manip);
+		} else if (manipFromMode[i]==3){
+			TranslateRotateManip* manip = new TranslateRotateManip(this, 0);
+			manipHolder.push_back(manip);
+		} else assert(0);
+	}
 
 	elevVert = 0;
 	elevNorm = 0;
@@ -205,6 +211,7 @@ GLWindow::~GLWindow()
 
 void GLWindow::setDefaultPrefs(){
 	defaultTerrainEnabled = false;
+	defaultSpinAnimateEnabled = false;
 	defaultAxisArrowsEnabled = false;
 	jpegQuality = 100;
 }
@@ -341,6 +348,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 		getActiveViewpointParams()->convertFromLatLon(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
+	
 	// Move to trackball view of scene  
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -395,54 +403,28 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	//render the region geometry, if in region mode, and active visualizer, or region shared
 	//with active visualizer
-	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode && 
-       (windowIsActive() || 
-        (!getActiveRegionParams()->isLocal() && activeWinSharesRegion())) &&
-       !sphericalTransform)
-    {
-		TranslateStretchManip* regionManip = getRegionManip();
-		regionManip->setParams(getActiveRegionParams());
-		regionManip->render();
-	} 
-	//render the twoD geometry, if in twoDData mode, on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDDataMode) && 
-            windowIsActive() && !sphericalTransform){
-		
-		TranslateStretchManip* twoDDataManip = getTwoDDataManip();
-		twoDDataManip->setParams((Params*)getActiveTwoDDataParams());
-		twoDDataManip->render();
-		//Also render the cursor
-		draw3DCursor(getActiveTwoDDataParams()->getSelectedPoint());
+	if(getCurrentMouseMode() == GLWindow::regionMode) { 
+		if( (windowIsActive() || 
+			(!getActiveRegionParams()->isLocal() && activeWinSharesRegion())) &&
+			!sphericalTransform){
+				TranslateStretchManip* regionManip = getManip(Params::_regionParamsTag);
+				regionManip->setParams(getActiveRegionParams());
+				regionManip->render();
+		} 
 	}
-		//render the twoD geometry, if in twoDData mode, on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::twoDImageMode) && 
-            windowIsActive() && !sphericalTransform){
-		
-		TranslateStretchManip* twoDImageManip = getTwoDImageManip();
-		twoDImageManip->setParams((Params*)getActiveTwoDImageParams());
-		twoDImageManip->render();
-		//Also render the cursor
-		draw3DCursor(getActiveTwoDImageParams()->getSelectedPoint());
+	//Other manips don't have shared and local to deal with:
+	else if ((getCurrentMouseMode() != navigateMode) && windowIsActive() && !sphericalTransform){
+		int mode = getCurrentMouseMode();
+		ParamsBase::ParamsBaseType t = getModeParamType(mode);
+		TranslateStretchManip* manip = manipHolder[mode];
+		RenderParams* p = (RenderParams*)getActiveParams(t);
+		manip->setParams(p);
+		manip->render();
+		int manipType = getModeManipType(mode);
+		//For probe and 2D manips, display cursor
+		if (manipType > 1) draw3DCursor(p->getSelectedPoint());
 	}
-	//render the rake geometry, if in rake mode, on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 
-            windowIsActive() && !sphericalTransform){
-		
-		TranslateStretchManip* flowManip = getFlowManip();
-		flowManip->setParams((Params*)getActiveFlowParams());
-		flowManip->render();
-	} 
-	//or render the probe geometry, if in probe mode on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::probeMode)&&windowIsActive()){
-		
-		
-		TranslateRotateManip* probeManip = getProbeManip();
-		probeManip->setParams(getActiveProbeParams());
-		
-		probeManip->render();
-		//Also render the cursor
-		draw3DCursor(getActiveProbeParams()->getSelectedPoint());
-	} 
+	
 	
 	if (renderElevGrid) {
 			drawElevationGrid(timeStep);
@@ -453,12 +435,47 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	
 	sortRenderers(timeStep);
+	
 	printOpenGLError();
 	for (int i = 0; i< getNumRenderers(); i++){
 		if(renderer[i]->isInitialized() && !(renderer[i]->doAlwaysBypass(timeStep))) {
+			// Push or reset state
+			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 			renderer[i]->paintGL();
+
+			glPopAttrib();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
 			printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 		}
+	}
+	//Go back to MODELVIEW for other matrix stuff
+	glMatrixMode(GL_MODELVIEW);
+
+	//Find renderer that has a colorbar
+	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
+	if(p && colorbarIsEnabled() && p->isEnabled() && p->getMapperFunc()){
+		//Now go to default 2D window
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		getRenderer(p)->renderColorscale(colorbarIsDirty());
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 	}
 	
 	//Create time annotation from current time step
@@ -477,7 +494,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	
 	setDirtyBit(RegionBit,false);
 	setDirtyBit(AnimationBit,false);
-	setDirtyBit(DvrRegionBit,false);
+	setDirtyBit(NavigatingBit,false);
 	setDirtyBit(ProjMatrixBit, false);
 	setDirtyBit(ViewportBit, false);
 	setDirtyBit(LightingBit, false);
@@ -862,447 +879,8 @@ void GLWindow::drawSubregionBounds(float* extents) {
 	glVertex3f(extents[0], extents[1], extents[5]);
 	glEnd();
 }
-//Draw the lines bounding the region, and the selected one in
-//highlighted color.
-void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
-	
-	//draw the highlighted face, then do the other lines:
-	glLineWidth( 3.0 );
-	glColor4f(1.f,1.f,0.f,1.f);
-	switch (selectedFace){
-		case 4://Do left (x=0)
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			//draw 4 other lines, x small to x-large
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			break;
-		
-		case 5:
-		//do right 
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			//draw 4 other lines, x small to x-large
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-		case(3)://top
-			
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-			glEnd();
-			//draw 4 other lines, y small to y-large
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				
-			glEnd();
-			break;
-		case(2)://bottom
-			
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			//draw 4 other lines, y small to y-large
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			break;
-	
-		case(0):
-			//back
-			
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			break;
-		case(1):
-			//do the front:
-			//
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			break;
-		default: //Nothing selected.  Just do all in subregion frame color.
-			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glBegin(GL_LINES);
-				glVertex3f(extents[0], extents[1], extents[5]);
-				glVertex3f(extents[0], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[1], extents[5]);
-				glVertex3f(extents[3], extents[1], extents[2]);
-				glVertex3f(extents[3], extents[4], extents[5]);
-				glVertex3f(extents[3], extents[4], extents[2]);
-				glVertex3f(extents[0], extents[4], extents[5]);
-				glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			break;
-	}
-}
 
 
-//This only draws the outline of the face, as of 12/05.
-void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
-	
-	glEnable (GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPolygonMode(GL_FRONT, GL_FILL);
-	if (isSelected){
-		glLineWidth( 3.0 );
-		glColor4f(1.f,1.f,0.f,1.f);
-	}
-	else {
-		//glColor4f(.8f,.8f,.8f,.2f);
-		glLineWidth( 2.0 );
-		glColor3fv(subregionFrameColorFlt);
-	}
-	switch (faceNum){
-		case 4://Do left (x=0)
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			break;
-		
-		case 5:
-		//do right 
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			break;
-		case(3)://top
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			break;
-		case(2)://bottom
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glEnd();
-			break;
-	
-		case(0):
-			//back
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			break;
-		case(1):
-			//do the front:
-			//
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			break;
-		default: 
-			break;
-	}
-	glColor4f(1,1,1,1);
-	glDisable(GL_BLEND);
-}
-void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
-	glLineWidth( 2.0 );
-	glEnable (GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPolygonMode(GL_FRONT, GL_FILL);
-	if (isSelected)
-			glColor4f(.8f,.8f,0.f,.6f);
-		else 
-			glColor4f(.8f,.8f,.8f,.2f);
-	switch (faceNum){
-		case 4://Do left (x=0)
-			glBegin(GL_QUADS);
-			glVertex3fv(corners);
-			glVertex3fv(corners+3*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+4*3);
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners);
-			glVertex3fv(corners+3*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+4*3);
-			glEnd();
-			break;
-		
-		case 5:
-		//do right 
-			glBegin(GL_QUADS);
-			glVertex3fv(corners+1*3);
-			glVertex3fv(corners+5*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+2*3);
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners+1*3);
-			glVertex3fv(corners+5*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+2*3);
-			glEnd();
-			break;
-		case(3)://top
-			glBegin(GL_QUADS);
-			glVertex3fv(corners+2*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+3*3);
-			
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners+2*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+3*3);
-			glEnd();
-			break;
-		case(2)://bottom
-			glBegin(GL_QUADS);
-			glVertex3fv(corners+0*3);
-			glVertex3fv(corners+4*3);
-			glVertex3fv(corners+5*3);
-			glVertex3fv(corners+1*3);
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners+0*3);
-			glVertex3fv(corners+4*3);
-			glVertex3fv(corners+5*3);
-			glVertex3fv(corners+1*3);
-			glEnd();
-			break;
-	
-		case(0):
-			//back
-			glBegin(GL_QUADS);
-			glVertex3fv(corners+4*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+5*3);
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners+4*3);
-			glVertex3fv(corners+7*3);
-			glVertex3fv(corners+6*3);
-			glVertex3fv(corners+5*3);
-			glEnd();
-			break;
-		case(1):
-			//do the front:
-			//
-			glBegin(GL_QUADS);
-			glVertex3fv(corners+0*3);
-			glVertex3fv(corners+1*3);
-			glVertex3fv(corners+2*3);
-			glVertex3fv(corners+3*3);
-			glEnd();
-			glColor3fv(subregionFrameColorFlt);
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(corners+0*3);
-			glVertex3fv(corners+1*3);
-			glVertex3fv(corners+2*3);
-			glVertex3fv(corners+3*3);
-			glEnd();
-			break;
-		default: 
-			break;
-	}
-	glColor4f(1,1,1,1);
-	glDisable(GL_BLEND);
-}
-// This method draws the faces of the subregion-cube.
-// The surface of the cube is drawn partially transparent. 
-// This is drawn after the cube is drawn.
-// If a face is selected, it is drawn yellow
-// The z-buffer will continue to be
-// read-only, but is left on so that the grid lines will continue to be visible.
-// Faces of the cube are numbered 0..5 based on view from pos z axis:
-// back, front, bottom, top, left, right
-// selectedFace is -1 if nothing selected
-//	
-// The viewer direction determines which faces are rendered.  If a coordinate
-// of the viewDirection is positive (resp., negative), 
-// then the back side (resp front side) of the corresponding cube side is rendered
-
-void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceDisplacement){
-	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
-	//Copy the extents so they can be stretched
-	int i;
-	float cpExtents[6];
-	int stretchCrd = -1;
-
-	//Determine which coord direction is being stretched:
-	if (selectedFace >= 0) {
-		stretchCrd = (5-selectedFace)/2;
-		if (selectedFace%2) stretchCrd +=3;
-	}
-	for (i = 0; i< 6; i++) {
-		cpExtents[i] = extents[i];
-		//Stretch the "extents" associated with selected face
-		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
-	}
-	//for (i = 0; i< 6; i++){
-	//	if (faceIsVisible(extents, camPos, i)){
-	//		drawRegionFace(cpExtents, i, (i==selectedFace));
-	//	}
-	//}
-	drawRegionFaceLines(cpExtents, selectedFace);
-}
 
 //Set colors to use in bound rendering:
 void GLWindow::setSubregionFrameColorFlt(const QColor& c){
@@ -1318,7 +896,7 @@ void GLWindow::setRegionFrameColorFlt(const QColor& c){
 //Draw an elevation grid (surface) inside the current region extents:
 void GLWindow::drawElevationGrid(size_t timeStep){
 	//If the region is dirty, or the timestep has changed, must rebuild.
-	if (regionIsDirty()) invalidateElevGrid();
+	if (vizIsDirty(RegionBit)) invalidateElevGrid();
 	//First, check if we have already constructed the elevation grid vertices.
 	//If not, rebuild them:
 	if (!elevVert || !elevVert[timeStep]) {
@@ -1362,11 +940,6 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 
 	//Calculate x and y stretch factors, translation factors for texture mapping:
 	const float* extents = DataStatus::getInstance()->getExtents();
-	
-	float stretchX = (regExts[3]-regExts[0])/(extents[3]-extents[0]);
-	float stretchY = (regExts[4]-regExts[1])/(extents[4]-extents[1]);
-	float transX = regExts[0]/(extents[3]-extents[0]);
-	float transY = regExts[1]/(extents[4]-extents[1]);
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -1519,7 +1092,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	int refLevel = elevGridRefLevel;
 	if ( varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
 		//Use Elevation variable as backup:
-		varnum = DataStatus::getSessionVariableNum("ELEVATION");
+		varnum = DataStatus::getSessionVariableNum3D("ELEVATION");
 		if (dataMgrLayered && (varnum >= 0)) {
 			// NOTE:  Currently we are clearing cache here just because we need
 			// turn interpolation off.  This will not be so painful if we
@@ -1551,7 +1124,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 						timeStep,
 						"This message can be silenced \nusing the User Preference Panel settings." );
 				}
-				ds->setDataMissing(timeStep, refLevel, 0, ds->getSessionVariableNum(std::string("ELEVATION")));
+				ds->setDataMissing3D(timeStep, refLevel, 0, ds->getSessionVariableNum3D(std::string("ELEVATION")));
 				return false;
 			}
 		}
@@ -1592,6 +1165,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			return false;
 		}
 	}
+	if (!elevData && !hgtData) return false;
 	//Then create arrays to hold the vertices and their normals:
 	mxx = maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
 	mxy = maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
@@ -2077,7 +1651,7 @@ setDirtyBit(DirtyBitType t, bool nowDirty){
 			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
 			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
 			clearRendererBypass((Params::GetTypeFromTag(Params::_flowParamsTag)));
-		} else if (t == DvrRegionBit) {
+		} else if (t == NavigatingBit) {
 			clearRendererBypass((Params::GetTypeFromTag(Params::_isoParamsTag)));
 			clearRendererBypass((Params::GetTypeFromTag(Params::_dvrParamsTag)));
 		}
@@ -2101,12 +1675,13 @@ void GLWindow::
 doFrameCapture(){
 	if (capturingImage == 0) return;
 	//Create a string consisting of captureName, followed by nnnn (framenum), 
-	//followed by .jpg
+	//followed by .jpg or .tif
 	QString filename;
 	if (capturingImage == 2){
 		filename = captureNameImage;
 		filename += (QString("%1").arg(captureNumImage)).rightJustified(4,'0');
-		filename +=  ".jpg";
+		if (capturingTif) filename +=  ".tif";
+		else filename +=  ".jpg";
 	} //Otherwise we are just capturing one frame:
 	else filename = captureNameImage;
 	if (!(filename.endsWith(".jpg"))&&!(filename.endsWith(".tif"))) filename += ".jpg";
@@ -2490,3 +2065,16 @@ void GLWindow::removeDisabledRenderers(){
 }
 		
 		
+int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const char* name){
+	
+	ParamsBase::ParamsBaseType pType = ParamsBase::GetTypeFromTag(paramsTag);
+	paramsFromMode.push_back(pType);
+	manipFromMode.push_back(manipType);
+	modeName.push_back(std::string(name));
+	int mode = (int)modeName.size()-1;
+	//Setup reverse mapping
+	modeFromParams[pType] = mode;
+	assert(mode == (int)paramsFromMode.size()-1);
+	assert(manipFromMode.size() == mode+1);
+	return (mode);
+}

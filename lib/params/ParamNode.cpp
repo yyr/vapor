@@ -610,10 +610,23 @@ void ParamNode::GetElementStringVec(const vector<string> &tagpath, vector <strin
 	const ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
 		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return;
+		if (!currNode) {
+			vec.clear();
+			return;
+		}
 	}
 	string tag = tagpath[tagpath.size()-1];
 	string s = currNode->GetElementString(tag);
 
+	StrToWordVec(s, vec);
+}
+
+void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec) const {
+	const ParamNode* currNode = this;
+	if (!currNode->HasElementString(tag)){
+		vec.clear();
+		return;
+	}
+	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
 }

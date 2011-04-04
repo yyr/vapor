@@ -263,7 +263,7 @@ public:
 	//void getExtents(int refLevel, float extents[6]);
 		
 	std::string& getVariableName(int varNum) {
-		return DataStatus::getVariableName(varNum);}
+		return DataStatus::getVariableName3D(varNum);}
 	float getAboveValue(int varNum) {
 		return DataStatus::getAboveValue(varNum);
 	}
@@ -272,7 +272,7 @@ public:
 	}
 	//Find the session num of a name, or -1 if it's not metadata:
 	int getSessionVariableNum(const string& str){
-		return DataStatus::getSessionVariableNum(str);
+		return DataStatus::getSessionVariableNum3D(str);
 	}
 	//Insert variableName if necessary; return index
 	int mergeVariableName(const string& str){

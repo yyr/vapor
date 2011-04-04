@@ -48,9 +48,9 @@
 #include "params.h"
 using namespace VAPoR;
 
-ViewpointEventRouter::ViewpointEventRouter(QWidget* parent,const char* ): QWidget(parent), Ui_VizTab(), EventRouter(){
+ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), Ui_VizTab(), EventRouter(){
 	setupUi(this);
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_viewpointParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_viewpointParamsTag);
 	savedCommand = 0;
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
 }
@@ -141,6 +141,9 @@ ViewpointEventRouter::hookUpTab()
 	connect (rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (stereoSeparationEdit,SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed())); 
+
+	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setVpLocalGlobal(int)));
+	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
 
 }
 
@@ -294,7 +297,7 @@ viewpointReturnPressed(void){
 //Insert values from params into tab panel
 //
 void ViewpointEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	
 	QString strng;
@@ -709,7 +712,7 @@ captureMouseUp(){
 	updateTab();
 	PanelCommand::captureEnd(savedCommand, vpParams);
 	//DON't Set region  dirty
-	//VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
+	
 	//Just rerender:
 	VizWinMgr::getInstance()->refreshViewpoint(vpParams);
 	savedCommand = 0;

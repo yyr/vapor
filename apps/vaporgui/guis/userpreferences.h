@@ -89,6 +89,7 @@ protected slots:
 	void regionChanged(bool);
 	void subregionChanged(bool);
 	void warningChanged(bool);
+	void trackMouseChanged(bool);
 	void lowerResChanged(bool);
 	void textChanged();
 	void resetCounts();
@@ -102,6 +103,7 @@ protected slots:
 	void preIntegrationChanged(bool);
 	void axisArrowsChanged(bool);
 	void showSurfaceChanged(bool);
+	void spinChanged(bool);
 	void setAutoSave(bool);
 	void copyLatestSession();
 	void copyLatestMetadata();
@@ -153,6 +155,7 @@ protected:
 	static const string _animationDefaultMaxFPSAttr; 
 	static const string _defaultShowAxisArrowsAttr; 
 	static const string _defaultShowTerrainAttr;
+	static const string _defaultSpinAnimateAttr;
 	static const string _numLightsAttr;
 	static const string _lightDirectionAttr;
 	static const string _diffuseCoeffAttr;
@@ -191,6 +194,7 @@ protected:
 	bool texSizeSpecified;
 	bool useLowerRefinement;
 	bool warnDataMissing;
+	bool trackMouse;
 	int jpegQuality;
 	int texSize;
 	size_t cacheMB;
@@ -212,6 +216,7 @@ protected:
 	float maxFPS;
 	bool showAxisArrows;
 	bool showTerrain;
+	bool spinAnimate;
 	int autoSaveInterval;
 	bool showAll;
 };

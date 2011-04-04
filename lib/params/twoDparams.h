@@ -55,7 +55,7 @@ public:
 		elevGridDirty = val;
 	}
 	
-	const float* getSelectedPoint() {
+	virtual const float* getSelectedPoint() {
 		return selectPoint;
 	}
 	void setSelectedPoint(const float point[3]){

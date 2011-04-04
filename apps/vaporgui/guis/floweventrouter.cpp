@@ -81,10 +81,9 @@
 using namespace VAPoR;
 
 
-FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): QWidget(parent), Ui_FlowTab(), EventRouter(){
+FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab(), EventRouter(){
 	setupUi(this);
-	
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_flowParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_flowParamsTag);
 	savedCommand = 0;
 	flowDataChanged = false;
 	mapBoundsChanged = false;
@@ -330,7 +329,7 @@ FlowEventRouter::hookUpTab()
 //This is called whenever the tab is displayed
 //
 void FlowEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	if (!isEnabled()) return;
 	if (GLWindow::isRendering())return;
 	DataStatus* dStatus = DataStatus::getInstance();
@@ -801,13 +800,13 @@ void FlowEventRouter::updateTab(){
 	} else {
 		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
 		float minval= -1.f, maxval = 1.f;
-		if (dStatus->variableIsPresent(varnum)){
+		if (dStatus->variableIsPresent3D(varnum)){
 			if (fParams->isEnabled()){
-				minval = dStatus->getDataMin(varnum, tstep);
-				maxval = dStatus->getDataMax(varnum, tstep);
+				minval = dStatus->getDataMin3D(varnum, tstep);
+				maxval = dStatus->getDataMax3D(varnum, tstep);
 			} else {
-				minval = dStatus->getDefaultDataMin(varnum);
-				maxval = dStatus->getDefaultDataMax(varnum);
+				minval = dStatus->getDefaultDataMin3D(varnum);
+				maxval = dStatus->getDefaultDataMax3D(varnum);
 			}
 		}
 		minColorBound->setText(QString::number(minval));
@@ -820,13 +819,13 @@ void FlowEventRouter::updateTab(){
 	} else {
 		int varnum = DataStatus::mapActiveToSessionVarNum3D(var -4);
 		float minval= -1.f, maxval = 1.f;
-		if (dStatus->variableIsPresent(varnum)){
+		if (dStatus->variableIsPresent3D(varnum)){
 			if (fParams->isEnabled()){
-				minval = dStatus->getDataMin(varnum, tstep);
-				maxval = dStatus->getDataMax(varnum, tstep);
+				minval = dStatus->getDataMin3D(varnum, tstep);
+				maxval = dStatus->getDataMax3D(varnum, tstep);
 			} else {
-				minval = dStatus->getDefaultDataMin(varnum);
-				maxval = dStatus->getDefaultDataMax(varnum);
+				minval = dStatus->getDefaultDataMin3D(varnum);
+				maxval = dStatus->getDefaultDataMax3D(varnum);
 			}
 		}
 		minOpacityBound->setText(QString::number(minval));
@@ -1855,8 +1854,9 @@ guiSetXComboSteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X steady field variable");
 	fParams->setComboSteadyVarnum(0,varnum);
 	if (varnum == 0) fParams->setXSteadyVarNum(0);
-	else 
+	else {
 		fParams->setXSteadyVarNum(DataStatus::getInstance()->mapActiveToSessionVarNum3D(varnum-1)+1);
+	}
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -2810,7 +2810,7 @@ captureMouseUp(){
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	//Update the tab if it's in front:
-	if(MainForm::getInstance()->getTabManager()->isFrontTab(this)) {
+	if(MainForm::getTabManager()->isFrontTab(this)) {
 		
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (fParams == vwm->getFlowParams(viznum)))
@@ -3266,7 +3266,7 @@ flowVarsZeroBelow(){
 #ifdef Darwin
 void FlowEventRouter::paintEvent(QPaintEvent* ev){
 	
-	QScrollArea* sArea = (QScrollArea*)MainForm::getInstance()->getTabManager()->currentWidget();
+	QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
  	if(!colorMapShown ){
 		sArea->ensureWidgetVisible(colorMappingFrame);
 		colorMappingFrame->show();

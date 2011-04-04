@@ -76,10 +76,10 @@ using namespace VAPoR;
 QT_USE_NAMESPACE
 
 
-AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
+AnimationEventRouter::AnimationEventRouter(QWidget* parent) : QWidget(parent,0), Ui_AnimationTab(), EventRouter() {
 	setupUi(this);	
 
-	myParamsBaseType = VizWinMgr::RegisterEventRouter(Params::_animationParamsTag, this);
+	myParamsBaseType = Params::GetTypeFromTag(Params::_animationParamsTag);
 	MessageReporter::infoMsg("AnimationEventRouter::AnimationEventRouter()");
 	dontUpdate = false;
 	QPixmap* playForwardIcon = new QPixmap(playforward);
@@ -159,6 +159,9 @@ AnimationEventRouter::hookUpTab()
 	connect(toEndButton, SIGNAL(clicked()), this, SLOT(animationToEndClick()));
 	connect(stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
+
+	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setAnimationLocalGlobal(int)));
+	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
 	dontUpdate = false;
 
 }
@@ -230,7 +233,7 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 //Insert values from params into tab panel
 //
 void AnimationEventRouter::updateTab(){
-	if(!MainForm::getInstance()->getTabManager()->isFrontTab(this)) return;
+	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;
 	QString strn;
@@ -709,7 +712,7 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 	refreshFrontTab();
 }
 void AnimationEventRouter::refreshFrontTab(){
-	TabManager* tmgr = MainForm::getInstance()->getTabManager();
+	TabManager* tmgr = MainForm::getTabManager();
 	EventRouter* eRouter = tmgr->getFrontEventRouter();
 	eRouter->updateTab();
 }

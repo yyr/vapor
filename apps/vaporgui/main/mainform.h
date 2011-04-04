@@ -30,6 +30,8 @@
 #include <QPaintEvent>
 #include <QActionGroup>
 #include <QLabel>
+#include <QComboBox>
+#include <QIcon>
 #include "command.h"
 #include "params.h"
 class QApplication;
@@ -56,15 +58,7 @@ class VizWinMgr;
 class VizSelectCombo;
 class Vcr;
 class Session;
-class RegionEventRouter;
-class AnimationEventRouter;
-class DvrEventRouter;
-class IsoEventRouter;
 class ViewpointEventRouter;
-class ProbeEventRouter;
-class TwoDDataEventRouter;
-class TwoDImageEventRouter;
-class FlowEventRouter;
 
 class MainForm : public QMainWindow
 {
@@ -79,19 +73,9 @@ public:
 	}
     	MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = Qt::Window );
     	~MainForm();
-	TabManager* getTabManager() {return tabWidget;}
+	static TabManager* getTabManager() {return tabWidget;}
 
-	ViewpointEventRouter* getVizTab() { return theVizTab;}
-	RegionEventRouter* getRegionTab() {return theRegionTab;}
-	DvrEventRouter* getDvrTab() {return theDvrTab;}
-	ProbeEventRouter* getProbeTab() {return theProbeTab;}
-	TwoDImageEventRouter* getTwoDImageTab() {return theTwoDImageTab;}
-	TwoDDataEventRouter* getTwoDDataTab() {return theTwoDDataTab;}
-	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
-	
-	
-	FlowEventRouter* getFlowTab() {return theFlowTab;}
-	
+	static void showTab(const std::string& tag);
 	QMdiArea* getMDIArea() {return myMDIArea;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
@@ -102,16 +86,12 @@ public:
 	VizSelectCombo* getWindowSelector(){return windowSelector;}
 	//following are accessed during undo/redo
 	QAction* navigationAction;
-	QAction* regionSelectAction;
-	QAction* probeAction;
-	QAction* twoDImageAction;
-	QAction* twoDDataAction;
-	QAction* rakeAction;
-	QAction* moveLightsAction;
+	
 	QAction* editUndoAction;
 	QAction* editRedoAction;
 	QLineEdit* timestepEdit;
 	QComboBox* alignViewCombo;
+	QComboBox* modeCombo;
 	//Following are public so accessible from animation tab:
 	QAction* playForwardAction;
 	QAction* playBackwardAction;
@@ -123,7 +103,11 @@ public:
 		playBackwardAction->setChecked(false);
 		pauseAction->setChecked(true);
 	}
-
+	int addMode(QString& text, QIcon& icon){
+		modeCombo->addItem(icon, text);
+		return (modeCombo->count()-1);
+	}
+	void setMouseMode(int newMode) {modeCombo->setCurrentIndex(newMode);}
 	
 private:
     void createActions(); 
@@ -244,26 +228,11 @@ public slots:
 	virtual void startFlowCapture();
 	virtual void endFlowCapture();
   
-    virtual void viewpoint();
-    virtual void region();
-    virtual void renderDVR();
-	virtual void animationParams();
-	virtual void launchFlowTab();
-	virtual void launchIsoTab();
-	virtual void launchProbeTab();
-	virtual void launchTwoDImageTab();
-	virtual void launchTwoDDataTab();
     virtual void batchSetup();
 
-	//Set various manipulator modes:
-	virtual void setRegionSelect(bool);
-	virtual void setProbe(bool);
-	virtual void setTwoDImage(bool);
-	virtual void setTwoDData(bool);
-	virtual void setRake(bool);
+	//Set navigate mode
 	virtual void setNavigate(bool);
-	virtual void setLights(bool);
-
+	
 	//animation toolbar:
 	virtual void playForward();
 	virtual void playBackward();
@@ -276,21 +245,12 @@ public slots:
 protected:
 	virtual void paintEvent(QPaintEvent* e);
 	static MainForm* theMainForm;
-	void resetModeButtons();
 	
 	
 	QMdiArea* myMDIArea;
-    	TabManager* tabWidget;
-    	QDesktopWidget* myDesktopWidget;
-	ViewpointEventRouter* theVizTab;
-	RegionEventRouter* theRegionTab;
-	DvrEventRouter* theDvrTab;
-	IsoEventRouter* theIsoTab;
-	FlowEventRouter* theFlowTab;
-	ProbeEventRouter* theProbeTab;
-	TwoDImageEventRouter* theTwoDImageTab;
-	TwoDDataEventRouter* theTwoDDataTab;
-	AnimationEventRouter* theAnimationTab;
+    static TabManager* tabWidget;
+    QDesktopWidget* myDesktopWidget;
+	
 	QApplication* theApp;
 	
 	VizSelectCombo* windowSelector;
@@ -302,6 +262,7 @@ protected:
 	
 
 protected slots:
+	void modeChange(int);
     virtual void languageChange();
 	void initCaptureMenu();
 	void setupEditMenu();
