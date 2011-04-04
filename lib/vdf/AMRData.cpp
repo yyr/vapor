@@ -564,6 +564,7 @@ int AMRData::ReadAttributesNCDF(
 	rc = nc_get_att_float(ncid,NC_GLOBAL,_scalarRangeToken.c_str(),data_range);
 	NC_ERR_READ(rc,path)
 
+	nc_close(ncid);
 	return(0);
 }
 
