@@ -725,7 +725,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	}
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
-		double exts[6], angles[3];
+		float exts[6], angles[3];
 		GetBox()->GetExtents(exts);
 		GetBox()->GetAngles(angles);
 		while (*attrs) {
@@ -736,23 +736,23 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			istringstream ist(value);
 			
 			if (StrCmpNoCase(attribName, _thetaAttr) == 0) {
-				ist >> (double)angles[0];
+				ist >> angles[0];
 				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _phiAttr) == 0) {
-				ist >> (double)angles[1];
+				ist >> angles[1];
 				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _psiAttr) == 0) {
-				ist >> (double)angles[2];
+				ist >> angles[2];
 				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _probeMinAttr) == 0) {
-				ist >> (double)exts[0];ist >> (double)exts[1];ist >> (double)exts[2];
+				ist >> exts[0];ist >> exts[1];ist >> exts[2];
 				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _probeMaxAttr) == 0) {
-				ist >> (double)exts[3];ist >> (double)exts[4];ist >> (double)exts[5];
+				ist >> exts[3];ist >> exts[4];ist >> exts[5];
 				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {

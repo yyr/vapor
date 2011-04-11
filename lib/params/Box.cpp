@@ -68,6 +68,14 @@ int Box::GetExtents(double extents[6], int timestep){
 	for (int j = 0; j<6; j++){extents[j] = exts[j];}
 	return 0;
 }
+int Box::GetExtents(float extents[6], int timestep){
+	double exts[6];
+	int rc = GetExtents(exts, timestep);
+	if (rc) return rc;
+	for (int i = 0; i<6; i++) extents[i] = exts[i];
+	return 0;
+}
+
 int Box::SetExtents(const vector<double>& extents, int timestep){
 	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag);
 	//If setting default and there are no nondefault extents, 
@@ -98,3 +106,9 @@ int Box::SetExtents(const double extents[6], int timestep){
 	for (int i = 0; i<6; i++) exts.push_back(extents[i]);
 	return SetExtents(exts, timestep);
 }
+int Box::SetExtents(const float extents[6], int timestep){
+	vector<double> exts;
+	for (int i = 0; i<6; i++) exts.push_back((double)extents[i]);
+	return SetExtents(exts, timestep);
+}
+

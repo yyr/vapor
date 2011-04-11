@@ -310,7 +310,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
-		double box[6];
+		float box[6];
 		GetBox()->GetExtents(box);
 		while (*attrs) {
 			string attribName = *attrs;
@@ -319,11 +319,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			attrs++;
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _twoDMinAttr) == 0) {
-				ist >> (double)box[0];ist >> (double)box[1];ist >> (double)box[2];
+				ist >> box[0];ist >> box[1];ist >> box[2];
 				GetBox()->SetExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _twoDMaxAttr) == 0) {
-				ist >> (double)box[3];ist >> (double)box[4];ist >> (double)box[5];
+				ist >> box[3];ist >> box[4];ist >> box[5];
 				GetBox()->SetExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {

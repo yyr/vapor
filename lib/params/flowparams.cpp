@@ -1982,7 +1982,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	else if (StrCmpNoCase(tagString, _seedingTag) == 0) {
 		//Clear out the seeds, will be added in later if they are found.
 		seedPointList.clear();
-		double seedBox[6];
+		float seedBox[6];
 		GetBox()->GetExtents(seedBox);
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1992,12 +1992,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			istringstream ist(value);
 		
 			if (StrCmpNoCase(attribName, _seedRegionMinAttr) == 0) {
-				ist >> (double)seedBox[0];ist >> (double)seedBox[1];ist >> (double)seedBox[2];
+				ist >> seedBox[0];ist >> seedBox[1];ist >> seedBox[2];
 				GetBox()->SetExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _seedRegionMaxAttr) == 0) {
 				
-				ist >> (double)seedBox[3];ist >> (double)seedBox[4];ist >> (double)seedBox[5];
+				ist >> seedBox[3];ist >> seedBox[4];ist >> seedBox[5];
 				GetBox()->SetExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _randomGenAttr) == 0) {

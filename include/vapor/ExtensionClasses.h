@@ -19,3 +19,4 @@ namespace VAPoR {
 		VizWinMgr::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Arrow rake", arrowrake );
 	}
 };
+

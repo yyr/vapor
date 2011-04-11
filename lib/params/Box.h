@@ -43,11 +43,16 @@ public:
 	}
 	//! Get the box extents as a double array.  If timestep is >= 0, then get it just
 	//! for the specified timestep
-	//!
 	//! \param[out] double extents[6] returned extents
 	//! \param[in] int timestep  specific time step being retrieved, or -1 for generic time steps
 	//! \retcode int zero if successful.
 	int GetExtents(double extents[6], int timestep = -1);
+	//! Get the box extents as a float array.  If timestep is >= 0, then get it just
+	//! for the specified timestep
+	//! \param[out] double extents[6] returned extents
+	//! \param[in] int timestep  specific time step being retrieved, or -1 for generic time steps
+	//! \retcode int zero if successful.
+	int GetExtents(float extents[6], int timestep = -1);
 	//! Get the box extents as a vector.  First 6 values are default; additional
 	//! values are associated with non-default regions
 	//! \sa GetTimes()
@@ -64,11 +69,16 @@ public:
 	int SetExtents(const vector<double>& extents, int timestep = -1);
 	//! Specify the extents as a double array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//!
-	//! param[in] vector<double>& extents 6 doubles that will be new extents
+	//! param[in] double extents6] 6 doubles that will be new extents
 	//! param[in] int timestep specified time step, or -1 for generic times
 	//! \retcode int zero if successful.
 	int SetExtents(const double extents[6], int timestep = -1);
+	//! Specify the extents as a float array.  If time step is -1, then set the generic extents.
+	//! Otherwise set the extents for a specific timestep.
+	//! param[in] float extents[6]
+	//! param[in] int timestep specified time step, or -1 for generic times
+	//! \retcode int zero if successful.
+	int SetExtents(const float extents[6], int timestep = -1);
 	//! Get the three orientation angles (theta, phi, psi)
 	//! Defaults to empty vector if no angles are set.
 	//! \retval const vector<double> vector of length 3 of angles.
@@ -83,12 +93,28 @@ public:
 		for (int i = 0; i<3;i++) ang[i]=angles[i];
 		return 0;
 	}
+	//! Get the angles as a float array
+	//! \param [out] float angles[3] array of three floats for theta, phi, psi
+	int GetAngles(float ang[3]){
+		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag);
+		if (angles.size() != 3) return -1;
+		for (int i = 0; i<3;i++) ang[i]=(float)angles[i];
+		return 0;
+	}
 	//! Set the angles from a double array
 	//! \param [in] angles array of three doubles for theta, phi, psi
 	//! \retval int zero on success
 	int SetAngles(const double ang[3]){
 		vector<double> angles;
 		for (int i = 0; i<3;i++) angles.push_back(ang[i]);
+		return GetRootNode()->SetElementDouble(_anglesTag, angles);
+	}
+	//! Set the angles from a float array
+	//! \param [in] angles array of three floats for theta, phi, psi
+	//! \retval int zero on success
+	int SetAngles(const float ang[3]){
+		vector<double> angles;
+		for (int i = 0; i<3;i++) angles.push_back((double)ang[i]);
 		return GetRootNode()->SetElementDouble(_anglesTag, angles);
 	}
 	//! Set the three orientation angles (theta, phi, psi) from a vector of doubles
@@ -131,3 +157,5 @@ public:
 };
 };
 #endif
+
+
