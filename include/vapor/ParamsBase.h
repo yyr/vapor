@@ -327,10 +327,7 @@ protected:
  //! class as well as deleting any tree branches.
  //
  void Clear();
-
-
 };
-
 
 }; //End namespace VAPoR
 #endif //ParamsBase_H

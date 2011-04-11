@@ -67,34 +67,23 @@ size_t RegionParams::fullHeight = 0;
 
 RegionParams::RegionParams(int winnum): Params(winnum, Params::_regionParamsTag){
 	
-	
+	myBox = 0;
 	restart();
 }
 Params* RegionParams::
 deepCopy(ParamNode* ){
-	//Just make a shallow copy, but duplicate the extentsMap
+	//Just make a shallow copy, but duplicate the Box
 	//
 	RegionParams* p = new RegionParams(*this);
-	p->extentsMap.clear();
-	if (extentsMap.size() > 0){
-		//Iterate over extents map, copy all the extents
-		map <int, float*> :: iterator eIter;
-		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
-			float *exts = eIter->second;
-			int ts = eIter->first;
-			float *extsCopy = new float[6];
-			for (int i = 0; i< 6; i++){
-				extsCopy[i] = exts[i];
-			}
-			p->extentsMap[ts] = extsCopy;
-		}
-		
-	}
+	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
+	p->myBox = myBox->deepCopy(pNode);
+	
 	return (Params*)(p);
 }
 
 RegionParams::~RegionParams(){
 	clearRegionsMap();
+	if (myBox) delete myBox;
 }
 
 
@@ -143,7 +132,10 @@ restart(){
 	const float* fullDataExtents = 0;
 	if (ds) fullDataExtents = DataStatus::getInstance()->getExtents();
 	
-	
+	if (!myBox){
+		myBox = new Box();
+	}
+	float defaultRegionExtents[6];
 	for (int i = 0; i< 3; i++){
 		if (ds){
 			defaultRegionExtents[i] = fullDataExtents[i];
@@ -154,6 +146,9 @@ restart(){
 		}
 
 	}
+	vector<double> regexts;
+	for (int i = 0; i<6; i++) regexts.push_back(defaultRegionExtents[i]);
+	myBox->SetExtents(regexts);
 	
 }
 //Reinitialize region settings, session has changed
@@ -164,39 +159,40 @@ reinit(bool doOverride){
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
 	bool isLayered = DataStatus::getInstance()->dataIsLayered();
+	double regionExtents[6];
+	vector<double> exts;
 	if (doOverride) {
 		for (i = 0; i< 6; i++) {
-			defaultRegionExtents[i] = extents[i];
+			exts.push_back( extents[i]);
 		}
 		clearRegionsMap();
 		if (isLayered) setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
 		else fullHeight = 0;
+		myBox->SetExtents(exts);
+		myBox->Trim();
 	} else {
-		//Just force them to fit in current volume 
-		for (i = 0; i< 3; i++) {
-			if (defaultRegionExtents[i] > defaultRegionExtents[i+3]) 
-				defaultRegionExtents[i+3] = defaultRegionExtents[i];
-			if (defaultRegionExtents[i] > extents[i+3])
-				defaultRegionExtents[i] = extents[i+3];
-			if (defaultRegionExtents[i] < extents[i])
-				defaultRegionExtents[i] = extents[i];
-			if (defaultRegionExtents[i+3] > extents[i+3])
-				defaultRegionExtents[i+3] = extents[i+3];
-			if (defaultRegionExtents[i+3] < extents[i])
-				defaultRegionExtents[i+3] = extents[i];
-		}
-		if (extentsMap.size() > 0){
-			//Iterate over extents map, make every region fit:
-			map <int, float*> :: iterator eIter;
-			for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
-				float *exts = eIter->second;
-				for (int i = 0; i< 3; i++){
-					if (exts[i] < extents[i]) exts[i] = extents[i];
-					if (exts[i+3] > extents[i+3]) exts[i+3] = extents[i+3];
-				}
+		const vector<long>& times = myBox->GetTimes();
+		for (int timenum = 0; timenum< times.size(); timenum++){
+			int currTime = times[timenum];
+			myBox->GetExtents(regionExtents,currTime);
+			//Just force them to fit in current volume 
+			for (i = 0; i< 3; i++) {
+				if (regionExtents[i] > regionExtents[i+3]) 
+					regionExtents[i+3] = regionExtents[i];
+				if (regionExtents[i] > extents[i+3])
+					regionExtents[i] = extents[i+3];
+				if (regionExtents[i] < extents[i])
+					regionExtents[i] = extents[i];
+				if (regionExtents[i+3] > extents[i+3])
+					regionExtents[i+3] = extents[i+3];
+				if (regionExtents[i+3] < extents[i])
+					regionExtents[i+3] = extents[i];
 			}
-
+			exts.clear();
+			for (int j = 0; j< 6; j++) exts.push_back(regionExtents[j]);
+			myBox->SetExtents(exts,currTime);
 		}
+		
 		//If layered data is being read into a session that was not
 		//set for layered data, then the fullheight may need to be
 		//set to default
@@ -216,9 +212,11 @@ void RegionParams::setRegionMin(int coord, float minval, int timestep, bool chec
 		if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
 		if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
 	}
-	float * exts = getRegionExtents(timestep);
+	double exts[6];
+	myBox->GetExtents(exts, timestep);
 	if (checkMax) {if (minval > exts[coord+3]) minval = exts[coord+3];}
 	exts[coord] = minval;
+	myBox->SetExtents(exts,timestep);
 }
 void RegionParams::setRegionMax(int coord, float maxval, int timestep, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
@@ -228,9 +226,12 @@ void RegionParams::setRegionMax(int coord, float maxval, int timestep, bool chec
 		if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
 		if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
 	}
-	float* exts = getRegionExtents(timestep);
+	double exts[6];
+	myBox->GetExtents(exts, timestep);
+	
 	if (checkMin){if (maxval < exts[coord]) maxval = exts[coord];}
 	exts[coord+3] = maxval;
+	myBox->SetExtents(exts, timestep);
 }
 
 
@@ -321,10 +322,11 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	double userMinCoords[3];
 	double userMaxCoords[3];
-	float* regExts = getRegionExtents(timestep);
+	double regExts[6];
+	GetBox()->GetExtents(regExts, timestep);
 	for (i = 0; i<3; i++){
-		userMinCoords[i] = (double)regExts[i];;
-		userMaxCoords[i] = (double)regExts[i+3];
+		userMinCoords[i] = regExts[i];;
+		userMaxCoords[i] = regExts[i+3];
 	}
 	const DataMgr* dataMgr = ds->getDataMgr();
 
@@ -601,10 +603,11 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	double userMinCoords[3];
 	double userMaxCoords[3];
-	float* regExts = getRegionExtents(timestep);
+	double regExts[6];
+	GetBox()->GetExtents(regExts, timestep);
 	for (i = 0; i<3; i++){
-		userMinCoords[i] = (double)regExts[i];
-		userMaxCoords[i] = (double)regExts[i+3];
+		userMinCoords[i] = regExts[i];
+		userMaxCoords[i] = regExts[i+3];
 	}
 	const DataMgr* dataMgr = ds->getDataMgr();
 
@@ -676,7 +679,7 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 	else if (StrCmpNoCase(tagString, _regionAtTimeTag) == 0) {
 		//Attributes are timestep and extents
 		int tstep = -1;
-		float* exts = new float[6];
+		double exts[6];
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -693,13 +696,15 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 			}
 			
 		}
-		extentsMap[tstep] = exts;
+		insertTime(tstep);
+		myBox->SetExtents(exts, tstep);
 		return true;
 	}
 	else return false;
 }
 bool RegionParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	double defaultRegionExtents[6];
 	if (StrCmpNoCase(tag, _regionParamsTag) == 0) {
 		//If this is a regionparams, need to
 		//pop the parse stack.  
@@ -709,15 +714,20 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	} 
 	else if (StrCmpNoCase(tag, _regionMinTag) == 0){
 		vector<double> bound = pm->getDoubleData();
+		myBox->GetExtents(defaultRegionExtents);
+		
 		defaultRegionExtents[0] = bound[0];
 		defaultRegionExtents[1] = bound[1];
 		defaultRegionExtents[2] = bound[2];
+		myBox->SetExtents(defaultRegionExtents);
 		return true;
 	} else if (StrCmpNoCase(tag, _regionMaxTag) == 0){
 		vector<double> bound = pm->getDoubleData();
+		myBox->GetExtents(defaultRegionExtents);
 		defaultRegionExtents[3] = bound[0];
 		defaultRegionExtents[4] = bound[1];
 		defaultRegionExtents[5] = bound[2];
+		myBox->SetExtents(defaultRegionExtents);
 		return true;
 	} else if (StrCmpNoCase(tag, _regionAtTimeTag) == 0){
 		return true;
@@ -765,10 +775,13 @@ buildNode(){
 	else 
 		oss << "false";
 	attrs[_localAttr] = oss.str();
-	int numchildren = 2 + extentsMap.size();
+	
+	int numchildren = 2 + myBox->GetTimes().size();
 	ParamNode* regionNode = new ParamNode(_regionParamsTag, attrs, numchildren);
 
 	//Now add children:  
+	double defaultRegionExtents[6];
+	myBox->GetExtents(defaultRegionExtents);
 	
 	vector<double> bounds;
 	int i;
@@ -783,36 +796,37 @@ buildNode(){
 	}
 	regionNode->SetElementDouble(_regionMaxTag,bounds);
 
-	if (extentsMap.size() > 0){
+	const vector<double>& exts = myBox->GetRootNode()->GetElementDouble(Box::_extentsTag);
+	const vector<long>& times = myBox->GetTimes();
+	for (int i = 1; i<times.size(); i++){
 		
 
 		//Add a node for each region in the list, having the extents as an attribute:
-		//Iterate over the extents map:
-		map <int, float*> :: iterator eIter;
-		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
-			
-			attrs.clear();
-			oss.str(empty);
-			float *exts = eIter->second;
-			int ts = eIter->first;
-			oss << (long) ts;
-			attrs[_timestepAttr] = oss.str();
-			oss.str(empty);
-			oss << (double) exts[0]<< " " <<
-				(double) exts[1]<< " " <<
-				(double) exts[2]<< " " <<
-				(double) exts[3]<< " " <<
-				(double) exts[4]<< " " <<
-				(double) exts[5];
-			attrs[_extentsAttr] = oss.str();
-			
-			ParamNode* regionTimeNode = new ParamNode(_regionAtTimeTag, attrs, 0);
-			regionNode->AddChild(regionTimeNode);
-		}
-		//regionNode->AddChild(regionListNode);
+		//Iterate over the Tims
+		attrs.clear();
+		oss.str(empty);
+		oss << (long) times[i];
+		attrs[_timestepAttr] = oss.str();
+		oss.str(empty);
+		oss << (double) exts[6*i+0]<< " " <<
+			(double) exts[6*i+1]<< " " <<
+			(double) exts[6*i+2]<< " " <<
+			(double) exts[6*i+3]<< " " <<
+			(double) exts[6*i+4]<< " " <<
+			(double) exts[6*i+5];
+		attrs[_extentsAttr] = oss.str();
+		
+		ParamNode* regionTimeNode = new ParamNode(_regionAtTimeTag, attrs, 0);
+		regionNode->AddChild(regionTimeNode);
+		
 	}
 
 	return regionNode;
+}
+int RegionParams::getMBStorageNeeded(const double extents[6], int reflevel){
+	float exts[6];
+	for (int i = 0; i<6; i++) exts[i] = extents[i];
+	return getMBStorageNeeded(exts, exts+3, reflevel);
 }
 //Static method to find how many megabytes are needed for a dataset.
 int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel){
@@ -934,22 +948,48 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	max_coord[2] = (fullHeight >> (maxRefLevel -minRefLevel)) -1;
 	return rc;
 }
-float* RegionParams::getRegionExtents(int timestep){
-	if (extentsMap.size() == 0) return defaultRegionExtents;
-	map <int, float*> :: const_iterator extsIter;
-	extsIter = extentsMap.find( timestep);
-	if ( extsIter == extentsMap.end()) return defaultRegionExtents;
-	return  extsIter->second;
-}
 
 void RegionParams::clearRegionsMap(){
-	if (extentsMap.size() > 0){
-		//Iterate over extents map, make every region fit:
-		map <int, float*> :: iterator eIter;
-		for ( eIter = extentsMap.begin( ) ; eIter != extentsMap.end() ; eIter++ ){
-			float *exts = eIter->second;
-			delete [] exts;
+	myBox->Trim();
+}
+bool RegionParams::insertTime(int timestep){
+	if (timestep<0) return false;
+	const vector<long>& times = GetTimes();
+	int index = 0;
+	for (int i = 1; i<times.size(); i++){
+		if (times[i] == timestep){
+			index = i;
+			break;
 		}
-		extentsMap.clear();
 	}
+	if (index != 0) return false;
+	const vector<double>& extents = GetAllExtents();
+	vector<long> copyTimes = vector<long>(times);
+	vector<double>copyExts = vector<double>(extents);
+	copyTimes.push_back(timestep);
+	//Set the new extents to default extents:
+	for (int i = 0; i<6; i++) copyExts.push_back(extents[i]);
+	myBox->GetRootNode()->SetElementLong(Box::_timesTag, copyTimes);
+	myBox->GetRootNode()->SetElementDouble(Box::_extentsTag, copyExts);
+	return true;
+}
+bool RegionParams::removeTime(int timestep){
+	if (timestep<0) return false;
+	const vector<long>& times = GetTimes();
+	int index = 0;
+	for (int i = 1; i<times.size(); i++){
+		if (times[i] == timestep){
+			index = i;
+			break;
+		}
+	}
+	if (index == 0) return false;
+	const vector<double>& extents = GetAllExtents();
+	vector<long> copyTimes = vector<long>(times);
+	vector<double>copyExts = vector<double>(extents);
+	vector<long>::iterator itlong = copyTimes.begin()+index;
+	vector<double>::iterator itdbl = copyExts.begin()+6*index;
+	copyTimes.erase(itlong);
+	copyExts.erase(itdbl,itdbl+5);
+	return true;
 }

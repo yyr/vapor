@@ -126,10 +126,20 @@ public:
 		}
 		return (sqrt(sumVal));
 	}
-	float getProbeMin(int i) {return probeMin[i];}
-	float getProbeMax(int i) {return probeMax[i];}
-	void setProbeMin(int i, float val){probeMin[i] = val;}
-	void setProbeMax(int i, float val){probeMax[i] = val;}
+	float getProbeMin(int i) {return (float)GetBox()->GetExtents()[i];}
+	float getProbeMax(int i) {return (float)GetBox()->GetExtents()[i+3];}
+	void setProbeMin(int i, float val){
+		double exts[6];
+		GetBox()->GetExtents(exts);
+		exts[i] = val;
+		GetBox()->SetExtents(exts);
+	}
+	void setProbeMax(int i, float val){
+		double exts[6];
+		GetBox()->GetExtents(exts);
+		exts[i+3] = val;
+		GetBox()->SetExtents(exts);
+	}
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
 	
@@ -159,8 +169,14 @@ public:
 	int getNPN() {return NPN;}
 	int getNMESH() {return NMESH;}
 
-	float getRealImageWidth() {return probeMax[0]-probeMin[0];}
-	float getRealImageHeight() {return probeMax[1]-probeMin[1];}
+	float getRealImageWidth() {
+		const vector<double>& exts = GetBox()->GetExtents();
+		return (float)(exts[3]-exts[0]);
+	}
+	float getRealImageHeight() {
+		const vector<double>& exts = GetBox()->GetExtents();
+		return (float)(exts[4]-exts[1]);
+	}
 	
 	
 	//Implement virtual function to deal with new session:
@@ -202,28 +218,12 @@ public:
 		else return probeIBFVTextures[timestep];
 	}
 	void getProbeVoxelExtents(float voxdims[2]);
-
-	virtual float getPhi() {return phi;}
-	virtual float getTheta() {return theta;}
-	virtual float getPsi() {return psi;}
 	
-	void setTheta(float th) {theta = th;}
-	void setPhi(float ph) {phi = ph;}
-	void setPsi(float ps) {psi = ps;}
+	
 	bool isPlanar() {return planar;}
 	void setPlanar(bool val) {planar = val;}
-	virtual void getBox(float boxmin[], float boxmax[], int){
-		for (int i = 0; i< 3; i++){
-			boxmin[i]=probeMin[i];
-			boxmax[i]=probeMax[i];
-		}
-	}
-	virtual void setBox(const float boxMin[], const float boxMax[], int){
-		for (int i = 0; i< 3; i++){
-			probeMin[i] = boxMin[i];
-			probeMax[i] = boxMax[i];
-		}
-	}
+	virtual Box* GetBox() {return myBox;}
+	
 	//Get the bounding extents of probe, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
 	//change box dimensions after a rotation so that it appears to be the same size:
@@ -356,9 +356,8 @@ protected:
 	
 	
 	//State variables controlled by GUI:
-	float probeMin[3], probeMax[3];
+	Box* myBox;
 	int numRefinements, maxNumRefinements;
-	float theta, phi, psi;
 	float selectPoint[3];
 	float cursorCoords[2];
 	

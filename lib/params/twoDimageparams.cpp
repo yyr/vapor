@@ -97,7 +97,8 @@ TwoDImageParams::~TwoDImageParams(){
 Params* TwoDImageParams::
 deepCopy(ParamNode*){
 	TwoDImageParams* newParams = new TwoDImageParams(*this);
-	
+	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
+	newParams->myBox = myBox->deepCopy(pNode);
 	//TwoD texture must be recreated when needed
 	newParams->twoDDataTextures = 0;
 	newParams->imageExtents = 0;
@@ -124,15 +125,16 @@ reinit(bool doOverride){
 	//Set up the numRefinements combo
 	//Either set the twoD bounds to default (full) size in the center of the domain, or 
 	//try to use the previous bounds:
+	double twoDExtents[6];
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
 			float twoDMid = 0.5f*(extents[i+3] + extents[i]);
 			if (i<2) {
-				twoDMin[i] = twoDMid - twoDRadius;
-				twoDMax[i] = twoDMid + twoDRadius;
+				twoDExtents[i] = twoDMid - twoDRadius;
+				twoDExtents[i+3] = twoDMid + twoDRadius;
 			} else {
-				twoDMin[i] = twoDMax[i] = twoDMid;
+				twoDExtents[i] = twoDExtents[i+3] = twoDMid;
 			}
 		}
 		
@@ -141,13 +143,14 @@ reinit(bool doOverride){
 	} else {
 		//Just force the mins to be less than the max's
 		//There is no constraint on size or position
+		GetBox()->GetExtents(twoDExtents);
 		for (int i = 0; i<3; i++){
-			if(twoDMax[i] < twoDMin[i]) 
-				twoDMax[i] = twoDMin[i];
+			if(twoDExtents[i+3] < twoDExtents[i]) 
+				twoDExtents[i+3] = twoDExtents[i];
 		}
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
-	
+	GetBox()->SetExtents(twoDExtents);
 	
 	
 	//Create new arrays to hold bounds 
@@ -185,6 +188,9 @@ reinit(bool doOverride){
 //
 void TwoDImageParams::
 restart(){
+	if (!myBox){
+		myBox = new Box();
+	}
 	transparentAlpha = false;
 	imagePlacement = 0;
 	singleImage = false;
@@ -219,14 +225,15 @@ restart(){
 	
 	numRefinements = 0;
 	maxNumRefinements = 10;
-	
+	double twoDExtents[6];
 	for (int i = 0; i<3; i++){
-		if (i < 2) twoDMin[i] = 0.0f;
-		else twoDMin[i] = 0.5f;
-		if(i<2) twoDMax[i] = 1.0f;
-		else twoDMax[i] = 0.5f;
+		if (i < 2) twoDExtents[i] = 0.0f;
+		else twoDExtents[i] = 0.5f;
+		if(i<2) twoDExtents[i+3] = 1.0f;
+		else twoDExtents[i+3] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
+	GetBox()->SetExtents(twoDExtents);
 }
 
 //Handlers for Expat parsing.
@@ -303,6 +310,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		double box[6];
+		GetBox()->GetExtents(box);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -310,10 +319,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			attrs++;
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _twoDMinAttr) == 0) {
-				ist >> twoDMin[0];ist >> twoDMin[1];ist >> twoDMin[2];
+				ist >> (double)box[0];ist >> (double)box[1];ist >> (double)box[2];
+				GetBox()->SetExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _twoDMaxAttr) == 0) {
-				ist >> twoDMax[0];ist >> twoDMax[1];ist >> twoDMax[2];
+				ist >> (double)box[3];ist >> (double)box[4];ist >> (double)box[5];
+				GetBox()->SetExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
@@ -412,10 +423,11 @@ buildNode() {
 	//Now do geometry node:
 	attrs.clear();
 	oss.str(empty);
-	oss << (double)twoDMin[0]<<" "<<(double)twoDMin[1]<<" "<<(double)twoDMin[2];
+	const vector<double>& twoDExtents = GetBox()->GetExtents();
+	oss << (double)twoDExtents[0]<<" "<<(double)twoDExtents[1]<<" "<<(double)twoDExtents[2];
 	attrs[_twoDMinAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)twoDMax[0]<<" "<<(double)twoDMax[1]<<" "<<(double)twoDMax[2];
+	oss << (double)twoDExtents[3]<<" "<<(double)twoDExtents[4]<<" "<<(double)twoDExtents[5];
 	attrs[_twoDMaxAttr] = oss.str();
 	oss.str(empty);
 	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
@@ -501,12 +513,12 @@ unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	static const basic_string <char>::size_type npos = (size_t)-1;
-	
+	const vector<double>& boxExts = GetBox()->GetExtents();
 	//Initially set imgExts to the TwoDImage extents
-	imgExts[0] = twoDMin[0];
-	imgExts[1] = twoDMin[1];
-	imgExts[2] = twoDMax[0];
-	imgExts[3] = twoDMax[1];
+	imgExts[0] = boxExts[0];
+	imgExts[1] = boxExts[1];
+	imgExts[2] = boxExts[3];
+	imgExts[3] = boxExts[4];
 	projDefinitionString = "";
 	//Check for a valid file name (this avoids Linux crash):
 	struct STAT64 statbuf;

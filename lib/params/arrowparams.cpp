@@ -26,6 +26,7 @@ namespace {
 ArrowParams::ArrowParams(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, ArrowParams::_arrowParamsTag, winnum) {
+
 	restart();
 }
 
@@ -93,23 +94,24 @@ reinit(bool doOverride){
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
 	const float* extents = ds->getExtents();
-	float newExts[6];
+	vector<double>newExtents;
 	if (doOverride) {
 		for (int i = 0; i<5; i++){
-			newExts[i] = extents[i];
+			newExtents.push_back((double) extents[i]);
 		}
-		newExts[5] = extents[2];
-		SetRakeExtents(newExts);
+		newExtents.push_back((double) extents[2]);
+		
 	} else {
-		const vector<double>& currExtents = GetRakeExtents();
-		float newExts[6];
+		double newExts[6];
+		GetRakeExtents(newExts);
 		for (int i = 0; i<3; i++){
-			newExts[i] = Max((float)currExtents[i], extents[i]);
-			newExts[i+3] = Min((float)currExtents[i+3], extents[i+3]);
+			newExts[i] = Max(newExts[i], (double)extents[i]);
+			newExts[i+3] = Min(newExts[i+3], (double)extents[i+3]);
 			if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
 		}
-		SetRakeExtents(newExts);
+		for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
 	}
+	SetRakeExtents(newExtents);
 
 	//Make the grid size default to 10x10x1.  If doOverride is false, make sure the grid dims
 	//are at least 1, and no bigger than 10**5.
@@ -139,7 +141,6 @@ reinit(bool doOverride){
 //Set everything to default values
 void ArrowParams::restart() {
 	
-	
 	SetRefinementLevel(0);
 	SetCompressionLevel(0);
 	SetVisualizerNum(vizNum);
@@ -153,41 +154,38 @@ void ArrowParams::restart() {
 	SetVectorScale(1.0);
 	SetTerrainMapped(false);
 	SetLineThickness(1.);
-	float exts[6];
+	
 	int gridsize[3];
+	vector<double> exts;
+	exts.push_back(-1.);
+	exts.push_back(-1.);
+	exts.push_back(-1.);
+	
 	for (int i = 0; i<3; i++){
-		exts[i] = -1.f;
-		exts[i+3] = 1.f;
+		exts.push_back(1.);
 		gridsize[i] = 10;
 	}
-	gridsize[2] = 1;
+	if (!GetRootNode()->HasChild(Box::_boxTag)){
+		Box* myBox = new Box();
+		ParamNode* boxNode = myBox->GetRootNode();
+		GetRootNode()->AddRegisteredNode(Box::_boxTag,boxNode,myBox);
+	}
+	
+	//Don't set the Box values until after it has been registered:
 	SetRakeExtents(exts);
+	gridsize[2] = 1;
 	SetRakeGrid(gridsize);
 	
 }
 
-void ArrowParams::getBox(float boxmin[], float boxmax[], int){
-	const vector<double>& extents = GetRakeExtents();
-	for (int i = 0; i< 3; i++){
-		boxmin[i]=(float)extents[i];
-		boxmax[i]=(float)extents[i+3];
-	}
-}
-void ArrowParams::setBox(const float boxMin[], const float boxMax[], int){
-	float exts[6];
-	for (int i = 0; i< 3; i++){
-		exts[i] = boxMin[i];
-		exts[i+3] = boxMax[i];
-	}
-	SetRakeExtents(exts);
-}
+
 
 float ArrowParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
 	//Determine the box that contains the arrows:
-	float exts[6];
-	const vector<double>& currExtents = GetRakeExtents();
-	for (int i = 0; i< 6; i++) exts[i] = currExtents[i];
-	return RenderParams::getCameraDistance(vpp,exts);
+	
+	double dbexts[6];
+	GetRakeExtents(dbexts);
+	return RenderParams::getCameraDistance(vpp,dbexts);
 }
 
 

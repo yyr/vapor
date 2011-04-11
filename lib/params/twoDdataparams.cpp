@@ -84,6 +84,10 @@ TwoDDataParams::~TwoDDataParams(){
 Params* TwoDDataParams::
 deepCopy(ParamNode*){
 	TwoDDataParams* newParams = new TwoDDataParams(*this);
+	
+	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
+	newParams->myBox = myBox->deepCopy(pNode);
+	
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);
 	newParams->minColorEditBounds = new float[numVars];
@@ -165,15 +169,16 @@ reinit(bool doOverride){
 	
 	//Either set the twoD bounds to default (full) size in the center of the domain, or 
 	//try to use the previous bounds:
+	double twoDExts[6];
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
 			float twoDMid = 0.5f*(extents[i+3] + extents[i]);
 			if (i<2) {
-				twoDMin[i] = twoDMid - twoDRadius;
-				twoDMax[i] = twoDMid + twoDRadius;
+				twoDExts[i] = twoDMid - twoDRadius;
+				twoDExts[i+3] = twoDMid + twoDRadius;
 			} else {
-				twoDMin[i] = twoDMax[i] = twoDMid;
+				twoDExts[i] = twoDExts[i+3] = twoDMid;
 			}
 		}
 		
@@ -184,24 +189,26 @@ reinit(bool doOverride){
 		//force the twoD center to be inside the domain.  Note that
 		//because of rotation, the twoD max/min may not correspond
 		//to the same extents.
+		GetBox()->GetExtents(twoDExts);
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (int i = 0; i<3; i++){
-			if (twoDMax[i] - twoDMin[i] > maxExtents)
-				twoDMax[i] = twoDMin[i] + maxExtents;
-			float center = 0.5f*(twoDMin[i]+twoDMax[i]);
+			if (twoDExts[i+3] - twoDExts[i] > maxExtents)
+				twoDExts[i+3] = twoDExts[i] + maxExtents;
+			float center = 0.5f*(twoDExts[i]+twoDExts[i+3]);
 			if (center < extents[i]) {
-				twoDMin[i] += (extents[i]-center);
-				twoDMax[i] += (extents[i]-center);
+				twoDExts[i] += (extents[i]-center);
+				twoDExts[i+3] += (extents[i]-center);
 			}
 			if (center > extents[i+3]) {
-				twoDMin[i] += (extents[i+3]-center);
-				twoDMax[i] += (extents[i+3]-center);
+				twoDExts[i] += (extents[i+3]-center);
+				twoDExts[i+3] += (extents[i+3]-center);
 			}
-			if(twoDMax[i] < twoDMin[i]) 
-				twoDMax[i] = twoDMin[i];
+			if(twoDExts[i+3] < twoDExts[i]) 
+				twoDExts[i+3] = twoDExts[i];
 		}
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
+	GetBox()->SetExtents(twoDExts);
 	//Get the variable names:
 
 	int newNumVariables = ds->getNumSessionVariables2D();
@@ -351,7 +358,9 @@ reinit(bool doOverride){
 void TwoDDataParams::
 restart(){
 	
-	
+	if (!myBox){
+		myBox = new Box();
+	}
 	mapToTerrain = false;
 	minTerrainHeight = 0.f;
 	maxTerrainHeight = 0.f;
@@ -404,14 +413,15 @@ restart(){
 	
 	numRefinements = 0;
 	maxNumRefinements = 10;
-	
+	double twoDexts[6];
 	for (int i = 0; i<3; i++){
-		if (i < 2) twoDMin[i] = 0.0f;
-		else twoDMin[i] = 0.5f;
-		if(i<2) twoDMax[i] = 1.0f;
-		else twoDMax[i] = 0.5f;
+		if (i < 2) twoDexts[i] = 0.0f;
+		else twoDexts[i] = 0.5f;
+		if(i<2) twoDexts[i+3] = 1.0f;
+		else twoDexts[i+3] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
+	GetBox()->SetExtents(twoDexts);
 	
 	
 }
@@ -596,6 +606,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	}
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		double exts[6];
+		GetBox()->GetExtents(exts);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -603,10 +615,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			attrs++;
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _twoDMinAttr) == 0) {
-				ist >> twoDMin[0];ist >> twoDMin[1];ist >> twoDMin[2];
+				ist >> (double)exts[0];ist >> (double)exts[1];ist >> (double)exts[2];
+				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _twoDMaxAttr) == 0) {
-				ist >> twoDMax[0];ist >> twoDMax[1];ist >> twoDMax[2];
+				ist >> (double)exts[3];ist >> (double)exts[4];ist >> (double)exts[5];
+				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
@@ -750,12 +764,13 @@ buildNode() {
 		twoDDataNode->AddChild(varNode);
 	}
 	//Now do geometry node:
+	const vector<double>& exts = GetBox()->GetExtents();
 	attrs.clear();
 	oss.str(empty);
-	oss << (double)twoDMin[0]<<" "<<(double)twoDMin[1]<<" "<<(double)twoDMin[2];
+	oss << (double)exts[0]<<" "<<(double)exts[1]<<" "<<(double)exts[2];
 	attrs[_twoDMinAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)twoDMax[0]<<" "<<(double)twoDMax[1]<<" "<<(double)twoDMax[2];
+	oss << (double)exts[3]<<" "<<(double)exts[4]<<" "<<(double)exts[5];
 	attrs[_twoDMaxAttr] = oss.str();
 	oss.str(empty);
 	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
@@ -1060,9 +1075,9 @@ void TwoDDataParams::adjustTextureSize(int sz[2]){
 	if (dataOrientation < 2) ycrd++;
 	if (dataOrientation < 1) xcrd++;
 	const float* extents = ds->getExtents();
-	
-	float relWid = (twoDMax[xcrd]-twoDMin[xcrd])/(extents[xcrd+3]-extents[xcrd]);
-	float relHt = (twoDMax[ycrd]-twoDMin[ycrd])/(extents[ycrd+3]-extents[ycrd]);
+	const vector<double>& box = GetBox()->GetExtents();
+	float relWid = (box[3+xcrd]-box[xcrd])/(extents[xcrd+3]-extents[xcrd]);
+	float relHt = (box[3+ycrd]-box[ycrd])/(extents[ycrd+3]-extents[ycrd]);
 	int xdist = (int)(relWid*dataSize[xcrd]);
 	int ydist = (int)(relHt*dataSize[ycrd]);
 	texSize[0] = 1<<(VetsUtil::ILog2(xdist));

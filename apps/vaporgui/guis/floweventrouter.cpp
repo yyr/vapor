@@ -2839,10 +2839,14 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	const float* extents; 
 	float regMin = newCenter - 0.5f*newSize;
 	float regMax = newCenter  + 0.5f*newSize;
+	
+
 	if (ds->getDataMgr()){
 		extents = DataStatus::getInstance()->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
+		double newRegion[6];
+		fParams->GetBox()->GetExtents(newRegion);
 
 		if (newSize > (regMax-regMin)){
 			newSize = regMax-regMin;
@@ -2879,9 +2883,11 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 				}
 			}
 		}
-		fParams->setSeedRegionMin(coord, newCenter - newSize*0.5f); 
-		fParams->setSeedRegionMax(coord, newCenter + newSize*0.5f); 
+		newRegion[coord] = newCenter - newSize*0.5;
+		newRegion[coord+3] = newCenter + newSize*0.5;
+		fParams->GetBox()->SetExtents(newRegion);
 	}
+	
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -2968,8 +2974,11 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 		newCenter = regMax- newSize*0.5f;
 		sliderChanged = true;
 	}
-	fParams->setSeedRegionMin(coord,newCenter - newSize*0.5f);
-	fParams->setSeedRegionMax(coord,newCenter + newSize*0.5f);
+	double curBox[6];
+	fParams->GetBox()->GetExtents(curBox);
+	curBox[coord] = newCenter - newSize*0.5;
+	curBox[coord+3] = newCenter + newSize*0.5;
+	fParams->GetBox()->SetExtents(curBox);
 	
 	//For small size make generator count 1 in that dimension
 	if (newSize <= 0.f && !fParams->isRandom()){

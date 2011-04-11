@@ -78,6 +78,7 @@ public:
 	virtual void setMaxOpacMapBound(float val);
 
 	virtual void restart();
+	virtual Box* GetBox() {return myBox;}
 	static void setDefaultPrefs();
 	int getNumFLASamples() {return numFLASamples;}
 	void setNumFLASamples(int numSamp){numFLASamples = numSamp;}
@@ -88,8 +89,6 @@ public:
 	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
 	
-	//Following will be replaced by regenerateSteadyFieldLines
-	//FlowLineData* regenerateSteadyFlowData(VaporFlow* , int timeStep, int minFrame, RegionParams*);
 	
 	//To rebuild the PathLineData associated with field line advection, need to do the following:
 	//1.  Create a new PathLineData with the starting seeds in it:
@@ -125,8 +124,8 @@ public:
 	int getTimeSampleIndex(int ts, int minStep, int maxStep);
 
 	//void calcSeedExtents(float *extents);
-	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
-	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
+	float getSeedRegionMin(int coord){ return (float)(myBox->GetExtents()[coord]);}
+	float getSeedRegionMax(int coord){ return (float)(myBox->GetExtents()[coord+3]);}
 	
 	int calcMaxPoints();
 	int calcNumSeedPoints(int timeStep);
@@ -234,18 +233,7 @@ public:
 	virtual MapperFunction* getMapperFunc() {return mapperFunction;}
 
 
-	virtual void getBox(float boxmin[], float boxmax[], int){
-		for (int i = 0; i< 3; i++){
-			boxmin[i] = seedBoxMin[i];
-			boxmax[i] = seedBoxMax[i];
-		}
-	}
-	virtual void setBox(const float boxMin[], const float boxMax[], int){
-		for (int i = 0; i< 3; i++){
-			seedBoxMin[i] = boxMin[i];
-			seedBoxMax[i] = boxMax[i];
-		}
-	}
+	
 	float getListSeedPoint(int i, int coord){
 		return seedPointList[i].getVal(coord);
 	}
@@ -351,12 +339,7 @@ public:
 	//Only used for guidance in setting info in flowtab
 	float minRange(int varNum, int tstep);
 	float maxRange(int varNum, int tstep);
-	void setSeedRegionMax(int coord, float val){
-		seedBoxMax[coord] = val;
-	}
-	void setSeedRegionMin(int coord, float val){
-		seedBoxMin[coord] = val;
-	}
+	
 	void setPeriodicDim(int coord, bool val){periodicDim[coord] = val;}
 	bool getPeriodicDim(int coord){return periodicDim[coord];}
 	void periodicMap(float origCoords[3],float newCoords[3], bool unscale);
@@ -492,7 +475,8 @@ protected:
 	bool editMode;
 	bool randomGen;
 	unsigned int randomSeed;
-	float seedBoxMin[3], seedBoxMax[3];
+	Box* myBox;
+	
 	float seedDistBias;
 	float priorityMin, priorityMax;
 	

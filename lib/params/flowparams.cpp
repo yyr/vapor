@@ -121,7 +121,7 @@ using namespace VAPoR;
 
 	FlowParams::FlowParams(int winnum) : RenderParams(winnum, Params::_flowParamsTag) {
 	
-	//myFlowLib = 0;
+	myBox= 0;
 	mapperFunction = 0;
 	
 	//Set all parameters to default values
@@ -129,7 +129,7 @@ using namespace VAPoR;
 	
 }
 FlowParams::~FlowParams(){
-	
+	if(myBox) delete myBox;
 	if (mapperFunction){
 		delete mapperFunction;
 	}
@@ -155,6 +155,9 @@ restart() {
 	unsteadyFlowDirection = 1; //default is forward
 	compressionLevel = 0;
 
+	if (!myBox){
+		myBox = new Box();
+	}
 	steadyFlowLength = defaultFlowLength;
 	steadySmoothness = defaultSmoothness;
 	geometryType = defaultGeometryType;  //0= tube, 1=point, 2 = arrow
@@ -221,8 +224,10 @@ restart() {
 	
 	
 	randomSeed = 1;
-	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
-	seedBoxMax[0] = seedBoxMax[1] = seedBoxMax[2] = 1.f;
+	double seedBoxExtents[6];
+	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 0.f;
+	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 1.f;
+	myBox->SetExtents(seedBoxExtents);
 	
 	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
 
@@ -299,8 +304,9 @@ Params* FlowParams::
 deepCopy(ParamNode*){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
-	//Keep the flowlib??
-	//newFlowParams->myFlowLib = 0;
+	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
+	newFlowParams->myBox = myBox->deepCopy(pNode);
+	
 	//Clone the map bounds arrays:
 	int numVars = numComboVariables+4;
 	newFlowParams->minColorEditBounds = new float[numVars];
@@ -401,22 +407,23 @@ reinit(bool doOverride){
 
 	//Set up the seed region:
 	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	double seedBoxExtents[6];
+	GetBox()->GetExtents(seedBoxExtents);
 	if (doOverride){
-		for (i = 0; i<3; i++){
-			seedBoxMin[i] = fullExtents[i];
-			seedBoxMax[i] = fullExtents[i+3];
+		for (i = 0; i<6; i++){
+			seedBoxExtents[i] = fullExtents[i];
 		}
 	} else {
 		for (i = 0; i<3; i++){
-			if(seedBoxMin[i] < fullExtents[i])
-				seedBoxMin[i] = fullExtents[i];
-			if(seedBoxMax[i] > fullExtents[i+3])
-				seedBoxMax[i] = fullExtents[i+3];
-			if(seedBoxMax[i] < seedBoxMin[i]) 
-				seedBoxMax[i] = seedBoxMin[i];
+			if(seedBoxExtents[i] < fullExtents[i])
+				seedBoxExtents[i] = fullExtents[i];
+			if(seedBoxExtents[i+3] > fullExtents[i+3])
+				seedBoxExtents[i+3] = fullExtents[i+3];
+			if(seedBoxExtents[i+3] < seedBoxExtents[i]) 
+				seedBoxExtents[i+3] = seedBoxExtents[i];
 		}
 	}
-
+	myBox->SetExtents(seedBoxExtents);
 	//Set up variables:
 	//Get the variable names:
 	
@@ -687,16 +694,17 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 	
 	setupFlowRegion(rParams, flowLib, timeStep);
 	//Prepare the flowLib:
-	
+	double seedBox[6];
+	GetBox()->GetExtents(seedBox);
 	if (randomGen){
 		const char* xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
 		const char* yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
 		const char* zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
 		assert(seedDistBias >= -15.f && seedDistBias <= 15.f);
-		flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+		flowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
 			xVar, yVar, zVar, seedDistBias);
 	} else {//Set up the uniform rake bounds
-		flowLib->SetRegularSeedPoints(seedBoxMin, seedBoxMax, generatorCount);
+		flowLib->SetRegularSeedPoints(seedBox, seedBox+3, generatorCount);
 	}
 	
 	//If the seeds are not random, or not biased, then all seeds
@@ -938,7 +946,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 			int timeStep, int minFrame, RegionParams* rParams, bool prioritize){
 	float* seedList = 0;
 	if (!myFlowLib) return 0;
-	
+	double seedBox[6];
+	GetBox()->GetExtents(seedBox);
 	//If we are doing autoscale, calculate the average field 
 	//magnitude at lowest resolution, over the region:
 	if (autoScale){
@@ -995,17 +1004,17 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 				xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
 				yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
 				zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
-				myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+				myFlowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
 					xVar, yVar, zVar, seedDistBias);
 			} else {
-				float boxmin[3], boxmax[3];
+				double boxmin[3], boxmax[3];
 				for (int i = 0; i<3; i++){
 					if (generatorCount[i] <= 1) {
-						boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
+						boxmin[i] = (seedBox[i]+seedBox[i+3])*0.5f;
 						boxmax[i] = boxmin[i];
 					} else {
-						boxmin[i] = seedBoxMin[i];
-						boxmax[i] = seedBoxMax[i];
+						boxmin[i] = seedBox[i];
+						boxmax[i] = seedBox[i+3];
 					}
 				}
 				myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);	
@@ -1105,7 +1114,8 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	int numLines = 0;
 	//The max number of points in the unsteady flow
 	int mPoints = objectsPerTimestep*(maxFrame - minFrame + 1);
-
+	double seedBox[6];
+	GetBox()->GetExtents(seedBox);
 	//build the unsteady timestep sample list.  This lists the timesteps to be sampled
 	//in the order of integration.  Don't include timesteps for which the unsteady field
 	//is not available at the required resolution
@@ -1199,17 +1209,17 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
 			yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
 			zVar = ds->getVariableName3D(seedDistVarNum[2]).c_str();
-			flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+			flowLib->SetDistributedSeedPoints(seedBox, seedBox+3, (int)allGeneratorCount, 
 				xVar, yVar, zVar, seedDistBias);
 		} else {
-			float boxmin[3], boxmax[3];
+			double boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){
 				if (generatorCount[i] <= 1) {
-					boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
+					boxmin[i] = (seedBox[i]+seedBox[i+3])*0.5f;
 					boxmax[i] = boxmin[i];
 				} else {
-					boxmin[i] = seedBoxMin[i];
-					boxmax[i] = seedBoxMax[i];
+					boxmin[i] = seedBox[i];
+					boxmax[i] = seedBox[i+3];
 				}
 			}
 			flowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
@@ -1594,11 +1604,13 @@ buildNode() {
 	attrs.clear();
 
 	oss.str(empty);
-	oss << (double)seedBoxMin[0]<<" "<<(double)seedBoxMin[1]<<" "<<(double)seedBoxMin[2];
+	double seedBox[6];
+	GetBox()->GetExtents(seedBox);
+	oss << (double)seedBox[0]<<" "<<(double)seedBox[1]<<" "<<(double)seedBox[2];
 	attrs[_seedRegionMinAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (double)seedBoxMax[0]<<" "<<(double)seedBoxMax[1]<<" "<<(double)seedBoxMax[2];
+	oss << (double)seedBox[3]<<" "<<(double)seedBox[4]<<" "<<(double)seedBox[5];
 	attrs[_seedRegionMaxAttr] = oss.str();
 
 	oss.str(empty);
@@ -1970,6 +1982,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	else if (StrCmpNoCase(tagString, _seedingTag) == 0) {
 		//Clear out the seeds, will be added in later if they are found.
 		seedPointList.clear();
+		double seedBox[6];
+		GetBox()->GetExtents(seedBox);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -1978,11 +1992,13 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			istringstream ist(value);
 		
 			if (StrCmpNoCase(attribName, _seedRegionMinAttr) == 0) {
-				ist >> seedBoxMin[0];ist >> seedBoxMin[1];ist >> seedBoxMin[2];
+				ist >> (double)seedBox[0];ist >> (double)seedBox[1];ist >> (double)seedBox[2];
+				GetBox()->SetExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _seedRegionMaxAttr) == 0) {
 				
-				ist >> seedBoxMax[0];ist >> seedBoxMax[1];ist >> seedBoxMax[2];
+				ist >> (double)seedBox[3];ist >> (double)seedBox[4];ist >> (double)seedBox[5];
+				GetBox()->SetExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _randomGenAttr) == 0) {
 				if (value == "true") setRandom(true); else setRandom(false);
@@ -2926,26 +2942,23 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	}
 	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
 	// Also, specify the bounds of the rake, in case it is needed:
-	double rakeMinCoords[3];
-	double rakeMaxCoords[3];
-	for (int i = 0; i<3; i++){
-		rakeMinCoords[i] = (double)seedBoxMin[i];
-		rakeMaxCoords[i] = (double)seedBoxMax[i];
-	}
+	double rakeCoords[6];
+	GetBox()->GetExtents(rakeCoords);
+	
 	
 	DataMgr* dataMgr = ds->getDataMgr();
 	
-	dataMgr->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeCoords+3, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeCoords+3, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
 	dataMgr->MapVoxToUser((size_t)-1,min_dim, testRakeMin,availRefLevel);
 	dataMgr->MapVoxToUser((size_t)-1,max_dim, testRakeMax,availRefLevel);
 	bool changed = false;
 	for (int i = 0; i< 3; i++){
-		if (testRakeMin[i] > rakeMinCoords[i]) {
+		if (testRakeMin[i] > rakeCoords[i]) {
 			//min_dim must be reduced:
 			//assert(min_dim[i] > 0);
 			if (min_dim > 0) {
@@ -2953,7 +2966,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 				changed = true;
 			}
 		}
-		if (testRakeMax[i] < rakeMaxCoords[i]){
+		if (testRakeMax[i] < rakeCoords[i+3]){
 			//max_dim must be increased to include the max extent:
 			if (max_dim[i] < ds->getFullSizeAtLevel(availRefLevel, i) -1){
 				max_dim[i]++;
@@ -2962,12 +2975,12 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 	}
 	
-	dataMgr->MapVoxToUser((size_t)-1,min_dim, rakeMinCoords,availRefLevel);
-	dataMgr->MapVoxToUser((size_t)-1,max_dim, rakeMaxCoords,availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeMinCoords, min_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeMinCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeMaxCoords, max_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeMaxCoords, max_dim, availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,min_dim, rakeCoords,availRefLevel);
+	dataMgr->MapVoxToUser((size_t)-1,max_dim, rakeCoords+3,availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk((size_t)-1, rakeCoords+3, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox((size_t)-1, rakeCoords+3, max_dim, availRefLevel);
 	
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
@@ -3078,6 +3091,8 @@ bool FlowParams::validateSettings(int tstep){
 	DataStatus* ds = DataStatus::getInstance();
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){
+		double rakeBox[6];
+		GetBox()->GetExtents(rakeBox);
 		float levExts[6];
 		ds->getExtentsAtLevel(numRefinements, levExts);
 		//Shrink levexts slightly:
@@ -3088,15 +3103,16 @@ bool FlowParams::validateSettings(int tstep){
 		}
 
 		for (int i = 0; i<3; i++){
-			if(seedBoxMin[i] < levExts[i]) seedBoxMin[i] = levExts[i];
-			if(seedBoxMax[i] < levExts[i]) seedBoxMax[i] = levExts[i];
-			if(seedBoxMax[i] > levExts[i+3]) seedBoxMax[i] = levExts[i+3];
-			if(seedBoxMin[i] > levExts[i+3]) seedBoxMin[i] = levExts[i+3];
-			if(seedBoxMax[i] < seedBoxMin[i]){
-				seedBoxMin[i] = levExts[i];
-				seedBoxMax[i] = levExts[i+3];
+			if(rakeBox[i] < levExts[i]) rakeBox[i] = levExts[i];
+			if(rakeBox[i+3] < levExts[i]) rakeBox[i+3] = levExts[i];
+			if(rakeBox[i+3] > levExts[i+3]) rakeBox[i+3] = levExts[i+3];
+			if(rakeBox[i] > levExts[i+3]) rakeBox[i] = levExts[i+3];
+			if(rakeBox[i+3] < rakeBox[i]){
+				rakeBox[i] = levExts[i];
+				rakeBox[i+3] = levExts[i+3];
 			}
 		}
+		GetBox()->SetExtents(rakeBox);
 	}
 	//See if the steady field is OK (type 0 and 2)
 		// for type 0, needed for tstep

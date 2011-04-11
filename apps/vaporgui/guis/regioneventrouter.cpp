@@ -199,20 +199,21 @@ void RegionEventRouter::updateTab(){
 	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	float* regionMin = rParams->getRegionMin(timestep);
-	float* regionMax = rParams->getRegionMax(timestep);
+	double regExts[6];
+	rParams->GetBox()->GetExtents(regExts, timestep);
+	
 	Session::getInstance()->blockRecording();
 	for (int i = 0; i< 3; i++){
-		textToSlider(rParams, i, (regionMin[i]+regionMax[i])*0.5f,
-			regionMax[i]-regionMin[i]);
+		textToSlider(rParams, i, (regExts[i]+regExts[i+3])*0.5f,
+			regExts[i+3]-regExts[i]);
 	}
 	setIgnoreBoxSliderEvents(true);
-	xSizeEdit->setText(QString::number(regionMax[0]-regionMin[0],'g', 4));
-	xCntrEdit->setText(QString::number(0.5f*(regionMax[0]+regionMin[0]),'g',5));
-	ySizeEdit->setText(QString::number(regionMax[1]-regionMin[1],'g', 4));
-	yCntrEdit->setText(QString::number(0.5f*(regionMax[1]+regionMin[1]),'g',5));
-	zSizeEdit->setText(QString::number(regionMax[2]-regionMin[2],'g', 4));
-	zCntrEdit->setText(QString::number(0.5f*(regionMax[2]+regionMin[2]),'g',5));
+	xSizeEdit->setText(QString::number(regExts[3]-regExts[0],'g', 4));
+	xCntrEdit->setText(QString::number(0.5f*(regExts[3]+regExts[0]),'g',5));
+	ySizeEdit->setText(QString::number(regExts[4]-regExts[1],'g', 4));
+	yCntrEdit->setText(QString::number(0.5f*(regExts[4]+regExts[1]),'g',5));
+	zSizeEdit->setText(QString::number(regExts[5]-regExts[2],'g', 4));
+	zCntrEdit->setText(QString::number(0.5f*(regExts[5]+regExts[2]),'g',5));
 	
 	bool layered = false;
 	DataStatus* ds = DataStatus::getInstance();
@@ -243,10 +244,10 @@ void RegionEventRouter::updateTab(){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
-		boxLatLon[0] = regionMin[0];
-		boxLatLon[1] = regionMin[1];
-		boxLatLon[2] = regionMax[0];
-		boxLatLon[3] = regionMax[1];
+		boxLatLon[0] = regExts[0];
+		boxLatLon[1] = regExts[1];
+		boxLatLon[2] = regExts[3];
+		boxLatLon[3] = regExts[4];
 		int timeStep = timestepSpin->value();
 		if (DataStatus::convertToLatLon(timeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
@@ -990,12 +991,12 @@ guiLoadRegionExtents(){
 
 	const float* fullExtents = DataStatus::getInstance()->getExtents();
 	//Read the file
-	std::map<int,float*>& extentsMapping = rParams->getExtentsMapping();
+
 	int numregions = 0;
 	
 	while (1){
 		int ts;
-		float* exts = new float[6];
+		float exts[6];
 		int numVals = fscanf(regionFile, "%d %g %g %g %g %g %g", &ts,
 			exts, exts+1, exts+2, exts+3, exts+4, exts+5);
 			
@@ -1003,7 +1004,6 @@ guiLoadRegionExtents(){
 			if (numVals > 0 && numregions > 0){
 				MessageReporter::warningMsg("Invalid region extents at timestep %d",ts);
 			}
-			delete [] exts;
 			break;
 		}
 		numregions++;
@@ -1017,7 +1017,10 @@ guiLoadRegionExtents(){
 		if (!ok){
 			MessageReporter::warningMsg("Repaired region extents at timestep %d",ts);
 		}
-		extentsMapping[ts] = exts;
+		rParams->insertTime(ts);
+		double dbexts[6];
+		for (int i = 0; i<6; i++)dbexts[i] = exts[i];
+		rParams->GetBox()->SetExtents(dbexts,ts);
 
 	}
 	if (numregions == 0) {
@@ -1042,9 +1045,9 @@ saveRegionExtents(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 
-	std::map<int,float*>& extentsMapping = rParams->getExtentsMapping();
+	
 	//Are there any extents to write?
-	if (extentsMapping.size() == 0) {
+	if (!rParams->extentsAreVarying()) {
 		MessageReporter::errorMsg("No time-varying region extents to write to file");
 		return;
 	}
@@ -1064,12 +1067,12 @@ saveRegionExtents(){
 		MessageReporter::errorMsg("Region Save Error;\nUnable to open file %s",(const char*)filename.toAscii());
 		return;
 	}
-	
-	map <int, float*>::iterator s =  extentsMapping.begin();
-	//write the extents:
-	while (s != extentsMapping.end()){
-		int timestep = s->first;
-		float* exts = s->second;
+	const vector<double> extents = rParams->GetAllExtents();
+	const vector<long> times = rParams->GetTimes();
+	for (int i = 1; i<times.size(); i++){
+		int timestep = times[i];
+		float exts[6]; 
+		for (int j = 0; j< 6; j++)  exts[j] = extents[6*i+j];
 		int rc = fprintf(regionFile, "%d %g %g %g %g %g %g\n",
 			timestep, exts[0], exts[1],exts[2], exts[3],exts[4], exts[5]);
 		if (rc < 7) {
@@ -1077,7 +1080,6 @@ saveRegionExtents(){
 			fclose(regionFile);
 			return;
 		}
-		s++;
 	}
 	
 	fclose(regionFile);
@@ -1088,19 +1090,10 @@ guiAdjustExtents(){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "adjust current extents");
-	//Set the current extents in the extents list
-	map<int,float*>& extentsMap = rParams->getExtentsMapping();
-	map <int, float*> :: const_iterator extsIter;
-	extsIter = extentsMap.find( timestep);
-	if ( extsIter != extentsMap.end()) {
-		//no change
+	
+	if(!rParams->insertTime(timestep)){  //no change
 		delete cmd;
 		return;
 	}
-	//set the extents at the current timestep:
-	float* newExtents = new float[6];
-	float* extents = rParams->getRegionExtents(timestep);
-	for (int i = 0; i< 6; i++) newExtents[i] = extents[i];
-	extentsMap[timestep] = newExtents;
 	PanelCommand::captureEnd(cmd, rParams);
 }

@@ -42,6 +42,7 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "animationparams.h"
+#include "Box.h"
 
 
 using namespace VAPoR;
@@ -477,13 +478,14 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	
 //Default camera distance just finds distance to region box in stretched coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
-
-	return getCameraDistance(vpp, rpp->getRegionExtents(timestep));
+	double exts[6];
+	rpp->GetBox()->GetExtents(exts, timestep);
+	return getCameraDistance(vpp, exts);
 
 }
 	
 //Static method to find distance to a box, in stretched coordinates.
-float RenderParams::getCameraDistance(ViewpointParams* vpp, const float exts[6]){
+float RenderParams::getCameraDistance(ViewpointParams* vpp, const double exts[6]){
 
 	//Intersect box with camera ray.  If no intersection, just shoot ray from
 	//camera to region center.

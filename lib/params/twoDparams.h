@@ -72,11 +72,20 @@ public:
 	
 	void getTwoDVoxelExtents(float voxdims[2]);
 	
-	float getTwoDMin(int i) {return twoDMin[i];}
-	float getTwoDMax(int i) {return twoDMax[i];}
-	void setTwoDMin(int i, float val){twoDMin[i] = val;}
+	float getTwoDMin(int i) {return (float)(GetBox()->GetExtents()[i]);}
+	float getTwoDMax(int i) {return (float)(GetBox()->GetExtents()[i+3]);}
+	
+	void setTwoDMin(int i, float val){
+		double boxexts[6];
+		GetBox()->GetExtents(boxexts);
+		boxexts[i] = val;
+		GetBox()->SetExtents(boxexts);
+	}
 	void setTwoDMax(int i, float val){
-		twoDMax[i] = val;
+		double boxexts[6];
+		GetBox()->GetExtents(boxexts);
+		boxexts[i+3] = val;
+		GetBox()->SetExtents(boxexts);
 	}
 	
 	
@@ -92,8 +101,14 @@ public:
 
 	virtual bool imageCrop()=0;
 
-	float getRealImageWidth() {return twoDMax[0]-twoDMin[0];}
-	float getRealImageHeight() {return twoDMax[1]-twoDMin[1];}
+	float getRealImageWidth() {
+		vector<double> box = GetBox()->GetExtents();
+		return (float)(box[3]-box[0]);
+	}
+	float getRealImageHeight() {
+		vector<double> box = GetBox()->GetExtents();
+		return (float)(box[4]-box[1]);
+	}
 	
 	
 	//Implement virtual function to deal with new session:
@@ -111,18 +126,9 @@ public:
 
 	virtual unsigned char* getCurrentTwoDTexture(int timestep)= 0; 
 	
-	virtual void getBox(float boxmin[], float boxmax[], int = -1 ){
-		for (int i = 0; i< 3; i++){
-			boxmin[i]=twoDMin[i];
-			boxmax[i]=twoDMax[i];
-		}
-	}
-	virtual void setBox(const float boxMin[], const float boxMax[], int = -1){
-		for (int i = 0; i< 3; i++){
-			twoDMin[i] = boxMin[i];
-			twoDMax[i] = boxMax[i];
-		}
-	}
+	
+	
+	virtual Box* GetBox(){return myBox;}
 	//Get the bounding extents of twoD, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
 	
@@ -177,7 +183,7 @@ protected:
 	int orientation; //Only settable in image mode
 	
 
-	float twoDMin[3], twoDMax[3];
+	Box* myBox;
 	int numRefinements, maxNumRefinements;
 	int * textureSizes; //2 ints for each time step
 	float selectPoint[3];

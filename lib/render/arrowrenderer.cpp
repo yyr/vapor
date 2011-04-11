@@ -82,7 +82,8 @@ void ArrowRenderer::paintGL(){
 	//Calculate the scale factors and radius to be used in rendering the arrows:
 	//
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
-	const vector<double> rakeExts = aParams->GetRakeExtents();
+	double rakeExts[6];
+	aParams->GetRakeExtents(rakeExts);
 	float maxCellSize = Max(Max(((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]),((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1])),
 		((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
 	//Choose the vector scale so that the longest vector component goes one grid space
@@ -263,7 +264,8 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	const vector<double> rakeExts = aParams->GetRakeExtents();
+	double rakeExts[6];
+	aParams->GetRakeExtents(rakeExts);
 
 	//Perform setup of OpenGL transform matrix
 
@@ -344,7 +346,8 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 	DataMgr* dataMgr = ds->getDataMgr();
 
 	//Determine the extents of the data that is needed:
-	const vector<double> rakeExts = aParams->GetRakeExtents();
+	double rakeExts[6];
+	aParams->GetRakeExtents(rakeExts);
 	size_t min_dim[3], max_dim[3];
 	
 	float maxVerticalOffset = 0.f;

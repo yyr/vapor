@@ -342,7 +342,7 @@ int ParamNode::SetFlagDirty(const vector<string> &tagpath){
 
 int ParamNode::AddNode(const string& tag, ParamNode* child) {
 	if (HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %d already exists", child->Tag().c_str());
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", child->Tag().c_str());
 		return(-1);
 	}
 	XmlNode::AddChild(child);
@@ -359,7 +359,7 @@ int ParamNode::AddNode(const vector<string>& tagpath, ParamNode* child) {
 	string tag = tagpath[tagpath.size()-1];
 
 	if (currNode->HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %d already exists", tag.c_str());
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", tag.c_str());
 		return(-1);
 	}
 	XmlNode::AddChild(child);
@@ -369,13 +369,13 @@ int ParamNode::AddNode(const vector<string>& tagpath, ParamNode* child) {
 
 int ParamNode::AddRegisteredNode(const string& tag, ParamNode* child, ParamsBase* associate) {
 	if (HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %d already exists", child->Tag().c_str());
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", child->Tag().c_str());
 		return(-1);
 	}
 	XmlNode::AddChild(child);
+	//Make the child and the associate point to each other:
 	child->SetParamsBase(associate);
-	assert( child->GetParamsBase() == associate); 
-	//child->SetParamsBase(associate);
+	associate->SetRootParamNode(child);
 	child->Tag() = tag;
 	map <string, string> attrs = child->Attrs();
 	attrs[_typeAttr] = _paramsBaseAttr;
@@ -391,11 +391,13 @@ int ParamNode::AddRegisteredNode(const vector<string>& tagpath, ParamNode* child
 	string tag = tagpath[tagpath.size()-1];
 
 	if (currNode->HasChild(tag)) {
-		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %d already exists", tag.c_str());
+		SetErrMsg(VAPOR_ERROR_PARAMS,"Child node named %s already exists", tag.c_str());
 		return(-1);
 	}
 	XmlNode::AddChild(child);
+	//Make the child and the associate point to each other:
 	child->SetParamsBase(associate);
+	associate->SetRootParamNode(child);
 	child->Tag() = tag;
 	map <string, string> attrs = child->Attrs();
 	attrs[_typeAttr] = _paramsBaseAttr;
@@ -630,3 +632,4 @@ void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec) con
 	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
 }
+

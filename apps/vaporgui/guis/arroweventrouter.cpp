@@ -156,13 +156,13 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 		if (gridsize[i] > 2000) {changed = true; gridsize[i] = 2000;}
 	}
 	aParams->SetRakeGrid(gridsize);
-	float newExtents[6];
-	newExtents[0]=rakeMinX->text().toFloat();
-	newExtents[1]=rakeMinY->text().toFloat();
-	newExtents[2]=rakeMinZ->text().toFloat();
-	newExtents[3]=rakeMaxX->text().toFloat();
-	newExtents[4]=rakeMaxY->text().toFloat();
-	newExtents[5]=rakeMaxZ->text().toFloat();
+	vector<double> newExtents;
+	newExtents.push_back(rakeMinX->text().toDouble());
+	newExtents.push_back(rakeMinY->text().toDouble());
+	newExtents.push_back(rakeMinZ->text().toDouble());
+	newExtents.push_back(rakeMaxX->text().toDouble());
+	newExtents.push_back(rakeMaxY->text().toDouble());
+	newExtents.push_back(rakeMaxZ->text().toDouble());
 	const float* exts = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3; i++){
 		if (newExtents[i]<exts[i]) {changed = true; newExtents[i] = exts[i];}
@@ -369,7 +369,8 @@ void ArrowEventRouter::updateTab(){
 	colorBox->setPalette(pal);
 	
 	//Set the rake extents
-	const vector<double>exts = arrowParams->GetRakeExtents();
+	double exts[6];
+	arrowParams->GetRakeExtents(exts);
 	rakeMinX->setText(QString::number(exts[0]));
 	rakeMinY->setText(QString::number(exts[1]));
 	rakeMinZ->setText(QString::number(exts[2]));

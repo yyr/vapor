@@ -315,6 +315,7 @@ public:
  int SetElementDouble(
 	const string &tag, double value
  );
+ 
 
  //! Set a single ParamNode parameter of type string
  //!
@@ -386,6 +387,9 @@ public:
  //!
  //! The new child node will be
  //! appended to the array of child nodes of the final node.
+ //! Use of this method ensures that the ParamsBase class will use
+ //! the specified child as its root node, and that the child will 
+ //! have a pointer to the ParamsBase* argument as its ParamsBase object
  //!
  //! \param[in] tag is the tag that will identify the new node
  //! \param[in] child is the ParamNode object to be added as a child
@@ -401,6 +405,9 @@ public:
  //!
  //! The new child node will be
  //! appended to the array of child nodes of the final node.
+ //! Use of this method ensures that the ParamsBase class will use
+ //! the specified child as its root node, and that the child will 
+ //! have a pointer to the ParamsBase* argument as its ParamsBase object
  //!
  //! \param[in] tagPath is sequence of tags that will identify the new node
  //! \param[in] child is the ParamNode object to be added as a child

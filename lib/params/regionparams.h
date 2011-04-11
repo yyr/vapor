@@ -187,12 +187,17 @@ public:
 	virtual Params* deepCopy(ParamNode* n = 0);
 	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	float getRegionMin(int coord, int timestep){ return *(getRegionExtents(timestep)+coord);}
-	float getRegionMax(int coord, int timestep){ return *(getRegionExtents(timestep)+3+coord);}
-	float* getRegionExtents(int timestep);
-	float* getRegionMin(int timestep) {return getRegionExtents(timestep);}
-	float* getRegionMax(int timestep){ return (getRegionExtents(timestep)+3);}
-
+	float getRegionMin(int coord, int timestep){ 
+		double exts[6];
+		myBox->GetExtents(exts, timestep);
+		return exts[coord];
+	}
+	float getRegionMax(int coord, int timestep){ 
+		double exts[6];
+		myBox->GetExtents(exts, timestep);
+		return exts[coord+3];
+	}
+	
 	float getRegionCenter(int indx, int timestep) {
 		return (0.5f*(getRegionMin(indx,timestep)+getRegionMax(indx,timestep)));
 	}
@@ -206,6 +211,7 @@ public:
 	//Determine how many megabytes will be needed for one variable at specified
 	//refinement level, specified box extents.
 	static int getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel);
+	static int getMBStorageNeeded(const double exts[6], int refLevel);
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
 	virtual void restart();
@@ -217,23 +223,8 @@ public:
 	//See if the proposed number of transformations is OK.  Return a valid value
 	int validateNumTrans(int n, int timestep);
 
-	virtual void setBox(const float boxmin[], const float boxmax[], int timestep){
-		float* extents = getRegionExtents(timestep);
-		for(int i = 0; i<3; i++){
-			//Don't check max>min until min is set:
-			extents[i] = boxmin[i];
-			extents[i+3] = boxmax[i];
-			if (extents[i+3] < extents[i]) extents[i+3] = extents[i];
-		}
-	}
-	virtual void getBox(float boxMin[], float boxMax[], int timestep){
-		float* extents = getRegionExtents(timestep);
-		for (int i = 0; i< 3; i++){
-			boxMin[i] = extents[i];
-			boxMax[i] = extents[i+3];
-		}
-	}
 	
+	virtual Box* GetBox() {return myBox;}
 	//Methods to set the region max and min from a float value.
 	//public so accessible from router
 	//
@@ -242,9 +233,14 @@ public:
 	void setInfoNumRefinements(int n){infoNumRefinements = n;}
 	void setInfoTimeStep(int n) {infoTimeStep = n;}
 	void setInfoVarNum(int n) {infoVarNum = n;}
-	std::map<int,float*>& getExtentsMapping(){ return extentsMap;}
+	const vector<double>& GetAllExtents(){ return myBox->GetRootNode()->GetElementDouble(Box::_extentsTag);}
+	const vector<long>& GetTimes(){ return myBox->GetRootNode()->GetElementLong(Box::_timesTag);}
 	void clearRegionsMap();
-	bool extentsAreVarying(){ return extentsMap.size()>0;}
+	bool extentsAreVarying(){ return myBox->GetTimes().size()>1;}
+	//Insert a time in the list.  Return false if it's already there
+	bool insertTime(int timestep);
+	//Remove a time from the time-varying timesteps.  Return false if unsuccessful
+	bool removeTime(int timestep);
 
 protected:
 	static const string _shortName;
@@ -264,13 +260,11 @@ protected:
 
 	int infoNumRefinements, infoVarNum, infoTimeStep;
 
-	//Actual region bounds
-	float defaultRegionExtents[6];
+	
 	//Full grid height for layered data.  0 otherwise.
 	static size_t fullHeight;
 	
-	//Extents map specifies extents for eacy timestep
-	std::map<int, float*> extentsMap;
+	Box* myBox;
 #endif //DOXYGEN_SKIP_THIS
 };
 

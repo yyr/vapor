@@ -42,6 +42,7 @@ std::map<string,int> ParamsBase::classIdFromTagMap;
 std::map<int,string> ParamsBase::tagFromClassIdMap;
 std::map<int,ParamsBase::BaseCreateFcn> ParamsBase::createDefaultFcnMap;
 const std::string ParamsBase::_emptyString;
+
 int ParamsBase::numParamsClasses = 0;
 int ParamsBase::numEmbedClasses = 0;
 ParamsBase::ParamsBase(
@@ -85,9 +86,10 @@ ParamsBase::ParamsBase(const ParamsBase& pBase) :
 }
 //Default buildNode clones the ParamNodes but calls buildNode on Registered nodes
 ParamNode* ParamsBase::buildNode(){	
-
+	
 	ParamNode* oldNode = GetRootNode();
 	ParamNode* newNode = oldNode->ShallowCopy();
+	
 	for (int i=0; i<oldNode->GetNumChildren(); i++) {
 		ParamNode *child = oldNode->GetChild(i);
 		ParamNode *newChild;
@@ -144,17 +146,25 @@ bool ParamsBase::elementStartHandler(
 		} else if( type == ParamNode::_paramsBaseAttr){
 			//If it has "ParamsBase" attribute, then do similarly, but create an instance of the class associated with the tag.
 			ParamsBase* baseNode = CreateDefaultParamsBase(tag);
-			//Create a new child node
-			map <string, string> childattrs;
-			ParamNode *child = new ParamNode(tag, childattrs);
-			child->SetParamsBase(baseNode);
-			(void) _currentParamNode->AddChild(child);
-			_currentParamNode = child;
-	
-			pm->pushClassStack(baseNode);
-			//defer to the base node to do its own parsing:
-			baseNode->elementStartHandler(pm, depth, tag, attrs);
-			return (true);
+			//Special case for transfer functions etc:
+			if (tag == TransferFunction::_transferFunctionTag ||
+				tag == ParamsIso::_IsoControlTag ||
+				tag == MapperFunction::_mapperFunctionTag) {
+				//Create a new child node
+				map <string, string> childattrs;
+				ParamNode *child = new ParamNode(tag, childattrs);
+				child->SetParamsBase(baseNode);
+				(void) _currentParamNode->AddChild(child);
+				_currentParamNode = child;
+		
+				pm->pushClassStack(baseNode);
+				//defer to the base node to do its own parsing:
+				baseNode->elementStartHandler(pm, depth, tag, attrs);
+				return (true);
+			} else {
+				ParamNode* childNode = Push(tag,baseNode);
+				return (childNode != 0);
+			}
 		} else {
 			attrs++;
 			state->data_type = *attrs;
@@ -229,9 +239,14 @@ ParamNode *ParamsBase::Push(
 			return(_currentParamNode);	// We're done
 		}
 	}
-	//Create a new child
+	//Create a new child, possibly ParamsBase type
+	
 	map <string, string> attrs;
+	if (pBase)
+		attrs[_typeAttr] = ParamNode::_paramsBaseAttr;
 	ParamNode *child = new ParamNode(name, attrs);
+	if (pBase)
+		pBase->SetRootParamNode(child);
 	child->SetParamsBase(pBase);
 	(void) _currentParamNode->AddChild(child);
 	_currentParamNode = child;

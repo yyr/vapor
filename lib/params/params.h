@@ -28,6 +28,7 @@
 #include "assert.h"
 #include <vapor/common.h>
 #include <vapor/ParamsBase.h>
+#include "Box.h"
 
 class QWidget;
 using namespace VetsUtil;
@@ -61,6 +62,7 @@ class MapperFunction;
 class TransferFunction;
 class ViewpointParams;
 class RegionParams;
+
 //! \class Params
 //! \brief A pure virtual class for managing parameters used in visualization
 //! \author Alan Norton
@@ -323,14 +325,45 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Default does nothing.
 //
 	virtual bool reinit(bool) {return false;}
-
+//! Virtual method to return the Box associated with a Params class.
+//! By default returns NULL.
+//! All params classes that use a box to define data extents should reimplement this method.
+//! Needed so support manipulators.
+//! \retval Box* returns pointer to the Box associated with this Params.
+	virtual Box* GetBox() {return 0;}
 //! For params that have a box (Necessary if using a Manipulator).
 //! This must be overridden to use a Manipulator.
 //! The Params class must implement this by setting its box extents.
 //! \param[in] float[3] boxMin  The minimum coordinates of the box.
 //! \param[in] float[3] boxMax  The maximum coordinates of the box.
 //! \param[in] int time step Current time step (only for moving boxes).
-	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3], int /*timestep*/) {assert(0);}
+	void setBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
+		double extents[6];
+		for (int i = 0; i<3; i++){
+			extents[i] = boxMin[i];
+			extents[i+3] = boxMax[i];
+		}
+		GetBox()->SetExtents(extents,timestep);
+	}
+
+	void setTheta(float th) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[0]=th;
+		GetBox()->SetAngles(angles);
+	}
+	void setPhi(float ph) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[1]=ph;
+		GetBox()->SetAngles(angles);
+	}
+	void setPsi(float ps) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[2]=ps;
+		GetBox()->SetAngles(angles);
+	}
 	
 //! For params that have a box (Necessary if using a Manip).
 //! The params must implement this by supplying the current box extents.
@@ -338,31 +371,20 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! \param[out] float[3] boxMin  The minimum coordinates of the box.
 //! \param[out] float[3] boxMax  The maximum coordinates of the box.
 //! \param[in] int time step Current time step (only for moving boxes).
-	virtual void getBox(float /*boxMin*/[3], float /*boxMax*/[3], int /*timestep*/) {assert( 0);}
-
-//! Orientation angles must be supplied with this method if the Params supports a rotated box manipulator. 
-//! The default method must be overridden, for such manips, indicating how the box is rotated.
-//! Default method returns 0.
-//! \retval float phi angle from positive z-axis
-	virtual float getPhi() {return 0.f;}
-
-//! Orientation angles must be supplied with this method if the Params supports a rotated box manipulator. 
-//! The default method must be overridden, for such manips, indicating how the box is rotated.
-//! Default method returns 0.
-//! \retval float theta counter-clockwise angle from positive a-axis
-	virtual float getTheta() {return 0.f;}
-
-//! Orientation angles must be supplied with this method if the Params supports a rotated box manipulator. 
-//! The default method must be overridden, for such manips, indicating how the box is rotated.
-//! Default method returns 0.
-//! \retval float psi rotation in plane determined by phi and theta
-	virtual float getPsi() {return 0.f;}
-
+	void getBox(float boxMin[3], float boxMax[3], int timestep = -1) {
+		double extents[6];
+		GetBox()->GetExtents(extents, timestep);
+		for (int i = 0; i<3; i++){
+			boxMin[i] = extents[i];
+			boxMax[i] = extents[i+3];
+		}
+	}
 //! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
 //! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
 //! Default is -1 (invalid)
 //! \retval int orientation direction (0,1,2)
 	virtual int getOrientation() { assert(0); return -1;}
+
 
 //! Virtual method that must be re-implemented for rotated boxes, such as with ProbeParams.
 //! Specifies an axis-aligned box containing the rotated box.
@@ -382,6 +404,20 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Dummy params are those that are found in a session file but not 
 	//available in the current code.
 #ifndef DOXYGEN_SKIP_THIS
+
+	float getPhi() {
+		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		return((float)GetBox()->GetAngles()[1]);
+	}
+	float getTheta() {
+		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		return((float)GetBox()->GetAngles()[0]);
+	}
+	float getPsi() {
+		if (GetBox()->GetAngles().size() == 0) return 0.f;
+		return((float)GetBox()->GetAngles()[2]);
+	}
+
 	static Params* CreateDummyParams(std::string tag);
 	static void	BailOut (const char *errstr, const char *fname, int lineno);
 
@@ -530,7 +566,7 @@ public:
 	// \param[in] ViewpointParams* vpp Current applicable ViewpointParams instance
 	// \param[in] const float extents[6] Box extents in world coordinates.
 	// \retval float distance from camera to box
-	static float getCameraDistance(ViewpointParams* vpp, const float exts[6]);
+	static float getCameraDistance(ViewpointParams* vpp, const double exts[6]);
 
 	// Pure virtual method indicates whether or not the geometry is opaque.
 	// \retval true if it is opaque.

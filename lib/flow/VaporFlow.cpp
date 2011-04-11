@@ -246,8 +246,8 @@ void VaporFlow::SetRandomSeedPoints(const float min[3],
 // specify a set of seed points regularly generated over the specified
 // spatial interval. Points can be in axis aligned dimension 0, 1, 2, 3
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetRegularSeedPoints(const float min[3], 
-									const float max[3], 
+void VaporFlow::SetRegularSeedPoints(const double min[3], 
+									const double max[3], 
 									const size_t numSeeds[3])
 {
 	for(int iFor = 0; iFor < 3; iFor++)
@@ -477,7 +477,7 @@ void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char*
 	minPriorityVal = minField;
 	maxPriorityVal = maxField;
 }					
-void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
+void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3], int numSeeds, 
 	const char* varx, const char* vary, const char* varz, float bias)
 {
 	assert( bias >= -15.f && bias <= 15.f);

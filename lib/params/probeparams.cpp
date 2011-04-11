@@ -73,7 +73,7 @@ float ProbeParams::defaultPhi = 0.0f;
 float ProbeParams::defaultPsi = 0.0f;
 
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum, Params::_probeParamsTag){
-	
+	myBox = 0;
 	numVariables = 0;
 	probeDataTextures = 0;
 	probeIBFVTextures = 0;
@@ -88,6 +88,7 @@ ProbeParams::ProbeParams(int winnum) : RenderParams(winnum, Params::_probeParams
 }
 ProbeParams::~ProbeParams(){
 	
+	if (myBox) delete myBox;
 	if (transFunc){
 		for (int i = 0; i< numVariables; i++){
 			delete transFunc[i];  //will delete editor
@@ -125,6 +126,8 @@ ProbeParams::~ProbeParams(){
 Params* ProbeParams::
 deepCopy(ParamNode*){
 	ProbeParams* newParams = new ProbeParams(*this);
+	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
+	newParams->myBox = myBox->deepCopy(pNode);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);
 	newParams->minColorEditBounds = new float[numVars];
@@ -208,21 +211,24 @@ reinit(bool doOverride){
 	
 	//Either set the probe bounds to a default size in the center of the domain, or 
 	//try to use the previous bounds:
+	double exts[6];
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			float probeRadius = 0.1f*(extents[i+3] - extents[i]);
 			float probeMid = 0.5f*(extents[i+3] + extents[i]);
 			if (i<2) {
-				probeMin[i] = probeMid - probeRadius;
-				probeMax[i] = probeMid + probeRadius;
+				exts[i] = probeMid - probeRadius;
+				exts[i+3] = probeMid + probeRadius;
 			} else {
-				probeMin[i] = probeMax[i] = probeMid;
+				exts[i] = exts[i+3] = probeMid;
 			}
 		}
 		//default values for phi, theta,  cursorPosition
-		phi = defaultPhi;
-		theta = defaultTheta;
-		psi = defaultPsi;
+		double angles[3];
+		angles[1] = defaultPhi;
+		angles[0] = defaultTheta;
+		angles[2] = defaultPsi;
+		GetBox()->SetAngles(angles);
 		fieldScale = defaultScale;
 		alpha = defaultAlpha;
 		
@@ -232,17 +238,19 @@ reinit(bool doOverride){
 		//Force the probe size to be no larger than the domain extents, Note that
 		//because of rotation, the probe max/min may not correspond
 		//to the same extents.
+		GetBox()->GetExtents(exts);
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (int i = 0; i<3; i++){
-			if (probeMax[i] - probeMin[i] > maxExtents)
-				probeMax[i] = probeMin[i] + maxExtents;
+			if (exts[i+3] - exts[i] > maxExtents)
+				exts[i+3] = exts[i] + maxExtents;
 			//  Eliminate previous constraint:  probe was to have center in the domain:
 			
-			if(probeMax[i] < probeMin[i]) 
-				probeMax[i] = probeMin[i];
+			if(exts[i+3] < exts[i]) 
+				exts[i+3] = exts[i];
 		}
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
+	GetBox()->SetExtents(exts);
 	//Get the variable names:
 
 	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
@@ -428,6 +436,9 @@ restart(){
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	compressionLevel = 0;
+	if (!myBox){
+		myBox = new Box();
+	}
 	setProbeDirty();
 	if (probeDataTextures) delete [] probeDataTextures;
 	probeDataTextures = 0;
@@ -490,17 +501,20 @@ restart(){
 	
 	numRefinements = 0;
 	maxNumRefinements = 10;
-	theta = defaultTheta;
-	phi = defaultPhi;
-	psi = defaultPsi;
+	double angles[3];
+	angles[0] = defaultTheta;
+	angles[1] = defaultPhi;
+	angles[2] = defaultPsi;
+	GetBox()->SetAngles(angles);
+	double exts[6];
 	for (int i = 0; i<3; i++){
-		if (i < 2) probeMin[i] = 0.4f;
-		else probeMin[i] = 0.5f;
-		if(i<2) probeMax[i] = 0.6f;
-		else probeMax[i] = 0.5f;
+		if (i < 2) exts[i] = 0.4f;
+		else exts[i] = 0.5f;
+		if(i<2) exts[i+3] = 0.6f;
+		else exts[i+3] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
-	
+	GetBox()->SetExtents(exts);
 	NPN = 0;
 	NMESH = 0;
 	
@@ -711,6 +725,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	}
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		double exts[6], angles[3];
+		GetBox()->GetExtents(exts);
+		GetBox()->GetAngles(angles);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -719,19 +736,24 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			istringstream ist(value);
 			
 			if (StrCmpNoCase(attribName, _thetaAttr) == 0) {
-				ist >> theta;
+				ist >> (double)angles[0];
+				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _phiAttr) == 0) {
-				ist >> phi;
+				ist >> (double)angles[1];
+				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _psiAttr) == 0) {
-				ist >> psi;
+				ist >> (double)angles[2];
+				GetBox()->SetAngles(angles);
 			}
 			else if (StrCmpNoCase(attribName, _probeMinAttr) == 0) {
-				ist >> probeMin[0];ist >> probeMin[1];ist >> probeMin[2];
+				ist >> (double)exts[0];ist >> (double)exts[1];ist >> (double)exts[2];
+				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _probeMaxAttr) == 0) {
-				ist >> probeMax[0];ist >> probeMax[1];ist >> probeMax[2];
+				ist >> (double)exts[3];ist >> (double)exts[4];ist >> (double)exts[5];
+				GetBox()->SetExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
@@ -893,21 +915,24 @@ buildNode() {
 		probeNode->AddChild(varNode);
 	}
 	//Now do geometry node:
+	const vector<double>& angles = GetBox()->GetAngles();
 	attrs.clear();
 	oss.str(empty);
-	oss << (double)phi;
+	oss << (double)angles[1];
 	attrs[_phiAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)psi;
+	oss << (double)angles[2];
 	attrs[_psiAttr] = oss.str();
 	oss.str(empty);
-	oss << (double) theta;
+	oss << (double) angles[0];
 	attrs[_thetaAttr] = oss.str();
+
+	const vector<double>& exts = GetBox()->GetExtents();
 	oss.str(empty);
-	oss << (double)probeMin[0]<<" "<<(double)probeMin[1]<<" "<<(double)probeMin[2];
+	oss << (double)exts[0]<<" "<<(double)exts[1]<<" "<<(double)exts[2];
 	attrs[_probeMinAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)probeMax[0]<<" "<<(double)probeMax[1]<<" "<<(double)probeMax[2];
+	oss << (double)exts[3]<<" "<<(double)exts[4]<<" "<<(double)exts[5];
 	attrs[_probeMaxAttr] = oss.str();
 	oss.str(empty);
 	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
@@ -1476,9 +1501,11 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 	//Now finalize the rotation
 	float newTheta, newPhi, newPsi;
 	convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, axis, rotVal);
-	setTheta(newTheta);
-	setPhi(newPhi);
-	setPsi(newPsi);
+	double angles[3];
+	angles[0] = newTheta;
+	angles[1] = newPhi;
+	angles[2] = newPsi;
+	GetBox()->SetAngles(angles);
 	return;
 
 }
@@ -1564,7 +1591,8 @@ bool ProbeParams::buildIBFVFields(int timestep){
 
 	//Get the 3x3 rotation matrix:
 	float rotMatrix[9], invMatrix[9];
-	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+	const vector<double>& angles = GetBox()->GetAngles();
+	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 	//Invert it by transposing:
 	invMatrix[0] = rotMatrix[0];
 	invMatrix[4] = rotMatrix[4];
@@ -1862,7 +1890,8 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	float probeCenter[3];
 	buildCoordTransform(transformMatrix, 0.f, -1);
 	float rotMatrix[9];
-	getRotationMatrix(getTheta()*M_PI/180., getPhi()*M_PI/180., getPsi()*M_PI/180., rotMatrix);
+	const vector<double>& angles = GetBox()->GetAngles();
+	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 
 
 	//determine the probe x- and y- direction vectors
@@ -1986,14 +2015,16 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 
 	float wid = vdist(cor[0],cor[1]);
 
-	float depth = abs(probeMax[2]-probeMin[2]);
-	probeMin[0] = probeCenter[0] - 0.5f*wid;
-	probeMax[0] = probeCenter[0] + 0.5f*wid;
-	probeMin[1] = probeCenter[1] - 0.5f*ht;
-	probeMax[1] = probeCenter[1] + 0.5f*ht;
-	probeMin[2] = probeCenter[2] - 0.5f*depth;
-	probeMax[2] = probeCenter[2] + 0.5f*depth;
-
+	double exts[6];
+	GetBox()->GetExtents(exts);
+	float depth = abs(exts[5]-exts[2]);
+	exts[0] = probeCenter[0] - 0.5f*wid;
+	exts[3] = probeCenter[0] + 0.5f*wid;
+	exts[1] = probeCenter[1] - 0.5f*ht;
+	exts[4] = probeCenter[1] + 0.5f*ht;
+	exts[2] = probeCenter[2] - 0.5f*depth;
+	exts[5] = probeCenter[2] + 0.5f*depth;
+	GetBox()->SetExtents(exts);
 	return true;
 }
 
@@ -2007,7 +2038,9 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	const float vecz[3] = {0.f,0.f,1.f};
 	const float vec0[3] = {0.f,0.f,0.f};
 	float probeNormal[3], probeCenter[3];
-	getRotationMatrix(getTheta()*M_PI/180., getPhi()*M_PI/180., getPsi()*M_PI/180., rotMatrix);
+	const vector<double>& angles = GetBox()->GetAngles();
+	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
+	
 	vtransform3(vecz, rotMatrix, probeNormal);
 	float transformMatrix[12];
 	
@@ -2058,11 +2091,13 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	const float* camDir = vpp->getViewDir();
 	float relCamPos[3], localCamPos[3], localCamDir[3];
 	float rotMatrix[9];
+	const vector<double>& exts = GetBox()->GetExtents();
 	for (int i = 0; i<3; i++)
-		relCamPos[i] = camPos[i] - 0.5f*(probeMax[i]+probeMin[i]);
+		relCamPos[i] = camPos[i] - 0.5f*(exts[i+3]+exts[i]);
 	//Get the 3x3 rotation matrix and invert(transpose) it
+	const vector<double>& angles = GetBox()->GetAngles();
+	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
 	
-	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
 	//multiply camPos by transpose (inverse) of matrix, to
 	//get camera position, direction in rotated system, relative to probe center
 	vtransform3t(relCamPos,rotMatrix,localCamPos);
@@ -2075,8 +2110,8 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	float cPos[3], pMin[3],pMax[3];
 	for (int i = 0; i<3; i++){
 		cPos[i] = localCamPos[i]*stretch[i];
-		pMin[i] = probeMin[i]*stretch[i];
-		pMax[i] = probeMax[i]*stretch[i];
+		pMin[i] = exts[i]*stretch[i];
+		pMax[i] = exts[i+3]*stretch[i];
 	}
 	
 	//Find parameter T (position along ray) so that camPos+T*camDir intersects xy plane
@@ -2101,54 +2136,6 @@ float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	}
 	for (int i = 0; i<3; i++) cPos[i] = camPos[i]*stretch[i];
 	return (vdist(cPos, hitPoint));
-
-
-	/* following doesn't work very well:
-	//To get camera distance, find camera position relative to 
-	//probe center, then rotate by inverse of probe rotation to put into probe coord system.
-	//If x,y coords are inside probe x,y extents, then distance is the z-coordinate.
-	//If not, the distance is the distance to the closest edge of probe.
-	//Approximately, just take distance to closest corner.
-	const float* camPos = vpp->getCameraPos();
-	float relCamPos[3], localCamPos[3];
-	float rotMatrix[9];
-	for (int i = 0; i<3; i++)
-		relCamPos[i] = camPos[i] - 0.5f*(probeMax[i]+probeMin[i]);
-	//Get the 3x3 rotation matrix and invert(transpose) it
-	
-	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
-	//multiply camPos by transpose (inverse) of matrix, to
-	//get camera position in rotated system, relative to probe center
-	vtransform3t(relCamPos,rotMatrix,localCamPos);
-	float probeHWidth = 0.5f*(probeMax[0]-probeMin[0]);
-	float probeHHeight = 0.5f*(probeMax[1]-probeMin[1]);
-	//Test if localCamPos is in (x,y) bounds of probe:
-	if ( abs(localCamPos[0])<= probeHWidth &&
-		abs(localCamPos[1])<= probeHHeight ){
-		//distance to plane is difference in z-coords:
-		return (abs(localCamPos[2]));
-	}
-	//Otherwise, find closest of 4 corners to camera
-	float minDist = 1.e30f;
-	float dist;
-	float cor[3];
-	cor[0] = -probeHWidth;
-	cor[1] = -probeHHeight;
-	cor[2] = 0.f;
-	
-	dist = vdist(localCamPos,cor); //test min, min
-	if (dist < minDist) minDist = dist;
-	cor[1] = probeHHeight;
-	dist = vdist(localCamPos,cor); //test min,max
-	if (dist < minDist) minDist = dist;
-	cor[0] = probeHWidth;
-	dist = vdist(localCamPos,cor); //test max,max
-	if (dist < minDist) minDist = dist;
-	cor[1] = -probeHHeight;
-	dist = vdist(localCamPos,cor); //test max,min
-	if (dist < minDist) minDist = dist;
-	return minDist;
-	*/
 
 }
 bool ProbeParams::

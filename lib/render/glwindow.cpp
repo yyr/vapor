@@ -930,7 +930,8 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	RegionParams* myRegionParams = getActiveRegionParams();
-	float *regExts = myRegionParams->getRegionExtents(timeStep);
+	double regExts[6]; 
+	myRegionParams->GetBox()->GetExtents(regExts,timeStep);
 	topPlane[3] = regExts[4]*scales[1];
 	botPlane[3] = -regExts[1]*scales[1];
 	leftPlane[3] = -regExts[0]*scales[0];
@@ -1081,7 +1082,8 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 	//Initialize regmin, origregmin to full region extents:
 	RegionParams* rParams = getActiveRegionParams();
-	float* exts = rParams->getRegionExtents(timeStep);
+	double exts[6];
+	rParams->GetBox()->GetExtents(exts,timeStep);
 	for (int i = 0; i< 3; i++){
 		regMin[i] = exts[i];
 		regMax[i] = exts[i+3];

@@ -425,7 +425,8 @@ guiCenterSubRegion(RegionParams* rParams){
 	float regionSideVector[3], compVec[3], projvec[3];
 	float maxProj = -1.f;
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const float* regExts = rParams->getRegionExtents(timestep);
+	double regExts[6];
+	rParams->GetBox()->GetExtents(regExts,timestep);
 	for (int i = 0; i< 3; i++){
 		//Make a vector that points along side(i) of subregion,
 		

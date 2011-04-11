@@ -50,12 +50,9 @@ namespace VAPoR
 		void ScaleSteadyTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		void ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		
-		
-		//Following is obsolete, replaced by SetDistributedSeedPoints:
-		//void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
-		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
+		void SetRegularSeedPoints(const double min[3], const double max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
-		void SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
+		void SetDistributedSeedPoints(const double min[3], const double max[3], int numSeeds, 
 			const char* xvar, const char* yvar, const char* zvar, float bias);
 		
 		//New version for API.  Uses rake, then puts integration results in container

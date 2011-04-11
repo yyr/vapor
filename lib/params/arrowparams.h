@@ -19,6 +19,7 @@ public:
 	virtual int getNumRefinements() {
 		return GetRefinementLevel();
 	}
+	virtual Box* GetBox() {return (Box*)GetRootNode()->GetNode(Box::_boxTag)->GetParamsBase();}
 
 	//! Obtain the current compression level.
 	//!
@@ -52,18 +53,15 @@ public:
 		if (IsTerrainMapped() && (varname == "HGT")) return true;
 		return false;
 	}
-	//Following implemented to support having a manip:
-	virtual void getBox(float boxmin[], float boxmax[], int);
-	virtual void setBox(const float boxMin[], const float boxMax[], int);
+
 
 	//Get/Set methods based on XML rep:
-	const vector<double>& GetRakeExtents(){
-		return( GetRootNode()->GetElementDouble(_rakeExtentsTag));
+	void GetRakeExtents(double exts[6]){
+		GetBox()->GetExtents(exts);
 	}
-	void SetRakeExtents(const float exts[6]){
-		vector<double> extents;
-		for (int i = 0; i< 6; i++) extents.push_back((double)exts[i]);
-		GetRootNode()->SetElementDouble(_rakeExtentsTag, extents);
+	
+	void SetRakeExtents(const vector<double>&exts){
+		GetBox()->SetExtents(exts);
 		setAllBypass(false);
 	}
 	const vector<long>& GetRakeGrid(){
@@ -112,6 +110,7 @@ public:
 
 protected:
  static const string _shortName;
+
 
 private:
 static const string _constantColorTag;

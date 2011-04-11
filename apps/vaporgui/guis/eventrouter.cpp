@@ -195,7 +195,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));
 		
 	//Check if the region/resolution is too big:
-	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(timeStep), rParams->getRegionMax(timeStep), availRefLevel);
+	  double exts[6];
+	  rParams->GetBox()->GetExtents(exts, timeStep);
+	  int numMBs = RegionParams::getMBStorageNeeded(exts, availRefLevel);
 	  int cacheSize = DataStatus::getInstance()->getCacheMB();
 	  if (numMBs > (int)(0.75*cacheSize)){
 		  renParams->setAllBypass(true);

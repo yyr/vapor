@@ -179,7 +179,7 @@ VizWinMgr::VizWinMgr()
 //Create the global params and the default renderer params:
 void VizWinMgr::
 createAllDefaultParams() {
-
+	ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(ParamsIso::_IsoControlTag, IsoControl::CreateDefaultInstance, false);

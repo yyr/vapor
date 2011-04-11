@@ -10,7 +10,7 @@ FILES = \
 	histo mapperfunction params probeparams regionparams \
 	tfinterpolator transferfunction viewpoint twoDparams \
 	twoDimageparams twoDdataparams \
-	animationparams	viewpointparams ParamsBase \
+	animationparams	viewpointparams ParamsBase Box \
 	arrowparams \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \

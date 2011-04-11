@@ -66,9 +66,11 @@ const string TwoDParams::_orientationAttr = "Orientation";
 TwoDParams::TwoDParams(int winnum, const string& name) : RenderParams(winnum, name){
 	
 	lastTwoDTexture = 0;
+	myBox = 0;
 
 }
 TwoDParams::~TwoDParams(){
+	if (myBox) delete myBox;
 	
 }
 
@@ -83,13 +85,11 @@ TwoDParams::~TwoDParams(){
 void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs){
 	//Determine the box that contains the twoD slice.
 	DataStatus* ds = DataStatus::getInstance();
-	double dmin[3],dmax[3];
-	for (int i = 0; i<3; i++) {
-		dmin[i] = twoDMin[i];
-		dmax[i] = twoDMax[i];
-	}
-	ds->getDataMgr()->MapUserToVox((size_t)-1,dmin, boxMin, numRefs);
-	ds->getDataMgr()->MapUserToVox((size_t)-1,dmax, boxMax, numRefs);
+	double exts[6];
+	GetBox()->GetExtents(exts);
+	
+	ds->getDataMgr()->MapUserToVox((size_t)-1,exts, boxMin, numRefs);
+	ds->getDataMgr()->MapUserToVox((size_t)-1,exts+3, boxMax, numRefs);
 
 }
 
@@ -156,14 +156,15 @@ void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int m
 	mappedDims[2] = dataOrientation;
 	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
 	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
-	constVal[0] = twoDMin[dataOrientation];
-	constVal[1] = twoDMax[dataOrientation];
+	const vector<double>& exts = GetBox()->GetExtents();
+	constVal[0] = exts[dataOrientation];
+	constVal[1] = exts[dataOrientation+3];
 	//constant terms go to middle
-	b[0] = 0.5*(twoDMin[mappedDims[0]]+twoDMax[mappedDims[0]]);
-	b[1] = 0.5*(twoDMin[mappedDims[1]]+twoDMax[mappedDims[1]]);
+	b[0] = 0.5*(exts[mappedDims[0]]+exts[3+mappedDims[0]]);
+	b[1] = 0.5*(exts[mappedDims[1]]+exts[3+mappedDims[1]]);
 	//linear terms send -1,1 to box min,max
-	a[0] = b[0] - twoDMin[mappedDims[0]];
-	a[1] = b[1] - twoDMin[mappedDims[1]];
+	a[0] = b[0] - exts[mappedDims[0]];
+	a[1] = b[1] - exts[mappedDims[1]];
 
 }
 //Following overrides version in Param for 2D
@@ -262,12 +263,13 @@ getTwoDVoxelExtents(float voxdims[2]){
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
+	const vector<double>& box = GetBox()->GetExtents();
 	int dataOrientation = orientation;
 	int xcrd = 0, ycrd = 1;
 	if (dataOrientation < 2) ycrd = 2;
 	if (dataOrientation < 1) xcrd = 1;
-	voxdims[0] = twoDMax[xcrd] - twoDMin[xcrd];
-	voxdims[1] = twoDMax[ycrd] - twoDMin[ycrd];
+	voxdims[0] = box[3+xcrd] - box[xcrd];
+	voxdims[1] = box[3+ycrd] - box[ycrd];
 	return;
 }
 //Find distance from camera to planar surface, in stretched coordinates
@@ -292,10 +294,11 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 	float tdmin[3];
 	float tdmax[3];
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const vector<double>& box = GetBox()->GetExtents();
 	for (int i = 0; i<3; i++){
 		cPos[i] = stretch[i]*camPos[i];
-		tdmin[i] = twoDMin[i]*stretch[i];
-		tdmax[i] = twoDMax[i]*stretch[i];
+		tdmin[i] = box[i]*stretch[i];
+		tdmax[i] = box[i+3]*stretch[i];
 	}
 	
 	ht *= stretch[orientation];

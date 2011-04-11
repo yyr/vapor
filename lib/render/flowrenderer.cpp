@@ -297,7 +297,8 @@ renderFlowData(bool constColors, int currentFrameNum){
 	
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
-	const float* regExts = myRegionParams->getRegionExtents(currentFrameNum);
+	double regExts[6]; 
+	myRegionParams->GetBox()->GetExtents(regExts,currentFrameNum);
 	topPlane[3] = regExts[4]*scales[1];
 	botPlane[3] = -regExts[1]*scales[1];
 	leftPlane[3] = -regExts[0]*scales[0];
@@ -700,7 +701,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	
 	
 	int numRefs = myFlowParams->getNumRefinements();
-	int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(timeStep), rParams->getRegionMax(timeStep), numRefs);
+	double exts[6];
+	rParams->GetBox()->GetExtents(exts, timeStep);
+	int numMBs = RegionParams::getMBStorageNeeded(exts, numRefs);
 	
 	//3 variables are needed for
 	//steady integration, 6 are needed for unsteady integration.
