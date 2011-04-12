@@ -437,12 +437,17 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
 	static const string _flowParamsTag;
+	static const string _RefinementLevelTag;
 	static const string _CompressionLevelTag;
+	static const string _VariableNameTag;
+	static const string _VariableNamesTag;
+	static const string _VisualizerNumTag;
+	static const string _VariablesTag;
+
 	static const string _vizNumAttr;
 	static const string _localAttr;
 	static const string _numVariablesAttr;
 	static const string _variableTag;
-	static const string _variablesTag;
 	static const string _leftEditBoundAttr;
 	static const string _rightEditBoundAttr;
 	static const string _variableNumAttr;
@@ -531,10 +536,14 @@ public:
 	//! \param[in] varname name of the variable
 	//!
 	virtual bool usingVariable(const std::string& varname) = 0;
+	//! Pure virtual method sets current number of refinements of this Params.
+	//! \param[in] int refinements
+	//!
+	virtual void SetRefinementLevel(int numrefinements)=0;
 	//! Pure virtual method indicates current number of refinements of this Params.
 	//! \retval integer number of refinements
 	//!
-	virtual int getNumRefinements()=0;
+	virtual int GetRefinementLevel()=0;
 	//! Pure virtual method indicates current Compression level.
 	//! \retval integer compression level, 0 is most compressed
 	//!
@@ -570,7 +579,7 @@ public:
 
 	// Pure virtual method indicates whether or not the geometry is opaque.
 	// \retval true if it is opaque.
-	virtual bool isOpaque()=0;
+	virtual bool IsOpaque()=0;
 
 	//! Bypass flag is used to indicate a renderer should
 	//! not render until its state is changed.
@@ -632,8 +641,9 @@ public:
 	virtual Params* deepCopy(ParamNode* nd = 0);
 	virtual bool isRenderParams() {return true;}
 
-	//this does nothing for renderParams
+	//following does nothing for renderParams
 	virtual void setLocal(bool ){ assert(0);}
+
 	virtual int getSessionVarNum(){assert(0); return -1;}
 	virtual float GetHistoStretch() { assert(0); return 1.f;}
 	virtual bool getEditMode() {assert(0); return true;}
@@ -682,7 +692,7 @@ public:
 		return maxOpacEditBounds[var];
 	}
 
-	virtual MapperFunction* getMapperFunc() {return 0;}
+	virtual MapperFunction* GetMapperFunc() {return 0;}
 	
 	void setStopFlag(bool val = true) {stopFlag = val;}
 	bool getStopFlag() {return stopFlag;}
@@ -713,7 +723,7 @@ class DummyParams : public Params {
 		DummyParams(XmlNode *parent, const std::string tag, int winnum);
 	virtual ~DummyParams(){}
 	virtual void restart(){}
-	virtual int getNumRefinements() {
+	virtual int GetRefinementLevel() {
 		return 0;
 	}
 
@@ -723,7 +733,7 @@ class DummyParams : public Params {
 	
 	virtual bool reinit(bool){return false;}
 	
-	virtual bool isOpaque() {return true;}
+	virtual bool IsOpaque() {return true;}
 	
 	virtual bool usingVariable(const std::string& ){
 		return false;

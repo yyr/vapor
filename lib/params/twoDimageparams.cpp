@@ -98,7 +98,7 @@ Params* TwoDImageParams::
 deepCopy(ParamNode*){
 	TwoDImageParams* newParams = new TwoDImageParams(*this);
 	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
-	newParams->myBox = myBox->deepCopy(pNode);
+	newParams->myBox = (Box*)myBox->deepCopy(pNode);
 	//TwoD texture must be recreated when needed
 	newParams->twoDDataTextures = 0;
 	newParams->imageExtents = 0;

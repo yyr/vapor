@@ -700,7 +700,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//Check that we have a large-enough cache.  
 	
 	
-	int numRefs = myFlowParams->getNumRefinements();
+	int numRefs = myFlowParams->GetRefinementLevel();
 	double exts[6];
 	rParams->GetBox()->GetExtents(exts, timeStep);
 	int numMBs = RegionParams::getMBStorageNeeded(exts, numRefs);

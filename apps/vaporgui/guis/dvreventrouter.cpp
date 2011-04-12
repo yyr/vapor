@@ -218,7 +218,7 @@ void DvrEventRouter::confirmText(bool /*render*/){
 	dParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
 	if (dParams->getNumVariables() > 0) {
-		TransferFunction* tf = (TransferFunction*)dParams->getMapperFunc();
+		TransferFunction* tf = (TransferFunction*)dParams->GetMapperFunc();
 		tf->setMinMapValue(leftMappingBound->text().toFloat());
 		tf->setMaxMapValue(rightMappingBound->text().toFloat());
 		setEditorDirty();
@@ -296,13 +296,13 @@ dvrSaveTF(void){
 void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
-	TransferFunction* tf = dParams->getTransFunc();
+	TransferFunction* tf = dParams->GetTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	loadInstalledTF(dParams,dParams->getSessionVarNum());
-	tf = dParams->getTransFunc();
+	tf = dParams->GetTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
 	setEditorDirty();
@@ -385,9 +385,9 @@ void DvrEventRouter::updateTab(){
 	
 	QString strn;
     
-	if (dvrParams->getMapperFunc()){
-		dvrParams->getMapperFunc()->setParams(dvrParams);
-		transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
+	if (dvrParams->GetMapperFunc()){
+		dvrParams->GetMapperFunc()->setParams(dvrParams);
+		transferFunctionFrame->setMapperFunction(dvrParams->GetMapperFunc());
 	}
 	transferFunctionFrame->updateParams();
 
@@ -413,7 +413,7 @@ void DvrEventRouter::updateTab(){
 	
 	typeCombo->setCurrentIndex(typemapi[dvrParams->getType()]);
 
-	int numRefs = dvrParams->getNumRefinements();
+	int numRefs = dvrParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 	variableCombo->setCurrentIndex(dvrParams->getComboVarNum());
@@ -542,11 +542,11 @@ guiSetNumRefinements(int num){
 	confirmText(false);
 	//make sure we are changing it
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
-	if (num == dParams->getNumRefinements()) return;
+	if (num == dParams->GetRefinementLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
 		
-	dParams->setNumRefinements(num);
+	dParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentIndex(num);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
@@ -596,14 +596,14 @@ guiSetEnabled(bool value, int instance){
 	vizWinMgr->setVizDirty(dParams,NavigatingBit,true);
 	vizWinMgr->setVizDirty(dParams,LightingBit, true);
 
-	if (dParams->getMapperFunc())
+	if (dParams->GetMapperFunc())
     {
       QString strn;
 
-      strn.setNum(dParams->getMapperFunc()->getMinColorMapValue(),'g',7);
+      strn.setNum(dParams->GetMapperFunc()->getMinColorMapValue(),'g',7);
       leftMappingBound->setText(strn);
 
-      strn.setNum(dParams->getMapperFunc()->getMaxColorMapValue(),'g',7);
+      strn.setNum(dParams->GetMapperFunc()->getMaxColorMapValue(),'g',7);
       rightMappingBound->setText(strn);
 	} 
     else 
@@ -676,9 +676,9 @@ updateMapBounds(RenderParams* params){
 	}
 	minDataBound->setText(strn.setNum(minbnd));
 	maxDataBound->setText(strn.setNum(maxbnd));
-	if (dParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(dParams->getMapperFunc()->getMinColorMapValue(),'g',7));
-		rightMappingBound->setText(strn.setNum(dParams->getMapperFunc()->getMaxColorMapValue(),'g',7));
+	if (dParams->GetMapperFunc()){
+		leftMappingBound->setText(strn.setNum(dParams->GetMapperFunc()->getMinColorMapValue(),'g',7));
+		rightMappingBound->setText(strn.setNum(dParams->GetMapperFunc()->getMaxColorMapValue(),'g',7));
 	} else {
 		leftMappingBound->setText("0.0");
 		rightMappingBound->setText("1.0");
@@ -967,8 +967,8 @@ void DvrEventRouter::
 setEditorDirty(RenderParams *p){
 	DvrParams* dp = (DvrParams*) p;
 	if (!dp) dp = VizWinMgr::getInstance()->getActiveDvrParams();
-	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
-    transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
+	if(dp->GetMapperFunc())dp->GetMapperFunc()->setParams(dp);
+    transferFunctionFrame->setMapperFunction(dp->GetMapperFunc());
     transferFunctionFrame->updateParams();
 
     DataStatus *ds;
@@ -984,7 +984,7 @@ setEditorDirty(RenderParams *p){
       transferFunctionFrame->setVariableName("");
     }
 	if(dp) {
-		MapperFunction* mf = dp->getMapperFunc();
+		MapperFunction* mf = dp->GetMapperFunc();
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
@@ -1006,9 +1006,9 @@ void DvrEventRouter::
 setDatarangeDirty(RenderParams* params)
 {
 	DvrParams* dParams = (DvrParams*)params;
-	if (!dParams->getMapperFunc()) return;
-	float minval = dParams->getMapperFunc()->getMinColorMapValue();
-	float maxval = dParams->getMapperFunc()->getMaxColorMapValue();
+	if (!dParams->GetMapperFunc()) return;
+	float minval = dParams->GetMapperFunc()->getMinColorMapValue();
+	float maxval = dParams->GetMapperFunc()->getMaxColorMapValue();
 	dParams->setCurrentDatarange(minval, maxval);
 	VizWinMgr::getInstance()->setDatarangeDirty(dParams);
 }
@@ -1193,7 +1193,7 @@ void DvrEventRouter::benchmarkPreamble()
 	
   int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
   int varNum       = dvrParams->getSessionVarNum();
-  int numxforms    = dvrParams->getNumRefinements();
+  int numxforms    = dvrParams->GetRefinementLevel();
   size_t bs[3];
   dataMgr->GetBlockSize(bs,numxforms);
 
@@ -1326,8 +1326,8 @@ void DvrEventRouter::guiFitTFToData(){
 		minBound = 0.f;
 	}
 	
-	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
-	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
 	PanelCommand::captureEnd(cmd, pParams);
 	setDatarangeDirty(pParams);
 	updateTab();

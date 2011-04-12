@@ -383,7 +383,7 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 	//Call RegionParams::PrepareCoordsForRetrieval to get the block extents needed in the GetRegion call
 	//It may reduce the refinement level or indicate that the required data is not available.
 
-	int numxforms = aParams->getNumRefinements();
+	int numxforms = aParams->GetRefinementLevel();
 	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, timestep, varnames, 
 		validExts, validExts+3,
 		min_dim, max_dim, 

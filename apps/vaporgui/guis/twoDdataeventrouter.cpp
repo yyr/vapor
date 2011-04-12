@@ -242,9 +242,9 @@ void TwoDDataEventRouter::updateTab(){
 	//orientation = ds->get2DOrientation(twoDParams->getFirstVarNum());
 	orientationCombo->setCurrentIndex(orientation);
 	orientationCombo->setEnabled(false);
-	if (twoDParams->getMapperFunc()){
-		twoDParams->getMapperFunc()->setParams(twoDParams);
-		transferFunctionFrame->setMapperFunction(twoDParams->getMapperFunc());
+	if (twoDParams->GetMapperFunc()){
+		twoDParams->GetMapperFunc()->setParams(twoDParams);
+		transferFunctionFrame->setMapperFunction(twoDParams->GetMapperFunc());
 	}
 	transferFunctionFrame->updateParams();
 	int numvars = 0;
@@ -271,7 +271,7 @@ void TwoDDataEventRouter::updateTab(){
 	transferFunctionFrame->setVariableName("");
 	variableLabel->setText("");
 	}
-	int numRefs = twoDParams->getNumRefinements();
+	int numRefs = twoDParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 	
@@ -493,9 +493,9 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	resetTextureSize(twoDParams);
 	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 	setTwoDDirty(twoDParams);
-	if (twoDParams->getMapperFunc()) {
-		((TransferFunction*)twoDParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
-		((TransferFunction*)twoDParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
+	if (twoDParams->GetMapperFunc()) {
+		((TransferFunction*)twoDParams->GetMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
+		((TransferFunction*)twoDParams->GetMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
 	
 		setDatarangeDirty(twoDParams);
 		setEditorDirty();
@@ -532,7 +532,7 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	float extents[6];
-	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents);
+	DataStatus::getInstance()->getExtentsAtLevel(dParams->GetRefinementLevel(), extents);
 	if (dParams->isEnabled()) {
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		int viznum = vizMgr->getActiveViz();
@@ -631,7 +631,7 @@ refreshTwoDHisto(){
 void TwoDDataEventRouter::
 twoDLoadInstalledTF(){
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
-	TransferFunction* tf = pParams->getTransFunc();
+	TransferFunction* tf = pParams->GetTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
@@ -645,7 +645,7 @@ twoDLoadInstalledTF(){
 	QString installPath = palettes.c_str();
 	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char *) installPath.toAscii(),false);
 
-	tf = pParams->getTransFunc();
+	tf = pParams->GetTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
 	setEditorDirty();
@@ -919,8 +919,8 @@ void TwoDDataEventRouter::
 setEditorDirty(RenderParams* p){
 	TwoDDataParams* dp = (TwoDDataParams*)p;
 	if(!dp) dp = VizWinMgr::getInstance()->getActiveTwoDDataParams();
-	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
-    transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
+	if(dp->GetMapperFunc())dp->GetMapperFunc()->setParams(dp);
+    transferFunctionFrame->setMapperFunction(dp->GetMapperFunc());
     transferFunctionFrame->updateParams();
 
 	if (DataStatus::getInstance()->getNumSessionVariables2D())
@@ -933,7 +933,7 @@ setEditorDirty(RenderParams* p){
       transferFunctionFrame->setVariableName("");
     }
 	if(dp) {
-		MapperFunction* mf = dp->getMapperFunc();
+		MapperFunction* mf = dp->GetMapperFunc();
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
@@ -1260,7 +1260,7 @@ guiSetNumRefinements(int n){
 			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
-	pParams->setNumRefinements(n);
+	pParams->SetRefinementLevel(n);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);;
@@ -1556,7 +1556,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//Determine what resolution is available:
-	int refLevel = pParams->getNumRefinements();
+	int refLevel = pParams->GetRefinementLevel();
 	
 	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
@@ -1676,10 +1676,10 @@ void TwoDDataEventRouter::
 setDatarangeDirty(RenderParams* params)
 {
 	TwoDDataParams* pParams = (TwoDDataParams*)params;
-	if (!pParams->getMapperFunc()) return;
+	if (!pParams->GetMapperFunc()) return;
 	const float* currentDatarange = pParams->getCurrentDatarange();
-	float minval = pParams->getMapperFunc()->getMinColorMapValue();
-	float maxval = pParams->getMapperFunc()->getMaxColorMapValue();
+	float minval = pParams->GetMapperFunc()->getMinColorMapValue();
+	float maxval = pParams->GetMapperFunc()->getMaxColorMapValue();
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
 			VizWin* viz = VizWinMgr::getInstance()->getVizWin(pParams->getVizNum());
@@ -1810,7 +1810,7 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getTwoDMin(0);
 	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -1857,7 +1857,7 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getTwoDMin(0);
 	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -1904,7 +1904,7 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getTwoDMin(1);
 	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -1951,7 +1951,7 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Z center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getTwoDMin(2);
 	float pmax = pParams->getTwoDMax(2);
 	float maxExtent = ds->getExtents()[5];
@@ -1999,7 +1999,7 @@ void TwoDDataEventRouter::guiNudgeYSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getTwoDMin(1);
 	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -2180,9 +2180,9 @@ void TwoDDataEventRouter::updateBoundsText(RenderParams* params){
 	minDataBound->setText(strn.setNum(mnval));
 	maxDataBound->setText(strn.setNum(mxval));
 	
-	if (twoDParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMinColorMapValue(),'g',4));
-		rightMappingBound->setText(strn.setNum(twoDParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
+	if (twoDParams->GetMapperFunc()){
+		leftMappingBound->setText(strn.setNum(twoDParams->GetMapperFunc()->getMinColorMapValue(),'g',4));
+		rightMappingBound->setText(strn.setNum(twoDParams->GetMapperFunc()->getMaxColorMapValue(),'g',4));
 	} else {
 		leftMappingBound->setText("0.0");
 		rightMappingBound->setText("1.0");
@@ -2255,8 +2255,8 @@ void TwoDDataEventRouter::guiFitTFToData(){
 		minBound = 0.f;
 	}
 	
-	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
-	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
 	PanelCommand::captureEnd(cmd, pParams);
 	setDatarangeDirty(pParams);
 	updateTab();

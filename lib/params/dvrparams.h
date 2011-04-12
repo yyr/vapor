@@ -98,7 +98,7 @@ public:
 	virtual int GetCompressionLevel() {return compressionLevel;}
 	virtual void SetCompressionLevel(int val) {compressionLevel = val; }
 
-	virtual bool isOpaque();
+	virtual bool IsOpaque();
 
 	float (&getClut())[256][4] {
 		refreshCtab();
@@ -114,8 +114,8 @@ public:
 	float getMaxMapBound(){return getMaxColorMapBound();} 
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
-	virtual int getNumRefinements() {return numRefinements;}
-	void setNumRefinements(int n) {numRefinements = n;}
+	virtual int GetRefinementLevel() {return numRefinements;}
+	void SetRefinementLevel(int n) {numRefinements = n;}
 
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//this causes it to be set in the mapperfunction (transfer function)
@@ -163,15 +163,15 @@ public:
 	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	virtual MapperFunction* getMapperFunc();
+	virtual MapperFunction* GetMapperFunc();
 	virtual bool UsesMapperFunction() {return true;}
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
 	int getComboVarNum(){return DataStatus::getInstance()->mapSessionToActiveVarNum3D(varNum);}
 	int getNumVariables() {return numVariables;}
-	TransferFunction* getTransFunc(int varnum) {return (transFunc ? transFunc[varnum] : 0);}
-	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
+	TransferFunction* GetTransFunc(int varnum) {return (transFunc ? transFunc[varnum] : 0);}
+	TransferFunction* GetTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
 
 	virtual void hookupTF(TransferFunction* t, int index);
 	static int getDefaultBitsPerVoxel() {return defaultBitsPerVoxel;}

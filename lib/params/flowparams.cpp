@@ -305,7 +305,7 @@ deepCopy(ParamNode*){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
 	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
-	newFlowParams->myBox = myBox->deepCopy(pNode);
+	newFlowParams->myBox = (Box*) myBox->deepCopy(pNode);
 	
 	//Clone the map bounds arrays:
 	int numVars = numComboVariables+4;
@@ -2511,19 +2511,19 @@ setOpacMapEntity( int entityNum){
 //When we set the min/map bounds, must save them locally and in the mapper function
 void FlowParams::setMinColorMapBound(float val){
 	minColorBounds[getColorMapEntityIndex()] = val;	
-	if(getMapperFunc())getMapperFunc()->setMinColorMapValue(val);
+	if(GetMapperFunc())GetMapperFunc()->setMinColorMapValue(val);
 }
 void FlowParams::setMaxColorMapBound(float val){
 	maxColorBounds[getColorMapEntityIndex()] = val;
-	if(getMapperFunc())getMapperFunc()->setMaxColorMapValue(val);
+	if(GetMapperFunc())GetMapperFunc()->setMaxColorMapValue(val);
 }
 void FlowParams::setMinOpacMapBound(float val){
 	minOpacBounds[getOpacMapEntityIndex()] = val;
-	if(getMapperFunc())getMapperFunc()->setMinOpacMapValue(val);
+	if(GetMapperFunc())GetMapperFunc()->setMinOpacMapValue(val);
 }
 void FlowParams::setMaxOpacMapBound(float val){
 	maxOpacBounds[getOpacMapEntityIndex()] = val;
-	if(getMapperFunc())getMapperFunc()->setMaxOpacMapValue(val);
+	if(GetMapperFunc())GetMapperFunc()->setMaxOpacMapValue(val);
 }
 
 //Determine the max and min (likely range) associated with a mapped index:

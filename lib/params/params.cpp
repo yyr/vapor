@@ -58,12 +58,18 @@ const string Params::_animationParamsTag = "AnimationPanelParameters";
 const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
 const string Params::_flowParamsTag = "FlowPanelParameters";
 const string Params::_CompressionLevelTag = "CompressionLevel";
+const string Params::_RefinementLevelTag = "RefinementLevel";
+const string Params::_VisualizerNumTag = "VisualizerNum";
+const string Params::_VariableNamesTag = "VariableNames";
+const string Params::_VariableNameTag = "VariableName";
+const string Params::_VariablesTag = "Variables";
+
 const string Params::_localAttr = "Local";
 const string Params::_vizNumAttr = "VisualizerNum";
 const string Params::_numVariablesAttr = "NumVariables";
 const string Params::_numTransformsAttr = "NumTransforms";
 const string Params::_variableTag = "Variable";
-const string Params::_variablesTag = "Variables";
+
 const string Params::_leftEditBoundAttr = "LeftEditBound";
 const string Params::_rightEditBoundAttr = "RightEditBound";
 const string Params::_variableNameAttr = "VariableName";
@@ -105,16 +111,16 @@ const std::string& Params::paramName(Params::ParamsBaseType type){
 	return GetDefaultParams(type)->getShortName();
 }
 float RenderParams::getMinColorMapBound(){
-	return (getMapperFunc()? getMapperFunc()->getMinColorMapValue(): 0.f);
+	return (GetMapperFunc()? GetMapperFunc()->getMinColorMapValue(): 0.f);
 }
 float RenderParams::getMaxColorMapBound(){
-	return (getMapperFunc()? getMapperFunc()->getMaxColorMapValue(): 1.f);
+	return (GetMapperFunc()? GetMapperFunc()->getMaxColorMapValue(): 1.f);
 }
 float RenderParams::getMinOpacMapBound(){
-	return (getMapperFunc()? getMapperFunc()->getMinOpacMapValue(): 0.f);
+	return (GetMapperFunc()? GetMapperFunc()->getMinOpacMapValue(): 0.f);
 }
 float RenderParams::getMaxOpacMapBound(){
-	return (getMapperFunc()? getMapperFunc()->getMaxOpacMapValue(): 1.f);
+	return (GetMapperFunc()? GetMapperFunc()->getMaxOpacMapValue(): 1.f);
 }
 
 //For params subclasses that have a box:

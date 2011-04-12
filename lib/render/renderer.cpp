@@ -115,7 +115,7 @@ buildColorscaleImage(){
 
 	//Obtain the relevant transfer function:
 	TransferFunction* myTransFunc = 
-		(TransferFunction*)currentRenderParams->getMapperFunc();
+		(TransferFunction*)currentRenderParams->GetMapperFunc();
 	
 	
 	

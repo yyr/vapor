@@ -195,7 +195,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	regMax[2] = extents[5];
 	//Convert to voxels:
 	
-	int elevGridRefLevel = tParams->getNumRefinements();
+	int elevGridRefLevel = tParams->GetRefinementLevel();
 	//Do mapping to voxel coords at current ref level:
 	dataMgrLayered->MapUserToVox((size_t)-1, regMin, min_dim, elevGridRefLevel);
 	dataMgrLayered->MapUserToVox((size_t)-1, regMax, max_dim, elevGridRefLevel);

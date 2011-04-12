@@ -359,3 +359,10 @@ const string& ParamsBase::GetTagFromType(ParamsBaseType t){
 	if (getTagIter == tagFromClassIdMap.end()) return _emptyString;
 	return getTagIter->second;
 }
+
+ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot) {
+	ParamsBase* base = new ParamsBase(*this);
+	base->SetRootParamNode(newRoot);
+	if(newRoot) newRoot->SetParamsBase(base);
+	return base;
+}

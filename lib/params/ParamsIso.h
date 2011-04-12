@@ -78,13 +78,7 @@ public:
  //! This static method must be implemented by all Params classes
  //!
  const std::string& getShortName() {return _shortName;}
- //! Specify the current refinement level.
- //!
- //! Pure virtual method required of render params
- //
- virtual int getNumRefinements() {
-	 return GetRefinementLevel();
- }
+ 
  //! Obtain the current compression level.
  //!
  //! Pure virtual method required of render params
@@ -134,10 +128,10 @@ public:
  static void setDefaultPrefs();
 
 //Obtain the current transfer function
-virtual MapperFunction* getMapperFunc(); 
+virtual MapperFunction* GetMapperFunc(); 
 virtual bool UsesMapperFunction() {return true;}
 //obtain the current iso control
-IsoControl* getIsoControl();
+IsoControl* GetIsoControl();
 //Obtain transfer function for a specific variable
 TransferFunction* GetTransFunc(int sesVarNum);
 IsoControl* GetIsoControl(int sesVarNum);
@@ -145,40 +139,40 @@ IsoControl* GetIsoControl(int sesVarNum);
 int GetNumVariables();
 
 void SetMinMapEdit(int var, float val){
-	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	const vector<double>& vec = GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
 	vector<double> newvec(vec);
 	newvec[1] = val;
-	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+	GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
 }
 void SetMaxMapEdit(int var, float val){
-	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	const vector<double>& vec = GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
 	vector<double> newvec(vec);
 	newvec[3] = val;
-	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+	GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
 }
 void SetMinIsoEdit(int var, float val){
-	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	const vector<double>& vec = GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
 	vector<double> newvec(vec);
 	newvec[0] = val;
-	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+	GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
 }
 void SetMaxIsoEdit(int var, float val){
-	const vector<double>& vec = GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
+	const vector<double>& vec = GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag);
 	vector<double> newvec(vec);
 	newvec[2] = val;
-	GetRootNode()->GetNode(_variablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
+	GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->SetElementDouble(_editBoundsTag, newvec);
 }
 float GetMinMapEdit(int var){
-	return (GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[1]);
+	return (GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[1]);
 }
 float GetMaxMapEdit(int var){
-	return (GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[3]);
+	return (GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[3]);
 }
 float GetMinIsoEdit(int var){
-	return(GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[0]);
+	return(GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[0]);
 }
 float GetMaxIsoEdit(int var){
-	return(GetRootNode()->GetNode(_variablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[2]);
+	return(GetRootNode()->GetNode(_VariablesTag)->GetChild(var)->GetElementDouble(_editBoundsTag)[2]);
 }
 
  //Virtual methods to set map bounds.  Get() is in parent class
@@ -189,7 +183,7 @@ virtual void setMinOpacMapBound(float val);
 virtual void setMaxOpacMapBound(float val);
 
 //following required of 
-virtual bool isOpaque();
+virtual bool IsOpaque();
 
 
 virtual void setMinOpacEditBound(float val, int sesvarnum) {
@@ -245,7 +239,7 @@ float getMaxIsoEditBound() {
  const vector<double>& GetSelectedPoint();
 
  virtual void SetRefinementLevel(int level);
- int GetRefinementLevel();
+ virtual int GetRefinementLevel();
  void RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
 
@@ -310,13 +304,9 @@ private:
  static const string _isoEditModeTag;
  static const string _NormalOnOffTag;
  static const string _ConstantColorTag;
-
  static const string _HistoScaleTag;
  static const string _MapHistoScaleTag;
  static const string _SelectedPointTag;
- static const string _RefinementLevelTag;
- static const string _VisualizerNumTag;
- static const string _VariableNameTag;
  static const string _MapVariableNameTag;
  static const string _NumBitsTag;
 

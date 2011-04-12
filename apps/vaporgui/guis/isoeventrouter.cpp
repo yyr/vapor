@@ -237,8 +237,8 @@ void IsoEventRouter::updateTab(){
 	mapVariableCombo->setCurrentIndex(mapComboVarNum);
 	lodCombo->setCurrentIndex(isoParams->GetCompressionLevel());
 	//setup the transfer function editor:
-	if(mapComboVarNum > 0 && isoParams->getMapperFunc()) {
-		transferFunctionFrame->setMapperFunction(isoParams->getMapperFunc());
+	if(mapComboVarNum > 0 && isoParams->GetMapperFunc()) {
+		transferFunctionFrame->setMapperFunction(isoParams->GetMapperFunc());
 		updateMapBounds(isoParams);
 	}
 	else transferFunctionFrame->setMapperFunction(0);
@@ -260,7 +260,7 @@ void IsoEventRouter::updateTab(){
 	
 	
 	numBitsCombo->setCurrentIndex((isoParams->GetNumBits())>>4);
-	int numRefs = isoParams->getNumRefinements();
+	int numRefs = isoParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 
@@ -284,9 +284,9 @@ void IsoEventRouter::updateTab(){
 	QPalette pal = constantColorEdit->palette();
 	pal.setColor(QPalette::Base,QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
 	constantColorEdit->setPalette(pal);
-	if(isoParams->getIsoControl()){
-		isoParams->getIsoControl()->setParams(isoParams);
-		isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
+	if(isoParams->GetIsoControl()){
+		isoParams->GetIsoControl()->setParams(isoParams);
+		isoSelectionFrame->setMapperFunction(isoParams->GetIsoControl());
 	}
 	
 	
@@ -332,7 +332,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		iParams->SetConstantColor(newColor);
 	}
 	float isoval = isoValueEdit->text().toFloat();
-	if(iParams->getIsoControl())iParams->SetIsoValue(isoval);
+	if(iParams->GetIsoControl())iParams->SetIsoValue(isoval);
 	float bnds[2];
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
@@ -391,13 +391,13 @@ void IsoEventRouter::isoLoadTF(){
 void IsoEventRouter::isoLoadInstalledTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::_isoParamsTag);
 	if (iParams->GetMapVariableNum() < 0) return;
-	TransferFunction* tf = (TransferFunction*)iParams->getMapperFunc();
+	TransferFunction* tf = (TransferFunction*)iParams->GetMapperFunc();
 	assert(tf);
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
 	if (minb >= maxb){ minb = 0.0; maxb = 1.0;}
 	loadInstalledTF(iParams,iParams->GetMapVariableNum());
-	tf = (TransferFunction*)iParams->getMapperFunc();
+	tf = (TransferFunction*)iParams->GetMapperFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
 	iParams->SetMinMapEdit(iParams->GetMapVariableNum(), minb);
@@ -563,7 +563,7 @@ guiEndChangeIsoSelection(){
 	if (!savedCommand) return;
 	ParamsIso* iParams = getActiveIsoParams();
 	// Make sure histo bounds are valid
-	IsoControl* icntrl = iParams->getIsoControl();
+	IsoControl* icntrl = iParams->GetIsoControl();
 	float minbnd = icntrl->getMinHistoValue();
 	float maxbnd = icntrl->getMaxHistoValue();
 	float isoval = icntrl->getIsoValue();
@@ -781,7 +781,7 @@ guiSetNumRefinements(int num){
 	
 	ParamsIso* iParams = getActiveIsoParams();
 	
-	if (num == iParams->getNumRefinements()) return;
+	if (num == iParams->GetRefinementLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set number of refinements");
 	
@@ -809,14 +809,14 @@ guiSetEnabled(bool value, int instance){
 	}
 	confirmText(false);
 
-	if (iParams->getMapperFunc() && iParams->GetMapVariableNum()>=0)
+	if (iParams->GetMapperFunc() && iParams->GetMapVariableNum()>=0)
     {
       QString strn;
 
-      strn.setNum(iParams->getMapperFunc()->getMinColorMapValue(),'g',7);
+      strn.setNum(iParams->GetMapperFunc()->getMinColorMapValue(),'g',7);
       leftMappingEdit->setText(strn);
 
-      strn.setNum(iParams->getMapperFunc()->getMaxColorMapValue(),'g',7);
+      strn.setNum(iParams->GetMapperFunc()->getMaxColorMapValue(),'g',7);
       rightMappingEdit->setText(strn);
 	} 
     else 
@@ -872,7 +872,7 @@ guiCopyProbePoint(){
 	ParamsIso* iParams = getActiveIsoParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	//Issue a warning if the probe resolution does not match iso resolution;
-	if (pParams->getNumRefinements() != iParams->getNumRefinements()){
+	if (pParams->GetRefinementLevel() != iParams->GetRefinementLevel()){
 		MessageReporter::warningMsg("Note:  Refinement levels of probe and \nisosurface are different.\n%s",
 			"Variable values may differ as a result");
 	}
@@ -1187,9 +1187,9 @@ updateMapBounds(RenderParams* params){
 		minTFDataBound->setText(strn.setNum(minval));
 		maxTFDataBound->setText(strn.setNum(maxval));
 	
-		if (isoParams->getMapperFunc()){
-			leftMappingEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMinOpacMapValue(),'g',4));
-			rightMappingEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMaxOpacMapValue(),'g',4));
+		if (isoParams->GetMapperFunc()){
+			leftMappingEdit->setText(strn.setNum(isoParams->GetMapperFunc()->getMinOpacMapValue(),'g',4));
+			rightMappingEdit->setText(strn.setNum(isoParams->GetMapperFunc()->getMaxOpacMapValue(),'g',4));
 		} else {
 			leftMappingEdit->setText("0.0");
 			rightMappingEdit->setText("1.0");
@@ -1202,16 +1202,16 @@ void IsoEventRouter::
 setEditorDirty(RenderParams* p){
 	ParamsIso* ip = (ParamsIso*)p;
 	if(!ip) ip = getActiveIsoParams();
-	if(ip->getIsoControl())ip->getIsoControl()->setParams(ip);
-    isoSelectionFrame->setMapperFunction(ip->getIsoControl());
+	if(ip->GetIsoControl())ip->GetIsoControl()->setParams(ip);
+    isoSelectionFrame->setMapperFunction(ip->GetIsoControl());
 	isoSelectionFrame->setVariableName(ip->GetIsoVariableName());
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->updateParams();
-	if(ip->getMapperFunc()&& ip->GetMapVariableNum() >= 0){
+	if(ip->GetMapperFunc()&& ip->GetMapVariableNum() >= 0){
 		VizWin* viz = VizWinMgr::getInstance()->getVizWin(ip->getVizNum());
 		viz->setColorbarDirty(true);
-		ip->getMapperFunc()->setParams(ip);
-		transferFunctionFrame->setMapperFunction(ip->getMapperFunc());
+		ip->GetMapperFunc()->setParams(ip);
+		transferFunctionFrame->setMapperFunction(ip->GetMapperFunc());
 		transferFunctionFrame->updateParams();
 	}
 
@@ -1227,7 +1227,7 @@ setEditorDirty(RenderParams* p){
 		transferFunctionFrame->setVariableName("N/A");
 	}
 	if(ip) {
-		MapperFunction* mf = ip->getMapperFunc();
+		MapperFunction* mf = ip->GetMapperFunc();
 		if (mf) {
 			leftMappingEdit->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingEdit->setText(QString::number(mf->getMaxOpacMapValue()));
@@ -1329,8 +1329,8 @@ void IsoEventRouter::guiFitTFToData(){
 		minBound = 0.f;
 	}
 	
-	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(minBound);
-	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(maxBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(minBound);
+	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(maxBound);
 	PanelCommand::captureEnd(cmd, pParams);
 	setDatarangeDirty(pParams);
 	updateTab();

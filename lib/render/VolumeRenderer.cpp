@@ -396,9 +396,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
 	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
 	{
-		numxforms = Min(currentRenderParams->getNumRefinements(),
+		numxforms = Min(currentRenderParams->GetRefinementLevel(),
 			DataStatus::getInteractiveRefinementLevel());
-		if (numxforms < currentRenderParams->getNumRefinements()){
+		if (numxforms < currentRenderParams->GetRefinementLevel()){
 			_driver->SetRenderFast(true);
 
 			// Need update sampling rate & opacity correction 
@@ -407,7 +407,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		}
 	} else {
 
-		numxforms = currentRenderParams->getNumRefinements();
+		numxforms = currentRenderParams->GetRefinementLevel();
 		if (_driver->GetRenderFast())
 		{
 			_driver->SetRenderFast(false);

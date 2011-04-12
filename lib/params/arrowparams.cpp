@@ -14,10 +14,8 @@ const string ArrowParams::_rakeExtentsTag = "RakeExtents";
 const string ArrowParams::_rakeGridTag = "GridDimensions";
 const string ArrowParams::_lineThicknessTag = "LineThickness";
 const string ArrowParams::_vectorScaleTag = "VectorScale";
-const string ArrowParams::_refinementLevelTag = "RefinementLevel";
 const string ArrowParams::_terrainMapTag = "TerrainMap";
-const string ArrowParams::_visualizerNumTag = "VisualizerNum";
-const string ArrowParams::_variableNameTag = "VariableNames";
+
 
 namespace {
 	const string ArrowName = "ArrowParams";
@@ -215,26 +213,26 @@ void ArrowParams::SetCompressionLevel(int level){
 
  void ArrowParams::SetVisualizerNum(int viznum){
 	vector<long> valvec(1,(long)viznum);
-	GetRootNode()->SetElementLong(_visualizerNumTag,valvec);
+	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);
 	vizNum = viznum;
  }
  int ArrowParams::GetVisualizerNum(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_refinementLevelTag);
+	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag);
 	return (int)valvec[0];
  }
 void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
-	GetRootNode()->GetElementStringVec(_variableNameTag, svec);
+	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec);
 	if(svec.size() <= i) 
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
-	GetRootNode()->SetElementString(_variableNameTag, svec);
+	GetRootNode()->SetElementString(_VariableNamesTag, svec);
 	setAllBypass(false);
 }
 const string& ArrowParams::GetFieldVariableName(int i){
 	static string retval;
 	vector <string> svec;
-	GetRootNode()->GetElementStringVec(_variableNameTag, svec);
+	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec);
 	retval=svec[i];
 	return retval;
 }

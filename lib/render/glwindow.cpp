@@ -461,7 +461,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 
 	//Find renderer that has a colorbar
 	RenderParams* p = dynamic_cast<RenderParams*>(getActiveParams(Params::GetTagFromType(colorbarParamsTypeId)));
-	if(p && colorbarIsEnabled() && p->isEnabled() && p->getMapperFunc()){
+	if(p && colorbarIsEnabled() && p->isEnabled() && p->GetMapperFunc()){
 		//Now go to default 2D window
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
@@ -2006,7 +2006,7 @@ sortRenderers(int timestep){
 		if (start5Renderers < 0) start5Renderers = i;  //save first sorted renderer position
 		//Move all opaque renderers up to the start.  Put the rest into the sort list
 		RenderParams* rParams = renderer[i]->getRenderParams();
-		if (rParams->isOpaque()){ //move it up
+		if (rParams->IsOpaque()){ //move it up
 			assert(start5Renderers+numOpaque5Renderers <= i);
 			renderer[start5Renderers+numOpaque5Renderers] = renderer[i];
 			renderType[start5Renderers+numOpaque5Renderers] = renderType[i];

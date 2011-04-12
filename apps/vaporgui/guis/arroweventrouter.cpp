@@ -344,7 +344,7 @@ void ArrowEventRouter::updateTab(){
 	deleteInstanceButton->setEnabled(vizMgr->getNumInstances(winnum, Params::GetTypeFromTag(ArrowParams::_arrowParamsTag)) > 1);
 
 	//Set up refinements and LOD combos:
-	int numRefs = arrowParams->getNumRefinements();
+	int numRefs = arrowParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 	lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
@@ -485,7 +485,7 @@ guiSetNumRefinements(int num){
 	confirmText(false);
 	//make sure we are changing it
 	ArrowParams* dParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
-	if (num == dParams->getNumRefinements()) return;
+	if (num == dParams->GetRefinementLevel()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
 		

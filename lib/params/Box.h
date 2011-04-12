@@ -32,15 +32,10 @@ namespace VAPoR {
 
 class PARAMS_API Box : public ParamsBase {
 public:
-	Box(const string& name) : ParamsBase(name) {}
+	
 	Box();
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
-	virtual Box* deepCopy(ParamNode* newRoot = 0) {
-		Box* box = new Box(*this);
-		box->SetRootParamNode(newRoot);
-		if(newRoot) newRoot->SetParamsBase(box);
-		return box;
-	}
+	
 	//! Get the box extents as a double array.  If timestep is >= 0, then get it just
 	//! for the specified timestep
 	//! \param[out] double extents[6] returned extents

@@ -175,7 +175,7 @@ void TwoDImageEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
     
-	refinementCombo->setCurrentIndex(twoDParams->getNumRefinements());
+	refinementCombo->setCurrentIndex(twoDParams->GetRefinementLevel());
 	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
 	int orientation = twoDParams->getOrientation();
 	
@@ -552,7 +552,7 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	float extents[6];
-	DataStatus::getInstance()->getExtentsAtLevel(dParams->getNumRefinements(), extents);
+	DataStatus::getInstance()->getExtentsAtLevel(dParams->GetRefinementLevel(), extents);
 	if (dParams->isEnabled()) {
 		//Check that we aren't putting this on another planar surface:
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
@@ -999,7 +999,7 @@ guiSetNumRefinements(int n){
 			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
-	pParams->setNumRefinements(n);
+	pParams->SetRefinementLevel(n);
 	PanelCommand::captureEnd(cmd, pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);;
@@ -1309,7 +1309,7 @@ void TwoDImageEventRouter::guiNudgeXSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getTwoDMin(0);
 	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -1356,7 +1356,7 @@ void TwoDImageEventRouter::guiNudgeXCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD X center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getTwoDMin(0);
 	float pmax = pParams->getTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -1403,7 +1403,7 @@ void TwoDImageEventRouter::guiNudgeYCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getTwoDMin(1);
 	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -1450,7 +1450,7 @@ void TwoDImageEventRouter::guiNudgeZCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Z center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getTwoDMin(2);
 	float pmax = pParams->getTwoDMax(2);
 	float maxExtent = ds->getExtents()[5];
@@ -1498,7 +1498,7 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge twoD Y size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getTwoDMin(1);
 	float pmax = pParams->getTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];

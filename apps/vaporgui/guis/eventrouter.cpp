@@ -178,7 +178,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		delete histogramList[varNum];
 		histogramList[varNum] = 0;
 	}
-	int numTrans = renParams->getNumRefinements();
+	int numTrans = renParams->GetRefinementLevel();
 	const char* varname = ds->getVariableName3D(varNum).c_str();
 	
 	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
@@ -296,7 +296,7 @@ fileSaveTF(RenderParams* rParams){
 	}
 	
 	
-	if (!((TransferFunction*)(rParams->getMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
+	if (!((TransferFunction*)(rParams->GetMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
 		str += s;
 		MessageReporter::errorMsg((const char*)str.toAscii());

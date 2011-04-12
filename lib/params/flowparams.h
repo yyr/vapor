@@ -68,7 +68,7 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
-	virtual bool isOpaque() { return mapperFunction->isOpaque();}
+	virtual bool IsOpaque() { return mapperFunction->isOpaque();}
 	
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//Needed here because the map bounds are saved in params class for each mapped variable
@@ -230,14 +230,14 @@ public:
 	
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}
-	virtual MapperFunction* getMapperFunc() {return mapperFunction;}
+	virtual MapperFunction* GetMapperFunc() {return mapperFunction;}
 
 
 	
 	float getListSeedPoint(int i, int coord){
 		return seedPointList[i].getVal(coord);
 	}
-	virtual int getNumRefinements() {return numRefinements;}
+	virtual int GetRefinementLevel() {return numRefinements;}
 	void mapColors(FlowLineData*, int timeStep, int minFrame, RegionParams* rParams);
 	
 	//Check the variables in the flow data for missing timesteps 
@@ -246,7 +246,7 @@ public:
 	//Return false if anything changed
 	bool validateSampling(int minFrame, int numRefs, const int varnums[3]);
 	void setFlowType(int typenum){flowType = typenum;}
-	void setNumRefinements(int numtrans){numRefinements = numtrans;}
+	virtual void SetRefinementLevel(int numtrans){numRefinements = numtrans;}
 	void setMaxNumTrans(int maxNT) {maxNumRefinements = maxNT;}
 	float getIntegrationAccuracy() {return integrationAccuracy;}
 	void setIntegrationAccuracy(float val){integrationAccuracy = val;}

@@ -61,9 +61,9 @@ public:
 	virtual void setMaxColorMapBound(float ){}
 	virtual void setMinOpacMapBound(float ){}
 	virtual void setMaxOpacMapBound(float ){}
-	virtual MapperFunction* getMapperFunc(){return 0;}
+	virtual MapperFunction* GetMapperFunc(){return 0;}
 	//we need to check for alpha channel
-	virtual bool isOpaque() {return (opacityMultiplier >= 0.99f && !transparentAlpha);}
+	virtual bool IsOpaque() {return (opacityMultiplier >= 0.99f && !transparentAlpha);}
 	//Variables specific to images:
 	bool isGeoreferenced() {return useGeoreferencing;}
 	void setGeoreferenced(bool val){useGeoreferencing = val;}

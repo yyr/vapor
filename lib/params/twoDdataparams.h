@@ -69,7 +69,7 @@ public:
 		refreshCtab();
 		return ctab;
 	}
-	virtual bool isOpaque();
+	virtual bool IsOpaque();
 	virtual bool imageCrop() {return true;}//always crop to extents
 	void setMinMapBound(float val)
 		{setMinColorMapBound(val);setMinOpacMapBound(val);}
@@ -122,7 +122,7 @@ public:
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
 	
-	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[firstVarNum] : 0);}
+	TransferFunction* GetTransFunc() {return ((transFunc && numVariables>0) ? transFunc[firstVarNum] : 0);}
 	
 	void setClut(const float newTable[256][4]);
 	
@@ -148,7 +148,7 @@ public:
 	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	virtual MapperFunction* getMapperFunc();
+	virtual MapperFunction* GetMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	

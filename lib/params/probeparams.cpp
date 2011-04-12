@@ -127,7 +127,7 @@ Params* ProbeParams::
 deepCopy(ParamNode*){
 	ProbeParams* newParams = new ProbeParams(*this);
 	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
-	newParams->myBox = myBox->deepCopy(pNode);
+	newParams->myBox = (Box*)myBox->deepCopy(pNode);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);
 	newParams->minColorEditBounds = new float[numVars];
@@ -164,7 +164,7 @@ deepCopy(ParamNode*){
 
 void ProbeParams::
 refreshCtab() {
-	((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
+	((TransferFunction*)GetMapperFunc())->makeLut((float*)ctab);
 }
 	
 
@@ -941,23 +941,23 @@ buildNode() {
 	return probeNode;
 }
 
-MapperFunction* ProbeParams::getMapperFunc() {
+MapperFunction* ProbeParams::GetMapperFunc() {
 	return (numVariables > 0 ? transFunc[firstVarNum] : 0);
 }
 
 void ProbeParams::setMinColorMapBound(float val){
-	getMapperFunc()->setMinColorMapValue(val);
+	GetMapperFunc()->setMinColorMapValue(val);
 }
 void ProbeParams::setMaxColorMapBound(float val){
-	getMapperFunc()->setMaxColorMapValue(val);
+	GetMapperFunc()->setMaxColorMapValue(val);
 }
 
 
 void ProbeParams::setMinOpacMapBound(float val){
-	getMapperFunc()->setMinOpacMapValue(val);
+	GetMapperFunc()->setMinOpacMapValue(val);
 }
 void ProbeParams::setMaxOpacMapBound(float val){
-	getMapperFunc()->setMaxOpacMapValue(val);
+	GetMapperFunc()->setMaxOpacMapValue(val);
 }
 void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inDomain){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
@@ -1244,7 +1244,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	//This is done for each of the variables,
 	//The RMS of the result is then mapped using the transfer function.
 	float clut[256*4];
-	TransferFunction* transFunc = getTransFunc();
+	TransferFunction* transFunc = GetTransFunc();
 	assert(transFunc);
 	transFunc->makeLut(clut);
 	
@@ -1358,7 +1358,7 @@ void ProbeParams::adjustTextureSize(int sz[2]){
 	int dataSize[3];
 	//Start by initializing extents
 	DataStatus* ds = DataStatus::getInstance();
-	int refLevel = getNumRefinements();
+	int refLevel = GetRefinementLevel();
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i);
 	}
@@ -1758,7 +1758,7 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 	
-	int refLevel = getNumRefinements();
+	int refLevel = GetRefinementLevel();
 	//reduce reflevel if not all variables are available:
 	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < numVars; varnum++){
@@ -2144,7 +2144,7 @@ usingVariable(const string& varname){
 	return (variableIsSelected(varnum));
 }
 
-bool ProbeParams::isOpaque(){
-	if(getMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
+bool ProbeParams::IsOpaque(){
+	if(GetMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
 	return false;
 }

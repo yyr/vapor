@@ -143,7 +143,7 @@ public:
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
 	
-	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[firstVarNum] : 0);}
+	TransferFunction* GetTransFunc() {return ((transFunc && numVariables>0) ? transFunc[firstVarNum] : 0);}
 	
 	void setClut(const float newTable[256][4]);
 	
@@ -154,7 +154,7 @@ public:
 	//Set all the cached probe textures dirty
 	void setProbeDirty();
 	//get/set methods
-	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty();}
+	void SetRefinementLevel(int numtrans){numRefinements = numtrans; setProbeDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
 	virtual int GetCompressionLevel() {return compressionLevel;}
 	virtual void SetCompressionLevel(int val) {compressionLevel = val; setProbeDirty();}
@@ -186,7 +186,7 @@ public:
 	ParamNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	virtual MapperFunction* getMapperFunc();
+	virtual MapperFunction* GetMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 
@@ -228,9 +228,9 @@ public:
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
 	//change box dimensions after a rotation so that it appears to be the same size:
 	void rotateAndRenormalizeBox(int axis, float rotVal);
-	virtual int getNumRefinements() {return numRefinements;}
+	virtual int GetRefinementLevel() {return numRefinements;}
 	virtual void hookupTF(TransferFunction* t, int index);
-	virtual bool isOpaque();
+	virtual bool IsOpaque();
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 	virtual void setEnabled(bool value) {

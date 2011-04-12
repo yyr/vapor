@@ -46,9 +46,6 @@ const string ParamsIso::_MapBoundsTag = "MapBounds";
 const string ParamsIso::_HistoScaleTag = "HistoScale";
 const string ParamsIso::_MapHistoScaleTag = "MapHistoScale";
 const string ParamsIso::_SelectedPointTag = "SelectedPoint";
-const string ParamsIso::_RefinementLevelTag = "RefinementLevel";
-const string ParamsIso::_VisualizerNumTag = "VisualizerNum";
-const string ParamsIso::_VariableNameTag = "VariableName";
 const string ParamsIso::_MapVariableNameTag = "MapVariableName";
 const string ParamsIso::_NumBitsTag = "NumVoxelBits";
 const string ParamsIso::_editBoundsTag = "EditBounds";
@@ -219,9 +216,9 @@ reinit(bool doOverride){
 	} //end if(doOverride)
 
 	//Delete all existing variable nodes
-	if (GetRootNode()->GetNode(_variablesTag)){
-		GetRootNode()->GetNode(_variablesTag)->DeleteAll();
-		assert(GetRootNode()->GetNode(_variablesTag)->GetNumChildren() == 0);
+	if (GetRootNode()->GetNode(_VariablesTag)){
+		GetRootNode()->GetNode(_VariablesTag)->DeleteAll();
+		assert(GetRootNode()->GetNode(_VariablesTag)->GetNumChildren() == 0);
 	}
 	//Extend the histo ranges to include the isovalues:
 	for (int i = 0; i<totNumVariables; i++){
@@ -239,10 +236,10 @@ reinit(bool doOverride){
 		}
 	}
 	//Create new variable nodes, add them to the tree
-	ParamNode* varsNode = GetRootNode()->GetNode(_variablesTag);
+	ParamNode* varsNode = GetRootNode()->GetNode(_VariablesTag);
 	if (!varsNode) { 
-		varsNode = new ParamNode(_variablesTag, totNumVariables);
-		GetRootNode()->AddNode(_variablesTag,varsNode);
+		varsNode = new ParamNode(_VariablesTag, totNumVariables);
+		GetRootNode()->AddNode(_VariablesTag,varsNode);
 	}
 	for (int i = 0; i<totNumVariables; i++){
 		std::string& varname = ds->getVariableName3D(i);
@@ -260,7 +257,7 @@ reinit(bool doOverride){
 		delete [] boundsArrays[i];
 		
 	}
-	assert(GetRootNode()->GetNode(_variablesTag)->GetNumChildren() == totNumVariables);
+	assert(GetRootNode()->GetNode(_VariablesTag)->GetNumChildren() == totNumVariables);
 	delete [] newTransFunc;
 	delete [] newIsoControls;
 	delete [] boundsArrays;
@@ -303,8 +300,8 @@ void ParamsIso::restart() {
 	GetRootNode()->DeleteAll();
 	
 	//Create a default variable node:
-	ParamNode* pNode = new ParamNode(_variablesTag, 1);
-	GetRootNode()->AddNode(_variablesTag, pNode);
+	ParamNode* pNode = new ParamNode(_VariablesTag, 1);
+	GetRootNode()->AddNode(_VariablesTag, pNode);
 	//Put a default variable node in it:
 	ParamNode* vNode = new ParamNode("none", 3);
 	pNode->AddNode("none",vNode);
@@ -330,7 +327,7 @@ void ParamsIso::
 hookupTF(TransferFunction* tf, int index){
 
 	vector<string> path;
-	path.push_back(_variablesTag);
+	path.push_back(_VariablesTag);
 	DataStatus* ds = DataStatus::getInstance();
 	path.push_back(ds->getVariableName3D(index));
 	path.push_back(TransferFunction::_transferFunctionTag);
@@ -342,31 +339,31 @@ hookupTF(TransferFunction* tf, int index){
 
 	
 }
-MapperFunction* ParamsIso::getMapperFunc() {
+MapperFunction* ParamsIso::GetMapperFunc() {
 	return ((GetMapVariableNum()>=0) ? GetTransFunc(GetMapVariableNum()) : 0);
 }
-IsoControl* ParamsIso::getIsoControl(){
+IsoControl* ParamsIso::GetIsoControl(){
 	return ((GetNumVariables() > 0 ) ? GetIsoControl(GetIsoVariableNum()) : 0);
 }
 
 void ParamsIso::setMinColorMapBound(float val){
-	getMapperFunc()->setMinColorMapValue(val);
+	GetMapperFunc()->setMinColorMapValue(val);
 	GetRootNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 void ParamsIso::setMaxColorMapBound(float val){
-	getMapperFunc()->setMaxColorMapValue(val);
+	GetMapperFunc()->setMaxColorMapValue(val);
 	GetRootNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 
 void ParamsIso::setMinOpacMapBound(float val){
-	getMapperFunc()->setMinOpacMapValue(val);
+	GetMapperFunc()->setMinOpacMapValue(val);
 	GetRootNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
 void ParamsIso::setMaxOpacMapBound(float val){
-	getMapperFunc()->setMaxOpacMapValue(val);
+	GetMapperFunc()->setMaxOpacMapValue(val);
 	GetRootNode()->SetFlagDirty(_MapBoundsTag);
 	setAllBypass(false);
 }
@@ -375,13 +372,13 @@ void ParamsIso::setMaxOpacMapBound(float val){
 void ParamsIso::SetIsoValue(double value) {
 	double oldVal = GetIsoValue();
 	if (oldVal == value) return;
-	getIsoControl()->setIsoValue(value);
+	GetIsoControl()->setIsoValue(value);
 	GetRootNode()->SetFlagDirty(_IsoValueTag);
 	setAllBypass(false);
 }
 
 double ParamsIso::GetIsoValue() {
-	return (GetNumVariables()>0) ? getIsoControl()->getIsoValue() : 0.f;
+	return (GetNumVariables()>0) ? GetIsoControl()->getIsoValue() : 0.f;
 }
 
 //Note:  Following dirty flags are not actually associated with tags or nodes in the xml.
@@ -445,7 +442,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 }
 
  void ParamsIso::SetHistoBounds(float bnds[2]){
-	IsoControl* isoContr = getIsoControl();
+	IsoControl* isoContr = GetIsoControl();
 	if(!isoContr) return;
 	if(isoContr->getMinHistoValue() == bnds[0] &&
 		isoContr->getMaxHistoValue() == bnds[1]) return;
@@ -456,7 +453,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  }
  
  void ParamsIso::SetMapBounds(float bnds[2]){
-	MapperFunction* mapFunc = getMapperFunc();
+	MapperFunction* mapFunc = GetMapperFunc();
 	if(!mapFunc) return;
 	if(mapFunc->getMinColorMapValue() == bnds[0] &&
 		mapFunc->getMaxColorMapValue() == bnds[1]) return;
@@ -468,23 +465,23 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	setAllBypass(false);
  }
  const float* ParamsIso::GetHistoBounds(){
-	 if (!getIsoControl()){
+	 if (!GetIsoControl()){
 		 _histoBounds[0] = 0.f;
 		 _histoBounds[1] = 1.f;
 	 } else {
-		_histoBounds[0]=getIsoControl()->getMinHistoValue();
-		_histoBounds[1]=getIsoControl()->getMaxHistoValue();
+		_histoBounds[0]=GetIsoControl()->getMinHistoValue();
+		_histoBounds[1]=GetIsoControl()->getMaxHistoValue();
 	 }
 	return( _histoBounds);
  }
  //Use _mapperBounds to return tf bounds 
  const float* ParamsIso::GetMapBounds(){
-	 if (!getMapperFunc() || GetMapVariableNum() < 0){
+	 if (!GetMapperFunc() || GetMapVariableNum() < 0){
 		 _mapperBounds[0] = 0.f;
 		 _mapperBounds[1] = 1.f;
 	 } else {
-		_mapperBounds[0]=getMapperFunc()->getMinColorMapValue();
-		_mapperBounds[1]=getMapperFunc()->getMaxColorMapValue();
+		_mapperBounds[0]=GetMapperFunc()->getMinColorMapValue();
+		_mapperBounds[1]=GetMapperFunc()->getMaxColorMapValue();
 	 }
 	return( _mapperBounds);
  }
@@ -591,8 +588,8 @@ void ParamsIso::SetMapVariableName(const string& varName){
 }
 void ParamsIso::
 refreshCtab() {
-	if (getMapperFunc())
-		((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
+	if (GetMapperFunc())
+		((TransferFunction*)GetMapperFunc())->makeLut((float*)ctab);
 }
 
 //Following performs parsing for old versions (prior to 1.6)
@@ -641,11 +638,11 @@ bool ParamsIso::elementStartHandler(
 		//Make sure that the required variables node exists:
 
 		ParamNode* varsNode;
-		if (!GetRootNode()->HasChild(_variablesTag)){
-			varsNode = new ParamNode(_variablesTag);
-			GetRootNode()->AddNode(_variablesTag,varsNode);
+		if (!GetRootNode()->HasChild(_VariablesTag)){
+			varsNode = new ParamNode(_VariablesTag);
+			GetRootNode()->AddNode(_VariablesTag,varsNode);
 		} else {
-			varsNode = GetRootNode()->GetNode(_variablesTag);
+			varsNode = GetRootNode()->GetNode(_VariablesTag);
 		}
 		//See if the varsNode has a child for the current variable name;
 		//If not, add it.
@@ -663,7 +660,7 @@ bool ParamsIso::elementStartHandler(
 		ParamNode* tfNode = new ParamNode(TransferFunction::_transferFunctionTag,0);
 		tfNode->SetParamsBase(tf);
 		string varname = ds->getVariableName3D(parsingVarNum);
-		ParamNode* varNode = GetRootNode()->GetNode(_variablesTag)->GetNode(varname);
+		ParamNode* varNode = GetRootNode()->GetNode(_VariablesTag)->GetNode(varname);
 		varNode->AddNode(TransferFunction::_transferFunctionTag,tfNode);
 		
 		pm->pushClassStack(tf);
@@ -688,7 +685,7 @@ bool ParamsIso::elementStartHandler(
 		ParamNode* icNode = new ParamNode(_IsoControlTag,0);
 		icNode->SetParamsBase(ic);
 		string varname = ds->getVariableName3D(parsingVarNum);
-		ParamNode* varNode = GetRootNode()->GetNode(_variablesTag)->GetNode(varname);
+		ParamNode* varNode = GetRootNode()->GetNode(_VariablesTag)->GetNode(varname);
 		varNode->AddNode(_IsoControlTag,icNode);
 
 		pm->pushClassStack(ic);
@@ -759,8 +756,8 @@ float ParamsIso::getOpacityScale()
   return 1.0;
 }
 int ParamsIso::GetNumVariables() {
-	if (!GetRootNode()->HasChild(_variablesTag)) return 0;
-	return(GetRootNode()->GetNode(_variablesTag)->GetNumChildren());
+	if (!GetRootNode()->HasChild(_VariablesTag)) return 0;
+	return(GetRootNode()->GetNode(_VariablesTag)->GetNumChildren());
 }
 void ParamsIso::setOpacityScale(float val) 
 {
@@ -769,7 +766,7 @@ void ParamsIso::setOpacityScale(float val)
     GetTransFunc(GetMapVariableNum())->setOpacityScaleFactor(val);
   }
 }
-bool ParamsIso::isOpaque(){
+bool ParamsIso::IsOpaque(){
 	if(GetMapVariableNum() < 0) {
 		if(GetConstantColor()[3] < 0.99f) return false;
 		else return true;
@@ -782,18 +779,18 @@ TransferFunction* ParamsIso::GetTransFunc(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
 	const string& str = ds->getVariableName3D(sesVarNum);
 	if (str.length() == 0) return 0;
-	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
-		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag))
-		return (TransferFunction*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag)->GetParamsBase());
+	if (GetRootNode()->GetNode(_VariablesTag) && GetRootNode()->GetNode(_VariablesTag)->GetNode(str) &&
+		GetRootNode()->GetNode(_VariablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag))
+		return (TransferFunction*)(GetRootNode()->GetNode(_VariablesTag)->GetNode(str)->GetNode(TransferFunction::_transferFunctionTag)->GetParamsBase());
 	else return NULL;
 }
 IsoControl* ParamsIso::GetIsoControl(int sesVarNum){
 	DataStatus* ds = DataStatus::getInstance();
 	const string& str = ds->getVariableName3D(sesVarNum);
 	if (str.length() == 0) return 0;
-	if (GetRootNode()->GetNode(_variablesTag) && GetRootNode()->GetNode(_variablesTag)->GetNode(str) &&
-		GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag))
-		return (IsoControl*)(GetRootNode()->GetNode(_variablesTag)->GetNode(str)->GetNode(_IsoControlTag)->GetParamsBase());
+	if (GetRootNode()->GetNode(_VariablesTag) && GetRootNode()->GetNode(_VariablesTag)->GetNode(str) &&
+		GetRootNode()->GetNode(_VariablesTag)->GetNode(str)->GetNode(_IsoControlTag))
+		return (IsoControl*)(GetRootNode()->GetNode(_VariablesTag)->GetNode(str)->GetNode(_IsoControlTag)->GetParamsBase());
 	return 0;
 }
 

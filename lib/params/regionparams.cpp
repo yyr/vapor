@@ -76,7 +76,7 @@ deepCopy(ParamNode* ){
 	//
 	RegionParams* p = new RegionParams(*this);
 	ParamNode* pNode = new ParamNode(*(myBox->GetRootNode()));
-	p->myBox = myBox->deepCopy(pNode);
+	p->myBox = (Box*)myBox->deepCopy(pNode);
 	
 	return (Params*)(p);
 }

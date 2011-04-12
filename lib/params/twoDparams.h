@@ -94,7 +94,7 @@ public:
 	virtual void setTwoDDirty()=0;
 	int getMaxTimestep() {return maxTimestep;}
 	//get/set methods
-	void setNumRefinements(int numtrans){numRefinements = numtrans; setTwoDDirty();}
+	virtual void SetRefinementLevel(int numtrans){numRefinements = numtrans; setTwoDDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
 	virtual int GetCompressionLevel() {return compressionLevel;}
 	virtual void SetCompressionLevel(int val) {compressionLevel = val; setTwoDDirty();}
@@ -132,7 +132,7 @@ public:
 	//Get the bounding extents of twoD, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
 	
-	virtual int getNumRefinements() {return numRefinements;}
+	virtual int GetRefinementLevel() {return numRefinements;}
 	
 	virtual void setEnabled(bool value) {
 		enabled = value;

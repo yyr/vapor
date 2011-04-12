@@ -16,9 +16,7 @@ public:
 	const std::string& getShortName() {return _shortName;}
 	virtual ~ArrowParams();
 	virtual void restart();
-	virtual int getNumRefinements() {
-		return GetRefinementLevel();
-	}
+	
 	virtual Box* GetBox() {return (Box*)GetRootNode()->GetNode(Box::_boxTag)->GetParamsBase();}
 
 	//! Obtain the current compression level.
@@ -42,7 +40,7 @@ public:
 	//! Override default, just find distance to rake extents.
 	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp , int timestep);
 	
-	virtual bool isOpaque() {return true;}
+	virtual bool IsOpaque() {return true;}
 	//!
 	//! Determine if the specified variable is being used
 	//!
@@ -78,6 +76,7 @@ public:
 	void SetLineThickness(double val){
 		GetRootNode()->SetElementDouble(_lineThicknessTag, val);
 	}
+
 	//Specify a scale factor for vector length.  (1 is scene diameter)/100
 	float GetVectorScale(){
 		return ((float)GetRootNode()->GetElementDouble(_vectorScaleTag)[0]);
@@ -86,11 +85,11 @@ public:
 		GetRootNode()->SetElementDouble(_vectorScaleTag, val);
 	}
 	void SetRefinementLevel(int level){
-		GetRootNode()->SetElementLong(_refinementLevelTag, level);
+		GetRootNode()->SetElementLong(_RefinementLevelTag, level);
 		setAllBypass(false);
 	}
 	int GetRefinementLevel(){
-		return (GetRootNode()->GetElementLong(_refinementLevelTag)[0]);
+		return (GetRootNode()->GetElementLong(_RefinementLevelTag)[0]);
 	}
 	bool IsTerrainMapped(){
 		return (GetRootNode()->GetElementLong(_terrainMapTag)[0]);
@@ -109,20 +108,13 @@ public:
 	static const string _arrowParamsTag;
 
 protected:
- static const string _shortName;
-
-
-private:
+static const string _shortName;
 static const string _constantColorTag;
 static const string _rakeExtentsTag;
 static const string _rakeGridTag;
 static const string _lineThicknessTag;
 static const string _vectorScaleTag;
 static const string _terrainMapTag;
-static const string _visualizerNumTag;
-static const string _variableNameTag;
-static const string _refinementLevelTag;
-
 float _constcolorbuf[4];
 
 

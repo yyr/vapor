@@ -319,9 +319,9 @@ void ProbeEventRouter::updateTab(){
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
 
-	if (probeParams->getMapperFunc()){
-		probeParams->getMapperFunc()->setParams(probeParams);
-		transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+	if (probeParams->GetMapperFunc()){
+		probeParams->GetMapperFunc()->setParams(probeParams);
+		transferFunctionFrame->setMapperFunction(probeParams->GetMapperFunc());
 		transferFunctionFrame->updateParams();
 	}
     
@@ -349,7 +349,7 @@ void ProbeEventRouter::updateTab(){
       transferFunctionFrame->setVariableName("");
 	  variableLabel->setText("");
     }
-	int numRefs = probeParams->getNumRefinements();
+	int numRefs = probeParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 	
@@ -588,9 +588,9 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	resetTextureSize(probeParams);
 	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 	setProbeDirty(probeParams);
-	if (probeParams->getMapperFunc()) {
-		((TransferFunction*)probeParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
-		((TransferFunction*)probeParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
+	if (probeParams->GetMapperFunc()) {
+		((TransferFunction*)probeParams->GetMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
+		((TransferFunction*)probeParams->GetMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
 	
 		setDatarangeDirty(probeParams);
 		setEditorDirty();
@@ -1024,7 +1024,7 @@ refreshProbeHisto(){
 void ProbeEventRouter::
 probeLoadInstalledTF(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
-	TransferFunction* tf = pParams->getTransFunc();
+	TransferFunction* tf = pParams->GetTransFunc();
 	if (!tf) return;
 	float minb = tf->getMinMapValue();
 	float maxb = tf->getMaxMapValue();
@@ -1038,7 +1038,7 @@ probeLoadInstalledTF(){
 	QString installPath = palettes.c_str();
 	fileLoadTF(pParams, pParams->getSessionVarNum(), (const char *) installPath.toAscii(),false);
 
-	tf = pParams->getTransFunc();
+	tf = pParams->GetTransFunc();
 	tf->setMinMapValue(minb);
 	tf->setMaxMapValue(maxb);
 	setEditorDirty();
@@ -1472,8 +1472,8 @@ void ProbeEventRouter::
 setEditorDirty(RenderParams* p){
 	ProbeParams* dp = (ProbeParams*)p;
 	if(!dp) dp = VizWinMgr::getInstance()->getActiveProbeParams();
-	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
-    transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
+	if(dp->GetMapperFunc())dp->GetMapperFunc()->setParams(dp);
+    transferFunctionFrame->setMapperFunction(dp->GetMapperFunc());
     transferFunctionFrame->updateParams();
 
     Session *session = Session::getInstance();
@@ -1488,7 +1488,7 @@ setEditorDirty(RenderParams* p){
       transferFunctionFrame->setVariableName("");
     }
 	if(dp) {
-		MapperFunction* mf = dp->getMapperFunc();
+		MapperFunction* mf = dp->GetMapperFunc();
 		if (mf) {
 			leftMappingBound->setText(QString::number(mf->getMinOpacMapValue()));
 			rightMappingBound->setText(QString::number(mf->getMaxOpacMapValue()));
@@ -1777,7 +1777,7 @@ guiSetNumRefinements(int n){
 			refinementCombo->setCurrentIndex(n);
 		}
 	} else if (n > maxNumRefinements) maxNumRefinements = n;
-	pParams->setNumRefinements(n);
+	pParams->SetRefinementLevel(n);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
 	probeTextureFrame->update();
@@ -2078,7 +2078,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 	
 	//Get the data dimensions (at current resolution):
 	
-	int numRefinements = pParams->getNumRefinements();
+	int numRefinements = pParams->GetRefinementLevel();
 	
 	//Find the region that contains the probe.
 
@@ -2168,7 +2168,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//Determine what resolution is available:
-	int refLevel = pParams->getNumRefinements();
+	int refLevel = pParams->GetRefinementLevel();
 	
 	if (ds->useLowerAccuracy()){
 		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
@@ -2370,10 +2370,10 @@ void ProbeEventRouter::
 setDatarangeDirty(RenderParams* params)
 {
 	ProbeParams* pParams = (ProbeParams*)params;
-	if (!pParams->getMapperFunc()) return;
+	if (!pParams->GetMapperFunc()) return;
 	const float* currentDatarange = pParams->getCurrentDatarange();
-	float minval = pParams->getMapperFunc()->getMinColorMapValue();
-	float maxval = pParams->getMapperFunc()->getMaxColorMapValue();
+	float minval = pParams->GetMapperFunc()->getMinColorMapValue();
+	float maxval = pParams->GetMapperFunc()->getMaxColorMapValue();
 	
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
@@ -2530,7 +2530,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getProbeMin(0);
 	float pmax = pParams->getProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -2578,7 +2578,7 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getProbeMin(0);
 	float pmax = pParams->getProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -2626,7 +2626,7 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getProbeMin(1);
 	float pmax = pParams->getProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -2674,7 +2674,7 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getProbeMin(2);
 	float pmax = pParams->getProbeMax(2);
 	float maxExtent = ds->getExtents()[5];
@@ -2723,7 +2723,7 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getProbeMin(1);
 	float pmax = pParams->getProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -2771,7 +2771,7 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getProbeMin(2);
 	float pmax = pParams->getProbeMax(2);
 	float maxExtent = ds->getExtents()[5];
@@ -3009,9 +3009,9 @@ void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 	}
 	minDataBound->setText(strn.setNum(mnval));
 	maxDataBound->setText(strn.setNum(mxval));
-	if (probeParams->getMapperFunc()){
-		leftMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMinColorMapValue(),'g',4));
-		rightMappingBound->setText(strn.setNum(probeParams->getMapperFunc()->getMaxColorMapValue(),'g',4));
+	if (probeParams->GetMapperFunc()){
+		leftMappingBound->setText(strn.setNum(probeParams->GetMapperFunc()->getMinColorMapValue(),'g',4));
+		rightMappingBound->setText(strn.setNum(probeParams->GetMapperFunc()->getMaxColorMapValue(),'g',4));
 	} else {
 		leftMappingBound->setText("0.0");
 		rightMappingBound->setText("1.0");
@@ -3255,8 +3255,8 @@ void ProbeEventRouter::guiFitTFToData(){
 		mnval = 0.f;
 	}
 	
-	((TransferFunction*)pParams->getMapperFunc())->setMinMapValue(mnval);
-	((TransferFunction*)pParams->getMapperFunc())->setMaxMapValue(mxval);
+	((TransferFunction*)pParams->GetMapperFunc())->setMinMapValue(mnval);
+	((TransferFunction*)pParams->GetMapperFunc())->setMaxMapValue(mxval);
 	PanelCommand::captureEnd(cmd, pParams);
 	setDatarangeDirty(pParams);
 	updateTab();

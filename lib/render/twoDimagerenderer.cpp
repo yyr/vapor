@@ -211,7 +211,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
 	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
-	int refLevel = tParams->getNumRefinements();
+	int refLevel = tParams->GetRefinementLevel();
 
 	//Find the corners of the image (to find size of image in scene.
 	//Get these relative to actual extents in projection space

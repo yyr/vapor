@@ -565,10 +565,10 @@ void FlowEventRouter::updateTab(){
 			}
 		}
 	}
-	if (fParams->getMapperFunc()){
-		fParams->getMapperFunc()->setParams(fParams);
-		opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
-		colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
+	if (fParams->GetMapperFunc()){
+		fParams->GetMapperFunc()->setParams(fParams);
+		opacityMappingFrame->setMapperFunction(fParams->GetMapperFunc());
+		colorMappingFrame->setMapperFunction(fParams->GetMapperFunc());
 	}
 
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
@@ -585,7 +585,7 @@ void FlowEventRouter::updateTab(){
 	
 	
 	flowTypeCombo->setCurrentIndex(flowType);
-	int numRefs = fParams->getNumRefinements();
+	int numRefs = fParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentIndex(numRefs);
 
@@ -769,11 +769,11 @@ void FlowEventRouter::updateTab(){
 	constantOpacityEdit->setText(QString::number(fParams->getConstantOpacity()));
 	pal.setColor(constantColorEdit->backgroundRole(),QColor(fParams->getConstantColor()));
 	constantColorEdit->setPalette(pal);
-	if (fParams->getMapperFunc()){
-		minColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMinColorMapValue()));
-		maxColormapEdit->setText(QString::number(fParams->getMapperFunc()->getMaxColorMapValue()));
-		minOpacmapEdit->setText(QString::number(fParams->getMapperFunc()->getMinOpacMapValue()));
-		maxOpacmapEdit->setText(QString::number(fParams->getMapperFunc()->getMaxOpacMapValue()));
+	if (fParams->GetMapperFunc()){
+		minColormapEdit->setText(QString::number(fParams->GetMapperFunc()->getMinColorMapValue()));
+		maxColormapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxColorMapValue()));
+		minOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMinOpacMapValue()));
+		maxOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxOpacMapValue()));
 	}
 	
 	
@@ -874,7 +874,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			opacMapMax = opacMapMin+1.e-6;
 			maxOpacmapEdit->setText(QString::number(opacMapMax));
 		}
-		MapperFunction* mapperFunction = fParams->getMapperFunc();
+		MapperFunction* mapperFunction = fParams->GetMapperFunc();
 		if (mapperFunction){
 			mapperFunction->setMaxColorMapValue(colorMapMax);
 			mapperFunction->setMinColorMapValue(colorMapMin);
@@ -962,7 +962,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			for (int i = 0; i<3; i++) unsteadyvars[i] = (fParams->getUnsteadyVarNums())[i]-1;
 			
 			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), unsteadyvars)){//did anything change?
+				fParams->GetRefinementLevel(), unsteadyvars)){//did anything change?
 				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -1045,7 +1045,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			int unsteadyvars[3];
 			for (int i = 0; i<3; i++) unsteadyvars[i] = fParams->getUnsteadyVarNums()[i]-1;
 			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), unsteadyvars)){//did anything change?
+				fParams->GetRefinementLevel(), unsteadyvars)){//did anything change?
 				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -1833,7 +1833,7 @@ void FlowEventRouter::
 guiSetNumRefinements(int n){
 	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	if (fParams->getNumRefinements() == n) return;
+	if (fParams->GetRefinementLevel() == n) return;
 	confirmText(false);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n,timestep);
@@ -1842,7 +1842,7 @@ guiSetNumRefinements(int n){
 		refinementCombo->setCurrentIndex(newNumTrans);
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set number Refinements in Flow data");
-	fParams->setNumRefinements(newNumTrans);
+	fParams->SetRefinementLevel(newNumTrans);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -3091,9 +3091,9 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 		/*
 		bool rc1=true, rc2=true;
 		if (fParams->getFlowType() != 1)
-			rc1 = fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getSteadyVarNums());
+			rc1 = fParams->validateSampling(minFrame, fParams->GetRefinementLevel(), fParams->getSteadyVarNums());
 		if (fParams->getFlowType() != 0)
-			rc2 = fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getUnsteadyVarNums());
+			rc2 = fParams->validateSampling(minFrame, fParams->GetRefinementLevel(), fParams->getUnsteadyVarNums());
 
 		if (!rc1 || !rc2) { //Something was wrong; don't enable:
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Vector field setup error. Flow not enabled");
@@ -3170,7 +3170,7 @@ void FlowEventRouter::
 updateMapBounds(RenderParams* params){
 	FlowParams* fParams = (FlowParams*)params;
 	QString strn;
-	MapperFunction* mpFunc = fParams->getMapperFunc();
+	MapperFunction* mpFunc = fParams->GetMapperFunc();
 	if (mpFunc){
 		minOpacmapEdit->setText(strn.setNum(mpFunc->getMinOpacMapValue(),'g',4));
 		maxOpacmapEdit->setText(strn.setNum(mpFunc->getMaxOpacMapValue(),'g',4));
@@ -3189,12 +3189,12 @@ void FlowEventRouter::
 setEditorDirty(RenderParams* p ){
 	FlowParams* fp = (FlowParams*)p;
 	if (!fp) fp = VizWinMgr::getInstance()->getActiveFlowParams();
-	if(fp->getMapperFunc())fp->getMapperFunc()->setParams(fp);
-    opacityMappingFrame->setMapperFunction(fp->getMapperFunc());
+	if(fp->GetMapperFunc())fp->GetMapperFunc()->setParams(fp);
+    opacityMappingFrame->setMapperFunction(fp->GetMapperFunc());
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().toStdString());
     opacityMappingFrame->updateParams();
     
-    colorMappingFrame->setMapperFunction(fp->getMapperFunc());
+    colorMappingFrame->setMapperFunction(fp->GetMapperFunc());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().toStdString());
     colorMappingFrame->updateParams();
 }
@@ -3209,7 +3209,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance,boo
 	
 	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::GetTypeFromTag(Params::_flowParamsTag), instance);
 	setEditorDirty();
-	//if (fParams->getMapperFunc())fParams->getMapperFunc()->setParams(fParams);
+	//if (fParams->GetMapperFunc())fParams->GetMapperFunc()->setParams(fParams);
 	updateTab();
 	
 	//Need to create/destroy renderer if there's a change in local/global or enable/disable

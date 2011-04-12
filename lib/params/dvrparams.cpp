@@ -104,7 +104,7 @@ deepCopy(ParamNode*){
 
 void DvrParams::
 refreshCtab() {
-	((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
+	((TransferFunction*)GetMapperFunc())->makeLut((float*)ctab);
 }
 	
 
@@ -615,26 +615,26 @@ buildNode() {
 	return dvrNode;
 }
 
-MapperFunction* DvrParams::getMapperFunc() {
+MapperFunction* DvrParams::GetMapperFunc() {
 	return (numVariables > 0 ? transFunc[varNum] : 0);
 }
 
 void DvrParams::setMinColorMapBound(float val){
-	getMapperFunc()->setMinColorMapValue(val);
+	GetMapperFunc()->setMinColorMapValue(val);
 }
 void DvrParams::setMaxColorMapBound(float val){
-	getMapperFunc()->setMaxColorMapValue(val);
+	GetMapperFunc()->setMaxColorMapValue(val);
 }
 
 
 void DvrParams::setMinOpacMapBound(float val){
-	getMapperFunc()->setMinOpacMapValue(val);
+	GetMapperFunc()->setMinOpacMapValue(val);
 }
 void DvrParams::setMaxOpacMapBound(float val){
-	getMapperFunc()->setMaxOpacMapValue(val);
+	GetMapperFunc()->setMaxOpacMapValue(val);
 }
-bool DvrParams::isOpaque(){
-	if(getMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
+bool DvrParams::IsOpaque(){
+	if(GetMapperFunc()->isOpaque() && getOpacityScale() > 0.99f) return true;
 	return false;
 }
 

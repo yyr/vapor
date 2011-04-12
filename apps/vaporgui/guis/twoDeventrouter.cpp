@@ -113,7 +113,7 @@ calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums,
 	
 	//Get the data dimensions (at current resolution):
 	
-	int numRefinements = pParams->getNumRefinements();
+	int numRefinements = pParams->GetRefinementLevel();
 	
 	//Specify the region to initially be just the point:
 	for (int i = 0; i<3; i++){

@@ -84,7 +84,7 @@ virtual ~ParamsBase();
  //! \param[in] newRoot Root of cloned ParamsBase instance
  //! \retval instance Pointer to cloned instance
  //
- virtual ParamsBase* deepCopy(ParamNode* newRoot = 0) = 0;
+ virtual ParamsBase* deepCopy(ParamNode* newRoot = 0);
  
  //! Set the parent node of the XmlNode tree.
  //!
