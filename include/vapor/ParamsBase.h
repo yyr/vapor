@@ -77,9 +77,9 @@ virtual ~ParamsBase();
 
  //! Make a copy of a ParamBase that optionally uses specified 
  //! clone of the ParamNode as its root node.  If the root
- //! is null, the copy ignores any ParamNodes.  This is
- //! required for any ParamsBase class.  
- //!
+ //! is null, the copy ignores any ParamNodes.  The default implementation
+ //! is sufficient for ParamsBase classes that are built from
+ //! a ParamNode hierarchy.
  //!
  //! \param[in] newRoot Root of cloned ParamsBase instance
  //! \retval instance Pointer to cloned instance
@@ -122,8 +122,9 @@ virtual ~ParamsBase();
  //! of the file will replace any current parameter settings. The method
  //! is virtual so that derived classes may receive notification when
  //! an object instance has finished reseting state from an XML file.
- //! Must be overridden if the class variable names are not determined from
- //! the xml representation of the class
+ //! Override the default method if the class is not based on
+ //! a hierarchy of ParamNode objects representing 
+ //! the XML representation of the class
  //! \sa elementStartHandler
  //! \retval status False indicates parse error
  //

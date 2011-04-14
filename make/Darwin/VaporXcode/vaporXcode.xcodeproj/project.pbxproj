@@ -557,6 +557,8 @@
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
 		E75132001299BD44009C3A61 /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GetAppPath.h; sourceTree = "<group>"; };
+		E7C588541357379300F0E7D8 /* Box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Box.cpp; sourceTree = "<group>"; };
+		E7C588551357379300F0E7D8 /* Box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Box.h; sourceTree = "<group>"; };
 		E7D30A35128880210066DF2E /* GetAppPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GetAppPath.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -738,6 +740,8 @@
 		E70413FB123042460083F569 /* params */ = {
 			isa = PBXGroup;
 			children = (
+				E7C588541357379300F0E7D8 /* Box.cpp */,
+				E7C588551357379300F0E7D8 /* Box.h */,
 				E75132001299BD44009C3A61 /* GetAppPath.h */,
 				E70180F3124014CE00478E12 /* pythonpipeline.h */,
 				E70180F4124014CE00478E12 /* pythonpipeline.cpp */,

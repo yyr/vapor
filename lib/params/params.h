@@ -331,54 +331,6 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 //! Needed so support manipulators.
 //! \retval Box* returns pointer to the Box associated with this Params.
 	virtual Box* GetBox() {return 0;}
-//! For params that have a box (Necessary if using a Manipulator).
-//! This must be overridden to use a Manipulator.
-//! The Params class must implement this by setting its box extents.
-//! \param[in] float[3] boxMin  The minimum coordinates of the box.
-//! \param[in] float[3] boxMax  The maximum coordinates of the box.
-//! \param[in] int time step Current time step (only for moving boxes).
-	void setBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
-		double extents[6];
-		for (int i = 0; i<3; i++){
-			extents[i] = boxMin[i];
-			extents[i+3] = boxMax[i];
-		}
-		GetBox()->SetExtents(extents,timestep);
-	}
-
-	void setTheta(float th) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[0]=th;
-		GetBox()->SetAngles(angles);
-	}
-	void setPhi(float ph) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[1]=ph;
-		GetBox()->SetAngles(angles);
-	}
-	void setPsi(float ps) {
-		double angles[3];
-		GetBox()->GetAngles(angles);
-		angles[2]=ps;
-		GetBox()->SetAngles(angles);
-	}
-	
-//! For params that have a box (Necessary if using a Manip).
-//! The params must implement this by supplying the current box extents.
-//! This must be overridden to use a manipulator.
-//! \param[out] float[3] boxMin  The minimum coordinates of the box.
-//! \param[out] float[3] boxMax  The maximum coordinates of the box.
-//! \param[in] int time step Current time step (only for moving boxes).
-	void getBox(float boxMin[3], float boxMax[3], int timestep = -1) {
-		double extents[6];
-		GetBox()->GetExtents(extents, timestep);
-		for (int i = 0; i<3; i++){
-			boxMin[i] = extents[i];
-			boxMax[i] = extents[i+3];
-		}
-	}
 //! The orientation is used only with 2D Box Manipulators, and must be implemented for Params supporting such manipulators.  
 //! Valid values are 0,1,2 for being orthog to X,Y,Z-axes.
 //! Default is -1 (invalid)
@@ -401,10 +353,57 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	virtual bool isDomainConstrained() {return true;}
 
 	//Following methods, while public, are not part of extensibility API
-	//Dummy params are those that are found in a session file but not 
-	//available in the current code.
+	
 #ifndef DOXYGEN_SKIP_THIS
-
+	//! For params that have a box (Necessary if using a Manipulator).
+	//! This must be overridden to use a Manipulator.
+	//! The Params class must implement this by setting its box extents.
+	//! \param[in] float[3] boxMin  The minimum coordinates of the box.
+	//! \param[in] float[3] boxMax  The maximum coordinates of the box.
+	//! \param[in] int time step Current time step (only for moving boxes).
+	void setBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
+		double extents[6];
+		for (int i = 0; i<3; i++){
+			extents[i] = boxMin[i];
+			extents[i+3] = boxMax[i];
+		}
+		GetBox()->SetExtents(extents,timestep);
+	}
+	
+	void setTheta(float th) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[0]=th;
+		GetBox()->SetAngles(angles);
+	}
+	void setPhi(float ph) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[1]=ph;
+		GetBox()->SetAngles(angles);
+	}
+	void setPsi(float ps) {
+		double angles[3];
+		GetBox()->GetAngles(angles);
+		angles[2]=ps;
+		GetBox()->SetAngles(angles);
+	}
+	
+	//! For params that have a box (Necessary if using a Manip).
+	//! The params must implement this by supplying the current box extents.
+	//! This must be overridden to use a manipulator.
+	//! \param[out] float[3] boxMin  The minimum coordinates of the box.
+	//! \param[out] float[3] boxMax  The maximum coordinates of the box.
+	//! \param[in] int time step Current time step (only for moving boxes).
+	void getBox(float boxMin[3], float boxMax[3], int timestep = -1) {
+		double extents[6];
+		GetBox()->GetExtents(extents, timestep);
+		for (int i = 0; i<3; i++){
+			boxMin[i] = extents[i];
+			boxMax[i] = extents[i+3];
+		}
+	}
+	
 	float getPhi() {
 		if (GetBox()->GetAngles().size() == 0) return 0.f;
 		return((float)GetBox()->GetAngles()[1]);
@@ -503,6 +502,8 @@ protected:
 	static map<pair<int,int>,vector<Params*> > paramsInstances;
 	//CurrentRenderParams indexed by paramsBaseType, winNum
 	static map<pair<int,int>, int> currentParamsInstance;
+	//Dummy params are those that are found in a session file but not 
+	//available in the current code.
 	//default params instances indexed by paramsBaseType
 	static map<int, Params*> defaultParamsInstance;
 	static vector<Params*> dummyParamsInstances;
@@ -553,16 +554,6 @@ public:
 	//!
 	virtual void SetCompressionLevel(int val)=0;
 
-	//! virtual method specifies distance from camera to object.
-	//! Default implementation finds distance to the applicable region box.
-	//! Override this if the box associated with the Params is not the
-	//! RegionParams box.
-	// \param[in] vpp Current applicable ViewpointParams instance
-	// \param[in] rp  Current applicable RegionParams instance
-	// \param[in] timestep Current applicable time step
-	// \retval float distance from camera
-	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
-
 	//! virtual method used only by params that support selecting points in 3D space, 
 	//! and displaying those points with a 3D cursor.
 	//! Default implementation returns null.
@@ -612,12 +603,23 @@ public:
 
 	
 	//! Indicate that this class supports use of the VAPOR MapperFunction
-	//! Default is false
+	//! Default is false.  Currently needed to use colorbars.
 	//! \retval bool true if this RenderParams can have a MapperFunction
 	virtual bool UsesMapperFunction() {return false;}
 
 #ifndef DOXYGEN_SKIP_THIS
 	//Following methods are deprecated, used by some built-in renderparams classes
+	
+	//! virtual method specifies distance from camera to object.
+	//! Default implementation finds distance to the applicable region box.
+	//! Override this if the box associated with the Params is not the
+	//! RegionParams box.
+	// \param[in] vpp Current applicable ViewpointParams instance
+	// \param[in] rp  Current applicable RegionParams instance
+	// \param[in] timestep Current applicable time step
+	// \retval float distance from camera
+	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
+	
 	//Deprecated constructor used by some built-in classes
 	RenderParams(int winNum, const string& name) : Params(winNum, name) {
 		
