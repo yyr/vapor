@@ -1273,9 +1273,6 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 void VizWinMgr::disableAllRenderers(){
 	int firstwin = -1;
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vizWin[i]) setActiveViz(i);
-	}
-	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]){
 			if (firstwin == -1) firstwin = i;
 			GLWindow* glwin= vizWin[i]->getGLWindow();
@@ -1295,7 +1292,6 @@ void VizWinMgr::disableAllRenderers(){
 				}
 			//In case a renderer was left behind due to undo/redo
 			glwin->removeAllRenderers();
-			
 		}
 	}
 	if (firstwin != -1){
