@@ -1700,7 +1700,7 @@ void FlowEventRouter::guiSetRakeList(int index){
 
 
 void FlowEventRouter::
-guiSetEnabled(bool on, int instance){
+guiSetEnabled(bool on, int instance, bool undoredo){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	FlowParams* fParams = vizMgr->getFlowParams(winnum, instance);
@@ -1713,9 +1713,10 @@ guiSetEnabled(bool on, int instance){
 			"The value below the terrain can be set\nin the Edit Visualizer Features panel.");
 	}
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
+	PanelCommand* cmd;
+	if(undoredo) cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
 	fParams->setEnabled(on);
-	PanelCommand::captureEnd(cmd, fParams);
+	if(undoredo) PanelCommand::captureEnd(cmd, fParams);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(fParams, !on, false);

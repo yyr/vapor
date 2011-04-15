@@ -1563,10 +1563,13 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 // Remove all renderers.  This is needed when we load new data into
 // an existing session
 void GLWindow::removeAllRenderers(){
-	for (int i = 0; i< getNumRenderers(); i++){
+	int saveNumRenderers = getNumRenderers();
+	//Prevent new rendering while we do this:
+	setNumRenderers(0);
+	for (int i = 0; i< saveNumRenderers; i++){
 		delete renderer[i];
 	}
-	setNumRenderers(0);
+	//setNumRenderers(0);
 	invalidateElevGrid();
 	nowPainting = false;
 	numRenderers = 0;

@@ -552,7 +552,7 @@ guiSetNumRefinements(int num){
 	VizWinMgr::getInstance()->setVizDirty(dParams,NavigatingBit,true);
 }
 void DvrEventRouter::
-guiSetEnabled(bool value, int instance){
+guiSetEnabled(bool value, int instance, bool undoredo){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.
@@ -572,18 +572,19 @@ guiSetEnabled(bool value, int instance){
 				Params::GetTypeFromTag(Params::_dvrParamsTag));
 			assert (prevInstance >= 0);
 			//Put the disable in the history:
-			PanelCommand* cmd = PanelCommand::captureStart(prevParams, "disable existing dvr", prevInstance);
+			PanelCommand* cmd;
+			if(undoredo) cmd= PanelCommand::captureStart(prevParams, "disable existing dvr", prevInstance);
 			prevParams->setEnabled(false);
 			//turn it off in the instanceTable
 			instanceTable->checkEnabledBox(false, prevInstance);
-			PanelCommand::captureEnd(cmd, prevParams);
+			if(undoredo) PanelCommand::captureEnd(cmd, prevParams);
 			updateRenderer(prevParams,true,false);
 		}
 	}
 	//now continue with the current instance:
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled", instance);
+//	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled", instance);
 	dParams->setEnabled(value);
-	PanelCommand::captureEnd(cmd, dParams);
+//	PanelCommand::captureEnd(cmd, dParams);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(dParams,!value, false);

@@ -447,6 +447,7 @@ public:
 	void setValuesFromGui(ViewpointParams* vpparams);
 	static void setSpinAnimation(bool on){spinAnimate = on;}
 	static bool spinAnimationEnabled(){return spinAnimate;}
+	QMutex renderMutex;  //prevent recursive rendering
 	
 protected:
 	//Mouse Mode tables.  Static since independent of window:
@@ -470,7 +471,7 @@ protected:
 	static bool renderPriority(RenderListElt* ren1, RenderListElt* ren2){
 		return (ren1->camDist > ren2->camDist);
 	}
-	QMutex renderMutex;  //prevent recursive rendering
+	
 	int winNum;
 	int previousTimeStep;
 	static int jpegQuality;

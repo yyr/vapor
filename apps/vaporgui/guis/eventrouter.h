@@ -85,7 +85,8 @@ public:
 	//! Method to change the current instance index, and perform associated undo/redo capture.
 	//! Child classes can use this to respond to instance selection in the instance selector.
 	//! \param[in] int newCurrent specifies new current index
-	virtual void performGuiChangeInstance(int newCurrent);
+	//! \param[in] bool undoredo specifies whether or not the event will be put on the undo/redo queue.
+	virtual void performGuiChangeInstance(int newCurrent, bool undoredo=true);
 
 	//! Method to create a new instance, and perform associated undo/redo capture.
 	//! Child classes can use this to respond to clicks on the "new" instance button.
@@ -127,7 +128,7 @@ public:
 	//! It is invoked whenever the user checks or un-checks the enable checkbox in the instance selector.
 	//! \param[in] bool Turns on (true) or off the instance.
 	//! \param[in] int Instance that is being enabled or disabled.
-	virtual void guiSetEnabled(bool On, int instance ) {assert(0);}
+	virtual void guiSetEnabled(bool On, int instance, bool undoredo=false  ) {assert(0);}
 
 	//! Method for classes that capture mouse event events (i.e. have manipulators)
 	//! This must be reimplemented to respond when the mouse is released.

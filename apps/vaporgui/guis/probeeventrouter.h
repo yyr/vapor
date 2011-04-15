@@ -99,7 +99,7 @@ public:
 	
 	
 
-	virtual void guiSetEnabled(bool value, int instance);
+	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
 	//respond to changes in TF (for undo/redo):
 	//
 	

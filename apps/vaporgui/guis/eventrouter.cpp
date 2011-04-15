@@ -87,14 +87,16 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 	updateTab();
 	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveParams(vizMgr->getParams(winnum,myParamsBaseType),myParamsBaseType);
 }
-void EventRouter::performGuiChangeInstance(int newCurrent){
+void EventRouter::performGuiChangeInstance(int newCurrent, bool undoredo){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	if (winnum < 0) return;
 	int instance = vizMgr->getCurrentInstanceIndex(winnum,myParamsBaseType);
 	if (instance == newCurrent) return;
-	Params* rParams = vizMgr->getParams(winnum,myParamsBaseType);
-	InstancedPanelCommand::capture(rParams, "change current render instance", instance, VAPoR::changeInstance, newCurrent);
+	if (undoredo){
+		Params* rParams = vizMgr->getParams(winnum,myParamsBaseType);
+		InstancedPanelCommand::capture(rParams, "change current render instance", instance, VAPoR::changeInstance, newCurrent);
+	}
 	changeRendererInstance(winnum, newCurrent);
 	Params* p = vizMgr->getParams(winnum, myParamsBaseType);
 	VizWin* vw = vizMgr->getVizWin(winnum);

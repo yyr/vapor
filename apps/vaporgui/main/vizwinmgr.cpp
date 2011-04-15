@@ -1254,7 +1254,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
 						int instance = findInstanceIndex(i, rParams, t);
 						EventRouter* er = getEventRouter(t);
-						er->guiSetEnabled(false,instance);
+						er->guiSetEnabled(false,instance, false);
 					}
 				}
 				for (int k = 0; k<vars3D.size(); k++){
@@ -1262,7 +1262,7 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 						Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
 						int instance = findInstanceIndex(i, rParams, t);
 						EventRouter* er = getEventRouter(t);
-						er->guiSetEnabled(false,instance);
+						er->guiSetEnabled(false,instance, false);
 					}
 				}
 			}
@@ -1273,10 +1273,29 @@ void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<stri
 void VizWinMgr::disableAllRenderers(){
 	int firstwin = -1;
 	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]) setActiveViz(i);
+	}
+	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vizWin[i]){
 			if (firstwin == -1) firstwin = i;
 			GLWindow* glwin= vizWin[i]->getGLWindow();
+			setActiveViz(i);
+			//	int foo = glwin->getNumRenderers();
+				for (int j = glwin->getNumRenderers()-1; j>= 0; j--){
+					Renderer* ren = glwin->getRenderer(j);
+					RenderParams* rParams = ren->getRenderParams();
+					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+					tabManager->moveToFront(t);
+					int instance = findInstanceIndex(i, rParams, t);
+					EventRouter* er = getEventRouter(t);
+					
+					er->performGuiChangeInstance(instance, false);
+					
+					er->guiSetEnabled(false,instance,false);	
+				}
+			//In case a renderer was left behind due to undo/redo
 			glwin->removeAllRenderers();
+			
 		}
 	}
 	if (firstwin != -1){

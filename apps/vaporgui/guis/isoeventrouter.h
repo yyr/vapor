@@ -75,7 +75,7 @@ public:
 	//gui... methods are set from gui, have undo/redo support:
 	//
 	
-	virtual void guiSetEnabled(bool value, int instance);
+	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
 
 	//special version for iso, since it has two different histograms.
 	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);

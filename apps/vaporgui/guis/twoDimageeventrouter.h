@@ -83,7 +83,7 @@ public:
 	virtual void reinitTab(bool doOverride);
 	
 
-	virtual void guiSetEnabled(bool value, int instance);
+	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
 	
 	void guiSetXCenter(int sliderVal);
 	void guiSetYCenter(int sliderVal);

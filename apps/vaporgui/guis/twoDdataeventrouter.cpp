@@ -943,16 +943,17 @@ setEditorDirty(RenderParams* p){
 
 
 void TwoDDataEventRouter::
-guiSetEnabled(bool value, int instance){
+guiSetEnabled(bool value, int instance, bool undoredo){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	TwoDDataParams* pParams = VizWinMgr::getInstance()->getTwoDDataParams(winnum, instance);    
 	confirmText(false);
-	assert(value != pParams->isEnabled());
+	if(value == pParams->isEnabled()) return;
 	
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle TwoDData enabled",instance);
+	PanelCommand* cmd;
+	if (undoredo) cmd = PanelCommand::captureStart(pParams, "toggle TwoDData enabled",instance);
 	pParams->setEnabled(value);
-	PanelCommand::captureEnd(cmd, pParams);
+	if(undoredo) PanelCommand::captureEnd(cmd, pParams);
 	
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
@@ -1594,7 +1595,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 			"Rendering has been disabled.");
 		int instance = Params::GetCurrentParamsInstanceIndex(pParams->GetParamsBaseTypeId(),pParams->getVizNum());
 		assert(instance >= 0);
-		guiSetEnabled(false, instance);
+		guiSetEnabled(false, instance, false);
 		updateTab();
 		return;
 	}

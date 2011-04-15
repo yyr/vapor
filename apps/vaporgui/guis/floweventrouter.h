@@ -198,7 +198,7 @@ protected:
 
 	//Methods that record changes in the history are preceded by 'gui'
 	//
-	virtual void guiSetEnabled(bool, int);
+	virtual void guiSetEnabled(bool, int, bool undoredo = true);
 	
 	
 	void guiSetConstantColor(QColor& newColor);

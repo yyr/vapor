@@ -39,7 +39,7 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
 	
-	virtual void guiSetEnabled(bool value, int instance);
+	virtual void guiSetEnabled(bool value, int instance, bool undoredo = true);
 	
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);

@@ -495,7 +495,7 @@ guiSetNumRefinements(int num){
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
 void ArrowEventRouter::
-guiSetEnabled(bool value, int instance){
+guiSetEnabled(bool value, int instance, bool undoredo){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.
@@ -503,10 +503,10 @@ guiSetEnabled(bool value, int instance){
 	
 	if (value == dParams->isEnabled()) return;
 	confirmText(false);
-	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle arrow enabled", instance);
+	PanelCommand* cmd;
+	if(undoredo) cmd = PanelCommand::captureStart(dParams, "toggle arrow enabled", instance);
 	dParams->setEnabled(value);
-	PanelCommand::captureEnd(cmd, dParams);
+	if(undoredo) PanelCommand::captureEnd(cmd, dParams);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(dParams,!value, false);

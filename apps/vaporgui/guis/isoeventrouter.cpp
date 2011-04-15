@@ -792,7 +792,7 @@ guiSetNumRefinements(int num){
 	
 }
 void IsoEventRouter::
-guiSetEnabled(bool value, int instance){
+guiSetEnabled(bool value, int instance, bool undoredo){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int winnum = vizWinMgr->getActiveViz();
 	//Ignore spurious clicks.
@@ -825,9 +825,10 @@ guiSetEnabled(bool value, int instance){
       rightMappingEdit->setText("1.0");
 	}
 	//enable the current instance:
-	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
+	PanelCommand* cmd;
+	if(undoredo) cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
-	PanelCommand::captureEnd(cmd, iParams);
+	if(undoredo) PanelCommand::captureEnd(cmd, iParams);
 
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
