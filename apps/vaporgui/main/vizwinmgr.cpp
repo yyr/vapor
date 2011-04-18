@@ -1277,19 +1277,18 @@ void VizWinMgr::disableAllRenderers(){
 			if (firstwin == -1) firstwin = i;
 			GLWindow* glwin= vizWin[i]->getGLWindow();
 			setActiveViz(i);
-			//	int foo = glwin->getNumRenderers();
-				for (int j = glwin->getNumRenderers()-1; j>= 0; j--){
-					Renderer* ren = glwin->getRenderer(j);
-					RenderParams* rParams = ren->getRenderParams();
-					Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
-					tabManager->moveToFront(t);
-					int instance = findInstanceIndex(i, rParams, t);
-					EventRouter* er = getEventRouter(t);
-					
-					er->performGuiChangeInstance(instance, false);
-					
-					er->guiSetEnabled(false,instance,false);	
-				}
+			for (int j = glwin->getNumRenderers()-1; j>= 0; j--){
+				Renderer* ren = glwin->getRenderer(j);
+				RenderParams* rParams = ren->getRenderParams();
+				Params::ParamsBaseType t = rParams->GetParamsBaseTypeId();
+				tabManager->moveToFront(t);
+				int instance = findInstanceIndex(i, rParams, t);
+				EventRouter* er = getEventRouter(t);
+				
+				er->performGuiChangeInstance(instance, false);
+				
+				er->guiSetEnabled(false,instance,false);	
+			}
 			//In case a renderer was left behind due to undo/redo
 			glwin->removeAllRenderers();
 		}

@@ -252,7 +252,7 @@ int ParamNode::SetElementDouble(
 	return(0);
 }
 	
-int ParamNode::SetElementString(
+int ParamNode::SetElementStringVec(
 	const vector<string> &tagpath, const vector<string> &str
 ){ 
 
@@ -265,7 +265,7 @@ int ParamNode::SetElementString(
 	string tag = tagpath[tagpath.size()-1];
 	// Store element at the last node:
 	//
-	int rc = currNode->SetElementString(tag, str);
+	int rc = currNode->SetElementStringVec(tag, str);
 	if(rc) return rc;
 	// see if a dirty flag watcher is registered for this tag. If not
 	// do nothing.
@@ -282,11 +282,11 @@ int ParamNode::SetElementString(
 	return(0);
 }
 
-int ParamNode::SetElementString(
+int ParamNode::SetElementStringVec(
 	const string &tag, const vector<string> &str
 ){ 
 
-	int rc = XmlNode::SetElementString(tag, str);
+	int rc = XmlNode::SetElementStringVec(tag, str);
 	if(rc) return rc;
 	// see if a dirty flag watcher is registered for this tag. If not
 	// do nothing.
@@ -631,5 +631,21 @@ void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec) con
 	}
 	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
+}
+const string& ParamNode::GetElementString(const vector<string> &tagpath) const {
+	//Iterate through tags, finding associated node
+	const ParamNode* currNode = this;
+	for (int i = 0; i< tagpath.size()-1; i++){
+		currNode = currNode->GetNode(tagpath[i]);
+		if (!currNode) {
+			
+		}
+	}
+	string tag = tagpath[tagpath.size()-1];
+	
+	if (!currNode->HasElementString(tag)){
+		return _emptyString;
+	}
+	return currNode->GetElementString(tag);
 }
 

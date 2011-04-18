@@ -142,19 +142,7 @@ public:
  int SetElementDouble(
 	const string &tag, const vector<double> &values
  );
- //! Set an ParamNode parameter of type string
- //!
- //! This method defines and sets a parameter of type string. The
- //! parameter data
- //! to be associated with \p tag is the array of strings
- //! specified by \p values
- //!
- //! \param[in] tag Name(Tag) of the element to define/set
- //! \param[in] values Vector of strings
- //!
- //! \retval status Returns 0 if successful
- //
- int SetElementString(const string &tag, const vector<string> &values);
+ 
 
  //! Set an ParamNode parameter of type long
  //!
@@ -239,19 +227,32 @@ public:
  //!
  virtual const vector<double> &GetElementDouble(const string &tag) const {return XmlNode::GetElementDouble(tag);}
 
- //! Set a ParamNode parameter of type string
+
+ //! Get an Xml element's data of type string
  //!
- //! This method defines and sets a parameter of type string. The
- //! parameter data
- //! data to be associated with \p tagpath is the array of strings
- //! specified by \p values
+ //! Return the character data associated with the Xml elemented 
+ //! named by \p tag for this node. The data is interpreted and 
+ //! returned as a string. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
  //!
- //! \param[in] tagpath Names of nodes leading to value to be set
- //! \param[in] values Vector of strings
+ //! \param[in] tag Name of element
+ //! \retval string The string associated with the named element
  //!
- //! \retval status Returns 0 if successful
- //
- int SetElementString(const vector<string> &tagpath, const vector<string> &values);
+ virtual const string &GetElementString(const string &tag) const
+ {return XmlNode::GetElementString(tag);}
+ //! Get an element's data of type string
+ //!
+ //! Return the character data associated with the Xml element 
+ //! identified by \p tagpath for this node. The data is interpreted and 
+ //! returned as a string. If the element does not exist
+ //! an empty vector is returned. If ErrOnMissing() is true an 
+ //! error is generated if the element is missing;
+ //!
+ //! \param[in] tagpath sequence of tags leading to element
+ //! \retval string The string associated with the named element
+ //!
+ virtual const string &GetElementString(const vector<string> &tagpath) const;
  
  //! Get an element's data of type string using a path to node
  //!
@@ -332,7 +333,47 @@ public:
  int SetElementString(
 	const string &tag, const string &value
  );
-
+//! Set a single ParamNode parameter of type string
+ //!
+ //! This method defines and sets a parameter of type string. The
+ //! parameter data
+ //! data to be associated with \p tagpath is the single string
+ //! specified by \p value
+ //!
+ //! \param[in] tagpath sequence of tags leading to specified element.
+ //! \param[in] value string
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementString(
+	const vector<string> &tagpath, const string &value
+ );
+ //! Set an ParamNode parameter of type string vector
+ //!
+ //! This method defines and sets a parameter of type string vector. The
+ //! parameter data
+ //! to be associated with \p tag is the array of strings
+ //! specified by \p values
+ //!
+ //! \param[in] tag Name(Tag) of the element to define/set
+ //! \param[in] values Vector of strings
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementStringVec(const string &tag, const vector<string> &values);
+  //! Set a ParamNode parameter of type string
+ //!
+ //! This method defines and sets a parameter of type string. The
+ //! parameter data
+ //! data to be associated with \p tagpath is the array of strings
+ //! specified by \p values
+ //!
+ //! \param[in] tagpath Names of nodes leading to value to be set
+ //! \param[in] values Vector of strings
+ //!
+ //! \retval status Returns 0 if successful
+ //
+ int SetElementStringVec(const vector<string> &tagpath, const vector<string> &values);
  //!  Set a dirty flag on an element or node at child node
  //!  of this ParamNode
  //!

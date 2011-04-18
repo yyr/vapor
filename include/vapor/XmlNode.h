@@ -254,7 +254,7 @@ XmlNode(
  //!
  //! \retval status Returns 0 if successful
  //
- virtual int SetElementString(
+ virtual int SetElementStringVec(
 	const string &tag,const vector <string> &values
  );
  //! Set an Xml element of type string
@@ -271,7 +271,7 @@ XmlNode(
  //!
  //! \retval status Returns 0 if successful
  //
-virtual int SetElementString(
+virtual int SetElementStringVec(
     const vector<string> &tagpath, const vector <string> &values
 );
  

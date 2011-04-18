@@ -226,7 +226,7 @@ void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	if(svec.size() <= i) 
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
-	GetRootNode()->SetElementString(_VariableNamesTag, svec);
+	GetRootNode()->SetElementStringVec(_VariableNamesTag, svec);
 	setAllBypass(false);
 }
 const string& ArrowParams::GetFieldVariableName(int i){

@@ -406,13 +406,13 @@ buildNode() {
 			prog = XmlNode::replaceAll(prog, ">","&gt;");
 			scriptNode->SetElementString(_pythonProgramTag,prog);
 			if (DataStatus::getDerived2DInputVars(indx).size()>0)
-				scriptNode->SetElementString(_python2DInputsTag, DataStatus::getDerived2DInputVars(indx));
+				scriptNode->SetElementStringVec(_python2DInputsTag, DataStatus::getDerived2DInputVars(indx));
 			if (DataStatus::getDerived3DInputVars(indx).size()>0)
-				scriptNode->SetElementString(_python3DInputsTag, DataStatus::getDerived3DInputVars(indx));
+				scriptNode->SetElementStringVec(_python3DInputsTag, DataStatus::getDerived3DInputVars(indx));
 			if (DataStatus::getDerived2DOutputVars(indx).size()>0)
-				scriptNode->SetElementString(_python2DOutputsTag, DataStatus::getDerived2DOutputVars(indx));
+				scriptNode->SetElementStringVec(_python2DOutputsTag, DataStatus::getDerived2DOutputVars(indx));
 			if (DataStatus::getDerived3DOutputVars(indx).size()>0)
-				scriptNode->SetElementString(_python3DOutputsTag, DataStatus::getDerived3DOutputVars(indx));
+				scriptNode->SetElementStringVec(_python3DOutputsTag, DataStatus::getDerived3DOutputVars(indx));
 			pythonNode->AddChild(scriptNode);
 		}
 	}

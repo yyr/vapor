@@ -242,7 +242,7 @@ int XmlNode::SetElementString(
 	return(0);
 } 
 
-int XmlNode::SetElementString(
+int XmlNode::SetElementStringVec(
     const string &tag,const vector <string> &strvec
 ) {
 	string s;
@@ -254,7 +254,7 @@ int XmlNode::SetElementString(
 	return(XmlNode::SetElementString(tag, s));
 }
 
-int XmlNode::SetElementString(
+int XmlNode::SetElementStringVec(
     const vector<string> &tagpath, const vector <string> &strvec
 ) {
 	//Iterate through tags, finding associated node
