@@ -1,3 +1,4 @@
+
 from numpy import *
 
 def mag3d(a1,a2,a3): 
@@ -78,10 +79,8 @@ def deriv_findiff(a,dir,dx):
 def curl_findiff(A,B,C):
 
 	ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
-	print ext
 	usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
 	usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
-	print usrmax, usrmin
 	dz = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in Python coord system
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
 	dx =  (usrmax[0]-usrmin[0])/ext[0]
@@ -101,3 +100,15 @@ def curl_findiff(A,B,C):
 # now reverse order of results to go back to user coordinates
 	return outz, outy, outx
 
+# Calculate divergence
+def div_findiff(A,B,C)
+
+ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
+	usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
+	usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
+	dz = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in Python coord system
+	dy =  (usrmax[1]-usrmin[1])/ext[1]
+	dx =  (usrmax[0]-usrmin[0])/ext[0]
+	
+# note that, in Python coords, A,B,C are z,y,x components
+	return deriv_findiff(A,3,dz)+deriv_findiff(B,2,dy)+deriv_findiff(C,1,dx)

@@ -29,7 +29,7 @@ class Session;
 class MainForm;
 //Total number of different widgets that can go into tabs
 //
-#define MAX_WIDGETS 10
+
 //Extend QTabWidget to help manage the widgets associated with tabs
 //
 class TabManager : public QTabWidget{
@@ -86,8 +86,8 @@ class TabManager : public QTabWidget{
 	private:
 		//Data structures to store widget info
 		//
-		QWidget* widgets[MAX_WIDGETS];
-		ParamsBase::ParamsBaseType widgetBaseTypes[MAX_WIDGETS];
+		vector<QWidget*> widgets;
+		vector<ParamsBase::ParamsBaseType> widgetBaseTypes;
 		bool haveMultipleViz;
 		int currentFrontPage;
 		QWidget* myParent;

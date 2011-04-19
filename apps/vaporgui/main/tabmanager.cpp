@@ -49,10 +49,9 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	myParent = parent;
 	//Initialize arrays:
 	//
-	for (int i = 0; i< MAX_WIDGETS; i++){
-		widgets[i] = 0;
-		widgetBaseTypes[i] = 0;
-	}
+	widgets.clear();
+	widgetBaseTypes.clear();
+	
 	haveMultipleViz = false;
 	
 	int ok = connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
@@ -76,10 +75,9 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	myScrollArea->setWidget(wid);
 	
 	int posn = count()-1;
-	widgets[posn] = wid;
-	//qWarning("inserted widget %s in position %d", name.toAscii(), posn);
+	widgets.push_back(wid);
+	widgetBaseTypes.push_back(widBaseType);
 	
-	widgetBaseTypes[posn] = widBaseType;
 	if (selected) {
 		setCurrentIndex(posn);
 	}
@@ -149,7 +147,7 @@ newFrontTab(int newFrontPosn) {
 	if(currentFrontPage >= 0) prevType = widgetBaseTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
 	//Ignore if we haven't set up tabs yet
-	if( widgetBaseTypes[newFrontPosn] == 0) return;
+	if(widgets.size() <= newFrontPosn) return;
 	//Refresh this tab 
 	
 	EventRouter* eRouter = VizWinMgr::getEventRouter(widgetBaseTypes[newFrontPosn]);
