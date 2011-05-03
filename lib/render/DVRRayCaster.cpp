@@ -659,8 +659,26 @@ int DVRRayCaster::initTextures()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+	
+	// Per OpenGL spec:
+	// If a fragment program specifies the "ARB_fragment_program_shadow"
+    // program option, the result returned of a sample from a texture target on
+    // a texture image unit is undefined if :
+	// the texture target is SHADOW1D, SHADOW2D, SHADOWRECT, and
+	// the texture object's internal format is DEPTH_COMPONENT_ARB, and
+	// the TEXTURE_COMPARE_MODE_ARB is NONE;
+	
+	/* 
+	 BUGFIX:
+	 Author: Yannick Polius
+	 Date 05/03/11 
+	 Summary: changed the texture params to comply with OpenGL spec */
+	
+	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+	
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
 
 	for (int i=0; i<num_depth_fmts; i++) {
 		glTexImage2D(
