@@ -279,8 +279,15 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 	float fr, nr, frbx, nrbx;
 	vParams->getFarNearDist(rParams, &fr, &nr, &frbx, &nrbx);
 	
-	farDist = frbx*4.f;
-	nearDist = nrbx*0.25f;
+	/* 
+	BUGFIX:
+	Author: Yannick Polius
+	Date 05/03/11 
+	Summary: multiplying by the constants resulted in incorrect depths being calculated
+			 resulting in a fully transparent isosurface */
+	
+	farDist = frbx ; //*4.f;
+	nearDist = nrbx ; //*0.25f;
 	
 	needsResize = true;
 }
