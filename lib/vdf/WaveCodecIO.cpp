@@ -8,7 +8,14 @@
 #include <vapor/WaveCodecIO.h>
 #ifdef WIN32
 #include <windows.h>
-#pragma warning(disable : 4996)
+#endif
+
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
+
+#ifdef PNETCDF
+#include "pnetcdf.h"
 #endif
 
 using namespace std;
@@ -44,6 +51,12 @@ const string _waveletCoeffName = "WaveletCoefficients";
 const string _sigMapName = "SigMaps";
 
 const size_t NC_CHUNKSIZEHINT = 4*1024*1024;
+
+#ifdef PARALLEL
+extern "C" int
+nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
+	      int *ncidp);
+#endif
 
 #define NC_ERR_WRITE(rc, path) \
     if (rc != NC_NOERR) { \
@@ -419,10 +432,36 @@ int WaveCodecIO::CloseVariable() {
 
 	if (! _isOpen) return(0);
 
+	_WriteTimerStart();
+
+#ifdef PARALLEL
+int x[] = {0,0,0};
+float y[] = {0,0,0};
+MPI_Reduce(&_validRegMin[0], &x[0], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
+MPI_Reduce(&_validRegMin[1], &x[1], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
+MPI_Reduce(&_validRegMin[2], &x[2], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
+_validRegMin[0] = x[0]; _validRegMin[1] = x[1]; _validRegMin[2] = x[2];
+
+MPI_Reduce(&_validRegMax[0], &x[0], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
+MPI_Reduce(&_validRegMax[1], &x[1], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
+MPI_Reduce(&_validRegMax[2], &x[2], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
+_validRegMax[0] = x[0]; _validRegMax[1] = x[1]; _validRegMax[2] = x[2];
+
+MPI_Reduce(&_dataRange[1], &y[0], 1, MPI_FLOAT, MPI_MAX, 0,IO_Comm);
+MPI_Reduce(&_dataRange[0], &y[1], 1, MPI_FLOAT, MPI_MIN, 0,IO_Comm);
+_dataRange[1] = y[0]; _dataRange[0] = y[1];
+
+SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRegMin[1],_validRegMin[2],_validRegMax[0],_validRegMax[1],_validRegMax[2]);
+
+#endif
+
+#ifndef NOIO
 	for(int j=0; j<=_lod; j++) {
 
 		if (_ncids[j] > -1) {
 			int rc; 
+
+#ifndef NO_NC_ATTS
 
 			if (_writeMode) {
 
@@ -450,8 +489,8 @@ int WaveCodecIO::CloseVariable() {
 				);
 				NC_ERR_WRITE(rc,_ncpaths[j])
 
-
 			}
+#endif
 			rc = nc_close(_ncids[j]);
 			if (rc != NC_NOERR) { 
 				SetErrMsg( 
@@ -464,6 +503,8 @@ int WaveCodecIO::CloseVariable() {
 		_ncids[j] = -1;
 		_nc_wave_vars[j] = -1;
 	}
+#endif
+	_WriteTimerStop();
 				
 	_isOpen = false;
     _vtype = VARUNKNOWN;
@@ -1520,7 +1561,9 @@ int WaveCodecIO::_SetupCompressor() {
 	}
 
 	_ncoeffs.clear();
+	_sigmapsizes.clear();
 	size_t naccum = 0;
+	size_t saccum = 0;
 	for (int i = 0; i < _cratios.size(); i++) {
 		if (_cratios[i] > ntotal) break;
 
@@ -1529,6 +1572,10 @@ int WaveCodecIO::_SetupCompressor() {
 
 		_ncoeffs.push_back(n);
 		naccum += n;
+
+		size_t s = _compressor->GetSigMapSize(n);
+		_sigmapsizes.push_back(s);
+		saccum += s;
 
 		vector <size_t> sigdims;
 		_compressor->GetSigMapShape(sigdims);
@@ -1548,6 +1595,14 @@ int WaveCodecIO::_SetupCompressor() {
 		_cvectorsize = naccum;
 	}
 
+	if (_svectorsize < saccum) {
+		if (_svectorsize) delete [] _svector;
+		for (int t=0; t<_nthreads; t++) {
+			_svector = new unsigned char[saccum];
+			_svectorThread[t] = _svector;
+		}
+		_svectorsize = saccum;
+	}
 
 	return(0);
 }
@@ -1634,6 +1689,20 @@ int WaveCodecIO::_OpenVarRead(
             return(-1);
 		}
 
+		//
+		// if there is not compression at lod j we reconstruct 
+		// the sig map from all the other sig maps. 
+		//
+		bool reconstruct_sigmap = 
+			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+
+		//
+		// Final dimension is the number of wavelet coefficients
+		// + the sigmap size / 4
+		//
+		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
+		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
+
         rc = nc_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
 		NC_ERR_READ(rc,path)
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
@@ -1719,7 +1788,22 @@ int WaveCodecIO::_OpenVarWrite(
 
 		size_t chsz = NC_CHUNKSIZEHINT;
 		int ncid;
+
+	_WriteTimerStart();
+#ifndef NOIO
+#ifdef PARALLEL
+#ifdef PNETCDF
+		rc = nc_create_par(path.c_str(), NC_64BIT_OFFSET, IO_Comm, 
+#else //PNETCDF
+		//rc = nc_create_par(path.c_str(), NC_MPIPOSIX | NC_NETCDF4, IO_Comm, 
+		rc = nc_create_par(path.c_str(), NC_MPIIO | NC_NETCDF4, IO_Comm, 
+#endif //PNETCDF
+		MPI_INFO_NULL, &ncid);
+#else //PARALLEL
 		rc = nc__create(path.c_str(), NC_64BIT_OFFSET, 0, &chsz, &ncid);
+#endif //PARALLEL
+#endif //NOIO
+
 		NC_ERR_WRITE(rc,path)
 		_ncids.push_back(ncid);
 	
@@ -1734,6 +1818,7 @@ int WaveCodecIO::_OpenVarWrite(
 		int vol_dim_ids[3];
 		size_t bdim[3];
 		VDFIOBase::GetDimBlk(bdim,-1);
+#ifndef NOIO
 		rc = nc_def_dim(
 			_ncids[j],_volumeDimNbxName.c_str(),bdim[0],&vol_dim_ids[0]
 		);
@@ -1748,6 +1833,7 @@ int WaveCodecIO::_OpenVarWrite(
 			_ncids[j],_volumeDimNbzName.c_str(),bdim[2],&vol_dim_ids[2]
 		);
 		NC_ERR_WRITE(rc,path)
+#endif		
 
 		bool reconstruct_sigmap = 
 				 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
@@ -1808,13 +1894,16 @@ int WaveCodecIO::_OpenVarWrite(
 			assert(0);
 		}
 
+#ifndef NOIO
 		rc = nc_def_var(
 			_ncids[j], _waveletCoeffName.c_str(), NC_FLOAT,
 			ndims, wave_dim_ids, &ncid
 		);
 		NC_ERR_WRITE(rc,path)
+#endif		
 		_nc_wave_vars.push_back(ncid);
 
+#ifndef NOIO
 		oss.str("");
 		oss << "Floating point wavelet coefficients (" << _ncoeffs[j] <<
 		") byte encoded signficant map (" << _sigmapsizes[j] << ")";
@@ -1882,9 +1971,11 @@ int WaveCodecIO::_OpenVarWrite(
 			wmode.c_str()
 		);
 		NC_ERR_WRITE(rc,path)
+#endif
 
 		rc = nc_enddef(_ncids[j]);
 		NC_ERR_WRITE(rc,path)
+	_WriteTimerStop();
 
 	}
 	return(0);
@@ -1912,7 +2003,9 @@ int WaveCodecIO::_WriteBlock(
 //		assert(maplen == _sigmapsizes[j]);
 
 		bool reconstruct_sigmap = 
-			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+		     ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+
+        size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
 
 		if (_vtype == VAR3D) {
 			start[0] = bz;
@@ -1928,10 +2021,15 @@ int WaveCodecIO::_WriteBlock(
 			scount[2] = _sigmapsizes[j];
 		}
 
+#ifndef NOIO
+#ifdef PARALLEL
+		rc = nc_var_par_access(_ncids[j], _nc_wave_vars[j], this->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
+#endif
 		rc = nc_put_vars_float(
 			_ncids[j], _nc_wave_vars[j], start, wcount, NULL, cvectorptr
 		);
 		NC_ERR_WRITE(rc, _ncpaths[j]);
+#endif	
 		cvectorptr += _ncoeffs[j];
 
 		//
@@ -1949,10 +2047,12 @@ int WaveCodecIO::_WriteBlock(
 			// Signficance map is concatenated to the wavelet coefficients
 			// variable to improve IO performance
 			//
+#ifndef NOIO
 			rc = nc_put_vars(
 				_ncids[j], _nc_wave_vars[j], start, scount, NULL, map
 			);
 			NC_ERR_WRITE(rc, _ncpaths[j]);
+#endif
 		}
 	}
 

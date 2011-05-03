@@ -9,6 +9,10 @@
 #include <vapor/Compressor.h>
 #include <vapor/EasyThreads.h>
 
+#ifdef PARALLEL
+#include <mpi.h>
+#endif
+
 namespace VAPoR {
 
 //
@@ -386,10 +390,17 @@ public:
  //! \copydoc Metadata::GetBlockSize(size_t, int)
  //
  virtual void GetBlockSize(size_t bs[3], int reflevel) const;
-
+#ifdef PARALLEL
+ void SetIOComm(MPI_Comm NewIOComm) {std::cout << "WaveCodecIO::SetIOComm, nthreads = " << _nthreads << std::endl; IO_Comm = NewIOComm;};
+ void SetCollectiveIO(bool newCollectiveIO) {std::cout << "WaveCodecIO::SetCollectiveIO, nthreads = " << _nthreads << std::endl; collectiveIO = newCollectiveIO;};
+#endif
  friend void     *RunBlockReadRegionThread(void *object);
 
 private:
+#ifdef PARALLEL
+ MPI_Comm IO_Comm;
+ bool collectiveIO;
+#endif
 
  //
  // Threaded read object for parallel inverse transforms 
@@ -422,7 +433,10 @@ private:
  };
  
 
+ public:
  int _nthreads; // num execution threads
+ int getNumThread(){return _nthreads;}
+ private:
  int _next_block;
  int _threadStatus;
  ReadThreadObj **_read_thread_objs;
@@ -448,6 +462,7 @@ private:
  string _varName;	// Currently opened variable
  vector <string> _ncpaths; 
  vector <int> _ncids; 
+ vector <int> _nc_sig_vars;	// ncdf ids for wave and sig vars 
  vector <int> _nc_wave_vars; 
  float *_cvector;	// storage for wavelet coefficients
  size_t _cvectorsize;	// amount of space allocated to _cvector 
