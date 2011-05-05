@@ -1106,7 +1106,8 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 				  int* actualRefLevel){
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return 0;
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return 0;
 	
 	int refLevel = GetRefinementLevel();
 	//reduce reflevel if not all variables are available:
@@ -1140,16 +1141,14 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 		return 0;
 	}
 	
-	//Make the z -extents equal to the full z-extents of the global region.  This is in case the
+	//Make the z -extents equal to the full z-extents of data domain.  This is in case the
 	//2D variable is the output of a script, and there is a 3D input to the script. This way the 3D extents of
-	//the 3D input variable are determined by the current global variable.
-	RegionParams* rParams = (RegionParams*) GetDefaultParams(Params::_regionParamsTag);
-	size_t regBlockExtents[6], regExts[6];
-	rParams->getRegionVoxelCoords(refLevel, regExts, regExts+3, regBlockExtents,regBlockExtents+3, ts);
-	blkMin[2] = regBlockExtents[2];
-	blkMax[2] = regBlockExtents[5];
+	//the 3D input variable are always the full vertical extents of the volume.
+	size_t regBlockExtents[3];
+	dataMgr->GetDimBlk(regBlockExtents,refLevel);
+	blkMin[2] = 0;
+	blkMax[2] = regBlockExtents[2];
 	
-
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable 
 	float** planarData = new float*[numVars];

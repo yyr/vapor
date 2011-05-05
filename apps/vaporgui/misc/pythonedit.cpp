@@ -497,6 +497,14 @@ void PythonEdit::testScript(){
 	
 	rParams->getRegionVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, timeStep);
 	DataMgr* dmgr = ds->getDataMgr();
+	//If there is an output 2D variable and no output 3d variable, then make the extents the full VDC extents
+	//at refinement level 0
+	if (outputVars2->count() > 0 && outputVars3->count() == 0 && inputVars3->count() > 0){
+		size_t regBlockExtents[3];
+		dmgr->GetDimBlk(regBlockExtents,0);
+		min_bdim[2] = 0;
+		max_bdim[2] = regBlockExtents[2];
+	}
 	vector<string> testIn;
 	vector<pair<string, Metadata::VarType_T> > testOut;
 	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
@@ -587,10 +595,9 @@ void PythonEdit::applyScript(){
 	for (int i = 0; i< outputVars2->count(); i++) out2dVars.push_back(outputVars2->item(i)->text().toStdString());
 	
 	//Check for use of 2D outputs with 3D inputs.  Issue a warning in that case
-	if (out2dVars.size() > 0 && in3dVars.size()>0){
-		MessageReporter::warningMsg("Note: When deriving a 2D output variable from 3D input variables\n%s\n%s",
-			"The vertical extents of the 3D input variable arrays will be the same as",
-			"the vertical extents of the global 3D region being rendered in VAPOR.");
+	if (out2dVars.size() > 0 && in3dVars.size()>0 && out3dVars.size()==0){
+		MessageReporter::warningMsg("Note: When deriving a 2D output variable from 3D input variables,\n%s",
+			"the vertical extents of the 3D input variable arrays will be the full vertical extents of the VDC.");
 	}
 
 

@@ -464,6 +464,15 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	//Modify lod level if allowed:
 	if (lod > maxLOD) lod = maxLOD;
 	if (refLevel > maxRefLevel) refLevel = maxRefLevel;
+	if (twoDim){
+		//Use the full domain as the extents of the 3rd dimension
+		//This is important when deriving 2d variables from 3d inputs.
+		DataMgr* dataMgr = ds->getDataMgr();
+		size_t bdim[3];
+		dataMgr->GetDimBlk(bdim, refLevel);
+		blkMin[2] = 0;
+		blkMax[2] = bdim[2];
+	}
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 		vname, refLevel, lod, blkMin, blkMax,  0);

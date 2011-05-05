@@ -62,6 +62,8 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
 						"Get min valid coordinate bounds of variable at specified refinement level and timestep"},
 		{"GetValidRegionMax",PythonPipeLine::getValidRegionMax, METH_VARARGS,
 						"Get max valid coordinate bounds of variable at specified refinement level and timestep"},
+		{"VariableExists",PythonPipeLine::variableExists, METH_VARARGS,
+						"Determine if the specified variable exists in the VDC"},
 		
 		{NULL,NULL,0,NULL}
  };
@@ -783,6 +785,25 @@ PyObject* PythonPipeLine::getValidRegionMax(PyObject *self, PyObject* args){
 	for(int i = 0; i< 3; i++) ivox[i] = (int)maxvox[i];
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);
+}
+//Returns boolean indicating that specified variable name exists at a specified timestep
+//Arguments are: timestep, variableName, and optionally: refinement level, level of detail, which default to 0
+//
+PyObject* PythonPipeLine::variableExists(PyObject *self, PyObject* args){
+	
+    int reflevel = 0;
+	int lod = 0;
+	size_t ts;
+	char* varname;
+	int timestep;
+	
+    
+    if (!PyArg_ParseTuple(args,"is|ii",
+						  &timestep,&varname,&reflevel,&lod)) return NULL; 
+	ts = timestep;
+	int retval = currentDataMgr->VariableExists(ts, varname, reflevel, lod);
+	
+    return Py_BuildValue("i", retval);
 }
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
