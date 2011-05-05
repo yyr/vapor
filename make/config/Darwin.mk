@@ -6,27 +6,29 @@ ifeq    ($(HAVE_QT_FRAMEWORK),1)
 QT_FRAMEWORK = 1
 endif
 
-CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC
+CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC 
+CXXFLAGS          += -mmacosx-version-min=10.5
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
 CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
+CFLAGS            += -mmacosx-version-min=10.5
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
-LDFLAGS           += 
+LDFLAGS           += -mmacosx-version-min=10.5
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
 
 PROFILEFLAGS = -pg -a
 
 ifeq ($(MACHTYPE),x86_64)
-SHARED_LDFLAGS += -m64
+SHARED_LDFLAGS += -m64 -mmacosx-version-min=10.5
 LDFLAGS += -m64
 CXXFLAGS += -m64
 CFLAGS += -m64
 else 
-SHARED_LDFLAGS += -m32
+SHARED_LDFLAGS += -m32 -mmacosx-version-min=10.5
 LDFLAGS += -m32
 CXXFLAGS += -m32
 CFLAGS += -m32
