@@ -7,12 +7,12 @@ QT_FRAMEWORK = 1
 endif
 
 CXXFLAGS          += -DDARWIN -Wall -Wno-format -Wno-sign-compare  -fPIC 
-CXXFLAGS          += -mmacosx-version-min=10.5
+CXXFLAGS          += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
 CFLAGS            += -DDARWIN -Wall -Wno-format -fPIC
-CFLAGS            += -mmacosx-version-min=10.5
+CFLAGS            += -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
