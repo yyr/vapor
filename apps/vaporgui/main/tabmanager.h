@@ -50,9 +50,11 @@ class TabManager : public QTabWidget{
 		//
 		int insertWidget(QWidget* wid, Params::ParamsBaseType widgetBaseType, bool selected);
 
+		// Add a widget to the list of widgets
+		// Don't actually make it show.
+		//
+		void addWidget(QWidget* wid, Params::ParamsBaseType widgetBaseType);
 
-
-		
 		//Find the position of the specified widget, or -1 if it isn't there.
 		//
 		int findWidget(Params::ParamsBaseType widgetBaseType);
@@ -79,6 +81,13 @@ class TabManager : public QTabWidget{
 		virtual void keyPressEvent(QKeyEvent* e){
 			e->accept();// This prevents a "beep" from occuring when you press enter on the Mac.
 		}
+		static const vector<long>& getTabOrdering() {return tabOrdering;}
+		static void setTabOrdering(const vector<long>& ordering){
+			tabOrdering.clear();
+			tabOrdering = ordering;
+		}
+		//Refresh the tab ordering based on the current values in tabOrdering
+		void orderTabs();
 	public slots:
 		void newFrontTab(int);
 		void tabScrolled();
@@ -86,6 +95,10 @@ class TabManager : public QTabWidget{
 	private:
 		//Data structures to store widget info
 		//
+		//Each value in tabOrdering indicates the position the corresponding widgetBaseType is placed.  Zero indicates that widgetbaseType is not used.
+		//If tabOrdering is longer than number of base types, extra values are ignored.  If tabOrdering is shorter than number of base types, the
+		//unspecified base types are appended at the end.
+		static vector<long> tabOrdering;
 		vector<QWidget*> widgets;
 		vector<ParamsBase::ParamsBaseType> widgetBaseTypes;
 		bool haveMultipleViz;

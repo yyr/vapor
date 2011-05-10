@@ -43,6 +43,7 @@
 #include "mainform.h"
 
 using namespace VAPoR;
+vector<long> TabManager::tabOrdering;
 TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	: QTabWidget(parent)
 {
@@ -75,8 +76,6 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	myScrollArea->setWidget(wid);
 	
 	int posn = count()-1;
-	widgets.push_back(wid);
-	widgetBaseTypes.push_back(widBaseType);
 	
 	if (selected) {
 		setCurrentIndex(posn);
@@ -84,6 +83,14 @@ int TabManager::insertWidget(QWidget* wid, Params::ParamsBaseType widBaseType, b
 	return posn;
 }
 
+//Add a tabWidget to saved list of widgets:
+//
+void TabManager::addWidget(QWidget* wid, Params::ParamsBaseType widBaseType){
+	
+	widgets.push_back(wid);
+	widgetBaseTypes.push_back(widBaseType);
+	
+}
 
 
 
@@ -142,7 +149,7 @@ newFrontTab(int newFrontPosn) {
 	
 	//Don't check, sometimes this method can be used to refresh
 	//the existing front tab
-	
+	if (!Session::getInstance()->isRecording()) return;
 	Params::ParamsBaseType prevType = 0;
 	if(currentFrontPage >= 0) prevType = widgetBaseTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
@@ -179,4 +186,61 @@ void TabManager::scrollFrontToTop(){
 	QScrollArea *sv = (QScrollArea*)currentWidget();
 	sv->ensureVisible(0,0);
 }
+void TabManager::orderTabs(){
+	Session::getInstance()->blockRecording();
+	clear();
 	
+	setEnabled(false);
+	//find how many tabs are used:
+	int numTabs = 0;
+	for (int i = 0; i< tabOrdering.size(); i++) if (tabOrdering[i] > 0) numTabs++;
+	//Make sure the tabOrdering is valid.  It needs to have a place for all paramsBaseTypes
+	if (tabOrdering.size() < Params::GetNumParamsClasses()){
+		for (int i = tabOrdering.size(); i< Params::GetNumParamsClasses(); i++)
+			tabOrdering.push_back(++numTabs);
+	} else if (tabOrdering.size() > Params::GetNumParamsClasses()){
+		int s = tabOrdering.size();
+		for (int i = Params::GetNumParamsClasses(); i<s; i++)
+			if (tabOrdering[i]>0) numTabs--;
+		for (int i = Params::GetNumParamsClasses(); i<s; i++) tabOrdering.pop_back();
+	}
+	assert(tabOrdering.size() == Params::GetNumParamsClasses());
+	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
+	vector<Params::ParamsBaseType> usedTypes;
+	//Go through the tabOrdering, looking in order for each tab position > 0
+	//For each tab position, the corresponding type is the offset where it occurs +1
+	int nextIndex = 1;
+	while (nextIndex <= numTabs) {
+		bool found = false;
+		for (int i = 0; i < tabOrdering.size(); i++){
+			if (tabOrdering[i] == nextIndex){
+				usedTypes.push_back(i+1);
+				nextIndex++;
+				found = true;
+				break;
+			}
+		}
+		assert(found);
+		if(!found) break;
+	}
+	assert(usedTypes.size() == numTabs);
+	//Now add the tabs:
+	for (int i = 0; i< usedTypes.size(); i++){
+		//Find the appropriate widget:
+		bool found = false;
+		for (int j = 0; j< widgets.size(); j++){
+			if (widgetBaseTypes[j] == usedTypes[i]){
+				insertWidget(widgets[j],widgetBaseTypes[j],false);
+				found = true;
+				break;
+			}
+		}
+		if(!found){
+			MessageReporter::warningMsg("Params for tab %d not currently available\n",i);
+		}
+	}
+	currentFrontPage= numTabs -1;
+	Session::getInstance()->unblockRecording();
+	setEnabled(true);
+	update();
+}

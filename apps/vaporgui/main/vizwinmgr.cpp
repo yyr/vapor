@@ -207,7 +207,15 @@ createAllDefaultParams() {
 
 	//Install Extension Classes:
 	InstallExtensions();
-	
+	//Provide default tab ordering if needed:
+	vector<long> defaultOrdering = TabManager::getTabOrdering();
+	vector<long> tempOrdering;
+	//The tab manager needs to be refreshed once with all the tabs in place;  
+	tabManager->setTabOrdering(tempOrdering);
+	tabManager->orderTabs();
+	//Now insert just the desired tabs:
+	tabManager->setTabOrdering(defaultOrdering);
+	tabManager->orderTabs();
 	//Create a default parameter set
 	//For non-renderer params, the default ones are the global ones.
 	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
@@ -2071,10 +2079,8 @@ void VizWinMgr::InstallTab(const std::string tag, EventRouterCreateFcn fcn){
 	QWidget* tabWidget = dynamic_cast<QWidget*> (eRouter);
 	assert(tabWidget);
 	Session::getInstance()->blockRecording();
-	tabManager->insertWidget(tabWidget, typ, true );
+	tabManager->addWidget(tabWidget, typ);
 	Session::getInstance()->unblockRecording();
-	eRouter->updateTab();
-
 	
 }
 AnimationEventRouter* VizWinMgr::

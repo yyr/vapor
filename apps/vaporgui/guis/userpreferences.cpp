@@ -22,6 +22,7 @@
 #include "vizfeatureparams.h"
 #include "userpreferences.h"
 #include "preferences.h"
+#include "tabmanager.h"
 #include "command.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -59,6 +60,7 @@
 
 using namespace VAPoR;
 
+const string UserPreferences::_tabOrderingTag = "TabOrdering";
 const string UserPreferences::_preferencesTag = "UserPreferences";
 const string UserPreferences::_sceneColorsTag = "SceneColors";
 const string UserPreferences::_exportFileNameTag = "ExportFileName";
@@ -133,7 +135,7 @@ UserPreferences::UserPreferences() : QDialog(0), Ui_Preferences(){
 	flowPathButton->setIcon(QIcon(*fileopenIcon));
 	pythonPathButton->setIcon(QIcon(*fileopenIcon));
 	autoSaveButton->setIcon(QIcon(*fileopenIcon));
-
+	
 }
 //Just clone the exposed part, not the QT part
 UserPreferences* UserPreferences::clone(){
@@ -201,6 +203,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->numLights = numLights;
 	newPrefs->ambientCoeff = ambientCoeff;
 	newPrefs->specularExp = specularExp;
+	newPrefs->tabPositions = tabPositions;
 	return newPrefs;
 }
 //Set up the dialog with current parameters from session state
@@ -237,6 +240,7 @@ void UserPreferences::launch(){
 //	sv->resizeContents(w,h);
 	
 	//Do connections for buttons
+	connect (hideUnhideButton, SIGNAL(clicked()),this, SLOT(hideUnhidePressed()));
 	connect (buttonLatestSession, SIGNAL(clicked()),this, SLOT(copyLatestSession()));
 	connect (buttonLatestMetadata, SIGNAL(clicked()),this, SLOT(copyLatestMetadata()));
 	connect (buttonLatestTF, SIGNAL(clicked()),this, SLOT(copyLatestTF()));
@@ -272,7 +276,8 @@ void UserPreferences::launch(){
 	connect (axisArrowsCheckbox, SIGNAL(toggled(bool)), this, SLOT(axisArrowsChanged(bool)));
 	connect (surfaceCheckbox, SIGNAL(toggled(bool)), this, SLOT(showSurfaceChanged(bool)));
 	
-
+	connect (tabNameCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(tabNameChanged(int)));
+	connect (tabOrderSpin,SIGNAL(valueChanged(int)), this, SLOT(tabOrderChanged(int)));
 	//TextBoxes:
 	connect (cacheSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
 	connect (textureSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged()));
@@ -389,6 +394,71 @@ selectBackgroundColor(){
 	backgroundColorEdit->setPalette(pal);
 	backgroundColor = bgColor;
 	dialogChanged = true;
+}
+void UserPreferences::tabNameChanged(int val) {
+	if (val< 0) return;
+	currentTabIndex = val; 
+	tabOrderSpin->setValue(tabPositions[val]);
+	if (tabPositions[val] != 0) hideUnhideButton->setText("Hide");
+	else hideUnhideButton->setText("Show");
+	dialogChanged=true;
+}
+void UserPreferences::hideUnhidePressed(){
+	if (tabPositions[currentTabIndex] > 0){ //Must hide it
+		//All the values larger than this must be reduced:
+		for (int i = 0; i<tabPositions.size(); i++){
+			if (tabPositions[i]>tabPositions[currentTabIndex]) tabPositions[i]--;
+		}
+		tabPositions[currentTabIndex] = 0;
+		tabOrderSpin->setValue(0);
+		hideUnhideButton->setText("Show");
+	} else {//Unhide it
+		tabOrderSpin->setValue(1);
+		hideUnhideButton->setText("Hide");
+	}
+	dialogChanged = true;
+}
+//Respond to user changing the position index of a tab, using the tabOrderSpin.
+//If the position index changes, you need to swap with the tab that uses the new position index
+//If it becomes 0, need to move everything else down 1.
+//If a zero becomes 1, need to move everything else up 1.
+void UserPreferences::tabOrderChanged(int newPosn){
+	int oldPosn = tabPositions[currentTabIndex];
+	if (oldPosn == newPosn) return;
+	dialogChanged = true;
+	//A 1 is changed to zero
+	if (newPosn == 0) {
+		assert(oldPosn == 1);
+		tabPositions[currentTabIndex] = 0;
+		for (int i = 0; i<tabPositions.size(); i++){
+			if (tabPositions[i] > 0) tabPositions[i] = tabPositions[i] -1;
+		}
+		return;
+	}
+	//A zero is changed to 1:
+	if (oldPosn == 0) {
+		assert(newPosn == 1);
+		//Push everything up 1
+		for (int i = 0; i<tabPositions.size(); i++){
+			if (tabPositions[i] > 0) tabPositions[i] = tabPositions[i] +1;
+		}
+		tabPositions[currentTabIndex] = 1;
+		return;
+	}
+	//Find the one that is being displaced
+	int otherPosn = -1;
+	for (int i = 0; i< tabPositions.size(); i++){
+		if (tabPositions[i] == newPosn){
+			otherPosn = i;
+			break;
+		}
+	}
+	assert(otherPosn>= 0);
+	//Now swap with otherPosn;
+	tabPositions[otherPosn] = oldPosn;
+	tabPositions[currentTabIndex] = newPosn;
+	
+	dialogChanged=true;
 }
 void UserPreferences::chooseSessionPath(){
 	//Launch a file-chooser dialog, just choosing the directory
@@ -762,6 +832,20 @@ setDialog(){
 	surfaceCheckbox->setChecked(showTerrain);
 	enableSpinCheckbox->setChecked(spinAnimate);
 
+	//Initialize the tab ordering based on current ordering in TabManager
+	const vector<long>& tabOrdering = TabManager::getTabOrdering();
+	tabPositions = tabOrdering;  //save a copy
+	tabNameCombo->clear();
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+		tabNameCombo->addItem(QString::fromStdString(Params::paramName(i)));
+	}
+	tabNameCombo->setCurrentIndex(0);
+	currentTabIndex = 0;
+	tabOrderSpin->setMaximum(Params::GetNumParamsClasses());
+	tabOrderSpin->setValue(tabPositions[0]);
+	if (tabPositions[0] == 0) hideUnhideButton->setText("Show");
+	else hideUnhideButton->setText("Hide");
+
 }
 void UserPreferences::
 applyToState(){
@@ -835,6 +919,9 @@ applyToState(){
 	GLWindow::setDefaultShowTerrain(showTerrain);
 	GLWindow::setDefaultSpinAnimate(spinAnimate);
 	GLWindow::setSpinAnimation(spinAnimate);
+	
+	TabManager::setTabOrdering(tabPositions);
+	MainForm::getInstance()->getTabManager()->orderTabs();
 	
 }
 void UserPreferences::okClicked(){
@@ -977,6 +1064,7 @@ ParamNode* UserPreferences::buildNode(){
 	mainNode->SetElementString(_pythonDirectoryPathTag, ses->getPrefPythonDirectory());
 	mainNode->SetElementString(_exportFileNameTag, ses->getExportFile());
 	mainNode->SetElementString(_logFileNameTag, ses->getLogfileName());
+	mainNode->SetElementLong(_tabOrderingTag, TabManager::getTabOrdering());
 	
 	//Create a node for message reporting:
 
@@ -1359,7 +1447,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					}
 				}
 				return true;
-			// Handle various path strings at end parse...
+			// Handle various path strings and tabOrdering at end parse...
 			} else if (StrCmpNoCase(tag, _exportFileNameTag) == 0 ||
 				StrCmpNoCase(tag, _imageCapturePathTag) == 0 ||
 				StrCmpNoCase(tag, _flowDirectoryPathTag) == 0 ||
@@ -1368,7 +1456,8 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 				StrCmpNoCase(tag, _tfPathTag) == 0 ||
 				StrCmpNoCase(tag, _sessionPathTag) == 0 ||
 				StrCmpNoCase(tag, _metadataPathTag) == 0 ||
-				StrCmpNoCase(tag, _autoSaveFilenameTag) == 0)
+				StrCmpNoCase(tag, _autoSaveFilenameTag) == 0 ||
+				StrCmpNoCase(tag, _tabOrderingTag) == 0 )
 			{
 				if (*attrs) {
 					if (StrCmpNoCase(*attrs, _typeAttr) != 0) {
@@ -1617,8 +1706,8 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 	//Need only to get path names
 	if (depth != 1) return true;
-	ExpatStackElement *state = pm->getStateStackTop();
-	//Two tags don't have any data:
+	//ExpatStackElement *state = pm->getStateStackTop();
+	//These tags don't have any data:
 	if (StrCmpNoCase(tag, _messagesTag) == 0) return true;
 	if (StrCmpNoCase(tag, _sceneColorsTag) == 0) return true;
 	if (StrCmpNoCase(tag, _probeDefaultsTag) == 0) return true;
@@ -1628,11 +1717,9 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 	if (StrCmpNoCase(tag, _animationDefaultsTag) == 0) return true;
 	if (StrCmpNoCase(tag, _vizFeatureDefaultsTag) == 0) return true;
 	if (StrCmpNoCase(tag, _dvrDefaultsTag) == 0) return true;
-	//all of these are supposed to be strings:
-	if (StrCmpNoCase(state->data_type, _stringType) != 0) {
-		return false;
-	}
+
 	const string &strdata = pm->getStringData();
+	const vector<long>& longdata = pm->getLongData();
 	Session* ses = Session::getInstance();
 	if (StrCmpNoCase(tag, _exportFileNameTag) == 0){
 		ses->setExportFile(strdata.c_str());
@@ -1652,6 +1739,8 @@ bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::strin
 		ses->setAutoSaveSessionFilename(strdata.c_str());
 	} else if (StrCmpNoCase(tag, _metadataPathTag) == 0){
 		ses->setPrefMetadataDirectory(strdata.c_str());
+	} else if (StrCmpNoCase(tag, _tabOrderingTag) == 0){
+		tabPositions = longdata;
 	} else {
 		pm->parseError("Invalid preferences tag  : \"%s\"", tag.c_str());
 		return false;
@@ -1670,6 +1759,7 @@ bool UserPreferences::loadPreferences(const char* filename){
 	//Then set values from file.
 	//Create a dummy userpreferences class that does the parsing
 	UserPreferences* userPrefs = new UserPreferences;
+	userPrefs->tabPositions.clear();
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(userPrefs);
 	parseMgr->parse(is);
 	is.close();
@@ -1682,6 +1772,12 @@ bool UserPreferences::loadPreferences(const char* filename){
 	ses->setFlowDirectory(ses->getPrefFlowDirectory().c_str());
 	ses->setPythonDirectory(ses->getPrefPythonDirectory().c_str());
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
+	if (userPrefs->tabPositions.size()> 0){
+		TabManager::setTabOrdering(userPrefs->tabPositions);
+		//Only apply the tab ordering if the Params have already been set up:
+		if (Params::GetNumParamsClasses()>0)
+			MainForm::getInstance()->getTabManager()->orderTabs();
+	}
 
 	delete userPrefs;
 	MessageReporter::getInstance()->reset(Session::getInstance()->getLogfileName().c_str());
@@ -1701,6 +1797,12 @@ void UserPreferences::setDefault(){
 	GLWindow::setDefaultPrefs();
 	MessageReporter::getInstance()->setDefaultPrefs();
 	Session::getInstance()->setDefaultPrefs();
+	vector<long> defaultOrder;
+	for (int i = 1; i<=Params::GetNumParamsClasses(); i++)
+		defaultOrder.push_back(i);
+	TabManager::setTabOrdering(defaultOrder);
+	MainForm::getInstance()->getTabManager()->orderTabs();
+
 }
 void UserPreferences::setDefaultDialog(){
 	//Set all the params to defaults
@@ -1836,6 +1938,4 @@ bool UserPreferences::loadDefault(){
 	ses->setJpegDirectory(ses->getPrefJpegDirectory().c_str());
 	MessageReporter::infoMsg("Set user preferences to defaults");
 	return false;
-	
-
 }

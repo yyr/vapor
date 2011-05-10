@@ -111,6 +111,9 @@ protected slots:
 	void copyLatestImage();
 	void copyLatestFlow();
 	void copyLatestPython();
+	void tabNameChanged(int val); 
+	void tabOrderChanged(int);
+	void hideUnhidePressed();
 	
 protected:
 	static const string _preferencesTag;
@@ -136,6 +139,7 @@ protected:
 	static const string _viewDirAttr;
 	static const string _upVecAttr;
 	static const string _flowDefaultsTag;
+	static const string _tabOrderingTag;
 	static const string _integrationAccuracyAttr;
 	static const string _smoothnessAttr;
 	static const string _flowLengthAttr;
@@ -219,6 +223,9 @@ protected:
 	bool spinAnimate;
 	int autoSaveInterval;
 	bool showAll;
+	//Indicate position of tab associated with a paramsBaseType, or 0 if it is not shown:
+	int currentTabIndex;
+	vector<long> tabPositions;
 };
 
 
