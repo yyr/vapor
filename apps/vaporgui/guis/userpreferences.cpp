@@ -425,7 +425,7 @@ void UserPreferences::hideUnhidePressed(){
 void UserPreferences::tabOrderChanged(int newPosn){
 	int oldPosn = tabPositions[currentTabIndex];
 	if (oldPosn == newPosn) return;
-	dialogChanged = true;
+	dialogChanged = false;
 	//A 1 is changed to zero
 	if (newPosn == 0) {
 		assert(oldPosn == 1);
@@ -433,6 +433,7 @@ void UserPreferences::tabOrderChanged(int newPosn){
 		for (int i = 0; i<tabPositions.size(); i++){
 			if (tabPositions[i] > 0) tabPositions[i] = tabPositions[i] -1;
 		}
+		dialogChanged = true;
 		return;
 	}
 	//A zero is changed to 1:
@@ -443,6 +444,7 @@ void UserPreferences::tabOrderChanged(int newPosn){
 			if (tabPositions[i] > 0) tabPositions[i] = tabPositions[i] +1;
 		}
 		tabPositions[currentTabIndex] = 1;
+		dialogChanged=true;
 		return;
 	}
 	//Find the one that is being displaced
@@ -453,7 +455,9 @@ void UserPreferences::tabOrderChanged(int newPosn){
 			break;
 		}
 	}
-	assert(otherPosn>= 0);
+	if(otherPosn < 0) {
+		return; //Invalid index
+	}
 	//Now swap with otherPosn;
 	tabPositions[otherPosn] = oldPosn;
 	tabPositions[currentTabIndex] = newPosn;

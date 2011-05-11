@@ -199,10 +199,11 @@ void TabManager::orderTabs(){
 		for (int i = tabOrdering.size(); i< Params::GetNumParamsClasses(); i++)
 			tabOrdering.push_back(++numTabs);
 	} else if (tabOrdering.size() > Params::GetNumParamsClasses()){
-		int s = tabOrdering.size();
-		for (int i = Params::GetNumParamsClasses(); i<s; i++)
-			if (tabOrdering[i]>0) numTabs--;
-		for (int i = Params::GetNumParamsClasses(); i<s; i++) tabOrdering.pop_back();
+		//If the ordering is too large, revert to the default
+		tabOrdering.clear();
+		for (int i = 1; i<= Params::GetNumParamsClasses(); i++)
+			tabOrdering.push_back(i);
+		numTabs = tabOrdering.size();
 	}
 	assert(tabOrdering.size() == Params::GetNumParamsClasses());
 	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
@@ -220,8 +221,16 @@ void TabManager::orderTabs(){
 				break;
 			}
 		}
-		assert(found);
-		if(!found) break;
+		if(!found) {//bad ordering.  Revert to default:
+			tabOrdering.clear();
+			usedTypes.clear();
+			for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
+				tabOrdering.push_back(i);
+				usedTypes.push_back(i);
+			}
+			numTabs = tabOrdering.size();
+			break;
+		}
 	}
 	assert(usedTypes.size() == numTabs);
 	//Now add the tabs:
@@ -236,10 +245,11 @@ void TabManager::orderTabs(){
 			}
 		}
 		if(!found){
-			MessageReporter::warningMsg("Params for tab %d not currently available\n",i);
+			MessageReporter::warningMsg("Params for tab %d not available in this install\n",i);
 		}
 	}
-	currentFrontPage= numTabs -1;
+	currentFrontPage= numTabs-1;
+	setCurrentIndex(currentFrontPage);
 	Session::getInstance()->unblockRecording();
 	setEnabled(true);
 	update();
