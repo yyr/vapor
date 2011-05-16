@@ -1,10 +1,12 @@
 #Python program to calculate radar reflectivity using WRF variables
 #Copied from NCL/Fortran source code wrf_user_dbz.f
 #Based on work by Mark Stoellinga, U. of Washington
-#Inputs:  P, PB, QRAIN, QGRAUP, QSNOW, T, QVAPOR
-#Outputs: WRF_DBZ (3d) and WRF_DBZ_MAX (2d)
-#WRF_DBZ_MAX is a 2D variable, the maximum over vertical columns of WRF_DBZ
+#3D Inputs:  P, PB, QRAIN, QGRAUP, QSNOW, T, QVAPOR
+#Except QGRAUP is not included if not available.
+#3D Output: WRF_DBZ
+#2D Output: WRF_DBZ_MAX is maximum over vertical columns of WRF_DBZ
 #parameters ivarint and iliqskin defined as in original code, either 0 or 1.
+#set to 0 by default
 #If iliqskin=1, frozen particles above freezing are assumed to scatter as a liquid particle
 #If ivarint=0, the intercept parameters are assumed constant with values of 
 # 8*10^6, 2*10^7, and 4*10^6, for rain, snow, and graupel respectively.
@@ -48,7 +50,10 @@ TK = (T+300.)*numpy.power(PRESS*.00001,c)
 QVAPOR = maximum(QVAPOR,0.0)
 QSNOW = maximum(QSNOW,0.0)
 QRAIN = maximum(QRAIN,0.0)
-QGRAUP = 0.0
+if (vapor.VariableExists(__TIMESTEP__,"QGRAUP")):
+	QGRAUP = maximum(QGRAUP,0.0)
+else:	
+	QGRAUP = 0.0
 
 TestT = less(TK,CELKEL)
 QSNOW = where(TestT,QRAIN, QSNOW)
@@ -80,6 +85,6 @@ Z_E = FACTOR_R*power(RHOAIR*QRAIN,1.75)/power(RONV,0.75)
 Z_E = Z_E+FACTORB_S*power(RHOAIR*QSNOW,1.75)/power(SONV,0.75)
 Z_E = Z_E+FACTORB_G*power(RHOAIR*QGRAUP,1.75)/power(GONV,0.75)
 Z_E = maximum(Z_E, 0.001)
-QGROUP=0
+
 WRF_DBZ = 10.0*log10(Z_E)
 WRF_DBZ_MAX = amax(WRF_DBZ,axis=0)
