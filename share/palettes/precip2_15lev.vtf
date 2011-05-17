@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<TransferFunction Type="ParamsBase" >
+<OpacityComposition Type="Long">
+  0 
+</OpacityComposition>
+<LeftBound Type="Double">
+  0 
+</LeftBound>
+<RightBound Type="Double">
+  0.9375 
+</RightBound>
+<OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
+<OpacityMapControlPoint Opacity="1"  Value="0" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="0.333" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="0.667" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="1" >
+</OpacityMapControlPoint>
+</OpacityMap>
+<Colormap MaxValue="1"  MinValue="0" >
+<ColorMapControlPoint HSV="0 0 1"  Value="0" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.833333 1 0.392157"  Value="0.0666667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.833333 1 0.686275"  Value="0.133333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.833333 1 0.862745"  Value="0.2" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.666667 0.75 0.784314"  Value="0.266667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.601307 1 1"  Value="0.333333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.5 1 0.588235"  Value="0.4" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.375 1 0.784314"  Value="0.466667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.267974 1 1"  Value="0.533333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.235294 1 1"  Value="0.6" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.211382 0.803922 1"  Value="0.666667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.166667 1 1"  Value="0.733333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.130719 1 1"  Value="0.8" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.104575 1 1"  Value="0.866667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.0816993 1 1"  Value="0.933333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.0185185 1 0.882353"  Value="1" >
+</ColorMapControlPoint>
+</Colormap>
+</TransferFunction>

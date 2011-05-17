@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<TransferFunction Type="ParamsBase" >
+<OpacityComposition Type="Long">
+  0 
+</OpacityComposition>
+<LeftBound Type="Double">
+  0 
+</LeftBound>
+<RightBound Type="Double">
+  0.923076927662 
+</RightBound>
+<OpacityMap Enabled="1"  Freq="5"  MaxValue="1"  Mean="0.5"  MinValue="0"  Phase="6.28319"  SSq="0.1"  Type="0" >
+<OpacityMapControlPoint Opacity="1"  Value="0" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="0.333" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="0.667" >
+</OpacityMapControlPoint>
+<OpacityMapControlPoint Opacity="1"  Value="1" >
+</OpacityMapControlPoint>
+</OpacityMap>
+<Colormap MaxValue="1"  MinValue="0" >
+<ColorMapControlPoint HSV="0.0774648 0.78022 0.713726"  Value="0" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.0821596 0.692683 0.803922"  Value="0.0833333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.0866667 0.555556 0.882353"  Value="0.166667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.10767 0.461224 0.960784"  Value="0.25" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.126437 0.355102 0.960784"  Value="0.333333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.142512 0.270588 1"  Value="0.416667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0 0 1"  Value="0.5" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.333333 0.196078 1"  Value="0.583333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.381226 0.3625 0.941176"  Value="0.666667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.45283 0.560847 0.741176"  Value="0.75" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.555556 0.45 0.784314"  Value="0.833333" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.562378 0.971591 0.690196"  Value="0.916667" >
+</ColorMapControlPoint>
+<ColorMapControlPoint HSV="0.562015 0.977273 0.345098"  Value="1" >
+</ColorMapControlPoint>
+</Colormap>
+</TransferFunction>

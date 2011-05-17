@@ -1,5 +1,8 @@
 #Python program to calculate Horizontal wind shear
-#To avoid meaningless values below terrain, set U and V to have value 0 below terrain.
+#Input 3D variables: U, V
+#Output 3D variable: WRF_SHEAR
+#Shear is defined as the RMS difference between the horizontal velocity divided by the vertical elevation difference
+#To avoid useless values below terrain, set U and V to have value 0 below terrain.
 s = shape(U)	#size of the input arrays  
 ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
 usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
