@@ -377,14 +377,14 @@ void MapperFunctionBase::rgbToHsv(float* rgb, float* hsv)
 	//value is max (r,g,b)
 	float maxval = Max(rgb[0],Max(rgb[1],rgb[2]));
 	float minval = Min(rgb[0],Min(rgb[1],rgb[2]));
-	float delta = maxval - minval;
+	float delta = maxval - minval; //chrominance
 	hsv[2] = maxval;
 	if (maxval != 0.f) hsv[1] = delta/maxval;
 	else hsv[1] = 0.f;
 	if (hsv[1] == 0.f) hsv[0] = 0.f; //no hue!
 	else {
 		if (rgb[0] == maxval){
-			hsv[0] = (rgb[1]-rgb[0])/delta;
+			hsv[0] = (rgb[1]-rgb[2])/delta;
 			if (hsv[0]< 0.f) hsv[0]+= 6.f;
 		} else if (rgb[1] == maxval){
 			hsv[0] = 2.f + (rgb[2]-rgb[0])/delta;

@@ -14,6 +14,7 @@
 #include <vapor/ParamNode.h>
 #include <vapor/MyBase.h>
 #include <vapor/ColorMapBase.h>
+#include <vapor/MapperFunctionBase.h>
 #include "assert.h"
 
 #ifndef MAX
@@ -36,6 +37,7 @@ const string ColorMapBase::_minTag = "MinValue";
 const string ColorMapBase::_maxTag = "MaxValue";
 const string ColorMapBase::_controlPointTag = "ColorMapControlPoint";
 const string ColorMapBase::_cpHSVTag = "HSV";
+const string ColorMapBase::_cpRGBTag = "RGB";
 const string ColorMapBase::_cpValueTag = "Value";
 
 
@@ -638,7 +640,19 @@ bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag
         ist >> sat;
         ist >> val;
       }
-
+	  else if (StrCmpNoCase(attribName, _cpRGBTag) == 0) 
+      {
+	    float rgb[3],hsv[3];
+        ist >> rgb[0];
+        ist >> rgb[1];
+        ist >> rgb[2];
+		for (int i = 0; i<3; i++) rgb[i] /= 256.f;
+		MapperFunctionBase::rgbToHsv(rgb,hsv);
+		hue = hsv[0];
+		sat = hsv[1];
+		val = hsv[2];
+		
+      }
       // Value
       else if (StrCmpNoCase(attribName, _cpValueTag) == 0) 
       {
