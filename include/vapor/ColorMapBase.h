@@ -142,6 +142,7 @@ private:
   static const string _maxTag;
   static const string _controlPointTag;  
   static const string _cpHSVTag;
+  static const string _cpRGBTag;
   static const string _cpValueTag;
 };
 };
