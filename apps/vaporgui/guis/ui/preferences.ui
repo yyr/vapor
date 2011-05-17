@@ -2124,7 +2124,7 @@
                       </size>
                      </property>
                      <property name="toolTip">
-                      <string>Specify default transfer function directory</string>
+                      <string>Specify default directory for python scripts</string>
                      </property>
                      <property name="text">
                       <string/>
