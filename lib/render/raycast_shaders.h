@@ -29,8 +29,7 @@
 // backface shader - stores depth in w component of color 
 //----------------------------------------------------------------------------
 static char fragment_shader_backface[] =
-  "  "
-  "  "
+  "#version 120\n"
   "//------------------------------------------------------------------\n"
   "// Fragment shader main\n"
   "//------------------------------------------------------------------\n"
@@ -46,7 +45,9 @@ static char fragment_shader_backface[] =
 // Isosurface with light
 //----------------------------------------------------------------------------
 static char fragment_shader_iso_lighting[] =
-  " "
+  "\n"
+  "\n"
+  "#version 120\n"
   "uniform sampler2D texcrd_buffer;	// tex coords for back facing quads\n"
   "uniform sampler2D depth_buffer;	// depth back facing quads\n"
   "uniform sampler3D volumeTexture;	// sampled data to ray cast\n"
@@ -68,7 +69,6 @@ static char fragment_shader_iso_lighting[] =
   " "
   "varying vec4 position;	// interpolated gl_Position\n"
   "varying vec3 view;	// normalized, negative position (view vector)\n"
-  "varying vec3 ecPosition;\n"
   " "
   "vec3 Gradient(in vec3, in vec3);\n"
   " "
@@ -114,7 +114,7 @@ static char fragment_shader_iso_lighting[] =
   "  "
   "  // Ugh. Hard-wire number of samples. Bad things happen when view point \n"
   "  // is inside the view volume using above code \n"
-  "  if (nsegs) nsegs = 256.0;\n"
+  "  if (nsegs>0) nsegs = 256;\n"
   "  vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));\n"
   "  float deltaZ = (zStopEye-zStartEye) / float(nsegs);\n"
   "  "
@@ -157,8 +157,8 @@ static char fragment_shader_iso_lighting[] =
   "        float specular = 0.0;\n"
   "        "
   "        if (length(gradient) > 0.0) {\n"
-  "          gradient = normalize(gradient);\n"
   " "
+  "          gradient = normalize(gradient);\n"
   "          // Ugh. Need to convert ray intersection point to eye coords \n"
   "          vec4 posClip = vec4( \n"
   "            posNDC, \n"
@@ -171,7 +171,7 @@ static char fragment_shader_iso_lighting[] =
   "          "
   "          vec3 lightVec      = normalize(lightDirection);\n"
   "          vec3 halfv      = reflect(-lightVec, gradient);\n"
-  "          vec3 viewVec      = normalize(-eyePos);\n"
+  "          vec3 viewVec      = normalize(-eyePos.xyz);\n"
   "          "
   "          diffuse  = abs(dot(lightVec, gradient));\n"
   "          if (diffuse > 0.0) {\n"
@@ -249,13 +249,11 @@ static char vertex_shader_iso_lighting[] =
   "uniform mat4 glModelViewProjectionMatrix;\n"
   "varying vec3 view;\n"
   "varying vec4 position;\n"
-  "varying vec3 ecPosition;\n"
   "void main(void)\n"
   "{\n"
   "  gl_TexCoord[0] = gl_MultiTexCoord0;\n"
   "  gl_Position    = ftransform();\n"
   "  position       = gl_Position;\n"
-  "  ecPosition     = vec3(gl_ModelViewMatrix * gl_Vertex);\n"
   "  view           = normalize(-gl_Position.xyz);\n"
   "}\n";
 
@@ -266,7 +264,7 @@ static char vertex_shader_iso_lighting[] =
 // Isosurface without lighting
 //----------------------------------------------------------------------------
 static char fragment_shader_iso[] =
-  " "
+  "#version 120\n"
   "uniform sampler2D texcrd_buffer;	// tex coords for back facing quads\n"
   "uniform sampler2D depth_buffer;	// depth back facing quads\n"
   "uniform sampler3D volumeTexture;	// sampled data to ray cast\n"
@@ -318,7 +316,7 @@ static char fragment_shader_iso[] =
   "  "
   "  // Ugh. Hard-wire number of samples. Bad things happen when view point \n"
   "  // is inside the view volume using above code \n"
-  "  if (nsegs) nsegs = 256.0;\n"
+  "  if (nsegs>0) nsegs = 256;\n"
   "  vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));\n"
   "  float deltaZ = (zStopEye-zStartEye) / float(nsegs);\n"
   "  "
@@ -416,7 +414,7 @@ static char vertex_shader_iso[] =
 // Colored Isosurface with light
 //----------------------------------------------------------------------------
 static char fragment_shader_iso_color_lighting[] =
-  " "
+  "#version 120\n"
   "uniform sampler1D colormap;\n"
   "uniform sampler2D texcrd_buffer;	// tex coords for back facing quads\n"
   "uniform sampler2D depth_buffer;	// depth back facing quads\n"
@@ -438,7 +436,6 @@ static char fragment_shader_iso_color_lighting[] =
   " "
   "varying vec4 position;	// interpolated gl_Position\n"
   "varying vec3 view;	// normalized, negative position (view vector)\n"
-  "varying vec3 ecPosition;\n"
   " "
   "vec3 Gradient(in vec3, in vec3);\n"
   " "
@@ -484,7 +481,7 @@ static char fragment_shader_iso_color_lighting[] =
   "  "
   "  // Ugh. Hard-wire number of samples. Bad things happen when view point \n"
   "  // is inside the view volume using above code \n"
-  "  if (nsegs) nsegs = 256.0;\n"
+  "  if (nsegs>0) nsegs = 256;\n"
   "  vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));\n"
   "  float deltaZ = (zStopEye-zStartEye) / float(nsegs);\n"
   "  "
@@ -622,13 +619,11 @@ static char vertex_shader_iso_color_lighting[] =
   "uniform mat4 glModelViewProjectionMatrix;\n"
   "varying vec3 view;\n"
   "varying vec4 position;\n"
-  "varying vec3 ecPosition;\n"
   "void main(void)\n"
   "{\n"
   "  gl_TexCoord[0] = gl_MultiTexCoord0;\n"
   "  gl_Position    = ftransform();\n"
   "  position       = gl_Position;\n"
-  "  ecPosition     = vec3(gl_ModelViewMatrix * gl_Vertex);\n"
   "  view           = normalize(-gl_Position.xyz);\n"
   "}\n";
 
@@ -639,7 +634,7 @@ static char vertex_shader_iso_color_lighting[] =
 // Isosurface without lighting
 //----------------------------------------------------------------------------
 static char fragment_shader_iso_color[] =
-  " "
+  "#version 120\n"
   "uniform sampler1D colormap;\n"
   "uniform sampler2D texcrd_buffer;	// tex coords for back facing quads\n"
   "uniform sampler2D depth_buffer;	// depth back facing quads\n"
@@ -691,7 +686,7 @@ static char fragment_shader_iso_color[] =
   "  "
   "  // Ugh. Hard-wire number of samples. Bad things happen when view point \n"
   "  // is inside the view volume using above code \n"
-  "  if (nsegs) nsegs = 256.0;\n"
+  "  if (nsegs>0) nsegs = 256;\n"
   "  vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));\n"
   "  float deltaZ = (zStopEye-zStartEye) / float(nsegs);\n"
   "  "
