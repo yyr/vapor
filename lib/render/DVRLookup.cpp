@@ -133,6 +133,7 @@ int DVRLookup::Render(const float matrix[16])
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
 	
+  calculateSampling();
   renderBricks();
 	
   glDisable(GL_BLEND);

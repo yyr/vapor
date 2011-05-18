@@ -75,9 +75,10 @@ class RENDER_API DVRTexture3d : public DVRBase
 
 
 
-  virtual void calculateSampling();
 
   protected:
+
+  virtual void calculateSampling();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,
@@ -121,7 +122,8 @@ protected:
 
   bool   _renderFast;
 
-  float  _delta;
+  float  _delta;	// sample distance along Z in world coordinates
+  float  _deltaEye;	// sample distance along Z in eye coordinates
   float  _samples;
   float  _samplingRate;
   int    _minimumSamples;

@@ -307,6 +307,7 @@ void DVRTexture3d::calculateSampling()
   }
 
   _delta = distance / _samples;
+  _deltaEye = (volumeBox.maxZ().z - volumeBox.minZ().z) / _samples; 
 }
 
 //----------------------------------------------------------------------------

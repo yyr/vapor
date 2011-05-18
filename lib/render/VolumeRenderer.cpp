@@ -370,19 +370,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		const GLint* viewport = myGLWindow->getViewport();
 		_driver->Resize(viewport[2], viewport[3]);
 	}
-	//If the extents are varying, we need to change the clipping planes whenever
-	//the time step changes.
-	if (myGLWindow->vizIsDirty(ProjMatrixBit)||
-		(myGLWindow->vizIsDirty(AnimationBit) && myRegionParams->extentsAreVarying())) {
-		GLfloat nearplane, farplane;
-		myGLWindow->getNearFarClippingPlanes(&nearplane, &farplane);
-		_driver->SetNearFar(nearplane, farplane);
-		
-		_driver->calculateSampling();
-		//set clut dirty to force recalc of sampling rate
-		setClutDirty();
-	}
-	
   
   //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
   //the roi is mapped into.  First find the mapping of the full data array.  This

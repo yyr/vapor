@@ -227,19 +227,11 @@ void DVRRayCaster2Var::initShaderVariables() {
 	if (_shader->enable() < 0) return;
 
 	if (GLEW_VERSION_2_0) {
-		//glUniform1fv(_shader->uniformLocation("isovalues"), _nisos, _values);
-		//glUniform1i(_shader->uniformLocation("numiso"), _nisos);
 
-		glUniform1f(_shader->uniformLocation("isovalues"), _values[0]);
-		glUniform1f(_shader->uniformLocation("zN"), _nearClip);
-		glUniform1f(_shader->uniformLocation("zF"), _farClip);
+		glUniform1f(_shader->uniformLocation("isovalue"), _values[0]);
 	} else {
-		//glUniform1fvARB(_shader->uniformLocation("isovalues"), _nisos, _values);
-		//glUniform1iARB(_shader->uniformLocation("numiso"), _nisos);
 
-		glUniform1fARB(_shader->uniformLocation("isovalues"), _values[0]);
-		glUniform1fARB(_shader->uniformLocation("zN"), _nearClip);
-		glUniform1fARB(_shader->uniformLocation("zF"), _farClip);
+		glUniform1fARB(_shader->uniformLocation("isovalue"), _values[0]);
 	}
 
 	if (_lighting) {

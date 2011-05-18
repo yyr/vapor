@@ -45,8 +45,6 @@ DVRRayCaster::DVRRayCaster(
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
 	_backface_depth_texid = 0;
-	_nearClip = 1.0;
-	_farClip = 2.0;
 
 	_nisos = 0;
 
@@ -198,12 +196,24 @@ int DVRRayCaster::Render(const float matrix[16])
 	if (_shader) if (_shader->enable() < 0) return(0);
 
 	DVRTexture3d::calculateSampling();
-	float delta = _delta * 2;
+
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
 
 	if (GLEW_VERSION_2_0) {
-		glUniform1f(_shader->uniformLocation("delta"), delta);
+		glUniform1f(_shader->uniformLocation("delta"), _deltaEye);
+		if (_lighting) {
+			glUniform2f(
+				_shader->uniformLocation("winsize"), viewport[2], viewport[3]
+			);
+		}
 	} else {
-		glUniform1fARB(_shader->uniformLocation("delta"), delta);
+		glUniform1fARB(_shader->uniformLocation("delta"), _deltaEye);
+		if (_lighting) {
+			glUniform2fARB(
+				_shader->uniformLocation("winsize"), viewport[2], viewport[3]
+			);
+		}
 	}
 	if (_shader) _shader->disable();
 
@@ -567,17 +577,6 @@ void DVRRayCaster::SetIsoValues(
 
 }
 
-void DVRRayCaster::SetNearFar(GLfloat nearplane, GLfloat farplane) {
-
-	_nearClip = nearplane;
-	_farClip = farplane;
-	initShaderVariables();
-}
-
-
-
-
-
 
 //----------------------------------------------------------------------------
 // Initalize the textures (i.e., 3d volume texture and the 1D colormap texture)
@@ -674,11 +673,11 @@ int DVRRayCaster::initTextures()
 	 Date 05/03/11 
 	 Summary: changed the texture params to comply with OpenGL spec */
 	
-	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
 	
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
 
 	for (int i=0; i<num_depth_fmts; i++) {
 		glTexImage2D(
@@ -721,29 +720,19 @@ void DVRRayCaster::initShaderVariables() {
 	if (_shader->enable() < 0) return;
 
 	if (GLEW_VERSION_2_0) {
-		//glUniform1fv(_shader->uniformLocation("isovalues"), _nisos, _values);
-		//glUniform4fv(_shader->uniformLocation("isocolors"), _nisos, _colors);
-		//glUniform1i(_shader->uniformLocation("numiso"), _nisos);
 
 		glUniform4f(
-			_shader->uniformLocation("isocolors"), 
+			_shader->uniformLocation("isocolor"), 
 			_colors[0], _colors[1], _colors[2], _colors[3]
 		);
-		glUniform1f(_shader->uniformLocation("isovalues"), _values[0]);
-		glUniform1f(_shader->uniformLocation("zN"), _nearClip);
-		glUniform1f(_shader->uniformLocation("zF"), _farClip);
+		glUniform1f(_shader->uniformLocation("isovalue"), _values[0]);
 	} else {
-		//glUniform1fvARB(_shader->uniformLocation("isovalues"), _nisos, _values);
-		//glUniform4fvARB(_shader->uniformLocation("isocolors"), _nisos, _colors);
-		//glUniform1iARB(_shader->uniformLocation("numiso"), _nisos);
 
 		glUniform4fARB(
-			_shader->uniformLocation("isocolors"), 
+			_shader->uniformLocation("isocolor"), 
 			_colors[0], _colors[1], _colors[2], _colors[3]
 		);
-		glUniform1fARB(_shader->uniformLocation("isovalues"), _values[0]);
-		glUniform1fARB(_shader->uniformLocation("zN"), _nearClip);
-		glUniform1fARB(_shader->uniformLocation("zF"), _farClip);
+		glUniform1fARB(_shader->uniformLocation("isovalue"), _values[0]);
 	}
 
 	if (_lighting) {

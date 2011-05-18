@@ -282,6 +282,8 @@ int DVRShader::Render(const float matrix[16])
 {
   if (_shader) if (_shader->enable() < 0) return(-1);
 
+  calculateSampling();
+
   glPolygonMode(GL_FRONT, GL_FILL);
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);
