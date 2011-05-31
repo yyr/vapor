@@ -138,7 +138,7 @@ void MetadataWRF::_MetadataWRF(
       twrfvars2d,tgl_attr,tt_latlon_exts
     );
 
-	usingRotLatLon = (tmapprojection.find("ob_tran") != string.npos);
+	usingRotLatLon = (tmapprojection.find("ob_tran") != (size_t)-1);
 
     if (vertexts_ptr[0] >= vertexts_ptr[1]) {
       WRF::SetErrMsg(

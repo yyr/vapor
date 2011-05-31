@@ -176,7 +176,6 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 	float lat0,lat1,lat2,lon0,latts,latp,lonp;
 	int projNum;
 
-	const double RAD2DEG = 180./3.141592653589793;
 	if (nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) != NC_NOERR) return -1;
 
 	switch (projNum){
