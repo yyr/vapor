@@ -153,7 +153,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib  proj.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib  proj_i.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"

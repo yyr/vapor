@@ -82,6 +82,7 @@ void MetadataWRF::_MetadataWRF(
   float vertexts[2] = {0.0, 0.0};
   float *vertexts_ptr = vertexts;
   float dx = 0.0, tdx = 0.0, dy = 0.0, tdy = 0.0;
+  float cen_lat= 1.e30f, cen_lon=1.e30f;
   int i = 0;
   bool first_file_flag = true;
   bool mismatch_flag = false;
@@ -116,7 +117,7 @@ void MetadataWRF::_MetadataWRF(
 // Walk through the files and see if each is valid by all
 // have the same variables and attribute values. Keep the 
 // good files.  The first file is the template for the rest.
-
+  bool usingRotLatLon = false;
   for(i=0; i < infiles.size(); i++) {
     twrfvars3d.clear();
     twrfvars2d.clear();
@@ -137,6 +138,8 @@ void MetadataWRF::_MetadataWRF(
       twrfvars2d,tgl_attr,tt_latlon_exts
     );
 
+	usingRotLatLon = (tmapprojection.find("ob_tran") != string.npos);
+
     if (vertexts_ptr[0] >= vertexts_ptr[1]) {
       WRF::SetErrMsg(
         "Error processing file %s (invalid vertical extents), skipping.",
@@ -146,7 +149,7 @@ void MetadataWRF::_MetadataWRF(
       continue;
     }
 
-// Grab the dx and dy values from attrib list;
+// Grab the dx and dy and cen_lat, cen_lon values from attrib list;
 
       for(sf_pair_iter= tgl_attr.begin();sf_pair_iter< tgl_attr.end();sf_pair_iter++) {
         attr = *sf_pair_iter;
@@ -154,9 +157,22 @@ void MetadataWRF::_MetadataWRF(
           tdx = attr.second;
         if (attr.first == "DY") 
           tdy = attr.second;
+		if (attr.first == "CEN_LAT") 
+          cen_lat = attr.second;
+        if (attr.first == "CEN_LON") 
+          cen_lon = attr.second;
       }
       if(tdx < 0.0 || tdy < 0.0) {
         ErrMsgStr.assign("Error: DX and DY attributes not found in ");
+        ErrMsgStr += infiles[i];
+        ErrMsgStr.append(", skipping.");
+        SetErrMsg(ErrMsgStr.c_str());
+        SetErrCode(0);
+        continue;
+      }
+
+	  if(usingRotLatLon && (cen_lat == 1.e30f || cen_lon == 1.e30f)) {
+        ErrMsgStr.assign("Error: Using Rotated Lat Lon but CEN_LAT and CEN_LON attributes not found in ");
         ErrMsgStr += infiles[i];
         ErrMsgStr.append(", skipping.");
         SetErrMsg(ErrMsgStr.c_str());
@@ -287,11 +303,21 @@ void MetadataWRF::_MetadataWRF(
   Time_latlon_extents = tt_latlon_exts; 
 
 // Calculate the rest of the Extents.
+  if (!usingRotLatLon){
+	Extents[0] = 0.0; 
+	Extents[1] = 0.0; 
+	Extents[3] = dx * (Dimens[0] - 1); 
+	Extents[4] = dy * (Dimens[1] - 1); 
+  } else {
+		//Make the rotated latlon center at the middle of the projection.
+		Extents[0] = -0.5* dx * (Dimens[0] - 1); 
+		Extents[1] = -0.5* dy * (Dimens[1] - 1); 
+		Extents[3] = 0.5* dx * (Dimens[0] - 1); 
+		Extents[4] = 0.5* dy * (Dimens[1] - 1); 
+  }
+	  
 
-  Extents[0] = 0.0; 
-  Extents[1] = 0.0; 
-  Extents[3] = dx * (Dimens[0] - 1); 
-  Extents[4] = dy * (Dimens[1] - 1); 
+  
 
 // Calculate the user time stamp.
 // If there is the value for PLANET_YEAR in the
@@ -492,10 +518,15 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
     if (!p) {
       //Invalid string. Get the error code:
       int *pjerrnum = pj_get_errno_ref();
-      SetErrMsg("Invalid geo-referencing in WRF output : %s",
+      SetErrMsg("Invalid geo-referencing with proj string %s\n in WRF output : %s",
+	    mapprojstr.c_str(),
         pj_strerrno(*pjerrnum));
     }
     if(p) {
+	  // Check for rotated lat/lon.  It gets special attention
+		
+	  bool rotLatLonMapping = (mapprojstr.find("ob_tran") != string::npos);
+
       //reproject latlon to current coord projection.
       //Must convert to radians:
       string projwrkstr = "+proj=latlong";
@@ -531,23 +562,28 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       vector<double> currExtents;
 
       for ( size_t t = 0 ; t < Time_latlon_extents.size() ; t++ ){
-        vector <float> exts = Time_latlon_extents[t].second;
-        if (!exts.size()) continue;
-        //exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
-        for (int j = 0; j<4; j++)
-          dbextents[j] = exts[j]*DEG2RAD;
-        if (radius == 0 ) {
-          retval = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
-          if (retval){
-            int *pjerrnum = pj_get_errno_ref();
-            SetErrMsg("Error geo-referencing WRF domain extents : %s",
-              pj_strerrno(*pjerrnum));
-          }
-        }
-        else { // PlanetWRF reporjection.
-          for (int j = 0; j<4; j++)
-            dbextents[j] *= radius;
-        }
+		  if (rotLatLonMapping){
+			  if (0!= GetRotatedLatLonExtents(dbextents))
+				  SetErrMsg("Error calculating rotated lat lon domain extents");
+		  } else {
+			vector <float> exts = Time_latlon_extents[t].second;
+			if (!exts.size()) continue;
+			//exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
+			for (int j = 0; j<4; j++)
+			  dbextents[j] = exts[j]*DEG2RAD;
+			if (radius == 0 ) {
+			  retval = pj_transform(latlon_p,p,2,2, dbextents,dbextents+1, 0);
+			  if (retval){
+				int *pjerrnum = pj_get_errno_ref();
+				SetErrMsg("Error geo-referencing WRF domain extents : %s",
+				  pj_strerrno(*pjerrnum));
+			  }
+			} else { // PlanetWRF reporjection.
+				for (int j = 0; j<4; j++)
+				dbextents[j] *= radius;
+			}
+		  }
+        
  
         //Put the reprojected extents into the vdf
         //Use the global specified extents for vertical coords
@@ -588,6 +624,53 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
 
   return (retval);
 } // End of ReprojectTsLatLon.
+
+//With rotated lat/lon, extents (in meters) requires a special reprojection
+int MetadataWRF::GetRotatedLatLonExtents(double exts[4]){
+	//Get DX,DY, CEN_LAT,CEN_LON out of Global_attrib
+	const double DEG2RAD = 3.141592653589793/180.;
+	const double RAD2DEG = 180./3.141592653589793;
+	double dx=-1., dy=-1.;
+	double grid_center[2] = {1.e30f,1.e30f};
+	 for(int i = 0; i < Global_attrib.size(); i++ ) {
+        if (Global_attrib[i].first == "DX")
+          dx = (double)Global_attrib[i].second;
+		if (Global_attrib[i].first == "DY")
+          dy = (double)Global_attrib[i].second;
+		if (Global_attrib[i].first == "CEN_LAT")
+          grid_center[1] = (double)Global_attrib[i].second *DEG2RAD;
+		if (Global_attrib[i].first == "CEN_LON")
+          grid_center[0] = (double)Global_attrib[i].second *DEG2RAD;
+      }
+	 if (dx < 0 || dy < 0 || grid_center[0] == 1.e30f || grid_center[1] == 1.e30f){
+		 SetErrMsg("Error in creating map reprojection string!");
+		 return -1;
+	 }
+	//inverse project CEN_LAT/CEN_LON, that gives grid center in computational grid.
+	 projPJ latlon_p = pj_init_plus("+proj=latlong +ellps=sphere");
+	 const char* rotlatlonprojstr = MapProjection.c_str();
+     projPJ rotlatlon_p = pj_init_plus(rotlatlonprojstr);
+     if(!rotlatlon_p || !latlon_p) {
+        SetErrMsg("Error in creating map reprojection string!");
+        return(-1);
+     }
+	 int p = pj_transform(latlon_p,rotlatlon_p,1,1,grid_center, grid_center+1, 0);
+	 if (p) return p;
+	 grid_center[0]*=RAD2DEG;
+	 grid_center[1]*=RAD2DEG;
+	 //Convert grid center (currently in degrees from (-180, -90) to (180,90)) to 
+	 //meters from origin
+	 grid_center[0] = grid_center[0]*111177.;
+	 grid_center[1] = grid_center[1]*111177.;
+	
+	//Use grid size to calculate extents
+	exts[0] = grid_center[0]-0.5*(Dimens[0]-1)*dx;
+	exts[2] = grid_center[0]+0.5*(Dimens[0]-1)*dx;
+	exts[1] = grid_center[1]-0.5*(Dimens[1]-1)*dy;
+	exts[3] = grid_center[1]+0.5*(Dimens[1]-1)*dy;
+	return 0;
+}
+
 
 //bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
 //{

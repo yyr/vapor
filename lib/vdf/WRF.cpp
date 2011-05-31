@@ -9,7 +9,7 @@
 #include <ctime>
 #include <netcdf.h>
 #include "assert.h"
-
+#include "proj_api.h"
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
 #include <vapor/WRF.h>
@@ -173,9 +173,10 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 	string empty;
 	string ErrMsgStr;
 	ostringstream oss;
-	float lat0,lat1,lat2,lon0,latts;
+	float lat0,lat1,lat2,lon0,latts,latp,lonp;
 	int projNum;
 
+	const double RAD2DEG = 180./3.141592653589793;
 	if (nc_get_att_int( ncid, NC_GLOBAL, "MAP_PROJ", &projNum ) != NC_NOERR) return -1;
 
 	switch (projNum){
@@ -255,23 +256,35 @@ int WRF::_GetProjectionString(int ncid, string& projString){
 
 			projString += " +ellps=sphere";
 			break;
-		case(6): //cassini or rotated lat/lon  NOT SUPPORTED
-			ErrMsgStr.assign("Cassini map projection is not supported");
-			SetErrMsg(ErrMsgStr.c_str());
-			SetErrCode(0);
-			break;
-			/*
+		case(6): //cassini or rotated lat/lon  
+			
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "POLE_LAT", &latp ) );
+			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "POLE_LON", &lonp ) );
 			NC_ERR_READ( nc_get_att_float( ncid, NC_GLOBAL, "STAND_LON", &lon0 ) );
-			projString = "+proj=cass";
+			
+			projString = "+proj=ob_tran";
+			projString += " +o_proj=latlong";
+
+			projString += " +o_lat_p=";
+			oss.str(empty);
+			oss << (double)latp;
+			projString += oss.str();
+			projString += "d"; //degrees, not radians
+
+			projString += " +o_lon_p=";
+			oss.str(empty);
+			oss << (double)(180.-lonp);
+			projString += oss.str();
+			projString += "d"; //degrees, not radians
 
 			projString += " +lon_0=";
 			oss.str(empty);
-			oss << (double)lon0;
+			oss << (double)(-lon0);
 			projString += oss.str();
-
+			projString += "d"; //degrees, not radians
 			projString += " +ellps=sphere";
+			
 			break;
-			*/
 		default:
 
 			ErrMsgStr.assign("Unsupported MAP_PROJ value ");
@@ -653,6 +666,8 @@ int WRF::_GetWRFMeta(
 	string ErrMsgStr;
 	float dx = -1.0; // Place to put DX attribute  (-1 if it's not there)
 	float dy = -1.0; // Place to put DY attribute (-1 if it's not there)
+	float cen_lat = 1.e30f; //place to put CEN_LAT
+	float cen_lon = 1.e30f; //place to put CEN_LON
 	int ndims; // Number of dimensions in netCDF
 	int ngatts; // Number of global attributes
 	int nvars; // Number of variables
@@ -734,12 +749,21 @@ int WRF::_GetWRFMeta(
 	}
 
 	// Get DX and DY, set to -1 if they aren't there.
+	// Also get CEN_LAT,CEN_LON, they are needed with rotated lat/lon to 
+	// determine the domain extents.
 	int ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx );
 	if (ncrc != NC_NOERR) dx = -1.f;
 	gl_attrib.push_back(make_pair("DX",dx));
 	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy );
 	if (ncrc != NC_NOERR) dy = -1.f;
 	gl_attrib.push_back(make_pair("DY",dy));
+
+	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "CEN_LAT", &cen_lat );
+	if (ncrc != NC_NOERR) cen_lat = 1.e30f;
+	gl_attrib.push_back(make_pair("CEN_LAT",cen_lat));
+	ncrc = nc_get_att_float( ncid, NC_GLOBAL, "CEN_LON", &cen_lon );
+	if (ncrc != NC_NOERR) cen_lon = 1.e30f;
+	gl_attrib.push_back(make_pair("CEN_LON",cen_lon));
 
 	// If planetWRF there will be a gravity value.
  	double grav = 9.81;

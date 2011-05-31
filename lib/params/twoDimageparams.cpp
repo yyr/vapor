@@ -882,71 +882,72 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 		return false;
 	}
 
-	//If a projection string is latlon, the coordinates are in Radians!
-	bool latlonSrc = pj_is_latlong(src_proj);
-	bool latlonDst = pj_is_latlong(dst_proj);
+	//If a projection string is latlon, or the coordinates are in Radians!
+	bool radSrc = pj_is_latlong(src_proj)||(string::npos != getImageProjectionString().find("ob_tran"));
+	bool radDst = pj_is_latlong(dst_proj)||(string::npos != DataStatus::getProjectionString().find("ob_tran"));
 
 	static const double RAD2DEG = 180./M_PI;
 	static const double DEG2RAD = M_PI/180.0;
 	
 
 	//In order to be sure that the image extents contain the full
-	//image, we take 4 sample points on each edge of the image
+	//image, we take 8 sample points on each edge of the image
 	//and determine where they go in map projection space.  The
 	//image extents are defined to be the smallest rectangle in 
-	//projection space that contains all 16 sample points.
+	//projection space that contains all 64 sample points.
 	//We can't just take the corners because sometimes their convex hull
 	//in projection space does not contain the projected image.
 	//For example in a polar stereo projection, one may choose an image
 	//that goes around the earth from longitude -180 to 180.  The corners
 	//of this image would all lie on the international date line.
 
-	double interpPoints[32];
-	//interpolate 4 points on each edge of image
+	double interpPoints[64];
+	//interpolate 8 points on each edge of image
 	//First interpolate the y coordinate along left image edge,
 	//then interpolate x coordinate along top, etc.
-	for (int i = 0; i<4; i++){
-		double u = ((double)i)/4.;
+	for (int i = 0; i<8; i++){
+		double u = ((double)i)/8.;
 		//x coords are constant
 		interpPoints[2*i] = imgExts[0];
 		interpPoints[2*i+1] = (1.-u)*imgExts[1]+u*imgExts[3];
 	}
-	for (int i = 0; i<4; i++){
-		double u = ((double)i)/4.;
+	for (int i = 0; i<8; i++){
+		double u = ((double)i)/8.;
 		//y coords are constant
-		interpPoints[8+2*i+1] = imgExts[3];
-		interpPoints[8+2*i] = (1.-u)*imgExts[0]+u*imgExts[2];
+		interpPoints[16+2*i+1] = imgExts[3];
+		interpPoints[16+2*i] = (1.-u)*imgExts[0]+u*imgExts[2];
 	}
-	for (int i = 0; i<4; i++){
-		double u = ((double)i)/4.;
+	for (int i = 0; i<8; i++){
+		double u = ((double)i)/8.;
 		//x coords are constant
-		interpPoints[16+2*i] = imgExts[2];
-		interpPoints[16+2*i+1] = (1.-u)*imgExts[3]+u*imgExts[1];
+		interpPoints[32+2*i] = imgExts[2];
+		interpPoints[32+2*i+1] = (1.-u)*imgExts[3]+u*imgExts[1];
 	}
-	for (int i = 0; i<4; i++){
-		double u = ((double)i)/4.;
+	for (int i = 0; i<8; i++){
+		double u = ((double)i)/8.;
 		//y coords are constant
-		interpPoints[24+2*i+1] = imgExts[1];
-		interpPoints[24+2*i] = (1.-u)*imgExts[2]+u*imgExts[0];
+		interpPoints[48+2*i+1] = imgExts[1];
+		interpPoints[48+2*i] = (1.-u)*imgExts[2]+u*imgExts[0];
 	}
-	if (latlonSrc){ //need to convert degrees to radians, image exts are in degrees
-		for (int i = 0; i<32; i++) interpPoints[i] *= DEG2RAD;
+	if (radSrc){ //need to convert degrees to radians, image exts are in degrees
+		for (int i = 0; i<64; i++) interpPoints[i] *= DEG2RAD;
 	}
 	//apply proj4 to transform the four corners (in place):
-	int rc = pj_transform(src_proj,dst_proj,16,2, interpPoints,interpPoints+1, 0);
+	int rc = pj_transform(src_proj,dst_proj,32,2, interpPoints,interpPoints+1, 0);
 
 	if (rc){
 		MyBase::SetErrMsg(VAPOR_ERROR_TWO_D, "Error in coordinate projection: \n%s",
 			pj_strerrno(rc));
 		return false;
 	}
-	if (latlonDst)  //results are in radians, convert to degrees
-		for (int i = 0; i<32; i++) interpPoints[i] *= RAD2DEG;
+	if (radDst) { //results are in radians, convert to degrees, then convert to meters at equator
+		for (int i = 0; i<64; i++) interpPoints[i] *= (RAD2DEG*111177.);
+	}
 
 	//Now find the extents, by looking at min, max x and y in projected space:
 	double minx = 1.e30, miny = 1.e30;
 	double maxx = -1.e30, maxy = -1.e30;
-	for (int i = 0; i<16; i++){
+	for (int i = 0; i<32; i++){
 		if (minx > interpPoints[2*i]) minx = interpPoints[2*i];
 		if (miny > interpPoints[2*i+1]) miny = interpPoints[2*i+1];
 		if (maxx < interpPoints[2*i]) maxx = interpPoints[2*i];
@@ -994,8 +995,8 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 	if (!doProj) return false;
 
 	//If a projection string is latlon, the coordinates are in Radians!
-	bool latlonSrc = pj_is_latlong(src_proj);
-	bool latlonDst = pj_is_latlong(dst_proj);
+	bool radSrc = pj_is_latlong(src_proj)||(string::npos != getImageProjectionString().find("ob_tran"));
+	bool radDst = pj_is_latlong(dst_proj)||(string::npos != DataStatus::getProjectionString().find("ob_tran"));
 
 	static const double RAD2DEG = 180./M_PI;
 	static const double DEG2RAD = M_PI/180.0;
@@ -1006,7 +1007,7 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 	pt[0] = imgExts[0]*(1.-pt[0]) + pt[0]*imgExts[2];
 	pt[1] = imgExts[1]*(1.-pt[1]) + pt[1]*imgExts[3];
 
-	if (latlonSrc){ //need to convert degrees to radians, image exts are in degrees
+	if (radSrc){ //need to convert degrees to radians, image exts are in degrees
 		for (int i = 0; i<2; i++) pt[i] *= DEG2RAD;
 	}
 	
@@ -1018,8 +1019,9 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 			pj_strerrno(rc));
 		return false;
 	}
-	if (latlonDst)  //results are in radians, convert to degrees
-		for (int i = 0; i<2; i++) pt[i] *= RAD2DEG;
+	if (radDst)  {//results are in radians, convert to degrees, then to meters:
+		for (int i = 0; i<2; i++) pt[i] *= (RAD2DEG*111177.0);
+	}
 	
 	//Now pt is in projection space.  subtract offsets:
 	const float* exts = DataStatus::getExtents(timestep);

@@ -156,6 +156,15 @@ public:
 
 	int ReprojectTsLatLon(string mapstr);
 
+//! Find the lat/lon extents when using rotated lat long 
+//!
+//! \param[out] exts is a 4-tuple of extents in degrees
+//! \retval Nonzero indicates error from Proj4.
+//!
+//
+
+	int GetRotatedLatLonExtents(double exts[4]);
+
 //! Return the time for a time step, if it exists,
 //!
 //! \param[in] ts A valid data set time step in the range from zero to

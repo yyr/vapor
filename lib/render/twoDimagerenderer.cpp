@@ -206,9 +206,6 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	const float* extents = ds->getExtents();
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
-	if (! dataMgrLayered) return false;
-
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
 	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
 	int refLevel = tParams->GetRefinementLevel();
@@ -283,6 +280,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	dataMgr->GetBlockSize(bs,refLevel);
 	
 	if (tParams->isMappedToTerrain()){
+		
 		//We shall retrieve HGT for the full extents of the data
 		//at the current refinement level.
 		for (int i = 0; i<3; i++){
@@ -290,8 +288,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
 		//Convert to user coords in non-moving extents:
-		dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
-		dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
+		dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
+		dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
 
 		int varnum = DataStatus::getSessionVariableNum2D("HGT");
 		
@@ -301,7 +299,6 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		if(refLevel1 < 0) {
 			setBypass(timeStep);
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
-			dataMgrLayered->SetInterpolateOnOff(true);
 			return false;
 		}
 		
@@ -353,9 +350,10 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		bool doProj = (src_proj != 0 && dst_proj != 0);
 		if (!doProj) return false;
 
-		//If a projection string is latlon, the coordinates are in Radians!
-		bool latlonSrc = pj_is_latlong(src_proj);
-		bool latlonDst = pj_is_latlong(dst_proj);
+		//If a projection string is latlon, proj uses coordinates in Radians!
+		bool radSrc = pj_is_latlong(src_proj)||(string::npos != tParams->getImageProjectionString().find("ob_tran"));
+		bool rotlatlonDst = (string::npos != DataStatus::getProjectionString().find("ob_tran"));
+		bool radDst = pj_is_latlong(dst_proj)||rotlatlonDst;
 
 		static const double RAD2DEG = 180./M_PI;
 		static const double DEG2RAD = M_PI/180.0;
@@ -378,18 +376,19 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			}
 			
 			//apply proj4 to transform the line.  If source is in degrees, convert to radians:
-			if (latlonSrc)
+			if (radSrc)
 				for(int i = 0; i< maxx; i++) {
 					elevVertLine[3*i] *= DEG2RAD;
 					elevVertLine[3*i+1] *= DEG2RAD;
 				}
 			pj_transform(src_proj,dst_proj,maxx,3, elevVertLine,elevVertLine+1, 0);
-			//If the scene is latlon, convert to degrees:
-			if (latlonDst) 
+			//If the scene is latlon or rotlatlon, convert to degrees, then to meters:
+			if (radDst) 
 				for(int i = 0; i< maxx; i++) {
-					elevVertLine[3*i] *= RAD2DEG;
-					elevVertLine[3*i+1] *= RAD2DEG;
+					elevVertLine[3*i] *= (RAD2DEG*111177.);
+					elevVertLine[3*i+1] *= (RAD2DEG*111177.);
 				}
+			
 			//Copy the result back to elevVert. 
 			//Translate by local offset
 			//then convert to stretched cube coords

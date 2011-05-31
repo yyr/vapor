@@ -545,7 +545,7 @@ int DataMgr::VariableExists(
 	}
 	else {
 		PipeLine *pipeline = get_pipeline_for_var(varname);
-		assert(pipeline != NULL);
+		if(pipeline == NULL) return 0;
 
 		const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
 		//

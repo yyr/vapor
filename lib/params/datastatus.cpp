@@ -791,8 +791,10 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 	if (!vapor_proj) return false;
 	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
 	if (!latlon_proj) return false;
+	bool vaporRad = pj_is_latlong(vapor_proj)||(string::npos != getProjectionString().find("ob_tran"));
 	
 	if (!pj_is_latlong(vapor_proj)){ //if data is already latlong, bypass following:
+		
 		static const double DEG2RAD = 3.1415926545/180.;
 		//source point is in degrees, convert to radians:
 		for (int i = 0; i<npoints*2; i++) coords[i] *= DEG2RAD;
@@ -805,6 +807,12 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 			pj_free(vapor_proj);
 			pj_free(latlon_proj);
 			return false;
+		}
+		//Do we need to convert radians to degrees?
+		if (string::npos == getProjectionString().find("ob_tran")){
+			static const double RAD2DEG = 180./3.1415926545;
+			//dest point is in radians, convert to degrees:
+			for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
 		}
 	}
 	//Subtract offset to convert projection coords to vapor coords
@@ -833,6 +841,7 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 		projString.clear();
 		return false;
 	}
+	bool vaporRad = pj_is_latlong(vapor_proj)||(string::npos != getProjectionString().find("ob_tran"));
 	if (timestep >= 0){
 		const float * globExts = DataStatus::getInstance()->getExtents();
 		//Apply projection offset to convert vapor local coords to projection space:
@@ -844,6 +853,9 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 	if (pj_is_latlong(vapor_proj)) return true;
 
 	static const double RAD2DEG = 180./3.1415926545;
+	static const double DEG2RAD = 3.1415926545/180.;
+	if (vaporRad) //If vapor coord system is rotated lat lon, then must convert meters to degrees to radians
+		for (int i = 0; i<2*npoints; i++) coords[i]*=(DEG2RAD/111177.);
 	
 	int rc = pj_transform(vapor_proj,latlon_proj,npoints,2, coords,coords+1, 0);
 
@@ -854,6 +866,8 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 	}
 	 //results are in radians, convert to degrees
 	for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
+
+
 	return true;
 	
 }
