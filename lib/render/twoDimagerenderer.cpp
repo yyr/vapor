@@ -362,7 +362,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		double* elevVertLine = new double[3*maxx];
 		float locCoords[3];
 		const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
-		
+		int errcnt = 0;
+		float prevLocCoords[2];
 		for (int j = 0; j<maxy; j++){
 			
 			for (int i = 0; i<maxx; i++){
@@ -399,6 +400,16 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			for (int i = 0; i< maxx; i++){
 				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
 				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
+				//Check if the coordinates are too far, issue warning:
+				if(i>0 && errcnt < 1){
+					float distDiff =  abs(locCoords[0]-prevLocCoords[0])+abs(locCoords[1]-prevLocCoords[1]);
+					if (distDiff > 0.5*(extents[3]-extents[0]+extents[4]-extents[1])){
+						SetErrMsg(VAPOR_WARNING_TWO_D,"Image mapping error:  Image maps beyond map projection limit");
+						errcnt++;
+					}
+				}
+				prevLocCoords[0]=locCoords[0];
+				prevLocCoords[1]=locCoords[1];
 				if (tParams->isMappedToTerrain()){
 					//Find cell coordinates of locCoords in data grid space
 					int gridLL[2];
