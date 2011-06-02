@@ -216,6 +216,8 @@ void MetadataWRF::_MetadataWRF(
         else {
           for(sf_pair_iter = Global_attrib.begin(); sf_pair_iter < Global_attrib.end(); sf_pair_iter++) {
             attr = *sf_pair_iter;
+			//Don't require the CEN_LAT,CEN_LON to match
+			if (attr.first == "CEN_LAT" || attr.first == "CEN_LON") continue;
             if (find(tgl_attr.begin(), tgl_attr.end(), attr) == tgl_attr.end()) {
               mismatch_flag = true;
             }
