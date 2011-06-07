@@ -185,17 +185,17 @@ This option is deprecated. Use B<-vars3d>.
 A colon delimited list of 3D field variable  names to be included in the
 VDF. The default is the single element vector, B<var1>.
 
-=item -vars2dXY E<lt>string_vectorE<gt>
+=item -vars2dxy E<lt>string_vectorE<gt>
 
 A colon delimited list of 2D, XY-plane field variable names to be included 
 in the VDF. The default is to include no 2D XY-plane variables.
 
-=item -vars2dXZ E<lt>string_vectorE<gt>
+=item -vars2dxz E<lt>string_vectorE<gt>
 
 A colon delimited list of 2D, XZ-plane field variable names to be included 
 in the VDF. The default is to include no 2D XZ-plane variables.
 
-=item -vars2dYZ E<lt>string_vectorE<gt>
+=item -vars2dyz E<lt>string_vectorE<gt>
 
 A colon delimited list of 2D, YZ-plane field variable names to be included 
 in the VDF. The default is to include no 2D YZ-plane variables.
