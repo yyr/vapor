@@ -430,7 +430,7 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 		_sigMapEncode = new unsigned char[l];
 		_sigMapEncodeSize = l;
 	}
-	memset(_sigMapEncode, 0, mapsize);
+	memset(_sigMapEncode, 0, _sigMapEncodeSize);
 
 
 	// 
