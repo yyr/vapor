@@ -3,8 +3,8 @@
 # Input 3D variables T, P, PB, U, V
 # Input 2D variable F
 # Output 3D variable WRF_PVO
-# Results are not exactly the same as wrf_pvo.f because this is
-# calculated in cartesian coords, not model layers.
+# Results are not exactly the same as wrf_pvo.f because this is 
+# calculated in cartesian coords, not model layers.    
 
 #  helper routine: use 6th order differences for DA/DP (vertical direction)
 #  based on deriv_findiff code
@@ -23,11 +23,10 @@ def deriv_vert(a,deltap):
 PR = 0.01*(P+PB)
 s = shape(P)	#size of the input array
 # Need to find DX, DY, DZ
-# Note that these are in Python coords, so DX is vertical 
 ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
 usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
 usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
-dx = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in Python coord system
+dx = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in user coord system
 dy =  (usrmax[1]-usrmin[1])/ext[1]
 dz =  (usrmax[0]-usrmin[0])/ext[0]
 

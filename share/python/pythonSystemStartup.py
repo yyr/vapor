@@ -80,24 +80,23 @@ def curl_findiff(A,B,C):
 	ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
 	usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
 	usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
-	dz = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in Python coord system
+	dx = (usrmax[2]-usrmin[2])/ext[2]	# grid delta is dx in user coord system
 	dy =  (usrmax[1]-usrmin[1])/ext[1]
-	dx =  (usrmax[0]-usrmin[0])/ext[0]
+	dz =  (usrmax[0]-usrmin[0])/ext[0]
 	
-#  in Python coordinates, C,B,A are X,Y,Z components of vector field
-	aux1 = deriv_findiff(A,2,dy)       #x component of the curl (in python system)
-	aux2 = deriv_findiff(B,3,dz)
+	aux1 = deriv_findiff(C,2,dy)       #x component of the curl
+	aux2 = deriv_findiff(B,3,dz)     
 	outx = aux1-aux2						
 
-	aux1 = deriv_findiff(C,3,dz)       #y component of the curl
-	aux2 = deriv_findiff(A,1,dx)
-	outy = aux1-aux2
+	aux1 = deriv_findiff(C,3,dx)       #y component of the curl
+	aux2 = deriv_findiff(A,1,dz)
+	outy = aux2-aux1
 
 	aux1 = deriv_findiff(B,1,dx)       #z component of the curl
-	aux2 = deriv_findiff(C,2,dy)
+	aux2 = deriv_findiff(A,2,dy)
 	outz = aux1-aux2
-# now reverse order of results to go back to user coordinates
-	return outz, outy, outx
+
+	return outx, outy, outz     	#return results in user coordinate order
 
 
 # Calculate divergence
@@ -105,9 +104,24 @@ def div_findiff(A,B,C):
 	ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
         usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
         usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
-        dz = (usrmax[2]-usrmin[2])/ext[2]       # grid delta in Python coord system
+        dx = (usrmax[2]-usrmin[2])/ext[2]       # grid delta in user coord system
         dy =  (usrmax[1]-usrmin[1])/ext[1]
-        dx =  (usrmax[0]-usrmin[0])/ext[0]
-# note that, in Python coords, A,B,C are z,y,x components
-        return deriv_findiff(A,3,dz)+deriv_findiff(B,2,dy)+deriv_findiff(C,1,dx)
+        dz =  (usrmax[0]-usrmin[0])/ext[0]
+# in User coords, A,B,C are x,y,z components
+        return deriv_findiff(C,3,dz)+deriv_findiff(B,2,dy)+deriv_findiff(A,1,dx)
 
+
+def grad_findiff(A):
+	ext = (__BOUNDS__[3]-__BOUNDS__[0], __BOUNDS__[4]-__BOUNDS__[1],__BOUNDS__[5]-__BOUNDS__[2])
+	usrmax = vapor.MapVoxToUser([__BOUNDS__[3],__BOUNDS__[4],__BOUNDS__[5]],__REFINEMENT__)
+	usrmin = vapor.MapVoxToUser([__BOUNDS__[0],__BOUNDS__[1],__BOUNDS__[2]],__REFINEMENT__)
+	dx = (usrmax[2]-usrmin[2])/ext[2]
+	dy =  (usrmax[1]-usrmin[1])/ext[1]
+	dz =  (usrmax[0]-usrmin[0])/ext[0]
+
+	aux1 = deriv_findiff(A,1,dx)       #x component of the gradient (in python system)
+	aux2 = deriv_findiff(A,2,dy)
+	aux3 = deriv_findiff(A,3,dz)
+	
+
+	return aux1,aux2,aux3 # return in user coordinate (x,y,z) order
