@@ -21,6 +21,7 @@ public:
  int	MutexUnlock();
  static void	Decompose(int n, int size, int rank, int *offset, int *length);
  static int	NProc();
+ int	GetNumThreads() const {return(nthreads_c); }
 
 private:
  int	nthreads_c;

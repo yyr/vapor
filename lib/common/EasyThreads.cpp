@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <iostream>
 #ifndef WIN32
 #include <unistd.h>
 #endif
