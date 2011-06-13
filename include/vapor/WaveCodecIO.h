@@ -395,6 +395,7 @@ public:
  void SetCollectiveIO(bool newCollectiveIO) {std::cout << "WaveCodecIO::SetCollectiveIO, nthreads = " << _nthreads << std::endl; collectiveIO = newCollectiveIO;};
 #endif
  friend void     *RunBlockReadRegionThread(void *object);
+ friend void     *RunBlockWriteRegionThread(void *object);
 
 private:
 #ifdef PARALLEL
@@ -406,18 +407,24 @@ private:
  // Threaded read object for parallel inverse transforms 
  // (data reconstruction)
  //
- class ReadThreadObj {
+ class ReadWriteThreadObj {
  public:
-	ReadThreadObj(
+	ReadWriteThreadObj(
 		WaveCodecIO *wc,
 		int id,
 		float *region,
 		const size_t bmin_p[3],
 		const size_t bmax_p[3],
+		const size_t bdim_p[3],
+		const size_t dim_p[3],
 		const size_t bs_p[3],
-		int unblock
+		const float dataRange[2],
+		bool reblock,
+		bool pad
 	);
 	void BlockReadRegionThread();
+	void BlockWriteRegionThread();
+	const float *GetDataRange() const {return (_dataRange);}
 	
  private:
 	WaveCodecIO *_wc;
@@ -425,21 +432,27 @@ private:
 	float *_region;	// destination buffer for read
 	const size_t *_bmin_p;
 	const size_t *_bmax_p;	// block coordinates of data
+	const size_t *_bdim_p;
+	const size_t *_dim_p;	
 	const size_t *_bs_p;	// dimensions of block
-	int _unblock;
+	float _dataRange[2];
+	bool _reblock;
+	bool _pad;
 	int _FetchBlock(
 		size_t bx, size_t by, size_t bz
 	);
+	int _WriteBlock(size_t bx, size_t by, size_t bz);
  };
  
 
- public:
+public:
  int _nthreads; // num execution threads
  int getNumThread(){return _nthreads;}
- private:
+private:
+
  int _next_block;
  int _threadStatus;
- ReadThreadObj **_read_thread_objs;
+ ReadWriteThreadObj **_rw_thread_objs;
  SignificanceMap **_sigmaps;
  vector <SignificanceMap **> _sigmapsThread;	// one set for each thread
  vector <size_t> _sigmapsizes;	// size of each encoded sig map
@@ -490,8 +503,6 @@ private:
  int _OpenVarRead(const string &basename);
  int _WaveCodecIO(int nthreads);
  int _SetupCompressor();
- int _WriteBlock(size_t bx, size_t by, size_t bz);
- void _pad_line( float *line_start, size_t l1, size_t l2, long stride) const;
 
  void _UnpackCoord(
     VarType_T vtype, const size_t src[3], size_t dst[3], size_t fill

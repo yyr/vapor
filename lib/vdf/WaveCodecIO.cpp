@@ -84,11 +84,6 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	if (nthreads < 1) nthreads = EasyThreads::NProc();
 	if (nthreads < 1) nthreads = 1;
 
-	if (char *s = getenv("VAPOR_THREADS")) {
-		nthreads = atoi(s);
-		cerr << "VAPOR_THREADS = " << nthreads << endl;
-	}
-	
 	_nthreads = nthreads;
 	_threadStatus = 0;	// global thread status
 	_compressorThread.resize(_nthreads, NULL);
@@ -111,7 +106,7 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	_sliceBuffer = NULL;
 	_isOpen = false;
 	_pad = true;
-	_read_thread_objs = NULL;
+	_rw_thread_objs = NULL;
 
 	_cratios3D = GetCRatios();
 	_cratios = _cratios3D;
@@ -171,8 +166,8 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	//
 	// Finally, create thread read objects
 	//
-	_read_thread_objs = new ReadThreadObj * [_nthreads];
-	for (int t=0; t<_nthreads; t++) _read_thread_objs[t] = NULL;
+	_rw_thread_objs = new ReadWriteThreadObj * [_nthreads];
+	for (int t=0; t<_nthreads; t++) _rw_thread_objs[t] = NULL;
 
 
 	return(0);
@@ -185,7 +180,7 @@ WaveCodecIO::WaveCodecIO(
 
 	if (VDFIOBase::GetErrCode()) return;
 
-	if (_WaveCodecIO(nthreads) < 0) return;
+	if (_WaveCodecIO(GetNumThreads()) < 0) return;
 }
 
 WaveCodecIO::WaveCodecIO(
@@ -195,7 +190,7 @@ WaveCodecIO::WaveCodecIO(
 
 	if (VDFIOBase::GetErrCode()) return;
 
-	if (_WaveCodecIO(nthreads) < 0) return;
+	if (_WaveCodecIO(GetNumThreads()) < 0) return;
 }
 
 
@@ -246,7 +241,7 @@ WaveCodecIO::~WaveCodecIO() {
 			delete [] _sigmapsThread[t];
 		}
 	}
-	if (_read_thread_objs) delete [] _read_thread_objs;
+	if (_rw_thread_objs) delete [] _rw_thread_objs;
 }
 
 
@@ -518,11 +513,19 @@ namespace VAPoR {
 	// thread helper function
 	//
 	void     *RunBlockReadRegionThread(void *object) {
-	WaveCodecIO::ReadThreadObj  *X = (WaveCodecIO::ReadThreadObj *) object;
+	WaveCodecIO::ReadWriteThreadObj  *X = (WaveCodecIO::ReadWriteThreadObj *) object;
 	X->BlockReadRegionThread();
 	return(0);
 	}
+
+	void     *RunBlockWriteRegionThread(void *object) {
+	WaveCodecIO::ReadWriteThreadObj  *X = (WaveCodecIO::ReadWriteThreadObj *) object;
+	X->BlockWriteRegionThread();
+	return(0);
+	}
 };
+
+void _pad_line(string mode,float *line_start,size_t l1,size_t l2,long stride);
 
 int WaveCodecIO::BlockReadRegion(
 	const size_t bmin[3], const size_t bmax[3], float *region, int unblock
@@ -565,22 +568,35 @@ int WaveCodecIO::BlockReadRegion(
 		return(-1);
 	}
 
+	size_t bdim[3];
+	GetDimBlk(bdim,-1);
+
+	size_t bdim_p[3];	// packed version of bdim
+	_PackCoord(_vtype, bdim, bdim_p, 1);
+
+	size_t dim[3];
+	GetDim(dim, -1);
+
+	size_t dim_p[3];
+	_PackCoord(_vtype, dim, dim_p, 1);
+
 	//
 	// Created threaded read object
 	//
 	for (int t=0; t<_nthreads; t++) {
-		_read_thread_objs[t] = new ReadThreadObj(
-			this, t, region, bmin_p, bmax_p, bs_p, unblock
+		_rw_thread_objs[t] = new ReadWriteThreadObj(
+			this, t, region, bmin_p, bmax_p, bdim_p, dim_p, 
+			bs_p, _dataRange, (bool) unblock, _pad
 		);
 	}
 
 	_next_block = 0;	// serialize data reads
 	_threadStatus = 0;
 	if (_nthreads <= 1) {
-		_read_thread_objs[0]->BlockReadRegionThread();
+		_rw_thread_objs[0]->BlockReadRegionThread();
 	}
 	else {
-		int rc = ParRun(RunBlockReadRegionThread, (void **) _read_thread_objs);
+		int rc = ParRun(RunBlockReadRegionThread, (void **) _rw_thread_objs);
         if (rc < 0) {
 			SetErrMsg("Error spawning threads");
 			return(-1);
@@ -588,7 +604,7 @@ int WaveCodecIO::BlockReadRegion(
 	}
 
 	for (int t=0; t<_nthreads; t++) {
-		delete _read_thread_objs[t];
+		delete _rw_thread_objs[t];
 	}
 
 	return(_threadStatus);
@@ -734,8 +750,6 @@ int WaveCodecIO::BlockWriteRegion(
 		return(-1);
 	}
 
-	size_t block_size;
-
 	size_t bdim[3];
 	GetDimBlk(bdim,-1);
 
@@ -752,22 +766,22 @@ int WaveCodecIO::BlockWriteRegion(
 	_FillPackedCoord(_vtype, bmin, bmin_p, 0);
 	_FillPackedCoord(_vtype, bmax, bmax_p, 0);
 
-	const size_t *bs =  VDFIOBase::GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, -1);
 
 	if (! _block) {
 		size_t sz = bs[0]*bs[1]*bs[2];
-		_block = new float [sz];
+		for (int t=0; t<_nthreads; t++) {
+			_block = new float [sz];
+			_blockThread[t] = _block;
+		}
 	}
 
 	size_t bs_p[3];	// packed copy of bs
 	_PackCoord(_vtype, bs, bs_p, 1);
 
-	block_size = bs_p[0]*bs_p[1]*bs_p[2];
-
 	if (_firstWrite) {
 		_dataRange[0] = _dataRange[1] = *region;
-
-
 		_firstWrite = false;
 	}
 
@@ -782,62 +796,121 @@ int WaveCodecIO::BlockWriteRegion(
 		return(-1);
 	}
 
+	//
+	// Created threaded write object
+	//
+	for (int t=0; t<_nthreads; t++) {
+		_rw_thread_objs[t] = new ReadWriteThreadObj(
+			this, t, (float *) region, bmin_p, bmax_p, 
+			bdim_p, dim_p, bs_p, _dataRange, block, _pad
+		);
+	}
+
+	_next_block = 0;    // serialize data writes
+	_threadStatus = 0;
+	if (_nthreads <= 1) {
+		_rw_thread_objs[0]->BlockWriteRegionThread();
+	}
+	else {
+		int rc = ParRun(RunBlockWriteRegionThread, (void **) _rw_thread_objs);
+		if (rc < 0) {
+			SetErrMsg("Error spawning threads");
+			return(-1);
+		}
+	}
+
+	//
+	// Compute valid region bounds
+	// N.B. for 2D data the code below should be a no-op for the 3rd,
+	// unused dimension.
+	//
+	for(int i=0; i<3; i++) {
+		size_t t = bmin_up[i] * bs[i];
+		if (_validRegMin[i] > t) _validRegMin[i] = t;
+
+		t = min((((bmax_up[i]+1) * bs[i]) - 1), (dim[i]-1));
+		if (_validRegMax[i] < t) _validRegMax[i] = t;
+	}
+
+	//
+	// Clean up threads and reduce data range
+	//
+	for (int t=0; t<_nthreads; t++) {
+		float v = _rw_thread_objs[t]->GetDataRange()[0];
+		if (v < _dataRange[0]) _dataRange[0] = v;
+
+		v = _rw_thread_objs[t]->GetDataRange()[1];
+		if (v > _dataRange[1]) _dataRange[1] = v;
+		delete _rw_thread_objs[t];
+	}
+
+	return(_threadStatus);
+}
+
+void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
+
 
 	// dimensions of region in voxels
 	//
-	size_t nx = (bmax_p[0] - bmin_p[0] + 1) * bs_p[0];
-	size_t ny = (bmax_p[1] - bmin_p[1] + 1) * bs_p[1];
+	size_t nx = (_bmax_p[0] - _bmin_p[0] + 1) * _bs_p[0];
+	size_t ny = (_bmax_p[1] - _bmin_p[1] + 1) * _bs_p[1];
 
-	size_t nbx = (bmax_p[0] - bmin_p[0] + 1);
-	size_t nby = (bmax_p[1] - bmin_p[1] + 1);
+	size_t nbx = (_bmax_p[0] - _bmin_p[0] + 1);
+	size_t nby = (_bmax_p[1] - _bmin_p[1] + 1);
 
-	for (int bz=bmin_p[2]; bz<=bmax_p[2]; bz++) {
-	for (int by=bmin_p[1]; by<=bmax_p[1]; by++) {
-	for (int bx=bmin_p[0]; bx<=bmax_p[0]; bx++) {
+	size_t block_size = _bs_p[0]*_bs_p[1]*_bs_p[2];
+
+	int nblocks = (_bmax_p[0] - _bmin_p[0] + 1)  * (_bmax_p[1] - _bmin_p[1] + 1) * (_bmax_p[2] - _bmin_p[2] + 1);
+
+	for (int index = _id; index<nblocks; index+=_wc->_nthreads) {
+        int bx = (index % nbx) + _bmin_p[0];
+        int by = (index % (nbx*nby) / nbx) + _bmin_p[1];
+        int bz = (index / (nbx*nby)) + _bmin_p[2];
+
 
 		//
 		// These flags are true if this is a boundary block && the volume
 		// dimensions don't match the blocked-volume dimensions
 		//
-		bool xbdry = (bx == (bdim_p[0]-1) && (bdim_p[0]*bs_p[0] != dim_p[0]));
-		bool ybdry = (by == (bdim_p[1]-1) && (bdim_p[1]*bs_p[1] != dim_p[1]));
-		bool zbdry = (bz == (bdim_p[2]-1) && (bdim_p[2]*bs_p[2] != dim_p[2]));
+		bool xbdry = (bx==(_bdim_p[0]-1) && (_bdim_p[0]*_bs_p[0] != _dim_p[0]));
+		bool ybdry = (by==(_bdim_p[1]-1) && (_bdim_p[1]*_bs_p[1] != _dim_p[1]));
+		bool zbdry = (bz==(_bdim_p[2]-1) && (_bdim_p[2]*_bs_p[2] != _dim_p[2]));
 
 		//
 		// the xyzstop limits are the bounds of the valid data for the block
 		// (in the case where bdim*bs != dim)
 		//
-		size_t xstop = bs_p[0];
-		size_t ystop = bs_p[1];
-		size_t zstop = bs_p[2];
+		size_t xstop = _bs_p[0];
+		size_t ystop = _bs_p[1];
+		size_t zstop = _bs_p[2];
 
-		if (xbdry) xstop -= (bdim_p[0]*bs_p[0] - dim_p[0]);
-		if (ybdry) ystop -= (bdim_p[1]*bs_p[1] - dim_p[1]);
-		if (zbdry) zstop -= (bdim_p[2]*bs_p[2] - dim_p[2]);
+		if (xbdry && _pad) xstop -= (_bdim_p[0]*_bs_p[0] - _dim_p[0]);
+		if (ybdry && _pad) ystop -= (_bdim_p[1]*_bs_p[1] - _dim_p[1]);
+		if (zbdry && _pad) zstop -= (_bdim_p[2]*_bs_p[2] - _dim_p[2]);
 
 		// Block coordinates relative to region origin
 		//
-		int bxx = bx - bmin_p[0];
-		int byy = by - bmin_p[1];
-		int bzz = bz - bmin_p[2];
+		int bxx = bx - _bmin_p[0];
+		int byy = by - _bmin_p[1];
+		int bzz = bz - _bmin_p[2];
 
 		const float *blockptr;
 
-		if (block) {
-			blockptr = _block;
+		if (_reblock) {
+			blockptr = _wc->_blockThread[_id];
 
 			// Starting coordinate of current block in voxels
 			//
-			size_t x0 = bxx * bs_p[0];
-			size_t y0 = byy * bs_p[1];
-			size_t z0 = bzz * bs_p[2];
+			size_t x0 = bxx * _bs_p[0];
+			size_t y0 = byy * _bs_p[1];
+			size_t z0 = bzz * _bs_p[2];
 
 			for (int z = 0; z<zstop; z++) {
 			for (int y = 0; y<ystop; y++) {
 			for (int x = 0; x<xstop; x++) {
-				float v = region[nx*ny*(z0+z) + nx*(y0+y) + (x0+x)];
+				float v = _region[nx*ny*(z0+z) + nx*(y0+y) + (x0+x)];
 
-				_block[z*bs_p[0]*bs_p[1] + y*bs_p[0] + x] = v;
+				_wc->_blockThread[_id][z*_bs_p[0]*_bs_p[1] + y*_bs_p[0] + x] = v;
 				if (v < _dataRange[0]) _dataRange[0] = v;
 				if (v > _dataRange[1]) _dataRange[1] = v;
 			}
@@ -845,13 +918,13 @@ int WaveCodecIO::BlockWriteRegion(
 			}
 		}
 		else {
-			blockptr = region + bzz*nbx*nby*block_size + 
+			blockptr = _region + bzz*nbx*nby*block_size + 
 				byy*nbx*block_size + bxx*block_size;
 
 			for (int z = 0; z<zstop; z++) {
 			for (int y = 0; y<ystop; y++) {
 			for (int x = 0; x<xstop; x++) {
-				float v = blockptr[bs_p[0]*bs_p[1]*z + bs_p[0]*y + z];
+				float v = blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
 
 				if (v < _dataRange[0]) _dataRange[0] = v;
 				if (v > _dataRange[1]) _dataRange[1] = v;
@@ -868,81 +941,76 @@ int WaveCodecIO::BlockWriteRegion(
 				for (int z = 0; z<zstop; z++) {
 				for (int y = 0; y<ystop; y++) {
 				for (int x = 0; x<xstop; x++) {
-					_block[bs_p[0]*bs_p[1]*z + bs_p[0]*y + z] = 
-						blockptr[bs_p[0]*bs_p[1]*z + bs_p[0]*y + z];
+					_wc->_blockThread[_id][_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z] = 
+						blockptr[_bs_p[0]*_bs_p[1]*z + _bs_p[0]*y + z];
 
 				}
 				}
 				}
-				blockptr = _block;
+				blockptr = _wc->_blockThread[_id];
 			}
 		}
 
 		if (xbdry && _pad) {
+			string mode = _wc->GetBoundaryMode();
 
 			float *line_start;
-			for (int z = 0; z<bs_p[2]; z++) {  
-			for (int y = 0; y<bs_p[1]; y++) {  
-				line_start = _block + (z*bs_p[1]*bs_p[0] + y*bs_p[0]);
+			for (int z = 0; z<_bs_p[2]; z++) {  
+			for (int y = 0; y<_bs_p[1]; y++) {  
+				line_start = _wc->_blockThread[_id] + (z*_bs_p[1]*_bs_p[0] + y*_bs_p[0]);
 
-				_pad_line(line_start, xstop, bs_p[0], 1);
+				_pad_line(mode, line_start, xstop, _bs_p[0], 1);
 			}
 			}
 		}
 
 		if (ybdry && _pad) {
+			string mode = _wc->GetBoundaryMode();
 
 			float *line_start;
-			for (int z = 0; z<bs_p[2]; z++) {  
-			for (int x = 0; x<bs_p[0]; x++) {  
-				line_start = _block + (z*bs_p[1]*bs_p[0] + x);
+			for (int z = 0; z<_bs_p[2]; z++) {  
+			for (int x = 0; x<_bs_p[0]; x++) {  
+				line_start = _wc->_blockThread[_id] + (z*_bs_p[1]*_bs_p[0] + x);
 
-				_pad_line(line_start, ystop, bs_p[1], bs_p[0]);
+				_pad_line(mode, line_start, ystop, _bs_p[1], _bs_p[0]);
 			}
 			}
 		}
 
 		if (zbdry && _pad) {
+			string mode = _wc->GetBoundaryMode();
 
 			float *line_start;
-			for (int y = 0; y<bs_p[1]; y++) {  
-			for (int x = 0; x<bs_p[0]; x++) {  
-				line_start = _block + (y*bs_p[0] + x);
+			for (int y = 0; y<_bs_p[1]; y++) {  
+			for (int x = 0; x<_bs_p[0]; x++) {  
+				line_start = _wc->_blockThread[_id] + (y*_bs_p[0] + x);
 
-				_pad_line(line_start, zstop, bs_p[2], bs_p[0]*bs_p[1]);
+				_pad_line(mode, line_start, zstop, _bs_p[2], _bs_p[0]*_bs_p[1]);
 			}
 			}
 		}
 
 
-		_XFormTimerStart();
+		if (_id==0) _wc->_XFormTimerStart();
 		int rc = 0;
-		rc = _compressor->Decompose(
-			blockptr, _cvector, _ncoeffs, _sigmaps, _ncoeffs.size()
+		rc = _wc->_compressorThread[_id]->Decompose(
+			blockptr, _wc->_cvectorThread[_id], _wc->_ncoeffs, 
+			_wc->_sigmapsThread[_id], _wc->_ncoeffs.size()
 		); 
-		_XFormTimerStop();
-		if (rc<0) return(-1);
+		if (_id==0) _wc->_XFormTimerStop();
+		if (rc<0) {
+			_wc->_threadStatus = -1;
+			return;
+		}
 
-		rc = _WriteBlock(bx, by, bz);
-		if (rc<0) return(-1);
+		_wc->MutexLock();
+			rc = _WriteBlock(bx, by, bz);
+			if (rc<0) _wc->_threadStatus = -1;
+		_wc->MutexUnlock();
+
+		if (_wc->_threadStatus != 0) return;
 		
 	}
-	}
-	}
-
-	//
-	// Compute valid region bounds
-	// N.B. for 2D data the code below should be a no-op for the 3rd,
-	// unused dimension.
-	//
-	for(int i=0; i<3; i++) {
-		size_t t = bmin_up[i] * bs[i];
-		if (_validRegMin[i] > t) _validRegMin[i] = t;
-
-		t = min((((bmax_up[i]+1) * bs[i]) - 1), (dim[i]-1));
-		if (_validRegMax[i] < t) _validRegMax[i] = t;
-	}
-	return(0);
 }
 
 int WaveCodecIO::WriteRegion(
@@ -1101,11 +1169,11 @@ int WaveCodecIO::WriteRegion(
 
 				line_start += minb_p[0];
 				l2 = bs_p[0] - minb_p[0];
-				_pad_line(line_start, l1, l2, 1);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, 1);
 
 				line_start += l1 - 1;
 				l2 = maxb_p[0] + 1;
-				_pad_line(line_start, l1, l2, -1);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, -1);
 			}
 			}
 		}
@@ -1123,11 +1191,11 @@ int WaveCodecIO::WriteRegion(
 
 				line_start += minb_p[1] * stride;
 				l2 = bs_p[1] - minb_p[1];
-				_pad_line(line_start, l1, l2, stride);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, stride);
 
 				line_start += (l1 - 1) * stride;
 				l2 = maxb_p[1] + 1;
-				_pad_line(line_start, l1, l2, -stride);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, -stride);
 			}
 			}
 		}
@@ -1145,11 +1213,11 @@ int WaveCodecIO::WriteRegion(
 
 				line_start += minb_p[2] * stride;
 				l2 = bs_p[2] - minb_p[2];
-				_pad_line(line_start, l1, l2, stride);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, stride);
 
 				line_start += (l1 - 1) * stride;
 				l2 = maxb_p[2] + 1;
-				_pad_line(line_start, l1, l2, -stride);
+				_pad_line(GetBoundaryMode(), line_start, l1, l2, -stride);
 			}
 			}
 		}
@@ -1320,12 +1388,12 @@ int WaveCodecIO::WriteSlice(
 		}
 		// Pad if necessary (noop if not)
 		//
-		_pad_line(line_start, dim_p[0], nnx, 1);
+		_pad_line(GetBoundaryMode(), line_start, dim_p[0], nnx, 1);
 	}
 
 	for (int x = 0; x<nnx; x++) { 
 		line_start = _sliceBuffer + (slice_count * nnx*nny + x);
-		_pad_line(line_start, dim_p[1], nny, nnx);
+		_pad_line(GetBoundaryMode(), line_start, dim_p[1], nny, nnx);
 	}
 	_sliceCount++;
 
@@ -1347,7 +1415,10 @@ int WaveCodecIO::WriteSlice(
 		line_start = _sliceBuffer;
 		for (int y = 0; y<nny; y++) {
 			for (int x = 0; x<nnx; x++) {
-				_pad_line(line_start, dim_p[2]-(bmax_p[2]*bs_p[2]), bs_p[2], nnx*nny);
+				_pad_line(
+					GetBoundaryMode(), line_start, 
+					dim_p[2]-(bmax_p[2]*bs_p[2]), bs_p[2], nnx*nny
+				);
 				line_start++;
 			}
 		}
@@ -1690,19 +1761,9 @@ int WaveCodecIO::_OpenVarRead(
 		}
 
 		//
-		// if there is not compression at lod j we reconstruct 
-		// the sig map from all the other sig maps. 
-		//
-		bool reconstruct_sigmap = 
-			 ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
-
-		//
 		// Final dimension is the number of wavelet coefficients
 		// + the sigmap size / 4
 		//
-		size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
-		size_t l = _ncoeffs[j] + ((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
-
         rc = nc_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
 		NC_ERR_READ(rc,path)
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
@@ -1983,54 +2044,55 @@ int WaveCodecIO::_OpenVarWrite(
 }
 
 
-int WaveCodecIO::_WriteBlock(
+int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 	size_t bx, size_t by, size_t bz
 ) {
-	const float *cvectorptr = _cvector;
+	const float *cvectorptr = _wc->_cvectorThread[_id];
 	int rc;
 
-	_WriteTimerStart();
+	//
+	// This method is serialized. OK for all threads to call Timer methods
+	//
+	_wc->_WriteTimerStart();
 
 
-	for(int j=0; j<=_lod; j++) {
+	for(int j=0; j<=_wc->_lod; j++) {
 		size_t start[] = {0,0,0,0};
 		size_t wcount[] = {1,1,1,1};
 		size_t scount[] = {1,1,1,1};
 
 		const unsigned char *map;
 		size_t maplen;
-		_sigmaps[j]->GetMap(&map, &maplen);
-//		assert(maplen == _sigmapsizes[j]);
+		_wc->_sigmapsThread[_id][j]->GetMap(&map, &maplen);
+//		assert(maplen == _wc->_sigmapsizes[j]);
 
 		bool reconstruct_sigmap = 
-		     ((_cratios.size() == (j+1)) && (_cratios[j] == 1));
+		     ((_wc->_cratios.size() == (j+1)) && (_wc->_cratios[j] == 1));
 
-        size_t sms = reconstruct_sigmap ? 0 : _sigmapsizes[j];
-
-		if (_vtype == VAR3D) {
+		if (_wc->_vtype == VAR3D) {
 			start[0] = bz;
 			start[1] = by;
 			start[2] = bx;
-			wcount[3] = _ncoeffs[j];
-			scount[3] = _sigmapsizes[j];
+			wcount[3] = _wc->_ncoeffs[j];
+			scount[3] = _wc->_sigmapsizes[j];
 		}
 		else {
 			start[0] = by;
 			start[1] = bx;
-			wcount[2] = _ncoeffs[j];
-			scount[2] = _sigmapsizes[j];
+			wcount[2] = _wc->_ncoeffs[j];
+			scount[2] = _wc->_sigmapsizes[j];
 		}
 
 #ifndef NOIO
 #ifdef PARALLEL
-		rc = nc_var_par_access(_ncids[j], _nc_wave_vars[j], this->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
+		rc = nc_var_par_access(_ncids[j], _nc_wave_vars[j], _wc->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
 #endif
 		rc = nc_put_vars_float(
-			_ncids[j], _nc_wave_vars[j], start, wcount, NULL, cvectorptr
+			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr
 		);
-		NC_ERR_WRITE(rc, _ncpaths[j]);
+		NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
 #endif	
-		cvectorptr += _ncoeffs[j];
+		cvectorptr += _wc->_ncoeffs[j];
 
 		//
 		// To save space we don't store the final signficiance map
@@ -2038,10 +2100,10 @@ int WaveCodecIO::_WriteBlock(
 		// data (cratio == 1).
 		//
 		if (! reconstruct_sigmap) {
-			if (_vtype == VAR3D) 
-				start[3] += _ncoeffs[j];
+			if (_wc->_vtype == VAR3D) 
+				start[3] += _wc->_ncoeffs[j];
 			else
-				start[2] += _ncoeffs[j];
+				start[2] += _wc->_ncoeffs[j];
 
 			//
 			// Signficance map is concatenated to the wavelet coefficients
@@ -2049,25 +2111,25 @@ int WaveCodecIO::_WriteBlock(
 			//
 #ifndef NOIO
 			rc = nc_put_vars(
-				_ncids[j], _nc_wave_vars[j], start, scount, NULL, map
+				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, map
 			);
-			NC_ERR_WRITE(rc, _ncpaths[j]);
+			NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
 #endif
 		}
 	}
 
-	_WriteTimerStop();
+	_wc->_WriteTimerStop();
 
 	return(0);
 }
 
-void WaveCodecIO::_pad_line(
+void _pad_line(
+	string mode,
 	float *line_start, 
 	size_t l1,	// length of valid data
 	size_t l2,	// total length of array
 	long stride
-) const {
-	string mode = GetBoundaryMode();
+) {
 	float *ptr = line_start + ((long) l1 * stride);
 
 	long index;
@@ -2082,6 +2144,7 @@ void WaveCodecIO::_pad_line(
 			*ptr = *line_start;
 			ptr += stride;
 		}
+		return;
 	}
 		
 
@@ -2259,26 +2322,37 @@ void WaveCodecIO::_FillPackedCoord(
 	}
 }
 
-WaveCodecIO::ReadThreadObj::ReadThreadObj(
+WaveCodecIO::ReadWriteThreadObj::ReadWriteThreadObj(
 	WaveCodecIO *wc,
 	int id,
 	float *region,
 	const size_t *bmin_p,
 	const size_t *bmax_p,
+	const size_t *bdim_p,
+	const size_t *dim_p,
 	const size_t *bs_p, 
-	int unblock
+	const float dataRange[2],
+	bool reblock,
+	bool pad
 ) {
 	_wc = wc;
 	_id = id;
+	_region = region;
 	_bmin_p = bmin_p;
 	_bmax_p = bmax_p;
+	_bdim_p = bdim_p;
+	_dim_p = dim_p;
 	_bs_p = bs_p;
-	_unblock = unblock;
-	_region = region;
+	_dataRange[0] = dataRange[0];
+	_dataRange[1] = dataRange[1];
+	_reblock = reblock;
+	_pad = pad;
+
 }
 
-void WaveCodecIO::ReadThreadObj::BlockReadRegionThread(
+void WaveCodecIO::ReadWriteThreadObj::BlockReadRegionThread(
 ) {
+
 
 
 	// dimensions of region in voxels
@@ -2335,7 +2409,7 @@ void WaveCodecIO::ReadThreadObj::BlockReadRegionThread(
 
 		float *blockptr;
 
-		if (_unblock) {
+		if (_reblock) {
 			blockptr = _wc->_blockThread[_id];
 
 			if (_id==0) _wc->_XFormTimerStart();
@@ -2388,7 +2462,7 @@ void WaveCodecIO::ReadThreadObj::BlockReadRegionThread(
 	}
 }
 
-int WaveCodecIO::ReadThreadObj::_FetchBlock(
+int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 	size_t bx, size_t by, size_t bz
 ) {
 	float *cvectorptr = _wc->_cvectorThread[_id];
