@@ -49,6 +49,7 @@ struct opt_t {
 	char *varname;
 	int level;
 	int lod;
+	int nthreads;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -67,6 +68,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 		"next refinement, etc. -1 => all levels defined by the .vdf file"},
 	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
 		"next refinement, etc. -1 => all levels defined by the .vdf file"},
+	{"nthreads",1, 	"0",	"Number of execution threads (0 => # processors)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -85,6 +87,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
+	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -666,7 +669,7 @@ int	main(int argc, char **argv) {
 		vdfio = wbwriter3D;
 	} 
 	else {
-		wcwriter = new WaveCodecIO(metadata);
+		wcwriter = new WaveCodecIO(metadata, opt.nthreads);
 		vdfio = wcwriter;
 	}
 	if (vdfio->GetErrCode() != 0) {

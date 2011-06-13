@@ -22,6 +22,7 @@ struct opt_t {
 	char *varname;
 	int	level;
 	int	lod;
+	int	nthreads;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -36,6 +37,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",1, "-1","Multiresolution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "-1","Compression level of detail. Zero implies coarsest approximation"},
+	{"ntheads",1, "0","Number of execution threads (0=># processors)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -52,6 +54,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
+	{"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -178,7 +181,7 @@ void	process_volume_vdc2(
 	size_t dim[3];
 	double t0, t1;
 
-	wcreader = new WaveCodecIO(metadata);
+	wcreader = new WaveCodecIO(metadata, opt.nthreads);
 	if (wcreader->GetErrCode() != 0) {
 		exit(1);
 	}
@@ -258,7 +261,7 @@ void	process_region_vdc2(
 	size_t dim[3];
 	double t0, t1;
 
-	wcreader = new WaveCodecIO(metadata);
+	wcreader = new WaveCodecIO(metadata,opt.nthreads);
 	if (wcreader->GetErrCode() != 0) {
 		exit(1);
 	}
