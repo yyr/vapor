@@ -50,6 +50,15 @@ If I<level> is 1, the coarsest approximation, and first refinement are
 saved. And so on. This option is not supported for VDC Type 2 and is silently
 ignored if present.
 
+=item -nthreads E<lt>n<gt>
+
+This option can be used to specify the number of execution threads to be
+employed when transforming data. The default value of I<n> is 0, which
+causes the application to query the operating system to find the number
+of processors available, and then use that value. For most platforms
+the number of processors available is the result of the system call,
+sysconf(_SC_NPROCESSORS_ONLN).
+
 =item -quiet
 
 Operate quietly without reporting any informational messages.
