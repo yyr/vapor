@@ -52,7 +52,7 @@ endif
 set vapor_root = $InstDest/VAPOR.app
 set bindir = $vapor_root/Contents/MacOS
 set lib_search_dirs = $bindir
-set mandir = $vapor_root/Contents/SharedSupport
+set mandir = $vapor_root/Contents/SharedSupport/man
 
 set sedcmd = sed
 if (-e /bin/sed) set sedcmd = /bin/sed
