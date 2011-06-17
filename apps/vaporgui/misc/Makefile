@@ -6,9 +6,9 @@ PROGRAM = vaporgui
 COMPILE_ONLY = 1
 
 MAKEFILE_INCLUDE_DIRS += -I../guis -I../main -I../../../lib/params -I../../../lib/render 
-MAKEFILE_INCLUDE_DIRS += -I/Users/alan/TEMP/Python-2.6.4/Include
-MAKEFILE_INCLUDE_DIRS += -I/Users/alan/TEMP/Python-2.6.4
-MAKEFILE_INCLUDE_DIRS += -I/Users/alan/TEMP/lib/Python2.6/site-packages/numpy/core/include/numpy
+MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/Include
+MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/
+MAKEFILE_INCLUDE_DIRS += -I$(PYTHONDIR)/site-packages/numpy/core/include/numpy
 
 MAKEFILE_CXXFLAGS += -DBINDIR=\"$(BINDIR)\"
 MAKEFILE_CXXFLAGS += -DDSO_DIR=\"$(DSO_DIR)\"
