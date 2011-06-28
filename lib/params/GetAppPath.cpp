@@ -99,9 +99,20 @@ std::string VetsUtil::GetAppPath(
 		return("");	// empty path, invalid resource
 	}
 
+	char *homestr = getenv(env.c_str());
+#ifdef	Darwin
+	if (homestr) {
+		string s = homestr;
+		if (s.find(".app") != string::npos) {
+			path.assign(homestr);
+			path.append(separator);
+			homestr = NULL;
+		} 
+	}
+#endif
 
-    if (char *s = getenv(env.c_str())) {
-		path.assign(s);
+    if (homestr) {
+		path.assign(homestr);
 		if (! resource.empty()) {
 			path.append(separator);
 			path.append(resource);
@@ -109,7 +120,9 @@ std::string VetsUtil::GetAppPath(
 	}
 #ifdef	Darwin
 	else {
-		path = get_path_from_bundle(myapp);
+		if (path.empty()) {
+			path = get_path_from_bundle(myapp);
+		}
 		if (! path.empty()) {
 			path.append("Contents/");
 			if (
