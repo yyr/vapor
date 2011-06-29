@@ -33,7 +33,7 @@ access in addtion to hierarchical access. The default type is VDC1.
 
 =over 4
 
-=item -cratios E<lt>vector<gt>
+=item -cratios E<lt>vectorE<gt>
 
 This option (VDC2 only) specifies a colon delimited list of
 compression ratios. The minimum compression ratio is 1 (indicating no
@@ -204,7 +204,7 @@ in the VDF. The default is to include no 2D YZ-plane variables.
 
 Generate a .vdf file for a VDC Type 2 data collection.
 
-=item -wname E<lt>wave_name<gt>
+=item -wname E<lt>wave_nameE<gt>
 
 Wavelet family name used for compression (VDC2 only). See the vdfcreate
 help message for a list of supported wavelets.
