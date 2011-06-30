@@ -34,7 +34,7 @@
 #include <vapor/common.h>
 #include <vaporinternal/jpegapi.h>
 #include "datastatus.h"
-
+#include "ShaderMgr.h"
 //No more than 20 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 20
@@ -60,7 +60,6 @@ class TranslateRotateManip;
 class FlowRenderer;
 class VolumeRenderer;
 class SpinThread;
-
 //! \class GLWindow
 //! \brief A class for performing OpenGL rendering in a VAPOR Visualizer
 //! \author Alan Norton
@@ -448,6 +447,8 @@ public:
 	static void setSpinAnimation(bool on){spinAnimate = on;}
 	static bool spinAnimationEnabled(){return spinAnimate;}
 	QMutex renderMutex;  //prevent recursive rendering
+	
+	ShaderMgr *manager;
 	
 protected:
 	//Mouse Mode tables.  Static since independent of window:

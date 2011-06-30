@@ -12,7 +12,7 @@
 #include "Vect3d.h"
 
 #include <vector>
-
+#include <QString>
 namespace VAPoR {
 
   class BBox;
@@ -47,7 +47,6 @@ class RENDER_API DVRRayCaster2Var : public DVRRayCaster
 protected:
 
   virtual void initShaderVariables();
-
   virtual bool createShader(ShaderType,
                     const char *vertexCommandLine,
                     const char *vertexSource,
@@ -58,6 +57,10 @@ protected:
 	const TextureBrick *brick, 
 	const Matrix3d &modelview, const Matrix3d &modelviewInverse
   );
+private:	
+	 QString getCurrentEffect();
+	
+	 bool setShaderTextures();
 };
 
 };

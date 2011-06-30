@@ -67,7 +67,7 @@ bool DVRRayCaster2Var::createShader(ShaderType type,
                              const char *fragCommandLine,
                              const char *fragmentSource)
 {
-	_shaders[type] = new ShaderProgram();
+/*	_shaders[type] = new ShaderProgram();
 	_shaders[type]->create();
 
 	//
@@ -125,10 +125,24 @@ bool DVRRayCaster2Var::createShader(ShaderType type,
 
 		_shaders[type]->disable();
 	}
-
+*/
 	return true;
 }
 
+bool DVRRayCaster2Var::setShaderTextures(){
+	
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorMapped", "volumeTexture", 0);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorMapped", "texcrd_buffer", _texcrd_sampler);
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorMapped", "colormap", 1);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorMapped", "depth_buffer", _depth_sampler);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "volumeTexture", 0);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "colormap", 1);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "texcrd_buffer", _texcrd_sampler);	
+	myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "depth_buffer", _depth_sampler);	
+	return true;
+}
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -138,30 +152,8 @@ int DVRRayCaster2Var::GraphicsInit()
 
 	if (initTextures() < 0) return(-1);
 
-	//
-	// Create, Load & Compile the shader programs
-	//
-
-	if (!createShader(
-		DEFAULT, 
-		"--iso-color-vertex-shader", vertex_shader_iso_color,
-		"--iso-color-fragment-shader", fragment_shader_iso_color)) {
-
-		return -1;
-	}
-	if (!createShader(
-		LIGHT, 
-		"--iso-color-lighting-vertex-shader", vertex_shader_iso_color_lighting,
-		"--iso-color-lighting-fragment-shader", fragment_shader_iso_color_lighting)) {
-
-		return -1;
-	}
-
-	//
-	// Set the current shader
-	//
-
-	_shader = _shaders[DEFAULT];
+	setShaderTextures();
+	initShaderVariables();
 
 	return 0;
 }
@@ -192,7 +184,7 @@ void DVRRayCaster2Var::raycasting_pass(
     }
     glEnable(GL_TEXTURE_1D);
   }
-	DVRRayCaster::raycasting_pass(brick, modelview, modelviewInverse);
+	DVRRayCaster::raycasting_pass(brick, modelview, modelviewInverse, getCurrentEffect());
 }
 
 
@@ -221,47 +213,27 @@ void DVRRayCaster2Var::SetIsoValues(
 
 
 void DVRRayCaster2Var::initShaderVariables() {
-
-	assert(_shader);
-
-	if (_shader->enable() < 0) return;
-
-	if (GLEW_VERSION_2_0) {
-
-		glUniform1f(_shader->uniformLocation("isovalue"), _values[0]);
-	} else {
-
-		glUniform1fARB(_shader->uniformLocation("isovalue"), _values[0]);
+	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("isovalue"), _values[0]);
+	
+	if (_lighting) {		
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("dimensions"), (float)_nx, (float)_ny, (float)_nz);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("kd"), _kd);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ka"), _ka);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ks"), _ks);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("expS"), _expS);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("lightDirection"), _pos[0], _pos[1], _pos[2]);
+		
 	}
-
-	if (_lighting) {
-		if (GLEW_VERSION_2_0) {   
-			glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-			glUniform1f(_shader->uniformLocation("kd"), _kd);
-			glUniform1f(_shader->uniformLocation("ka"), _ka);
-			glUniform1f(_shader->uniformLocation("ks"), _ks);
-			glUniform1f(_shader->uniformLocation("expS"), _expS);
-			glUniform3f(
-				_shader->uniformLocation("lightDirection"), 
-				_pos[0], _pos[1], _pos[2]
-			);
-		}       
-		else {   
-			glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-			glUniform1fARB(_shader->uniformLocation("kd"), _kd);
-			glUniform1fARB(_shader->uniformLocation("ka"), _ka);
-			glUniform1fARB(_shader->uniformLocation("ks"), _ks);
-			glUniform1fARB(_shader->uniformLocation("expS"), _expS);
-			glUniform3fARB(
-				_shader->uniformLocation("lightDirection"), 
-				_pos[0], _pos[1], _pos[2]
-			);
-		}       
-	}
-
-	_shader->disable();
 }
-
+QString DVRRayCaster2Var::getCurrentEffect(){
+	
+	if (_lighting) {
+		return QString("isoColorLightMapped");
+	}
+	else {
+		return QString("isoColorMapped");
+	}
+}
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------

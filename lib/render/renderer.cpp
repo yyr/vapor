@@ -20,7 +20,6 @@
 //
 #include <qpixmap.h>
 #include <qpainter.h>
-#include "glwindow.h"
 #include "renderer.h"
 #include <vapor/DataMgr.h>
 #include "regionparams.h"

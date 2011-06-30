@@ -3,6 +3,10 @@
 // Copyright (C) 2005 Kenny Gruchalla.  All rights reserved.
 //
 // OGSL Shader program C++ wrapper. 
+// 
+// Changelog:
+// 06/30/2011 - Yannick Polius
+// Modified to accomodate the new VAPOR shader architecture
 //
 //----------------------------------------------------------------------------
 
@@ -10,7 +14,6 @@
 #include "glutil.h"
 #include <vapor/errorcodes.h>
 #include <vapor/MyBase.h>
-#include "renderer.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -27,7 +30,7 @@ using namespace VAPoR;
 ShaderProgram::ShaderProgram()
 {
 	_program = 0;
-	_shaders.clear();
+	_shaderObjects.clear();
 }
 
 
@@ -37,21 +40,21 @@ ShaderProgram::ShaderProgram()
 ShaderProgram::~ShaderProgram()
 {
   std::list<GLuint>::iterator iter;
-
-  for (iter=_shaders.begin(); iter != _shaders.end(); iter++)
-  {
-    GLuint shader = *iter;
-
-    if (GLEW_VERSION_2_0)
-    {
-      glDeleteShader(shader);
-    }
-    else
-    {
-      glDeleteObjectARB(shader);
-    }
-  }
-
+	for (std::map< QString, GLuint>::const_iterator iter = _shaderObjects.begin();
+		 iter != _shaderObjects.end(); ++iter ){
+		
+		GLuint shader = iter->second;
+		
+		if (GLEW_VERSION_2_0)
+		{
+			glDeleteShader(shader);
+		}
+		else
+		{
+			glDeleteObjectARB(shader);
+		}
+		
+	}
   if (GLEW_VERSION_2_0)
   {
     if (_program) glDeleteProgram(_program);
@@ -141,7 +144,7 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
     if (printOpenGLError() != 0) return(false);
   }
 
-  _shaders.push_back(shader);
+  _shaderObjects[QString(filename)] = shader;
  
   file.close();
 
@@ -151,9 +154,16 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 //----------------------------------------------------------------------------
 // Load vertex shader source from a string. 
 //----------------------------------------------------------------------------
+bool ShaderProgram::loadVertexSource(const char *source, QString fileName)
+{
+  return loadSource(source, GL_VERTEX_SHADER, fileName);
+}
+//----------------------------------------------------------------------------
+// Load vertex shader source from a string. 
+//----------------------------------------------------------------------------
 bool ShaderProgram::loadVertexSource(const char *source)
 {
-  return loadSource(source, GL_VERTEX_SHADER);
+  return loadSource(source, GL_VERTEX_SHADER, "");
 }
 
 
@@ -162,13 +172,20 @@ bool ShaderProgram::loadVertexSource(const char *source)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadFragmentSource(const char *source)
 {
-  return loadSource(source, GL_FRAGMENT_SHADER);
+  return loadSource(source, GL_FRAGMENT_SHADER, "");
+}
+//----------------------------------------------------------------------------
+// Load fragment shader source from a file. 
+//----------------------------------------------------------------------------
+bool ShaderProgram::loadFragmentSource(const char *source, QString fileName)
+{
+  return loadSource(source, GL_FRAGMENT_SHADER, fileName);
 }
 
 //----------------------------------------------------------------------------
 // Create the shader from the char* source
 //----------------------------------------------------------------------------
-bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
+bool ShaderProgram::loadSource(const char *source, GLenum shaderType, QString fileName)
 {
   GLuint shader;
 
@@ -202,10 +219,7 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
     glAttachObjectARB(_program, shader);
     if (printOpenGLError() != 0) return(false);
   }
-
-
-  _shaders.push_back(shader);
-
+  _shaderObjects[fileName] = shader;
   return true;
 }
 
@@ -233,96 +247,102 @@ bool ShaderProgram::create()
 //----------------------------------------------------------------------------
 bool ShaderProgram::compile()
 {
-  std::list<GLuint>::iterator iter;
-  //bool compiled = true;
-
-  //
-  // Compile all the shaders
-  //
-  for (iter=_shaders.begin(); iter != _shaders.end(); iter++)
-  {
-    GLuint shader = *iter;
+	std::list<GLuint>::iterator iter;
     GLint infologLength = 0;
-    GLint shaderCompiled;
+	int nWritten  = 0;
 
-    if (GLEW_VERSION_2_0)
-    {
-      //
-      // Compile a single shader
-      //
-      glCompileShader(shader);
-      glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
-      if (printOpenGLError() != 0) return(false);
 
-      //compiled &= shaderCompiled;
-      
-      //
-      // Print log information
-      //
-      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
-      if (printOpenGLError() != 0) return(false);
-      
-      if (shaderCompiled != GL_TRUE && infologLength > 1)
-      {
-        GLchar *infoLog = new GLchar[infologLength];
-        int nWritten  = 0;
-        
-        glGetShaderInfoLog(shader, infologLength, &nWritten, infoLog);
+	//
+	// Compile all the shaders
+	//
 
-        std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
-
-        VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
-                                    "Shader InfoLog: %s\n", infoLog);
-        
-        delete infoLog;
-        infoLog = NULL;
-      }
-    }
-    else
-    {
-      //
-      // Compile a single shader
-      //
-      glCompileShaderARB(shader);
-      glGetObjectParameterivARB(shader, 
-                                GL_OBJECT_COMPILE_STATUS_ARB, 
-                                &shaderCompiled);
-      if (printOpenGLError() != 0) return(false);
-
-      //compiled &= shaderCompiled;
-      
-      //
-      // Print log information
-      //
-      glGetObjectParameterivARB(shader, 
-                                GL_OBJECT_INFO_LOG_LENGTH_ARB, 
-                                &infologLength);
-      if (printOpenGLError() != 0) return(false);
-      
-      if (shaderCompiled != GL_TRUE && infologLength > 1)
-      {
-        GLchar *infoLog = new GLchar[infologLength];
-        int nWritten  = 0;
-        
-        glGetInfoLogARB(shader, infologLength, &nWritten, infoLog);
-        
-        std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
-
-        VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
-                                   "Shader InfoLog: %s\n", infoLog);
-        
-        delete infoLog;
-        infoLog = NULL;
-      }
-    }
-
-    //if (!compiled)
-    if (!shaderCompiled)
-    {
-      return false;
-    }
+	bool compileSuccess = true;
+	std::string shaderErrors ("");
+	for (std::map< QString, GLuint>::const_iterator iter = _shaderObjects.begin();
+		 iter != _shaderObjects.end(); ++iter ){
+	  
+		GLuint shader = iter->second;
+		GLint infologLength = 0;
+		GLint shaderCompiled;
+		
+		if (GLEW_VERSION_2_0)
+		{
+			//
+			// Compile a single shader
+			//
+			glCompileShader(shader);
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
+			if (printOpenGLError() != 0) return(false);
+		  
+		 		  
+			//
+			// Print log information
+			//
+			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
+			if (printOpenGLError() != 0) return(false);
+		  
+			if (shaderCompiled != GL_TRUE && infologLength > 1)
+			{
+				GLchar *infoLog = new GLchar[infologLength];
+				int nWritten  = 0;
+			  
+				glGetShaderInfoLog(shader, infologLength, &nWritten, infoLog);
+			  
+				std::string output = iter->first.toStdString() + ":\t\n " + (char*)infoLog;
+				
+				shaderErrors += output;
+			  
+				delete infoLog;
+			    infoLog = NULL;
+			}
+		}
+		else
+		{
+			//
+			// Compile a single shader
+			//
+			glCompileShaderARB(shader);
+			glGetObjectParameterivARB(shader, 
+									  GL_OBJECT_COMPILE_STATUS_ARB, 
+									  &shaderCompiled);
+			if (printOpenGLError() != 0) return(false);
+		
+			//
+			// Print log information
+			//
+			glGetObjectParameterivARB(shader, 
+									  GL_OBJECT_INFO_LOG_LENGTH_ARB, 
+									  &infologLength);
+			if (printOpenGLError() != 0) return(false);
+		  
+			if (shaderCompiled != GL_TRUE && infologLength > 1)
+			{
+				GLchar *infoLog = new GLchar[infologLength];
+				int nWritten  = 0;
+			  
+				glGetInfoLogARB(shader, infologLength, &nWritten, infoLog);
+			  
+				std::string output = iter->first.toStdString() + ":\t\n " + (char*)infoLog;
+				
+				shaderErrors += output;
+				delete infoLog;
+				infoLog = NULL;
+			}
+		}
+	  
+		//if (!compiled)
+		if (shaderCompiled != GL_TRUE)
+		{
+			compileSuccess = false;
+		}
   }
 
+  if (!compileSuccess) {
+	  //print out errrors and exit
+	  VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, "Shader InfoLog:\n%s", (GLchar*)shaderErrors.c_str());
+	  return false;
+  }
+	
   //
   // Link the program
   //
@@ -339,6 +359,7 @@ bool ShaderProgram::compile()
     //
     GLint infologLength = 0;
     glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &infologLength);
+	  GLchar *infoLog = new GLchar[infologLength];
     if (printOpenGLError() != 0) return(false);
     
     if (linked != GL_TRUE && infologLength > 1)
@@ -347,11 +368,9 @@ bool ShaderProgram::compile()
       int nWritten  = 0;
       
       glGetProgramInfoLog(_program, infologLength, &nWritten, infoLog);
-
-      std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
  
       VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
-                                  "Shader InfoLog: %s\n", infoLog);
+                                  "ShaderProgram Link Error: %s\n", infoLog);
 
       delete infoLog;
       infoLog = NULL;
@@ -377,11 +396,9 @@ bool ShaderProgram::compile()
       int nWritten  = 0;
       
       glGetInfoLogARB(_program, infologLength, &nWritten, infoLog);
-      
-      std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
 
       VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
-                                  "Shader InfoLog: %s\n", infoLog);
+                                  "ShaderProgram Link Error: %s\n", infoLog);
 
       delete infoLog;
       infoLog = NULL;
@@ -434,7 +451,6 @@ void ShaderProgram::disable()
 GLint ShaderProgram::uniformLocation(const char *uniformName)
 {
   GLint location;
-
   if (GLEW_VERSION_2_0)
   {
     location = glGetUniformLocation(_program, uniformName);
@@ -443,15 +459,13 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
   {
     location = glGetUniformLocationARB(_program, uniformName);
   }
-
   if (location == -1)
   {
-    std::cerr << "Unknown uniform " << uniformName << std::endl;
 
     VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_UNKNOWN_UNIFORM, 
                                 "uniform \"%s\" not found.\n", uniformName);
   }
-
+	
   printOpenGLError();
 
   return location;
@@ -466,5 +480,8 @@ bool ShaderProgram::supported()
   return (GLEW_VERSION_2_0 || GLEW_ARB_shader_objects);
 }
 
-
+GLuint ShaderProgram::getProgram()
+{
+	return _program;
+}
 

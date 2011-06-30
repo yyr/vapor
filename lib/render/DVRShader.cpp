@@ -51,7 +51,6 @@ DVRShader::DVRShader(
 	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
 ) : DVRTexture3d(internalFormat, format, type, nthreads, ren),
  _colormap(NULL),
-  _shader(NULL),
   _lighting(false),
   _preintegration(false),
   _kd(0.0),
@@ -64,10 +63,6 @@ DVRShader::DVRShader(
 		internalFormat, format, type, nthreads
 	);
 
-  _shaders[DEFAULT]              = NULL;
-  _shaders[LIGHT]                = NULL;
-  _shaders[PRE_INTEGRATED]       = NULL;
-  _shaders[PRE_INTEGRATED_LIGHT] = NULL;
 
   for (int i=0; i<3; i++) _pos[i] = 0.0;
 
@@ -83,13 +78,6 @@ DVRShader::DVRShader(
 DVRShader::~DVRShader() 
 {
 	MyBase::SetDiagMsg("DVRShader::~DVRShader()");
-  map <int, ShaderProgram *>::iterator pos;
-
-  for(pos=_shaders.begin(); pos != _shaders.end(); ++pos) {
-    if (pos->second) delete pos->second;
-    pos->second = NULL;
-  }
-
   if (_colormap) delete [] _colormap;
   _colormap = NULL;
 
@@ -108,7 +96,7 @@ bool DVRShader::createShader(ShaderType type,
                              const char *fragCommandLine,
                              const char *fragmentSource)
 {
-  _shaders[type] = new ShaderProgram();
+  /*_shaders[type] = new ShaderProgram();
   if (! _shaders[type]->create()) return false;
 
   bool status = true;
@@ -160,7 +148,7 @@ bool DVRShader::createShader(ShaderType type,
   }
 
   _shaders[type]->disable();
-
+*/
 
   return true;
 }
@@ -174,59 +162,18 @@ int DVRShader::GraphicsInit()
   printOpenGLError();
 
   if (initTextures() < 0) return(-1);
-
-  //
-  // Create, Load & Compile the default shader program
-  //
-  if (!createShader(DEFAULT, 
-                    NULL, 
-                    NULL, 
-                    "--default-fragement-shader", 
-                    fragment_shader_default))
-  {
-    return -1;
-  }
-
-  //
-  // Create, Load & Compile the lighting shader program
-  //
-  if (!createShader(LIGHT,
-                    "--lighting-vertex-shader",
-                    vertex_shader_lighting,
-                    "--lighting-fragment-shader",
-                    fragment_shader_lighting))
-  {
-    return -1;
-  }
-
-  //
-  // Create, Load & Compile the pre-integrated shader program
-  //
-  if (!createShader(PRE_INTEGRATED,
-                    "--preintegrated-vertex-shader",
-                    vertex_shader_preintegrated,
-                    "--preintegrated-fragment-shader",
-                    fragment_shader_preintegrated))
-  {
-    return -1;
-  }
-
-  //
-  // Create, Load & Compile the lighted pre-integrated shader program
-  //
-  if (!createShader(PRE_INTEGRATED_LIGHT,
-                    "--preintegrated-lighting-vertex-shader",
-                    vertex_shader_preintegrated_lighting,
-                    "--preintegrated-lighting-fragment-shader",
-                    fragment_shader_preintegrated_lighting))
-  {
-    return -1;
-  }
-                    
-  //
-  // Set the current shader
-  //
-  _shader = _shaders[DEFAULT];
+	
+  myRenderer->myGLWindow->manager->uploadEffectData("preIntegratedLightDVR", "colormap", 1);
+  myRenderer->myGLWindow->manager->uploadEffectData("preIntegratedLightDVR", "volumeTexture", 0);
+	
+  myRenderer->myGLWindow->manager->uploadEffectData("defaultDVR", "colormap", 1);
+  myRenderer->myGLWindow->manager->uploadEffectData("defaultDVR", "volumeTexture", 0);
+	
+  myRenderer->myGLWindow->manager->uploadEffectData("lightingDVR", "colormap", 1);
+  myRenderer->myGLWindow->manager->uploadEffectData("lightingDVR", "volumeTexture", 0);
+	
+  myRenderer->myGLWindow->manager->uploadEffectData("preIntegratedDVR", "colormap", 1);
+  myRenderer->myGLWindow->manager->uploadEffectData("preIntegratedDVR", "volumeTexture", 0);
 
   initShaderVariables();
 
@@ -280,8 +227,7 @@ void DVRShader::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 int DVRShader::Render(const float matrix[16])
 {
-  if (_shader) if (_shader->enable() < 0) return(-1);
-
+  myRenderer->myGLWindow->manager->enableEffect(getCurrentEffect());
   calculateSampling();
 
   glPolygonMode(GL_FRONT, GL_FILL);
@@ -354,8 +300,7 @@ int DVRShader::Render(const float matrix[16])
   glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
-  if (_shader) _shader->disable();
-
+  myRenderer->myGLWindow->manager->disableEffect();
   glFlush();
   return 0;
 }
@@ -561,8 +506,6 @@ void DVRShader::SetPreintegrationOnOff(int on)
 {
   _preintegration = on;
 
-  _shader = shader(); assert(_shader);
-
   initShaderVariables();
 }
 
@@ -572,8 +515,6 @@ void DVRShader::SetPreintegrationOnOff(int on)
 void DVRShader::SetLightingOnOff(int on) 
 {
   _lighting = on;
-
-  _shader = shader(); assert(_shader);
 
   initShaderVariables();
 }
@@ -661,66 +602,22 @@ int DVRShader::initTextures()
 //----------------------------------------------------------------------------
 void DVRShader::initShaderVariables()
 {
-  assert(_shader);
-
-  if (_shader->enable() < 0) return;
-  
   if (_preintegration)
   {
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform1f(_shader->uniformLocation("delta"), _delta);
-      glUniform4f(
-        _shader->uniformLocation("vdir"), 
-        _vdir[0], _vdir[1], _vdir[2], _vdir[3]
-      );
-      glUniform4f(
-        _shader->uniformLocation("vpos"), 
-        _vpos[0], _vpos[1], _vpos[2], _vpos[3]
-      );
-
-    }
-    else
-    {
-      glUniform1fARB(_shader->uniformLocation("delta"), _delta);
-      glUniform4fARB(
-        _shader->uniformLocation("vdir"), 
-        _vdir[0], _vdir[1], _vdir[2], _vdir[3]
-      );
-      glUniform4fARB(
-        _shader->uniformLocation("vpos"), 
-        _vpos[0], _vpos[1], _vpos[2], _vpos[3]
-      );
-    }
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "delta", _delta);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
   }
 
   if (_lighting)
-  {
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-      glUniform1f(_shader->uniformLocation("kd"), _kd);
-      glUniform1f(_shader->uniformLocation("ka"), _ka);
-      glUniform1f(_shader->uniformLocation("ks"), _ks);
-      glUniform1f(_shader->uniformLocation("expS"), _expS);
-      glUniform3f(
-        _shader->uniformLocation("lightDirection"), _pos[0], _pos[1], _pos[2]
-      );
-    }
-    else
-    {
-      glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-      glUniform1fARB(_shader->uniformLocation("kd"), _kd);
-      glUniform1fARB(_shader->uniformLocation("ka"), _ka);
-      glUniform1fARB(_shader->uniformLocation("ks"), _ks);
-      glUniform1fARB(_shader->uniformLocation("expS"), _expS);
-      glUniform3fARB(
-        _shader->uniformLocation("lightDirection"), _pos[0], _pos[1], _pos[2]
-      );
-    }
+  {	  
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
+	  myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
   } 
-
-  _shader->disable();
 }
 
 //----------------------------------------------------------------------------
@@ -731,27 +628,29 @@ bool DVRShader::supported()
   return (ShaderProgram::supported() && GLEW_ARB_multitexture);
 }
 
+
+
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-ShaderProgram* DVRShader::shader()
+QString DVRShader::getCurrentEffect()
 {
-  if (_preintegration && _lighting)
-  {
-    return _shaders[PRE_INTEGRATED_LIGHT];
-  }
-  
-  if (_preintegration && !_lighting)
-  {
-    return _shaders[PRE_INTEGRATED];
-  }
-  
-  if (!_preintegration && _lighting)
-  {
-    return _shaders[LIGHT];
-  }
-  
-  return _shaders[DEFAULT];
+	if (_preintegration && _lighting)
+	{
+		return QString("preIntegratedLightDVR");
+	}
+	
+	if (_preintegration && !_lighting)
+	{
+		return QString("preIntegratedDVR");
+	}
+	
+	if (!_preintegration && _lighting)
+	{
+		return QString("lightingDVR");
+	}
+	
+	return QString("defaultDVR");
 }
 
 //----------------------------------------------------------------------------
@@ -763,18 +662,7 @@ void DVRShader::calculateSampling()
 
   if (_preintegration)
   {
-    if (_shader->enable() < 0) return;
-
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform1f(_shader->uniformLocation("delta"), _delta);
-    }
-    else
-    {
-      glUniform1fARB(_shader->uniformLocation("delta"), _delta);
-    }
-
-    _shader->disable();
+	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "delta", _delta);
   }
 }
 

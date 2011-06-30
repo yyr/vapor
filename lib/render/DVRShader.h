@@ -13,10 +13,10 @@
 #include "DVRTexture3d.h"
 
 #include "Vect3d.h"
-
+#include "ShaderMgr.h"
 #include <vector>
 #include <map>
-
+#include <QString>
 namespace VAPoR {
 
   class BBox;
@@ -86,6 +86,7 @@ protected:
                     const char *fragmentSource);
 
   ShaderProgram* shader();
+  QString getCurrentEffect();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,

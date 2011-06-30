@@ -13,7 +13,7 @@
 #include "Vect3d.h"
 
 #include <vector>
-
+#include <QString>
 namespace VAPoR {
 
   class BBox;
@@ -58,8 +58,7 @@ class RENDER_API DVRRayCaster : public DVRShader
   // return the maximum number of isovalues that may be set
   static int GetMaxIsoValues() {return (MAX_ISO_VALUES); };
 
-  virtual void Resize(int width, int height);
-
+	virtual void Resize(int width, int height);
 protected:
 
   enum ShaderType
@@ -78,8 +77,7 @@ protected:
                     const char *fragCommandLine,
                     const char *fragmentSource);
 
-  ShaderProgram* shader();
-
+  //ShaderProgram* shader();
 
   void drawFrontPlane(
 	const BBox &volumeBox, const BBox &textureBox,
@@ -95,7 +93,12 @@ protected:
 	const TextureBrick *brick, 
 	const Matrix3d &modelview, const Matrix3d &modelviewInverse
 
-  );
+							   );
+	virtual void raycasting_pass(
+								 const TextureBrick *brick, 
+								 const Matrix3d &modelview, const Matrix3d &modelviewInverse,
+								 QString effect
+								 );
 
   virtual void renderBrick(
 	const TextureBrick *brick,
@@ -116,12 +119,16 @@ protected:
   GLenum _colorInternalType;
   GLint _depthInternalFormat;
   GLenum _depthInternalType;
+  QString currentEffect;
 
   GLenum _texcrd_texunit;	// Texture unit numbers
   GLenum _depth_texunit;
   GLint _texcrd_sampler;	// Texture unit sampler numbers
   GLint _depth_sampler;
 
+private:
+	
+	QString getCurrentEffect();
 };
 
 };

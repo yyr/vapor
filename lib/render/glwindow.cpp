@@ -51,6 +51,7 @@
 #include "assert.h"
 #include <vaporinternal/jpegapi.h>
 #include <vapor/common.h>
+#include <qapplication.h>
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
 
@@ -184,6 +185,9 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	numElevTimesteps = 0;
 	_elevTexid = 0;
 	displacement = 0;
+	QString path = qApp->applicationDirPath();
+	//Assume shaders in exec dir
+	manager = new ShaderMgr(path + QString("/shaders"));
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 
@@ -226,6 +230,13 @@ void GLWindow::resizeGL( int width, int height )
 	setUpViewport(width, height);
 	nowPainting = false;
 	needsResize = false;
+	
+	manager->loadShaders();
+	manager->printEffects();
+#ifdef DEBUG
+	manager->printEffects();
+#endif
+
 }
 void GLWindow::setUpViewport(int width,int height){
    

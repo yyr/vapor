@@ -17,7 +17,7 @@ FILES = \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
 	DVRShader DVRLookup DVRVolumizer DVRSpherical DVRRayCaster \
-	DVRRayCaster2Var
+	DVRRayCaster2Var ShaderMgr
 
 QT_HEADERS = \
 	renderer 

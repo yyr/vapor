@@ -22,9 +22,8 @@
 #include <GL/glu.h>
 #endif
 
-#include <string>
-#include <list>
-
+#include <map>
+#include <QString>
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif
@@ -41,10 +40,12 @@ class RENDER_API ShaderProgram
   bool loadVertexShader(const char *filename);
   bool loadFragmentShader(const char *filename);
   bool loadShader(const char *filename, GLenum shaderType);
-
-  bool loadVertexSource(const char *source);
+  bool loadVertexSource(const char *source );
   bool loadFragmentSource(const char *source);
-  bool loadSource(const char *source, GLenum shaderType);
+
+  bool loadVertexSource(const char *source, QString fileName);
+  bool loadFragmentSource(const char *source, QString fileName);
+  bool loadSource(const char *source, GLenum shaderType, QString fileName);
 
   bool create();
   bool compile();
@@ -54,11 +55,12 @@ class RENDER_API ShaderProgram
   GLint uniformLocation(const char *uniformName);
 
   static bool supported();
+  GLuint getProgram();
 
 protected:
 
   GLuint      _program;
-  std::list<GLuint> _shaders;
+  std::map<QString, GLuint> _shaderObjects;
 };
 
 };

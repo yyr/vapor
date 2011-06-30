@@ -25,11 +25,11 @@
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
 #include "params.h"
+#include "glwindow.h"
 #include <qgl.h>
 using namespace VetsUtil;
 
 namespace VAPoR {
-class GLWindow;
 class DataMgr;
 class Metadata;
 
@@ -116,6 +116,7 @@ public:
 	virtual void setClutDirty(){clutDirtyBit = true;}
 	virtual void clearClutDirty(){clutDirtyBit = false;}
 	void renderColorscale(bool rebuild);
+	GLWindow* myGLWindow;
 	
 	
 signals:
@@ -133,7 +134,6 @@ protected:
 	//Dimensions of colormap image:
 	int imgWidth, imgHeight;
 	QImage glColorbarImage;
-	GLWindow* myGLWindow;
 	
 	float regionFrameColor[3];
 	float subregionFrameColor[3];
