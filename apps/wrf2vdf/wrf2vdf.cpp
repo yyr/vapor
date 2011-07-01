@@ -1046,23 +1046,23 @@ bool file_ok(
 
 	// Check vertical extents
 	//
-	if (extentsWRF[0] < (extentsVDC[0]-0.000001)) {
+	if (extentsWRF[0] < (extentsVDC[0]-0.0001)) {
 		MyBase::SetErrMsg("Minimum vertical user extents out of range");
 		return(false);
 	}
-	if (extentsWRF[5] < (extentsVDC[5]-0.000001)) {
+	if (extentsWRF[5] < (extentsVDC[5]-0.0001)) {
 		MyBase::SetErrMsg("Maximum vertical user extents out of range");
 		return(false);
 	}
 
 	for (int i=0; i<2; i++) {
-		if (extentsWRF[i] < (extentsVDC[i]-0.000001)) {
+		if (extentsWRF[i] < (extentsVDC[i]-0.0001)) {
 			MyBase::SetErrMsg("Minimum horizontal user extents out of range");
 			return(false);
 		}
 	}
 	for (int i=3; i<5; i++) {
-		if (extentsWRF[i] > (extentsVDC[i]+0.000001)) {
+		if (extentsWRF[i] > (extentsVDC[i]+0.0001)) {
 			MyBase::SetErrMsg("Maximum horizontal user extents out of range");
 			return(false);
 		}
