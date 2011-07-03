@@ -11,6 +11,8 @@
 
 #include <stdlib.h>
 
+using namespace VAPoR;
+
 //-- public  ------------------------------------------------------------------
 // Matrix3d::Matrix3d()
 // Default constructor -- creates the identity matrix
@@ -22,7 +24,7 @@ Matrix3d::Matrix3d()
   //
   at(0,0) = 1; at(0,1) = 0; at(0,2) = 0; at(0,3) = 0;
   at(1,0) = 0; at(1,1) = 1; at(1,2) = 0; at(1,3) = 0;
-  at(2,0) = 0; at(2,1) = 0; at(2,2) = 1; at(2,3) = 1;
+  at(2,0) = 0; at(2,1) = 0; at(2,2) = 1; at(2,3) = 0;
   at(3,0) = 0; at(3,1) = 0; at(3,2) = 0; at(3,3) = 1;
 }
 
@@ -71,6 +73,112 @@ Matrix3d::Matrix3d(const Vect3d &x,
   at(3,2) = w.z(); at(3,3) = w.w();
 }
 
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(...)
+// Construct with transformations
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const Transform3d *transform)
+{
+   Matrix3d matrix;
+
+   for(int i=0; i<transform->transformations().size(); i++)
+   {
+      Transform3d::TransformBase *base = transform->transformations()[i];
+      Transform3d::Translate *t = dynamic_cast<Transform3d::Translate*>(base);
+      Transform3d::Rotate *r = dynamic_cast<Transform3d::Rotate*>(base);
+      Transform3d::Scale *s = dynamic_cast<Transform3d::Scale*>(base);
+      Transform3d::Matrix *m = dynamic_cast<Transform3d::Matrix*>(base);
+
+      if (t) matrix *= Matrix3d(t);
+      if (r) matrix *= Matrix3d(r);
+      if (s) matrix *= Matrix3d(s);
+      if (m) matrix *= Matrix3d(m);
+   }
+
+   *this = matrix;
+}
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(...)
+// Construct with transformations
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const Transform3d::Translate *t)
+{
+   //
+   // Create the translation matrix
+   //
+   at(0,0) = 1; at(0,1) = 0; at(0,2) = 0; at(0,3) = t->x();
+   at(1,0) = 0; at(1,1) = 1; at(1,2) = 0; at(1,3) = t->y();
+   at(2,0) = 0; at(2,1) = 0; at(2,2) = 1; at(2,3) = t->z();
+   at(3,0) = 0; at(3,1) = 0; at(3,2) = 0; at(3,3) = 1;
+   
+}
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(...)
+// Construct with transformations
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const Transform3d::Rotate *r)
+{
+   //
+   // Create the rotation matrix
+   //
+   float th = r->rad();
+
+   Vect3d axis(r->axisx(), r->axisy(), r->axisz());
+   axis.unitize();
+
+   float ux = axis.x();
+   float uy = axis.y();
+   float uz = axis.z();
+
+   at(0,0) = cos(th) + ux*ux*(1 - cos(th));
+   at(0,1) = ux*uy*(1 - cos(th)) - uz*sin(th);
+   at(0,2) = ux*uz*(1 - cos(th)) + uy*sin(th);
+   at(0,3) = 0;
+
+   at(1,0) = uy*ux*(1 - cos(th)) + uz*sin(th);
+   at(1,1) = cos(th) + uy*uy*(1 - cos(th));
+   at(1,2) = uy*uz*(1-cos(th)) - ux*sin(th);
+   at(1,3) = 0;
+
+   at(2,0) = uz*ux*(1 - cos(th)) - uy*sin(th);
+   at(2,1) = uz*uy*(1 - cos(th)) + ux*sin(th);
+   at(2,2) = cos(th) + uz*uz*(1 - cos(th));
+   at(2,3) = 0;
+
+   at(3,0) = 0;
+   at(3,1) = 0;
+   at(3,2) = 0;
+   at(3,3) = 1;
+}
+
+
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(...)
+// Construct with transformations
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const Transform3d::Scale *s)
+{
+   //
+   // Create the scale matrix
+   //
+   at(0,0) = s->x(); at(0,1) = 0;      at(0,2) = 0;      at(0,3) = 0;
+   at(1,0) = 0;      at(1,1) = s->y(); at(1,2) = 0;      at(1,3) = 0;
+   at(2,0) = 0;      at(2,1) = 0;      at(2,2) = s->z(); at(2,3) = 0;
+   at(3,0) = 0;      at(3,1) = 0;      at(3,2) = 0;      at(3,3) = 1;   
+}
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(...)
+// Construct with transformations
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const Transform3d::Matrix *m)
+{
+   for (int i=0; i<16; i++) _data[i] = m->matrix()[i];
+}
+
 
 //-- public  ------------------------------------------------------------------
 // Matrix3d::Matrix3d(const Matrix3d &m)
@@ -97,6 +205,15 @@ Matrix3d::Matrix3d(const Matrix3d &m)
   at(3,1) = m.at(3,1);
   at(3,2) = m.at(3,2);
   at(3,3) = m.at(3,3);
+}
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(const float *m)
+// Copy Constructor
+//-----------------------------------------------------------------------------
+Matrix3d::Matrix3d(const float *m)
+{
+   memcpy(_data, m, sizeof(float)*16);
 }
 
 //-- public  ------------------------------------------------------------------
@@ -136,6 +253,43 @@ Matrix3d &Matrix3d::operator=(const Matrix3d &m)
   }
 
   return *this;
+}
+
+//-- public  ------------------------------------------------------------------
+// Matrix3d::Matrix3d(const float *m)
+// Copy Constructor
+//-----------------------------------------------------------------------------
+Matrix3d &Matrix3d::operator=(const float *m)
+{
+   memcpy(_data, m, sizeof(float)*16);
+
+   return *this;
+}
+
+//-- public  ------------------------------------------------------------------
+// Copy Transform3d
+//-----------------------------------------------------------------------------
+Matrix3d& Matrix3d::operator=(const Transform3d &t)
+{
+   Matrix3d matrix;
+
+   for(int i=0; i<t.transformations().size(); i++)
+   {
+      Transform3d::TransformBase *base = t.transformations()[i];
+      Transform3d::Translate *t = dynamic_cast<Transform3d::Translate*>(base);
+      Transform3d::Rotate *r = dynamic_cast<Transform3d::Rotate*>(base);
+      Transform3d::Scale *s = dynamic_cast<Transform3d::Scale*>(base);
+      Transform3d::Matrix *m = dynamic_cast<Transform3d::Matrix*>(base);
+
+      if (t) matrix *= Matrix3d(t);
+      if (r) matrix *= Matrix3d(r);
+      if (s) matrix *= Matrix3d(s);
+      if (m) matrix *= Matrix3d(m);
+   }
+
+   *this = matrix;
+   
+   return *this;
 }
 
 //-- public  ------------------------------------------------------------------

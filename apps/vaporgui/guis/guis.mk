@@ -9,7 +9,9 @@ GUI_FILES := \
 	twodframe gltwoDwindow \
 	DomainWidget GLWidget OpacityWidget \
 	qtthumbwheel userpreferences \
-	ControlPointEditor mappingframe ColorbarWidget
+	ControlPointEditor mappingframe ColorbarWidget \
+	ModelEventRouter \
+        TransformListModel TransformWidget TransformDelegate
 
 
 GUI_QT_HEADERS := \
@@ -22,6 +24,10 @@ GUI_QT_HEADERS := \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	isoeventrouter DomainWidget GLWidget OpacityWidget ControlPointEditor \
 	qtthumbwheel userpreferences \
-	mappingframe ColorbarWidget
+	mappingframe ColorbarWidget \
+	ModelEventRouter \
+        TransformListModel TransformWidget TransformDelegate
+
+
 
 

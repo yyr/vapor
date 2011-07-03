@@ -17,11 +17,13 @@ FILES = \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
 	DVRShader DVRLookup DVRVolumizer DVRSpherical DVRRayCaster \
+	ModelRenderer GLModelNode \
 	DVRRayCaster2Var ShaderMgr
 
 QT_HEADERS = \
 	renderer 
   
+
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
 endif

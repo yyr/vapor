@@ -14,8 +14,8 @@ FILES = \
 	arrowparams \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite \
-	pythonpipeline GetAppPath
-	
+	pythonpipeline GetAppPath ModelParams ModelScene Transform3d
+
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
 	TransferFunctionLite tfinterpolator ParamsBase ParamNode
 

@@ -1,5 +1,5 @@
 UI_FILES := animationtab flowtab viztab regiontab isotab \
 	twoDdatatab twoDimagetab \
-	arrow \
+	arrow model \
 	dvr vizfeatures probetab setoffset \
         ControlPointEditorBase preferences

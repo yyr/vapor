@@ -19,7 +19,11 @@ export PROGRAM
 
 MAKEFILE_INCLUDE_DIRS += -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-LIBRARIES = pthread dl util m render params flow vjpeg vdf common $(NETCDF_LIBS) expat $(QT_LIB) GLEW tiff geotiff proj python2.6 
+LIBRARIES = pthread dl util m render params flow vjpeg vdf common $(NETCDF_LIBS) expat $(QT_LIB) GLEW tiff geotiff proj python2.6
+
+ifeq ($(BUILD_MODELS),1)
+LIBRARIES += assimp
+endif
 
 ifneq ($(ARCH),Darwin)
 LIBRARIES += $(GLU_LIB) $(OGL_LIB)

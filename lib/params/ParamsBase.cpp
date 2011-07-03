@@ -37,6 +37,8 @@
 #include "viewpointparams.h"
 #include "probeparams.h"
 #include "transferfunction.h"
+#include "Transform3d.h"
+
 using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
 std::map<int,string> ParamsBase::tagFromClassIdMap;
@@ -149,7 +151,8 @@ bool ParamsBase::elementStartHandler(
 			//Special case for transfer functions etc:
 			if (tag == TransferFunction::_transferFunctionTag ||
 				tag == ParamsIso::_IsoControlTag ||
-				tag == MapperFunction::_mapperFunctionTag) {
+				tag == MapperFunction::_mapperFunctionTag ||
+                            tag == Transform3d::xmlTag()) {
 				//Create a new child node
 				map <string, string> childattrs;
 				ParamNode *child = new ParamNode(tag, childattrs);

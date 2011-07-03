@@ -10,3 +10,8 @@ SHARED = 1
 include $(TOP)/make/config/arch.mk
 include $(TOP)/make/config/$(ARCH).mk
 include $(TOP)/options.mk
+
+ifeq ($(BUILD_MODELS),1)
+MAKEFILE_CXXFLAGS += -DMODELS
+endif
+

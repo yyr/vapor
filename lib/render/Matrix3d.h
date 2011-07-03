@@ -14,6 +14,10 @@
 
 #include "Vect3d.h"
 #include "Point3d.h"
+#include "Transform3d.h"
+
+namespace VAPoR
+{
 
 class RENDER_API Matrix3d
 {
@@ -28,11 +32,20 @@ public:
            float x2, float y2, float z2, float w2,
            float x3, float y3, float z3, float w3);
 
+  Matrix3d(const float *f);
+
   // Construct with vectors
   Matrix3d(const Vect3d &x,
            const Vect3d &y,
            const Vect3d &z,
            const Vect3d &w);
+
+  // Construct with transformations
+  Matrix3d(const Transform3d *transform);
+  Matrix3d(const Transform3d::Translate *t);
+  Matrix3d(const Transform3d::Rotate *r);
+  Matrix3d(const Transform3d::Scale *s);
+  Matrix3d(const Transform3d::Matrix *m);
 
   // Copy Constructor
   Matrix3d(const Matrix3d &m);
@@ -42,6 +55,8 @@ public:
 
   // Assignment.
   Matrix3d &operator=(const Matrix3d &m);
+  Matrix3d &operator=(const float *m);
+  Matrix3d &operator=(const Transform3d &t);
 
   // Get/set my value at the given index.
   float &operator()(int x, int y);
@@ -79,7 +94,8 @@ public:
   friend Matrix3d operator*(const Matrix3d& m, const Matrix3d &d);
 
   // data
-  float* data() { return _data; }
+  float* data()             { return _data; }
+  const float* data() const { return _data; }
 
 protected:
 
@@ -289,6 +305,8 @@ inline float Matrix3d::determinant3x3(float a1, float a2, float a3,
           - b1 * (a2 * c3 - a3 * c2)
           + c1 * (a2 * b3 - a3 * b2));
 }
+
+};
 
 #endif
 

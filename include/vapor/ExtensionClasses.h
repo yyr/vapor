@@ -6,12 +6,23 @@
 #include "../apps/vaporgui/guis/arroweventrouter.h"
 #include "../lib/params/arrowparams.h"
 #include "../apps/vaporgui/images/arrowrake.xpm"
+#include "../apps/vaporgui/guis/ModelEventRouter.h"
+#include "../lib/params/ModelParams.h"
+#include "../lib/params/Transform3d.h"
+
 namespace VAPoR {
 	//For each extension class, insert the methods ParamsBase::RegisterParamsBaseClass and VizWinMgr::InstallTab
 	//Into the following method:
 	static void InstallExtensions(){
-		ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);
-		VizWinMgr::InstallTab(ArrowParams::_arrowParamsTag, ArrowEventRouter::CreateTab);
+           ParamsBase::RegisterParamsBaseClass(ArrowParams::_arrowParamsTag, ArrowParams::CreateDefaultInstance, true);
+           VizWinMgr::InstallTab(ArrowParams::_arrowParamsTag, ArrowEventRouter::CreateTab);
+
+           // Models
+#ifdef MODELS
+           ParamsBase::RegisterParamsBaseClass(Transform3d::xmlTag(), Transform3d::CreateDefaultInstance, false);
+           ParamsBase::RegisterParamsBaseClass(ModelParams::_modelParamsTag, ModelParams::CreateDefaultInstance, true);
+           VizWinMgr::InstallTab(ModelParams::_modelParamsTag, ModelEventRouter::CreateTab);
+#endif // MODELS
 	}
 	//For each class that has a manipulator associated with it, insert the method
 	//VizWinMgr::RegisterMouseMode(tag, modeType, manip name, xpm (pixmap) )
