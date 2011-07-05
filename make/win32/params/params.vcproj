@@ -295,6 +295,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\Transform3d.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\Transform3d.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\twoDdataparams.cpp"
 				>
 			</File>

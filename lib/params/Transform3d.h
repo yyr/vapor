@@ -18,7 +18,7 @@
 #include <QString>
 #include <vapor/ExpatParseMgr.h>
 #include <vector>
-#include "ParamsBase.h"
+#include "vapor/ParamsBase.h"
 #include "params.h"
 
 #define DEGREES_TO_RADIANS 0.0174532925199

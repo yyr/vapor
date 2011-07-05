@@ -266,6 +266,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\ShaderMgr.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\ShaderProgram.cpp"
 				>
 			</File>
@@ -408,6 +412,10 @@
 						Outputs="..\..\..\lib\moc\moc_renderer.cpp"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\ShaderMgr.h"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\ShaderProgram.h"

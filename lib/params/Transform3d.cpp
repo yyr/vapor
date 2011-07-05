@@ -385,6 +385,7 @@ ParamsBase* Transform3d::deepCopy(ParamNode *node)
    t->SetRootParamNode(node);
 
    if (node) node->SetParamsBase(t);
+   return t;
 }
 
 //----------------------------------------------------------------------------

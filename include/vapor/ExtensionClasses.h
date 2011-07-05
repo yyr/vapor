@@ -6,7 +6,9 @@
 #include "../apps/vaporgui/guis/arroweventrouter.h"
 #include "../lib/params/arrowparams.h"
 #include "../apps/vaporgui/images/arrowrake.xpm"
+#ifdef MODELS
 #include "../apps/vaporgui/guis/ModelEventRouter.h"
+#endif
 #include "../lib/params/ModelParams.h"
 #include "../lib/params/Transform3d.h"
 
