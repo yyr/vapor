@@ -25,7 +25,6 @@
 
 #include "Matrix3d.h"
 #include "Point3d.h"
-#include "raycast_shaders.h"
 
 using namespace VAPoR;
 

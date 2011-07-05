@@ -22,6 +22,7 @@
 #endif
 #include <GL/glew.h>
 #include <vapor/LayeredIO.h>
+#include <vapor/GetAppPath.h>
 
 #include "glwindow.h"
 #include "trackball.h"
@@ -187,7 +188,13 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 	displacement = 0;
 	QString path = qApp->applicationDirPath();
 	//Assume shaders in exec dir
-	manager = new ShaderMgr(path + QString("/shaders"));
+
+    vector <string> paths;
+    paths.push_back("shaders");
+    string shaderPaths = GetAppPath("VAPOR", "share", paths);
+
+//	manager = new ShaderMgr(path + QString("/shaders"));
+	manager = new ShaderMgr(shaderPaths.c_str());
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 

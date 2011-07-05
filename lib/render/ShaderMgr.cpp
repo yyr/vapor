@@ -70,8 +70,7 @@ bool ShaderMgr::loadShaders()
 		if(loadEffectFile(efcFiles.at(i).toLocal8Bit()) == false){		
 #ifdef DEBUG
 			std::cout << "ShaderMgr::loadShaders() - " << efcFiles.at(i).toStdString() << " failed to load" << std::endl;
-			VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
-										"EFC file \"%s\" failed to load\n", efcFiles.at(i)..toLocal8Bit().data());
+			VetsUtil::MyBase::SetErrMsg("EFC file \"%s\" failed to load\n", efcFiles.at(i).toLocal8Bit().data());
 #endif
 			return false;
 		}
