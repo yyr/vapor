@@ -168,7 +168,8 @@ run(){
 			//This flag will be reset to true if we are making progress
 			//i.e. if widgets are continuing to start and finish rendering.
 			for (viznum = 0; viznum < MAXVIZWINS; viznum++){
-				if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)){
+				int restartwaits = 0;
+				while (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)){
 					if (myAnimationController->renderStarted(viznum)){
 						numStarted++;
 						if (numStarted > maxStarted){
@@ -177,22 +178,28 @@ run(){
 						//mark every started renderer as being overdue,
 						//so it will notify controller if/when it finishes
 						myAnimationController->setOverdue(viznum);
+						break;
 					}
 					else if (myAnimationController->renderFinished(viznum)){
 						numFinished++;
 						if (numFinished > maxFinished) {
 							maxFinished = numFinished;
 						}
+						break;
 					}
-				//Following is needed only in Darwin OSX 10.5, OK in 10.6
+				//Following is needed if Qt balks at refreshing the window
 					else {
 						//Hasn't even started
 						//Try again to start it:
-						//qWarning("re-requesting render in vis %d",viznum);
 						myAnimationController->startVisualizer(viznum, currentTime);
 						missingViz = viznum;
+						//qWarning("Waiting 100 after rerequesting render in vis %d ", viznum);
+						myWaitCondition->wait(&myAnimationController->animationMutex,100);
+						restartwaits += 100;
+						//Don't wait here forever!
+						if (restartwaits > frameWaitTime) break;
+						continue;
 					}
-				//End of Darwin fix
 				}
 			}
 			if((numStarted+numFinished+numSleeping) >= numNotHidden) {
@@ -215,7 +222,7 @@ run(){
 				break;
 			}
 			
-			//qWarning("Waiting because started %d < %d ", numStarted, numNotHidden);
+			//qWarning("Waiting %d because started %d < %d ", frameWaitTime, numStarted, numNotHidden);
 			myWaitCondition->wait(&myAnimationController->animationMutex,frameWaitTime);
 		}
 		
