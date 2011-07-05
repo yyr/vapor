@@ -106,6 +106,7 @@ void ModelEventRouter::hookUpTab()
    //
    connect (modelLoad, SIGNAL(clicked()), this, SLOT(guiLoadModel()));
    connect (colorSelect, SIGNAL(pressed()), this, SLOT(guiSelectColor()));
+   connect (clipping, SIGNAL(toggled(bool)), this, SLOT(guiApplyClipping(bool)));
 
    connect (addTranslate, SIGNAL(clicked()), this, SLOT(guiAddTranslate()));
    connect (addScale, SIGNAL(clicked()), this, SLOT(guiAddScale()));
@@ -310,6 +311,19 @@ void ModelEventRouter::guiTransformsChanged()
    VizWinMgr::getInstance()->forceRender(modelParams);
 }
 
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void ModelEventRouter::guiApplyClipping(bool flag)
+{
+   ModelParams* modelParams = (ModelParams*) VizWinMgr::getActiveParams(ModelParams::_modelParamsTag);
+
+   modelParams->SetClipping(flag);
+
+   VizWinMgr::getInstance()->forceRender(modelParams);
+}
+
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -424,6 +438,11 @@ void ModelEventRouter::updateTab()
    QPalette pal(colorBox->palette());
    pal.setColor(QPalette::Base, newColor);
    colorBox->setPalette(pal);
+
+   //
+   // Set up clipping
+   //
+   clipping->setChecked(modelParams->GetClipping());
 	
    update();
 

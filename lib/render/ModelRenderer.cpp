@@ -77,6 +77,7 @@ void ModelRenderer::initializeGL()
 void ModelRenderer::paintGL()
 {
    ModelParams* params = (ModelParams*)getRenderParams();
+   RegionParams* regionParams = myGLWindow->getActiveRegionParams();
 
    myGLWindow->makeCurrent();
    printOpenGLError();
@@ -122,11 +123,52 @@ void ModelRenderer::paintGL()
    glScalef(scales[0], scales[1], scales[2]);
 
    //
-   // Retrieve and render the model
+   // Get timestep information
    //
    AnimationParams* animationParams = myGLWindow->getActiveAnimationParams();
    int framenum = animationParams->getCurrentFrameNumber();
 
+   if (params->GetClipping())
+   {
+      //
+      // Setup clipping planes
+      //
+      GLdouble topPlane[] = {0., -1., 0., 1.};
+      GLdouble rightPlane[] = {-1., 0., 0., 1.0};
+      GLdouble leftPlane[] = {1., 0., 0., 0.};
+      GLdouble botPlane[] = {0., 1., 0., 0.};
+      GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
+      GLdouble backPlane[] = {0., 0., 1., 0.};
+      
+      //Set up clipping planes
+      float extents[6];
+      regionParams->GetBox()->GetExtents(extents, framenum);
+      
+      topPlane[3] = extents[4]*scales[1];
+      botPlane[3] = -extents[1]*scales[1];
+      leftPlane[3] = -extents[0]*scales[0];
+      rightPlane[3] = extents[3]*scales[0];
+      frontPlane[3] = extents[5]*scales[2];
+      backPlane[3] = -extents[2]*scales[2];
+      
+      
+      glClipPlane(GL_CLIP_PLANE0, topPlane);
+      glEnable(GL_CLIP_PLANE0);
+      glClipPlane(GL_CLIP_PLANE1, rightPlane);
+      glEnable(GL_CLIP_PLANE1);
+      glClipPlane(GL_CLIP_PLANE2, botPlane);
+      glEnable(GL_CLIP_PLANE2);
+      glClipPlane(GL_CLIP_PLANE3, leftPlane);
+      glEnable(GL_CLIP_PLANE3);
+      glClipPlane(GL_CLIP_PLANE4, frontPlane);
+      glEnable(GL_CLIP_PLANE4);
+      glClipPlane(GL_CLIP_PLANE5, backPlane);
+      glEnable(GL_CLIP_PLANE5);
+   }
+   
+   //
+   // Retrieve and render the model
+   //
    const ModelScene *scene = getModelScene(params);
    const GLModelNode *model = getModel(params, scene, framenum);
 
@@ -143,6 +185,16 @@ void ModelRenderer::paintGL()
 
          model->draw(matrix);
       }
+   }
+
+   if (params->GetClipping())
+   {
+      glDisable(GL_CLIP_PLANE0);
+      glDisable(GL_CLIP_PLANE1);
+      glDisable(GL_CLIP_PLANE2);
+      glDisable(GL_CLIP_PLANE3);
+      glDisable(GL_CLIP_PLANE4);
+      glDisable(GL_CLIP_PLANE5);
    }
 
    glPopMatrix();
@@ -236,4 +288,4 @@ void ModelRenderer::setAllDataDirty()
    ((ModelParams*)getRenderParams())->setTransformationDirty();
 }
 
-#endif MODELS
+#endif // MODELS

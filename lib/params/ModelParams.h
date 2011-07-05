@@ -137,7 +137,7 @@ public:
 
 
  //! Following Get/Set methods are for 
- //! parameters used in defining an isosurface
+ //! parameters used in defining a model/scene
  //! All of them are implemented in the XML
  //
 
@@ -155,6 +155,10 @@ public:
  // Constant Color
  void SetConstantColor(const float rgb[3]);
  const float *GetConstantColor();
+
+ // Clipping to ROI
+ void SetClipping(bool clipping);
+ bool GetClipping();
 
  //  Set the model preferences to default values. 
  static void setDefaultPrefs();
@@ -188,6 +192,7 @@ private:
  static const string _sceneFilenameTag;
  static const string _modelFilenameTag;
  static const string _constantColorTag;
+ static const string _clippingTag;
  float _constcolorbuf[4];
 };
 };

@@ -83,6 +83,8 @@ protected slots:
    void guiAddTranslate();
    void guiAddScale();
    void guiAddRotate();
+
+   void guiApplyClipping(bool);
    
    void guiSetNumRefinements(int num);
    void guiSetCompRatio(int num);

@@ -192,4 +192,4 @@ void GLModelNode::draw(const Matrix3d &transform) const
    printOpenGLError();
 }
 
-#endif MODELS
+#endif // MODELS

@@ -36,6 +36,7 @@ const string ModelParams::_modelParamsTag = "ModelParams";
 const string ModelParams::_sceneFilenameTag = "SceneFilename";
 const string ModelParams::_modelFilenameTag = "ModelFilename";
 const string ModelParams::_transformTag = "Transformation";
+const string ModelParams::_clippingTag = "Clipping";
 const string ModelParams::_constantColorTag = "ConstantColor";
 
 namespace 
@@ -73,6 +74,8 @@ bool ModelParams::reinit(bool doOverride)
       const float col[3] = {1.f, 1.f, 1.f};
       SetConstantColor(col);
 
+      SetClipping(true);
+
       GetTransformation()->clear();
    }
 
@@ -102,6 +105,8 @@ void ModelParams::restart()
 
    const float default_color[3] = {1.0, 1.0, 1.0};
    SetConstantColor(default_color);
+
+   SetClipping(true);
 }
 
 //----------------------------------------------------------------------------
@@ -158,6 +163,29 @@ string ModelParams::GetSceneFilename()
 {
    string filename = GetRootNode()->GetElementString(_sceneFilenameTag);
    return filename;
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void ModelParams::SetClipping(bool clipping)
+{
+   GetRootNode()->SetElementLong(_clippingTag, clipping);
+   setModelDirty();
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+bool ModelParams::GetClipping()
+{
+   if (!GetRootNode()->HasElementLong(_clippingTag))
+   {
+      SetClipping(true);
+   }
+
+   return GetRootNode()->GetElementLong(_clippingTag)[0];
+
 }
 
 //----------------------------------------------------------------------------
