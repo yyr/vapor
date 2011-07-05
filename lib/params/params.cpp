@@ -614,7 +614,7 @@ vector <Params*>* Params::cloneAllDefaultParams(){
 
 bool Params::IsRenderingEnabled(int winnum){
 	for (int i = 1; i<= GetNumParamsClasses(); i++){
-		for (int inst = 0; inst < GetNumParamsInstances(i,winnum); i++){
+		for (int inst = 0; inst < GetNumParamsInstances(i,winnum); inst++){
 			Params* p = GetParamsInstance(i,winnum, inst);
 			if (!(p->isRenderParams())) break;
 			if (((RenderParams*)p)->isEnabled()) return true;
