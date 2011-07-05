@@ -1,0 +1,114 @@
+#version 120
+uniform sampler1D colormap;
+uniform sampler2D texcrd_buffer;	// tex coords for back facing quads
+uniform sampler2D depth_buffer;	// depth back facing quads
+uniform sampler3D volumeTexture;	// sampled data to ray cast
+uniform float isovalue;
+   
+uniform float delta;	// sampling distance along ray (eye coordinates)
+   
+varying vec4 position;	// interpolated gl_Position
+   
+//------------------------------------------------------------------
+// Fragment shader main
+//------------------------------------------------------------------
+void main(void)
+{
+    
+    vec3 lightColor = vec3(1.0, 1.0, 1.0);
+    
+    // Normalized window coordinates of this frament
+    vec2 texCoord2D = ((position.xy / position.w) + 1.0) / 2.0;
+    
+    // Starting and finishing texture coordinate of ray
+    vec3 texStop = texture2D(texcrd_buffer, texCoord2D).xyz;
+    vec3 texStart = gl_TexCoord[0].xyz;
+    
+    // Ray direction, texture coordinates
+    vec3 texDir = texStop - texStart;
+    vec3 texDirUnit = normalize(texDir);
+    //float len = length(texDir);
+    
+    float n = gl_DepthRange.near;
+    float f = gl_DepthRange.far;
+    
+    // Starting and stopping Z (window, NDC and eye coordinates)
+    // We need eye coordinates to interpolate depth (Z) because
+    // NDC and Window space is non-linear
+    // N.B. Inverse transform of window coords only works for perspective
+    
+    float zStopWin = texture2D(depth_buffer, texCoord2D).x;
+    float zStopNDC = (2*zStopWin)/(f-n) - (n+f)/(f-n);
+    float zStopEye = -gl_ProjectionMatrix[3].z / (zStopNDC + gl_ProjectionMatrix[2].z);
+    float zStartWin = gl_FragCoord.z;
+    float zStartNDC = (2*zStartWin)/(f-n) - (n+f)/(f-n);
+    float zStartEye = -gl_ProjectionMatrix[3].z / (zStartNDC + gl_ProjectionMatrix[2].z);
+    
+    // Compute number of samples based on samplin distance, delta 
+    //
+    int nsegs = int(min((zStopEye-zStartEye / delta), 256.0));
+    
+    // Ugh. Hard-wire number of samples. Bad things happen when view point 
+    // is inside the view volume using above code 
+    if (nsegs>0) nsegs = 256;
+    vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));
+    float deltaZ = (zStopEye-zStartEye) / float(nsegs);
+    
+    // texCoord{0,1} are the end points of a ray segment in texture coords
+    // s{0,1} are the sampled values of the texture at ray segment endpoints
+    vec3 texCoord0 = texStart;
+    vec3 texCoord1 = texCoord0+deltaVec;
+    float s0 = texture3D(volumeTexture, texCoord0).x;
+    float s1 = texture3D(volumeTexture, texCoord1).x;
+    
+    // Current Z value along ray and current (accumulated) color 
+    float fragDepth = zStartEye;
+    vec4 fragColor =  vec4(0.0, 0.0, 0.0, 0.0);
+    
+    // Make sure gl_FragDepth is set for all execution paths
+    gl_FragDepth = zStopWin;
+    
+    // Composite from front to back
+    
+    // false after first isosurface interesected 
+    bool first = true;
+    for (int i = 0; i<nsegs; i++) {
+      
+      // If sign changes we have an isosurface
+      
+         if (((isovalue-s1) * (isovalue-s0)) < 0.0) {
+          
+          float weight = (isovalue-s0) / (s1-s0);
+          
+          // find texture coord of isovalue with linear interpolation
+          vec3 isoTexCoord = texCoord0 + (weight * deltaVec);
+          
+          float var2 = texture3D(volumeTexture,isoTexCoord).w;
+          vec4 color = vec4(texture1D(colormap, var2));
+          
+          // blend fragment color with front to back compositing operator 
+          fragColor = (vec4(1.0)- vec4(fragColor.a))*color + fragColor;
+   
+          // The depth buffer value will be the first ray-isosurface 
+          // intersection. N.B. may not be best choice 
+   
+          if (first) {
+            fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);
+            first = false;
+          }
+        }
+       
+      texCoord0 = texCoord1;
+      texCoord1 = texCoord1+deltaVec;
+      s0 = s1;
+      s1 = texture3D(volumeTexture, texCoord1).x;
+    }
+    
+    if (fragColor.a == 0.0) discard;
+    
+    // Convert depth from eye coordinates back to window coords 
+    
+    fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
+    gl_FragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
+    gl_FragColor = fragColor;
+}

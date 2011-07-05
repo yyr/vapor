@@ -1,0 +1,25 @@
+#version 110
+   
+uniform float delta;
+uniform vec4  vdir;
+uniform vec4  vpos;
+   
+varying vec3 ecPosition; 
+   
+//-----------------------------------------------------------------------
+// Vertex shader main
+//-----------------------------------------------------------------------
+void main(void)
+{
+  gl_TexCoord[0] = gl_MultiTexCoord0;
+  gl_Position    = ftransform();
+  ecPosition     = vec3(gl_ModelViewMatrix * gl_Vertex);
+   
+  vec4 sf        = gl_Vertex;
+    
+  vec4 eye2vert  = normalize(sf - vpos);
+  vec4 sb        = sf - eye2vert * (delta / dot(normalize(vdir), eye2vert));
+  // Finally, convert sb into texture coordinates
+  gl_TexCoord[1] = gl_TextureMatrix[0] * sb; 
+    
+}

@@ -1,0 +1,14 @@
+#version 120
+uniform sampler2D previousPass;
+uniform float width;
+uniform float height;
+void DepthPeel(in float calc_depth, in vec4 calc_color) {
+	vec2 texCoord = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
+    float depth = texture2D(previousPass, texCoord).z;
+     
+     if (depth > calc_depth  || abs(depth - calc_depth) < .0000000000001 )
+     	  discard;
+	
+     gl_FragDepth =  calc_depth;
+	 gl_FragColor= calc_color;
+}

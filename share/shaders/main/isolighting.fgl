@@ -1,0 +1,166 @@
+#version 120
+
+#include gradient.hgl
+uniform sampler2D texcrd_buffer;	// tex coords for back facing quads
+uniform sampler2D depth_buffer;	// depth back facing quads
+uniform sampler3D volumeTexture;	// sampled data to ray cast
+uniform float isovalue;
+uniform vec4 isocolor;	// base color for isosurface
+  
+uniform float delta;	// sampling distance along ray (eye coordinates)
+uniform vec2 winsize;	// Window width and height 
+  
+// Lighting parameters
+  
+uniform vec3 lightDirection;
+uniform float kd;
+uniform float ka;
+uniform float ks;
+uniform float expS;
+  
+uniform vec3 dimensions;	// ijk dimensions of 3D texture
+  
+varying vec4 position;	// interpolated gl_Position
+varying vec3 view;	// normalized, negative position (view vector)
+  
+vec3 Gradient(in vec3, in vec3);
+//void DepthPeel(in float, in vec4);
+//------------------------------------------------------------------
+// Fragment shader main
+//------------------------------------------------------------------
+void main(void)
+{
+  
+   vec3 lightColor = vec3(1.0, 1.0, 1.0);
+  
+   // Normalized window coordinates of this frament
+   vec2 texCoord2D = ((position.xy / position.w) + 1.0) / 2.0;
+  
+   // Starting and finishing texture coordinate of ray
+   vec3 texStop = texture2D(texcrd_buffer, texCoord2D).xyz;
+   vec3 texStart = gl_TexCoord[0].xyz;
+  
+   // Ray direction, texture coordinates
+   vec3 texDir = texStop - texStart;
+   vec3 texDirUnit = normalize(texDir);
+   //float len = length(texDir);
+  
+   float n = gl_DepthRange.near;
+   float f = gl_DepthRange.far;
+  
+   // Starting and stopping Z (window, NDC and eye coordinates)
+   // We need eye coordinates to interpolate depth (Z) because
+   // NDC and Window space is non-linear
+   // N.B. Inverse transform of window coords only works for perspective
+  
+   float zStopWin = texture2D(depth_buffer, texCoord2D).x;
+   float zStopNDC = (2*zStopWin)/(f-n) - (n+f)/(f-n);
+   float zStopEye = -gl_ProjectionMatrix[3].z / (zStopNDC + gl_ProjectionMatrix[2].z);
+   float zStartWin = gl_FragCoord.z;
+   float zStartNDC = (2*zStartWin)/(f-n) - (n+f)/(f-n);
+   float zStartEye = -gl_ProjectionMatrix[3].z / (zStartNDC + gl_ProjectionMatrix[2].z);
+   vec2 posNDC = gl_FragCoord.xy * 2.0 / winsize.xy - 1.0;
+  
+   // Compute number of samples based on samplin distance, delta 
+   //
+   int nsegs = int(min((zStopEye-zStartEye / delta), 256.0));
+  
+   // Ugh. Hard-wire number of samples. Bad things happen when view point 
+   // is inside the view volume using above code 
+   if (nsegs>0) nsegs = 256;
+   vec3 deltaVec = texDirUnit * (length(texDir) / float(nsegs));
+   float deltaZ = (zStopEye-zStartEye) / float(nsegs);
+  
+   // texCoord{0,1} are the end points of a ray segment in texture coords
+   // s{0,1} are the sampled values of the texture at ray segment endpoints
+   vec3 texCoord0 = texStart;
+   vec3 texCoord1 = texCoord0+deltaVec;
+   float s0 = texture3D(volumeTexture, texCoord0).x;
+   float s1 = texture3D(volumeTexture, texCoord1).x;
+  
+   // Current Z value along ray and current (accumulated) color 
+   float fragDepth = zStartEye;
+   vec4 fragColor =  vec4(0.0, 0.0, 0.0, 0.0);
+  
+   // Make sure gl_FragDepth is set for all execution paths
+   gl_FragDepth = zStopWin;
+  
+   // Composite from front to back
+  
+   // false after first isosurface interesected 
+   bool first = true;
+   for (int i = 0; i<nsegs; i++) {
+   
+     // If sign changes we have an isosurface
+   
+        if (((isovalue-s1) * (isovalue-s0)) < 0.0) {
+       
+         float weight = (isovalue-s0) / (s1-s0);
+         vec4 color = isocolor;
+       
+         // find precise texture coord of isovalue with linear 
+         // interpolation current segment end points 
+         vec3 isoTexCoord = texCoord0 + (weight * deltaVec);
+       
+         // compute surface gradient at ray's intersection with isosurface
+         vec3 grad_dd = 0.5 / dimensions;
+         vec3 gradient = gl_NormalMatrix * Gradient(grad_dd, isoTexCoord);
+       
+         float diffuse = 0.0;
+         float specular = 0.0;
+       
+         if (length(gradient) > 0.0) {
+  
+           gradient = normalize(gradient);
+           // Ugh. Need to convert ray intersection point to eye coords 
+           vec4 posClip = vec4( 
+             posNDC, 
+            -gl_ProjectionMatrix[3].z / fragDepth - gl_ProjectionMatrix[2].z,
+            1.0);
+           vec4 eyePos = gl_ProjectionMatrixInverse * posClip;
+           eyePos /= eyePos.w;
+         
+           //use Phong illumination if non-zero gradient
+         
+           vec3 lightVec      = normalize(lightDirection);
+           vec3 halfv      = reflect(-lightVec, gradient);
+           vec3 viewVec      = normalize(-eyePos.xyz);
+         
+           diffuse  = abs(dot(lightVec, gradient));
+           if (diffuse > 0.0) {
+             specular = pow(abs(dot(halfv, normalize(viewVec))), expS);
+           }
+         
+         }
+         diffuse = kd * diffuse;
+         specular = ks * specular;
+       
+         color.xyz = color.xyz * (ka+diffuse) + vec3(specular*lightColor);
+       
+         // blend fragment color with front to back compositing operator 
+         fragColor = (vec4(1.0)- vec4(fragColor.a))*color + fragColor;
+  
+         // The depth buffer value will be the first ray-isosurface 
+         // intersection. N.B. may not be best choice 
+  
+         if (first) {
+           fragDepth = zStartEye + (float(i) * deltaZ) + (deltaZ*weight);
+           first = false;
+         }
+       }
+    
+     texCoord0 = texCoord1;
+     texCoord1 = texCoord1+deltaVec;
+     s0 = s1;
+     s1 = texture3D(volumeTexture, texCoord1).x;
+   }
+  
+   if (fragColor.a == 0.0) discard;
+  
+   // Convert depth from eye coordinates back to window coords 
+  
+   fragDepth = (fragDepth * gl_ProjectionMatrix[2].z + gl_ProjectionMatrix[3].z) / -fragDepth; 
+   //DepthPeel(fragDepth * ((f-n)/2) + (n+f)/2, fragColor);
+   gl_FragDepth = fragDepth * ((f-n)/2) + (n+f)/2;
+   gl_FragColor = fragColor;
+}
