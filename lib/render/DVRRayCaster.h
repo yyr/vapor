@@ -13,7 +13,6 @@
 #include "Vect3d.h"
 
 #include <vector>
-#include <QString>
 namespace VAPoR {
 
   class BBox;
@@ -97,7 +96,7 @@ protected:
 	virtual void raycasting_pass(
 								 const TextureBrick *brick, 
 								 const Matrix3d &modelview, const Matrix3d &modelviewInverse,
-								 QString effect
+								 std::string effect
 								 );
 
   virtual void renderBrick(
@@ -128,7 +127,7 @@ protected:
 
 private:
 	
-	QString getCurrentEffect();
+	std::string getCurrentEffect();
 };
 
 };

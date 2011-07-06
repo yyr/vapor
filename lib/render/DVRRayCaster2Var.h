@@ -12,7 +12,6 @@
 #include "Vect3d.h"
 
 #include <vector>
-#include <QString>
 namespace VAPoR {
 
   class BBox;
@@ -58,7 +57,7 @@ protected:
 	const Matrix3d &modelview, const Matrix3d &modelviewInverse
   );
 private:	
-	 QString getCurrentEffect();
+	 std::string getCurrentEffect();
 	
 	 bool setShaderTextures();
 };

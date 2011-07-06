@@ -212,25 +212,26 @@ void DVRRayCaster2Var::SetIsoValues(
 
 
 void DVRRayCaster2Var::initShaderVariables() {
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("isovalue"), _values[0]);
+	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
 	
 	if (_lighting) {		
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("dimensions"), (float)_nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("kd"), _kd);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ka"), _ka);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ks"), _ks);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("expS"), _expS);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("lightDirection"), _pos[0], _pos[1], _pos[2]);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
 		
 	}
 }
-QString DVRRayCaster2Var::getCurrentEffect(){
+
+std::string DVRRayCaster2Var::getCurrentEffect(){
 	
 	if (_lighting) {
-		return QString("isoColorLightMapped");
+		return std::string("isoColorLightMapped");
 	}
 	else {
-		return QString("isoColorMapped");
+		return std::string("isoColorMapped");
 	}
 }
 //----------------------------------------------------------------------------

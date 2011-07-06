@@ -193,8 +193,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     paths.push_back("shaders");
     string shaderPaths = GetAppPath("VAPOR", "share", paths);
 
-//	manager = new ShaderMgr(path + QString("/shaders"));
-	manager = new ShaderMgr(shaderPaths.c_str());
+	manager = new ShaderMgr(shaderPaths);
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 
@@ -239,7 +238,6 @@ void GLWindow::resizeGL( int width, int height )
 	needsResize = false;
 	
 	manager->loadShaders();
-	manager->printEffects();
 #ifdef DEBUG
 	manager->printEffects();
 #endif

@@ -85,8 +85,8 @@ protected:
                     const char *fragCommandLine,
                     const char *fragmentSource);
 
-  ShaderProgram* shader();
-  QString getCurrentEffect();
+	ShaderProgram* shader();
+	std::string getCurrentEffect();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,

@@ -17,29 +17,31 @@
 using namespace VAPoR;
 ShaderMgr::ShaderMgr()
 {
-	
+	loaded = false;
 }
 
 
 ShaderMgr::ShaderMgr(const char* directory)
 {
-	sourceDir = QString(directory);
+	loaded = false;
+	sourceDir = std::string(directory);
 }
 
-ShaderMgr::ShaderMgr(QString directory)
+ShaderMgr::ShaderMgr(std::string directory)
 {
+	loaded = false;
 	sourceDir = directory;
 }
 
 ShaderMgr::~ShaderMgr()
 {
-	for (std::map< QString, ShaderProgram*>::const_iterator iter = effects.begin();
+	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
 		 iter != effects.end(); ++iter )
 		delete iter->second;
 }
 void ShaderMgr::setShaderSourceDir(const char* directory)
 {
-	sourceDir = QString(directory);
+	sourceDir = std::string(directory);
 }
 
 //----------------------------------------------------------------------------
@@ -58,47 +60,56 @@ void ShaderMgr::setShaderSourceDir(const char* directory)
 
 bool ShaderMgr::loadShaders()
 {
-	QDir mainDir = QDir(sourceDir);
-	mainDir.setFilter( QDir::Files );
-	QStringList entries = mainDir.entryList();
+	if (!loaded){
+		QDir mainDir = QDir(QString(sourceDir.c_str()));
+		mainDir.setFilter( QDir::Files );
+		QStringList entries = mainDir.entryList();
 #ifdef DEBUG
-	std::cout << "ShaderMgr::loadShaders() - " << "sourcedir: "  << sourceDir.toStdString() << std::endl;
+		std::cout << "ShaderMgr::loadShaders() - " << "sourcedir: "  << sourceDir.toStdString() << std::endl;
 #endif
-	QStringList efcFiles = entries.filter(".efc");
-	
-	for (int i = 0; i < efcFiles.size(); i++) {
-		if(loadEffectFile(efcFiles.at(i).toLocal8Bit()) == false){		
-#ifdef DEBUG
-			std::cout << "ShaderMgr::loadShaders() - " << efcFiles.at(i).toStdString() << " failed to load" << std::endl;
-			VetsUtil::MyBase::SetErrMsg("EFC file \"%s\" failed to load\n", efcFiles.at(i).toLocal8Bit().data());
-#endif
+		QStringList efcFiles = entries.filter(".efc");
+		
+		if (efcFiles.size() == 0) {
+			VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+										"No .efc files found");
 			return false;
 		}
+		for (int i = 0; i < efcFiles.size(); i++) {
+			if(loadEffectFile(efcFiles.at(i).toStdString()) == false){	
+				VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+											"EFC file \"%s\" failed to load\n", efcFiles.at(i).toStdString().c_str());	
+#ifdef DEBUG
+				std::cout << "ShaderMgr::loadShaders() - " << efcFiles.at(i).toStdString() << " failed to load" << std::endl;
+#endif
+				return false;
+			}
+		}
+		loaded = true;
+		return true;
 	}
-	return true;
-	
-	printOpenGLError();
 }
-			
-		
+
+
 //----------------------------------------------------------------------------
 // Enable an effect for rendering
 //----------------------------------------------------------------------------
-bool ShaderMgr::enableEffect(QString effect)
+bool ShaderMgr::enableEffect(std::string effect)
 {
 #ifdef DEBUG
-	std::cout << "ShaderMgr::enableEffect() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::enableEffect() - " << "effect: " << effect << std::endl;
 #endif
 	if (effectExists(effect)) {
 		if(effects[effect]->enable() == 0)
 			return true;
+		else {
+			return false;
+		}
+		
 	}
 	else {
 		return false;
 	}
-	
-	printOpenGLError();
-
+	return true;
 }
 //----------------------------------------------------------------------------
 // Disable the currently loaded effect
@@ -120,37 +131,31 @@ bool ShaderMgr::disableEffect()
 //----------------------------------------------------------------------------
 // Handles parsing an effect file and constructing the shaderprogram
 //----------------------------------------------------------------------------
-bool ShaderMgr::loadEffectFile(QString effect)
+bool ShaderMgr::loadEffectFile(std::string effect)
 {
 	//this is an effect file, open to read info
-	QString path = sourceDir + "/" + effect;
-			
-	QFile file(path);
+	std::string path = sourceDir + "/" + effect;
 	
-	if (!file.exists() || !file.open(QIODevice::Unbuffered | QIODevice::ReadOnly))
-	{
+	ifstream file (path.c_str());
+	
+	std::string line1, line2, line3;
+	if (file.is_open())
+	{		
+		getline(file, line1);
+		getline(file, line2);
+		getline(file, line3);				
+		
+		file.close();
+	}	
+	else {
+		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"EFC file \"%s\" failed to load\n", effect.c_str());	
 #ifdef DEBUG
-		std::cout << "ShaderMgr::loadEffectFile - " << "path " + path.toStdString() << " does not exist" << std::endl;
+		std::cout << "ShaderMgr::loadEffectFile - " << "path " + path << " does not exist" << std::endl;
 #endif
 		return false;
 	}
 	
-	QString line1, line2, line3;
-	
-	QTextStream stream(&file ); // Set the stream to read from file
-	
-	//--------------------------------------
-	// .efc File format
-	// First line corresponds to effect name
-	// Second line corresponds to vertex shader
-	// Third line corresponds to fragment shader
-	//--------------------------------------
-	
-	line1 = stream.readLine().simplified();
-	line2 = stream.readLine().simplified();
-	line3 = stream.readLine().simplified();
-	
-	file.close();
 	
 	effects[line1] = new ShaderProgram();
 	effects[line1]->create();
@@ -164,49 +169,58 @@ bool ShaderMgr::loadEffectFile(QString effect)
 	// #include
 	//	included files must reside in the sourcedir/includes directory
 	//--------------------------------------
-	if (!line2.trimmed().isEmpty()) {
-		if(loadVertShader(sourceDir + "/main/" + line2 + ".vgl", effects[line1], line2 + ".vgl") == false)
+	if (!line2.empty()) {
+		if(loadVertShader(sourceDir + "/main/" + line2 + ".vgl", effects[line1], line2 + ".vgl") == false){
 			return false;
+		}
 	}
-	if (!line3.trimmed().isEmpty()) {
-		if(loadFragShader(sourceDir + "/main/" + line3 + ".fgl", effects[line1], line3 + ".fgl") == false)
+	if (!line3.empty()) {
+		if(loadFragShader(sourceDir + "/main/" + line3 + ".fgl", effects[line1], line3 + ".fgl") == false){
 			return false;
+		}
 	}
 	if (effects[line1]->compile())
 		return true;
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Loads a vertex shader, both main and included
 //----------------------------------------------------------------------------
-bool ShaderMgr::loadVertShader(QString path, ShaderProgram *prog, QString fileName)
+bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::string fileName)
 {
 	//Vertex Shader loading
-	QFile file(path);
-	
-	if (!file.exists() || !file.open(QIODevice::Unbuffered | QIODevice::ReadOnly))
+	ifstream file (path.c_str());
+	std::string code;
+	std::string line;
+	if (file.is_open())
 	{
+		while ( !file.eof() )
+		{
+			getline (file,line);
+			line += '\n';
+			code += line;
+		}
+		file.close();
+	}	
+	else {
+		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"vertex shader file \"%s\" failed to load\n", fileName.c_str());
 #ifdef DEBUG
-		std::cout << "ShaderMgr::loadVertShader - " << "path " + path.toStdString() << " does not exist" << std::endl;
+		std::cout << "ShaderMgr::loadVertShader - " << "path " + path << " does not exist" << std::endl;
 #endif
 		return false;
 	}
 	
-	QByteArray buffer = file.readAll();
-	int size = buffer.size();
-	file.flush();
-	
-	file.close();
 #ifdef DEBUG
-	std::cout << "ShaderMgr::loadVertShader - " << "path " + path.toStdString() << std::endl;
+	std::cout << "ShaderMgr::loadVertShader - " << "path " + path << std::endl;
 #endif
 	
-	const char *sourceBuffer = (const char*)buffer.data();
+	const char *sourceBuffer = (const char*)code.c_str();;
 	std::string processed = "";
-	QStringList includes = preprocess(sourceBuffer, processed);
+	std::vector<std::string> includes = preprocess(sourceBuffer, processed);
 	for (int i = 0; i <  includes.size(); i++){		
 		if(loadVertShader(sourceDir + "/includes/" + includes[i], prog, includes[i]) == false)
 			return false;
@@ -218,64 +232,69 @@ bool ShaderMgr::loadVertShader(QString path, ShaderProgram *prog, QString fileNa
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Loads a fragment shader, both main and included
 //----------------------------------------------------------------------------
-bool ShaderMgr::loadFragShader(QString path, ShaderProgram *prog, QString fileName)
+bool ShaderMgr::loadFragShader(std::string path, ShaderProgram *prog, std::string fileName)
 {
 	//Fragment Shader loading
-	QFile file(path);
-	
-	if (!file.exists() || !file.open(QIODevice::Unbuffered | QIODevice::ReadOnly))
+	ifstream file (path.c_str());
+	std::string code;
+	std::string line;
+	if (file.is_open())
 	{
+		while ( !file.eof() )
+		{
+			getline (file,line);
+			line += '\n';
+			code += line;
+		}
+		file.close();
+	}	
+	else {
+		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"fragment shader file \"%s\" failed to load\n", fileName.c_str());
 #ifdef DEBUG
-		std::cout << "ShaderMgr::loadFragShader - " << "path " + path.toStdString() << " does not exist" << std::endl;
+		std::cout << "ShaderMgr::loadFragShader - " << "path " + path << " does not exist" << std::endl;
 #endif
 		return false;
 	}
 	
-	QByteArray buffer = file.readAll();
-	int size = buffer.size();
-	file.flush();
-	
-	file.close();
 #ifdef DEBUG
-	std::cout << "ShaderMgr::loadFragShader - " << "path " + path.toStdString() << std::endl;
+	std::cout << "ShaderMgr::loadFragShader - " << "path " + path << std::endl;
 #endif
 	
-	const char *sourceBuffer = (const char*)buffer.data();
+	const char *sourceBuffer = (const char*)code.c_str();
 	std::string processed = "";
-	QStringList includes = preprocess(sourceBuffer, processed);
+	std::vector<std::string> includes = preprocess(sourceBuffer, processed);
 	for (int i = 0; i <  includes.size(); i++){		
-		if(loadFragShader(sourceDir + "/includes/" + includes[i], prog, includes[i] ) == false)
+		if(loadFragShader(sourceDir + "/includes/" + includes[i], prog, includes[i]) == false)
 			return false;
 	}
 	//finished loading includes, load main source
-	QByteArray byteArray = fileName.toAscii();
-	const char *str = byteArray.constData();
 	if(prog->loadFragmentSource((const GLchar*)processed.c_str(), fileName)){
 		return true;
 	}
 	else {
 		return false;
 	}
-
-}
 	
+}
+
 
 //----------------------------------------------------------------------------
 // Process the source string to remove preprocessor macros
 // A clean version of the source code is returned in the processed handle
 //----------------------------------------------------------------------------
-			
-QStringList ShaderMgr::preprocess(const char* source, std::string &processed)
+
+std::vector<std::string> ShaderMgr::preprocess(const char* source, std::string &processed)
 {
 	std::string tmpProcess ("");
 	std::string code (source);
 	std::string line;
-	QStringList includes;
+	std::vector<std::string> includes;
 	for (int i = 0 ; i < code.length(); i++) {
 		if (code[i] == '\n') {
 			//check line for preprocessor macros
@@ -284,9 +303,9 @@ QStringList ShaderMgr::preprocess(const char* source, std::string &processed)
 				//add the included file to the list of includes
 				QString include (line.substr(index + 8).c_str());
 				include = include.simplified();
-				includes << include;
+				includes.push_back(include.toStdString());
 #ifdef DEBUG
-				std::cout << "ShaderMgr::preprocess - " << "include: " << include.toStdString() << " line " << line << std::endl;
+				std::cout << "ShaderMgr::preprocess - " << "include: " << include << " line " << line << std::endl;
 #endif
 				line = "";
 				
@@ -309,22 +328,22 @@ QStringList ShaderMgr::preprocess(const char* source, std::string &processed)
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int value){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData1i() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData1i() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform1i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1i(effects[effect]->uniformLocation(variable.c_str()), value);
 			}
 			else {
-				glUniform1iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1iARB(effects[effect]->uniformLocation(variable.c_str()), value);
 			}					
 			printOpenGLError();
 		}
@@ -333,10 +352,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value){
 			if(effects[effect]->enable() > 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform1i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1i(effects[effect]->uniformLocation(variable.c_str()), value);
 			}
 			else {
-				glUniform1iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1iARB(effects[effect]->uniformLocation(variable.c_str()), value);
 			}	
 			glUseProgram(current);
 			
@@ -347,17 +366,17 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value){
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, int value2){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int value1, int value2){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData2i() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData2i() - " << "effect: " << effect << std::endl;
 #endif
 	
 	printOpenGLError();
@@ -367,10 +386,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
 				printOpenGLError();
-				glUniform2i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);					
+				glUniform2i(effects[effect]->uniformLocation(variable.c_str()), value1, value2);					
 			}
 			else {
-				glUniform2iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}					
 			printOpenGLError();
 		}
@@ -379,10 +398,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform2i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2i(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}
 			else {
-				glUniform2iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}	
 			glUseProgram(current);
 			
@@ -393,27 +412,27 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, int value2, int value3){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int value1, int value2, int value3){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData3i() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData3i() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform3i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3i(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}
 			else {
-				glUniform3iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}					
 			printOpenGLError();			
 		}
@@ -422,10 +441,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform3i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3i(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}
 			else {
-				glUniform3iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}	
 			glUseProgram(current);
 			
@@ -436,27 +455,27 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, int value2, int value3, int value4){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, int value1, int value2, int value3, int value4){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData4i() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData4i() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform4i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4i(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}
 			else {
-				glUniform4iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}		
 			
 			
@@ -467,10 +486,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform4i(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4i(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}
 			else {
-				glUniform4iARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4iARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}	
 			glUseProgram(current);
 			
@@ -481,27 +500,27 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, int value1, i
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float value){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData1f() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData1f() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform1f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1f(effects[effect]->uniformLocation(variable.c_str()), value);
 			}
 			else {
-				glUniform1fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1fARB(effects[effect]->uniformLocation(variable.c_str()), value);
 			}					
 			printOpenGLError();
 		}
@@ -510,10 +529,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value){
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform1f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1f(effects[effect]->uniformLocation(variable.c_str()), value);
 			}
 			else {
-				glUniform1fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value);
+				glUniform1fARB(effects[effect]->uniformLocation(variable.c_str()), value);
 			}	
 			glUseProgram(current);
 			
@@ -524,27 +543,27 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value){
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1, float value2){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float value1, float value2){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData2f() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData2f() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform2f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2f(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}
 			else {
-				glUniform2fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}		
 			
 			printOpenGLError();
@@ -554,10 +573,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform2f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2f(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}
 			else {
-				glUniform2fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2);
+				glUniform2fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2);
 			}	
 			glUseProgram(current);
 			
@@ -568,27 +587,27 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1, float value2, float value3){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData3f() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData3f() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform3f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3f(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}
 			else {
-				glUniform3fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}		
 			
 			printOpenGLError();
@@ -599,10 +618,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 			if(effects[effect]->enable() != 0 )
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform3f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3f(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}
 			else {
-				glUniform3fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3);
+				glUniform3fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3);
 			}	
 			glUseProgram(current);
 			
@@ -613,12 +632,12 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 	else {
 		return false;
 	}
-
+	
 }
 //----------------------------------------------------------------------------
 // Uploads data to the selected effect's uniform
 //----------------------------------------------------------------------------
-bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1, float value2, float value3, float value4){
+bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3, float value4){
 	//Check to see if program is currently loaded
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
@@ -630,10 +649,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 		if (current == effects[effect]->getProgram()) {
 			//dont enable, just upload data
 			if (GLEW_VERSION_2_0) {
-				glUniform4f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4f(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}
 			else {
-				glUniform4fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}		
 			
 			printOpenGLError();
@@ -644,10 +663,10 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 			if(effects[effect]->enable() != 0)
 				return false;
 			if (GLEW_VERSION_2_0) {
-				glUniform4f(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4f(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}
 			else {
-				glUniform4fARB(effects[effect]->uniformLocation(variable.toLocal8Bit().data()), value1, value2, value3, value4);
+				glUniform4fARB(effects[effect]->uniformLocation(variable.c_str()), value1, value2, value3, value4);
 			}	
 			glUseProgram(current);
 			
@@ -658,7 +677,7 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 	else {
 		return false;
 	}
-
+	
 }
 
 //----------------------------------------------------------------------------
@@ -666,26 +685,26 @@ bool ShaderMgr::uploadEffectData(QString effect, QString variable, float value1,
 //----------------------------------------------------------------------------
 void ShaderMgr::printEffects(){
 	std::cout << "Loaded Effects: " << std::endl;
-	for (std::map< QString, ShaderProgram*>::const_iterator iter = effects.begin();
+	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
 		 iter != effects.end(); ++iter )
-		std::cout << '\t' << iter->first.toStdString() << '\t' << iter->second << '\t' << iter->second->getProgram() << '\n';
+		std::cout << '\t' << iter->first << '\t' << iter->second << '\t' << iter->second->getProgram() << '\n';
 }
 //----------------------------------------------------------------------------
 // Returns an effect name, given the shader program it is supposed to control
 //----------------------------------------------------------------------------
-QString ShaderMgr::findEffect(GLuint prog){
-	for (std::map< QString, ShaderProgram*>::const_iterator iter = effects.begin();
+std::string ShaderMgr::findEffect(GLuint prog){
+	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
 		 iter != effects.end(); ++iter ){
 		if (iter->second->getProgram() == prog)
 			return iter->first;
 	}
-	return QString ("");	
+	return std::string ("");	
 }
 //----------------------------------------------------------------------------
 // Check to see if an effect exists, must be done due to std::map autocreating 
 // an object that does not exist when checked with []
 //----------------------------------------------------------------------------
-bool ShaderMgr::effectExists(QString effect){	
+bool ShaderMgr::effectExists(std::string effect){	
 	if (effects.count(effect) > 0) {
 		return true;
 	}

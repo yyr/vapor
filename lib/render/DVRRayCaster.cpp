@@ -462,7 +462,7 @@ void DVRRayCaster::raycasting_pass(
 	const TextureBrick *brick,
 	const Matrix3d &modelview,
 	const Matrix3d &modelviewInverse,
-	QString effect
+	std::string effect
 ) {
 	const BBox &volumeBox  = brick->volumeBox();
 	const BBox &textureBox = brick->textureBox();
@@ -725,17 +725,16 @@ int DVRRayCaster::initTextures()
 	return(0);
 }
 
-void DVRRayCaster::initShaderVariables() {
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("isocolor"), (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("isovalue"), _values[0]);
-
+void DVRRayCaster::initShaderVariables() {	
+	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
+	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
 	if (_lighting) {
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("dimensions"), (float)_nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("kd"), _kd);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ka"), _ka);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("ks"), _ks);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("expS"), _expS);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), QString("lightDirection"), (float)_pos[0], (float)_pos[1], (float)_pos[2]);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
 	}
 }
 
@@ -819,13 +818,14 @@ bool DVRRayCaster::supported()
 //----------------------------------------------------------------------------
 // Returns the currently active shader effect
 //----------------------------------------------------------------------------
-QString DVRRayCaster::getCurrentEffect()
+std::string DVRRayCaster::getCurrentEffect()
 {
 	if (_lighting) {
-		return QString("isoLighting");
+		return std::string("isoLighting");
 	}
 	else {
-		return QString("isoColor");
+		return std::string("isoColor");
 	}
-
+	
 }
+

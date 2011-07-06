@@ -632,24 +632,24 @@ bool DVRShader::supported()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-QString DVRShader::getCurrentEffect()
+std::string DVRShader::getCurrentEffect()
 {
 	if (_preintegration && _lighting)
 	{
-		return QString("preIntegratedLightDVR");
+		return std::string("preIntegratedLightDVR");
 	}
 	
 	if (_preintegration && !_lighting)
 	{
-		return QString("preIntegratedDVR");
+		return std::string("preIntegratedDVR");
 	}
 	
 	if (!_preintegration && _lighting)
 	{
-		return QString("lightingDVR");
+		return std::string("lightingDVR");
 	}
 	
-	return QString("defaultDVR");
+	return std::string("defaultDVR");
 }
 
 //----------------------------------------------------------------------------
