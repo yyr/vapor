@@ -75,6 +75,14 @@ EOF
     echo $a
 }
 
+realSub() {
+    a=`bc <<EOF
+       $1 - $2
+EOF
+`
+    echo $a
+}
+
 ##########################
 
 if [ $# -lt 4 ]
@@ -177,11 +185,21 @@ maxLat=$4
 
 # further test bounds for sanity...
 #
-if [ `realValGT -180 ${minLon}` -eq 1 ] || [ `realValGT ${maxLon} 180` -eq 1 ] || \
-   [ `realValGT ${minLon} ${maxLon}` -eq 1 ]
+if [ `realValGT ${minLon} ${maxLon}` -eq 1 ]
+then
+    echo "Invalid bounding box: minLon > maxLon"
+    exit 1
+fi
+if [ `realValGT ${minLon} 180` -eq 1 ] || [ `realValGT ${maxLon} 180` -eq 1 ]
+then
+  minLon=`realSub ${minLon} 180`
+  maxLon=`realSub ${maxLon} 180`
+  echo "min/max lon remapped to: " ${minLon} ${maxLon}
+fi 
+if [ `realValGT -180 ${minLon}` -eq 1 ] || [ `realValGT ${maxLon} 180` -eq 1 ] 
 then
     echo "Invalid bounding box:"
-    echo "  longitudes must range from -180 to 180, with minLon < maxLon"
+    echo "  longitudes must range from -180 to 180, or 0 to 360"
     exit 1
 fi
 
