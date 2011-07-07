@@ -956,7 +956,6 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	backPlane[3] = -regExts[2]*scales[2];
 
 	//Calculate x and y stretch factors, translation factors for texture mapping:
-	const float* extents = DataStatus::getInstance()->getExtents();
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
