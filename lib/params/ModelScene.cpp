@@ -109,6 +109,11 @@ const Transform3d* ModelScene::transform(unsigned int timestep, unsigned int clo
    if (_timesteps.size()) return _timesteps.back()->transform(clone);
 
    //
+   // check for time-invariant transforms
+   //
+   if (clone < _transforms.size()) return _transforms[clone];
+
+   //
    // no transform exists, return the identity matrix
    //
    return &_identity;   
