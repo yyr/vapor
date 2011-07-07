@@ -820,7 +820,7 @@ applyToViz(int vizNum){
 			vpp->rescale(ratio, timestep);
 			vpp->setCoordTrans();
 			win->setValuesFromGui(vpp);
-			vizMgr->resetViews(vizMgr->getRegionParams(j),vpp);
+			vizMgr->resetViews(vpp);
 			vizMgr->setViewerCoordsChanged(vpp);
 			win->setDirtyBit(RegionBit, true);
 		}

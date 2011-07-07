@@ -159,7 +159,7 @@ public:
 	//to view twice the entire region from the current camera position.  If the camera is
 	//inside the doubled region, region, make the near clipping plane 1% of the region size.
 
-	void resetView(RegionParams* rparams, ViewpointParams* vpParams);
+	void resetView(ViewpointParams* vpParams);
 	void setMaxSize(float wsize) {maxDim = wsize;}
 	void setCenter(float cntr[3]) { wCenter[0] = cntr[0]; wCenter[1] = cntr[1]; wCenter[2] = cntr[2];}
 	//Test if the screen projection of a 3D quad encloses a point on the screen.

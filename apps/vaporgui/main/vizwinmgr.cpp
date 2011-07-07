@@ -855,11 +855,11 @@ setViewerCoordsChanged(ViewpointParams* vp){
 //share a viewpoint, based on region in specified regionparams
 //
 void VizWinMgr::
-resetViews(RegionParams* rp, ViewpointParams* vp){
+resetViews(ViewpointParams* vp){
 	int vizNum = vp->getVizNum();
 	if (vizNum>=0) {
 		GLWindow* glw = vizWin[vizNum]->getGLWindow();
-		if(glw) glw->resetView(rp, vp);
+		if(glw) glw->resetView(vp);
 	}
 	if(vp->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
@@ -867,7 +867,7 @@ resetViews(RegionParams* rp, ViewpointParams* vp){
 		Params* vpParams = (ViewpointParams*)Params::GetParamsInstance(Params::_viewpointParamsTag, i);
 		if  ( (i != vizNum)  && ((!vpParams)||!vpParams->isLocal())){
 			GLWindow* glw = vizWin[i]->getGLWindow();
-			if(glw) glw->resetView(rp, vp);
+			if(glw) glw->resetView(vp);
 		}
 	}
 }
@@ -1176,7 +1176,7 @@ reinitializeParams(bool doOverride){
 		
 		if(getRealAnimationParams(i)) getRealAnimationParams(i)->reinit(doOverride);
 		//setup near/far
-		if (getRealVPParams(i) && getRealRegionParams(i)) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
+		if (getRealVPParams(i)) vizWin[i]->getGLWindow()->resetView(getViewpointParams(i));
 		if(!doOverride && vizWin[i]) vizWin[i]->getGLWindow()->removeAllRenderers();
 	}
 

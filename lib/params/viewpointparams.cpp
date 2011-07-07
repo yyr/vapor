@@ -248,6 +248,16 @@ worldToStretchedCube(const float fromCoords[3], float toCoords[3]){
 	}
 	return;
 }
+//Static methods for converting between world coords and stretched unit cube coords
+//
+void ViewpointParams::
+worldToStretchedCube(const double fromCoords[3], double toCoords[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]*stretch[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
+	}
+	return;
+}
 
 void ViewpointParams::
 worldToCube(const float fromCoords[3], float toCoords[3]){
@@ -282,74 +292,67 @@ setCoordTrans(){
 		maxStretchedCubeCoord[i] = (float)strExtents[i+3];
 	}
 }
-//Find far and near dist along view direction, in world coordinates,
-//and in box coords
-//Far is distance from camera to furthest corner of full volume
-//Near is distance to full volume if it's positive, otherwise
-//is distance to closest corner of region.
-//
+
+//  First project all 8 box corners to the center line of the camera view, finding the furthest and
+//  nearest projection in front of the camera.  The furthest distance is used as the far distance.
+//  If some point projects behind the camera, then either the camera is inside the box, or a corner of the
+//  box is behind the camera.  In these cases the near plane is set to .005 times the far plane,
+//  whic
 void ViewpointParams::
-getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float* boxNear){
+getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
-	float wrk[3], cor[3];
-	float nearPt[3],farPt[3];
-	float nearPtBox[3],farPtBox[3],camPosBox[3];
-	float maxProj = -.1e30f;
-	float minProj = 1.e30f;
-	bool insideRegion = false; //flag set if we are inside region
-	//Make sure the viewDir is normalized:
-	vnormal(currentViewpoint->getViewDir());
+	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* stretchedExtents = DataStatus::getInstance()->getStretchedExtents();
+	double wrk[3], cor[3], boxcor[3], cmpos[3];
+	double camDirPt[3], camDirPtBox[3];
+	double camPosBox[3], camDirBox[3];
+	double viewDir[3];
+	double maxProj = -1.e30;
+	double minProj = 1.e30;
+
+	//Convert camera position, camera direction, and corners to stretched box coordinates
+	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPos()[i];
+	worldToStretchedCube(cmpos, camPosBox);
+	//specify a point in the center of camera view.  
+	//Multiply by the size of the box, so that it won't be dwarfed by the
+	//box dimensions
+	
+	double magPos = vlength(getCameraPos());
+	if (magPos == 0.0) magPos = 1.0;
+	float* vdir = getViewDir();
+	for (int i = 0; i<3; i++) viewDir[i]=vdir[i]*magPos; 
+	vadd(cmpos,viewDir, camDirPt);
+	worldToStretchedCube(camDirPt, camDirPtBox);
+	
+	vsub(camDirPtBox,camPosBox,camDirBox);
+	vnormal(camDirBox);
+	//For each box corner, 
+	//   convert to box coords, then project to line of view
 	for (int i = 0; i<8; i++){
 		for (int j = 0; j< 3; j++){
 			cor[j] = ( (i>>j)&1) ? extents[j+3] : extents[j];
 		}
-		vsub(cor, getCameraPos(), wrk);
-		float dist = vlength(wrk);
-		float mdist = vdot(wrk, getViewDir());
-		if (mdist < 0.f) insideRegion = true;
-		if (minProj > dist) {
-			minProj = dist;
-			vcopy(cor, nearPt);
+		worldToStretchedCube(cor, boxcor);
+		vsub(boxcor, camPosBox, wrk);
+		
+		float mdist = vdot(wrk, camDirBox);
+		if (minProj > mdist) {
+			minProj = mdist;
 		}
-		if (maxProj < dist) {
-			maxProj = dist;
-			vcopy(cor, farPt);
+		if (maxProj < mdist) {
+			maxProj = mdist;
 		}
 	}
-	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
-	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
-	
-	*fr = maxProj;
-	*nr = minProj;
-	//Find box coords of nearPt, farPt, camPos
-	if (DataStatus::getInstance()->sphericalTransform())
-    {
-		worldToCube(nearPt, nearPtBox);
-		worldToCube(farPt, farPtBox);
-		worldToCube(getCameraPos(), camPosBox);
-	} else {
-		worldToStretchedCube(nearPt, nearPtBox);
-		worldToStretchedCube(farPt, farPtBox);
-		worldToStretchedCube(getCameraPos(), camPosBox);
-	}
-	vsub(camPosBox,nearPtBox,nearPtBox);
-	vsub(camPosBox,farPtBox,farPtBox);
-	
-	maxProj = vlength(farPtBox);
-	minProj = vlength(nearPtBox);
-	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
-	//If we are inside region, make the min dist no greater than .002 times max dist,
-	//So we can explore the interior of the region.
-	if (insideRegion && !DataStatus::getInstance()->sphericalTransform()){
-		if (minProj > .002*maxProj)
-			minProj = 0.002*maxProj;
-	}
-	
-	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
 
-	*boxFar = maxProj;
-	*boxNear = minProj;
+	if (maxProj < 1.e-10) maxProj = 1.e-10;
+	if (minProj > 0.03*maxProj) minProj = 0.03*maxProj;
+	//minProj will be < 0 if either the camera is in the box, or
+	//if some of the region is behind the camera plane.  In that case, just
+	//set the nearDist a reasonable multiple of the fardist
+	if (minProj <= 0.0) minProj = 0.005*maxProj;
+	*boxFar = (float)maxProj;
+	*boxNear = (float)minProj;
+	
 	return;
 }
 

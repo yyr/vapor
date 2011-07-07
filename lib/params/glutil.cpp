@@ -78,6 +78,14 @@ void vscale(float *v, float s)
     v[1] *= s;
     v[2] *= s;
 }
+void vscale(double *v, double s)
+{
+    /* Scale the vector v in all directions by s.
+     */
+    v[0] *= s;
+    v[1] *= s;
+    v[2] *= s;
+}
 // Scale, putting result in another vector
 //
 void vmult(const float *v, float s, float *w) {

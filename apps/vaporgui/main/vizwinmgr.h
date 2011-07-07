@@ -409,7 +409,7 @@ public:
 	//Reset the near/far distances for all the windows that
 	//share a viewpoint, based on region in specified regionparams
 	//
-	void resetViews(RegionParams* rp, ViewpointParams* vp);
+	void resetViews(ViewpointParams* vp);
 	//Set the viewer coords changed flag in all the visualizers
 	//that use these vp params:
 	void setViewerCoordsChanged(ViewpointParams* vp);

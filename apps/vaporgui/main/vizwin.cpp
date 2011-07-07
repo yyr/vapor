@@ -362,7 +362,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		setMouseDown(false);
 		//If it's a right mouse being released, must update near/far distances:
 		if (e->button() == Qt::RightButton){
-			myWinMgr->resetViews(myWinMgr->getRegionParams(myWindowNum),
+			myWinMgr->resetViews(
 				myWinMgr->getViewpointParams(myWindowNum));
 		}
 		//Decide whether or not to start a spin animation

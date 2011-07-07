@@ -459,7 +459,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	}
 	
 	//modify near/far distance as needed:
-	VizWinMgr::getInstance()->resetViews(rParams,vpParams);
+	VizWinMgr::getInstance()->resetViews(vpParams);
 	if (vpParams->isLatLon()) {
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 		vpParams->convertToLatLon(timestep);
@@ -480,7 +480,7 @@ guiCenterFullRegion(RegionParams* rParams){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	vpParams->centerFullRegion(timestep);
 	//modify near/far distance as needed:
-	VizWinMgr::getInstance()->resetViews(rParams,vpParams);
+	VizWinMgr::getInstance()->resetViews(vpParams);
 	updateTab();
 	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd,vpParams);

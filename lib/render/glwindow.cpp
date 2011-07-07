@@ -290,10 +290,10 @@ void GLWindow::setUpViewport(int width,int height){
 	
 }
 	
-void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
+void GLWindow::resetView(ViewpointParams* vParams){
 	//Get the nearest and furthest distance to region from current viewpoint
-	float fr, nr, frbx, nrbx;
-	vParams->getFarNearDist(rParams, &fr, &nr, &frbx, &nrbx);
+	float frbx, nrbx;
+	vParams->getFarNearDist(&frbx, &nrbx);
 	
 	farDist = frbx * 4.f;
 	nearDist = nrbx * 0.25f;

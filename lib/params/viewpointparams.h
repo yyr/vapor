@@ -174,7 +174,7 @@ public:
 	bool convertToLatLon(int timestep);
 	bool convertFromLatLon(int timestep);
 	//determine far and near distance to region based on current viewpoint
-	void getFarNearDist(RegionParams* rParams, float* far, float* near, float* boxFar, float* boxNear);
+	void getFarNearDist(float* boxFar, float* boxNear);
 	
 	//Reset viewpoint when new session is started:
 	virtual bool reinit(bool doOverride);
@@ -185,6 +185,7 @@ public:
 	//
 	static void worldToCube(const float fromCoords[3], float toCoords[3]);
 	static void worldToStretchedCube(const float fromCoords[3], float toCoords[3]);
+	static void worldToStretchedCube(const double fromCoords[3], double toCoords[3]);
 
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
 	static void worldFromStretchedCube(float fromCoords[3], float toCoords[3]);

@@ -88,6 +88,7 @@ PARAMS_API void	computeGradientData(
 PARAMS_API void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
 PARAMS_API void	makeTransMatrix(float* transVec, float* matrix);
 PARAMS_API void	vscale (float *v, float s);
+PARAMS_API void	vscale (double *v, double s);
 PARAMS_API void	vmult(const float *v, float s, float *w); 
 PARAMS_API void	vhalf (const float *v1, const float *v2, float *half);
 PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
@@ -134,15 +135,23 @@ PARAMS_API float   getScale(GLfloat* rotmatrix);
 inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
+inline double vdot(const double* a, const double* b)
+	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
 inline float vlength(const float*a) {return sqrt(vdot(a,a));}
+inline double vlength(const double*a) {return sqrt(vdot(a,a));}
 inline float vdist(const float* a, const float*b) {
 	return (sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))); }
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
+inline void vnormal(double *a) {vscale(a, 1/vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vcopy(const double* a, double* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vsub(const float* a, const float* b, float* c)
 	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
+inline void vsub(const double* a, const double* b, double* c)
+	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
 inline void vadd(const float* a, const float* b, float* c)
+	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
+inline void vadd(const double* a, const double* b, double* c)
 	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
 inline void vzero(float *a) {a[0] = a[1] = a[2] = 0.f;}
 inline void qset(float* a,  float x,  float y,  float z,  float w)
