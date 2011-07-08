@@ -25,72 +25,73 @@
 
 #include "Vect3d.h"
 
+#include "ShaderMgr.h"
 #include <vector>
 #include "assert.h"
+#include "glutil.h"
 namespace VAPoR {
-
-  class BBox;
-  class ShaderProgram;
-  class Renderer;
-
-class RENDER_API DVRSpherical : public DVRShader
-{
- public:
-
-
-  DVRSpherical(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
-  virtual ~DVRSpherical();
-
-  virtual int GraphicsInit();
-  
-  virtual int SetRegion(void *data, 
-                        int nx, int ny, int nz, 
-                        const int data_roi[6],
-                        const float extents[6],
-                        const int data_box[6],
-                        int level
-                        ) { assert(0); return 0; }
-
-  virtual int SetRegionSpherical(void *data, 
-                                 int nx, int ny, int nz, 
-                                 const int data_roi[6],
-                                 const float extents[6],
-                                 const int data_box[6],
-                                 int level,
-                                 const std::vector<long> &permutation,
-                                 const std::vector<bool> &clipping);
-
-  virtual int HasLighting() const { return true; };
-  virtual int HasPreintegration() const { return false; };
-
-  static bool supported();
-
- protected:
-
-  virtual void drawViewAlignedSlices(const TextureBrick *brick,
-                                     const Matrix3d &modelview,
-                                     const Matrix3d &modelviewInverse);
-
-  virtual void initShaderVariables();
-
-  virtual void calculateSampling();
-
-  void permute(const vector<long>& permutation,
-               float result[3], float x, float y, float z);
-
- protected:
-
-  static char spherical_shader_default[];
-  static char spherical_shader_lighting[];
-
-  int   _nr;
-  float _shellWidth;
-  int   _level;
-
-  std::vector<long> _permutation;
-  std::vector<bool> _clip;
-};
-
+	
+	class BBox;
+	class ShaderProgram;
+	class Renderer;
+	
+	class RENDER_API DVRSpherical : public DVRShader
+	{
+	public:
+		
+		
+		DVRSpherical(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
+		virtual ~DVRSpherical();
+		
+		virtual int GraphicsInit();
+		
+		virtual int SetRegion(void *data, 
+							  int nx, int ny, int nz, 
+							  const int data_roi[6],
+							  const float extents[6],
+							  const int data_box[6],
+							  int level
+							  ) { assert(0); return 0; }
+		
+		virtual int SetRegionSpherical(void *data, 
+									   int nx, int ny, int nz, 
+									   const int data_roi[6],
+									   const float extents[6],
+									   const int data_box[6],
+									   int level,
+									   const std::vector<long> &permutation,
+									   const std::vector<bool> &clipping);
+		
+		virtual int HasLighting() const { return true; };
+		virtual int HasPreintegration() const { return false; };
+		
+		static bool supported();
+		
+	protected:
+		
+		virtual void drawViewAlignedSlices(const TextureBrick *brick,
+										   const Matrix3d &modelview,
+										   const Matrix3d &modelviewInverse);
+		
+		virtual void initShaderVariables();
+		
+		virtual void calculateSampling();
+		
+		void permute(const vector<long>& permutation,
+					 float result[3], float x, float y, float z);
+		
+		static char spherical_shader_default[];
+		static char spherical_shader_lighting[];
+		
+		int   _nr;
+		float _shellWidth;
+		int   _level;
+		
+		std::vector<long> _permutation;
+		std::vector<bool> _clip;
+		std::string getCurrentEffect();
+	};
+	
 };
 
 

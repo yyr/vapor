@@ -69,6 +69,7 @@ DVRShader::DVRShader(
     _vdir[i] = 0.0;
     _vpos[i] = 0.0;
   }
+	_effect = "";
 }
 
 //----------------------------------------------------------------------------
@@ -226,7 +227,13 @@ void DVRShader::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 int DVRShader::Render(const float matrix[16])
 {
-  myRenderer->myGLWindow->manager->enableEffect(getCurrentEffect());
+	if (_effect.compare("") != 0){
+		myRenderer->myGLWindow->manager->enableEffect(_effect);
+	}
+	else {
+		myRenderer->myGLWindow->manager->enableEffect(getCurrentEffect());		 
+	}
+
   calculateSampling();
 
   glPolygonMode(GL_FRONT, GL_FILL);

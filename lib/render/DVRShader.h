@@ -106,7 +106,7 @@ protected:
   int    _nx;
   int    _ny;
   int    _nz;
-
+	std::string _effect;
   float _kd;
   float _ka;
   float _ks;
