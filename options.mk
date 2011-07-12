@@ -106,6 +106,11 @@ PYTHONVERSION = 2.6
 #
 BUILD_AMR_SUPPORT = 1
 
+# Set to 1 if you want to add support for displaying 3D model geometry
+# within a vaporgui scene
+#
+BUILD_MODELS = 1
+
 
 ##
 ##
