@@ -35,6 +35,7 @@ namespace VetsUtil {
 
 
 COMMON_API const char	*Basename(const char *path);
+COMMON_API string Basename(string &path);
 
 
 //! Return the directory component of a UNIX path name
@@ -48,6 +49,7 @@ COMMON_API const char	*Basename(const char *path);
 //! \retval directory Returns \p directory parameter
 //!
 COMMON_API char   *Dirname(const char *pathname, char *directory);
+COMMON_API string Dirname(string &path);
 
 
 };
