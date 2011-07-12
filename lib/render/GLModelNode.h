@@ -20,7 +20,7 @@
 #include <QtOpenGL>
 #include <vector>
 #include "Matrix3d.h"
-#include <assimp.hpp>
+#include <assimp/assimp.hpp>
 
 
 using namespace std;

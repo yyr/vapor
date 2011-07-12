@@ -24,7 +24,7 @@
 #include "glutil.h"
 
 #include <vapor/errorcodes.h>
-#include <vapor/DataMgr.h>
+#include <vapor/CFuncs.h>
 #include <qgl.h>
 #include <qcolor.h>
 #include <qapplication.h>
@@ -212,6 +212,25 @@ const GLModelNode* ModelRenderer::getModel(ModelParams *mParams,
    string modelFile = scene->modelFile(framenum);
 
    if (modelFile.empty()) modelFile = mParams->GetModelFilename();
+
+	// if modelFile is not an absolute path, construct a path
+	// based on the path to the sceneFile
+	//
+#ifdef WIN32
+		const string separator = "\\";
+#else
+		const string separator = "/";
+#endif
+	if (! modelFile.empty() && 
+		(modelFile.compare(0,separator.length(), separator) != 0)) {
+		string scenefile = mParams->GetSceneFilename();
+		string newpath = Dirname(scenefile);
+		newpath += separator;
+		newpath += modelFile;
+		modelFile = newpath;
+	}
+
+
 
    //
    // Check the cache for duplicates

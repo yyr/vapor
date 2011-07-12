@@ -16,9 +16,9 @@
 #include <GLModelNode.h>
 #include "glutil.h"
 
-#include <assimp.h>
-#include <aiScene.h>
-#include <aiPostProcess.h>
+#include <assimp/assimp.h>
+#include <assimp/aiScene.h>
+#include <assimp/aiPostProcess.h>
 #include <assert.h>
 
 
