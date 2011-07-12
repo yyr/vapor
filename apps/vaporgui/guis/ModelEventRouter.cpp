@@ -25,7 +25,7 @@
 #include <GL/glew.h>
 
 #ifdef MODELS
-#include <assimp.hpp>
+#include <assimp/assimp.hpp>
 #endif
 
 #include "instancetable.h"
