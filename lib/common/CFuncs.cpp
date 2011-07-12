@@ -20,6 +20,32 @@ const char	*VetsUtil::Basename(const char *path) {
     else return last + 1;
 }
 
+string VetsUtil::Basename(string &path) {
+#ifdef WIN32
+	string separator = "\\";
+#else
+	string separator = "/";
+#endif
+
+	string::size_type pos = path.rfind(separator);
+	if (pos == string::npos) return(path);
+
+	return(path.substr(pos+1));
+}
+
+string VetsUtil::Dirname(string &path) {
+#ifdef WIN32
+	string separator = "\\";
+#else
+	string separator = "/";
+#endif
+
+	string::size_type pos = path.rfind(separator);
+	if (pos == string::npos) return(".");
+
+	return(path.substr(0, pos));
+}
+
 char   *VetsUtil::Dirname(const char *pathname, char *directory)
 {
 	char	*s;
