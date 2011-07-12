@@ -50,7 +50,7 @@ protected:
 
    // Keep a cache of models to limit memory and load times for 
    // scenes with duplicate models. 
-   static map<string, GLModelNode*> _ourModelCache;
+   map<string, GLModelNode*> _ourModelCache;
 };
 };
 

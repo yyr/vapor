@@ -35,11 +35,6 @@
 
 using namespace VAPoR;
 
-//
-// Static initialization
-//
-map<string, GLModelNode*> ModelRenderer::_ourModelCache;
-
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -56,6 +51,13 @@ ModelRenderer::ModelRenderer(GLWindow* glw, ModelParams* mParams) :
 //----------------------------------------------------------------------------
 ModelRenderer::~ModelRenderer()
 {
+
+	map<string, GLModelNode*>::iterator p;
+    for(p = _ourModelCache.begin(); p!=_ourModelCache.end(); ++p) {
+        if (p->second) delete p->second;
+    }
+    _ourModelCache.clear();
+
 }
 
 
@@ -295,6 +297,7 @@ const ModelScene* ModelRenderer::getModelScene(ModelParams *mParams)
       MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, msg.toAscii().data());
    }
 
+   mParams->clearDirtyScene();
    return _scene;
 }
 
