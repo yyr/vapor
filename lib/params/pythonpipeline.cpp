@@ -11,8 +11,8 @@
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
+#include <vapor/GetAppPath.h>
 #include "pythonpipeline.h"
-#include "GetAppPath.h"
 #include <QMutex>
 
 using namespace VetsUtil;

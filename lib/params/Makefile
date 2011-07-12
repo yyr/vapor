@@ -17,7 +17,8 @@ FILES = \
 	pythonpipeline GetAppPath ModelParams ModelScene Transform3d
 
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
-	TransferFunctionLite tfinterpolator ParamsBase ParamNode
+	TransferFunctionLite tfinterpolator ParamsBase ParamNode \
+	GetAppPath
 
 
 ifneq ($(ARCH),WIN32)
