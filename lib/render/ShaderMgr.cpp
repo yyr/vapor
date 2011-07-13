@@ -15,6 +15,7 @@
 #include <vapor/MyBase.h>
 #include "glutil.h"
 using namespace VAPoR;
+using namespace VetsUtil;
 ShaderMgr::ShaderMgr()
 {
 	loaded = false;
@@ -23,12 +24,15 @@ ShaderMgr::ShaderMgr()
 
 ShaderMgr::ShaderMgr(const char* directory)
 {
+	SetDiagMsg("ShaderMgr::ShaderMgr(%s)", directory);
+
 	loaded = false;
 	sourceDir = std::string(directory);
 }
 
 ShaderMgr::ShaderMgr(std::string directory)
 {
+	SetDiagMsg("ShaderMgr::ShaderMgr(%s)", directory.c_str());
 	loaded = false;
 	sourceDir = directory;
 }
@@ -60,23 +64,21 @@ void ShaderMgr::setShaderSourceDir(const char* directory)
 
 bool ShaderMgr::loadShaders()
 {
+	SetDiagMsg("ShaderMgr::loadShaders()");
+	
 	if (!loaded){
 		QDir mainDir = QDir(QString(sourceDir.c_str()));
 		mainDir.setFilter( QDir::Files );
 		QStringList entries = mainDir.entryList();
-#ifdef DEBUG
-		std::cout << "ShaderMgr::loadShaders() - " << "sourcedir: "  << sourceDir.toStdString() << std::endl;
-#endif
 		QStringList efcFiles = entries.filter(".efc");
 		
 		if (efcFiles.size() == 0) {
-			VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
-										"No .efc files found");
+			SetErrMsg(VAPOR_ERROR_GL_SHADER, "No .efc files found");
 			return false;
 		}
 		for (int i = 0; i < efcFiles.size(); i++) {
 			if(loadEffectFile(efcFiles.at(i).toStdString()) == false){	
-				VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+				SetErrMsg(VAPOR_ERROR_GL_SHADER, 
 											"EFC file \"%s\" failed to load\n", efcFiles.at(i).toStdString().c_str());	
 #ifdef DEBUG
 				std::cout << "ShaderMgr::loadShaders() - " << efcFiles.at(i).toStdString() << " failed to load" << std::endl;
@@ -95,9 +97,8 @@ bool ShaderMgr::loadShaders()
 //----------------------------------------------------------------------------
 bool ShaderMgr::enableEffect(std::string effect)
 {
-#ifdef DEBUG
-	std::cout << "ShaderMgr::enableEffect() - " << "effect: " << effect << std::endl;
-#endif
+	SetDiagMsg("ShaderMgr::enableEffect(%s)", effect.c_str());
+
 	if (effectExists(effect)) {
 		if(effects[effect]->enable() == 0)
 			return true;
@@ -133,6 +134,8 @@ bool ShaderMgr::disableEffect()
 //----------------------------------------------------------------------------
 bool ShaderMgr::loadEffectFile(std::string effect)
 {
+	SetDiagMsg("ShaderMgr::loadEffectFile(%s)", effect.c_str());
+
 	//this is an effect file, open to read info
 	std::string path = sourceDir + "/" + effect;
 	
@@ -148,8 +151,8 @@ bool ShaderMgr::loadEffectFile(std::string effect)
 		file.close();
 	}	
 	else {
-		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
-									"EFC file \"%s\" failed to load\n", effect.c_str());	
+		SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"EFC file \"%s\" failed to load\n", path.c_str());	
 #ifdef DEBUG
 		std::cout << "ShaderMgr::loadEffectFile - " << "path " + path << " does not exist" << std::endl;
 #endif
@@ -191,6 +194,10 @@ bool ShaderMgr::loadEffectFile(std::string effect)
 //----------------------------------------------------------------------------
 bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::string fileName)
 {
+	SetDiagMsg(
+		"ShaderMgr::loadVertShader(%s,,%s)",
+		path.c_str(), fileName.c_str()
+	);
 	//Vertex Shader loading
 	ifstream file (path.c_str());
 	std::string code;
@@ -206,17 +213,14 @@ bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::strin
 		file.close();
 	}	
 	else {
-		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
-									"vertex shader file \"%s\" failed to load\n", fileName.c_str());
+		SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"vertex shader file \"%s\" failed to load\n", path.c_str());
 #ifdef DEBUG
 		std::cout << "ShaderMgr::loadVertShader - " << "path " + path << " does not exist" << std::endl;
 #endif
 		return false;
 	}
 	
-#ifdef DEBUG
-	std::cout << "ShaderMgr::loadVertShader - " << "path " + path << std::endl;
-#endif
 	
 	const char *sourceBuffer = (const char*)code.c_str();;
 	std::string processed = "";
@@ -239,6 +243,11 @@ bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::strin
 //----------------------------------------------------------------------------
 bool ShaderMgr::loadFragShader(std::string path, ShaderProgram *prog, std::string fileName)
 {
+	SetDiagMsg(
+		"ShaderMgr::loadFragShader(%s,,%s)",
+		path.c_str(), fileName.c_str()
+	);
+
 	//Fragment Shader loading
 	ifstream file (path.c_str());
 	std::string code;
@@ -254,8 +263,8 @@ bool ShaderMgr::loadFragShader(std::string path, ShaderProgram *prog, std::strin
 		file.close();
 	}	
 	else {
-		VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_SHADER, 
-									"fragment shader file \"%s\" failed to load\n", fileName.c_str());
+		SetErrMsg(VAPOR_ERROR_GL_SHADER, 
+									"fragment shader file \"%s\" failed to load\n", path.c_str());
 #ifdef DEBUG
 		std::cout << "ShaderMgr::loadFragShader - " << "path " + path << " does not exist" << std::endl;
 #endif

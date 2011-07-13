@@ -16,10 +16,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <vapor/MyBase.h>
+using namespace VetsUtil;
 namespace VAPoR {
 	class ShaderProgram;
-	class ShaderMgr
-	{
+	class ShaderMgr : public MyBase {
 	public:
 		ShaderMgr();
 		~ShaderMgr();
