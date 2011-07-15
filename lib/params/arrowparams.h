@@ -54,6 +54,9 @@ public:
 
 
 	//Get/Set methods based on XML rep:
+	const vector<double>& GetRakeExtents(){
+		return (GetBox()->GetExtents());
+	}
 	void GetRakeExtents(double exts[6]){
 		GetBox()->GetExtents(exts);
 	}
@@ -105,6 +108,20 @@ public:
 	void SetFieldVariableName(int i, const string& varName);
 	const string& GetFieldVariableName(int i);
 
+	void SetVariables3D(bool val) {
+		GetRootNode()->SetElementLong(_variableDimensionTag,(val ? 3:2));
+		setAllBypass(false);
+	}
+	bool VariablesAre3D() {
+		return (GetRootNode()->GetElementLong(_variableDimensionTag)[0] == 3);
+	}
+	void SetGridAlignToData(bool val) {
+		GetRootNode()->SetElementLong(_alignGridTag,(val ? 1:0));
+		setAllBypass(false);
+	}
+	bool IsAlignedToData() {
+		return (GetRootNode()->GetElementLong(_alignGridTag)[0]);
+	}
 	static const string _arrowParamsTag;
 
 protected:
@@ -115,6 +132,8 @@ static const string _rakeGridTag;
 static const string _lineThicknessTag;
 static const string _vectorScaleTag;
 static const string _terrainMapTag;
+static const string _variableDimensionTag;
+static const string _alignGridTag;
 float _constcolorbuf[4];
 
 

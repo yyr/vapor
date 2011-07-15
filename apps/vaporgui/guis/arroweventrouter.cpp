@@ -54,6 +54,8 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow()
         setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(ArrowParams::_arrowParamsTag);
 	savedCommand = 0;
+	showAppearance = true;
+	showLayout = true;
 }
 
 
@@ -82,33 +84,27 @@ ArrowEventRouter::hookUpTab()
 	connect (thicknessEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	connect (scaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
 	connect (scaleEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMinX, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMinX, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMinY, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMinY, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMinZ, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMinZ, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMaxX, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMaxX, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMaxY, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMaxY, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeMaxZ, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeMaxZ, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeGridX, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeGridX, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeGridY, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeGridY, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
-	connect (rakeGridZ, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
-	connect (rakeGridZ, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	
+	connect (xDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (xDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (yDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (yDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (zDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (zDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
 	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXVarNum(int)));
 	connect (yVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYVarNum(int)));
 	connect (zVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZVarNum(int)));
+	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(guiSetVariableDims(int)));
 	//checkboxes
 	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleTerrainAlign(bool)));
 	//buttons:
 	connect (colorSelectButton, SIGNAL(pressed()), this, SLOT(guiSelectColor()));
+	connect (boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(guiChangeExtents()));
+	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
+	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
+	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(guiFitToData()));
 
 }
 
@@ -148,30 +144,16 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	QString strn;
 	//Get all text values from gui, apply to params
 	int gridsize[3];
-	gridsize[0] = rakeGridX->text().toInt();
-	gridsize[1] = rakeGridY->text().toInt();
-	gridsize[2] = rakeGridZ->text().toInt();
+	gridsize[0] = xDimEdit->text().toInt();
+	gridsize[1] = yDimEdit->text().toInt();
+	gridsize[2] = zDimEdit->text().toInt();
 	for (int i = 0; i<3; i++){
 		if (gridsize[i] < 1) { changed = true; gridsize[i] = 1;}
 		if (gridsize[i] > 2000) {changed = true; gridsize[i] = 2000;}
 	}
 	aParams->SetRakeGrid(gridsize);
 	vector<double> newExtents;
-	newExtents.push_back(rakeMinX->text().toDouble());
-	newExtents.push_back(rakeMinY->text().toDouble());
-	newExtents.push_back(rakeMinZ->text().toDouble());
-	newExtents.push_back(rakeMaxX->text().toDouble());
-	newExtents.push_back(rakeMaxY->text().toDouble());
-	newExtents.push_back(rakeMaxZ->text().toDouble());
-	const float* exts = DataStatus::getInstance()->getExtents();
-	for (int i = 0; i<3; i++){
-		if (newExtents[i]<exts[i]) {changed = true; newExtents[i] = exts[i];}
-		if (newExtents[i]>exts[i+3]) {changed = true; newExtents[i] = exts[i+3];}
-		if (newExtents[i+3]<exts[i]) {changed = true; newExtents[i+3] = exts[i];}
-		if (newExtents[i+3]>exts[i+3]) {changed = true; newExtents[i+3] = exts[i+3];}
-		if (newExtents[i+3]<newExtents[i]) {changed = true; newExtents[i+3] = newExtents[i];}
-	}
-	aParams->SetRakeExtents(newExtents);
+	
 
 	float thickness = thicknessEdit->text().toFloat();
 	if (thickness < 0.f) {changed = true; thickness = 0.f;}
@@ -221,44 +203,151 @@ arrowReturnPressed(void){
 	confirmText(true);
 }
 void ArrowEventRouter::
+guiSetVariableDims(int is3D){
+	confirmText(true);
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	if (aParams->VariablesAre3D() == (is3D == 1)) return;
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb variable dimensions");
+	aParams->SetVariables3D(is3D == 1);
+	xVarCombo->setCurrentIndex(0);
+	yVarCombo->setCurrentIndex(0);
+	zVarCombo->setCurrentIndex(0);
+	aParams->SetFieldVariableName(0,"0");
+	aParams->SetFieldVariableName(1,"0");
+	aParams->SetFieldVariableName(2,"0");
+	//Set up variable combos:
+	populateVariableCombos(is3D);
+	PanelCommand::captureEnd(cmd,aParams);
+	updateTab();
+	VizWinMgr::getInstance()->forceRender(aParams);	
+}
+
+
+void ArrowEventRouter::
+populateVariableCombos(bool is3D){
+	DataStatus* ds;
+	ds = DataStatus::getInstance();
+	if (is3D){
+		//The first entry is "0"
+		xVarCombo->clear();
+		xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		xVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
+			const std::string& s = ds->getActiveVarName3D(i);
+			xVarCombo->addItem(QString::fromStdString(s));
+		}
+		yVarCombo->clear();
+		yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		yVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
+			const std::string& s = ds->getActiveVarName3D(i);
+			yVarCombo->addItem(QString::fromStdString(s));
+		}
+		zVarCombo->clear();
+		zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
+		zVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
+			const std::string& s = ds->getActiveVarName3D(i);
+			zVarCombo->addItem(QString::fromStdString(s));
+		}
+	} else { //2D vars:
+		//The first entry is "0"
+		xVarCombo->clear();
+		xVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		xVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+			const std::string& s = ds->getActiveVarName2D(i);
+			xVarCombo->addItem(QString::fromStdString(s));
+		}
+		yVarCombo->clear();
+		yVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		yVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+			const std::string& s = ds->getActiveVarName2D(i);
+			yVarCombo->addItem(QString::fromStdString(s));
+		}
+		zVarCombo->clear();
+		zVarCombo->setMaxCount(ds->getNumActiveVariables2D()+1);
+		zVarCombo->addItem(QString("0"));
+		for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
+			const std::string& s = ds->getActiveVarName2D(i);
+			zVarCombo->addItem(QString::fromStdString(s));
+		}
+	}
+}
+
+
+void ArrowEventRouter::
 guiSetXVarNum(int vnum){
 	confirmText(true);
 	
 	int sesvarnum=0;
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	bool is3D = aParams->VariablesAre3D();
 	if(vnum > 0) {
 		//Make sure its a valid variable..
-		sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
+		if (is3D)
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
+		else 
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
 		if (sesvarnum < 0) return; 
 	}
-	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set arrow x variable");
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb x variable");
 	if (vnum > 0){
-		aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		if (is3D)
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		else 
+			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(0,"0");
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiSetYVarNum(int vnum){
+	int sesvarnum=0;
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set arrow y variable");
+	bool is3D = aParams->VariablesAre3D();
 	if(vnum > 0) {
-		int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
-		aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		//Make sure its a valid variable..
+		if (is3D)
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
+		else 
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
+		if (sesvarnum < 0) return; 
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb y variable");
+	if (vnum > 0){
+		if (is3D)
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		else 
+			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(1,"0");
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 void ArrowEventRouter::
 guiSetZVarNum(int vnum){
+	int sesvarnum=0;
 	confirmText(true);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set arrow z variable");
+	bool is3D = aParams->VariablesAre3D();
 	if(vnum > 0) {
-		int sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
-		aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		//Make sure its a valid variable..
+		if (is3D)
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(vnum-1);
+		else 
+			sesvarnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(vnum-1);
+		if (sesvarnum < 0) return; 
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "set barb z variable");
+	if (vnum > 0){
+		if (is3D)
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName3D(sesvarnum));
+		else 
+			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(2,"0");
+	
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -280,13 +369,25 @@ guiSelectColor(){
 	pal.setColor(QPalette::Base, newColor);
 	colorBox->setPalette(pal);
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
-	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change arrow color");
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change barb color");
 	qreal rgb[3];
 	newColor.getRgbF(rgb,rgb+1,rgb+2);
 	float rgbf[3];
 	for (int i = 0; i<3; i++) rgbf[i] = (float)rgb[i];
 	aParams->SetConstantColor(rgbf);
 	PanelCommand::captureEnd(cmd, aParams);
+}
+void ArrowEventRouter::
+guiChangeExtents(){
+	confirmText(true);
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change barb extents");
+	double newExts[6];
+	boxSliderFrame->getBoxExtents(newExts);
+	Box* bx = aParams->GetBox();
+	bx->SetExtents(newExts);
+	PanelCommand::captureEnd(cmd,aParams);
+	VizWinMgr::getInstance()->forceRender(aParams);	
 }
 	
 void ArrowEventRouter::
@@ -308,8 +409,6 @@ setArrowEnabled(bool val, int instance){
 }
 
 
-
-
 //Insert values from params into tab panel
 //
 void ArrowEventRouter::updateTab(){
@@ -326,6 +425,7 @@ void ArrowEventRouter::updateTab(){
 	instanceTable->rebuild(this);
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*) VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
 	copyCombo->clear();
@@ -349,15 +449,32 @@ void ArrowEventRouter::updateTab(){
 		refinementCombo->setCurrentIndex(numRefs);
 	lodCombo->setCurrentIndex(arrowParams->GetCompressionLevel());
 	
-	//Set the combo based on the (3D) field variables
+	//Set the combo based on the current field variables
 	int comboIndex[3] = { 0,0,0};
-	for (int i = 0; i<3; i++) {
-		string vname = arrowParams->GetFieldVariableName(i);
-		if(vname != "0") comboIndex[i] = 1+ds->getSessionVariableNum3D(vname);
+	bool is3D = arrowParams->VariablesAre3D();
+	int dimComIndex = variableDimCombo->currentIndex();
+	if (is3D != (dimComIndex == 1)){
+		variableDimCombo->setCurrentIndex(1-dimComIndex);
+		populateVariableCombos(is3D);
+	}
+	if (is3D){
+		for (int i = 0; i<3; i++) {
+			string vname = arrowParams->GetFieldVariableName(i);
+			if(vname != "0") comboIndex[i] = 1+ds->getSessionVariableNum3D(vname);
+			else comboIndex[i]=0;
+		}
+	} else {
+		for (int i = 0; i<3; i++) {
+			string vname = arrowParams->GetFieldVariableName(i);
+			if(vname != "0") comboIndex[i] = 1+ds->getSessionVariableNum2D(vname);
+			else comboIndex[i]=0;
+		}
 	}
 	xVarCombo->setCurrentIndex(comboIndex[0]);
 	yVarCombo->setCurrentIndex(comboIndex[1]);
 	zVarCombo->setCurrentIndex(comboIndex[2]);
+
+	
 
 	//Set the constant color box
 	const float* clr = arrowParams->GetConstantColor();
@@ -369,19 +486,40 @@ void ArrowEventRouter::updateTab(){
 	colorBox->setPalette(pal);
 	
 	//Set the rake extents
-	double exts[6];
-	arrowParams->GetRakeExtents(exts);
-	rakeMinX->setText(QString::number(exts[0]));
-	rakeMinY->setText(QString::number(exts[1]));
-	rakeMinZ->setText(QString::number(exts[2]));
-	rakeMaxX->setText(QString::number(exts[3]));
-	rakeMaxY->setText(QString::number(exts[4]));
-	rakeMaxZ->setText(QString::number(exts[5]));
+	const float* fullExtents = ds->getExtents();
+	double dbExts[6];
+	for (int i = 0; i<6; i++) dbExts[i] = fullExtents[i];
+	boxSliderFrame->setFullDomain(dbExts);
+
+	const vector<double>exts = arrowParams->GetRakeExtents();
+	boxSliderFrame->setBoxExtents(exts);
+
+	//Provide latlon corner coords if available:
+	if (DataStatus::getProjectionString().size() == 0){
+		latLonFrame->hide();
+	} else {
+		double cornerLatLon[2];
+		const vector<double> exts = arrowParams->GetBox()->GetExtents();
+		cornerLatLon[0] = exts[0];
+		cornerLatLon[1] = exts[1];
+		if (DataStatus::convertToLatLon(currentTimeStep,cornerLatLon)){
+			LLLonEdit->setText(QString::number(cornerLatLon[0]));
+			LLLatEdit->setText(QString::number(cornerLatLon[1]));
+			cornerLatLon[0] = exts[3];
+			cornerLatLon[1] = exts[4];
+			DataStatus::convertToLatLon(currentTimeStep,cornerLatLon);
+			URLonEdit->setText(QString::number(cornerLatLon[0]));
+			URLatEdit->setText(QString::number(cornerLatLon[1]));
+			latLonFrame->show();
+		} else {
+			latLonFrame->hide();
+		}
+	}
 
 	const vector<long>rakeGrid = arrowParams->GetRakeGrid();
-	rakeGridX->setText(QString::number(rakeGrid[0]));
-	rakeGridY->setText(QString::number(rakeGrid[1]));
-	rakeGridZ->setText(QString::number(rakeGrid[2]));
+	xDimEdit->setText(QString::number(rakeGrid[0]));
+	yDimEdit->setText(QString::number(rakeGrid[1]));
+	zDimEdit->setText(QString::number(rakeGrid[2]));
 	
 	thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
 	scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
@@ -397,6 +535,11 @@ void ArrowEventRouter::updateTab(){
 			arrowParams->SetTerrainMapped(false);
 	}
 
+	if (showLayout) layoutFrame->show();
+	else layoutFrame->hide();
+	if (showAppearance) appearanceFrame->show();
+	else appearanceFrame->hide();
+	adjustSize();
 	update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -439,29 +582,12 @@ reinitTab(bool doOverride){
 			lodCombo->addItem(s);
 		}
 	}
-	//Set up the variable combos.  
-	//The first entry is "0"
-	xVarCombo->clear();
-	xVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-	xVarCombo->addItem(QString("0"));
-	for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-		const std::string& s = ds->getActiveVarName3D(i);
-		xVarCombo->addItem(QString::fromStdString(s));
-	}
-	yVarCombo->clear();
-	yVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-	yVarCombo->addItem(QString("0"));
-	for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-		const std::string& s = ds->getActiveVarName3D(i);
-		yVarCombo->addItem(QString::fromStdString(s));
-	}
-	zVarCombo->clear();
-	zVarCombo->setMaxCount(ds->getNumActiveVariables3D()+1);
-	zVarCombo->addItem(QString("0"));
-	for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-		const std::string& s = ds->getActiveVarName3D(i);
-		zVarCombo->addItem(QString::fromStdString(s));
-	}
+	//Set up the variable combos with default 3D variables  
+	populateVariableCombos(true);
+	
+	
+	//set the combo to 3D
+	variableDimCombo->setCurrentIndex(1);
 	updateTab();
 }
 
@@ -514,6 +640,50 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 	updateTab();
 	vizWinMgr->forceRender(dParams);
 	
+}
+void ArrowEventRouter::
+guiFitToData(){
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to full data extents");
+		
+	const float* exts = DataStatus::getInstance()->getExtents();
+	Box* box = aParams->GetBox();
+	const vector<double> boxExts = box->GetExtents();
+	vector<double> newExtents;
+	newExtents.push_back(exts[0]);
+	newExtents.push_back(exts[1]);
+	newExtents.push_back(boxExts[2]);
+	newExtents.push_back(exts[3]);
+	newExtents.push_back(exts[4]);
+	newExtents.push_back(boxExts[5]);
+	boxSliderFrame->setBoxExtents(newExtents);
+	box->SetExtents(newExtents);
+	PanelCommand::captureEnd(cmd, aParams);
+	VizWinMgr::getInstance()->forceRender(aParams);
+}
+
+void ArrowEventRouter::
+showHideAppearance(){
+	if (showAppearance) {
+		showAppearance = false;
+		showHideAppearanceButton->setText("Show Appearance Options");
+	} else {
+		showAppearance = true;
+		showHideAppearanceButton->setText("Hide Appearance Options");
+	}
+	updateTab();
+}
+
+void ArrowEventRouter::
+showHideLayout(){
+	if (showLayout) {
+		showLayout = false;
+		showHideLayoutButton->setText("Show Barb Layout Options");
+	} else {
+		showLayout = true;
+		showHideLayoutButton->setText("Hide Barb Layout Options");
+	}
+	updateTab();
 }
 
 

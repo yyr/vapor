@@ -32,7 +32,7 @@
 #include <QFileDialog>
 #include <vapor/DataMgr.h>
 #include <vapor/errorcodes.h>
-#include "GetAppPath.h"
+#include "vapor/GetAppPath.h"
 #include "session.h"
 #include "messagereporter.h"
 #include "transferfunction.h"

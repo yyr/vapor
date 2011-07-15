@@ -23,7 +23,7 @@
 #include "glutil.h"
 #include <QMessageBox>
 #include "messagereporter.h"
-#include "GetAppPath.h"
+#include "vapor/GetAppPath.h"
 #ifdef WIN32
 #include "Windows.h"
 #define PYTHONVERSION "2.6"

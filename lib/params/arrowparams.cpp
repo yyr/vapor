@@ -7,7 +7,7 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
-const string ArrowParams::_shortName = "Arrow";
+const string ArrowParams::_shortName = "Barbs";
 const string ArrowParams::_arrowParamsTag = "ArrowParams";
 const string ArrowParams::_constantColorTag = "ConstantColor";
 const string ArrowParams::_rakeExtentsTag = "RakeExtents";
@@ -15,7 +15,8 @@ const string ArrowParams::_rakeGridTag = "GridDimensions";
 const string ArrowParams::_lineThicknessTag = "LineThickness";
 const string ArrowParams::_vectorScaleTag = "VectorScale";
 const string ArrowParams::_terrainMapTag = "TerrainMap";
-
+const string ArrowParams::_alignGridTag = "GridAlignedToData";
+const string ArrowParams::_variableDimensionTag = "VariableDimension";
 
 namespace {
 	const string ArrowName = "ArrowParams";
@@ -41,9 +42,12 @@ reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
 	
-	int totNumVariables = ds->getNumSessionVariables();
+	int totNumVariables = ds->getNumSessionVariables()+ ds->getNumSessionVariables2D();
 	if (totNumVariables <= 0) return false;
-	
+	bool is3D = VariablesAre3D();
+	int numVariables;
+	if (is3D) numVariables = ds->getNumSessionVariables();
+	else numVariables = ds->getNumSessionVariables2D();
 	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
@@ -72,17 +76,25 @@ reinit(bool doOverride){
 	//Set up the variables. If doOverride is true, just make the first 3 variables the first 3 variables in the VDC.
 	//Otherwise try to use the current variables 
 	//In either case, if they don't exist replace them with 0.
+	
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			string varname;
-			if (i>=totNumVariables) varname = "0";
-			else varname = ds->getVariableName3D(i);
+			if (i>=numVariables) varname = "0";
+			else {
+				if (is3D) varname = ds->getVariableName3D(i);
+				else varname = ds->getVariableName2D(i);
+			}
 			SetFieldVariableName(i,varname);
 		}
 	} else {
 		for (int i = 0; i<3; i++){
 			string varname = GetFieldVariableName(i);
-			int indx = ds->getActiveVarNum3D(varname);
+			int indx;
+			if (is3D)
+				indx = ds->getActiveVarNum3D(varname);
+			else 
+				indx = ds->getActiveVarNum2D(varname);
 			if (indx < 0) {
 				SetFieldVariableName(i,"0");
 			}
@@ -145,6 +157,7 @@ void ArrowParams::restart() {
 	SetFieldVariableName(0, "xvar");
 	SetFieldVariableName(1, "yvar");
 	SetFieldVariableName(2, "0");
+	SetVariables3D(true);
 	
 	setEnabled(false);
 	const float default_color[3] = {1.0, 0.0, 0.0};

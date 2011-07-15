@@ -1,5 +1,6 @@
 GUI_FILES := \
 	colorpickerframe eventrouter loadtfdialog savetfdialog \
+	boxsliderframe \
 	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
@@ -16,6 +17,7 @@ GUI_FILES := \
 
 GUI_QT_HEADERS := \
 	colorpickerframe loadtfdialog  \
+	boxsliderframe \
 	savetfdialog vizselectcombo \
 	probeframe seedlisteditor instancetable \
 	twodframe twoDimageeventrouter twoDdataeventrouter \

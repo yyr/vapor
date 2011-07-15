@@ -68,6 +68,7 @@ void ArrowRenderer::paintGL(){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
+	bool is3D = aParams->VariablesAre3D();
 
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
@@ -88,11 +89,20 @@ void ArrowRenderer::paintGL(){
 		((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
 	//Choose the vector scale so that the longest vector component goes one grid space
 	float maxVectorLen = 0.f;
-	for (int i = 0; i<3; i++) {
-		int sesvarnum = ds->getSessionVariableNum3D(varnames[i]);
-		if (sesvarnum < 0) continue;
-		float vectorLen = Max(abs(ds->getDefaultDataMax3D(sesvarnum)),abs(ds->getDefaultDataMin3D(sesvarnum)));
-		maxVectorLen = Max(maxVectorLen, vectorLen);
+	if (is3D){
+		for (int i = 0; i<3; i++) {
+			int sesvarnum = ds->getSessionVariableNum3D(varnames[i]);
+			if (sesvarnum < 0) continue;
+			float vectorLen = Max(abs(ds->getDefaultDataMax3D(sesvarnum)),abs(ds->getDefaultDataMin3D(sesvarnum)));
+			maxVectorLen = Max(maxVectorLen, vectorLen);
+		}
+	} else {
+		for (int i = 0; i<3; i++) {
+			int sesvarnum = ds->getSessionVariableNum2D(varnames[i]);
+			if (sesvarnum < 0) continue;
+			float vectorLen = Max(abs(ds->getDefaultDataMax2D(sesvarnum)),abs(ds->getDefaultDataMin2D(sesvarnum)));
+			maxVectorLen = Max(maxVectorLen, vectorLen);
+		}
 	}
 	if (maxVectorLen == 0.f) maxVectorLen = 1.f;
 	float vectorLengthScale = aParams->GetVectorScale()*maxCellSize/maxVectorLen;
@@ -266,6 +276,7 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 	DataMgr* dataMgr = ds->getDataMgr();
 	double rakeExts[6];
 	aParams->GetRakeExtents(rakeExts);
+	bool is3D = aParams->VariablesAre3D();
 
 	//Perform setup of OpenGL transform matrix
 
@@ -325,8 +336,12 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 				}
 				for (int dim = 0; dim<3; dim++){
 					dirVec[dim]=0.f;
-					if (variableData[dim])
-						dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+					if (variableData[dim]){
+						if (is3D)
+							dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+						else 
+							dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+					}
 					endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
 					fltPnt[dim]=(float)(point[dim]*scales[dim]);
 				}

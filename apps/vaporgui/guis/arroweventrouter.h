@@ -70,10 +70,18 @@ protected slots:
 	void guiSetZVarNum(int);
 	void guiToggleTerrainAlign(bool);
 	void guiSelectColor();
+	void guiChangeExtents();
+	void showHideLayout();
+	void showHideAppearance();
+	void guiFitToData();
+	void guiSetVariableDims(int);
 
 	
 protected:
+	void populateVariableCombos(bool is3d);
 	int copyCount[MAXVIZWINS+1];
+	bool showLayout;
+	bool showAppearance;
 
    };
 
