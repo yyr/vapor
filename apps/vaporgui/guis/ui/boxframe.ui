@@ -85,6 +85,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
           <widget class="QSlider" name="xCenterSlider">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -95,6 +98,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="xCenterEdit">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -106,6 +112,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_17">
          <item>
           <widget class="QSlider" name="yCenterSlider">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -116,6 +125,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="yCenterEdit">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -127,6 +139,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_18">
          <item>
           <widget class="QSlider" name="zCenterSlider">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -137,6 +152,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="zCenterEdit">
+           <property name="toolTip">
+            <string>Center coordinates of the box are controlled by sliders or text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -162,6 +180,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_19">
          <item>
           <widget class="QSlider" name="xSizeSlider">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -172,6 +193,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="xSizeEdit">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -183,6 +207,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_20">
          <item>
           <widget class="QSlider" name="ySizeSlider">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -193,6 +220,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="ySizeEdit">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -204,6 +234,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_21">
          <item>
           <widget class="QSlider" name="zSizeSlider">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="maximum">
             <number>256</number>
            </property>
@@ -214,6 +247,9 @@
          </item>
          <item>
           <widget class="QLineEdit" name="zSizeEdit">
+           <property name="toolTip">
+            <string>Size of the box is controlled by sliders and text boxes</string>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>

@@ -29,7 +29,7 @@ namespace VAPoR {
 	//For each class that has a manipulator associated with it, insert the method
 	//VizWinMgr::RegisterMouseMode(tag, modeType, manip name, xpm (pixmap) )
 	static void InstallExtensionMouseModes(){
-		VizWinMgr::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Arrow rake", arrowrake );
+		VizWinMgr::RegisterMouseMode(ArrowParams::_arrowParamsTag,1, "Barb rake", arrowrake );
 	}
 };
 

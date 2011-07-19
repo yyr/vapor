@@ -75,6 +75,7 @@ protected slots:
 	void showHideAppearance();
 	void guiFitToData();
 	void guiSetVariableDims(int);
+	void guiAlignToData(bool);
 
 	
 protected:

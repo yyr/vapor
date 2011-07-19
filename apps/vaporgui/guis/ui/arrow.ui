@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>481</width>
+    <width>449</width>
     <height>880</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>550</width>
+    <width>450</width>
     <height>32767</height>
    </size>
   </property>
@@ -499,6 +499,9 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <widget class="QComboBox" name="variableDimCombo">
+         <property name="toolTip">
+          <string>Specify whether the field variables are 2 or 3 dimensional</string>
+         </property>
          <item>
           <property name="text">
            <string>  2D</string>
@@ -553,6 +556,9 @@ p, li { white-space: pre-wrap; }
          <height>16777215</height>
         </size>
        </property>
+       <property name="whatsThis">
+        <string>These options control the positioning of barbs</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -567,6 +573,9 @@ p, li { white-space: pre-wrap; }
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
            <widget class="QPushButton" name="showHideLayoutButton">
+            <property name="toolTip">
+             <string>Show or Hide the options relating to barb layout</string>
+            </property>
             <property name="text">
              <string>Hide Barb Layout Options</string>
             </property>
@@ -612,6 +621,9 @@ p, li { white-space: pre-wrap; }
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="toolTip">
+                  <string>Specify the center and size of the barb rake using text boxes or sliders</string>
+                 </property>
                  <property name="lineWidth">
                   <number>0</number>
                  </property>
@@ -634,6 +646,9 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item>
                   <widget class="QPushButton" name="fitDataButton">
+                   <property name="toolTip">
+                    <string>Click to reset the rake to fit the full horizontal extents of the data</string>
+                   </property>
                    <property name="text">
                     <string>Fit to Full Horizontal Data Extents</string>
                    </property>
@@ -687,6 +702,9 @@ p, li { white-space: pre-wrap; }
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
+                   </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
                    </property>
@@ -710,6 +728,12 @@ p, li { white-space: pre-wrap; }
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -729,6 +753,12 @@ p, li { white-space: pre-wrap; }
                      <width>70</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -793,7 +823,17 @@ p, li { white-space: pre-wrap; }
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_11">
                  <item>
-                  <widget class="QCheckBox" name="checkBox">
+                  <widget class="QCheckBox" name="alignDataCheckbox">
+                   <property name="toolTip">
+                    <string>Check to position the barbs on the horizontal data grid</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;When the barbs are aligned to data, the barbs are horizontally situated at the centers of cells in the data grid.  An initial barb is positioned at the grid cell in the rake with smallest x and y coordinates.  Additional barb positions are offset from the initial barb by incrementing the X and Y grid coordinates by the values of X-stride and Y-stride.  When stride is 0, there is only one (initial) barb at minimal x and y grid coordinates.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
                    <property name="text">
                     <string>Align to Data:</string>
                    </property>
@@ -823,6 +863,19 @@ p, li { white-space: pre-wrap; }
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>Specify the x-grid spacing between barbs</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;When the barbs are aligned to data, the barbs are horizontally situated at the centers of cells in the data grid.  An initial barb is positioned at the grid cell in the rake with smallest x and y coordinates.  Additional barb positions are offset from the initial barb by incrementing the X and Y grid coordinates by the values of X-stride and Y-stride.  When stride is 0, there is only one (initial) barb at minimal x and y grid coordinates.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
                    </property>
@@ -845,6 +898,19 @@ p, li { white-space: pre-wrap; }
                      <width>70</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Specify the y-grid spacing between barbs</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;When the barbs are aligned to data, the barbs are horizontally situated at the centers of cells in the data grid.  An initial barb is positioned at the grid cell in the rake with smallest x and y coordinates.  Additional barb positions are offset from the initial barb by incrementing the X and Y grid coordinates by the values of X-stride and Y-stride.  When stride is 0, there is only one (initial) barb at minimal x and y grid coordinates.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>1</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -898,6 +964,9 @@ p, li { white-space: pre-wrap; }
                         <height>16777215</height>
                        </size>
                       </property>
+                      <property name="whatsThis">
+                       <string>Longitude of the upper-right corner of the rake</string>
+                      </property>
                       <property name="frame">
                        <bool>false</bool>
                       </property>
@@ -916,6 +985,9 @@ p, li { white-space: pre-wrap; }
                         <width>100</width>
                         <height>16777215</height>
                        </size>
+                      </property>
+                      <property name="whatsThis">
+                       <string>Latitude of the upper-right corner of the rake</string>
                       </property>
                       <property name="frame">
                        <bool>false</bool>
@@ -972,6 +1044,9 @@ p, li { white-space: pre-wrap; }
                         <height>16777215</height>
                        </size>
                       </property>
+                      <property name="whatsThis">
+                       <string>Longitude of the lower-left corner of the rake</string>
+                      </property>
                       <property name="frame">
                        <bool>false</bool>
                       </property>
@@ -990,6 +1065,9 @@ p, li { white-space: pre-wrap; }
                         <width>100</width>
                         <height>16777215</height>
                        </size>
+                      </property>
+                      <property name="whatsThis">
+                       <string>Latitude of the lower-left corner of the rake</string>
                       </property>
                       <property name="frame">
                        <bool>false</bool>
@@ -1057,6 +1135,9 @@ p, li { white-space: pre-wrap; }
          <height>16777215</height>
         </size>
        </property>
+       <property name="whatsThis">
+        <string>These options concern the appearance of barbs.</string>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -1071,6 +1152,9 @@ p, li { white-space: pre-wrap; }
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QPushButton" name="showHideAppearanceButton">
+            <property name="whatsThis">
+             <string>Click to toggle the display of appearance options</string>
+            </property>
             <property name="text">
              <string>Hide Appearance Options</string>
             </property>
@@ -1119,6 +1203,9 @@ p, li { white-space: pre-wrap; }
                   <widget class="QPushButton" name="colorSelectButton">
                    <property name="toolTip">
                     <string>Click button to select arrow color</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>Click to select the barb color</string>
                    </property>
                    <property name="text">
                     <string>Select</string>
@@ -1545,6 +1632,9 @@ p, li { white-space: pre-wrap; }
                    <property name="toolTip">
                     <string>Click button to select arrow color</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>Display of current barb color</string>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
@@ -1602,10 +1692,14 @@ p, li { white-space: pre-wrap; }
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Specify diameter of arrows in terms of voxel size at lowest refinement level.</string>
+                    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify diameter of arrows in terms of horizontal grid size.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="whatsThis">
-                    <string>The arrow diameter is this factor times the size of a voxel of the data at the lowest refinement level.</string>
+                    <string>The arrow diameter is this factor times the size of a voxel of the data at full resolution</string>
                    </property>
                   </widget>
                  </item>
@@ -1661,14 +1755,18 @@ p, li { white-space: pre-wrap; }
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>Specify vector scale factor.  Factor is 1 when longest vector is the max distance between adjacent arrows.</string>
+                    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify vector scale factor.  The barb length is the field magnitude times this factor.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="whatsThis">
                     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The length of a vector in the 3D scene is scaled by this Length scale factor times the largest distance between two adjacent vectors, divided by the maximum absolute value of the vector components over the full data array.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The length of a barb (in scene distance units) is determined by multiplying the field magnitude times this factor.  This factor is set by default so that the largest possible vector length will be about 0.1 times the horizontal extents of the data.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                   </widget>
                  </item>

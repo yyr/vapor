@@ -87,34 +87,18 @@ void ArrowRenderer::paintGL(){
 	aParams->GetRakeExtents(rakeExts);
 	float maxCellSize = Max(Max(((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]),((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1])),
 		((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
-	//Choose the vector scale so that the longest vector component goes one grid space
-	float maxVectorLen = 0.f;
-	if (is3D){
-		for (int i = 0; i<3; i++) {
-			int sesvarnum = ds->getSessionVariableNum3D(varnames[i]);
-			if (sesvarnum < 0) continue;
-			float vectorLen = Max(abs(ds->getDefaultDataMax3D(sesvarnum)),abs(ds->getDefaultDataMin3D(sesvarnum)));
-			maxVectorLen = Max(maxVectorLen, vectorLen);
-		}
-	} else {
-		for (int i = 0; i<3; i++) {
-			int sesvarnum = ds->getSessionVariableNum2D(varnames[i]);
-			if (sesvarnum < 0) continue;
-			float vectorLen = Max(abs(ds->getDefaultDataMax2D(sesvarnum)),abs(ds->getDefaultDataMin2D(sesvarnum)));
-			maxVectorLen = Max(maxVectorLen, vectorLen);
-		}
-	}
-	if (maxVectorLen == 0.f) maxVectorLen = 1.f;
-	float vectorLengthScale = aParams->GetVectorScale()*maxCellSize/maxVectorLen;
+	
+	float vectorLengthScale = aParams->GetVectorScale();
 	//
-	//Also find the voxel size in user units.  This will be used to scale the vector radius.
+	//Also find the horizontal voxel size in user units at highest ref level.  This will be used to scale the vector radius.
 	//
+	size_t dim[3];
+	dataMgr->GetDim(dim, -1);
+	const float* fullexts = ds->getExtents();
 	float maxVoxSize = 0.f;
-	for (int i = 0; i<3; i++){
-		if (voxExts[i+3] > voxExts[i]){
-			float voxSide = (validExts[i+3]-validExts[i])/(voxExts[i+3]-voxExts[i]);
-			if (voxSide > maxVoxSize) maxVoxSize = voxSide;
-		}
+	for (int i = 0; i<2; i++){
+		float voxSide = (fullexts[i+3]-fullexts[i])/(dim[i]);
+		if (voxSide > maxVoxSize) maxVoxSize = voxSide;
 	}
 	if (maxVoxSize == 0.f) maxVoxSize = 1.f;
 	float rad = 0.5*maxVoxSize*aParams->GetLineThickness();
@@ -274,9 +258,26 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	
+	const vector<double> rExtents = aParams->GetRakeExtents();
+	const vector<long> rGrid = aParams->GetRakeGrid();
+	int rakeGrid[3];
 	double rakeExts[6];
-	aParams->GetRakeExtents(rakeExts);
+	for (int i = 0; i<3; i++) {
+		rakeGrid[i] = rGrid[i];
+		rakeExts[i] = rExtents[i];
+		rakeExts[i+3] = rExtents[i+3];
+	}
 	bool is3D = aParams->VariablesAre3D();
+
+	//If grid is aligned to data, must recalculate the rake grid and extents.
+	//(rakeExts[0],rakeExts[1]) is the starting corner, 
+	//(rakeExts[3],rakeExts[4]) is the ending corner
+	// (rakeGrid[0] and rakeGrid[1]) are the grid size that fits in the data with the 
+	// prescribed strides
+	if (aParams->IsAlignedToData()){
+		aParams->calcDataAlignment(rakeExts, rakeGrid);
+	}
 
 	//Perform setup of OpenGL transform matrix
 
@@ -316,37 +317,71 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 	float dirVec[3], endPoint[3], fltPnt[3];
 	double point[3];
 	size_t voxCoord[3];
-	const vector<long> rakeGrid = aParams->GetRakeGrid();
+	
 	size_t bs[3];
 	dataMgr->GetBlockSize(bs,actualRefLevel);
-	for (int i = 0; i<rakeGrid[0]; i++){
-		point[0] = (rakeExts[0]+ (0.5+(float)i )* ((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
-		
-		for (int j = 0; j<rakeGrid[1]; j++){
-			point[1]= (rakeExts[1]+(0.5+(float)j )* ((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1]));
-				
-			for (int k = 0; k<rakeGrid[2]; k++){
-				point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
-				dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
-				if (variableData[3]){
-					float offset = RegionParams::IndexIn2DData(variableData[3], voxCoord, bs, min_bdim, max_bdim);
-					point[2] += offset;
-					//Map again for displaced coordinate:
+	if (!aParams->IsAlignedToData()){
+		for (int i = 0; i<rakeGrid[0]; i++){
+			point[0] = (rakeExts[0]+ (0.5+(float)i )* ((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
+			
+			for (int j = 0; j<rakeGrid[1]; j++){
+				point[1]= (rakeExts[1]+(0.5+(float)j )* ((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1]));
+					
+				for (int k = 0; k<rakeGrid[2]; k++){
+					point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
 					dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
-				}
-				for (int dim = 0; dim<3; dim++){
-					dirVec[dim]=0.f;
-					if (variableData[dim]){
-						if (is3D)
-							dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
-						else 
-							dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+					if (variableData[3]){
+						float offset = RegionParams::IndexIn2DData(variableData[3], voxCoord, bs, min_bdim, max_bdim);
+						point[2] += offset;
+						//Map again for displaced coordinate:
+						dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
 					}
-					endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
-					fltPnt[dim]=(float)(point[dim]*scales[dim]);
+					for (int dim = 0; dim<3; dim++){
+						dirVec[dim]=0.f;
+						if (variableData[dim]){
+							if (is3D)
+								dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+							else 
+								dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+						}
+						endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
+						fltPnt[dim]=(float)(point[dim]*scales[dim]);
+					}
+					
+					drawArrow(fltPnt, endPoint, rad);
 				}
-				
-				drawArrow(fltPnt, endPoint, rad);
+			}
+		}
+	} else {
+		for (int i = 0; i<rakeGrid[0]; i++){
+			point[0] = rakeExts[0]+ ((double)i )* ((rakeExts[3]-rakeExts[0])/(double)rakeGrid[0]);
+			
+			for (int j = 0; j<rakeGrid[1]; j++){
+				point[1]= (rakeExts[1]+((double)j )* ((rakeExts[4]-rakeExts[1])/(double)rakeGrid[1]));
+					
+				for (int k = 0; k<rakeGrid[2]; k++){
+					point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
+					dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
+					if (variableData[3]){
+						float offset = RegionParams::IndexIn2DData(variableData[3], voxCoord, bs, min_bdim, max_bdim);
+						point[2] += offset;
+						//Map again for displaced coordinate:
+						dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
+					}
+					for (int dim = 0; dim<3; dim++){
+						dirVec[dim]=0.f;
+						if (variableData[dim]){
+							if (is3D)
+								dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+							else 
+								dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+						}
+						endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
+						fltPnt[dim]=(float)(point[dim]*scales[dim]);
+					}
+					
+					drawArrow(fltPnt, endPoint, rad);
+				}
 			}
 		}
 	}

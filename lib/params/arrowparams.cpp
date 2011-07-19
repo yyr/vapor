@@ -16,6 +16,7 @@ const string ArrowParams::_lineThicknessTag = "LineThickness";
 const string ArrowParams::_vectorScaleTag = "VectorScale";
 const string ArrowParams::_terrainMapTag = "TerrainMap";
 const string ArrowParams::_alignGridTag = "GridAlignedToData";
+const string ArrowParams::_alignGridStridesTag = "GridAlignedStrides";
 const string ArrowParams::_variableDimensionTag = "VariableDimension";
 
 namespace {
@@ -80,10 +81,16 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			string varname;
-			if (i>=numVariables) varname = "0";
+			if (i>=numVariables) {
+				varname = "0";
+			}
 			else {
-				if (is3D) varname = ds->getVariableName3D(i);
-				else varname = ds->getVariableName2D(i);
+				if (is3D) {
+					varname = ds->getVariableName3D(i);
+				}
+				else {
+					varname = ds->getVariableName2D(i);
+				}
 			}
 			SetFieldVariableName(i,varname);
 		}
@@ -91,16 +98,19 @@ reinit(bool doOverride){
 		for (int i = 0; i<3; i++){
 			string varname = GetFieldVariableName(i);
 			int indx;
-			if (is3D)
+			if (is3D){
 				indx = ds->getActiveVarNum3D(varname);
-			else 
+			}
+			else {
 				indx = ds->getActiveVarNum2D(varname);
+			}
 			if (indx < 0) {
 				SetFieldVariableName(i,"0");
 			}
 		}
 	}
-
+	//Set the vector length so that the max arrow is 10% of the larger of the x or y size of scene
+	
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
 	const float* extents = ds->getExtents();
@@ -123,12 +133,18 @@ reinit(bool doOverride){
 	}
 	SetRakeExtents(newExtents);
 
+	//If grid is mapped to data, 
 	//Make the grid size default to 10x10x1.  If doOverride is false, make sure the grid dims
 	//are at least 1, and no bigger than 10**5.
 	int gridSize[3] = {10,10,1};
+	vector<long> strides;
+	strides.push_back(0);strides.push_back(0);
 	if (doOverride) {
 		SetRakeGrid(gridSize);
+		AlignGridToData(false);
+		SetGridAlignStrides(strides);
 	} else {
+		//Make sure grid is valid...
 		const vector<long>& rakeGrid = GetRakeGrid();
 		for (int i = 0; i<3; i++){
 			gridSize[i] = rakeGrid[i];
@@ -136,16 +152,20 @@ reinit(bool doOverride){
 			if (gridSize[i] > 100000) gridSize[i] = 100000;
 		}
 		SetRakeGrid(gridSize);
+		if (!IsAlignedToData()){
+			//set to default
+			SetGridAlignStrides(strides);
+		}
+
 	}
 	
 	if (doOverride) {
 		const float col[3] = {1.f, 0.f, 0.f};
 		SetConstantColor(col);
 		SetTerrainMapped(false);
-		SetVectorScale(1.);
+		recalcVectorScale();
 	}
 	initializeBypassFlags();
-	
 	return true;
 }
 //Set everything to default values
@@ -164,7 +184,7 @@ void ArrowParams::restart() {
 	SetConstantColor(default_color);
 	SetVectorScale(1.0);
 	SetTerrainMapped(false);
-	SetLineThickness(1.);
+	SetLineThickness(1.0);
 	
 	int gridsize[3];
 	vector<double> exts;
@@ -186,7 +206,57 @@ void ArrowParams::restart() {
 	SetRakeExtents(exts);
 	gridsize[2] = 1;
 	SetRakeGrid(gridsize);
+	vector<long> alignStrides;
+	alignStrides.push_back(0);
+	alignStrides.push_back(0);
+	SetGridAlignStrides(alignStrides);
+	AlignGridToData(false);
 	
+}
+void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3]){
+	//Find the first data point that fits in the rake extents:
+	//Take the rake corner, convert it to voxels
+	size_t corner[3],farCorner[3];
+	double rakeExtents[6];
+	double tempExtents[3];
+	GetRakeExtents(rakeExtents);
+	const vector<long> rGrid = GetRakeGrid();
+	for (int i = 0; i<3; i++){
+		rakeExts[i]=rakeExtents[i];
+		rakeExts[i+3]=rakeExtents[i+3];
+		rakeGrid[i] = rGrid[i];
+	}
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if(!dataMgr) {
+		return;
+	}
+	dataMgr->MapUserToVox((size_t)-1, rakeExtents,corner,-1);
+	//Is the corner actually inside the rake?
+	dataMgr->MapVoxToUser((size_t)-1,corner, tempExtents, -1);
+	if (tempExtents[0]<rakeExtents[0]) corner[0]++;
+	if (tempExtents[1]<rakeExtents[1]) corner[1]++;
+	//Now get the user coords of the corner
+	dataMgr->MapVoxToUser((size_t)-1, corner, tempExtents,-1);
+	rakeExts[0] = tempExtents[0];
+	rakeExts[1] = tempExtents[1];
+	rakeExts[2] = rakeExtents[2];
+	//Now find how many voxels are in rake:
+	dataMgr->MapUserToVox((size_t)-1, rakeExtents+3, farCorner,-1);
+	vector<long>strides = GetGridAlignStrides();
+	if (strides[0] <= 0) rakeGrid[0] = 1; 
+	else rakeGrid[0] = 1+(farCorner[0]-corner[0])/strides[0];
+	if (strides[1] <= 0) rakeGrid[1] = 1; 
+	else rakeGrid[1] = 1+(farCorner[1]-corner[1])/strides[1];
+
+	//Now adjust the rake extents to match the actual far corners:
+	if(strides[0]>0)farCorner[0] = corner[0]+(rakeGrid[0]-1)*strides[0];
+	else farCorner[0] = corner[0];
+	if(strides[1]>0)farCorner[1] = corner[1]+(rakeGrid[1]-1)*strides[1];
+	else farCorner[1] = corner[1];
+
+	dataMgr->MapVoxToUser((size_t)-1,farCorner, tempExtents, -1);
+	rakeExts[3]=tempExtents[0];
+	rakeExts[4]=tempExtents[1];
 }
 
 
@@ -248,4 +318,31 @@ const string& ArrowParams::GetFieldVariableName(int i){
 	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec);
 	retval=svec[i];
 	return retval;
+}
+void ArrowParams::recalcVectorScale(){
+	string varname;
+	int sesvarnum;
+	double maxvarvals[3];
+	bool is3D = VariablesAre3D();
+	DataStatus* ds = DataStatus::getInstance();
+	const float* stretch = ds->getStretchFactors();
+	for (int i = 0; i<3; i++){
+		varname = GetFieldVariableName(i);
+		if (varname == "0") maxvarvals[i] = 0.;
+		else {
+			if (is3D){
+				sesvarnum = ds->getSessionVariableNum3D(varname);
+				maxvarvals[i] = Max(abs(ds->getDefaultDataMax3D(sesvarnum)),abs(ds->getDefaultDataMin3D(sesvarnum)));
+			} else {
+				sesvarnum = ds->getSessionVariableNum2D(varname);
+				maxvarvals[i] = Max(abs(ds->getDefaultDataMax2D(sesvarnum)),abs(ds->getDefaultDataMin2D(sesvarnum)));
+			}
+		}
+	}
+	for (int i = 0; i<3; i++) maxvarvals[i] *= stretch[i];
+	const float* extents = DataStatus::getInstance()->getExtents();
+	double maxVecLength = (double)Max(extents[3]-extents[0],extents[4]-extents[1])*0.1;
+	double maxVecVal = Max(maxvarvals[0],Max(maxvarvals[1],maxvarvals[2]));
+	if (maxVecVal == 0.) SetVectorScale(maxVecLength);
+	else SetVectorScale(maxVecLength/maxVecVal);
 }

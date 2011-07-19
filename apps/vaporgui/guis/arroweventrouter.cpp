@@ -91,6 +91,11 @@ ArrowEventRouter::hookUpTab()
 	connect (yDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	connect (zDimEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
 	connect (zDimEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+
+	connect (xStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (xStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
+	connect (yStrideEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setArrowTextChanged(const QString&)));
+	connect (yStrideEdit, SIGNAL(returnPressed()), this, SLOT(arrowReturnPressed()));
 	
 	//Connect variable combo boxes to their own slots:
 	connect (xVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXVarNum(int)));
@@ -99,6 +104,7 @@ ArrowEventRouter::hookUpTab()
 	connect (variableDimCombo, SIGNAL(activated(int)), this, SLOT(guiSetVariableDims(int)));
 	//checkboxes
 	connect(terrainAlignCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleTerrainAlign(bool)));
+	connect(alignDataCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiAlignToData(bool)));
 	//buttons:
 	connect (colorSelectButton, SIGNAL(pressed()), this, SLOT(guiSelectColor()));
 	connect (boxSliderFrame, SIGNAL(extentsChanged()), this, SLOT(guiChangeExtents()));
@@ -152,8 +158,20 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 		if (gridsize[i] > 2000) {changed = true; gridsize[i] = 2000;}
 	}
 	aParams->SetRakeGrid(gridsize);
-	vector<double> newExtents;
 	
+	//Check if the strides have changed; if so will need to updateTab.
+	if (aParams->IsAlignedToData()){
+		const vector<long> currStrides = aParams->GetGridAlignStrides();
+		long xstride = xStrideEdit->text().toInt();
+		long ystride = yStrideEdit->text().toInt();
+		if (currStrides[0] != xstride || currStrides[1] != ystride){
+			vector<long> strides;
+			strides.push_back( xstride);
+			strides.push_back( ystride);
+			aParams->SetGridAlignStrides(strides);
+			changed = true;
+		}
+	}
 
 	float thickness = thicknessEdit->text().toFloat();
 	if (thickness < 0.f) {changed = true; thickness = 0.f;}
@@ -217,6 +235,7 @@ guiSetVariableDims(int is3D){
 	aParams->SetFieldVariableName(2,"0");
 	//Set up variable combos:
 	populateVariableCombos(is3D);
+	aParams->recalcVectorScale();
 	PanelCommand::captureEnd(cmd,aParams);
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -299,6 +318,7 @@ guiSetXVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(0,"0");
+	aParams->recalcVectorScale();
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -323,6 +343,7 @@ guiSetYVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(1,"0");
+	aParams->recalcVectorScale();
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -347,7 +368,8 @@ guiSetZVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(2,"0");
-	
+	aParams->recalcVectorScale();
+	updateTab();
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -389,7 +411,18 @@ guiChangeExtents(){
 	PanelCommand::captureEnd(cmd,aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
-	
+void ArrowEventRouter::
+guiAlignToData(bool doAlign){
+	confirmText(true);
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "toggle align to data ");
+	aParams->AlignGridToData(doAlign);
+	xStrideEdit->setEnabled(doAlign);
+	yStrideEdit->setEnabled(doAlign);
+	PanelCommand::captureEnd(cmd,aParams);
+	updateTab();
+	VizWinMgr::getInstance()->forceRender(aParams);	
+}
 void ArrowEventRouter::
 setArrowEnabled(bool val, int instance){
 
@@ -520,6 +553,10 @@ void ArrowEventRouter::updateTab(){
 	xDimEdit->setText(QString::number(rakeGrid[0]));
 	yDimEdit->setText(QString::number(rakeGrid[1]));
 	zDimEdit->setText(QString::number(rakeGrid[2]));
+
+	vector<long> strides = arrowParams->GetGridAlignStrides();
+	xStrideEdit->setText(QString::number(strides[0]));
+	yStrideEdit->setText(QString::number(strides[1]));
 	
 	thicknessEdit->setText(QString::number(arrowParams->GetLineThickness()));
 	scaleEdit->setText(QString::number(arrowParams->GetVectorScale()));
@@ -534,7 +571,21 @@ void ArrowEventRouter::updateTab(){
 		if(arrowParams->IsTerrainMapped())
 			arrowParams->SetTerrainMapped(false);
 	}
-
+	bool isAligned = arrowParams->IsAlignedToData();
+	alignDataCheckbox->setChecked(isAligned);
+	xStrideEdit->setEnabled(isAligned);
+	yStrideEdit->setEnabled(isAligned);
+	xDimEdit->setEnabled(!isAligned);
+	yDimEdit->setEnabled(!isAligned);
+	
+	if (isAligned){
+		double exts[6];
+		int grdExts[3];
+		arrowParams->calcDataAlignment(exts,grdExts);
+		//Display the new aligned grid extents
+		xDimEdit->setText(QString::number(grdExts[0]));
+		yDimEdit->setText(QString::number(grdExts[1]));
+	}
 	if (showLayout) layoutFrame->show();
 	else layoutFrame->hide();
 	if (showAppearance) appearanceFrame->show();

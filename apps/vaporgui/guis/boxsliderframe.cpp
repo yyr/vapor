@@ -14,9 +14,9 @@
 //
 //	Date:		July 2011
 //
-//	Description:	Implements the TwoDFrame class.  This provides
-//		a frame in which the twoD texture is drawn
-//		Principally involved in drawing and responding to mouse events.
+//	Description:	Implements the BoxSliderFrame class.  This provides
+//		a frame that contains sliders and text box for controlling a 2D or 3D axis-aligned box.
+//		Intended to be used with boxframe.ui for event routers that embed a box slider control
 //
 #include "boxsliderframe.h"
 #include <QFrame>

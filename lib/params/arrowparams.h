@@ -115,13 +115,26 @@ public:
 	bool VariablesAre3D() {
 		return (GetRootNode()->GetElementLong(_variableDimensionTag)[0] == 3);
 	}
-	void SetGridAlignToData(bool val) {
+	void AlignGridToData(bool val) {
 		GetRootNode()->SetElementLong(_alignGridTag,(val ? 1:0));
 		setAllBypass(false);
 	}
 	bool IsAlignedToData() {
-		return (GetRootNode()->GetElementLong(_alignGridTag)[0]);
+		if (GetRootNode()->HasElementLong(_alignGridTag))
+			return (GetRootNode()->GetElementLong(_alignGridTag)[0]);
+		else return false;
 	}
+	const vector<long> GetGridAlignStrides(){
+		return GetRootNode()->GetElementLong(_alignGridStridesTag);
+	}
+	void SetGridAlignStrides(const vector<long>& strides){
+		GetRootNode()->SetElementLong(_alignGridStridesTag, strides);
+	}
+	//Utility function to find rake when it is aligned to data:
+	void calcDataAlignment(double rakeExts[6], int rakeGrid[3]);
+	//Utility function to recalculate vector scale factor
+	void recalcVectorScale();
+	
 	static const string _arrowParamsTag;
 
 protected:
@@ -134,6 +147,7 @@ static const string _vectorScaleTag;
 static const string _terrainMapTag;
 static const string _variableDimensionTag;
 static const string _alignGridTag;
+static const string _alignGridStridesTag;
 float _constcolorbuf[4];
 
 
