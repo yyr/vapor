@@ -94,6 +94,18 @@ See vdfcreate.
  
 See vdfcreate.
 
+=item -vdc2 
+
+Generate a .vdf file for a VDC Type 2 data collection.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option (VDC2 only), see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option (VDC2 only), see vdfcreate.
+
 =item -help 
 
 Print a usage statement and then exit.

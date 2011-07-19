@@ -13,6 +13,7 @@
 #include <vapor/MetadataWRF.h>
 #include <vapor/MetadataSpherical.h>
 #include <vapor/WRF.h>
+#include <vapor/WaveCodecIO.h>
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
@@ -29,26 +30,38 @@ struct opt_t {
 	vector <string> vars2d;
 	vector<string> dervars;
 	vector<string> atypvars;
+	OptionParser::Boolean_T	vdc2;	
+	vector <int> cratios;
+	char *wname;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"varnames",1,	"",			"Deprecated. Use -vars3d instead"},
-	{"vars3d",1,	"",			"Colon delimited list of 3D variables to be extracted from WRF data"},
-	{"vars2d",1,    "",         "Colon delimited list of 2D variables to be extracted from WRF data"},
+	{"varnames",1,	"",	"Deprecated. Use -vars3d instead"},
+	{"vars3d",1,	"",	"Colon delimited list of 3D variables to be extracted from WRF data"},
+	{"vars2d",1,    "",	"Colon delimited list of 2D variables to be extracted from WRF data"},
 	{"dervars", 1,	"",	"Colon delimited list of desired derived variables.  Choices are: PHNorm_: normalized geopotential (PH+PHB)/PHB, UVW_: 3D wind speed (U^2+V^2+W^2)^1/2, UV_: 2D wind speed (U^2+V^2)^1/2, omZ_: estimate of vertical vorticity, PFull_: full pressure P+PB, PNorm_: normalized pressure (P+PB)/PB, Theta_: potential temperature T+300, TK_: temp. in Kelvin (T+300)((P+PB))/100000)^0.286"},
-	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement (default is 2)"},
-	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T",		"Colon delimited list of atypical names for U:V:W:PH:PHB:P:PB:T that appear in WRF file"},
-	{"comment",	1,	"",				"Top-level comment (optional)"},
-	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in grid points (NXxNYxNZ) (default is 32)"},
-	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default is 1)"},
-	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients (default is 1)"},
-	{"help",	0,	"",				"Print this message and exit"},
-	{"quiet",	0,	"",				"Operate quietly"},
+	{"level",	1, 	"2", "Maximum refinement level. 0 => no refinement (default is 2)"},
+	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T", "Colon delimited list of atypical names for U:V:W:PH:PHB:P:PB:T that appear in WRF file"},
+	{"comment",	1,	"",	"Top-level comment (optional)"},
+	{"bs",		1, 	"-1x-1x-1",	"Internal storage blocking factor "
+		"expressed in grid points (NXxNYxNZ). Defaults: 32x32x32 (VDC type 1), "
+		"64x64x64 (VDC type 2"},
+	{"nfilter",	1, 	"1", "Number of wavelet filter coefficients (default is 1)"},
+	{"nlifting",1, 	"1", "Number of wavelet lifting coefficients (default is 1)"},
+	{"vdc2",	0,	"",	"Generate a VDC Type 2 .vdf file (default is VDC Type 1)"},
+	{"cratios",1,	"",	"Colon delimited list compression ratios. "
+		"The default is 1:10:100:500. " 
+		"The maximum compression ratio is wavelet and block size dependent."},
+	{"wname",	1,	"bior3.3",	"Wavelet family used for compression "
+		"(VDC type 2, only). Recommended values are bior1.1, bior1.3, "
+		"bior1.5, bior2.2, bior2.4 ,bior2.6, bior2.8, bior3.1, bior3.3, "
+		"bior3.5, bior3.7, bior3.9"},
+	{"help",	0,	"",	"Print this message and exit"},
+	{"quiet",	0,	"",	"Operate quietly"},
 	{NULL}
 };
-
 
 OptionParser::Option_T	get_options[] = {
 	{"vars3d", VetsUtil::CvtToStrVec, &opt.vars3d, sizeof(opt.vars3d)},
@@ -60,6 +73,9 @@ OptionParser::Option_T	get_options[] = {
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
+	{"vdc2", VetsUtil::CvtToBoolean, &opt.vdc2, sizeof(opt.vdc2)},
+	{"cratios", VetsUtil::CvtToIntVec, &opt.cratios, sizeof(opt.cratios)},
+	{"wname", VetsUtil::CvtToString, &opt.wname, sizeof(opt.wname)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{NULL}
@@ -100,13 +116,12 @@ int	main(int argc, char **argv) {
 	}
 
 	MyBase::SetErrMsgCB(ErrMsgCBHandler);
-
+	size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
 
 	if (opt.help) {
 		Usage(op, NULL);
 		exit(0);
 	}
-
 	// Handle atypical variable naming
 	if ( opt.atypvars.size() != 8 ) {
 		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
@@ -141,6 +156,74 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	vector <size_t> cratios;
+	string wname;
+	string wmode;
+	
+	if (opt.bs.nx < 0) {
+		for (int i=0; i<3; i++) bs[i] = 32;
+	}
+	else {
+		bs[0] = opt.bs.nx; bs[1] = opt.bs.ny; bs[2] = opt.bs.nz;
+	}
+
+	//
+	// Handle options for VDC2 output.
+	//
+	
+	if (opt.vdc2) {
+		wname = opt.wname;
+
+		if ((wname.compare("bior1.1") == 0) ||
+			(wname.compare("bior1.3") == 0) ||
+			(wname.compare("bior1.5") == 0) ||
+			(wname.compare("bior3.3") == 0) ||
+			(wname.compare("bior3.5") == 0) ||
+			(wname.compare("bior3.7") == 0) ||
+			(wname.compare("bior3.9") == 0)) {
+
+			wmode = "symh"; 
+		}
+		else if ((wname.compare("bior2.2") == 0) ||
+			(wname.compare("bior2.4") == 0) ||
+			(wname.compare("bior2.6") == 0) ||
+			(wname.compare("bior2.8") == 0)) {
+
+			wmode = "symw"; 
+		}
+		else {
+			wmode = "sp0"; 
+		}
+
+		if (opt.bs.nx < 0) {
+			for (int i=0; i<3; i++) bs[i] = 64;
+		}
+		else {
+			bs[0] = opt.bs.nx; bs[1] = opt.bs.ny; bs[2] = opt.bs.nz;
+		}
+
+		for (int i=0;i<opt.cratios.size();i++)cratios.push_back(opt.cratios[i]);
+
+		if (cratios.size() == 0) {
+			cratios.push_back(1);
+			cratios.push_back(10);
+			cratios.push_back(100);
+			cratios.push_back(500);
+		}
+
+		size_t maxcratio = WaveCodecIO::GetMaxCRatio(bs, wname, wmode);
+		for (int i=0;i<cratios.size();i++) {
+			if (cratios[i] == 0 || cratios[i] > maxcratio) {
+				MyBase::SetErrMsg(
+					"Invalid compression ratio (%d) for configuration "
+					"(block_size, wavename)", cratios[i]
+				);
+				exit(1);
+			}
+		}
+
+	} // End if vdc2
+
 	//
 	// At this point there is at last one WRF file to work with.
 	// The format is wrf-file+ vdf-file.
@@ -151,16 +234,20 @@ int	main(int argc, char **argv) {
 		 wrffiles.push_back(argv[i]);
 	}
 	WRFData = new MetadataWRF(wrffiles, atypvars);
-
-
 	
 	if(WRFData->GetNumTimeSteps() < 0) {
 		cerr << "No output file generated due to no input files processed." << endl;
 		exit(0);
 	}
 
-	size_t bs[] = {opt.bs.nx, opt.bs.ny, opt.bs.nz};
-	MetadataVDC *file = new MetadataVDC(WRFData->GetDimension(), opt.level, bs, opt.nfilter, opt.nlifting);
+	MetadataVDC *file;
+	if (opt.vdc2) {
+	 	file = new MetadataVDC(WRFData->GetDimension(), bs, cratios, wname, wmode);
+	}
+	else {
+		file = new MetadataVDC(WRFData->GetDimension(), opt.level, bs, opt.nfilter, opt.nlifting);
+	}
+	
 	if (MetadataVDC::GetErrCode() != 0) exit(1);
 
 	// Copy values over from MetadataWRF to MetadataVDC.

@@ -46,6 +46,10 @@ B<PH> and B<PHB>
 
 See raw2vdf
 
+=item -lod E<lt>nE<gt> 
+
+See raw2vdf (VDC2 only and not currently supported).
+
 =item -help 
 
 Print a usage statement and then exit.
