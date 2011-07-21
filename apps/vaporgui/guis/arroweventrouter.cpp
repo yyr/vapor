@@ -111,6 +111,8 @@ ArrowEventRouter::hookUpTab()
 	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
 	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
 	connect (fitDataButton, SIGNAL(pressed()), this, SLOT(guiFitToData()));
+	//slider:
+	connect (barbLengthSlider, SIGNAL(sliderMoved(int)),this,SLOT(guiMoveScaleSlider(int)));
 
 }
 
@@ -178,8 +180,15 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 	if (thickness > 1000.f) {changed = true; thickness = 1000.f;}
 	aParams->SetLineThickness((double)thickness);
 
-	float scale = scaleEdit->text().toFloat();
-	aParams->SetVectorScale(scale);
+	double scale = scaleEdit->text().toDouble();
+	if (scale != aParams->GetVectorScale()){
+		aParams->SetVectorScale(scale);
+		double defaultScale = aParams->calcDefaultScale();
+		int sliderPos = (int)(0.5+log10(scale/defaultScale));
+		if (sliderPos < -100) sliderPos = -100;
+		if (sliderPos > 100) sliderPos = 100;
+		barbLengthSlider->setValue(sliderPos);
+	}
 	
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, aParams);
@@ -235,7 +244,7 @@ guiSetVariableDims(int is3D){
 	aParams->SetFieldVariableName(2,"0");
 	//Set up variable combos:
 	populateVariableCombos(is3D);
-	aParams->recalcVectorScale();
+	aParams->SetVectorScale(aParams->calcDefaultScale());
 	PanelCommand::captureEnd(cmd,aParams);
 	updateTab();
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -318,7 +327,7 @@ guiSetXVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(0,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(0,"0");
-	aParams->recalcVectorScale();
+	aParams->SetVectorScale(aParams->calcDefaultScale());
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -343,7 +352,7 @@ guiSetYVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(1,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(1,"0");
-	aParams->recalcVectorScale();
+	aParams->SetVectorScale(aParams->calcDefaultScale());
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -368,7 +377,7 @@ guiSetZVarNum(int vnum){
 		else 
 			aParams->SetFieldVariableName(2,DataStatus::getInstance()->getVariableName2D(sesvarnum));
 	} else aParams->SetFieldVariableName(2,"0");
-	aParams->recalcVectorScale();
+	aParams->SetVectorScale(aParams->calcDefaultScale());
 	updateTab();
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
@@ -656,6 +665,23 @@ guiSetCompRatio(int num){
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->forceRender(dParams);
 }
+void ArrowEventRouter::
+guiMoveScaleSlider(int sliderval){
+	confirmText(false);
+	
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "move barb scale slider");
+	double defaultScale = aParams->calcDefaultScale();
+	// find the new length as 10**(sliderVal)*defaultLength
+	// note that the slider goes from -100 to +100
+	double newVal = defaultScale*pow(10.,(double)sliderval/100.);
+	scaleEdit->setText(QString::number(newVal));
+	guiSetTextChanged(false); //Don't respond to text-change event
+	aParams->SetVectorScale(newVal);
+	PanelCommand::captureEnd(cmd, aParams);
+	VizWinMgr::getInstance()->forceRender(aParams);
+}
 
 void ArrowEventRouter::
 guiSetNumRefinements(int num){
@@ -722,7 +748,11 @@ showHideAppearance(){
 		showAppearance = true;
 		showHideAppearanceButton->setText("Hide Appearance Options");
 	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ArrowParams::_arrowParamsTag));
+	updateTab();
+
 }
 
 void ArrowEventRouter::
@@ -734,6 +764,9 @@ showHideLayout(){
 		showLayout = true;
 		showHideLayoutButton->setText("Hide Barb Layout Options");
 	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ArrowParams::_arrowParamsTag));
 	updateTab();
 }
 

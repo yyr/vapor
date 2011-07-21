@@ -138,7 +138,7 @@ reinit(bool doOverride){
 	//are at least 1, and no bigger than 10**5.
 	int gridSize[3] = {10,10,1};
 	vector<long> strides;
-	strides.push_back(0);strides.push_back(0);
+	strides.push_back(10);strides.push_back(10);
 	if (doOverride) {
 		SetRakeGrid(gridSize);
 		AlignGridToData(false);
@@ -163,7 +163,7 @@ reinit(bool doOverride){
 		const float col[3] = {1.f, 0.f, 0.f};
 		SetConstantColor(col);
 		SetTerrainMapped(false);
-		recalcVectorScale();
+		SetVectorScale(calcDefaultScale());
 	}
 	initializeBypassFlags();
 	return true;
@@ -319,7 +319,7 @@ const string& ArrowParams::GetFieldVariableName(int i){
 	retval=svec[i];
 	return retval;
 }
-void ArrowParams::recalcVectorScale(){
+double ArrowParams::calcDefaultScale(){
 	string varname;
 	int sesvarnum;
 	double maxvarvals[3];
@@ -343,6 +343,6 @@ void ArrowParams::recalcVectorScale(){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	double maxVecLength = (double)Max(extents[3]-extents[0],extents[4]-extents[1])*0.1;
 	double maxVecVal = Max(maxvarvals[0],Max(maxvarvals[1],maxvarvals[2]));
-	if (maxVecVal == 0.) SetVectorScale(maxVecLength);
-	else SetVectorScale(maxVecLength/maxVecVal);
+	if (maxVecVal == 0.) return(maxVecLength);
+	else return(maxVecLength/maxVecVal);
 }

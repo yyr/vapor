@@ -133,7 +133,7 @@ public:
 	//Utility function to find rake when it is aligned to data:
 	void calcDataAlignment(double rakeExts[6], int rakeGrid[3]);
 	//Utility function to recalculate vector scale factor
-	void recalcVectorScale();
+	double calcDefaultScale();
 	
 	static const string _arrowParamsTag;
 

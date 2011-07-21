@@ -52,7 +52,7 @@ TabManager::TabManager(QWidget* parent, const char* ,  Qt::WFlags )
 	//
 	widgets.clear();
 	widgetBaseTypes.clear();
-	
+	usedTypes.clear();
 	haveMultipleViz = false;
 	
 	int ok = connect(this, SIGNAL(currentChanged(int)), this, SLOT(newFrontTab(int)));
@@ -127,20 +127,34 @@ moveToFront(Params::ParamsBaseType widgetBaseType){
 	return posn;
 }
 /*
- *  Find the number of the widget that has the specified name
+ *  Find the index of the widget that has the specified type
  */
 int 
 TabManager::findWidget(Params::ParamsBaseType widgetBaseType){
+	if (tabOrdering.size() < widgetBaseType) return -1;
+	int order = tabOrdering[widgetBaseType-1];
+	if (order <= 0) return -1;
 	
-	for (int i = 0; i<count(); i++){
-		//qWarning("found widget %s in position %d", widgetNames[i]->toAscii(), i);
-		if (widgetBaseTypes[i] == widgetBaseType) {
-			
-			return i;
-		}
-		
+	return (order-1);
+}
+void TabManager::toggleFrontTabs(Params::ParamsBaseType currentType){
+	//find any tab that is not associated with current type
+	int i;
+	for (i = 0; i<tabOrdering.size(); i++){
+		if ((i+1) == currentType) continue;
+		if (tabOrdering[i]> 0) break;
 	}
-	return -1;
+	if (i >= tabOrdering.size()) return;
+	//move tab i to front, but dont trigger an undo event
+	Session::getInstance()->blockRecording();
+	moveToFront(i+1);
+	EventRouter* eRouter = VizWinMgr::getInstance()->getEventRouter(i+1);
+	eRouter->updateTab();
+	moveToFront(currentType);
+	eRouter = VizWinMgr::getInstance()->getEventRouter(currentType);
+	eRouter->updateTab();
+	Session::getInstance()->unblockRecording();
+	return;
 }
 //Catch any change in the front page:
 //
@@ -151,20 +165,25 @@ newFrontTab(int newFrontPosn) {
 	//the existing front tab
 	if (!Session::getInstance()->isRecording()) return;
 	Params::ParamsBaseType prevType = 0;
-	if(currentFrontPage >= 0) prevType = widgetBaseTypes[currentFrontPage];
+	if(currentFrontPage >= 0) prevType = usedTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
 	//Ignore if we haven't set up tabs yet
 	if(widgets.size() <= newFrontPosn) return;
 	//Refresh this tab 
 	
-	EventRouter* eRouter = VizWinMgr::getEventRouter(widgetBaseTypes[newFrontPosn]);
+	EventRouter* eRouter = VizWinMgr::getEventRouter(getTypeInPosition(newFrontPosn));
 	eRouter->updateTab();
 	
 	//Put into history
-	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetBaseTypes[newFrontPosn]);
+	TabChangeCommand* cmd = new TabChangeCommand(prevType, usedTypes[newFrontPosn]);
 	Session::getInstance()->addToHistory(cmd);
 
 } 
+Params::ParamsBaseType TabManager::getTypeInPosition(int posn){
+	if (posn >= usedTypes.size()) return 0;
+	return usedTypes[posn];
+}
+
 /*
  *  When the scroll bar is released, call updateTab on current front window
  *  This improves the display in windows, at a cost of a display delay
@@ -174,7 +193,7 @@ void TabManager::tabScrolled(){
 	int frontPage = currentIndex();
 	
 	if (frontPage < 0) return;
-	Params::ParamsBaseType tabType = widgetBaseTypes[frontPage];
+	Params::ParamsBaseType tabType = usedTypes[frontPage];
 	EventRouter* eRouter = VizWinMgr::getEventRouter(tabType);
 	
 	eRouter->refreshTab();
@@ -207,7 +226,7 @@ void TabManager::orderTabs(){
 	}
 	assert(tabOrdering.size() == Params::GetNumParamsClasses());
 	//Now construct a list of all the ParamsBaseTypes that are used, in the order they are used:
-	vector<Params::ParamsBaseType> usedTypes;
+	usedTypes.clear();
 	//Go through the tabOrdering, looking in order for each tab position > 0
 	//For each tab position, the corresponding type is the offset where it occurs +1
 	int nextIndex = 1;

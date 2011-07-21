@@ -705,6 +705,9 @@ p, li { white-space: pre-wrap; }
                    <property name="toolTip">
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
+                   </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
                    </property>
@@ -731,6 +734,9 @@ p, li { white-space: pre-wrap; }
                    <property name="toolTip">
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
                    </property>
+                   <property name="whatsThis">
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
+                   </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
                    </property>
@@ -756,6 +762,9 @@ p, li { white-space: pre-wrap; }
                    </property>
                    <property name="toolTip">
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
+                   </property>
+                   <property name="whatsThis">
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -835,7 +844,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;When the barbs are aligned to data, the barbs are horizontally situated at the centers of cells in the data grid.  An initial barb is positioned at the grid cell in the rake with smallest x and y coordinates.  Additional barb positions are offset from the initial barb by incrementing the X and Y grid coordinates by the values of X-stride and Y-stride.  When stride is 0, there is only one (initial) barb at minimal x and y grid coordinates.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Align to Data:</string>
+                    <string>Align to XY grid:</string>
                    </property>
                   </widget>
                  </item>
@@ -1741,6 +1750,19 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item>
+                  <widget class="QSlider" name="barbLengthSlider">
+                   <property name="minimum">
+                    <number>-100</number>
+                   </property>
+                   <property name="maximum">
+                    <number>100</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLineEdit" name="scaleEdit">
                    <property name="minimumSize">
                     <size>
@@ -1767,6 +1789,9 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;The length of a barb (in scene distance units) is determined by multiplying the field magnitude times this factor.  This factor is set by default so that the largest possible vector length will be about 0.1 times the horizontal extents of the data.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>

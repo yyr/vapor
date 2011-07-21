@@ -67,10 +67,12 @@ class TabManager : public QTabWidget{
 		//
 		//Determine if a widget is the current front tab
 		bool isFrontTab(QWidget* wid){
-			return (wid == widgets[currentFrontPage]);}
+			int widtype = usedTypes[currentFrontPage];
+			return (wid == widgets[widtype-1]);
+		}
 
 		EventRouter* getFrontEventRouter() { 
-			return VizWinMgr::getInstance()->getEventRouter(widgetBaseTypes[currentFrontPage]);
+			return VizWinMgr::getInstance()->getEventRouter(usedTypes[currentFrontPage]);
 		}
 		QPoint tabPos() {
 			return (myParent->pos());
@@ -88,6 +90,9 @@ class TabManager : public QTabWidget{
 		}
 		//Refresh the tab ordering based on the current values in tabOrdering
 		void orderTabs();
+		//switch tabs, to force front tab to resize properly
+		void toggleFrontTabs(Params::ParamsBaseType currentType);
+		Params::ParamsBaseType getTypeInPosition(int posn);
 	public slots:
 		void newFrontTab(int);
 		void tabScrolled();
@@ -99,6 +104,8 @@ class TabManager : public QTabWidget{
 		//If tabOrdering is longer than number of base types, extra values are ignored.  If tabOrdering is shorter than number of base types, the
 		//unspecified base types are appended at the end.
 		static vector<long> tabOrdering;
+		//Following is to lookup a widget or a widgetType based on a tab index:
+		vector<ParamsBase::ParamsBaseType> usedTypes;
 		vector<QWidget*> widgets;
 		vector<ParamsBase::ParamsBaseType> widgetBaseTypes;
 		bool haveMultipleViz;

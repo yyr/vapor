@@ -68,6 +68,7 @@ protected slots:
 	void guiSetXVarNum(int);
 	void guiSetYVarNum(int);
 	void guiSetZVarNum(int);
+	void guiMoveScaleSlider(int);
 	void guiToggleTerrainAlign(bool);
 	void guiSelectColor();
 	void guiChangeExtents();
@@ -76,6 +77,7 @@ protected slots:
 	void guiFitToData();
 	void guiSetVariableDims(int);
 	void guiAlignToData(bool);
+
 
 	
 protected:
