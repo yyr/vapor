@@ -706,7 +706,7 @@ p, li { white-space: pre-wrap; }
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
                    </property>
                    <property name="whatsThis">
-                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the data-aligned grid on which the barbs are situated.</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -735,7 +735,7 @@ p, li { white-space: pre-wrap; }
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
                    </property>
                    <property name="whatsThis">
-                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the data-aligned grid on which the barbs are situated.</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -764,7 +764,7 @@ p, li { white-space: pre-wrap; }
                     <string>Specify the X, Y, and Z dimensions of the array of barbs</string>
                    </property>
                    <property name="whatsThis">
-                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the barbs that are aligned to the data grid.</string>
+                    <string>The Dimensions indicate the x, y, and z grid dimensions of the barbs.  When the barbs are aligned to the XY grid, the X and Y dimensions indicate the horizontal size of the data-aligned grid on which the barbs are situated.</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>

@@ -116,11 +116,7 @@ int main( int argc, char ** argv ) {
 
 	app = &a;
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
-#ifdef Darwin
-	a.setStyle("macintosh");
-#else
-	a.setStyle("windows");
-#endif
+
 	
 	//Depending on the platform, we may want nondefault fonts!
 	
@@ -129,27 +125,10 @@ int main( int argc, char ** argv ) {
 	//default font is OK 
 	QFont myFont = a.font();
 	myFont.setPointSize(10);
-	myFont.setWeight(60);
-    	a.setFont(myFont);
+    a.setFont(myFont);
 
 
-/*   Helvetica sometimes looks better on some platforms...
-	QFont myFont(QString("Helvetica"), 10);
-	if (myFont.exactMatch()){
-		//qWarning("Using Helvetica font");
-		a.setFont(myFont);
-	}
-	else {//helvetica not available...
-		
-		myFont = a.font();
-		myFont.setPointSize(10);
-		myFont.setWeight(55);
-		//qWarning("Using default font family: %s", myFont.family().toAscii());
-		a.setFont(myFont);
-	}
 
-*/
-//#endif
 
 	QString fileName("");
     if (argc > 1) fileName = argv[1];

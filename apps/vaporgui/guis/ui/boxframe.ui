@@ -85,6 +85,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
           <widget class="QSlider" name="xCenterSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -112,6 +118,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_17">
          <item>
           <widget class="QSlider" name="yCenterSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -139,6 +151,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_18">
          <item>
           <widget class="QSlider" name="zCenterSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -180,6 +198,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_19">
          <item>
           <widget class="QSlider" name="xSizeSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
@@ -207,6 +231,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_20">
          <item>
           <widget class="QSlider" name="ySizeSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
@@ -234,6 +264,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_21">
          <item>
           <widget class="QSlider" name="zSizeSlider">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
