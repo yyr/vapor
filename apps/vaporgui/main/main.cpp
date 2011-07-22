@@ -58,6 +58,10 @@ int main( int argc, char ** argv ) {
 		exit(-1);
 	}
 #endif
+//Following needed for running vnc:
+#ifdef Linux
+	QApplication::setGraphicsSystem("raster");
+#endif
 
 #ifdef IRIX    
 	    QApplication::setColorSpec( QApplication::ManyColor );
