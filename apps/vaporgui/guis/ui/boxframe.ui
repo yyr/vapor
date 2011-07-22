@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
-    <height>124</height>
+    <width>422</width>
+    <height>122</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,12 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QLabel" name="label_17">
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Dimension</string>
          </property>
@@ -87,7 +93,7 @@
           <widget class="QSlider" name="xCenterSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -104,6 +110,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="xCenterEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -120,7 +132,7 @@
           <widget class="QSlider" name="yCenterSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -137,6 +149,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="yCenterEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -153,7 +171,7 @@
           <widget class="QSlider" name="zCenterSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -170,6 +188,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="zCenterEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Center coordinates of the box are controlled by sliders or text boxes</string>
            </property>
@@ -200,7 +224,7 @@
           <widget class="QSlider" name="xSizeSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -217,6 +241,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="xSizeEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
@@ -233,7 +263,7 @@
           <widget class="QSlider" name="ySizeSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -250,6 +280,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="ySizeEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
@@ -266,7 +302,7 @@
           <widget class="QSlider" name="zSizeSlider">
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>60</width>
              <height>0</height>
             </size>
            </property>
@@ -283,6 +319,12 @@
          </item>
          <item>
           <widget class="QLineEdit" name="zSizeEdit">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string>Size of the box is controlled by sliders and text boxes</string>
            </property>
