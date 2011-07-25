@@ -37,6 +37,7 @@
 #include <vapor/MetadataVDC.h>
 #include <vapor/WaveletBlock3DBufWriter.h>
 #include <vapor/WaveletBlock3DRegionWriter.h>
+#include <vapor/WaveCodecIO.h>
 #ifdef WIN32
 #include "windows.h"
 #endif
@@ -60,6 +61,8 @@ struct opt_t {
 	char *varname;
 	char *ncdfvarname;
 	int level;
+	int lod;
+	int nthreads;
 	vector <string> dimnames;
 	vector <string> constDimNames;
 	vector <int> constDimValues;
@@ -74,6 +77,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"???????",	"Required: Name of variable in metadata"},
 	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+    {"lod", 1,  "-1",   "Compression levels saved. 0 => coarsest, 1 => "
+        "next refinement, etc. -1 => all levels defined by the .vdf file"},
+    {"nthreads",1,  "0",    "Number of execution threads (0 => # processors)"},
 	{"swapz",	0,	"",	"Swap the order of processing for the Z coordinate (largest to smallest)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
@@ -90,6 +96,8 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"ncdfvar", VetsUtil::CvtToString, &opt.ncdfvarname, sizeof(opt.ncdfvarname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+    {"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
+    {"nthreads", VetsUtil::CvtToInt, &opt.nthreads, sizeof(opt.nthreads)},
 	{"swapz", VetsUtil::CvtToBoolean, &opt.swapz, sizeof(opt.swapz)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
@@ -211,11 +219,14 @@ void averageSlice(nc_type dataType,void* inSlice, void* outSlice,
 }
 
 void	process_volume(
-	WaveletBlock3DBufWriter *bufwriter,
+	VDFIOBase *bufwriter,
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
 	double *read_timer
 ) {
+	WaveletBlock3DBufWriter *wb3d = dynamic_cast<WaveletBlock3DBufWriter *> (bufwriter);
+	WaveCodecIO *wc3d = dynamic_cast<WaveCodecIO *> (bufwriter);
+	assert (wc3d || wb3d);
 	*read_timer = 0.0;
 
 	// Check out the netcdf file.
@@ -492,7 +503,9 @@ void	process_volume(
 			// Write a single slice of data
 			//
 			
-			bufwriter->WriteSlice(outFBuffer);
+			if (wb3d) wb3d->WriteSlice(outFBuffer);
+			else wc3d->WriteSlice(outFBuffer);
+
 			if (bufwriter->GetErrCode() != 0) {
 				cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
 				exit(1);
@@ -573,7 +586,8 @@ void	process_volume(
 				//Average two slices putting result into oldBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) oldFBuffer[i] = 0.5*(oldFBuffer[i]+newFBuffer[i]);
 				//Write out oldFBuffer:
-				bufwriter->WriteSlice(oldFBuffer);
+				if (wb3d) wb3d->WriteSlice(oldFBuffer);
+				else wc3d->WriteSlice(oldFBuffer);
 				if (bufwriter->GetErrCode() != 0) {
 					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
 					exit(1);
@@ -590,7 +604,10 @@ void	process_volume(
 				//Average two slices putting result into outFBuffer
 				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] =(float)( 0.5*(oldDBuffer[i]+newDBuffer[i]));
 				//Write out outFBuffer:
-				bufwriter->WriteSlice(outFBuffer);
+
+				if (wb3d) wb3d->WriteSlice(outFBuffer);
+				else wc3d->WriteSlice(outFBuffer);
+
 				if (bufwriter->GetErrCode() != 0) {
 					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
 					exit(1);
@@ -617,11 +634,15 @@ void	process_volume(
 }
 
 void	process_slice(
-	WaveletBlock3DRegionWriter *bufwriter,
+	VDFIOBase *bufwriter,
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
 	double *read_timer
 ) {
+	WaveletBlock3DRegionWriter *wb3d = dynamic_cast<WaveletBlock3DRegionWriter *> (bufwriter);
+	WaveCodecIO *wc3d = dynamic_cast<WaveCodecIO *> (bufwriter);
+	assert (wc3d || wb3d);
+
 	*read_timer = 0.0;
 
 	// Check out the netcdf file.
@@ -860,7 +881,14 @@ void	process_slice(
 	// Write the slice of data
 	//
 	
-	bufwriter->WriteRegion(outFBuffer);
+
+	if (wb3d) {
+		wb3d->WriteRegion(outFBuffer);
+	}
+	else {
+		wc3d->WriteSlice(outFBuffer);
+	}
+
 	if (bufwriter->GetErrCode() != 0) {
 		cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
 		exit(1);
@@ -961,23 +989,35 @@ int	main(int argc, char **argv) {
 	//
 	// Create an appropriate WaveletBlock writer. 
 	//
-	WaveletBlockIOBase *wbwriter3D;
-	if (vtype == Metadata::VAR3D) {
-		wbwriter3D = new WaveletBlock3DBufWriter(metadata);
-	} else {
-		wbwriter3D = new WaveletBlock3DRegionWriter(metafile);
+	bool vdc1 = (metadata.GetVDCType() == 1);
+
+	VDFIOBase *vdfio = NULL;
+	WaveletBlockIOBase *wb3d = NULL;
+	WaveCodecIO *wc3d = NULL;
+	if (vdc1) {
+		if (vtype == Metadata::VAR3D) {
+			wb3d = new WaveletBlock3DBufWriter(metadata);
+		} else {
+			wb3d = new WaveletBlock3DRegionWriter(metafile);
+		}
+		if (wb3d->GetErrCode() != 0) {
+			exit(1);
+		}
+		if (wb3d->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+			exit(1);
+		} 
+		vdfio = wb3d;
 	}
-	
-	if (wbwriter3D->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-		exit(1);
-	} 
-
-
-	//
-	// If pre version 2, create a backup of the .vdf file. The 
-	// translation process will generate a new .vdf file
-	//
-	if (metadata.GetVDFVersion() < 2) save_file(metafile);
+	else {
+		wc3d = new WaveCodecIO(metadata, opt.nthreads);
+		if (wc3d->GetErrCode() != 0) {
+			exit(1);
+		}
+		if (wc3d->OpenVariableWrite(opt.ts, opt.varname, opt.level, opt.lod) < 0) {
+			exit(1);
+		} 
+		vdfio = wc3d;
+	}
 
 	
     int nc_status;
@@ -992,29 +1032,31 @@ int	main(int argc, char **argv) {
 	const size_t *dim = metadata.GetDimension();
 
 
-	double t0 = wbwriter3D->GetTime();
+	double t0 = vdfio->GetTime();
 	if (vtype == Metadata::VAR3D){
 		process_volume(
-			(WaveletBlock3DBufWriter *) wbwriter3D, dim, ncid, &read_timer
+			vdfio, dim, ncid, &read_timer
 		);
 	}
 	else {
 		process_slice(
-			(WaveletBlock3DRegionWriter *) wbwriter3D, dim, ncid, &read_timer
+			vdfio, dim, ncid, &read_timer
 		);
 	}
 
-	wbwriter3D->CloseVariable();
-	if (wbwriter3D->GetErrCode() != 0) {
+	if (wb3d) wb3d->CloseVariable();
+	else wc3d->CloseVariable();
+
+	if (vdfio->GetErrCode() != 0) {
 		exit(1);
 	}
-	timer = wbwriter3D->GetTime() - t0;
+	timer = vdfio->GetTime() - t0;
 	
 	if (! opt.quiet) {
 		float write_timer, xform_timer, *range;
-		write_timer = wbwriter3D->GetWriteTimer();
-		xform_timer = wbwriter3D->GetXFormTimer();
-		range = (float*) wbwriter3D->GetDataRange();
+		write_timer = vdfio->GetWriteTimer();
+		xform_timer = vdfio->GetXFormTimer();
+		range = (float*) vdfio->GetDataRange();
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);
 		fprintf(stdout, "transform time : %f\n", xform_timer);
