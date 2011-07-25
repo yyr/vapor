@@ -37,7 +37,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",1, "-1","Multiresolution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "-1","Compression level of detail. Zero implies coarsest approximation"},
-	{"ntheads",1, "0","Number of execution threads (0=># processors)"},
+	{"nthreads",1, "0","Number of execution threads (0=># processors)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
