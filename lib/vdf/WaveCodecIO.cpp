@@ -1559,7 +1559,7 @@ int WaveCodecIO::_SetupCompressor() {
 		bdims.push_back(bs[1]);
 		_cratios = _cratios2D;
 		for (int t=0; t<_nthreads; t++) {
-			if (! _compressor2DXY) {
+			if (! _compressorThread2DXY[t]) {
 				_compressor2DXY = new Compressor(bdims,wavename,boundary_mode);
 				_compressorThread2DXY[t] = _compressor2DXY;
 			}
@@ -1573,7 +1573,7 @@ int WaveCodecIO::_SetupCompressor() {
 		bdims.push_back(bs[2]);
 		_cratios = _cratios2D;
 		for (int t=0; t<_nthreads; t++) {
-			if (! _compressor2DXZ) {
+			if (! _compressorThread2DXZ[t]) {
 				_compressor2DXZ = new Compressor(bdims,wavename,boundary_mode);
 				_compressorThread2DXZ[t] = _compressor2DXZ;
 			}
@@ -1587,7 +1587,7 @@ int WaveCodecIO::_SetupCompressor() {
 		bdims.push_back(bs[2]);
 		_cratios = _cratios2D;
 		for (int t=0; t<_nthreads; t++) {
-			if (! _compressor2DYZ) {
+			if (! _compressorThread2DYZ[t]) {
 				_compressor2DYZ = new Compressor(bdims,wavename,boundary_mode);
 				_compressorThread2DYZ[t] = _compressor2DYZ;
 			}
@@ -1602,7 +1602,7 @@ int WaveCodecIO::_SetupCompressor() {
 		bdims.push_back(bs[2]);
 		_cratios = _cratios3D;
 		for (int t=0; t<_nthreads; t++) {
-			if (! _compressor3D) {
+			if (! _compressorThread3D[t]) {
 				_compressor3D = new Compressor(bdims,wavename,boundary_mode);
 				_compressorThread3D[t] = _compressor3D;
 			}
