@@ -461,7 +461,11 @@ private:
  Compressor *_compressor2DXZ;
  Compressor *_compressor2DYZ;
  Compressor *_compressor;	// compressor for currently opened variable
- vector <Compressor *> _compressorThread;
+ vector <Compressor *> _compressorThread3D;
+ vector <Compressor *> _compressorThread2DXY;
+ vector <Compressor *> _compressorThread2DXZ;
+ vector <Compressor *> _compressorThread2DYZ;
+ vector <Compressor *> _compressorThread; // current compressor threads
 
  VarType_T _vtype;  // Type (2d, or 3d) of currently opened variable
  VarType_T _compressorType;  // Type (2d, or 3d) of current _compressor
