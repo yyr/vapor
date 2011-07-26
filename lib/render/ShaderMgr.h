@@ -28,6 +28,7 @@ namespace VAPoR {
 		ShaderMgr(std::string directory);
 		void setShaderSourceDir(const char* directory);
 		bool loadShaders();
+		bool reloadShaders();
 		bool enableEffect(std::string effect);
 		bool disableEffect();
 		bool uploadEffectData(std::string effect, std::string variable, int value);

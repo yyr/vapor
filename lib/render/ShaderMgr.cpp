@@ -90,8 +90,22 @@ bool ShaderMgr::loadShaders()
 		return true;
 	}
 }
+//----------------------------------------------------------------------------
+// Reload shaders from the shaders directory
+//----------------------------------------------------------------------------
 
-
+bool ShaderMgr::reloadShaders()
+{
+	loaded = false;
+	//Delete old shaders
+	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
+		 iter != effects.end(); ++iter )
+		delete iter->second;
+	//Clear the map
+	effects.clear();
+	//Reload shaders
+	loadShaders();	
+}
 //----------------------------------------------------------------------------
 // Enable an effect for rendering
 //----------------------------------------------------------------------------
@@ -314,7 +328,7 @@ std::vector<std::string> ShaderMgr::preprocess(const char* source, std::string &
 				include = include.simplified();
 				includes.push_back(include.toStdString());
 #ifdef DEBUG
-				std::cout << "ShaderMgr::preprocess - " << "include: " << include << " line " << line << std::endl;
+				std::cout << "ShaderMgr::preprocess - " << "include: " << include.toStdString() << " line " << line << std::endl;
 #endif
 				line = "";
 				
@@ -651,7 +665,7 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);	
 #ifdef DEBUG
-	std::cout << "ShaderMgr::uploadEffectData4f() - " << "effect: " << effect.toStdString() << std::endl;
+	std::cout << "ShaderMgr::uploadEffectData4f() - " << "effect: " << effect << std::endl;
 #endif
 	
 	if (effectExists(effect)){
