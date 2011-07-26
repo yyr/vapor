@@ -89,6 +89,7 @@ bool ShaderMgr::loadShaders()
 		loaded = true;
 		return true;
 	}
+	return false;
 }
 //----------------------------------------------------------------------------
 // Reload shaders from the shaders directory
