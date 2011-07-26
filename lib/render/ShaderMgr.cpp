@@ -104,7 +104,7 @@ bool ShaderMgr::reloadShaders()
 	//Clear the map
 	effects.clear();
 	//Reload shaders
-	loadShaders();	
+	return loadShaders();	
 }
 //----------------------------------------------------------------------------
 // Enable an effect for rendering
