@@ -448,7 +448,7 @@ public:
 	static bool spinAnimationEnabled(){return spinAnimate;}
 	QMutex renderMutex;  //prevent recursive rendering
 	
-	ShaderMgr *manager;
+	static ShaderMgr *manager;
 	
 protected:
 	//Mouse Mode tables.  Static since independent of window:

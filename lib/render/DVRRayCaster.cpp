@@ -151,12 +151,12 @@ int DVRRayCaster::GraphicsInit()
 	glewInit();
 
 	if (initTextures() < 0) return(-1);
-	myRenderer->myGLWindow->manager->uploadEffectData("isoColor", "volumeTexture", 0);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoColor", "texcrd_buffer", _texcrd_sampler);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoColor", "depth_buffer", _depth_sampler);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoLighting", "volumeTexture", 0);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoLighting", "texcrd_buffer", _texcrd_sampler);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoLighting", "depth_buffer", _depth_sampler);
+	GLWindow::manager->uploadEffectData("isoColor", "volumeTexture", 0);	
+	GLWindow::manager->uploadEffectData("isoColor", "texcrd_buffer", _texcrd_sampler);	
+	GLWindow::manager->uploadEffectData("isoColor", "depth_buffer", _depth_sampler);	
+	GLWindow::manager->uploadEffectData("isoLighting", "volumeTexture", 0);	
+	GLWindow::manager->uploadEffectData("isoLighting", "texcrd_buffer", _texcrd_sampler);	
+	GLWindow::manager->uploadEffectData("isoLighting", "depth_buffer", _depth_sampler);
 
 	return 0;
 }
@@ -171,12 +171,12 @@ int DVRRayCaster::Render(const float matrix[16])
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	
 	if (_lighting) {		
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "winsize", (float)viewport[2], (float)viewport[3]);	
-		myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "winsize", (float)viewport[2], (float)viewport[3]);		
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "winsize", (float)viewport[2], (float)viewport[3]);	
+		GLWindow::manager->uploadEffectData("isoColorLightMapped", "winsize", (float)viewport[2], (float)viewport[3]);		
 	}
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "delta", _deltaEye);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoColorMapped", "delta", _deltaEye);	
-	myRenderer->myGLWindow->manager->uploadEffectData("isoColorLightMapped", "delta", _deltaEye);
+	GLWindow::manager->uploadEffectData(getCurrentEffect(), "delta", _deltaEye);	
+	GLWindow::manager->uploadEffectData("isoColorMapped", "delta", _deltaEye);	
+	GLWindow::manager->uploadEffectData("isoColorLightMapped", "delta", _deltaEye);
 
 	return(DVRShader::Render(matrix));
 
@@ -411,7 +411,7 @@ void DVRRayCaster::raycasting_pass(
 	glCullFace(GL_BACK);
 	
 	printOpenGLError();
-	if (myRenderer->myGLWindow->manager->enableEffect(getCurrentEffect())){
+	if (GLWindow::manager->enableEffect(getCurrentEffect())){
 		BBox rotatedBox(volumeBox);
 		rotatedBox.transform(modelview);
 		Point3d camera(0,0,0);
@@ -561,7 +561,7 @@ void DVRRayCaster::renderBrick(
 
 	// Parent class enables default shader
 	//_shader->disable();
-	myRenderer->myGLWindow->manager->disableEffect();
+	GLWindow::manager->disableEffect();
 
 	// enable rendering to FBO
 	glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
@@ -726,15 +726,15 @@ int DVRRayCaster::initTextures()
 }
 
 void DVRRayCaster::initShaderVariables() {	
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
-	myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
+	GLWindow::manager->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
+	GLWindow::manager->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
 	if (_lighting) {
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		myRenderer->myGLWindow->manager->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		GLWindow::manager->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
 	}
 }
 
