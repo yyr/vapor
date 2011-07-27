@@ -18,7 +18,7 @@
 #include <QFileDialog>
 
 #include "helpwindow.h"
-#include "GetAppPath.h"
+#include "vapor/GetAppPath.h"
 #include <vector>
 #include <string>
 

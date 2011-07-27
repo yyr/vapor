@@ -89,6 +89,7 @@ protected slots:
 	void applySettings();
 	void annotationChanged();
 	void okClicked();
+	void reloadShaders();
 	void doHelp();
 	void setVariableNum(int);
 	void setOutsideVal();

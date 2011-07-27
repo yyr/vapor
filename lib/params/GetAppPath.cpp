@@ -11,7 +11,7 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreServices/CoreServices.h>
 #endif
-#include "GetAppPath.h"
+#include "vapor/GetAppPath.h"
 #ifdef WIN32
 #pragma warning(disable : 4996)
 #endif

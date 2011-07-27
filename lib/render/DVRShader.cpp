@@ -163,17 +163,17 @@ int DVRShader::GraphicsInit()
 
   if (initTextures() < 0) return(-1);
 	
-  GLWindow::manager->uploadEffectData("preIntegratedLightDVR", "colormap", 1);
-  GLWindow::manager->uploadEffectData("preIntegratedLightDVR", "volumeTexture", 0);
+  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "colormap", 1);
+  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "volumeTexture", 0);
 	
-  GLWindow::manager->uploadEffectData("defaultDVR", "colormap", 1);
-  GLWindow::manager->uploadEffectData("defaultDVR", "volumeTexture", 0);
+  GLWindow::getShaderMgr()->uploadEffectData("defaultDVR", "colormap", 1);
+  GLWindow::getShaderMgr()->uploadEffectData("defaultDVR", "volumeTexture", 0);
 	
-  GLWindow::manager->uploadEffectData("lightingDVR", "colormap", 1);
-  GLWindow::manager->uploadEffectData("lightingDVR", "volumeTexture", 0);
+  GLWindow::getShaderMgr()->uploadEffectData("lightingDVR", "colormap", 1);
+  GLWindow::getShaderMgr()->uploadEffectData("lightingDVR", "volumeTexture", 0);
 	
-  GLWindow::manager->uploadEffectData("preIntegratedDVR", "colormap", 1);
-  GLWindow::manager->uploadEffectData("preIntegratedDVR", "volumeTexture", 0);
+  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedDVR", "colormap", 1);
+  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedDVR", "volumeTexture", 0);
 
   initShaderVariables();
 
@@ -228,10 +228,10 @@ void DVRShader::loadTexture(TextureBrick *brick)
 int DVRShader::Render(const float matrix[16])
 {
 	if (_effect.compare("") != 0){
-		myRenderer->myGLWindow->manager->enableEffect(_effect);
+		GLWindow::getShaderMgr()->enableEffect(_effect);
 	}
 	else {
-		myRenderer->myGLWindow->manager->enableEffect(getCurrentEffect());		 
+		GLWindow::getShaderMgr()->enableEffect(getCurrentEffect());		 
 	}
 
   calculateSampling();
@@ -306,7 +306,7 @@ int DVRShader::Render(const float matrix[16])
   glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
-  GLWindow::manager->disableEffect();
+  GLWindow::getShaderMgr()->disableEffect();
   glFlush();
   return 0;
 }
@@ -610,19 +610,19 @@ void DVRShader::initShaderVariables()
 {
   if (_preintegration)
   {
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "delta", _delta);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
   }
 
   if (_lighting)
   {	  
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "kd", _kd);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
-	  GLWindow::manager->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
+	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
   } 
 }
 
@@ -668,7 +668,7 @@ void DVRShader::calculateSampling()
 
   if (_preintegration)
   {
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "delta", _delta);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
   }
 }
 

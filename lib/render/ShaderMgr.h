@@ -20,7 +20,7 @@
 using namespace VetsUtil;
 namespace VAPoR {
 	class ShaderProgram;
-	class ShaderMgr : public MyBase {
+	class RENDER_API ShaderMgr : public MyBase {
 	public:
 		ShaderMgr();
 		~ShaderMgr();

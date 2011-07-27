@@ -90,10 +90,10 @@ int DVRSpherical::GraphicsInit()
 	
 	if (initTextures() < 0) return(-1);
 	
-	GLWindow::manager->uploadEffectData("sphericalDefault", "colormap",  1);
-	GLWindow::manager->uploadEffectData("sphericalDefault", "volumeTexture",  0);
-	GLWindow::manager->uploadEffectData("sphericalLighting", "colormap",  1);
-	GLWindow::manager->uploadEffectData("sphericalLighting", "volumeTexture",  0);
+	GLWindow::getShaderMgr()->uploadEffectData("sphericalDefault", "colormap",  1);
+	GLWindow::getShaderMgr()->uploadEffectData("sphericalDefault", "volumeTexture",  0);
+	GLWindow::getShaderMgr()->uploadEffectData("sphericalLighting", "colormap",  1);
+	GLWindow::getShaderMgr()->uploadEffectData("sphericalLighting", "volumeTexture",  0);
 	_effect = "sphericalDefault";
 	printOpenGLError();
 	return 0;
@@ -438,12 +438,12 @@ void DVRSpherical::initShaderVariables()
 	const float *extents = _lastRegion.extents();
 	
 	if (_lighting){  
-		GLWindow::manager->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
-		GLWindow::manager->uploadEffectData(getCurrentEffect(),"kd", _kd);
-		GLWindow::manager->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		GLWindow::manager->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		GLWindow::manager->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		GLWindow::manager->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1],(float) _pos[2]);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(),"kd", _kd);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1],(float) _pos[2]);
 	}
 	
     
@@ -458,27 +458,27 @@ void DVRSpherical::initShaderVariables()
             (float)data_roi[1]/(_ny-1), 
             (float)data_roi[2]/(_nz-1));
 	
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
     permute(_permutation, tmpv,
             (float)data_roi[3]/(_nx-1), 
             (float)data_roi[4]/(_ny-1), 
             (float)data_roi[5]/(_nz-1));
 	
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
     
     permute(_permutation, tmpv, extents[0], extents[1], extents[2]);
 	
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "dmin" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dmin" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);
     _shellWidth = tmpv[2];
     
     permute(_permutation, tmpv, extents[3], extents[4], extents[5]);
     
-  	GLWindow::manager->uploadEffectData(getCurrentEffect(), "dmax" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);  
+  	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dmax" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);  
     assert(tmpv[2]);
     _shellWidth = (tmpv[2] - _shellWidth)/(2.0*tmpv[2]);
 	
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
-	GLWindow::manager->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
+	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
 	
 	printOpenGLError();
 }

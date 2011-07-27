@@ -37,6 +37,7 @@
 #include <qlayout.h>
 #include <vector>
 #include <vapor/LayeredIO.h>
+#include "glwindow.h"
 
 using namespace VAPoR;
 int VizFeatureParams::sessionVariableNum = 0;
@@ -287,6 +288,7 @@ void VizFeatureParams::launch(){
 	connect(vizFeatureDlg->stretch0Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->stretch1Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->stretch2Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect(vizFeatureDlg->reloadShadersButton,SIGNAL(clicked()), this, SLOT(reloadShaders()));
 	featureHolder->exec();
 	
 }
@@ -932,4 +934,8 @@ void VizFeatureParams::checkSurface(bool on){
 	if (!on) return;
 	MessageReporter::warningMsg("Note: Improved terrain mapping capabilities are available\n%s",
 		"in the Image panel and in the 2D Data panel.");
+}
+void VizFeatureParams::
+reloadShaders(){
+	GLWindow::getShaderMgr()->reloadShaders();
 }
