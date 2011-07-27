@@ -9,7 +9,7 @@ minLat=""
 maxLat=""
 xres=1024
 yres=768
-styles="styles=default"
+styles="default"
 version="1.1"
 imageFile=""
 imageFormat="image/tiff"
@@ -18,7 +18,7 @@ layer="bmng200406"
 host="http://www.nasa.network.com/wms"
 amp="&"
 decLLRegEx=^[\-+]?[0-9]+[\.]?[0-9]*$
-transparent="transparent=FALSE"
+transparent="FALSE"
 debugMode=0
 map=""
 compression="-compress none"
@@ -153,7 +153,7 @@ do
   -d) debugMode=1
       ;;
 
-  -t) transparent="transparent=TRUE"
+  -t) transparent="TRUE"
       ;;
 
   -z) compression="-compress lzw"
@@ -227,17 +227,22 @@ elif [ "${map}" = "landsat" ] ; then
 
 elif [ "${map}" = "USstates" ] ; then
     # these range vs. scale factors are empirically determined!
-    lonRange=`realRange ${minLon} ${maxLon}`
-    if [ `realValGT ${lonRange} 59` -eq 1 ] ; then        
-        wmsLayer="ATLAS_STATES_150"
-    elif [ `realValGT ${lonRange} 25` -eq 1 ] ; then
-        wmsLayer="ATLAS_STATES_075"
-    else
-        wmsLayer="ATLAS_STATES"
-    fi
-    host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
-    imageFormat="image/png"
-    depth="-depth 8"
+# This server has been deemed unreliable; substituting the worldwind server below...
+#    lonRange=`realRange ${minLon} ${maxLon}`
+#    if [ `realValGT ${lonRange} 59` -eq 1 ] ; then        
+#        wmsLayer="ATLAS_STATES_150"
+#    elif [ `realValGT ${lonRange} 25` -eq 1 ] ; then
+#        wmsLayer="ATLAS_STATES_075"
+#    else
+#        wmsLayer="ATLAS_STATES"
+#    fi
+#    host="http://imsref.cr.usgs.gov:80/wmsconnector/com.esri.wms.Esrimap/USGS_EDC_National_Atlas"
+#    imageFormat="image/png"
+#    depth="-depth 8"
+    wmsLayer="topp:states"
+    host="http://worldwind22.arc.nasa.gov/geoserver/wms"
+    styles="countryboundaries"
+    transparent="TRUE"
 
 elif [ "${map}" = "UScounties" ] ; then
     # these range vs. scale factors are empirically determined!
@@ -255,12 +260,17 @@ elif [ "${map}" = "UScounties" ] ; then
     depth="-depth 8"
 
 elif [ "${map}" = "world" ] ; then 
-    wmsLayer="1:1"
-    host="http://columbo.nrlssc.navy.mil/ogcwms/servlet/WMSServlet/Earth_Satellite_Corp_Maps.wms"
-    imageFormat="image/png"
-    version="1.1.0"
-    styles=""
-
+# This server has been ddeemed unreliable; substituting the worldwind server instead --RLB
+#    wmsLayer="1:1"
+#    host="http://columbo.nrlssc.navy.mil/ogcwms/servlet/WMSServlet/Earth_Satellite_Corp_Maps.wms"
+#    imageFormat="image/png"
+#    version="1.1.0"
+#    styles=""
+    wmsLayer="topp:cia"
+    host="http://worldwind22.arc.nasa.gov/geoserver/wms"
+    styles="countryboundaries"
+    transparent="TRUE"
+    
 elif [ "${map}" = "rivers" ] ; then
     wmsLayer="RIVERS"
     host="http://viz.globe.gov/viz-bin/wmt.cgi"
@@ -301,8 +311,8 @@ echo "WMS URL:          " $host
 # compose the URL
 #
 url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version="${version}${amp}"layers="${wmsLayer}
-url2=${styles}${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
-url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"${amp}${transparent}
+url2="style="${styles}${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
+url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"${amp}"transparent="${transparent}
 url=${url1}${amp}${url2}${amp}${url3}
 
 cmd="${fetchProg} ${tempFile} ${url}"
