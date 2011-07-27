@@ -98,6 +98,16 @@ bool ShaderMgr::loadShaders()
 bool ShaderMgr::reloadShaders()
 {
 	loaded = false;
+	//Check to see if any shaders are currently running
+	
+	GLint current;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+	
+	if (current != 0) {
+		//shader is in use, cannot delete anything!
+		return false;
+	}
+	
 	//Delete old shaders
 	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
 		 iter != effects.end(); ++iter )
