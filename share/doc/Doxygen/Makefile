@@ -6,7 +6,9 @@ include ${TOP}/make/config/prebase.mk
 
 include ${TOP}/make/config/base.mk
 
-doc: Doxyfile
+ifeq ($(BUILD_DOXYGEN), 1)
+
+all:: Doxyfile
 
 Doxyfile: FRC
 	@$(ECHO) Building documentation
@@ -14,6 +16,16 @@ Doxyfile: FRC
 	@@doxygen $@
 
 FRC:
+
+
+INSTALL_DOC_DIR = $(INSTALL_SHAREDIR)/doc
+
+install::
+	@$(ECHO) "Installing Doxygen documentation in $(INSTALL_DOC_DIR)"
+	@if test ! -d $(INSTALL_DOC_DIR); then $(MKDIR) $(INSTALL_DOC_DIR); fi
+	cd $(DOCDIR); tar cf - library | (cd $(INSTALL_DOC_DIR); tar xf -)
+
+endif
 
 clobber::
 	@$(ECHO) Removing doxygen output
