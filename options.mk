@@ -111,6 +111,11 @@ BUILD_AMR_SUPPORT = 1
 #
 BUILD_MODELS = 1
 
+# Set to 1 if you want to generate documentation for programmatic API
+# with Doxygen (requires doxygen command)
+#
+BUILD_DOXYGEN = 0
+
 
 ##
 ##
