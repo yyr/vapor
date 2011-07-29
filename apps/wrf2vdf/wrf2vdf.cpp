@@ -82,7 +82,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"numts",	1,	"-1","Maximum number of time steps that may be converted. A -1 implies the conversion of all time steps found"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
-		"next refinement, etc. -1 => all levels defined by the .vdf file (VDC2 is not currently supported)"},
+		"next refinement, etc. -1 => all levels defined by the .vdf file"},
 	{"nthreads",1, 	"0",	"Number of execution threads (0 => # processors)"},
 	{"tolerance",	1, 	"0.0000001","Tolerance for comparing relative user times"},
 	{"noelev",	0,	"",	"Do not generate the ELEVATION variable required by vaporgui."},
