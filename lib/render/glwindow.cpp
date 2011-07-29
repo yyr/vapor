@@ -65,7 +65,6 @@ bool GLWindow::spinAnimate = false;
 bool GLWindow::defaultAxisArrowsEnabled = false;
 bool GLWindow::nowPainting = false;
 
-ShaderMgr* GLWindow::manager = 0;
 int GLWindow::currentMouseMode = GLWindow::navigateMode;
 vector<int> GLWindow::manipFromMode;
 vector<string> GLWindow::modeName;
@@ -193,7 +192,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     paths.push_back("shaders");
     string shaderPaths = GetAppPath("VAPOR", "share", paths);
 
-	GLWindow::setShaderMgr(new ShaderMgr(shaderPaths));
+	manager = new ShaderMgr(shaderPaths, this);
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
 }
 
@@ -214,7 +213,7 @@ GLWindow::~GLWindow()
 	setNumRenderers(0);
 	invalidateElevGrid();
 	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
-	
+	delete manager;
 	nowPainting = false;
 	
 }
@@ -237,9 +236,9 @@ void GLWindow::resizeGL( int width, int height )
 	nowPainting = false;
 	needsResize = false;
 	
-	GLWindow::getShaderMgr()->loadShaders();
+	manager->loadShaders();
 #ifdef DEBUG
-	GLWindow::getShaderMgr()->printEffects();
+	manager->printEffects();
 #endif
 
 }

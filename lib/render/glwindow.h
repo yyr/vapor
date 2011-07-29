@@ -449,11 +449,10 @@ public:
 	QMutex renderMutex;  //prevent recursive rendering
 	
 	
-	static ShaderMgr* getShaderMgr() {return manager;}
-	static void setShaderMgr(ShaderMgr* mgr) {manager = mgr;}
+	ShaderMgr* getShaderMgr() {return manager;}
 	
 protected:
-	static ShaderMgr *manager;
+	ShaderMgr *manager;
 	//Mouse Mode tables.  Static since independent of window:
 	static vector<ParamsBase::ParamsBaseType> paramsFromMode;
 	static vector<int> manipFromMode;

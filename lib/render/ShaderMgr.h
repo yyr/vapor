@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <vapor/MyBase.h>
+#include <QGLWidget>
 using namespace VetsUtil;
 namespace VAPoR {
 	class ShaderProgram;
@@ -25,7 +26,7 @@ namespace VAPoR {
 		ShaderMgr();
 		~ShaderMgr();
 		ShaderMgr(const char* directory);
-		ShaderMgr(std::string directory);
+		ShaderMgr(std::string directory, QGLWidget *owner);
 		void setShaderSourceDir(const char* directory);
 		bool loadShaders();
 		bool reloadShaders();
@@ -50,6 +51,7 @@ namespace VAPoR {
 		std::string sourceDir;
 		std::string findEffect(GLuint prog);
 		bool loaded;
+		QGLWidget *parent;
 	};
 };
 #endif

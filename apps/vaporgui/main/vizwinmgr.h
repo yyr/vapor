@@ -104,7 +104,9 @@ public:
 	//! The renderer must be enabled or this will have no effect.
 	//! \param[in] RenderParams* pointer to RenderParams instance that is associated with the rendering requested.
 	void forceRender(RenderParams* rp);
-
+	
+	//!Method that forces all glWindows to reload their shaders
+	bool reloadShaders();
 	//! Static method obtains the EventRouter instance associated with a particular Params type.  There is a unique EventRouter
 	//! subclass associated with each tab, and a unique instance of that subclass.
 	//! \param[in] Params::ParamsBaseType TypeId of the Params type

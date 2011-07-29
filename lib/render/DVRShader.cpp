@@ -162,18 +162,18 @@ int DVRShader::GraphicsInit()
   printOpenGLError();
 
   if (initTextures() < 0) return(-1);
+	myRenderer->myGLWindow->makeCurrent();
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "colormap", 1);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "volumeTexture", 0);
 	
-  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "colormap", 1);
-  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedLightDVR", "volumeTexture", 0);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("defaultDVR", "colormap", 1);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("defaultDVR", "volumeTexture", 0);
 	
-  GLWindow::getShaderMgr()->uploadEffectData("defaultDVR", "colormap", 1);
-  GLWindow::getShaderMgr()->uploadEffectData("defaultDVR", "volumeTexture", 0);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("lightingDVR", "colormap", 1);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("lightingDVR", "volumeTexture", 0);
 	
-  GLWindow::getShaderMgr()->uploadEffectData("lightingDVR", "colormap", 1);
-  GLWindow::getShaderMgr()->uploadEffectData("lightingDVR", "volumeTexture", 0);
-	
-  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedDVR", "colormap", 1);
-  GLWindow::getShaderMgr()->uploadEffectData("preIntegratedDVR", "volumeTexture", 0);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("preIntegratedDVR", "colormap", 1);
+  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("preIntegratedDVR", "volumeTexture", 0);
 
   initShaderVariables();
 
@@ -227,11 +227,12 @@ void DVRShader::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 int DVRShader::Render(const float matrix[16])
 {
+	myRenderer->myGLWindow->makeCurrent();
 	if (_effect.compare("") != 0){
-		GLWindow::getShaderMgr()->enableEffect(_effect);
+		myRenderer->myGLWindow->getShaderMgr()->enableEffect(_effect);
 	}
 	else {
-		GLWindow::getShaderMgr()->enableEffect(getCurrentEffect());		 
+		myRenderer->myGLWindow->getShaderMgr()->enableEffect(getCurrentEffect());		 
 	}
 
   calculateSampling();
@@ -306,7 +307,7 @@ int DVRShader::Render(const float matrix[16])
   glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
-  GLWindow::getShaderMgr()->disableEffect();
+  myRenderer->myGLWindow->getShaderMgr()->disableEffect();
   glFlush();
   return 0;
 }
@@ -608,21 +609,22 @@ int DVRShader::initTextures()
 //----------------------------------------------------------------------------
 void DVRShader::initShaderVariables()
 {
+	myRenderer->myGLWindow->makeCurrent();
   if (_preintegration)
   {
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "vdir", _vdir[0], _vdir[1], _vdir[2], _vdir[3]);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "vpos", _vpos[0], _vpos[1], _vpos[2], _vpos[3]);
   }
 
   if (_lighting)
   {	  
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
-	  GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
+	  myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
   } 
 }
 
@@ -665,10 +667,10 @@ std::string DVRShader::getCurrentEffect()
 void DVRShader::calculateSampling()
 {
   DVRTexture3d::calculateSampling();
-
+	myRenderer->myGLWindow->makeCurrent();
   if (_preintegration)
   {
-	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _delta);
   }
 }
 

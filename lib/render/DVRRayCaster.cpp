@@ -151,12 +151,13 @@ int DVRRayCaster::GraphicsInit()
 	glewInit();
 
 	if (initTextures() < 0) return(-1);
-	GLWindow::getShaderMgr()->uploadEffectData("isoColor", "volumeTexture", 0);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoColor", "texcrd_buffer", _texcrd_sampler);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoColor", "depth_buffer", _depth_sampler);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoLighting", "volumeTexture", 0);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoLighting", "texcrd_buffer", _texcrd_sampler);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoLighting", "depth_buffer", _depth_sampler);
+	myRenderer->myGLWindow->makeCurrent();
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "volumeTexture", 0);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "texcrd_buffer", _texcrd_sampler);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "depth_buffer", _depth_sampler);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "volumeTexture", 0);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "texcrd_buffer", _texcrd_sampler);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "depth_buffer", _depth_sampler);
 
 	return 0;
 }
@@ -169,14 +170,14 @@ int DVRRayCaster::Render(const float matrix[16])
 	DVRTexture3d::calculateSampling();
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	
+	myRenderer->myGLWindow->makeCurrent();
 	if (_lighting) {		
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "winsize", (float)viewport[2], (float)viewport[3]);	
-		GLWindow::getShaderMgr()->uploadEffectData("isoColorLightMapped", "winsize", (float)viewport[2], (float)viewport[3]);		
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "winsize", (float)viewport[2], (float)viewport[3]);	
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "winsize", (float)viewport[2], (float)viewport[3]);		
 	}
-	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _deltaEye);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoColorMapped", "delta", _deltaEye);	
-	GLWindow::getShaderMgr()->uploadEffectData("isoColorLightMapped", "delta", _deltaEye);
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _deltaEye);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "delta", _deltaEye);	
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "delta", _deltaEye);
 
 	return(DVRShader::Render(matrix));
 
@@ -411,7 +412,8 @@ void DVRRayCaster::raycasting_pass(
 	glCullFace(GL_BACK);
 	
 	printOpenGLError();
-	if (GLWindow::getShaderMgr()->enableEffect(getCurrentEffect())){
+	myRenderer->myGLWindow->makeCurrent();
+	if (myRenderer->myGLWindow->getShaderMgr()->enableEffect(getCurrentEffect())){
 		BBox rotatedBox(volumeBox);
 		rotatedBox.transform(modelview);
 		Point3d camera(0,0,0);
@@ -425,7 +427,7 @@ void DVRRayCaster::raycasting_pass(
 		else {
 			drawVolumeFaces(volumeBox, textureBox);
 		}
-		GLWindow::getShaderMgr()->disableEffect();
+		myRenderer->myGLWindow->getShaderMgr()->disableEffect();
 	}
 	
 	glDisable(GL_CULL_FACE);
@@ -501,7 +503,7 @@ void DVRRayCaster::raycasting_pass(
 	glCullFace(GL_BACK);
 	
 	printOpenGLError();
-	if (GLWindow::getShaderMgr()->enableEffect(effect)){
+	if (myRenderer->myGLWindow->getShaderMgr()->enableEffect(effect)){
 		BBox rotatedBox(volumeBox);
 		rotatedBox.transform(modelview);
 		Point3d camera(0,0,0);
@@ -515,7 +517,7 @@ void DVRRayCaster::raycasting_pass(
 		else {
 			drawVolumeFaces(volumeBox, textureBox);
 		}
-		GLWindow::getShaderMgr()->disableEffect();
+		myRenderer->myGLWindow->getShaderMgr()->disableEffect();
 	}
 
 	glDisable(GL_CULL_FACE);
@@ -561,7 +563,7 @@ void DVRRayCaster::renderBrick(
 
 	// Parent class enables default shader
 	//_shader->disable();
-	GLWindow::getShaderMgr()->disableEffect();
+	myRenderer->myGLWindow->getShaderMgr()->disableEffect();
 
 	// enable rendering to FBO
 	glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
@@ -726,15 +728,16 @@ int DVRRayCaster::initTextures()
 }
 
 void DVRRayCaster::initShaderVariables() {	
-	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
-	GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
+	myRenderer->myGLWindow->makeCurrent();
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
+	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
 	if (_lighting) {
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		GLWindow::getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
 	}
 }
 

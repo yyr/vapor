@@ -38,13 +38,20 @@ ShaderProgram::ShaderProgram()
 // Destructor
 //----------------------------------------------------------------------------
 ShaderProgram::~ShaderProgram()
-{
-	std::list<GLuint>::iterator iter;
+{	
+	printOpenGLError();
 	for (std::map< std::string, GLuint>::const_iterator iter = _shaderObjects.begin();
-		 iter != _shaderObjects.end(); ++iter ){
+		 iter != _shaderObjects.end(); iter++ ){
 		
 		GLuint shader = iter->second;
-		
+#ifdef DEBUG
+		std::cout << "Attempting to delete shader obj: " << shader << " prog: " << _program << std::endl;
+#endif		
+		glDetachShader(_program, shader);
+#ifdef DEBUG		
+		if (printOpenGLError() != 0 )
+			std::cout << "Delete " << shader << " FAILED" << std::endl;
+#endif		
 		if (GLEW_VERSION_2_0)
 		{
 			glDeleteShader(shader);
@@ -55,6 +62,8 @@ ShaderProgram::~ShaderProgram()
 		}
 		
 	}
+	
+	printOpenGLError();
 	if (GLEW_VERSION_2_0)
 	{
 		if (_program) glDeleteProgram(_program);
@@ -145,6 +154,9 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 	}
 	
 	_shaderObjects[std::string(filename)] = shader;
+#ifdef DEBUG
+	std::cout << "creating shader obj: " << shader << " prog: " << _program << std::endl;
+#endif		
 	
 	file.close();
 	
@@ -220,6 +232,9 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType, std::strin
 		if (printOpenGLError() != 0) return(false);
 	}
 	_shaderObjects[fileName] = shader;
+#ifdef DEBUG
+	std::cout << "Creating shader obj: " << shader << " prog: " << _program << std::endl;
+#endif	
 	return true;
 }
 

@@ -12,7 +12,6 @@
 #include "ShaderMgr.h"
 
 #include <vapor/errorcodes.h>
-#include <vapor/MyBase.h>
 #include "glutil.h"
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -25,20 +24,23 @@ ShaderMgr::ShaderMgr()
 ShaderMgr::ShaderMgr(const char* directory)
 {
 	SetDiagMsg("ShaderMgr::ShaderMgr(%s)", directory);
-
 	loaded = false;
 	sourceDir = std::string(directory);
 }
 
-ShaderMgr::ShaderMgr(std::string directory)
+ShaderMgr::ShaderMgr(std::string directory, QGLWidget *owner)
 {
 	SetDiagMsg("ShaderMgr::ShaderMgr(%s)", directory.c_str());
 	loaded = false;
 	sourceDir = directory;
+	parent = owner;
 }
 
 ShaderMgr::~ShaderMgr()
 {
+#ifdef DEBUG
+	std::cout << "ShaderMgr::~ShaderMgr()" << std::endl;
+#endif
 	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
 		 iter != effects.end(); ++iter )
 		delete iter->second;
@@ -97,12 +99,10 @@ bool ShaderMgr::loadShaders()
 
 bool ShaderMgr::reloadShaders()
 {
-	loaded = false;
-	//Check to see if any shaders are currently running
-	
+	//Check to see if any shaders are currently running	
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
-	
+	parent->makeCurrent();
 	if (current != 0) {
 		//shader is in use, cannot delete anything!
 		return false;
@@ -110,11 +110,14 @@ bool ShaderMgr::reloadShaders()
 	
 	//Delete old shaders
 	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
-		 iter != effects.end(); ++iter )
+		 iter != effects.end(); iter++ )
+	{		
 		delete iter->second;
+	}
 	//Clear the map
 	effects.clear();
 	//Reload shaders
+	loaded = false;
 	return loadShaders();	
 }
 //----------------------------------------------------------------------------

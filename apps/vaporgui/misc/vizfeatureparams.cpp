@@ -937,7 +937,8 @@ void VizFeatureParams::checkSurface(bool on){
 }
 void VizFeatureParams::
 reloadShaders(){
-	bool rc = GLWindow::getShaderMgr()->reloadShaders();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	bool rc = vizMgr->reloadShaders();
 	if (!rc) MessageReporter::errorMsg("Error reloading shaders\n%s",
 		"Note that all applicable renderers must be disabled when reloading shaders.");
 

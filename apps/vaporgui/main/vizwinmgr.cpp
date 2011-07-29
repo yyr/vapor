@@ -1247,6 +1247,25 @@ void VizWinMgr::refreshRenderData(){
 		}
 	}
 }
+//Force all renderers to reload their shader data
+bool VizWinMgr::reloadShaders(){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vizWin[i]){
+			GLWindow* glwin= vizWin[i]->getGLWindow();
+			for (int j = 0; j< glwin->getNumRenderers(); j++){
+				Renderer* ren = glwin->getRenderer(j);
+				if (std::string::npos != std::string(typeid(*ren).name()).find("IsoRenderer") || std::string::npos != std::string(typeid(*ren).name()).find("VolumeRenderer")) {
+					//found iso or volume renderer
+					return false;
+				}
+			}
+			if (glwin->getShaderMgr()->reloadShaders() == false){
+				return false;
+			}
+		}
+	}
+	return true;
+}
 //
 //Disable all renderers that use specified variables
 void VizWinMgr::disableRenderers(const vector<string>& vars2D, const vector<string>& vars3D){
