@@ -104,11 +104,15 @@ int	LayeredIO::CloseVariable(
 
 bool LayeredIO::cache_check(
 	size_t timestep,
+	int reflevel,
+	int lod,
 	const size_t bmin[3],
 	const size_t bmax[3]
 ) {
 	if (_cacheEmpty) return(false);
 	if (timestep != _cacheTimeStep) return(false);
+	if (reflevel != _cacheReflevel) return(false);
+	if (lod != _cacheLOD) return(false);
 	for (int i=0; i<3; i++) {
 		if (bmin[i] != _cacheBMin[i]) return(false);
 		if (bmax[i] != _cacheBMax[i]) return(false);
@@ -118,10 +122,14 @@ bool LayeredIO::cache_check(
 
 void LayeredIO::cache_set(
 	size_t timestep,
+	int reflevel,
+	int lod,
 	const size_t bmin[3],
 	const size_t bmax[3]
 ) {
 	_cacheTimeStep = timestep;
+	_cacheReflevel = reflevel;
+	_cacheLOD = lod;
 	for (int i=0; i<3; i++) {
 		_cacheBMin[i] = bmin[i];
 		_cacheBMax[i] = bmax[i];
@@ -166,7 +174,8 @@ int	LayeredIO::BlockReadRegion(
 	blkMinFullZ[2] = 0;
 	blkMaxFullZ[2] = nativeBlkDims[2]-1;
 
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, _reflevel);
 
 	// Size of interpolated region in voxels (with full Z extent)
 	//
@@ -205,7 +214,7 @@ int	LayeredIO::BlockReadRegion(
 	// from disk.
 	//
 	int rc;
-	if (! cache_check(_timeStep, blkMinFullZ, blkMaxFullZ)) {
+	if (! cache_check(_timeStep, _reflevel, _lod, blkMinFullZ, blkMaxFullZ)) {
 		string my_var_name = _varName;
 
 		// Close currently opened variable
@@ -229,7 +238,7 @@ int	LayeredIO::BlockReadRegion(
 
 		// update cache
 		//
-		cache_set(_timeStep, blkMinFullZ, blkMaxFullZ);
+		cache_set(_timeStep, _reflevel, _lod, blkMinFullZ, blkMaxFullZ);
 
 		// Reopen the previously opened field variable
 		//
@@ -328,7 +337,8 @@ void LayeredIO::_interpolateRegion(
 	// of the native ROI. nzi is the Z dimension of the interpolated
 	// ROI
 	//
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, _reflevel);
 
 	size_t nx = (blkMax[0] - blkMin[0] + 1) * bs[0];
 	size_t ny = (blkMax[1] - blkMin[1] + 1) * bs[1];
@@ -457,7 +467,8 @@ void    LayeredIO::GetDimBlk(
  
     GetDimNative(dim, reflevel); 
 
-	const size_t *bs = GetBlockSize();
+	size_t bs[3];
+	GetBlockSize(bs, reflevel);
 
     for (int i=0; i<3; i++) {
         bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs[i]);

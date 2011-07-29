@@ -16,7 +16,7 @@
 namespace VAPoR {
 
 //
-//! \class WaveletBlock3DRegionReader
+//! \class WaveCodecIO
 //! \brief A sub-region reader for VDF files
 //! \author John Clyne
 //! \version $Revision$

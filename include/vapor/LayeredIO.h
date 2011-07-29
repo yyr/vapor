@@ -133,6 +133,8 @@ private:
 
 
  size_t _cacheTimeStep;	// Cached elevation data 
+ int _cacheReflevel;	
+ int _cacheLOD;	
  size_t _cacheBMin[3];
  size_t _cacheBMax[3];
 
@@ -148,12 +150,16 @@ private:
  bool _cacheEmpty;
  bool cache_check(
 	size_t timestep,
+	int reflevel,
+	int lod,
 	const size_t bmin[3],
 	const size_t bmax[3]
  );
 
  void cache_set(
 	size_t timestep,
+	int reflevel,
+	int lod,
 	const size_t bmin[3],
 	const size_t bmax[3]
  );
