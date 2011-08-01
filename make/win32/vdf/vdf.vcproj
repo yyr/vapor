@@ -239,6 +239,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\DataMgrLayered2.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\DataMgrWB.cpp"
 				>
 			</File>
@@ -422,6 +426,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\DataMgrLayered.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\DataMgrLayered2.h"
 				>
 			</File>
 			<File
