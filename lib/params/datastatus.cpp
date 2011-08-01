@@ -848,13 +848,10 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 		const float* exts = getExtents(timestep);
 		for (int i = 0; i<2*npoints; i++) coords[i] += (exts[i%2]-globExts[i%2]);
 	}
-	
-	//If it's already latlon, we're done:
-	if (pj_is_latlong(vapor_proj)) return true;
 
 	static const double RAD2DEG = 180./3.1415926545;
 	static const double DEG2RAD = 3.1415926545/180.;
-	if (vaporRad) //If vapor coord system is rotated lat lon, then must convert meters to degrees to radians
+	if (vaporRad) //If vapor coord system is lat lon or rotated latlon then must convert meters to degrees to radians
 		for (int i = 0; i<2*npoints; i++) coords[i]*=(DEG2RAD/111177.);
 	
 	int rc = pj_transform(vapor_proj,latlon_proj,npoints,2, coords,coords+1, 0);
