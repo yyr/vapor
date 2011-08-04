@@ -1251,7 +1251,7 @@ bool map_VDF2WRF_time(
 
 	for (size_t ts = 0; ts<metadataVDC->GetNumTimeSteps(); ts++) {
 		double userTimeVDC = metadataVDC->GetTSUserTime(ts);
-		if (abs((userTimeWRF - userTimeVDC) / userTimeVDC) < tolerance) {
+		if (abs((userTimeWRF - userTimeVDC) ) < tolerance) {
 			*tsVDC = ts;
 			return(true);
 		}
