@@ -551,6 +551,7 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	if (rc){
 		if (compr != COMPRESSION_NONE &&
 			compr != COMPRESSION_LZW &&
+			compr != COMPRESSION_JPEG &&
 			compr != COMPRESSION_CCITTRLE){
 				MyBase::SetErrMsg(VAPOR_ERROR_TWO_D,
 					"Unsupported Tiff compression");
