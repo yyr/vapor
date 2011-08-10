@@ -467,6 +467,17 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\boxsliderframe.h"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing boxsliderframe.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\boxsliderframe.h -o ..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
@@ -1616,6 +1627,17 @@
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\boxframe.ui"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing boxframe.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\boxframe.h"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
