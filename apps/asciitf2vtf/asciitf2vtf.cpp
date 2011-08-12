@@ -245,7 +245,8 @@ int ProcessNCLCMAP(TransferFunctionLite *transFunct) {
 				interval_flag = true;
 			}
 			
-			if(slope_flag || interval_flag || (i==0) ) {
+//			if(slope_flag || interval_flag || (i==0) ) {
+			if(1 ) {
 			 	comp_vals[0] = hsv[0];
 				comp_vals[1] = hsv[1];
 				comp_vals[2] = hsv[2];
@@ -416,6 +417,7 @@ int	main(int argc, char **argv) {
 		}
 		fclose(fp);
 	} // End of if omap.
+	tf.setOpaque();
 
 	//
 	// Write output file.

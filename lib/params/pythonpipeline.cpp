@@ -20,6 +20,7 @@ using namespace VAPoR;
 
 std::string PythonPipeLine::startupScript = "";
 bool PythonPipeLine::everInitialized = false;
+PyObject* PythonPipeLine::vaporModule = 0;
 
 DataMgr* PythonPipeLine::currentDataMgr = 0;
 bool PythonPipeLine::initialized = false;
@@ -95,12 +96,22 @@ void PythonPipeLine::initialize(){
 	Py_Initialize();
 	everInitialized = true;
 	PyObject* numpyname = PyString_FromFormat("numpy");
-	PyObject* mod = PyImport_Import(numpyname);
+	PyObject* numpymod = PyImport_Import(numpyname);
 	PyObject* vaporname = PyString_FromFormat("vapor");
-	mod = PyImport_Import(vaporname);
+	vaporModule = PyImport_Import(vaporname);
 	
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
+
+	//Put standard variables into the vapor module, with zeroed values...
+	PyObject* lodObj = Py_BuildValue("i", 0);
+	int rc = PyModule_AddObject(vaporModule, "LOD", lodObj);
+	PyObject* refObj = Py_BuildValue("i", 0);
+	rc = PyModule_AddObject(vaporModule, "REFINEMENT", refObj);
+	PyObject* tsObj = Py_BuildValue("i", 0);
+	rc = PyModule_AddObject(vaporModule, "TIMESTEP", tsObj);
+	PyObject* extObj = Py_BuildValue("(iiiiii)",0,0,0,0,0,0);
+	rc = PyModule_AddObject(vaporModule, "BOUNDS", extObj);
 
 	//See if there is a system startup file:
 	//Get the path from the environment:
@@ -269,12 +280,11 @@ int PythonPipeLine::python_wrapper(
 	PyObject* lod = Py_BuildValue("i",compression);
 	
 	int rc;
-	
-	rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
-	rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
-	rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
-	rc = PyDict_SetItemString(mainDict, "__LOD__", lod);
-
+	PyObject* vaporDict = PyModule_GetDict(vaporModule);
+	rc = PyDict_SetItemString(vaporDict, "TIMESTEP", timestep);
+	rc = PyDict_SetItemString(vaporDict, "REFINEMENT",refinement);
+	rc = PyDict_SetItemString(vaporDict, "BOUNDS",exts);
+	rc = PyDict_SetItemString(vaporDict, "LOD", lod);
 	
 	retObj = PyRun_String(pythonMethod.c_str(),Py_file_input, mainDict,mainDict);
     if (!retObj){
@@ -399,9 +409,10 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 					const vector<string>& inputVars3, 
 					vector<pair<string, Metadata::VarType_T> > outputs,
 					size_t ts,int reflevel,int compression, const size_t min[3],const size_t max[3]){
-		
-	if(!initialized) initialize();
 	
+	if(!initialized) {
+		initialize();
+	}
 	
 	string pretext = "import sys\n";
 	pretext += "import StringIO\n";
@@ -413,10 +424,10 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	pretext += "sys.stderr = myErr\n";
 	
 	for (int i = 0; i< inputVars3.size(); i++){
-		pretext += inputVars3[i] + " = vapor.Get3DVariable(__TIMESTEP__,'" + inputVars3[i] + "',__REFINEMENT__,__LOD__,__BOUNDS__)\n";
+		pretext += inputVars3[i] + " = vapor.Get3DVariable(vapor.TIMESTEP,'" + inputVars3[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
 	}
 	for (int i = 0; i< inputVars2.size(); i++){
-		pretext += inputVars2[i] + " = vapor.Get2DVariable(__TIMESTEP__,'" + inputVars2[i] + "',__REFINEMENT__,__LOD__,__BOUNDS__)\n";
+		pretext += inputVars2[i] + " = vapor.Get2DVariable(vapor.TIMESTEP,'" + inputVars2[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
 	}
 	
 	
@@ -461,11 +472,11 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
 		PyObject* lod = Py_BuildValue("i",compression);
-		
-		int rc = PyDict_SetItemString(mainDict, "__TIMESTEP__", timestep);
-		rc = PyDict_SetItemString(mainDict, "__REFINEMENT__",refinement);
-		rc = PyDict_SetItemString(mainDict, "__LOD__",lod);
-		rc = PyDict_SetItemString(mainDict, "__BOUNDS__",exts);
+		PyObject* vaporDict = PyModule_GetDict(vaporModule);
+		int rc = PyDict_SetItemString(vaporDict, "TIMESTEP", timestep);
+		rc = PyDict_SetItemString(vaporDict, "REFINEMENT",refinement);
+		rc = PyDict_SetItemString(vaporDict, "LOD",lod);
+		rc = PyDict_SetItemString(vaporDict, "BOUNDS",exts);
 		
 	}
 	PyObject* retObj = PyRun_String(pretext.c_str(), Py_file_input, mainDict,mainDict);
@@ -529,7 +540,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			npy_intp* dims = PyArray_DIMS(varArray);
 			for (int i = 0; i< nd; i++) {
 				if (dims[i] != (regmax[nd-1-i] - regmin[nd-1-i]+1)){
-					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
+					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with BOUNDS",vname);
 					pythonOutputText = "Output data error";
 					return pythonOutputText;
 				}

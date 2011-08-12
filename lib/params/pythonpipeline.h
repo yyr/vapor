@@ -74,7 +74,7 @@ protected:
 		vector<const float*> inData,
   		vector<pair<string, Metadata::VarType_T> > outputs, 
 		vector<float*> outData);
-	
+	static PyObject* vaporModule;
 	void initialize();
 	std::string pythonOutputText;
 	static bool needCheckArrays() {return (arrayAllocMap.size()>0);}
