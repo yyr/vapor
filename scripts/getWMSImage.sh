@@ -311,7 +311,7 @@ echo "WMS URL:          " $host
 # compose the URL
 #
 url1=${host}"?""request=GetMap"${amp}"service=wms"${amp}"version="${version}${amp}"layers="${wmsLayer}
-url2="style="${styles}${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
+url2="styles="${styles}${amp}"bbox="${minLon}","${minLat}","${maxLon}","${maxLat}
 url3="format="${imageFormat}${amp}"height="${yres}${amp}"width="${xres}${amp}"srs=epsg:4326"${amp}"transparent="${transparent}
 url=${url1}${amp}${url2}${amp}${url3}
 
