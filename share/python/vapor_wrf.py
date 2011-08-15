@@ -57,24 +57,27 @@ def CTT(P,PB,T,QCLOUD,QICE):
 			opdepthu = opdepthd#Python program to calculate radar reflectivity using WRF variables
 	return WRF_CTT
 
-def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR):
+def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR,iliqskin=0,ivarint=0):
 	''' Calculates 3D radar reflectivity based on WRF variables.
-	Calling sequence: VAL = DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR)
+	Calling sequence: 
+	VAL = DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR,iliqskin=0,ivarint=0)
 	Where P,PB,QRAIN,QGRAUP,QSNOW,T,and QVAPOR are WRF 3D variables.
+	Optional arguments iliqskin and ivarint default to 0
+	if iliqskin=1, then frozen particles above freezing are
+	assumed to scatter as a liquid particle.  If ivarint = 1 then
+	intercept parameters are calculated based on Thompson, Rasmussen
+	and Manning, as described in 2004 Monthly Weather Review.
 	Result VAL is 3D variable on same grid as WRF variables.
 	If QGRAUP or QSNOW are not available then replace them by 0.'''
 #Copied from NCL/Fortran source code wrf_user_dbz.f
 #Based on work by Mark Stoellinga, U. of Washington
 #parameters ivarint and iliqskin defined as in original code, either 0 or 1.
-#set to 0 by default
+#set to 0 by default.
 #If iliqskin=1, frozen particles above freezing are assumed to scatter as a liquid particle
 #If ivarint=0, the intercept parameters are assumed constant with values of 
 # 8*10^6, 2*10^7, and 4*10^6, for rain, snow, and graupel respectively.
 #If ivarint=1, intercept parameters are used as calculated in Thompson, Rasmussen, and Manning,
 #2004 Monthly Weather Review, Vol 132, No. 2, pp.519-542
-# By default they are given value 0, but they can be changed by editing the following 2 lines:
-	iliqskin = 0
-	ivarint = 0
 	c = 2.0/7.0
 	R1=1.e-15
 	RON = 8.e6
@@ -111,7 +114,8 @@ def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR):
 	if (vapor.VariableExists(vapor.TIMESTEP,"QGRAUP")):
 		QGRAUP = numpy.maximum(QGRAUP,0.0)
 	else:	
-		QGRAUP = 0.0
+#Avoid divide by zero if QGRAUP is not present:
+		QGRAUP = 1.e-30 
 	TestT = numpy.less(TK,CELKEL)
 	QSNOW = numpy.where(TestT,QRAIN, QSNOW)
 	QRAIN = numpy.where(TestT,0.0, QRAIN)
@@ -126,9 +130,10 @@ def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR):
 		TEMP_C = numpy.minimum(-.001, TK-CELKEL)
 		SONV = numpy.minimum(2.e8,2.e6*numpy.exp(-.12*TEMP_C))
 		TestG = numpy.less(R1, QGRAUP)
-		GONV = numpy.where(TestG,2.38*numpy.power(PI*RHO_G/(RHOAIR*QGRAUP),0.92),GON)
+		GONV = numpy.where(TestG,2.38*numpy.power(pi*RHO_G/(RHOAIR*QGRAUP),0.92),GON)
 		GONV = numpy.where(TestG,numpy.maximum(1.e4,numpy.minimum(GONV,GON)),GONV)
-		RONV = numpy.where(greater(QRAIN,R1),RON_CONST1R*tanh((RON_QR0-QRAIN)/RON_DELQR0) + RON_CONST2R,RON2)
+		GONV = RN0_G
+		RONV = numpy.where(numpy.greater(QRAIN,R1),RON_CONST1R*numpy.tanh((RON_QR0-QRAIN)/RON_DELQR0) + RON_CONST2R,RON2)
 	else:
 		GONV = RN0_G
 		RONV = RN0_R
@@ -141,10 +146,12 @@ def DBZ(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR):
 	WRF_DBZ = 10.0*numpy.log10(Z_E)
 	return WRF_DBZ
 
-def DBZ_MAX(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR):
+def DBZ_MAX(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR,iliqskin=0,ivarint=0):
 	''' Calculates 2D radar reflectivity based on WRF variables.
 	Calling sequence: VAL = DBZ_MAX(P,PB,QRAIN,QGRAUP,QSNOW,T,QVAPOR)
 	Where P,PB,QRAIN,QGRAUP,QSNOW,T,and QVAPOR are WRF 3D variables.
+	Optional arguments iliqskin and ivarint default to 0, as
+	described in help(DBZ)
 	Result VAL is 2D variable on 2D grid of WRF variables.
 	VAL is the maximum over a vertical column of DBZ.
 	If QGRAUP or QSNOW are not available then replace them by 0.'''
@@ -317,8 +324,8 @@ def SLP(P,PB,T,QVAPOR,ELEVATION):
 def TD(P,PB,QVAPOR):
 	''' Calculation of dewpoint temperature based on WRF variables.
 	Calling sequence: WRFTD = TD(P,PB,QVAPOR)
-	where P,PB,QVAPOR are WRF 3D variables, and WRFTD is a 3D variable
-	on the same grid.'''
+	where P,PB,QVAPOR are WRF 3D variables, and result WRFTD 
+	is a 3D variable on the same grid.'''
 #Let PR = 0.1*(P+PB) (pressure in hPa)
 #and QV = MAX(QVAPOR,0)
 #Where TDC = QV*PR/(0.622+QV)
