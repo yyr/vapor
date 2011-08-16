@@ -113,6 +113,7 @@ protected slots:
 	void guiSetCrop(bool);
 	void guiSetPlacement(int);
 	void guiSelectImageFile();
+	void guiSelectInstalledImage();
 	void guiSetOrientation(int);
 	void guiSetGeoreferencing(bool);
 

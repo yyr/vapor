@@ -264,6 +264,12 @@ create new Probe/Contour instances.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame_2">
+       <property name="maximumSize">
+        <size>
+         <width>422</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -586,6 +592,12 @@ probe volume.</string>
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="maximumSize">
+        <size>
+         <width>422</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -600,6 +612,9 @@ probe volume.</string>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <widget class="QPushButton" name="showHideLayoutButton">
+            <property name="toolTip">
+             <string>Click to toggle hide/show the probe layout options</string>
+            </property>
             <property name="text">
              <string>Hide Probe Layout Options</string>
             </property>
@@ -2439,15 +2454,11 @@ Domain</string>
               </layout>
              </item>
             </layout>
-            <zorder>frame</zorder>
            </widget>
           </item>
          </layout>
         </item>
        </layout>
-       <zorder>showHideLayoutButton</zorder>
-       <zorder>showHideLayoutButton</zorder>
-       <zorder>layoutFrame</zorder>
       </widget>
      </item>
      <item>
@@ -2465,6 +2476,12 @@ Domain</string>
      </item>
      <item>
       <widget class="QFrame" name="frame_4">
+       <property name="maximumSize">
+        <size>
+         <width>422</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -2479,6 +2496,9 @@ Domain</string>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QPushButton" name="showHideImageButton">
+            <property name="toolTip">
+             <string>Click to toggle hide/show the probe image options</string>
+            </property>
             <property name="text">
              <string>Hide Image Settings</string>
             </property>
@@ -3569,6 +3589,12 @@ change the selection in the probe</string>
      </item>
      <item>
       <widget class="QFrame" name="frame_3">
+       <property name="maximumSize">
+        <size>
+         <width>422</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -3583,6 +3609,9 @@ change the selection in the probe</string>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QPushButton" name="showHideAppearanceButton">
+            <property name="toolTip">
+             <string>Click to toggle hide/show the probe appearance options</string>
+            </property>
             <property name="text">
              <string>Hide Appearance Parameters</string>
             </property>

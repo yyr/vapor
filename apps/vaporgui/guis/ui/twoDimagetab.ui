@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
+    <width>448</width>
     <height>1170</height>
    </rect>
   </property>
@@ -267,6 +267,12 @@ create new 2D planar instances.</string>
      </item>
      <item>
       <widget class="QFrame" name="mainFrame">
+       <property name="maximumSize">
+        <size>
+         <width>422</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="whatsThis">
         <string>The 2D panel controls the location and size of a 2-dimensional planar region that is placed within the full data volume.   Horizontal (X-Y) 2D variables can be displayed in this region or mapped to the terrain (on terrain-following grids).  In image mode, geo-referenced images are displayed. This panel controls positioning and color-mapping of the planar region and, in data mode, allows querying variable values and flow seed placement.</string>
        </property>
@@ -527,9 +533,9 @@ create new 2D planar instances.</string>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout">
+                <layout class="QHBoxLayout" name="_3">
                  <item>
-                  <spacer name="spacer54_2">
+                  <spacer name="spacer54_4">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -558,7 +564,7 @@ create new 2D planar instances.</string>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="spacer102_2">
+                  <spacer name="spacer102_4">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -568,6 +574,52 @@ create new 2D planar instances.</string>
                    <property name="sizeHint" stdset="0">
                     <size>
                      <width>16</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="installedImageButton">
+                   <property name="toolTip">
+                    <string>Click to select a pre-installed image</string>
+                   </property>
+                   <property name="text">
+                    <string>Select Installed Image</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacer56_4">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout">
+                 <item>
+                  <spacer name="spacer54_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>59</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -587,7 +639,7 @@ create new 2D planar instances.</string>
                   <widget class="QLineEdit" name="filenameEdit">
                    <property name="minimumSize">
                     <size>
-                     <width>137</width>
+                     <width>195</width>
                      <height>0</height>
                     </size>
                    </property>

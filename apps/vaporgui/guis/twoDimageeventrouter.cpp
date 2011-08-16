@@ -59,6 +59,7 @@
 #include <sstream>
 
 #include "params.h"
+#include "vapor/GetAppPath.h"
 #include "twoDimagetab.h"
 #include <vaporinternal/jpegapi.h>
 #include <vapor/XmlNode.h>
@@ -72,6 +73,7 @@
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;
+using namespace VetsUtil;
 
 
 TwoDImageEventRouter::TwoDImageEventRouter(QWidget* parent): QWidget(parent), Ui_TwoDImageTab(), TwoDEventRouter(){
@@ -142,6 +144,7 @@ TwoDImageEventRouter::hookUpTab()
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setTwoDEnabled(bool,int)));
 
 	connect (imageFileButton, SIGNAL(clicked()), this, SLOT(guiSelectImageFile()));
+	connect (installedImageButton, SIGNAL(clicked()), this, SLOT(guiSelectInstalledImage()));
 	connect (orientationCombo, SIGNAL(activated(int)), this, SLOT(guiSetOrientation(int)));
 	connect (geoRefCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetGeoreferencing(bool)));
 	connect (cropCheckbox, SIGNAL(toggled(bool)),this, SLOT(guiSetCrop(bool)));
@@ -451,6 +454,31 @@ void TwoDImageEventRouter::guiSelectImageFile(){
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future image I/O
 	Session::getInstance()->setJpegDirectory((const char*)fileInfo->absolutePath().toAscii());
+	
+	tParams->setImageFileName((const char*)filename.toAscii());
+	
+	filenameEdit->setText(filename);
+	PanelCommand::captureEnd(cmd, tParams);
+	tParams->setImagesDirty();
+	VizWinMgr::getInstance()->refreshTwoDImage(tParams);
+}
+// Launch a file selection dialog to select an image file
+void TwoDImageEventRouter::guiSelectInstalledImage(){
+	confirmText(false);
+	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "select installed image");
+	vector <string> paths;
+	paths.push_back("images");
+	string installedImagePath = GetAppPath("VAPOR", "share", paths);
+	QString filename = QFileDialog::getOpenFileName(this,
+        	"Specify installed image file to load",
+		installedImagePath.c_str(),
+        	"TIFF files (*.tiff *.tif *.gtif)");
+	//Check that user did specify a file:
+	if (filename.isNull()) {
+		delete cmd;
+		return;
+	}
 	
 	tParams->setImageFileName((const char*)filename.toAscii());
 	
