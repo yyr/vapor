@@ -83,9 +83,12 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_probeParamsTag);
 	savedCommand = 0;
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 	numVariables = 0;
 	seedAttached = false;
+	showAppearance = true;
+	showLayout = true;
+	showImage = true;
 
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playButton->setIcon(QIcon(*playForwardIcon));
@@ -190,7 +193,7 @@ ProbeEventRouter::hookUpTab()
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
 	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
-	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
+	connect (variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZCenter()));
@@ -243,6 +246,9 @@ ProbeEventRouter::hookUpTab()
 	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYIBFVComboVarNum(int)));
 	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZIBFVComboVarNum(int)));
 	connect (fitDataButton, SIGNAL(clicked()), this, SLOT(guiFitTFToData()));
+	connect (showHideLayoutButton, SIGNAL(pressed()), this, SLOT(showHideLayout()));
+	connect (showHideImageButton, SIGNAL(pressed()), this, SLOT(showHideImage()));
+	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
 }
 //Insert values from params into tab panel
 //
@@ -479,16 +485,16 @@ void ProbeEventRouter::updateTab(){
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
 	guiSetTextChanged(false);
-	//Set the selection in the variable listbox.
-	//Turn off listBox message-listening
-	ignoreListboxChanges = true;
+	//Set the selection in the variable combo
+	//Turn off combo message-listening
+	ignoreComboChanges = true;
 	for (int i = 0; i< ds->getNumActiveVariables3D(); i++){
-		QListWidgetItem* listItem = variableListBox->item(i);
+		
 		bool selection = probeParams->variableIsSelected(ds->mapActiveToSessionVarNum3D(i));
-		if (listItem->isSelected() != selection)
-			listItem->setSelected(selection);
+		if (selection)
+			variableCombo->setCurrentIndex(i);
 	}
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 
 	updateBoundsText(probeParams);
 	
@@ -513,6 +519,14 @@ void ProbeEventRouter::updateTab(){
 	
 	probeTextureFrame->setParams(probeParams);
 	probeTextureFrame->update();
+	if (showLayout) layoutFrame->show();
+	else layoutFrame->hide();
+	if (showAppearance) appearanceFrame->show();
+	else appearanceFrame->hide();
+	if (showImage) imageFrame->show();
+	else imageFrame->hide();
+	adjustSize();
+	update();
 	vizMgr->getTabManager()->update();
 	
 	guiSetTextChanged(false);
@@ -1332,15 +1346,15 @@ reinitTab(bool doOverride){
 	
 	numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	//Set the names in the variable listbox
-	ignoreListboxChanges = true;
-	variableListBox->clear();
+	ignoreComboChanges = true;
+	variableCombo->clear();
 	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
 		const std::string& s = DataStatus::getInstance()->getActiveVarName3D(i);
 		const QString& text = QString(s.c_str());
-		QListWidgetItem* newItem = new QListWidgetItem(text);
-		variableListBox->insertItem(i,newItem);
+		
+		variableCombo->insertItem(i,text);
 	}
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 
 	seedAttached = false;
 
@@ -1623,36 +1637,29 @@ guiAttachSeed(bool attach, FlowParams* fParams){
 		attachedFlow = 0;
 	} 
 }
-//Respond to an update of the variable listbox.  set the appropriate bits
+//Respond to an change of variable.  set the appropriate bits
 void ProbeEventRouter::
-guiChangeVariables(){
-	//Don't react if the listbox is being reset programmatically:
-	if (ignoreListboxChanges) return;
+guiChangeVariable(int varnum){
+	//Don't react if the combo is being reset programmatically:
+	if (ignoreComboChanges) return;
 	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change probe-selected variable(s)");
-	int firstVar = -1;
-	int numSelected = 0;
-	//Session* ses = Session::getInstance();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "change probe-selected variable");
+	int firstVar = 0;
+	
 	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables3D(); i++){
 		//Index by session variable num:
-		int varnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(i);
-		QListWidgetItem* curItem = variableListBox->item(i);
-		if (curItem->isSelected()){
-			pParams->setVariableSelected(varnum,true);
-			if(firstVar == -1) firstVar = varnum;
-			numSelected++;
+		int svnum = DataStatus::getInstance()->mapActiveToSessionVarNum3D(i);
+		
+		if (i == varnum){
+			pParams->setVariableSelected(svnum,true);
+			firstVar = varnum;
 		}
 		else 
-			pParams->setVariableSelected(varnum,false);
+			pParams->setVariableSelected(svnum,false);
 	}
-	//If nothing is selected, select the first one:
-	if (firstVar == -1) {
-		firstVar = 0;
-		numSelected = 1;
-	}
-	pParams->setNumVariablesSelected(numSelected);
+	pParams->setNumVariablesSelected(1);
 	pParams->setFirstVarNum(firstVar);
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
@@ -3263,6 +3270,48 @@ void ProbeEventRouter::guiFitTFToData(){
 	updateTab();
 	
 }
+void ProbeEventRouter::
+showHideLayout(){
+	if (showLayout) {
+		showLayout = false;
+		showHideLayoutButton->setText("Show Probe Layout Options");
+	} else {
+		showLayout = true;
+		showHideLayoutButton->setText("Hide Probe Layout Options");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ProbeParams::_probeParamsTag));
+	updateTab();
+}
+void ProbeEventRouter::
+showHideAppearance(){
+	if (showAppearance) {
+		showAppearance = false;
+		showHideAppearanceButton->setText("Show Probe Appearance Options");
+	} else {
+		showAppearance = true;
+		showHideAppearanceButton->setText("Hide Probe Appearance Options");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ProbeParams::_probeParamsTag));
+	updateTab();
+}
+void ProbeEventRouter::
+showHideImage(){
+	if (showImage) {
+		showImage = false;
+		showHideImageButton->setText("Show Probe Image Settings");
+	} else {
+		showImage = true;
+		showHideImageButton->setText("Hide Probe Image Settings");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(ProbeParams::_probeParamsTag));
+	updateTab();
+}
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
 
 #ifdef Darwin
@@ -3290,4 +3339,5 @@ void ProbeEventRouter::paintEvent(QPaintEvent* ev){
 		QWidget::paintEvent(ev);
 		return;
 }
+
 #endif

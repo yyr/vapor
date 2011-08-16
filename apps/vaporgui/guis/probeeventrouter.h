@@ -179,7 +179,7 @@ protected slots:
 	void probeAddSeed();
 	void probeAttachSeed(bool attach);
 	
-	void guiChangeVariables();
+	void guiChangeVariable(int);
 	void setProbeXCenter();
 	void setProbeYCenter();
 	void setProbeZCenter();
@@ -207,6 +207,9 @@ protected slots:
 	void guiSetZIBFVComboVarNum(int varnum);
 	void guiReleaseAlphaSlider();
 	void guiReleaseScaleSlider();
+	void showHideAppearance();
+	void showHideLayout();
+	void showHideImage();
 	
 	
 protected:
@@ -227,7 +230,7 @@ protected:
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without
 	//triggering a gui changed event
-	bool ignoreListboxChanges;
+	bool ignoreComboChanges;
 	//Flag to ignore slider events caused by updating tab,
 	//so they won't be recognized as a nudge event.
 	bool notNudgingSliders;
@@ -241,6 +244,7 @@ protected:
 	float startRotateActualAngle;
 	float startRotateViewAngle;
 	bool renormalizedRotate;
+	bool showImage, showAppearance, showLayout;
 	
 };
 
