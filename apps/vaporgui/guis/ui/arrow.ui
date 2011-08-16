@@ -278,7 +278,7 @@ is controlled by the values in this
             <item>
              <widget class="QLabel" name="label_8">
               <property name="text">
-               <string>Field Variables are:</string>
+               <string>Variables are:</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

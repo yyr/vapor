@@ -131,6 +131,12 @@ void PythonPipeLine::initialize(){
 		}
 		pythonSysFile.close();
 	}
+	//Insert lines to specify PYTHONPATH to include $VAPOR_HOME/share/python:
+	string pathstring("import sys\n");
+	pathstring += "sys.path += ['";
+	pathstring += pythonSystemPath;
+	pathstring += "']\n";
+	sysProg = pathstring + sysProg;
 	if (sysProg.size()>0){
 		PyObject* retObj = PyRun_String(sysProg.c_str(),Py_file_input, mainDict,mainDict);
 		if (!retObj){
