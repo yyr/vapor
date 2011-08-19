@@ -358,9 +358,10 @@ const string Transform3d::_tag     = "Transform";
 //
 //----------------------------------------------------------------------------
 Transform3d::Transform3d() :
-        ParamsBase(0, _tag),
-        _transformations(0,NULL)
+        ParamsBase(0, _tag)
+//		, _transformations(1,NULL)
 {
+        _transformations.clear();
 }
 
 //----------------------------------------------------------------------------
