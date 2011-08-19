@@ -887,6 +887,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 			if (!restoredSession) DataStatus::clearVariableNames();
 			if (importing) {
 				dataMgr = DataMgrFactory::New(files, cacheMB,"wrf");
+
 				if (DataMgr::GetErrCode() != 0) {
 					MessageReporter::errorMsg("WRF loading error %d, creating Data Manager:\n %s",
 						DataMgr::GetErrCode(),DataMgr::GetErrMsg());

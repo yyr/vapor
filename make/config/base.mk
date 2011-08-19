@@ -148,7 +148,7 @@ $(MOC_DIR)/moc_%.cpp : %.h
 #	@$(MOC) $< -o $@ 
 
 QT_INCLUDE_DIRS += $(QTDIR)/include
-QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, QtCore QtGui QtOpenGL)
+QT_INCLUDE_DIRS += $(addprefix $(QTDIR)/include/, Qt QtCore QtGui QtOpenGL)
 QT_INCLUDE_DIRS += $(UI_DIR)
 
 ifneq ($(QT_FRAMEWORK), 1)
@@ -159,8 +159,23 @@ endif
 endif
 
 ifeq ($(BUILD_PYTHON), 1)
+
 PY_INCLUDE_DIRS = $(addprefix $(PYTHONDIR)/include/python, $(PYTHONVERSION))
+
+## Ugh. 64bit Some installations put python libs under lib64, some under lib
+#
+ifeq ($(MACHTYPE), x86_64)
+
+ifneq ($(strip $(wildcard $(PYTHONDIR)/lib64)),)
+PY_INCLUDE_DIRS += $(addprefix $(join $(PYTHONDIR)/lib64/python, $(PYTHONVERSION)), /site-packages/numpy/core/include)
+else
 PY_INCLUDE_DIRS += $(addprefix $(join $(PYTHONDIR)/lib/python, $(PYTHONVERSION)), /site-packages/numpy/core/include)
+endif
+
+else
+PY_INCLUDE_DIRS += $(addprefix $(join $(PYTHONDIR)/lib/python, $(PYTHONVERSION)), /site-packages/numpy/core/include)
+endif
+
 endif
 
 ifdef TEST
