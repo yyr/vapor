@@ -400,6 +400,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			for (int i = 0; i< maxx; i++){
 				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
 				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
+
+#ifdef	DEAD
 				//Check if the coordinates are too far, issue warning:
 				if(i>0 && errcnt < 1){
 					float distDiff =  abs(locCoords[0]-prevLocCoords[0])+abs(locCoords[1]-prevLocCoords[1]);
@@ -408,6 +410,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 						errcnt++;
 					}
 				}
+#endif
 				prevLocCoords[0]=locCoords[0];
 				prevLocCoords[1]=locCoords[1];
 				if (tParams->isMappedToTerrain()){
