@@ -563,12 +563,15 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
       double dbextents[4];
       vector<double> currExtents;
 
+      bool has_latlon = true;
       for ( size_t t = 0 ; t < Time_latlon_extents.size() ; t++ ){
-		  if (rotLatLonMapping){
+		vector <float> exts = Time_latlon_extents[t].second;
+          if (exts[0] == exts[2] && exts[1] == exts[3]) {
+			has_latlon = false;
+		} else if (rotLatLonMapping){
 			  if (0!= GetRotatedLatLonExtents(dbextents))
 				  SetErrMsg("Error calculating rotated lat lon domain extents");
 		  } else {
-			vector <float> exts = Time_latlon_extents[t].second;
 			if (!exts.size()) continue;
 			//exts 0,1,2,3 are the lonlat extents, other 4 corners can be ignored here
 			for (int j = 0; j<4; j++)
@@ -590,7 +593,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
         //Put the reprojected extents into the vdf
         //Use the global specified extents for vertical coords
 
-        if ((dbextents[0] >= dbextents[2])||(dbextents[1] >= dbextents[3])) {
+        if (has_latlon && ((dbextents[0] >= dbextents[2])||(dbextents[1] >= dbextents[3]))) {
           retval = -1;
           SetErrMsg(
             "Invalid geo-referencing WRF domain extents : min(%f,%f), max(%f,%f)",
@@ -599,7 +602,7 @@ int MetadataWRF::ReprojectTsLatLon(string mapprojstr) {
           SetErrCode(0);
         }
 
-        if (!retval){
+        if (!retval && has_latlon){
           currExtents.clear();
           currExtents.push_back(dbextents[0]);
           currExtents.push_back(dbextents[1]);
