@@ -471,7 +471,6 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 		}
 		ucptr += 8;
 	}
-		
 
 	unsigned char *ptr = _sigMapEncode + HEADER_SIZE;
 	int bib = BITSPERBYTE; // bits available in current byte

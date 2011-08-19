@@ -78,6 +78,24 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
 #define	NC_FLOAT_SZ 4
 
+void swapbytes(void *ptr, size_t ws, size_t nelem) {
+
+	for (size_t i = 0; i<nelem; i++) {
+		unsigned char *uptr = ((unsigned char *) ptr) + (i*ws);
+
+		unsigned char *p1 = uptr;
+		unsigned char *p2 = uptr + ws-1;
+		unsigned char t;
+		for (int j = 0; j< ws >> 1; j++) {
+			t = *p1;
+			*p1 = *p2;
+			*p2 = t;
+			p1++;
+			p2--;
+		}
+	}
+}
+
 
 int WaveCodecIO::_WaveCodecIO(int nthreads) {
 
@@ -2056,6 +2074,13 @@ int WaveCodecIO::_OpenVarWrite(
 int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 	size_t bx, size_t by, size_t bz
 ) {
+	unsigned long LSBTest = 1;
+	bool do_swapbytes = false;
+	if (! (*(char *) &LSBTest)) {
+		// swap to MSBFirst
+		do_swapbytes = true;
+	}
+
 	const float *cvectorptr = _wc->_cvectorThread[_id];
 	int rc;
 
@@ -2119,6 +2144,14 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 			// variable to improve IO performance
 			//
 #ifndef NOIO
+			if (do_swapbytes) {
+				// Ugh. We're violating const-ness of map					// to avoid another data copy.
+				//
+				swapbytes(
+					(void *) map, NC_FLOAT_SZ, 
+					_wc->_sigmapsizes[j]
+				);
+			}
 			rc = nc_put_vars(
 				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, map
 			);
@@ -2478,6 +2511,13 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 	unsigned char *svectorptr = _wc->_svectorThread[_id];
 	int rc;
 
+	unsigned long LSBTest = 1;
+	bool do_swapbytes = false;
+	if (! (*(char *) &LSBTest)) {
+		// swap to MSBFirst
+		do_swapbytes = true;
+	}
+
 	//
 	// This method is serialized. OK for all threads to call Timer methods
 	//
@@ -2530,6 +2570,12 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 			rc = nc_get_vars(
 				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr
 			);
+			if (do_swapbytes) {
+				swapbytes(
+					(void *) svectorptr, NC_FLOAT_SZ, 
+					_wc->_sigmapsizes[j]
+				);
+			}
 
 			NC_ERR_READ(rc, _wc->_ncpaths[j]);
 
