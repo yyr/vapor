@@ -431,7 +431,7 @@ int MetadataWRF::MapVDCTimestep(
   string &wrf_fname,
   size_t &wrf_ts) {
   size_t i;
-  size_t tmp_usertime;
+  TIME64_T tmp_usertime;
   int retval = 0;
   bool found_flag = false;
 
