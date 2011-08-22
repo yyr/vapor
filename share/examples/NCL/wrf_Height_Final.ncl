@@ -11,7 +11,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/wrf/WRFUserARW.ncl"
 
 ; Load the wrf2geotiff library.
 ; The wrf2geotiff library is installed with VAPOR:
-load "$(VAPOR_HOME)/share/examples/NCL/wrf2geotiff.ncl"
+load "$VAPOR_HOME/share/examples/NCL/wrf2geotiff.ncl"
 begin
 ;
 ; The WRF ARW input file.

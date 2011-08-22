@@ -9,7 +9,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/wrf/WRFUserARW.ncl"
 
 ; load the wrf2geotiff library from the VAPOR distribution:
-load "$(VAPOR_HOME)/share/examples/NCL/wrf2geotiff.ncl"
+load "$VAPOR_HOME/share/examples/NCL/wrf2geotiff.ncl"
 
 begin
 ;
