@@ -2119,7 +2119,7 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 
 #ifndef NOIO
 #ifdef PARALLEL
-		rc = nc_var_par_access(_ncids[j], _nc_wave_vars[j], _wc->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
+		rc = nc_var_par_access(_wc->_ncids[j], _wc->_nc_wave_vars[j], _wc->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
 #endif
 		rc = nc_put_vars_float(
 			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr
