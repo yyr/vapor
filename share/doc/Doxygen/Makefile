@@ -20,7 +20,7 @@ FRC:
 
 INSTALL_DOC_DIR = $(INSTALL_SHAREDIR)/doc
 
-install::
+install:: all
 	@$(ECHO) "Installing Doxygen documentation in $(INSTALL_DOC_DIR)"
 	@if test ! -d $(INSTALL_DOC_DIR); then $(MKDIR) $(INSTALL_DOC_DIR); fi
 	cd $(DOCDIR); tar cf - library | (cd $(INSTALL_DOC_DIR); tar xf -)

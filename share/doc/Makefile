@@ -2,7 +2,11 @@ TOP = ../..
 
 include $(TOP)/make/config/prebase.mk
 
-SUBDIRS = Doxygen help man
+SUBDIRS = help man
+ifeq ($(BUILD_DOXYGEN),1)
+SUBDIRS += Doxygen 
+endif
+
 
 DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
 	VDCIntro.doc WRFsupport.doc GeorgiaCaseStudy.doc \
