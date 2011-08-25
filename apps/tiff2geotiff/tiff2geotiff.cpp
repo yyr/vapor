@@ -699,9 +699,9 @@ static struct cpTag {
 static void
 cpOtherTags(TIFF* in, TIFF* out)
 {
-	struct cpTag *p;
+	struct cpTag *p = tags;
 
-	for (p = tags; p < &tags[NTAGS]; p++)
+	for (int i = 0; i < NTAGS; i++, p++) {
 		switch (p->type) {
 		case TIFF_SHORT:
 			if (p->count == 1) {
@@ -747,6 +747,7 @@ cpOtherTags(TIFF* in, TIFF* out)
                 default:
 	                break;
 		}
+	}
 }
 
 typedef int (*copyFunc)
