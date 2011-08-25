@@ -61,7 +61,7 @@
 #include "params.h"
 #include "vapor/GetAppPath.h"
 #include "twoDimagetab.h"
-#include <vaporinternal/jpegapi.h>
+#include <vapor/jpegapi.h>
 #include <vapor/XmlNode.h>
 #include "tabmanager.h"
 #include "glutil.h"

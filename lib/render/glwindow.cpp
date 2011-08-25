@@ -50,7 +50,7 @@
 #include <qmutex.h>
 #include "tiffio.h"
 #include "assert.h"
-#include <vaporinternal/jpegapi.h>
+#include <vapor/jpegapi.h>
 #include <vapor/common.h>
 #include <qapplication.h>
 #include "flowrenderer.h"

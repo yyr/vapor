@@ -26,13 +26,13 @@
 #include "trackball.h"
 #include <qthread.h>
 #include <QMutex>
+#include <jpeglib.h>
 #include "qcolor.h"
 #include "qlabel.h"
 #include "params.h"
 #include "manip.h"
 #include <vapor/MyBase.h>
 #include <vapor/common.h>
-#include <vaporinternal/jpegapi.h>
 #include "datastatus.h"
 #include "ShaderMgr.h"
 //No more than 20 renderers in a window:

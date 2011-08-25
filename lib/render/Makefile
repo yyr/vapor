@@ -18,7 +18,7 @@ FILES = \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
 	DVRShader DVRLookup DVRVolumizer DVRSpherical DVRRayCaster \
 	ModelRenderer GLModelNode \
-	DVRRayCaster2Var ShaderMgr
+	DVRRayCaster2Var ShaderMgr jfilewrite
 
 QT_HEADERS = \
 	renderer 
