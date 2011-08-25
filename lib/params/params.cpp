@@ -107,7 +107,6 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 }
 const std::string& Params::paramName(Params::ParamsBaseType type){
 	Params* p = GetDefaultParams(type);
-	const std::string& name = p->getShortName();
 	return GetDefaultParams(type)->getShortName();
 }
 float RenderParams::getMinColorMapBound(){

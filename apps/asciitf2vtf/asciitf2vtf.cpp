@@ -146,11 +146,13 @@ int ProcessNCLCMAP(TransferFunctionLite *transFunct) {
 	int numColors = 0;
 	int fileSize;
 	int rc;
-	int last_i;
+	int last_i = 0;
 	float THRESHOLD = 0.10;
 	float SLOPE_THRESHOLD = 0.010;
-	float last_hsv[3];
-	float rgb[3], hsv[3], comp_vals[3];
+	float last_hsv[] = {0.0, 0.0, 0.0};
+	float rgb[] = {0.0, 0.0, 0.0};
+	float hsv[] = {0.0, 0.0, 0.0}; 
+	float comp_vals[] = {0.0, 0.0, 0.0};
 	vector <float> pvec, hvec, svec, vvec;
 	char *readLine;
 	bool header_flag = false;

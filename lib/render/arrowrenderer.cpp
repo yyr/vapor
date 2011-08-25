@@ -68,7 +68,6 @@ void ArrowRenderer::paintGL(){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	bool is3D = aParams->VariablesAre3D();
 
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
@@ -85,8 +84,6 @@ void ArrowRenderer::paintGL(){
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
 	double rakeExts[6];
 	aParams->GetRakeExtents(rakeExts);
-	float maxCellSize = Max(Max(((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]),((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1])),
-		((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
 	
 	float vectorLengthScale = aParams->GetVectorScale();
 	//

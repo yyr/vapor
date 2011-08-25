@@ -213,7 +213,7 @@ void	process_volume(
 
 
 	if(!opt.quiet) fprintf(stderr, "dimensions of output array will be: %d %d %d\n",
-		dim[0],dim[1],dim[2]);
+		(int) dim[0],(int) dim[1],(int) dim[2]);
 
 	//if (opt.bin){
 		//Read the entire variable into buffer:

@@ -362,7 +362,6 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		double* elevVertLine = new double[3*maxx];
 		float locCoords[3];
 		const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
-		int errcnt = 0;
 		float prevLocCoords[2];
 		for (int j = 0; j<maxy; j++){
 			

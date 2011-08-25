@@ -263,9 +263,6 @@ bool ShaderProgram::create()
 bool ShaderProgram::compile()
 {
 	std::list<GLuint>::iterator iter;
-    GLint infologLength = 0;
-	int nWritten  = 0;
-	
 	
 	//
 	// Compile all the shaders
@@ -374,7 +371,6 @@ bool ShaderProgram::compile()
 		//
 		GLint infologLength = 0;
 		glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &infologLength);
-		GLchar *infoLog = new GLchar[infologLength];
 		if (printOpenGLError() != 0) return(false);
 		
 		if (linked != GL_TRUE && infologLength > 1)

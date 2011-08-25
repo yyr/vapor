@@ -40,7 +40,6 @@
 
 #include "Matrix3d.h"
 #include "Point3d.h"
-#include "shaders.h"
 
 #ifndef MAX
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))

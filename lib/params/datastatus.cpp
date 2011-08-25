@@ -1348,4 +1348,3 @@ double DataStatus::getDefaultDataMin2D(int varnum){
 	if (isDerivedVariable(varname)) return -1.f;
 	return getDataMin2D(varnum, (int)minTimeStep);
 }
-	

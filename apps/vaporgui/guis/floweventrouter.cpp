@@ -3297,7 +3297,7 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 QSize FlowEventRouter::sizeHint() const {
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (!fParams) return QSize(460,1500);
-	int vertsize;
+	int vertsize = 0;
 	switch (fParams->getFlowType()){
 		case(0): 
 			vertsize = 1470; 

@@ -463,6 +463,7 @@ bool Transform3d::set(const QStringList &strings)
          _transformations.push_back(new Rotate(x,y,z,t));
       }
    }
+   return(true);
 }
 
 //----------------------------------------------------------------------------

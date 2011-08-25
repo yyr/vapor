@@ -782,8 +782,6 @@ int DoGeopotStuff(
 ) {
 	map <string, string>::const_iterator iter;
 	
-	VDFIOBase * vdfio;
-
 	int rc = 0;
 	bool wantEle = find(varnames.begin(),varnames.end(),"ELEVATION")!=varnames.end();
 	bool wantPh = find(varnames.begin(),varnames.end(),"PH")!=varnames.end();
@@ -819,7 +817,7 @@ int DoGeopotStuff(
 	//
 	if (wantPhnorm) {
 		DeriveVar2(
-			wrfreader, vdfio, level, lod, vdc1, "PH", "PHB",
+			wrfreader, wbwriter, level, lod, vdc1, "PH", "PHB",
 			"PHNorm_", dim, tsWRF, tsVDC, CalculatePHNorm
 		);
 		MyBase::SetErrCode(0);

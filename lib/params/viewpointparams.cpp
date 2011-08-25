@@ -302,7 +302,6 @@ void ViewpointParams::
 getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
 	const float* extents = DataStatus::getInstance()->getExtents();
-	const float* stretchedExtents = DataStatus::getInstance()->getStretchedExtents();
 	double wrk[3], cor[3], boxcor[3], cmpos[3];
 	double camDirPt[3], camDirPtBox[3];
 	double camPosBox[3], camDirBox[3];

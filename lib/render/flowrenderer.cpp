@@ -1165,7 +1165,7 @@ void FlowRenderer::
 renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, int lastAge, bool constMap){
 	float dirVec[3];
 	float testVec[3];
-	float normVec[3];
+	float normVec[3] = {0.0, 0.0, 1.0};
 	float mappedPoint[3];
 	
 	int currentCycle[3]; 
@@ -1223,7 +1223,6 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 		currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
 		newcycle = false;
 		if (constMap)  glColor4fv(constFlowColor);
-		bool endGL = true;
 		bool firstPoint = true;
 		bool stationaryStart = false;
 		curVaIndex = 0;
