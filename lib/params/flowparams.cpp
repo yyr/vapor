@@ -1953,7 +1953,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numFLASamplesAttr) == 0) {
 				ist >> numFLASamples;
 			}
-			else return false;
 		}
 		//Reset the variable Names, Nums, bounds.  These will be initialized
 		//by the geometry nodes
@@ -2023,7 +2022,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _useSeedListAttr) == 0) {
 				if (value == "true") doRake = false; else doRake = true;
 			}
-			else return false;
 		}
 		return true;
 	}
@@ -2046,7 +2044,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _timestepAttr) == 0) {
 				ist >> psn[3];
 			}
-			else return false;
 		}
 		pt.setVal(psn);
 		seedPointList.push_back(pt);
@@ -2105,7 +2102,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> constantOpacity;
 			}
 			
-			else return false;
 		}
 	//Parse a mapperFunction node (inside the geometry node):
 	} else if (StrCmpNoCase(tagString, MapperFunction::_mapperFunctionTag) == 0) {
@@ -2145,7 +2141,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) {
 				ist >> rightOpacBound;
 			}
-			else return false;
 		}
 		//Plug in these values:
 		//Check first for predefined names.  Same ones are used for opacity and

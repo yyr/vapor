@@ -894,9 +894,9 @@ bool	AMRTree::elementStartHandler(
 			_startElementHandler2(pm, tagstr, attrs);
 			break;
 		default:
-			pm->parseError("Invalid tag : %s", tagstr.c_str());
-			return false;
-	}
+			pm->skipElement(tagstr, level);
+			//pm->parseError("Invalid tag : %s", tagstr.c_str()); return false;
+	} 
 	return true;
 }
 
@@ -1052,16 +1052,17 @@ void	AMRTree::_startElementHandler2(ExpatParseMgr* pm,
 	attrs++;
 
 	if (*attrs) {
-		pm->parseError("Too many attributes");
+		pm->skipElement(tag, 2);
+		//pm->parseError("Too many attributes");
 		return;
-	}
-	istringstream ist(value);
+	} istringstream ist(value);
 
 
 	state->has_data = 1;
 
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		pm->parseError("Invalid attribute : %s", attr.c_str());
+		pm->skipElement(tag, 2);
+		//pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -1082,7 +1083,8 @@ void	AMRTree::_startElementHandler2(ExpatParseMgr* pm,
 		}
 	}
 	else {
-		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		//pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->skipElement(tag, 2);
 		return;
 	}
 }

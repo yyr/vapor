@@ -764,7 +764,6 @@ bool OpacityMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& t
         ist >> _phase;
       }
 
-      else return false;
     }
     
     return true;
@@ -794,7 +793,6 @@ bool OpacityMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& t
       {
         ist >> value;
       }
-      else return false; 
     }    
 
     _controlPoints.push_back(new ControlPoint(value, opacity));
@@ -802,7 +800,8 @@ bool OpacityMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& t
     return true;
   }
 
-  return false;
+  pm->skipElement(tag, depth);
+  return true;
 }
 
 

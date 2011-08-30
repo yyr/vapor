@@ -394,7 +394,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numBitsAttr) == 0){
 				ist >> numBits;
 			}
-            else return false;
 		}
 		// Now set the values obtained from attribute parsing.
 		//Need to match up the varName with the varNum!!
@@ -467,7 +466,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				if (Version::Compare(sesver, "1.2.2") <= 0) 
 					opacFac = opacFac*opacFac;
 			}
-			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
 		//Need to match up the varName with the varNum!!
@@ -490,7 +488,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		transFunc[vnum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
-	else return false;
+	else {
+	   pm->skipElement(tagString, depth);
+	   return true;
+	}
 }
 //The end handler needs to pop the parse stack, not much else
 bool DvrParams::

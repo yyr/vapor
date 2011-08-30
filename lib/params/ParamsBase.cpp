@@ -136,8 +136,9 @@ bool ParamsBase::elementStartHandler(
 	if (*attrs) {
 
 		if (StrCmpNoCase(*attrs, _typeAttr) != 0) {
-			pm->parseError("Invalid attribute : %s", *attrs);
-			return(false);
+			//pm->parseError("Invalid attribute : %s", *attrs);
+			pm->skipElement(tag, depth);
+			return(true);
 		}
 
 		//See if this is a paramNode or paramsBase 
@@ -178,8 +179,9 @@ bool ParamsBase::elementStartHandler(
 	}
 
     if (*attrs) {
-        pm->parseError("Too many attributes");
-        return(false);
+        //pm->parseError("Too many attributes");
+		pm->skipElement(tag, depth);
+        return(true);
     }
 
 	

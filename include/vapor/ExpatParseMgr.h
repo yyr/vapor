@@ -76,6 +76,8 @@ public:
 		currentParsedClass = currentParsedClass->previousClass;
 		return currentParsedClass;
 	}
+
+	void skipElement(string tag, int depth);
 	
 protected:
 	ParsedXml* currentParsedClass;
@@ -136,6 +138,10 @@ protected:
 
 	
 	//Function pointers that handle custom parsing
+private:
+	bool _skipFlag;
+	string _skipTag;
+	int _skipDepth;
 
 };
 

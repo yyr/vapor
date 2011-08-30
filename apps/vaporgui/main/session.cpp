@@ -595,7 +595,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					else if (StrCmpNoCase(attr, _extendDownAttr) == 0){
 						if (value == "true") extendDown = true; else extendDown = false;
 					}
-					else return false;
 				}
 				if (varName == "") return false;
 				int varnum = mergeVariableName(varName);
@@ -604,7 +603,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			} else if (StrCmpNoCase(tag, _pythonScriptsTag) == 0){
 				return true;
 			}
-			return false;
+			pm->skipElement(tag, depth);
+			return true;
 
 		case(2):
 			//parse grandchild tags
@@ -632,7 +632,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				parsed3DOutputVars.clear();
 				return true;
 			}
-			else return false;
+			else {
+				pm->skipElement(tag, depth);
+				return true;
+			}
 		case (3):
 			if (StrCmpNoCase(tag, _pythonProgramTag) == 0){
 				state->has_data = 1;
@@ -649,8 +652,13 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			} else if (StrCmpNoCase(tag, _python3DOutputsTag) == 0){
 				state->has_data = 1;
 				return true;
-			} else return false;
-		default: return false;
+			} else {
+				pm->skipElement(tag, depth);
+				return true;
+			}
+		default: 
+				pm->skipElement(tag, depth);
+				return true;
 	}
 }
 //assemble transfer function and global params after they are parsed.

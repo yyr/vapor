@@ -395,7 +395,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 				else if (value == "right") setStereoMode(2);
 				else setStereoMode(0);
 			}
-			else return false;
 		}
 		//Start by assuming no lights...
 		parsingLightNum = -1;  
@@ -407,14 +406,14 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 		//Need to "push" to viewpoint parser.
 		//That parser will "pop" back to viewpointparams when done.
 		pm->pushClassStack(currentViewpoint);
-		currentViewpoint->elementStartHandler(pm, depth, tagString, attrs);
+//		currentViewpoint->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
 	else if (StrCmpNoCase(tagString, _homeViewTag) == 0) {
 		//Need to "push" to viewpoint parser.
 		//That parser will "pop" back to viewpointparams when done.
 		pm->pushClassStack(homeViewpoint);
-		homeViewpoint->elementStartHandler(pm, depth, tagString, attrs);
+//		homeViewpoint->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
 	else if (StrCmpNoCase(tagString, _lightTag) == 0) {
@@ -442,7 +441,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			else if (StrCmpNoCase(attribName, _specularLightAttr) == 0){
 				ist >>specCoeff;
 			}
-			else return false;
 		}// We should now have a lightnum and a direction
 		if (parsingLightNum < 0 || parsingLightNum >2) return false;
 		lightDirection[parsingLightNum][0] = (float)dir[0];
@@ -453,7 +451,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 		specularCoeff[parsingLightNum] = specCoeff;
 		return true;
 	}
-	else return false;
+cerr <<"SKIPPING " << tagString << endl;
+	pm->skipElement(tagString, depth);
+	return true;
 }
 bool ViewpointParams::
 elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){

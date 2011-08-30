@@ -237,7 +237,7 @@ getNextFrame(int dir){
 }
 
 bool AnimationParams::
-elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const char ** attrs){
+elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char ** attrs){
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
 		//If it's a Animation params tag, save 7 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -291,11 +291,11 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 					timestepList.push_back(tstep);
 				}
 			}
-			else return false;
 		}
 		return true;
 	}
-	return false;  //Not an animationParams tag
+	pm->skipElement(tag, depth);
+	return true;
 }
 bool AnimationParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){

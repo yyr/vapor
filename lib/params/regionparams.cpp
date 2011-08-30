@@ -622,7 +622,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 
 
 bool RegionParams::
-elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, const char **attrs){
+elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tagString, const char **attrs){
 	if (StrCmpNoCase(tagString, _regionParamsTag) == 0) {
 		clearRegionsMap();
 		//If it's a region tag, save 4 attributes (2 are from Params class)
@@ -650,7 +650,6 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 			else if (StrCmpNoCase(attribName, _fullHeightAttr) == 0) {
 				ist >> fullHeight;
 			}
-			else return false;
 		}
 		return true;
 	}
@@ -700,7 +699,8 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 		myBox->SetExtents(exts, tstep);
 		return true;
 	}
-	else return false;
+	pm->skipElement(tagString, depth);
+	return true;
 }
 bool RegionParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){

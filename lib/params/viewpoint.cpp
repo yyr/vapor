@@ -49,7 +49,7 @@ const string Viewpoint::_perspectiveAttr = "Perspective";
 
 
 bool Viewpoint::
-elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, const char ** attrs){
+elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tagString, const char ** attrs){
 	if (StrCmpNoCase(tagString, _viewpointTag) == 0) {
 		//If it's a viewpoint tag, save 1 attribute
 		//Do this by pulling off the attribute name and value
@@ -63,7 +63,6 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 			if (StrCmpNoCase(attribName, _perspectiveAttr) == 0) {
 				if (value == "true") perspective = true; else perspective = false;
 			}
-			else return false;
 		}
 		return true;
 	}
@@ -93,7 +92,9 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 		state->data_type = value;
 		return true;  
 	}
-	else return false;
+cerr << "XXX Skipping " << tagString << endl;
+	pm->skipElement(tagString, depth);
+	return(true);
 }
 bool Viewpoint::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){

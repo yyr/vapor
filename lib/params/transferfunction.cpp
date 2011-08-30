@@ -254,7 +254,6 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
         ist >> type;
         setOpacityComposition((CompositionType)type);
       }
-      else return false;
     }
 
     return true;
@@ -283,7 +282,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
         ist >> hue;
         ist >> sat;
         ist >> val;
-      } else return false;//Unknown attribute
+      } 
     }
 
     _colormap->addNormControlPoint(posn, VColormap::Color(hue, sat, val));
@@ -310,7 +309,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
       } else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
       { 
         ist >> opacity;
-      } else return false; //Unknown attribute
+      } 
     }
 
     if (_opacityMaps.size() == 0)
@@ -359,9 +358,10 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
 		
 		state->data_type = value;
 		return true;  
+	} else {
+		pm->skipElement(tagString, depth);
+		return true;
 	}
-
-  else return false;
 }
 
 

@@ -323,10 +323,6 @@ bool IsoControl::elementStartHandler(ExpatParseMgr* pm,
 				ist >> floatval;
 				setMaxOpacMapValue(floatval);
 			}      
-			else
-			{
-				return false;
-			}
 		}
 		return true;
 	}
@@ -356,7 +352,10 @@ bool IsoControl::elementStartHandler(ExpatParseMgr* pm,
 		state->data_type = value;
 		return true;  
 	}
-	else return false;
+	else {
+		pm->skipElement(tagString, depth);
+		return true;
+	}
 	
 }
 

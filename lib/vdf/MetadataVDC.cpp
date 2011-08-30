@@ -1170,8 +1170,8 @@ bool	MetadataVDC::elementStartHandler(ExpatParseMgr* pm, int level , std::string
 			_startElementHandler3(pm, tagstr, attrs);
 			break;
 		default:
-			pm->parseError("Invalid tag : %s", tagstr.c_str());
-			return false;
+			pm->skipElement(tagstr, level);
+			return true;
 	}
 	return true;
 }
@@ -1338,7 +1338,7 @@ void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
 			}
 		}
 		else {
-			pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+			pm->skipElement(tag, 1);
 			return;
 		}
 		return;
@@ -1354,7 +1354,8 @@ void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
 	attrs++;
 
 	if (*attrs) {
-		pm->parseError("Too many attributes");
+		pm->skipElement(tag, 1);
+		//pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -1362,7 +1363,8 @@ void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
 
 	state->has_data = 1;
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		pm->parseError("Invalid attribute : %s", attr.c_str());
+		pm->skipElement(tag, 1);
+		//pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -1441,7 +1443,8 @@ void	MetadataVDC::_startElementHandler1(ExpatParseMgr* pm,
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
 
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->skipElement(tag, 1);
+			//pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 		state->user_defined = 1;
@@ -1471,7 +1474,8 @@ void	MetadataVDC::_startElementHandler2(ExpatParseMgr* pm,
 				return;
 			}
 		}
-		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		//pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->skipElement(tag, 2);
 		return;
 	}
 
@@ -1485,7 +1489,8 @@ void	MetadataVDC::_startElementHandler2(ExpatParseMgr* pm,
 	attrs++;
 
 	if (*attrs) {
-		pm->parseError("Too many attributes");
+		//pm->parseError("Too many attributes");
+		pm->skipElement(tag, 2);
 		return;
 	}
 	istringstream ist(value);
@@ -1495,7 +1500,8 @@ void	MetadataVDC::_startElementHandler2(ExpatParseMgr* pm,
 	state->has_data = 1;
 
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		pm->parseError("Invalid attribute : %s", attr.c_str());
+		//pm->parseError("Invalid attribute : %s", attr.c_str());
+		pm->skipElement(tag, 2);
 		return;
 	}
 
@@ -1545,7 +1551,8 @@ void	MetadataVDC::_startElementHandler3(ExpatParseMgr* pm,
 	string type;
 
 	if (! *attrs) {
-		pm->parseError("Expected element attribute");
+		pm->skipElement(tag, 3);
+		//pm->parseError("Expected element attribute");
 		return;
 	}
 
@@ -1555,7 +1562,8 @@ void	MetadataVDC::_startElementHandler3(ExpatParseMgr* pm,
 	attrs++;
 
 	if (*attrs) {
-		pm->parseError("Too many attributes");
+		//pm->parseError("Too many attributes");
+		pm->skipElement(tag, 3);
 		return;
 	}
 	istringstream ist(value);
@@ -1567,7 +1575,8 @@ void	MetadataVDC::_startElementHandler3(ExpatParseMgr* pm,
 	state->has_data = 1;
 
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		pm->parseError("Invalid attribute : %s", attr.c_str());
+		//pm->parseError("Invalid attribute : %s", attr.c_str());
+		pm->skipElement(tag, 3);
 		return;
 	}
 
@@ -1592,7 +1601,8 @@ void	MetadataVDC::_startElementHandler3(ExpatParseMgr* pm,
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
 
-			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->skipElement(tag, 3);
+			//pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 		state->user_defined = 1;

@@ -303,7 +303,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				imageFileName = value;
 			}
 			
-			else return false;
 		}
 		return true;
 	}
@@ -329,11 +328,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
 			}
-			else return false;
 		}
 		return true;
 	}
-	else return false;
+	pm->skipElement(tagString, depth);
+	return true;
 }
 //The end handler needs to pop the parse stack, not much else
 bool TwoDImageParams::

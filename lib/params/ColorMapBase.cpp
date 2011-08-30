@@ -611,7 +611,6 @@ bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag
         ist >> _maxValue;
       }
 
-      else return false;
     }
     
     return true;
@@ -659,15 +658,15 @@ bool ColorMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag
         ist >> value;
       }
 
-      else return false; 
     }    
 
     _controlPoints.push_back(new ControlPoint(Color(hue, sat, val), value));
 
     return true;
   }
+  pm->skipElement(tag, depth);
+  return true;
 
-  return false;
 }
 
 

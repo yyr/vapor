@@ -9,7 +9,6 @@
 #ifndef OpacityMap_H
 #define OpacityMap_H
 
-#include <vapor/ExpatParseMgr.h>
 #include <vapor/tfinterpolator.h>
 #include <vapor/OpacityMapBase.h>
 

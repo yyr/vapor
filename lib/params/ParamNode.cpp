@@ -19,7 +19,6 @@
 //
 //	Description:	
 //
-#include <vapor/ExpatParseMgr.h>
 #include <iostream>
 #include <cassert>
 #include <vapor/Base64.h>

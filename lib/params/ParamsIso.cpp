@@ -629,7 +629,6 @@ bool ParamsIso::elementStartHandler(
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				ist >> opacFac;
 			}
-			else return false;
 		}
 	
 		//Add this variable to the session variable names, and set up

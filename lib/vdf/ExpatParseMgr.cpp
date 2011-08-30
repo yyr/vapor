@@ -78,6 +78,9 @@ void	_CharDataHandler(
 };
 
 ExpatParseMgr::ExpatParseMgr(ParsedXml* pc){
+	_skipFlag = false;
+	_skipTag = "";
+	_skipDepth = 0;
 	SetDiagMsg("ExpatParseMgr::ExpatParseMgr()");
 	currentParsedClass = pc;
 	// Create an Expat XML parser to parse the XML formatted metadata file
@@ -90,6 +93,12 @@ ExpatParseMgr::ExpatParseMgr(ParsedXml* pc){
 	XML_SetCharacterDataHandler(_expatParser, _CharDataHandler);
 
 	XML_SetUserData(_expatParser, (void *) this);
+}
+void ExpatParseMgr::skipElement(string tag, int depth) {
+	SetDiagMsg("ExpatParseMgr::skipElement(%s, %d)", tag.c_str(), depth);
+	_skipFlag = true;
+	_skipTag = tag;
+	_skipDepth = depth;
 }
 
 
@@ -167,7 +176,7 @@ void	ExpatParseMgr::_startElementHandler(
 	// Invoke the user-supplied element handler depending on 
 	// the XML tree depth
 	//
-	if (currentParsedClass){
+	if (currentParsedClass && ! _skipFlag){
 		bool ok = currentParsedClass->elementStartHandler(this, level, tagstr, attrs);
 		if (!ok) parseError("Unable to parse start tag %s", tagstr.c_str());
 	}
@@ -218,7 +227,7 @@ void	ExpatParseMgr::_endElementHandler(const  XML_Char *tag)
 	// XML tree depth, 'level'
 	//
 	
-	if (currentParsedClass){
+	if (currentParsedClass && ! _skipFlag){
 		bool ok = currentParsedClass->elementEndHandler(this, level , tagstr);
 		if (!ok) parseError("Unable to parse end tag %s", tagstr.c_str());
 	}
@@ -226,9 +235,17 @@ void	ExpatParseMgr::_endElementHandler(const  XML_Char *tag)
 	_expatStateStack.pop();
 	delete state;
 
+	// clear skipFlag if this is the matching end token for the currently
+	// skipped element
+	//
+	if (_skipFlag && _skipDepth == level && StrCmpNoCase(_skipTag,tagstr)==0){
+		_skipFlag = false;
+	}
 }
 
 void	ExpatParseMgr::_charDataHandler(const XML_Char *s, int len) {
+
+	if (_skipFlag) return;
 
 	ExpatStackElement *state = _expatStateStack.top();;
 

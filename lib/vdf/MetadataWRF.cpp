@@ -676,13 +676,3 @@ int MetadataWRF::GetRotatedLatLonExtents(double exts[4]){
 	return 0;
 }
 
-
-//bool MetadataWRF::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
-//{
- // return true;
-//}
-
-//bool MetadataWRF::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
- // return true;
-//}
-

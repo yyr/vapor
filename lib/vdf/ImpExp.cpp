@@ -187,8 +187,9 @@ elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const ch
 		_startElementHandler1(pm, tagstr, attrs);
 		break;
 	default:
-		pm->parseError("Invalid tag : %s", tagstr.c_str());
-		return false;
+		//pm->parseError("Invalid tag : %s", tagstr.c_str());
+		pm->skipElement(tagstr, level);
+		return true;
 	}
 	return true;
 }
@@ -246,7 +247,8 @@ void	ImpExp::_startElementHandler1(ExpatParseMgr* pm,
 	// 
 	//
 	if (! *attrs) {
-		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		//pm->parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->skipElement(tag, 1);
 		return;
 	}
 
@@ -260,7 +262,8 @@ void	ImpExp::_startElementHandler1(ExpatParseMgr* pm,
 	attrs++;
 
 	if (*attrs) {
-		pm->parseError("Too many attributes");
+		pm->skipElement(tag, 1);
+		//pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -268,7 +271,8 @@ void	ImpExp::_startElementHandler1(ExpatParseMgr* pm,
 
 	state->has_data = 1;
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		pm->parseError("Invalid attribute : %s", attr.c_str());
+		pm->skipElement(tag, 1);
+		//pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -306,7 +310,8 @@ void	ImpExp::_startElementHandler1(ExpatParseMgr* pm,
 		}
 	}
 	else {
-		pm->parseError("Invalid tag : %s", tag.c_str());
+		pm->skipElement(tag, 1);
+		//pm->parseError("Invalid tag : %s", tag.c_str());
 		return;
 	}
 }

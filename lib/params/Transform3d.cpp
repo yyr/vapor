@@ -75,7 +75,8 @@ bool Transform3d::Rotate::elementStartHandler(ExpatParseMgr* pm, int depth,
       return true;
    }
    
-   return false;
+   pm->skipElement(tagString, depth);
+   return true;
 }
 
 //----------------------------------------------------------------------------
@@ -153,7 +154,8 @@ bool Transform3d::Translate::elementStartHandler(ExpatParseMgr* pm, int depth,
       return true;
    }
    
-   return false;
+   pm->skipElement(tagString, depth);
+   return true;
 }
 
 //----------------------------------------------------------------------------
@@ -231,7 +233,8 @@ bool Transform3d::Scale::elementStartHandler(ExpatParseMgr* pm, int depth,
       return true;
    }
    
-   return false;
+   pm->skipElement(tagString, depth);
+   return true;
 
 }
 
@@ -311,7 +314,7 @@ ParamNode* Transform3d::Matrix::buildNode()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------      
-bool Transform3d::Matrix::elementStartHandler(ExpatParseMgr *pm, int, 
+bool Transform3d::Matrix::elementStartHandler(ExpatParseMgr *pm, int depth, 
                                               std::string& tagString, 
                                               const char **attrs)
 {
@@ -324,7 +327,8 @@ bool Transform3d::Matrix::elementStartHandler(ExpatParseMgr *pm, int,
       return true;
    }
 
-   return false;
+   pm->skipElement(tagString, depth);
+   return true;
 }
 
 //----------------------------------------------------------------------------
@@ -577,7 +581,8 @@ bool Transform3d::elementStartHandler(ExpatParseMgr* pm, int depth,
       return matrix->elementStartHandler(pm, depth, tagString, attrs);
    }
 
-   return false;
+   pm->skipElement(tagString, depth);
+   return true;
 }
 
 //----------------------------------------------------------------------------

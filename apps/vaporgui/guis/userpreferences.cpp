@@ -1350,8 +1350,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					ses->setAutoSaveInterval(intvl);
 				}
 				else {
-					pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-					return false;
 				}
 			}
 			return true;
@@ -1400,8 +1398,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						DataStatus::enableSubregionFrame(boolval);
 					}
 					else {
-						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1446,8 +1442,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						DataStatus::setTrackMouse(boolval);
 					}
 					else {
-						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1473,7 +1467,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					attrs++;
 					state->has_data = 1;
 					return true;
-				} else return false;
+				} 
 			} else if (StrCmpNoCase(tag, _probeDefaultsTag) == 0){
 				while (*attrs) {
 					string attr = *attrs;
@@ -1495,8 +1489,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						ProbeParams::setDefaultPsi(fltVal);
 					}
 					else {
-						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1551,8 +1543,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						}
 					}
 					else {
-						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1588,8 +1578,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						ist >> intVal;
 						FlowParams::setDefaultGeometryType(intVal);
 					} else {
-						pm->parseError("Invalid preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1606,8 +1594,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						ParamsIso::setDefaultBitsPerVoxel(intVal);
 					} 
 					else {
-						pm->parseError("Invalid iso preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1637,8 +1623,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						else val = false;
 						DvrParams::setDefaultPreIntegration(val);
 					} else {
-						pm->parseError("Invalid dvr preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1657,8 +1641,6 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						ist >> fltVal;
 						AnimationParams::setDefaultMaxFPS(fltVal);
 					} else {
-						pm->parseError("Invalid animation preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
@@ -1692,19 +1674,20 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						GLWindow::setDefaultSpinAnimate(val);
 						GLWindow::setSpinAnimation(val);
 					} else {
-						pm->parseError("Invalid viz feature preferences tag attribute : \"%s\"", attr.c_str());
-						return false;
 					}
 				}
 				return true;
 			} else {
-				pm->parseError("Invalid preferences tag  : \"%s\"", tag.c_str());
-				return false;
+				pm->skipElement(tag, depth);
+				return true;
 			}
 		}//end of child tags
-		return false;
+		default: 
+			pm->skipElement(tag, depth);
+			return true;
 	} //end switch (depth)
-	return false;
+	pm->skipElement(tag, depth);
+	return true;
 }
 
 bool UserPreferences::elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){

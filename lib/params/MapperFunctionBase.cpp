@@ -525,10 +525,6 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
         ist >> type;
         setOpacityComposition((CompositionType)type);
      }
-      else
-      {
-        return false;
-      }
     }
     
     return true;
@@ -602,7 +598,7 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
         ist >> hue;
         ist >> sat;
         ist >> val;
-      } else return false;//Unknown attribute
+      } 
     }
 
     _colormap->addNormControlPoint(posn, ColorMapBase::Color(hue, sat, val));
@@ -629,7 +625,7 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
       } else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
       { 
         ist >> opacity;
-      } else return false; //Unknown attribute
+      } 
     }
 
     if (_opacityMaps.size() == 0)
@@ -659,7 +655,8 @@ bool MapperFunctionBase::elementStartHandler(ExpatParseMgr* pm,
     return _colormap->elementStartHandler(pm, depth, tagString, attrs);
   }
 
-  else return false;
+	pm->skipElement(tagString, depth);
+	return(true);
 }
 
 

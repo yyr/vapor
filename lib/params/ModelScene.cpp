@@ -215,7 +215,8 @@ bool ModelScene::elementStartHandler(ExpatParseMgr* pm, int level,
       return transform->elementStartHandler(pm, level, tagString, attrs);
    }
    
-   return false;
+   pm->skipElement(tagString, level);
+   return true;
 }
 
 //----------------------------------------------------------------------------
@@ -379,7 +380,8 @@ bool ModelScene::Timestep::elementStartHandler(ExpatParseMgr* pm, int depth,
       return transform->elementStartHandler(pm, depth, tag, attrs);
    }
    
-   return false;
+   pm->skipElement(tag, depth);
+   return true;
 }
 
 //----------------------------------------------------------------------------

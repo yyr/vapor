@@ -505,7 +505,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _orientationAttr) == 0) {
 				ist >> orientation;
 			}
-			else return false;
 		}
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
@@ -583,7 +582,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				ist >> opacFac;
 			}
-			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
 	
@@ -625,11 +623,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
 			}
-			else return false;
 		}
 		return true;
 	}
-	else return false;
+	pm->skipElement(tagString, depth);
+	return true;
 }
 //The end handler needs to pop the parse stack, not much else
 bool TwoDDataParams::
