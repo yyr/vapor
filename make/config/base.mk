@@ -65,7 +65,7 @@ DSO_DIR := $(ABS_TOP)/targets/$(PLATFORM)/bin
 BINDIR := $(TOP)/targets/$(PLATFORM)/bin
 endif
 
-INCLUDE_DIRS := -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
+INCLUDE_DIRS := -I$(INCDIR) -I. 
 
 define MAKE_MOCDIR
 	if test ! -d $(MOC_DIR); then $(MKDIR) $(MOC_DIR); fi
