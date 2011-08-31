@@ -468,9 +468,10 @@ int AMRData::WriteNCDF(
 
 		size_t start[] = {n,0,0,0};
         size_t count[] = {branch_nodes,_cellDim[2],_cellDim[1],_cellDim[0]};
+		ptrdiff_t stride[] = {1,1,1,1};
 
         rc = nc_put_vars_float(
-                ncid, varid, start, count, NULL, data
+                ncid, varid, start, count, stride, data
         );
         if (rc != NC_NOERR) {
             SetErrMsg( "Error writing netCDF file : %s",  nc_strerror(rc) );

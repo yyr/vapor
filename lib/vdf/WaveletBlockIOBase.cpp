@@ -917,18 +917,20 @@ int	WaveletBlockIOBase::writeBlocks(
 
 		size_t start[] = {_ncoffsets[reflevel],0,0,0};
 		size_t count[] = {n,bs[2],bs[1],bs[0]};
+		ptrdiff_t stride[] = {1,1,1,1};
 
 		rc = nc_put_vars_float(
-			_ncids[reflevel], _ncvars[reflevel], start, count, NULL, blks
+			_ncids[reflevel], _ncvars[reflevel], start, count, stride, blks
 		);
 
 	}
 	else {
 		size_t start[] = {_ncoffsets[reflevel],0,0};
 		size_t count[] = {n,i1,i2};
+		ptrdiff_t stride[] = {1,1,1};
 
 		rc = nc_put_vars_float(
-				_ncids[reflevel], _ncvars[reflevel], start, count, NULL, blks
+				_ncids[reflevel], _ncvars[reflevel], start, count, stride, blks
 		);
 	}
 

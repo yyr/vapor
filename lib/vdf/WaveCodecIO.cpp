@@ -2092,6 +2092,7 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 
 	for(int j=0; j<=_wc->_lod; j++) {
 		size_t start[] = {0,0,0,0};
+		ptrdiff_t stride[] = {1,1,1,1};
 		size_t wcount[] = {1,1,1,1};
 		size_t scount[] = {1,1,1,1};
 
@@ -2122,7 +2123,7 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 		rc = nc_var_par_access(_wc->_ncids[j], _wc->_nc_wave_vars[j], _wc->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
 #endif
 		rc = nc_put_vars_float(
-			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr
+			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, stride, cvectorptr
 		);
 		NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
 #endif	
@@ -2153,7 +2154,7 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 				);
 			}
 			rc = nc_put_vars(
-				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, map
+				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, stride, map
 			);
 			NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
 #endif
