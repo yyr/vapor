@@ -88,8 +88,9 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	flowDataChanged = false;
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
-	showAdvanced = false;
-	showMapEditor = true;
+	showSeeding = true;
+	showAppearance=true;
+	showUnsteadyTime=true;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
 #ifdef Darwin
@@ -112,27 +113,19 @@ FlowEventRouter::hookUpTab()
 {
 	//Connect up the sampleTable events:
 	connect (addSampleButton1,SIGNAL(clicked()), this, SLOT(addSample()));
-	connect (addSampleButton2,SIGNAL(clicked()), this, SLOT(addSample()));
+	
 	connect (flowHelpButton, SIGNAL(clicked()), this, SLOT(showSetupHelp()));
 	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
-	connect (deleteSampleButton2,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (rebuildButton1, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
-	connect (rebuildButton2, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
+	
 	connect (timestepSampleTable1, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
-	connect (timestepSampleTable2, SIGNAL(cellChanged(int,int)), this, SLOT(timestepChanged2(int,int)));
+	
 	connect (timestepSampleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
-	connect (timestepSampleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	
 	connect (stopButton, SIGNAL(clicked()), this, SLOT(stopClicked()));
-	connect (showAdvancedButton, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
-	connect (hideAdvanced1, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
-	connect (hideAdvanced2, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
-	connect (hideAdvanced3, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
+	
 	connect (autoScaleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
-	connect (autoScaleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
 	connect (displayListCheckbox,SIGNAL(toggled(bool)),this,SLOT(guiToggleDisplayLists(bool)));
-	connect (showMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
-	connect (hideMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	
 	connect (flaOptionCombo, SIGNAL(activated(int)), this, SLOT(guiSetFLAOption(int)));
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( guiSetFlowType(int) ) );
@@ -148,15 +141,10 @@ FlowEventRouter::hookUpTab()
 	connect (xUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboUnsteadyVarNum(int)));
 	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboUnsteadyVarNum(int)));
 	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboUnsteadyVarNum(int)));
-	connect (xSeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
-	connect (ySeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
-	connect (zSeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
-	connect (xSeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
-	connect (ySeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
-	connect (zSeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
-	connect (xSeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
-	connect (ySeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
-	connect (zSeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
+	connect (xSeedDistCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
+	connect (ySeedDistCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
+	connect (zSeedDistCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
+	
 	connect (xSeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboPriorityVarNum(int)));
 	connect (ySeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboPriorityVarNum(int)));
 	connect (zSeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboPriorityVarNum(int)));
@@ -171,12 +159,11 @@ FlowEventRouter::hookUpTab()
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetZSize(int)));
 
 	connect (biasSlider1, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider1(int)));
-	connect (biasSlider2, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider2(int)));
-	connect (biasSlider3, SIGNAL(valueChanged(int)), this, SLOT(setBiasFromSlider3(int)));
+	
 	connect (steadyLengthSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetSteadyLength(int)));
 	connect (smoothnessSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetSmoothness(int)));
 	connect (steadySamplesSlider1, SIGNAL(valueChanged(int)), this, SLOT(guiSetSteadySamples(int)));
-	connect (steadySamplesSlider2, SIGNAL(valueChanged(int)), this, SLOT(guiSetSteadySamples(int)));
+	
 	
 	connect (unsteadySamplesSlider, SIGNAL(valueChanged(int)), this, SLOT(guiSetUnsteadySamples(int)));
 	
@@ -199,8 +186,6 @@ FlowEventRouter::hookUpTab()
 	connect (unsteadySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (steadySamplesEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (steadySamplesEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (steadySamplesEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (steadySamplesEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
 	connect (flaSamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flaSamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
@@ -217,8 +202,6 @@ FlowEventRouter::hookUpTab()
 		
 	connect (steadyScaleEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (steadyScaleEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (steadyScaleEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (steadyScaleEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
 	connect (unsteadyScaleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (unsteadyScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
@@ -229,12 +212,6 @@ FlowEventRouter::hookUpTab()
 	connect (timesampleEndEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (timesampleIncrementEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (timesampleIncrementEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleStartEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleStartEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleEndEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleEndEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleIncrementEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleIncrementEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
 	connect (priorityFieldMinEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (priorityFieldMinEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -242,10 +219,7 @@ FlowEventRouter::hookUpTab()
 	connect (priorityFieldMaxEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (biasEdit1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (biasEdit1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (biasEdit2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (biasEdit2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (biasEdit3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (biasEdit3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	
 	
 	connect (randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -322,6 +296,9 @@ FlowEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setFlowEnabled(bool,int)));
+	connect (showHideSeedingButton, SIGNAL(pressed()), this, SLOT(showHideSeeding()));
+	connect (showHideTimeButton, SIGNAL(pressed()), this, SLOT(showHideUnsteadyTime()));
+	connect (showHideAppearanceButton, SIGNAL(pressed()), this, SLOT(showHideAppearance()));
 	dontUpdate=false;
 }
 
@@ -352,7 +329,8 @@ void FlowEventRouter::updateTab(){
 		case (0) : //steady
 			steadyFieldFrame->show();
 			unsteadyFieldFrame->hide();
-			unsteadyGraphicFrame->hide();
+			fullUnsteadyTimeFrame->hide();
+			advancedLineAdvectionFrame->hide();
 			if (autoScale){
 				smoothnessSlider->setEnabled(true);
 				smoothnessSamplesEdit->setEnabled(true);
@@ -370,7 +348,6 @@ void FlowEventRouter::updateTab(){
 				steadySamplesEdit1->setEnabled(true);
 				steadyScaleEdit1->setEnabled(false);
 			}
-			seedTimeFrame->hide();
 			
 			colormapEntityCombo->setItemText(1,"Position on Flow");
 			opacmapEntityCombo->setItemText(1,"Position on Flow");
@@ -378,45 +355,48 @@ void FlowEventRouter::updateTab(){
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
 			unsteadyFieldFrame->show();
+			fullUnsteadyTimeFrame->show();
+			advancedLineAdvectionFrame->hide();
 			flowHelpButton->setText("Unsteady Flow Setup Help");
-			unsteadyGraphicFrame->show();
+			
 			smoothnessSlider->setEnabled(false);
 			smoothnessSamplesEdit->setEnabled(false);
 			steadyLengthEdit->setEnabled(false);
 			steadyLengthSlider->setEnabled(false);
 			seedtimeIncrementEdit->setEnabled(true);
 			seedtimeEndEdit->setEnabled(true);
-			seedTimeFrame->show();
+		
 			
 			colormapEntityCombo->setItemText(1,"Time Step");
 			opacmapEntityCombo->setItemText(1,"Time Step");
 			break;
 		case(2) : //field line advection
-			
+			advancedLineAdvectionFrame->show();
 			steadyFieldFrame->show();
 			unsteadyFieldFrame->show();
+			fullUnsteadyTimeFrame->show();
+			
 			flowHelpButton->setText("Field Line Advection Setup Help");
-			unsteadyGraphicFrame->hide();
+
 			if (autoScale){
 				smoothnessSlider->setEnabled(true);
 				smoothnessSamplesEdit->setEnabled(true);
 				steadyLengthEdit->setEnabled(true);
 				steadyLengthSlider->setEnabled(true);
-				steadySamplesSlider2->setEnabled(false);
-				steadySamplesEdit2->setEnabled(false);
-				steadyScaleEdit2->setEnabled(false);
+				steadySamplesSlider1->setEnabled(false);
+				steadySamplesEdit1->setEnabled(false);
+				steadyScaleEdit1->setEnabled(false);
 			} else {
 				smoothnessSlider->setEnabled(false);
 				smoothnessSamplesEdit->setEnabled(false);
 				steadyLengthEdit->setEnabled(false);
 				steadyLengthSlider->setEnabled(false);
-				steadySamplesSlider2->setEnabled(true);
-				steadySamplesEdit2->setEnabled(true);
-				steadyScaleEdit2->setEnabled(true);
+				steadySamplesSlider1->setEnabled(true);
+				steadySamplesEdit1->setEnabled(true);
+				steadyScaleEdit1->setEnabled(true);
 			}
 			seedtimeIncrementEdit->setEnabled(false);
 			seedtimeEndEdit->setEnabled(false);
-			seedTimeFrame->show();
 			
 			colormapEntityCombo->setItemText(1,"Position on Flow");
 			opacmapEntityCombo->setItemText(1,"Position on Flow");
@@ -424,116 +404,98 @@ void FlowEventRouter::updateTab(){
 		default :
 			assert(0);
 	}
-	if (showMapEditor){
-		mappingFrame->show();
-		showMappingFrame->hide();
+	
+
+	float biasVal = fParams->getSeedDistBias();
+	switch (flowType){
+		int bval;
+		case (0) : //steady
+
+			
+			autoScaleCheckbox1->setChecked(autoScale);
+			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+			steadyScaleEdit1->setEnabled(!autoScale);
+			xSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
+			ySeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
+			zSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
+			biasEdit1->setText(QString::number(biasVal));
+			guiSetTextChanged(false);
+			bval = biasSlider1->value();
+			if (bval != (int)(biasVal*128.f/15.f))
+				biasSlider1->setValue((int)(biasVal*128.f/15.f));
+			break;
+		case (1) : //unsteady
+			
+			//Set up the timestep sample table:
+			timestepSampleTable1->horizontalHeader()->hide();
+			timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
+			timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
+			timestepSampleTable1->setColumnWidth(0,80);
+			timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+			timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+			timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
+			populateTimestepTables();
+			biasEdit1->setText(QString::number(biasVal));
+			guiSetTextChanged(false);
+			xSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
+			ySeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
+			zSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
+			
+			bval = biasSlider1->value();
+			if (bval != (int)(biasVal*128.f/15.f))
+				biasSlider1->setValue((int)(biasVal*128.f/15.f));
+			break;
+		case(2) : //field line advection
+			
+			//Set up the timestep sample table:
+			timestepSampleTable1->horizontalHeader()->hide();
+			timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
+			timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+			timestepSampleTable1->setColumnWidth(0,80);
+			{
+				int advectBeforePriorOption = 
+					fParams->getFLAAdvectBeforePrioritize() ? 1 : 0 ;
+				flaOptionCombo->setCurrentIndex(advectBeforePriorOption);
+				int numSamps = (advectBeforePriorOption == 0) ? 1 : fParams->getNumFLASamples() ;
+				flaSamplesEdit->setEnabled(advectBeforePriorOption == 1);
+				priorityFieldMinEdit->setEnabled(advectBeforePriorOption != 1);
+				priorityFieldMaxEdit->setEnabled(advectBeforePriorOption != 1);
+				flaSamplesEdit->setText(QString::number(numSamps));
+			}
+			timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+			timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+			timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
+			autoScaleCheckbox1->setChecked(autoScale);
+			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+			steadyScaleEdit1->setEnabled(!autoScale);
+			populateTimestepTables();
+			
+			xSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(0));
+			ySeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(1));
+			zSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(2));
+			
+			priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
+			priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
+			
+			biasEdit1->setText(QString::number(biasVal));
+			guiSetTextChanged(false);
+			bval = biasSlider1->value();
+			if (bval != (int)(biasVal*128.f/15.f))
+				biasSlider1->setValue((int)(biasVal*128.f/15.f));
+			
+			break;
+		default :
+			assert(0);
+	}
 		
-	} else {
-		mappingFrame->hide();
-		showMappingFrame->show();
-	}
-
-	if (showAdvanced){
-		float biasVal = fParams->getSeedDistBias();
-		switch (flowType){
-			int bval;
-			case (0) : //steady
-
-				advancedSteadyFrame->show();
-				advancedUnsteadyFrame->hide();
-				advancedLineAdvectionFrame->hide();
-				steadyFieldFrame->show();
-				unsteadyFieldFrame->hide();
-				autoScaleCheckbox1->setChecked(autoScale);
-				steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
-				steadyScaleEdit1->setEnabled(!autoScale);
-				xSeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo1->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
-				biasEdit1->setText(QString::number(biasVal));
-				guiSetTextChanged(false);
-				bval = biasSlider1->value();
-				if (bval != (int)(biasVal*128.f/15.f))
-					biasSlider1->setValue((int)(biasVal*128.f/15.f));
-				break;
-			case (1) : //unsteady
-				advancedSteadyFrame->hide();
-				advancedUnsteadyFrame->show();
-				advancedLineAdvectionFrame->hide();
-				//Set up the timestep sample table:
-				timestepSampleTable1->horizontalHeader()->hide();
-				timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
-				timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
-				timestepSampleTable1->setColumnWidth(0,80);
-				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
-				populateTimestepTables();
-				biasEdit2->setText(QString::number(biasVal));
-				guiSetTextChanged(false);
-				xSeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo2->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
-				
-				bval = biasSlider2->value();
-				if (bval != (int)(biasVal*128.f/15.f))
-					biasSlider2->setValue((int)(biasVal*128.f/15.f));
-				break;
-			case(2) : //field line advection
-				advancedSteadyFrame->hide();
-				advancedUnsteadyFrame->hide();
-				advancedLineAdvectionFrame->show();
-				//Set up the timestep sample table:
-				timestepSampleTable2->horizontalHeader()->hide();
-				timestepSampleTable2->setSelectionMode(QAbstractItemView::SingleSelection);
-				timestepSampleTable2->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-				timestepSampleTable2->setColumnWidth(0,80);
-				{
-					int advectBeforePriorOption = 
-						fParams->getFLAAdvectBeforePrioritize() ? 1 : 0 ;
-					flaOptionCombo->setCurrentIndex(advectBeforePriorOption);
-					int numSamps = (advectBeforePriorOption == 0) ? 1 : fParams->getNumFLASamples() ;
-					flaSamplesEdit->setEnabled(advectBeforePriorOption == 1);
-					priorityFieldMinEdit->setEnabled(advectBeforePriorOption != 1);
-					priorityFieldMaxEdit->setEnabled(advectBeforePriorOption != 1);
-					flaSamplesEdit->setText(QString::number(numSamps));
-				}
-				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
-				autoScaleCheckbox2->setChecked(autoScale);
-				steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
-				steadyScaleEdit2->setEnabled(!autoScale);
-				populateTimestepTables();
-				xSeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
-				ySeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
-				zSeedDistCombo3->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
-				xSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(0));
-				ySeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(1));
-				zSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(2));
-				
-				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
-				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
-				
-				biasEdit3->setText(QString::number(biasVal));
-				guiSetTextChanged(false);
-				bval = biasSlider3->value();
-				if (bval != (int)(biasVal*128.f/15.f))
-					biasSlider3->setValue((int)(biasVal*128.f/15.f));
-				
-				break;
-			default :
-				assert(0);
-		}
-		showAdvancedFrame->hide();
-	} else { //Don't show advanced panels:
-		advancedSteadyFrame->hide();
-		advancedUnsteadyFrame->hide();
-		advancedLineAdvectionFrame->hide();
-		showAdvancedFrame->show();
-	}
-	//updateGeometry();
+	
+	if (showAppearance) appearanceFrame->show();
+	else appearanceFrame->hide();
+	if (showSeeding) seedingFrame->show();
+	else seedingFrame->hide();
+	if (showUnsteadyTime && flowType>0) unsteadyTimeFrame->show();
+	else unsteadyTimeFrame->hide();
 	adjustSize();
 
 	
@@ -549,10 +511,7 @@ void FlowEventRouter::updateTab(){
 	timestepSampleTable1->setSelectionMode(QAbstractItemView::SingleSelection);
 	timestepSampleTable1->setSelectionBehavior(QAbstractItemView::SelectRows);
 	timestepSampleTable1->setColumnWidth(0,80);
-	timestepSampleTable2->horizontalHeader()->hide();
-	timestepSampleTable2->setSelectionMode(QAbstractItemView::SingleSelection);
-	timestepSampleTable2->setSelectionBehavior(QAbstractItemView::SelectRows);
-	timestepSampleTable2->setColumnWidth(0,80);
+	
 	populateTimestepTables();
 
 	if (numViz > 1) {
@@ -693,8 +652,8 @@ void FlowEventRouter::updateTab(){
 	}
 	if (flowType == 2) {
 		int sval = (int)(0.5f+256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333);
-		if (steadySamplesSlider2->value() != sval)
-			steadySamplesSlider2->setValue(sval);
+		if (steadySamplesSlider1->value() != sval)
+			steadySamplesSlider1->setValue(sval);
 		//Set the combo to display "As Needed" and be disabled.
 		unsteadyDirectionCombo->setItemText(0,QString("As Needed"));
 		unsteadyDirectionCombo->setCurrentIndex(0);
@@ -705,10 +664,8 @@ void FlowEventRouter::updateTab(){
 	if (flowType != 1) {
 		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
 		steadyDirectionCombo->setCurrentIndex(fParams->getSteadyDirection()+1);
-		if (showAdvanced) {
-			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
-			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
-		}
+		steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+		
 	} else {//set the combo to just show forward & backward and be enabled
 		//dir = -1 results in combo position 1
 		unsteadyDirectionCombo->setItemText(0,QString("Forward"));
@@ -756,7 +713,7 @@ void FlowEventRouter::updateTab(){
 		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
 	}
 	if (flowType == 2) {
-		steadySamplesEdit2->setText(QString::number(fParams->getObjectsPerFlowline()));
+		steadySamplesEdit1->setText(QString::number(fParams->getObjectsPerFlowline()));
 		smoothnessSamplesEdit->setText(QString::number(fParams->getSteadySmoothness()));
 		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
 	}
@@ -900,14 +857,14 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		//Do settings that depend on flowType:
 		float seedDistBias = 0.f;
 		if (flowType == 0){
-			if (showAdvanced){
-				seedDistBias = biasEdit1->text().toFloat();
-				if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-				int bval = (int)(seedDistBias*128.f/15.f);
-				if (biasSlider1->value() != bval)
-					biasSlider1->setValue(bval);
-			}
-			if (!autoscale && showAdvanced){
+			
+			seedDistBias = biasEdit1->text().toFloat();
+			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+			int bval = (int)(seedDistBias*128.f/15.f);
+			if (biasSlider1->value() != bval)
+				biasSlider1->setValue(bval);
+			
+			if (!autoscale ){
 				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
 					sampleRate = 2;
@@ -948,12 +905,12 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setUnsteadyScale(velocityScale);		
 		}
 
-		if (flowType == 1  && showAdvanced){
-			seedDistBias = biasEdit2->text().toFloat();
+		if (flowType == 1 ){
+			seedDistBias = biasEdit1->text().toFloat();
 			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
 			int bval = (int)(seedDistBias*128.f/15.f);
-			if (bval != biasSlider2->value())
-				biasSlider2->setValue(bval);
+			if (bval != biasSlider1->value())
+				biasSlider1->setValue(bval);
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -1019,7 +976,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setSteadySmoothness(steadySmoothness);
 		}
 
-		if(flowType == 2 && showAdvanced) {//Flow line advection only
+		if(flowType == 2 ) {//Flow line advection only
 			
 			int numFlaSamples = 1;
 			if (flaOptionCombo->currentIndex() == 1){
@@ -1033,40 +990,40 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
-			seedDistBias = biasEdit3->text().toFloat();
+			seedDistBias = biasEdit1->text().toFloat();
 			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
 			int bval = (int)(seedDistBias*128.f/15.f);
-			if (bval != biasSlider3->value())
-				biasSlider3->setValue(bval);
-			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
-			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
-			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
+			if (bval != biasSlider1->value())
+				biasSlider1->setValue(bval);
+			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
+			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
+			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
 			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
 			int unsteadyvars[3];
 			for (int i = 0; i<3; i++) unsteadyvars[i] = fParams->getUnsteadyVarNums()[i]-1;
 			if (!fParams->validateSampling(minFrame,
 				fParams->GetRefinementLevel(), unsteadyvars)){//did anything change?
-				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
+				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
 			}
 			if (!autoscale){
 				//steady scaling stuff for flow line advection
-				int sampleRate = steadySamplesEdit2->text().toInt();
+				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
 					sampleRate = 2;
-					steadySamplesEdit2->setText(QString::number(sampleRate));
+					steadySamplesEdit1->setText(QString::number(sampleRate));
 					guiSetTextChanged(false);
 				}
 				int sval = (int)(0.5f+256.0*log10((float)sampleRate/2.f)*0.33333);
-				if (sval != steadySamplesSlider2->value())
-					steadySamplesSlider2->setValue(sval);
+				if (sval != steadySamplesSlider1->value())
+					steadySamplesSlider1->setValue(sval);
 				fParams->setObjectsPerFlowline(sampleRate);
 
-				float velocityScale = steadyScaleEdit2->text().toFloat();
+				float velocityScale = steadyScaleEdit1->text().toFloat();
 				if (velocityScale < 1.e-20f){
 					velocityScale = 1.e-20f;
-					steadyScaleEdit2->setText(QString::number(velocityScale));
+					steadyScaleEdit1->setText(QString::number(velocityScale));
 					guiSetTextChanged(false);
 				}
 				fParams->setSteadyScale(velocityScale);
@@ -1147,7 +1104,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setSeedTimeIncrement(seedTimeIncrement);
 			
 		} //end of rake settings for unsteady flow
-		if (showAdvanced) fParams->setSeedDistBias(seedDistBias);
+		
 	} // end of flow Data changed
 	if (flowGraphicsChanged){
 		//change the parameters.  
@@ -1224,15 +1181,15 @@ void FlowEventRouter::stopClicked(){
 void FlowEventRouter::addSample(){
 	int numRows = timestepSampleTable1->rowCount()+1;
 	timestepSampleTable1->setRowCount(numRows);
-	timestepSampleTable2->setRowCount(numRows);
+	
 	QTableWidgetItem* tstepItem1 = new QTableWidgetItem("");
-	QTableWidgetItem* tstepItem2 = new QTableWidgetItem("");
+	
 	dontUpdate=true;
 	timestepSampleTable1->setItem(numRows-1,0, tstepItem1);
-	timestepSampleTable2->setItem(numRows-1,0, tstepItem2);
+	
 	dontUpdate=false;
 	timestepSampleTable1->setCurrentCell(numRows-1,0);
-	timestepSampleTable2->setCurrentCell(numRows-1,0);
+	
 }
 //Show setup instructions for flow:
 void FlowEventRouter::showSetupHelp(){
@@ -1246,23 +1203,12 @@ void FlowEventRouter::showSetupHelp(){
 //Delete the current selected row
 void FlowEventRouter::deleteSample(){
 	int thisRow;
-	
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	if (fParams->getFlowType() == 1){
-		thisRow = timestepSampleTable1->currentRow();
-		if (thisRow <0) return;
-		timestepSampleTable1->removeRow(thisRow);
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
-		if(thisRow>0)timestepSampleTable1->setCurrentCell(thisRow-1,0);
-		else timestepSampleTable1->setCurrentCell(0,0);
-	} else {
-		thisRow = timestepSampleTable2->currentRow();
-		if (thisRow <0) return;
-		timestepSampleTable2->removeRow(thisRow);
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
-		if(thisRow>0)timestepSampleTable2->setCurrentCell(thisRow-1,0);
-		else timestepSampleTable2->setCurrentCell(0,0);
-	}
+	thisRow = timestepSampleTable1->currentRow();
+	if (thisRow <0) return;
+	timestepSampleTable1->removeRow(thisRow);
+	guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
+	if(thisRow>0)timestepSampleTable1->setCurrentCell(thisRow-1,0);
+	else timestepSampleTable1->setCurrentCell(0,0);
 }
 //Rebuild the list of timestep samples.
 void FlowEventRouter::guiRebuildList(){
@@ -1310,38 +1256,24 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(QTableWidget* tbl, const char* desc
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
-//Respond to user has typed in a row. Convert it to an int, swap it up or down
-//until it's in ascending order.
-void FlowEventRouter::timestepChanged2(int row, int col){
-	if (dontUpdate) return;
-	guiUpdateUnsteadyTimes(timestepSampleTable2,"edit FLA timestep list");
-	return;
-}
 
-void FlowEventRouter::toggleShowMap(){
-	showMapEditor = !showMapEditor;
-	updateTab();
-}
-void FlowEventRouter::toggleAdvanced(){
-	showAdvanced = !showAdvanced;
-	updateTab();
-}
+
+
 void FlowEventRouter::populateTimestepTables(){
 	dontUpdate = true;
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	std::vector<int>& tSteps = fParams->getUnsteadyTimesteps();
 	timestepSampleTable1->setRowCount(tSteps.size());
 	timestepSampleTable1->setColumnCount(1);
-	timestepSampleTable2->setRowCount(tSteps.size());
-	timestepSampleTable2->setColumnCount(1);
+	
 	for (int i = 0; i< tSteps.size(); i++){
 		QTableWidgetItem* tstepItem1 = new QTableWidgetItem(QString::number(tSteps[i]));
-		QTableWidgetItem* tstepItem2 = new QTableWidgetItem(QString::number(tSteps[i]));
+		
 		timestepSampleTable1->setItem(i,0, tstepItem1);
-		timestepSampleTable2->setItem(i,0, tstepItem2);
+		
 	}
 	timestepSampleCheckbox1->setChecked(fParams->usingTimestepSampleList());
-	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
+	
 	dontUpdate = false;
 }
 
@@ -1419,20 +1351,8 @@ setBiasFromSlider1(int val){
 	biasEdit1->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
-void FlowEventRouter::
-setBiasFromSlider2(int val){
-	
-	float biasVal = 15.f*val/128.f;
-	biasEdit2->setText(QString::number(biasVal));
-	guiSetSeedDistBias(biasVal);
-}
-void FlowEventRouter::
-setBiasFromSlider3(int val){
-	
-	float biasVal = 15.f*val/128.f;
-	biasEdit3->setText(QString::number(biasVal));
-	guiSetSeedDistBias(biasVal);
-}
+
+
 
 
 /*
@@ -1515,24 +1435,13 @@ reinitTab(bool doOverride){
 	ySeedPriorityCombo->setMaxCount(newNumComboVariables);
 	zSeedPriorityCombo->clear();
 	zSeedPriorityCombo->setMaxCount(newNumComboVariables);
-	xSeedDistCombo1->clear();
-	xSeedDistCombo1->setMaxCount(newNumComboVariables);
-	ySeedDistCombo1->clear();
-	ySeedDistCombo1->setMaxCount(newNumComboVariables);
-	zSeedDistCombo1->clear();
-	zSeedDistCombo1->setMaxCount(newNumComboVariables);
-	xSeedDistCombo2->clear();
-	xSeedDistCombo2->setMaxCount(newNumComboVariables);
-	ySeedDistCombo2->clear();
-	ySeedDistCombo2->setMaxCount(newNumComboVariables);
-	zSeedDistCombo2->clear();
-	zSeedDistCombo2->setMaxCount(newNumComboVariables);
-	xSeedDistCombo3->clear();
-	xSeedDistCombo3->setMaxCount(newNumComboVariables);
-	ySeedDistCombo3->clear();
-	ySeedDistCombo3->setMaxCount(newNumComboVariables);
-	zSeedDistCombo3->clear();
-	zSeedDistCombo3->setMaxCount(newNumComboVariables);
+	xSeedDistCombo->clear();
+	xSeedDistCombo->setMaxCount(newNumComboVariables);
+	ySeedDistCombo->clear();
+	ySeedDistCombo->setMaxCount(newNumComboVariables);
+	zSeedDistCombo->clear();
+	zSeedDistCombo->setMaxCount(newNumComboVariables);
+	
 
 	//Put a "0" at the start of the variable combos
 	const QString& text = QString("0");
@@ -1553,15 +1462,10 @@ reinitTab(bool doOverride){
 		xUnsteadyVarCombo->addItem(text);
 		yUnsteadyVarCombo->addItem(text);
 		zUnsteadyVarCombo->addItem(text);
-		xSeedDistCombo1->addItem(text);
-		ySeedDistCombo1->addItem(text);
-		zSeedDistCombo1->addItem(text);
-		xSeedDistCombo2->addItem(text);
-		ySeedDistCombo2->addItem(text);
-		zSeedDistCombo2->addItem(text);
-		xSeedDistCombo3->addItem(text);
-		ySeedDistCombo3->addItem(text);
-		zSeedDistCombo3->addItem(text);
+		xSeedDistCombo->addItem(text);
+		ySeedDistCombo->addItem(text);
+		zSeedDistCombo->addItem(text);
+		
 		xSeedPriorityCombo->addItem(text);
 		ySeedPriorityCombo->addItem(text);
 		zSeedPriorityCombo->addItem(text);
@@ -2017,7 +1921,6 @@ guiSetSteadySamples(int sliderPos){
 	int sampleRate = (int)(0.5f+ 2.f*pow(10.f,3.f*s));
 	fParams->setObjectsPerFlowline(sampleRate);
 	steadySamplesEdit1->setText(QString::number(sampleRate));
-	steadySamplesEdit2->setText(QString::number(sampleRate));
 	
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, fParams);
@@ -2398,16 +2301,15 @@ guiToggleTimestepSample(bool on){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle use of timestep sample list");
 	fParams->setTimestepSampleList(on);
 	timestepSampleTable1->setEnabled(on);
-	timestepSampleTable2->setEnabled(on);
+	
 	timesampleStartEdit1->setEnabled(!on);
 	timesampleEndEdit1->setEnabled(!on);
 	timesampleIncrementEdit1->setEnabled(!on);
-	timesampleStartEdit2->setEnabled(!on);
-	timesampleEndEdit2->setEnabled(!on);
-	timesampleIncrementEdit2->setEnabled(!on);
-	deleteSampleButton2->setEnabled(on);
+
+	
+	
 	deleteSampleButton1->setEnabled(on);
-	addSampleButton2->setEnabled(on);
+	
 	addSampleButton1->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
 
@@ -3023,6 +2925,48 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	return;
 }	
+void FlowEventRouter::
+showHideAppearance(){
+	if (showAppearance) {
+		showAppearance = false;
+		showHideAppearanceButton->setText("Show Flow Appearance Options");
+	} else {
+		showAppearance = true;
+		showHideAppearanceButton->setText("Hide Flow Appearance Options");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(FlowParams::_flowParamsTag));
+	updateTab();
+}
+void FlowEventRouter::
+showHideSeeding(){
+	if (showSeeding) {
+		showSeeding = false;
+		showHideSeedingButton->setText("Show Flow Seeding Options");
+	} else {
+		showSeeding = true;
+		showHideSeedingButton->setText("Hide Flow Seeding Options");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(FlowParams::_flowParamsTag));
+	updateTab();
+}
+void FlowEventRouter::
+showHideUnsteadyTime(){
+	if (showUnsteadyTime) {
+		showUnsteadyTime = false;
+		showHideTimeButton->setText("Show Unsteady Flow Time Settings");
+	} else {
+		showUnsteadyTime = true;
+		showHideTimeButton->setText("Hide Unsteady Flow Time Settings");
+	}
+	//Following HACK is needed to convince Qt to remove the extra space in the tab:
+	updateTab();
+	VizWinMgr::getInstance()->getTabManager()->toggleFrontTabs(Params::GetTypeFromTag(FlowParams::_flowParamsTag));
+	updateTab();
+}
 /* Handle the change of status associated with change of enablement 
  * This is identical to code for dvrparams
  *  If we are enabling , only active one is created.
@@ -3242,9 +3186,9 @@ void FlowEventRouter::cleanParams(Params* p)
 }
 //Fix for clean Windows scrolling:
 void FlowEventRouter::refreshTab(){
-	if(showMapEditor){
-		mappingFrame->hide();
-		mappingFrame->show();
+	if(showAppearance){
+		appearanceFrame->hide();
+		appearanceFrame->show();
 	}
 }
 //Check to see if all the flow variables are zero
@@ -3297,19 +3241,27 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 QSize FlowEventRouter::sizeHint() const {
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (!fParams) return QSize(460,1500);
-	int vertsize = 0;
+	int vertsize = 538+93;//Full basic panel plus instance panel , with both steady and unsteady field frames
+	//add showAppearance button, showSeeding button, frames
+	vertsize += 120;
 	switch (fParams->getFlowType()){
 		case(0): 
-			vertsize = 1470; 
-			if (showAdvanced) vertsize += 130;
+			vertsize -= 130; //no unsteady field frame
+			if (showSeeding) vertsize += (412 - 98); //seeding, without field line advection
 			break;
-		case(1): vertsize = 1620; 	
-			if (showAdvanced) vertsize += 130;
+		case(1): 
+			vertsize -= 214; //no steady field frame
+			if (showSeeding) vertsize += (412 - 98); //seeding, without field line advection
+			vertsize += 60; //show unsteady times button + frame
+			if (showUnsteadyTime) vertsize += 257;
 			break;
-		case(2): vertsize = 1650; 
-			if (showAdvanced) vertsize += 300;
+		case(2): 
+			if (showSeeding) vertsize += 412; //seeding, with field line advection
+			vertsize += 60; //show unsteady times button + frame
+			if (showUnsteadyTime) vertsize += 257;
 			break;
 	}
-	if (!showMapEditor) vertsize -= 350;	
+	if (showAppearance) vertsize += 473;
+	
 	return QSize(460,vertsize);
 }

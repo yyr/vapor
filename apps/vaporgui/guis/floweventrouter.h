@@ -105,9 +105,7 @@ protected slots:
 	void deleteSample();
 	void guiRebuildList();
 	void timestepChanged1(int row, int col);
-	void timestepChanged2(int row, int col);
-	void toggleAdvanced();
-	void toggleShowMap();
+	
 	void guiSetSteadyDirection(int comboIndex);
 	void guiSetUnsteadyDirection(int comboIndex);
 	void guiChangeInstance(int);
@@ -146,11 +144,7 @@ protected slots:
 	void guiCheckPeriodicZ(bool periodic);
 	void guiSetAutoRefresh(bool isOn);
 	
-	
 	void setBiasFromSlider1(int);
-	void setBiasFromSlider2(int);
-	void setBiasFromSlider3(int);
-
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);
@@ -179,6 +173,9 @@ protected slots:
 	void guiSetSmoothness(int sliderpos);
 	void guiSetSteadySamples(int sliderVal);
 	void guiSetUnsteadySamples(int sliderVal);
+	void showHideAppearance();
+	void showHideSeeding();
+	void showHideUnsteadyTime();
 
 protected:
 	
@@ -194,8 +191,6 @@ protected:
 	void setZSize(FlowParams*,int sliderval);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	
-	
-
 	//Methods that record changes in the history are preceded by 'gui'
 	//
 	virtual void guiSetEnabled(bool, int, bool undoredo = true);
@@ -214,8 +209,7 @@ protected:
 	bool mapBoundsChanged;
 
 	int copyCount[MAXVIZWINS+1];
-	bool showAdvanced;
-	bool showMapEditor;
+	bool showSeeding, showAppearance, showUnsteadyTime;
 	
 };
 
