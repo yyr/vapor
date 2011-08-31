@@ -141,7 +141,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$GLEW_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render;&quot;$(PYTHON_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="&quot;$(GLEW_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;"
 				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -170,11 +170,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26_d.lib"
+				AdditionalDependencies="glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26_d.lib libjpeg.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(JPEG_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="true"
@@ -472,7 +472,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="moc&apos;ing boxsliderframe.h"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\boxsliderframe.h -o ..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\boxsliderframe.h -o ..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
 					/>
@@ -483,7 +483,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="moc&apos;ing boxsliderframe.h"
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\boxsliderframe.h -o ..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\boxsliderframe.h -o ..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_boxsliderframe.cpp"
 					/>
@@ -1633,7 +1633,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing boxframe.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.h&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.h&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\boxframe.h"
 					/>
@@ -1644,7 +1644,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing boxframe.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.h&quot;"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\boxframe.h&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\boxframe.h"
 					/>

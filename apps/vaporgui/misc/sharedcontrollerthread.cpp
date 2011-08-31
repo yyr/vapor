@@ -18,7 +18,7 @@
 //			Functionality of that class is described in controllerthread.h
 //	
 //		
-
+//#define ANIM_DEBUG 1
 
 #include <qwaitcondition.h>
 #include <qthread.h>
@@ -49,12 +49,16 @@ SharedControllerThread::~SharedControllerThread(){
 	myWaitCondition->wakeAll();
 	//Wait up to 20 seconds for renderings to complete:
 	if (!wait(20000)){
-		//qWarning("terminating thread");
+#ifdef ANIM_DEBUG
+		qWarning("terminating thread");
+#endif
 		terminate();
 		if (!wait(20000)) 
 			Params::BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
-	//qWarning("deleting wait condition");
+#ifdef ANIM_DEBUG
+	qWarning("deleting wait condition");
+#endif
 	delete myWaitCondition;
 }
 
@@ -128,14 +132,20 @@ run(){
 					numNotHidden++;
 				int timeToFinish = myAnimationController->getTimeToFinish(viznum, currentTime);
 				if (timeToFinish < minSharedTimeToFinish) minSharedTimeToFinish = timeToFinish;
-				//qWarning("window %d finishtime %d minfinishtime %d", viznum, timeToFinish, minSharedTimeToFinish);
+#ifdef ANIM_DEBUG
+				qWarning("window %d finishtime %d minfinishtime %d", viznum, timeToFinish, minSharedTimeToFinish);
+#endif
 			}
 		}
-		//qWarning(" %d windows are non hidden, %d are active",numNotHidden, numActive);
+#ifdef ANIM_DEBUG
+		qWarning(" %d windows are non hidden, %d are active",numNotHidden, numActive);
+#endif
 		//If no shared renderers are active, wait 1 second and retry:
 		if( numNotHidden == 0) {
 			//myAnimationController->animationMutex.unlock();
-			//qWarning("Waiting for an active renderer to start");
+#ifdef ANIM_DEBUG
+			qWarning("Waiting for an active renderer to start");
+#endif
 			myWaitCondition->wait(&myAnimationController->animationMutex, IDLE_WAIT);
 			numSleeping = 0;
 			myAnimationController->animationMutex.unlock();
@@ -145,8 +155,9 @@ run(){
 		//If finish time is positive, need to come back later to recheck:
 		int finishTime = minSharedTimeToFinish;
 		while (finishTime > 0) {
-			
-			//qWarning("waiting since time left to finish");
+#ifdef ANIM_DEBUG
+			qWarning("waiting %d because time left to finish", finishTime);
+#endif
 			myWaitCondition->wait(&myAnimationController->animationMutex,finishTime);
 			
 			int timeSinceStart = myAnimationController->myClock->elapsed()-currentTime;
@@ -193,7 +204,9 @@ run(){
 						//Try again to start it:
 						myAnimationController->startVisualizer(viznum, currentTime);
 						missingViz = viznum;
-						//qWarning("Waiting 100 after rerequesting render in vis %d ", viznum);
+#ifdef ANIM_DEBUG
+						qWarning("Waiting 100 after rerequesting render in vis %d ", viznum);
+#endif
 						myWaitCondition->wait(&myAnimationController->animationMutex,100);
 						restartwaits += 100;
 						//Don't wait here forever!
@@ -217,12 +230,15 @@ run(){
 			//Don't wait longer!
 			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< 
 					-frameWaitTime){
-				//qWarning(" visualizer %d is more than max shared wait late", missingViz);
+#ifdef ANIM_DEBUG
+				qWarning(" visualizer %d is more than max shared wait late", missingViz);
+#endif
 				numSleeping = numNotHidden - numFinished - numStarted;
 				break;
 			}
-			
-			//qWarning("Waiting %d because started %d < %d ", frameWaitTime, numStarted, numNotHidden);
+#ifdef ANIM_DEBUG
+			qWarning("Waiting %d because started %d < %d ", frameWaitTime, numStarted, numNotHidden);
+#endif
 			myWaitCondition->wait(&myAnimationController->animationMutex,frameWaitTime);
 		}
 		
@@ -247,7 +263,9 @@ run(){
 			for (tries = 0; tries< 61; tries++){
 				//myAnimationController->animationMutex.unlock();
 				myWaitCondition->wait(&myAnimationController->animationMutex,MAX_THREAD_WAIT);
-				//qWarning("Waiting for completion of overdue renderings");
+#ifdef ANIM_DEBUG
+				qWarning("Waiting for completion of overdue renderings");
+#endif
 				//myAnimationController->animationMutex.lock();
 				numOverdue = 0;
 				for (viznum = 0; viznum < MAXVIZWINS; viznum++){
@@ -327,8 +345,10 @@ run(){
 						myAnimationController->startVisualizer(viznum, currentTime);
 						if (timeToRecheck > renderTime) timeToRecheck = renderTime;
 						myAnimationController->setRequestRender(viznum);
-						//int frmnum = myVizWinMgr->getAnimationParams(viznum)->getCurrentFrameNumber();
-						//qWarning(" requested render of frame %d in window %d", frmnum, viznum);
+#ifdef ANIM_DEBUG
+						int frmnum = myVizWinMgr->getAnimationParams(viznum)->getCurrentFrameNumber();
+						qWarning(" requested render of frame %d in window %d", frmnum, viznum);
+#endif
 					}
 				}
 			}
@@ -337,8 +357,9 @@ run(){
 		//Can wait before checking them:
 		
 		if (timeToRecheck > 10){
-			//qWarning("waiting before checking restarted renderers");
-			
+#ifdef ANIM_DEBUG
+			qWarning("waiting before checking restarted renderers");
+#endif
 			myWaitCondition->wait(&myAnimationController->animationMutex,timeToRecheck);
 			myAnimationController->animationMutex.unlock();
 			
@@ -348,7 +369,9 @@ run(){
 		
 		//End of while(1) loop
 	}
-	//qWarning(" animation cancelled!");
+#ifdef ANIM_DEBUG
+	qWarning(" animation cancelled!");
+#endif
 	//Only exit loop if someone set animationCancelled; wait for completion, then return
 	bool allDone;
 	int tries;
@@ -375,7 +398,9 @@ run(){
 			break;
 		}
 		//wait for a bit; may be woken if someone finishes, or status changes.
-		//qWarning("Waiting for completion of started renderings");
+#ifdef ANIM_DEBUG
+		qWarning("Waiting for completion of started renderings");
+#endif
 		myWaitCondition->wait(&myAnimationController->animationMutex,IDLE_WAIT);
 		myAnimationController->animationMutex.unlock();
 	}
