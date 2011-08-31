@@ -3262,6 +3262,10 @@ QSize FlowEventRouter::sizeHint() const {
 			break;
 	}
 	if (showAppearance) vertsize += 473;
-	
+	//Mac and Linux have gui elements fatter than windows by about 10%
+#ifndef WIN32
+	vertsize = 1.1*vertsize;
+#endif
+
 	return QSize(460,vertsize);
 }
