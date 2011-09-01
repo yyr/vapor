@@ -598,7 +598,7 @@ p, li { white-space: pre-wrap; }
              <string>Show or Hide the options relating to barb layout</string>
             </property>
             <property name="text">
-             <string>Hide Barb Layout Options</string>
+             <string>Show Barb Layout Options</string>
             </property>
            </widget>
           </item>
@@ -1192,7 +1192,7 @@ p, li { white-space: pre-wrap; }
              <string>Click to toggle the display of appearance options</string>
             </property>
             <property name="text">
-             <string>Hide Appearance Options</string>
+             <string>Show Appearance Options</string>
             </property>
            </widget>
           </item>

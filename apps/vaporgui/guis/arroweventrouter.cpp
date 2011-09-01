@@ -54,8 +54,8 @@ ArrowEventRouter::ArrowEventRouter(QWidget* parent): QWidget(parent), Ui_Arrow()
         setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(ArrowParams::_arrowParamsTag);
 	savedCommand = 0;
-	showAppearance = true;
-	showLayout = true;
+	showAppearance = false;
+	showLayout = false;
 }
 
 
