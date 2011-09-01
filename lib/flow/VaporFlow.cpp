@@ -341,7 +341,6 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	//Use the current Region, obtain the priority field.
 	//First map the region to doubles:
 	double minDouble[3], maxDouble[3];
-	printf("prioritizing seeds\n");
 	dataMgr->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
 	dataMgr->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
 	//Use the current region bounds, not the rake bounds...
@@ -457,7 +456,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		delete [] maxPointHolder;
 	}
 	//Release the locks on the prioritization field..
-	printf(" Normal inished priorizing seeds\n");
+	
 	fData->releaseData(dataMgr);
 	delete fData;
 	
