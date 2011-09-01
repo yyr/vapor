@@ -328,27 +328,19 @@ void FlowEventRouter::updateTab(){
 	switch (flowType){
 		case (0) : //steady
 			steadyFieldFrame->show();
-			if (showAppearance) steadyAppearanceFrame->show();
+			if (showAppearance) {
+				if (autoScale) {
+					autoscaleOffFrame->hide();
+					autoscaleOnFrame->show();
+				} else {
+					autoscaleOnFrame->hide();
+					autoscaleOffFrame->show();
+				}
+				steadyAppearanceFrame->show();
+			}
 			unsteadyFieldFrame->hide();
 			fullUnsteadyTimeFrame->hide();
 			advancedLineAdvectionFrame->hide();
-			if (autoScale){
-				smoothnessSlider->setEnabled(true);
-				smoothnessSamplesEdit->setEnabled(true);
-				steadyLengthEdit->setEnabled(true);
-				steadyLengthSlider->setEnabled(true);
-				steadySamplesSlider1->setEnabled(false);
-				steadySamplesEdit1->setEnabled(false);
-				steadyScaleEdit1->setEnabled(false);
-			} else {
-				smoothnessSlider->setEnabled(false);
-				smoothnessSamplesEdit->setEnabled(false);
-				steadyLengthEdit->setEnabled(false);
-				steadyLengthSlider->setEnabled(false);
-				steadySamplesSlider1->setEnabled(true);
-				steadySamplesEdit1->setEnabled(true);
-				steadyScaleEdit1->setEnabled(false);
-			}
 			
 			colormapEntityCombo->setItemText(1,"Position on Flow");
 			opacmapEntityCombo->setItemText(1,"Position on Flow");
@@ -375,29 +367,22 @@ void FlowEventRouter::updateTab(){
 		case(2) : //field line advection
 			advancedLineAdvectionFrame->show();
 			steadyFieldFrame->show();
-			if (showAppearance) steadyAppearanceFrame->show();
+			if (showAppearance) {
+				if (autoScale) {
+					autoscaleOffFrame->hide();
+					autoscaleOnFrame->show();
+				} else {
+					autoscaleOnFrame->hide();
+					autoscaleOffFrame->show();
+				}
+				steadyAppearanceFrame->show();
+			}
 			unsteadyFieldFrame->show();
 			fullUnsteadyTimeFrame->show();
 			
 			flowHelpButton->setText("Field Line Advection Setup Help");
 
-			if (autoScale){
-				smoothnessSlider->setEnabled(true);
-				smoothnessSamplesEdit->setEnabled(true);
-				steadyLengthEdit->setEnabled(true);
-				steadyLengthSlider->setEnabled(true);
-				steadySamplesSlider1->setEnabled(false);
-				steadySamplesEdit1->setEnabled(false);
-				steadyScaleEdit1->setEnabled(false);
-			} else {
-				smoothnessSlider->setEnabled(false);
-				smoothnessSamplesEdit->setEnabled(false);
-				steadyLengthEdit->setEnabled(false);
-				steadyLengthSlider->setEnabled(false);
-				steadySamplesSlider1->setEnabled(true);
-				steadySamplesEdit1->setEnabled(true);
-				steadyScaleEdit1->setEnabled(true);
-			}
+			
 			seedtimeIncrementEdit->setEnabled(false);
 			seedtimeEndEdit->setEnabled(false);
 			
@@ -417,7 +402,7 @@ void FlowEventRouter::updateTab(){
 			
 			autoScaleCheckbox1->setChecked(autoScale);
 			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
-			steadyScaleEdit1->setEnabled(!autoScale);
+			
 			xSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
 			ySeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
 			zSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
@@ -471,7 +456,7 @@ void FlowEventRouter::updateTab(){
 			timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
 			autoScaleCheckbox1->setChecked(autoScale);
 			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
-			steadyScaleEdit1->setEnabled(!autoScale);
+		
 			populateTimestepTables();
 			
 			xSeedPriorityCombo->setCurrentIndex(fParams->getComboPriorityVarnum(0));
@@ -2280,6 +2265,13 @@ guiToggleAutoScale(bool on){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle auto scale steady field");
 	fParams->setAutoScale(on);
+	if (on) {
+		autoscaleOffFrame->hide();
+		autoscaleOnFrame->show();
+	} else {
+		autoscaleOnFrame->hide();
+		autoscaleOffFrame->show();
+	}
 	//Refresh if we are turning it on...
 	if (on) VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
