@@ -88,9 +88,9 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	flowDataChanged = false;
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
-	showSeeding = true;
-	showAppearance=true;
-	showUnsteadyTime=true;
+	showSeeding = false;
+	showAppearance=false;
+	showUnsteadyTime=false;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
 #ifdef Darwin
@@ -328,6 +328,7 @@ void FlowEventRouter::updateTab(){
 	switch (flowType){
 		case (0) : //steady
 			steadyFieldFrame->show();
+			if (showAppearance) steadyAppearanceFrame->show();
 			unsteadyFieldFrame->hide();
 			fullUnsteadyTimeFrame->hide();
 			advancedLineAdvectionFrame->hide();
@@ -354,6 +355,7 @@ void FlowEventRouter::updateTab(){
 			break;
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
+			steadyAppearanceFrame->hide();
 			unsteadyFieldFrame->show();
 			fullUnsteadyTimeFrame->show();
 			advancedLineAdvectionFrame->hide();
@@ -373,6 +375,7 @@ void FlowEventRouter::updateTab(){
 		case(2) : //field line advection
 			advancedLineAdvectionFrame->show();
 			steadyFieldFrame->show();
+			if (showAppearance) steadyAppearanceFrame->show();
 			unsteadyFieldFrame->show();
 			fullUnsteadyTimeFrame->show();
 			
@@ -490,7 +493,11 @@ void FlowEventRouter::updateTab(){
 	}
 		
 	
-	if (showAppearance) appearanceFrame->show();
+	if (showAppearance) {
+		if (flowType != 1) steadyAppearanceFrame->show();
+		else steadyAppearanceFrame->hide();
+		appearanceFrame->show();
+	}
 	else appearanceFrame->hide();
 	if (showSeeding) seedingFrame->show();
 	else seedingFrame->hide();
@@ -2929,10 +2936,10 @@ void FlowEventRouter::
 showHideAppearance(){
 	if (showAppearance) {
 		showAppearance = false;
-		showHideAppearanceButton->setText("Show Flow Appearance Options");
+		showHideAppearanceButton->setText("Show Flow Appearance Settings");
 	} else {
 		showAppearance = true;
-		showHideAppearanceButton->setText("Hide Flow Appearance Options");
+		showHideAppearanceButton->setText("Hide Flow Appearance Settings");
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
@@ -2943,10 +2950,10 @@ void FlowEventRouter::
 showHideSeeding(){
 	if (showSeeding) {
 		showSeeding = false;
-		showHideSeedingButton->setText("Show Flow Seeding Options");
+		showHideSeedingButton->setText("Show Flow Seeding Settings");
 	} else {
 		showSeeding = true;
-		showHideSeedingButton->setText("Hide Flow Seeding Options");
+		showHideSeedingButton->setText("Hide Flow Seeding Settings");
 	}
 	//Following HACK is needed to convince Qt to remove the extra space in the tab:
 	updateTab();
@@ -3241,27 +3248,29 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 QSize FlowEventRouter::sizeHint() const {
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (!fParams) return QSize(460,1500);
-	int vertsize = 538+93;//Full basic panel plus instance panel , with both steady and unsteady field frames
+	int vertsize = 414+93;//Full basic panel plus instance panel , with both steady and unsteady field frames
 	//add showAppearance button, showSeeding button, frames
-	vertsize += 120;
+	vertsize += 100;
 	switch (fParams->getFlowType()){
 		case(0): 
 			vertsize -= 130; //no unsteady field frame
-			if (showSeeding) vertsize += (412 - 98); //seeding, without field line advection
+			if (showSeeding) vertsize += (384 - 98); //seeding, without field line advection
+			if (showAppearance) vertsize += 186;
 			break;
 		case(1): 
-			vertsize -= 214; //no steady field frame
-			if (showSeeding) vertsize += (412 - 98); //seeding, without field line advection
-			vertsize += 60; //show unsteady times button + frame
+			vertsize -= 70; //no steady field frame
+			if (showSeeding) vertsize += (384 - 98); //seeding, without field line advection
+			vertsize += 50; //show unsteady times button + frame
 			if (showUnsteadyTime) vertsize += 257;
 			break;
 		case(2): 
-			if (showSeeding) vertsize += 412; //seeding, with field line advection
-			vertsize += 60; //show unsteady times button + frame
+			if (showSeeding) vertsize += 384; //seeding, with field line advection
+			vertsize += 50; //show unsteady times button + frame
 			if (showUnsteadyTime) vertsize += 257;
+			if (showAppearance) vertsize += 186;
 			break;
 	}
-	if (showAppearance) vertsize += 473;
+	if (showAppearance) vertsize += (665 - 186);  //Add in appearance panel minus steady appearance.
 	//Mac and Linux have gui elements fatter than windows by about 10%
 #ifndef WIN32
 	vertsize = 1.1*vertsize;
