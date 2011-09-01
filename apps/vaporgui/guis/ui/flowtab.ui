@@ -4411,7 +4411,7 @@ per flow line.</string>
                               </sizepolicy>
                              </property>
                              <property name="text">
-                              <string>Steady Line Smoothness</string>
+                              <string>Line Smoothness</string>
                              </property>
                              <property name="alignment">
                               <set>Qt::AlignCenter</set>
