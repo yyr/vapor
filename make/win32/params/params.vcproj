@@ -299,10 +299,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\Transform3d.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\params\twoDdataparams.cpp"
 				>
 			</File>
@@ -426,6 +422,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\transferfunction.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\Transform3d.h"
 				>
 			</File>
 			<File

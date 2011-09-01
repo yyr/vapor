@@ -477,21 +477,6 @@ void PythonEdit::testScript(){
 		}
 		
 	}
-	else { 
-		Py_Initialize();
-		PythonPipeLine::setEverInitialized();
-		//get the module dictionary...
-		PyObject* mainModule = PyImport_AddModule("__main__");
-		PyObject* mainDict = PyModule_GetDict(mainModule);
-	
-		PyObject* retObj = PyRun_String(script.c_str(), Py_file_input, mainDict,mainDict);
-		if (!retObj){
-			PyErr_Print();
-		
-		}
-	}
-	
-	
 		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
@@ -499,7 +484,7 @@ void PythonEdit::testScript(){
 	DataMgr* dmgr = ds->getDataMgr();
 	//If there is an output 2D variable and no output 3d variable, then make the extents the full VDC extents
 	//at refinement level 0
-	if (outputVars2->count() > 0 && outputVars3->count() == 0 && inputVars3->count() > 0){
+	if (!startUp && outputVars2->count() > 0 && outputVars3->count() == 0 && inputVars3->count() > 0){
 		size_t regBlockExtents[3];
 		dmgr->GetDimBlk(regBlockExtents,0);
 		min_bdim[2] = 0;
