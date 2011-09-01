@@ -416,6 +416,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 					vector<pair<string, Metadata::VarType_T> > outputs,
 					size_t ts,int reflevel,int compression, const size_t min[3],const size_t max[3]){
 	
+	bool executionError=false;
 	if(!initialized) {
 		initialize();
 	}
@@ -498,6 +499,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	
 	
     if (!retObj){
+		executionError=true;
 		PyErr_Print();
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Python interpreter failure");
 		//Put stderr into MyBase error message
@@ -611,7 +613,8 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 			tryDeleteArrayStorage(newObjects[i]);
 		}	
 	}
-	
+	if (pythonOutputText.length() == 0 && executionError)
+		pythonOutputText = "TEST_SCRIPT_ERROR";
 	return pythonOutputText;
 }
 

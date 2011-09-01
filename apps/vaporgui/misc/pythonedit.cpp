@@ -497,7 +497,10 @@ void PythonEdit::testScript(){
 	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, compression, min_bdim, max_bdim);
 	
 	if (rettxt.size() > 0){
-		QMessageBox::information(this,"Python Script Output",rettxt.c_str());
+		if (rettxt != "TEST_SCRIPT_ERROR")
+			QMessageBox::information(this,"Output of script",rettxt.c_str());
+	} else {
+		QMessageBox::information(this,"Completion","Successful test");
 	}
 	delete pipe;
 
