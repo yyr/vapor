@@ -3226,21 +3226,22 @@ flowVarsZeroBelow(){
 
 #ifdef Darwin
 void FlowEventRouter::paintEvent(QPaintEvent* ev){
-	
-	QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
- 	if(!colorMapShown ){
-		sArea->ensureWidgetVisible(colorMappingFrame);
-		colorMappingFrame->show();
-		colorMapShown = true;
-		update();
-		QWidget::paintEvent(ev);
-		return;
-	}
-	if(!opacityMapShown ){
-		sArea->ensureWidgetVisible(opacityMappingFrame);
-		opacityMappingFrame->show();
-		opacityMapShown = true;
-		update();
+	if (showAppearance){
+		QScrollArea* sArea = (QScrollArea*)MainForm::getTabManager()->currentWidget();
+ 		if(!colorMapShown ){
+			sArea->ensureWidgetVisible(colorMappingFrame);
+			colorMappingFrame->show();
+			colorMapShown = true;
+			update();
+			QWidget::paintEvent(ev);
+			return;
+		}
+		if(!opacityMapShown ){
+			sArea->ensureWidgetVisible(opacityMappingFrame);
+			opacityMappingFrame->show();
+			opacityMapShown = true;
+			update();
+		}
 	}
 	QWidget::paintEvent(ev);
 }
@@ -3273,7 +3274,7 @@ QSize FlowEventRouter::sizeHint() const {
 	if (showAppearance) vertsize += (665 - 186);  //Add in appearance panel minus steady appearance.
 	//Mac and Linux have gui elements fatter than windows by about 10%
 #ifndef WIN32
-	vertsize = 1.1*vertsize;
+	vertsize = (int)(1.1*vertsize);
 #endif
 
 	return QSize(460,vertsize);
