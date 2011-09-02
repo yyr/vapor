@@ -176,13 +176,9 @@ public:
 	//! derived variable has been calculated.
 	//! \param[in] int sesvarNum session variable number
 	//! \param[in] int timestep Time Step
+	//! \param[in] bool mustGet indicates that data will be retrieved if max not known
 	//! \retval double maximum value
-	double getDataMax3D(int sesvarNum, int timestep){
-		if (!dataIsPresent3D(sesvarNum, timestep))return 1.0f;
-		if (dataMax[sesvarNum][timestep] == -1.e30f)
-			calcDataRange(sesvarNum,timestep);
-		return dataMax[sesvarNum][timestep];
-	}
+	double getDataMax3D(int sesvarNum, int timestep, bool mustGet = true);
 
 	//! Indicates the largest value of a 2D variable at a timestep.
 	//! Returns 1 if the data bounds have not yet been calculated,
@@ -191,13 +187,9 @@ public:
 	//! derived variable has been calculated.
 	//! \param[in] int sesvarNum 2D session variable number
 	//! \param[in] int timestep Time Step
+	//! \param[in] bool mustGet indicates that data will be retrieved if max not known
 	//! \retval double maximum value
-	double getDataMax2D(int sesvarNum, int timestep){
-		if (!dataIsPresent2D(sesvarNum, timestep))return 1.0f;
-		if (dataMax2D[sesvarNum][timestep] == -1.e30f)
-			calcDataRange2D(sesvarNum,timestep);
-		return dataMax2D[sesvarNum][timestep];
-	}
+	double getDataMax2D(int sesvarNum, int timestep, bool mustGet = true);
 
 	//! Indicates the smallest value of a 3D variable at a timestep.
 	//! Returns -1 if the data bounds have not yet been calculated;
@@ -206,13 +198,9 @@ public:
 	//! derived variable has been calculated.
 	//! \param[in] int sesvarNum 3D session variable number
 	//! \param[in] int timestep Time Step
+	//! \param[in] bool mustGet indicates that data will be retrieved if min not known
 	//! \retval double minimum value
-	double getDataMin3D(int sesvarNum, int timestep){
-		if (!dataIsPresent3D(sesvarNum, timestep))return -1.0f;
-		if (dataMin[sesvarNum][timestep] == 1.e30f)
-			calcDataRange(sesvarNum,timestep);
-		return dataMin[sesvarNum][timestep];
-	}
+	double getDataMin3D(int sesvarNum, int timestep, bool mustGet = true);
 
 	//! Indicates the smallest value of a 2D variable at a timestep.
 	//! Returns -1 if the data bounds have not yet been calculated;
@@ -221,13 +209,9 @@ public:
 	//! derived variable has been calculated.
 	//! \param[in] sesvarNum 2D session variable number
 	//! \param[in] timestep Time Step
+	//! \param[in] bool mustGet indicates that data will be retrieved if min not known
 	//! \retval double minimum value
-	double getDataMin2D(int sesvarNum, int timestep){
-		if (!dataIsPresent2D(sesvarNum, timestep))return -1.0f;
-		if (dataMin2D[sesvarNum][timestep] == 1.e30f)
-			calcDataRange2D(sesvarNum,timestep);
-		return dataMin2D[sesvarNum][timestep];
-	}
+	double getDataMin2D(int sesvarNum, int timestep, bool mustGet = true);
 
 	//! Indicates the default maximum value of a 3D variable.
 	//! This is usually the maximum value at the first time step.

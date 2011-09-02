@@ -1324,27 +1324,59 @@ double DataStatus::getDefaultDataMax3D(int varnum){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return 1.f;
 	string varname = getActiveVarName3D(activeNum);
-	if (isDerivedVariable(varname)) return 1.f;
-	return getDataMax3D(varnum, (int)minTimeStep);
+	//If it's derived, we don't get the actual max until it's retrieved for other purposes
+	return getDataMax3D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
 }
 double DataStatus::getDefaultDataMin3D(int varnum){
 	int activeNum = mapSessionToActiveVarNum3D(varnum);
 	if (activeNum < 0) return -1.f;
 	string varname = getActiveVarName3D(activeNum);
-	if (isDerivedVariable(varname)) return -1.f;
-	return getDataMin3D(varnum, (int)minTimeStep);
+	//If it's derived, we don't get the actual min until it's retrieved for other purposes
+	return getDataMin3D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
 }
 double DataStatus::getDefaultDataMax2D(int varnum){
 	int activeNum = mapSessionToActiveVarNum2D(varnum);
 	if (activeNum < 0) return 1.f;
 	string varname = getActiveVarName2D(activeNum);
-	if (isDerivedVariable(varname)) return 1.f;
-	return getDataMax2D(varnum, (int)minTimeStep);
+	//If it's derived, we don't get the actual max until it's retrieved for other purposes
+	return getDataMax2D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
 }
 double DataStatus::getDefaultDataMin2D(int varnum){
 	int activeNum = mapSessionToActiveVarNum2D(varnum);
 	if (activeNum < 0) return -1.f;
 	string varname = getActiveVarName2D(activeNum);
-	if (isDerivedVariable(varname)) return -1.f;
-	return getDataMin2D(varnum, (int)minTimeStep);
+	//If it's derived, we don't get the actual max until it's retrieved for other purposes
+	return getDataMax2D(varnum, (int)minTimeStep, !isDerivedVariable(varname));
+}
+double DataStatus::getDataMin3D(int sesvarNum, int timestep, bool mustGet){
+	if (!dataIsPresent3D(sesvarNum, timestep))return -1.0;
+	if (dataMin[sesvarNum][timestep] == 1.e30f){
+		if (!mustGet) return -1.0;
+		calcDataRange(sesvarNum,timestep);
+	}
+	return dataMin[sesvarNum][timestep];
+}
+double DataStatus::getDataMin2D(int sesvarNum, int timestep, bool mustGet){
+	if (!dataIsPresent2D(sesvarNum, timestep))return -1.0;
+	if (dataMin2D[sesvarNum][timestep] == 1.e30f){
+		if (!mustGet) return -1.0;
+		calcDataRange2D(sesvarNum,timestep);
+	}
+	return dataMin2D[sesvarNum][timestep];
+}
+double DataStatus::getDataMax3D(int sesvarNum, int timestep, bool mustGet){
+	if (!dataIsPresent3D(sesvarNum, timestep))return 1.0;
+	if (dataMax[sesvarNum][timestep] == -1.e30f){
+		if (!mustGet) return 1.0;
+		calcDataRange(sesvarNum,timestep);
+	}
+	return dataMax[sesvarNum][timestep];
+}
+double DataStatus::getDataMax2D(int sesvarNum, int timestep, bool mustGet){
+	if (!dataIsPresent2D(sesvarNum, timestep))return 1.0;
+	if (dataMax2D[sesvarNum][timestep] == -1.e30f){
+		if (!mustGet) return 1.;
+		calcDataRange2D(sesvarNum,timestep);
+	}
+	return dataMax2D[sesvarNum][timestep];
 }
