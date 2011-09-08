@@ -108,6 +108,7 @@ public:
 		return (modeCombo->count()-1);
 	}
 	void setMouseMode(int newMode) {modeCombo->setCurrentIndex(newMode);}
+	void showCitationReminder();
 	
 private:
     void createActions(); 

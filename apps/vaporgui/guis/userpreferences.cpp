@@ -74,6 +74,7 @@ const string UserPreferences::_sessionPathTag  = "SessionPath";
 const string UserPreferences::_autoSaveFilenameTag = "AutoSaveFilename";
 const string UserPreferences::_messagesTag = "MessageSettings";
 const string UserPreferences::_autoSaveIntervalAttr = "AutoSaveInterval";
+const string UserPreferences::_citationRemindAttr = "RemindCitation";
 const string UserPreferences::_probeDefaultsTag = "ProbeDefaults";
 const string UserPreferences::_thetaAttr = "DefaultTheta";
 const string UserPreferences::_phiAttr = "DefaultPhi";
@@ -145,6 +146,7 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->sessionDir=sessionDir;
 	newPrefs->autoSaveFilename = autoSaveFilename;
 	newPrefs->autoSaveInterval = autoSaveInterval;
+	newPrefs->citationRemind = citationRemind;
 	newPrefs->metadataDir=metadataDir;
 	newPrefs->logFileName=logFileName;
 	newPrefs->jpegPath=jpegPath;
@@ -264,6 +266,7 @@ void UserPreferences::launch(){
 	connect (resetCountButton, SIGNAL(clicked()), this, SLOT(resetCounts()));
 	connect (enableSpinCheckbox, SIGNAL(toggled(bool)),this, SLOT(spinChanged(bool)));
 
+	connect (noShowCitationCheckbox, SIGNAL(toggled(bool)), this, SLOT(setNoCitation(bool)));
 	connect (autoSaveCheckbox, SIGNAL(toggled(bool)), this, SLOT(setAutoSave(bool)));
 	connect (regionCheckbox, SIGNAL(toggled(bool)), this, SLOT(regionChanged(bool)));
 	connect (subregionCheckbox, SIGNAL(toggled(bool)), this, SLOT(subregionChanged(bool)));
@@ -675,6 +678,14 @@ void UserPreferences::setAutoSave(bool val){
 	}
 	autoSaveIntervalEdit->setText(QString::number(autoSaveInterval));
 }
+void UserPreferences::setNoCitation(bool val){
+	if (val) { //check to turn off citation reminder
+		citationRemind = false;
+	} else {
+		citationRemind = true;
+	}
+	dialogChanged=true;
+}
 void UserPreferences::textChanged(){
 	textChangedFlag = true;
 }
@@ -697,9 +708,11 @@ setDialog(){
 	jpegQuality = GLWindow::getJpegQuality();
 	jpegQualityEdit->setText(QString::number(jpegQuality));
 	autoSaveInterval = ses->getAutoSaveInterval();
+	citationRemind = ses->getCitationRemindDefault();
 	if (autoSaveInterval < 0) autoSaveInterval = 0;
 	autoSaveIntervalEdit->setText(QString::number(autoSaveInterval));
 	autoSaveCheckbox->setChecked(autoSaveInterval > 0);
+	noShowCitationCheckbox->setChecked(!citationRemind);
 	warnDataMissing = DataStatus::warnIfDataMissing();
 	missingDataCheckbox->setChecked(warnDataMissing);
 	trackMouse = DataStatus::trackMouse();
@@ -860,6 +873,8 @@ applyToState(){
 	ses->setTextureSize(texSize);
 	ses->specifyTextureSize(texSizeSpecified);
 	ses->setAutoSaveInterval(autoSaveInterval);
+	ses->setCitationRemindDefault(citationRemind);
+	ses->setCitationRemind(citationRemind);
 	GLWindow::setJpegQuality(jpegQuality);
 	DataStatus::setWarnMissingData(warnDataMissing);
 	DataStatus::setTrackMouse(trackMouse);
@@ -1045,6 +1060,13 @@ ParamNode* UserPreferences::buildNode(){
 	else 
 		oss << "false";
 	attrs[Session::_specifyTextureSizeAttr] = oss.str();
+
+	oss.str(empty);
+	if (Session::getInstance()->getCitationRemindDefault())
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[UserPreferences::_citationRemindAttr] = oss.str();
 
 	attrs[Session::_VAPORVersionAttr] = Version::GetVersionString();
 
@@ -1325,6 +1347,15 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 					if (boolVal == "true") val = true;
 					else val = false;
 					ses->specifyTextureSize(val);
+				}
+				if (StrCmpNoCase(attr, UserPreferences::_citationRemindAttr) == 0) {
+					string boolVal;
+					bool val;
+					ist >> boolVal;
+					if (boolVal == "true") val = true;
+					else val = false;
+					ses->setCitationRemindDefault(val);
+					ses->setCitationRemind(val);
 				}
 				else if (StrCmpNoCase(attr, Session::_VAPORVersionAttr) == 0){
 					ist >> preferencesVersionString;

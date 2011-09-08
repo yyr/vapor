@@ -86,9 +86,9 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	ignoreComboChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-	showAppearance = true;
-	showLayout = true;
-	showImage = true;
+	showAppearance = false;
+	showLayout = false;
+	showImage = false;
 
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playButton->setIcon(QIcon(*playForwardIcon));
@@ -2404,6 +2404,7 @@ void ProbeEventRouter::cleanParams(Params* p)
 //Then put jpeg in it.
 //
 void ProbeEventRouter::captureImage() {
+	MainForm::getInstance()->showCitationReminder();
 	QString filename = QFileDialog::getSaveFileName(this,
 		"Specify image capture Jpeg file name",
 		Session::getInstance()->getJpegDirectory().c_str(),

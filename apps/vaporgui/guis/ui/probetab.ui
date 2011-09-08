@@ -616,7 +616,7 @@ probe volume.</string>
              <string>Click to toggle hide/show the probe layout options</string>
             </property>
             <property name="text">
-             <string>Hide Probe Layout Options</string>
+             <string>Show Probe Layout Options</string>
             </property>
            </widget>
           </item>
@@ -2500,7 +2500,7 @@ Domain</string>
              <string>Click to toggle hide/show the probe image options</string>
             </property>
             <property name="text">
-             <string>Hide Image Settings</string>
+             <string>Show Image Settings</string>
             </property>
            </widget>
           </item>
@@ -3613,7 +3613,7 @@ change the selection in the probe</string>
              <string>Click to toggle hide/show the probe appearance options</string>
             </property>
             <property name="text">
-             <string>Hide Appearance Parameters</string>
+             <string>Show Appearance Parameters</string>
             </property>
            </widget>
           </item>

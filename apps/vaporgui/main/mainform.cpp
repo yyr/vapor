@@ -1264,6 +1264,7 @@ void MainForm::exportToIDL(){
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startJpegCapture() {
+	showCitationReminder();
 	QFileDialog fileDialog(this,
 		"Specify first file name for image capture sequence",
 		Session::getInstance()->getJpegDirectory().c_str(),
@@ -1368,6 +1369,7 @@ void MainForm::startFlowCapture() {
 //Then put jpeg in it.
 //
 void MainForm::captureSingleJpeg() {
+	showCitationReminder();
 	QFileDialog fileDialog(this,
 		"Specify single image capture file name",
 		Session::getInstance()->getJpegDirectory().c_str(),
@@ -1517,4 +1519,25 @@ void MainForm::modeChange(int newmode){
 	modeStatusWidget = new QLabel(QString::fromStdString(GLWindow::getModeName(newmode))+" Mode: To modify box in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
 	statusBar()->addWidget(modeStatusWidget,2);
 	
+}
+void MainForm::showCitationReminder(){
+	//First check if reminder is turned off:
+	if (!Session::getInstance()->getCitationRemind()) return;
+	//Provide a customized message box
+	QMessageBox msgBox;
+	QString reminder("VAPOR is developed as an Open Source application by the National Center for Atmospheric Research ");
+	reminder.append("under the sponsorship of the National Science Foundation.  ");
+	reminder.append("Continued support from VAPOR is dependent on demonstrable evidence of the software's value to the scientific community.  ");
+	reminder.append("You are free to use VAPOR as permitted under the terms and conditions of the licence.  ");
+	reminder.append("We kindly request, however, that you cite VAPOR in your publications and presentations. ");
+	reminder.append("Citation details can be found on the VAPOR website at: \n\n  http://www.vapor.ucar.edu/index.php?id=citation");
+	msgBox.setText(reminder);
+	msgBox.setInformativeText("This reminder can be silenced from the User Preferences panel");
+		
+	msgBox.setStandardButtons(QMessageBox::Ok);
+	msgBox.setDefaultButton(QMessageBox::Ok);
+		
+	msgBox.exec();
+	Session::getInstance()->setCitationRemind(false);
+
 }

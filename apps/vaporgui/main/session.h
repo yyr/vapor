@@ -249,6 +249,10 @@ public:
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
+	bool getCitationRemind(){return citationRemind;}
+	void setCitationRemind(bool val){citationRemind=val;}
+	bool getCitationRemindDefault(){return citationRemindDefault;}
+	void setCitationRemindDefault(bool val){citationRemindDefault=val;}
 	const float* getExtents() {return extents;}
 	const float* getStretchedExtents() {return stretchedExtents;}
 	float getExtents(int i) {return extents[i];}
@@ -419,6 +423,8 @@ protected:
 	int autoSaveInterval;
 	static string prefFile;
 	bool metadataSaved;
+	bool citationRemind;
+	bool citationRemindDefault;
 
 	string parsedPythonProgram;
 	vector<string> parsed2DInputVars;

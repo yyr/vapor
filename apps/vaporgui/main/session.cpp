@@ -285,6 +285,7 @@ void Session::setDefaultPrefs(){
 	preferenceSessionDirectory = defaultDir;
 	preferenceTFPath = defaultDir;
 	autoSaveInterval = 10;
+	citationRemind = true;
 }
 
 bool Session::

@@ -114,6 +114,7 @@ protected slots:
 	void tabNameChanged(int val); 
 	void tabOrderChanged(int);
 	void hideUnhidePressed();
+	void setNoCitation(bool);
 	
 protected:
 	static const string _preferencesTag;
@@ -166,6 +167,7 @@ protected:
 	static const string _specularCoeffAttr;
 	static const string _ambientCoeffAttr;
 	static const string _specularExpAttr;
+	static const string _citationRemindAttr;
 
 
 
@@ -221,6 +223,7 @@ protected:
 	bool showAxisArrows;
 	bool showTerrain;
 	bool spinAnimate;
+	bool citationRemind;
 	int autoSaveInterval;
 	bool showAll;
 	//Indicate position of tab associated with a paramsBaseType, or 0 if it is not shown:

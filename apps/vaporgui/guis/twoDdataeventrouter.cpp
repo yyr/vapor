@@ -1702,6 +1702,7 @@ void TwoDDataEventRouter::cleanParams(Params* p)
 //Then put jpeg in it.
 //
 void TwoDDataEventRouter::captureImage() {
+	MainForm::getInstance()->showCitationReminder();
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	if (!pParams->isEnabled()) return;
 	QFileDialog fileDialog(this,
