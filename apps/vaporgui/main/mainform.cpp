@@ -1528,8 +1528,8 @@ void MainForm::showCitationReminder(){
 	QString reminder("VAPOR is developed as an Open Source application by the National Center for Atmospheric Research ");
 	reminder.append("under the sponsorship of the National Science Foundation.  ");
 	reminder.append("Continued support from VAPOR is dependent on demonstrable evidence of the software's value to the scientific community.  ");
-	reminder.append("You are free to use VAPOR as permitted under the terms and conditions of the licence.  ");
-	reminder.append("We kindly request, however, that you cite VAPOR in your publications and presentations. ");
+	reminder.append("You are free to use VAPOR as permitted under the terms and conditions of the licence.\n\n ");
+	reminder.append("We kindly request that you cite VAPOR in your publications and presentations. ");
 	reminder.append("Citation details can be found on the VAPOR website at: \n\n  http://www.vapor.ucar.edu/index.php?id=citation");
 	msgBox.setText(reminder);
 	msgBox.setInformativeText("This reminder can be silenced from the User Preferences panel");

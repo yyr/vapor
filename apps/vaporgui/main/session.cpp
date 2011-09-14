@@ -186,6 +186,8 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	metadataSaved = false;
+	citationRemind = true;
+	citationRemindDefault = true;
 
 	
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
@@ -286,6 +288,7 @@ void Session::setDefaultPrefs(){
 	preferenceTFPath = defaultDir;
 	autoSaveInterval = 10;
 	citationRemind = true;
+	citationRemindDefault = true;
 }
 
 bool Session::

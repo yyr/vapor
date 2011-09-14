@@ -873,8 +873,11 @@ applyToState(){
 	ses->setTextureSize(texSize);
 	ses->specifyTextureSize(texSizeSpecified);
 	ses->setAutoSaveInterval(autoSaveInterval);
-	ses->setCitationRemindDefault(citationRemind);
-	ses->setCitationRemind(citationRemind);
+	//Only set CitationRemind if it's changed:
+	if (ses->getCitationRemindDefault() != citationRemind){
+		ses->setCitationRemindDefault(citationRemind);
+		ses->setCitationRemind(citationRemind);
+	}
 	GLWindow::setJpegQuality(jpegQuality);
 	DataStatus::setWarnMissingData(warnDataMissing);
 	DataStatus::setTrackMouse(trackMouse);
