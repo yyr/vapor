@@ -20,6 +20,9 @@
 //		including menus, tab dialog, docking, visualizer window,
 //		and some of the communication between these classes
 //
+#define MIN_WINDOW_WIDTH 700
+#define MIN_WINDOW_HEIGHT 700
+
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
@@ -162,7 +165,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     setCentralWidget(myMDIArea);
 
     
-    setMinimumSize( QSize( 422, 606 ) );
+    setMinimumSize( QSize( MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT ) );
    
    
     createActions();
