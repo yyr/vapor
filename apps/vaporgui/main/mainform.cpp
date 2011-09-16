@@ -165,7 +165,18 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     setCentralWidget(myMDIArea);
 
     
-    setMinimumSize( QSize( MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT ) );
+	int min_width = MIN_WINDOW_WIDTH;
+	int min_height = MIN_WINDOW_HEIGHT;
+	if (char *s = getenv("VAPOR_WIDTH_HEIGHT")) {
+		int h,w;
+		int rc = sscanf(s, "%dx%d", &w, &h);
+		if (rc==2) {
+			min_width = w;
+			min_height = h;
+		}
+		cerr << "VAPOR_WIDTH_HEIGHT = " << s << endl;
+	} 
+    setMinimumSize( QSize( min_width, min_height ) );
    
    
     createActions();
