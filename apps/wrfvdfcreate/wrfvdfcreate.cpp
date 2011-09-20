@@ -57,7 +57,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"wname",	1,	"bior3.3",	"Wavelet family used for compression "
 		"(VDC type 2, only). Recommended values are bior1.1, bior1.3, "
 		"bior1.5, bior2.2, bior2.4 ,bior2.6, bior2.8, bior3.1, bior3.3, "
-		"bior3.5, bior3.7, bior3.9"},
+		"bior3.5, bior3.7, bior3.9, bior4.4"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
 	{NULL}
@@ -187,7 +187,8 @@ int	main(int argc, char **argv) {
 		else if ((wname.compare("bior2.2") == 0) ||
 			(wname.compare("bior2.4") == 0) ||
 			(wname.compare("bior2.6") == 0) ||
-			(wname.compare("bior2.8") == 0)) {
+			(wname.compare("bior2.8") == 0) ||
+			(wname.compare("bior4.4") == 0)) {
 
 			wmode = "symw"; 
 		}

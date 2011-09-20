@@ -217,6 +217,31 @@ const double hm3_39[20] = {
 	-0.0006797443727836989446602355165
 };
 
+const double hm4_44[] = {
+	0.037828455507264,
+	-0.023849465019557,
+	-0.110624404418437,
+	0.377402855612831,
+	0.852698679008894,
+	0.377402855612831,
+	-0.110624404418437,
+	-0.023849465019557,
+	0.037828455507264
+};
+
+const double h4[] = {
+	0.0,
+	-0.064538882628697,
+	-0.040689417609164,
+	0.418092273221617,
+	0.788485616405583,
+	0.418092273221617,
+	-0.0406894176091641,
+	-0.0645388826286971,
+	0.0
+};
+
+
 };
 
 void WaveFiltBior::_analysis_initialize (int member) 
@@ -286,6 +311,12 @@ void WaveFiltBior::_analysis_initialize (int member)
       _filterLength = 20;
       pFilterCoef = hm3_39;
       pFilterCoefMirror = h3;
+      break;
+
+  case 44:
+      _filterLength = 9;
+      pFilterCoef = hm4_44;
+      pFilterCoefMirror = h4;
       break;
 
   default:
@@ -366,6 +397,12 @@ void WaveFiltBior::_synthesis_initialize (int member)
       pFilterCoefMirror = hm3_39;
       break;
 
+  case 44:
+      _filterLength = 9;
+      pFilterCoef = h4;
+      pFilterCoefMirror = hm4_44;
+      break;
+
   default:
 		assert(pFilterCoef != NULL);
   };
@@ -404,6 +441,8 @@ WaveFiltBior::WaveFiltBior(
 		member = 37;
 	} else if (wavename.compare("bior3.9") == 0) {
 		member = 39;
+	} else if (wavename.compare("bior4.4") == 0) {
+		member = 44;
 	}
 
 	if (member == -1) {
