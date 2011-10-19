@@ -3613,7 +3613,7 @@ change the selection in the probe</string>
              <string>Click to toggle hide/show the probe appearance options</string>
             </property>
             <property name="text">
-             <string>Show Appearance Parameters</string>
+             <string>Hide Appearance Parameters</string>
             </property>
            </widget>
           </item>
