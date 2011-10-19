@@ -86,7 +86,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	ignoreComboChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-	showAppearance = false;
+	showAppearance = true;
 	showLayout = false;
 	showImage = false;
 
