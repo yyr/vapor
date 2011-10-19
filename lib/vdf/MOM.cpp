@@ -238,7 +238,8 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 		if( 0==varIsValid(ncid, ndims, i)){
 			NC_ERR_READ(nc_inq_varname(ncid, i, varname));
 			if ((ndims ==3 && add2dVars) || (ndims == 4 && add3dVars)){
-				addVarName(ndims-1, string(varname), vars2d, vars3d);
+				string vname(varname);
+				addVarName(ndims-1, vname, vars2d, vars3d);
 			}
 			if (!timesInserted){
 				addTimes(timelen, fileTimes);
@@ -583,20 +584,20 @@ int MOM::_GetMOMTopo(
 	// First determine the two dimensions of the geolat and geolon vars
 	int londimids[4], latdimids[4];
 	size_t londimlen[4], latdimlen[4];
-	for (int i = 0; i<geolatvars.size(), i<2; i++){
+	for (int i = 0; i<geolatvars.size() && i<2; i++){
 		NC_ERR_READ(nc_inq_vardimid(ncid, latvarids[i], latdimids+2*i));
 		for (int j = 0; j<2; j++)
 			NC_ERR_READ(nc_inq_dimlen(ncid, latdimids[j+2*i], latdimlen+(j+2*i)));
 	}
 
-	for (int i = 0; i<geolonvars.size(), i<2; i++){
+	for (int i = 0; i<geolonvars.size() && i<2; i++){
 		NC_ERR_READ(nc_inq_vardimid(ncid, lonvarids[i], londimids+2*i));
 		for (int j = 0; j<2; j++)//get the dimension length
 			NC_ERR_READ(nc_inq_dimlen(ncid, londimids[j+2*i], londimlen+(j+2*i)));
 	}
 	//Now read the geolat and geolon vars, to find extents and to identify T vs U grid.
 	float minlat[2], maxlat[2], minlon[2], maxlon[2];
-	for (int i = 0; i<geolatvars.size(), i<2; i++){
+	for (int i = 0; i<geolatvars.size() && i<2; i++){
 		float * buf = new float[latdimlen[2*i]*latdimlen[2*i+1]];
 		NC_ERR_READ(nc_get_var_float(ncid, latvarids[i], buf));
 		//Identify the fill_value
@@ -613,7 +614,7 @@ int MOM::_GetMOMTopo(
 		maxlat[i] = maxval;
 		delete buf;
 	}
-	for (int i = 0; i<geolonvars.size(), i<2; i++){
+	for (int i = 0; i<geolonvars.size() && i<2; i++){
 		float * buf = new float[londimlen[2*i]*londimlen[2*i+1]];
 		NC_ERR_READ(nc_get_var_float(ncid, lonvarids[i], buf));
 		//Identify the fill_value
@@ -915,3 +916,5 @@ int MOM::varIsValid(int ncid, int ndims, int varid){
 	}
 	return -1;
 }
+
+

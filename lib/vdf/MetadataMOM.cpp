@@ -64,12 +64,8 @@ void MetadataMOM::_MetadataMOM(
 
   string ErrMsgStr;
   
-  float vertexts[2] = {0.0, 0.0};
-  float *vertexts_ptr = vertexts;
-  
   int i = 0;
-  bool first_file_flag = true;
-  bool mismatch_flag = false;
+
   vector<string> tempVars2D, tempVars3D;
 
 //

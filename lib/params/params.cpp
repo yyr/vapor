@@ -467,10 +467,12 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		//Use the full domain as the extents of the 3rd dimension
 		//This is important when deriving 2d variables from 3d inputs.
 		DataMgr* dataMgr = ds->getDataMgr();
-		size_t bdim[3];
-		dataMgr->GetDimBlk(bdim, refLevel);
+		size_t bdim[3], fulldim[3], bsize[3];
+// Following is a workaround for bug in DataMgr::GetDimBlk:
+		dataMgr->GetDim(fulldim,refLevel);
+		dataMgr->GetBlockSize(bsize,refLevel);
 		blkMin[2] = 0;
-		blkMax[2] = bdim[2];
+		blkMax[2] = 1+(fulldim[2]-1)/bsize[2];
 	}
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
