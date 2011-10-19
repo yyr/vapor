@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\MetadataMOM.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp"
 				>
 			</File>
@@ -292,6 +296,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\MetadataWRF.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\MOM.cpp"
 				>
 			</File>
 			<File
@@ -457,11 +465,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\MetadataMOM.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\MetadataVDC.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\MetadataWRF.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\MOM.h"
 				>
 			</File>
 			<File

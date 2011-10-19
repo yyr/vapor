@@ -5,13 +5,13 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = vdf
 FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF \
+	MetadataSpherical MetadataWRF MetadataMOM \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	LayeredIO AMRIO  WRF WRFReader Transpose DataMgr DataMgrWB \
+	LayeredIO AMRIO  WRF MOM WRFReader Transpose DataMgr DataMgrWB \
 	DataMgrLayered DataMgrLayered2 DataMgrWRF vdf \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
@@ -20,13 +20,13 @@ FILES = \
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
-	MetadataSpherical MetadataWRF \
+	MetadataSpherical MetadataWRF MetadataMOM \
 	WaveletBlock1D  WaveletBlock2D WaveletBlock3D \
 	AMRTreeBranch AMRTree AMRData \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	LayeredIO AMRIO  WRF WRFReader DataMgr DataMgrWB DataMgrLayered \
+	LayeredIO AMRIO  WRF MOM WRFReader DataMgr DataMgrWB DataMgrLayered \
 	DataMgrLayered2 DataMgrWRF \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \

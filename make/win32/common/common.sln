@@ -115,6 +115,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cart2wrfvdf", "..\cart2wrfv
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "momvdfcreate", "..\momvdfcreate\momvdfcreate.vcproj", "{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -199,6 +205,10 @@ Global
 		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Debug|Win32.Build.0 = Debug|Win32
 		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Release|Win32.ActiveCfg = Release|Win32
 		{60E627C6-F63E-49EF-A1EB-94716A19448D}.Release|Win32.Build.0 = Release|Win32
+		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Debug|Win32.Build.0 = Debug|Win32
+		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Release|Win32.ActiveCfg = Release|Win32
+		{E74BD45F-232D-41D7-BCA5-F99EC28BF86F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
