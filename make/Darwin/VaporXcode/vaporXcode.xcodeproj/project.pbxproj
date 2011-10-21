@@ -557,6 +557,10 @@
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
 		E75132001299BD44009C3A61 /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GetAppPath.h; sourceTree = "<group>"; };
+		E7BA1ACA14522310003DBE0A /* MetadataMOM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetadataMOM.cpp; sourceTree = "<group>"; };
+		E7BA1ACB14522310003DBE0A /* MOM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MOM.cpp; sourceTree = "<group>"; };
+		E7BA1ACD1452232F003DBE0A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		E7BA1ACE1452232F003DBE0A /* momvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = momvdfcreate.cpp; sourceTree = "<group>"; };
 		E7C588541357379300F0E7D8 /* Box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Box.cpp; sourceTree = "<group>"; };
 		E7C588551357379300F0E7D8 /* Box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Box.h; sourceTree = "<group>"; };
 		E7D30A35128880210066DF2E /* GetAppPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GetAppPath.cpp; sourceTree = "<group>"; };
@@ -875,6 +879,8 @@
 		E704146E123042460083F569 /* vdf */ = {
 			isa = PBXGroup;
 			children = (
+				E7BA1ACA14522310003DBE0A /* MetadataMOM.cpp */,
+				E7BA1ACB14522310003DBE0A /* MOM.cpp */,
 				E704146F123042460083F569 /* AMRData.cpp */,
 				E7041471123042460083F569 /* AMRIO.cpp */,
 				E7041473123042460083F569 /* AMRTree.cpp */,
@@ -1035,6 +1041,7 @@
 		E7041519123042CB0083F569 /* apps */ = {
 			isa = PBXGroup;
 			children = (
+				E7BA1ACC1452232F003DBE0A /* momvdfcreate */,
 				E704151A123042CB0083F569 /* asciitf2vtf */,
 				E704151D123042CB0083F569 /* cart2wrfvdf */,
 				E7041520123042CB0083F569 /* flashamr2vdf */,
@@ -1437,6 +1444,15 @@
 			path = ../../../apps/wrfvdfcreate;
 			sourceTree = SOURCE_ROOT;
 		};
+		E7BA1ACC1452232F003DBE0A /* momvdfcreate */ = {
+			isa = PBXGroup;
+			children = (
+				E7BA1ACD1452232F003DBE0A /* Makefile */,
+				E7BA1ACE1452232F003DBE0A /* momvdfcreate.cpp */,
+			);
+			path = momvdfcreate;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
@@ -1453,6 +1469,20 @@
 			name = vaporgui;
 			passBuildSettingsInEnvironment = 1;
 			productName = vaporgui;
+		};
+		E7BA1AC4145222C6003DBE0A /* momvdfcreate */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = E7BA1AC914522305003DBE0A /* Build configuration list for PBXLegacyTarget "momvdfcreate" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working/apps/momvdfcreate";
+			dependencies = (
+			);
+			name = momvdfcreate;
+			passBuildSettingsInEnvironment = 1;
+			productName = momvdfcreate;
 		};
 /* End PBXLegacyTarget section */
 
@@ -1474,6 +1504,7 @@
 			projectRoot = "";
 			targets = (
 				E7041615123043540083F569 /* vaporgui */,
+				E7BA1AC4145222C6003DBE0A /* momvdfcreate */,
 			);
 		};
 /* End PBXProject section */
@@ -1524,6 +1555,27 @@
 			};
 			name = Release;
 		};
+		E7BA1AC5145222C6003DBE0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = momvdfcreate;
+			};
+			name = Debug;
+		};
+		E7BA1AC6145222C6003DBE0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = momvdfcreate;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1541,6 +1593,15 @@
 			buildConfigurations = (
 				E7041616123043540083F569 /* Debug */,
 				E7041617123043540083F569 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7BA1AC914522305003DBE0A /* Build configuration list for PBXLegacyTarget "momvdfcreate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7BA1AC5145222C6003DBE0A /* Debug */,
+				E7BA1AC6145222C6003DBE0A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
