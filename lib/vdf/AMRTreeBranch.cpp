@@ -236,7 +236,7 @@ AMRTreeBranch::cid_t	AMRTreeBranch::GetCellID(
 
 	size_t xyz_local[3];
 	for (int i=0; i<3; i++) {
-		xyz_local[i]  = xyz[i] - (_location[i] >> ref_level);
+		xyz_local[i]  = xyz[i] - (_location[i] << ref_level);
 	}
 
 	cid_t cellid = _octree->get_cellid(xyz_local, ref_level);
