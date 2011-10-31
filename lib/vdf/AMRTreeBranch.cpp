@@ -157,11 +157,11 @@ AMRTreeBranch::cid_t	AMRTreeBranch::FindCell(
 		//
 		unsigned child = 0;
 		for (int i=0; i<3; i++) {
-			if (ucoord[i] < ((maxbnd[i] - minbnd[i]) / 2.0)) {
-				maxbnd[i] = (maxbnd[i] - minbnd[i]) / 2.0;
+			if (ucoord[i] < ((maxbnd[i] + minbnd[i]) / 2.0)) {
+				maxbnd[i] = (maxbnd[i] + minbnd[i]) / 2.0;
 			}
 			else {
-				minbnd[i] = (maxbnd[i] - minbnd[i]) / 2.0;
+				minbnd[i] = (maxbnd[i] + minbnd[i]) / 2.0;
 				child += (1<<i);
 			}
 		}
