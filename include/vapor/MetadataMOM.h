@@ -68,9 +68,6 @@ public:
         return(Extents); };
 
 
-
- 
-
 //! Return the number of time steps in the collection
 //!
 //! \retval value The number of time steps or a negative number on error
@@ -107,10 +104,10 @@ public:
 //!
 //! \retval float of value.
 //
-	float GetminLat() const {return (minLat); } ;
-	float GetmaxLat() const {return (maxLat); } ;
-	float GetminLon() const {return (minLon); } ;
-	float GetmaxLon() const {return (maxLon); } ;
+	float GetMinLat() const {return (minLat); } ;
+	float GetMaxLat() const {return (maxLat); } ;
+	float GetMinLon() const {return (minLon); } ;
+	float GetMaxLon() const {return (maxLon); } ;
 
 //! Return the map projection argument string, if it exists
 //!
@@ -170,8 +167,10 @@ public:
 //
       vector<long> GetPeriodicBoundary() const {
         return(PeriodicBoundary); };
+	
 
-
+	vector<string>&GetGeoLonVars(){return geoLonVars;}
+	vector<string>&GetGeoLatVars(){return geoLatVars;}
 
 protected:
  map <string, string> GetAtypNames() const {return(_atypnames); };
@@ -186,6 +185,8 @@ private:
       size_t Dimens[3];
       float minLat, minLon, maxLat, maxLon;
       double Reflevel;
+	vector<string> geoLatVars;
+	vector<string> geoLonVars;
 
  map <string, string> _atypnames;
 
@@ -195,7 +196,7 @@ private:
 
 
 }; // End of class.
-
+	
 }; // End of namespace.
 
 #endif  // _MetadataMOM_h_

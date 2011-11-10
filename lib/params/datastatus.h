@@ -28,7 +28,7 @@
 #include <vapor/DataMgr.h>
 #include <vapor/MetadataVDC.h>
 #include <qcolor.h>
-#include "regionparams.h"
+#include "regionparams.h" 
 class QApplication;
 
 namespace VAPoR {

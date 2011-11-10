@@ -331,13 +331,6 @@
 		E704150D123042930083F569 /* WRF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRF.h; path = ../../../include/vapor/WRF.h; sourceTree = SOURCE_ROOT; };
 		E704150E123042930083F569 /* WRFReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRFReader.h; path = ../../../include/vapor/WRFReader.h; sourceTree = SOURCE_ROOT; };
 		E704150F123042930083F569 /* XmlNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlNode.h; path = ../../../include/vapor/XmlNode.h; sourceTree = SOURCE_ROOT; };
-		E7041511123042930083F569 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = common.h; path = ../../../include/vaporinternal/common.h; sourceTree = SOURCE_ROOT; };
-		E7041513123042930083F569 /* glew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glew.h; path = ../../../include/vaporinternal/GL/glew.h; sourceTree = SOURCE_ROOT; };
-		E7041514123042930083F569 /* glxew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glxew.h; path = ../../../include/vaporinternal/GL/glxew.h; sourceTree = SOURCE_ROOT; };
-		E7041515123042930083F569 /* wglew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wglew.h; path = ../../../include/vaporinternal/GL/wglew.h; sourceTree = SOURCE_ROOT; };
-		E7041516123042930083F569 /* jmorecfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jmorecfg.h; path = ../../../include/vaporinternal/jmorecfg.h; sourceTree = SOURCE_ROOT; };
-		E7041517123042930083F569 /* jpegapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jpegapi.h; path = ../../../include/vaporinternal/jpegapi.h; sourceTree = SOURCE_ROOT; };
-		E7041518123042930083F569 /* jpeglib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jpeglib.h; path = ../../../include/vaporinternal/jpeglib.h; sourceTree = SOURCE_ROOT; };
 		E704151B123042CB0083F569 /* asciitf2vtf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = asciitf2vtf.cpp; path = ../../../apps/asciitf2vtf/asciitf2vtf.cpp; sourceTree = SOURCE_ROOT; };
 		E704151C123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/asciitf2vtf/Makefile; sourceTree = SOURCE_ROOT; };
 		E704151E123042CB0083F569 /* cart2wrfvdf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cart2wrfvdf.cpp; path = ../../../apps/cart2wrfvdf/cart2wrfvdf.cpp; sourceTree = SOURCE_ROOT; };
@@ -557,6 +550,10 @@
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
 		E75132001299BD44009C3A61 /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GetAppPath.h; sourceTree = "<group>"; };
+		E788602C145A32E9001F7D1A /* MOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOM.h; sourceTree = "<group>"; };
+		E788602D145A32E9001F7D1A /* MetadataMOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetadataMOM.h; sourceTree = "<group>"; };
+		E78860EF146078D4001F7D1A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		E78860F3146081F0001F7D1A /* mom2vdf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mom2vdf.cpp; sourceTree = "<group>"; };
 		E7BA1ACA14522310003DBE0A /* MetadataMOM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetadataMOM.cpp; sourceTree = "<group>"; };
 		E7BA1ACB14522310003DBE0A /* MOM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MOM.cpp; sourceTree = "<group>"; };
 		E7BA1ACD1452232F003DBE0A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
@@ -937,7 +934,6 @@
 			isa = PBXGroup;
 			children = (
 				E70414CF123042930083F569 /* vapor */,
-				E7041510123042930083F569 /* vaporinternal */,
 			);
 			name = include;
 			path = ../../../include;
@@ -946,6 +942,8 @@
 		E70414CF123042930083F569 /* vapor */ = {
 			isa = PBXGroup;
 			children = (
+				E788602C145A32E9001F7D1A /* MOM.h */,
+				E788602D145A32E9001F7D1A /* MetadataMOM.h */,
 				E70414D0123042930083F569 /* AMRData.h */,
 				E70414D1123042930083F569 /* AMRIO.h */,
 				E70414D2123042930083F569 /* AMRTree.h */,
@@ -1014,33 +1012,10 @@
 			path = ../../../include/vapor;
 			sourceTree = SOURCE_ROOT;
 		};
-		E7041510123042930083F569 /* vaporinternal */ = {
-			isa = PBXGroup;
-			children = (
-				E7041511123042930083F569 /* common.h */,
-				E7041512123042930083F569 /* GL */,
-				E7041516123042930083F569 /* jmorecfg.h */,
-				E7041517123042930083F569 /* jpegapi.h */,
-				E7041518123042930083F569 /* jpeglib.h */,
-			);
-			name = vaporinternal;
-			path = ../../../include/vaporinternal;
-			sourceTree = SOURCE_ROOT;
-		};
-		E7041512123042930083F569 /* GL */ = {
-			isa = PBXGroup;
-			children = (
-				E7041513123042930083F569 /* glew.h */,
-				E7041514123042930083F569 /* glxew.h */,
-				E7041515123042930083F569 /* wglew.h */,
-			);
-			name = GL;
-			path = ../../../include/vaporinternal/GL;
-			sourceTree = SOURCE_ROOT;
-		};
 		E7041519123042CB0083F569 /* apps */ = {
 			isa = PBXGroup;
 			children = (
+				E78860EE146078D4001F7D1A /* mom2vdf */,
 				E7BA1ACC1452232F003DBE0A /* momvdfcreate */,
 				E704151A123042CB0083F569 /* asciitf2vtf */,
 				E704151D123042CB0083F569 /* cart2wrfvdf */,
@@ -1444,6 +1419,15 @@
 			path = ../../../apps/wrfvdfcreate;
 			sourceTree = SOURCE_ROOT;
 		};
+		E78860EE146078D4001F7D1A /* mom2vdf */ = {
+			isa = PBXGroup;
+			children = (
+				E78860F3146081F0001F7D1A /* mom2vdf.cpp */,
+				E78860EF146078D4001F7D1A /* Makefile */,
+			);
+			path = mom2vdf;
+			sourceTree = "<group>";
+		};
 		E7BA1ACC1452232F003DBE0A /* momvdfcreate */ = {
 			isa = PBXGroup;
 			children = (
@@ -1470,6 +1454,20 @@
 			passBuildSettingsInEnvironment = 1;
 			productName = vaporgui;
 		};
+		E744081E1461970900EA955E /* mom2vdf */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = E74408211461972700EA955E /* Build configuration list for PBXLegacyTarget "mom2vdf" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working/";
+			dependencies = (
+			);
+			name = mom2vdf;
+			passBuildSettingsInEnvironment = 1;
+			productName = mom2vdf;
+		};
 		E7BA1AC4145222C6003DBE0A /* momvdfcreate */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(ACTION)";
@@ -1477,7 +1475,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working/apps/momvdfcreate";
+			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working/";
 			dependencies = (
 			);
 			name = momvdfcreate;
@@ -1505,6 +1503,7 @@
 			targets = (
 				E7041615123043540083F569 /* vaporgui */,
 				E7BA1AC4145222C6003DBE0A /* momvdfcreate */,
+				E744081E1461970900EA955E /* mom2vdf */,
 			);
 		};
 /* End PBXProject section */
@@ -1555,6 +1554,27 @@
 			};
 			name = Release;
 		};
+		E744081F1461970900EA955E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = mom2vdf;
+			};
+			name = Debug;
+		};
+		E74408201461970900EA955E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = mom2vdf;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		E7BA1AC5145222C6003DBE0A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1593,6 +1613,15 @@
 			buildConfigurations = (
 				E7041616123043540083F569 /* Debug */,
 				E7041617123043540083F569 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E74408211461972700EA955E /* Build configuration list for PBXLegacyTarget "mom2vdf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E744081F1461970900EA955E /* Debug */,
+				E74408201461970900EA955E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

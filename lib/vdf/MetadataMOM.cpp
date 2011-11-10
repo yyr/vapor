@@ -23,6 +23,15 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 
+#define NC_ERR_READ(X) \
+{ \
+int rc = (X); \
+if (rc != NC_NOERR) { \
+MyBase::SetErrMsg("Error reading netCDF file at line %d : %s", \
+__LINE__,  nc_strerror(rc)) ; \
+return(-1); \
+} \
+}
 
 //
 //! The generic constructor.
@@ -102,7 +111,7 @@ void MetadataMOM::_MetadataMOM(
 		);
         return;
     }
-
+	mom.GetDims(Dimens);
 //Then process all the data files.   Find all the valid variables that appear in these files.
 //Keep track of all the time steps that occur.
   for(i=0; i < infiles.size(); i++) {
@@ -123,7 +132,7 @@ void MetadataMOM::_MetadataMOM(
         continue;
 	}
 
-
+	  
 //Should check consistency; for now just copy over extents:
 	Extents[0] = exts[0];
 	Extents[1] = exts[1];
@@ -132,11 +141,12 @@ void MetadataMOM::_MetadataMOM(
 	//Copy vertical extents if they are different:
 	if (exts[5] > exts[2]) {Extents[5] = exts[5]; Extents[2] = exts[2];}
 
-	//For now, the latlon extents are the same, but this will change
-	minLon = exts[0];
-	maxLon = exts[3];
-	minLat = exts[1];
-	maxLat = exts[4];
+	const float* latlonexts = mom.GetLonLatExtents();
+	  
+	minLon = latlonexts[0];
+	maxLon = latlonexts[2];
+	minLat = latlonexts[1];
+	maxLat = latlonexts[3];
 // Add the timesteps in this file into the full timestep list, convert to seconds
 	
 	const vector<double> newtimes = mom.GetTimes();
@@ -205,7 +215,8 @@ void MetadataMOM::_MetadataMOM(
 			Vars3D.push_back(tempVars3D[j]);
 	  }
   }
-
+	
+	
 } // End of constructor.
 
 MetadataMOM::MetadataMOM(const vector<string> &infiles, const string &topofile, vector<string>& vars2d, vector<string>& vars3d) {

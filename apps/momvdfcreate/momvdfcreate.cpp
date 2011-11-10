@@ -354,9 +354,9 @@ int	main(int argc, char **argv) {
 			cout << extptr[i] << " ";
 		}
 		cout << endl;
-		if (MOMData->GetminLon() < 1000.f){
-			cout << "\tMin Longitude and Latitude of domain corners: " << MOMData->GetminLon() << " " << MOMData->GetminLat() << endl;
-			cout << "\tMax Longitude and Latitude of domain corners: " << MOMData->GetmaxLon() << " " << MOMData->GetmaxLat() << endl;
+		if (MOMData->GetMinLon() < 1000.f){
+			cout << "\tMin Longitude and Latitude of domain corners: " << MOMData->GetMinLon() << " " << MOMData->GetMinLat() << endl;
+			cout << "\tMax Longitude and Latitude of domain corners: " << MOMData->GetMaxLon() << " " << MOMData->GetMaxLat() << endl;
 		}
 		
 	} // End if quiet.
