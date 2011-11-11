@@ -63,6 +63,7 @@ using namespace VAPoR;
 //
 struct opt_t {
 	vector<string> varnames;
+	vector<string> missval;
 	int numts;
 	int level;
 	int lod;
@@ -76,6 +77,7 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"varnames",1, 	"",	"Colon delimited list of variable names in MOM files to convert. The default is to convert variables in the set intersection of those variables found in the VDF file and those in the MOM files."},
+	{"missval", 1,  "", "Colon delimited list of variable names and associated values to remap the missing values.  Each variable name is followed by the associated value"},
 	{"numts",	1,	"-1","Maximum number of time steps that may be converted. A -1 implies the conversion of all time steps found"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"lod",	1, 	"-1",	"Compression levels saved. 0 => coarsest, 1 => "
@@ -91,6 +93,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
+	{"missval", VetsUtil::CvtToStrVec, &opt.missval, sizeof(opt.missval)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
@@ -266,6 +269,7 @@ int CopyVariable3D(
 	int lod, 
 	bool vdc1,	
 	string varname,
+	float* missMap,
 	const size_t dim[3],
 	size_t tsVDC,
 	int tsNetCDF
@@ -305,6 +309,9 @@ int CopyVariable3D(
 	float mv = -1.e30f;
 	rc = nc_get_att_float(ncid, varid, "missing_value", &mv);
 	
+	float missMapVal = mv;
+	if (missMap) missMapVal = *missMap;
+	
 	size_t slice_sz = dim[0] * dim[1];
 	size_t starts[4] = {0,0,0,0};
 	size_t counts[4] = {1,1,1,1};
@@ -333,7 +340,7 @@ int CopyVariable3D(
 		// Remap it 
 		//
 		
-		wt->interp2D(sliceBuffer, sliceBuffer2, mv);
+		wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
 		
 		
 		if (vdc1) {
@@ -374,6 +381,7 @@ int CopyVariable2D(
 	int lod, 
 	bool vdc1,	
 	string varname,
+	float* missMap,
 	const size_t dim[3],
 	size_t tsVDC,
 	int tsNetCDF
@@ -436,11 +444,15 @@ int CopyVariable2D(
 	//
 	NC_ERR_READ(nc_get_vara_float(ncid, varid, starts, counts, sliceBuffer))
 	
+	// Determine if this missing value is to be remapped
+	float missMapVal = mv;
+	if(missMap) missMapVal = *missMap; 
+	
 	//
 	// Remap it 
 	//
 	
-	wt->interp2D(sliceBuffer, sliceBuffer2, mv);
+	wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
 				
 	if (vdc1) {
 		if (wb2dwriter->WriteRegion(sliceBuffer2) < 0) {
@@ -522,6 +534,19 @@ int	main(int argc, char **argv) {
 	string metafile = string(argv[argc-1]);
 	
 	vector<string> varnames = opt.varnames;
+	
+	vector<string> missMapNames;
+	vector<float> missMapValues;
+	if (2*(opt.missval.size()/2) != opt.missval.size()){
+		cerr << "Error: missval option requires an even number of colon-separated entries";
+		op.PrintOptionHelp(stderr);
+		exit(1);
+	}
+		
+	for (int i = 0; i<opt.missval.size(); i+=2){
+		missMapNames.push_back(opt.missval[i]);
+		missMapValues.push_back(strtod(opt.missval[i+1].c_str(),0));
+	}
 
 	WaveletBlock3DBufWriter *wbwriter3d = NULL;
 	WaveCodecIO	*wcwriter3d = NULL;
@@ -639,7 +664,7 @@ int	main(int argc, char **argv) {
 		// use t-grid for remapping depth
 		WeightTable *wt = mom->GetWeightTable(0,0);
 		float* mappedDepth = new float[dimsVDC[0]*dimsVDC[1]];
-		wt->interp2D(depth,mappedDepth, -1.e30);
+		wt->interp2D(depth,mappedDepth, -1.e30, -1.e30);
 		float minval = 1.e30;
 		float maxval = -1.e30;
 		float minval1 = 1.e30;
@@ -725,6 +750,27 @@ int	main(int argc, char **argv) {
 				}
 			}
 			if (!varFound) continue;
+			//If varnames are specified, check that the variable is in the list
+			if (opt.varnames.size()>0){
+				bool found = false;
+				for (vector<string>::iterator itr = opt.varnames.begin(); itr!=opt.varnames.end(); itr++) {
+					if (*itr == varname) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) continue;
+			}
+			//Determine if missing value is remapped:
+			float * missValPtr = 0;
+			float missVal;
+			for (int i=0; i<missMapNames.size(); i++){
+				if (missMapNames[i] == varname){
+					missVal = missMapValues[i];
+					missValPtr = &missVal;
+					break;
+				}
+			}
 			// Determine geolon/geolat vars
 			int geolon, geolat;
 			if (mom->GetGeoLonLatVar(ncid, varid,&geolon, &geolat)) continue;
@@ -733,8 +779,8 @@ int	main(int argc, char **argv) {
 			//loop thru the times in the file.
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
-				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio,opt.level,opt.lod, vdc1, varname, dimsVDC,VDCTimes[j],j);
-				else CopyVariable2D(ncid,varid,wt,vdfio,wb2dwriter,opt.level,opt.lod, vdc1, varname, dimsVDC,VDCTimes[j],j);
+				if (ndims == 4)CopyVariable3D(ncid,varid,wt,vdfio,opt.level,opt.lod, vdc1, varname, missValPtr, dimsVDC,VDCTimes[j],j);
+				else CopyVariable2D(ncid,varid,wt,vdfio,wb2dwriter,opt.level,opt.lod, vdc1, varname, missValPtr, dimsVDC,VDCTimes[j],j);
 			}
 		} //End loop over variables in file
 			

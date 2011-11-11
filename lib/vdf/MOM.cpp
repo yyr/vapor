@@ -1020,7 +1020,7 @@ WeightTable::WeightTable(MOM* mom, int latvar, int lonvar){
 }
 //Interpolation functions, can be called after the alphas and betas arrays have been calculated.
 //Following can also be used on slices of 3D data
-void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue){
+void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue, float missMap){
 	int corlon, corlat;
 	for (int j = 0; j<nlat; j++){
 		for (int i = 0; i<nlon; i++){
@@ -1030,19 +1030,19 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			float beta = betas[i+nlon*j];
 			// Special treatment if one of the points is missing value:
 			if (sourceData[corlon+nlon*corlat] == missingValue && abs((1.-alpha)*(1.-beta)) > 1.e-3) {
-				resultData[i+j*nlon] = missingValue;
+				resultData[i+j*nlon] = missMap;
 				continue;
 			}
 			if (sourceData[corlon+1+nlon*corlat] == missingValue && abs(alpha*(1.-beta)) > 1.e-3) {
-				resultData[i+j*nlon] = missingValue;
+				resultData[i+j*nlon] = missMap;
 				continue;
 			}
 			if (sourceData[corlon+1+nlon*(corlat+1)] == missingValue && abs(alpha*beta) > 1.e-3) {
-				resultData[i+j*nlon] = missingValue;
+				resultData[i+j*nlon] = missMap;
 				continue;
 			}
 			if (sourceData[corlon+nlon*(corlat+1)] == missingValue && abs((1.-alpha)*beta) > 1.e-3) {
-				resultData[i+j*nlon] = missingValue;
+				resultData[i+j*nlon] = missMap;
 				continue;
 			}
 			resultData[i+j*nlon] = (1.-alpha)*(1.-beta)*sourceData[corlon+nlon*corlat] +
@@ -1074,12 +1074,15 @@ int WeightTable::calcWeights(int ncid){
 		deltaLon = (lonLatExtents[2]-lonLatExtents[0])/nlon;
 		wrapLon=true;
 	}
+	//Check for approaching north pole
+	bool upNorth = false;
+	if (lonLatExtents[3]>80.) upNorth = false;
 		
 	
 		
 	//	Loop over (nlon/nlat) user grid vertices.  These are similar but not the same as lat and lon.
 	//  Call them ulat and ulon to indicate "lat and lon" in user coordinates
-	for (int ulat = 0; ulat<nlat-1; ulat++){
+	if (!upNorth) for (int ulat = 0; ulat<nlat-1; ulat++){
 		for (int ulon = 0; ulon<nlon-1; ulon++){
 			//	For each cell, find min and max longitude and latitude; expand by eps in all directions to define maximal ulon-ulat cell in
 			// actual lon/lat coordinates
@@ -1155,7 +1158,110 @@ int WeightTable::calcWeights(int ncid){
 				}
 			}
 		}
-	}
+	} /*else  
+		//upNorth is true 
+		
+		for (int ulat = 0; ulat<nlat-1; ulat++){
+			float lat0 = geo_lat[ulon+nlon*ulat];
+			float lat1 = geo_lat[ulon+1+nlon*ulat];
+			float lat2 = geo_lat[ulon+nlon*(ulat+1)];
+			float lat3 = geo_lat[ulon+1+nlon*(ulat+1)];
+			if (lat1 >= 0.){  //polar project the northern hemisphere to a circle with circumference 360/2pi.  Polar coordinates are rad and thet
+				float rad0 = 2.*(90.-lat0)/M_PI;
+				float rad1 = 2.*(90.-lat1)/M_PI;
+				float rad2 = 2.*(90.-lat2)/M_PI;
+				float rad3 = 2.*(90.-lat3)/M_PI;
+			}
+			float eps2 = eps*(90.-lat0)/90.;
+			for (int ulon = 0; ulon<nlon-1; ulon++){
+				//	For each cell, find min and max longitude and latitude; expand by eps in all directions to define maximal ulon-ulat cell in
+				// actual lon/lat coordinates
+				float lon0 = geo_lon[ulon+nlon*ulat];
+				float lon1 = geo_lon[ulon+1+nlon*ulat];
+				float lon2 = geo_lon[ulon+nlon*(ulat+1)];
+				float lon3 = geo_lon[ulon+1+nlon*(ulat+1)];
+				
+				float thet0 = lon0*M_PI/180.;
+				float thet1 = lon1*M_PI/180.;
+				float thet2 = lon2*M_PI/180.;
+				float thet3 = lon3*M_PI/180.;
+				
+				//Now convert to (x,y) coordinates:
+				float x0 = rad0*cos(thet0);
+				float x1 = rad1*cos(thet1);
+				float x0 = rad2*cos(thet2);
+				float x1 = rad3*cos(thet3);
+				float y0 = rad0*sin(thet0);
+				float y0 = rad1*sin(thet1);
+				float y0 = rad2*sin(thet2);
+				float y0 = rad3*sin(thet3);
+				
+				//shrink eps by (90-lat0)/90
+								
+				float minx = Min(Min(x0,x1),Min(x2,x3))-eps2;
+				float maxx = Max(Max(x0,x1),Max(x2,x3))+eps2;
+				float miny = Min(Min(y0,y1),Min(y2,y3))-eps2;
+				float maxy = Max(Max(y0,y1),Max(y2,y3))+eps2;
+				
+
+				int latInd = (int)((lat2-lonLatExtents[1])/deltaLat);
+				int lonInd = (int)((lon2-lonLatExtents[0])/deltaLon);
+				
+				
+				// find all the latlon grid vertices that fit near this rectangle: 
+				// Add 1 to the LL corner because it is definitely below and left of the rectangle
+				int latInd0 = (int)(1.+((minlat-lonLatExtents[1])/deltaLat));
+				int lonInd0 = (int)(1.+((minlon-lonLatExtents[0])/deltaLon));
+				//cover the edges too!
+				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
+				bool edgeFlag = false;
+				if (ulat == 0 && latInd0 ==1) {latInd0 = 0; edgeFlag = true;}
+				if (ulon == 0 && lonInd0 == 1) {
+					lonInd0 = 0; edgeFlag = true;
+				}
+				
+				// Whereas the UR corner vertex may be inside:
+				int latInd1 = (int)((maxlat-lonLatExtents[1])/deltaLat);
+				int lonInd1 = (int)((maxlon-lonLatExtents[0])/deltaLon);
+				
+				
+				if (latInd0 <0 || lonInd0 < 0) {
+					continue;
+				}
+				if (latInd1 >= nlat || (lonInd1 > nlon)||(lonInd1 == nlon && !wrapLon)){
+					continue;
+				}
+				
+				//Loop over all the lon/lat grid vertices in the maximized cell:
+				for (int qlat = latInd0; qlat<= latInd1; qlat++){
+					for (int plon = lonInd0; plon<= lonInd1; plon++){
+						float testLon = lonLatExtents[0]+plon*deltaLon;
+						int plon1 = plon;
+						if(plon == nlon) {
+							assert(wrapLon);
+							plon1 = 0;
+						}
+						float testLat = lonLatExtents[1]+qlat*deltaLat;
+						float eps = testInQuad(testLon,testLat,ulon, ulat);
+						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
+							//Check to make sure eps is smaller than previous entries:
+							if (eps > testValues[plon+nlon*qlat]) continue;
+							//It's OK, stuff it in the weights arrays:
+							float alph, beta;
+							findWeight(testLon, testLat, ulon, ulat,&alph, &beta);
+							alphas[plon1+nlon*qlat] = alph;
+							betas[plon1+nlon*qlat] = beta;
+							testValues[plon1+nlon*qlat] = eps;
+							cornerLats[plon1+nlon*qlat] = ulat;
+							cornerLons[plon1+nlon*qlat] = ulon;
+							
+							//	printf(" lon, lat: %d, %d; alpha = %f beta = %f; test= %f, corners: %d %d\n",
+							//	   plon1,qlat,alphas[plon1+nlon*qlat],betas[plon1+nlon*qlat],testValues[plon1+nlon*qlat],cornerLons[plon1+nlon*qlat],cornerLats[plon1+nlon*qlat]);
+						}
+					}
+				}
+			}
+	} */
 	//Check it out:
 	/*
 	for (int i = 0; i<nlat; i++){
