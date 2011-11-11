@@ -244,7 +244,7 @@ void AnimationEventRouter::updateTab(){
 	int currentFrame = aParams->getCurrentFrameNumber();
 	
 	if (endFrame > startFrame)
-		sliderVal = 0.5f+ 1000.f*(float)(currentFrame-startFrame)/(float)(endFrame-startFrame);
+		sliderVal = 0.5f+ 20000.f*(float)(currentFrame-startFrame)/(float)(endFrame-startFrame);
 	animationSlider->setValue((int)sliderVal);
 	
 	
@@ -589,7 +589,7 @@ setSliders(AnimationParams* aParams){
 	int frameStepSize = aParams->getFrameStepSize();
 	int sliderFrame = startFrame + (int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
 	if (sliderFrame != currentFrame && (endFrame != startFrame)){
-		animationSlider->setValue((int)(1000.f*((float)(currentFrame - startFrame)/(float)(endFrame-startFrame))));
+		animationSlider->setValue((int)(20000.f*((float)(currentFrame - startFrame)/(float)(endFrame-startFrame))));
 	}
 	sliderPosition = frameStepSlider->value();
 	int stepsize = 1+(int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);

@@ -153,7 +153,7 @@ step, and will animate in unison.</string>
         <string>Slider indicates current animation timestep between start and end</string>
        </property>
        <property name="maximum">
-        <number>1000</number>
+        <number>20000</number>
        </property>
        <property name="tracking">
         <bool>false</bool>
