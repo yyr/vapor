@@ -485,7 +485,7 @@ void AnimationEventRouter::guiSetPosition(int position){
 	
 	int startFrame = aParams->getStartFrameNumber();
 	int endFrame = aParams->getEndFrameNumber();
-	int newFrameNum = startFrame + (int)((float)(endFrame - startFrame)*(float)position/1000.f + 0.5f);
+	int newFrameNum = startFrame + (int)((float)(endFrame - startFrame)*(float)position/20000.f + 0.5f);
 	if(newFrameNum == aParams->getCurrentFrameNumber()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current frame number");
 	//Find the nearest valid frame number:
@@ -587,12 +587,12 @@ setSliders(AnimationParams* aParams){
 	int startFrame = aParams->getStartFrameNumber();
 	int endFrame = aParams->getEndFrameNumber();
 	int frameStepSize = aParams->getFrameStepSize();
-	int sliderFrame = startFrame + (int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
+	int sliderFrame = startFrame + (int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/20000.f);
 	if (sliderFrame != currentFrame && (endFrame != startFrame)){
 		animationSlider->setValue((int)(20000.f*((float)(currentFrame - startFrame)/(float)(endFrame-startFrame))));
 	}
 	sliderPosition = frameStepSlider->value();
-	int stepsize = 1+(int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/1000.f);
+	int stepsize = 1+(int)(0.5f+(float)(endFrame - startFrame)*(float)sliderPosition/20000.f);
 	if(stepsize < 1) stepsize = 1;
 	if (stepsize != frameStepSize && endFrame != startFrame){
 		frameStepSlider->setValue((int)(0.5+(1000.f*((float)(frameStepSize-1.)/(float)(endFrame-startFrame)))));
