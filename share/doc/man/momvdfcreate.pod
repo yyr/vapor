@@ -1,0 +1,119 @@
+=begin comment
+
+$Id$
+
+=end comment
+
+=head1 NAME
+
+momvdfcreate - Generate a VDF metadata file for a MOM data set
+
+=head1 SYNOPSIS
+
+B<momvdfcreate> [options] I<mom_ncdf_files...> I<mom_topo_file> I<vdffile>
+
+=head1 DESCRIPTION
+
+B<momvdfcreate> generates a .vdf metafile that defines a VAPOR Data
+Collection (VDC) suitable for containing ocean simulation output from 
+MOM or POP models.  
+All of the model output NetCDF filenames must be provided on the command line,
+followed by one NetCDF topography filename, and the desired VAPOR 
+(.vdf) file name.  The topography file must include variables that do not
+change in time, including the depth of the ocean, and the variables defining mappings from the 
+model grid to latitude, latitude, and depth.  The topography file may also be included in the collection 
+I<mom_netcdf_files>, if it contains data variables that change in time. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item -vars3d E<lt>varsE<gt>
+
+A colon-delimited list of names of 3D (spatial) variables to include in the .vdf
+file.  In general, the list of variables should be a subset of the 4D (3D space + time)
+variables found in the MOM input files.  If this option is not present
+the default behavior is to generate the list of 3D variables from all of the 4D
+variables found in any of the MOM netCDF input files. 
+
+=item -vars2d E<lt>varsE<gt>
+
+A colon-delimited list of names of 2D variables. See B<-vars3d>.  If this is not present, the VDC will
+contain all of the 3D variable names (2D horizontal spatial + time) found in the MOM NetCDF input files.
+
+=item -atypvars E<lt>varsE<gt>
+
+Atypical variable names. VAPOR accepts certain names for standard variables.  These include:
+B<time>, B<Time>, or B<TIME> for time in days (measured from simulation start time); 
+B<ht> for ocean depth in meters; 
+B<st_ocean> for the depth of model layers in meters, on the T-grid, i.e. at cell centers;
+B<st_edges_ocean> for the depth of model layers in meters, at cell lower-left corners; 
+B<sw_ocean> for the depth of model layers in meters at the cell bottom centers;
+B<sw_edges_ocean> for model layer depth in meters on the P-grid, i.e. cell bottom lower-left corners.
+VAPOR also accepts the following variants for POP data:
+B<HU> instead of B<ht>, for ocean depth in centimeters;
+B<z_t> replaces B<st_ocean> but measured in centimeters;
+B<z_w> replaces B<st_edges_ocean> measured in centimeters;
+This option B<-atypvars> is used to specify any other names that are used for these 6 standard variables.
+If specified, there must be a colon-delimited list of exactly 6 variable names that replace the standard variable names in the following order: B<time:ht:st_ocean:st_edges_ocean:sw_ocean:sw_edges_ocean> .
+
+=item -level E<lt>levelE<gt>
+
+See vdfcreate.
+
+=item -comment E<lt>stringE<gt>
+
+See vdfcreate.
+
+=item -bs E<lt>NXxNYxNZE<gt>
+
+See vdfcreate.
+
+=item -nfilter E<lt>nE<gt>
+
+See vdfcreate.
+
+=item -nlifting E<lt>nE<gt>
+ 
+See vdfcreate.
+
+=item -vdc2 
+
+Generate a .vdf file for a VDC Type 2 data collection.
+
+=item -wname E<lt>wave_nameE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -cratios E<lt>vectorE<gt>
+
+This option is for VDC2 only, see vdfcreate.
+
+=item -help 
+
+Print a usage statement and then exit.
+
+=back
+
+=head1 EXAMPLES
+
+
+The command 
+
+    momvdfcreate -vars3d u:v:time -level 2 mom1.nc mom2.nc mom3.nc momtopo.nc mydata.vdf
+
+will construct a VDF file, B<mydata.vdf> that will contain the B<u>, B<v>,
+and B<temp> variable names for all time steps found in the MOM netCDF files
+B<mom1.nc>, B<mom2.nc>, and B<mom3.nc>.  The netCDF file B<momtopo.nc> will contain topography variables
+including B<ht>, B<st_ocean>, and B<st_edges_ocean>.  This VDC will include all of the 2D variables that are found in the MOM NetCDF files.
+
+
+=head1 SEE ALSO
+
+vdfcreate, mom2vdf,
+
+I<Conversion of MOM datafiles to a VAPOR VDC>
+
+=head1 HISTORY
+
+Last updated on $Date$
