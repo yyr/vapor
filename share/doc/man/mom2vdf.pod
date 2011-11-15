@@ -14,7 +14,7 @@ B<mom2vdf> [options] I<mom_ncdf_file...> I<mom_ncdf_topo_file> I<vdffile>
 
 =head1 DESCRIPTION
 
-B<mom2vdf> reads 3D and 2D variables from one or more MOM netCDF file,
+B<mom2vdf> reads 3D and 2D variables from one or more MOM netCDF files,
 as well as topography data from one MOM NetCDF file,
 wavelet transforms the data, and stores it in the VDC associated with
 the .vdf file I<vdffile>.
@@ -28,13 +28,13 @@ the .vdf file I<vdffile>.
 Variables to convert.  A colon delimited list of the 3D and 2D variables
 you wish to transform. Their names must appear in the .vdf file, I<vdffile>.
 The variable B<ELEVATION> will always be converted (unless the B<-noelev>
-option is present).  The default is all 3D and 2D variables defined in
+option is present).  The default is to convert all 3D and 2D variables defined in
 both the .vdf file and the MOM netCDF file.
 
 =item -numts E<lt>numberE<gt>
 
 Specify the maximum number of time steps to convert. After converting
-number time steps, no further processing will take place.
+B<number> time steps, no further processing will take place.
 
 =item -noelev 
 

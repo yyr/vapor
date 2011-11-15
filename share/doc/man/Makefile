@@ -6,7 +6,8 @@ include ${TOP}/make/config/prebase.mk
 include ${TOP}/make/config/base.mk
 
 DOCS = asciitf2vtf vdfbkup vdfcreate vdfedit vdfls raw2vdf vdf2raw cart2layer\
-	wrfvdfcreate wrf2vdf ncdf2vdf flashvdfcreate flashamr2vdf tiff2geotiff getWMSImage
+	wrfvdfcreate wrf2vdf ncdf2vdf flashvdfcreate flashamr2vdf tiff2geotiff getWMSImage\
+	momvdfcreate mom2vdf
 
 
 all::
