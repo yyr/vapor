@@ -14,7 +14,10 @@
 #include <vapor/OptionParser.h>
 #include <vapor/MOM.h>
 #include <vapor/WRF.h>
+
 #ifdef WIN32
+#define _USE_MATH_DEFINES
+#include <math.h>
 #pragma warning(disable : 4996)
 #endif
 using namespace VetsUtil;
