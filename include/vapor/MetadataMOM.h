@@ -121,8 +121,6 @@ public:
 	string GetMapProjection() const {
 		return(string("+proj=latlon +ellps=sphere")); };
 
-
-
 //! Return the time for a time step, if it exists,
 //!
 //! \param[in] ts A valid data set time step in the range from zero to
@@ -177,7 +175,6 @@ protected:
 
 private:
       
-     
       vector<string> Vars3D, Vars2Dxy;
       vector<long> PeriodicBoundary, GridPermutation;
       vector<double> Extents, UserTimes;

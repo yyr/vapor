@@ -97,49 +97,6 @@ MOM::~MOM() {
 	(void) nc_close( _ncid );
 }
 
-MOM::varFileHandle_t *MOM::Open(
-	const string &varname
-) {
-	//
-	// Make sure we have a record for the variable
-	//
-	bool found = false;
-	int index = -1;
-	for (int i=0; i<_momVarInfo.size(); i++) {
-		if (varname.compare(_momVarInfo[i].alias) == 0) {
-			found = true;
-			index = i;
-		}
-	}
-	if (! found) {
-		SetErrMsg("Variable not found : %s", varname.c_str());
-		return(NULL);
-	}
-
-
-	//
-	// Allocate space for a single, staggered slice (even if variable 
-	// is not staggered). N.B. dimLens contains unstaggered dimensions
-	//
-	size_t sz = (_dimLens[0]+1) * (_dimLens[1]+1);
-
-	varFileHandle_t *fhptr = new varFileHandle_t();
-	fhptr->buffer = new float[sz];
-	if (! fhptr->buffer) return(NULL);
-
-	fhptr->z = -1;	// Invalid slice #
-	fhptr->momt = -1;	// Invalid time step
-	fhptr->thisVar = _momVarInfo[index];
-
-	return(fhptr);
-}
-
-int MOM::Close(varFileHandle_t *fh) {
-
-	if (fh->buffer) delete [] fh->buffer;
-	delete fh;
-	return(0);
-}
 // Read a data file.  Add any new variables found to current list of discovered variables.
 // Add any timesteps found to timestep list, if any variables are found.  Return nonzero if no variables found.
 int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d, vector<string>&vars3d){
@@ -255,79 +212,6 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 }
 
 
-
-
-// Gets info about a  variable and stores that info in thisVar.
-int	MOM::_GetVarInfo(
-	int ncid, // ID of the file we're reading
-	string momvname,	// name of variable as it appears in file
-	const vector <ncdim_t> &ncdims,
-	varInfo_t & thisVar // Variable info
-) {
-
-	thisVar.momvname = momvname;
-	thisVar.alias = momvname;
-
-    map <string, string>::const_iterator itr;
-	for (itr = _atypnames.begin(); itr != _atypnames.end(); itr++) {
-		if (momvname.compare(itr->second) == 0) {
-			thisVar.alias = itr->first;
-		}
-	} 
-
-	int nc_status = nc_inq_varid(ncid, thisVar.momvname.c_str(), &thisVar.varid);
-	if (nc_status != NC_NOERR) {
-		MyBase::SetErrMsg(
-			"Variable %s not found in netCDF file", thisVar.momvname.c_str()
-		);
-		return(-1);
-	}
-
-	char dummy[NC_MAX_NAME+1]; // Will hold a variable's name
-	int natts; // Number of attributes associated with this variable
-	int dimids[NC_MAX_VAR_DIMS], ndimids;
-	NC_ERR_READ( nc_inq_var(
-		ncid, thisVar.varid, dummy, &thisVar.xtype, &ndimids,
-		dimids, &natts
-	));
-
-	thisVar.dimids.clear();
-	thisVar.dimlens.clear();
-	for (int i = 0; i<ndimids; i++) {
-		thisVar.dimids.push_back(dimids[i]);
-		thisVar.dimlens.push_back(ncdims[dimids[i]].size);
-	}
-
-	// Determine if variable has staggered dimensions. Only three
-	// fastest varying dimensions are checked
-	//
-	thisVar.stag.push_back(false);
-	thisVar.stag.push_back(false);
-	thisVar.stag.push_back(false);
-
-	if (thisVar.dimids.size() == 4) { 
-		if (strcmp(ncdims[thisVar.dimids[1]].name, "bottom_top_stag") == 0) {
-			thisVar.stag[2] = true;
-		}
-		if (strcmp(ncdims[thisVar.dimids[2]].name, "south_north_stag") == 0) { 
-			thisVar.stag[1] = true;
-		}
-		if (strcmp(ncdims[thisVar.dimids[3]].name, "west_east_stag") == 0) {
-			thisVar.stag[0] = true;
-		}
-	}
-	else if (thisVar.dimids.size() == 3) { 
-		if (strcmp(ncdims[thisVar.dimids[1]].name, "south_north_stag") == 0) {
-			thisVar.stag[1] = true;
-		}
-		if (strcmp(ncdims[thisVar.dimids[2]].name, "west_east_stag") == 0) { 
-			thisVar.stag[0] = true;
-		}
-	}
-
-	return(0);
-	
-}
 float* MOM::GetDepths(){
 	depthsArray = 0;
 	//See if we can open the ht variable in the topo file
@@ -361,200 +245,6 @@ float* MOM::GetDepths(){
 		else depthsArray[i] = 50.f;
 	}
 	return depthsArray;
-}
-
-
-// Reads a single horizontal slice of netCDF data
-int MOM::_ReadZSlice4D(
-	int ncid, // ID of the netCDF file
-	const varInfo_t & thisVar, // Struct for the variable we want
-	size_t momT, // The MOM time step we want
-	size_t z, // Which z slice we want
-	float * fbuffer // Buffer we're going to store slice in
-) {
-
-	size_t start[NC_MAX_DIMS]; // The point from which we start reading netCDF data
-	size_t count[NC_MAX_DIMS]; // What interval to read the data
-
-	// Initialize the count and start arrays for extracting slices from the data:
-	for (int i = 0; i<thisVar.dimids.size(); i++){
-		start[i] = 0; // Start reading in a corner
-		count[i] = 1; // Read every point (changes later)
-	}
-
-	start[thisVar.dimids.size()-4] = momT;
-	start[thisVar.dimids.size()-3] = z;
-	count[thisVar.dimids.size()-2] = thisVar.dimlens[thisVar.dimids.size()-2];
-	count[thisVar.dimids.size()-1] = thisVar.dimlens[thisVar.dimids.size()-1];
-
-	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
-
-	return(0);
-}
-
-// Reads a single slice from a 3D (time + space) variable 
-int MOM::_ReadZSlice3D(
-	int ncid, // ID of the netCDF file
-	const varInfo_t & thisVar, // Struct for the variable we want
-	size_t momT, // The MOM time step we want
-	float * fbuffer // Buffer we're going to store slice in
-) {
-
-	size_t start[NC_MAX_DIMS]; // The point from which we start reading netCDF data
-	size_t count[NC_MAX_DIMS]; // What interval to read the data
-
-	// Initialize the count and start arrays for extracting slices from the data:
-	for (int i = 0; i<thisVar.dimids.size(); i++){
-		start[i] = 0; // Start reading in a corner
-		count[i] = 1; // Read every point (changes later)
-	}
-
-	start[thisVar.dimids.size()-3] = momT;
-	count[thisVar.dimids.size()-2] = thisVar.dimlens[thisVar.dimids.size()-2];
-	count[thisVar.dimids.size()-1] = thisVar.dimlens[thisVar.dimids.size()-1];
-
-	NC_ERR_READ( nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer));
-
-	return(0);
-}
-
-
-
-void MOM::_InterpHorizSlice(
-	float * fbuffer, // The slice of data to interpolate
-	const varInfo_t & thisVar // Data about the variable
-) {
-	// NOTE: As of July 20, 2007 (when this function was written), interpolating
-	// data that is staggered in both horizontal dimensions has not been tested.
-
-	// Define these just for convenience
-	size_t xUnstagDim = _dimLens[0];
-	size_t xStagDim = xUnstagDim + 1;
-	size_t yUnstagDim = _dimLens[1];
-	size_t yStagDim = yUnstagDim + 1;
-
-	size_t xDimNow, yDimNow;
-	if ( thisVar.stag[0] )
-		xDimNow = xStagDim;
-	else
-		xDimNow = xUnstagDim;
-
-	if ( thisVar.stag[1] )
-		yDimNow = yStagDim;
-	else
-		yDimNow = yUnstagDim;
-	
-	// Interpolate a staggered (N+1 points) x 
-	// variable to an unstaggered (N points) x grid
-	//
-	float *bufptr = fbuffer;
-	if ( thisVar.stag[0] ) {
-		for (size_t y = 0; y<yDimNow; y++) {
-		for (size_t x = 0; x<xUnstagDim; x++) {
-			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + 1 + xDimNow*y])/2.0;
-			bufptr++;
-		}
-		}
-	}
-
-	// Interpolate a staggered (N+1 points) y 
-	// variable to an unstaggered (N points) y grid
-	//
-	bufptr = fbuffer;
-	if ( thisVar.stag[1] ) {
-		for (size_t y = 0; y<yUnstagDim; y++) {
-		for (size_t x = 0; x<xUnstagDim; x++) {
-			*bufptr = (fbuffer[x + xDimNow*y] + fbuffer[x + xDimNow*(y+1)])/2.0;
-			bufptr++;
-		}
-		}
-	}
-}
-
-
-int MOM::GetZSlice(
-	varFileHandle_t *fh,
-	size_t momt,	// MOM time step
-	size_t z, // The (unstaggered) vertical coordinate of the plane we want
-	float *buffer
-) {
-	
-	int rc;
-
-	// size of one unstaggered slice
-	//
-	size_t slice_sz = _dimLens[0] * _dimLens[1];
-
-	// If z dimension is not staggered simply read and return slice (possibly
-	// doing horizontal interpolation)
-	//
-	if (! fh->thisVar.stag[2]) {
-
-		if ( fh->thisVar.dimids.size() == 3 ) {
-
-			rc = _ReadZSlice3D( _ncid, fh->thisVar, momt, fh->buffer);
-		}
-		else {
-			rc = _ReadZSlice4D( _ncid, fh->thisVar, momt, z, fh->buffer);
-		}
-		if (rc<0) return(-1);
-
-		// Do in-place horizontal interpolation of staggered grids, 
-		// if necessary
-		//
-		if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
-			_InterpHorizSlice(fh->buffer, fh->thisVar);
-		}
-
-		for ( size_t l = 0 ; l < slice_sz ; l++ ) {
-			buffer[l] = fh->buffer[l];
-		}
-		fh->z = z;
-
-		return(0);
-	}
-
-	assert (fh->thisVar.dimids.size() == 4);
-
-
-	// Need two slices. See if first is already buffered from previous 
-	// invocation. If not, read it.
-	//
-	if (!( fh->z == z && fh->momt == momt)) {
-		// Read a slice from the netCDF
-		//
-		rc = _ReadZSlice4D( _ncid, fh->thisVar, momt, z, fh->buffer);
-		if (rc<0) return(-1);
-
-		if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
-			_InterpHorizSlice(fh->buffer, fh->thisVar);
-		}
-		fh->z = z;
-		fh->momt = momt;
-	}
-
-	// Now read second slice
-	//
-	rc = _ReadZSlice4D( _ncid, fh->thisVar, momt, z+1, buffer);
-	if (rc<0) return(-1);
-
-	if ( fh->thisVar.stag[0] || fh->thisVar.stag[1] ) {
-		_InterpHorizSlice(buffer, fh->thisVar);
-	}
-
-	// Now do the vertical interpolation
-	// and buffer bottom (top?) slice for next invocation
-	//
-	for ( size_t l = 0 ; l < slice_sz ; l++ ) {
-
-		float tmp = buffer[l];
-		buffer[l] = (buffer[l] + fh->buffer[l]) / 2.0;
-		fh->buffer[l] = tmp;
-	}
-	fh->z = z+1;
-	fh->momt = momt;
-
-	return(0);
 }
 
 
@@ -631,7 +321,9 @@ int MOM::_GetMOMTopo(
 			NC_ERR_READ(nc_inq_dimlen(ncid, londimids[j+2*i], londimlen+(j+2*i)));
 	}
 	//Now read the geolat and geolon vars, to find extents and to identify T vs U grid.
-	float minlat[2], maxlat[2], minlon[2], maxlon[2];
+	//The T grid has smaller lower-left coordinates.
+	//The T-grid will be used as the basis for the VAPOR extents.
+	float minlat[2], maxlat[2], minlon[2], maxlon[2], lllat[2], lllon[2];
 	for (int i = 0; i<geolatvars.size() && i<2; i++){
 		float * buf = new float[latdimlen[2*i]*latdimlen[2*i+1]];
 		NC_ERR_READ(nc_get_var_float(ncid, latvarids[i], buf));
@@ -647,6 +339,7 @@ int MOM::_GetMOMTopo(
 		}
 		minlat[i] = minval;
 		maxlat[i] = maxval;
+		lllat[i] = buf[0];
 		delete buf;
 	}
 	for (int i = 0; i<geolonvars.size() && i<2; i++){
@@ -664,20 +357,21 @@ int MOM::_GetMOMTopo(
 		}
 		minlon[i] = minval;
 		maxlon[i] = maxval;
+		lllon[i] = buf[0];
 		delete buf;
 	}
-	// Determine which is the T-grid.  The U-grid has larger lat/lon coordinates
+	// Determine which is the T-grid.  The U-grid has larger lower-left lat/lon coordinates
 	int latTgrid = 0;
 	int lonTgrid = 0;
-	if ((geolatvars.size()>1) && (minlat[1]<minlat[0])) latTgrid = 1;
-	if ((geolonvars.size()>1) && (minlon[1]<minlon[0])) lonTgrid = 1;
+	if ((geolatvars.size()>1) && (lllat[1]<lllat[0])) latTgrid = 1;
+	if ((geolonvars.size()>1) && (lllon[1]<lllon[0])) lonTgrid = 1;
 	//Warn if grid mins are not different:
-	if ((geolatvars.size()>1) && (minlat[1]==minlat[0])) {
-		MyBase::SetErrMsg(" geolat T and U grid have same minimum: %f", minlat[0]);
+	if ((geolatvars.size()>1) && (lllat[1]==lllat[0])) {
+		MyBase::SetErrMsg(" geolat T and U grid have same lower-left corner: %f", lllat[0]);
 		MyBase::SetErrCode(0);
 	}
-	if ((geolonvars.size()>1) && (minlon[1]==minlon[0])) {
-		MyBase::SetErrMsg(" geolon T and U grid have same minimum: %f", minlon[0]);
+	if ((geolonvars.size()>1) && (lllon[1]==lllon[0])) {
+		MyBase::SetErrMsg(" geolon T and U grid have same lower-left corner: %f", lllon[0]);
 		MyBase::SetErrCode(0);
 	}
 	// Save the extents and the T-grid  dimensions, converted to meters at equator
@@ -811,8 +505,8 @@ int MOM::_GetMOMTopo(
 //Test if variable has right attributes to be a geolat or geolon variable.
 // returns 1 for geolat, 2 for geolon
 int MOM::testVarAttribs(int ncid, int varid){
-	char* latUnits[] = {"degree_north","degrees_north","degree_N","degrees_N","degreeN","degreesN"};
-	char* lonUnits[] = {"degree_east","degrees_east","degree_E","degrees_E","degreeE","degreesE"};
+	char* latUnits[] = {(char*)"degree_north",(char*)"degrees_north",(char*)"degree_N",(char*)"degrees_N",(char*)"degreeN",(char*)"degreesN"};
+	char* lonUnits[] = {(char*)"degree_east",(char*)"degrees_east",(char*)"degree_E",(char*)"degrees_E",(char*)"degreeE",(char*)"degreesE"};
 	int latlon = 0;
 	
 	//First look for the "long_name" attribute:
@@ -1011,47 +705,148 @@ WeightTable::WeightTable(MOM* mom, int latvar, int lonvar){
 	}
 	geo_lat = 0;
 	geo_lon = 0;
-	float deltaLat = (lonLatExtents[3]-lonLatExtents[1])/nlat;
-	float deltaLon = (lonLatExtents[2]-lonLatExtents[0])/nlon;
+	deltaLat = (lonLatExtents[3]-lonLatExtents[1])/(nlat-1);
+	deltaLon = (lonLatExtents[2]-lonLatExtents[0])/(nlon-1);
+	wrapLon=false;
+	//Check for global wrap in longitude:
+	
+	
+	if (abs(lonLatExtents[2] - 360.0 - lonLatExtents[0])< 2.*deltaLon) {
+		deltaLon = (lonLatExtents[2]-lonLatExtents[0])/nlon;
+		wrapLon=true;
+	}
+	//Does the grid go to the north pole?
+	if (lonLatExtents[3] >= 90.-2.*deltaLat) wrapLat = true;
+	else wrapLat = false;
+	
 	// Calc epsilon for converging alpha,beta 
 	epsilon = Max(deltaLat, deltaLon)*1.e-7;
-	// Calc epsilon for checking inside rectangle
-	epsRect = Max(deltaLat,deltaLon)*1.e-5;
+	// Calc epsilon for checking outside rectangle
+	epsRect = Max(deltaLat,deltaLon)*0.1;
 }
+
 //Interpolation functions, can be called after the alphas and betas arrays have been calculated.
 //Following can also be used on slices of 3D data
+//If the corner latitude is at the top then
 void WeightTable::interp2D(const float* sourceData, float* resultData, float missingValue, float missMap){
-	int corlon, corlat;
+	int corlon, corlat, corlatp, corlona, corlonb, corlonp;
 	for (int j = 0; j<nlat; j++){
 		for (int i = 0; i<nlon; i++){
 			corlon = cornerLons[i+nlon*j];
 			corlat = cornerLats[i+nlon*j];
+			corlatp = corlat+1;
+			corlona = corlon;
+			corlonb = corlon+1;
+			corlonp = corlon+1;
+			if (i == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
+				corlonp = 0;
+				corlonb = 0;
+			} else if (j == nlat-1){ //Get corners on opposite side of zipper:
+				corlatp = corlat;
+				corlona = nlon - corlon -1;
+				corlonb = nlon - corlon -2;
+			}
 			float alpha = alphas[i+nlon*j];
 			float beta = betas[i+nlon*j];
-			// Special treatment if one of the points is missing value:
-			if (sourceData[corlon+nlon*corlat] == missingValue && abs((1.-alpha)*(1.-beta)) > 1.e-3) {
-				resultData[i+j*nlon] = missMap;
-				continue;
-			}
-			if (sourceData[corlon+1+nlon*corlat] == missingValue && abs(alpha*(1.-beta)) > 1.e-3) {
-				resultData[i+j*nlon] = missMap;
-				continue;
-			}
-			if (sourceData[corlon+1+nlon*(corlat+1)] == missingValue && abs(alpha*beta) > 1.e-3) {
-				resultData[i+j*nlon] = missMap;
-				continue;
-			}
-			if (sourceData[corlon+nlon*(corlat+1)] == missingValue && abs((1.-alpha)*beta) > 1.e-3) {
-				resultData[i+j*nlon] = missMap;
-				continue;
-			}
-			resultData[i+j*nlon] = (1.-alpha)*(1.-beta)*sourceData[corlon+nlon*corlat] +
-				alpha*(1.-beta)*sourceData[corlon+1+nlon*corlat] +
-				alpha*beta*sourceData[corlon+1+nlon*(corlat+1)] +
-				(1.-alpha)*beta*sourceData[corlon+nlon*(corlat+1)];
+			float data0 = sourceData[corlon+nlon*corlat];
+			float data1 = sourceData[corlonp+nlon*corlat];
+			float data2 = sourceData[corlonb+nlon*corlatp];
+			float data3 = sourceData[corlona+nlon*corlatp];
+			float cf0 = (1.-alpha)*(1.-beta);
+			float cf1 = alpha*(1.-beta);
+			float cf2 = alpha*beta;
+			float cf3 = (1.-alpha)*beta;
+			float goodSum = 0.f;
+			float mvCoef = 0.f;
+			//Accumulate values and coefficients for missing and non-missing values
+			//If less than half the weight comes from missing value, then apply weights to non-missing values,
+			//otherwise just set result to missing value.
+			if (data0 == missingValue) mvCoef += cf0;
+				else goodSum += cf0*data0;
+			if (data1 == missingValue) mvCoef += cf1;
+				else goodSum += cf1*data1;
+			if (data2 == missingValue) mvCoef += cf2;
+				else goodSum += cf2*data2;
+			if (data3 == missingValue) mvCoef += cf3;
+				else goodSum += cf3*data3;
+			if (mvCoef >= 0.5f) resultData[i+j*nlon] = missMap;
+			else resultData[i+j*nlon] = goodSum/(1.-mvCoef); 
 		}
 	}
 }
+//For given latitude longitude grid vertex, used for testing.
+//check all geolon/geolat quads.  See what ulat/ulon cell contains it.
+float WeightTable::bestLatLon(int ilon, int ilat){
+	
+	
+	//Loop over all the lon/lat grid vertices
+	
+	float testLon = lonLatExtents[0]+ilon*deltaLon;
+	float testLat = lonLatExtents[1]+ilat*deltaLat;
+	//Loop over all cells in grid
+	float minval = 1.e30;
+	int bestulon,bestulat;
+	//Loop over the ulat/ulon grid.  For each ulon-ulat grid coord
+	//See if ilon,ilat is in cell mapped from ulon,ulat
+	for (int qlat = 0; qlat< nlat-1; qlat++){
+		for (int plon = 0; plon< nlon; plon++){
+			//Test if ilon,ilat coordinates are in quad of ulon,ulat
+			float eps = testInQuad(testLon,testLat,plon, qlat);
+			if (eps < minval) {
+				minval = eps;
+				bestulon = plon;
+				bestulat = qlat;
+			}
+		}
+	}
+	return minval;
+}
+
+//check all ulon,ulat quads.  See if lat/lon vertex lies in one of them
+float WeightTable::bestLatLonPolar(int ilon, int ilat){
+	//Loop over all the lon/lat grid vertices
+	
+	float testLon = lonLatExtents[0]+ilon*deltaLon;
+	float testLat = lonLatExtents[1]+ilat*deltaLat;
+	
+	//Loop over all cells in grid
+	float minval = 1.e30;
+	int bestulon, bestulat;
+	float testRad, testThet;
+	float bestx, besty;
+	
+	float bestLat, bestLon, bestThet, bestRad;
+	//loop over ulon,ulat cells
+	for (int qlat = 0; qlat< nlat; qlat++){
+		if (qlat == nlat-1 && !wrapLat) continue;
+		
+		for (int plon = 0; plon< nlon; plon++){
+			if (qlat == nlat-1 && plon > nlon/2) continue;  // only do first half of zipper
+			if (plon == nlon-1 && !wrapLon) continue;
+			
+			//Convert lat/lon coordinates to x,y
+			testRad = (90.-testLat)*2./M_PI;
+			testThet = testLon*M_PI/180.;
+			float testx = testRad*cos(testThet);
+			float testy = testRad*sin(testThet);
+			float eps = testInQuad2(testx,testy,plon, qlat);
+			if (eps < minval){
+				minval = eps;
+				bestulon = plon;
+				bestulat = qlat;
+				bestLat = testLat;
+				bestLon = testLon;
+				bestThet = testThet;
+				bestRad = testRad;
+				bestx = testx;
+				besty = testy;
+			}
+		}
+	}
+	return minval;
+}
+
+	
 int WeightTable::calcWeights(int ncid){
 	
 	//	Allocate arrays for geolat and geolon.
@@ -1065,149 +860,55 @@ int WeightTable::calcWeights(int ncid){
 	// Note that lon increases fastest
 	NC_ERR_READ(nc_get_var_float(ncid, geolatvarid, geo_lat));
 	NC_ERR_READ(nc_get_var_float(ncid, geolonvarid, geo_lon));
-	float deltaLat = (lonLatExtents[3]-lonLatExtents[1])/(nlat-1);
-	float deltaLon = (lonLatExtents[2]-lonLatExtents[0])/(nlon-1);
 	float eps = Max(deltaLat,deltaLon)*1.e-3;
-	bool wrapLon=false;
-	//Check for global wrap in longitude:
-	if (abs(lonLatExtents[2] - 360.0 - lonLatExtents[0])< eps) {
-		deltaLon = (lonLatExtents[2]-lonLatExtents[0])/nlon;
-		wrapLon=true;
-	}
-	//Check for approaching north pole
-	bool upNorth = false;
-	if (lonLatExtents[3]>80.) upNorth = false;
-		
 	
-		
 	//	Loop over (nlon/nlat) user grid vertices.  These are similar but not the same as lat and lon.
 	//  Call them ulat and ulon to indicate "lat and lon" in user coordinates
-	if (!upNorth) for (int ulat = 0; ulat<nlat-1; ulat++){
-		for (int ulon = 0; ulon<nlon-1; ulon++){
-			//	For each cell, find min and max longitude and latitude; expand by eps in all directions to define maximal ulon-ulat cell in
-			// actual lon/lat coordinates
-			float lon0 = geo_lon[ulon+nlon*ulat];
-			float lon1 = geo_lon[ulon+1+nlon*ulat];
-			float lon2 = geo_lon[ulon+nlon*(ulat+1)];
-			float lon3 = geo_lon[ulon+1+nlon*(ulat+1)];
-			float lat0 = geo_lat[ulon+nlon*ulat];
-			float lat1 = geo_lat[ulon+1+nlon*ulat];
-			float lat2 = geo_lat[ulon+nlon*(ulat+1)];
-			float lat3 = geo_lat[ulon+1+nlon*(ulat+1)];
-				
-			float minlon = Min(Min(lon0,lon1),Min(lon2,lon3))-eps;
-			float maxlon = Max(Max(lon0,lon1),Max(lon2,lon3))+eps;
-
-			
-			float minlat = Min(Min(geo_lat[ulon+nlon*ulat], geo_lat[ulon+1+nlon*ulat]),Min(geo_lat[ulon+nlon*(ulat+1)], geo_lat[ulon+1+nlon*(ulat+1)])) - eps;
-			float maxlat = Max(Max(geo_lat[ulon+nlon*ulat], geo_lat[ulon+1+nlon*ulat]),Max(geo_lat[ulon+nlon*(ulat+1)], geo_lat[ulon+1+nlon*(ulat+1)])) + eps;
-			int latInd = (int)((lat2-lonLatExtents[1])/deltaLat);
-			int lonInd = (int)((lon2-lonLatExtents[0])/deltaLon);
-			
+	float lat[4],lon[4];
+	for (int ulat = 0; ulat<nlat; ulat++){
+		if (ulat == nlat-1 && !wrapLat) continue;
+		float beglat = geo_lat[nlon*ulat];
+		if(beglat < 0. ){ //below equator
 						
-			// find all the latlon grid vertices that fit near this rectangle: 
-			// Add 1 to the LL corner because it is definitely below and left of the rectangle
-			int latInd0 = (int)(1.+((minlat-lonLatExtents[1])/deltaLat));
-			int lonInd0 = (int)(1.+((minlon-lonLatExtents[0])/deltaLon));
-			//cover the edges too!
-			// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
-			bool edgeFlag = false;
-			if (ulat == 0 && latInd0 ==1) {latInd0 = 0; edgeFlag = true;}
-			if (ulon == 0 && lonInd0 == 1) {
-				lonInd0 = 0; edgeFlag = true;
-			}
 			
-			// Whereas the UR corner vertex may be inside:
-			int latInd1 = (int)((maxlat-lonLatExtents[1])/deltaLat);
-			int lonInd1 = (int)((maxlon-lonLatExtents[0])/deltaLon);
-			
-			
-			if (latInd0 <0 || lonInd0 < 0) {
-				continue;
-			}
-			if (latInd1 >= nlat || (lonInd1 > nlon)||(lonInd1 == nlon && !wrapLon)){
-				continue;
-			}
-						
-			//Loop over all the lon/lat grid vertices in the maximized cell:
-			for (int qlat = latInd0; qlat<= latInd1; qlat++){
-				for (int plon = lonInd0; plon<= lonInd1; plon++){
-					float testLon = lonLatExtents[0]+plon*deltaLon;
-					int plon1 = plon;
-					if(plon == nlon) {
-						assert(wrapLon);
-						plon1 = 0;
-					}
-					float testLat = lonLatExtents[1]+qlat*deltaLat;
-					float eps = testInQuad(testLon,testLat,ulon, ulat);
-					if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
-						//Check to make sure eps is smaller than previous entries:
-						if (eps > testValues[plon+nlon*qlat]) continue;
-						//It's OK, stuff it in the weights arrays:
-						float alph, beta;
-						findWeight(testLon, testLat, ulon, ulat,&alph, &beta);
-						alphas[plon1+nlon*qlat] = alph;
-						betas[plon1+nlon*qlat] = beta;
-						testValues[plon1+nlon*qlat] = eps;
-						cornerLats[plon1+nlon*qlat] = ulat;
-						cornerLons[plon1+nlon*qlat] = ulon;
-						
-						//	printf(" lon, lat: %d, %d; alpha = %f beta = %f; test= %f, corners: %d %d\n",
-						//	   plon1,qlat,alphas[plon1+nlon*qlat],betas[plon1+nlon*qlat],testValues[plon1+nlon*qlat],cornerLons[plon1+nlon*qlat],cornerLats[plon1+nlon*qlat]);
-					}
-				}
-			}
-		}
-	} /*else  
-		//upNorth is true 
 		
-		for (int ulat = 0; ulat<nlat-1; ulat++){
-			float lat0 = geo_lat[ulon+nlon*ulat];
-			float lat1 = geo_lat[ulon+1+nlon*ulat];
-			float lat2 = geo_lat[ulon+nlon*(ulat+1)];
-			float lat3 = geo_lat[ulon+1+nlon*(ulat+1)];
-			if (lat1 >= 0.){  //polar project the northern hemisphere to a circle with circumference 360/2pi.  Polar coordinates are rad and thet
-				float rad0 = 2.*(90.-lat0)/M_PI;
-				float rad1 = 2.*(90.-lat1)/M_PI;
-				float rad2 = 2.*(90.-lat2)/M_PI;
-				float rad3 = 2.*(90.-lat3)/M_PI;
-			}
-			float eps2 = eps*(90.-lat0)/90.;
-			for (int ulon = 0; ulon<nlon-1; ulon++){
+			for (int ulon = 0; ulon<nlon; ulon++){
+				if (ulon == nlon-1 && !wrapLon) continue;
+				if (ulon == nlon-1){
+					lat[0] = geo_lat[ulon+nlon*ulat];
+					lat[1] = geo_lat[nlon*ulat];
+					lat[2] = geo_lat[ulon+nlon*(ulat+1)];
+					lat[3] = geo_lat[nlon*(ulat+1)];
+				} else {
+					lat[0] = geo_lat[ulon+nlon*ulat];
+					lat[1] = geo_lat[ulon+1+nlon*ulat];
+					lat[2] = geo_lat[ulon+nlon*(ulat+1)];
+					lat[3] = geo_lat[ulon+1+nlon*(ulat+1)];
+				}
+				float minlat = Min(Min(lat[0],lat[1]),Min(lat[0],lat[3])) - eps;
+				float maxlat = Max(Max(lat[0],lat[1]),Min(lat[2],lat[3])) + eps;
+
+				
 				//	For each cell, find min and max longitude and latitude; expand by eps in all directions to define maximal ulon-ulat cell in
 				// actual lon/lat coordinates
-				float lon0 = geo_lon[ulon+nlon*ulat];
-				float lon1 = geo_lon[ulon+1+nlon*ulat];
-				float lon2 = geo_lon[ulon+nlon*(ulat+1)];
-				float lon3 = geo_lon[ulon+1+nlon*(ulat+1)];
-				
-				float thet0 = lon0*M_PI/180.;
-				float thet1 = lon1*M_PI/180.;
-				float thet2 = lon2*M_PI/180.;
-				float thet3 = lon3*M_PI/180.;
-				
-				//Now convert to (x,y) coordinates:
-				float x0 = rad0*cos(thet0);
-				float x1 = rad1*cos(thet1);
-				float x0 = rad2*cos(thet2);
-				float x1 = rad3*cos(thet3);
-				float y0 = rad0*sin(thet0);
-				float y0 = rad1*sin(thet1);
-				float y0 = rad2*sin(thet2);
-				float y0 = rad3*sin(thet3);
-				
-				//shrink eps by (90-lat0)/90
-								
-				float minx = Min(Min(x0,x1),Min(x2,x3))-eps2;
-				float maxx = Max(Max(x0,x1),Max(x2,x3))+eps2;
-				float miny = Min(Min(y0,y1),Min(y2,y3))-eps2;
-				float maxy = Max(Max(y0,y1),Max(y2,y3))+eps2;
-				
+				float lon0,lon1,lon2,lon3;
+				if (ulon == nlon-1){
+					lon0 = geo_lon[ulon+nlon*ulat];
+					lon1 = geo_lon[nlon*ulat];
+					lon2 = geo_lon[ulon+nlon*(ulat+1)];
+					lon3 = geo_lon[nlon*(ulat+1)];
+					
+				} else {
+					lon0 = geo_lon[ulon+nlon*ulat];
+					lon1 = geo_lon[ulon+1+nlon*ulat];
+					lon2 = geo_lon[ulon+nlon*(ulat+1)];
+					lon3 = geo_lon[ulon+1+nlon*(ulat+1)];
+				}
+							
+				float minlon = Min(Min(lon0,lon1),Min(lon2,lon3))-eps;
+				float maxlon = Max(Max(lon0,lon1),Max(lon2,lon3))+eps;
 
-				int latInd = (int)((lat2-lonLatExtents[1])/deltaLat);
-				int lonInd = (int)((lon2-lonLatExtents[0])/deltaLon);
-				
-				
+								
 				// find all the latlon grid vertices that fit near this rectangle: 
 				// Add 1 to the LL corner because it is definitely below and left of the rectangle
 				int latInd0 = (int)(1.+((minlat-lonLatExtents[1])/deltaLat));
@@ -1219,19 +920,19 @@ int WeightTable::calcWeights(int ncid){
 				if (ulon == 0 && lonInd0 == 1) {
 					lonInd0 = 0; edgeFlag = true;
 				}
-				
+			
 				// Whereas the UR corner vertex may be inside:
 				int latInd1 = (int)((maxlat-lonLatExtents[1])/deltaLat);
 				int lonInd1 = (int)((maxlon-lonLatExtents[0])/deltaLon);
-				
-				
+			
+			
 				if (latInd0 <0 || lonInd0 < 0) {
 					continue;
 				}
 				if (latInd1 >= nlat || (lonInd1 > nlon)||(lonInd1 == nlon && !wrapLon)){
 					continue;
 				}
-				
+						
 				//Loop over all the lon/lat grid vertices in the maximized cell:
 				for (int qlat = latInd0; qlat<= latInd1; qlat++){
 					for (int plon = lonInd0; plon<= lonInd1; plon++){
@@ -1245,41 +946,239 @@ int WeightTable::calcWeights(int ncid){
 						float eps = testInQuad(testLon,testLat,ulon, ulat);
 						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
 							//Check to make sure eps is smaller than previous entries:
-							if (eps > testValues[plon+nlon*qlat]) continue;
+							if (eps > testValues[plon1+nlon*qlat]) continue;
 							//It's OK, stuff it in the weights arrays:
 							float alph, beta;
 							findWeight(testLon, testLat, ulon, ulat,&alph, &beta);
+							assert(plon1 >= 0 && plon1 < nlon);
+							assert(qlat >= 0 && qlat < nlat);
 							alphas[plon1+nlon*qlat] = alph;
 							betas[plon1+nlon*qlat] = beta;
 							testValues[plon1+nlon*qlat] = eps;
 							cornerLats[plon1+nlon*qlat] = ulat;
 							cornerLons[plon1+nlon*qlat] = ulon;
 							
-							//	printf(" lon, lat: %d, %d; alpha = %f beta = %f; test= %f, corners: %d %d\n",
-							//	   plon1,qlat,alphas[plon1+nlon*qlat],betas[plon1+nlon*qlat],testValues[plon1+nlon*qlat],cornerLons[plon1+nlon*qlat],cornerLats[plon1+nlon*qlat]);
 						}
 					}
 				}
 			}
-	} */
+		} else { //provide mapping to polar coordinates of northern hemisphere
+			//map to circle of circumference 360 (matching lon/lat projection above at equator
+			for (int ulon = 0; ulon<nlon; ulon++){
+				if (ulat == nlat-1 && ulon > nlon/2) continue;  // only do first half of zipper
+				if (ulon == nlon-1 && !wrapLon) continue;
+				
+				if (ulon == nlon-1){
+					lat[0] = geo_lat[ulon+nlon*ulat];
+					lat[1] = geo_lat[nlon*ulat];
+					lat[2] = geo_lat[ulon+nlon*(ulat+1)];
+					lat[3] = geo_lat[nlon*(ulat+1)];
+					
+					lon[0] = geo_lon[ulon+nlon*ulat];
+					lon[1] = geo_lon[nlon*ulat];
+					lon[2] = geo_lon[ulon+nlon*(ulat+1)];
+					lon[3] = geo_lon[nlon*(ulat+1)];
+				} else if (ulat == nlat-1) { //Handle zipper:
+					// The point (ulat, ulon) is across from (ulat, nlon-ulon-1)
+					// Whenever ulat+1 is used, replace it with ulat, and switch ulon to nlon-ulon-1
+					lat[0] = geo_lat[ulon+nlon*ulat];
+					lat[1] = geo_lat[ulon+1+nlon*ulat];
+					lat[2] = geo_lat[nlon-ulon-2+nlon*ulat];
+					lat[3] = geo_lat[nlon -ulon -1+nlon*ulat];
+					lon[0] = geo_lon[ulon+nlon*ulat];
+					lon[1] = geo_lon[ulon+1+nlon*ulat];
+					lon[2] = geo_lon[nlon-ulon-2+nlon*ulat];
+					lon[3] = geo_lon[nlon-ulon-1+nlon*ulat];
+				} else {
+					lat[0] = geo_lat[ulon+nlon*ulat];
+					lat[1] = geo_lat[ulon+1+nlon*ulat];
+					lat[2] = geo_lat[ulon+nlon*(ulat+1)];
+					lat[3] = geo_lat[ulon+1+nlon*(ulat+1)];
+					
+					lon[0] = geo_lon[ulon+nlon*ulat];
+					lon[1] = geo_lon[ulon+1+nlon*ulat];
+					lon[2] = geo_lon[ulon+nlon*(ulat+1)];
+					lon[3] = geo_lon[ulon+1+nlon*(ulat+1)];
+				}
+				
+				float rad[4];
+				for (int k = 0;k<4; k++) rad[k] = (90.-lat[k])*2./M_PI;
+				float thet[4], x[4],y[4];
+				float minlat = 1000., maxlat = -1000.;
+				
+				//Convert longitude to angle between 0 and 2PI.  get min/max latitude
+				for (int k=0;k<4;k++) {
+					thet[k] = lon[k]*(M_PI/180.);
+					x[k] = rad[k]*cos(thet[k]);
+					y[k] = rad[k]*sin(thet[k]);
+					if (lat[k]<minlat) minlat = lat[k];
+					if (lat[k]>maxlat) maxlat = lat[k];
+				}
+				minlat -= eps;
+				maxlat += eps;
+
+				//Determine a minimal sector (longitude interval) or two sectors that contain the 4 corners:
+				float maxlon, minlon, minlon2, maxlon1;
+				
+				bool fullCircle = false, doubleSector = false;
+				minlon = Min(Min(lon[0],lon[1]),Min(lon[2],lon[3]));
+				maxlon = Max(Max(lon[0],lon[1]),Max(lon[2],lon[3]));
+				if (maxlon - minlon >= 180.) {
+					//See if can split into two sectors overlapping min and max
+					//Look for max in lower half, min in upper half
+					float midlon = 0.5*(minlon+maxlon);
+					minlon2 = 360.;
+					maxlon1 = -360.;
+					for (int k = 0; k<4; k++){
+						if (lon[k] < midlon && lon[k] > maxlon1) maxlon1=lon[k];
+						if (lon[k] >= midlon && lon[k] < minlon2) minlon2=lon[k];
+					}
+					//Now see if two sectors add up to less than 180 degrees:
+					float secwidth = (maxlon1 - lonLatExtents[0])+((360. + lonLatExtents[0])-minlon2);
+					if (secwidth <180.) doubleSector = true; 
+					else fullCircle = true;
+				}
+				
+				
+				//Expand slightly to include points on boundary
+				maxlon += eps;
+				minlon -= eps;
+				if(doubleSector){
+					maxlon1 += eps;
+					minlon2 -= eps;
+				}
+				//If fullCircle is false and doubleSector is false, the sector goes from minrad, minlon to maxrad, maxlon
+				//If fullCircle is true, the sector is a full circle, from minrad= 0 to maxrad
+				
+				
+				// Test all lat/lon pairs that are in the sector, to see if they are inside the rectangle of (x,y) corners.
+				// first, discretize the sector extents to match lat/lon grid
+				int lonMin, lonMax,  lonMin2,  lonMax2;
+				int latMin = (int)(1.+(minlat-lonLatExtents[1])/deltaLat);
+				int latMax = (int)((maxlat-lonLatExtents[1])/deltaLat);
+				if (fullCircle) {
+					lonMin = 0; lonMax = nlon;
+					latMax = nlat -1;
+				}
+				else if (doubleSector){
+					//specify two intervals:
+					lonMin = 0;
+					lonMax = (int)((maxlon1 -lonLatExtents[0])/deltaLon);
+					lonMin2 = (int)(1.+(minlon2  -lonLatExtents[0])/deltaLon);
+					lonMax2 = nlon-1;
+				} else {
+					lonMin = (int)(1.+(minlon  -lonLatExtents[0])/deltaLon);
+					lonMax = (int)((maxlon -lonLatExtents[0])/deltaLon);
+				}
+				
+				//cover the edges too!
+				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
+				bool edgeFlag = false;
+				if (ulat == 0 && latMin ==1) {latMin = 0; edgeFlag = true;}
+				if (ulon == 0 && lonMin == 1) {
+					lonMin = 0; edgeFlag = true;
+				}
+				
+				//slightly enlarge the bounds (??)
+				if (latMin > 0) latMin--;
+				if (lonMin > 0) lonMin--;
+				if (latMax < nlat-1) latMax++;
+				if (lonMax < nlon -1) lonMax++;
+				//Test each point in lon/lat interval:
+				for (int qlat = latMin; qlat<= latMax; qlat++){
+					for (int plon = lonMin; plon<= lonMax; plon++){
+						float testLon = lonLatExtents[0]+plon*deltaLon;
+						int plon1 = plon;
+						if(plon == nlon) {
+							assert(wrapLon);
+							plon1 = 0;
+						}
+						float testLat = lonLatExtents[1]+qlat*deltaLat;
+						//Convert lat/lon coordinates to x,y
+						float testRad = (90.-testLat)*2./M_PI;
+						float testThet = testLon*M_PI/180.;
+						float testx = testRad*cos(testThet);
+						float testy = testRad*sin(testThet);
+						float eps = testInQuad2(testx,testy,ulon, ulat);
+						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
+							assert(plon1 >= 0 && plon1 < nlon);
+							assert(qlat >= 0 && qlat < nlat);
+
+							//Check to make sure eps is smaller than previous entries:
+							if (eps >= testValues[plon1+nlon*qlat]) continue;
+							//It's OK, stuff it in the weights arrays:
+							float alph, beta;
+							
+							findWeight2(testx, testy, ulon, ulat,&alph, &beta);
+							
+							alphas[plon1+nlon*qlat] = alph;
+							betas[plon1+nlon*qlat] = beta;
+							testValues[plon1+nlon*qlat] = eps;
+							cornerLats[plon1+nlon*qlat] = ulat;
+							cornerLons[plon1+nlon*qlat] = ulon;
+							
+						}
+					}
+				}
+				//Test each point in second lon/lat interval:
+				if(doubleSector) for (int qlat = latMin; qlat<= latMax; qlat++){
+					for (int plon = lonMin2; plon<= lonMax2; plon++){
+						float testLon = lonLatExtents[0]+plon*deltaLon;
+						int plon1 = plon;
+						if(plon == nlon) {
+							assert(wrapLon);
+							plon1 = 0;
+						}
+						float testLat = lonLatExtents[1]+qlat*deltaLat;
+						//Convert lat/lon coordinates to x,y
+						float testRad = (90.-testLat)*2./M_PI;
+						float testThet = testLon*M_PI/180.;
+						float testx = testRad*cos(testThet);
+						float testy = testRad*sin(testThet);
+						float eps = testInQuad2(testx,testy,ulon, ulat);
+						
+						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
+							assert(plon1 >= 0 && plon1 < nlon);
+							assert(qlat >= 0 && qlat < nlat);
+
+							//Check to make sure eps is smaller than previous entries:
+							if (eps > testValues[plon1+nlon*qlat]) continue;
+							//It's OK, stuff it in the weights arrays:
+							float alph, beta;
+							findWeight2(testx, testy, ulon, ulat,&alph, &beta);
+							
+							alphas[plon1+nlon*qlat] = alph;
+							betas[plon1+nlon*qlat] = beta;
+							testValues[plon1+nlon*qlat] = eps;
+							cornerLats[plon1+nlon*qlat] = ulat;
+							cornerLons[plon1+nlon*qlat] = ulon;
+							
+						}
+					}
+				}
+			} //end ulon loop
+		} //end else
+	} //end ulat loop
 	//Check it out:
-	/*
+	
 	for (int i = 0; i<nlat; i++){
 		for (int j = 0; j<nlon; j++){
 			if (testValues[j+nlon*i] <1.){
+				if (alphas[j+nlon*i] > 1.5 || alphas[j+nlon*i] < -0.5 || betas[j+nlon*i]>1.5 || betas[j+nlon*i]< -0.5)
+					printf(" bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+nlon*i],betas[j+nlon*i], j, i, cornerLons[j+nlon*i], cornerLats[j+nlon*i],testValues[j+i*nlon]);
 				continue;
 			}
 			else {
-				if (testValues[j+nlon*i] < 1000000.) printf( "poor estimate: %f at lon, lat %d %d\n", testValues[j+nlon*i],j,i);
+				if (testValues[j+nlon*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", testValues[j+nlon*i],j,i, cornerLons[j+nlon*i], cornerLats[j+nlon*i]);
 				else printf(" missing lon, lat: %d, %d\n",j,i);
 			}
 		}
 	}
-	 */
+	 
 	return 0;				
 }
 float WeightTable::testInQuad(float plon, float plat, int ilon, int ilat){
-	//Sides of quad are determined by lines thru the 4 points at grid corners:
+	//Sides of quad are determined by lines thru the 4 points at user grid corners:
 	//(ilon,ilat), (ilon+1,ilat), (ilon+1,ilat+1), (ilon,ilat+1)
 	//These points are mapped to 4 (lon,lat) coordinates (xi,yi) using geolon,geolat variables
 	//For each pair P=(xi,yi), Q=(xi+1,yi+1) of these points, the formula
@@ -1287,45 +1186,124 @@ float WeightTable::testInQuad(float plon, float plat, int ilon, int ilat){
 	//and >0 on the out-side of the line.
 	//Return the maximum of the four formulas Fi evaluated at (plon,plat), or the first one that
 	//exceeds epsilon
-	//Bottom side:
-	float F0 = (geo_lat[ilon+1+nlon*ilat]-geo_lat[ilon+nlon*ilat])*(plon - geo_lon[ilon+nlon*ilat]) -
-		(plat-geo_lat[ilon+nlon*ilat])*(geo_lon[ilon+1+nlon*ilat]-geo_lon[ilon+nlon*ilat]);
-	if (F0 > epsRect) return F0;
-	//Right side:
-	float F1 = (geo_lat[ilon+1+nlon*(ilat+1)]-geo_lat[ilon+1+nlon*ilat])*(plon - geo_lon[ilon+1+nlon*ilat]) -
-		(plat-geo_lat[ilon+1+nlon*ilat])*(geo_lon[ilon+1+nlon*(ilat+1)]-geo_lon[ilon+1+nlon*ilat]);
-	if (F1 > epsRect) return F1;
-	//Top side:
-	float F2 = (geo_lat[ilon+nlon*(ilat+1)]-geo_lat[ilon+1+nlon*(ilat+1)])*(plon - geo_lon[ilon+1+nlon*(ilat+1)]) -
-		(plat-geo_lat[ilon+1+nlon*(ilat+1)])*(geo_lon[ilon+nlon*(ilat+1)]-geo_lon[ilon+1+nlon*(ilat+1)]);
-	if (F2 > epsRect) return F2;
-	//Left side
-	float F3 = (geo_lat[ilon+nlon*ilat]-geo_lat[ilon+nlon*(ilat+1)])*(plon - geo_lon[ilon+nlon*(ilat+1)]) -
-		(plat-geo_lat[ilon+nlon*(ilat+1)])*(geo_lon[ilon+nlon*ilat]-geo_lon[ilon+nlon*(ilat+1)]);
-	if (F3 > epsRect) return F3;
-	return Max(Max(F0,F1),Max(F2,F3));
-}
+	float lg[4],lt[4];
+	if (ilon == nlon-1){//wrap in ilon coord
+		lt[0] = geo_lat[ilon+nlon*ilat];
+		lt[1] = geo_lat[nlon*ilat];
+		lt[2] = geo_lat[nlon*(ilat+1)];
+		lt[3] = geo_lat[ilon+nlon*(ilat+1)];
+		lg[0] = geo_lon[ilon+nlon*ilat];
+		lg[1] = geo_lon[nlon*ilat];
+		lg[2] = geo_lon[nlon*(ilat+1)];
+		lg[3] = geo_lon[ilon+nlon*(ilat+1)];
+	} else {
+		lt[0] = geo_lat[ilon+nlon*ilat];
+		lt[1] = geo_lat[ilon+1+nlon*ilat];
+		lt[2] = geo_lat[ilon+1+nlon*(ilat+1)];
+		lt[3] = geo_lat[ilon+nlon*(ilat+1)];
+		lg[0] = geo_lon[ilon+nlon*ilat];
+		lg[1] = geo_lon[ilon+1+nlon*ilat];
+		lg[2] = geo_lon[ilon+1+nlon*(ilat+1)];
+		lg[3] = geo_lon[ilon+nlon*(ilat+1)];
+	}
+	float dist = -1.e30;
+	for (int j = 0; j<4; j++){
+		float dst = (lt[(j+1)%4]-lt[j])*(plon-lg[j]) - (plat-lt[j])*(lg[(j+1)%4] - lg[j]);
+		if (dst > dist) dist = dst;
 
+	}
+	return dist;
+}
+float WeightTable::testInQuad2(float x, float y, int ulon, int ulat){
+	//Sides of quad are determined by lines thru the 4 points at user grid corners
+	//(ulon,ulat), (+1,ilat), (ulon+1,ulat+1), (ulon,ulat+1)
+	//These points are mapped to 4 (lon,lat) coordinates  using geolon,geolat variables.
+	//Then the 4 points are mapped into a circle of circumference 360. (radius 360/2pi) using polar coordinates
+	// lon*180/M_PI is theta, (90-lat)*2/M_PI is radius
+	// this results in 4 x,y corner coordinates
+	float xc[4],yc[4];
+	float rad[4],thet[4];
+	if (ulon == nlon-1 ){  //wrap; ie. ulon+1 is replaced by 0
+		rad[0] = (90.-geo_lat[ulon+nlon*ulat])*2./M_PI;
+		rad[1] = (90.-geo_lat[nlon*ulat])*2./M_PI;
+		rad[2] = (90.-geo_lat[nlon*(ulat+1)])*2./M_PI;
+		rad[3] = (90.-geo_lat[ulon+nlon*(ulat+1)])*2./M_PI;
+		thet[0] = geo_lon[ulon+nlon*ulat]*M_PI/180.;
+		thet[1] = geo_lon[nlon*ulat]*M_PI/180.;
+		thet[2] = geo_lon[nlon*(ulat+1)]*M_PI/180.;
+		thet[3] = geo_lon[ulon+nlon*(ulat+1)]*M_PI/180.;
+	} else if (ulat == nlat-1) { //Handle zipper:
+		// The point (ulat, ulon) is across from (ulat, nlon-ulon-1)
+		// Whenever ulat+1 is used, replace it with ulat, and switch ulon to nlon-ulon-1
+		rad[0] = (90.-geo_lat[ulon+nlon*ulat])*2./M_PI;
+		rad[1] = (90.-geo_lat[ulon+1+nlon*ulat])*2./M_PI;
+		rad[2] = (90.-geo_lat[nlon-ulon-2+nlon*ulat])*2./M_PI;
+		rad[3] = (90.-geo_lat[nlon -ulon -1+nlon*ulat])*2./M_PI;
+		thet[0] = geo_lon[ulon+nlon*ulat]*M_PI/180.;
+		thet[1] = geo_lon[ulon+1+nlon*ulat]*M_PI/180.;
+		thet[2] = geo_lon[nlon-ulon-2+nlon*ulat]*M_PI/180.;
+		thet[3] = geo_lon[nlon-ulon-1+nlon*ulat]*M_PI/180.;
+	} else {
+		rad[0] = (90.-geo_lat[ulon+nlon*ulat])*2./M_PI;
+		rad[1] = (90.-geo_lat[ulon+1+nlon*ulat])*2./M_PI;
+		rad[2] = (90.-geo_lat[ulon+1+nlon*(ulat+1)])*2./M_PI;
+		rad[3] = (90.-geo_lat[ulon+nlon*(ulat+1)])*2./M_PI;
+		thet[0] = geo_lon[ulon+nlon*ulat]*M_PI/180.;
+		thet[1] = geo_lon[ulon+1+nlon*ulat]*M_PI/180.;
+		thet[2] = geo_lon[ulon+1+nlon*(ulat+1)]*M_PI/180.;
+		thet[3] = geo_lon[ulon+nlon*(ulat+1)]*M_PI/180.;
+	}
+	for (int i = 0; i<4; i++){
+		xc[i] = rad[i]*cos(thet[i]);
+		yc[i] = rad[i]*sin(thet[i]);
+	}
+	//
+	//For each pair P=(xi,yi), Q=(xi+1,yi+1) of these points, the formula
+	//Fi(x,y) = (yi+1-yi)*(x-xi)-(y-yi)*(xi+1-xi) defines a function that is <0 on the in-side of the line
+	//and >0 on the out-side of the line.
+	//Return the maximum of the four formulas Fi evaluated at (x,y), or the first one that
+	//exceeds epsilon
+	float fmax = -1.e30;
+	for (int j = 0; j<4; j++){
+		float dist = (yc[(j+1)%4]-yc[j])*(x-xc[j]) - (y-yc[j])*(xc[(j+1)%4] - xc[j]);
+		//if (dist > epsRect) return dist;
+		if (dist > fmax) fmax = dist;
+	}
+	return fmax;
+}
+		
 void WeightTable::findWeight(float plon, float plat, int ilon, int ilat, float* alpha, float* beta){
 	//use iteration to determine alpha and beta that interpolates plon, plat from the user grid
 	//corner associated with ilon and ilat.
 	//start with prevAlpha=0, prevBeta=0.  
 	float th[4],ph[4];
-	th[0] = geo_lon[ilon+nlon*ilat];
-	ph[0] = geo_lat[ilon+nlon*ilat];
-	th[1] = geo_lon[ilon+1+nlon*ilat];
-	ph[1] = geo_lat[ilon+1+nlon*ilat];
-	th[2] = geo_lon[ilon+1+nlon*(ilat+1)];
-	ph[2] = geo_lat[ilon+1+nlon*(ilat+1)];
-	th[3] = geo_lon[ilon+nlon*(ilat+1)];
-	ph[3] = geo_lat[ilon+nlon*(ilat+1)];
+	if (ilon == nlon-1){
+		th[0] = geo_lon[ilon+nlon*ilat];
+		ph[0] = geo_lat[ilon+nlon*ilat];
+		th[1] = geo_lon[nlon*ilat];
+		ph[1] = geo_lat[nlon*ilat];
+		th[2] = geo_lon[nlon*(ilat+1)];
+		ph[2] = geo_lat[nlon*(ilat+1)];
+		th[3] = geo_lon[ilon+nlon*(ilat+1)];
+		ph[3] = geo_lat[ilon+nlon*(ilat+1)];
+		
+	} else {
+		th[0] = geo_lon[ilon+nlon*ilat];
+		ph[0] = geo_lat[ilon+nlon*ilat];
+		th[1] = geo_lon[ilon+1+nlon*ilat];
+		ph[1] = geo_lat[ilon+1+nlon*ilat];
+		th[2] = geo_lon[ilon+1+nlon*(ilat+1)];
+		ph[2] = geo_lat[ilon+1+nlon*(ilat+1)];
+		th[3] = geo_lon[ilon+nlon*(ilat+1)];
+		ph[3] = geo_lat[ilon+nlon*(ilat+1)];
+	}
 	float alph = 0.f, bet = 0.f;  //first guess
 	float newalpha, newbeta;
 	int iter;
 	for (iter = 0; iter < 10; iter++){
 		newalpha = NEWA(alph, bet, plon, plat, th, ph);
 		newbeta = NEWB(alph, bet, plon, plat, th, ph);
-		//float err = errP(plon, plat, newalpha, newbeta,th,ph);
+		
 		if (errP(plon, plat, newalpha, newbeta,th,ph) < 1.e-9) break;
 		alph = newalpha;
 		bet = newbeta;
@@ -1333,12 +1311,70 @@ void WeightTable::findWeight(float plon, float plat, int ilon, int ilat, float* 
 	if(iter > 10){
 		printf(" Weight nonconvergence, errp: %f , alpha, beta: %f %f\n",errP(plon, plat, newalpha, newbeta,th,ph), newalpha, newbeta);
 	}
-	//float thetaInterp = finterp(newalpha,newbeta,th);
-	//float phiInterp = finterp(newalpha,newbeta,ph);
+	
 	*alpha = newalpha;
 	*beta = newbeta;
 	
 }
+void WeightTable::findWeight2(float x, float y, int ilon, int ilat, float* alpha, float* beta){
+	//use iteration to determine alpha and beta that interpolates x, y from the user grid
+	//corners associated with ilon and ilat, mapped into polar coordinates.
+	//start with prevAlpha=0, prevBeta=0.  
+	float xc[4],yc[4];
+	float rad[4],thet[4];
+	if (ilon == nlon-1){//wrap 
+		rad[0] = (90.-geo_lat[ilon+nlon*ilat])*2./M_PI;
+		rad[1] = (90.-geo_lat[nlon*ilat])*2./M_PI;
+		rad[2] = (90.-geo_lat[nlon*(ilat+1)])*2./M_PI;
+		rad[3] = (90.-geo_lat[ilon+nlon*(ilat+1)])*2./M_PI;
+		thet[0] = geo_lon[ilon+nlon*ilat]*M_PI/180.;
+		thet[1] = geo_lon[nlon*ilat]*M_PI/180.;
+		thet[2] = geo_lon[nlon*(ilat+1)]*M_PI/180.;
+		thet[3] = geo_lon[ilon+nlon*(ilat+1)]*M_PI/180.;
+	} else if (ilat == nlat-1){  //zipper
+		rad[0] = (90.-geo_lat[ilon+nlon*ilat])*2./M_PI;
+		rad[1] = (90.-geo_lat[ilon+1+nlon*ilat])*2./M_PI;
+		rad[2] = (90.-geo_lat[nlon - ilon -2 +nlon*ilat])*2./M_PI;
+		rad[3] = (90.-geo_lat[nlon - ilon - 1 +nlon*ilat])*2./M_PI;
+		thet[0] = geo_lon[ilon+nlon*ilat]*M_PI/180.;
+		thet[1] = geo_lon[ilon+1+nlon*ilat]*M_PI/180.;
+		thet[2] = geo_lon[nlon - ilon -2 +nlon*ilat]*M_PI/180.;
+		thet[3] = geo_lon[nlon - ilon -1 +nlon*ilat]*M_PI/180.;
+	} else {
+		rad[0] = (90.-geo_lat[ilon+nlon*ilat])*2./M_PI;
+		rad[1] = (90.-geo_lat[ilon+1+nlon*ilat])*2./M_PI;
+		rad[2] = (90.-geo_lat[ilon+1+nlon*(ilat+1)])*2./M_PI;
+		rad[3] = (90.-geo_lat[ilon+nlon*(ilat+1)])*2./M_PI;
+		thet[0] = geo_lon[ilon+nlon*ilat]*M_PI/180.;
+		thet[1] = geo_lon[ilon+1+nlon*ilat]*M_PI/180.;
+		thet[2] = geo_lon[ilon+1+nlon*(ilat+1)]*M_PI/180.;
+		thet[3] = geo_lon[ilon+nlon*(ilat+1)]*M_PI/180.;
+	}
+	
+	for (int i = 0; i<4; i++){
+		xc[i] = rad[i]*cos(thet[i]);
+		yc[i] = rad[i]*sin(thet[i]);
+	}
+	
+	float alph = 0.f, bet = 0.f;  //first guess
+	float newalpha, newbeta;
+	int iter;
+	for (iter = 0; iter < 10; iter++){
+		newalpha = NEWA(alph, bet, x, y, xc, yc);
+		newbeta = NEWB(alph, bet, x, y, xc, yc);
+		
+		if (errP(x, y, newalpha, newbeta,xc,yc) < 1.e-9) break;
+		alph = newalpha;
+		bet = newbeta;
+	}
+	if(iter > 10){
+		fprintf(stderr," Weight nonconvergence, errp: %f , alpha, beta: %f %f\n",errP(x, y, newalpha, newbeta, xc,yc), newalpha, newbeta);
+	}
+	*alpha = newalpha;
+	*beta = newbeta;
+	
+}
+		
 
 //Determine the index in time array that corresponding to a MOM date.
 //Requires a vector of times in seconds after 1970, such as those in Metadata
