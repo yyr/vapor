@@ -58,6 +58,8 @@ public:
 	//
 	size_t GetVDCTimeStep(double momtime, const vector<double>& userTimes, double tol = 1.0);
 	
+	int extractStartTime(int ncid, int timevarid);  //Determine the start time from the current data file.  Set startTimeStamp and startTimeDouble.
+	
 private:
 
 	// A mapping between required MOM variable names and how  these

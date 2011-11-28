@@ -137,37 +137,9 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 	NC_ERR_READ(nc_get_vara_double(ncid, timevarid, timestart, timecount, fileTimes));
 	bool timesInserted = false;
 
-	//Check the units attribute of the time variable.  If it starts with "days since" then construct a WRF-style time stamp
-	//from the next two tokens in that attribute.
-	nc_type atttype;
-	size_t attlen;
-	NC_ERR_READ(nc_inq_att(ncid, timevarid, "units", &atttype, &attlen));
-	char* attrVal=0;
-	char dateTimeStamp[20];
-	if (attlen > 0) {
-		attrVal = new char[attlen+1];
-		NC_ERR_READ(nc_get_att_text(ncid, timevarid, "units", attrVal));
-		attrVal[attlen] = '\0';
-		string strAtt(attrVal);
-		size_t strPos = strAtt.find("days since");
-		int y,m,d,h,mn,s;
-		if (strPos != string::npos){
-			//See if we can extract the subsequent two tokens, and that they are of the format
-			// yyyy-mm-dd and hh:mm:ss
-			
-			string substr = strAtt.substr(10+strPos, 20);
-			sscanf(substr.c_str(),"%4d-%2d-%2d %2d:%2d:%2d", &y, &m, &d, &h, &mn, &s);
-			//Create a WRF-style date-time stamp
-			sprintf(dateTimeStamp,"%04d-%02d-%02d_%02d:%02d:%02d",y,m,d,h,mn,s);
-			dateTimeStamp[19] = '\0';
-			startTimeStamp = std::string(dateTimeStamp);
-			TIME64_T startTimeSeconds;
-			int rc = WRF::WRFTimeStrToEpoch(startTimeStamp, &startTimeSeconds);
-			if (!rc) startTimeDouble = (double)startTimeSeconds;
-
-		}
-		
-	}
+	//Get the time stamp from the file:
+	extractStartTime(ncid, timevarid);
+	
 
 	//Get the min and max values of the vertical dimension, if it is defined
 	// in this file.  It should agree with current values of vertexts
@@ -212,6 +184,39 @@ int MOM::addFile(const string& datafile, float extents[6], vector<string>&vars2d
 	delete fileTimes;
 	for (int i = 0; i<6; i++) extents[i] = _Exts[i];
 	return 0;
+}
+int MOM::extractStartTime(int ncid, int timevarid){
+	//Check the units attribute of the time variable.  If it exists and it starts with "days since" then construct a WRF-style time stamp
+	//from the next two tokens in that attribute.
+	nc_type atttype;
+	size_t attlen;
+	NC_ERR_READ(nc_inq_att(ncid, timevarid, "units", &atttype, &attlen));
+	char* attrVal=0;
+	char dateTimeStamp[20];
+	if (attlen > 0) {
+		attrVal = new char[attlen+1];
+		NC_ERR_READ(nc_get_att_text(ncid, timevarid, "units", attrVal));
+		attrVal[attlen] = '\0';
+		string strAtt(attrVal);
+		size_t strPos = strAtt.find("days since");
+		int y,m,d,h,mn,s;
+		if (strPos != string::npos){
+			//See if we can extract the subsequent two tokens, and that they are of the format
+			// yyyy-mm-dd and hh:mm:ss
+			
+			string substr = strAtt.substr(10+strPos, 20);
+			sscanf(substr.c_str(),"%4d-%2d-%2d %2d:%2d:%2d", &y, &m, &d, &h, &mn, &s);
+			//Create a WRF-style date-time stamp
+			sprintf(dateTimeStamp,"%04d-%02d-%02d_%02d:%02d:%02d",y,m,d,h,mn,s);
+			dateTimeStamp[19] = '\0';
+			startTimeStamp = std::string(dateTimeStamp);
+			TIME64_T startTimeSeconds;
+			int rc = WRF::WRFTimeStrToEpoch(startTimeStamp, &startTimeSeconds);
+			if (!rc) startTimeDouble = (double)startTimeSeconds;
+			else return -1;
+		}
+		return 0;
+	} else return -1;
 }
 
 
@@ -1168,12 +1173,15 @@ int WeightTable::calcWeights(int ncid){
 		for (int j = 0; j<nlon; j++){
 			if (testValues[j+nlon*i] <1.){
 				if (alphas[j+nlon*i] > 1.5 || alphas[j+nlon*i] < -0.5 || betas[j+nlon*i]>1.5 || betas[j+nlon*i]< -0.5)
-					printf(" bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+nlon*i],betas[j+nlon*i], j, i, cornerLons[j+nlon*i], cornerLats[j+nlon*i],testValues[j+i*nlon]);
+					fprintf(stderr," bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+nlon*i],betas[j+nlon*i], j, i, cornerLons[j+nlon*i], cornerLats[j+nlon*i],testValues[j+i*nlon]);
 				continue;
 			}
 			else {
 				if (testValues[j+nlon*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", testValues[j+nlon*i],j,i, cornerLons[j+nlon*i], cornerLats[j+nlon*i]);
-				else printf(" missing lon, lat: %d, %d\n",j,i);
+				else {
+					MyBase::SetErrMsg(" Error remapping coordinates.  Unmapped lon, lat: %d, %d\n",j,i);
+					exit (-1);
+				}
 			}
 		}
 	}
@@ -1380,15 +1388,18 @@ void WeightTable::findWeight2(float x, float y, int ilon, int ilat, float* alpha
 		
 
 //Determine the index in time array that corresponding to a MOM date.
-//Requires a vector of times in seconds after 1970, such as those in Metadata
+//Requires a vector of times in seconds since simulation start time, such as those in Metadata
 //MOM dates are in months relative to the simulation start time.
+//momTime is the number of days since simulation start time.
 size_t MOM::GetVDCTimeStep(double momTime, const vector<double>& times,  double tol){
 	//convert everything to seconds since 01/01/70:
 	if (startTimeDouble <= -1.e30) return (size_t)(-1);
+	//Convert to seconds (since simulation start time)
 	momTime *= (24.*60.*60.);
-	momTime += startTimeDouble;
+	
 	tol *= (24.*60.*60.);
 	
+		
 	size_t mints = 0, maxts = times.size()-1;
 	//make sure we are in right interval:
 	if (momTime <= times[0]-tol) return -1;

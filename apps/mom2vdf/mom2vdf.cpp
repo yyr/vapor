@@ -702,9 +702,13 @@ int	main(int argc, char **argv) {
 		int timedimid;
 		size_t timelen;
 		NC_ERR_READ( nc_open( momfiles[i].c_str(), NC_NOWRITE, &ncid ));
+		
 		// Read the times from the file
 		int timevarid;
 		NC_ERR_READ(nc_inq_varid(ncid, atypnames["time"].c_str(), &timevarid));
+		
+		mom->extractStartTime(ncid,timevarid);
+		
 		NC_ERR_READ(nc_inq_unlimdim(ncid, &timedimid));
 		
 		NC_ERR_READ(nc_inq_dim(ncid, timedimid, nctimename, &timelen));
@@ -717,9 +721,13 @@ int	main(int argc, char **argv) {
 		NC_ERR_READ(nc_get_vara_double(ncid, timevarid, timestart, timecount, fileTimes));
 		
 		// map the times to VDC timesteps, using MetadataMOM::GetVDCTimes()
-		for (int i = 0; i< timelen; i++){
-			size_t ts = mom->GetVDCTimeStep(fileTimes[i],usertimes);
-			if (ts == (size_t)-1) exit (-2);
+		for (int j = 0; j< timelen; j++){
+			size_t ts = mom->GetVDCTimeStep(fileTimes[j],usertimes);
+			if (ts == (size_t)-1) {
+				MyBase::SetErrMsg(" Time step %d in file %s does not correspond to a valid time in the VDC",
+								  j, momfiles[i].c_str());
+				exit (-2);
+			}
 			VDCTimes.push_back(ts);
 		}
 		
@@ -738,6 +746,7 @@ int	main(int argc, char **argv) {
 			//Get the variable name
 			char varname[NC_MAX_NAME+1];
 			NC_ERR_READ(nc_inq_varname(ncid, varid, varname))
+			
 			//Check that the name is in the VDC:
 			bool varFound = false;
 			if (ndims == 3){
@@ -764,9 +773,9 @@ int	main(int argc, char **argv) {
 			//Determine if missing value is remapped:
 			float * missValPtr = 0;
 			float missVal;
-			for (int i=0; i<missMapNames.size(); i++){
-				if (missMapNames[i] == varname){
-					missVal = missMapValues[i];
+			for (int j=0; j<missMapNames.size(); j++){
+				if (missMapNames[j] == varname){
+					missVal = missMapValues[j];
 					missValPtr = &missVal;
 					break;
 				}
@@ -775,7 +784,6 @@ int	main(int argc, char **argv) {
 			int geolon, geolat;
 			if (mom->GetGeoLonLatVar(ncid, varid,&geolon, &geolat)) continue;
 			WeightTable* wt = mom->GetWeightTable(geolon, geolat);
-			
 			//loop thru the times in the file.
 			for (int j = 0; j < timelen; j++){
 				//for each time convert the variable
