@@ -705,7 +705,13 @@ int	main(int argc, char **argv) {
 		
 		// Read the times from the file
 		int timevarid;
-		NC_ERR_READ(nc_inq_varid(ncid, atypnames["time"].c_str(), &timevarid));
+		int rc = nc_inq_varid(ncid, atypnames["time"].c_str(), &timevarid);
+		if (rc){
+			MyBase::SetErrMsg("Time variable named: %s not in file %s, skipping",
+				atypnames["time"].c_str(),momfiles[i].c_str());
+			MyBase::SetErrCode(0);
+			continue;
+		}
 		
 		mom->extractStartTime(ncid,timevarid);
 		
