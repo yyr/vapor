@@ -693,7 +693,7 @@ int	main(int argc, char **argv) {
 	}
 	//Loop thru momfiles
 	for (int i = 0; i<momfiles.size(); i++){
-		
+		printf("processing file %s\n",momfiles[i].c_str());	
 		
 		//For each momfile:
 		//Open the file
@@ -730,7 +730,6 @@ int	main(int argc, char **argv) {
 			}
 			VDCTimes.push_back(ts);
 		}
-		
 		//Loop thru its variables (2d & 3d):
 		int nvars;
 	

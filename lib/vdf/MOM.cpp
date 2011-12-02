@@ -746,10 +746,10 @@ void WeightTable::interp2D(const float* sourceData, float* resultData, float mis
 			corlona = corlon;
 			corlonb = corlon+1;
 			corlonp = corlon+1;
-			if (i == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
+			if (corlon == nlon-1){ //Wrap-around longitude.  Note that longitude will not wrap at zipper.
 				corlonp = 0;
 				corlonb = 0;
-			} else if (j == nlat-1){ //Get corners on opposite side of zipper:
+			} else if (corlat == nlat-1){ //Get corners on opposite side of zipper:
 				corlatp = corlat;
 				corlona = nlon - corlon -1;
 				corlonb = nlon - corlon -2;
@@ -1172,7 +1172,7 @@ int WeightTable::calcWeights(int ncid){
 	for (int i = 0; i<nlat; i++){
 		for (int j = 0; j<nlon; j++){
 			if (testValues[j+nlon*i] <1.){
-				if (alphas[j+nlon*i] > 1.5 || alphas[j+nlon*i] < -0.5 || betas[j+nlon*i]>1.5 || betas[j+nlon*i]< -0.5)
+				if (alphas[j+nlon*i] > 2.0 || alphas[j+nlon*i] < -1.0 || betas[j+nlon*i]>2.0 || betas[j+nlon*i]< -1.0)
 					fprintf(stderr," bad alpha %g beta %g at lon,lat %d , %d, ulon %d ulat %d, testval: %g\n",alphas[j+nlon*i],betas[j+nlon*i], j, i, cornerLons[j+nlon*i], cornerLats[j+nlon*i],testValues[j+i*nlon]);
 				continue;
 			}
