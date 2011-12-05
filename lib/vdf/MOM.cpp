@@ -872,6 +872,8 @@ int WeightTable::calcWeights(int ncid){
 	if (!geo_lon) return -1;
 	float eps = Max(deltaLat,deltaLon)*1.e-3;
 	
+	float tst = bestLatLon(0,0);
+	
 	//	Loop over (nlon/nlat) user grid vertices.  These are similar but not the same as lat and lon.
 	//  Call them ulat and ulon to indicate "lat and lon" in user coordinates
 	float lat[4],lon[4];
@@ -929,7 +931,7 @@ int WeightTable::calcWeights(int ncid){
 				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
 				bool edgeFlag = false;
 				if (ulat == 0 && latInd0 ==1) {latInd0 = 0; edgeFlag = true;}
-				if (ulon == 0 && lonInd0 == 1) {
+				if (ulon == 0) {
 					lonInd0 = 0; edgeFlag = true;
 				}
 			
