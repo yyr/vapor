@@ -269,7 +269,7 @@ int MOM::_GetMOMTopo(
 	// Find the number of variables
 	NC_ERR_READ( nc_inq_nvars(ncid, &nvars ) );
 
-	// Loop through all the variables in the file, looking for 2D float variables.
+	// Loop through all the variables in the file, looking for 2D float or double variables.
 	// For each such variable check its attributes for the following:
 		// longitude or latitude must appear in long_name
 		// degree_north, degrees_north, degree_N, degrees_N, degreeN, or degreesN must be units attribute of latitude
@@ -285,7 +285,7 @@ int MOM::_GetMOMTopo(
 	for (int i = 0; i<nvars; i++){
 		nc_type vartype;
 		NC_ERR_READ( nc_inq_vartype(ncid, i,  &vartype) );
-		if (vartype != NC_FLOAT) continue;
+		if (vartype != NC_FLOAT && vartype != NC_DOUBLE) continue;
 		int ndims;
 		NC_ERR_READ(nc_inq_varndims(ncid, i, &ndims));
 		if (ndims != 2) continue;
@@ -350,16 +350,18 @@ int MOM::_GetMOMTopo(
 		lllat[i] = buf[0];
 		delete buf;
 	}
+	//Longitude is more tricky because it may "wrap".  To make the longitude mapping monotonic,
+	//Find the largest longitude at the maximum user-longitude coordinate (i.e. along the right edge of the mapping.
+	//Every longitude that is larger than that max lon gets 360 subtracted
+	
 	for (int i = 0; i<geolonvars.size() && i<2; i++){
-		float * buf = new float[londimlen[2*i]*londimlen[2*i+1]];
-		NC_ERR_READ(nc_get_var_float(ncid, lonvarids[i], buf));
-		//Identify the fill_value
-		float fillval;
-		NC_ERR_READ(nc_inq_var_fill(ncid, lonvarids[i], 0, &fillval));
+		int ulondim = londimlen[2*i+1];
+		int ulatdim = londimlen[2*i];
+		float* buf = getMonotonicLonData(ncid, geolonvars[i].c_str(), ulondim, ulatdim);
+		if (!buf) return -1;
 		float maxval = -1.e30f;
 		float minval = 1.e30f;
-		for (int j = 0; j<londimlen[2*i]*londimlen[2*i+1]; j++){
-			if (buf[j] == fillval) continue;
+		for (int j = 0; j<ulondim*ulatdim; j++){
 			if (buf[j]<minval) minval = buf[j];
 			if (buf[j]>maxval) maxval = buf[j];
 		}
@@ -423,11 +425,11 @@ int MOM::_GetMOMTopo(
 	} else { //check standard names
 		int rc = nc_inq_varid(ncid, "st_ocean", &vertVarid);
 		if (rc != NC_NOERR) {//Not there.  try other name:
-			rc = nc_inq_varid(ncid, "z_h", &vertVarid);
+			rc = nc_inq_varid(ncid, "z_t", &vertVarid);
 			if (rc != NC_NOERR) // not there, quit
 				return (0);
-			//OK, z_h is the name
-			_atypnames["st_ocean"] = "z_h";
+			//OK, z_t is the name
+			_atypnames["st_ocean"] = "z_t";
 		}
 	}
 	//Now we can get the vertical dimension and extents:
@@ -441,7 +443,7 @@ int MOM::_GetMOMTopo(
 	vertLayers = new float[vdimsize];
 	NC_ERR_READ(nc_get_var_float(ncid, vertVarid, tempVertLayers));
 	_dimLens[2] = vdimsize;
-	if (_atypnames["st_ocean"] == "z_h"){//convert cm to meters
+	if (_atypnames["st_ocean"] == "z_t"){//convert cm to meters
 		for (int i = 0; i<vdimsize; i++) tempVertLayers[i] *= 0.01;
 	}
 	//negate, turn upside down:
@@ -859,15 +861,15 @@ int WeightTable::calcWeights(int ncid){
 	
 	//	Allocate arrays for geolat and geolon.
 	geo_lat = new float[nlat*nlon];
-	geo_lon = new float[nlat*nlon];
+	
 	//Find the geo_lat and geo_lon variable id's in the file
-	int geolatvarid, geolonvarid;
+	int geolatvarid;
 	NC_ERR_READ(nc_inq_varid (ncid, geoLatVarName.c_str(), &geolatvarid));
-	NC_ERR_READ(nc_inq_varid (ncid, geoLonVarName.c_str(), &geolonvarid));
 	//	Read the geolat and geolon variables into arrays.
 	// Note that lon increases fastest
 	NC_ERR_READ(nc_get_var_float(ncid, geolatvarid, geo_lat));
-	NC_ERR_READ(nc_get_var_float(ncid, geolonvarid, geo_lon));
+	geo_lon = MOM::getMonotonicLonData(ncid, geoLonVarName.c_str(), nlon, nlat);
+	if (!geo_lon) return -1;
 	float eps = Max(deltaLat,deltaLon)*1.e-3;
 	
 	//	Loop over (nlon/nlat) user grid vertices.  These are similar but not the same as lat and lon.
@@ -881,6 +883,7 @@ int WeightTable::calcWeights(int ncid){
 			
 		
 			for (int ulon = 0; ulon<nlon; ulon++){
+				
 				if (ulon == nlon-1 && !wrapLon) continue;
 				if (ulon == nlon-1){
 					lat[0] = geo_lat[ulon+nlon*ulat];
@@ -918,9 +921,10 @@ int WeightTable::calcWeights(int ncid){
 
 								
 				// find all the latlon grid vertices that fit near this rectangle: 
-				// Add 1 to the LL corner because it is definitely below and left of the rectangle
+				// Add 1 to the LL corner latitude because it is definitely below and left of the rectangle
 				int latInd0 = (int)(1.+((minlat-lonLatExtents[1])/deltaLat));
-				int lonInd0 = (int)(1.+((minlon-lonLatExtents[0])/deltaLon));
+				// Don't add 1 to the longitude corner because in some cases (with wrap) it would eliminate a valid longitude index.
+				int lonInd0 = (int)(((minlon-lonLatExtents[0])/deltaLon));
 				//cover the edges too!
 				// edgeflag is used to enable extrapolation when points are slightly outside of the grid extents
 				bool edgeFlag = false;
@@ -944,12 +948,13 @@ int WeightTable::calcWeights(int ncid){
 				//Loop over all the lon/lat grid vertices in the maximized cell:
 				for (int qlat = latInd0; qlat<= latInd1; qlat++){
 					for (int plon = lonInd0; plon<= lonInd1; plon++){
-						float testLon = lonLatExtents[0]+plon*deltaLon;
+						
 						int plon1 = plon;
 						if(plon == nlon) {
 							assert(wrapLon);
 							plon1 = 0;
 						}
+						float testLon = lonLatExtents[0]+plon1*deltaLon;
 						float testLat = lonLatExtents[1]+qlat*deltaLat;
 						float eps = testInQuad(testLon,testLat,ulon, ulat);
 						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
@@ -971,8 +976,27 @@ int WeightTable::calcWeights(int ncid){
 				}
 			}
 		} else { //provide mapping to polar coordinates of northern hemisphere
-			//map to circle of circumference 360 (matching lon/lat projection above at equator
+			//map to circle of circumference 360 (matching lon/lat projection above at equator)
+			//There are two cases to consider:
+			//All 4 points lie in a sector of angle less than 180 degrees, or not.
+			//To determine if they lie in such a sector, we first check if the
+			//difference between the largest and smallest longitude is less than 180 degrees.
+			//If that is not the case, it is still possible that they lie in such a sector, when
+			//the angles are considered modulo 360 degrees.  So, for each of the 4 points, test if it
+			//is the smallest longitude L in such a sector by seeing if all the other 3 points have longitude
+			//no more than 180 + L when an appropriate multiple of 360 is added.
+			//If that does not work for any of the 4 points, then there is no such sector and the points
+			//may circumscribe the north pole.  In that case the boolean "fullCircle" is set to true.
+			//
+			// In the case that the points do lie in a sector of less than 180 degrees, we also must
+			//determine an inner and outer radius (latitude) to search for latlon points.
+			//Begin by using the largest and smallest radius of the four points.
+			//However, in order to be sure the sector contains all the points inside the rectangle of the
+			//four points, the sector's inner radius must be multiplied by the factor cos(theta/2) where
+			//theta is the sector's angle.  This factor ensures that the secant crossing the inner
+			//radius will be included in the modified sector.
 			for (int ulon = 0; ulon<nlon; ulon++){
+				
 				if (ulat == nlat-1 && ulon > nlon/2) continue;  // only do first half of zipper
 				if (ulon == nlon-1 && !wrapLon) continue;
 				
@@ -1009,72 +1033,82 @@ int WeightTable::calcWeights(int ncid){
 					lon[3] = geo_lon[ulon+1+nlon*(ulat+1)];
 				}
 				
-				float rad[4];
-				for (int k = 0;k<4; k++) rad[k] = (90.-lat[k])*2./M_PI;
-				float thet[4], x[4],y[4];
+							
 				float minlat = 1000., maxlat = -1000.;
 				
-				//Convert longitude to angle between 0 and 2PI.  get min/max latitude
+				//Get min/max latitude
 				for (int k=0;k<4;k++) {
-					thet[k] = lon[k]*(M_PI/180.);
-					x[k] = rad[k]*cos(thet[k]);
-					y[k] = rad[k]*sin(thet[k]);
+					
 					if (lat[k]<minlat) minlat = lat[k];
 					if (lat[k]>maxlat) maxlat = lat[k];
 				}
-				minlat -= eps;
-				maxlat += eps;
-
-				//Determine a minimal sector (longitude interval) or two sectors that contain the 4 corners:
-				float maxlon, minlon, minlon2, maxlon1;
 				
-				bool fullCircle = false, doubleSector = false;
+				//Determine a minimal sector (longitude interval)  that contains the 4 corners:
+				float maxlon, minlon;
+				
+				bool fullCircle = false;
 				minlon = Min(Min(lon[0],lon[1]),Min(lon[2],lon[3]));
 				maxlon = Max(Max(lon[0],lon[1]),Max(lon[2],lon[3]));
+				//If the sector width is too great, try other orderings mod 360, or set fullCircle = true.
+				//the lon[] array is only used to find max and min.
 				if (maxlon - minlon >= 180.) {
-					//See if can split into two sectors overlapping min and max
-					//Look for max in lower half, min in upper half
-					float midlon = 0.5*(minlon+maxlon);
-					minlon2 = 360.;
-					maxlon1 = -360.;
-					for (int k = 0; k<4; k++){
-						if (lon[k] < midlon && lon[k] > maxlon1) maxlon1=lon[k];
-						if (lon[k] >= midlon && lon[k] < minlon2) minlon2=lon[k];
+					//see if we can rearrange the points modulo 360 degrees to get them to lie in a 180 degree sector
+					int firstpoint = -1;
+					for (int k = 0; k< 4; k++){
+						bool ok = true;
+						for( int m = 0; m<4; m++){
+							if (m == k) continue;
+							if (lon[m]>= lon[k] && lon[m] < lon[k]+180.) continue;
+							if (lon[m] <= lon[k] && (lon[m]+360.) < lon[k]+180.) continue;
+							//Hmmm.  This point is more than 180 degrees above, when considered modulo 360
+							ok = false;
+							break;
+						}
+						if (ok){ firstpoint = k; break;}
 					}
-					//Now see if two sectors add up to less than 180 degrees:
-					float secwidth = (maxlon1 - lonLatExtents[0])+((360. + lonLatExtents[0])-minlon2);
-					if (secwidth <180.) doubleSector = true; 
-					else fullCircle = true;
+					if (firstpoint >= 0) { // we need to consider thet[firstpoint] as the starting angle in the sector
+						minlon = lon[firstpoint];
+						maxlon = minlon -1000.;
+						for (int k = 0; k<4; k++){
+							if (k==firstpoint) continue;
+							if (lon[k] < lon[firstpoint]) lon[k]+=360.;
+							assert(lon[k] >= lon[firstpoint] && lon[k]<(lon[firstpoint]+180.));
+							if(lon[k]>maxlon) maxlon = lon[k];
+						}
+						
+					} else fullCircle = true;
+							
+						
 				}
 				
 				
 				//Expand slightly to include points on boundary
 				maxlon += eps;
 				minlon -= eps;
-				if(doubleSector){
-					maxlon1 += eps;
-					minlon2 -= eps;
-				}
-				//If fullCircle is false and doubleSector is false, the sector goes from minrad, minlon to maxrad, maxlon
+				
+				//If fullCircle is false the sector goes from minlat, minlon to maxlat, maxlon
 				//If fullCircle is true, the sector is a full circle, from minrad= 0 to maxrad
 				
+				//Shrink the inner radius (largest latitude) to be sure to include secant lines between two vertices on max latitude:
+				if (!fullCircle){
+					float sectorAngle = (maxlon - minlon)*M_PI/180.;
+					float shrinkFactor = cos(sectorAngle*0.5);
+					maxlat = 90.- (90.-maxlat)*shrinkFactor;
+				}
+				minlat -= eps;
+				maxlat += eps;
+
 				
 				// Test all lat/lon pairs that are in the sector, to see if they are inside the rectangle of (x,y) corners.
 				// first, discretize the sector extents to match lat/lon grid
-				int lonMin, lonMax,  lonMin2,  lonMax2;
+				int lonMin, lonMax;
 				int latMin = (int)(1.+(minlat-lonLatExtents[1])/deltaLat);
 				int latMax = (int)((maxlat-lonLatExtents[1])/deltaLat);
 				if (fullCircle) {
 					lonMin = 0; lonMax = nlon;
 					latMax = nlat -1;
 				}
-				else if (doubleSector){
-					//specify two intervals:
-					lonMin = 0;
-					lonMax = (int)((maxlon1 -lonLatExtents[0])/deltaLon);
-					lonMin2 = (int)(1.+(minlon2  -lonLatExtents[0])/deltaLon);
-					lonMax2 = nlon-1;
-				} else {
+				else {
 					lonMin = (int)(1.+(minlon  -lonLatExtents[0])/deltaLon);
 					lonMax = (int)((maxlon -lonLatExtents[0])/deltaLon);
 				}
@@ -1097,9 +1131,9 @@ int WeightTable::calcWeights(int ncid){
 					for (int plon = lonMin; plon<= lonMax; plon++){
 						float testLon = lonLatExtents[0]+plon*deltaLon;
 						int plon1 = plon;
-						if(plon == nlon) {
+						if(plon >= nlon) {
 							assert(wrapLon);
-							plon1 = 0;
+							plon1 = plon -nlon;
 						}
 						float testLat = lonLatExtents[1]+qlat*deltaLat;
 						//Convert lat/lon coordinates to x,y
@@ -1128,42 +1162,7 @@ int WeightTable::calcWeights(int ncid){
 						}
 					}
 				}
-				//Test each point in second lon/lat interval:
-				if(doubleSector) for (int qlat = latMin; qlat<= latMax; qlat++){
-					for (int plon = lonMin2; plon<= lonMax2; plon++){
-						float testLon = lonLatExtents[0]+plon*deltaLon;
-						int plon1 = plon;
-						if(plon == nlon) {
-							assert(wrapLon);
-							plon1 = 0;
-						}
-						float testLat = lonLatExtents[1]+qlat*deltaLat;
-						//Convert lat/lon coordinates to x,y
-						float testRad = (90.-testLat)*2./M_PI;
-						float testThet = testLon*M_PI/180.;
-						float testx = testRad*cos(testThet);
-						float testy = testRad*sin(testThet);
-						float eps = testInQuad2(testx,testy,ulon, ulat);
-						
-						if (eps < epsRect || edgeFlag){  //OK, point is inside, or close enough.
-							assert(plon1 >= 0 && plon1 < nlon);
-							assert(qlat >= 0 && qlat < nlat);
-
-							//Check to make sure eps is smaller than previous entries:
-							if (eps > testValues[plon1+nlon*qlat]) continue;
-							//It's OK, stuff it in the weights arrays:
-							float alph, beta;
-							findWeight2(testx, testy, ulon, ulat,&alph, &beta);
-							
-							alphas[plon1+nlon*qlat] = alph;
-							betas[plon1+nlon*qlat] = beta;
-							testValues[plon1+nlon*qlat] = eps;
-							cornerLats[plon1+nlon*qlat] = ulat;
-							cornerLons[plon1+nlon*qlat] = ulon;
-							
-						}
-					}
-				}
+				
 			} //end ulon loop
 		} //end else
 	} //end ulat loop
@@ -1180,7 +1179,7 @@ int WeightTable::calcWeights(int ncid){
 				if (testValues[j+nlon*i] < 10000.) printf( "poor estimate: %f at lon, lat %d %d, ulon, ulat %d %d\n", testValues[j+nlon*i],j,i, cornerLons[j+nlon*i], cornerLats[j+nlon*i]);
 				else {
 					MyBase::SetErrMsg(" Error remapping coordinates.  Unmapped lon, lat: %d, %d\n",j,i);
-					exit (-1);
+					//exit (-1);
 				}
 			}
 		}
@@ -1216,6 +1215,10 @@ float WeightTable::testInQuad(float plon, float plat, int ilon, int ilat){
 		lg[1] = geo_lon[ilon+1+nlon*ilat];
 		lg[2] = geo_lon[ilon+1+nlon*(ilat+1)];
 		lg[3] = geo_lon[ilon+nlon*(ilat+1)];
+	}
+	//Make sure we're not off by 360 degrees..
+	for (int k = 0; k<4; k++){
+		if (lg[k] > plon + 180.) lg[k] -= 360.;
 	}
 	float dist = -1.e30;
 	for (int j = 0; j<4; j++){
@@ -1307,6 +1310,9 @@ void WeightTable::findWeight(float plon, float plat, int ilon, int ilat, float* 
 		ph[2] = geo_lat[ilon+1+nlon*(ilat+1)];
 		th[3] = geo_lon[ilon+nlon*(ilat+1)];
 		ph[3] = geo_lat[ilon+nlon*(ilat+1)];
+	}
+	for (int k = 0; k<4; k++){
+		if (th[k]> plon+180.) th[k] -= 360.;
 	}
 	float alph = 0.f, bet = 0.f;  //first guess
 	float newalpha, newbeta;
@@ -1422,6 +1428,29 @@ size_t MOM::GetVDCTimeStep(double momTime, const vector<double>& times,  double 
 	else if (abs(times[maxts]-momTime) < tol) return maxts;
 	else return (size_t)-1;
 	
+}
+//Method that obtains a geolon variable and modifies it to be monotonic
+float* MOM::getMonotonicLonData(int ncid, const char* varname, int londimsize, int latdimsize){
+	int geolonvarid;
+	int rc = nc_inq_varid (ncid, varname, &geolonvarid);
+	if (rc != NC_NOERR) return 0;
+
+	float* buf = new float[londimsize*latdimsize];
+	float mxlon = -1.e30f;
+	if (nc_get_var_float(ncid, geolonvarid, buf) != NC_NOERR){
+		delete buf;
+		return 0;
+	}
+	// scan the longitudes at maximum ulats
+	for (int j = 0; j<latdimsize; j++){
+		if (buf[londimsize-1+ londimsize*j] > mxlon) mxlon = buf[londimsize-1+ londimsize*j];
+	}
+	//Now fix all the larger longitude values to be negative
+	for (int j = 0; j<londimsize*latdimsize; j++){
+		if (buf[j] > mxlon) buf[j] -= 360.f;
+	}
+	return buf;
+	 
 }
 
 

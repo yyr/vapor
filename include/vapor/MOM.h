@@ -59,7 +59,8 @@ public:
 	size_t GetVDCTimeStep(double momtime, const vector<double>& userTimes, double tol = 1.0);
 	
 	int extractStartTime(int ncid, int timevarid);  //Determine the start time from the current data file.  Set startTimeStamp and startTimeDouble.
-	
+	//Retrieve geolon data, make it monotonic:
+	static float* getMonotonicLonData(int ncid, const char* varname, int londimsize, int latdimsize);
 private:
 
 	// A mapping between required MOM variable names and how  these
@@ -134,6 +135,8 @@ private:
 	//Following 2 methods are for debugging:
 	float bestLatLonPolar(int ulon, int ulat);
 	float bestLatLon(int ulon, int ulat);
+	
+	
 	//Calculate the weights alpha, beta associated with a point P=(plon,plat), based on rectangle cornered at 
 	//user grid vertex nlon, nlat
 	//The point P should be known to be inside the lonlat rectangle associated with the user grid cell cornered at (nlon,nlat)
