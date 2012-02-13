@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>969</height>
+    <width>429</width>
+    <height>989</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -63,7 +63,7 @@ checkbox to start rendering.</string>
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>80</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">
@@ -234,6 +234,12 @@ is controlled by the values in this
      </item>
      <item>
       <widget class="QFrame" name="bigDVRFrame">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -1412,6 +1418,12 @@ rendering time.</string>
           </item>
           <item>
            <widget class="QGroupBox" name="benchmarkGroup">
+            <property name="maximumSize">
+             <size>
+              <width>400</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="title">
              <string>Benchmark</string>
             </property>

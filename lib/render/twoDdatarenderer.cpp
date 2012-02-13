@@ -88,7 +88,7 @@ void TwoDDataRenderer::paintGL()
 	int imgWidth = imgSize[0];
 	int imgHeight = imgSize[1];
 	if (twoDTex){
-		if(myTwoDParams->imageCrop()) enableFullClippingPlanes();
+		if(myTwoDParams->imageCrop()) enable2DClippingPlanes();
 		else disableFullClippingPlanes();
 		
 		glMatrixMode(GL_TEXTURE);
@@ -212,8 +212,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	//Convert increased vox dims to user coords:
 	dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
 	dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
-	//Don't allow the terrain surface to be below the minimum extents:
-	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
+	
 	
 	//Try to get requested refinement level or the nearest acceptable level:
 	int refLevel = RegionParams::shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
@@ -332,7 +331,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
 			else
 				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
-			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
+			
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){

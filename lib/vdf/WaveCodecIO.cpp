@@ -2,21 +2,27 @@
 
 #include <iostream>
 #include <sstream>
-#include <netcdf.h>
 #include <sys/stat.h>
 #include <cstdlib>
-#include <vapor/WaveCodecIO.h>
 #ifdef WIN32
 #include <windows.h>
 #endif
 
 #ifdef PARALLEL
 #include <mpi.h>
+#else
+namespace {
+double MPI_Wtime() { return(0.0); };
+}
 #endif
 
 #ifdef PNETCDF
 #include "pnetcdf.h"
+#else
+#include <netcdf.h>
 #endif
+#include <vapor/WaveCodecIO.h>
+
 
 using namespace std;
 using namespace VAPoR;
@@ -58,6 +64,28 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	      int *ncidp);
 #endif
 
+
+#ifdef PNETCDF
+#define NC_ERR_WRITE(rc, path) \
+    if (rc != NC_NOERR) { \
+        SetErrMsg( \
+            "Error writing PnetCDF file \"%s\" : %s",  \
+            path.c_str(), ncmpi_strerror(rc) \
+        ); \
+        return(-1); \
+    }
+
+#define NC_ERR_READ(rc, path) \
+    if (rc != NC_NOERR) { \
+        SetErrMsg( \
+            "Error reading PnetCDF file \"%s\" : %s",  \
+            path.c_str(), ncmpi_strerror(rc) \
+        ); \
+        return(-1); \
+    }
+
+#else
+
 #define NC_ERR_WRITE(rc, path) \
     if (rc != NC_NOERR) { \
         SetErrMsg( \
@@ -75,6 +103,9 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
         ); \
         return(-1); \
     }
+
+#endif // PNETCDF
+
 
 #define	NC_FLOAT_SZ 4
 
@@ -115,6 +146,7 @@ int WaveCodecIO::_WaveCodecIO(int nthreads) {
 	_compressor2DXZ = NULL;
 	_compressor2DYZ = NULL;
 	_compressorType = VARUNKNOWN;
+	_NC_BUF_SIZE = NC_CHUNKSIZEHINT;
 	_vtype = VARUNKNOWN;
 
 	_cvector = NULL;
@@ -446,27 +478,55 @@ int WaveCodecIO::OpenVariableWrite(
 	return(0);
 }
 
+// Collective call: all io are expected to call WITH SAME ARGS
+// Calculates the appropriate buffer size for each IO task,
+// assuming that the entire global block is being written out
+void WaveCodecIO::EnableBuffering(size_t count[3], size_t divisor, int rank){
+
+  _NC_BUF_SIZE = count[0] * count[1] * count[2] * sizeof(float) / divisor;
+#ifdef PIOVDC_DEBUG
+   if(_NC_BUF_SIZE <= 0)
+    {
+      printf("Enable @Buffering rank = %d NC_BUF_SIZE = %d count = %d-%d-%d divisor: %d\n",rank,  _NC_BUF_SIZE, count[0], count[1], count[2], divisor);
+    }
+#endif
+}
+
 int WaveCodecIO::CloseVariable() {
 
 	if (! _isOpen) return(0);
+
+	for (int j=0; j<_ncbufs.size(); j++) {
+		int rc = _ncbufs[j]->Flush();
+		NC_ERR_WRITE(rc, _ncpaths[j]);
+		delete _ncbufs[j];
+	}
+	_ncbufs.clear();
 
 	_WriteTimerStart();
 
 #ifdef PARALLEL
 int x[] = {0,0,0};
 float y[] = {0,0,0};
-MPI_Reduce(&_validRegMin[0], &x[0], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
-MPI_Reduce(&_validRegMin[1], &x[1], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
-MPI_Reduce(&_validRegMin[2], &x[2], 1, MPI_INT, MPI_MIN, 0,IO_Comm);
-_validRegMin[0] = x[0]; _validRegMin[1] = x[1]; _validRegMin[2] = x[2];
+ int *reduce = (int*) malloc(sizeof(int) *3);
+int *value = (int*) malloc(sizeof(int) *3);
 
-MPI_Reduce(&_validRegMax[0], &x[0], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
-MPI_Reduce(&_validRegMax[1], &x[1], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
-MPI_Reduce(&_validRegMax[2], &x[2], 1, MPI_INT, MPI_MAX, 0,IO_Comm);
-_validRegMax[0] = x[0]; _validRegMax[1] = x[1]; _validRegMax[2] = x[2];
+ value[0] = _validRegMin[0];
+ value[1] = _validRegMin[1];
+ value[2] = _validRegMin[2];
+MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MIN, IO_Comm);
+_validRegMin[0] = reduce[0]; _validRegMin[1] = reduce[1]; _validRegMin[2] = reduce[2];
 
-MPI_Reduce(&_dataRange[1], &y[0], 1, MPI_FLOAT, MPI_MAX, 0,IO_Comm);
-MPI_Reduce(&_dataRange[0], &y[1], 1, MPI_FLOAT, MPI_MIN, 0,IO_Comm);
+ value[0] = _validRegMax[0];
+ value[1] = _validRegMax[1];
+ value[2] = _validRegMax[2];
+MPI_Allreduce(value, reduce, 3, MPI_INT, MPI_MAX, IO_Comm);
+_validRegMax[0] = reduce[0]; _validRegMax[1] = reduce[1]; _validRegMax[2] = reduce[2];
+
+ free(reduce);
+ free(value);
+MPI_Allreduce(&_dataRange[1], &y[0], 1, MPI_FLOAT, MPI_MAX, IO_Comm);
+MPI_Allreduce(&_dataRange[0], &y[1], 1, MPI_FLOAT, MPI_MIN, IO_Comm);
 _dataRange[1] = y[0]; _dataRange[0] = y[1];
 
 SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRegMin[1],_validRegMin[2],_validRegMax[0],_validRegMax[1],_validRegMax[2]);
@@ -482,42 +542,55 @@ SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRe
 #ifndef NO_NC_ATTS
 
 			if (_writeMode) {
-
+#ifdef PNETCDF
+			  rc = ncmpi_put_att_float(_ncids[j], NC_GLOBAL, _scalarRangeName.c_str(),	NC_FLOAT, (MPI_Offset)2,_dataRange);
+#else
 				rc = nc_put_att_float(
 					_ncids[j], NC_GLOBAL, _scalarRangeName.c_str(), 
 					NC_FLOAT, 2,_dataRange
 				);
+#endif
 				NC_ERR_WRITE(rc,_ncpaths[j])
 
 				int minreg_int[] = {
 					_validRegMin[0], _validRegMin[1], _validRegMin[2]
 				};
+#ifdef PNETCDF
+				rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(), NC_INT, (MPI_Offset)3, minreg_int);
+
+#else
 				rc = nc_put_att_int(
 					_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(),
 					NC_INT, 3, minreg_int
 				);
+#endif
 				NC_ERR_WRITE(rc,_ncpaths[j])
 
 				int maxreg_int[] = {
 					_validRegMax[0], _validRegMax[1], _validRegMax[2]
 				};
+#ifdef PNETCDF
+				rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(), NC_INT, (MPI_Offset)3, maxreg_int);
+
+#else
 				rc = nc_put_att_int(
 					_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(),
 					NC_INT, 3, maxreg_int
 				);
+#endif							   
+		
 				NC_ERR_WRITE(rc,_ncpaths[j])
-
-			}
 #endif
-			rc = nc_close(_ncids[j]);
-			if (rc != NC_NOERR) { 
-				SetErrMsg( 
-					"Error writing netCDF file : %s",  
-					nc_strerror(rc) 
-				); 
-				return(-1); 
 			}
-		}
+#ifdef PNETCDF
+			rc = ncmpi_close(_ncids[j]);
+			NC_ERR_WRITE(rc,_ncpaths[j])
+#else
+			rc = nc_close(_ncids[j]);
+#endif
+			NC_ERR_WRITE(rc,_ncpaths[j])
+			
+			  }
 		_ncids[j] = -1;
 		_nc_wave_vars[j] = -1;
 	}
@@ -767,12 +840,22 @@ int WaveCodecIO::ReadRegion(
 int WaveCodecIO::BlockWriteRegion(
 	const float *region, const size_t bmin[3], const size_t bmax[3], int block
 ) {
+#ifdef PIOVDC_DEBUG
+	cout << "BlockWriteRegion(" << bmin[0] << " ";
+	cout << bmin[1] << ",";
+	cout << bmin[2] << ", ";
+	cout << bmax[0] << ",";
+	cout << bmax[1] << ",";
+	cout << bmax[2] << ",";
+	cout << ") : # blocks " << (bmax[0]-bmin[0]+1) * (bmax[1]-bmin[1]+1) * (bmax[2]-bmin[2]+1) << endl;
+#endif
 
 	if (! _isOpen || ! _writeMode) {
 		SetErrMsg("Variable not open for writing\n");
 		return(-1);
 	}
 
+	double starttime = MPI_Wtime();
 	size_t bdim[3];
 	GetDimBlk(bdim,-1);
 
@@ -835,7 +918,9 @@ int WaveCodecIO::BlockWriteRegion(
 		_rw_thread_objs[0]->BlockWriteRegionThread();
 	}
 	else {
-		int rc = ParRun(RunBlockWriteRegionThread, (void **) _rw_thread_objs);
+	  double threadTime = MPI_Wtime();
+	  int rc = ParRun(RunBlockWriteRegionThread, (void **) _rw_thread_objs);
+	  methodThreadTimer += (MPI_Wtime() - threadTime);
 		if (rc < 0) {
 			SetErrMsg("Error spawning threads");
 			return(-1);
@@ -866,12 +951,12 @@ int WaveCodecIO::BlockWriteRegion(
 		if (v > _dataRange[1]) _dataRange[1] = v;
 		delete _rw_thread_objs[t];
 	}
+	methodTimer += (MPI_Wtime() - starttime);
 
 	return(_threadStatus);
 }
 
 void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
-
 
 	// dimensions of region in voxels
 	//
@@ -884,7 +969,8 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 	size_t block_size = _bs_p[0]*_bs_p[1]*_bs_p[2];
 
 	int nblocks = (_bmax_p[0] - _bmin_p[0] + 1)  * (_bmax_p[1] - _bmin_p[1] + 1) * (_bmax_p[2] - _bmin_p[2] + 1);
-
+	
+	double begin = MPI_Wtime();
 	for (int index = _id; index<nblocks; index+=_wc->_nthreads) {
         int bx = (index % nbx) + _bmin_p[0];
         int by = (index % (nbx*nby) / nbx) + _bmin_p[1];
@@ -1013,27 +1099,38 @@ void WaveCodecIO::ReadWriteThreadObj::BlockWriteRegionThread() {
 			}
 		}
 
-
+		double starttime = MPI_Wtime();
 		if (_id==0) _wc->_XFormTimerStart();
 		int rc = 0;
 		rc = _wc->_compressorThread[_id]->Decompose(
 			blockptr, _wc->_cvectorThread[_id], _wc->_ncoeffs, 
 			_wc->_sigmapsThread[_id], _wc->_ncoeffs.size()
 		); 
+		_wc->xformMPI += (MPI_Wtime() - starttime);
 		if (_id==0) _wc->_XFormTimerStop();
 		if (rc<0) {
 			_wc->_threadStatus = -1;
 			return;
 		}
 
-		_wc->MutexLock();
-			rc = _WriteBlock(bx, by, bz);
-			if (rc<0) _wc->_threadStatus = -1;
-		_wc->MutexUnlock();
+		bool myturn = false;
+		while (! myturn) {
+			_wc->MutexLock();
+				if (index == _wc->_next_block) {
+				  starttime = MPI_Wtime();
+					rc = _WriteBlock(bx, by, bz);
+					_wc->ioMPI += (MPI_Wtime() - starttime);
+					if (rc<0) _wc->_threadStatus = -1;
+					_wc->_next_block++;
+					myturn = true;
+				}
+			_wc->MutexUnlock();
+		}
 
 		if (_wc->_threadStatus != 0) return;
 		
 	}
+	_wc->methodThreadTimer += (MPI_Wtime() - begin);
 }
 
 int WaveCodecIO::WriteRegion(
@@ -1721,7 +1818,11 @@ int WaveCodecIO::_OpenVarRead(
 	_nc_wave_vars.clear();
 
 	int ncdimid;
+#ifdef PNETCDF
+	MPI_Offset ncdim;
+#else
 	size_t ncdim;
+#endif
 
 	_sigmapsizes.clear();
 	for(int j=0; j<=_lod; j++) {
@@ -1738,7 +1839,17 @@ int WaveCodecIO::_OpenVarRead(
 		int ncid;
 		int ii = 0;
 		do {
+#ifdef PARALLEL
+	MPI_Info info;
+	MPI_Info_set(info,"ibm_largeblock_io","true");
+#endif
+
+#ifdef PNETCDF
+		  rc = ncmpi_open(IO_Comm, path.c_str(), NC_NOWRITE, info, &ncid);
+#else
 			rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &ncid);
+#endif
+
 #ifdef WIN32
 			if (rc == EAGAIN) Sleep(100);//milliseconds
 #else
@@ -1756,10 +1867,17 @@ int WaveCodecIO::_OpenVarRead(
 		//
 		size_t bdim[3];
 		VDFIOBase::GetDimBlk(bdim,-1);
-
-        rc = nc_inq_dimid(_ncids[j], _volumeDimNbxName.c_str(), &ncdimid);
+#ifdef PNETCDF
+		rc = ncmpi_inq_dimid(_ncids[j], _volumeDimNbxName.c_str(), &ncdimid);
+#else
+		rc = nc_inq_dimid(_ncids[j], _volumeDimNbxName.c_str(), &ncdimid);
+#endif
 		NC_ERR_READ(rc,path)
+#ifdef PNETCDF
+		  rc = ncmpi_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#else
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#endif
         NC_ERR_READ(rc,path)
 
         if (ncdim != bdim[0]) {
@@ -1767,19 +1885,34 @@ int WaveCodecIO::_OpenVarRead(
             return(-1);
         }
 
+#ifdef PNETCDF
+		rc = ncmpi_inq_dimid(_ncids[j], _volumeDimNbyName.c_str(), &ncdimid);
+#else
         rc = nc_inq_dimid(_ncids[j], _volumeDimNbyName.c_str(), &ncdimid);
-		NC_ERR_READ(rc,path)
+#endif
+	NC_ERR_READ(rc,path)
+#ifdef PNETCDF
+		  rc = ncmpi_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#else
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#endif
         NC_ERR_READ(rc,path)
 
         if (ncdim != bdim[1]) {
             SetErrMsg("Metadata file and data file mismatch");
             return(-1);
 		}
-
+#ifdef PNETCDF
+		rc = ncmpi_inq_dimid(_ncids[j], _volumeDimNbzName.c_str(), &ncdimid);
+#else
         rc = nc_inq_dimid(_ncids[j], _volumeDimNbzName.c_str(), &ncdimid);
-		NC_ERR_READ(rc,path)
+#endif
+	NC_ERR_READ(rc,path)
+#ifdef PNETCDF
+		  rc = ncmpi_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#else
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#endif
         NC_ERR_READ(rc,path)
 
         if (ncdim != bdim[2]) {
@@ -1791,9 +1924,17 @@ int WaveCodecIO::_OpenVarRead(
 		// Final dimension is the number of wavelet coefficients
 		// + the sigmap size / 4
 		//
+#ifdef PNETCDF
+		rc = ncmpi_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
+#else
         rc = nc_inq_dimid(_ncids[j], _coeffDimName.c_str(), &ncdimid);
-		NC_ERR_READ(rc,path)
+#endif
+	NC_ERR_READ(rc,path)
+#ifdef PNETCDF
+		  rc = ncmpi_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#else
         rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+#endif
         NC_ERR_READ(rc,path)
 
 		//
@@ -1801,29 +1942,45 @@ int WaveCodecIO::_OpenVarRead(
 		//
 		_sigmapsizes.push_back(ncdim - _ncoeffs[j]);
 
+#ifdef PNETCDF
+	rc = ncmpi_get_att_float(_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),_dataRange);
+#else
 		rc = nc_get_att_float(
 			_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),_dataRange
 		);
+#endif
 		NC_ERR_READ(rc,path)
 
 		int minreg_int[3];
+#ifdef PNETCDF
+		rc = ncmpi_get_att_int(_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(),minreg_int);
+#else
 		rc = nc_get_att_int(
 			_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(),minreg_int
 		);
+#endif
 		if (rc == NC_NOERR) {
 			for(int i=0; i<3; i++) _validRegMin[i] = minreg_int[i];
 		}
 
 		int maxreg_int[3];
+#ifdef PNETCDF
+		rc = ncmpi_get_att_int(_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(),maxreg_int);
+#else
 		rc = nc_get_att_int(
 			_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(),maxreg_int
 		);
+#endif
 		if (rc == NC_NOERR) {
 			for(int i=0; i<3; i++) _validRegMax[i] = maxreg_int[i];
 		}
 
 		int ncvar;
+#ifdef PNETCDF
+		rc = ncmpi_inq_varid(_ncids[j], _waveletCoeffName.c_str(), &ncvar);
+#else
 		rc = nc_inq_varid(_ncids[j], _waveletCoeffName.c_str(), &ncvar);
+#endif
 		NC_ERR_READ(rc,path)
 		_nc_wave_vars.push_back(ncvar);
 
@@ -1865,6 +2022,7 @@ int WaveCodecIO::_OpenVarWrite(
 	_ncids.clear();
 	_nc_wave_vars.clear();
 	_sigmapsizes.clear();
+	_ncbufs.clear();
 	for(int j=0; j<=_lod; j++) {
 		int rc;
 
@@ -1878,15 +2036,20 @@ int WaveCodecIO::_OpenVarWrite(
 		int ncid;
 
 	_WriteTimerStart();
+
+#ifdef PARALLEL
+	MPI_Info info;
+	MPI_Info_create(&info);
+	MPI_Info_set(info,"ibm_largeblock_io","true");
+#endif
 #ifndef NOIO
 #ifdef PARALLEL
 #ifdef PNETCDF
-		rc = nc_create_par(path.c_str(), NC_64BIT_OFFSET, IO_Comm, 
+	rc = ncmpi_create(IO_Comm, path.c_str(), NC_WRITE | NC_64BIT_OFFSET,
 #else //PNETCDF
-		//rc = nc_create_par(path.c_str(), NC_MPIPOSIX | NC_NETCDF4, IO_Comm, 
 		rc = nc_create_par(path.c_str(), NC_MPIIO | NC_NETCDF4, IO_Comm, 
 #endif //PNETCDF
-		MPI_INFO_NULL, &ncid);
+		info, &ncid);
 #else //PARALLEL
 		rc = nc__create(path.c_str(), NC_64BIT_OFFSET, 0, &chsz, &ncid);
 #endif //PARALLEL
@@ -1898,7 +2061,12 @@ int WaveCodecIO::_OpenVarWrite(
 		// Disable data filling - may not be necessary
 		//
 		int mode;
-		nc_set_fill(_ncids[j], NC_NOFILL, &mode);
+#ifdef PNETCDF
+
+		ncmpi_set_fill(_ncids[j], NC_NOFILL, &mode);
+#else
+	   	nc_set_fill(_ncids[j], NC_NOFILL, &mode);
+#endif
 
 		//
 		// Define netCDF dimensions
@@ -1907,6 +2075,19 @@ int WaveCodecIO::_OpenVarWrite(
 		size_t bdim[3];
 		VDFIOBase::GetDimBlk(bdim,-1);
 #ifndef NOIO
+#ifdef PNETCDF
+	       rc = ncmpi_def_dim(_ncids[j],_volumeDimNbxName.c_str(),bdim[0],&vol_dim_ids[0]
+		);
+				   NC_ERR_WRITE(rc,path)
+
+		rc = ncmpi_def_dim(_ncids[j],_volumeDimNbyName.c_str(),bdim[1],&vol_dim_ids[1]
+		);
+				   NC_ERR_WRITE(rc,path)
+
+		rc = ncmpi_def_dim(_ncids[j],_volumeDimNbzName.c_str(),bdim[2],&vol_dim_ids[2]
+		);
+				   NC_ERR_WRITE(rc,path)
+#else
 		rc = nc_def_dim(
 			_ncids[j],_volumeDimNbxName.c_str(),bdim[0],&vol_dim_ids[0]
 		);
@@ -1920,7 +2101,8 @@ int WaveCodecIO::_OpenVarWrite(
 		rc = nc_def_dim(
 			_ncids[j],_volumeDimNbzName.c_str(),bdim[2],&vol_dim_ids[2]
 		);
-		NC_ERR_WRITE(rc,path)
+				   NC_ERR_WRITE(rc,path);
+#endif
 #endif		
 
 		bool reconstruct_sigmap = 
@@ -1937,37 +2119,53 @@ int WaveCodecIO::_OpenVarWrite(
 			size_t sms = _sigmaps[j]->GetMapSize(_ncoeffs[j]);
 			_sigmapsizes.push_back((sms+(NC_FLOAT_SZ-1)) / NC_FLOAT_SZ);
 		}
-		size_t l = _ncoeffs[j] + _sigmapsizes[j];
+#ifdef PNETCDF
+			  MPI_Offset l = _ncoeffs[j] + _sigmapsizes[j];
+#else
+			  size_t l = _ncoeffs[j] + _sigmapsizes[j]; //bad var name
+#endif
 
 		int coeff_dim_id;
+#ifdef PNETCDF
+		rc = ncmpi_def_dim(_ncids[j], _coeffDimName.c_str(), l, &coeff_dim_id);
+#else
 		rc = nc_def_dim(
 			_ncids[j],_coeffDimName.c_str(),l, &coeff_dim_id
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 		int wave_dim_ids[4];
 		int ndims = 0;
 
+		vector <size_t> ncdims;
 		switch (_vtype) {
 		case VAR2D_XY:
 			ndims = 3;
 			wave_dim_ids[0] = vol_dim_ids[1];
 			wave_dim_ids[1] = vol_dim_ids[0];
 			wave_dim_ids[2] = coeff_dim_id;
-
+			ncdims.push_back(bdim[1]);
+			ncdims.push_back(bdim[0]);
+			ncdims.push_back(l);
 		break;
 		case VAR2D_XZ:
 			ndims = 3;
 			wave_dim_ids[0] = vol_dim_ids[2];
 			wave_dim_ids[1] = vol_dim_ids[0];
 			wave_dim_ids[2] = coeff_dim_id;
-
+			ncdims.push_back(bdim[2]);
+			ncdims.push_back(bdim[0]);
+			ncdims.push_back(l);
 		break;
 		case VAR2D_YZ:
 			ndims = 3;
 			wave_dim_ids[0] = vol_dim_ids[2];
 			wave_dim_ids[1] = vol_dim_ids[1];
 			wave_dim_ids[2] = coeff_dim_id;
+			ncdims.push_back(bdim[2]);
+			ncdims.push_back(bdim[1]);
+			ncdims.push_back(l);
 
 		break;
 		case VAR3D:
@@ -1976,6 +2174,10 @@ int WaveCodecIO::_OpenVarWrite(
 			wave_dim_ids[1] = vol_dim_ids[1];
 			wave_dim_ids[2] = vol_dim_ids[0];
 			wave_dim_ids[3] = coeff_dim_id;
+			ncdims.push_back(bdim[2]);
+			ncdims.push_back(bdim[1]);
+			ncdims.push_back(bdim[0]);
+			ncdims.push_back(l);
 
 		break;
 		default:
@@ -1983,86 +2185,148 @@ int WaveCodecIO::_OpenVarWrite(
 		}
 
 #ifndef NOIO
+#ifdef PNETCDF
+		rc = ncmpi_def_var(_ncids[j], _waveletCoeffName.c_str(), NC_FLOAT, ndims, wave_dim_ids, &ncid);
+#else
 		rc = nc_def_var(
 			_ncids[j], _waveletCoeffName.c_str(), NC_FLOAT,
 			ndims, wave_dim_ids, &ncid
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 #endif		
 		_nc_wave_vars.push_back(ncid);
+
+			  int rank = -1;
+#ifdef PARALLEL
+
+			  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+		NCBuf *ncbuf = new NCBuf(_ncids[j], ncid, NC_FLOAT, ncdims, collectiveIO, rank, _NC_BUF_SIZE);
+		_ncbufs.push_back(ncbuf);
 
 #ifndef NOIO
 		oss.str("");
 		oss << "Floating point wavelet coefficients (" << _ncoeffs[j] <<
 		") byte encoded signficant map (" << _sigmapsizes[j] << ")";
-
+#ifdef PNETCDF
+		rc = ncmpi_put_att_text(_ncids[j],ncid,"description", oss.str().length(), oss.str().c_str());
+#else
 		rc = nc_put_att_text(
 			_ncids[j],ncid,"description", oss.str().length(), 
 			oss.str().c_str()
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 		//
 		// Define netCDF global attributes
 		//
 		int version = GetVDFVersion();
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_fileVersionName.c_str(),NC_INT, 1, &version);
+#else
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_fileVersionName.c_str(),NC_INT, 1, &version
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_compressionLevelName.c_str(),NC_INT, 1, &j);
+#else
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_compressionLevelName.c_str(),NC_INT, 1, &j
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 
 		int dim_int[] = {(int) dim[0], (int) dim[1], (int) dim[2]};
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_nativeResName.c_str(),NC_INT, 3, dim_int);
+#else
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_nativeResName.c_str(),NC_INT, 3, dim_int
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 		int bs_int[] = {(int) bs[0],(int) bs[1],(int) bs[2]};
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_blockSizeName.c_str(),NC_INT, 3, bs_int);
+#else
         rc = nc_put_att_int(
             _ncids[j],NC_GLOBAL,_blockSizeName.c_str(),NC_INT, 3, bs_int
         );
-        NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 		int minreg_int[3] = {_validRegMin[0],_validRegMin[1],_validRegMin[2]};
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(),NC_INT, 3, minreg_int);
+#else
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_minValidRegionName.c_str(),NC_INT, 3, 
 			minreg_int
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
 		int maxreg_int[3] = {_validRegMax[0],_validRegMax[1],_validRegMax[2]};
+#ifdef PNETCDF
+		rc = ncmpi_put_att_int(_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(),NC_INT, 3, maxreg_int);
+#else
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_maxValidRegionName.c_str(),NC_INT, 3, 
 			maxreg_int
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
+#ifdef PNETCDF
+		rc = ncmpi_put_att_float(_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),NC_FLOAT, 2, _dataRange);
+#else
 		rc = nc_put_att_float(
 			_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),NC_FLOAT, 2, _dataRange
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path);
 
+#ifdef PNETCDF
+	        rc = ncmpi_put_att_text(_ncids[j],NC_GLOBAL,_waveletName.c_str(), wname.length(),wname.c_str());
+#else
 		rc = nc_put_att_text(
 			_ncids[j],NC_GLOBAL,_waveletName.c_str(), wname.length(), 
 			wname.c_str()
 		);
-		NC_ERR_WRITE(rc,path)
+#endif
+				   NC_ERR_WRITE(rc,path)
 
+#ifdef PNETCDF
+		rc = ncmpi_put_att_text(_ncids[j],NC_GLOBAL,_boundaryModeName.c_str(), wmode.length(), wmode.c_str());
+#else
 		rc = nc_put_att_text(
 			_ncids[j],NC_GLOBAL,_boundaryModeName.c_str(), wmode.length(), 
 			wmode.c_str()
 		);
-		NC_ERR_WRITE(rc,path)
 #endif
 
-		rc = nc_enddef(_ncids[j]);
-		NC_ERR_WRITE(rc,path)
+				   NC_ERR_WRITE(rc,path)
+#endif
+			  
+#ifdef PNETCDF
+				   rc = ncmpi_enddef(_ncids[j]);
+#else   
+				   rc = nc_enddef(_ncids[j]);
+#endif
+#ifdef PNETCDF
+			  if(!collectiveIO){
+			    ncmpi_begin_indep_data(_ncids[j]);
+			  }
+#endif
+				   NC_ERR_WRITE(rc,path)
+
 	_WriteTimerStop();
 
 	}
@@ -2092,13 +2356,16 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 
 	for(int j=0; j<=_wc->_lod; j++) {
 		size_t start[] = {0,0,0,0};
-		ptrdiff_t stride[] = {1,1,1,1};
 		size_t wcount[] = {1,1,1,1};
 		size_t scount[] = {1,1,1,1};
-
-		const unsigned char *map;
 		size_t maplen;
+		const unsigned char *map;
+
+#ifdef PNETCDF
+		_wc->_sigmapsThread[_id][j]->GetMap(&map, (size_t *)&maplen);
+#else
 		_wc->_sigmapsThread[_id][j]->GetMap(&map, &maplen);
+#endif
 //		assert(maplen == _wc->_sigmapsizes[j]);
 
 		bool reconstruct_sigmap = 
@@ -2118,15 +2385,9 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 			scount[2] = _wc->_sigmapsizes[j];
 		}
 
-#ifndef NOIO
-#ifdef PARALLEL
-		rc = nc_var_par_access(_wc->_ncids[j], _wc->_nc_wave_vars[j], _wc->collectiveIO?NC_COLLECTIVE:NC_INDEPENDENT);
-#endif
-		rc = nc_put_vars_float(
-			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, stride, cvectorptr
-		);
+		rc = _wc->_ncbufs[j]->PutVara(start, wcount, cvectorptr);
 		NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
-#endif	
+
 		cvectorptr += _wc->_ncoeffs[j];
 
 		//
@@ -2153,13 +2414,11 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 					_wc->_sigmapsizes[j]
 				);
 			}
-			rc = nc_put_vars(
-				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, stride, map
-			);
-			NC_ERR_WRITE(rc, _wc->_ncpaths[j]);
-#endif
+			rc = _wc->_ncbufs[j]->PutVara(start, scount, map);
+			NC_ERR_WRITE(rc, _wc->_ncpaths[j])
 		}
 	}
+#endif
 
 	_wc->_WriteTimerStop();
 
@@ -2526,9 +2785,15 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 
 
 	for(int j=0; j<=_wc->_lod; j++) {
+#ifdef PNETCDF
+		MPI_Offset start[] = {0,0,0,0};
+		MPI_Offset wcount[] = {1,1,1,1};
+		MPI_Offset scount[] = {1,1,1,1};
+#else
 		size_t start[] = {0,0,0,0};
 		size_t wcount[] = {1,1,1,1};
 		size_t scount[] = {1,1,1,1};
+#endif
 
 		bool reconstruct_sigmap = 
 				 ((_wc->_cratios.size() == (j+1)) && (_wc->_cratios[j] == 1));
@@ -2546,10 +2811,21 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 			wcount[2] = _wc->_ncoeffs[j];
 			scount[2] = _wc->_sigmapsizes[j];
 		}
-
+		/*		if(start[0] == 2)
+		  wcount[0] = 0;
+		if(start[1] == 2)
+		  wcount[1] = 0;
+		if(start[2] == 2)
+		wcount[2] = 0;*/
+#ifdef PNETCDF
+		rc = ncmpi_get_vars_float(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr);
+#else
 		rc = nc_get_vars_float(
 			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr
 		);
+#endif
+		if(rc != NC_NOERR)
+
 		NC_ERR_READ(rc, _wc->_ncpaths[j]);
 		cvectorptr += _wc->_ncoeffs[j];
 
@@ -2568,10 +2844,16 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 			// 
 			// Read sig map as untyped quantity to avoid data conversion
 			//
+#ifdef PNETCDF
+			rc = ncmpi_get_vars(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr, _wc->_svectorsize, MPI_CHAR);
+#else
 			rc = nc_get_vars(
 				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr
-			);
-			if (do_swapbytes) {
+	  );
+#endif
+		if(rc != NC_NOERR)
+
+	if (do_swapbytes) {
 				swapbytes(
 					(void *) svectorptr, NC_FLOAT_SZ, 
 					_wc->_sigmapsizes[j]

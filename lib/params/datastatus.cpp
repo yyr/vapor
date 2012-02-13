@@ -791,7 +791,6 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 	if (!vapor_proj) return false;
 	projPJ latlon_proj = pj_latlong_from_proj( vapor_proj); 
 	if (!latlon_proj) return false;
-	bool vaporRad = pj_is_latlong(vapor_proj)||(string::npos != getProjectionString().find("ob_tran"));
 	
 	if (!pj_is_latlong(vapor_proj)){ //if data is already latlong, bypass following:
 		
@@ -1379,4 +1378,32 @@ double DataStatus::getDataMax2D(int sesvarNum, int timestep, bool mustGet){
 		calcDataRange2D(sesvarNum,timestep);
 	}
 	return dataMax2D[sesvarNum][timestep];
+}
+int DataStatus::maxLODPresent3D(int sesvarnum, int timestep){
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
+		if (!variableExists[sesvarnum]) return -1;
+		if (getVDCType()!=2) return 0;
+		return (maxLevel3D[sesvarnum][timestep]);
+}
+int DataStatus::maxLODPresent2D(int sesvarnum, int timestep){
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
+		if (!variableExists2D[sesvarnum]) return -1;
+		if (getVDCType()!=2) return 0;
+		return (maxLevel2D[sesvarnum][timestep]);
+}
+int DataStatus::maxXFormPresent3D(int sesvarnum, int timestep){
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
+		if (!variableExists[sesvarnum]) return -1;
+		if (getVDCType()==2) return getNumTransforms();
+		return (maxLevel3D[sesvarnum][timestep]);
+}
+int DataStatus::maxXFormPresent2D(int sesvarnum, int timestep){
+		if (timestep < 0 || timestep >= numTimesteps) return -1;
+		if (sesvarnum<0) return -1;
+		if (!variableExists2D[sesvarnum]) return -1;
+		if (getVDCType()==2) return getNumTransforms();
+		return (maxLevel2D[sesvarnum][timestep]);
 }

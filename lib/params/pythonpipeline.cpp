@@ -95,8 +95,6 @@ void PythonPipeLine::initialize(){
 		
 	Py_Initialize();
 	everInitialized = true;
-	PyObject* numpyname = PyString_FromFormat("numpy");
-	PyObject* numpymod = PyImport_Import(numpyname);
 	PyObject* vaporname = PyString_FromFormat("vapor");
 	vaporModule = PyImport_Import(vaporname);
 	
@@ -156,12 +154,12 @@ void PythonPipeLine::initialize(){
 			PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
 			if (myErr){
 				//Find size of StringIO:
-				PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
+				PyObject* sz = PyObject_CallMethod(myErr,(char*)"tell",NULL);
 				int szval = PyInt_AsLong(sz);
 				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python startup script execution error\n");
 				if(szval > 0){
 					//Get the text
-					PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
+					PyObject* txt = PyObject_CallMethod(myErr,(char*)"getvalue",NULL);
 					const char* strtext = PyString_AsString(txt);
 					MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," error output:\n%s\n",strtext);
 				}
@@ -301,11 +299,11 @@ int PythonPipeLine::python_wrapper(
 		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
 		if (myErr){
 			//Find size of StringIO:
-			PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
+			PyObject* sz = PyObject_CallMethod(myErr,(char*)"tell",NULL);
 			int szval = PyInt_AsLong(sz);
 			if(szval > 0){
 				//Get the text
-				PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
+				PyObject* txt = PyObject_CallMethod(myErr,(char*)"getvalue",NULL);
 				const char* strtext = PyString_AsString(txt);
 				//post it as Diagnostic.
 				//There will be an error message too, but
@@ -321,11 +319,11 @@ int PythonPipeLine::python_wrapper(
 	pythonOutputText.clear();
 	if (myIO){
 		//Find size of StringIO:
-		PyObject* sz = PyObject_CallMethod(myIO,"tell",(char*)NULL);
+		PyObject* sz = PyObject_CallMethod(myIO,(char*)"tell",(char*)NULL);
 		int szval = PyInt_AsLong(sz);
 		if(szval > 0){
 			//Get the text
-			PyObject* txt = PyObject_CallMethod(myIO,"getvalue",NULL);
+			PyObject* txt = PyObject_CallMethod(myIO,(char*)"getvalue",NULL);
 			const char* strtext = PyString_AsString(txt);
 			
 			//post it to diagnostics
@@ -508,11 +506,11 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		PyObject* myErr = PyDict_GetItem(mainDict, myErrString);
 		if (myErr){
 			//Find size of StringIO:
-			PyObject* sz = PyObject_CallMethod(myErr,"tell",NULL);
+			PyObject* sz = PyObject_CallMethod(myErr,(char*)"tell",NULL);
 			int szval = PyInt_AsLong(sz);
 			if(szval > 0){
 				//Get the text
-				PyObject* txt = PyObject_CallMethod(myErr,"getvalue",NULL);
+				PyObject* txt = PyObject_CallMethod(myErr,(char*)"getvalue",NULL);
 				const char* strtext = PyString_AsString(txt);
 				//post it as Error 
 				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING," Python execution error:\n%s\n",strtext);
@@ -564,11 +562,11 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	pythonOutputText.clear();
 	if (myIO){
 		//Find size of StringIO:
-		PyObject* sz = PyObject_CallMethod(myIO,"tell",(char*)NULL);
+		PyObject* sz = PyObject_CallMethod(myIO,(char*)"tell",(char*)NULL);
 		int szval = PyInt_AsLong(sz);
 		if(szval > 0){
 			//Get the text
-			PyObject* txt = PyObject_CallMethod(myIO,"getvalue",NULL);
+			PyObject* txt = PyObject_CallMethod(myIO,(char*)"getvalue",NULL);
 			const char* strtext = PyString_AsString(txt);
 			//post it to diagnostics
 			

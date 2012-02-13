@@ -27,6 +27,11 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 std::string XmlNode::replacement = "";
+vector<double> XmlNode::_emptyDoubleVec;
+vector <long> XmlNode::_emptyLongVec;	
+vector <string> XmlNode::_emptyStringVec;
+string XmlNode::_emptyString;
+
 XmlNode::XmlNode(
 	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint
@@ -38,9 +43,6 @@ XmlNode::XmlNode(
 	_tag = tag;
 	_attrmap = attrs;
 
-	_emptyLongVec.clear();
-	_emptyDoubleVec.clear();
-	_emptyString.clear();
 	_asciiLimit = 1024;
 	_parent = NULL;
 	_errOnMissing = true;
@@ -60,9 +62,6 @@ XmlNode::XmlNode(
 	_tag = tag;
 	_attrmap = *(new std::map<string,string>);
 
-	_emptyLongVec.clear();
-	_emptyDoubleVec.clear();
-	_emptyString.clear();
 	_asciiLimit = 1024;
 	_parent = NULL;
 	_errOnMissing = true;

@@ -336,14 +336,16 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	float bnds[2];
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-	float iwidth = bnds[1]-bnds[0];
-	if (isoval < bnds[0]+0.01*iwidth) {
-		bnds[0] = isoval - 0.01*iwidth;
-		leftHistoEdit->setText(QString::number(bnds[0]));
-	}
-	if (isoval > bnds[1]-0.01*iwidth) {
-		bnds[1] = isoval + 0.01*iwidth;
-		rightHistoEdit->setText(QString::number(bnds[1]));
+	if (bnds[0] >= isoval || bnds[1] <= isoval){ //Reset bounds to include isoval
+		float iwidth = bnds[1]-bnds[0];
+		if (isoval < bnds[0]+0.01*iwidth) {
+			bnds[0] = isoval - 0.01*iwidth;
+			leftHistoEdit->setText(QString::number(bnds[0]));
+		}
+		if (isoval > bnds[1]-0.01*iwidth) {
+			bnds[1] = isoval + 0.01*iwidth;
+			rightHistoEdit->setText(QString::number(bnds[1]));
+		}
 	}
 
 	iParams->SetHistoBounds(bnds);

@@ -299,27 +299,19 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 		return -1;
 	}
-	//If variable(s) not derived, check that the data exists for this timestep and refinement:
+	
 	int minRefLevel = numxforms;
-	bool allVarsDerived = true;
-	for (int varIndex = 0; varIndex < numVars; varIndex++){
-		if (varNums[varIndex] < 0) continue; //in case of zero field component
-		const string varName = ds->getVariableName3D(varNums[varIndex]);
-		if(!ds->isDerivedVariable(varName)) {
-			allVarsDerived = false;
-			break;
+	//check that the data exists for this timestep and refinement:
+	
+	for (i = 0; i<numVars; i++){
+		if (varNums[i] < 0) continue; //in case of zero field component
+		minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
+		//Test if it's acceptable, exit if not:
+		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
+			return -1;
 		}
 	}
-	if (!allVarsDerived){
-		for (i = 0; i<numVars; i++){
-			if (varNums[i] < 0) continue; //in case of zero field component
-			minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
-			//Test if it's acceptable, exit if not:
-			if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
-				return -1;
-			}
-		}
-	}
+	
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	double regExts[6];

@@ -424,6 +424,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	static Params* getDummyParamsInstance(int i) {return dummyParamsInstances[i];}
 	static void addDummyParamsInstance(Params*const & p ) {dummyParamsInstances.push_back(p);}
 
+	static void clearDummyParamsInstances();
 	static const std::string& paramName(ParamsBaseType t);
 	static const string _dvrParamsTag;
 	static const string _isoParamsTag;

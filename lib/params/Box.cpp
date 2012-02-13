@@ -51,8 +51,10 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	GetRootNode()->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 }
 int Box::GetExtents(double extents[6], int timestep){
-	const vector<double>& exts = GetRootNode()->GetElementDouble(Box::_extentsTag);
-	const vector<long>& times = GetRootNode()->GetElementLong(Box::_timesTag);
+	const vector<double> defaultExtents(6,0.);
+	const vector<long> defaultTimes(1,0);
+	const vector<double>& exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExtents);
+	const vector<long>& times = GetRootNode()->GetElementLong(Box::_timesTag,defaultTimes);
 	//If there are times, look for a match.  The first time should be -1
 	for (int i = 1; i<times.size(); i++){
 		if (times[i] != timestep) continue;
@@ -77,7 +79,9 @@ int Box::GetExtents(float extents[6], int timestep){
 }
 
 int Box::SetExtents(const vector<double>& extents, int timestep){
-	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag);
+	const vector<double> defaultExtents(6,0.);
+	const vector<long> defaultTimes(1,0);
+	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
 	//If setting default and there are no nondefault extents, 
 	//Or if the time is not in the list,
 	//just replace default extents
@@ -85,7 +89,7 @@ int Box::SetExtents(const vector<double>& extents, int timestep){
 	
 	if ((timestep < 0) || (curExts.size()>6)) {
 		//Check for specified timestep
-		const vector<long>& times = GetRootNode()->GetElementLong(_timesTag);
+		const vector<long>& times = GetRootNode()->GetElementLong(_timesTag,defaultTimes);
 		for (int i = 1; i<times.size(); i++){
 			if (times[i] == timestep) {
 				index = i;

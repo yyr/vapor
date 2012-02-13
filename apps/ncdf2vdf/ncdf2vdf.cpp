@@ -964,6 +964,7 @@ int	main(int argc, char **argv) {
 	metafile = argv[1];	// Path to a vdf file
 	netCDFfile = argv[2];	// Path to raw data file 
 
+	MyBase::SetErrMsgFilePtr(stderr);
     if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	// If the netcdf variable name was not specified, use the same name as

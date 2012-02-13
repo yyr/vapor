@@ -377,6 +377,17 @@ public:
  //!
  AMRTree::cid_t	RefineCell(AMRTree::cid_t cellid);
 
+ //! End cell refinement
+ //!
+ //! This method informs the class that cell refinement is complete,
+ //! allowing the class to build data structures that may speed
+ //! subsequent class methods. Calling this method is optional. The results
+ //! of calling this method before cell refinement is complete are undefined.
+ //!
+ //! \sa RefineCell()
+ //!
+ void EndRefinement();
+
  //! Return next node in a tree treversal
  //!
  //! Each time this method is called it returns the cellid for

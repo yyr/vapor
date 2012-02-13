@@ -41,6 +41,8 @@ void myMessageOutput( QtMsgType type, const char *msg )
         case QtFatalMsg:
             MessageReporter::fatalMsg("qFatal %s\n", msg ); 
 			break;
+		default://ignore QtCriticalMsg and QtSystemMsg
+			break;
     }
 }
 QApplication* app;
@@ -114,7 +116,7 @@ int main( int argc, char ** argv ) {
 
 		setenv("PYTHONHOME",phome.c_str(),1);
 	}
-	MyBase::SetDiagMsg("PYTHONMOME = %s", phome.c_str());
+	MyBase::SetDiagMsg("PYTHONHOME = %s", phome.c_str());
 							   
 #endif
 

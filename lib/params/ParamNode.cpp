@@ -558,13 +558,17 @@ void ParamNode::SetAllFlags(bool dirty){
 	}
 
 }
-const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath) const {
+const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal) {
 
 	//Iterate through tags, finding associated node
-	const ParamNode* currNode = this;
+	ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = (const ParamNode* const)currNode->GetNode(tagpath[i]);
-		if (!currNode) return _emptyLongVec;
+		ParamNode* childNode = currNode->GetNode(tagpath[i]);
+		if (!childNode) { //add the node:
+			childNode = new ParamNode(tagpath[i]);
+			currNode->AddNode(tagpath[i],childNode);
+		}
+		currNode = childNode;
 	}
 	string tag = tagpath[tagpath.size()-1];
 	map <string, vector<long> >::const_iterator p = currNode->_longmap.find(tag);
@@ -577,73 +581,121 @@ const vector<long> &ParamNode::GetElementLong(const vector<string> &tagpath) con
 				VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
 			);
 		}
-		return(_emptyLongVec);
+		currNode->SetElementLong(tag, defaultVal);
+		return(defaultVal);
 	}
 
-	//return(_longmap[tag]);
 	return(p->second);
 }
-const vector<double> &ParamNode::GetElementDouble(const vector<string> &tagpath) const {
+const vector<double> &ParamNode::GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal) {
 	//Iterate through tags, finding associated node
-	const ParamNode* currNode = this;
+	ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) return _emptyDoubleVec;
+		ParamNode* childNode = currNode->GetNode(tagpath[i]);
+		if (!childNode) { //add the node:
+			childNode = new ParamNode(tagpath[i]);
+			currNode->AddNode(tagpath[i],childNode);
+		}
+		currNode = childNode;
 	}
 	string tag = tagpath[tagpath.size()-1];
 	map <string, vector<double> >::const_iterator p = currNode->_doublemap.find(tag);
-
+	
 	// see if entry for this key (tag) already exists
 	//
 	if (p == currNode->_doublemap.end()) { 
 		if (_errOnMissing) {
 			SetErrMsg(
-				VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
-			);
+					  VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
+					  );
 		}
-		return(_emptyDoubleVec);
+		currNode->SetElementDouble(tag, defaultVal);
+		return(defaultVal);
 	}
-
+	
 	return(p->second);
 }
-void ParamNode::GetElementStringVec(const vector<string> &tagpath, vector <string> &vec) const {
-	//Iterate through tags, finding associated node
-	const ParamNode* currNode = this;
-	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) {
-			vec.clear();
-			return;
-		}
-	}
-	string tag = tagpath[tagpath.size()-1];
-	string s = currNode->GetElementString(tag);
-
-	StrToWordVec(s, vec);
+const vector<double> &ParamNode::GetElementDouble(const string &tag, const vector<double>& defaultVal) {
+	if (HasElementDouble(tag)) return XmlNode::GetElementDouble(tag);
+	SetElementDouble(tag,defaultVal);
+	return defaultVal;
+}
+const vector<long> &ParamNode::GetElementLong(const string &tag, const vector<long>& defaultVal) {
+	if (HasElementLong(tag)) return XmlNode::GetElementLong(tag);
+	SetElementLong(tag,defaultVal);
+	return defaultVal;
+}
+const string &ParamNode::GetElementString(const string &tag, const string& defaultVal){
+	if (HasElementString(tag)) return XmlNode::GetElementString(tag);
+	SetElementString(tag,defaultVal);
+	return defaultVal;
 }
 
-void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec) const {
-	const ParamNode* currNode = this;
-	if (!currNode->HasElementString(tag)){
-		vec.clear();
+void ParamNode::GetElementStringVec(const vector<string> &tagpath, vector <string> &vec, const vector<string>& defaultVal)  {
+	//Iterate through tags, finding associated node
+	ParamNode* currNode = this;
+	for (int i = 0; i< tagpath.size()-1; i++){
+		ParamNode* childNode = currNode->GetNode(tagpath[i]);
+		if (!childNode) { //add the node:
+			childNode = new ParamNode(tagpath[i]);
+			currNode->AddNode(tagpath[i],childNode);
+		}
+		currNode = childNode;
+	}
+	string tag = tagpath[tagpath.size()-1];
+	map <string, string >::const_iterator p = currNode->_stringmap.find(tag);
+	
+	// see if entry for this key (tag) already exists
+	//
+	if (p == currNode->_stringmap.end()) { 
+		if (_errOnMissing) {
+			SetErrMsg(
+					  VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
+					  );
+		}
+		vec = defaultVal;
+		currNode->SetElementStringVec(tag, vec);
 		return;
 	}
 	string s = currNode->GetElementString(tag);
 	StrToWordVec(s, vec);
 }
-const string& ParamNode::GetElementString(const vector<string> &tagpath) const {
+
+void ParamNode::GetElementStringVec(const string &tag, vector <string> &vec, const vector<string>& defaultVal)  {
+	ParamNode* currNode = this;
+	if (!currNode->HasElementString(tag)){
+		vec = defaultVal;
+		currNode->SetElementStringVec(tag,defaultVal);
+		return;
+	}
+	string s = currNode->GetElementString(tag);
+	StrToWordVec(s, vec);
+}
+const string& ParamNode::GetElementString(const vector<string> &tagpath, const string& defaultVal) {
 	//Iterate through tags, finding associated node
-	const ParamNode* currNode = this;
+	ParamNode* currNode = this;
 	for (int i = 0; i< tagpath.size()-1; i++){
-		currNode = currNode->GetNode(tagpath[i]);
-		if (!currNode) {
-			
+		ParamNode* childNode = currNode->GetNode(tagpath[i]);
+		if (!childNode) { //add the node:
+			childNode = new ParamNode(tagpath[i]);
+			currNode->AddNode(tagpath[i],childNode);
 		}
+		currNode = childNode;
 	}
 	string tag = tagpath[tagpath.size()-1];
+	map <string, string >::const_iterator p = currNode->_stringmap.find(tag);
 	
-	if (!currNode->HasElementString(tag)){
-		return _emptyString;
+	// see if entry for this key (tag) already exists
+	//
+	if (p == currNode->_stringmap.end()) { 
+		if (_errOnMissing) {
+			SetErrMsg(
+					  VAPOR_ERROR_PARSING, "Element tagged \"%s\" does not exist", tag.c_str()
+					  );
+		}
+		
+		currNode->SetElementString(tag, defaultVal);
+		return defaultVal;
 	}
 	return currNode->GetElementString(tag);
 }

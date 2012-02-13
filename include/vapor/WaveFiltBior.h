@@ -26,7 +26,7 @@ public:
  //! \param[in] wavename The Biorlet family wavelet member. Valid values
  //! are "bior1.1", "bior1.3", "bior1.5", "bior2.2", "bior2.4",
  //! "bior2.6", "bior2.8", "bior3.1", "bior3.3", "bior3.5", "bior3.7",
- //! "bior3.9"
+ //! "bior3.9", "bior4.4"
  //!
  WaveFiltBior(const string &wavename);
  virtual ~WaveFiltBior();

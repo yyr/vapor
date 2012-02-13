@@ -420,10 +420,8 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	setTwoDDirty(twoDParams);
 	
 	twoDTextureFrame->update();
-	//If we are in twoD mode, force a rerender of all windows using the twoD:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::twoDImageMode){
-		VizWinMgr::getInstance()->refreshTwoDImage(twoDParams);
-	}
+	//force a rerender
+	VizWinMgr::getInstance()->forceRender(twoDParams);
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);

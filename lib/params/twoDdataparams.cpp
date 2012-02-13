@@ -185,13 +185,13 @@ reinit(bool doOverride){
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
 	} else {
-		//Force the twoD size to be no larger than the domain extents, and 
-		//force the twoD center to be inside the domain.  Note that
+		//Force the twoD horizontal size to be no larger than the domain extents, and 
+		//force the twoD horizontal center to be inside the domain.  Note that
 		//because of rotation, the twoD max/min may not correspond
 		//to the same extents.
 		GetBox()->GetExtents(twoDExts);
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
-		for (int i = 0; i<3; i++){
+		for (int i = 0; i<2; i++){
 			if (twoDExts[i+3] - twoDExts[i] > maxExtents)
 				twoDExts[i+3] = twoDExts[i] + maxExtents;
 			float center = 0.5f*(twoDExts[i]+twoDExts[i+3]);
@@ -206,6 +206,8 @@ reinit(bool doOverride){
 			if(twoDExts[i+3] < twoDExts[i]) 
 				twoDExts[i+3] = twoDExts[i];
 		}
+		if(twoDExts[5] < twoDExts[2]) 
+				twoDExts[5] = twoDExts[2];
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	GetBox()->SetExtents(twoDExts);

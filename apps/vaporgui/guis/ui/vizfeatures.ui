@@ -307,6 +307,9 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="toolTip">
                <string>Click to immediately reload the programmable shaders in the vapor shaders directory</string>
               </property>

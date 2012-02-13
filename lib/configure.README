@@ -1,0 +1,11 @@
+configure is the Autoconf script designed to help with building libpiovdc, a parallel IO subset of the VDF library. In order to ensure maximum portability, the bare minimum software is provided.
+
+To use the configure script, you can simply run configure, which will attempt to find the PNetCDF library to build with. Should the PNetCDF library not be on a standard path, you can change the location using ./configure --with-pnetcdf=location. PIOVDC requires expat as a dependency, if it cannot be found on a standard path, use --with-expat=location to specify where it can be found.
+
+Building with NetCDF4 is possible, but is not recommended due to NetCDF4 having many dependencies which have strict version compatibility. In order to build with NetCDF, simply use --with-netcdf=location to specify where to find the root netcdf location. NetCDF4 requires specifying the locations of both the hdf5 and szip root directories using --with-hdf5 and --with-szip respectively in order to build.
+
+WARNING: the configure script will generate Makefiles in the lib, lib/vdf, and lib/common directories, if you wish to keep the standard Makefiles rename them before calling configure.
+
+WARNING: PIOVDC is a mix of both Fortran and C++ code. On some systems the C++ functions are name mangled, while others do not do so. If your system is having problems finding the external functions when linking the PIO and PIOVDC libraries, then remove the _ from the ending of the following functions: getvdfinfo_(vdf_info.cpp), write_vdc2_var_(vdc2.cpp), read_vdc2_var_(vdc2.cpp)
+
+PROBLEMS?: If the configure script does not work then regenerating it using the autotools might be the best option. To do so first run your version of aclocal, followed by automake --add-missing, followed by autoreconf. This will generate a new, platform specific configure script that you may use.

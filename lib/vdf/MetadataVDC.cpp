@@ -769,7 +769,7 @@ int MetadataVDC::_SetNumTimeSteps(long value) {
 			// Set the base path for any auxiliary data.
 			//
 			oss.str(empty);
-			oss << "aux/aux";
+			oss << "auxdata/auxdata";
 			oss << ".";
 			oss.width(4);
 			oss.fill('0');

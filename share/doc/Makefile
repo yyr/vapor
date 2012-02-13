@@ -10,7 +10,7 @@ endif
 
 DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
 	VDCIntro.doc WRFsupport.doc GeorgiaCaseStudy.doc \
-	VAPOR-WRF-NCL.doc WRFGetStarted.doc
+	VAPOR-WRF-NCL.doc WRFGetStarted.doc VaporPythonGuide.doc
 
 INSTALL_DOC_DIR = $(INSTALL_SHAREDIR)/doc
 

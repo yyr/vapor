@@ -218,13 +218,17 @@ const GLModelNode* ModelRenderer::getModel(ModelParams *mParams,
 	// if modelFile is not an absolute path, construct a path
 	// based on the path to the sceneFile
 	//
+	//Even on windows, we use a forward slash here because that 
+    //is the path string that this Qt open file dialog returns.
+	const string separator = "/";
 #ifdef WIN32
-		const string separator = "\\";
+	// On windows, an absolute path is of the form Q:/..."
+	if (! modelFile.empty() && 
+		(modelFile.compare(1,1, ":") != 0)) {
 #else
-		const string separator = "/";
-#endif
 	if (! modelFile.empty() && 
 		(modelFile.compare(0,separator.length(), separator) != 0)) {
+#endif
 		string scenefile = mParams->GetSceneFilename();
 		string newpath = Dirname(scenefile);
 		newpath += separator;

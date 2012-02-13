@@ -1080,7 +1080,7 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 	glDisable(GL_LIGHTING);
 	
 	/* (re)allocate memory for Vertex Array */
-	if (lastAge >= curVaSize || newType) {
+	if ((lastAge>=0) && (lastAge >= curVaSize || newType ||!vertexArray)) {
 		delete[] vertexArray;
 		vertexArray = new flowTubeVertexData[((lastAge+1)*2)];
 		curVaSize = lastAge+1;
@@ -1175,7 +1175,7 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 	
 	/* (re)allocate memory for Vertex Array - Allocate the same memory as needed 
 	 for renderTubes, since they use the same type-number. */
-	if (lastAge > curVaSize || newType) {
+	if ((lastAge>=0) && (lastAge > curVaSize || newType ||!vertexArray)) {
 		delete[] vertexArray;
 		vertexArray = new flowTubeVertexData[(lastAge+1)*6];
 		
@@ -1350,7 +1350,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	if (firstAge >= lastAge) return;
 
 	/* (re)allocate memory for Vertex Array */
-	if (lastAge > curVaSize || newType) {
+	if (lastAge >= 0 && (lastAge > curVaSize || newType ||!vertexArray)) {
 		delete[] vertexArray;
 		vertexArray = new flowTubeVertexData[(lastAge+1)*6];
 
@@ -1685,7 +1685,7 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 	int newCycle[3],currentCycle[3];
 	bool newcycle;
 
-	if (lastAge > curVaSize || newType) {
+	if ((lastAge >= 0) && (lastAge > curVaSize || newType ||!vertexArray)) {
 		curVaSize = lastAge;
 
 		/* realloc vertex array */

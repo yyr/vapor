@@ -78,7 +78,9 @@ IsoRenderer::IsoRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* r
   : VolumeRenderer(glw, type, rp, "IsoRenderer")
 	
 {
+	_myParamsIso = NULL;
 	setRenderParams(rp);
+    _myParamsIso = (ParamsIso *) rp;
 }
 
 //----------------------------------------------------------------------------
@@ -86,7 +88,11 @@ IsoRenderer::IsoRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* r
 //----------------------------------------------------------------------------
 IsoRenderer::~IsoRenderer()
 {
- 
+	//
+	// Need to unregister these 'cause we're passing a pointer
+	// to our internal memory!
+	//
+	_unregisterDirtyFlags();
 }
 
 void IsoRenderer::setRenderParams(RenderParams* rp) {
@@ -94,6 +100,14 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 	Renderer::setRenderParams(rp);
 
     ParamsIso *myParamsIso = (ParamsIso *) rp;
+
+	// Must unregister any old dirtyflags
+	//
+	// Tue Jan  3 16:33:42 MST 2012 - this introduces a regression: the
+	// ParamsIso instanced pointed bo by _myParmsIso has already been
+	// destroyed. 
+	//
+	//_unregisterDirtyFlags();
 
 	myParamsIso->RegisterIsoValueDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterConstantColorDirtyFlag(&_isovalueDF);
@@ -104,6 +118,23 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 	myParamsIso->RegisterMapBoundsDirtyFlag(&_dataDF);
 	myParamsIso->RegisterHistoBoundsDirtyFlag(&_dataDF);
 
+	_myParamsIso = myParamsIso;
+
+}
+
+void IsoRenderer::_unregisterDirtyFlags() {
+
+	if (_myParamsIso) {
+		_myParamsIso->UnRegisterIsoValueDirtyFlag(&_isovalueDF);
+		_myParamsIso->UnRegisterConstantColorDirtyFlag(&_isovalueDF);
+		_myParamsIso->UnRegisterNormalOnOffDirtyFlag(&_lightOnOffDF);
+		_myParamsIso->UnRegisterColorMapDirtyFlag(&_colorMapDF);
+		_myParamsIso->UnRegisterMapVariableDirtyFlag(&_dataDF);
+		_myParamsIso->UnRegisterVariableDirtyFlag(&_dataDF);
+		_myParamsIso->UnRegisterMapBoundsDirtyFlag(&_dataDF);
+		_myParamsIso->UnRegisterHistoBoundsDirtyFlag(&_dataDF);
+	}
+	_myParamsIso = NULL;
 }
 
 void *IsoRenderer::_getRegion(

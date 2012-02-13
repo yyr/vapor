@@ -167,9 +167,10 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tagpath sequence of tags leading to element 
- //! \retval vector Vector of doubles associated with the named elemente
+ //! \param[in] defaultVal (optional) default vector<double> to be assigned if specified element does not exist
+ //! \retval vector Vector of doubles associated with the named element
  //!
- virtual const vector<double> &GetElementDouble(const vector<string> &tagpath) const;
+ virtual const vector<double> &GetElementDouble(const vector<string> &tagpath, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec );
 
  //! Get an Xml element's data of type double
  //!
@@ -180,11 +181,10 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
+ //! \param[in] defaultVal (optional) default vector<double> to be assigned if specified element does not exist
  //! \retval vector Vector of doubles associated with the named element
  //!
- virtual const vector<double> &GetElementDouble(const string &tag) const {return XmlNode::GetElementDouble(tag);}
-
-
+ virtual const vector<double> &GetElementDouble(const string &tag, const vector<double>& defaultVal = XmlNode::_emptyDoubleVec); 
  
  int SetElementLong(
 	const string &tag, const vector<long> &values
@@ -229,9 +229,10 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tagpath Sequence of tags to element
- //! \retval vector Vector of longs associated with the named elemented
+ //! \param[in] defaultVal (optional) vector<long> to be assigned if specified element does not exist.
+ //! \retval vector<long> vector of longs associated with the named elemented
  //!
- virtual const vector<long> &GetElementLong(const vector<string> &tagpath) const;
+ virtual const vector<long> &GetElementLong(const vector<string> &tagpath, const vector<long>& defaultVal = XmlNode::_emptyLongVec);
  //! Get an Xml element's data of type long
  //!
  //! Return the character data associated with the Xml element
@@ -241,9 +242,10 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
+ //! \param[in] defaultVal (optional) Vector of longs that will be set if specified element does not exist
  //! \retval vector Vector of longs associated with the named elemented
  //!
- virtual const vector<long> &GetElementLong(const string &tag) const {return XmlNode::GetElementLong(tag);}
+ virtual const vector<long> &GetElementLong(const string &tag, const vector<long>& defaultVal= XmlNode::_emptyLongVec);
 
 
  //! Set a single ParamNode parameter of type string
@@ -320,10 +322,11 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tag Name of element
+ //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
  //! \retval string The string associated with the named element
  //!
- virtual const string &GetElementString(const string &tag) const
- {return XmlNode::GetElementString(tag);}
+ virtual const string &GetElementString(const string &tag, const string& defaultVal = XmlNode::_emptyString); 
+ 
  //! Get an element's data of type string
  //!
  //! Return the character data associated with the Xml element 
@@ -333,9 +336,10 @@ public:
  //! error is generated if the element is missing;
  //!
  //! \param[in] tagpath sequence of tags leading to element
+ //! \param[in] defaultVal (optional) string to be assigned if specified element does not exist.
  //! \retval string The string associated with the named element
  //!
- virtual const string &GetElementString(const vector<string> &tagpath) const;
+ virtual const string &GetElementString(const vector<string> &tagpath, const string& defaultVal = XmlNode::_emptyString );
  
  //! Get an element's data of type string vector using a path to node
  //!
@@ -346,9 +350,10 @@ public:
  //! an empty vector is returned
  //!
  //! \param[in] tagpath Sequence of tags
+ //! \param[in] defaultVal (optional) vector<string> to be assigned if specified element does not exist.
  //! \param[out] vec Vector of strings associated with the named element
  //!
- virtual void GetElementStringVec(const vector<string> &tagpath, vector <string> &vec) const;
+ virtual void GetElementStringVec(const vector<string> &tagpath, vector <string> &vec, const vector<string>& defaultVal = _emptyStringVec) ;
  //! Get an element's data of type string vector at the current node
  //!
  //! Build the string vector data associated with the Xml element 
@@ -358,9 +363,10 @@ public:
  //! an empty vector is returned
  //!
  //! \param[in] tag Node tag
+ //! \param[in] defaultVal (optional) vector<string> to be assigned if specified element does not exist.
  //! \param[out] vec Vector of strings associated with the named element
  //!
- virtual void GetElementStringVec(const string &tag, vector <string> &vec) const;
+ virtual void GetElementStringVec(const string &tag, vector <string> &vec, const vector<string>& defaultVal = _emptyStringVec);
  //! Set an ParamNode parameter of type long
  //!
  //! This method defines and sets a parameter of type long. The

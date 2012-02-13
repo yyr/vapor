@@ -89,7 +89,7 @@ FlowEventRouter::FlowEventRouter(QWidget* parent): QWidget(parent), Ui_FlowTab()
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
 	showSeeding = false;
-	showAppearance=false;
+	showAppearance=true;
 	showUnsteadyTime=false;
 	MessageReporter::infoMsg("FlowEventRouter::FlowEventRouter()");
 	dontUpdate=false;
@@ -352,11 +352,7 @@ void FlowEventRouter::updateTab(){
 			fullUnsteadyTimeFrame->show();
 			advancedLineAdvectionFrame->hide();
 			flowHelpButton->setText("Unsteady Flow Setup Help");
-			
-			smoothnessSlider->setEnabled(false);
-			smoothnessSamplesEdit->setEnabled(false);
-			steadyLengthEdit->setEnabled(false);
-			steadyLengthSlider->setEnabled(false);
+		
 			seedtimeIncrementEdit->setEnabled(true);
 			seedtimeEndEdit->setEnabled(true);
 		
@@ -394,9 +390,8 @@ void FlowEventRouter::updateTab(){
 	}
 	
 
-	float biasVal = fParams->getSeedDistBias();
+	
 	switch (flowType){
-		int bval;
 		case (0) : //steady
 
 			
@@ -406,11 +401,7 @@ void FlowEventRouter::updateTab(){
 			xSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
 			ySeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
 			zSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
-			biasEdit1->setText(QString::number(biasVal));
-			guiSetTextChanged(false);
-			bval = biasSlider1->value();
-			if (bval != (int)(biasVal*128.f/15.f))
-				biasSlider1->setValue((int)(biasVal*128.f/15.f));
+			
 			break;
 		case (1) : //unsteady
 			
@@ -423,15 +414,12 @@ void FlowEventRouter::updateTab(){
 			timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 			timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
 			populateTimestepTables();
-			biasEdit1->setText(QString::number(biasVal));
+			
 			guiSetTextChanged(false);
 			xSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(0));
 			ySeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(1));
 			zSeedDistCombo->setCurrentIndex(fParams->getComboSeedDistVarnum(2));
 			
-			bval = biasSlider1->value();
-			if (bval != (int)(biasVal*128.f/15.f))
-				biasSlider1->setValue((int)(biasVal*128.f/15.f));
 			break;
 		case(2) : //field line advection
 			
@@ -466,17 +454,24 @@ void FlowEventRouter::updateTab(){
 			priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 			priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 			
-			biasEdit1->setText(QString::number(biasVal));
+			
 			guiSetTextChanged(false);
-			bval = biasSlider1->value();
-			if (bval != (int)(biasVal*128.f/15.f))
-				biasSlider1->setValue((int)(biasVal*128.f/15.f));
 			
 			break;
 		default :
 			assert(0);
 	}
-		
+
+	float biasVal = fParams->getSeedDistBias();
+	biasEdit1->setText(QString::number(biasVal));
+	guiSetTextChanged(false);
+	float bval = biasSlider1->value();
+	if (bval != (int)(biasVal*128.f/15.f)){
+		biasSlider1->setTracking(false);
+		biasSlider1->setSliderPosition((int)(biasVal*128.f/15.f));
+		biasSlider1->setTracking(true);
+	}
+			
 	
 	if (showAppearance) {
 		if (flowType != 1) steadyAppearanceFrame->show();
@@ -847,14 +842,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	bool autoscale = fParams->isAutoScale();
 	if (flowDataChanged){
 		//Do settings that depend on flowType:
-		float seedDistBias = 0.f;
+		
 		if (flowType == 0){
 			
-			seedDistBias = biasEdit1->text().toFloat();
-			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-			int bval = (int)(seedDistBias*128.f/15.f);
-			if (biasSlider1->value() != bval)
-				biasSlider1->setValue(bval);
 			
 			if (!autoscale ){
 				int sampleRate = steadySamplesEdit1->text().toInt();
@@ -898,11 +888,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if (flowType == 1 ){
-			seedDistBias = biasEdit1->text().toFloat();
-			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-			int bval = (int)(seedDistBias*128.f/15.f);
-			if (bval != biasSlider1->value())
-				biasSlider1->setValue(bval);
+			
+
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -982,11 +969,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
-			seedDistBias = biasEdit1->text().toFloat();
-			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
-			int bval = (int)(seedDistBias*128.f/15.f);
-			if (bval != biasSlider1->value())
-				biasSlider1->setValue(bval);
+			
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -1021,7 +1004,14 @@ void FlowEventRouter::confirmText(bool /*render*/){
 				fParams->setSteadyScale(velocityScale);
 			}
 		}
-		
+		float seedDistBias = biasEdit1->text().toFloat();
+		if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+		int bval = (int)(0.5+ seedDistBias*128.f/15.f);
+		if (bval != biasSlider1->value()){
+			biasSlider1->setTracking(false);
+			biasSlider1->setSliderPosition(bval);
+			biasSlider1->setTracking(true);
+		}
 		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
 		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
 			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
@@ -3241,7 +3231,7 @@ void FlowEventRouter::paintEvent(QPaintEvent* ev){
 QSize FlowEventRouter::sizeHint() const {
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (!fParams) return QSize(460,1500);
-	int vertsize = 414+93;//Full basic panel plus instance panel , with both steady and unsteady field frames
+	int vertsize = 555;//Full basic panel plus instance panel , with both steady and unsteady field frames
 	//add showAppearance button, showSeeding button, frames
 	vertsize += 100;
 	switch (fParams->getFlowType()){

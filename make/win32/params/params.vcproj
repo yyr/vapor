@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_WINDOWS;PARAMS_EXPORTS;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_LARGEFILE_SUPPORT"
+				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_WINDOWS;PARAMS_EXPORTS;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;QT_CORE_LIB;QT_LARGEFILE_SUPPORT;DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
@@ -127,8 +127,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS"
+				AdditionalIncludeDirectories="&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include&quot;;../../../include/;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;../../../lib/vdf;../../../lib/params;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS;MODELS"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
@@ -244,6 +244,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\MapperFunctionBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ModelParams.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ModelScene.cpp"
 				>
 			</File>
 			<File
@@ -378,6 +386,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\MapperFunctionBase.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ModelParams.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ModelScene.h"
 				>
 			</File>
 			<File

@@ -196,6 +196,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//It may or may not be terrain following.  
 	//The following code assumes horizontal orientation and a defined
 	//map projection.
+	//Assume no lambert or mercator:
+	lambertOrMercator = false;
 
 	//Specify the parameters that are needed to define the elevation grid:
 
@@ -275,7 +277,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
 	double regMin[3], regMax[3];
 	float* hgtData = NULL;
-	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f, minElev=0.f;
+	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f;
 	size_t bs[3];
 	dataMgr->GetBlockSize(bs,refLevel);
 	
@@ -334,9 +336,6 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		vertFact = ((double)(max_dim[1] - min_dim[1]))/(regMax[1] - regMin[1]);
 		horizOffset = min_dim[0]  - regMin[0]*horizFact;
 		vertOffset = min_dim[1]  - regMin[1]*vertFact;
-
-		//Don't allow the terrain surface to be below the minimum extents:
-		minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
 		
 	}
 	
@@ -350,10 +349,16 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		bool doProj = (src_proj != 0 && dst_proj != 0);
 		if (!doProj) return false;
 
+
 		//If a projection string is latlon, proj uses coordinates in Radians!
 		bool radSrc = pj_is_latlong(src_proj)||(string::npos != tParams->getImageProjectionString().find("ob_tran"));
 		bool rotlatlonDst = (string::npos != DataStatus::getProjectionString().find("ob_tran"));
 		bool radDst = pj_is_latlong(dst_proj)||rotlatlonDst;
+
+		lambertOrMercator = pj_is_latlong(src_proj) && ((string::npos != DataStatus::getProjectionString().find("=merc")) ||
+			(string::npos != DataStatus::getProjectionString().find("lcc")));
+
+
 
 		static const double RAD2DEG = 180./M_PI;
 		static const double DEG2RAD = M_PI/180.0;
@@ -443,7 +448,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 						//Bilinear interpolate:
 						locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
 							y*((1-x)*elevUL + x*elevUR);
-						if (locCoords[2] < minElev) locCoords[2] = minElev;
+		
 					}
 				}
 				else { //not mapped to terrain, use constant elevation
@@ -507,7 +512,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 					//Bilinear interpolate:
 					locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
 						y*((1-x)*elevUL + x*elevUR);
-					if (locCoords[2] < minElev) locCoords[2] = minElev;
+					
 				}
 				
 				//Convert to stretched cube coords.  Note that following

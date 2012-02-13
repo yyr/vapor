@@ -357,6 +357,12 @@ AMRTreeBranch::cid_t	AMRTreeBranch::RefineCell(
 	return(child);
 }
 
+void AMRTreeBranch::EndRefinement() 
+{
+	SetDiagMsg("AMRTreeBranch::EndRefinement()");
+	_octree->end_refinement();
+}
+
 AMRTreeBranch::cid_t	AMRTreeBranch::GetNextCell(
 	bool restart
 ) {
@@ -437,6 +443,7 @@ void AMRTreeBranch::octree::_init() {
 	_node_t node;
 
 	_tree.clear();
+	_offsets.clear();
 	_num_cells.clear();
 
 	node.parent = -1;
@@ -464,6 +471,8 @@ AMRTreeBranch::cid_t AMRTreeBranch::octree::refine_cell(cid_t cellid) {
 	_node_t pnode = _tree[cellid];
 
 	if (pnode.child >= 0) return(-1);	// cell already refined
+
+	_offsets.clear();	// invalidate offset table;
 
 
 	pnode.child = _tree.size();
@@ -536,37 +545,98 @@ AMRTreeBranch::cid_t AMRTreeBranch::octree::get_next(bool restart) {
 	return(cellid);
 }
 
+void AMRTreeBranch::octree::end_refinement() {
+
+	long offset = 0;
+	_offsets.clear();
+	_offsets.resize(_tree.size());
+	_offsets[0] = offset;	// root node offset is always 0
+	offset++;
+
+	//
+	// Initialize search with root's first child. 
+	//
+	queue <cid_t> children;
+	cid_t child = get_children(0);
+	if (child == -1) return;
+	children.push(child);
+
+
+	//
+	// Do a breath-first traversal of the entire tree
+	//
+	cid_t c;
+	while (! children.empty() ) {
+		c = children.front();
+
+		// Add child 'c' and its 7 siblings
+		//
+		for (int i=0; i<8; i++) {
+			_offsets[c+i] = offset++;
+			//
+			// if current cell id has any children, push the first child
+			// only onto the stack
+			//
+			if (has_children(c+i)) {
+				child = get_children(c+i);
+				children.push(child); 
+			}
+		}
+		children.pop();
+	}
+	assert(offset == _tree.size());
+}
+
 long AMRTreeBranch::octree::get_offset(cid_t cellid) const {
 
 	if (cellid < 0 || cellid > _tree.size()) return(-1);
 
+	//
+	// if we have a valid offsets table we simply do a lookup
+	//
+	if (_offsets.size()) return(_offsets[cellid]);
+
 	if (cellid == 0) return(0);	// root node
 
 	//
-	// Initialize search with root's children. 
+	// Initialize search with root's first child. 
 	//
 	queue <cid_t> children;
 	cid_t child = get_children(0);
-	for (int i=0; i<8; i++) {
-		children.push(child+i);
-	}
+	if (child == -1) return(-1);
+	children.push(child);
 
 	long offset = 1;
 
-	cid_t c = children.front();
-	while (! children.empty()) {
+	//
+	// Do a breath-first traversal of the tree until the cell with matching
+	// cellid is found
+	//
+	cid_t c;
+	bool found = false;
+	while (! children.empty() && ! found) {
 		c = children.front();
-		if (c==cellid) break;
-		children.pop();
-		if (has_children(c)) {
-			child = get_children(c);
-			for (int i=0; i<8; i++) {
-				children.push(child+i);
+
+		// Check child 'c' and its 7 siblings
+		//
+		for (int i=0; i<8; i++) {
+			if (cellid == c+i) {
+				found = true;
+				break;
+			}
+			offset++;
+			//
+			// if current cell id has any children, push the first child
+			// only onto the stack
+			//
+			if (has_children(c+i)) {
+				child = get_children(c+i);
+				children.push(child); 
 			}
 		}
-		offset++;
+		children.pop();
 	}
-	if (c != cellid) return (-1);
+	if (found != true) return (-1);
 
 	return(offset);
 	

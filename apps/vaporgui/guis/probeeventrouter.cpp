@@ -88,7 +88,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent): QWidget(parent), Ui_ProbeTa
 	seedAttached = false;
 	showAppearance = true;
 	showLayout = false;
-	showImage = false;
+	showImage = true;
 
 	QPixmap* playForwardIcon = new QPixmap(playforward);
 	playButton->setIcon(QIcon(*playForwardIcon));
@@ -612,7 +612,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		probeTextureFrame->update();
 	}
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(probeParams);
+	VizWinMgr::getInstance()->forceRender(probeParams,true);
 	//If we are in probe mode, force a rerender of all windows using the probe:
 	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
 		VizWinMgr::getInstance()->refreshProbe(probeParams);
@@ -793,7 +793,7 @@ guiReleaseXWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams, true);
 }
 void ProbeEventRouter::
 guiReleaseYWheel(int val){
@@ -821,7 +821,7 @@ guiReleaseYWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 void ProbeEventRouter::
@@ -850,7 +850,7 @@ guiReleaseZWheel(int val){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::guiSetProbeType(int t){
 	//Don't set to texture if not GL_2_0
@@ -950,7 +950,7 @@ void ProbeEventRouter::guiRotate90(int selection){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }
 void ProbeEventRouter::guiChangeInstance(int inst){
@@ -1145,7 +1145,7 @@ guiTogglePlanar(bool isOn){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::
 guiAxisAlign(int choice){
@@ -1210,7 +1210,7 @@ guiAxisAlign(int choice){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }	
 void ProbeEventRouter::
@@ -1294,7 +1294,7 @@ guiFitDomain(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 
@@ -1321,7 +1321,7 @@ guiCopyRegionToProbe(){
 	
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 
@@ -1470,7 +1470,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 
 		ProbeRenderer* myRenderer = new ProbeRenderer (viz->getGLWindow(), pParams);
 		viz->getGLWindow()->insertSortedRenderer(pParams,myRenderer);
-
+		VizWinMgr::getInstance()->setClutDirty(pParams);
 		setProbeDirty(pParams);
 		return;
 	}
@@ -1582,6 +1582,7 @@ guiEndChangeMapFcn(){
 	setProbeDirty(pParams);
 	setDatarangeDirty(pParams);
 	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setClutDirty(pParams);
 	VizWinMgr::getInstance()->forceRender(pParams);
 }
 
@@ -1686,7 +1687,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 void ProbeEventRouter::
@@ -1698,7 +1699,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 void ProbeEventRouter::
@@ -1710,7 +1711,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }
 void ProbeEventRouter::
@@ -1725,7 +1726,7 @@ guiSetXSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }
 void ProbeEventRouter::
@@ -1739,7 +1740,7 @@ guiSetYSize(int sliderval){
 	resetTextureSize(pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }
 void ProbeEventRouter::
@@ -1752,7 +1753,7 @@ guiSetZSize(int sliderval){
 	PanelCommand::captureEnd(cmd, pParams);
 	
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 
 }
 void ProbeEventRouter::
@@ -1993,7 +1994,7 @@ captureMouseUp(){
 			updateTab();
 	}
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
@@ -2569,7 +2570,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
 
@@ -2617,7 +2618,7 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
 	
@@ -2665,7 +2666,7 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::guiNudgeZCenter(int val) {
 	
@@ -2713,7 +2714,7 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
@@ -2762,7 +2763,7 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
 	
@@ -2810,7 +2811,7 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 }
 //The following adjusts the sliders associated with box size.
 //Each slider range is the maximum of 
@@ -3041,7 +3042,7 @@ guiCropToRegion(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams);
+		VizWinMgr::getInstance()->forceRender(pParams,true);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to region, insufficient overlap");
 		delete cmd;
@@ -3060,7 +3061,7 @@ guiCropToDomain(){
 		setProbeDirty(pParams);
 		PanelCommand::captureEnd(cmd,pParams);
 		probeTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams);
+		VizWinMgr::getInstance()->forceRender(pParams,true);
 	} else {
 		MessageReporter::warningMsg(" Probe cannot be cropped to domain, insufficient overlap");
 		delete cmd;
@@ -3081,7 +3082,7 @@ guiFitRegion(){
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
-	VizWinMgr::getInstance()->forceRender(pParams);
+	VizWinMgr::getInstance()->forceRender(pParams,true);
 	
 }
 void ProbeEventRouter::
@@ -3342,3 +3343,25 @@ void ProbeEventRouter::paintEvent(QPaintEvent* ev){
 }
 
 #endif
+QSize ProbeEventRouter::sizeHint() const {
+	ProbeParams* pParams = (ProbeParams*) VizWinMgr::getActiveProbeParams();
+	if (!pParams) return QSize(460,1500);
+	int vertsize = 230;//basic panel plus instance panel 
+	//add showAppearance button, showLayout button, showLayout button, frames
+	vertsize += 150;
+	if (showLayout) {
+		vertsize += 544;
+		if(DataStatus::getProjectionString().size() == 0) vertsize -= 56;  //no lat long
+	}
+	if (showImage){
+		vertsize += 712;
+		if (pParams->getProbeType()==0) vertsize -= 123;   //No image control 
+	}
+	if (showAppearance) vertsize += 445;  //Add in appearance panel 
+	//Mac and Linux have gui elements fatter than windows by about 10%
+#ifndef WIN32
+	vertsize = (int)(1.1*vertsize);
+#endif
+
+	return QSize(460,vertsize);
+}

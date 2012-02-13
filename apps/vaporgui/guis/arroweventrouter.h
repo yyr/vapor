@@ -47,6 +47,7 @@ public:
 
 	virtual void captureMouseUp();
 	virtual void captureMouseDown();
+	virtual QSize sizeHint() const;
 	//Following needed if tab has embedded opengl frames
 	//virtual void refreshTab(){}
 

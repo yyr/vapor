@@ -215,13 +215,20 @@ float getMaxIsoEditBound() {
  void RegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df);
 
+ void UnRegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df);
+
  void SetNormalOnOff(bool flag);
  bool GetNormalOnOff();
  void RegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df);
 
  void SetConstantColor(float rgba[4]);
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
 
  bool getMapEditMode();
  bool getIsoEditMode();
@@ -241,7 +248,9 @@ float getMaxIsoEditBound() {
  virtual void SetRefinementLevel(int level);
  virtual int GetRefinementLevel();
  void RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df);
 
  void SetVisualizerNum(int viznum);
  int GetVisualizerNum();
@@ -252,6 +261,7 @@ float getMaxIsoEditBound() {
  void SetNumBits(int nbits);
  int GetNumBits();
  void RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
+ void UnRegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
 int GetMapVariableNum(){
 	//Note:  -1 is returned if there is no match.  That indicates no mapping.
 	return  DataStatus::getInstance()->getSessionVariableNum3D(GetMapVariableName());
@@ -265,7 +275,9 @@ int GetIsoVariableNum(){
  void SetMapVariableName(const string& varName);
  const string& GetMapVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
+ void UnRegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
 	
 //Override the default camera distance, so that IsoSurfaces are always slightly
 //behind volume renderers.  

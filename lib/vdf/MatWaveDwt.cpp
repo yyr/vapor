@@ -1,7 +1,7 @@
-
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <vapor/MatWaveDwt.h>
 #ifdef WIN32
 #include <float.h>

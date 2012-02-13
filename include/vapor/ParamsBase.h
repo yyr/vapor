@@ -191,10 +191,7 @@ static ParamsBase* CreateDefaultParamsBase(int pType){
 //! \param[in] tag XML tag of the ParamsBase instance to be created.
 //! \retval instance newly created ParamsBase instance
 //!
-static ParamsBase* CreateDefaultParamsBase(const string&tag){
-	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
-	return p;
-}
+static ParamsBase* CreateDefaultParamsBase(const string&tag);
 
 //Methods for registration and tabulation of existing Params instances
 
@@ -234,7 +231,13 @@ static ParamsBase* CreateDefaultParamsBase(const string&tag){
 //! \retval status True if the specified class is a Params class
 //!
 	static bool IsParamsTag(const string&tag) {return (GetTypeFromTag(tag) > 0);}
+#ifndef DOXYGEN_SKIP_THIS
+	static ParamsBase* CreateDummyParamsBase(std::string tag);
 	
+	static void addDummyParamsBaseInstance(ParamsBase*const & pb ) {dummyParamsBaseInstances.push_back(pb);}
+
+	static void clearDummyParamsBaseInstances();
+#endif
 private:
 	//These should be accessed by subclasses through get() and set() methods
 	ParamNode *_currentParamNode;
@@ -242,6 +245,7 @@ private:
 	
 
 protected:
+	static vector<ParamsBase*> dummyParamsBaseInstances;
 	static const string _emptyString;
 	virtual ParamNode *getCurrentParamNode() {return _currentParamNode;}
 	
@@ -329,6 +333,16 @@ protected:
  //
  void Clear();
 };
-
+#ifndef DOXYGEN_SKIP_THIS
+//The DummyParamsBase is simply holding the parse information for
+//A paramsBase extension class that is not present. This can only occur
+//as a ParamsBase node inside a DummyParams node
+class DummyParamsBase : public ParamsBase {
+	public:
+		DummyParamsBase(XmlNode *parent, const string &name) :
+		  ParamsBase(parent, name) {}
+	virtual ~DummyParamsBase(){}
+};
+#endif //DOXYGEN_SKIP_THIS
 }; //End namespace VAPoR
 #endif //ParamsBase_H

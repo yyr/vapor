@@ -8,6 +8,7 @@
 #include <vapor/SignificanceMap.h>
 #include <vapor/Compressor.h>
 #include <vapor/EasyThreads.h>
+#include <vapor/NCBuf.h>
 
 #ifdef PARALLEL
 #include <mpi.h>
@@ -66,6 +67,10 @@ public:
 #endif
 
  virtual ~WaveCodecIO();
+ double xformMPI;
+ double methodTimer;
+ double methodThreadTimer;
+ double ioMPI;
 
  //! Open the named variable for reading
  //!
@@ -392,17 +397,18 @@ public:
  virtual void GetBlockSize(size_t bs[3], int reflevel) const;
 #ifdef PARALLEL
  void SetIOComm(MPI_Comm NewIOComm) {std::cout << "WaveCodecIO::SetIOComm, nthreads = " << _nthreads << std::endl; IO_Comm = NewIOComm;};
- void SetCollectiveIO(bool newCollectiveIO) {std::cout << "WaveCodecIO::SetCollectiveIO, nthreads = " << _nthreads << std::endl; collectiveIO = newCollectiveIO;};
 #endif
+ void SetCollectiveIO(bool newCollectiveIO) {
+   collectiveIO = newCollectiveIO;
+ };
  friend void     *RunBlockReadRegionThread(void *object);
  friend void     *RunBlockWriteRegionThread(void *object);
 
 private:
 #ifdef PARALLEL
  MPI_Comm IO_Comm;
- bool collectiveIO;
 #endif
-
+ bool collectiveIO;
  //
  // Threaded read object for parallel inverse transforms 
  // (data reconstruction)
@@ -448,10 +454,11 @@ private:
 public:
  int _nthreads; // num execution threads
  int getNumThread(){return _nthreads;}
+ void EnableBuffering(size_t count[3], size_t divisor, int rank);
 private:
-
  int _next_block;
  int _threadStatus;
+ size_t _NC_BUF_SIZE; //buffering disabled by default
  ReadWriteThreadObj **_rw_thread_objs;
  SignificanceMap **_sigmaps;
  vector <SignificanceMap **> _sigmapsThread;	// one set for each thread
@@ -466,6 +473,7 @@ private:
  vector <Compressor *> _compressorThread2DXZ;
  vector <Compressor *> _compressorThread2DYZ;
  vector <Compressor *> _compressorThread; // current compressor threads
+ vector <NCBuf *> _ncbufs;
 
  VarType_T _vtype;  // Type (2d, or 3d) of currently opened variable
  VarType_T _compressorType;  // Type (2d, or 3d) of current _compressor

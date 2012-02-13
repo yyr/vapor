@@ -55,7 +55,7 @@ endif
 
 RPATHFLAG		= -Wl,-rpath,
 
-LDFLAGS			+= -lrt
+LDFLAGS			+= -lrt 
 
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
@@ -103,3 +103,7 @@ INSTALL_EXEC = /usr/bin/install -m 0755
 INSTALL_NONEXEC = /usr/bin/install -m 0644
 
 CLD_EXCLUDE_LIBS = ^/usr ^/lib 
+#
+# libcurl seems to be absent on some linux distros
+#
+CLD_INCLUDE_LIBS += libcurl

@@ -2,7 +2,8 @@ TOP = ../..
 
 include $(TOP)/make/config/prebase.mk
 
-PFILES = BigBlueMarble.tiff
+PFILES = $(wildcard *.tif)
+PFILES += $(wildcard *.tiff)
 
 
 INSTALL_IMAGES_DIR = $(INSTALL_SHAREDIR)/images

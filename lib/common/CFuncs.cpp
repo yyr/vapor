@@ -35,13 +35,18 @@ string VetsUtil::Basename(string &path) {
 
 string VetsUtil::Dirname(string &path) {
 #ifdef WIN32
-	string separator = "\\";
-#else
-	string separator = "/";
+	string separator2 = "\\";
 #endif
+	string separator = "/";
 
 	string::size_type pos = path.rfind(separator);
-	if (pos == string::npos) return(".");
+	if (pos == string::npos){ 
+#ifdef WIN32
+		pos = path.rfind(separator2);
+		if (pos == string::npos)
+#endif
+			return(".");
+	}
 
 	return(path.substr(0, pos));
 }

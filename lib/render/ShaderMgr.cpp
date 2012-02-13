@@ -75,7 +75,7 @@ bool ShaderMgr::loadShaders()
 		QStringList efcFiles = entries.filter(".efc");
 		
 		if (efcFiles.size() == 0) {
-			SetErrMsg(VAPOR_ERROR_GL_SHADER, "No .efc files found");
+			SetErrMsg(VAPOR_ERROR_GL_SHADER, "No .efc files found in directory: %s",sourceDir.c_str());
 			return false;
 		}
 		for (int i = 0; i < efcFiles.size(); i++) {

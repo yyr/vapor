@@ -445,13 +445,14 @@ virtual int SetElementStringVec(
  //output should not occur in input.
 	
  static string replaceAll(const string& sourceString, const char* input, const char* output);
+ static vector <long> _emptyLongVec;				// empty elements 
+ static vector <double> _emptyDoubleVec;
+ static vector <string> _emptyStringVec;
+ static string _emptyString;
+	
 
 protected:
- vector <long> _emptyLongVec;				// empty elements 
- vector <double> _emptyDoubleVec;
- vector <string> _emptyStringVec;
- string _emptyString;
- map <string, vector<long> > _longmap;	// node's long data
+  map <string, vector<long> > _longmap;	// node's long data
  map <string, vector<double> > _doublemap;	// node's double data
  map <string, string> _stringmap;		// node's string data
  bool _errOnMissing;

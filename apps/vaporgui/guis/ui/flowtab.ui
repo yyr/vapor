@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>442</width>
-    <height>2043</height>
+    <height>2075</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -51,7 +51,7 @@
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>80</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">
@@ -4027,7 +4027,7 @@ in this panel.</string>
              </size>
             </property>
             <property name="text">
-             <string>Show Appearance Settings</string>
+             <string>Hide Appearance Settings</string>
             </property>
            </widget>
           </item>
@@ -4416,6 +4416,12 @@ per flow line.</string>
                                <verstretch>0</verstretch>
                               </sizepolicy>
                              </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>20</height>
+                              </size>
+                             </property>
                              <property name="text">
                               <string>Line Smoothness</string>
                              </property>
@@ -4483,7 +4489,7 @@ p, li { white-space: pre-wrap; }
                              <property name="minimumSize">
                               <size>
                                <width>100</width>
-                               <height>0</height>
+                               <height>20</height>
                               </size>
                              </property>
                              <property name="maximumSize">
@@ -4537,6 +4543,12 @@ p, li { white-space: pre-wrap; }
                                <horstretch>0</horstretch>
                                <verstretch>0</verstretch>
                               </sizepolicy>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>20</height>
+                              </size>
                              </property>
                              <property name="text">
                               <string>Typical Flow Length</string>
@@ -4623,7 +4635,7 @@ p, li { white-space: pre-wrap; }
                              <property name="minimumSize">
                               <size>
                                <width>100</width>
-                               <height>0</height>
+                               <height>20</height>
                               </size>
                              </property>
                              <property name="maximumSize">
@@ -5352,6 +5364,12 @@ of such diamonds.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="minOpacityBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font/>
                    </property>
@@ -5381,6 +5399,12 @@ of such diamonds.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="maxOpacityBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font/>
                    </property>
@@ -5579,7 +5603,7 @@ bounds.</string>
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>0</height>
+                        <height>80</height>
                        </size>
                       </property>
                       <property name="whatsThis">
@@ -5632,7 +5656,7 @@ the right mouse button.</string>
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>0</height>
+                        <height>30</height>
                        </size>
                       </property>
                       <property name="whatsThis">
@@ -5661,6 +5685,12 @@ right mouse button.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLineEdit" name="minColormapEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>100</width>
@@ -5736,6 +5766,12 @@ bounds.</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="maxColormapEdit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>100</width>
@@ -5770,6 +5806,12 @@ bounds.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="minColorBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font/>
                    </property>
@@ -5799,6 +5841,12 @@ bounds.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="maxColorBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font/>
                    </property>

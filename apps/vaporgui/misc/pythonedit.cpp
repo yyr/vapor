@@ -596,7 +596,7 @@ void PythonEdit::applyScript(){
 
 		scriptID = ds->addDerivedScript(in2dVars, out2dVars, in3dVars, out3dVars, pythonProg);
 		if (scriptID < 0) {
-			MessageReporter::errorMsg(" Invalid script variables ");
+			MessageReporter::errorMsg(" Invalid script variable(s). Is a variable name already in use?");
 			return;
 		}
 	} 

@@ -37,7 +37,7 @@ namespace VAPoR {
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
-
+//!
 //! The DataStatus class keeps track of available variables, timesteps, resolutions, and data ranges.
 //! It is constructed by the Session whenever a new metadata is loaded.
 //! It keeps a lazily evaluated value of min/max of each variable for each timestep.
@@ -243,13 +243,7 @@ public:
 	//! \param[in] int sesvarnum Session variable number
 	//! \param[in] int timestep  Time Step
 	//! \retval int maximum refinement level
-	int maxXFormPresent3D(int sesvarnum, int timestep){
-		if (timestep < 0 || timestep >= numTimesteps) return -1;
-		if (sesvarnum<0) return -1;
-		if (!variableExists[sesvarnum]) return -1;
-		if (getVDCType()==2) return getNumTransforms();
-		return (maxLevel3D[sesvarnum][timestep]);
-	}
+	int maxXFormPresent3D(int sesvarnum, int timestep);
 
 	//! Indicates the maximum refinement level of a 2D variable
 	//! that is present at a specified time step.
@@ -257,13 +251,7 @@ public:
 	//! \param[in] int sesvarnum Session variable number
 	//! \param[in] int timestep  Time Step
 	//! \retval int maximum refinement level
-	int maxXFormPresent2D(int sesvarnum, int timestep){
-		if (timestep < 0 || timestep >= numTimesteps) return -1;
-		if (sesvarnum<0) return -1;
-		if (!variableExists2D[sesvarnum]) return -1;
-		if (getVDCType()==2) return getNumTransforms();
-		return (maxLevel2D[sesvarnum][timestep]);
-	}
+	int maxXFormPresent2D(int sesvarnum, int timestep);
 
 	//! Indicates the maximum LOD level of a 3D variable
 	//! that is present at a specified time step.
@@ -271,13 +259,7 @@ public:
 	//! \param[in] int sesvarnum Session variable number
 	//! \param[in] int timestep  Time Step
 	//! \retval int maximum LOD
-	int maxLODPresent3D(int sesvarnum, int timestep){
-		if (timestep < 0 || timestep >= numTimesteps) return -1;
-		if (sesvarnum<0) return -1;
-		if (!variableExists[sesvarnum]) return -1;
-		if (getVDCType()!=2) return 0;
-		return (maxLevel3D[sesvarnum][timestep]);
-	}
+	int maxLODPresent3D(int sesvarnum, int timestep);
 
 	//! Indicates the maximum LOD level of a 2D variable
 	//! that is present at a specified time step.
@@ -285,13 +267,7 @@ public:
 	//! \param[in] int sesvarnum Session variable number
 	//! \param[in] int timestep  Time Step
 	//! \retval int maximum LOD
-	int maxLODPresent2D(int sesvarnum, int timestep){
-		if (timestep < 0 || timestep >= numTimesteps) return -1;
-		if (sesvarnum<0) return -1;
-		if (!variableExists2D[sesvarnum]) return -1;
-		if (getVDCType()!=2) return 0;
-		return (maxLevel2D[sesvarnum][timestep]);
-	}
+	int maxLODPresent2D(int sesvarnum, int timestep);
 	
 	//! Indicates the maximum refinement level of a variable
 	//! that is present at a specified time step.

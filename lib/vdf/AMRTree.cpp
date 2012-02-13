@@ -639,6 +639,21 @@ AMRTree::cid_t	AMRTree::RefineCell(AMRTree::cid_t cellid) {
 
 }
 
+void AMRTree::EndRefinement() {
+
+    SetDiagMsg( "AMRTree::EndRefinement()");
+
+	for (int z = 0; z < _baseDim[2]; z++) {
+	for (int y = 0; y < _baseDim[1]; y++) {
+	for (int x = 0; x < _baseDim[0]; x++) {
+		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+
+		_treeBranches[index]->EndRefinement();
+	}
+	}
+	}
+}
+
 AMRTree::cid_t	AMRTree::GetNextCell(bool restart) {
 
     SetDiagMsg( "AMRTree::GetNextCell(%d)", restart);

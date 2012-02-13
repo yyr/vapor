@@ -133,11 +133,16 @@ MatWaveBase::_wave_len_validate (
 	*lev = (int) (log((double) sigInLen / (double) (waveLength-1)) / log(2.0));
 	if (*lev < 1) *lev = 0;
 
+#ifdef	DEAD
 	//
 	// Hack to deal with bug in convolution kernels that choke
 	// on a signale of length 2 and a filter of length 2
 	//
+	// 12/1/11: this fix for bug 3409670 no longer seems to be necessary.
+	//
 	if (waveLength == 2) *lev -= 1;
+#endif
+
 
 #ifdef	DEAD
 	else {

@@ -258,15 +258,16 @@ void Session::setDefaultPrefs(){
 #else
 	char buf[50];
 	char buf1[50];
-	uid_t	uid = getuid();
+	
 #ifdef Darwin
 	char* defDir = getenv("HOME");
-	if (!defDir) defDir = ".";
+	if (!defDir) defDir = (char*)".";
 	const char* defaultDir = defDir;
 	sprintf (buf, "%s/vaporlog.txt", defaultDir);
 	sprintf (buf1, "%s/VaporAutosave.vss", defaultDir);
 	
 #else
+	uid_t	uid = getuid();
 	const char* defaultDir = ".";
 	sprintf (buf, "/tmp/vaporlog.%6.6d.txt",uid);
 	sprintf (buf1, "/tmp/VaporAutosave.%6.6d.vss",uid);
@@ -434,6 +435,7 @@ loadFromFile(ifstream& ifs){
 	resetMetadata(files,true, false);
 	//Reset message counts:
 	MessageReporter::getInstance()->resetCounts();
+	
 	//Then set values from file.
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	tempParsedTF = 0;
@@ -893,6 +895,9 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 	//Handle the various cases of loading the metadata
 	if (defaultSession){
 		DataStatus::clearVariableNames();
+		//Clear out any dummy params classes:
+		Params::clearDummyParamsInstances();
+		ParamsBase::clearDummyParamsBaseInstances();
 	} else {
 		
 		if (!doMerge) {

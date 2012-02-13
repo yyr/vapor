@@ -297,7 +297,7 @@ doLastPopup(messagePriority t, const char* message){
 }
 char* MessageReporter::
 convertText(const char* format, va_list args){
-	bool done = false;
+	
 	if (!messageString) {
 		messageString = new char[ALLOC_SIZE];
 		messageSize = ALLOC_SIZE;
@@ -306,6 +306,7 @@ convertText(const char* format, va_list args){
 	VSNPRINTF(messageString, messageSize, format, args);
 	return messageString;
 #else
+	bool done = false;
 	while (! done) {
 		int rc = VSNPRINTF(messageString, messageSize, format, args);
 		if (rc < (messageSize-1)) {

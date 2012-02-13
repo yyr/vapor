@@ -881,3 +881,22 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance, bo
 	updateTab();
 }
 
+QSize ArrowEventRouter::sizeHint() const {
+	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	if (!aParams) return QSize(460,1500);
+	int vertsize = 265;//basic panel plus instance panel 
+	//add showAppearance button, showLayout button, frames
+	vertsize += 100;
+	if (showLayout) {
+		vertsize += 358;
+		if (DataStatus::getProjectionString().size() == 0) vertsize -= 66; //no lat/lon coordinates
+	}
+	if (showAppearance) vertsize += 153;  //Add in appearance panel 
+	
+	//Mac and Linux have gui elements fatter than windows by about 10%
+#ifndef WIN32
+	vertsize = (int)(1.1*vertsize);
+#endif
+
+	return QSize(460,vertsize);
+}

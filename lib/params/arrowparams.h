@@ -17,7 +17,13 @@ public:
 	virtual ~ArrowParams();
 	virtual void restart();
 	
-	virtual Box* GetBox() {return (Box*)GetRootNode()->GetNode(Box::_boxTag)->GetParamsBase();}
+	virtual Box* GetBox() {
+		ParamNode* pNode = GetRootNode()->GetNode(Box::_boxTag);
+		if (pNode) return (Box*)pNode->GetParamsBase();
+		Box* box = new Box();
+		GetRootNode()->AddNode(Box::_boxTag, box->GetRootNode());
+		return box;
+	}
 
 	//! Obtain the current compression level.
 	//!
@@ -66,7 +72,8 @@ public:
 		setAllBypass(false);
 	}
 	const vector<long>& GetRakeGrid(){
-		return (GetRootNode()->GetElementLong(_rakeGridTag));
+		const vector<long> defaultGrid(3,1);
+		return (GetRootNode()->GetElementLong(_rakeGridTag,defaultGrid));
 	}
 	void SetRakeGrid(const int grid[3]){
 		vector<long> griddims;
@@ -74,7 +81,8 @@ public:
 		GetRootNode()->SetElementLong(_rakeGridTag,griddims);
 	}
 	float GetLineThickness(){
-		return ((float)GetRootNode()->GetElementDouble(_lineThicknessTag)[0]);
+		const vector<double> one(1,1.);
+		return ((float)GetRootNode()->GetElementDouble(_lineThicknessTag,one)[0]);
 	}
 	void SetLineThickness(double val){
 		GetRootNode()->SetElementDouble(_lineThicknessTag, val);
@@ -82,7 +90,8 @@ public:
 
 	//Specify a scale factor for vector length.  (1 is scene diameter)/100
 	float GetVectorScale(){
-		return ((float)GetRootNode()->GetElementDouble(_vectorScaleTag)[0]);
+		const vector<double>defaultScale(1,1.);
+		return ((float)GetRootNode()->GetElementDouble(_vectorScaleTag,defaultScale)[0]);
 	}
 	void SetVectorScale(double val){
 		GetRootNode()->SetElementDouble(_vectorScaleTag, val);
@@ -92,10 +101,12 @@ public:
 		setAllBypass(false);
 	}
 	int GetRefinementLevel(){
-		return (GetRootNode()->GetElementLong(_RefinementLevelTag)[0]);
+		const vector<long>defaultRefinement(1,0);
+		return (GetRootNode()->GetElementLong(_RefinementLevelTag,defaultRefinement)[0]);
 	}
 	bool IsTerrainMapped(){
-		return (GetRootNode()->GetElementLong(_terrainMapTag)[0]);
+		const vector<long>off(1,0);
+		return (GetRootNode()->GetElementLong(_terrainMapTag,off)[0]);
 	}
 	void SetTerrainMapped(bool val) {
 		GetRootNode()->SetElementLong(_terrainMapTag, (val ? 1:0));
@@ -113,19 +124,20 @@ public:
 		setAllBypass(false);
 	}
 	bool VariablesAre3D() {
-		return (GetRootNode()->GetElementLong(_variableDimensionTag)[0] == 3);
+		const vector<long>three(1,3);
+		return (GetRootNode()->GetElementLong(_variableDimensionTag,three)[0] == 3);
 	}
 	void AlignGridToData(bool val) {
 		GetRootNode()->SetElementLong(_alignGridTag,(val ? 1:0));
 		setAllBypass(false);
 	}
 	bool IsAlignedToData() {
-		if (GetRootNode()->HasElementLong(_alignGridTag))
-			return (GetRootNode()->GetElementLong(_alignGridTag)[0]);
-		else return false;
+		const vector<long> notAligned(1,0);
+		return (GetRootNode()->GetElementLong(_alignGridTag,notAligned)[0]);
 	}
 	const vector<long> GetGridAlignStrides(){
-		return GetRootNode()->GetElementLong(_alignGridStridesTag);
+		const vector<long> defaultStrides(3,10);
+		return GetRootNode()->GetElementLong(_alignGridStridesTag,defaultStrides);
 	}
 	void SetGridAlignStrides(const vector<long>& strides){
 		GetRootNode()->SetElementLong(_alignGridStridesTag, strides);

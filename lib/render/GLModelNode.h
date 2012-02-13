@@ -25,8 +25,8 @@
 
 using namespace std;
 
-class aiNode;
-class aiScene;
+struct aiNode;
+struct aiScene;
 
 namespace VAPoR 
 {

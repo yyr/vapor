@@ -65,6 +65,9 @@ protected:
 	virtual bool rebuildElevationGrid(size_t timestep)=0;
 	void calcElevGridNormals(size_t timestep);
 
+	//Indicate if there is a Mercator or Lambert reprojection, only for image renderer
+	bool lambertOrMercator;
+
 };
 };
 

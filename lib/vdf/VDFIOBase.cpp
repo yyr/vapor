@@ -81,7 +81,7 @@ double VDFIOBase::GetTime() const {
 	ts.tv_sec = ts.tv_nsec = 0;
 #endif
 
-#ifdef Linux
+#if defined(Linux) || defined(AIX)
 	clock_gettime(CLOCK_REALTIME, &ts);
 	t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
 #endif
@@ -139,8 +139,16 @@ int    VAPoR::MkDirHier(const string &dir) {
 void    VAPoR::DirName(const string &path, string &dir) {
 	
 	string::size_type idx = path.find_last_of('/');
+#ifdef WIN32
+	if (idx == string::npos)
+		idx = path.find_last_of('\\');
+#endif
 	if (idx == string::npos) {
+#ifdef WIN32
+		dir.assign(".\\");
+#else
 		dir.assign("./");
+#endif
 	}
 	else {
 		dir = path.substr(0, idx+1);

@@ -998,16 +998,24 @@ void MainForm::loadData()
 		"Choose the Metadata File to load into current session",
 		Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)");
+	if (filename == QString::null){
+		//Try again.  Probably invalid Metadata file
+		filename = QFileDialog::getOpenFileName(this,
+		"Choose the Metadata File to load into current session",
+		"MetadataFile.vdf",
+		"Vapor Metadata Files (*.vdf)");
+	}
 	if(filename != QString::null){
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile()){
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			Session::getInstance()->resetMetadata(files, true, false);
-			
 		}
 		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
+		return;
 	}
+	else MessageReporter::errorMsg("Invalid metadata file");
 }
 //Merge data into current session
 //
@@ -1057,10 +1065,18 @@ void MainForm::importWRFData()
 	//This launches a panel that enables the
     //user to choose input WRF output files, then to
 	//use them to create a new data
+	//Don't allow : in windows filenames
+#ifdef WIN32
+	if (Session::getInstance()->getMetadataFile().find(":") != string::npos){
+		QString mdfile = Session::getInstance()->getMetadataFile().c_str();
+		mdfile.replace(':','_');
+		Session::getInstance()->setMetadataFile(mdfile.toAscii());
+	}
+#endif	
 	QStringList filenames = QFileDialog::getOpenFileNames(this,
 		"Select WRF-ARW Output Files to import into current session",
 		Session::getInstance()->getMetadataFile().c_str(),"");
-	
+
 	if (filenames.length() > 0){
 		//Create a string vector from the QStringList
 		vector<string> files;

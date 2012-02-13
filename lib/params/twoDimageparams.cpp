@@ -712,6 +712,11 @@ readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 				imgExts[1] = padfTiePoints[4]-pixelStart[1]*modelPixelScale[1];
 				imgExts[2] = padfTiePoints[3]+(w-1-pixelStart[0])*modelPixelScale[0];
 				imgExts[3] = padfTiePoints[4]+(h-1-pixelStart[1])*modelPixelScale[1];
+				if (pj_is_latlong(p)){
+					if (imgExts[1]<= -89.9999) imgExts[1] = -89.9999;
+					if (imgExts[3] >= 89.9999) imgExts[3] = 89.9999;
+				}
+				//Don't allow latlong image to go all the way to the poles
 			} else {
 				//Inadequate georeferencing:
 				MyBase::SetErrMsg(VAPOR_WARNING_TWO_D, "Image is not geo-referenced\n");

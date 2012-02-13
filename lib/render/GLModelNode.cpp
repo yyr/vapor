@@ -13,7 +13,7 @@
 
 #ifdef MODELS
 
-#include <GLModelNode.h>
+#include "GLModelNode.h"
 #include "glutil.h"
 
 #include <assimp/assimp.h>

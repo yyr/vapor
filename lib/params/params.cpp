@@ -106,7 +106,6 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	enabled = false;
 }
 const std::string& Params::paramName(Params::ParamsBaseType type){
-	Params* p = GetDefaultParams(type);
 	return GetDefaultParams(type)->getShortName();
 }
 float RenderParams::getMinColorMapBound(){
@@ -467,7 +466,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 		//Use the full domain as the extents of the 3rd dimension
 		//This is important when deriving 2d variables from 3d inputs.
 		DataMgr* dataMgr = ds->getDataMgr();
-		size_t bdim[3], fulldim[3], bsize[3];
+		size_t fulldim[3], bsize[3];
 // Following is a workaround for bug in DataMgr::GetDimBlk:
 		dataMgr->GetDim(fulldim,refLevel);
 		dataMgr->GetBlockSize(bsize,refLevel);
@@ -667,4 +666,10 @@ Params* Params::CreateDummyParams(const std::string tag){
 }
 DummyParams::DummyParams(XmlNode* parent, const string tag, int winnum) : Params(parent, tag, winnum){
 	myTag = tag;
+}
+void Params::clearDummyParamsInstances(){
+	for(int i = 0; i< dummyParamsInstances.size(); i++){
+		delete dummyParamsInstances[i];
+	}
+	dummyParamsInstances.clear();
 }

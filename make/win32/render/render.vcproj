@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(JPEG_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;&quot;$(NETCDF_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS"
+				AdditionalIncludeDirectories="&quot;$(ASSIMP_INC_PATH)&quot;;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;&quot;$(NETCDF_INC_PATH)&quot;"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;DEBUG;_WINDOWS;_USRDLL;QT_GUI_LIB;MODELS;_CRT_SECURE_NO_WARNINGS;QT_CORE_LIB;QT_OPENGL_LIB;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;RENDER_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -66,10 +66,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib opengl32.lib glu32.lib proj.lib libtiff.lib glew32.lib libjpeg.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib opengl32.lib glu32.lib proj.lib libtiff.lib glew32.lib libjpeg.lib assimp.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(JPEG_LIB_PATH)&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)/assimp_debug-dll_win32&quot;;&quot;$(JPEG_LIB_PATH)&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="../../../targets/win32/bin/render.pdb"
@@ -126,8 +126,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(JPEG_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;&quot;$(NETCDF_INC_PATH)&quot;"
-				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;QT_THREAD_SUPPORT"
+				AdditionalIncludeDirectories="&quot;$(ASSIMP_INC_PATH)&quot;;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;../../../include/;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(PROJ_INC_PATH)&quot;;&quot;$(QTDIR)/include&quot;;&quot;$(EXPAT_INC_PATH)&quot;;../../../lib/params;../../../lib/vdf;&quot;$(NETCDF_INC_PATH)&quot;"
+				PreprocessorDefinitions="SPHERICAL_GRID;WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS;MODELS;QT_THREAD_SUPPORT"
 				RuntimeLibrary="2"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
@@ -148,10 +148,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCore4.lib QtGui4.lib QtOpenGL4.lib opengl32.lib glu32.lib proj.lib libtiff.lib glew32.lib libjpeg.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\params.lib mpr.lib QtCore4.lib QtGui4.lib QtOpenGL4.lib opengl32.lib glu32.lib proj.lib libtiff.lib glew32.lib libjpeg.lib assimp.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(JPEG_LIB_PATH)&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)/assimp_release-dll_win32&quot;;&quot;$(JPEG_LIB_PATH)&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(TIFF_LIB_PATH)&quot;;&quot;$(PROJ_LIB_PATH)&quot;;&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -242,6 +242,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\GLModelNode.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\glwindow.cpp"
 				>
 			</File>
@@ -259,6 +263,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\Matrix3d.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\ModelRenderer.cpp"
 				>
 			</File>
 			<File
@@ -364,6 +372,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\GLModelNode.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\glwindow.h"
 				>
 			</File>
@@ -381,6 +393,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\Matrix3d.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\ModelRenderer.h"
 				>
 			</File>
 			<File

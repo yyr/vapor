@@ -57,7 +57,7 @@
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>80</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">

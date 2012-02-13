@@ -414,6 +414,8 @@ reinit(bool doOverride){
 			seedBoxExtents[i] = fullExtents[i];
 		}
 	} else {
+
+
 		for (i = 0; i<3; i++){
 			if(seedBoxExtents[i] < fullExtents[i])
 				seedBoxExtents[i] = fullExtents[i];

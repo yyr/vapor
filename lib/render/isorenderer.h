@@ -27,6 +27,7 @@
 #include "renderer.h"
 #include "glwindow.h"
 #include "VolumeRenderer.h"
+#include "ParamsIso.h"
 
 namespace VAPoR {
 
@@ -79,6 +80,9 @@ namespace VAPoR {
 	ParamNode::DirtyFlag _isovalueDF;
 	ParamNode::DirtyFlag _colorMapDF;
 	ParamNode::DirtyFlag _dataDF;
+
+	ParamsIso *_myParamsIso;
+	void _unregisterDirtyFlags();
 
   };
 };

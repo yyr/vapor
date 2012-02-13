@@ -231,4 +231,22 @@ void Renderer::disableFullClippingPlanes(){
 	glDisable(GL_CLIP_PLANE5);
 }
 
- 
+ void Renderer::enable2DClippingPlanes(){
+	GLdouble topPlane[] = {0., -1., 0., 1.}; //y = 1
+	GLdouble rightPlane[] = {-1., 0., 0., 1.0};// x = 1
+	GLdouble leftPlane[] = {1., 0., 0., 0.001};//x = -.001
+	GLdouble botPlane[] = {0., 1., 0., 0.001};//y = -.001
+	
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	topPlane[3] = extents[4]*1.001;
+	rightPlane[3] = extents[3]*1.001;
+	
+	glClipPlane(GL_CLIP_PLANE0, topPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glClipPlane(GL_CLIP_PLANE1, rightPlane);
+	glEnable(GL_CLIP_PLANE1);
+	glClipPlane(GL_CLIP_PLANE2, botPlane);
+	glEnable(GL_CLIP_PLANE2);
+	glClipPlane(GL_CLIP_PLANE3, leftPlane);
+	glEnable(GL_CLIP_PLANE3);
+}

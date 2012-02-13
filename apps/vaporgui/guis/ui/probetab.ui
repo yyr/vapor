@@ -57,7 +57,7 @@
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>20</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">
@@ -1771,6 +1771,12 @@ same as the X, Y, and Z axes.</string>
                      <layout class="QHBoxLayout">
                       <item>
                        <widget class="QLabel" name="textLabel9_2_2">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>15</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>Upper-right lon/lat</string>
                         </property>
@@ -1832,6 +1838,12 @@ same as the X, Y, and Z axes.</string>
                      <layout class="QHBoxLayout">
                       <item>
                        <widget class="QLabel" name="textLabel9_2_2_2">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>15</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>Lower-left lon/lat</string>
                         </property>
@@ -2500,7 +2512,7 @@ Domain</string>
              <string>Click to toggle hide/show the probe image options</string>
             </property>
             <property name="text">
-             <string>Show Image Settings</string>
+             <string>Hide Image Settings</string>
             </property>
            </widget>
           </item>
@@ -3640,6 +3652,12 @@ change the selection in the probe</string>
                   <layout class="QVBoxLayout">
                    <item>
                     <widget class="QCheckBox" name="colorMergeCheckbox">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="toolTip">
                       <string>Merge the color-mapped data variables with the flow image</string>
                      </property>
@@ -3802,7 +3820,7 @@ how the histogram is scaled.</string>
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>0</height>
+                        <height>150</height>
                        </size>
                       </property>
                       <property name="maximumSize">
@@ -3887,6 +3905,12 @@ available from the right mouse button.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLineEdit" name="leftMappingBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Minimum of transfer function domain</string>
                    </property>
@@ -3923,6 +3947,12 @@ specified range.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel2_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string>TF Domain Bounds</string>
                    </property>
@@ -3979,6 +4009,12 @@ specified range.</string>
                 <layout class="QHBoxLayout">
                  <item>
                   <widget class="QLabel" name="minDataBound">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font/>
                    </property>
@@ -4005,6 +4041,12 @@ specified range.</string>
                  </item>
                  <item>
                   <widget class="QLabel" name="textLabel2_5">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>15</height>
+                    </size>
+                   </property>
                    <property name="toolTip">
                     <string>Data bounds are estimated from the variable at the first available time step.</string>
                    </property>

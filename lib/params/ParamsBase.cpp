@@ -43,6 +43,7 @@ using namespace VAPoR;
 std::map<string,int> ParamsBase::classIdFromTagMap;
 std::map<int,string> ParamsBase::tagFromClassIdMap;
 std::map<int,ParamsBase::BaseCreateFcn> ParamsBase::createDefaultFcnMap;
+std::vector<ParamsBase*> ParamsBase::dummyParamsBaseInstances;
 const std::string ParamsBase::_emptyString;
 
 int ParamsBase::numParamsClasses = 0;
@@ -152,8 +153,11 @@ bool ParamsBase::elementStartHandler(
 			//Special case for transfer functions etc:
 			if (tag == TransferFunction::_transferFunctionTag ||
 				tag == ParamsIso::_IsoControlTag ||
-				tag == MapperFunction::_mapperFunctionTag ||
-                            tag == Transform3d::xmlTag()) {
+				tag == MapperFunction::_mapperFunctionTag 
+#ifdef MODELS
+				|| tag == Transform3d::xmlTag()
+#endif //MODELS
+				) {
 				//Create a new child node
 				map <string, string> childattrs;
 				ParamNode *child = new ParamNode(tag, childattrs);
@@ -370,4 +374,24 @@ ParamsBase* ParamsBase::deepCopy(ParamNode* newRoot) {
 	base->SetRootParamNode(newRoot);
 	if(newRoot) newRoot->SetParamsBase(base);
 	return base;
+}
+ParamsBase* ParamsBase::CreateDummyParamsBase(const std::string tag){
+	return ((ParamsBase*)(new DummyParamsBase(0,tag)));
+}
+
+void ParamsBase::clearDummyParamsBaseInstances(){
+	for(int i = 0; i< dummyParamsBaseInstances.size(); i++){
+		delete dummyParamsBaseInstances[i];
+	}
+	dummyParamsBaseInstances.clear();
+}
+ParamsBase* ParamsBase::CreateDefaultParamsBase(const string&tag){
+	ParamsBaseType typ = GetTypeFromTag(tag);
+	if (!typ){
+		ParamsBase* pb = CreateDummyParamsBase(tag);
+		addDummyParamsBaseInstance(pb);
+		return pb;
+	}
+	ParamsBase *p = (createDefaultFcnMap[GetTypeFromTag(tag)])();
+	return p;
 }

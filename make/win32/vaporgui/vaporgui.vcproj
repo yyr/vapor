@@ -46,8 +46,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
-				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG"
+				AdditionalIncludeDirectories="&quot;$(ASSIMP_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
+				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;MODELS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="false"
 				ExceptionHandling="1"
@@ -74,10 +74,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="glew32.lib QtCore4.lib QtOpenGL4.lib QtGui4.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26.lib"
+				AdditionalDependencies="glew32.lib QtCore4.lib QtOpenGL4.lib QtGui4.lib qtmain.lib opengl32.lib assimp.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)/assimp_release-dll_win32&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				DelayLoadDLLs="opengl32.dll"
@@ -141,8 +141,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
-				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(ASSIMP_INC_PATH)&quot;;&quot;$(GLEW_INC_PATH)&quot;;&quot;$(PYTHON_INC_PATH)&quot;;&quot;$(NUMPY_INC_PATH)&quot;;&quot;$(GTIFF_INC_PATH)&quot;;&quot;$(TIFF_INC_PATH)&quot;;&quot;$(EXPAT_INC_PATH)&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;&quot;$(JPEG_INC_PATH)&quot;;&quot;$(QTDIR)/include/QtOpenGL&quot;;&quot;$(QTDIR)/include/QtCore&quot;;&quot;$(QTDIR)/include/QtGui&quot;;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;$(QTDIR)\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
+				PreprocessorDefinitions="SPHERICAL_GRID;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_THREAD_SUPPORT;QT_OPENGL_LIB;_CRT_SECURE_NO_WARNINGS;MODELS;DEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -170,11 +170,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26_d.lib"
+				AdditionalDependencies="glew32.lib QtCored4.lib QtOpenGLd4.lib QtGuid4.lib qtmaind.lib assimp.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26_d.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)/assimp_debug-dll_win32&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_DEBUG_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="true"
@@ -307,6 +307,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ModelEventRouter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\OpacityWidget.cpp"
 				>
 			</File>
@@ -352,6 +356,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformDelegate.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformListModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformWidget.cpp"
 				>
 			</File>
 			<File
@@ -852,6 +868,32 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ModelEventRouter.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing ModelEventRouter"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ModelEventRouter.h -o ..\..\..\apps\vaporgui\moc\moc_ModelEventRouter.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_ModelEventRouter.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing ModelEventRouter"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ModelEventRouter.h -o ..\..\..\apps\vaporgui\moc\moc_ModelEventRouter.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_ModelEventRouter.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\OpacityWidget.h"
 				>
 				<FileConfiguration
@@ -1096,6 +1138,84 @@
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\TFLocationTip.h"
 				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformDelegate.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformDelegate.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformDelegate.h -o ..\..\..\apps\vaporgui\moc\moc_TransformDelegate.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformDelegate.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformDelegate.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformDelegate.h -o ..\..\..\apps\vaporgui\moc\moc_TransformDelegate.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformDelegate.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformListModel.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformListModel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformListModel.h -o ..\..\..\apps\vaporgui\moc\moc_TransformListModel.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformListModel.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformListModel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformListModel.h -o ..\..\..\apps\vaporgui\moc\moc_TransformListModel.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformListModel.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\TransformWidget.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformWidget.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformWidget.h -o ..\..\..\apps\vaporgui\moc\moc_TransformWidget.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformWidget.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="moc&apos;ing TransformWidget.h"
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\TransformWidget.h -o ..\..\..\apps\vaporgui\moc\moc_TransformWidget.cpp"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_TransformWidget.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\twoDdataeventrouter.h"
@@ -1431,6 +1551,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_ModelEventRouter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_OpacityWidget.cpp"
 				>
 			</File>
@@ -1464,6 +1588,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_TransformDelegate.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_TransformListModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_TransformWidget.cpp"
 				>
 			</File>
 			<File
@@ -1533,6 +1669,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\isotab.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\model.h"
 				>
 			</File>
 			<File
@@ -1752,6 +1892,32 @@
 						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\model.ui"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="uic&apos;ing model.ui"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\model.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\model.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\model.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="uic&apos;ing model.ui"
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\model.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\model.h&quot;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\guis\ui\model.h"
 					/>
 				</FileConfiguration>
 			</File>

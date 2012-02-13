@@ -584,7 +584,7 @@ setDialog(){
 	
 	int typeId = vizWin->getColorbarParamsTypeId();
 	int comboIndex = 0;
-	for (int i = 0; i< Params::GetNumParamsClasses(); i++){
+	for (int i = 1; i<= Params::GetNumParamsClasses(); i++){
 		RenderParams* p = dynamic_cast<RenderParams*>(Params::GetDefaultParams(i));
 		if (!p) continue;
 		if (!p->UsesMapperFunction()) continue;

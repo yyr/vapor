@@ -212,6 +212,9 @@ public:
 			currentMetadataFile = md;
 		}
 	}
+	void setMetadataFile(const char* mdfile){
+		currentMetadataFile = mdfile;
+	}
 	string& getPrefTFFilePath() {return preferenceTFPath;}
 	string& getPrefMetadataDir(){return preferenceMetadataDir;}
 	string& getPrefJpegDirectory() {return preferenceJpegDirectory;}

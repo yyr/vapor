@@ -286,6 +286,7 @@ void GLWindow::setUpViewport(int width,int height){
 		}
 	}
 	glMatrixMode(GL_MODELVIEW);
+	printOpenGLError();
 	
 }
 	

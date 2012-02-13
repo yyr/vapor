@@ -386,14 +386,26 @@ double ParamsIso::GetIsoValue() {
 void ParamsIso::RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_IsoValueTag, df);
 }
+void ParamsIso::UnRegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_IsoValueTag, df);
+}
 void ParamsIso::RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_ColorMapTag, df);
+}
+void ParamsIso::UnRegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_ColorMapTag, df);
 }
 void ParamsIso::RegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_MapBoundsTag, df);
 }
+void ParamsIso::UnRegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_MapBoundsTag, df);
+}
 void ParamsIso::RegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_HistoBoundsTag, df);
+}
+void ParamsIso::UnRegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_HistoBoundsTag, df);
 }
 
 void ParamsIso::SetNormalOnOff(bool flag) {
@@ -422,6 +434,9 @@ void ParamsIso::setIsoEditMode(bool flag) {
 void ParamsIso::RegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_NormalOnOffTag, df);
 }
+void ParamsIso::UnRegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_NormalOnOffTag, df);
+}
 
 void ParamsIso::SetConstantColor(float rgba[4]) {
 	vector <double> valvec(4,0);
@@ -439,6 +454,9 @@ const float *ParamsIso::GetConstantColor() {
 
 void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlag(_ConstantColorTag, df);
+}
+void ParamsIso::UnRegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->UnRegisterDirtyFlag(_ConstantColorTag, df);
 }
 
  void ParamsIso::SetHistoBounds(float bnds[2]){
@@ -522,8 +540,11 @@ int ParamsIso::GetRefinementLevel(){
 	vector<long> valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
 	return (int)valvec[0];
  }
- void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
+void ParamsIso::RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_RefinementLevelTag, df);
+}
+void ParamsIso::UnRegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->UnRegisterDirtyFlag(_RefinementLevelTag, df);
 }
 int ParamsIso::GetCompressionLevel(){
 	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag);
@@ -533,8 +554,11 @@ void ParamsIso::SetCompressionLevel(int level){
 	 vector<long> valvec(1,(long)level);
 	 GetRootNode()->SetElementLong(_CompressionLevelTag,valvec);
  }
- void ParamsIso::RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
+void ParamsIso::RegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_CompressionLevelTag, df);
+}
+void ParamsIso::UnRegisterCompressionDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->UnRegisterDirtyFlag(_CompressionLevelTag, df);
 }
  void ParamsIso::SetVisualizerNum(int viznum){
 	vector<long> valvec(1,(long)viznum);
@@ -561,6 +585,9 @@ void ParamsIso::SetCompressionLevel(int level){
 void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_NumBitsTag, df);
 }
+void ParamsIso::UnRegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->UnRegisterDirtyFlag(_NumBitsTag, df);
+}
 
  void ParamsIso::SetIsoVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_VariableNameTag, varName);
@@ -571,8 +598,11 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
  const string& ParamsIso::GetIsoVariableName(){
 	 return GetRootNode()->GetElementString(_VariableNameTag);
  }
- void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
+void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_VariableNameTag, df);
+}
+void ParamsIso::UnRegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->UnRegisterDirtyFlag(_VariableNameTag, df);
 }
 void ParamsIso::SetMapVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_MapVariableNameTag, varName);
@@ -583,8 +613,11 @@ void ParamsIso::SetMapVariableName(const string& varName){
  const string& ParamsIso::GetMapVariableName(){
 	 return GetRootNode()->GetElementString(_MapVariableNameTag);
  }
- void ParamsIso::RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
+void ParamsIso::RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlag(_MapVariableNameTag, df);
+}
+void ParamsIso::UnRegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->UnRegisterDirtyFlag(_MapVariableNameTag, df);
 }
 void ParamsIso::
 refreshCtab() {

@@ -69,6 +69,7 @@ public:
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();
+	virtual QSize sizeHint() const;
 #ifdef Darwin
 	void paintEvent(QPaintEvent*);
 #endif

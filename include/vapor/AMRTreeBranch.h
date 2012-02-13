@@ -297,6 +297,12 @@ public:
  //
  AMRTreeBranch::cid_t	RefineCell(cid_t cellid);
 
+
+ //! \copydoc AMRTree::EndRefinement()
+ //!
+ //
+ void EndRefinement();
+
  //! \copydoc AMRTree::GetNextCell()
  //
  AMRTreeBranch::cid_t	GetNextCell(bool restart);
@@ -329,6 +335,7 @@ private:
 	octree();
 	void clear();
 	cid_t refine_cell(cid_t cellid);
+	void end_refinement();
 	cid_t get_parent(cid_t cellid) const;
 
 	//
@@ -379,6 +386,8 @@ private:
 	vector <cid_t> _num_cells;
 	int _max_level;	// maximum refinment level in tree. Base level is 0
 
+	vector <long> _offsets; // vector of offsets to speed breath-first search 
+
 	typedef struct {
 		cid_t parent;
 		cid_t child;	// id of first child. Remaining children have
@@ -388,6 +397,8 @@ private:
 	vector <_node_t> _tree;	// interal octree representation.
 
 	void _init();
+
+
  };
 
 

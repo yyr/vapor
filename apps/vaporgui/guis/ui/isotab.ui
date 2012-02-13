@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>1405</height>
+    <width>423</width>
+    <height>1342</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -60,7 +60,7 @@
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>80</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">
@@ -91,7 +91,7 @@ create new isosurface instances.</string>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>38</width>
+           <width>0</width>
            <height>20</height>
           </size>
          </property>
@@ -244,7 +244,7 @@ create new isosurface instances.</string>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>38</width>
+           <width>5</width>
            <height>21</height>
           </size>
          </property>
@@ -270,6 +270,18 @@ create new isosurface instances.</string>
      </item>
      <item>
       <widget class="QFrame" name="Isovalue_Frame">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="whatsThis">
         <string>Ths isosurface selection panel provides several options for selecting the isosurface to be visualized.</string>
        </property>
@@ -1258,6 +1270,18 @@ specified range.</string>
      </item>
      <item>
       <widget class="QFrame" name="mappingFrame">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="whatsThis">
         <string>The appearance of the isosurface are controlled in this panel.  The isosurface can have constant color and opacity or it can have a color determined by a transfer function applied to another variable.  The appearance is also affected by the bits per voxel, and the lighting.</string>
        </property>

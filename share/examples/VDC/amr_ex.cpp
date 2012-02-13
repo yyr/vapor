@@ -391,6 +391,13 @@ int main(int argc, char **argv) {
 	}
 	}
 	}
+
+	//
+	// Calling EndRefinement() is optional, but it can signficantly 
+	// improve performance,  namely when calling AMRData::GetBlock
+	//
+	tree->EndRefinement();
+
 	cout << ProgName << " : Tree create finished" << endl;
 
 	// Print out info about the tree hierarchy

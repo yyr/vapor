@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>797</height>
+    <height>824</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -64,7 +64,7 @@ p, li { white-space: pre-wrap; }
          <property name="minimumSize">
           <size>
            <width>150</width>
-           <height>80</height>
+           <height>100</height>
           </size>
          </property>
          <property name="toolTip">
@@ -252,6 +252,12 @@ is controlled by the values in this
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QLabel" name="textLabel1_3">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string>Basic Settings:</string>
             </property>
@@ -283,6 +289,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QLabel" name="label_8">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="text">
                <string>Variables are:</string>
               </property>
@@ -293,6 +305,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QComboBox" name="variableDimCombo">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Specify whether the field variables are 2 or 3 dimensional</string>
               </property>
@@ -323,6 +341,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QLabel" name="label">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="text">
                <string>LOD</string>
               </property>
@@ -333,6 +357,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QComboBox" name="lodCombo">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Specify the approximation level for the data being visualized</string>
               </property>
@@ -366,6 +396,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QLabel" name="textLabel1_9">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="text">
                <string>Refinement</string>
               </property>
@@ -379,6 +415,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QComboBox" name="refinementCombo">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Specify the refinement level (resolution) of the data being visualized</string>
               </property>
@@ -450,6 +492,12 @@ is controlled by the values in this
             </item>
             <item>
              <widget class="QLabel" name="label_2">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="text">
                <string>Velocity field</string>
               </property>
@@ -460,7 +508,7 @@ is controlled by the values in this
               <property name="minimumSize">
                <size>
                 <width>75</width>
-                <height>0</height>
+                <height>20</height>
                </size>
               </property>
               <property name="toolTip">
@@ -485,7 +533,7 @@ p, li { white-space: pre-wrap; }
               <property name="minimumSize">
                <size>
                 <width>75</width>
-                <height>0</height>
+                <height>20</height>
                </size>
               </property>
               <property name="toolTip">
@@ -510,7 +558,7 @@ p, li { white-space: pre-wrap; }
               <property name="minimumSize">
                <size>
                 <width>75</width>
-                <height>0</height>
+                <height>20</height>
                </size>
               </property>
               <property name="toolTip">

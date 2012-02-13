@@ -49,7 +49,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/errorcodes.h>
 
-//#include <GL/gl.h>
+#include <GL/glew.h>
 #include <qgl.h>
 
 //#include "util.h"

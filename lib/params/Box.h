@@ -53,7 +53,10 @@ public:
 	//! \sa GetTimes()
 	//!
 	//! \param[out] extents const vector<double>& returned extents
-	const vector<double>&  GetExtents() {return GetRootNode()->GetElementDouble(_extentsTag);}
+	const vector<double>&  GetExtents() {
+		const vector<double> defaultExtents(6,0.);
+		return GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
+	}
 	//! Specify the extents.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
 	//!
@@ -78,13 +81,15 @@ public:
 	//! Defaults to empty vector if no angles are set.
 	//! \retval const vector<double> vector of length 3 of angles.
 	const vector<double>& GetAngles(){
-		return GetRootNode()->GetElementDouble(Box::_anglesTag);
+		const vector<double> defaultAngles(3,0.);
+		return GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
 	}
 	//! Get the angles as a double array
 	//! \param [out] double angles[3] array of three doubles for theta, phi, psi
 	//! \retval int zero if successful
 	int GetAngles(double ang[3]){
-		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag);
+		const vector<double> defaultAngles(3,0.);
+		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=angles[i];
 		return 0;
@@ -93,7 +98,8 @@ public:
 	//! \param [out] angles[3] float array of three floats for theta, phi, psi
 	//! \retval zero if successful
 	int GetAngles(float ang[3]){
-		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag);
+		const vector<double> defaultAngles(3,0.);
+		const vector<double>& angles = GetRootNode()->GetElementDouble(Box::_anglesTag,defaultAngles);
 		if (angles.size() != 3) return -1;
 		for (int i = 0; i<3;i++) ang[i]=(float)angles[i];
 		return 0;
@@ -125,7 +131,10 @@ public:
 	//! Number of times should be 1/6 of the number of extents values
 	//! \sa GetExtents()
 	//! \retval vector<long>& vector of longs
-	const vector<long>& GetTimes() { return( GetRootNode()->GetElementLong(Box::_timesTag));}
+	const vector<long>& GetTimes() { 
+		const vector<long> defaultTimes(1,0);
+		return( GetRootNode()->GetElementLong(Box::_timesTag,defaultTimes));
+	}
 	//! Set the time(s) as a long vector.
 	//! The first one should be negative, marking the default extents.
 	//! Subsequent times are nonnegative integers indicating times for nondefault extents.
@@ -141,7 +150,8 @@ public:
 		times.resize(numTimes);
 		GetRootNode()->SetElementLong(Box::_timesTag,times);
 		vector<double> exts; 
-		exts = GetRootNode()->GetElementDouble(Box::_extentsTag);
+		vector<double>defaultExts(6,0.);
+		exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExts);
 		GetRootNode()->SetElementDouble(Box::_extentsTag, exts);
 	}
 	static const string _boxTag;

@@ -461,7 +461,7 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 		}
 		variableData[i] = dataMgr->GetRegion(timestep, varnames[i].c_str(),actualRefLevel, useLOD,min_bdim,max_bdim,1);
 		if (!variableData[i]){
-			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable for %s\n", varnames[i]);
+			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable for %s\n", varnames[i].c_str());
 			aParams->setBypass(timestep);
 			for (int k = 0; k<i; i++){
 				if (variableData[k])

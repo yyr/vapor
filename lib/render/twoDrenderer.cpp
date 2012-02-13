@@ -46,6 +46,7 @@ TwoDRenderer::TwoDRenderer(GLWindow* glw, TwoDParams* pParams )
 	elevNorm = 0;
 	cachedTimeStep = -1;
 	pParams->setLastTwoDTexture(0);
+	lambertOrMercator = false;
 }
 
 
@@ -76,7 +77,9 @@ unsigned char* TwoDRenderer::getTwoDTexture(TwoDParams* pParams, int frameNum,  
 	unsigned char* tex;
 	if (!pParams->twoDIsDirty(frameNum)) {
 		tex =  pParams->getCurrentTwoDTexture(frameNum);
-		if (tex) return tex;
+		if (tex) {
+			return tex;
+		}
 	}
 	return pParams->calcTwoDDataTexture(frameNum, 0,0);
 	
@@ -110,8 +113,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
 	GLdouble leftPlane[] = {1., 0., 0., 0.};
 	GLdouble botPlane[] = {0., 1., 0., 0.};
-	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
-	GLdouble backPlane[] = {0., 0., 1., 0.};
+	
 	//Apply a coord transform that moves the full domain to the unit cube.
 	
 	glPushMatrix();
@@ -134,8 +136,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 		botPlane[3] = -tParams->getTwoDMin(1)*scales[1];
 		leftPlane[3] = -tParams->getTwoDMin(0)*scales[0];
 		rightPlane[3] = tParams->getTwoDMax(0)*scales[0];
-		frontPlane[3] = extents[5]*scales[2];
-		backPlane[3] = -extents[2]*scales[2];
+		
 
 	
 		glClipPlane(GL_CLIP_PLANE0, topPlane);
@@ -146,10 +147,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 		glEnable(GL_CLIP_PLANE2);
 		glClipPlane(GL_CLIP_PLANE3, leftPlane);
 		glEnable(GL_CLIP_PLANE3);
-		glClipPlane(GL_CLIP_PLANE4, frontPlane);
-		glEnable(GL_CLIP_PLANE4);
-		glClipPlane(GL_CLIP_PLANE5, backPlane);
-		glEnable(GL_CLIP_PLANE5);
+		
 
 		glPopMatrix();
 	} else {
@@ -221,8 +219,8 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 			tcrdyp = 1.f;
 		}
 
-		glBegin(GL_QUAD_STRIP);
-		for (int i = 0; i< maxx; i++){
+//		glBegin(GL_QUAD_STRIP);
+		for (int i = 0; i< maxx-1; i++){
 			if (firstx > 0) {
 				if (i == 0) {
 					tcrdx = 0.f;
@@ -239,16 +237,43 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j).  Only send 2 at a time.
 			//
 
-			glNormal3fv(elevNorm+3*(i+(j+1)*maxx));
-			glTexCoord2f(tcrdx,tcrdyp);
-			glVertex3fv(elevVert+3*(i+(j+1)*maxx));
-			
-			glNormal3fv(elevNorm+3*(i+j*maxx));
-			glTexCoord2f(tcrdx,tcrdy);
-			glVertex3fv(elevVert+3*(i+j*maxx));
+			//
+			// Mapping projections can result in grids that wrap
+			// around themselves.
+			//
+			// With lambert or mercator, 
+			// Only draw quad if vertex coordinates are monotonically 
+			// increasing with the i,j index. Note: we're only checking
+			// X coordinate for (i,j), (i+1,j), and Y coordinate for
+			// (i,j), (i,j+1). Should we check all coords for all verts?
+			//
+			//
+		if (!lambertOrMercator || ((elevVert[3*(i+j*maxx)+0] < elevVert[3*(i+1+j*maxx)+0]) &&
+				(elevVert[3*(i+j*maxx)+1] < elevVert[3*(i+(j+1)*maxx)+1]))) {
+				glBegin(GL_QUADS);
+
+				glNormal3fv(elevNorm+3*(i+j*maxx));
+				glTexCoord2f(tcrdx,tcrdy);
+				glVertex3fv(elevVert+3*(i+j*maxx));
+
+				glNormal3fv(elevNorm+3*(i+1+j*maxx));
+				glTexCoord2f(tcrdx+deltax,tcrdy);
+				glVertex3fv(elevVert+3*(i+1+j*maxx));
+
+
+				glNormal3fv(elevNorm+3*(i+1+(j+1)*maxx));
+				glTexCoord2f(tcrdx+deltax,tcrdyp);
+				glVertex3fv(elevVert+3*(i+1+(j+1)*maxx));
+
+				glNormal3fv(elevNorm+3*(i+(j+1)*maxx));
+				glTexCoord2f(tcrdx, tcrdyp);
+				glVertex3fv(elevVert+3*(i+(j+1)*maxx));
+				
+				glEnd();
+			}
 			
 		}
-		glEnd();
+//		glEnd();
 	}
 	
 	glDisable(GL_CLIP_PLANE0);

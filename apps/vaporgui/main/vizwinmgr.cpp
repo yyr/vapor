@@ -179,6 +179,10 @@ VizWinMgr::VizWinMgr()
 //Create the global params and the default renderer params:
 void VizWinMgr::
 createAllDefaultParams() {
+
+	//Install Extension Classes:
+	InstallExtensions();
+
 	ParamsBase::RegisterParamsBaseClass(Box::_boxTag, Box::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(TransferFunction::_transferFunctionTag, TransferFunction::CreateDefaultInstance, false);
 	ParamsBase::RegisterParamsBaseClass(MapperFunctionBase::_mapperFunctionTag, MapperFunction::CreateDefaultInstance, false);
@@ -205,8 +209,7 @@ createAllDefaultParams() {
 	ParamsBase::RegisterParamsBaseClass(Params::_dvrParamsTag, DvrParams::CreateDefaultInstance, true);
 	InstallTab(Params::_dvrParamsTag, DvrEventRouter::CreateTab);
 
-	//Install Extension Classes:
-	InstallExtensions();
+	
 	//Provide default tab ordering if needed:
 	vector<long> defaultOrdering = TabManager::getTabOrdering();
 	vector<long> tempOrdering;
@@ -2130,8 +2133,8 @@ TwoDImageEventRouter* VizWinMgr::
 getTwoDImageRouter() {
 	return (TwoDImageEventRouter*)getEventRouter(Params::_twoDImageParamsTag);
 }
-void VizWinMgr::forceRender(RenderParams* rp){
-	if(!rp->isEnabled()) return;
+void VizWinMgr::forceRender(RenderParams* rp, bool always){
+	if (!always && !rp->isEnabled()) return;
 	int viznum = rp->getVizNum();
 	if (viznum < 0) return;
 	vizWin[viznum]->updateGL();

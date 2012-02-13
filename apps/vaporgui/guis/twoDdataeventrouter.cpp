@@ -476,9 +476,10 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	//the box z-size is not adjustable:
 	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
-		
-		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		if (i!=2){
+			if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
+			if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		}
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
@@ -903,7 +904,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
 
 		TwoDDataRenderer* myRenderer = new TwoDDataRenderer (viz->getGLWindow(), pParams);
 		viz->getGLWindow()->insertSortedRenderer(pParams,myRenderer);
-
+		VizWinMgr::getInstance()->setClutDirty(pParams);
 		setTwoDDirty(pParams);
 		return;
 	}
@@ -1011,6 +1012,7 @@ guiEndChangeMapFcn(){
 	savedCommand = 0;
 	setTwoDDirty(pParams);
 	setDatarangeDirty(pParams);
+	VizWinMgr::getInstance()->setClutDirty(pParams);
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
@@ -1374,9 +1376,11 @@ sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize)
 	
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
 	float newSize = (extents[coord+3]-extents[coord])*(float)slideSize/256.f;
-	//If it's not inside the domain, move the center:
-	if ((newCenter - 0.5*newSize) < extents[coord]) newCenter = extents[coord]+0.5*newSize;
-	if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
+	//If it's not inside the x,y domain, move the center:
+	if (coord != 2){
+		if ((newCenter - 0.5*newSize) < extents[coord]) newCenter = extents[coord]+0.5*newSize;
+		if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
+	}
 
 	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
 	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);

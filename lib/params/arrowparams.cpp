@@ -279,13 +279,15 @@ void ArrowParams::SetConstantColor(const float rgb[3]) {
 }
 
 const float *ArrowParams::GetConstantColor() {
-	vector <double> valvec = GetRootNode()->GetElementDouble(_constantColorTag);
+	const vector<double> white (3,1.);
+	vector <double> valvec = GetRootNode()->GetElementDouble(_constantColorTag, white);
 	for (int i=0; i<3; i++) _constcolorbuf[i] = valvec[i];
 	return(_constcolorbuf);
 }
 
 int ArrowParams::GetCompressionLevel(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag);
+	const vector<long> defaultLevel(1,2);
+	vector<long> valvec = GetRootNode()->GetElementLong(_CompressionLevelTag,defaultLevel);
 	return (int)valvec[0];
  }
 void ArrowParams::SetCompressionLevel(int level){
@@ -300,12 +302,14 @@ void ArrowParams::SetCompressionLevel(int level){
 	vizNum = viznum;
  }
  int ArrowParams::GetVisualizerNum(){
-	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag);
+	const vector<long> visnum(1,0);
+	vector<long> valvec = GetRootNode()->GetElementLong(_VisualizerNumTag,visnum);
 	return (int)valvec[0];
  }
 void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	vector <string> svec;
-	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec);
+	vector <string> defaultName(1,"0");
+	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec,defaultName);
 	if(svec.size() <= i) 
 		for (int j = svec.size(); j<=i; j++) svec.push_back("0");
 	svec[i] = varName;
@@ -313,9 +317,10 @@ void ArrowParams::SetFieldVariableName(int i, const string& varName){
 	setAllBypass(false);
 }
 const string& ArrowParams::GetFieldVariableName(int i){
+	vector <string> defaultName(3,"0");
 	static string retval;
 	vector <string> svec;
-	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec);
+	GetRootNode()->GetElementStringVec(_VariableNamesTag, svec, defaultName);
 	retval=svec[i];
 	return retval;
 }
