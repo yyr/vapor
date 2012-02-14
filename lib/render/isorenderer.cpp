@@ -137,54 +137,34 @@ void IsoRenderer::_unregisterDirtyFlags() {
 	_myParamsIso = NULL;
 }
 
-void *IsoRenderer::_getRegion(
-    DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-    size_t ts, const char *varname, int numxforms, int lod,
-    const size_t min[3], const size_t max[3]
+int	IsoRenderer::_updateRegion(
+	DataMgr *dataMgr, RenderParams *rp, RegionParams *regp,
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t min[3], const size_t max[3]
 ) {
     ParamsIso *myParamsIso = (ParamsIso *) rp;
-	void *data;
 
-	assert (_type == DvrParams::DVR_RAY_CASTER || _type == DvrParams::DVR_RAY_CASTER_2_VAR);
+	RegularGrid *rg = dataMgr->GetGrid(
+			ts, varname, reflevel, lod, min, max
+	);
+	if (!rg) return(-1);
 
-	if (_type == DvrParams::DVR_RAY_CASTER) {
-		if (_voxelType == GL_UNSIGNED_BYTE) {
-			data =  data_mgr->GetRegionUInt8(
-				ts, varname, numxforms, lod, min, max,
-				myParamsIso->GetHistoBounds(),
-				0 // Don't lock!
-			);
-		}
-		else {
-			data = data_mgr->GetRegionUInt16(
-				ts, varname, numxforms, lod, min, max,
-				myParamsIso->GetHistoBounds(),
-				0 // Don't lock!
-			);
-		}
-	}
-	else {
+	int rc = _driver->SetRegion(rg, myParamsIso->GetHistoBounds(),0);
+	if (rc<0) return(rc);
+
+	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR) {
 		string map_varname = myParamsIso->GetMapVariableName();
+		rg = dataMgr->GetGrid(
+			ts, map_varname, reflevel, lod, min, max
+		);
+		if (!rg) return(-1);
 
-		if (_voxelType == GL_UNSIGNED_BYTE) {
-			data =  data_mgr->GetRegionUInt8(
-				ts, varname, map_varname.c_str(), numxforms, lod, min, max,
-				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
-				0 // Don't lock!
-			);
-		}
-		else {
-			data = data_mgr->GetRegionUInt16(
-				ts, varname, map_varname.c_str(), numxforms, lod, min, max,
-				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
-				0 // Don't lock!
-			);
-		}
+		rc = _driver->SetRegion(rg, myParamsIso->GetMapBounds(),1);
+		if (rc<0) return(rc);
 	}
-	if (!data) data_mgr->SetErrCode(0);
-	return(data);
-}
 
+	return(0);
+}
 
 void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 

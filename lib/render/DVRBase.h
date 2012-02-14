@@ -22,12 +22,14 @@
 #include <stdio.h>
 #include <vector>
 #include <vapor/MyBase.h>
-#include "renderer.h"
+#include <vapor/RegularGrid.h>
+#ifdef	DEAD
+#include <vapor/SphericalGrid.h>
+#endif
 #include <vapor/errorcodes.h>
 
 using namespace VetsUtil;
 namespace VAPoR {
-class Renderer;
 class	RENDER_API DVRBase : public MyBase {
 public:
 
@@ -72,15 +74,10 @@ public:
  // (0,1)x(0,1)x(0,1).  Actual mapping to real coords is done in application.
  //
  virtual int SetRegion(
-	void *data,
-	int nx, int ny, int nz,
-	const int data_roi[6],
-	const float extents[6],
-    const int data_box[6],
-    int refLevel
-	
+	const RegularGrid *rg, const float range[2], int num = 0
  ) = 0;
 	
+#ifdef	DEAD
 
  // Specify the region of data to render with a grid permutation and
  // clipping information (currently only used for spherical rendering). 
@@ -100,51 +97,15 @@ public:
  // Modification by AN, 2/10/05:  'extents' is subvolume of the unit cube
  // (0,1)x(0,1)x(0,1).  Actual mapping to real coords is done in application.
  //
- virtual int SetRegionSpherical(void * /*data*/, 
-                                int /*nx*/, int /*ny*/, int /*nz*/, 
-                                const int /*data_roi*/[6],
-                                const float /*extents*/[6],
-                                const int /*data_box*/[6],
-                                int /*level*/,
+ virtual int SetRegionSpherical(const SphericalGrid *rg,
+								const float range[2], int num,
                                 const std::vector<long> &/*permutation*/,
                                 const std::vector<bool> &/*clipping*/)
  { 
-    myRenderer->setAllBypass(true);
 	SetErrMsg(VAPOR_ERROR_SPHERICAL,"Driver does not support Spherical Grids"); 
 	return(-1); 
  }
-
- // This version of the SetRegion method permits the non-uniform 
- // spacing of voxels. Three coordinate arrays, xcoords, ycoords, and
- // zcoords, specify the X,Y,Z coordinates of the voxels making up
- // the subregion of interest. The coordinate arrays are specied in 
- // world coordinates. The dimension of each coordinate array is determined
- // by the dimension of the region of interest indicated by the data_roi
- // parameter. For example, the dimension of the xcoord array is given
- // by: 
- //		data_roi[3] - data_roi[0] + 1
- //
- // Furthermore, the first element of {x,y,z}coord gives the world 
- // coordinate of first voxel in the subregion, and the last element 
- // of {x,y,z}coord gives the
- // world coordinate of the last voxel in the subregion
- //
- // Note: not all drivers are required to support Stretched Grids. 
- // The HasStretchedGrid() method can be used to determine if support is
- // available or not.
- //
- virtual int SetRegionStretched(
-	void *,
-	int , int , int ,
-	const int [6],
-	const float *,
-	const float *,
-	const float *
- ) {
-	 myRenderer->setAllBypass(true);
-	 SetErrMsg(VAPOR_ERROR_STRETCHED,"Driver does not support Stretched Grids"); 
-	 return(-1); 
- }
+#endif
 
  // Returns true if the driver supports "stretched" Cartesian grids
  //
@@ -152,12 +113,9 @@ public:
 
 
 
- // Render the volume after applying the OpenGL transfomation matrix, 
- // 'matrix'
+ // Render the volume 
  //
- virtual int	Render(
-	const float	matrix[16]
- ) = 0;
+ virtual int	Render() = 0;
 
  // Prints a description of the options supported by the driver's constructor
  // to the file pointer indicated by 'fp'.
@@ -253,15 +211,14 @@ public:
 
  virtual void calculateSampling() {}
 
+ virtual void SetQuantizationRange(const float range[2]) {
+	_range[0] = range[0]; _range[1] = range[1];
+ }
+
 
 protected:
   int _max_texture;
-  Renderer* myRenderer;
-
-// Determine the renderer, for error reporting
-// This is set in constructors of derived classes
-
-  Renderer* getRenderer() {return myRenderer;}
+  float _range[2];
 
 private:
 

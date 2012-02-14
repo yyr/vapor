@@ -38,6 +38,7 @@ class Metadata;
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
+//!
 //! Renderer class is a pure virtual class that supports 
 //! OpenGL rendering in the VAPOR visualizer window.
 //! All renderers must derive from this class.

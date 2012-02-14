@@ -65,29 +65,31 @@ public:
  //! \param[in] page_aligned If true, start address of memory pool 
  //! will be page aligned
  //
- static void RequestMemSize(
-	size_t blk_size, size_t num_blks, int page_aligned = 1
+ static int RequestMemSize(
+	size_t blk_size, size_t num_blks, bool page_aligned = true
  );
 
  static size_t GetBlkSize() {return(_blk_size);}
 
 private:
- static size_t	_page_aligned_req;	// requested page align memory (boolean)
- static size_t	_mem_size_req;	// requested size of mem in blocks
+ static size_t	_mem_size_max_req;	// max requested size of mem in blocks
+ static bool	_page_aligned_req;	// requested page align memory 
  static size_t	_blk_size_req;	// requested size of block in bytes
 
- static size_t	_page_aligned;	// page align memory (boolean)
- static size_t	_mem_size;	// size of mem in blocks
+ static size_t	_mem_size_max;	// max size of mem in blocks
+ static bool	_page_aligned;	// page align memory 
  static size_t	_blk_size;	// size of block in bytes
 
- static size_t	*_free_table;	// free block table
- static unsigned char	*_blks;	// memory pool
- static unsigned char	*_blkptr;	// page-aligned memory pool
+ static size_t	_max_regions;	// max # dynamic memory regions
+
+
+ static vector <size_t>	_mem_size;	// size of mem in blocks
+ static vector <size_t *> _free_table;	// free block table
+ static vector <unsigned char *> _blks;	// memory pool
+ static vector <unsigned char *> _blkptr;	// page-aligned memory pool
  static int _ref_count;	// # instances of object.
 
- int	_objInitialized;	// has the obj successfully been initalized?
-
- static int	_Reinit();
+ static int	_Reinit(bool restart, size_t n);
 
 };
 };

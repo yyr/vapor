@@ -16,19 +16,17 @@
 //		Modified by A. Norton to support a quick implementation of
 //		volumizer renderer
 //
-#include <stdio.h>
+#include <cstdio>
+#include <iostream>
 #include "DVRDebug.h" 
-#include "renderer.h"
 using namespace VAPoR;
 
 DVRDebug::DVRDebug(
 	int *argc,
 	char **argv,
-	int	nthreads,
-	Renderer* ren
+	int	nthreads
 ) {
 	int	i;
-	myRenderer = ren;
 	fprintf(stdout, "\nDVRDebug::DVRDebug() called\n");
 
 	for(i=0; i<*argc; i++) {
@@ -51,98 +49,24 @@ int	DVRDebug::GraphicsInit(
 }
 
 int DVRDebug::SetRegion(
-    void *data,
-    int nx, int ny, int nz,
-    const int data_roi[6],
-    const float extents[6],
-    const int data_box[6],
-    int level
-	
+	const RegularGrid *rg,
+	const float range[2],
+	int num
 ) {
-	fprintf(stdout, "\nDVRDebug::SetRegion() called\n");
 
-	fprintf(stdout, "\tnx = %d\n", nx);
-	fprintf(stdout, "\tny = %d\n", ny);
-	fprintf(stdout, "\tnz = %d\n", nz);
-	fprintf(stdout, "\tx0 = %d\n", data_roi[0]);
-	fprintf(stdout, "\ty0 = %d\n", data_roi[1]);
-	fprintf(stdout, "\tz0 = %d\n", data_roi[2]);
-	fprintf(stdout, "\tx1 = %d\n", data_roi[3]);
-	fprintf(stdout, "\ty1 = %d\n", data_roi[4]);
-	fprintf(stdout, "\tz1 = %d\n", data_roi[5]);
+	std::cout << *rg;
+	std::cout << "quantization range : " << range[0] << " " << range[1] << std::endl;
+	std::cout << "region # : " << num << std::endl;
 
-	fprintf(stdout, "\tex0 = %f\n", extents[0]);
-	fprintf(stdout, "\tey0 = %f\n", extents[1]);
-	fprintf(stdout, "\tez0 = %f\n", extents[2]);
-	fprintf(stdout, "\tex1 = %f\n", extents[3]);
-	fprintf(stdout, "\tey1 = %f\n", extents[4]);
-	fprintf(stdout, "\tez1 = %f\n", extents[5]);
-
-	fprintf(stdout, "\tbox0 = %d\n", data_box[0]);
-	fprintf(stdout, "\tbox0 = %d\n", data_box[1]);
-	fprintf(stdout, "\tbox0 = %d\n", data_box[2]);
-	fprintf(stdout, "\tbox1 = %d\n", data_box[3]);
-	fprintf(stdout, "\tbox1 = %d\n", data_box[4]);
-	fprintf(stdout, "\tbox1 = %d\n", data_box[5]);
-
-	fprintf(stdout, "\tlevel = %d\n", level);
 
 	return(0);
 }
 
-int DVRDebug::SetRegionStretched(
-    void *data,
-    int nx, int ny, int nz,
-    const int data_roi[6],
-    const float *xcoords,
-    const float *ycoords,
-    const float *zcoords
-) {
-	int	i;
 
-	fprintf(stdout, "\nDVRDebug::SetRegion() called\n");
-
-	fprintf(stdout, "\tnx = %d\n", nx);
-	fprintf(stdout, "\tny = %d\n", ny);
-	fprintf(stdout, "\tnz = %d\n", nz);
-	fprintf(stdout, "\tx0 = %d\n", data_roi[0]);
-	fprintf(stdout, "\ty0 = %d\n", data_roi[1]);
-	fprintf(stdout, "\tz0 = %d\n", data_roi[2]);
-	fprintf(stdout, "\tx1 = %d\n", data_roi[3]);
-	fprintf(stdout, "\ty1 = %d\n", data_roi[4]);
-	fprintf(stdout, "\tz1 = %d\n", data_roi[5]);
-
-	
-	fprintf(stdout, "\txcoords:\n\t\t");
-	for(i=data_roi[0];i<=data_roi[3]; i++) {
-		fprintf(stdout, "%f ", xcoords[i]);
-	}
-	fprintf(stdout, "\n");
-
-	fprintf(stdout, "\tycoords:\n\t\t");
-	for(i=data_roi[1];i<=data_roi[4]; i++) {
-		fprintf(stdout, "%f ", ycoords[i]);
-	}
-	fprintf(stdout, "\n");
-
-	fprintf(stdout, "\tzcoords:\n\t\t");
-	for(i=data_roi[2];i<=data_roi[5]; i++) {
-		fprintf(stdout, "%f ", zcoords[i]);
-	}
-	fprintf(stdout, "\n");
-
-	return(0);
-}
-
-int	DVRDebug::Render(
-	const float	matrix[16]
-) {
+int	DVRDebug::Render() {
 	int	i;
 
 	fprintf(stdout, "\nDVRDebug::Render() called\n");
-	for(i=0; i<16; i++) {
-		fprintf(stdout, "matrix[%d] = %f\n", i, matrix[i]);
-	}
 
 	return(0);
 }

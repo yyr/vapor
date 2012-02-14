@@ -11,6 +11,7 @@
 #ifndef DVRTexture3d_h
 #define DVRTexture3d_h
 
+#include <vapor/RegularGrid.h>
 #include "DVRBase.h"
 #include "Vect3d.h"
 #include "Matrix3d.h"
@@ -19,10 +20,8 @@
 #include <map>
 
 namespace VAPoR {
-  class Renderer;
   class BBox;
   class TextureBrick;
-  class Renderer;
 
 class RENDER_API DVRTexture3d : public DVRBase 
 {
@@ -38,35 +37,28 @@ class RENDER_API DVRTexture3d : public DVRBase
     RegionState();
     virtual ~RegionState() {};
 
-    bool update(int nx, int ny, int nz, 
-                const int roi[6], const int box[6], const float extents[6],
-				int tex_size);
+    bool update(const RegularGrid *rg, int tex_size);
 
     const int* roi()       { return _roi; }
     const int* box()       { return _box; }
-    const float* extents() { return _ext; }
+    const double* extents() { return _ext; }
 
   protected:
 
     int   _dim[3];
     int   _roi[6];
     int   _box[6];
-    float _ext[6];
+    double _ext[6];
     int _tex_size;
   };
 
  public:
 
 
-  DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
+  DVRTexture3d(int precision, int nvars, int nthreads);
   virtual ~DVRTexture3d();
 
-  virtual int SetRegion(void *data, 
-                        int nx, int ny, int nz, 
-                        const int data_roi[6],
-                        const float extents[6],
-                        const int data_box[6],
-                        int level);
+  virtual int SetRegion(const RegularGrid *rg, const float range[2],int num=1);
 
   virtual bool   GetRenderFast() const       { return _renderFast; }
   virtual void   SetRenderFast(bool fast)    { _renderFast = fast; }
@@ -97,11 +89,8 @@ class RENDER_API DVRTexture3d : public DVRBase
   
   void findVertexOrder(const Vect3d verts[6], int order[6], int degree);
 
-  void buildBricks(int level, const int bbox[6], const int data_roi[6],
-                   int nx, int ny, int nz);
+  void buildBricks(const RegularGrid *rg, const float range[2], int num);
   void sortBricks(const Matrix3d &modelview);
-
-  int maxTextureSize(GLint internalFormat, GLenum format, GLenum type);
 
   virtual void SetMaxTexture(int texsize);
 
@@ -123,7 +112,6 @@ protected:
   bool   _renderFast;
 
   float  _delta;	// sample distance along Z in world coordinates
-  float  _deltaEye;	// sample distance along Z in eye coordinates
   float  _samples;
   float  _samplingRate;
   int    _minimumSamples;
@@ -148,14 +136,11 @@ protected:
   // Region state
   RegionState _lastRegion;
 
-  // Texture internal data format
-  GLenum _internalFormat; 
+  // Texture internal precision
+  int _precision;
   
-  // Texture data format
-  GLenum _format;
-
-  // Voxel type
-  GLenum _type;
+  // num vars stored in a texture
+  int _nvars;
 
 };
 

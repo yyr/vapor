@@ -411,6 +411,8 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 	if (ds->dataIsLayered()){
 		setFullGridHeight(fullHeight);
 	}
+
+#ifdef	DEAD
 	//Do mapping to voxel coords
 	dataMgr->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
 	dataMgr->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
@@ -420,6 +422,11 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 		if (min_dim[i] >= max_dim[i])
 			max_dim[i] = min_dim[i] + 1;
 	}
+#endif
+
+	dataMgr->GetEnclosingRegion(
+		timestep, regMin, regMax, min_dim, max_dim, minRefLevel
+	);
 	
 	//intersect with available bounds based on variables:
 	size_t temp_min[3], temp_max[3];

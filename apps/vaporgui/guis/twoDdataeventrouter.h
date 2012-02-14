@@ -29,6 +29,7 @@
 #include "twoDdataparams.h"
 #include "twoDdatatab.h"
 #include "twoDeventrouter.h"
+#include "vizwinmgr.h"
 
 
 using namespace VetsUtil;

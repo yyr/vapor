@@ -731,8 +731,8 @@ float	*AMRData::GetBlock(
 }
 
 int	AMRData::ReGrid(
-	const size_t min[3],
-	const size_t max[3],
+	const size_t bmin[3],
+	const size_t bmax[3],
 	int reflevel,
 	float *grid
 ) const {
@@ -744,25 +744,25 @@ int	AMRData::ReGrid(
 		return(-1);
 	}
 
-	size_t minb[3];
-	size_t maxb[3];
+	size_t bminb[3];
+	size_t bmaxb[3];
 	const size_t *bdim = _tree->GetBaseDim();
 
 	for(int i = 0; i<3; i++) {
-		minb[i] = min[i] >> reflevel;
-		maxb[i] = max[i] >> reflevel;
+		bminb[i] = bmin[i] >> reflevel;
+		bmaxb[i] = bmax[i] >> reflevel;
 
-		if (minb[i] > maxb[i] || maxb[i] >= bdim[i]) {
+		if (bminb[i] > bmaxb[i]) {
 			SetErrMsg("Invalid grid coordinates");
 			return(-1);
 		}
 	}
 
-	for (int z = minb[2]; z<= maxb[2]; z++) {
-	for (int y = minb[1]; y<= maxb[1]; y++) {
-	for (int x = minb[0]; x<= maxb[0]; x++) {
+	for (int z = bminb[2]; z<= bmaxb[2] && z<bdim[2]; z++) {
+	for (int y = bminb[1]; y<= bmaxb[1] && y<bdim[1]; y++) {
+	for (int x = bminb[0]; x<= bmaxb[0] && x<bdim[0]; x++) {
 
-		regrid_branch(x,y,z, min, max, reflevel, grid);
+		regrid_branch(x,y,z, bmin, bmax, reflevel, grid);
 
 	}
 	}

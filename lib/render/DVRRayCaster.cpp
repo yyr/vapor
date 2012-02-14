@@ -15,7 +15,6 @@
 #endif
 
 #include <qgl.h>
-#include "renderer.h"
 #include "DVRRayCaster.h"
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
@@ -32,13 +31,16 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRRayCaster::DVRRayCaster(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
-) : DVRShader(internalFormat, format, type, nthreads, ren)
+	int precision, int nvars, ShaderMgr *shadermgr,
+	int nthreads
+) : DVRShader(precision, nvars, shadermgr, nthreads)
 {
 	MyBase::SetDiagMsg(
-		"DVRRayCaster::DVRRayCaster( %d %d %d %d)", 
-		internalFormat, format, type, nthreads
+		"DVRRayCaster::DVRRayCaster( %d %d %d)", 
+		precision, nvars, nthreads
 	);
+	_mapped = (nvars == 2);
+	_vidx = 0;
 	_lighting = false;
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
@@ -47,15 +49,36 @@ DVRRayCaster::DVRRayCaster(
 	_nisos = 0;
 
 	if (GLEW_VERSION_2_0) {
-		_texcrd_texunit = GL_TEXTURE1;
-		_depth_texunit = GL_TEXTURE2;
+		if (_mapped) {
+			// if mapped, parent class (DVRShader) uses tex unit 1 for
+			// the color map texture
+			//
+			_texcrd_texunit = GL_TEXTURE2;
+			_depth_texunit = GL_TEXTURE3;
+		}
+		else {
+			_texcrd_texunit = GL_TEXTURE1;
+			_depth_texunit = GL_TEXTURE2;
+		}
 	}
 	else {
-		_texcrd_texunit = GL_TEXTURE1_ARB;
-		_depth_texunit = GL_TEXTURE2_ARB;
+		if (_mapped) {
+			_texcrd_texunit = GL_TEXTURE2_ARB;
+			_depth_texunit = GL_TEXTURE3_ARB;
+		}
+		else {
+			_texcrd_texunit = GL_TEXTURE1_ARB;
+			_depth_texunit = GL_TEXTURE2_ARB;
+		}
 	}
-	_texcrd_sampler = 1;
-	_depth_sampler = 2;
+	if (_mapped) {
+		_texcrd_sampler = 2;
+		_depth_sampler = 3;
+	}
+	else {
+		_texcrd_sampler = 1;
+		_depth_sampler = 2;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -73,75 +96,6 @@ DVRRayCaster::~DVRRayCaster()
 	printOpenGLError();
 }
 
-//----------------------------------------------------------------------------
-// DEPRACATED, USE SHADERMGR
-//----------------------------------------------------------------------------
-bool DVRRayCaster::createShader(ShaderType type,
-                             const char *vertexCommandLine,
-                             const char *vertexSource,
-                             const char *fragCommandLine,
-                             const char *fragmentSource)
-{
-/*	_shaders[type] = new ShaderProgram();
-	_shaders[type]->create();
-
-	//
-	// Vertex shader
-	//
-	if (Params::searchCmdLine(vertexCommandLine)) {
-		_shaders[type]->loadVertexShader(Params::parseCmdLine(vertexCommandLine));
-	} 
-	else if (vertexSource) {
-		_shaders[type]->loadVertexSource(vertexSource);
-	}
-
-	//
-	// Fragment shader
-	//
-	if (Params::searchCmdLine(fragCommandLine)) {
-		_shaders[type]->loadFragmentShader(Params::parseCmdLine(fragCommandLine));
-	}
-	else if (fragmentSource) {
-		_shaders[type]->loadFragmentSource(fragmentSource);
-	}
-
-	if (!_shaders[type]->compile()) {
-		return false;
-	}
-
-	//
-	// Set up initial uniform values
-	//
-	if (type != BACKFACE) {
-		if (_shaders[type]->enable() < 0) return(false);;
-
-		if (GLEW_VERSION_2_0) {
-			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1i(
-				_shaders[type]->uniformLocation("texcrd_buffer"), 
-				_texcrd_sampler
-			);
-			glUniform1i(
-				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
-			);
-		}
-		else {
-			glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1iARB(
-				_shaders[type]->uniformLocation("texcrd_buffer"), 
-				_texcrd_sampler
-			);
-			glUniform1iARB(
-				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
-			);
-		}
-
-		_shaders[type]->disable();
-	}
-
-	printOpenGLError();*/
-	return true;
-}
 
 //----------------------------------------------------------------------------
 //
@@ -150,14 +104,50 @@ int DVRRayCaster::GraphicsInit()
 {
 	glewInit();
 
+	if (! _shadermgr->defineEffect("Iso", "", instanceName("default")))
+		return(-1);
+
+	if (! _shadermgr->defineEffect(
+		"Iso", "LIGHTING;", instanceName("lighting")
+	)) return(-1);
+
+	if (! _shadermgr->defineEffect("Iso", "MAPPED;", instanceName("mapped")))
+		return(-1);
+
+	if (! _shadermgr->defineEffect(
+		"Iso", "MAPPED; LIGHTING;", instanceName("mapped+lighting")
+	)) return(-1);
+
+
 	if (initTextures() < 0) return(-1);
-	myRenderer->myGLWindow->makeCurrent();
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "volumeTexture", 0);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "texcrd_buffer", _texcrd_sampler);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColor", "depth_buffer", _depth_sampler);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "volumeTexture", 0);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "texcrd_buffer", _texcrd_sampler);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoLighting", "depth_buffer", _depth_sampler);
+
+	if (! _shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0)) return(-1);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("default"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("default"), "depth_buffer", _depth_sampler)) return(-1);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0)) return(-1);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("lighting"), "depth_buffer", _depth_sampler)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "volumeTexture", 0)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "texcrd_buffer", _texcrd_sampler)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "colormap", 1)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped"), "depth_buffer", _depth_sampler)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "volumeTexture", 0)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "colormap", 1)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "texcrd_buffer", _texcrd_sampler)) return(-1);
+
+    if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "depth_buffer", _depth_sampler)) return(-1);
 
 	return 0;
 }
@@ -165,24 +155,51 @@ int DVRRayCaster::GraphicsInit()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int DVRRayCaster::Render(const float matrix[16])
+int DVRRayCaster::Render()
 {
+	MyBase::SetDiagMsg("DVRRayCaster::Render()");
+
 	DVRTexture3d::calculateSampling();
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	myRenderer->myGLWindow->makeCurrent();
 	if (_lighting) {		
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "winsize", (float)viewport[2], (float)viewport[3]);	
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "winsize", (float)viewport[2], (float)viewport[3]);		
+		_shadermgr->uploadEffectData(
+			getCurrentEffect(), "winsize", (float)viewport[2], 
+			(float)viewport[3]
+		);	
 	}
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "delta", _deltaEye);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "delta", _deltaEye);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "delta", _deltaEye);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "nsamples", (int) _samples);	
 
-	return(DVRShader::Render(matrix));
+	return(DVRShader::Render());
 
 	return 0;
 }
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+int DVRRayCaster::SetRegion(
+	const RegularGrid *rg, const float range[2], int num
+) {
+	_vidx = 0;
+	if (_mapped) {
+
+		bool layered = ((dynamic_cast<const LayeredGrid *>(rg)) != NULL);
+		bool missing = rg->HasMissingData();
+
+		if (missing && layered) {
+			_vidx = 3;
+		}
+		else if (missing || layered) {
+			_vidx = 2;
+		}
+		else {
+			_vidx = 3; // Alpha channel
+		}
+	}
+	return(DVRShader::SetRegion(rg,range,num));
+}
+
 
 
 //----------------------------------------------------------------------------
@@ -380,6 +397,10 @@ void DVRRayCaster::raycasting_pass(
 	
 	if (GLEW_VERSION_2_0) {
 		
+		if (_mapped) {
+			glActiveTexture(GL_TEXTURE1);
+			glEnable(GL_TEXTURE_1D);
+		}
 		
 		glActiveTexture(_texcrd_texunit);
 		glEnable(GL_TEXTURE_2D);
@@ -394,6 +415,10 @@ void DVRRayCaster::raycasting_pass(
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 		
 	} else {
+		if (_mapped) {
+			glActiveTextureARB(GL_TEXTURE1);
+			glEnable(GL_TEXTURE_1D);
+		}
 		
 		glActiveTextureARB(_texcrd_texunit);
 		glEnable(GL_TEXTURE_2D);
@@ -412,8 +437,7 @@ void DVRRayCaster::raycasting_pass(
 	glCullFace(GL_BACK);
 	
 	printOpenGLError();
-	myRenderer->myGLWindow->makeCurrent();
-	if (myRenderer->myGLWindow->getShaderMgr()->enableEffect(getCurrentEffect())){
+	if (_shadermgr->enableEffect(getCurrentEffect())){
 		BBox rotatedBox(volumeBox);
 		rotatedBox.transform(modelview);
 		Point3d camera(0,0,0);
@@ -427,7 +451,7 @@ void DVRRayCaster::raycasting_pass(
 		else {
 			drawVolumeFaces(volumeBox, textureBox);
 		}
-		myRenderer->myGLWindow->getShaderMgr()->disableEffect();
+		_shadermgr->disableEffect();
 	}
 	
 	glDisable(GL_CULL_FACE);
@@ -452,96 +476,6 @@ void DVRRayCaster::raycasting_pass(
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDisable(GL_TEXTURE_2D);
 		
-		glActiveTextureARB(GL_TEXTURE0_ARB);
-		glBindTexture(GL_TEXTURE_3D, 0);
-	}
-	glDisable(GL_TEXTURE_3D);
-	printOpenGLError();
-}
-// render the front-facing polygons
-//
-void DVRRayCaster::raycasting_pass(
-	const TextureBrick *brick,
-	const Matrix3d &modelview,
-	const Matrix3d &modelviewInverse,
-	std::string effect
-) {
-	const BBox &volumeBox  = brick->volumeBox();
-	const BBox &textureBox = brick->textureBox();
-
-	if (GLEW_VERSION_2_0) {
-
-
-		glActiveTexture(_texcrd_texunit);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
-
-		glActiveTexture(_depth_texunit);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
-
-		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_3D);
-		glBindTexture(GL_TEXTURE_3D, brick->handle());
-
-	} else {
-
-		glActiveTextureARB(_texcrd_texunit);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
-
-		glActiveTextureARB(_depth_texunit);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
-
-		glActiveTextureARB(GL_TEXTURE0_ARB);
-		glEnable(GL_TEXTURE_3D);
-		glBindTexture(GL_TEXTURE_3D, brick->handle());
-	}
-	
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	
-	printOpenGLError();
-	if (myRenderer->myGLWindow->getShaderMgr()->enableEffect(effect)){
-		BBox rotatedBox(volumeBox);
-		rotatedBox.transform(modelview);
-		Point3d camera(0,0,0);
-
-		// Call different proxy drawing method depending on whether
-		// camera is inside or outside the volume's bounding box
-		//
-		if (rotatedBox.insideBox(camera)) {
-			drawFrontPlane(volumeBox, textureBox, modelview, modelviewInverse);
-		}
-		else {
-			drawVolumeFaces(volumeBox, textureBox);
-		}
-		myRenderer->myGLWindow->getShaderMgr()->disableEffect();
-	}
-
-	glDisable(GL_CULL_FACE);
-	
-	if (GLEW_VERSION_2_0) {
-		glActiveTexture(_depth_texunit);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
-
-		glActiveTexture(_texcrd_texunit);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_3D, 0);
-	} else {
-		glActiveTextureARB(_depth_texunit);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
-
-		glActiveTextureARB(_texcrd_texunit);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
-
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
@@ -563,7 +497,7 @@ void DVRRayCaster::renderBrick(
 
 	// Parent class enables default shader
 	//_shader->disable();
-	myRenderer->myGLWindow->getShaderMgr()->disableEffect();
+	_shadermgr->disableEffect();
 
 	// enable rendering to FBO
 	glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
@@ -674,7 +608,6 @@ int DVRRayCaster::initTextures()
 		}
 	}
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		myRenderer->setAllBypass(true);
 		SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,
 			"Failed to create OpenGL color framebuffer_object : %d", status
 		);
@@ -712,7 +645,6 @@ int DVRRayCaster::initTextures()
 		}
 	}
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		myRenderer->setAllBypass(true);
 		SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,
 			"Failed to create OpenGL depth framebuffer_object : %d", status
 		);
@@ -728,17 +660,21 @@ int DVRRayCaster::initTextures()
 }
 
 void DVRRayCaster::initShaderVariables() {	
-	myRenderer->myGLWindow->makeCurrent();
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "isocolor", (float)_colors[0], (float)_colors[1], (float)_colors[2], (float)_colors[3]);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
-	if (_lighting) {
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1], (float)_pos[2]);
+
+	if (! _mapped) {
+		_shadermgr->uploadEffectData(
+			getCurrentEffect(), "isocolor", (float)_colors[0], 
+			(float)_colors[1], (float)_colors[2], (float)_colors[3]
+		);
 	}
+	else {
+		_shadermgr->uploadEffectData(getCurrentEffect(), "vidx", _vidx);
+	}
+
+	_shadermgr->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
+
+	DVRShader::initShaderVariables();
+
 }
 
 void DVRRayCaster::Resize(int width, int height) {
@@ -823,12 +759,17 @@ bool DVRRayCaster::supported()
 //----------------------------------------------------------------------------
 std::string DVRRayCaster::getCurrentEffect()
 {
-	if (_lighting) {
-		return std::string("isoLighting");
+	if (_lighting && _mapped) {
+		return instanceName("mapped+lighting");
+	}
+	else if (_lighting) {
+		return instanceName("lighting");
+	}
+	else if (_mapped) {
+		return instanceName("mapped");
 	}
 	else {
-		return std::string("isoColor");
+		return instanceName("default");
 	}
 	
 }
-

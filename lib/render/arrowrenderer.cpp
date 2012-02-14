@@ -72,11 +72,11 @@ void ArrowRenderer::paintGL(){
 	//
 	//Set up the variable data required, while determining data extents to use in rendering
 	//
-	float* varData[4] = {0,0,0,0};
+	RegularGrid *varData[] = {NULL,NULL,NULL,NULL};
 	vector<string>varnames;
-	size_t min_bdim[3], max_bdim[3], voxExts[6];
+	size_t voxExts[6];
 	double validExts[6];
-	int actualRefLevel = setupVariableData(varnames, varData, validExts, voxExts, min_bdim, max_bdim);
+	int actualRefLevel = setupVariableData(varnames, varData, validExts, voxExts);
 	if (actualRefLevel < 0) return;
 	//
 	//Calculate the scale factors and radius to be used in rendering the arrows:
@@ -102,12 +102,13 @@ void ArrowRenderer::paintGL(){
 	//
 	//Perform OpenGL rendering of arrows
 	//
-	performRendering(min_bdim, max_bdim, actualRefLevel, vectorLengthScale, rad, varData);
+	performRendering(actualRefLevel, vectorLengthScale, rad, varData);
 	
 	//Release the locks on the data:
 	for (int k = 0; k<4; k++){
 		if (varData[k])
-			dataMgr->UnlockRegion(varData[k]);
+			dataMgr->UnlockGrid(varData[k]);
+			delete varData[k];
 	}
 }
 
@@ -249,8 +250,10 @@ void ArrowRenderer::drawArrow(const float startPoint[3], const float endPoint[3]
 	glEnd();
 }
 //Perform the openGL rendering:
-void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_bdim[3], int actualRefLevel,
-									 float vectorLengthScale, float rad, float* variableData[4]){
+void ArrowRenderer::performRendering(
+	int actualRefLevel, float vectorLengthScale, float rad, 
+	RegularGrid *variableData[4]
+){
 
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
@@ -315,69 +318,75 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 	double point[3];
 	size_t voxCoord[3];
 	
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs,actualRefLevel);
 	if (!aParams->IsAlignedToData()){
-		for (int i = 0; i<rakeGrid[0]; i++){
-			point[0] = (rakeExts[0]+ (0.5+(float)i )* ((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
+		for (int k = 0; k<rakeGrid[2]; k++){
+			point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
 			
 			for (int j = 0; j<rakeGrid[1]; j++){
 				point[1]= (rakeExts[1]+(0.5+(float)j )* ((rakeExts[4]-rakeExts[1])/(float)rakeGrid[1]));
 					
-				for (int k = 0; k<rakeGrid[2]; k++){
-					point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
-					dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
+				for (int i = 0; i<rakeGrid[0]; i++){
+					point[0] = (rakeExts[0]+ (0.5+(float)i )* ((rakeExts[3]-rakeExts[0])/(float)rakeGrid[0]));
+					bool missing = false;
 					if (variableData[3]){
-						float offset = RegionParams::IndexIn2DData(variableData[3], voxCoord, bs, min_bdim, max_bdim);
+						float offset = variableData[3]->GetValue(
+							point[0], point[1], point[2]
+						);
+						if (offset == variableData[3]->GetMissingValue()) {
+							missing = true;
+						}
 						point[2] += offset;
-						//Map again for displaced coordinate:
-						dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
 					}
 					for (int dim = 0; dim<3; dim++){
 						dirVec[dim]=0.f;
 						if (variableData[dim]){
-							if (is3D)
-								dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
-							else 
-								dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+							dirVec[dim] = variableData[dim]->GetValue(point[0], point[1], point[2]);
+							if (dirVec[dim] == variableData[dim]->GetMissingValue()) {
+								missing = true;
+							}
 						}
 						endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
 						fltPnt[dim]=(float)(point[dim]*scales[dim]);
 					}
 					
-					drawArrow(fltPnt, endPoint, rad);
+					if (! missing) drawArrow(fltPnt, endPoint, rad);
 				}
 			}
 		}
 	} else {
-		for (int i = 0; i<rakeGrid[0]; i++){
-			point[0] = rakeExts[0]+ ((double)i )* ((rakeExts[3]-rakeExts[0])/(double)rakeGrid[0]);
+		for (int k = 0; k<rakeGrid[2]; k++){
+			point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
 			
 			for (int j = 0; j<rakeGrid[1]; j++){
 				point[1]= (rakeExts[1]+((double)j )* ((rakeExts[4]-rakeExts[1])/(double)rakeGrid[1]));
 					
-				for (int k = 0; k<rakeGrid[2]; k++){
-					point[2]= (rakeExts[2]+(0.5+(float)k)* ((rakeExts[5]-rakeExts[2])/(float)rakeGrid[2]));
-					dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
+				for (int i = 0; i<rakeGrid[0]; i++){
+					bool missing = false;
+					point[0] = rakeExts[0]+ ((double)i )* ((rakeExts[3]-rakeExts[0])/(double)rakeGrid[0]);
 					if (variableData[3]){
-						float offset = RegionParams::IndexIn2DData(variableData[3], voxCoord, bs, min_bdim, max_bdim);
+						float offset = variableData[3]->GetValue(
+							point[0], point[1], point[2]
+						);
+						if (offset == variableData[3]->GetMissingValue()) {
+							missing = true;
+						}
 						point[2] += offset;
-						//Map again for displaced coordinate:
-						dataMgr->MapUserToVox((size_t)-1,point,voxCoord,actualRefLevel);
 					}
 					for (int dim = 0; dim<3; dim++){
 						dirVec[dim]=0.f;
 						if (variableData[dim]){
-							if (is3D)
-								dirVec[dim] = RegionParams::IndexIn3DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
-							else 
-								dirVec[dim] = RegionParams::IndexIn2DData(variableData[dim],voxCoord,bs,min_bdim, max_bdim);
+							dirVec[dim] = variableData[dim]->GetValue(
+								point[0], point[1], point[2]
+							);
+							if (dirVec[dim] == variableData[dim]->GetMissingValue()) {
+								missing = true;
+							}
 						}
 						endPoint[dim] = scales[dim]*(point[dim]+vectorLengthScale*dirVec[dim]);
 						fltPnt[dim]=(float)(point[dim]*scales[dim]);
 					}
 					
-					drawArrow(fltPnt, endPoint, rad);
+					if (! missing) drawArrow(fltPnt, endPoint, rad);
 				}
 			}
 		}
@@ -385,7 +394,10 @@ void ArrowRenderer::performRendering(const size_t min_bdim[3], const size_t max_
 }
 //Prepare data needed for rendering
 int ArrowRenderer::
-setupVariableData(vector<string>&varnames, float** variableData, double validExts[6], size_t voxExts[6], size_t min_bdim[3], size_t max_bdim[3]){
+setupVariableData(
+	vector<string>&varnames, RegularGrid *variableData[4], double validExts[6], 
+	size_t voxExts[6]
+){
 
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
@@ -415,6 +427,11 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 		validExts[i+3] = rakeExts[i+3];
 	}
 	validExts[5] += maxVerticalOffset;
+
+#ifdef	DEAD
+	//
+	// this shouldn't be needed with RegularGrid class
+	//
 	size_t dim[3];
 	dataMgr->MapUserToVox((size_t)-1, validExts, voxExts);
 	dataMgr->MapUserToVox((size_t)-1, validExts+3, voxExts+3);
@@ -426,11 +443,13 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 	}
 	dataMgr->MapVoxToUser((size_t)-1,voxExts, validExts,0);
 	dataMgr->MapVoxToUser((size_t)-1,voxExts+3, validExts+3,0);
+#endif
 
 	//Call RegionParams::PrepareCoordsForRetrieval to get the block extents needed in the GetRegion call
 	//It may reduce the refinement level or indicate that the required data is not available.
 
 	int numxforms = aParams->GetRefinementLevel();
+	size_t min_bdim[3], max_bdim[3];
 	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, timestep, varnames, 
 		validExts, validExts+3,
 		min_dim, max_dim, 
@@ -453,19 +472,19 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 				aParams->setBypass(timestep);
 				for (int k = 0; k<i; i++){
 					if (variableData[k])
-						dataMgr->UnlockRegion(variableData[k]);
+						dataMgr->UnlockGrid(variableData[k]);
 				}
 				return -1;
 			}
 			useLOD = maxLOD;
 		}
-		variableData[i] = dataMgr->GetRegion(timestep, varnames[i].c_str(),actualRefLevel, useLOD,min_bdim,max_bdim,1);
+		variableData[i] = dataMgr->GetGrid(timestep, varnames[i],actualRefLevel, useLOD,min_dim,max_dim,1);
 		if (!variableData[i]){
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable for %s\n", varnames[i].c_str());
 			aParams->setBypass(timestep);
 			for (int k = 0; k<i; i++){
 				if (variableData[k])
-					dataMgr->UnlockRegion(variableData[k]);
+					dataMgr->UnlockGrid(variableData[k]);
 			}
 			return -1;
 		}
@@ -476,9 +495,9 @@ setupVariableData(vector<string>&varnames, float** variableData, double validExt
 		int useLOD = aParams->GetCompressionLevel();
 		int maxLOD = ds->maxLODPresent("HGT",timestep);
 		if (maxLOD >= useLOD){
-			variableData[3] = dataMgr->GetRegion(timestep, "HGT", actualRefLevel, useLOD,min_bdim,max_bdim,1);
+			variableData[3] = dataMgr->GetGrid(timestep, "HGT", actualRefLevel, useLOD,min_dim,max_dim,1);
 		} else if (ds->useLowerAccuracy()){
-			variableData[3] = dataMgr->GetRegion(timestep, "HGT", actualRefLevel, maxLOD,min_bdim,max_bdim,1);
+			variableData[3] = dataMgr->GetGrid(timestep, "HGT", actualRefLevel, maxLOD,min_dim,max_dim,1);
 		} else {
 			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Height data unavailable at LOD %d\n", aParams->GetCompressionLevel());
 			aParams->setBypass(timestep);

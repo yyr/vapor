@@ -32,43 +32,32 @@ Histo::Histo(int numberBins, float mnData, float mxData){
 	binArray = new int[numBins];
 	reset();
 }
-Histo::Histo(unsigned char* data, size_t min_dim[3], size_t max_dim[3], 
-			 size_t min_bdim[3],size_t max_bdim[3],
-			 float mnData, float mxData, int refLevel){
+Histo::Histo(const RegularGrid *rg, const float range[2]) {
 	binArray = new int[256];
-	minData = mnData;
-	maxData = mxData;
+	minData = range[0];
+	maxData = range[1];
 	numBins = 256;
 	reset();
-	size_t bs[3];
+
+	unsigned int qv;	// quantized value
+	float v;
+	RegularGrid *rg_const = (RegularGrid *) rg;   // kludge - no const_iterator
+	RegularGrid::Iterator itr;
+	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+		v = *itr;
+		if (v == rg->GetMissingValue()) continue;
+
+		if (v<range[0]) qv=0;
+		else if (v>range[1]) qv=255;
+		else qv = (unsigned int) rint((v-range[0])/(range[1]-range[0]) * 255);
+
+		binArray[qv]++;
+		if (qv > 0 && qv < 255 && binArray[qv] > maxBinSize) {
+			maxBinSize = binArray[qv];
+			largestBin = qv;
+		}
+	}
 	
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, refLevel);
-	// make subregion origin (0,0,0)
-	// Note that this doesn't affect the calc of nx,ny,nz.
-	//
-	for(int i=0; i<3; i++) {
-		while(min_bdim[i] > 0) {
-			min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
-			min_bdim[i] -= 1; max_bdim[i] -= 1;
-		}
-	}
-		
-	int nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
-	int ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
-	//int nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
-	int ix, iy, iz;
-	for (ix = min_dim[0]; ix <= max_dim[0]; ix++){
-		for (iy = min_dim[1]; iy <= max_dim[1]; iy++) {
-			for (iz = min_dim[2]; iz <= max_dim[2]; iz++) {
-				int val = (int)data[ix+nx*(iy+ny*iz)];
-				binArray[val]++;
-				if (val > 0 && val < 255 && binArray[val] > maxBinSize) {
-					maxBinSize = binArray[val];
-					largestBin = val;
-				}
-			}
-		}
-	}
 }
 	
 Histo::~Histo(){

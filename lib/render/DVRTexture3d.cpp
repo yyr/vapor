@@ -26,7 +26,6 @@
 #include "TextureBrick.h"
 #include "BBox.h"
 #include "glutil.h"
-#include "renderer.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -45,16 +44,16 @@ using namespace VAPoR;
 // Static member data initalization
 //
 
-#define	DEFAULT_MAX_TEXTURE 512
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren) :
+DVRTexture3d::DVRTexture3d(
+  int precision, int nvars, int nthreads
+) :
   _nx(0),
   _ny(0),
   _nz(0),
-  _data(0),
   _bx(0),
   _by(0),
   _bz(0),  
@@ -63,20 +62,16 @@ DVRTexture3d::DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int
   _samples(0),
   _samplingRate(2.0),
   _minimumSamples(384),
+  _maxTexture(0),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion(),
-  _internalFormat(internalFormat),
-  _format(format),
-  _type(type)
+  _precision(precision),
+  _nvars(nvars)
 {
-	
 	MyBase::SetDiagMsg(
-		"DVRTexture3d::DVRTexture3d( %d %d %d %d)", 
-		internalFormat, format, type, nthreads
+		"DVRTexture3d::DVRTexture3d( %d %d %d)", 
+		precision, nvars, nthreads
 	);
-   myRenderer = ren;
-  _max_texture = DEFAULT_MAX_TEXTURE;
-  _maxTexture = maxTextureSize(_internalFormat, _format, _type);
 }
 
 //----------------------------------------------------------------------------
@@ -99,42 +94,40 @@ DVRTexture3d::~DVRTexture3d()
 // Derived classes should call this function to ensure that the data and
 // texture extents are being set and the texture bricks are being created. 
 //----------------------------------------------------------------------------
-int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
-                            const int data_roi[6],
-                            const float extents[6],
-                            const int data_box[6],
-                            int level) 
-{ 
-  _data = data;
+int DVRTexture3d::SetRegion(
+	const RegularGrid *rg, const float range[2], int num
+) { 
+  size_t dims[3];
+  rg->GetDimensions(dims);
 
-  _dmin.x = data_roi[0];
-  _dmin.y = data_roi[1];
-  _dmin.z = data_roi[2];
-  _dmax.x = data_roi[3];
-  _dmax.y = data_roi[4];
-  _dmax.z = data_roi[5];
+  _dmin.x = 0;
+  _dmin.y = 0;
+  _dmin.z = 0;
+  _dmax.x = dims[0]-1;
+  _dmax.y = dims[1]-1;
+  _dmax.z = dims[2]-1;
 
-  bool gl_tex_sub_image_broken = false;
-#ifdef  Darwin
-  if (GLEW_VERSION_2_0) gl_tex_sub_image_broken = true;
-#endif
+  if (_maxTexture == 0) {
+    _maxTexture = TextureBrick::maxTextureSize(rg, _precision, _nvars);
+  }
 
-  if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents, _maxTexture))
+  if (_lastRegion.update(rg, _maxTexture))
   {
-    if (_nx != nx || _ny != ny || _nz != nz)
-    {
-      _nx = _bx = nextPowerOf2(nx); 
-      _ny = _by = nextPowerOf2(ny); 
-      _nz = _bz = nextPowerOf2(nz);
+    assert(num == 0);
+    _nx = dims[0];
+    _ny = dims[1];
+    _nz = dims[2];
 
-      if (gl_tex_sub_image_broken) {
-        _nx = nx;
-        _ny = ny;
-        _nz = nz;
-      }
+    double extents[6];
+    rg->GetUserExtents(extents);
+cout << "EXTENTS " << 
+extents[0] << " " <<
+extents[1] << " " <<
+extents[2] << " " <<
+extents[3] << " " <<
+extents[4] << " " <<
+extents[5] << " " << endl;
 
-    }
-    
     _vmin.x = extents[0];
     _vmin.y = extents[1];
     _vmin.z = extents[2];
@@ -158,23 +151,24 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       // needed. We can save a few cycles by setting up the single brick here,
       // rather than calling buildBricks(...). 
       //
-      _bricks.push_back(new TextureBrick(_internalFormat, _format, _type));
+      _bricks.push_back(new TextureBrick(rg, _precision, _nvars));
 
+      _bricks[0]->dataMin(extents[0], extents[1], extents[2]);
+      _bricks[0]->dataMax(extents[3], extents[4], extents[5]);
       _bricks[0]->volumeMin(extents[0], extents[1], extents[2]);
       _bricks[0]->volumeMax(extents[3], extents[4], extents[5]);
 
-      _bricks[0]->textureMin((data_roi[0])/(float)(_nx-1),
-                             (data_roi[1])/(float)(_ny-1),
-                             (data_roi[2])/(float)(_nz-1));
+      _bricks[0]->textureMin(0.0, 0.0, 0.0);
 
-      _bricks[0]->textureMax((data_roi[3])/(float)(_nx-1), 
-                             (data_roi[4])/(float)(_ny-1), 
-                             (data_roi[5])/(float)(_nz-1));
+      _bricks[0]->textureMax(((float)dims[0]-1.0)/(float)(_nx-1), 
+                             ((float)dims[1]-1.0)/(float)(_ny-1), 
+                             ((float)dims[2]-1.0)/(float)(_nz-1));
 
 
-      _bricks[0]->fill((GLubyte*)data, nx, ny, nz);
+      _bricks[0]->fill(rg, range, num);
+      _bx = _nx; _by = _ny; _bz = _nz;
       
-      loadTexture(_bricks[0]);
+      if (num == _nvars - 1) loadTexture(_bricks[0]);
     } 
     else
     {
@@ -183,7 +177,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       // The data will not fit completely within texture memory, need to 
       // subdivide into multiple bricks.
       //
-      buildBricks(level, data_box, data_roi, nx, ny, nz);
+      buildBricks(rg, range, num);
     }
   }
   else
@@ -194,7 +188,8 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     //
     for (int i=0; i<_bricks.size(); i++)
     {
-      _bricks[i]->refill((GLubyte*)data);
+      _bricks[i]->refill(rg, range, num);
+      if (num == _nvars - 1) loadTexture(_bricks[i]);
     }
   }
 
@@ -249,7 +244,23 @@ void DVRTexture3d::calculateSampling()
   Matrix3d modelviewInverse;
 
   glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+
+  //
+  //  Normalize the colums (rows?) to remove any scaling component
+  //
+  Vect3d xv(modelview(0,0), modelview(0,1), modelview(0,2));
+  Vect3d yv(modelview(1,0), modelview(1,1), modelview(1,2));
+  Vect3d zv(modelview(2,0), modelview(2,1), modelview(2,2));
+  xv *= 1.0/xv.mag(); 
+  yv *= 1.0/yv.mag(); 
+  zv *= 1.0/zv.mag(); 
+
+  modelview(0,0) = xv(0); modelview(0,1) = xv(1); modelview(0,2) = xv(2);
+  modelview(1,0) = yv(0); modelview(1,1) = yv(1); modelview(1,2) = yv(2);
+  modelview(2,0) = zv(0); modelview(2,1) = zv(1); modelview(2,2) = zv(2);
+
   modelview.inverse(modelviewInverse);
+  
 
   BBox volumeBox(_vmin, _vmax);
   BBox voxelBox(_dmin, _dmax);
@@ -292,6 +303,7 @@ void DVRTexture3d::calculateSampling()
   _samplingRate = 2.0;
   _samples = _samplingRate * (maxd - mind).mag();
 
+#ifdef	DEAD
   //
   // But we'll oversample to _minimumSamples (if we're not in fast render mode)
   // for a smooth appearance at low refinement levels.
@@ -305,9 +317,12 @@ void DVRTexture3d::calculateSampling()
     //
     _samplingRate = _samples / (maxd - mind).mag();
   }
+#endif
 
   _delta = distance / _samples;
-  _deltaEye = (volumeBox.maxZ().z - volumeBox.minZ().z) / _samples; 
+
+cout << "_samples = " << _samples << endl;
+cout << "_delta = " << _delta << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -399,11 +414,13 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
                      tverts[order[j]].y(), 
                      tverts[order[j]].z());
 
+cout << "vertex j " << verts[order[j]].x() << " " <<verts[order[j]].y() << " " <<verts[order[j]].z() << endl;
         glVertex3f(verts[order[j]].x(), 
                    verts[order[j]].y(), 
                    verts[order[j]].z());
       }
 	}
+cout << "end polygon\n";
 	glEnd();
 
     //
@@ -564,13 +581,12 @@ void DVRTexture3d::findVertexOrder(const Vect3d verts[6], int order[6],
 //----------------------------------------------------------------------------
 // Brick the texture data so that each brick will fit into texture memory.
 //----------------------------------------------------------------------------
-void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
-                               int nx, int ny, int nz)
-{
+void DVRTexture3d::buildBricks(
+	const RegularGrid *rg, const float range[2], int num
+) {
+  size_t dims[3];
+  rg->GetDimensions(dims);
   // 
-  // Calculate the brick size (_bx, _by, _bz are initialized to _nx, _ny, _nz
-  // in DVRTexture3d::SetRegion, before this method is called).
-  //
   // Note: we are using _maxBrickDim as the maximum brick dimension, not 
   // _maxTexture. The _maxTexture will typically be on the order of 512 
   // (i.e., a maximum texture of 512^3); however, we can get better performance
@@ -578,6 +594,9 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
   // bricks on the borders may contain very small subset of data.
   //
   int brick_dim = min(_maxTexture, _maxBrickDim);
+  _bx = nextPowerOf2(_nx);
+  _by = nextPowerOf2(_ny);
+  _bz = nextPowerOf2(_nz);
   while (_bx > brick_dim)
   {
     _bx /= 2;
@@ -603,22 +622,18 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
   //
   // Populate bricks 
   //
-  Point3d vmin;
-  Point3d vmax;
-  Point3d tmin;
-  Point3d tmax;
-
   TextureBrick *brick = NULL;
 
   // brick data/block box
   int bbox[6] = {0,0,0, _bx-1, _by-1, _bz-1};
 
   // brick region of interest
-  int broi[6] = {roi[0], roi[1], roi[2], roi[3], roi[4], roi[5]};
+  int broi[6] = {0,0,0,dims[0]-1, dims[1]-1, dims[2]-1};
 
   // data offset
   int offset[3] = {0, 0, 0};
 
+  int bricknum = 0;
   for(int z=0; z<nbricks[2]; ++z)
   {
     //
@@ -633,8 +648,8 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
     // voxel on either end for fragment interpolation (except fo bricks
     // on the extreme ends).
     // 
-    broi[2] = (bbox[2] > roi[2]) ? bbox[2] + 1 : roi[2];
-    broi[5] = (bbox[5] < roi[5]) ? bbox[5] - 1 : roi[5];
+      broi[2] = bbox[2];
+      broi[5] = bbox[5] < dims[2]-1 ? bbox[5] : dims[2]-1;
 
     for (int y=0; y<nbricks[1]; y++)
     {
@@ -650,89 +665,92 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
       // voxel on either end for fragment interpolation (except fo bricks
       // on the extreme ends).
       // 
-      broi[1] = (bbox[1] > roi[1]) ? bbox[1] + 1 : roi[1];
-      broi[4] = (bbox[4] < roi[4]) ? bbox[4] - 1 : roi[4];
+        broi[1] = bbox[1];
+        broi[4] = bbox[4] < dims[1]-1 ? bbox[4] : dims[1]-1;
 
       for (int x=0; x<nbricks[0]; x++)
       {
-        brick = new TextureBrick(_internalFormat, _format, _type);
-
         //
-        // Set the extents of the brick's data box
-        //
-        brick->setDataBlock(level, box, bbox);
+        // Determine the x region of interest for the brick, leaving an extra
+        // voxel on either end for fragment interpolation (except fo bricks
+        // on the extreme ends).
+        // 
+        broi[0] = bbox[0];
+        broi[3] = bbox[3] < dims[0]-1 ? bbox[3] : dims[0]-1;
 
-        if (_vmin.z >= brick->dataMax().z || _vmax.z <= brick->dataMin().z ||
-            _vmin.y >= brick->dataMax().y || _vmax.y <= brick->dataMin().y ||
-            _vmin.x >= brick->dataMax().x || _vmax.x <= brick->dataMin().x)
-        {
-          //
-          // This brick's data box does not overlap the region of interest.
-          // Toss it.
-          //
-          delete brick;
-          brick = NULL;
-        }     
-        else
-        {
-          //
-          // Determine the x region of interest for the brick, leaving an extra
-          // voxel on either end for fragment interpolation (except fo bricks
-          // on the extreme ends).
-          // 
-          broi[0] = (bbox[0] > roi[0]) ? bbox[0] + 1 : roi[0];
-          broi[3] = (bbox[3] < roi[3]) ? bbox[3] - 1 : roi[3];
+        if (num != 0) {
+          assert(_bricks.size() > bricknum);
+          brick = _bricks[bricknum];
+        }
+        else {
+          brick = new TextureBrick(rg, _precision, _nvars);
+          _bricks.push_back(brick); 
 
-          brick->setROI(level, box, broi);
+          //
+          // Set the extents of the brick's data box
+          //
 
+
+
+          double vmin[3], vmax[3];
+          rg->GetUserCoordinates(
+            broi[0], broi[1], broi[2], &vmin[0], &vmin[1], &vmin[2]
+          );
+          rg->GetUserCoordinates(
+            broi[3], broi[4], broi[5], &vmax[0], &vmax[1], &vmax[2]
+          );
+
+          brick->dataMin(vmin[0], vmin[1], vmin[2]);
+          brick->dataMax(vmax[0], vmax[1], vmax[2]);
+          brick->volumeMin(vmin[0], vmin[1], vmin[2]);
+          brick->volumeMax(vmax[0], vmax[1], vmax[2]);
           //
           // Set the texture coordinates of the brick.
           //
-          brick->textureMin((broi[0]-bbox[0])/(float)(_bx-1),
-                            (broi[1]-bbox[1])/(float)(_by-1),
-                            (broi[2]-bbox[2])/(float)(_bz-1));
+          brick->textureMin(0.0, 0.0, 0.0);
           brick->textureMax((broi[3]-bbox[0])/(float)(_bx-1),
-                            (broi[4]-bbox[1])/(float)(_by-1),
-                            (broi[5]-bbox[2])/(float)(_bz-1));
+                          (broi[4]-bbox[1])/(float)(_by-1),
+                          (broi[5]-bbox[2])/(float)(_bz-1));
 
-          //
-          // Fill the brick
-          //
-          brick->fill((GLubyte*)_data, 
-                      _bx, _by, _bz, 
-                      nx, ny, nz,
-                      offset[0], offset[1], offset[2]);
-
-          loadTexture(brick);
-
-          _bricks.push_back(brick); 
         }
 
         //
+        // Fill the brick
+        //
+        brick->fill(
+            rg,range,num, _bx,_by,_bz,
+            broi[3]-broi[0]+1, broi[4]-broi[1]+1, broi[5]-broi[2]+1,
+            offset[0], offset[1], offset[2]
+        );
+
+        if (num == _nvars - 1) loadTexture(brick);
+
+        //
         // increment the brick block box (for the next brick in the x-axis) by 
-        // the size of a brick (minus 2 for texture overlap).
+        // the size of a brick (minus 1 for texture overlap).
         // 
-        bbox[0]    = bbox[3]-2;
-        offset[0] += _bx-2;
-        bbox[3]   += _bx-2;
+        bbox[0]    = bbox[3];
+        offset[0] += _bx-1;
+        bbox[3]   += _bx-1;
+        bricknum++;
       }
 
       //
       // increment the brick block box (for the next brick in the y-axis)
-      // by the size of a brick (minus 2 for texture overlap).
+      // by the size of a brick (minus 1 for texture overlap).
       // 
-      bbox[1]    = bbox[4]-2;
-      offset[1] += _by-2;
-      bbox[4]   += _by-2;
+      bbox[1]    = bbox[4];
+      offset[1] += _by-1;
+      bbox[4]   += _by-1;
     }
 
     //
     // increment the brick block box (for the next brick in the z-axis) 
-    // by the size of a brick (minus 2 for texture overlap).
+    // by the size of a brick (minus 1 for texture overlap).
     // 
-    bbox[2]    = bbox[5]-2;
-    offset[2] += _bz-2;
-    bbox[5]   += _bz-2;
+    bbox[2]    = bbox[5];
+    offset[2] += _bz-1;
+    bbox[5]   += _bz-1;
   }
 }
 
@@ -772,73 +790,9 @@ void DVRTexture3d::sortBricks(const Matrix3d &modelview)
   }
 }
 
-//----------------------------------------------------------------------------
-// Determine and return the maximum texture size (in bytes). 
-//----------------------------------------------------------------------------
-int DVRTexture3d::maxTextureSize(
-	GLint internalFormat, GLenum format, GLenum type
-) {
-
-  const char *s = (const char *) glGetString(GL_VENDOR);
-  if (! s) return(min(128,_max_texture));
-  string glvendor;
-  for(int i=0; i<strlen(s); i++) {
-    glvendor.append(1, (char) toupper(s[i]));
-  }
-
-  if ((glvendor.find("INTEL") != string::npos) || 
-	  (glvendor.find("SGI") != string::npos)) {
-		
-    return min(128, _max_texture);
- }
-
-
-  // Upper limit on texture size - maximum value returned by this 
-  // function. 
-  //
-  // N.B. The texture proxy method of determining maximum texture
-  // size supported by the card has not been reliable with nVidia
-  // drivers, in some instances returning values larger than what the
-  // card will actually support.
-  //
-
-  if (GLEW_ATI_fragment_shader)
-  {
-    return min(256, _max_texture);
-  }
-
-  for (int i = 16; i < 2*_max_texture; i*=2)
-  {
-    glTexImage3D(GL_PROXY_TEXTURE_3D, 0, internalFormat, i, i, i, 0,
-                 format, type, NULL);
-
-    GLint width;
-    GLint height;
-    GLint depth;
-    
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0,
-                             GL_TEXTURE_WIDTH, &width);
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0,
-                             GL_TEXTURE_HEIGHT, &height);
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0,
-                             GL_TEXTURE_DEPTH, &depth);
-
-    if (width == 0 || height == 0 || depth == 0)
-    {
-      i /= 2;
-
-      return i;
-    }
-  }
-
-  return _max_texture;
-
-}
 
 void DVRTexture3d::SetMaxTexture(int texsize) {
-	_max_texture = texsize > 0 ? texsize : DEFAULT_MAX_TEXTURE ;
-
-	_maxTexture = maxTextureSize(_internalFormat, _format, _type);
+	_maxTexture = texsize;
 }
 
 
@@ -853,7 +807,6 @@ DVRTexture3d::RegionState::RegionState()
 { 
   _dim[0] = _dim[1] = _dim[2] = 0;
   _roi[0] = _roi[1] = _roi[2] = _roi[3] = _roi[4] = _roi[5] = 0;
-  _box[0] = _box[1] = _box[2] = _box[3] = _box[4] = _box[5] = 0;
   _ext[0] = _ext[1] = _ext[2] = _ext[3] = _ext[4] = _ext[5] = 0.0;
 }
 
@@ -861,19 +814,17 @@ DVRTexture3d::RegionState::RegionState()
 // Update the region state. Returns true if the region has changed, false
 // otherwise.
 //----------------------------------------------------------------------------
-bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
-                                       const int roi[6], 
-                                       const int box[6], 
-                                       const float extents[6],
-                                       int tex_size)
+bool DVRTexture3d::RegionState::update(
+	const RegularGrid *rg, int tex_size
+)
 {
-  if (nx == _dim[0] && ny == _dim[1] &&  nz == _dim[2] &&
-      _roi[0] == roi[0] &&
-      _roi[1] == roi[1] &&
-      _roi[2] == roi[2] &&
-      _roi[3] == roi[3] &&
-      _roi[4] == roi[4] &&
-      _roi[5] == roi[5] &&
+  double extents[6];
+  rg->GetUserExtents(extents);
+
+  size_t dims[3];
+  rg->GetDimensions(dims);
+
+  if (dims[0] == _dim[0] && dims[1] == _dim[1] &&  dims[2] == _dim[2] &&
 
       _ext[0] == extents[0] &&
       _ext[1] == extents[1] &&
@@ -882,27 +833,14 @@ bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
       _ext[4] == extents[4] &&
       _ext[5] == extents[5] &&
 
-      _box[0] == box[0] &&
-      _box[1] == box[1] &&
-      _box[2] == box[2] &&
-      _box[3] == box[3] &&
-      _box[4] == box[4] &&
-      _box[5] == box[5] &&
       _tex_size == tex_size)
   {
     return false;
   }
 
- _dim[0] = nx; 
- _dim[1] = ny; 
- _dim[2] = nz;
-
- _roi[0] = roi[0];
- _roi[1] = roi[1];
- _roi[2] = roi[2];
- _roi[3] = roi[3];
- _roi[4] = roi[4];
- _roi[5] = roi[5];
+ _dim[0] = dims[0]; 
+ _dim[1] = dims[1]; 
+ _dim[2] = dims[2];
 
  _ext[0] = extents[0];
  _ext[1] = extents[1];
@@ -911,12 +849,6 @@ bool DVRTexture3d::RegionState::update(int nx, int ny, int nz,
  _ext[4] = extents[4];
  _ext[5] = extents[5];
 
- _box[0] = box[0];
- _box[1] = box[1];
- _box[2] = box[2];
- _box[3] = box[3];
- _box[4] = box[4];
- _box[5] = box[5];
  _tex_size = tex_size;
 
  return true;

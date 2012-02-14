@@ -1,4 +1,3 @@
-#version 120
 uniform sampler3D volumeTexture;	// sampled data to ray cast
 vec3 Gradient(in vec3 delta, in vec3 tc)
   {

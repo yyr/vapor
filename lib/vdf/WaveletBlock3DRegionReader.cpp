@@ -447,7 +447,7 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 	const size_t bmin[3],
 	const size_t bmax[3],
 	float *region,
-	int unblock
+	bool unblock
 ) {
 	size_t min[3], max[3];
 

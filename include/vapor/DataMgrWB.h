@@ -109,6 +109,11 @@ public:
 	WaveletBlock3DRegionReader::GetTSUserTimeStamp(ts,s);
  };
 
+ virtual vector<double> GetTSExtents(size_t ts) const {
+    return(WaveletBlock3DRegionReader::GetTSExtents(ts));
+ };
+
+
  virtual void   GetGridDim(size_t dim[3]) const {
 	return(WaveletBlock3DRegionReader::GetGridDim(dim));
  };
@@ -119,6 +124,10 @@ public:
 
  virtual string GetCoordSystemType() const {
 	return(WaveletBlock3DRegionReader::GetCoordSystemType());
+ };
+
+ virtual string GetGridType() const {
+	return(WaveletBlock3DRegionReader::GetGridType());
  };
 	
 
@@ -143,12 +152,22 @@ protected:
 
  virtual int    BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  )  {
  	return(WaveletBlock3DRegionReader::BlockReadRegion(
-		bmin, bmax, region, 1)
+		bmin, bmax, region, unblock)
 	);
  }; 
+
+ virtual RegularGrid    *MakeGrid(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
+
+ virtual RegularGrid    *ReadGrid(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
 
  virtual void GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
@@ -161,6 +180,11 @@ protected:
  virtual const float *GetDataRange() const {
 	return(WaveletBlock3DRegionReader::GetDataRange());
  }
+
+private:
+ float **_blkptrs;
+
+ int _DataMgrWB();
 
 };
 

@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include <vapor/RegularGrid.h>
+#include <vapor/LayeredGrid.h>
 #include "BBox.h"
 #include "Point3d.h"
 
@@ -26,31 +28,63 @@ class RENDER_API TextureBrick
 {
  public:
    
-  TextureBrick(GLint internalFormat, GLenum format, GLenum type);
+  //
+  // precision : num bits for internal texture representation (8 or 16)
+  // nvars : number of variables to be stored (1..4)
+  //
+  // N.B. the total number of components that can be stored is 4. One
+  // component is needed for each variable, one component is needed if 
+  // rg contains missing data, and one component is needed if rg is a
+  // LayeredGrid.
+  //
+  TextureBrick(const RegularGrid *rg, int precision, int nvars);
   virtual ~TextureBrick();
 
   void bind() const     { glBindTexture(GL_TEXTURE_3D, _texid); }
   GLuint handle() const { return _texid; }
 
-  void size(int nx, int ny, int nz) { _nx=nx; _ny=ny; _nz=nz; }
+  void size(int bx, int by, int bz) { _bx=bx; _by=by; _bz=bz; }
 
-  int nx() const { return _nx; }
-  int ny() const { return _ny; }
-  int nz() const { return _nz; }
+  int nx() const { return _bx; }
+  int ny() const { return _by; }
+  int nz() const { return _bz; }
+
+  size_t ncomp() const { return _ncomp; }
+  size_t szcomp() const { return _szcomp; }
+  int nvars() const { return _nvars; }
 
   void* data() { return _data; }
 
   void load();
   void reload();
 
-  void fill(GLubyte *data, 
+  void copytex(
+	const RegularGrid *rg, unsigned char *data, const float range[2],
+	int bx, int by, int bz,
+	int dnx, int dny, int dnz,
+	int xoffset=0, int yoffset=0, int zoffset=0
+  );
+  void copytex_fast(
+	const RegularGrid *rg, unsigned char *data, const float range[2],
+	int bx, int by, int bz,
+	int dnx, int dny, int dnz,
+	int xoffset=0, int yoffset=0, int zoffset=0
+  );
+
+  void fill(const RegularGrid *rg, 
+			const float range[2], int num,
             int bx, int by, int bz,
-            int nx, int ny, int nz,
-            int xoffset=0, int yoffset=0, int zoffset=0);
+            int dnx, int dny, int dnz,
+            int xoffset=0, int yoffset=0, int zoffset=0
+  );
 
-  void fill(GLubyte *data, int nx, int ny, int nz);
+  void fill(
+	const RegularGrid *rg, const float range[2], int num
+  );
 
-  void refill(GLubyte *data);
+  void refill(
+	const RegularGrid *rg, const float range[2], int num
+  );
 
 
   //
@@ -77,8 +111,6 @@ class RENDER_API TextureBrick
   void volumeMin(float x, float y, float z);
   void volumeMax(float x, float y, float z);
 
-  void setROI(int level, const int box[6], const int roi[6]);
-
   //
   // Accessor for the brick's texture coordinates
   //
@@ -93,11 +125,18 @@ class RENDER_API TextureBrick
   //
   // Brick's center. Used for sorting. 
   //
-  Point3d center() const { return _center; }
-  void    center(const Point3d &center) { _center = center; }
+  Point3d center() const ;
 
   void invalidate();
   bool valid() const;
+
+  //----------------------------------------------------------------------------
+  // Determine and return the maximum texture size (in bytes).
+  //----------------------------------------------------------------------------
+  static int maxTextureSize(
+    const RegularGrid *rg, int precision, int nvars
+  );
+
 
   //
   // Friend functions
@@ -120,17 +159,14 @@ class RENDER_API TextureBrick
  protected:
 
   // Brick size (power-of-2)
-  int _nx;
-  int _ny;
-  int _nz;
+  int _bx;
+  int _by;
+  int _bz;
 
   // Brick's voxel offset into data
   int _xoffset;
   int _yoffset;
   int _zoffset;
-
-  // Brick center
-  Point3d _center;
 
   // data extents
   Point3d _dmin;
@@ -148,7 +184,7 @@ class RENDER_API TextureBrick
   GLuint _texid;
 
   // Texture internal data format
-  GLenum _internalFormat;
+  GLint _internalFormat;
 
   // Texture data format
   GLenum _format;
@@ -156,17 +192,31 @@ class RENDER_API TextureBrick
   // Texture data type
   GLenum _type;
 
-  // size of texel in bytes;
-  int _size;
+  // number of texture components (1,2,3,4)
+  size_t _ncomp;
+
+  // size of texture components in bytes
+  size_t _szcomp;
 
   // Data
   GLubyte *_data;
-  bool     _haveOwnership;
+  size_t   _texSzBytes;
 
   // Data size (maybe non-power-2 < brick size)
   int _dnx;
   int _dny;
   int _dnz;
+
+  bool _missing;	// Grid has missing data
+  bool _layered;	// grid is of type LayeredGrid
+  int _nvars;		// # of vars stored in a texture.
+
+private:
+  static int _configure(
+    const RegularGrid *rg, int precision, int nvars,
+    GLenum &format, GLint &internalFormat, size_t &ncomp, GLenum &type,
+    bool &missing, bool &layered
+  );
 
 };
 

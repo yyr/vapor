@@ -168,6 +168,8 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadVertexSource(const char *source, std::string fileName)
 {
+	//cout << "VERTEX PROGRAM " << fileName << endl;
+	//cout << source << endl;
 	return loadSource(source, GL_VERTEX_SHADER, fileName);
 }
 //----------------------------------------------------------------------------
@@ -177,8 +179,6 @@ bool ShaderProgram::loadVertexSource(const char *source)
 {
 	return loadSource(source, GL_VERTEX_SHADER, "");
 }
-
-
 //----------------------------------------------------------------------------
 // Load fragment shader source from a file. 
 //----------------------------------------------------------------------------
@@ -191,8 +191,11 @@ bool ShaderProgram::loadFragmentSource(const char *source)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadFragmentSource(const char *source, std::string fileName)
 {
+	//cout << "FRAGMENT PROGRAM " << fileName << endl;
+	//cout << source << endl;
 	return loadSource(source, GL_FRAGMENT_SHADER, fileName);
 }
+
 
 //----------------------------------------------------------------------------
 // Create the shader from the char* source
@@ -232,9 +235,9 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType, std::strin
 		if (printOpenGLError() != 0) return(false);
 	}
 	_shaderObjects[fileName] = shader;
-#ifdef DEBUG
-	std::cout << "Creating shader obj: " << shader << " prog: " << _program << std::endl;
-#endif	
+//#ifdef DEBUG
+	std::cout << "Creating shader obj: " << shader << " prog: " << _program << "name: " << fileName << std::endl;
+//#endif	
 	return true;
 }
 
@@ -262,8 +265,6 @@ bool ShaderProgram::create()
 //----------------------------------------------------------------------------
 bool ShaderProgram::compile()
 {
-	std::list<GLuint>::iterator iter;
-	
 	//
 	// Compile all the shaders
 	//
@@ -494,5 +495,15 @@ bool ShaderProgram::supported()
 GLuint ShaderProgram::getProgram()
 {
 	return _program;
+}
+
+void ShaderProgram::printContents()
+{
+	std::cout << "Program " << (int)_program << " Shader Objects: \n\t";
+	for (std::map< std::string, GLuint>::const_iterator iter = _shaderObjects.begin();
+		 iter != _shaderObjects.end(); ++iter ){ 
+		std::cout << iter->first << "\n\t";
+	}
+	std::cout << std::endl;
 }
 

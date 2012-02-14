@@ -3,8 +3,6 @@
 #include <cassert>
 #include <vector>
 #include <vapor/DataMgrFactory.h>
-#include <vapor/DataMgrLayered.h>
-#include <vapor/DataMgrLayered2.h>
 #include <vapor/DataMgrWB.h>
 #include <vapor/DataMgrWC.h>
 #include <vapor/DataMgrAMR.h>
@@ -21,14 +19,7 @@ DataMgr *DataMgrFactory::New(
 		MetadataVDC *md = new MetadataVDC(files[0]);
 		if (MetadataVDC::GetErrCode() != 0) return (NULL);
 
-		string type = md->GetGridType();
-		if (type.compare("layered") == 0 && md->GetVDCType() == 1) {
-			return new DataMgrLayered(*md, mem_size);
-		}
-		else if (type.compare("layered") == 0 && md->GetVDCType() == 2) {
-			return new DataMgrLayered2(*md, mem_size);
-		}
-		else if (type.compare("block_amr") == 0) {
+		if (md->GetGridType().compare("block_amr") == 0) {
 			return new DataMgrAMR(*md, mem_size);
 		}
 		else if (md->GetVDCType() == 1) {

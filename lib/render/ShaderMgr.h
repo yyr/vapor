@@ -28,6 +28,7 @@ namespace VAPoR {
 		ShaderMgr(const char* directory);
 		ShaderMgr(std::string directory, QGLWidget *owner);
 		void setShaderSourceDir(const char* directory);
+		void setGLSLVersion(int version);
 		bool loadShaders();
 		bool reloadShaders();
 		bool enableEffect(std::string effect);
@@ -40,17 +41,22 @@ namespace VAPoR {
 		bool uploadEffectData(std::string effect, std::string variable, float value1, float value2);
 		bool uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3);
 		bool uploadEffectData(std::string effect, std::string variable, float value1, float value2, float value3, float value4);
+		bool defineEffect(std::string baseName, std::string defines, std::string instanceName);
+		bool undefEffect(std::string instanceName);
 		bool effectExists(std::string effect);
 		void printEffects();
 	private:
 		bool loadEffectFile(std::string file);
-		bool loadVertShader(std::string file, ShaderProgram *prog, std::string fileName);
-		bool loadFragShader(std::string file, ShaderProgram *prog, std::string fileName);
+		std::string convertDefines(std::string defines);
+		bool loadVertShader(std::string path, std::string fileName, std::string effectName);
+		bool loadFragShader(std::string path, std::string fileName, std::string effectName);
 		std::vector<std::string> preprocess(const char* source, std::string &processed);
 		std::map<std::string, ShaderProgram*> effects;
+		std::map<std::string, std::map<int, std::vector<std::string> > > baseEffects;
 		std::string sourceDir;
 		std::string findEffect(GLuint prog);
 		bool loaded;
+		int glsl_version;
 		QGLWidget *parent;
 	};
 };

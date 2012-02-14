@@ -33,7 +33,6 @@
 #include <vapor/ImpExp.h>
 #include <vapor/MyBase.h>
 #include <vapor/DataMgr.h>
-#include <vapor/DataMgrWB.h>
 #include <vapor/LayeredIO.h>
 #include <vapor/Version.h>
 #include <qstring.h>
@@ -155,18 +154,20 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	numTimesteps = numTS;
 	
 	std::vector<double> mdExtents = dataMgr->GetExtents();
-	for (int i = 0; i< 6; i++)
-		extents[i] = (float)mdExtents[i];
-
-	projString = "";
-	DataMgrWB	*dataMgrWB = dynamic_cast<DataMgrWB *>(dataMgr);
-	if (dataMgrWB) {
-		projString = dataMgrWB->GetMapProjection();
-	} else {
-		LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO *>(dataMgr);
-		if (dataMgrLayered)
-			projString = dataMgrLayered->GetMapProjection();
+	if (! sphericalTransform()) {
+		for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
 	}
+	else {
+		//
+		// Convert spherical extents to Cartesian coordinates, which is
+		// given by the outer radius of the sphere
+		//
+		vector <long> perm = dataMgr->GetGridPermutation();
+		extents[0] = extents[1] = extents[2] = -1.0 * mdExtents[perm[2]+3];
+		extents[3] = extents[4] = extents[5] = mdExtents[perm[2]+3];
+	}
+
+	projString = dataMgr->GetMapProjection();
 	
 	timeVaryingExtents.clear();
 	for (int i = 0; i<numTS; i++){
@@ -177,7 +178,14 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			continue;
 		}
 		float* tsexts = new float[6];
-		for (int j = 0; j< 6; j++){ tsexts[j] = mdexts[j];}
+		if (! sphericalTransform()) {
+			for (int j = 0; j< 6; j++){ tsexts[j] = mdexts[j];}
+		}
+		else {
+			vector <long> perm = dataMgr->GetGridPermutation();
+			tsexts[0] = tsexts[1] = tsexts[2] = -1.0 * mdexts[perm[2]+3];
+			tsexts[3] = tsexts[4] = tsexts[5] = mdexts[perm[2]+3];
+		}
 		timeVaryingExtents.push_back(tsexts);
 	}
 	
@@ -708,14 +716,8 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6]){
 
 bool DataStatus::sphericalTransform()
 {
-	DataMgrWB	*dataMgrWB = dynamic_cast<DataMgrWB*>(dataMgr);
-
-  if (dataMgrWB)
-  {
-    return (dataMgrWB->GetCoordSystemType() == "spherical");
-  }
-
-  return false;
+	if (! dataMgr) return (false);
+	return (dataMgr->GetCoordSystemType() == "spherical");
 }
 
 bool DataStatus::dataIsLayered(){

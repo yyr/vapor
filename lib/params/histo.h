@@ -21,6 +21,7 @@
 #ifndef HISTO_H
 #define HISTO_H
 #include <vapor/MyBase.h>
+#include <vapor/RegularGrid.h>
 
 namespace VAPoR {
 
@@ -31,9 +32,7 @@ public:
 	Histo(int numberBins, float mnData, float mxData);
 	//Special constructor for unsigned char data:
 	//
-	Histo(unsigned char* data, size_t min_dim[3], size_t max_dim[3], 
-			 size_t min_bdim[3],size_t max_bdim[3], 
-		  float mnData, float mxData, int numRefinements);
+	Histo(const RegularGrid *rg, const float range[2]);
 	~Histo();
 	void reset(int newNumBins = -1);
 	void reset(int newNumBins, float mnData, float mxData){

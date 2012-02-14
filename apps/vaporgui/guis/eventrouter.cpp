@@ -216,18 +216,13 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	//Now get the data:
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
-					timeStep, 
-					varname,
-					availRefLevel,
-					lod,
-					min_bdim, max_bdim,
-					dRange,
-					0 //Don't lock!
-		);
+	RegularGrid* rg = dataMgr->GetGrid(
+		timeStep, varname, availRefLevel, lod, min_dim, max_dim, 0
+	);
+
 	QApplication::restoreOverrideCursor();
 	//Make sure we can build a histogram
-	if (!data) {
+	if (!rg) {
 		dataMgr->SetErrCode(0);
 		if (ds->warnIfDataMissing())
 			renParams->setBypass(timeStep);
@@ -236,8 +231,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		return;
 	}
 
-	histogramList[varNum] = new Histo(data,
-			min_dim, max_dim, min_bdim, max_bdim, dRange[0],dRange[1],availRefLevel);
+	histogramList[varNum] = new Histo(rg, dRange);
 	
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.

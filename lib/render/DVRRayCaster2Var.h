@@ -16,7 +16,6 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
-  class Renderer;
 
 
 class RENDER_API DVRRayCaster2Var : public DVRRayCaster
@@ -27,7 +26,8 @@ class RENDER_API DVRRayCaster2Var : public DVRRayCaster
  public:
 
 
-  DVRRayCaster2Var(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
+  DVRRayCaster2Var(int precision, int nvars, ShaderMgr *shadermgr, int nthreads
+  );
   virtual ~DVRRayCaster2Var();
 
   virtual int GraphicsInit();
@@ -46,11 +46,6 @@ class RENDER_API DVRRayCaster2Var : public DVRRayCaster
 protected:
 
   virtual void initShaderVariables();
-  virtual bool createShader(ShaderType,
-                    const char *vertexCommandLine,
-                    const char *vertexSource,
-                    const char *fragCommandLine,
-                    const char *fragmentSource);
 
   virtual void raycasting_pass(
 	const TextureBrick *brick, 

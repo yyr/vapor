@@ -29,6 +29,7 @@ namespace VAPoR {
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
+//!
 
 class PARAMS_API Box : public ParamsBase {
 public:

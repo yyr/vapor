@@ -36,7 +36,6 @@
 #include "params.h"
 
 #include "datastatus.h"
-#include "renderer.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -51,16 +50,15 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRSpherical::DVRSpherical(
-						   GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
-						   ) : DVRShader(internalFormat, format, type, nthreads, ren),
-_nr(0),
-_shellWidth(1.0),
-_permutation(3),
-_clip(3)
+	int precision, int nvars, ShaderMgr *shadermgr,
+	int nthreads
+) : DVRShader(precision, nvars, shadermgr, nthreads),
+  _nr(0),
+  _shellWidth(1.0),
+  _permutation(3),
+  _clip(3)
 {
-	/*  _shaders[DEFAULT]        = NULL;
-	 _shaders[LIGHT]          = NULL;
-	 _shaders[PRE_INTEGRATED] = NULL;*/
+	_shadermgr = shadermgr;
 	
 	_permutation[0] = 0;
 	_permutation[1] = 1;
@@ -75,6 +73,9 @@ _clip(3)
 //----------------------------------------------------------------------------
 DVRSpherical::~DVRSpherical() 
 {	 
+	_shadermgr->undefEffect(instanceName("default"));
+	_shadermgr->undefEffect(instanceName("lighting"));
+
 	 delete [] _colormap;
 	 _colormap = NULL;
 }
@@ -88,134 +89,154 @@ int DVRSpherical::GraphicsInit()
 	glewInit();
 	
 	if (initTextures() < 0) return(-1);
-	myRenderer->myGLWindow->makeCurrent();
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("sphericalDefault", "colormap",  1);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("sphericalDefault", "volumeTexture",  0);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("sphericalLighting", "colormap",  1);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("sphericalLighting", "volumeTexture",  0);
-	_effect = "sphericalDefault";
+
+    if (! _shadermgr->defineEffect("SphericalDVR", "", instanceName("default")))
+        return(-1);
+
+    if (! _shadermgr->defineEffect(
+        "SphericalDVR", "LIGHTING;", instanceName("lighting")
+    )) return(-1);
+
+	_shadermgr->uploadEffectData(instanceName("default"), "colormap", 1);
+	_shadermgr->uploadEffectData(instanceName("default"), "volumeTexture", 0);
+	_shadermgr->uploadEffectData(instanceName("lighting"), "colormap", 1);
+	_shadermgr->uploadEffectData(instanceName("lighting"), "volumeTexture", 0);
+
 	printOpenGLError();
+
 	return 0;
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int DVRSpherical::SetRegionSpherical(void *data,
-                                     int nx, int ny, int nz,
-                                     const int data_roi[6],
-                                     const float extents[6],
-                                     const int data_box[6],
-                                     int level,
-									 
-                                     const std::vector<long> &permutation,
-                                     const std::vector<bool> &clip)
-{ 
-	assert(permutation.size() == 3 && clip.size() == 3);
-	
-	for(int i=0; i<permutation.size(); i++)
-	{
-		_permutation[i] = permutation[i];
-		_clip[i] = clip[i];
-	}
-	
+int DVRSpherical::SetRegionSpherical(
+	const SphericalGrid *rg, const float range[2], int num,
+	const std::vector<long> &permutation, const std::vector<bool> &clip
+) { 
+  assert(permutation.size() == 3 && clip.size() == 3);
+
+  for(int i=0; i<permutation.size(); i++)
+  {
+    _permutation[i] = permutation[i];
+    _clip[i] = clip[i];
+  }
+ 
+  if (_maxTexture == 0) {
+    _maxTexture = TextureBrick::maxTextureSize(rg, _precision, _nvars);
+  }
+
+  if (_lastRegion.update(rg, _maxTexture))
+  {
+
+    size_t dims[3];
+    rg->GetDimensions(dims);
+
+    _nx = dims[0];
+    _ny = dims[1];
+    _nz = dims[2];
+
 	//
-	// Set the texture data
+	// Extents in spherical coordinates
 	//
-	if (_nx != nx || _ny != ny || _nz != nz)
-	{
-		_data = data;
-	}
-	
-	//
-	// Set the geometry extents
-	//
-	_data = data;
-	
-	if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents, _maxTexture))
-	{
-		_level = level;
-		
-		if (_nx != nx || _ny != ny || _nz != nz)
-		{
-			_nx = _bx = nextPowerOf2(nx); 
-			_ny = _by = nextPowerOf2(ny); 
-			_nz = _bz = nextPowerOf2(nz);
-		}
-		
-		//
-		// Hard-code the volume extents to the unit cube 
-		//
-		_vmin.x = 0;//extents[0];
-		_vmin.y = 0;//extents[1];
-		_vmin.z = 0;//extents[2];
-		_vmax.x = 1;//extents[3];
-		_vmax.y = 1;//extents[4];
-		_vmax.z = 1;//extents[5];
-		
-		_delta = fabs(_vmin.z-_vmax.z) / (2.0*nz); 
-		
-		for (int i=0; i<_bricks.size(); i++)
-		{
-			delete _bricks[i];
-			_bricks[i] = NULL;
-		}
-		
-		_bricks.clear();
-		
-		if (_nx <= _maxTexture && _ny <= _maxTexture && _nz <= _maxTexture)
-		{
-			//
-			// The data will fit completely within texture memory, so no bricking is 
-			// needed. We can save a few cycles by setting up the single brick here,
-			// rather than calling buildBricks(...). 
-			//
-			_bricks.push_back(new TextureBrick(_internalFormat, _format, _type));
-			
-			_bricks[0]->volumeMin(0, 0, 0);
-			_bricks[0]->volumeMax(1, 1, 1);
-			
-			_bricks[0]->textureMin(0, 0, 0);
-			_bricks[0]->textureMax(1, 1, 1);
-			
-			_bricks[0]->fill((GLubyte*)data, nx, ny, nz);
-			
-			loadTexture(_bricks[0]);
-		} 
-		else
-		{
-			//
-			// The data will not fit completely within texture memory, need to 
-			// subdivide into multiple bricks.
-			//
-			
-			// TBD 
-			// buildBricks(level, data_box, data_roi, nx, ny, nz);
-			myRenderer->setAllBypass(true);
-			SetErrMsg(VAPOR_WARNING, 
-					  "Bricking is currently unsupported for spherical rendering");
-			
-		}
-		
-		initShaderVariables();
-		
-		calculateSampling();
-	}
-	else
-	{
-		//
-		// Only the data has changed; therefore, we'll refill and reuse the
-		// the existing bricks (texture objects).
-		//
-		for (int i=0; i<_bricks.size(); i++)
-		{
-			_bricks[i]->refill((GLubyte*)data);
-		}
-	}
-	
-	printOpenGLError();
-	return 0;
+    double extentsS[6];
+    float extentsSP[6];
+    rg->RegularGrid::GetUserExtents(extentsS);
+
+	permute(_permutation, extentsSP, extentsS[0], extentsS[1], extentsS[2]);
+	permute(_permutation, extentsSP+3, extentsS[3], extentsS[4], extentsS[5]);
+	_r0 = extentsSP[2];
+	_r1 = extentsSP[5];
+    
+    //
+    // Extents in Cartesian coordinates
+    //
+    double extentsC[6];
+    rg->GetUserExtents(extentsC);
+
+    _vmin.x = extentsC[0];
+    _vmin.y = extentsC[1];
+    _vmin.z = extentsC[2];
+    _vmax.x = extentsC[3];
+    _vmax.y = extentsC[4];
+    _vmax.z = extentsC[5];
+    
+    _delta = fabs(_vmin.z-_vmax.z) / (2.0*_nz); 
+    
+    for (int i=0; i<_bricks.size(); i++)
+    {
+      delete _bricks[i];
+      _bricks[i] = NULL;
+    }
+    
+    _bricks.clear();
+    
+    if (_nx <= _maxTexture && _ny <= _maxTexture && _nz <= _maxTexture)
+    {
+      //
+      // The data will fit completely within texture memory, so no bricking is 
+      // needed. We can save a few cycles by setting up the single brick here,
+      // rather than calling buildBricks(...). 
+      //
+      _bricks.push_back(new TextureBrick(rg, _precision, _nvars));
+      
+      _bricks[0]->dataMin(extentsC[0], extentsC[1], extentsC[2]);
+      _bricks[0]->dataMax(extentsC[3], extentsC[4], extentsC[5]);
+      _bricks[0]->volumeMin(extentsC[0], extentsC[1], extentsC[2]);
+      _bricks[0]->volumeMax(extentsC[3], extentsC[4], extentsC[5]);
+
+      _bricks[0]->textureMin(0, 0, 0);
+      _bricks[0]->textureMax(1, 1, 1);
+      
+      _bricks[0]->fill(rg, range, num);
+      
+      if (num == _nvars - 1) loadTexture(_bricks[0]);
+    } 
+    else
+    {
+      //
+      // The data will not fit completely within texture memory, need to 
+      // subdivide into multiple bricks.
+      //
+
+      // TBD 
+      // buildBricks(level, data_box, data_roi, nx, ny, nz);
+      SetErrMsg(VAPOR_WARNING, 
+                "Bricking is currently unsupported for spherical rendering");
+	  
+    }
+
+  }
+  else
+  {
+    //
+    // Only the data has changed; therefore, we'll refill and reuse the
+    // the existing bricks (texture objects).
+    //
+    for (int i=0; i<_bricks.size(); i++)
+    {
+      _bricks[i]->refill(rg, range, num);
+      if (num == _nvars - 1) loadTexture(_bricks[i]);
+    }
+  }
+
+  return 0;
 }
+
+int DVRSpherical::Render()
+{
+	MyBase::SetDiagMsg("DVRSpherical::Render()");
+
+	initShaderVariables();
+    calculateSampling();
+
+//	int rc = DVRShader::Render();
+cerr << "NOT CALLINOG SHADER\n";
+int rc=0;	renderBricks();
+
+	return(rc);
+}
+
 
 //----------------------------------------------------------------------------
 // Draw the proxy geometry optmized to a spherical shell
@@ -224,134 +245,121 @@ void DVRSpherical::drawViewAlignedSlices(const TextureBrick *brick,
                                          const Matrix3d &modelview,
                                          const Matrix3d &modelviewInverse)
 {
-	float tmpv[3];
-	const float *extents = _lastRegion.extents();
-    
-	permute(_permutation, tmpv, extents[0], extents[1], extents[2]);
-	float r0 = tmpv[2]/2.0; // inner shell radius
-	
-	permute(_permutation, tmpv, extents[3], extents[4], extents[5]);
-	float r1 = tmpv[2]/2.0; // outer shell raduis
-	
-	printOpenGLError();
-	//
-	//  
-	//
-	BBox volumeBox  = brick->volumeBox();
-	BBox textureBox = brick->textureBox();
-	BBox rotatedBox(volumeBox);
-	
-	//
-	// transform the volume into world coordinates
-	//
-	rotatedBox.transform(modelview);
-	
-	printOpenGLError();
-	//
-	// Calculate the slice plane normal (i.e., the view plane normal transformed
-	// into model space). 
-	//
-	// slicePlaneNormal = modelviewInverse * viewPlaneNormal; 
-	//                                       (0,0,1);
-	//
-	Vect3d slicePlaneNormal(modelviewInverse(2,0), 
-							modelviewInverse(2,1),
-							modelviewInverse(2,2)); 
-	//Vect3d slicePlaneNormal(0,0,1);
-	slicePlaneNormal.unitize();
-	
-	printOpenGLError();
-	//
-	// Calculate the distance between slices
-	//
-	Vect3d sliceDelta = slicePlaneNormal * _delta;
-	
-	//
-	// Define the slice view aligned slice plane. The plane will be positioned
-	// one delta inside the outer radius of the shell.
-	//
-	Vect3d center(Point3d(0,0,0), volumeBox.center());
-	Vect3d slicePoint = center - (r1 * slicePlaneNormal) + sliceDelta;
-	
-	Vect3d sliceOrtho;
-	
-	printOpenGLError();
-	if (slicePlaneNormal.dot(Vect3d(1,1,0)) != 0.0)
-	{
-		sliceOrtho = slicePlaneNormal.cross(Vect3d(1,1,0));
-	}
-	else
-	{
-		sliceOrtho = slicePlaneNormal.cross(Vect3d(0,1,0));
-	}
-	
-	sliceOrtho.unitize();
-	
-	printOpenGLError();
-	//
-	// Calculate edge intersections between the plane and the spherical shell
-	//
-	
-	//
-	// TBD -- This code creates proxy geometry for the full spherical shell,
-	// ignoring the brick's extents. This won't work once we support spherical
-	// bricking. Also, when less than a full region has been selected, this
-	// code superflously samples empty space. The shader handles that; however,
-	// it still incurs the expensive coordinate transform. This should be 
-	// fixed.
-	//
-	printOpenGLError();
-	for(int i = 0 ; i <= _samples; i++)
-	{ 
-		float d = (center - slicePoint).mag();
-		printOpenGLError();
-		
-		if (r1 > d)
-		{
-			float rg0 = 0.0;
-			float rg1 = sqrt(r1*r1 - d*d);
-			
-			if (r0 > d)
-			{
-				rg0 = sqrt(r0*r0 - d*d);
-			}
-			
-			//
-			// Draw donut (shell-plane intersection) and texture map it
-			//
-			glBegin(GL_QUAD_STRIP); 
-			{
-				for (float theta=-M_PI/20.0; theta<=2.0*M_PI; theta+=M_PI/20.0)
-				{
-					Vect3d v = (cos(theta)*sliceOrtho +
-								sin(theta)*slicePlaneNormal.cross(sliceOrtho));
-					
-					v.unitize();
-					
-					Vect3d v0 = slicePoint + v * rg0;
-					Vect3d v1 = slicePoint + v * rg1;
-					
-					glTexCoord3f(v0.x(), v0.y(), v0.z());          
-					glVertex3f(v0.x(), v0.y(), v0.z());
-					
-					glTexCoord3f(v1.x(), v1.y(), v1.z());          
-					glVertex3f(v1.x(), v1.y(), v1.z());
-					
-				}
-			}
-			glEnd();
-			printOpenGLError();
-		}
-		
-		//
-		// increment the slice plane by the slice distance
-		//
-		slicePoint += sliceDelta;    
-		printOpenGLError();
-	}
-	
-	printOpenGLError();
-	glFlush();
+
+  //
+  //  
+  //
+  BBox volumeBox  = brick->volumeBox();
+  BBox textureBox = brick->textureBox();
+  BBox rotatedBox(volumeBox);
+  
+  //
+  // transform the volume into world coordinates
+  //
+  rotatedBox.transform(modelview);
+
+  //
+  // Calculate the slice plane normal (i.e., the view plane normal transformed
+  // into model space). 
+  //
+  // slicePlaneNormal = modelviewInverse * viewPlaneNormal; 
+  //                                       (0,0,1);
+  //
+  Vect3d slicePlaneNormal(modelviewInverse(2,0), 
+                          modelviewInverse(2,1),
+                          modelviewInverse(2,2)); 
+  //Vect3d slicePlaneNormal(0,0,1);
+  slicePlaneNormal.unitize();
+
+  //
+  // Calculate the distance between slices
+  //
+  Vect3d sliceDelta = slicePlaneNormal * _delta;
+
+  //
+  // Define the slice view aligned slice plane. The plane will be positioned
+  // one delta inside the outer radius of the shell.
+  //
+  Vect3d center(Point3d(0,0,0), volumeBox.center());
+  Vect3d slicePoint = center - (_r1 * slicePlaneNormal) + sliceDelta;
+
+  Vect3d sliceOrtho;
+
+  if (slicePlaneNormal.dot(Vect3d(1,1,0)) != 0.0)
+  {
+    sliceOrtho = slicePlaneNormal.cross(Vect3d(1,1,0));
+  }
+  else
+  {
+    sliceOrtho = slicePlaneNormal.cross(Vect3d(0,1,0));
+  }
+
+  sliceOrtho.unitize();
+
+  //
+  // Calculate edge intersections between the plane and the spherical shell
+  //
+
+  //
+  // TBD -- This code creates proxy geometry for the full spherical shell,
+  // ignoring the brick's extents. This won't work once we support spherical
+  // bricking. Also, when less than a full region has been selected, this
+  // code superflously samples empty space. The shader handles that; however,
+  // it still incurs the expensive coordinate transform. This should be 
+  // fixed.
+  //
+  for(int i = 0 ; i <= _samples; i++)
+  { 
+    float d = (center - slicePoint).mag();
+
+    if (_r1 > d)
+    {
+      float rg0 = 0.0;
+//      float rg1 = sqrt(_r1*_r1 - d*d);
+float rg1 = sqrt(_r1*_r1);
+
+      if (_r0 > d)
+      {
+ //       rg0 = sqrt(_r0*_r0 - d*d);
+      }
+
+      //
+      // Draw donut (shell-plane intersection) and texture map it
+      //
+cout << "Draw slice " << i << endl;
+//      glBegin(GL_QUAD_STRIP); 
+      glBegin(GL_LINES); 
+      {
+        for (float theta=-M_PI/20.0; theta<=2.0*M_PI; theta+=M_PI/20.0)
+        {
+          Vect3d v = (cos(theta)*sliceOrtho +
+                      sin(theta)*slicePlaneNormal.cross(sliceOrtho));
+
+          v.unitize();
+
+          Vect3d v0 = slicePoint + v * rg0;
+          Vect3d v1 = slicePoint + v * rg1;
+
+//          glTexCoord3f(v0.x(), v0.y(), v0.z());          
+          glVertex3f(v0.x(), v0.y(), v0.z());
+
+ //         glTexCoord3f(v1.x(), v1.y(), v1.z());          
+          glVertex3f(v1.x(), v1.y(), v1.z());
+cout << "v0 " << v0.x() << " " << v0.y() << " " << v0.z() << " " << endl;
+cout << "v1 " << v1.x() << " " << v1.y() << " " << v1.z() << " " << endl;
+
+        }
+      }
+      glEnd();
+    }
+
+    //
+    // increment the slice plane by the slice distance
+    //
+    slicePoint += sliceDelta;    
+  }
+
+  glFlush();
 }
 
 //----------------------------------------------------------------------------
@@ -367,6 +375,7 @@ bool DVRSpherical::supported()
 //----------------------------------------------------------------------------
 void DVRSpherical::calculateSampling()
 {
+
 	//
 	// Get the modelview matrix and its inverse
 	//
@@ -404,9 +413,12 @@ void DVRSpherical::calculateSampling()
 	{
 		_samples = _nr * ((maxv - minv).mag() / _shellWidth);
 	}
+
+cerr << "# samples hardcoded\n";
+_samples = 128;
 	
 	_delta = (maxv - minv).mag() / _samples; 
-	_samplingRate = (1.0/(float)(_level+1))*(_shellWidth / _delta) / (float)_nr;
+	//_samplingRate = (1.0/(float)(_level+1))*(_shellWidth / _delta) / (float)_nr;
 	
 	// TBD -- The sampling rate & opacity correction delta are not quite right 
 	// for spherical geometry. We need to work through how the spherical 
@@ -433,16 +445,15 @@ void DVRSpherical::permute(const vector<long>& permutation,
 void DVRSpherical::initShaderVariables()
 {
 	
-	const int *data_roi  = _lastRegion.roi();
-	const float *extents = _lastRegion.extents();
-	myRenderer->myGLWindow->makeCurrent();
+	const double *extents = _lastRegion.extents();
+
 	if (_lighting){  
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(),"kd", _kd);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1],(float) _pos[2]);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
+		_shadermgr->uploadEffectData(getCurrentEffect(),"kd", _kd);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", (float)_pos[0], (float)_pos[1],(float) _pos[2]);
 	}
 	
     
@@ -452,45 +463,27 @@ void DVRSpherical::initShaderVariables()
     
     _nr = (int)tmpv[2];
     
-    permute(_permutation, tmpv, 
-            (float)data_roi[0]/(_nx-1),
-            (float)data_roi[1]/(_ny-1), 
-            (float)data_roi[2]/(_nz-1));
+    permute(_permutation, tmpv, 0.0, 0.0, 0.0);
 	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
-    permute(_permutation, tmpv,
-            (float)data_roi[3]/(_nx-1), 
-            (float)data_roi[4]/(_ny-1), 
-            (float)data_roi[5]/(_nz-1));
+	_shadermgr->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+    permute(_permutation, tmpv, 1.0, 1.0, 1.0);
 	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
     
     permute(_permutation, tmpv, extents[0], extents[1], extents[2]);
 	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dmin" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "dmin" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);
     _shellWidth = tmpv[2];
     
     permute(_permutation, tmpv, extents[3], extents[4], extents[5]);
     
-  	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dmax" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);  
+  	_shadermgr->uploadEffectData(getCurrentEffect(), "dmax" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);  
     assert(tmpv[2]);
     _shellWidth = (tmpv[2] - _shellWidth)/(2.0*tmpv[2]);
 	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);
 	
 	printOpenGLError();
-}
 
-std::string DVRSpherical::getCurrentEffect()
-{
-	if (_lighting) {
-		_effect = "sphericalLighting";
-		return _effect;
-	}
-	else {
-		_effect = "sphericalDefault";
-		return _effect;
-	}
-	
 }

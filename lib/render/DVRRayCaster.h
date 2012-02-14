@@ -17,7 +17,6 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
-  class Renderer;
 
 
 class RENDER_API DVRRayCaster : public DVRShader
@@ -28,12 +27,14 @@ class RENDER_API DVRRayCaster : public DVRShader
  public:
 
 
-  DVRRayCaster(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
+  DVRRayCaster(int precision, int nvars, ShaderMgr *shadermgr, int nthreads);
   virtual ~DVRRayCaster();
 
   virtual int GraphicsInit();
   
-  virtual int Render(const float matrix[16]);
+  virtual int Render();
+
+  virtual int SetRegion(const RegularGrid *rg, const float range[2], int num=0);
 
   virtual int HasPreintegration() const { return false; };
   virtual int HasLighting() const { return true; };
@@ -58,23 +59,12 @@ class RENDER_API DVRRayCaster : public DVRShader
   static int GetMaxIsoValues() {return (MAX_ISO_VALUES); };
 
 	virtual void Resize(int width, int height);
-protected:
-
-  enum ShaderType
-  {
-    DEFAULT = 0,
-    LIGHT,
-	BACKFACE
-  };
+private:
+  bool _mapped;
+  int _vidx;
 
   virtual int initTextures();
   virtual void initShaderVariables();
-
-  virtual bool createShader(ShaderType,
-                    const char *vertexCommandLine,
-                    const char *vertexSource,
-                    const char *fragCommandLine,
-                    const char *fragmentSource);
 
   //ShaderProgram* shader();
 
@@ -93,11 +83,6 @@ protected:
 	const Matrix3d &modelview, const Matrix3d &modelviewInverse
 
 							   );
-	virtual void raycasting_pass(
-								 const TextureBrick *brick, 
-								 const Matrix3d &modelview, const Matrix3d &modelviewInverse,
-								 std::string effect
-								 );
 
   virtual void renderBrick(
 	const TextureBrick *brick,
@@ -125,9 +110,10 @@ protected:
   GLint _texcrd_sampler;	// Texture unit sampler numbers
   GLint _depth_sampler;
 
+  virtual std::string getCurrentEffect();
+
 private:
 	
-	std::string getCurrentEffect();
 };
 
 };

@@ -28,7 +28,7 @@ namespace VAPoR {
 //! interface are stored in a cache in main memory, where they may be
 //! be available for future access without reading from disk.
 //
-class VDF_API DataMgrLayered : public LayeredIO, WaveletBlock3DRegionReader {
+class VDF_API DataMgrLayered : public LayeredIO, public WaveletBlock3DRegionReader {
 
 public:
 
@@ -138,10 +138,10 @@ protected:
 
  virtual int    BlockReadRegionNative(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  )  {
  	return(WaveletBlock3DRegionReader::BlockReadRegion(
-		bmin, bmax, region, 1)
+		bmin, bmax, region, unblock)
 	);
  }; 
 

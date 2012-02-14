@@ -13,12 +13,14 @@ FILES = \
 	twoDimagerenderer twoDdatarenderer \
 	manip proberenderer\
 	arrowrenderer \
-	trackball flowrenderer isorenderer\
+	trackball flowrenderer \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
-	DVRShader DVRLookup DVRVolumizer DVRSpherical DVRRayCaster \
-	ModelRenderer GLModelNode \
-	DVRRayCaster2Var ShaderMgr jfilewrite
+	DVRShader \
+	isorenderer GLModelNode \
+	DVRSpherical DVRRayCaster \
+	ModelRenderer \
+	ShaderMgr jfilewrite
 
 QT_HEADERS = \
 	renderer 

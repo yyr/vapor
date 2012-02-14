@@ -56,7 +56,7 @@ namespace VAPoR {
 		
 		static bool supported();
 		GLuint getProgram();
-		
+		void printContents();
 	protected:
 		
 		GLuint      _program;

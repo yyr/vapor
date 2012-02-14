@@ -33,7 +33,7 @@ int	DataMgr::_DataMgr(
 	_mem_size = mem_size;
 
 	_timestamp = 0;
-	
+
 	return(0);
 }
 
@@ -131,7 +131,7 @@ float	*DataMgr::GetRegion(
 	);
 	if (! blks) return(NULL);
 
-	rc = BlockReadRegion(min, max, blks);
+	rc = BlockReadRegion(min, max, blks, true);
 	if (rc < 0) {
 		SetErrMsg(
 			"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
@@ -179,6 +179,124 @@ float	*DataMgr::GetRegion(
 	}
 
 	return(blks);
+}
+
+
+
+RegularGrid *DataMgr::GetGrid(
+	size_t ts,
+	string varname,
+	int reflevel,
+	int lod,
+	const size_t min[3],
+	const size_t max[3],
+	int	lock
+) {
+	RegularGrid *rg = NULL;
+	bool first = false;
+
+	SetDiagMsg(
+		"DataMgr::GetGrid(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],%d)",
+		ts,varname.c_str(),reflevel,lod,min[0],min[1],min[2],
+		max[0],max[1],max[2], lock
+	);
+
+	size_t bmin[3], bmax[3];
+	MapVoxToBlk(min, bmin, reflevel);
+	MapVoxToBlk(max, bmax, reflevel);
+
+	// See if region is already in cache. If so, return it.
+	//
+	float *blks = (float *) get_region_from_cache(
+		ts, varname, reflevel, lod, DataMgr::FLOAT32, bmin, bmax, lock
+	);
+
+	if (blks) {
+		SetDiagMsg("DataMgr::GetRegion() - data in cache %xll\n", blks);
+		rg = MakeGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
+		if (!rg) return (NULL);
+	}
+	else if (IsVariableDerived(varname.c_str())) {
+
+		//
+		// See if the variable is derived from another variable 
+		//
+		blks = execute_pipeline(
+			ts, varname, reflevel, lod, bmin, bmax, lock
+		);
+		if (! blks) return(NULL);
+
+		rg = MakeGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
+		if (!rg) return (NULL);
+	} 
+	else {
+		first = true;
+
+		SetDiagMsg("DataMgr::GetRegion() - data not in cache \n");
+
+		// Else, read it from disk
+		//
+		VarType_T vtype = GetVarType(varname);
+
+		blks = (float *) alloc_region(
+			ts,varname.c_str(),vtype, reflevel, lod, 
+			DataMgr::FLOAT32,bmin,bmax,lock,false
+		);
+		if (! blks) return(NULL);
+
+		rg = ReadGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
+		if (! rg) {
+			SetErrMsg(
+				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
+				varname.c_str(), ts, reflevel, lod
+			);
+			free_region(ts,varname.c_str(),reflevel,lod,FLOAT32,bmin,bmax);
+			return (NULL);
+		}
+	}
+
+	//
+	// Reset the dimensions of the regular grid to whatever was originally
+	// requested. Also need to handle periodicity.
+	//
+	size_t dim[3];
+	GetDim(dim,reflevel);
+
+	bool iper, jper, kper;
+	rg->HasPeriodic(&iper, &jper, &kper);
+	bool periodic[3];
+	if (iper && min[0] == 0 && max[0] == dim[0]-1) periodic[0] = true;
+	else periodic[0] = false;
+	if (jper && min[1] == 0 && max[1] == dim[1]-1) periodic[1] = true;
+	else periodic[1] = false;
+	if (kper && min[2] == 0 && max[2] == dim[2]-1) periodic[2] = true;
+	else periodic[2] = false;
+	int rc = rg->Reshape(min,max,periodic);
+	if (rc<0) {
+		SetErrMsg("Invalid grid dimensions\n");
+		return(NULL);
+	}
+
+
+	if (first) {
+		//
+		// Make sure we have a valid floating point value
+		//
+		RegularGrid::Iterator itr;
+		float mv;
+		if (rg->HasMissingData()) mv = rg->GetMissingValue();
+		else mv = 0.0;
+
+		for (itr = rg->begin(); itr!=rg->end(); ++itr) {
+	#ifdef WIN32
+			if ((! _finite(*itr) || _isnan(*itr)) && *itr!=mv) *itr= FLT_MAX;
+	#else
+			if ((! finite(*itr) || isnan(*itr)) && *itr!=mv) *itr= FLT_MAX;
+	#endif
+		}
+	}
+
+	return(rg);
 }
 
 
@@ -1064,9 +1182,10 @@ int	DataMgr::UnlockRegion(
 	return(-1);
 }
 
+
 void	*DataMgr::get_region_from_cache(
 	size_t ts,
-	const char *varname,
+	string varname,
 	int reflevel,
 	int lod,
 	_dataTypes_t	type,
@@ -1212,7 +1331,7 @@ void	*DataMgr::alloc_region(
 
 void	DataMgr::free_region(
 	size_t ts,
-	const char *varname,
+	string varname,
 	int reflevel,
 	int lod,
 	_dataTypes_t type,

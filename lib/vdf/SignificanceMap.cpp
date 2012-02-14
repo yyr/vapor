@@ -503,7 +503,6 @@ int SignificanceMap::SetMap(const unsigned char *map) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);
 	}
-cout << "VERSION = , map[3] =" << VERSION << " " << map[3] << endl;
 	if (map[3] > VERSION) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);

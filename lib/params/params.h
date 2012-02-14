@@ -68,6 +68,7 @@ class RegionParams;
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
+//!
 class PARAMS_API Params : public MyBase, public ParamsBase {
 	
 public: 
@@ -516,6 +517,7 @@ protected:
 //! \author Alan Norton
 //! \version $Revision$
 //! \date    $Date$
+//!
 class PARAMS_API RenderParams : public Params {
 public: 
 	

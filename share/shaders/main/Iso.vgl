@@ -1,14 +1,21 @@
 //-----------------------------------------------------------------------
 // Vertex shader main
 //-----------------------------------------------------------------------
-#version 120
 uniform mat4 glModelViewProjectionMatrix;
-varying vec3 view;
 varying vec4 position;
+
+#ifdef	LIGHTING
+varying vec3 view;
+#endif
+
 void main(void)
 {
   gl_TexCoord[0] = gl_MultiTexCoord0;
-  gl_Position    = ftransform();
+  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
   position       = gl_Position;
+
+#ifdef	LIGHTING
   view           = normalize(-gl_Position.xyz);
+#endif
+
 }

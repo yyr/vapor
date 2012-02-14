@@ -191,6 +191,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
     vector <string> paths;
     paths.push_back("shaders");
     string shaderPaths = GetAppPath("VAPOR", "share", paths);
+cout << "shaderPaths " << shaderPaths << endl;
 
 	manager = new ShaderMgr(shaderPaths, this);
 	MyBase::SetDiagMsg("GLWindow::GLWindow() end");
@@ -867,6 +868,13 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	}
 }
 void GLWindow::drawSubregionBounds(float* extents) {
+cerr << "Extents : " << 
+	extents[0] << " " <<
+	extents[1] << " " <<
+	extents[2] << " " <<
+	extents[3] << " " <<
+	extents[4] << " " <<
+	extents[5] << endl;
 	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
 	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColorFlt);

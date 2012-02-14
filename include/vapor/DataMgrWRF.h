@@ -133,11 +133,22 @@ protected:
 
  virtual int    BlockReadRegionNative(
     const size_t* /* bmin */, const size_t* /* bmax */,
-    float *region
+    float *region, bool
  )  {
  	return(WRFReader::ReadVariable(region)
 	);
  }; 
+
+ virtual RegularGrid    *MakeGrid(
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
+
+ virtual RegularGrid    *ReadGrid(
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
+
 
  virtual void GetValidRegionNative(
     size_t min[3], size_t max[3], int reflevel
@@ -168,6 +179,10 @@ protected:
 		timestep, vcoord0, vcoord1, reflevel)
 	);
  };
+
+private:
+ float **_blkptrs;
+
 
 };
 

@@ -20,15 +20,14 @@
 #include "DVRLookup.h"
 #include "TextureBrick.h"
 #include "glutil.h"
-#include "renderer.h"
 
 using namespace VAPoR;
 
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRLookup::DVRLookup(GLenum type, int nthreads, Renderer* ren) :
-  DVRTexture3d(GL_RGBA, GL_COLOR_INDEX, type, nthreads, ren),
+DVRLookup::DVRLookup(GLenum type, int nthreads) :
+  DVRTexture3d(GL_RGBA, GL_COLOR_INDEX, type, nthreads),
   _colormap(NULL)
 {
 
@@ -79,13 +78,7 @@ int DVRLookup::GraphicsInit()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int DVRLookup::SetRegion(void *data,
-                         int nx, int ny, int nz,
-                         const int roi[6],
-                         const float extents[6],
-                         const int box[6],
-                         int level
-						) 
+int DVRLookup::SetRegion(const RegularGrid *rg, const float range[2], int num)
 { 
   //
   // Construct the color mapping
@@ -99,7 +92,7 @@ int DVRLookup::SetRegion(void *data,
   //
   // Initialize the geometry extents & texture
   //
-  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
+  return DVRTexture3d::SetRegion(rg, range, num);
 }
 
 //----------------------------------------------------------------------------
@@ -118,7 +111,7 @@ void DVRLookup::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int DVRLookup::Render(const float matrix[16])
+int DVRLookup::Render()
 
 {	
   glPolygonMode(GL_FRONT, GL_FILL);

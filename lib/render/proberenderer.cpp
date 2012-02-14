@@ -127,7 +127,6 @@ void ProbeRenderer::paintGL()
 	glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
 	glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
 	glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
-	
 	glEnd();
 	
 	glFlush();

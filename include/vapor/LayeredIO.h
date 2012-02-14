@@ -77,7 +77,7 @@ protected:
 
  virtual int    BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  ); 
 
  virtual void GetValidRegion(
@@ -99,7 +99,7 @@ protected:
 
  virtual int    BlockReadRegionNative(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  ) = 0; 
 
  virtual void GetValidRegionNative(

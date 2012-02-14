@@ -54,11 +54,11 @@ public:
  //
 
  virtual const size_t *GetBlockSize() const {
-	return(AMRIO::GetBlockSize());
+	return(_bs);
  }
 
- virtual void GetBlockSize(size_t bs[3], int reflevel) const {
-	AMRIO::GetBlockSize(bs, reflevel);
+ virtual void GetBlockSize(size_t bs[3], int /*reflevel*/) const {
+	for (int i=0; i<3; i++) bs[i] = _bs[i];
  }
 
  virtual int GetNumTransforms() const {
@@ -129,8 +129,19 @@ protected:
 
  virtual int    BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  ); 
+
+ virtual RegularGrid    *MakeGrid(
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
+
+ virtual RegularGrid    *ReadGrid(
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t bmin[3], const size_t bmax[3], float *blocks
+ );
+
 
  virtual void GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
@@ -147,6 +158,11 @@ protected:
 private:
 	AMRTree _amrtree;
 	int _reflevel;
+	size_t _bs[3];
+	size_t _bsshift[3];
+	float **_blkptrs;
+
+	int _DataMgrAMR();
 
 };
 

@@ -15,7 +15,6 @@
 
 #include <qgl.h>
 
-#include "renderer.h"
 #include "DVRRayCaster2Var.h"
 #include "TextureBrick.h"
 #include "ShaderProgram.h"
@@ -32,12 +31,13 @@ using namespace VAPoR;
 // Constructor
 //----------------------------------------------------------------------------
 DVRRayCaster2Var::DVRRayCaster2Var(
-	GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren
-) : DVRRayCaster(internalFormat, format, type, nthreads, ren)
+	int precision, int nvars, ShaderMgr *shadermgr,
+	int nthreads
+) : DVRRayCaster(precision, nvars, shadermgr, nthreads)
 {
 	MyBase::SetDiagMsg(
-		"DVRRayCaster2Var::DVRRayCaster2Var( %d %d %d %d)", 
-		internalFormat, format, type, nthreads
+		"DVRRayCaster2Var::DVRRayCaster2Var( %d %d %d)", 
+		precision, nvars, nthreads
 	);
 
 	if (GLEW_VERSION_2_0) {
@@ -60,87 +60,33 @@ DVRRayCaster2Var::~DVRRayCaster2Var()
 	MyBase::SetDiagMsg("DVRRayCaster2Var::~DVRRayCaster2Var()");
 }
 
-bool DVRRayCaster2Var::createShader(ShaderType type,
-                             const char *vertexCommandLine,
-                             const char *vertexSource,
-                             const char *fragCommandLine,
-                             const char *fragmentSource)
-{
-/*	_shaders[type] = new ShaderProgram();
-	_shaders[type]->create();
-
-	//
-	// Vertex shader
-	//
-	if (Params::searchCmdLine(vertexCommandLine)) {
-		_shaders[type]->loadVertexShader(Params::parseCmdLine(vertexCommandLine));
-	} 
-	else if (vertexSource) {
-		_shaders[type]->loadVertexSource(vertexSource);
-	}
-
-	//
-	// Fragment shader
-	//
-	if (Params::searchCmdLine(fragCommandLine)) {
-		_shaders[type]->loadFragmentShader(Params::parseCmdLine(fragCommandLine));
-	}
-	else if (fragmentSource) {
-		_shaders[type]->loadFragmentSource(fragmentSource);
-	}
-
-	if (!_shaders[type]->compile()) {
-		return false;
-	}
-
-	//
-	// Set up initial uniform values
-	//
-	if (type != BACKFACE) {
-		if (_shaders[type]->enable() < 0) return(false);;
-
-		if (GLEW_VERSION_2_0) {
-			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1i(_shaders[type]->uniformLocation("colormap"), 1);
-			glUniform1i(
-				_shaders[type]->uniformLocation("texcrd_buffer"), 
-				_texcrd_sampler
-			);
-			glUniform1i(
-				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
-			);
-		}
-		else {
-			glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1iARB(_shaders[type]->uniformLocation("colormap"), 1);
-			glUniform1iARB(
-				_shaders[type]->uniformLocation("texcrd_buffer"), 
-				_texcrd_sampler
-			);
-			glUniform1iARB(
-				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
-			);
-		}
-
-		_shaders[type]->disable();
-	}
-*/
-	return true;
-}
 
 bool DVRRayCaster2Var::setShaderTextures(){
+
+    if (! _shadermgr->defineEffect("Iso", "MAPPED;", instanceName("mapped")))
+        return(false);
+
+    if (! _shadermgr->defineEffect(
+        "Iso", "MAPPED; LIGHTING;", instanceName("mapped+lighting")
+    )) return(false);
+
 	
-	GLint viewport[4];
-	myRenderer->myGLWindow->makeCurrent();
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "volumeTexture", 0);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "texcrd_buffer", _texcrd_sampler);
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "colormap", 1);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorMapped", "depth_buffer", _depth_sampler);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "volumeTexture", 0);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "colormap", 1);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "texcrd_buffer", _texcrd_sampler);	
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData("isoColorLightMapped", "depth_buffer", _depth_sampler);	
+	if (! _shadermgr->uploadEffectData(instanceName("mapped"), "volumeTexture", 0)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped"), "texcrd_buffer", _texcrd_sampler)) return(false);
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped"), "colormap", 1)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped"), "depth_buffer", _depth_sampler)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "volumeTexture", 0)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "colormap", 1)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "texcrd_buffer", _texcrd_sampler)) return(false);	
+
+	if (! _shadermgr->uploadEffectData(instanceName("mapped+lighting"), "depth_buffer", _depth_sampler)) return(false);	
+
 	return true;
 }
 //----------------------------------------------------------------------------
@@ -152,7 +98,7 @@ int DVRRayCaster2Var::GraphicsInit()
 
 	if (initTextures() < 0) return(-1);
 
-	setShaderTextures();
+	if (! setShaderTextures()) return (-1);
 	initShaderVariables();
 
 	return 0;
@@ -213,16 +159,15 @@ void DVRRayCaster2Var::SetIsoValues(
 
 
 void DVRRayCaster2Var::initShaderVariables() {
-	myRenderer->myGLWindow->makeCurrent();
-	myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
+	_shadermgr->uploadEffectData(getCurrentEffect(), "isovalue", _values[0]);
 	
 	if (_lighting) {		
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "kd", _kd);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ka", _ka);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "ks", _ks);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "expS", _expS);
-		myRenderer->myGLWindow->getShaderMgr()->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_nx, (float)_ny, (float)_nz);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "kd", _kd);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "ka", _ka);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "ks", _ks);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "expS", _expS);
+		_shadermgr->uploadEffectData(getCurrentEffect(), "lightDirection", _pos[0], _pos[1], _pos[2]);
 		
 	}
 }
@@ -230,10 +175,10 @@ void DVRRayCaster2Var::initShaderVariables() {
 std::string DVRRayCaster2Var::getCurrentEffect(){
 	
 	if (_lighting) {
-		return std::string("isoColorLightMapped");
+		return instanceName("mapped+lighting");
 	}
 	else {
-		return std::string("isoColorMapped");
+		return instanceName("mapped");
 	}
 }
 //----------------------------------------------------------------------------

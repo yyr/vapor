@@ -13,6 +13,9 @@
 #include <vapor/BlkMemMgr.h>
 #include <vapor/Metadata.h>
 #include <vapor/common.h>
+#include <vapor/RegularGrid.h>
+#include <vapor/LayeredGrid.h>
+#include <vapor/SphericalGrid.h>
 
 namespace VAPoR {
 class PipeLine;
@@ -109,6 +112,16 @@ public:
  float   *GetRegion(
     size_t ts,
     const char *varname,
+    int reflevel,
+    int lod,
+    const size_t min[3],
+    const size_t max[3],
+    int lock = 0
+ );
+
+ RegularGrid   *GetGrid(
+    size_t ts,
+    string varname,
     int reflevel,
     int lod,
     const size_t min[3],
@@ -289,6 +302,8 @@ public:
  int	UnlockRegion (
     const void *region
  );
+
+ int UnlockGrid(const RegularGrid *rg) { return(UnlockRegion(rg->GetBlks()[0])); };
 
  //! Return the current data range as a two-element array
  //!
@@ -531,8 +546,19 @@ protected:
  //
  virtual int    BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  ) = 0;
+
+ virtual RegularGrid    *ReadGrid(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t bmin[3], const size_t bmax[3], float *blocks
+ ) = 0; 
+
+ virtual RegularGrid    *MakeGrid(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t bmin[3], const size_t bmax[3], float *blocks
+ ) = 0; 
+
 
 
 
@@ -599,7 +625,6 @@ protected:
  virtual vector <string> _GetVariables2DYZ() const = 0;
 
 
-
 private:
 
 
@@ -637,7 +662,7 @@ private:
 
  void	*get_region_from_cache(
 	size_t ts,
-	const char *varname,
+	string varname,
 	int reflevel,
 	int lod,
 	_dataTypes_t    type,
@@ -649,7 +674,7 @@ private:
 
  void	free_region(
 	size_t ts,
-	const char *varname,
+	string varname,
 	int reflevel,
 	int lod,
 	_dataTypes_t type,

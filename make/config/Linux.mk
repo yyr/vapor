@@ -27,11 +27,13 @@ C_DEBUG_FLAGS     += -g
 else
 
 CXXFLAGS          += -DLINUX -Wall -Wno-sign-compare -D__USE_LARGEFILE64
+CXXFLAGS          += -pthread
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG -fno-strict-aliasing
 CXX_DEBUG_FLAGS   += -g
 
 #CFLAGS            += -DLINUX -Wall -Werror -Wmissing-prototypes -Wsign-compare
 CFLAGS            += -DLINUX -Wall -Wmissing-prototypes -Wno-sign-compare -D__USE_LARGEFILE64
+CFLAGS            += -pthread
 C_RELEASE_FLAGS   += -O3 -DNDEBUG -fno-strict-aliasing
 C_DEBUG_FLAGS     += -g
 
@@ -55,7 +57,7 @@ endif
 
 RPATHFLAG		= -Wl,-rpath,
 
-LDFLAGS			+= -lrt 
+LDFLAGS			+= -lrt -pthread
 
 LD_RELEASE_FLAGS  += 
 LD_DEBUG_FLAGS    += 
@@ -87,7 +89,7 @@ DLLSUFFIX = .so
 LIBSUFFIX = .a
 OBJSUFFIX = .o
 MV = mv
-SHARED_LDFLAGS += -shared -Wl,-soname,$(LIB_SONAME)
+SHARED_LDFLAGS += -shared -Wl,-soname,$(LIB_SONAME) -pthread
 PERL = perl
 PYTHON = python
 JGRAPH = /u/eldridge/bin/IRIX/jgraph

@@ -329,6 +329,10 @@ int CopyVariable3D(
 		sliceBufferSize = slice_sz;
 	}
 	
+	float minVal = 1.e30f;
+	float maxVal = -1.e30f;
+	float minVal1 = 1.e30f;
+	float maxVal1 = -1.e30f;
 	for (size_t z = 0; z<dim[2]; z++) {
 		//
 		//Read slice of NetCDF file into slice buffer
@@ -339,8 +343,20 @@ int CopyVariable3D(
 		//
 		// Remap it 
 		//
-		
+		for (int k = 0; k<slice_sz; k++){
+			if (sliceBuffer[k] != mv){
+				if (minVal > sliceBuffer[k]) minVal = sliceBuffer[k];
+				if (maxVal < sliceBuffer[k]) maxVal = sliceBuffer[k];
+			}
+		}
+ 	
 		wt->interp2D(sliceBuffer, sliceBuffer2, mv, missMapVal);
+		for (int k = 0; k<slice_sz; k++){
+			if (sliceBuffer2[k] != mv){
+				if (minVal1 > sliceBuffer2[k]) minVal1 = sliceBuffer2[k];
+				if (maxVal1 < sliceBuffer2[k]) maxVal1 = sliceBuffer2[k];
+			}
+		}
 		
 		
 		if (vdc1) {
@@ -362,6 +378,8 @@ int CopyVariable3D(
 			}
 		} // Else vdc1
 	} // End of for z.
+	printf(" variable %s time %d: min, max original data: %g %g\n", varname.c_str(), (int)tsVDC, minVal, maxVal);
+	printf(" variable %s time %d: min, max interpolated data: %g %g\n", varname.c_str(), (int)tsVDC, minVal1, maxVal1);
 
 	if (vdc1)
 		wbwriter->CloseVariable();

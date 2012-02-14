@@ -19,11 +19,11 @@
 #ifndef	_debug_driver_h_
 #define	_debug_driver_h_
 
-#include <stdio.h>
+#include <cstdio>
+#include <vapor/RegularGrid.h>
 #include "DVRBase.h"
 namespace VAPoR{
 
-class Renderer;
 class	RENDER_API DVRDebug : public DVRBase {
 public:
 
@@ -31,37 +31,17 @@ public:
  DVRDebug(
 	int *argc,
 	char **argv,
-	int	nthreads,
-	Renderer* ren
+	int	nthreads
  );
 
  virtual ~DVRDebug();
 
  virtual int	GraphicsInit();
 
- int SetRegion(
-	void *data,
-	int nx, int ny, int nz,
-	const int data_roi[6],
-	const float extents[6],
-    const int data_box[6],
-    int level
-	
- );
-
-int SetRegionStretched(
-    void *data,
-    int nx, int ny, int nz,
-    const int data_roi[6],
-    const float *xcoords,
-    const float *ycoords,
-    const float *zcoords
-);
+ int SetRegion(const RegularGrid *rg, const float range[2], int num = 0);
 
 
- virtual int	Render(
-	const float	matrix[16]
- );
+ virtual int	Render();
 
  static void	PrintOptions(FILE *fp);
 

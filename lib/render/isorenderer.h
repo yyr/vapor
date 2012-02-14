@@ -65,11 +65,12 @@ namespace VAPoR {
 
   protected:
 
- void *_getRegion(
-	DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-	size_t ts, const char *varname, int numxforms, int lod,
+
+ int _updateRegion(
+	DataMgr *dataMgr, RenderParams *rp, RegionParams *regp, 
+	size_t ts, string varname, int reflevel, int lod,
 	const size_t min[3], const size_t max[3]
- ); 
+ );
 
  void _updateDriverRenderParamsSpec(RenderParams *rp);
     

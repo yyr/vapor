@@ -142,10 +142,10 @@ protected:
 
  virtual int    BlockReadRegionNative(
     const size_t bmin[3], const size_t bmax[3],
-    float *region
+    float *region, bool unblock = true
  )  {
  	return(WaveCodecIO::BlockReadRegion(
-		bmin, bmax, region, 1)
+		bmin, bmax, region, unblock)
 	);
  }; 
 

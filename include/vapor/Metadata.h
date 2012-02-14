@@ -118,6 +118,21 @@ public:
 	vector <size_t> cr; cr.push_back(1); return(cr);
  }
 
+ //! Return the coordinate system type. One of \b cartesian or \b spherical 
+ //! \retval type 
+ //! 
+ //
+ virtual string GetCoordSystemType() const { return("cartesian"); };
+
+ //! Return the grid type. One of \b regular, \b stretched, \b block_amr,
+ //! or \b spherical
+ //!
+ //! \retval type 
+ //! 
+ //
+ virtual string GetGridType() const { return("regular"); };
+
+
 
  //! Return the domain extents specified in user coordinates
  //!
@@ -135,6 +150,7 @@ public:
  //! \sa GetTSExtents();
  //
  virtual vector<double> GetExtents() const = 0;
+
 
  //! Return the number of time steps in the data collection
  //!
@@ -259,9 +275,7 @@ public:
  //! is outside the valid range the value of GetExtents() is returned.
  //!
  //
- virtual vector<double> GetTSExtents(size_t ) const {
-	return(GetExtents());
- }
+ virtual vector<double> GetTSExtents(size_t ) const { return(GetExtents()); };
 
  //! Get the dimension of a volume
  //!
@@ -417,6 +431,13 @@ public:
 	MapUserToVox(timestep, vcoord0, v, reflevel);
 	Metadata::MapVoxToBlk(v, bcoord0, reflevel);
  }
+
+ void    GetEnclosingRegion(
+    size_t timestep, const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3],
+    int reflevel
+ ) const;
+
 
 
  //! Return the variable type for the indicated variable

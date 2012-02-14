@@ -25,4 +25,6 @@ using namespace VAPoR;
 DVRBase::DVRBase() 
 { 
 	_max_texture = 512;
+	_range[0] = 0.0;
+	_range[1] = 1.0;
 }

@@ -24,7 +24,8 @@ int	LayeredIO::_LayeredIO()
 	_highValMap.clear();
 
 	SetGridHeight(100);
-	SetInterpolateOnOff(true);
+//	SetInterpolateOnOff(true);
+	SetInterpolateOnOff(false);
 
 	return(0);
 }
@@ -145,7 +146,7 @@ void LayeredIO::cache_clear(
 int	LayeredIO::BlockReadRegion(
 	const size_t bmin[3],
 	const size_t bmax[3],
-	float *region
+	float *region, bool unblock
 ) {
 
 	SetDiagMsg(
@@ -154,7 +155,7 @@ int	LayeredIO::BlockReadRegion(
 	);
 
 	if (! _interpolateOn || (_vtype == VAR2D_XY)) {
-		return(BlockReadRegionNative( bmin, bmax, region));
+		return(BlockReadRegionNative( bmin, bmax, region, unblock));
 	}
 	if (_vtype != VAR3D) {
 		SetErrMsg("Variable type not supported");
@@ -230,7 +231,7 @@ int	LayeredIO::BlockReadRegion(
 		if (rc<0) return(-1);
 
 		rc = BlockReadRegionNative(
-			blkMinFullZ, blkMaxFullZ, _elevBlkBuf
+			blkMinFullZ, blkMaxFullZ, _elevBlkBuf, unblock
 		);
 		if (rc<0) return(-1);
 
@@ -248,7 +249,7 @@ int	LayeredIO::BlockReadRegion(
 	}
 
 	rc = BlockReadRegionNative(
-		blkMinFullZ, blkMaxFullZ, _varBlkBuf
+		blkMinFullZ, blkMaxFullZ, _varBlkBuf, unblock
 	);
 	if (rc<0) return(-1);
 

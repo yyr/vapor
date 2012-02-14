@@ -624,7 +624,7 @@ namespace VAPoR {
 void _pad_line(string mode,float *line_start,size_t l1,size_t l2,long stride);
 
 int WaveCodecIO::BlockReadRegion(
-	const size_t bmin[3], const size_t bmax[3], float *region, int unblock
+	const size_t bmin[3], const size_t bmax[3], float *region, bool unblock
 ) {
 	if (! _isOpen || _writeMode) {
 		SetErrMsg("Variable not open for reading\n");

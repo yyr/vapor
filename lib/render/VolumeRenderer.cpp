@@ -16,14 +16,6 @@
 //
 //      Description:  Implementation of VolumeRenderer class
 //
-// Code was extracted from mdb, setup, vox in order to do simple
-// volume rendering with volumizer.
-//
-//
-// Original Author:
-//      Ken Chin-Purcell (ken@ahpcrc.umn.edu)
-//      Army High Performance Computing Research Center (AHPCRC)
-//      University of Minnesota
 //
 //----------------------------------------------------------------------------
 
@@ -59,11 +51,7 @@
 #include "DVRLookup.h"
 #include "DVRShader.h"
 #include "DVRRayCaster.h"
-#include "DVRRayCaster2Var.h"
 #include "DVRSpherical.h"
-#ifdef VOLUMIZER
-#include "DVRVolumizer.h"
-#endif
 #include "DVRDebug.h"
 #include "params.h"
 #include "renderer.h"
@@ -208,16 +196,7 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
 
      case DvrParams::DVR_RAY_CASTER_2_VAR:
      {
-       return DVRRayCaster2Var::supported();
-     }
-
-     case DvrParams::DVR_VOLUMIZER:
-     {
-#    ifdef VOLUMIZER
-       return true;
-#    else
-       return false;
-#    endif
+       return DVRRayCaster::supported();
      }
 
      case DvrParams::DVR_DEBUG:
@@ -252,68 +231,42 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   int argc = 0;
   char** argv = 0;
   DVRBase *driver = NULL;
-  GLenum format = GL_LUMINANCE;
 
+#ifdef	DEAD
   if (dvrType == DvrParams::DVR_TEXTURE3D_LOOKUP) 
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
     _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRLookup(_voxelType, 1, this);
+    driver = new DVRLookup(_voxelType, 1);
   }
-  else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
+  else 
+#endif
+
+  if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLint internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRShader(internalFormat, format, _voxelType, 1, this);
+    driver = new DVRShader(rp->getNumBits(), 1, myGLWindow->getShaderMgr(), 1);
   }
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLint internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRSpherical(internalFormat, format, _voxelType, 1, this);
+    driver = new DVRSpherical(rp->getNumBits(), 1, myGLWindow->getShaderMgr(), 1);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
-    _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLint internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
-    driver = new DVRRayCaster(internalFormat, format, _voxelType, 1,this);
+    driver = new DVRRayCaster(rp->GetNumBits(), 1, myGLWindow->getShaderMgr(), 1);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER_2_VAR)
   {
-    GLenum format = GL_LUMINANCE_ALPHA;
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
-    _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    GLint internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
-    driver = new DVRRayCaster2Var(internalFormat, format, _voxelType, 1,this);
+    driver = new DVRRayCaster(rp->GetNumBits(), 2, myGLWindow->getShaderMgr(), 1);
   }
-
-#ifdef VOLUMIZER
-  else if (dvrType == DvrParams::DVR_VOLUMIZER)
-  {
-	DvrParams *rp = (DvrParams *) currentRenderParams;
-    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRVolumizer(&argc, argv, _voxelType, 1, this);
-  }
-#endif
-
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRDebug(&argc, argv, 1, this);
+    driver = new DVRDebug(&argc, argv, 1);
   }
-  
-#ifdef	DVR_STRETCHEDGRID
-  else if (dvrType == DvrParams::DVR_STRETCHED_GRID)
-  {
-	DvrParams *rp = (DvrParams *) currentRenderParams;
-    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-    driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads, this);
-  }
-#endif
   else 
   {
 	  setAllBypass(true);
@@ -328,10 +281,8 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
+void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
-	float matrix[16];
-	  
 	static float extents[6];
 	static float padded_extents[6];
 	  
@@ -362,7 +313,30 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  
 	ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 	DataStatus* ds = DataStatus::getInstance();
-		
+
+cerr << "transforming everything to unit box coords :-(\n";
+	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
+	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
+	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
+	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+
+vector <double> gextents = dataMgr->GetExtents();
+vector <double> lextents = dataMgr->GetTSExtents(timeStep);
+glTranslatef(
+gextents[0]-lextents[0],
+gextents[1]-lextents[1],
+gextents[2]-lextents[2]
+);
+cout << "TRANSLATE " << 
+gextents[0]-lextents[0] << " " <<
+gextents[1]-lextents[1] << " " <<
+gextents[2]-lextents[2] << " " << endl;
+
+
+	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	glScalef(scales[0], scales[1], scales[2]);
+
+			
 	
 	int varNum = currentRenderParams->getSessionVarNum();
 
@@ -376,16 +350,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //is mapped to the center of the cube with the largest dimension equal to 1.
   //Then determine what is the subvolume we are dealing with as a portion
   //of the full mapped data.
-	int numxforms, lod;
+	int reflevel, lod;
 	lod = currentRenderParams->GetCompressionLevel();
 	if (ds->useLowerAccuracy())
 		lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
 	
 	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
 	{
-		numxforms = Min(currentRenderParams->GetRefinementLevel(),
-			DataStatus::getInteractiveRefinementLevel());
-		if (numxforms < currentRenderParams->GetRefinementLevel()){
+		reflevel = Min(currentRenderParams->GetRefinementLevel(),
+            DataStatus::getInteractiveRefinementLevel());
+
+		if (! _driver->GetRenderFast()) {
 			_driver->SetRenderFast(true);
 
 			// Need update sampling rate & opacity correction 
@@ -394,7 +369,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		}
 	} else {
 
-		numxforms = currentRenderParams->GetRefinementLevel();
+		reflevel = currentRenderParams->GetRefinementLevel();
 		if (_driver->GetRenderFast())
 		{
 			_driver->SetRenderFast(false);
@@ -406,20 +381,20 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		}
 	}
 
-	//Whenever numxforms changes, we need to dirty the clut, since
+	//Whenever reflevel changes, we need to dirty the clut, since
 	//that affects the opacity correction.
-	if (numxforms != savedNumXForms)
+	if (reflevel != savedNumXForms)
 	{
 		setClutDirty();
-		savedNumXForms = numxforms;
+		savedNumXForms = reflevel;
 	}
 	size_t bs[3];
-	dataMgr->GetBlockSize(bs,numxforms);
+	dataMgr->GetBlockSize(bs,reflevel);
 
 	  
 	//Loop if user accepts lower resolution:
 	
-	int availRefLevel = myRegionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
+	int availRefLevel = myRegionParams->getAvailableVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, 
 		timeStep,&varNum, 1);
 
 	if(availRefLevel < 0) {
@@ -435,20 +410,20 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 			setPartialBypass(timeStep);
 		}
 		if (doMsg) {
-			const char* varname = ds->getVariableName3D(varNum).c_str();
+			string varname = ds->getVariableName3D(varNum);
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
 				"Data unavailable for variable %s\n at refinement level %d and current time step",
-				varname, numxforms);
+				varname.c_str(), reflevel);
 		}
 		return;
 	}
 
-	if (availRefLevel < numxforms){
-		numxforms = availRefLevel;
+	if (availRefLevel < reflevel){
+		reflevel = availRefLevel;
 		setClutDirty();
-		savedNumXForms = numxforms;
+		savedNumXForms = reflevel;
 	}
-	RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
+	RegionParams::convertToStretchedBoxExtentsInCube(reflevel, min_dim, max_dim, extents);    
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
@@ -460,9 +435,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	//Windows or Linux!
 	glColor3f(1.f,1.f,1.f);	   
 	  
-	  
-	//Save the coord trans matrix, to pass to volumizer
-	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
 	  
 	bool userTextureSizeIsSet = DataStatus::getInstance()->textureSizeIsSpecified();
 	int userTextureSize = DataStatus::getInstance()->getTextureSize();
@@ -492,7 +464,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		|| myGLWindow->vizIsDirty(AnimationBit)) 
 	{
 		//Check if the region/resolution is too big:
-		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
+		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, reflevel);
 		int cacheSize = DataStatus::getInstance()->getCacheMB();
 		if (numMBs > (int)(0.75*cacheSize)){
 			setAllBypass(true);
@@ -508,132 +480,34 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		//Turn off error callback, look for memory allocation problem.
 		
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		const char* varname = (DataStatus::getInstance()->getVariableName3D(currentRenderParams->getSessionVarNum()).c_str());
+		string varname = (DataStatus::getInstance()->getVariableName3D(currentRenderParams->getSessionVarNum()));
 
-
-		void* data = _getRegion(
-			dataMgr, currentRenderParams, myRegionParams, timeStep,
-			varname, numxforms, lod, min_bdim, max_bdim
+		rc = _updateRegion(
+			dataMgr, currentRenderParams, myRegionParams,
+			timeStep, varname, reflevel, lod, min_dim, max_dim
 		);
-
+			
 		//Turn it back on:
 	    
 		QApplication::restoreOverrideCursor();
 		
-		if (!data){
+		if (rc<0){
 			//Only set bypass if the data is not available at the interactiveRefLevel
 			//Otherwise set partial bypass
-			if (numxforms <= DataStatus::getInteractiveRefinementLevel())
+			if (reflevel <= DataStatus::getInteractiveRefinementLevel())
 				setBypass(timeStep);
 			else setPartialBypass(timeStep);
 			MyBase::SetErrCode(0);
 			if (ds->warnIfDataMissing()){
 				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Volume data unavailable\nfor refinement level %d\nof variable %s, at current timestep.", 
-					numxforms, varname);
+					reflevel, varname.c_str());
 			}
-			ds->setDataMissing3D(timeStep, numxforms, lod, currentRenderParams->getSessionVarNum());
+			ds->setDataMissing3D(timeStep, reflevel, lod, currentRenderParams->getSessionVarNum());
 			setBypass(timeStep);
+			dataMgr->SetErrCode(0);
 			return;
 		}
 
-		datablock[0] = (int)(min_bdim[0]*bs[0]);
-		datablock[1] = (int)(min_bdim[1]*bs[1]);
-		datablock[2] = (int)(min_bdim[2]*bs[2]);
-		datablock[3] = (int)((max_bdim[0]+1)*bs[0]-1);
-		datablock[4] = (int)((max_bdim[1]+1)*bs[1]-1);
-		datablock[5] = (int)((max_bdim[2]+1)*bs[2]-1);
-
-		//
-		// Calculate the extents of the volume when it's padded by a single
-		// voxel.
-		//    
-		min_pad_dim[0] = min_dim[0] + 1; 
-		min_pad_dim[1] = min_dim[1] + 1; 
-		min_pad_dim[2] = min_dim[2] + 1;
-		max_pad_dim[0] = max_dim[0] - 1; 
-		max_pad_dim[1] = max_dim[1] - 1; 
-		max_pad_dim[2] = max_dim[2] - 1;
-
-		RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
-												min_pad_dim, max_pad_dim, 
-												padded_extents);
-								
-	   
-		// make subregion origin (0,0,0)
-		// Note that this doesn't affect the calc of nx,ny,nz.
-		// Also, save original dims, will need them to find extents.
-		for(i=0; i<3; i++) {
-			while(min_bdim[i] > 0) {
-				min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
-				min_bdim[i] -= 1; max_bdim[i] -= 1;
-			}
-		}
-		
-		nx = (int)((max_bdim[0] - min_bdim[0] + 1) * bs[0]);
-		ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
-		nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
-
-		if (_type == DvrParams::DVR_SPHERICAL_SHADER)
-		{
-			vector<bool> clip(3, false);
-			const vector<long> &periodic = dataMgr->GetPeriodicBoundary();
-
-			data_roi[0] = (int)min_dim[0];
-			data_roi[1] = (int)min_dim[1];
-			data_roi[2] = (int)min_dim[2];
-			data_roi[3] = (int)max_dim[0];
-			data_roi[4] = (int)max_dim[1];
-			data_roi[5] = (int)max_dim[2];
-
-			double dbexts[6];
-			myRegionParams->GetBox()->GetExtents(dbexts, timeStep);
-			for (int i = 0; i<6; i++) extents[i] = dbexts[i];
-
-			clip[0] = !(periodic[0] &&
-						FLTEQ(extents[0], dataMgr->GetExtents()[0]) &&
-						FLTEQ(extents[3], dataMgr->GetExtents()[3]));
-			clip[1] = !(periodic[1] && 
-						FLTEQ(extents[1], dataMgr->GetExtents()[1]) &&
-						FLTEQ(extents[4], dataMgr->GetExtents()[4]));
-			clip[2] = !(periodic[2] && 
-						FLTEQ(extents[2], dataMgr->GetExtents()[2]) &&
-						FLTEQ(extents[5], dataMgr->GetExtents()[5]));
-
-			rc = _driver->SetRegionSpherical(data,
-											nx, ny, nz,
-											data_roi, 
-											extents, 
-											datablock, 
-											numxforms,
-											dataMgr->GetGridPermutation(),
-											clip);
-		}
-		else
-		{
-			//
-			// Pad the roi with a single voxel in each axis. This ensures
-			// data will be available for gradient calculations. 
-			//
-			data_roi[0] = (int)min_dim[0]+1;
-			data_roi[1] = (int)min_dim[1]+1;
-			data_roi[2] = (int)min_dim[2]+1;
-			data_roi[3] = (int)max_dim[0]-1;
-			data_roi[4] = (int)max_dim[1]-1;
-			data_roi[5] = (int)max_dim[2]-1;
-		      
-			rc = _driver->SetRegion(data,
-									nx, ny, nz,
-									data_roi, padded_extents,
-									datablock, numxforms
-									);
-		}
-	    
-		if (rc < 0) {
-			setBypass(timeStep);
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Error in DVRVolume::SetRegion");
-			return;
-		}
-		
 		
 	}
 
@@ -647,15 +521,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	//
 	glMatrixMode(GL_MODELVIEW);
 
-	if (_type == DvrParams::DVR_VOLUMIZER)
-	{
-		glLoadIdentity();
-	}
-  
 	//Make the z-buffer read-only for the volume data
 	glDepthMask(GL_FALSE);
 	//qWarning("Starting render");
-	if (_driver->Render((GLfloat *) matrix ) < 0){
+	if (_driver->Render() < 0){
 		setBypass(timeStep);
 		SetErrMsg(VAPOR_ERROR_DVR, "Unable to volume render");
 		return;
@@ -739,29 +608,52 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
 #endif
 }
 
-void *VolumeRenderer::_getRegion(
-	DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
-	size_t ts, const char *varname, int numxforms, int lod,
+int	VolumeRenderer::_updateRegion(
+	DataMgr *dataMgr, RenderParams *rp, RegionParams *regp,
+	size_t ts, string varname, int reflevel, int lod,
 	const size_t min[3], const size_t max[3]
 ) {
-	void *data;
 
-	if (_voxelType == GL_UNSIGNED_BYTE) {
-		data =  data_mgr->GetRegionUInt8(
-			ts, varname, numxforms, lod, min, max,
-			rp->getCurrentDatarange(),
-			0 // Don't lock!
-		);
+	RegularGrid *rg = dataMgr->GetGrid(
+			ts, varname, reflevel, lod, min, max
+	);
+	if (!rg) return(-1);
+
+	int rc = 0;
+	if (_type == DvrParams::DVR_SPHERICAL_SHADER)
+	{
+		DVRSpherical *driver = dynamic_cast<DVRSpherical *>(_driver);
+		const SphericalGrid *sg = dynamic_cast<const SphericalGrid *>(rg);
+		assert(driver != NULL);
+		assert(sg != NULL);
+
+		vector<bool> clip(3, false);
+		const vector<long> &periodic = dataMgr->GetPeriodicBoundary();
+
+		double dbexts[6];
+		double extents[6];
+		regp->GetBox()->GetExtents(dbexts, ts);
+		for (int i = 0; i<6; i++) extents[i] = dbexts[i];
+
+		clip[0] = !(periodic[0] &&
+					FLTEQ(extents[0], dataMgr->GetExtents()[0]) &&
+					FLTEQ(extents[3], dataMgr->GetExtents()[3]));
+		clip[1] = !(periodic[1] && 
+					FLTEQ(extents[1], dataMgr->GetExtents()[1]) &&
+					FLTEQ(extents[4], dataMgr->GetExtents()[4]));
+		clip[2] = !(periodic[2] && 
+					FLTEQ(extents[2], dataMgr->GetExtents()[2]) &&
+					FLTEQ(extents[5], dataMgr->GetExtents()[5]));
+
+		rc = driver->SetRegionSpherical(sg, rp->getCurrentDatarange(), 0,
+										dataMgr->GetGridPermutation(),
+										clip);
+	} else
+	{
+		rc = _driver->SetRegion(rg, rp->getCurrentDatarange(), 0);
 	}
-	else {
-		data = data_mgr->GetRegionUInt16(
-			ts, varname, numxforms, lod, min, max,
-			rp->getCurrentDatarange(),
-			0 // Don't lock!
-		);
-	}
-	if (!data) data_mgr->SetErrCode(0);
-	return(data);
+
+	return(rc);
 }
 
 
@@ -778,10 +670,6 @@ void VolumeRenderer::_updateDriverRenderParamsSpec(
 		bool preint = myDVRParams->getPreIntegration();
 
 		_driver->SetPreintegrationOnOff(preint);
-
-		if (_type == DvrParams::DVR_VOLUMIZER) {
-			_driver->SetCLUT(myDVRParams->getClut());
-		}
 
 		_driver->SetOLUT(myDVRParams->getClut(), 
 		dataMgr->GetNumTransforms() - savedNumXForms);

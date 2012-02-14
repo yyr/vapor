@@ -967,6 +967,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
         // general framework that can handle non-cartesian coordinate
         // systems, this provides a convenient, low-impact way to handle 
         // the volume exents vs. data extents issue for spherical rendering.
+#ifdef	DEAD
         if (dataMgrWB && dataMgrWB->GetCoordSystemType() == "spherical") {
           float maxExtent = 0;
 
@@ -980,6 +981,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
             stretchFactors[i] = maxExtent / (mdExtents[i+3] - mdExtents[i]);
           }
         }
+#endif
 
 		for (i = 0; i< 6; i++){
 			extents[i] = (float)mdExtents[i];

@@ -9,6 +9,7 @@
 #ifndef DVRLookup_h
 #define DVRLookup_h
 
+#include <vapor/RegularGrid.h>
 #include "DVRTexture3d.h"
 #include "Vect3d.h"
 
@@ -17,29 +18,22 @@
 namespace VAPoR {
 
   class BBox;
-  class Renderer;
 
 class RENDER_API DVRLookup : public DVRTexture3d
 {
  public:
 
 
-  DVRLookup(GLenum type, int nthreads, Renderer* ren);
+  DVRLookup(GLenum type, int nthreads);
   virtual ~DVRLookup();
 
   virtual int GraphicsInit();
   
-  virtual int SetRegion(void *data,
-                        int nx, int ny, int nz,
-                        const int data_roi[6],
-                        const float extents[6],
-                        const int data_box[6],
-                        int level
-						);
+  virtual int SetRegion(const RegularGrid *rg, const float range[2], int num = 0);
 
   virtual void loadTexture(TextureBrick *brick);
 
-  virtual int Render(const float matrix[16]);
+  virtual int Render();
 
   virtual void SetCLUT(const float ctab[256][4]);
   virtual void SetOLUT(const float ftab[256][4], const int numRefinenements);

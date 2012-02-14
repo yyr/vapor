@@ -436,8 +436,8 @@ public:
  //! \remarks Required element
  //
  vector<double> GetExtents() const {
-	return(_rootnode->GetElementDouble(_extentsTag));
-	};
+	return (_rootnode->GetElementDouble(_extentsTag));
+ }
 
  //! Return true if \p value is a valid coordinate extent definition
  //!
@@ -843,7 +843,9 @@ public:
  //
  vector<double> GetTSExtents(size_t ts) const {
 	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
-	return(_rootnode->GetChild(ts)->GetElementDouble(_extentsTag));
+	vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
+	if (extents.size() == 6) return(extents);
+	else return (GetExtents());
  }
 
  //! Set a comment for the variable, \p v at the time step indicated by \p ts

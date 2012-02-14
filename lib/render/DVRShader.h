@@ -21,7 +21,6 @@ namespace VAPoR {
 
   class BBox;
   class ShaderProgram;
-  class Renderer;
 
 
 class RENDER_API DVRShader : public DVRTexture3d
@@ -30,22 +29,16 @@ class RENDER_API DVRShader : public DVRTexture3d
  public:
 
 
-  DVRShader(GLint internalFormat, GLenum format, GLenum type, int nthreads, Renderer* ren);
+  DVRShader(int precision, int nvars, ShaderMgr *shadermgr, int nthreads);
   virtual ~DVRShader();
 
   virtual int GraphicsInit();
   
-  virtual int SetRegion(void *data, 
-                        int nx, int ny, int nz, 
-                        const int data_roi[6],
-                        const float extents[6],
-                        const int data_box[6],
-                        int level
-						);
+  virtual int SetRegion(const RegularGrid *rg, const float range[2], int num=0);
 
   virtual void loadTexture(TextureBrick *brick);
 
-  virtual int Render(const float matrix[16]);
+  virtual int Render();
 
   virtual int HasPreintegration() const { return true; };
   virtual int HasLighting() const { return true; };
@@ -68,31 +61,18 @@ class RENDER_API DVRShader : public DVRTexture3d
 
 protected:
 
-  enum ShaderType
-  {
-    DEFAULT = 0,
-    LIGHT,
-    PRE_INTEGRATED,
-    PRE_INTEGRATED_LIGHT
-  };
+  string instanceName(string base) const;
 
   int initTextures();
   virtual void initShaderVariables();
 
-  virtual bool createShader(ShaderType,
-                    const char *vertexCommandLine,
-                    const char *vertexSource,
-                    const char *fragCommandLine,
-                    const char *fragmentSource);
+  ShaderProgram* shader();
+  virtual std::string getCurrentEffect();
 
-	ShaderProgram* shader();
-	std::string getCurrentEffect();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
-
-protected:
 
   float          *_colormap;
   ShaderProgram  *_shader;
@@ -103,10 +83,6 @@ protected:
 
   GLuint _cmapid[2];
 
-  int    _nx;
-  int    _ny;
-  int    _nz;
-	std::string _effect;
   float _kd;
   float _ka;
   float _ks;
@@ -114,6 +90,10 @@ protected:
   float _pos[3];
   float _vdir[4];
   float _vpos[4];
+  int _midx;
+  int _zidx;
+  ShaderMgr *_shadermgr;
+
 };
 
 };

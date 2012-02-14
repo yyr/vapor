@@ -12,11 +12,12 @@ FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	LayeredIO AMRIO  WRF MOM WRFReader Transpose DataMgr DataMgrWB \
-	DataMgrLayered DataMgrLayered2 DataMgrWRF vdf \
+	DataMgrWRF vdf \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory  NCBuf
+	DataMgrFactory  NCBuf \
+	LayeredGrid RegularGrid SphericalGrid StretchedGrid
 
 HEADER_FILES = \
 	BlkMemMgr XmlNode ExpatParseMgr ImpExp Metadata MetadataVDC \
@@ -26,12 +27,13 @@ HEADER_FILES = \
 	VDFIOBase WaveletBlockIOBase WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	LayeredIO AMRIO  WRF MOM WRFReader DataMgr DataMgrWB DataMgrLayered \
-	DataMgrLayered2 DataMgrWRF \
+	LayeredIO AMRIO  WRF MOM WRFReader DataMgr DataMgrWB \
+	DataMgrWRF \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
 	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
-	DataMgrFactory Lifting1D Transpose NCBuf
+	DataMgrFactory Lifting1D Transpose NCBuf \
+	LayeredGrid RegularGrid SphericalGrid StretchedGrid
 
 
 #LIB_DEFS = vdf.def

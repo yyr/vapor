@@ -13,11 +13,13 @@
 
 #include <vapor/errorcodes.h>
 #include "glutil.h"
+#include <sstream>
 using namespace VAPoR;
 using namespace VetsUtil;
 ShaderMgr::ShaderMgr()
 {
 	loaded = false;
+	glsl_version = 120; // default
 }
 
 
@@ -26,6 +28,7 @@ ShaderMgr::ShaderMgr(const char* directory)
 	SetDiagMsg("ShaderMgr::ShaderMgr(%s)", directory);
 	loaded = false;
 	sourceDir = std::string(directory);
+	glsl_version = 120;
 }
 
 ShaderMgr::ShaderMgr(std::string directory, QGLWidget *owner)
@@ -34,6 +37,7 @@ ShaderMgr::ShaderMgr(std::string directory, QGLWidget *owner)
 	loaded = false;
 	sourceDir = directory;
 	parent = owner;
+	glsl_version = 120;
 }
 
 ShaderMgr::~ShaderMgr()
@@ -67,7 +71,9 @@ void ShaderMgr::setShaderSourceDir(const char* directory)
 bool ShaderMgr::loadShaders()
 {
 	SetDiagMsg("ShaderMgr::loadShaders()");
-	
+#ifdef DEBUG
+	std::cout << "ShaderMgr::loadShaders() " << std::endl;
+#endif	
 	if (!loaded){
 		QDir mainDir = QDir(QString(sourceDir.c_str()));
 		mainDir.setFilter( QDir::Files );
@@ -99,6 +105,9 @@ bool ShaderMgr::loadShaders()
 
 bool ShaderMgr::reloadShaders()
 {
+#ifdef DEBUG
+	std::cout << "ShaderMgr::reloadShaders() " << std::endl;
+#endif	
 	//Check to see if any shaders are currently running	
 	GLint current;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &current);
@@ -126,7 +135,9 @@ bool ShaderMgr::reloadShaders()
 bool ShaderMgr::enableEffect(std::string effect)
 {
 	SetDiagMsg("ShaderMgr::enableEffect(%s)", effect.c_str());
-
+#ifdef DEBUG
+	std::cout << "ShaderMgr::enableEffect(" << effect << ")" << std::endl;
+#endif	
 	if (effectExists(effect)) {
 		if(effects[effect]->enable() == 0)
 			return true;
@@ -153,22 +164,142 @@ bool ShaderMgr::disableEffect()
 	{
 		glUseProgramObjectARB(0);
 	}
-	return true;
-	
 	printOpenGLError();
+
+	return true;
 }
+void ShaderMgr::setGLSLVersion(int version)
+{
+	glsl_version = version;
+}
+//----------------------------------------------------------------------------
+// Convert the define string into OGL define directives
+//----------------------------------------------------------------------------
+std::string ShaderMgr::convertDefines(std::string defines)
+{
+#ifdef DEBUG
+	std::cout << "ShaderMgr::convertDefines()" << std::endl;
+#endif	
+	int colonIndex = defines.find(";");
+	int pos = 0;
+	stringstream ss;
+	ss << glsl_version;
+	std::string result = "#version " + ss.str() + "\n";
+	//last character must be a semi colon
+	if (defines[defines.length() -1] != ';') {
+		return result;
+	}
+	while (pos < defines.length() -1 ) {
+		//substring the first section up to semi colon
+		std::string token = defines.substr(pos, colonIndex - pos);
+		std::string definition = "#define " + token + "\n";
+		result += definition;
+		definition = "";
+		pos = colonIndex + 1;
+		colonIndex = defines.find(";", pos);
+	}
+	return result;
+}
+//----------------------------------------------------------------------------
+// Instantiates a shader program based on the defines
+// example define: "PI 3.14;TAU 2.1872;MU"
+//----------------------------------------------------------------------------
+bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::string instanceName)
+{
+	SetDiagMsg(
+		"ShaderMgr::defineEffect(%s,%s,%s)",
+		baseName.c_str(), defines.c_str(), instanceName.c_str()
+	);
+
+#ifdef DEBUG		
+	std::cout << "ShaderMgr::defineEffect()" << std::endl;
+#endif
+	if (baseEffects.count(baseName) < 0) {
+		//base effect is not loaded
+		return false;
+	}
+	else {
+		//check if another effect is already using the instanceName
+		if(effects.count(instanceName) > 0)
+			return false;
+		effects[instanceName] = new ShaderProgram();
+		effects[instanceName]->create();
+		//Convert defines
+		std::string OGLdefines = convertDefines(defines);
+		//iterate through vertex shader code
+		for (int i = 0; i < baseEffects[baseName][0].size(); i++) {
+			/*if (i == 0) {
+				std::string defined = OGLdefines + baseEffects[baseName][0][0];			
+				effects[instanceName]->loadVertexSource((const GLchar*)defined.c_str(), baseEffects[baseName][2][i]);
+			}
+			else {
+				effects[instanceName]->loadVertexSource((const GLchar*)baseEffects[baseName][0][i].c_str(), baseEffects[baseName][2][i]);
+			}*/
+			//add definition tokens to everything
+			std::string defined = OGLdefines + baseEffects[baseName][0][i];			
+			effects[instanceName]->loadVertexSource((const GLchar*)defined.c_str(), baseEffects[baseName][2][i]);
+		}	
+		//iterate through fragment shader code
+		for (int i = 0; i < baseEffects[baseName][1].size(); i++) {
+		/*	if (i == 0) {
+				std::string defined = OGLdefines + baseEffects[baseName][1][0];
+				effects[instanceName]->loadFragmentSource((const GLchar*)defined.c_str(), baseEffects[baseName][3][i]);
+			}
+			else {
+				effects[instanceName]->loadFragmentSource((const GLchar*)baseEffects[baseName][1][i].c_str(), baseEffects[baseName][3][i]);	
+			}
+		 */
+			//add definition tokens to all source code
+			std::string defined = OGLdefines + baseEffects[baseName][1][i];
+			effects[instanceName]->loadFragmentSource((const GLchar*)defined.c_str(), baseEffects[baseName][3][i]);
+		}
+			
+	}
+	
+	if (effects[instanceName]->compile()){
+//#ifdef DEBUG
+		std::cout << "effect " << baseName << " defined " << "name: " << instanceName << std::endl;
+//#endif
+		return true;
+	}
+	else {
+//#ifdef DEBUG
+		std::cout << "effect " << baseName << " failed compilation " << "name: " << instanceName << std::endl;
+//#endif
+		return false;
+	}
+
+}
+bool ShaderMgr::undefEffect(std::string instanceName)
+{
+#ifdef DEBUG		
+	std::cout << "ShaderMgr::undefEffect(" << instanceName << ")" << std::endl;
+#endif
+	if (effects.count(instanceName) < 0) {
+		//effect has not been defined
+		return false;
+	}
+	else {
+		effects.erase(instanceName);
+	}	
+	return true;
+}
+
 //----------------------------------------------------------------------------
 // Handles parsing an effect file and constructing the shaderprogram
 //----------------------------------------------------------------------------
 bool ShaderMgr::loadEffectFile(std::string effect)
 {
 	SetDiagMsg("ShaderMgr::loadEffectFile(%s)", effect.c_str());
-
+	
+#ifdef DEBUG		
+	std::cout << "ShaderMgr::loadEffectFile(" << effect << ")" << std::endl;
+#endif
 	//this is an effect file, open to read info
 	std::string path = sourceDir + "/" + effect;
 	
 	ifstream file (path.c_str());
-	
+
 	std::string line1, line2, line3;
 	if (file.is_open())
 	{		
@@ -187,9 +318,6 @@ bool ShaderMgr::loadEffectFile(std::string effect)
 		return false;
 	}
 	
-	
-	effects[line1] = new ShaderProgram();
-	effects[line1]->create();
 	//--------------------------------------
 	// Prepare to parse main shaders
 	// Unlike normal GLSL this will load shaders
@@ -199,33 +327,33 @@ bool ShaderMgr::loadEffectFile(std::string effect)
 	//
 	// #include
 	//	included files must reside in the sourcedir/includes directory
+	// #defines are supported programmatically, with the defineEffect function
 	//--------------------------------------
 	if (!line2.empty()) {
-		if(loadVertShader(sourceDir + "/main/" + line2 + ".vgl", effects[line1], line2 + ".vgl") == false){
+		if(loadVertShader(sourceDir + "/main/" + line2 + ".vgl", line2 + ".vgl", line1 ) == false){
 			return false;
 		}
 	}
 	if (!line3.empty()) {
-		if(loadFragShader(sourceDir + "/main/" + line3 + ".fgl", effects[line1], line3 + ".fgl") == false){
+		if(loadFragShader(sourceDir + "/main/" + line3 + ".fgl", line3 + ".fgl", line1) == false){
 			return false;
 		}
 	}
-	if (effects[line1]->compile())
-		return true;
-	else {
-		return false;
-	}
+	return true;
 	
 }
 //----------------------------------------------------------------------------
 // Loads a vertex shader, both main and included
 //----------------------------------------------------------------------------
-bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::string fileName)
+bool ShaderMgr::loadVertShader(std::string path, std::string fileName, std::string effectName)
 {
 	SetDiagMsg(
 		"ShaderMgr::loadVertShader(%s,,%s)",
 		path.c_str(), fileName.c_str()
 	);
+#ifdef DEBUG		
+	std::cout << "ShaderMgr::loadVertShader(" << path << "," << fileName << ")" << std::endl;
+#endif	
 	//Vertex Shader loading
 	ifstream file (path.c_str());
 	std::string code;
@@ -249,33 +377,32 @@ bool ShaderMgr::loadVertShader(std::string path, ShaderProgram *prog, std::strin
 		return false;
 	}
 	
-	
 	const char *sourceBuffer = (const char*)code.c_str();;
 	std::string processed = "";
 	std::vector<std::string> includes = preprocess(sourceBuffer, processed);
 	for (int i = 0; i <  includes.size(); i++){		
-		if(loadVertShader(sourceDir + "/includes/" + includes[i], prog, includes[i]) == false)
+		if(loadVertShader(sourceDir + "/includes/" + includes[i], includes[i], effectName) == false)
 			return false;
-	}
-	//finished loading includes, load main source
-	if(prog->loadVertexSource((const GLchar*)processed.c_str(), fileName)){
-		return true;
-	}
-	else {
-		return false;
-	}
-	
+	}	
+	//Save source code
+	baseEffects[effectName][0].push_back(processed);
+	//Save the vert shader name for later use
+	baseEffects[effectName][2].push_back(fileName);
+	return true;
 }
 //----------------------------------------------------------------------------
 // Loads a fragment shader, both main and included
 //----------------------------------------------------------------------------
-bool ShaderMgr::loadFragShader(std::string path, ShaderProgram *prog, std::string fileName)
+bool ShaderMgr::loadFragShader(std::string path, std::string fileName, std::string effectName)
 {
 	SetDiagMsg(
 		"ShaderMgr::loadFragShader(%s,,%s)",
 		path.c_str(), fileName.c_str()
 	);
-
+	
+#ifdef DEBUG		
+	std::cout << "ShaderMgr::loadFragShader(" << path << "," << fileName << ")" << std::endl;
+#endif	
 	//Fragment Shader loading
 	ifstream file (path.c_str());
 	std::string code;
@@ -299,24 +426,19 @@ bool ShaderMgr::loadFragShader(std::string path, ShaderProgram *prog, std::strin
 		return false;
 	}
 	
-#ifdef DEBUG
-	std::cout << "ShaderMgr::loadFragShader - " << "path " + path << std::endl;
-#endif
-	
 	const char *sourceBuffer = (const char*)code.c_str();
 	std::string processed = "";
 	std::vector<std::string> includes = preprocess(sourceBuffer, processed);
 	for (int i = 0; i <  includes.size(); i++){		
-		if(loadFragShader(sourceDir + "/includes/" + includes[i], prog, includes[i]) == false)
+		if(loadFragShader(sourceDir + "/includes/" + includes[i], includes[i], effectName) == false)
 			return false;
 	}
-	//finished loading includes, load main source
-	if(prog->loadFragmentSource((const GLchar*)processed.c_str(), fileName)){
-		return true;
-	}
-	else {
-		return false;
-	}
+	//Save source code
+	baseEffects[effectName][1].push_back(processed);
+	//Save the frag shader name for later use
+	baseEffects[effectName][3].push_back(fileName);
+	
+	return true;
 	
 }
 
@@ -723,8 +845,10 @@ bool ShaderMgr::uploadEffectData(std::string effect, std::string variable, float
 void ShaderMgr::printEffects(){
 	std::cout << "Loaded Effects: " << std::endl;
 	for (std::map< std::string, ShaderProgram*>::const_iterator iter = effects.begin();
-		 iter != effects.end(); ++iter )
+		 iter != effects.end(); ++iter ){
 		std::cout << '\t' << iter->first << '\t' << iter->second << '\t' << iter->second->getProgram() << '\n';
+		iter->second->printContents();
+	}
 }
 //----------------------------------------------------------------------------
 // Returns an effect name, given the shader program it is supposed to control

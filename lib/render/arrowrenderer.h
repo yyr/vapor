@@ -20,6 +20,7 @@
 #ifndef	ARROWRENDERER_H
 #define	ARROWRENDERER_H
 
+#include "vapor/RegularGrid.h"
 #include "renderer.h"
 
 namespace VAPoR {
@@ -39,12 +40,16 @@ namespace VAPoR {
   protected:
 	//Method that gets the required data from the DataMgr, while determining valid extents.
 	//Returns the available refinement level, or -1 if needed data not available.
-    int setupVariableData(vector<string>& varnames, float** varData, double validExts[6], 
-		size_t voxExts[6], size_t min_bdim[3], size_t max_bdim[3]);
+    int setupVariableData(
+		vector<string>& varnames, RegularGrid *varData[4], double validExts[6], 
+		size_t voxExts[6]
+	);
 
 	//Perform the OpenGL rendering
-	void performRendering(const size_t min_bdim[3], const size_t max_bdim[3], 
-		int actualRefLevel,float vectorScale, float arrowRadius, float* variableData[4]);
+	void performRendering(
+		int actualRefLevel,float vectorScale, float arrowRadius, 
+		RegularGrid *variableData[4]
+	);
 
 	//Draw one arrow
 	void drawArrow(const float startPoint[3], const float endPoint[3], float radius);
