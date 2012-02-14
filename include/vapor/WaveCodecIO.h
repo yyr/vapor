@@ -165,7 +165,7 @@ public:
  //! \sa OpenVariableRead(), GetBlockSize(), MapVoxToBlk()
  //
  virtual int BlockReadRegion(
-	const size_t bmin[3], const size_t bmax[3], float *region, int unblock=1
+	const size_t bmin[3], const size_t bmax[3], float *region, bool unblock=true
  );
 
  //! Read in and return a subregion from the currently opened 
