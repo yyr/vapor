@@ -314,23 +314,23 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 	DataStatus* ds = DataStatus::getInstance();
 
-cerr << "transforming everything to unit box coords :-(\n";
+//cerr << "transforming everything to unit box coords :-(\n";
 	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
 	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 
-vector <double> gextents = dataMgr->GetExtents();
-vector <double> lextents = dataMgr->GetTSExtents(timeStep);
-glTranslatef(
-gextents[0]-lextents[0],
-gextents[1]-lextents[1],
-gextents[2]-lextents[2]
-);
-cout << "TRANSLATE " << 
-gextents[0]-lextents[0] << " " <<
-gextents[1]-lextents[1] << " " <<
-gextents[2]-lextents[2] << " " << endl;
+//vector <double> gextents = dataMgr->GetExtents();
+//vector <double> lextents = dataMgr->GetTSExtents(timeStep);
+//glTranslatef(
+//gextents[0]-lextents[0],
+//gextents[1]-lextents[1],
+//gextents[2]-lextents[2]
+//);
+//cout << "TRANSLATE " << 
+//gextents[0]-lextents[0] << " " <<
+//gextents[1]-lextents[1] << " " <<
+//gextents[2]-lextents[2] << " " << endl;
 
 
 	const float* scales = DataStatus::getInstance()->getStretchFactors();

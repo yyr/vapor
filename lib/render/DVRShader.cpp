@@ -605,8 +605,8 @@ void DVRShader::initShaderVariables()
   _shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float)_bx, (float)_by, (float)_bz);
   _shadermgr->uploadEffectData(getCurrentEffect(), "midx", (int) _midx);
   _shadermgr->uploadEffectData(getCurrentEffect(), "zidx", (int) _zidx);
-cout << "midx = " << _midx << endl;
-cout << "zidx = " << _zidx << endl;
+//cout << "midx = " << _midx << endl;
+//cout << "zidx = " << _zidx << endl;
 }
 
 //----------------------------------------------------------------------------

@@ -120,13 +120,13 @@ int DVRTexture3d::SetRegion(
 
     double extents[6];
     rg->GetUserExtents(extents);
-cout << "EXTENTS " << 
-extents[0] << " " <<
-extents[1] << " " <<
-extents[2] << " " <<
-extents[3] << " " <<
-extents[4] << " " <<
-extents[5] << " " << endl;
+//cout << "EXTENTS " << 
+//extents[0] << " " <<
+//extents[1] << " " <<
+//extents[2] << " " <<
+//extents[3] << " " <<
+//extents[4] << " " <<
+//extents[5] << " " << endl;
 
     _vmin.x = extents[0];
     _vmin.y = extents[1];
@@ -321,8 +321,8 @@ void DVRTexture3d::calculateSampling()
 
   _delta = distance / _samples;
 
-cout << "_samples = " << _samples << endl;
-cout << "_delta = " << _delta << endl;
+//cout << "_samples = " << _samples << endl;
+//cout << "_delta = " << _delta << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -414,13 +414,13 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
                      tverts[order[j]].y(), 
                      tverts[order[j]].z());
 
-cout << "vertex j " << verts[order[j]].x() << " " <<verts[order[j]].y() << " " <<verts[order[j]].z() << endl;
+//cout << "vertex j " << verts[order[j]].x() << " " <<verts[order[j]].y() << " " <<verts[order[j]].z() << endl;
         glVertex3f(verts[order[j]].x(), 
                    verts[order[j]].y(), 
                    verts[order[j]].z());
       }
 	}
-cout << "end polygon\n";
+//cout << "end polygon\n";
 	glEnd();
 
     //

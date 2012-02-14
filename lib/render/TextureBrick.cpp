@@ -336,10 +336,6 @@ void TextureBrick::copytex(
   size_t dims[3];
   rg->GetDimensions(dims);
 
-float myrange[2];
-rg->GetRange(myrange);
-cout << "RG Range : " << myrange[0] << " " << myrange[1] << endl;
-
 	//
 	// Copy over the data
 	//
