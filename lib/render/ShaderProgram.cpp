@@ -72,7 +72,7 @@ ShaderProgram::~ShaderProgram()
 	{
 		glDeleteObjectARB(_program);
 	}
-	shaderObjects.clear();
+	_shaderObjects.clear();
 	printOpenGLError();
 }
 
@@ -168,8 +168,6 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadVertexSource(const char *source, std::string fileName)
 {
-	//cout << "VERTEX PROGRAM " << fileName << endl;
-	//cout << source << endl;
 	return loadSource(source, GL_VERTEX_SHADER, fileName);
 }
 //----------------------------------------------------------------------------
@@ -191,8 +189,6 @@ bool ShaderProgram::loadFragmentSource(const char *source)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadFragmentSource(const char *source, std::string fileName)
 {
-	//cout << "FRAGMENT PROGRAM " << fileName << endl;
-	//cout << source << endl;
 	return loadSource(source, GL_FRAGMENT_SHADER, fileName);
 }
 

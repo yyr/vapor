@@ -14,7 +14,7 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *global, char* vdf, int* bsize,  char* name, int num_iotasks){
+void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *global, char* vdf, int* bsize,  char* name, int num_iotasks, int reflevel){
   //Obtain MPI Rank for timing
 
   int rank = 0;
@@ -56,7 +56,7 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
   double openbegin = MPI_Wtime();
 #endif
 
-  if (wcwriter->OpenVariableWrite((size_t)*ts, name, -1, *lod) < 0) perror("openVar failed\n");
+  if (wcwriter->OpenVariableWrite((size_t)*ts, name, reflevel, *lod) < 0) perror("openVar failed\n");
 #ifdef PIOVDC_DEBUG
   double opentime = MPI_Wtime() - openbegin;
 #endif
@@ -153,7 +153,7 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
   delete wcwriter;
 }
 
-extern "C" void write_vdc2_var_(float *array, int *start, int *len, int *ndims, int *IO_Comm_f, int *bsize, int *ts, int *lod, int *global, char *vdf, char *name, int vdf_len, int name_len, int num_iotasks) //AIX no name mangling
+extern "C" void write_vdc2_var_(float *array, int *start, int *len, int *ndims, int *IO_Comm_f, int *bsize, int *ts, int *lod, int *global, char *vdf, char *name, int vdf_len, int name_len, int num_iotasks, int reflevel) //AIX no name mangling
 {
   
   int rank = 0;
@@ -183,7 +183,7 @@ extern "C" void write_vdc2_var_(float *array, int *start, int *len, int *ndims, 
     MyBase::SetDiagMsg("@st: %d %d %d, en: %d %d %d\n", 
 		       start_block[0], start_block[1], start_block[2],
 		       end_block[0], end_block[1], end_block[2]);
-    xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, global, vdf, bsize, name, num_iotasks);
+    xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, global, vdf, bsize, name, num_iotasks, reflevel);
 
 #ifdef PIOVDC_DEBUG
     if(rank == 0)
@@ -191,7 +191,7 @@ extern "C" void write_vdc2_var_(float *array, int *start, int *len, int *ndims, 
 #endif
 }
 
-void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *global, char* vdf, int* bsize,  char* name){
+void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *global, char* vdf, int* bsize,  char* name, int reflevel){
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #ifdef PIOVDC_DEBUG
@@ -219,7 +219,7 @@ void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOC
 #ifdef PIOVDC_DEBUG
   double openbegin = MPI_Wtime();
 #endif
-  if (wcwriter->OpenVariableRead((size_t)*ts, name, -1, *lod) < 0) perror("openVar failed\n");
+  if (wcwriter->OpenVariableRead((size_t)*ts, name, reflevel, *lod) < 0) perror("openVar failed\n");
 #ifdef PIOVDC_DEBUG
   double opentime = MPI_Wtime() - openbegin;
 #endif
@@ -268,7 +268,7 @@ void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOC
   delete wcwriter;
 }
 
-extern "C" void read_vdc2_var_(float *array, int *start, int *len, int *ndims, int *IO_Comm_f, int *bsize, int *ts, int *lod, int *global, char *vdf, char *name, int vdf_len, int name_len) {
+extern "C" void read_vdc2_var_(float *array, int *start, int *len, int *ndims, int *IO_Comm_f, int *bsize, int *ts, int *lod, int *global, char *vdf, char *name, int vdf_len, int name_len, int reflevel) {
   
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -291,7 +291,7 @@ extern "C" void read_vdc2_var_(float *array, int *start, int *len, int *ndims, i
     MyBase::SetDiagMsg("@st: %d %d %d, en: %d %d %d\n", 
 		       start_block[0], start_block[1], start_block[2],
 		       end_block[0], end_block[1], end_block[2]);
-    inverse_and_read(array, start, end_block, len, IO_Comm, ts, lod, global, vdf, bsize, name);
+    inverse_and_read(array, start, end_block, len, IO_Comm, ts, lod, global, vdf, bsize, name, reflevel);
 
 #ifdef PIOVDC_DEBUG
     if(rank == 0)
