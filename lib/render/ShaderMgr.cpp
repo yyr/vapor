@@ -125,6 +125,7 @@ bool ShaderMgr::reloadShaders()
 	}
 	//Clear the map
 	effects.clear();
+	baseEffects.clear();
 	//Reload shaders
 	loaded = false;
 	return loadShaders();	
@@ -185,6 +186,7 @@ std::string ShaderMgr::convertDefines(std::string defines)
 	stringstream ss;
 	ss << glsl_version;
 	std::string result = "#version " + ss.str() + "\n";
+	if(colonIndex < 0) return result;
 	//last character must be a semi colon
 	if (defines[defines.length() -1] != ';') {
 		return result;
@@ -228,27 +230,12 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 		std::string OGLdefines = convertDefines(defines);
 		//iterate through vertex shader code
 		for (int i = 0; i < baseEffects[baseName][0].size(); i++) {
-			/*if (i == 0) {
-				std::string defined = OGLdefines + baseEffects[baseName][0][0];			
-				effects[instanceName]->loadVertexSource((const GLchar*)defined.c_str(), baseEffects[baseName][2][i]);
-			}
-			else {
-				effects[instanceName]->loadVertexSource((const GLchar*)baseEffects[baseName][0][i].c_str(), baseEffects[baseName][2][i]);
-			}*/
 			//add definition tokens to everything
 			std::string defined = OGLdefines + baseEffects[baseName][0][i];			
 			effects[instanceName]->loadVertexSource((const GLchar*)defined.c_str(), baseEffects[baseName][2][i]);
 		}	
 		//iterate through fragment shader code
 		for (int i = 0; i < baseEffects[baseName][1].size(); i++) {
-		/*	if (i == 0) {
-				std::string defined = OGLdefines + baseEffects[baseName][1][0];
-				effects[instanceName]->loadFragmentSource((const GLchar*)defined.c_str(), baseEffects[baseName][3][i]);
-			}
-			else {
-				effects[instanceName]->loadFragmentSource((const GLchar*)baseEffects[baseName][1][i].c_str(), baseEffects[baseName][3][i]);	
-			}
-		 */
 			//add definition tokens to all source code
 			std::string defined = OGLdefines + baseEffects[baseName][1][i];
 			effects[instanceName]->loadFragmentSource((const GLchar*)defined.c_str(), baseEffects[baseName][3][i]);
@@ -257,15 +244,15 @@ bool ShaderMgr::defineEffect(std::string baseName, std::string defines, std::str
 	}
 	
 	if (effects[instanceName]->compile()){
-//#ifdef DEBUG
+#ifdef DEBUG
 		std::cout << "effect " << baseName << " defined " << "name: " << instanceName << std::endl;
-//#endif
+#endif
 		return true;
 	}
 	else {
-//#ifdef DEBUG
+#ifdef DEBUG
 		std::cout << "effect " << baseName << " failed compilation " << "name: " << instanceName << std::endl;
-//#endif
+#endif
 		return false;
 	}
 
@@ -276,11 +263,12 @@ bool ShaderMgr::undefEffect(std::string instanceName)
 	std::cout << "ShaderMgr::undefEffect(" << instanceName << ")" << std::endl;
 #endif
 	if (effects.count(instanceName) < 0) {
-		//effect has not been defined
-		return false;
+	  //effect has not been defined
+	  return false;
 	}
 	else {
-		effects.erase(instanceName);
+	  delete effects[instanceName];
+	  effects.erase(instanceName);
 	}	
 	return true;
 }

@@ -66,13 +66,13 @@ ShaderProgram::~ShaderProgram()
 	printOpenGLError();
 	if (GLEW_VERSION_2_0)
 	{
-		if (_program) glDeleteProgram(_program);
+		glDeleteProgram(_program);
 	}
 	else
 	{
-		if (_program) glDeleteObjectARB(_program);
+		glDeleteObjectARB(_program);
 	}
-	
+	shaderObjects.clear();
 	printOpenGLError();
 }
 
