@@ -51,7 +51,7 @@
 
 #include "glwindow.h"
 
-#include "DVRLookup.h"
+//#include "DVRLookup.h"
 #include "DVRShader.h"
 #include "DVRSpherical.h"
 #include "DVRRayCaster.h"

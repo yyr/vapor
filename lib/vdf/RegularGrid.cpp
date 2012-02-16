@@ -6,15 +6,35 @@
 #ifdef  Darwin
 #include <mach/mach_time.h>
 #endif
+#ifdef _WINDOWS
+#include "windows.h"
+#include "Winbase.h"
+#include <limits>
+#endif
 
-#include "RegularGrid.h"
+#include "vapor/RegularGrid.h"
 
 using namespace std;
 
 double GetTime() {
     double t;
+#ifdef _WINDOWS //Windows does not have a nanosecond time function...
+	SYSTEMTIME sTime;
+	FILETIME fTime;
+	GetSystemTime(&sTime);
+	SystemTimeToFileTime(&sTime,&fTime);
+    //Resulting system time is in 100ns increments
+	__int64 longlongtime = fTime.dwHighDateTime;
+	longlongtime <<= 32;
+	longlongtime += fTime.dwLowDateTime;
+	t = (double)longlongtime;
+	t *= 1.e-7;
+
+#endif
+#ifndef WIN32
 	struct timespec ts;
 	ts.tv_sec = ts.tv_nsec = 0;
+#endif
 
 #ifdef Linux
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -42,6 +62,10 @@ int RegularGrid::_RegularGrid(
 	const bool periodic[3],
 	float **blks
 ) {
+#ifdef _WINDOWS //Define INFINITY
+	float INFINITY = numeric_limits<float>::infinity( );
+	float NAN = numeric_limits<float>::quiet_NaN();
+#endif
 	size_t nblocks = 1;
 	for (int i=0; i<3; i++) {
 		assert(max[i] >= min[i]);
@@ -320,7 +344,7 @@ void RegularGrid::GetDimensions(size_t dims[3]) const {
 
 
 void RegularGrid::SetInterpolationOrder(int order) {
-	if (order<0 | order>1) order = 1;
+	if (order<0 || order>1) order = 1;
 	_interpolationOrder = order;
 }
 

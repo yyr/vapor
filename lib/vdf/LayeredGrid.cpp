@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#include "LayeredGrid.h"
+#include "vapor/LayeredGrid.h"
 
 using namespace std;
 

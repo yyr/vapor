@@ -2,7 +2,7 @@
 #define _StretchedGrid_
 
 #include <vector>
-
+#include <vapor/common.h>
 #include "RegularGrid.h"
 
 //
@@ -16,7 +16,7 @@
 //!
 //
 
-class StretchedGrid : public RegularGrid {
+class VDF_API StretchedGrid : public RegularGrid {
 public:
 
  //!

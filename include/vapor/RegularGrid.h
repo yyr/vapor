@@ -2,6 +2,7 @@
 #define _RegularGrid_
 
 #include <ostream>
+#include <vapor/common.h>
 
 //
 //! \class RegularGrid
@@ -29,7 +30,7 @@
 //! of the tuple corresponds to the \a I axis, etc.
 //
 
-class RegularGrid {
+class VDF_API RegularGrid {
 public:
 
  //!
@@ -354,7 +355,7 @@ public:
  void ResetItr();
 
  
- class Iterator {
+ class VDF_API Iterator {
  public:
 	Iterator (RegularGrid *rg);
 	Iterator ();
@@ -413,7 +414,7 @@ public:
 
 
  
- friend std::ostream &operator<<(std::ostream &o, const RegularGrid &rg);
+ VDF_API friend std::ostream &operator<<(std::ostream &o, const RegularGrid &rg);
 
 
 

@@ -1,7 +1,10 @@
 #include <iostream>
 #include <cassert>
+#ifdef _WINDOWS
+#define _USE_MATH_DEFINES
+#endif
 #include <cmath>
-#include "SphericalGrid.h"
+#include "vapor/SphericalGrid.h"
 
 using namespace std;
 

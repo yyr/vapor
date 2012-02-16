@@ -48,7 +48,7 @@
 
 #include "glwindow.h"
 
-#include "DVRLookup.h"
+//#include "DVRLookup.h"
 #include "DVRShader.h"
 #include "DVRRayCaster.h"
 #include "DVRSpherical.h"
@@ -176,7 +176,7 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
   {
      case DvrParams::DVR_TEXTURE3D_LOOKUP:
      {
-       return DVRLookup::supported();
+ //      return DVRLookup::supported();
      }
 
      case DvrParams::DVR_TEXTURE3D_SHADER:

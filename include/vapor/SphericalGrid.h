@@ -1,7 +1,7 @@
 #ifndef _SphericalGrid_
 #define _SphericalGrid_
 #include <vector>
-
+#include <vapor/common.h>
 #include "RegularGrid.h"
 
 //
@@ -21,7 +21,7 @@
 //!
 //
 
-class SphericalGrid : public RegularGrid {
+class VDF_API SphericalGrid : public RegularGrid {
 public:
 
  //!

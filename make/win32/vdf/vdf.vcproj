@@ -235,14 +235,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\DataMgrLayered.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\DataMgrLayered2.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\vdf\DataMgrWB.cpp"
 				>
 			</File>
@@ -260,6 +252,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\ImpExp.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\LayeredGrid.cpp"
 				>
 			</File>
 			<File
@@ -307,7 +303,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\RegularGrid.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\SignificanceMap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\SphericalGrid.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\StretchedGrid.cpp"
 				>
 			</File>
 			<File
@@ -437,14 +445,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vapor\DataMgrLayered.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\DataMgrLayered2.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\include\vapor\DataMgrWB.h"
 				>
 			</File>
@@ -454,6 +454,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\ImpExp.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\LayeredGrid.h"
 				>
 			</File>
 			<File
@@ -486,6 +490,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\NCBuf.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\RegularGrid.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\SphericalGrid.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\StretchedGrid.h"
 				>
 			</File>
 			<File

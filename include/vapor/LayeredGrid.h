@@ -1,6 +1,6 @@
 #ifndef _LayeredGrid_
 #define _LayeredGrid_
-
+#include <vapor/common.h>
 #include "RegularGrid.h"
 
 //
@@ -20,7 +20,7 @@
 //!
 //
 
-class LayeredGrid : public RegularGrid {
+class VDF_API LayeredGrid : public RegularGrid {
 public:
 
  //!
