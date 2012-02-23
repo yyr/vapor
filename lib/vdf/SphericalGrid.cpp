@@ -97,8 +97,8 @@ void SphericalGrid::_GetUserExtents(double extentsC[6]) const {
 		phi = lon0 + (i*delta_phi);
 		theta = lat0 + (j*delta_theta);
 
-		x = r1 * cos(theta) * sin(phi);	
-		y = r1 * cos(theta) * cos(phi);	
+		x = r1 * cos(phi) * sin(theta);	
+		y = r1 * sin(phi) * sin(theta);	
 		z = r1 * sin(theta);
 		if (i==0 && j==0) {
 			extentsC[0] = extentsC[3] = x;
@@ -113,13 +113,6 @@ void SphericalGrid::_GetUserExtents(double extentsC[6]) const {
 		if (z > extentsC[5]) extentsC[5] = z;
 	}
 	}
-cout << "EXTENTS SPHER " << 
-extentsC[0] << " " <<
-extentsC[1] << " " <<
-extentsC[2] << " " << endl;
-cout << extentsC[3] << " " <<
-extentsC[4] << " " <<
-extentsC[5] << " " << endl;
 }
 
 int SphericalGrid::GetUserCoordinates(
@@ -164,9 +157,9 @@ int SphericalGrid::GetUserCoordinates(
 	double theta = lat0 + (ijkP[1] * delta_theta);
 	double r = r0 + (ijkP[2] * delta_r);
 
-	*x = r * cos(theta) * sin(phi);	
-	*y = r * cos(theta) * cos(phi);	
-	*z = r * sin(theta);
+	*x = r1 * cos(phi) * sin(theta);	
+	*y = r1 * sin(phi) * sin(theta);	
+	*z = r1 * sin(theta);
 
 	return(0);
 
@@ -255,7 +248,7 @@ bool SphericalGrid::InsideGrid(double x, double y, double z) const {
 	_permute(_permutation, permP, iper, jper, kper);
 	if (permP[0] || permP[1]) return(true);
 
-	double theta = acos(z/r) - (M_PI/2.0);	// acos is in range [0, pi];
+	double theta = acos(z/r) - M_PI_2;	// acos is in range [0, pi];
 	if (theta < lat0 || theta > lat1) return(false);
 
 	double phi = atan2(y,x); // atan2 is in range [-pi, pi];

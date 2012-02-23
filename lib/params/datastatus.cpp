@@ -154,6 +154,9 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	numTimesteps = numTS;
 	
 	std::vector<double> mdExtents = dataMgr->GetExtents();
+	for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
+
+#ifdef	DEAD
 	if (! sphericalTransform()) {
 		for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
 	}
@@ -166,6 +169,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		extents[0] = extents[1] = extents[2] = -1.0 * mdExtents[perm[2]+3];
 		extents[3] = extents[4] = extents[5] = mdExtents[perm[2]+3];
 	}
+#endif
 
 	projString = dataMgr->GetMapProjection();
 	
@@ -781,6 +785,28 @@ int DataStatus::get2DOrientation(int mdvar){
 	if (mdvar < numOriented2DVars[0]+numOriented2DVars[1]) return 0;
 	assert(mdvar < numOriented2DVars[0]+numOriented2DVars[1]+numOriented2DVars[2]);
 	return 1;
+}
+
+void DataStatus::getExtentsCartesian(int timestep, float myExtents[6]) {
+	const float *extptr;
+	if (timestep < 0) {
+		extptr = getExtents();
+	}
+	else {
+		extptr = getExtents(timestep);
+	}
+	if (sphericalTransform() && dataMgr) {
+		//
+		// Convert spherical extents to Cartesian coordinates, which is
+		// given by the outer radius of the sphere
+		//
+		vector <long> perm = dataMgr->GetGridPermutation();
+		myExtents[0] = myExtents[1] = myExtents[2] = -1.0 * extptr[perm[2]+3];
+		myExtents[3] = myExtents[4] = myExtents[5] = extptr[perm[2]+3];
+	}
+	else {
+		for (int i=0; i<6; i++) myExtents[i] = extptr[i];
+	}
 }
 
 

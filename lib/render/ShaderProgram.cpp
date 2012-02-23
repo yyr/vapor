@@ -231,9 +231,9 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType, std::strin
 		if (printOpenGLError() != 0) return(false);
 	}
 	_shaderObjects[fileName] = shader;
-//#ifdef DEBUG
+#ifdef DEBUG
 	std::cout << "Creating shader obj: " << shader << " prog: " << _program << "name: " << fileName << std::endl;
-//#endif	
+#endif	
 	return true;
 }
 

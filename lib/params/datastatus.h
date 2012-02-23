@@ -535,6 +535,9 @@ public:
 		return getInstance()->getExtents();
 	}
 
+	void getExtentsCartesian(int timestep, float extents[6]);
+	
+
 	//Get/set methods for global vizfeatures
 	static const QColor getBackgroundColor() {return backgroundColor;}
 	static const QColor getRegionFrameColor() {return regionFrameColor;}

@@ -3,9 +3,9 @@
 uniform sampler1D colormap;
 uniform sampler3D volumeTexture;
 uniform vec3 tmin;
-uniform vec3 tmax;
+uniform vec3 tmax;	// min and max texture coordinates in range 
 uniform vec3 dmin;
-uniform vec3 dmax;
+uniform vec3 dmax;	// min and max spherical coordinates
 uniform vec3 permutation;
 uniform bvec2 clip;
 
@@ -16,6 +16,7 @@ vec3 invPermute(vec3 v);
 //------------------------------------------------------------------ 
 void main(void)
 {
+
   const float pi = 3.14159;
 
   vec3 cartesian = permute(gl_TexCoord[0].xyz);

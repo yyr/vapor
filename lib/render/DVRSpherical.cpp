@@ -140,13 +140,12 @@ int DVRSpherical::SetRegionSpherical(
 	// Extents in spherical coordinates
 	//
     double extentsS[6];
-    float extentsSP[6];
     rg->RegularGrid::GetUserExtents(extentsS);
 
-	permute(_permutation, extentsSP, extentsS[0], extentsS[1], extentsS[2]);
-	permute(_permutation, extentsSP+3, extentsS[3], extentsS[4], extentsS[5]);
-	_r0 = extentsSP[2];
-	_r1 = extentsSP[5];
+	permute(_permutation, _extentsSP, extentsS[0], extentsS[1], extentsS[2]);
+	permute(_permutation, _extentsSP+3, extentsS[3], extentsS[4], extentsS[5]);
+	_r0 = _extentsSP[2];
+	_r1 = _extentsSP[5];
     
     //
     // Extents in Cartesian coordinates
@@ -230,9 +229,7 @@ int DVRSpherical::Render()
 	initShaderVariables();
     calculateSampling();
 
-//	int rc = DVRShader::Render();
-cerr << "NOT CALLINOG SHADER\n";
-int rc=0;	renderBricks();
+	int rc = DVRShader::Render();
 
 	return(rc);
 }
@@ -308,27 +305,25 @@ void DVRSpherical::drawViewAlignedSlices(const TextureBrick *brick,
   // it still incurs the expensive coordinate transform. This should be 
   // fixed.
   //
+
   for(int i = 0 ; i <= _samples; i++)
-  { 
+  {
     float d = (center - slicePoint).mag();
 
     if (_r1 > d)
     {
       float rg0 = 0.0;
-//      float rg1 = sqrt(_r1*_r1 - d*d);
-float rg1 = sqrt(_r1*_r1);
+      float rg1 = sqrt(_r1*_r1 - d*d);
 
       if (_r0 > d)
       {
- //       rg0 = sqrt(_r0*_r0 - d*d);
+        rg0 = sqrt(_r0*_r0 - d*d);
       }
 
       //
       // Draw donut (shell-plane intersection) and texture map it
       //
-cout << "Draw slice " << i << endl;
-//      glBegin(GL_QUAD_STRIP); 
-      glBegin(GL_LINES); 
+      glBegin(GL_QUAD_STRIP); 
       {
         for (float theta=-M_PI/20.0; theta<=2.0*M_PI; theta+=M_PI/20.0)
         {
@@ -339,14 +334,14 @@ cout << "Draw slice " << i << endl;
 
           Vect3d v0 = slicePoint + v * rg0;
           Vect3d v1 = slicePoint + v * rg1;
+          Vect3d t0 = v0 / (2*_r1) + 0.5;
+          Vect3d t1 = v1 / (2*_r1) + 0.5;
 
-//          glTexCoord3f(v0.x(), v0.y(), v0.z());          
+          glTexCoord3f(t0.x(), t0.y(), t0.z());          
           glVertex3f(v0.x(), v0.y(), v0.z());
 
- //         glTexCoord3f(v1.x(), v1.y(), v1.z());          
+          glTexCoord3f(t1.x(), t1.y(), t1.z());          
           glVertex3f(v1.x(), v1.y(), v1.z());
-cout << "v0 " << v0.x() << " " << v0.y() << " " << v0.z() << " " << endl;
-cout << "v1 " << v1.x() << " " << v1.y() << " " << v1.z() << " " << endl;
 
         }
       }
@@ -414,8 +409,9 @@ void DVRSpherical::calculateSampling()
 		_samples = _nr * ((maxv - minv).mag() / _shellWidth);
 	}
 
-cerr << "# samples hardcoded\n";
-_samples = 128;
+	// Ugh. Need a more accurate calculation of sampling rate
+	//
+	_samples = 256;
 	
 	_delta = (maxv - minv).mag() / _samples; 
 	//_samplingRate = (1.0/(float)(_level+1))*(_shellWidth / _delta) / (float)_nr;
@@ -444,9 +440,6 @@ void DVRSpherical::permute(const vector<long>& permutation,
 //----------------------------------------------------------------------------
 void DVRSpherical::initShaderVariables()
 {
-	
-	const double *extents = _lastRegion.extents();
-
 	if (_lighting){  
 		_shadermgr->uploadEffectData(getCurrentEffect(), "dimensions", (float) _nx, (float)_ny, (float)_nz);
 		_shadermgr->uploadEffectData(getCurrentEffect(),"kd", _kd);
@@ -464,22 +457,23 @@ void DVRSpherical::initShaderVariables()
     _nr = (int)tmpv[2];
     
     permute(_permutation, tmpv, 0.0, 0.0, 0.0);
-	
 	_shadermgr->uploadEffectData(getCurrentEffect(), "tmin" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
+
     permute(_permutation, tmpv, 1.0, 1.0, 1.0);
-	
 	_shadermgr->uploadEffectData(getCurrentEffect(), "tmax" ,(float)tmpv[0], (float)tmpv[1], (float)tmpv[2]);
     
-    permute(_permutation, tmpv, extents[0], extents[1], extents[2]);
-	
-	_shadermgr->uploadEffectData(getCurrentEffect(), "dmin" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);
-    _shellWidth = tmpv[2];
+	_shadermgr->uploadEffectData(
+		getCurrentEffect(), "dmin", (_extentsSP[0] + 180.0) / 360.0,
+		(_extentsSP[1] + 90.0) / 180.0, (float)_extentsSP[2]
+	);
+    _shellWidth = _extentsSP[2];
     
-    permute(_permutation, tmpv, extents[3], extents[4], extents[5]);
-    
-  	_shadermgr->uploadEffectData(getCurrentEffect(), "dmax" ,(float)(tmpv[0] + 180.0) / 360.0, (float)(tmpv[1] + 90.0) / 180.0, (float)tmpv[2]);  
-    assert(tmpv[2]);
-    _shellWidth = (tmpv[2] - _shellWidth)/(2.0*tmpv[2]);
+  	_shadermgr->uploadEffectData(
+		getCurrentEffect(), "dmax", (_extentsSP[3] + 180.0) / 360.0,
+		(_extentsSP[4] + 90.0) / 180.0, (float)_extentsSP[5]
+	);
+    assert(_extentsSP[5]);
+    _shellWidth = (_extentsSP[5] - _shellWidth)/(2.0*_extentsSP[5]);
 	
 	_shadermgr->uploadEffectData(getCurrentEffect(), "permutation" , (float)_permutation[0], (float)_permutation[1], (float)_permutation[2]);
 	_shadermgr->uploadEffectData(getCurrentEffect(), "clip" , (int)_clip[_permutation[0]], (int)_clip[_permutation[1]]);

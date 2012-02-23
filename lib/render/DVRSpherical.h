@@ -83,6 +83,7 @@ class RENDER_API DVRSpherical : public DVRShader
   float _shellWidth;
   int   _level;
   float _r0, _r1; // inner and outer shell radius
+  float _extentsSP[6]; // spherical extents, permuted to long, lat, radius order
 
   std::vector<long> _permutation;
   std::vector<bool> _clip;

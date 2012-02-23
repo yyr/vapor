@@ -95,7 +95,9 @@ ViewpointParams::~ViewpointParams(){
 void ViewpointParams::
 centerFullRegion(int timestep){
 	//Find the largest of the dimensions of the current region:
-	const float * fullExtent = DataStatus::getInstance()->getExtents();
+	float fullExtent[6];
+	DataStatus::getInstance()->getExtentsCartesian(-1, fullExtent);
+
 	float maxSide = Max(fullExtent[5]-fullExtent[2], 
 		Max(fullExtent[4]-fullExtent[1],
 		fullExtent[3]-fullExtent[0]));
@@ -301,13 +303,15 @@ setCoordTrans(){
 void ViewpointParams::
 getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
-	const float* extents = DataStatus::getInstance()->getExtents();
+	float extents[6];
 	double wrk[3], cor[3], boxcor[3], cmpos[3];
 	double camDirPt[3], camDirPtBox[3];
 	double camPosBox[3], camDirBox[3];
 	double viewDir[3];
 	double maxProj = -1.e30;
 	double minProj = 1.e30;
+
+	DataStatus::getInstance()->getExtentsCartesian(-1, extents);
 
 	//Convert camera position, camera direction, and corners to stretched box coordinates
 	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPos()[i];
