@@ -11,7 +11,7 @@ libpiovdc_a_SOURCES = \
 	WaveFiltBase.cpp  WaveFiltBior.cpp WaveFiltDaub.cpp  WaveFiltCoif.cpp \
 	WaveFiltHaar.cpp MatWaveBase.cpp  MatWaveDwt.cpp MatWaveWavedec.cpp  \
 	SignificanceMap.cpp Compressor.cpp WaveCodecIO.cpp  \
-	DataMgr.cpp vdf_info.cpp vdc2.cpp
+	DataMgr.cpp vdfbridge.cpp
 
 
 DEFS= 
