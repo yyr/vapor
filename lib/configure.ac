@@ -6,7 +6,7 @@ AC_INIT(libpiovdc, 1.0, vapor@ucar.edu)
 AC_CONFIG_FILES([Makefile vdf/Makefile common/Makefile])
 AM_INIT_AUTOMAKE([no-dependencies])
 AC_PROG_RANLIB
-
+AC_FC_WRAPPERS
 #check if debug mode is enabled
 AC_ARG_ENABLE([debug],[--enable-debug		Enable debug outputs])
 
