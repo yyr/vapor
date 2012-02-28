@@ -13,9 +13,6 @@ libpiovdc_a_SOURCES = \
 	SignificanceMap.cpp Compressor.cpp WaveCodecIO.cpp  \
 	DataMgr.cpp vdfbridge.cpp
 
-
-DEFS= 
-
 libpiovdc_a_CPPFLAGS = -DPARALLEL 
 
 if PNETCDF
@@ -37,5 +34,6 @@ libpiovdc_a_CPPFLAGS += -DNETCDF
 endif
 
 libpiovdc_a_CPPFLAGS += -O2
+
 
 all: libpiovdc.a

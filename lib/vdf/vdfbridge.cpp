@@ -16,14 +16,16 @@ vector<size_t> cratios;
 vector<string> variables;
 size_t global[3];
 size_t bsize[3];
-char *wname = "bior3.3";
-char *wmode = "symh";
+string wname = "bior3.3";
+string wmode = "symh";
 string *file_path;
-#define CREATE_F90 FC_FUNC(CreateVDF)
-#define DEFINE_F90 FC_FUNC(DefVDFVar)
-#define ENDDEF_F90 FC_FUNC(EndVDFDef)
-#define WRITE_F90 FC_FUNC(WriteVDC2Var)
-#define READ_F90 FC_FUNC(ReadVDC2Var)
+void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *reflevel,  char* name, int * num_iotasks);
+void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *reflevel,  char* name, int *num_iotasks);
+#define CREATE_F90 FC_FUNC(createvdf, CREATEVDF)
+#define DEFINE_F90 FC_FUNC(defvdfvar, DEFVDFVAR)
+#define ENDDEF_F90 FC_FUNC(endvdfdef, ENDVDFDEF)
+#define WRITE_F90 FC_FUNC(writevdc2var, WRITEVDC2VAR)
+#define READ_F90 FC_FUNC(readvdc2var, READVDC2VAR)
 extern "C" void CREATE_F90(int *griddims, int *bs, char * path, int path_len)
 {
   cratios.push_back(1);
@@ -37,22 +39,20 @@ extern "C" void CREATE_F90(int *griddims, int *bs, char * path, int path_len)
   bsize[1] = bs[1];
   bsize[2] = bs[2];
   file_path = new string(path);
-  file = new MetadataVDC(global, bsize, cratios, wname, wmode);
+  file = new MetadataVDC(global, bsize, cratios, wname.c_str(), wmode.c_str());
 }
 extern "C" void DEFINE_F90(char * name, int name_len)
 {
   string var(name);
   variables.push_back(name);
-  int pos = std::find(variables.begin(), variables.end(), name);
-  *varid = pos;
 }
 extern "C" void ENDDEF_F90()
 {
   file->SetVariables3D(variables);
-  file->write(file_path);
+  file->Write(file_path->c_str());
   delete file;
 }
-extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, int *ts, int *lod, int *reflevel, char *name, int name_len, int num_iotasks) //AIX no name mangling
+extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, int *ts, int *lod, int *reflevel, char *name, int name_len, int* num_iotasks)
 {
   
   int rank = 0;
@@ -64,9 +64,6 @@ extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, in
 #endif
   MyBase::SetErrMsgFilePtr(stderr);
 
-  MyBase::SetDiagMsg("@ndims: %d array[0]: %f\n", ndims, array[0]);
-  for(int i=0; i<*ndims; i++)
-    MyBase::SetDiagMsg("@start[%d]: %d, len[%d]: %d\n", i, start[i], i, len[i]);
   int start_block[3];
   int end_block[3];
 
@@ -82,7 +79,7 @@ extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, in
   MyBase::SetDiagMsg("@st: %d %d %d, en: %d %d %d\n", 
 		     start_block[0], start_block[1], start_block[2],
 		     end_block[0], end_block[1], end_block[2]);
-  xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, bsize, name, num_iotasks);
+  xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, reflevel, name, num_iotasks);
 
 #ifdef PIOVDC_DEBUG
   if(rank == 0)
@@ -90,7 +87,7 @@ extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, in
 #endif
 }
 
-extern "C" void READ_F90(float *array, int *start, int *len, int *IO_Comm_f, int *ts, int *lod, int *reflevel, char *name, int name_len, int num_iotasks) //AIX no name mangling
+extern "C" void READ_F90(float *array, int *start, int *len, int *IO_Comm_f, int *ts, int *lod, int *reflevel, char *name, int name_len, int *num_iotasks)
 {
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -113,7 +110,7 @@ extern "C" void READ_F90(float *array, int *start, int *len, int *IO_Comm_f, int
   MyBase::SetDiagMsg("@st: %d %d %d, en: %d %d %d\n", 
 		     start_block[0], start_block[1], start_block[2],
 		     end_block[0], end_block[1], end_block[2]);
-  inverse_and_read(array, start, end_block, len, IO_Comm, ts, lod, reflevel, bsize, name);
+  inverse_and_read(array, start, end_block, len, IO_Comm, ts, lod, reflevel, name, num_iotasks);
 
 #ifdef DEBUG
   if(rank == 0)
@@ -121,7 +118,7 @@ extern "C" void READ_F90(float *array, int *start, int *len, int *IO_Comm_f, int
 #endif
 }
 
-void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *reflevel,  char* name, int num_iotasks){
+void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *reflevel,  char* name, int* num_iotasks){
   //Obtain MPI Rank for timing
 
   int rank = 0;
@@ -129,7 +126,7 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
 #ifdef PIOVDC_DEBUG
   double starttime = MPI_Wtime();
 #endif
-  MetadataVDC metadata(file_path.c_str());
+  MetadataVDC metadata(file_path->c_str());
   WaveCodecIO *wcwriter = new WaveCodecIO(metadata, 1);
 
   wcwriter->SetIOComm(IOComm);
@@ -137,7 +134,7 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
   bool collective = true;
   
   int proc_count[3];
-  int comm_size = num_iotasks;
+  int comm_size = *num_iotasks;
 
   MPI_Allreduce(count, proc_count, 3, MPI_INT, MPI_SUM, IOComm);
 
@@ -257,13 +254,13 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
   delete wcwriter;
 }
 
-void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int reflevel, char* vdf,  char* name){
+void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOComm, int *ts, int *lod, int *reflevel, char* name, int* num_iotasks){
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #ifdef PIOVDC_DEBUG
   double starttime = MPI_Wtime();
 #endif
-  MetadataVDC metadata(vdf);
+  MetadataVDC metadata(file_path->c_str());
   WaveCodecIO *wcwriter = new WaveCodecIO(metadata, 1);
 
   wcwriter->SetIOComm(IOComm);
