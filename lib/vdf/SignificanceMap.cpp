@@ -442,7 +442,7 @@ void SignificanceMap::GetMap(const unsigned char **map, size_t *maplen) {
 	//		bytes[20-] : _dimsVec[i]
 	//
 	_sigMapEncode[0] = _sigMapEncode[1] = _sigMapEncode[2] = 'c';
-	_sigMapEncode[3] = VERSION;
+	_sigMapEncode[3] = VDF_VERSION;
 
 	vector <size_t> header_data;
 	header_data.push_back(_sigMapVec.size());
@@ -503,7 +503,7 @@ int SignificanceMap::SetMap(const unsigned char *map) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);
 	}
-	if (map[3] > VERSION) {
+	if (map[3] > VDF_VERSION) {
 		SetErrMsg("Invalid significance map - bogus header");
 		return(-1);
 	}

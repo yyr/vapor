@@ -287,7 +287,7 @@ public:
 private:
 
 	static const int HEADER_SIZE = 64;
-	static const int VERSION = 2;
+	static const int VDF_VERSION = 2;
 	size_t _nx;
 	size_t _ny;
 	size_t _nz;
