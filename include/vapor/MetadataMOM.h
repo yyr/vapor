@@ -64,7 +64,7 @@ public:
 //!
 //! \remarks Required element
 //
-      vector<double> GetExtents() const {
+      vector<double> GetExtents(size_t ts = 0) const {
         return(Extents); };
 
 

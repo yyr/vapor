@@ -64,8 +64,8 @@ public:
 	return(WRFReader::GetNumTransforms());
  };
 
- virtual vector<double> GetExtents() const {
-	return(WRFReader::GetExtents());
+ virtual vector<double> GetExtents(size_t ts = 0) const {
+	return(WRFReader::GetExtents(ts));
  };
 
  virtual long GetNumTimeSteps() const {
@@ -101,10 +101,6 @@ public:
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
     WRFReader::GetTSUserTimeStamp(ts,s);
  }
-
- virtual vector<double> GetTSExtents(size_t ts) const {
-	return(WRFReader::GetTSExtents(ts));
- };
 
  virtual string GetMapProjection() const {
 	return(WRFReader::GetMapProjection());

@@ -317,7 +317,7 @@ int	main(int argc, char **argv) {
 			cerr << "Error populating TSUserTime." << endl;
 			exit(1);
 		}
-		if(file->SetTSExtents(i, WRFData->GetTSExtents(i))) {
+		if(file->SetTSExtents(i, WRFData->GetExtents(i))) {
 			cerr << "Error populating TSExtents." << endl;
 			exit(1);
 		}

@@ -88,8 +88,8 @@ void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3]
 	double exts[6];
 	GetBox()->GetExtents(exts);
 	
-	ds->getDataMgr()->MapUserToVox((size_t)-1,exts, boxMin, numRefs);
-	ds->getDataMgr()->MapUserToVox((size_t)-1,exts+3, boxMax, numRefs);
+	ds->getDataMgr()->MapUserToVox(timestep,exts, boxMin, numRefs);
+	ds->getDataMgr()->MapUserToVox(timestep,exts+3, boxMax, numRefs);
 
 }
 

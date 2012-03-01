@@ -578,7 +578,8 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	float extents[6];
-	DataStatus::getInstance()->getExtentsAtLevel(dParams->GetRefinementLevel(), extents);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	DataStatus::getInstance()->getExtentsAtLevel(timestep,dParams->GetRefinementLevel(), extents);
 	if (dParams->isEnabled()) {
 		//Check that we aren't putting this on another planar surface:
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();

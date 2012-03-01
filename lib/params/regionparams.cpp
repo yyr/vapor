@@ -326,8 +326,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	dataMgr->MapUserToVox((size_t)-1, userMinCoords, min_dim, minRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, userMaxCoords, max_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, userMaxCoords, max_dim, minRefLevel);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -378,8 +378,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//If bounds are needed, calculate them:
 	if (regMax && regMin){
 		//Do mapping to voxel coords
-		dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
-		dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+		dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
+		dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
 	}
 	
 	return minRefLevel;
@@ -414,8 +414,8 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 
 #ifdef	DEAD
 	//Do mapping to voxel coords
-	dataMgr->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, regMin, min_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, regMax, max_dim, minRefLevel);
 	
 	for(int i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness 
@@ -469,8 +469,8 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 	}
 	//Calculate new bounds:
 	
-	dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
-	dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
+	dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
 	
 	return minRefLevel;
 }
@@ -522,8 +522,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	dataMgr->MapUserToVox((size_t)-1, regMin, min_dim, minRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, regMax, max_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, regMin, min_dim, minRefLevel);
+	dataMgr->MapUserToVox(timestep, regMax, max_dim, minRefLevel);
 	if (!twoDim){
 		for(i = 0; i< 3; i++){
 			//Make sure 3D slab has nonzero thickness (this can only
@@ -580,8 +580,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	}
 	//Calculate new bounds:
 	
-	dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, minRefLevel);
-	dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, minRefLevel);
+	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
+	dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
 	
 	return minRefLevel;
 }
@@ -610,10 +610,10 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	const DataMgr* dataMgr = ds->getDataMgr();
 
-	dataMgr->MapUserToBlk((size_t)-1, userMinCoords, min_bdim, numxforms);
-	dataMgr->MapUserToVox((size_t)-1, userMinCoords, min_dim, numxforms);
-	dataMgr->MapUserToBlk((size_t)-1, userMaxCoords, max_bdim, numxforms);
-	dataMgr->MapUserToVox((size_t)-1, userMaxCoords, max_dim, numxforms);
+	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, numxforms);
+	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
+	dataMgr->MapUserToBlk(timestep, userMaxCoords, max_bdim, numxforms);
+	dataMgr->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
 
 	
 	return;

@@ -1003,7 +1003,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
 			
-			dataMgr->MapUserToVox((size_t)-1, dataCoord, arrayCoord, actualRefLevel);
+			dataMgr->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (i == dataOrientation) continue;

@@ -433,16 +433,16 @@ setupVariableData(
 	// this shouldn't be needed with RegularGrid class
 	//
 	size_t dim[3];
-	dataMgr->MapUserToVox((size_t)-1, validExts, voxExts);
-	dataMgr->MapUserToVox((size_t)-1, validExts+3, voxExts+3);
+	dataMgr->MapUserToVox(timestep, validExts, voxExts);
+	dataMgr->MapUserToVox(timestep, validExts+3, voxExts+3);
 	
 	dataMgr->GetDim(dim,0);
 	for (int i = 0; i<3; i++){
 		if (voxExts[i] > 0) voxExts[i]--;
 		if (voxExts[i+3] < dim[i]-1) voxExts[i+3]++;
 	}
-	dataMgr->MapVoxToUser((size_t)-1,voxExts, validExts,0);
-	dataMgr->MapVoxToUser((size_t)-1,voxExts+3, validExts+3,0);
+	dataMgr->MapVoxToUser(timestep,voxExts, validExts,0);
+	dataMgr->MapVoxToUser(timestep,voxExts+3, validExts+3,0);
 #endif
 
 	//Call RegionParams::PrepareCoordsForRetrieval to get the block extents needed in the GetRegion call

@@ -2945,14 +2945,14 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	
 	DataMgr* dataMgr = ds->getDataMgr();
 	
-	dataMgr->MapUserToBlk((size_t)-1, rakeCoords, min_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeCoords+3, max_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeCoords+3, max_dim, availRefLevel);
+	dataMgr->MapUserToBlk(timeStep, rakeCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox(timeStep, rakeCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk(timeStep, rakeCoords+3, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox(timeStep, rakeCoords+3, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
-	dataMgr->MapVoxToUser((size_t)-1,min_dim, testRakeMin,availRefLevel);
-	dataMgr->MapVoxToUser((size_t)-1,max_dim, testRakeMax,availRefLevel);
+	dataMgr->MapVoxToUser(timeStep,min_dim, testRakeMin,availRefLevel);
+	dataMgr->MapVoxToUser(timeStep,max_dim, testRakeMax,availRefLevel);
 	bool changed = false;
 	for (int i = 0; i< 3; i++){
 		if (testRakeMin[i] > rakeCoords[i]) {
@@ -2972,12 +2972,12 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 	}
 	
-	dataMgr->MapVoxToUser((size_t)-1,min_dim, rakeCoords,availRefLevel);
-	dataMgr->MapVoxToUser((size_t)-1,max_dim, rakeCoords+3,availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeCoords, min_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk((size_t)-1, rakeCoords+3, max_bdim, availRefLevel);
-	dataMgr->MapUserToVox((size_t)-1, rakeCoords+3, max_dim, availRefLevel);
+	dataMgr->MapVoxToUser(timeStep,min_dim, rakeCoords,availRefLevel);
+	dataMgr->MapVoxToUser(timeStep,max_dim, rakeCoords+3,availRefLevel);
+	dataMgr->MapUserToBlk(timeStep, rakeCoords, min_bdim, availRefLevel);
+	dataMgr->MapUserToVox(timeStep, rakeCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToBlk(timeStep, rakeCoords+3, max_bdim, availRefLevel);
+	dataMgr->MapUserToVox(timeStep, rakeCoords+3, max_dim, availRefLevel);
 	
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
@@ -3091,7 +3091,7 @@ bool FlowParams::validateSettings(int tstep){
 		double rakeBox[6];
 		GetBox()->GetExtents(rakeBox);
 		float levExts[6];
-		ds->getExtentsAtLevel(numRefinements, levExts);
+		ds->getExtentsAtLevel(tstep, numRefinements, levExts);
 		//Shrink levexts slightly:
 		for (int i = 0; i< 3; i++){
 			float mid = (levExts[i]+levExts[i+3])*0.5;

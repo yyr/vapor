@@ -245,6 +245,15 @@ RegularGrid *DataMgr::GetGrid(
 		if (! blks) return(NULL);
 
 		rg = ReadGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
+double extents[6];
+rg->GetUserExtents(extents);
+cout << "RG Extents : " 
+<< extents[0] << " " 
+<< extents[1] << " " 
+<< extents[2] << " " 
+<< extents[3] << " " 
+<< extents[4] << " " 
+<< extents[5] << endl;
 		if (! rg) {
 			SetErrMsg(
 				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",

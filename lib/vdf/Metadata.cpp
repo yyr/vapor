@@ -110,8 +110,7 @@ void	Metadata::MapVoxToUser(
 
 	size_t	dim[3];
 
-	vector <double> extents = GetTSExtents(timestep);
-	if (! extents.size()) extents = GetExtents();
+	vector <double> extents = GetExtents(timestep);
 
 	Metadata::GetDim(dim, -1);	// finest dimension
 	for(int i = 0; i<3; i++) {
@@ -142,8 +141,7 @@ void	Metadata::MapUserToVox(
     int  ldelta = GetNumTransforms() - reflevel;
 
 	size_t	dim[3];
-	vector <double> extents = GetTSExtents(timestep);
-	if (! extents.size()) extents = GetExtents();
+	vector <double> extents = GetExtents(timestep);
 
 	vector <double> lextents = extents;
     size_t maxdim[3];
@@ -191,7 +189,7 @@ void	Metadata::GetEnclosingRegion(
 
     size_t dims[3];
     GetDim(dims, reflevel);
-	vector <double> extents = GetExtents();
+	vector <double> extents = GetExtents(timestep);
 
 	for (int i=0; i<3; i++) {
 		if (extents[i] < extents[i+3]) {

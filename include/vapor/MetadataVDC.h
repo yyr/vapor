@@ -428,15 +428,14 @@ public:
  //
  int SetExtents(const vector<double> &value);
 
- //! Return the domain extents specified in user coordinates
+ //! \copydoc Metadata::GetExtents()
  //!
- //! \retval extents A six-element array containing the min and max
- //! bounds of the data domain in user-defined coordinates
- //!
- //! \remarks Required element
  //
- vector<double> GetExtents() const {
-	return (_rootnode->GetElementDouble(_extentsTag));
+ vector<double> GetExtents(size_t ts = 0) const {
+	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
+	vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
+	if (extents.size() == 6) return(extents);
+	else return (_rootnode->GetElementDouble(_extentsTag));
  }
 
  //! Return true if \p value is a valid coordinate extent definition
@@ -829,8 +828,7 @@ public:
  //
  int SetTSExtents(size_t ts, const vector<double> &value);
 
- //! Return the domain extents specified in user coordinates
- //! for the indicated time step
+ //! \deprecated Use GetExtents()
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
@@ -841,12 +839,7 @@ public:
  //!
  //! \remarks Optional element
  //
- vector<double> GetTSExtents(size_t ts) const {
-	CHK_TS_OPT(ts, _rootnode->GetElementDouble(_extentsTag))
-	vector <double> extents = _rootnode->GetChild(ts)->GetElementDouble(_extentsTag);
-	if (extents.size() == 6) return(extents);
-	else return (GetExtents());
- }
+ vector<double> GetTSExtents(size_t ts) const {return (GetExtents(ts)); }
 
  //! Set a comment for the variable, \p v at the time step indicated by \p ts
  //!

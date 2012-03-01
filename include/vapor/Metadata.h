@@ -136,20 +136,24 @@ public:
 
  //! Return the domain extents specified in user coordinates
  //!
- //! Variables in the data represented by spatial coordinates,  such as 
- //! velocity components, are expected to be expressed in the same units 
- //! the returned domain extents.
- //! For data sets with moving (time varying) domains, this method should
- //! return the global bounds of the entire time series.
+ //! Return the domain extents specified in user coordinates
+ //! for the indicated time step. Variables in the data have
+ //! spatial positions defined in a user coordinate system.
+ //! These positions may vary with time. This method returns 
+ //! min and max bounds, in user coordinates, of all variables
+ //! at a given time step. 
+ //! 
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1. If \p ts is out of range, GetExtents()
+ //! will return a reasonable default value.
  //!
  //! \retval extents A six-element array containing the min and max
  //! bounds of the data domain in user-defined coordinates. The first
  //! three elements specify the minimum X, Y, and Z bounds, respectively,
  //! the second three elements specify the maximum bounds.
  //!
- //! \sa GetTSExtents();
  //
- virtual vector<double> GetExtents() const = 0;
+ virtual vector<double> GetExtents(size_t ts = 0) const = 0;
 
 
  //! Return the number of time steps in the data collection
@@ -263,16 +267,8 @@ public:
  //! Return the domain extents specified in user coordinates
  //! for the indicated time step
  //!
- //! For data collections defined on moving (time varying) domains,
- //! this method returns the domain extents in user coordinates 
- //! for the indicated time step, \p ts.
+ //! \deprecated Use GetExtents() instead.
  //!
- //! \param[in] ts A valid data set time step in the range from zero to
- //! GetNumTimeSteps() - 1.
- //!
- //! \retval extents A six-element array containing the min and max
- //! bounds of the data domain in user-defined coordinates. If \p ts
- //! is outside the valid range the value of GetExtents() is returned.
  //!
  //
  virtual vector<double> GetTSExtents(size_t ) const { return(GetExtents()); };
@@ -432,7 +428,24 @@ public:
 	Metadata::MapVoxToBlk(v, bcoord0, reflevel);
  }
 
- void    GetEnclosingRegion(
+ //!
+ //! Get voxel coordinates of grid containing a region
+ //!
+ //! Calculates the IJK voxel coordinates of the smallest grid
+ //! containing the region defined by the user coordinates \p minu and
+ //! \p maxu
+ //!
+ //! \param[in] timestep Time step of the variable  If an invalid
+ //! timestep is supplied the global domain extents are used.
+ //! \param[in] minu User coordinates of minimum coorner
+ //! \param[in] maxu User coordinates of maximum coorner
+ //! \param[out] min Integer coordinates of minimum coorner
+ //! \param[out] max Integer coordinates of maximum coorner
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
+ //!
+ virtual void    GetEnclosingRegion(
     size_t timestep, const double minu[3], const double maxu[3],
     size_t min[3], size_t max[3],
     int reflevel

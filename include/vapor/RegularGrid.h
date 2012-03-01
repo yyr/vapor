@@ -21,9 +21,10 @@
 //! equal-sized blocks.
 //!
 //! Because grid samples are repesented internally as arrays, when accessing
-//! multiple grid points best performance is achieved by using
+//! multiple grid points better performance is achieved by using
 //! unit stride. The \a I axis varies fastest (has unit stride), 
-//! followed by \a J, then \a K.
+//! followed by \a J, then \a K. Best performance is achieved
+//! when using the class iterator: RegularGrid::Iterator.
 //!
 //! For methods that allow the specification of grid indecies or coordinates
 //! as a single parameter tuple (e.g. float coordinate[3]) the first element
@@ -46,7 +47,7 @@ public:
  //! of the first point in the grid. The first grid point need not coincide 
  //! with
  //! block boundaries. I.e. the indecies need not be (0,0,0): the first
- //! grid point is not required to be the first element of the array
+ //! grid point is not required to be the first element of the array.
  //! \param[in] max A three-element vector specifying the ijk index
  //! of the last point in the grid
  //! \param[in] extents A six-element vector specifying the user coordinates
@@ -330,7 +331,7 @@ public:
  virtual bool InsideGrid(double x, double y, double z) const;
 
 
- //! Check for period boundaries
+ //! Check for periodic boundaries
  //!
  //! This method returns a boolean for each dimension indicating 
  //! whether the data along that dimension has periodic boundaries.

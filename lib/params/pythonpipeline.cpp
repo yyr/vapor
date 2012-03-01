@@ -741,7 +741,7 @@ PyObject* PythonPipeLine::mapVoxToUser(PyObject *self, PyObject* args){
     
 	for (int i = 0; i< 3; i++) voxCrds[i] = (size_t)ivox[2-i];
 
-	currentDataMgr->MapVoxToUser(-1,voxCrds,userCrds, reflevel);
+	currentDataMgr->MapVoxToUser(0,voxCrds,userCrds, reflevel);
 	
     return Py_BuildValue("[ddd]", userCrds[2],userCrds[1],userCrds[0]);
 }
@@ -758,7 +758,7 @@ PyObject* PythonPipeLine::mapUserToVox(PyObject *self, PyObject* args){
     if (!PyArg_ParseTuple(args,"(ddd)i",
 						  userCrds+2,userCrds+1,userCrds,&reflevel)) return NULL; 
 	
-	currentDataMgr->MapUserToVox(-1, userCrds, vox, reflevel);
+	currentDataMgr->MapUserToVox(0, userCrds, vox, reflevel);
 	for(int i = 0; i< 3; i++) ivox[i] = (int)vox[2-i];
 	
     return Py_BuildValue("[iii]", ivox[0],ivox[1],ivox[2]);

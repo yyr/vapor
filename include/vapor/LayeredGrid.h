@@ -15,7 +15,8 @@
 //!
 //! z = f(i,j,k)
 //!
-//! while the remaining x and y coordinates are givey by (i*dx, j*dy)
+//! where f() is monotonically increasing (or decreasing) with k.
+//! The remaining x and y coordinates are givey by (i*dx, j*dy)
 //! for some real dx and dy .
 //!
 //
@@ -149,22 +150,15 @@ public:
 	size_t *i, size_t *j, size_t *k
  ) const;
 
+ //! \copydoc RegularGrid::Reshape()
+ //!
  int Reshape(
 	const size_t min[3],
 	const size_t max[3],
 	const bool periodic[3]
  );
 
- //! Return true if the specified point lies inside the grid
- //!
- //! This method can be used to determine if a point expressed in
- //! user coordinates reside inside or outside the grid
- //!
- //! \param[in] x coordinate along fastest varying dimension
- //! \param[in] y coordinate along second fastest varying dimension
- //! \param[in] z coordinate along third fastest varying dimension
- //!
- //! \retval bool True if point is inside the grid
+ //! \copydoc RegularGrid::InsideGrid()
  //!
  bool InsideGrid(double x, double y, double z) const;
 

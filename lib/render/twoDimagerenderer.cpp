@@ -290,8 +290,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
 		//Convert to user coords in non-moving extents:
-		dataMgr->MapVoxToUser((size_t)-1, min_dim, regMin, refLevel);
-		dataMgr->MapVoxToUser((size_t)-1, max_dim, regMax, refLevel);
+		dataMgr->MapVoxToUser(timeStep, min_dim, regMin, refLevel);
+		dataMgr->MapVoxToUser(timeStep, max_dim, regMax, refLevel);
 
 		int varnum = DataStatus::getSessionVariableNum2D("HGT");
 		

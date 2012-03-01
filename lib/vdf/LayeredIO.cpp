@@ -519,8 +519,7 @@ void    LayeredIO::MapVoxToUser(
 
 	size_t  dim[3];
 
-	vector <double> extents = GetTSExtents(timestep);
-	if (! extents.size()) extents = GetExtents();
+	vector <double> extents = GetExtents(timestep);
 
 	GetDim(dim, -1);   // finest dimension
 	for(int i = 0; i<3; i++) {
@@ -555,8 +554,7 @@ void	LayeredIO::MapUserToVox(
 	if (reflevel > GetNumTransforms() ) reflevel = GetNumTransforms();
 	int	 ldelta = GetNumTransforms() - reflevel;
 
-	vector <double> extents = GetTSExtents(timestep);
-	if (! extents.size()) extents = GetExtents();
+	vector <double> extents = GetExtents(timestep);
 	// assert(GetErrCode() == 0);
 
 	size_t	my_dim[3];

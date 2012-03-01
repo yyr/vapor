@@ -153,7 +153,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	assert (numTS >= getNumTimesteps());  //We should always be increasing this
 	numTimesteps = numTS;
 	
-	std::vector<double> mdExtents = dataMgr->GetExtents();
+	std::vector<double> mdExtents = dataMgr->GetExtents(0);
 	for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
 
 #ifdef	DEAD
@@ -176,7 +176,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	timeVaryingExtents.clear();
 	for (int i = 0; i<numTS; i++){
 		
-		const vector<double>& mdexts = dataMgr->GetTSExtents(i);
+		const vector<double>& mdexts = dataMgr->GetExtents(i);
 		if (mdexts.size() < 6) {
 			timeVaryingExtents.push_back(0);
 			continue;
@@ -700,7 +700,7 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 	maxExtents[2] = (stretchedExtents[5]-stretchedExtents[2])/maxSize;
 }
 //Determine the min and max extents at a given level:
-void DataStatus::getExtentsAtLevel(int level, float exts[6]){
+void DataStatus::getExtentsAtLevel(size_t ts, int level, float exts[6]){
 	size_t dim[3], maxm[3];
 	size_t minm[3] = {0,0,0};
 	double usermin[3], usermax[3];
@@ -710,8 +710,8 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6]){
 		maxm[i] = dim[i]-1;
 	}
 
-	dataMgr->MapVoxToUser((size_t)-1, minm, usermin, level);
-	dataMgr->MapVoxToUser((size_t)-1, maxm, usermax, level);
+	dataMgr->MapVoxToUser(ts, minm, usermin, level);
+	dataMgr->MapVoxToUser(ts, maxm, usermax, level);
 	for (int i = 0; i<3; i++){
 		exts[i] = (float)usermin[i];
 		exts[i+3] = (float)usermax[i];

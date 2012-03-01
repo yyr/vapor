@@ -71,8 +71,8 @@ public:
 	return(WaveletBlock3DRegionReader::GetNumTransforms());
  };
 
- virtual vector<double> GetExtents() const {
-	return(WaveletBlock3DRegionReader::GetExtents());
+ virtual vector<double> GetExtents(size_t ts) const {
+	return(WaveletBlock3DRegionReader::GetExtents(ts));
  };
 
  virtual long GetNumTimeSteps() const {
@@ -108,11 +108,6 @@ public:
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
 	WaveletBlock3DRegionReader::GetTSUserTimeStamp(ts,s);
  };
-
- virtual vector<double> GetTSExtents(size_t ts) const {
-    return(WaveletBlock3DRegionReader::GetTSExtents(ts));
- };
-
 
  virtual void   GetGridDim(size_t dim[3]) const {
 	return(WaveletBlock3DRegionReader::GetGridDim(dim));

@@ -74,8 +74,8 @@ public:
 	return(WaveCodecIO::GetCRatios());
  };
 
- virtual vector<double> GetExtents() const {
-	return(WaveCodecIO::GetExtents());
+ virtual vector<double> GetExtents(size_t ts) const {
+	return(WaveCodecIO::GetExtents(ts));
  };
 
  virtual long GetNumTimeSteps() const {
@@ -111,11 +111,6 @@ public:
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
 	WaveCodecIO::GetTSUserTimeStamp(ts,s);
  };
-
- virtual vector<double> GetTSExtents(size_t ts) const {
-	return(WaveCodecIO::GetTSExtents(ts));
- };
-
 
  virtual void   GetGridDim(size_t dim[3]) const {
 	return(WaveCodecIO::GetGridDim(dim));

@@ -230,18 +230,18 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3]){
 	if(!dataMgr) {
 		return;
 	}
-	dataMgr->MapUserToVox((size_t)-1, rakeExtents,corner,-1);
+	dataMgr->MapUserToVox(0, rakeExtents,corner,-1);
 	//Is the corner actually inside the rake?
-	dataMgr->MapVoxToUser((size_t)-1,corner, tempExtents, -1);
+	dataMgr->MapVoxToUser(0,corner, tempExtents, -1);
 	if (tempExtents[0]<rakeExtents[0]) corner[0]++;
 	if (tempExtents[1]<rakeExtents[1]) corner[1]++;
 	//Now get the user coords of the corner
-	dataMgr->MapVoxToUser((size_t)-1, corner, tempExtents,-1);
+	dataMgr->MapVoxToUser(0, corner, tempExtents,-1);
 	rakeExts[0] = tempExtents[0];
 	rakeExts[1] = tempExtents[1];
 	rakeExts[2] = rakeExtents[2];
 	//Now find how many voxels are in rake:
-	dataMgr->MapUserToVox((size_t)-1, rakeExtents+3, farCorner,-1);
+	dataMgr->MapUserToVox(0, rakeExtents+3, farCorner,-1);
 	vector<long>strides = GetGridAlignStrides();
 	if (strides[0] <= 0) rakeGrid[0] = 1; 
 	else rakeGrid[0] = 1+(farCorner[0]-corner[0])/strides[0];
@@ -254,7 +254,7 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3]){
 	if(strides[1]>0)farCorner[1] = corner[1]+(rakeGrid[1]-1)*strides[1];
 	else farCorner[1] = corner[1];
 
-	dataMgr->MapVoxToUser((size_t)-1,farCorner, tempExtents, -1);
+	dataMgr->MapVoxToUser(0,farCorner, tempExtents, -1);
 	rakeExts[3]=tempExtents[0];
 	rakeExts[4]=tempExtents[1];
 }

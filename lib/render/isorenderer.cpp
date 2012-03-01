@@ -150,6 +150,7 @@ int	IsoRenderer::_updateRegion(
 	if (!rg) return(-1);
 
 	int rc = _driver->SetRegion(rg, myParamsIso->GetHistoBounds(),0);
+	delete rg;
 	if (rc<0) return(rc);
 
 	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR) {
@@ -158,6 +159,7 @@ int	IsoRenderer::_updateRegion(
 			ts, map_varname, reflevel, lod, min, max
 		);
 		if (!rg) return(-1);
+		delete rg;
 
 		rc = _driver->SetRegion(rg, myParamsIso->GetMapBounds(),1);
 		if (rc<0) return(rc);

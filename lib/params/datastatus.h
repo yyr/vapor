@@ -67,8 +67,9 @@ public:
 
 	//! Determines extents of the data at a particular refinement level.
 	//! \param[in] int level  refinement level
+	//! \param[in] int ts Time step
 	//! \param[out] float exts[6]  extents at specified level
-	void getExtentsAtLevel(int level, float exts[6]);
+	void getExtentsAtLevel(size_t ts, int level, float exts[6]);
 
 	//! Return the extents of the data in user coordinates multiplied by current stretch factors.
 	//! \retval float[6] stretched extents array
@@ -484,7 +485,7 @@ public:
 	//! \param[in] size_t voxCoords[3] specified voxel coordinates
 	//! \param[out] double userCoords[3] output user coordinates.
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		dataMgr->MapVoxToUser((size_t)-1, voxCoords, userCoords, refLevel);
+		dataMgr->MapVoxToUser(0, voxCoords, userCoords, refLevel);
 	}
 #ifndef DOXYGEN_SKIP_THIS
 	DataStatus();

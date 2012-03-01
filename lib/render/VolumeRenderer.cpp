@@ -320,8 +320,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 
-//vector <double> gextents = dataMgr->GetExtents();
-//vector <double> lextents = dataMgr->GetTSExtents(timeStep);
+//vector <double> gextents = dataMgr->GetExtents(timeStep);
 //glTranslatef(
 //gextents[0]-lextents[0],
 //gextents[1]-lextents[1],
@@ -652,6 +651,8 @@ int	VolumeRenderer::_updateRegion(
 	{
 		rc = _driver->SetRegion(rg, rp->getCurrentDatarange(), 0);
 	}
+
+	delete rg;
 
 	return(rc);
 }

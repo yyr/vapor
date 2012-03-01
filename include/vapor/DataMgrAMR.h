@@ -65,8 +65,8 @@ public:
 	return(AMRIO::GetNumTransforms());
  };
 
- virtual vector<double> GetExtents() const {
-	return(AMRIO::GetExtents());
+ virtual vector<double> GetExtents(size_t ts = 0) const {
+	return(AMRIO::GetExtents(ts));
  };
 
  virtual long GetNumTimeSteps() const {
@@ -157,6 +157,8 @@ protected:
 
 private:
 	AMRTree _amrtree;
+	AMRTree _amrtree_current;	// currently opened tree
+	size_t _ts_current;	// currently opened time step
 	int _reflevel;
 	size_t _bs[3];
 	size_t _bsshift[3];

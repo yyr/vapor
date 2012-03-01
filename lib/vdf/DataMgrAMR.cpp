@@ -31,6 +31,8 @@ int DataMgrAMR::_DataMgrAMR()
 	}
 	_blkptrs = new float*[nblocks];
 
+	_ts_current = (size_t) -1;
+
 
 	return(0);
 }
@@ -189,14 +191,16 @@ RegularGrid *DataMgrAMR::ReadGrid(
 	// changes - same tree used for all variables of a given
 	// time step
 	//
-	rc = AMRIO::OpenTreeRead(ts);
-	if (rc < 0) return (NULL);
+	if (ts != _ts_current) {
+		rc = AMRIO::OpenTreeRead(ts);
+		if (rc < 0) return (NULL);
 
-	AMRTree amrtree;
-	rc = AMRIO::TreeRead(&amrtree);
-	if (rc < 0) return (NULL);
+		rc = AMRIO::TreeRead(&_amrtree_current);
+		if (rc < 0) return (NULL);
 
-	(void) AMRIO::CloseTree();
+		(void) AMRIO::CloseTree();
+		_ts_current = ts;
+	}
 
 	//
 	// Read in the AMR field data
@@ -213,7 +217,7 @@ RegularGrid *DataMgrAMR::ReadGrid(
 		maxbase[i] = bmax_native[i] >> _reflevel;
 	}
 		
-	AMRData amrdata(&amrtree, bs_native, minbase, maxbase, reflevel);
+	AMRData amrdata(&_amrtree_current, bs_native, minbase, maxbase, reflevel);
 	if (AMRData::GetErrCode() != 0)  return(NULL);
 
 	rc = AMRIO::VariableRead(&amrdata);

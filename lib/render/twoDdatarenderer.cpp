@@ -197,11 +197,11 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	
 	int elevGridRefLevel = tParams->GetRefinementLevel();
 	//Do mapping to voxel coords at current ref level:
-	dataMgrLayered->MapUserToVox((size_t)-1, regMin, min_dim, elevGridRefLevel);
-	dataMgrLayered->MapUserToVox((size_t)-1, regMax, max_dim, elevGridRefLevel);
+	dataMgrLayered->MapUserToVox(timeStep, regMin, min_dim, elevGridRefLevel);
+	dataMgrLayered->MapUserToVox(timeStep, regMax, max_dim, elevGridRefLevel);
 	//Convert back to user coords:
-	dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
-	dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
 	//Extend by 1 voxel in x and y if it is smaller than original domain
 	for (int i = 0; i< 2; i++){
 		if(regMin[i] > origRegMin[i] && min_dim[i]>0) min_dim[i]--;
@@ -210,8 +210,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	
 	//Convert increased vox dims to user coords:
-	dataMgrLayered->MapVoxToUser((size_t)-1, min_dim, regMin, elevGridRefLevel);
-	dataMgrLayered->MapVoxToUser((size_t)-1, max_dim, regMax, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
+	dataMgrLayered->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
 	
 	
 	//Try to get requested refinement level or the nearest acceptable level:
