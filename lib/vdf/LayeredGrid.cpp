@@ -20,7 +20,10 @@ LayeredGrid::LayeredGrid(
 	_varying_dim = varying_dim;
 	if (_varying_dim < 0 || _varying_dim > 2) _varying_dim = 2;
 
-	assert(periodic[_varying_dim] == false);
+	//
+	// Periodic, varying dimensions are not supported
+	//
+	if (periodic[_varying_dim]) SetPeriodic(periodic);
 
 	_GetUserExtents(_extents);
 }
@@ -622,6 +625,13 @@ int LayeredGrid::Reshape(
 	if (rc<0) return(-1);
 	_GetUserExtents(_extents);
 	return(0);
+}
+void LayeredGrid::SetPeriodic(const bool periodic[3]) {
+
+	bool pvec[3];
+	for (int i=0; i<3; i++) pvec[i] = periodic[i];
+	pvec[_varying_dim] = false;
+	RegularGrid::SetPeriodic(pvec);
 }
 
 bool LayeredGrid::InsideGrid(double x, double y, double z) const {

@@ -340,8 +340,22 @@ public:
  //! \param[out] jdim periodicity of second fastest varying dimension
  //! \param[out] kdim periodicity of third fastest varying dimension
  //
- void HasPeriodic(bool *idim, bool *jdim, bool *kdim) const {
+ virtual void HasPeriodic(bool *idim, bool *jdim, bool *kdim) const {
 	*idim = _periodic[0]; *jdim = _periodic[1]; *kdim = _periodic[2];
+ }
+
+ //! Set periodic boundaries
+ //!
+ //! This method changes the periodicity of boundaries set 
+ //! by the class constructor
+ //!
+ //! \param[in] periodic A three-element boolean vector indicating
+ //! which i,j,k indecies, respectively, are periodic
+ //
+ virtual void SetPeriodic(const bool periodic[3]) {
+	_periodic[0] = periodic[0];
+	_periodic[1] = periodic[1];
+	_periodic[2] = periodic[2];
  }
 
  //! Return the internal data structure containing a copy of the blocks

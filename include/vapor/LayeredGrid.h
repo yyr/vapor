@@ -162,6 +162,19 @@ public:
  //!
  bool InsideGrid(double x, double y, double z) const;
 
+
+ //! Set periodic boundaries
+ //!
+ //! This method changes the periodicity of boundaries set 
+ //! by the class constructor. It overides the base class method
+ //! to ensure the varying dimension is not periodic.
+ //!
+ //! \param[in] periodic A three-element boolean vector indicating
+ //! which i,j,k indecies, respectively, are periodic. The varying dimension
+ //! may not be periodic.
+ //
+ virtual void SetPeriodic(const bool periodic[3]);
+
 private:
  float **_coords;
  int _varying_dim;
