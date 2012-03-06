@@ -734,7 +734,8 @@ int	AMRData::ReGrid(
 	const size_t bmin[3],
 	const size_t bmax[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
 ) const {
 
 	if (reflevel < 0) reflevel = _maxRefinementLevel;
@@ -762,7 +763,7 @@ int	AMRData::ReGrid(
 	for (int y = bminb[1]; y<= bmaxb[1] && y<bdim[1]; y++) {
 	for (int x = bminb[0]; x<= bmaxb[0] && x<bdim[0]; x++) {
 
-		regrid_branch(x,y,z, bmin, bmax, reflevel, grid);
+		regrid_branch(x,y,z, bmin, bmax, reflevel, grid, dim);
 
 	}
 	}
@@ -853,7 +854,8 @@ void AMRData::regrid_branch(
 	const size_t min[3],
 	const size_t max[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
 ) const {
 
 	const size_t xyz[3] = {x,y,z};
@@ -926,7 +928,7 @@ void AMRData::regrid_branch(
 				//
 				regrid_cell(
 					tbranch, _treeData[index], cellid, 
-					min, max, reflevel, grid
+					min, max, reflevel, grid, dim
 				);
 			}
 
@@ -949,7 +951,8 @@ void AMRData::regrid_cell(
 	const size_t min[3],
 	const size_t max[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
 ) const {
 
 	// Extents of grid covered by cell, specified in voxels relative 
@@ -960,8 +963,12 @@ void AMRData::regrid_cell(
 
 	// 	dimensions of grid in voxels
 	//
-	int nx = _cellDim[0] * (max[0] - min[0] + 1);
-	int ny = _cellDim[1] * (max[1] - min[1] + 1);
+//	int nx = _cellDim[0] * (max[0] - min[0] + 1);
+//	int ny = _cellDim[1] * (max[1] - min[1] + 1);
+	int nx = dim[0];
+	int ny = dim[1];
+	assert (nx >= _cellDim[0] * (max[0] - min[0] + 1));
+	assert (ny >= _cellDim[1] * (max[1] - min[1] + 1));
 
 	int	stride = _cellDim[0]*_cellDim[1]*_cellDim[2];
 	const float *cell_data = &branch_data[cellid*stride];

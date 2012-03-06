@@ -61,6 +61,8 @@ public:
 	for (int i=0; i<3; i++) bs[i] = _bs[i];
  }
 
+
+
  virtual int GetNumTransforms() const {
 	return(AMRIO::GetNumTransforms());
  };
@@ -158,13 +160,21 @@ protected:
 private:
 	AMRTree _amrtree;
 	AMRTree _amrtree_current;	// currently opened tree
+	size_t _ts;
 	size_t _ts_current;	// currently opened time step
 	int _reflevel;
 	size_t _bs[3];
 	size_t _bsshift[3];
 	float **_blkptrs;
+	size_t _nblocks;	// # (float *) allocated to _blkptrs
 
 	int _DataMgrAMR();
+	void _GetDimBlk(size_t bdim[3], int reflevel = 0) const;
+	int _ReadBlocks(
+		const AMRTree *amrtree, int reflevel,
+		const size_t bmin[3], const size_t bmax[3],
+		float *blocks
+	);
 
 };
 

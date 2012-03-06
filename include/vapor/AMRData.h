@@ -300,7 +300,8 @@ public:
 	const size_t bmin[3],
 	const size_t bmax[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
  ) const;
 
  //! Return the data range for the grid
@@ -374,7 +375,8 @@ private:
 	const size_t min[3],
 	const size_t max[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
  ) const;
 
  // Resample a single cell to a regular grid. This is a help method called
@@ -388,7 +390,8 @@ private:
 	const size_t min[3],		// same is in regrid_branch
 	const size_t max[3],
 	int reflevel,
-	float *grid
+	float *grid,
+	const size_t dim[3]
  ) const;
 
 };

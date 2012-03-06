@@ -5,13 +5,27 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
+// Maximum number of allocable blocks
+#define MAX_NBLOCKS 1024*1024 
+
+void   DataMgrAMR::_GetDimBlk(size_t bdim[3], int reflevel) const {
+    size_t dim[3];
+
+    AMRIO::GetDim(dim, reflevel);
+
+    size_t bs[3];
+    AMRIO::GetBlockSize(bs, reflevel);
+    for (int i=0; i<3; i++) {
+        bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs[i]);
+    }
+}
 
 int DataMgrAMR::_DataMgrAMR()
 {
 	AMRIO::GetBlockSize(_bs, -1);
 
 	size_t bdim[3];
-	AMRIO::GetDimBlk(bdim, -1);
+	_GetDimBlk(bdim, -1);
 
 	//
 	// Native AMR block size can be too small for efficient memory mgt
@@ -25,12 +39,14 @@ int DataMgrAMR::_DataMgrAMR()
 		bdim[i] = bdim[i] >> _bsshift[i];
 	}
 
-	int nblocks = 1;
+	_nblocks = 1;
 	for (int i=0; i<3; i++) {
-		nblocks *= bdim[i];
+		_nblocks *= bdim[i];
 	}
-	_blkptrs = new float*[nblocks];
+	if (_nblocks > MAX_NBLOCKS) _nblocks = MAX_NBLOCKS;
+	_blkptrs = new float*[_nblocks];
 
+	_ts = -1;
 	_ts_current = (size_t) -1;
 
 
@@ -73,14 +89,90 @@ int	DataMgrAMR::OpenVariableRead(
 	// changes - same tree used for all variables of a given
 	// time step
 	//
-	rc = AMRIO::OpenTreeRead(timestep);
+	if (timestep != _ts) {
+		rc = AMRIO::OpenTreeRead(timestep);
+		if (rc < 0) return (-1);
+
+		rc = AMRIO::TreeRead(&_amrtree);
+		if (rc < 0) return (-1);
+
+		(void) AMRIO::CloseTree();
+		_ts = timestep;
+	}
+
+	return(0);
+}
+
+int	DataMgrAMR::_ReadBlocks(
+	const AMRTree *amrtree, int reflevel,
+    const size_t bmin[3], const size_t bmax[3],
+    float *blocks
+) {
+
+	//
+	// Read in the AMR field data
+	//
+	const size_t *bs_native = AMRIO::GetBlockSize();
+	size_t bdim_native_base[3];
+	_GetDimBlk(bdim_native_base, 0);
+	size_t minbase[3];
+	size_t maxbase[3];
+	size_t bmin_native[3];
+	size_t bmax_native[3];
+	for (int i=0; i<3; i++) {
+		bmin_native[i] = bmin[i] << _bsshift[i];
+		bmax_native[i] = ((bmax[i]+1) << _bsshift[i]) - 1;
+		minbase[i] = bmin_native[i] >> reflevel;
+		maxbase[i] = bmax_native[i] >> reflevel;
+		if (maxbase[i] >= bdim_native_base[i]) maxbase[i] = bdim_native_base[i]-1;
+	}
+		
+	AMRData amrdata(amrtree, bs_native, minbase, maxbase, reflevel);
+	if (AMRData::GetErrCode() != 0)  return(-1);
+
+	int rc = AMRIO::VariableRead(&amrdata);
 	if (rc < 0) return (-1);
 
-	rc = AMRIO::TreeRead(&_amrtree);
-	if (rc < 0) return (-1);
+	
+	const size_t *bs = DataMgrAMR::GetBlockSize();
+	size_t block_size = bs[0]*bs[1]*bs[2];
 
-	(void) AMRIO::CloseTree();
+	size_t bdim_native[3];
+	_GetDimBlk(bdim_native, reflevel);
 
+	int index = 0;
+	for (int k=0; k<(bmax[2]-bmin[2]+1); k++) {
+	for (int j=0; j<(bmax[1]-bmin[1]+1); j++) {
+	for (int i=0; i<(bmax[0]-bmin[0]+1); i++) {
+		size_t mybmin[] = {
+			bmin_native[0] + i*(1<<_bsshift[0]),
+			bmin_native[1] + j*(1<<_bsshift[1]),
+			bmin_native[2] + k*(1<<_bsshift[2]),
+		};
+		size_t mybmax[] = {
+			mybmin[0] + (1<<_bsshift[0]) - 1,
+			mybmin[1] + (1<<_bsshift[1]) - 1,
+			mybmin[2] + (1<<_bsshift[2]) - 1,
+		};
+
+		if (mybmax[0] >= bdim_native[0]) mybmax[0] = bdim_native[0]-1;
+		if (mybmax[1] >= bdim_native[1]) mybmax[1] = bdim_native[1]-1;
+		if (mybmax[2] >= bdim_native[2]) mybmax[2] = bdim_native[2]-1;
+
+		rc = amrdata.ReGrid(
+			mybmin,mybmax, reflevel, blocks+(index*block_size), bs
+		);
+		if (rc < 0) {
+			string s = AMRData::GetErrMsg();
+			SetErrMsg(
+				"Failed to regrid region : %s", s.c_str()
+			);
+			return (-1);
+		}
+		index++;
+	}
+	}
+	}
 	return(0);
 }
  
@@ -90,36 +182,7 @@ int	DataMgrAMR::BlockReadRegion(
 ) {
 	assert (unblock == true);
 
-	//
-	// Read in the AMR field data
-	//
-	const size_t *bs_native = AMRIO::GetBlockSize();
-	size_t minbase[3];
-	size_t maxbase[3];
-	size_t bmin_native[3];
-	size_t bmax_native[3];
-	for (int i=0; i<3; i++) {
-		bmin_native[i] = bmin[i] << _bsshift[i];
-		bmax_native[i] = ((bmax[i]+1) << _bsshift[i]) - 1;
-		minbase[i] = bmin_native[i] >> _reflevel;
-		maxbase[i] = bmax_native[i] >> _reflevel;
-	}
-		
-	AMRData amrdata(&_amrtree, bs_native, minbase, maxbase, _reflevel);
-	if (AMRData::GetErrCode() != 0)  return(-1);
-
-	int rc = AMRIO::VariableRead(&amrdata);
-	if (rc < 0) return (-1);
-
-	rc = amrdata.ReGrid(bmin_native,bmax_native, _reflevel, region);
-	if (rc < 0) {
-		string s = AMRData::GetErrMsg();
-		SetErrMsg(
-			"Failed to regrid region : %s", s.c_str()
-		);
-		return (-1);
-	}
-	return(0);
+	return(_ReadBlocks(&_amrtree, _reflevel, bmin, bmax, region));
 }
 
 
@@ -137,7 +200,7 @@ RegularGrid *DataMgrAMR::MakeGrid(
 	size_t dim[3];
 	AMRIO::GetDim(dim,reflevel);
 
-	int nblocks = 1;
+	size_t nblocks = 1;
 	size_t block_size = 1;
 	size_t min[3], max[3];
 	for (int i=0; i<3; i++) {
@@ -146,6 +209,10 @@ RegularGrid *DataMgrAMR::MakeGrid(
 		min[i] = bmin[i]*bs[i];
 		max[i] = bmax[i]*bs[i] + bs[i] - 1;
 		if (max[i] >= dim[i]) max[i] = dim[i]-1;
+	}
+	if (nblocks > _nblocks) {
+		SetErrMsg("Requested region too large");
+		return(NULL);
 	}
 	for (int i=0; i<nblocks; i++) {
 		_blkptrs[i] = blocks + i*block_size;
@@ -202,58 +269,8 @@ RegularGrid *DataMgrAMR::ReadGrid(
 		_ts_current = ts;
 	}
 
-	//
-	// Read in the AMR field data
-	//
-	const size_t *bs_native = AMRIO::GetBlockSize();
-	size_t minbase[3];
-	size_t maxbase[3];
-	size_t bmin_native[3];
-	size_t bmax_native[3];
-	for (int i=0; i<3; i++) {
-		bmin_native[i] = bmin[i] << _bsshift[i];
-		bmax_native[i] = ((bmax[i]+1) << _bsshift[i]) - 1;
-		minbase[i] = bmin_native[i] >> _reflevel;
-		maxbase[i] = bmax_native[i] >> _reflevel;
-	}
-		
-	AMRData amrdata(&_amrtree_current, bs_native, minbase, maxbase, reflevel);
-	if (AMRData::GetErrCode() != 0)  return(NULL);
-
-	rc = AMRIO::VariableRead(&amrdata);
-	if (rc < 0) return (NULL);
-
-	
-	const size_t *bs = DataMgrAMR::GetBlockSize();
-	size_t block_size = bs[0]*bs[1]*bs[2];
-
-	int index = 0;
-	for (int k=0; k<(bmax[2]-bmin[2]+1); k++) {
-	for (int j=0; j<(bmax[1]-bmin[1]+1); j++) {
-	for (int i=0; i<(bmax[0]-bmin[0]+1); i++) {
-		size_t mybmin[] = {
-			bmin_native[0] + i*(1<<_bsshift[0]),
-			bmin_native[1] + j*(1<<_bsshift[1]),
-			bmin_native[2] + k*(1<<_bsshift[2]),
-		};
-		size_t mybmax[] = {
-			mybmin[0] + (1<<_bsshift[0]) - 1,
-			mybmin[1] + (1<<_bsshift[1]) - 1,
-			mybmin[2] + (1<<_bsshift[2]) - 1,
-		};
-
-		rc = amrdata.ReGrid(mybmin,mybmax, reflevel, blocks+(index*block_size));
-		if (rc < 0) {
-			string s = AMRData::GetErrMsg();
-			SetErrMsg(
-				"Failed to regrid region : %s", s.c_str()
-			);
-			return (NULL);
-		}
-		index++;
-	}
-	}
-	}
+	rc =  _ReadBlocks(&_amrtree_current, reflevel, bmin, bmax, blocks);
+	if (rc<0) return(NULL);
 
 	AMRIO::CloseVariable();
 
