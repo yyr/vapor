@@ -115,6 +115,8 @@ RegularGrid *DataMgrWRF::MakeGrid(
 		float **coords = elevation->GetBlks();
 		_blkptrs[0] = blocks;
 
+		delete elevation;
+
 		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2));
 	}
 }

@@ -120,6 +120,9 @@ RegularGrid *DataMgrWB::MakeGrid(
 		for (int i=0; i<nblocks; i++) {
 			_blkptrs[i] = blocks + i*block_size;
 		}
+
+		delete elevation;
+
 //		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2));
 cerr << "Hard code missing value\n";
 		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20));

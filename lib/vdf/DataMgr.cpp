@@ -997,6 +997,7 @@ int DataMgr::GetDataRange(
 			if (v > range[1]) range[1] = v;
 		}
 	}
+	delete rg;
 
 	// Use of []'s creates an entry in map
 	_dataRangeMinMap[ts][varname] = range[0];
