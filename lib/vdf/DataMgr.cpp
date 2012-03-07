@@ -115,7 +115,7 @@ float	*DataMgr::GetRegion(
 
 	// Else, read it from disk
 	//
-	VarType_T vtype = GetVarType(varname);
+	VarType_T vtype = DataMgr::GetVarType(varname);
 
 	rc = OpenVariableRead(ts, varname, reflevel, lod);
 	if (rc < 0) {
@@ -201,9 +201,25 @@ RegularGrid *DataMgr::GetGrid(
 		max[0],max[1],max[2], lock
 	);
 
+	//
+	// Make sure 2D variables have valid 3rd dimensions
+	//
+	size_t mymin[3] = {min[0], min[1], min[2]};
+	size_t mymax[3] = {max[0], max[1], max[2]};
+	VarType_T vtype = DataMgr::GetVarType(varname);
+	switch (vtype) {
+	case VAR2D_XY:
+	case VAR2D_XZ:
+	case VAR2D_YZ:
+		mymin[2] = mymax[2] = 0;
+		break;
+	default:
+		break;
+	}
+
 	size_t bmin[3], bmax[3];
-	MapVoxToBlk(min, bmin, reflevel);
-	MapVoxToBlk(max, bmax, reflevel);
+	MapVoxToBlk(mymin, bmin, reflevel);
+	MapVoxToBlk(mymax, bmax, reflevel);
 
 	// See if region is already in cache. If so, return it.
 	//
@@ -236,7 +252,6 @@ RegularGrid *DataMgr::GetGrid(
 
 		// Else, read it from disk
 		//
-		VarType_T vtype = GetVarType(varname);
 
 		blks = (float *) alloc_region(
 			ts,varname.c_str(),vtype, reflevel, lod, 
@@ -265,13 +280,13 @@ RegularGrid *DataMgr::GetGrid(
 	bool iper, jper, kper;
 	rg->HasPeriodic(&iper, &jper, &kper);
 	bool periodic[3];
-	if (iper && min[0] == 0 && max[0] == dim[0]-1) periodic[0] = true;
+	if (iper && mymin[0] == 0 && mymax[0] == dim[0]-1) periodic[0] = true;
 	else periodic[0] = false;
-	if (jper && min[1] == 0 && max[1] == dim[1]-1) periodic[1] = true;
+	if (jper && mymin[1] == 0 && mymax[1] == dim[1]-1) periodic[1] = true;
 	else periodic[1] = false;
-	if (kper && min[2] == 0 && max[2] == dim[2]-1) periodic[2] = true;
+	if (kper && mymin[2] == 0 && mymax[2] == dim[2]-1) periodic[2] = true;
 	else periodic[2] = false;
-	int rc = rg->Reshape(min,max,periodic);
+	int rc = rg->Reshape(mymin,mymax,periodic);
 	if (rc<0) {
 		SetErrMsg("Invalid grid dimensions\n");
 		return(NULL);
@@ -340,8 +355,8 @@ unsigned char	*DataMgr::GetRegionUInt8(
 		max[0],max[1],max[2], range1[0], range1[1], 
 		range2[0], range2[1], lock
 	);
-	VarType_T vtype1 = GetVarType(varname1);
-	VarType_T vtype2 = GetVarType(varname2);
+	VarType_T vtype1 = DataMgr::GetVarType(varname1);
+	VarType_T vtype2 = DataMgr::GetVarType(varname2);
 	if (vtype1 != vtype2) {
 		SetErrMsg("Variable type mismatch");
 		return(NULL);
@@ -470,8 +485,8 @@ unsigned char	*DataMgr::GetRegionUInt16(
 		range2[0], range2[1], lock
 	);
 
-	VarType_T vtype1 = GetVarType(varname1);
-	VarType_T vtype2 = GetVarType(varname2);
+	VarType_T vtype1 = DataMgr::GetVarType(varname1);
+	VarType_T vtype2 = DataMgr::GetVarType(varname2);
 	if (vtype1 != vtype2) {
 		SetErrMsg("Variable type mismatch");
 		return(NULL);
@@ -803,7 +818,7 @@ unsigned char	*DataMgr::get_quantized_region(
 	if (! blks) return (NULL);
 
 
-	VarType_T vtype = GetVarType(varname);
+	VarType_T vtype = DataMgr::GetVarType(varname);
 	ublks = (unsigned char *) alloc_region(
 		ts,varname,vtype, reflevel,lod, type,min,max, lock, false
 	);
@@ -904,6 +919,7 @@ int DataMgr::GetDataRange(
 	int lod
 ) {
 	int	rc;
+	range[0] = range[1] = 0.0;
 
 	SetDiagMsg("DataMgr::GetDataRange(%d,%s)", ts, varname);
 
@@ -957,101 +973,29 @@ int DataMgr::GetDataRange(
 	// ourselves
 	//
 	size_t min[3], max[3];
-	size_t bmin[3], bmax[3];
 	rc = GetValidRegion(ts, varname, reflevel, min, max);
 	if (rc<0) return(-1);
-	MapVoxToBlk(min, bmin, reflevel);
-	MapVoxToBlk(max, bmax, reflevel);
 
 	
-	// Get data volume 
-	//
-	float *blks = GetRegion(ts, varname, reflevel, lod,bmin, bmax, 0); 
-	if (! blks) return(-1);
+	const RegularGrid *rg = DataMgr::GetGrid(
+		ts, varname, reflevel, lod, min, max, 0
+	);
+	if (! rg) return(-1);
 
-	VarType_T vtype = GetVarType(varname);
 
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
-	switch (vtype) {
-	case VAR2D_XY:
-		bs[2] = 1;
-		bmin[2] = bmax[2] = 0;
-		min[2] = max[2] = 0;
-		break;
-	case VAR2D_XZ:
-		bs[1] = 1;
-		bmin[1] = bmax[1] = 0;
-		min[1] = max[1] = 0;
-		break;
-	case VAR2D_YZ:
-		bs[0] = 1;
-		bmin[0] = bmax[0] = 0;
-		min[0] = max[0] = 0;
-		break;
-	case VAR3D:
-		break;
-	default: 
-		break;
-	}
-
-	//
-	// Finally calculate the range. Note this code probably should crop
-	// the extents to the valid extents range returned by GetValidExtents()
-	//
+	RegularGrid::ConstIterator itr;
 	bool first = true;
-
-	//
-	// These flags are true if this is a boundary block && the volume
-	// dimensions don't match the blocked-volume dimensions
-	//
-	bool xlbdry = (bmin[0]*bs[0] != min[0]);
-	bool ylbdry = (bmin[1]*bs[1] != min[1]);
-	bool zlbdry = (bmin[2]*bs[2] != min[2]);
-
-	bool xrbdry = ((bmax[0]+1)*bs[0]-1 != max[0]);
-	bool yrbdry = ((bmax[1]+1)*bs[1]-1 != max[1]);
-	bool zrbdry = ((bmax[2]+1)*bs[2]-1 != max[2]);
-
-	size_t nx = (bmax[0]-bmin[0]+1)*bs[0];
-	size_t ny = (bmax[1]-bmin[1]+1)*bs[1];
-	size_t nz = (bmax[2]-bmin[2]+1)*bs[2];
-	//
-	// the xyzstop limits are the bounds of the valid data for the block
-	//
-	size_t xstart = 0;
-	size_t ystart = 0;
-	size_t zstart = 0;
-
-	size_t xstop = nx-1;
-	size_t ystop = ny-1;
-	size_t zstop = nz-1;
-
-	if (xlbdry) xstart = min[0] - (bmin[0]*bs[0]);
-	if (ylbdry) ystart = min[1] - (bmin[1]*bs[1]);
-	if (zlbdry) zstart = min[2] - (bmin[2]*bs[2]);
-
-	if (xrbdry) xstop -= ((bmax[0]+1)*bs[0]-1) - max[0]; 
-	if (yrbdry) ystop -= ((bmax[1]+1)*bs[1]-1) - max[1]; 
-	if (zrbdry) zstop -= ((bmax[2]+1)*bs[2]-1) - max[2]; 
-
-
-	for (size_t z=zstart; z<=zstop; z++) {
-	for (size_t y=ystart; y<=ystop; y++) {
-	for (size_t x=xstart; x<=xstop; x++) {
-
-		size_t idx = z*nx*ny + y*nx +x;
-		if (first) {
-			range[0] = range[1] = blks[idx];
-			first = false;
+	float mv = rg->GetMissingValue();
+	for (itr = rg->begin(); itr!=rg->end(); ++itr) {
+		float v = *itr;
+		if (v != mv) {
+			if (first) {
+				range[0] = range[1] = v;
+				first = false;
+			}
+			if (v < range[0]) range[0] = v;
+			if (v > range[1]) range[1] = v;
 		}
-
-		if (blks[idx] < range[0]) range[0] = blks[idx];
-		if (blks[idx] > range[1]) range[1] = blks[idx];
-
-	}
-	}
 	}
 
 	// Use of []'s creates an entry in map
