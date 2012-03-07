@@ -193,22 +193,18 @@ void	Metadata::GetEnclosingRegion(
 
 	for (int i=0; i<3; i++) {
 		if (extents[i] < extents[i+3]) {
-			if (temp_minu[i] > minu[i]) {
-				assert(temp_min[i] > 0);
+			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
 				temp_min[i]--;
 			}
-			if (temp_maxu[i] < maxu[i]) {
-				assert(temp_max[i] < (dims[i]-1));
+			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
 				temp_max[i]++;
 			}
 		}
 		else {
-			if (temp_minu[i] < minu[i]) {
-				assert(temp_min[i] > 0);
+			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
 				temp_min[i]--;
 			}
-			if (temp_maxu[i] > maxu[i]) {
-				assert(temp_max[i] < (dims[i]-1));
+			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
 				temp_max[i]++;
 			}
 		}
