@@ -359,7 +359,7 @@ void LayeredGrid::GetIJKIndex(
 			// is between the two grid points. We only need find out 
 			// which one it is closest to.
 			//
-			if ((x-p0) * (x-p1) <= 0.0) { 
+			if ((x-p0) * (x-p1) < 0.0) { 
 				double wgt = fabs((x-p0) / (p1-p0));
 
 				if (wgt<0.5) *i = ii;
@@ -394,7 +394,7 @@ void LayeredGrid::GetIJKIndex(
 			// is between the two grid points. We only need find out 
 			// which one it is closest to.
 			//
-			if ((y-p0) * (y-p1) <= 0.0) { 
+			if ((y-p0) * (y-p1) < 0.0) { 
 				double wgt = fabs((y-p0) / (p1-p0));
 
 				if (wgt<0.5) *j = jj;
@@ -429,7 +429,7 @@ void LayeredGrid::GetIJKIndex(
 			// is between the two grid points. We only need find out 
 			// which one it is closest to.
 			//
-			if ((z-p0) * (z-p1) <= 0.0) { 
+			if ((z-p0) * (z-p1) < 0.0) { 
 				double wgt = fabs((z-p0) / (p1-p0));
 
 				if (wgt<0.5) *k = kk;

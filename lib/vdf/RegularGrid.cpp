@@ -70,6 +70,7 @@ int RegularGrid::_RegularGrid(
 	for (int i=0; i<3; i++) {
 		assert(max[i] >= min[i]);
 		_bs[i] = bs[i];
+		if (_bs[i] == 0) _bs[i] = 1;
 		_bdims[i] = (max[i]/bs[i]) - (min[i]/bs[i]) + 1;
 		nblocks *= _bdims[i];
 		_minabs[i] = min[i];
@@ -182,17 +183,25 @@ float RegularGrid::GetValue(double x, double y, double z) const {
 
 float RegularGrid::_GetValueNearestNeighbor(double x, double y, double z) const {
 
-	size_t i = (size_t) floor ((x-_minu[0]) / _delta[0]);
-	size_t j = (size_t) floor ((y-_minu[1]) / _delta[1]);
-	size_t k = (size_t) floor ((z-_minu[2]) / _delta[2]);
+	size_t i = 0;
+	size_t j = 0;
+	size_t k = 0;
+
+	if (_delta[0] != 0.0) i = (size_t) floor ((x-_minu[0]) / _delta[0]);
+	if (_delta[1] != 0.0) j = (size_t) floor ((y-_minu[1]) / _delta[1]);
+	if (_delta[2] != 0.0) k = (size_t) floor ((z-_minu[2]) / _delta[2]);
 
 	assert(i<=(_max[0]-_min[0]));
 	assert(j<=(_max[1]-_min[1]));
 	assert(k<=(_max[2]-_min[2]));
 
-	double iwgt = ((x - _minu[0]) - (i * _delta[0])) / _delta[0];
-	double jwgt = ((y - _minu[1]) - (j * _delta[1])) / _delta[1];
-	double kwgt = ((z - _minu[2]) - (k * _delta[2])) / _delta[2];
+	double iwgt = 0.0;
+	double jwgt = 0.0;
+	double kwgt = 0.0;
+
+	if (_delta[0] != 0.0) iwgt = ((x - _minu[0]) - (i * _delta[0])) / _delta[0];
+	if (_delta[1] != 0.0) jwgt = ((y - _minu[1]) - (j * _delta[1])) / _delta[1];
+	if (_delta[2] != 0.0) kwgt = ((z - _minu[2]) - (k * _delta[2])) / _delta[2];
 
 	if (iwgt>0.5) i++;
 	if (jwgt>0.5) j++;
@@ -203,17 +212,25 @@ float RegularGrid::_GetValueNearestNeighbor(double x, double y, double z) const 
 
 float RegularGrid::_GetValueLinear(double x, double y, double z) const {
 
-	size_t i = (size_t) floor ((x-_minu[0]) / _delta[0]);
-	size_t j = (size_t) floor ((y-_minu[1]) / _delta[1]);
-	size_t k = (size_t) floor ((z-_minu[2]) / _delta[2]);
+	size_t i = 0;
+	size_t j = 0;
+	size_t k = 0;
+
+	if (_delta[0] != 0.0) i = (size_t) floor ((x-_minu[0]) / _delta[0]);
+	if (_delta[1] != 0.0) j = (size_t) floor ((y-_minu[1]) / _delta[1]);
+	if (_delta[2] != 0.0) k = (size_t) floor ((z-_minu[2]) / _delta[2]);
 
 	assert(i<=(_max[0]-_min[0]));
 	assert(j<=(_max[1]-_min[1]));
 	assert(k<=(_max[2]-_min[2]));
 
-	double iwgt = ((x - _minu[0]) - (i * _delta[0])) / _delta[0];
-	double jwgt = ((y - _minu[1]) - (j * _delta[1])) / _delta[1];
-	double kwgt = ((z - _minu[2]) - (k * _delta[2])) / _delta[2];
+	double iwgt = 0.0;
+	double jwgt = 0.0;
+	double kwgt = 0.0;
+
+	if (_delta[0] != 0.0) iwgt = ((x - _minu[0]) - (i * _delta[0])) / _delta[0];
+	if (_delta[1] != 0.0) jwgt = ((y - _minu[1]) - (j * _delta[1])) / _delta[1];
+	if (_delta[2] != 0.0) kwgt = ((z - _minu[2]) - (k * _delta[2])) / _delta[2];
 
 	double p0,p1,p2,p3,p4,p5,p6,p7;
 
@@ -415,17 +432,23 @@ void RegularGrid::GetIJKIndex(
 		if (z<_maxu[2]) z = _maxu[2];
 	}
 
-	*i = (size_t) floor ((x-_minu[0]) / _delta[0]);
-	*j = (size_t) floor ((y-_minu[1]) / _delta[1]);
-	*k = (size_t) floor ((z-_minu[2]) / _delta[2]);
+	*i = *j = *k = 0;
+
+	if (_delta[0] != 0.0) *i = (size_t) floor ((x-_minu[0]) / _delta[0]);
+	if (_delta[1] != 0.0) *j = (size_t) floor ((y-_minu[1]) / _delta[1]);
+	if (_delta[2] != 0.0) *k = (size_t) floor ((z-_minu[2]) / _delta[2]);
 
 	assert(*i<=(_max[0]-_min[0]));
 	assert(*j<=(_max[1]-_min[1]));
 	assert(*k<=(_max[2]-_min[2]));
 
-	double iwgt = ((x - _minu[0]) - (*i * _delta[0])) / _delta[0];
-	double jwgt = ((y - _minu[1]) - (*j * _delta[1])) / _delta[1];
-	double kwgt = ((z - _minu[2]) - (*k * _delta[2])) / _delta[2];
+	double iwgt = 0.0;
+	double jwgt = 0.0;
+	double kwgt = 0.0;
+
+	if (_delta[0] != 0.0) iwgt = ((x - _minu[0]) - (*i * _delta[0]))/_delta[0];
+	if (_delta[1] != 0.0) jwgt = ((y - _minu[1]) - (*j * _delta[1]))/_delta[1];
+	if (_delta[2] != 0.0) kwgt = ((z - _minu[2]) - (*k * _delta[2]))/_delta[2];
 
 	if (iwgt>0.5) *i += 1;
 	if (jwgt>0.5) *j += 1;
@@ -467,9 +490,11 @@ void RegularGrid::GetIJKIndexFloor(
 		if (z<_maxu[2]) z = _maxu[2];
 	}
 
-	*i = (size_t) floor ((x-_minu[0]) / _delta[0]);
-	*j = (size_t) floor ((y-_minu[1]) / _delta[1]);
-	*k = (size_t) floor ((z-_minu[2]) / _delta[2]);
+	*i = *j = *k = 0;
+
+	if (_delta[0] != 0.0) *i = (size_t) floor ((x-_minu[0]) / _delta[0]);
+	if (_delta[1] != 0.0) *j = (size_t) floor ((y-_minu[1]) / _delta[1]);
+	if (_delta[2] != 0.0) *k = (size_t) floor ((z-_minu[2]) / _delta[2]);
 
 	assert(*i<=(_max[0]-_min[0]));
 	assert(*j<=(_max[1]-_min[1]));
