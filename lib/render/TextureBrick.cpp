@@ -257,12 +257,10 @@ void TextureBrick::copytex_fast(
 	) {
 		// Fast copy with iterator
 
-		RegularGrid::Iterator itr;
+		RegularGrid::ConstIterator itr;
 
-		// kludge - no const_iterator
-		RegularGrid *rg_const = (RegularGrid *) rg;	
 		if (_szcomp == 1) {
-			for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+			for (itr = rg->begin(); itr!=rg->end(); ++itr) {
 				v = *itr;
 
 				if (v<range[0]) qv=0;
@@ -273,7 +271,7 @@ void TextureBrick::copytex_fast(
 				ucptr+=step;
 			}
 		} else if (_szcomp == 2) {
-			for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+			for (itr = rg->begin(); itr!=rg->end(); ++itr) {
 				v = *itr;
 
 				if (v<range[0]) qv=0;
@@ -359,12 +357,10 @@ void TextureBrick::copytex(
     
 		// Fast copy with iterator
 
-		RegularGrid::Iterator itr;
+		RegularGrid::ConstIterator itr;
 
-		// kludge - no const_iterator
-		RegularGrid *rg_const = (RegularGrid *) rg;	
 		if (_szcomp == 1) {
-			for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+			for (itr = rg->begin(); itr!=rg->end(); ++itr) {
 				v = *itr;
 				int c = 0;
 
@@ -398,7 +394,7 @@ void TextureBrick::copytex(
 				}
 			}
 		} else if (_szcomp == 2) {
-			for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+			for (itr = rg->begin(); itr!=rg->end(); ++itr) {
 				int c = 0;
 				v = *itr;
 
