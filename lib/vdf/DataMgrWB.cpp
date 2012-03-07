@@ -48,6 +48,25 @@ RegularGrid *DataMgrWB::MakeGrid(
 	size_t dim[3];
 	WaveletBlock3DRegionReader::GetDim(dim,reflevel);
 
+    //
+    // Make sure 2D variables have valid 3rd dimensions
+    //
+    VarType_T vtype = WaveletBlock3DRegionReader::GetVarType(varname);
+    switch (vtype) {
+    case VAR2D_XY:
+        dim[2] = bdim[2] = bs[2] = 1;
+        break;
+    case VAR2D_XZ:
+        dim[1] = bdim[1] = bs[1] = 1;
+        break;
+    case VAR2D_YZ:
+        dim[0] = bdim[0] = bs[0] = 1;
+        break;
+    default:
+        break;
+    }
+
+
 	int nblocks = 1;
 	size_t block_size = 1;
 	size_t min[3], max[3];
@@ -88,7 +107,7 @@ RegularGrid *DataMgrWB::MakeGrid(
 		return(new SphericalGrid(bs,min,max,extents,perm,periodic,_blkptrs));
 	} else if (
 		! (WaveletBlock3DRegionReader::GetGridType().compare("layered")==0) ||
-		varname.compare("ELEVATION") == 0
+		varname.compare("ELEVATION") == 0 || vtype != VAR3D
 	) {
 		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
 	}

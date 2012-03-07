@@ -59,6 +59,27 @@ RegularGrid *DataMgrWRF::MakeGrid(
 	size_t min[3] = {0,0,0};
 	size_t max[3] = {dim[0]-1,dim[1]-1,dim[2]-1};
 
+    //
+    // Make sure 2D variables have valid 3rd dimensions
+    //
+    VarType_T vtype = WRFReader::GetVarType(varname);
+    switch (vtype) {
+    case VAR2D_XY:
+		bs[2] = 1;
+		min[2] = max[2] = 0;
+        break;
+    case VAR2D_XZ:
+		bs[1] = 1;
+		min[1] = max[1] = 0;
+        break;
+    case VAR2D_YZ:
+		bs[0] = 1;
+		min[0] = max[0] = 0;
+        break;
+    default:
+        break;
+    }
+
 	_blkptrs[0] = blocks;
 
 	double extents[6];
