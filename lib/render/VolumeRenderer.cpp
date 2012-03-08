@@ -284,16 +284,11 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
 	static float extents[6];
-	static float padded_extents[6];
 	  
 	size_t max_dim[3];
 	size_t min_dim[3];
-	size_t max_pad_dim[3];
-	size_t min_pad_dim[3];
 	size_t max_bdim[3];
 	size_t min_bdim[3];
-	int data_roi[6];
-	int datablock[6];
 	int i;
 
 
@@ -320,23 +315,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 
-//vector <double> gextents = dataMgr->GetExtents(timeStep);
-//glTranslatef(
-//gextents[0]-lextents[0],
-//gextents[1]-lextents[1],
-//gextents[2]-lextents[2]
-//);
-//cout << "TRANSLATE " << 
-//gextents[0]-lextents[0] << " " <<
-//gextents[1]-lextents[1] << " " <<
-//gextents[2]-lextents[2] << " " << endl;
-
-
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	glScalef(scales[0], scales[1], scales[2]);
 
-			
-	
 	int varNum = currentRenderParams->getSessionVarNum();
 
 	if (myGLWindow->vizIsDirty(ViewportBit)) {
@@ -387,9 +368,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 		setClutDirty();
 		savedNumXForms = reflevel;
 	}
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs,reflevel);
-
 	  
 	//Loop if user accepts lower resolution:
 	
@@ -459,7 +437,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	// roi changes, or if the datarange has changed.
 	//
 	if (myGLWindow->vizIsDirty(RegionBit) || forceReload
-		|| datarangeIsDirty() || myGLWindow->vizIsDirty(NavigatingBit)
+		|| datarangeIsDirty() 
+	//	|| myGLWindow->vizIsDirty(NavigatingBit)
 		|| myGLWindow->vizIsDirty(AnimationBit)) 
 	{
 		//Check if the region/resolution is too big:
