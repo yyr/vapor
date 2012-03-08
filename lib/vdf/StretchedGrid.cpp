@@ -370,3 +370,32 @@ int StretchedGrid::Reshape(
 
 	return(0);
 }
+
+void StretchedGrid::GetMinCellExtents(double *x, double *y, double *z) const {
+
+	*x = *y = *z = 0.0;
+
+	size_t dims[3];
+	GetDimensions(dims);
+
+	for (int i=0; i<_xcoords.size()-1; i++) {
+		double tmp = fabs(_xcoords[i]-_xcoords[i+1]);
+
+		if (i==0) *x = tmp;
+		if (tmp<*x) *x = tmp;
+	}
+	for (int i=0; i<_ycoords.size()-1; i++) {
+		double tmp = fabs(_ycoords[i]-_ycoords[i+1]);
+
+		if (i==0) *y = tmp;
+		if (tmp<*y) *y = tmp;
+	}
+	for (int i=0; i<_zcoords.size()-1; i++) {
+		double tmp = fabs(_zcoords[i]-_zcoords[i+1]);
+
+		if (i==0) *z = tmp;
+		if (tmp<*z) *z = tmp;
+	}
+	
+}
+

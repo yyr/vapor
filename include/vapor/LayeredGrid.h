@@ -177,10 +177,16 @@ public:
  //
  virtual void SetPeriodic(const bool periodic[3]);
 
+ //! \copydoc RegularGrid::GetMinCellExtents()
+ //!
+ virtual void GetMinCellExtents(double *x, double *y, double *z) const;
+
 private:
  float **_coords;
  int _varying_dim;
  double _extents[6];
+ double _zcellmin;	// Minimum grid spacing along Z axis
+ bool _zcellmin_cache;	// _zcellmin value is valid
 
  void _GetUserExtents(double extents[6]) const;
  double _interpolateVaryingCoord(

@@ -362,6 +362,21 @@ public:
 	bs[0] = _bs[1]; bs[1] = _bs[1]; bs[2] = _bs[2];
  }
 
+ //! Return the minimum grid spacing between all grid points
+ //!
+ //! This method returns the minimum distance, in user coordinates,
+ //! between adjacent grid points  for all cells in the grid. 
+ //!
+ //! \param[out] x Minimum distance between grid points along X axis
+ //! \param[out] y Minimum distance between grid points along Y axis
+ //! \param[out] z Minimum distance between grid points along Z axis
+ //!
+ //! \note For a regular grid all cells have the same dimensions
+ //!
+ virtual void GetMinCellExtents(double *x, double *y, double *z) const {
+	*x = _delta[0]; *y = _delta[1]; *z = _delta[2];
+ };
+
  //! Return the internal data structure containing a copy of the blocks
  //! passed in by the constructor
  //!

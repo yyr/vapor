@@ -826,6 +826,31 @@ bool LayeredGrid::InsideGrid(double x, double y, double z) const {
 	return(true);
 }
 
+void LayeredGrid::GetMinCellExtents(double *x, double *y, double *z) const {
+
+	//
+	// Get X and Y dimension minimums
+	//
+	RegularGrid::GetMinCellExtents(x,y,z);
+
+	size_t dims[3];
+	GetDimensions(dims);
+
+	if (dims[2] < 2) return;
+
+	double tmp;
+	*z = fabs(_AccessIJK(_coords, 0,0,0) - _AccessIJK(_coords, 0,0,1));
+
+	for (int k=0; k<dims[2]-1; k++) {
+	for (int j=0; j<dims[1]; j++) {
+	for (int i=0; i<dims[0]; i++) {
+		tmp = fabs(_AccessIJK(_coords, i,j,k) - _AccessIJK(_coords, i,j,k+1));
+		if (tmp<*z) *z = tmp;
+	}
+	}
+	}
+}
+
 double LayeredGrid::_interpolateVaryingCoord(
 	size_t i0, size_t j0, size_t k0,
 	double x, double y, double z) const {

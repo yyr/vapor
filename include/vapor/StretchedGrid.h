@@ -127,6 +127,12 @@ public:
 	const bool periodic[3]
  );
 
+ //! \copydoc RegularGrid::GetMinCellExtents()
+ //!
+ virtual void GetMinCellExtents(double *x, double *y, double *z) const;
+
+
+
 private:
  size_t _min[3];
  size_t _max[3];
