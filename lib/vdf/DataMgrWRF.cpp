@@ -83,8 +83,8 @@ RegularGrid *DataMgrWRF::MakeGrid(
 	_blkptrs[0] = blocks;
 
 	double extents[6];
-    WRFReader::MapVoxToUser(ts,min, extents, reflevel);
-    WRFReader::MapVoxToUser(ts,max, extents+3, reflevel);
+	WRFReader::MapVoxToUser(ts,min, extents, reflevel);
+	WRFReader::MapVoxToUser(ts,max, extents+3, reflevel);
 
 	//
 	// Determine which dimensions are periodic, if any. For a dimension to
@@ -115,9 +115,12 @@ RegularGrid *DataMgrWRF::MakeGrid(
 		float **coords = elevation->GetBlks();
 		_blkptrs[0] = blocks;
 
+cerr << "Hard code missing value\n";
+		LayeredGrid *lg = new LayeredGrid(
+			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+		);
 		delete elevation;
-
-		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2));
+		return(lg);
 	}
 }
 

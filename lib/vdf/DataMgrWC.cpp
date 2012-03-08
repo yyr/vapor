@@ -80,9 +80,9 @@ RegularGrid *DataMgrWC::MakeGrid(
 		_blkptrs[i] = blocks + i*block_size;
 	}
 
-	double extents[6];
-    WaveCodecIO::MapVoxToUser(ts,min, extents, reflevel);
-    WaveCodecIO::MapVoxToUser(ts,max, extents+3, reflevel);
+    double extents[6];
+	WaveCodecIO::MapVoxToUser(ts,min, extents, reflevel);
+	WaveCodecIO::MapVoxToUser(ts,max, extents+3, reflevel);
 
 	//
 	// Determine which dimensions are periodic, if any. For a dimension to
@@ -108,7 +108,7 @@ RegularGrid *DataMgrWC::MakeGrid(
 		return(new SphericalGrid(bs,min,max,extents,perm,periodic,_blkptrs));
 	}
 	else if (
-		! (WaveCodecIO::GetGridType().compare("layered")==0) ||
+		! (DataMgrWC::GetGridType().compare("layered")==0) ||
 		varname.compare("ELEVATION") == 0 || vtype != VAR3D
 	) {
 		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
@@ -123,9 +123,13 @@ RegularGrid *DataMgrWC::MakeGrid(
 			_blkptrs[i] = blocks + i*block_size;
 		}
 
-		delete elevation;
 
-		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2));
+cerr << "Hard code missing value\n";
+		LayeredGrid *lg = new LayeredGrid(
+			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+		);
+		delete elevation;
+		return(lg);
 	}
 }
 

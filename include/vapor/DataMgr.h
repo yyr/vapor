@@ -458,6 +458,27 @@ public:
 void PurgeVariable(string varname);
 
 
+ //! \copydoc Metadata::MapUserToVox()
+ //!
+ //! \note Supports layered grid types
+ //
+ virtual void   MapUserToVox(
+    size_t timestep,
+    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
+ ) ;
+
+ //! \copydoc Metadata::MapVoxToUser()
+ //!
+ //! \note Supports layered grid types
+ //
+ virtual void   MapVoxToUser(
+    size_t timestep,
+    const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
+ ) ;
+
+
+protected:
+
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
  void    *alloc_region(
 	size_t ts,
@@ -472,7 +493,6 @@ void PurgeVariable(string varname);
 	bool fill
  ); 
 
-protected:
  const vector<string> emptyVec;
  
 
@@ -735,6 +755,8 @@ private:
 
  PipeLine *get_pipeline_for_var(string varname) const;
 
+ LayeredGrid *get_elev_grid(size_t ts, int reflevel);
+
 };
 
 //! \class PipeLine
@@ -797,7 +819,7 @@ class VDF_API PipeLine {
 	const vector <pair <string, Metadata::VarType_T> > &GetOutputs() const { 
 		return (_outputs); 
 	};
-    private:
+private:
 	string _name;
 	vector <string> _inputs;
 	vector<pair<string, Metadata::VarType_T> > _outputs;

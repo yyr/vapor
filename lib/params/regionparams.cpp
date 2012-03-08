@@ -320,7 +320,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		userMinCoords[i] = regExts[i];;
 		userMaxCoords[i] = regExts[i+3];
 	}
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		setFullGridHeight(fullHeight);
@@ -390,7 +390,7 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 {
 		
 	DataStatus* ds = DataStatus::getInstance();
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return -1;
 		
 	//First determine the refinement level we will be using (for all the variables).
@@ -516,7 +516,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	}
 
 	
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		setFullGridHeight(fullHeight);
@@ -608,7 +608,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		userMinCoords[i] = regExts[i];
 		userMaxCoords[i] = regExts[i+3];
 	}
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, numxforms);
 	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
@@ -843,7 +843,7 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 		userMinCoords[i] = (double)boxMin[i];
 		userMaxCoords[i] = (double)boxMax[i];
 	}
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return 0;
 	size_t timestep = DataStatus::getInstance()->getMinTimestep();
 	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, refLevel);

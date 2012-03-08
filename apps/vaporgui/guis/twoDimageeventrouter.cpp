@@ -312,7 +312,7 @@ void TwoDImageEventRouter::updateTab(){
 	maxUserYLabel->setText(QString::number(boxmax[1]));
 	maxUserZLabel->setText(QString::number(boxmax[2]));
 
-	const DataMgr *dataMgr = ds->getDataMgr();
+	DataMgr *dataMgr = ds->getDataMgr();
 	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
 

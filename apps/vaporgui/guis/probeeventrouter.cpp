@@ -254,7 +254,16 @@ ProbeEventRouter::hookUpTab()
 //
 void ProbeEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	
+
+cerr << "CRAP\n";
+size_t crdMin[3]= {31,31,15};
+size_t crdMax[3]= {32,32,16};
+DataMgr* dm = DataStatus::getInstance()->getDataMgr();
+RegularGrid* grid = dm->GetGrid (0, string("ru"), 0, 0, crdMin, crdMax);
+//size_t crds[3];
+//grid->GetIJKIndex (.5,.5,.25, crds, crds+1, crds+2);
+//float value = grid->AccessIJK(crds[0],crds[1],crds[2]);
+
 	if (GLWindow::isRendering())return;
 	guiSetTextChanged(false);
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
@@ -412,7 +421,7 @@ void ProbeEventRouter::updateTab(){
 
 	//And convert these to grid coordinates:
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
 		dataMgr->MapUserToVox((size_t)-1, dboxmin, gridMin, fullRefLevel);

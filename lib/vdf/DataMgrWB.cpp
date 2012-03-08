@@ -82,8 +82,8 @@ RegularGrid *DataMgrWB::MakeGrid(
 	}
 
 	double extents[6];
-    WaveletBlock3DRegionReader::MapVoxToUser(ts,min, extents, reflevel);
-    WaveletBlock3DRegionReader::MapVoxToUser(ts,max, extents+3, reflevel);
+	WaveletBlock3DRegionReader::MapVoxToUser(ts,min, extents, reflevel);
+	WaveletBlock3DRegionReader::MapVoxToUser(ts,max, extents+3, reflevel);
 
 	//
 	// Determine which dimensions are periodic, if any. For a dimension to
@@ -106,7 +106,7 @@ RegularGrid *DataMgrWB::MakeGrid(
 		size_t perm[] = {permv[0], permv[1], permv[2]};
 		return(new SphericalGrid(bs,min,max,extents,perm,periodic,_blkptrs));
 	} else if (
-		! (WaveletBlock3DRegionReader::GetGridType().compare("layered")==0) ||
+		! (DataMgrWB::GetGridType().compare("layered")==0) ||
 		varname.compare("ELEVATION") == 0 || vtype != VAR3D
 	) {
 		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
@@ -121,11 +121,13 @@ RegularGrid *DataMgrWB::MakeGrid(
 			_blkptrs[i] = blocks + i*block_size;
 		}
 
-		delete elevation;
 
-//		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2));
 cerr << "Hard code missing value\n";
-		return(new LayeredGrid(bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20));
+		LayeredGrid *lg = new LayeredGrid(
+			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+		);
+		delete elevation;
+		return(lg);
 	}
 }
 

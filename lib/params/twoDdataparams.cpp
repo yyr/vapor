@@ -980,7 +980,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	unsigned char* twoDTexture = new unsigned char[texWidth*texHeight*4];
 
 	//Use the region reader to calculate coordinates in volume
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());

@@ -1786,3 +1786,77 @@ void DataMgr::PurgeVariable(string varname){
 	free_var(varname,1);
 }
 
+LayeredGrid *DataMgr::get_elev_grid(size_t ts, int reflevel) 
+{
+	if (ts >= GetNumTimeSteps()) ts = 0;
+
+	string elevation = "ELEVATION";
+
+	size_t min[3], max[3];
+	int rc = GetValidRegion(
+		ts, elevation.c_str(), reflevel, min, max
+	);
+	if (rc<0) return (NULL);
+
+	RegularGrid *rg = DataMgr::GetGrid(
+		ts, elevation, reflevel,-1, min, max, 0
+	);
+	if (! rg) return (NULL);
+
+	size_t bs[3];
+	rg->GetBlockSize(bs);
+
+	double extents[6];
+	rg->GetUserExtents(extents);
+
+	bool periodic[3] = {false, false, false}; 
+	LayeredGrid *lg = new LayeredGrid(
+		bs,min, max, extents, periodic, rg->GetBlks(), rg->GetBlks(),2
+	);
+	delete rg;
+
+	return(lg);
+}
+
+void   DataMgr::MapUserToVox(
+    size_t timestep,
+    const double xyz[3], size_t ijk[3], int reflevel
+ ) {
+	ijk[0] = 0;
+	ijk[1] = 0;
+	ijk[2] = 0;
+
+	string gtype = GetGridType();
+
+	if (! (gtype.compare("layered") == 0)) {
+		return(Metadata::MapUserToVox(timestep, xyz, ijk, reflevel));
+	}
+	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+
+	if (! lg) return;
+
+	lg->GetIJKIndex(xyz[0],xyz[1],xyz[2], &ijk[0], &ijk[1], &ijk[2]);
+	delete lg;
+}
+
+void   DataMgr::MapVoxToUser(
+    size_t timestep,
+    const size_t ijk[3], double xyz[3], int reflevel
+ ) {
+	string gtype = GetGridType();
+
+	xyz[0] = 0.0;
+	xyz[1] = 0.0;
+	xyz[2] = 0.0;
+
+	if (gtype.compare("layered") == 0) {
+		return(Metadata::MapVoxToUser(timestep, ijk, xyz, reflevel));
+	}
+
+	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+
+	if (! lg) return;
+
+	lg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
+	delete lg;
+}

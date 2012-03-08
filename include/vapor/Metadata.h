@@ -343,6 +343,8 @@ public:
  //! indicates the maximum refinment level defined for the VDC. In fact,
  //! any invalid value is treated as the maximum refinement level
  //!
+ //! \note Does not support layered grid types
+ //!
  //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
  //! GetTSXCoords()
  //
@@ -379,6 +381,8 @@ public:
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC. In fact,
  //! any invalid value is treated as the maximum refinement level
+ //!
+ //! \note Does not support layered grid types
  //!
  //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
  //! GetTSXCoords()

@@ -106,6 +106,8 @@ public:
 	return(WRFReader::GetMapProjection());
  };
 
+ virtual string GetGridType() const { return("layered"); };
+
 	
 protected:
 

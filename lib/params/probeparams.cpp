@@ -1032,7 +1032,7 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 	}
 	//Get the regionReader to map coordinates:
 	//Use the region reader to calculate coordinates in volume
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
 	}
@@ -1281,7 +1281,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
 	//Use the region reader to calculate coordinates in volume
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	if (ds->dataIsLayered()){
 		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
@@ -1649,7 +1649,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	float sumMag = 0.f;
 	int numValidPoints = 0;
 	//Use the region reader to calculate coordinates in volume
-	const DataMgr* dataMgr = ds->getDataMgr();
+	DataMgr* dataMgr = ds->getDataMgr();
 
 	//Check on below terrain values if layered data;
 	float lowVal[3];
