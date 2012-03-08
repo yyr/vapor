@@ -66,13 +66,13 @@ int RegularGrid::_RegularGrid(
 	float INFINITY = numeric_limits<float>::infinity( );
 	float NAN = numeric_limits<float>::quiet_NaN();
 #endif
-	size_t nblocks = 1;
+	_nblocks = 1;
 	for (int i=0; i<3; i++) {
 		assert(max[i] >= min[i]);
 		_bs[i] = bs[i];
 		if (_bs[i] == 0) _bs[i] = 1;
 		_bdims[i] = (max[i]/bs[i]) - (min[i]/bs[i]) + 1;
-		nblocks *= _bdims[i];
+		_nblocks *= _bdims[i];
 		_minabs[i] = min[i];
 		_maxabs[i] = max[i];
 		_min[i] = min[i] % bs[i];
@@ -91,8 +91,8 @@ int RegularGrid::_RegularGrid(
 	//
 	// Shallow  copy blocks
 	//
-	_blks = new float*[nblocks];
-	for (int i=0; i<nblocks; i++) {
+	_blks = new float*[_nblocks];
+	for (int i=0; i<_nblocks; i++) {
 		_blks[i] = blks[i];
 	}
 

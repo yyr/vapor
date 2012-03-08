@@ -93,6 +93,8 @@ public:
 	float missing_value
  );
 
+ virtual ~LayeredGrid();
+
 
  //! \copydoc RegularGrid::GetValue()
  //!

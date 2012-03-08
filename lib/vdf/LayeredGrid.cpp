@@ -16,7 +16,15 @@ LayeredGrid::LayeredGrid(
 	int varying_dim
  ) : RegularGrid(bs,min,max,extents,periodic,blks) {
 
-	_coords = coords;
+    //
+    // Shallow  copy blocks
+    //
+	size_t nblocks = RegularGrid::GetNumBlks();
+    _coords = new float*[nblocks];
+    for (int i=0; i<nblocks; i++) {
+        _coords[i] = coords[i];
+    }
+
 	_varying_dim = varying_dim;
 	if (_varying_dim < 0 || _varying_dim > 2) _varying_dim = 2;
 
@@ -40,13 +48,25 @@ LayeredGrid::LayeredGrid(
 	float missing_value
  ) : RegularGrid(bs,min,max,extents,periodic,blks, missing_value) {
 
-	_coords = coords;
+    //
+    // Shallow  copy blocks
+    //
+	size_t nblocks = RegularGrid::GetNumBlks();
+    _coords = new float*[nblocks];
+    for (int i=0; i<nblocks; i++) {
+        _coords[i] = coords[i];
+    }
+
 	_varying_dim = varying_dim;
 	if (_varying_dim < 0 || _varying_dim > 2) _varying_dim = 2;
 
 	assert(periodic[_varying_dim] == false);
 
 	_GetUserExtents(_extents);
+}
+
+LayeredGrid::~LayeredGrid() {
+    if (_coords) delete [] _coords;
 }
 
 

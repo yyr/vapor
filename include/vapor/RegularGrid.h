@@ -358,10 +358,18 @@ public:
 	_periodic[2] = periodic[2];
  }
 
+ void GetBlockSize(size_t bs[3]) const {
+	bs[0] = _bs[1]; bs[1] = _bs[1]; bs[2] = _bs[2];
+ }
+
  //! Return the internal data structure containing a copy of the blocks
  //! passed in by the constructor
  //!
  float **GetBlks() const { return(_blks); };
+
+ //! Return the number of blocks that were passed in to the constructor
+ //!
+ size_t GetNumBlks() const { return(_nblocks); };
 
  //! \deprecated  This method is deprecated
  float Next();
@@ -454,6 +462,7 @@ private:
 	int _interpolationOrder;	// Order of interpolation 
 	size_t _x, _y, _z, _xb;
 	bool _end;
+	size_t _nblocks; // num blocks allocated to _blks
 	float *_itr;
 	float **_blks;
 	float *_invalidAccess; // memory for data access outside of grid
