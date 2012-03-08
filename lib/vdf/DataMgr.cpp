@@ -1860,3 +1860,158 @@ void   DataMgr::MapVoxToUser(
 	lg->GetUserCoordinates(ijk[0], ijk[1], ijk[2], &xyz[0],&xyz[1],&xyz[2]);
 	delete lg;
 }
+
+
+void    DataMgr::GetEnclosingRegion(
+    size_t ts, const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3],
+    int reflevel
+) {
+
+	min[0] = min[1] = min[2] = 0;
+	max[0] = max[1] = max[2] = 0;
+
+	size_t temp_min[3], temp_max[3];
+	DataMgr::MapUserToVox(ts, minu, temp_min, reflevel);
+	DataMgr::MapUserToVox(ts, maxu, temp_max, reflevel);
+
+	double temp_minu[3], temp_maxu[3];
+
+    DataMgr::MapVoxToUser(ts, temp_min, temp_minu, reflevel);
+    DataMgr::MapVoxToUser(ts, temp_max, temp_maxu, reflevel);
+
+    size_t dims[3];
+    Metadata::GetDim(dims, reflevel);
+	vector <double> extents = Metadata::GetExtents(ts);
+
+	for (int i=0; i<3; i++) {
+		if (extents[i] < extents[i+3]) {
+			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		else {
+			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
+				temp_min[i]--;
+			}
+			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
+				temp_max[i]++;
+			}
+		}
+		min[i] = temp_min[i];
+		max[i] = temp_max[i];
+	}
+
+
+	//
+	// If this is not a layred grid we're done. If it is, 
+	// we have the correct results 
+	// for X and Y dimensions, but the Z levels may not be completely
+	// contained in the box. We need to verify and possibly expand
+	// the min and max Z values.
+	//
+	if (! (GetGridType().compare("layered") == 0)) return;
+	
+
+	size_t gmin[] = {0,0,0};
+	size_t gmax[] = {dims[0]-1, dims[1]-1, dims[2]-1};
+	string elevation  = "ELEVATION";
+	RegularGrid *rg = DataMgr::GetGrid(
+		ts, elevation, reflevel,-1, gmin, gmax, 0
+	);
+	if (! rg) return;
+
+	bool done;
+	double z;
+	size_t istart;
+	size_t jstart;
+	if (maxu[2] >= minu[2]) {
+		//
+		// first do max, then min
+		//
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		while (! done) {
+			done = true;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = rg->AccessIJK(i,j,max[2]); // get Z coordinate
+				if (z > maxu[2]) {
+					if (max[2]<dims[2]-1) {
+						done = false;
+						istart = i;	// don't need to start from beginning
+						jstart = j;
+						max[2]++;
+					}
+				}
+			}
+			}
+		}
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		while (! done) {
+			done = true;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = rg->AccessIJK(i,j,min[2]); // get Z coordinate
+				if (z < minu[2]) {
+					if (min[2]>0) {
+						done = false;
+						istart = i;
+						jstart = j;
+						min[2]--;
+					}
+				}
+			}
+			}
+		}
+	}
+	else {
+		//
+		// first do max, then min
+		//
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		while (! done) {
+			done = true;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = rg->AccessIJK(i,j,max[2]); // get Z coordinate
+				if (z < maxu[2]) {
+					if (max[2]<dims[2]-1) {
+						done = false;
+						istart = i;	// don't need to start from beginning
+						jstart = j;
+						max[2]++;
+					}
+				}
+			}
+			}
+		}
+		done = false;
+		istart = min[0];
+		jstart = min[1];
+		while (! done) {
+			done = true;
+			for (int j = jstart; j<=max[1] && done; j++) {
+			for (int i = istart; i<=max[0] && done; i++) {
+				z = rg->AccessIJK(i,j,min[2]); // get Z coordinate
+				if (z > minu[2]) {
+					if (min[2]>0) {
+						done = false;
+						istart = i;
+						jstart = j;
+						min[2]--;
+					}
+				}
+			}
+			}
+		}
+	}
+}

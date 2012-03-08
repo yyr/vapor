@@ -172,46 +172,6 @@ void	Metadata::MapUserToVox(
 	}
 }
 
-void	Metadata::GetEnclosingRegion(
-    size_t timestep, const double minu[3], const double maxu[3], 
-	size_t min[3], size_t max[3],
-	int	reflevel
-) const {
-
-	size_t temp_min[3], temp_max[3];
-	MapUserToVox(timestep, minu, temp_min, reflevel);
-	MapUserToVox(timestep, maxu, temp_max, reflevel);
-
-	double temp_minu[3], temp_maxu[3];
-
-    MapVoxToUser(timestep, temp_min, temp_minu, reflevel);
-    MapVoxToUser(timestep, temp_max, temp_maxu, reflevel);
-
-    size_t dims[3];
-    GetDim(dims, reflevel);
-	vector <double> extents = GetExtents(timestep);
-
-	for (int i=0; i<3; i++) {
-		if (extents[i] < extents[i+3]) {
-			if (temp_minu[i] > minu[i] && (temp_min[i] > 0)) {
-				temp_min[i]--;
-			}
-			if (temp_maxu[i] < maxu[i] && (temp_max[i] < (dims[i]-1))) {
-				temp_max[i]++;
-			}
-		}
-		else {
-			if (temp_minu[i] < minu[i] && (temp_min[i] > 0) ) {
-				temp_min[i]--;
-			}
-			if (temp_maxu[i] > maxu[i] && (temp_max[i] < (dims[i]-1))) {
-				temp_max[i]++;
-			}
-		}
-		min[i] = temp_min[i];
-		max[i] = temp_max[i];
-	}
-}
 
 VAPoR::Metadata::VarType_T Metadata::GetVarType(
 	const string &varname

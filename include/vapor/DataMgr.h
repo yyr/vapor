@@ -476,6 +476,28 @@ void PurgeVariable(string varname);
     const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
  ) ;
 
+ //!
+ //! Get voxel coordinates of grid containing a region
+ //!
+ //! Calculates the IJK voxel coordinates of the smallest grid
+ //! completely containing the region defined by the user 
+ //! coordinates \p minu and \p maxu
+ //!
+ //! \param[in] timestep Time step of the variable  If an invalid
+ //! timestep is supplied the global domain extents are used.
+ //! \param[in] minu User coordinates of minimum coorner
+ //! \param[in] maxu User coordinates of maximum coorner
+ //! \param[out] min Integer coordinates of minimum coorner
+ //! \param[out] max Integer coordinates of maximum coorner
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
+ //!
+ virtual void    GetEnclosingRegion(
+    size_t ts, const double minu[3], const double maxu[3],
+    size_t min[3], size_t max[3],
+    int reflevel
+ );
 
 protected:
 
@@ -616,6 +638,8 @@ protected:
  //! will compute the min and max itself.
  //!
  virtual const float *GetDataRange() const = 0;
+
+
 
 
 
