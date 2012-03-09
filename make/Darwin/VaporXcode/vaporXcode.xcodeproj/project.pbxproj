@@ -7,6 +7,33 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		E700021F14EF138D002070D3 /* arrowrenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = arrowrenderer.cpp; sourceTree = "<group>"; };
+		E700022014EF138D002070D3 /* arrowrenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = arrowrenderer.h; sourceTree = "<group>"; };
+		E700022114EF138D002070D3 /* GLModelNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GLModelNode.cpp; sourceTree = "<group>"; };
+		E700022214EF138D002070D3 /* GLModelNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLModelNode.h; sourceTree = "<group>"; };
+		E700022314EF138D002070D3 /* jfilewrite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jfilewrite.cpp; sourceTree = "<group>"; };
+		E700022414EF138D002070D3 /* ModelRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelRenderer.cpp; sourceTree = "<group>"; };
+		E700022514EF138D002070D3 /* ModelRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelRenderer.h; sourceTree = "<group>"; };
+		E700022614EF138D002070D3 /* ShaderMgr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderMgr.cpp; sourceTree = "<group>"; };
+		E700022714EF138D002070D3 /* ShaderMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShaderMgr.h; sourceTree = "<group>"; };
+		E700022914EF1954002070D3 /* arrowparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = arrowparams.cpp; sourceTree = "<group>"; };
+		E700022A14EF1954002070D3 /* arrowparams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = arrowparams.h; sourceTree = "<group>"; };
+		E700022B14EF1954002070D3 /* Colormap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Colormap.h; sourceTree = "<group>"; };
+		E700022C14EF1954002070D3 /* ModelParams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelParams.cpp; sourceTree = "<group>"; };
+		E700022D14EF1954002070D3 /* ModelParams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelParams.h; sourceTree = "<group>"; };
+		E700022E14EF1954002070D3 /* ModelScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelScene.cpp; sourceTree = "<group>"; };
+		E700022F14EF1954002070D3 /* ModelScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelScene.h; sourceTree = "<group>"; };
+		E700023014EF19CB002070D3 /* DataMgrLayered2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataMgrLayered2.h; sourceTree = "<group>"; };
+		E700023114EF19CB002070D3 /* LayeredGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayeredGrid.cpp; sourceTree = "<group>"; };
+		E700023214EF19CB002070D3 /* LayeredGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayeredGrid.h; sourceTree = "<group>"; };
+		E700023314EF19CB002070D3 /* NCBuf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NCBuf.cpp; sourceTree = "<group>"; };
+		E700023414EF19CB002070D3 /* NCBuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NCBuf.h; sourceTree = "<group>"; };
+		E700023514EF19CB002070D3 /* RegularGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RegularGrid.cpp; sourceTree = "<group>"; };
+		E700023614EF19CB002070D3 /* RegularGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegularGrid.h; sourceTree = "<group>"; };
+		E700023714EF19CB002070D3 /* SphericalGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SphericalGrid.cpp; sourceTree = "<group>"; };
+		E700023814EF19CB002070D3 /* SphericalGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SphericalGrid.h; sourceTree = "<group>"; };
+		E700023914EF19CB002070D3 /* StretchedGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StretchedGrid.cpp; sourceTree = "<group>"; };
+		E700023A14EF19CB002070D3 /* StretchedGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StretchedGrid.h; sourceTree = "<group>"; };
 		E70180F3124014CE00478E12 /* pythonpipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pythonpipeline.h; sourceTree = "<group>"; };
 		E70180F4124014CE00478E12 /* pythonpipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pythonpipeline.cpp; sourceTree = "<group>"; };
 		E7041383123042460083F569 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = ../../../lib/common/Base64.cpp; sourceTree = SOURCE_ROOT; };
@@ -56,66 +83,6 @@
 		E70413BA123042460083F569 /* libidl_vdfmodule.dlm.template */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = libidl_vdfmodule.dlm.template; path = ../../../lib/idl/libidl_vdfmodule.dlm.template; sourceTree = SOURCE_ROOT; };
 		E70413BB123042460083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../lib/idl/Makefile; sourceTree = SOURCE_ROOT; };
 		E70413BC123042460083F569 /* mkmeta.pl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.perl; name = mkmeta.pl; path = ../../../lib/idl/mkmeta.pl; sourceTree = SOURCE_ROOT; };
-		E70413BE123042460083F569 /* jcapimin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcapimin.c; path = ../../../lib/jpeg/jcapimin.c; sourceTree = SOURCE_ROOT; };
-		E70413BF123042460083F569 /* jcapistd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcapistd.c; path = ../../../lib/jpeg/jcapistd.c; sourceTree = SOURCE_ROOT; };
-		E70413C0123042460083F569 /* jccoefct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jccoefct.c; path = ../../../lib/jpeg/jccoefct.c; sourceTree = SOURCE_ROOT; };
-		E70413C1123042460083F569 /* jccolor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jccolor.c; path = ../../../lib/jpeg/jccolor.c; sourceTree = SOURCE_ROOT; };
-		E70413C2123042460083F569 /* jcdctmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcdctmgr.c; path = ../../../lib/jpeg/jcdctmgr.c; sourceTree = SOURCE_ROOT; };
-		E70413C3123042460083F569 /* jchuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jchuff.c; path = ../../../lib/jpeg/jchuff.c; sourceTree = SOURCE_ROOT; };
-		E70413C4123042460083F569 /* jchuff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jchuff.h; path = ../../../lib/jpeg/jchuff.h; sourceTree = SOURCE_ROOT; };
-		E70413C5123042460083F569 /* jcinit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcinit.c; path = ../../../lib/jpeg/jcinit.c; sourceTree = SOURCE_ROOT; };
-		E70413C6123042460083F569 /* jcmainct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmainct.c; path = ../../../lib/jpeg/jcmainct.c; sourceTree = SOURCE_ROOT; };
-		E70413C7123042460083F569 /* jcmarker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmarker.c; path = ../../../lib/jpeg/jcmarker.c; sourceTree = SOURCE_ROOT; };
-		E70413C8123042460083F569 /* jcmaster.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcmaster.c; path = ../../../lib/jpeg/jcmaster.c; sourceTree = SOURCE_ROOT; };
-		E70413C9123042460083F569 /* jcomapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcomapi.c; path = ../../../lib/jpeg/jcomapi.c; sourceTree = SOURCE_ROOT; };
-		E70413CA123042460083F569 /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jconfig.h; path = ../../../lib/jpeg/jconfig.h; sourceTree = SOURCE_ROOT; };
-		E70413CB123042460083F569 /* jcparam.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcparam.c; path = ../../../lib/jpeg/jcparam.c; sourceTree = SOURCE_ROOT; };
-		E70413CC123042460083F569 /* jcphuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcphuff.c; path = ../../../lib/jpeg/jcphuff.c; sourceTree = SOURCE_ROOT; };
-		E70413CD123042460083F569 /* jcprepct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcprepct.c; path = ../../../lib/jpeg/jcprepct.c; sourceTree = SOURCE_ROOT; };
-		E70413CE123042460083F569 /* jcsample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jcsample.c; path = ../../../lib/jpeg/jcsample.c; sourceTree = SOURCE_ROOT; };
-		E70413CF123042460083F569 /* jctrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jctrans.c; path = ../../../lib/jpeg/jctrans.c; sourceTree = SOURCE_ROOT; };
-		E70413D0123042460083F569 /* jdapimin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdapimin.c; path = ../../../lib/jpeg/jdapimin.c; sourceTree = SOURCE_ROOT; };
-		E70413D1123042460083F569 /* jdapistd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdapistd.c; path = ../../../lib/jpeg/jdapistd.c; sourceTree = SOURCE_ROOT; };
-		E70413D2123042460083F569 /* jdatadst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdatadst.c; path = ../../../lib/jpeg/jdatadst.c; sourceTree = SOURCE_ROOT; };
-		E70413D3123042460083F569 /* jdatasrc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdatasrc.c; path = ../../../lib/jpeg/jdatasrc.c; sourceTree = SOURCE_ROOT; };
-		E70413D4123042460083F569 /* jdcoefct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdcoefct.c; path = ../../../lib/jpeg/jdcoefct.c; sourceTree = SOURCE_ROOT; };
-		E70413D5123042460083F569 /* jdcolor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdcolor.c; path = ../../../lib/jpeg/jdcolor.c; sourceTree = SOURCE_ROOT; };
-		E70413D6123042460083F569 /* jdct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jdct.h; path = ../../../lib/jpeg/jdct.h; sourceTree = SOURCE_ROOT; };
-		E70413D7123042460083F569 /* jddctmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jddctmgr.c; path = ../../../lib/jpeg/jddctmgr.c; sourceTree = SOURCE_ROOT; };
-		E70413D8123042460083F569 /* jdhuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdhuff.c; path = ../../../lib/jpeg/jdhuff.c; sourceTree = SOURCE_ROOT; };
-		E70413D9123042460083F569 /* jdhuff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jdhuff.h; path = ../../../lib/jpeg/jdhuff.h; sourceTree = SOURCE_ROOT; };
-		E70413DA123042460083F569 /* jdinput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdinput.c; path = ../../../lib/jpeg/jdinput.c; sourceTree = SOURCE_ROOT; };
-		E70413DB123042460083F569 /* jdmainct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmainct.c; path = ../../../lib/jpeg/jdmainct.c; sourceTree = SOURCE_ROOT; };
-		E70413DC123042460083F569 /* jdmarker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmarker.c; path = ../../../lib/jpeg/jdmarker.c; sourceTree = SOURCE_ROOT; };
-		E70413DD123042460083F569 /* jdmaster.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmaster.c; path = ../../../lib/jpeg/jdmaster.c; sourceTree = SOURCE_ROOT; };
-		E70413DE123042460083F569 /* jdmerge.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdmerge.c; path = ../../../lib/jpeg/jdmerge.c; sourceTree = SOURCE_ROOT; };
-		E70413DF123042460083F569 /* jdphuff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdphuff.c; path = ../../../lib/jpeg/jdphuff.c; sourceTree = SOURCE_ROOT; };
-		E70413E0123042460083F569 /* jdpostct.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdpostct.c; path = ../../../lib/jpeg/jdpostct.c; sourceTree = SOURCE_ROOT; };
-		E70413E1123042460083F569 /* jdsample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdsample.c; path = ../../../lib/jpeg/jdsample.c; sourceTree = SOURCE_ROOT; };
-		E70413E2123042460083F569 /* jdtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jdtrans.c; path = ../../../lib/jpeg/jdtrans.c; sourceTree = SOURCE_ROOT; };
-		E70413E3123042460083F569 /* jerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jerror.c; path = ../../../lib/jpeg/jerror.c; sourceTree = SOURCE_ROOT; };
-		E70413E4123042460083F569 /* jerror.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jerror.h; path = ../../../lib/jpeg/jerror.h; sourceTree = SOURCE_ROOT; };
-		E70413E5123042460083F569 /* jfdctflt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctflt.c; path = ../../../lib/jpeg/jfdctflt.c; sourceTree = SOURCE_ROOT; };
-		E70413E6123042460083F569 /* jfdctfst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctfst.c; path = ../../../lib/jpeg/jfdctfst.c; sourceTree = SOURCE_ROOT; };
-		E70413E7123042460083F569 /* jfdctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctint.c; path = ../../../lib/jpeg/jfdctint.c; sourceTree = SOURCE_ROOT; };
-		E70413E8123042460083F569 /* jfilewrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfilewrite.c; path = ../../../lib/jpeg/jfilewrite.c; sourceTree = SOURCE_ROOT; };
-		E70413E9123042460083F569 /* jidctflt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctflt.c; path = ../../../lib/jpeg/jidctflt.c; sourceTree = SOURCE_ROOT; };
-		E70413EA123042460083F569 /* jidctfst.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctfst.c; path = ../../../lib/jpeg/jidctfst.c; sourceTree = SOURCE_ROOT; };
-		E70413EB123042460083F569 /* jidctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctint.c; path = ../../../lib/jpeg/jidctint.c; sourceTree = SOURCE_ROOT; };
-		E70413EC123042460083F569 /* jidctred.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jidctred.c; path = ../../../lib/jpeg/jidctred.c; sourceTree = SOURCE_ROOT; };
-		E70413ED123042460083F569 /* jinclude.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jinclude.h; path = ../../../lib/jpeg/jinclude.h; sourceTree = SOURCE_ROOT; };
-		E70413EE123042460083F569 /* jmemmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jmemmgr.c; path = ../../../lib/jpeg/jmemmgr.c; sourceTree = SOURCE_ROOT; };
-		E70413EF123042460083F569 /* jmemnobs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jmemnobs.c; path = ../../../lib/jpeg/jmemnobs.c; sourceTree = SOURCE_ROOT; };
-		E70413F0123042460083F569 /* jmemsys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jmemsys.h; path = ../../../lib/jpeg/jmemsys.h; sourceTree = SOURCE_ROOT; };
-		E70413F1123042460083F569 /* jpegint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jpegint.h; path = ../../../lib/jpeg/jpegint.h; sourceTree = SOURCE_ROOT; };
-		E70413F2123042460083F569 /* jquant1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant1.c; path = ../../../lib/jpeg/jquant1.c; sourceTree = SOURCE_ROOT; };
-		E70413F3123042460083F569 /* jquant2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jquant2.c; path = ../../../lib/jpeg/jquant2.c; sourceTree = SOURCE_ROOT; };
-		E70413F4123042460083F569 /* jutils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jutils.c; path = ../../../lib/jpeg/jutils.c; sourceTree = SOURCE_ROOT; };
-		E70413F5123042460083F569 /* jversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jversion.h; path = ../../../lib/jpeg/jversion.h; sourceTree = SOURCE_ROOT; };
-		E70413F6123042460083F569 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE.txt; path = ../../../lib/jpeg/LICENSE.txt; sourceTree = SOURCE_ROOT; };
-		E70413F7123042460083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../lib/jpeg/Makefile; sourceTree = SOURCE_ROOT; };
-		E70413F8123042460083F569 /* transupp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = transupp.c; path = ../../../lib/jpeg/transupp.c; sourceTree = SOURCE_ROOT; };
-		E70413F9123042460083F569 /* transupp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = transupp.h; path = ../../../lib/jpeg/transupp.h; sourceTree = SOURCE_ROOT; };
 		E70413FA123042460083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../lib/Makefile; sourceTree = SOURCE_ROOT; };
 		E70413FC123042460083F569 /* animationparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = animationparams.cpp; path = ../../../lib/params/animationparams.cpp; sourceTree = SOURCE_ROOT; };
 		E70413FD123042460083F569 /* animationparams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = animationparams.h; path = ../../../lib/params/animationparams.h; sourceTree = SOURCE_ROOT; };
@@ -230,7 +197,6 @@
 		E704147B123042460083F569 /* DataMgr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgr.cpp; path = ../../../lib/vdf/DataMgr.cpp; sourceTree = SOURCE_ROOT; };
 		E704147D123042460083F569 /* DataMgrAMR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrAMR.cpp; path = ../../../lib/vdf/DataMgrAMR.cpp; sourceTree = SOURCE_ROOT; };
 		E704147F123042460083F569 /* DataMgrFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrFactory.cpp; path = ../../../lib/vdf/DataMgrFactory.cpp; sourceTree = SOURCE_ROOT; };
-		E7041481123042460083F569 /* DataMgrLayered.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrLayered.cpp; path = ../../../lib/vdf/DataMgrLayered.cpp; sourceTree = SOURCE_ROOT; };
 		E7041483123042460083F569 /* DataMgrWB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrWB.cpp; path = ../../../lib/vdf/DataMgrWB.cpp; sourceTree = SOURCE_ROOT; };
 		E7041485123042460083F569 /* DataMgrWC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrWC.cpp; path = ../../../lib/vdf/DataMgrWC.cpp; sourceTree = SOURCE_ROOT; };
 		E7041487123042460083F569 /* DataMgrWRF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrWRF.cpp; path = ../../../lib/vdf/DataMgrWRF.cpp; sourceTree = SOURCE_ROOT; };
@@ -549,7 +515,14 @@
 		E704160B123042CB0083F569 /* wrf2vdf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrf2vdf.cpp; path = ../../../apps/wrf2vdf/wrf2vdf.cpp; sourceTree = SOURCE_ROOT; };
 		E704160D123042CB0083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../apps/wrfvdfcreate/Makefile; sourceTree = SOURCE_ROOT; };
 		E704160E123042CB0083F569 /* wrfvdfcreate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wrfvdfcreate.cpp; path = ../../../apps/wrfvdfcreate/wrfvdfcreate.cpp; sourceTree = SOURCE_ROOT; };
+		E715141715090FAD004B7685 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		E715141815090FAD004B7685 /* ExtensionClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtensionClasses.h; sourceTree = "<group>"; };
+		E715141915090FAD004B7685 /* jpegapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpegapi.h; sourceTree = "<group>"; };
 		E75132001299BD44009C3A61 /* GetAppPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GetAppPath.h; sourceTree = "<group>"; };
+		E75B94631507DA5600BF2D69 /* arroweventrouter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = arroweventrouter.cpp; sourceTree = "<group>"; };
+		E75B94641507DA5600BF2D69 /* arroweventrouter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = arroweventrouter.h; sourceTree = "<group>"; };
+		E75B94651507DA5600BF2D69 /* boxsliderframe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = boxsliderframe.cpp; sourceTree = "<group>"; };
+		E75B94661507DA5600BF2D69 /* boxsliderframe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = boxsliderframe.h; sourceTree = "<group>"; };
 		E788602C145A32E9001F7D1A /* MOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOM.h; sourceTree = "<group>"; };
 		E788602D145A32E9001F7D1A /* MetadataMOM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetadataMOM.h; sourceTree = "<group>"; };
 		E78860EF146078D4001F7D1A /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
@@ -673,66 +646,6 @@
 		E70413BD123042460083F569 /* jpeg */ = {
 			isa = PBXGroup;
 			children = (
-				E70413BE123042460083F569 /* jcapimin.c */,
-				E70413BF123042460083F569 /* jcapistd.c */,
-				E70413C0123042460083F569 /* jccoefct.c */,
-				E70413C1123042460083F569 /* jccolor.c */,
-				E70413C2123042460083F569 /* jcdctmgr.c */,
-				E70413C3123042460083F569 /* jchuff.c */,
-				E70413C4123042460083F569 /* jchuff.h */,
-				E70413C5123042460083F569 /* jcinit.c */,
-				E70413C6123042460083F569 /* jcmainct.c */,
-				E70413C7123042460083F569 /* jcmarker.c */,
-				E70413C8123042460083F569 /* jcmaster.c */,
-				E70413C9123042460083F569 /* jcomapi.c */,
-				E70413CA123042460083F569 /* jconfig.h */,
-				E70413CB123042460083F569 /* jcparam.c */,
-				E70413CC123042460083F569 /* jcphuff.c */,
-				E70413CD123042460083F569 /* jcprepct.c */,
-				E70413CE123042460083F569 /* jcsample.c */,
-				E70413CF123042460083F569 /* jctrans.c */,
-				E70413D0123042460083F569 /* jdapimin.c */,
-				E70413D1123042460083F569 /* jdapistd.c */,
-				E70413D2123042460083F569 /* jdatadst.c */,
-				E70413D3123042460083F569 /* jdatasrc.c */,
-				E70413D4123042460083F569 /* jdcoefct.c */,
-				E70413D5123042460083F569 /* jdcolor.c */,
-				E70413D6123042460083F569 /* jdct.h */,
-				E70413D7123042460083F569 /* jddctmgr.c */,
-				E70413D8123042460083F569 /* jdhuff.c */,
-				E70413D9123042460083F569 /* jdhuff.h */,
-				E70413DA123042460083F569 /* jdinput.c */,
-				E70413DB123042460083F569 /* jdmainct.c */,
-				E70413DC123042460083F569 /* jdmarker.c */,
-				E70413DD123042460083F569 /* jdmaster.c */,
-				E70413DE123042460083F569 /* jdmerge.c */,
-				E70413DF123042460083F569 /* jdphuff.c */,
-				E70413E0123042460083F569 /* jdpostct.c */,
-				E70413E1123042460083F569 /* jdsample.c */,
-				E70413E2123042460083F569 /* jdtrans.c */,
-				E70413E3123042460083F569 /* jerror.c */,
-				E70413E4123042460083F569 /* jerror.h */,
-				E70413E5123042460083F569 /* jfdctflt.c */,
-				E70413E6123042460083F569 /* jfdctfst.c */,
-				E70413E7123042460083F569 /* jfdctint.c */,
-				E70413E8123042460083F569 /* jfilewrite.c */,
-				E70413E9123042460083F569 /* jidctflt.c */,
-				E70413EA123042460083F569 /* jidctfst.c */,
-				E70413EB123042460083F569 /* jidctint.c */,
-				E70413EC123042460083F569 /* jidctred.c */,
-				E70413ED123042460083F569 /* jinclude.h */,
-				E70413EE123042460083F569 /* jmemmgr.c */,
-				E70413EF123042460083F569 /* jmemnobs.c */,
-				E70413F0123042460083F569 /* jmemsys.h */,
-				E70413F1123042460083F569 /* jpegint.h */,
-				E70413F2123042460083F569 /* jquant1.c */,
-				E70413F3123042460083F569 /* jquant2.c */,
-				E70413F4123042460083F569 /* jutils.c */,
-				E70413F5123042460083F569 /* jversion.h */,
-				E70413F6123042460083F569 /* LICENSE.txt */,
-				E70413F7123042460083F569 /* Makefile */,
-				E70413F8123042460083F569 /* transupp.c */,
-				E70413F9123042460083F569 /* transupp.h */,
 			);
 			name = jpeg;
 			path = ../../../lib/jpeg;
@@ -741,6 +654,13 @@
 		E70413FB123042460083F569 /* params */ = {
 			isa = PBXGroup;
 			children = (
+				E700022914EF1954002070D3 /* arrowparams.cpp */,
+				E700022A14EF1954002070D3 /* arrowparams.h */,
+				E700022B14EF1954002070D3 /* Colormap.h */,
+				E700022C14EF1954002070D3 /* ModelParams.cpp */,
+				E700022D14EF1954002070D3 /* ModelParams.h */,
+				E700022E14EF1954002070D3 /* ModelScene.cpp */,
+				E700022F14EF1954002070D3 /* ModelScene.h */,
 				E7C588541357379300F0E7D8 /* Box.cpp */,
 				E7C588551357379300F0E7D8 /* Box.h */,
 				E75132001299BD44009C3A61 /* GetAppPath.h */,
@@ -800,6 +720,15 @@
 		E7041431123042460083F569 /* render */ = {
 			isa = PBXGroup;
 			children = (
+				E700021F14EF138D002070D3 /* arrowrenderer.cpp */,
+				E700022014EF138D002070D3 /* arrowrenderer.h */,
+				E700022114EF138D002070D3 /* GLModelNode.cpp */,
+				E700022214EF138D002070D3 /* GLModelNode.h */,
+				E700022314EF138D002070D3 /* jfilewrite.cpp */,
+				E700022414EF138D002070D3 /* ModelRenderer.cpp */,
+				E700022514EF138D002070D3 /* ModelRenderer.h */,
+				E700022614EF138D002070D3 /* ShaderMgr.cpp */,
+				E700022714EF138D002070D3 /* ShaderMgr.h */,
 				E7041432123042460083F569 /* BBox.cpp */,
 				E7041433123042460083F569 /* BBox.h */,
 				E7041434123042460083F569 /* customcontext.cpp */,
@@ -876,6 +805,17 @@
 		E704146E123042460083F569 /* vdf */ = {
 			isa = PBXGroup;
 			children = (
+				E700023014EF19CB002070D3 /* DataMgrLayered2.h */,
+				E700023114EF19CB002070D3 /* LayeredGrid.cpp */,
+				E700023214EF19CB002070D3 /* LayeredGrid.h */,
+				E700023314EF19CB002070D3 /* NCBuf.cpp */,
+				E700023414EF19CB002070D3 /* NCBuf.h */,
+				E700023514EF19CB002070D3 /* RegularGrid.cpp */,
+				E700023614EF19CB002070D3 /* RegularGrid.h */,
+				E700023714EF19CB002070D3 /* SphericalGrid.cpp */,
+				E700023814EF19CB002070D3 /* SphericalGrid.h */,
+				E700023914EF19CB002070D3 /* StretchedGrid.cpp */,
+				E700023A14EF19CB002070D3 /* StretchedGrid.h */,
 				E7BA1ACA14522310003DBE0A /* MetadataMOM.cpp */,
 				E7BA1ACB14522310003DBE0A /* MOM.cpp */,
 				E704146F123042460083F569 /* AMRData.cpp */,
@@ -887,7 +827,6 @@
 				E704147B123042460083F569 /* DataMgr.cpp */,
 				E704147D123042460083F569 /* DataMgrAMR.cpp */,
 				E704147F123042460083F569 /* DataMgrFactory.cpp */,
-				E7041481123042460083F569 /* DataMgrLayered.cpp */,
 				E7041483123042460083F569 /* DataMgrWB.cpp */,
 				E7041485123042460083F569 /* DataMgrWC.cpp */,
 				E7041487123042460083F569 /* DataMgrWRF.cpp */,
@@ -942,6 +881,9 @@
 		E70414CF123042930083F569 /* vapor */ = {
 			isa = PBXGroup;
 			children = (
+				E715141715090FAD004B7685 /* common.h */,
+				E715141815090FAD004B7685 /* ExtensionClasses.h */,
+				E715141915090FAD004B7685 /* jpegapi.h */,
 				E788602C145A32E9001F7D1A /* MOM.h */,
 				E788602D145A32E9001F7D1A /* MetadataMOM.h */,
 				E70414D0123042930083F569 /* AMRData.h */,
@@ -1131,6 +1073,10 @@
 		E7041539123042CB0083F569 /* guis */ = {
 			isa = PBXGroup;
 			children = (
+				E75B94631507DA5600BF2D69 /* arroweventrouter.cpp */,
+				E75B94641507DA5600BF2D69 /* arroweventrouter.h */,
+				E75B94651507DA5600BF2D69 /* boxsliderframe.cpp */,
+				E75B94661507DA5600BF2D69 /* boxsliderframe.h */,
 				E704153A123042CB0083F569 /* animationeventrouter.cpp */,
 				E704153B123042CB0083F569 /* animationeventrouter.h */,
 				E704153C123042CB0083F569 /* ColorbarWidget.cpp */,

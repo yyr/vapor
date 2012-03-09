@@ -149,7 +149,7 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 
 void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const float dRange[2]){
 	size_t min_dim[3],max_dim[3];
-	size_t min_bdim[3], max_bdim[3];
+	
 	DataStatus* ds = DataStatus::getInstance();
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
@@ -183,7 +183,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	int numTrans = renParams->GetRefinementLevel();
 	const char* varname = ds->getVariableName3D(varNum).c_str();
 	
-	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
+	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, timeStep, &varNum, 1);
 	if(availRefLevel < 0) {
 		renParams->setBypass(timeStep);
 		if (ds->warnIfDataMissing()){

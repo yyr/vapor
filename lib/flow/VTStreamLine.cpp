@@ -126,7 +126,7 @@ void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 				list<float>* stepList;
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				istat = computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
+				istat = computeFieldLineA(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
 				SampleFieldline(container, seedNum, BACKWARD, backTrace, stepList, true, istat );
 				delete backTrace;
 				delete stepList;
@@ -140,7 +140,7 @@ void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 				list<float>* stepList;
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				istat = computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
+				istat = computeFieldLineA(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
 				SampleFieldline(container, seedNum, FORWARD, forwardTrace, stepList, true, istat);
 				delete forwardTrace;
 				delete stepList;
@@ -166,7 +166,7 @@ void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 				float t = m_pField->GetStartTime();
 
 				pointInfo.phyCoord.Set(x,y,z);	
-				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+				m_pField->getFieldValue(pointInfo.phyCoord, t, nodeData);
 				container->setSpeed(seedNum, 0, nodeData.GetMag()/m_pField->getTimeScaleFactor());
 			}
 			container->setFlowStart(seedNum, 0);
@@ -187,7 +187,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	int istat;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	double dt, cell_volume, mag; 
+	double dt, cell_side, mag; 
 	double curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
@@ -207,10 +207,10 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		return CRITICAL_POINT;			// this is critical point
 		
 	// get the initial step size
-	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
+	cell_side = m_pField->GetMaxMinGridSpacing();
 	mag = vel.GetDMag();
 	
-	dt = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
+	dt = m_fInitStepSize * cell_side / mag;
 	
 	//Determine the value of mag*dt to project 10 times init size.  
 	double maxMagDt = 10.*dt*mag;
@@ -273,10 +273,140 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				pIter--;
 				second_prevPhy = **pIter;
 
-				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
 				mag = vel.GetDMag();
-				minStepsize = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
-				maxStepsize = m_fMaxStepSize * pow(cell_volume, 0.3333333) / mag;
+				minStepsize = m_fInitStepSize * cell_side / mag;
+				maxStepsize = m_fMaxStepSize * cell_side / mag;
+				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
+				if(onAdaptive == false)
+					nSetAdaptiveCount = 0;
+
+				assert (rollbackCount < 10000);//If we got here, it's surely an infinite loop!
+					
+				// roll back and retrace
+				//the doingRetrace flag is to stop double retracing (which results in infinite loop!)
+				//Note a slightly different approach is in VTTimeVaryingFieldLine.cpp
+				if(retrace && !doingRetrace)			
+				{
+					thisInterpolant = prevInterpolant = second_prevInterpolant;
+					seedTrace.pop_back();
+					seedTrace.pop_back();
+					thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
+					totalStepsize -= stepList.back();
+					stepList.pop_back();
+					totalStepsize -= stepList.back();
+					stepList.pop_back();
+					rollbackCount++;
+					doingRetrace = true;
+				} else doingRetrace = false;
+			}
+		}// end of retrace
+		//What was the distance advected?
+	}// end of advection
+	return (OKAY);
+}
+
+
+int vtCStreamLine::computeFieldLineA(TIME_DIR time_dir,
+									 INTEG_ORD integ_ord,
+									 TIME_DEP time_dep, 
+									 vtListSeedTrace& seedTrace,
+									 list<float>& stepList,
+									 PointInfo& seedInfo)
+{
+	int istat;
+	PointInfo thisParticle;
+	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
+	double dt, cell_side, mag; 
+	double curTime;
+	VECTOR3 vel;
+	float totalStepsize = 0.0;
+	bool onAdaptive = true;
+	int nSetAdaptiveCount = 0;
+
+	// the first particle
+	thisParticle = seedInfo;
+	prevInterpolant = thisInterpolant = thisParticle.interpolant;
+	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
+	curTime = (double)m_fCurrentTime;
+	istat = m_pField->getFieldValue(seedInfo.phyCoord, m_fCurrentTime, vel);
+	//istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
+	if(istat == OUT_OF_BOUND)
+		return OUT_OF_BOUND;			// the advection is out of boundary
+	if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
+		return CRITICAL_POINT;			// this is critical point
+		
+	// get the initial step size
+	
+	cell_side = m_pField->GetMaxMinGridSpacing();
+	mag = vel.GetDMag();
+	
+	dt = m_fInitStepSize * cell_side / mag;
+	
+	//Determine the value of mag*dt to project 10 times init size.  
+	double maxMagDt = 10.*dt*mag;
+
+	int rollbackCount = 0;
+	// start to advect
+	
+	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
+	{
+		bool doingRetrace = false;
+		second_prevInterpolant = prevInterpolant;
+		prevInterpolant = thisInterpolant;
+		int retrace = true;
+		
+		
+		while(retrace)
+		{
+			retrace = false;
+			
+			for(int magTry = 0; magTry < 40; magTry++) {
+				if(integ_ord == SECOND)
+					istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt, maxMagDt);
+				else
+					istat = runge_kutta4A(time_dir, time_dep, thisParticle, &curTime, dt, maxMagDt);
+			
+				if (istat != FIELD_TOO_BIG) break;
+				//Shrink dt by factor of 10.
+				dt = 0.1*dt;
+
+			}
+			assert (istat != FIELD_TOO_BIG);
+			thisInterpolant = thisParticle.interpolant;
+			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
+			stepList.push_back(dt);
+
+			if(istat == OUT_OF_BOUND)			// out of boundary
+				return OUT_OF_BOUND;
+
+			m_pField->getFieldValue(thisParticle.phyCoord, m_fCurrentTime, vel);
+			
+			if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
+				return CRITICAL_POINT;
+
+			totalStepsize += dt;			// accumulation of step size
+			nSetAdaptiveCount++;
+			
+			if((nSetAdaptiveCount == 2) && (onAdaptive == false))
+				onAdaptive = true;
+
+			// just generate valid new point
+			if(((int)seedTrace.size() > 2)&&(onAdaptive))
+			{
+				double minStepsize, maxStepsize;
+				VECTOR3 thisPhy, prevPhy, second_prevPhy;
+				list<VECTOR3*>::iterator pIter = seedTrace.end();
+				pIter--;
+				thisPhy = **pIter;
+				pIter--;
+				prevPhy = **pIter;
+				pIter--;
+				second_prevPhy = **pIter;
+
+				
+				mag = vel.GetDMag();
+				minStepsize = m_fInitStepSize * cell_side / mag;
+				maxStepsize = m_fMaxStepSize * cell_side / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
 				if(onAdaptive == false)
 					nSetAdaptiveCount = 0;

@@ -176,7 +176,105 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 
 	return istat;
 }
+int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir, 
+							   TIME_DEP time_dep, 
+							   PointInfo& ci, 
+							   double* t,			// initial time
+							   double dt,			//stepsize
+							   double maxMagDt)		//Largest value of dt*mag(vec)
+{
+	int i, istat;
+	VECTOR3 pt0;
+	VECTOR3 vel;
+	VECTOR3 k1, k2, k3;
+	VECTOR3 pt;
+	
 
+	pt = ci.phyCoord;
+
+	// 1st step of the Runge-Kutta scheme
+	// Evaluate the field at pt:
+	istat = m_pField->getFieldValue(pt,*t,vel);
+	//istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
+	
+	if ( istat != 1 )
+		return OUT_OF_BOUND;
+
+	if (vel.GetDMag()*dt > maxMagDt) {
+		return FIELD_TOO_BIG;
+	}
+
+	for( i=0; i<3; i++ )
+	{
+		pt0[i] = pt[i];
+		k1[i] = time_dir*dt*vel[i];
+		pt[i] = pt0[i]+k1[i]*(float)0.5;
+	}
+	
+	// 2nd step of the Runge-Kutta scheme
+	//fromCell = ci.inCell;
+	if ( time_dep  == UNSTEADY)
+		*t += 0.5*time_dir*dt;
+
+	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	istat=m_pField->getFieldValue(pt, *t, vel);
+
+	if (vel.GetDMag()*dt > maxMagDt){ 
+		return FIELD_TOO_BIG;
+	}
+	if ( istat!= 1 )
+	{
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
+	}
+	for( i=0; i<3; i++ )
+	{
+		k2[i] = time_dir*dt*vel[i];
+		pt[i] = pt0[i]+k2[i]*(float)0.5;
+	}
+
+	// 3rd step of the Runge-Kutta scheme
+	//fromCell = ci.inCell;
+	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	istat = m_pField->getFieldValue(pt, *t, vel);
+
+	if (vel.GetDMag()*dt > maxMagDt){
+		return FIELD_TOO_BIG;
+	}
+
+	if ( istat != 1 )
+	{
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
+	}
+	for( i=0; i<3; i++ )
+	{
+		k3[i] = time_dir*dt*vel[i];
+		pt[i] = pt0[i]+k3[i];
+	}
+
+	//    4th step of the Runge-Kutta scheme
+	if ( time_dep  == UNSTEADY)
+		*t += 0.5*time_dir*dt;
+	//fromCell = ci.inCell;
+	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	istat = m_pField->getFieldValue(pt, *t, vel);
+	if (vel.GetDMag()*dt > maxMagDt){
+		return FIELD_TOO_BIG;
+	}
+	if ( istat != 1 )
+	{
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
+	}
+
+	for( i=0; i<3; i++ ){
+		pt[i] = pt0[i]+(k1[i]+(float)2.0*(k2[i]+k3[i])+time_dir*dt*vel[i])/(float)6.0;
+	}
+	ci.phyCoord = pt;
+
+	return istat;
+}
 //////////////////////////////////////////////////////////////////////////
 // aptive step size
 //////////////////////////////////////////////////////////////////////////

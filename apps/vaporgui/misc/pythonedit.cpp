@@ -480,7 +480,7 @@ void PythonEdit::testScript(){
 		
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	
-	rParams->getRegionVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, timeStep);
+	rParams->getRegionVoxelCoords(reflevel, min_dim, max_dim, timeStep);
 	DataMgr* dmgr = ds->getDataMgr();
 	//If there is an output 2D variable and no output 3d variable, then make the extents the full VDC extents
 	//at refinement level 0

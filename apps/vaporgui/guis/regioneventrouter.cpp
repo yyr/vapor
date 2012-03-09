@@ -567,8 +567,7 @@ refreshRegionInfo(RegionParams* rParams){
 
 	//Now produce the corresponding voxel coords:
 	size_t min_dim[3] = {0,0,0}, max_dim[3] = {0,0,0};
-	size_t min_bdim[3] = {0,0,0}, max_bdim[3] = {0,0,0};
-	
+		
 	// if region isn't valid just don't show the bounds:
 	if (ds){
 		dataMgr->MapUserToVox(-1,regionMin,min_dim,refLevel);
@@ -682,20 +681,21 @@ refreshRegionInfo(RegionParams* rParams){
 			break;
 	}
 	if (rc >= 0){
-		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim,timeStep);
+		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,
+									  timeStep);
 		size_t bs[3] = {32,32,32};
 		if (ds && ds->getDataMgr())
 			ds->getDataMgr()->GetBlockSize(bs, refLevel);
 		//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 		float newFullMB;
 		if (is3D)
-			newFullMB = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+			newFullMB = (float)((max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1));
 		else {
 			//get other coords:
 			int crd0 = 0, crd1 = 1;
 			if (orientation < 2) crd1++;
 			if (orientation < 1) crd0++;
-			newFullMB = (float)(bs[0]*bs[1]*(max_bdim[crd0]-min_bdim[crd0]+1)*(max_bdim[crd1]-min_bdim[crd1]+1));
+			newFullMB = (float)((max_dim[crd0]-min_dim[crd0]+1)*(max_dim[crd1]-min_dim[crd1]+1));
 		}
 		
 		//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:

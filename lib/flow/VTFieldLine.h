@@ -145,6 +145,7 @@ protected:
 	void releaseSeedMemory(void);
 	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
+	int runge_kutta4A(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
 	int adapt_step( const VECTOR3& p2, 
 					const VECTOR3& p1, 
@@ -346,6 +347,7 @@ public:
 	
 protected:
 	int computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
+	int computeFieldLineA(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
 
 	
 

@@ -29,7 +29,7 @@ CVectorField::CVectorField()
 
 CVectorField::CVectorField(Grid* pGrid, Solution* pSolution, int timesteps)
 {
-	assert((pGrid != NULL) && (pSolution != NULL));
+//	assert((pGrid != NULL) && (pSolution != NULL));
 	m_pGrid = pGrid;
 	m_pSolution = pSolution;
 	m_nTimeSteps = timesteps;
@@ -147,6 +147,19 @@ int CVectorField::at_phys(const int fromCell,
 	return 1;
 }
 
+int CVectorField::getFieldValue(
+						  VECTOR3& pos, 
+						  const float t, 
+						  VECTOR3& fieldValue)
+{
+	//Check if pos is in the region. if not return -1.
+	if (!m_pGrid->isInRegion(pos)) return -1;
+	//Obtain the values of the field variables from the RegularGrids in the Solution,
+	//Put the result in fieldValue.
+	m_pSolution->getFieldValue(pos, t, fieldValue);
+
+	return 1;
+}
 //////////////////////////////////////////////////////////////////////////
 // to obtain node data at the computational position (i, j, k) in time t
 //

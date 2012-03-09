@@ -379,3 +379,11 @@ float CartesianGrid::cellVolume(int cellId)
 	
 	return volume;
 }
+void CartesianGrid::GetMinGridSpacing(float minspace[3]){
+	for (int i = 0; i<3; i++) minspace[i] = (m_vMaxRegBound[i]-m_vMinRegBound[i])/m_nDimension[i];
+}
+float CartesianGrid::GetMaxMinGridSpacing(){
+	float minspace[3];
+	GetMinGridSpacing(minspace);
+	return (Max(minspace[0],Max(minspace[1],minspace[2])));
+}

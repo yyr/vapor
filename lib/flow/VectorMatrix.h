@@ -67,6 +67,7 @@ public :
 	VECTOR3() {Zero();}
 	VECTOR3(const float x0, const float x1, const float x2) {vec[0] = x0; vec[1] = x1; vec[2] = x2;}
 
+	VECTOR3(const double val[3]) {vec[0] = val[0]; vec[1] = val[1]; vec[2] = val[2];}
 	void Set(VECTOR3 &v0) {vec[0] = v0(0); vec[1] = v0(1); vec[2] = v0(2);}
 	void Set(const float x0, const float x1, const float x2){vec[0] = x0; vec[1] = x1; vec[2] = x2;}
 	int Dimension() const {	return 3; }

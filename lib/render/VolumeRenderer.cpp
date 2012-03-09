@@ -287,8 +287,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	  
 	size_t max_dim[3];
 	size_t min_dim[3];
-	size_t max_bdim[3];
-	size_t min_bdim[3];
+	
 	int i;
 
 
@@ -371,7 +370,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	  
 	//Loop if user accepts lower resolution:
 	
-	int availRefLevel = myRegionParams->getAvailableVoxelCoords(reflevel, min_dim, max_dim, min_bdim, max_bdim, 
+	int availRefLevel = myRegionParams->getAvailableVoxelCoords(reflevel, min_dim, max_dim, 
 		timeStep,&varNum, 1);
 
 	if(availRefLevel < 0) {

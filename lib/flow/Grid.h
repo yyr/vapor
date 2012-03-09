@@ -111,6 +111,8 @@ public:
 	virtual bool isInRegion(VECTOR3& pos) = 0;
 	// get the minimal cell spacing in x,y,z dimensions for cell cellId
 	virtual float GetGridSpacing(int cellId) = 0;
+	virtual float GetMaxMinGridSpacing() = 0;
+	virtual void GetMinGridSpacing(float minspace[3]) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,6 +145,7 @@ private:
 	float oneOvermappingFactorY;
 	float oneOvermappingFactorZ;
 	float gridSpacing;					// the minimal grid spacing of all dimensions
+	
 	bool periodicDim[3];				//Identify which of the dimensions are periodic
 										//False if the region coord extents are not full
 	float period[3];					//Period of the data when periodic.  Not the same
@@ -211,33 +214,11 @@ public:
 	// Or in region (replaces above!)
 	bool isInRegion(VECTOR3& pos);
 	float GetGridSpacing(int cellId){ return gridSpacing; }
+	void GetMinGridSpacing(float spacing[3]);
+	float GetMaxMinGridSpacing();
 };
 
-//////////////////////////////////////////////////////////////////////////
-//
-// curvilinear grid
-//
-//////////////////////////////////////////////////////////////////////////
-class FLOW_API CurvilinearGrid : public Grid
-{
-private:
-	int m_nDimension[3];				// dimension
 
-public:
-	// constructor and deconstructor
-	CurvilinearGrid();
-	virtual ~CurvilinearGrid(){}
-	CurvilinearGrid(int xdim, int ydim, int zdim);
-	
-
-	// cell
-	// cell type
-	CellType GetCellType(void) {return POLYGONE;}
-
-	// dimension
-	void SetDimension(int xdim, int ydim, int zdim) {m_nDimension[0] = xdim; m_nDimension[1] = ydim; m_nDimension[2] = zdim;}
-	void GetDimension(int& xdim, int& ydim, int& zdim) {xdim = m_nDimension[0]; ydim = m_nDimension[1]; zdim = m_nDimension[2];}
-};
 
 };
 #endif

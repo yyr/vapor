@@ -9,6 +9,10 @@
 #include "VTFieldLine.h"
 #include "math.h"
 
+#define SMALLEST_MAX_STEP 0.25f
+#define SMALLEST_MIN_STEP 0.01f
+#define LARGEST_MAX_STEP 10.f
+#define LARGEST_MIN_STEP 4.f
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -149,11 +153,9 @@ void VaporFlow::SetRegion(size_t num_xforms,
 						  int clevel,
 						  const size_t min[3], 
 						  const size_t max[3],
-						  const size_t min_bdim[3],
-						  const size_t max_bdim[3],
-						  size_t fullGridHeight)
+						  const double regExts[6])
 {
-	full_height = fullGridHeight;
+	
 	numXForms = num_xforms;
 	compressLevel = clevel;
 	size_t fullDims[3];
@@ -163,10 +165,10 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	dataMgr->GetDim(fullDataSize,num_xforms);
 	dataMgr->GetDim(fullDims,-1);
 	for (int i = 0; i< 3; i++){
-		minBlkRegion[i] = min_bdim[i];
-		maxBlkRegion[i] = max_bdim[i];
 		minRegion[i] = min[i];
 		maxRegion[i] = max[i];
+		regionExtents[i] = regExts[i];
+		regionExtents[i+3] = regExts[i+3];
 		if (min[i] == 0 && max[i] == (fullDataSize[i]-1)) fullInDim[i] = true; 
 		else fullInDim[i] = false;
 		//Establish the period, in case the data is periodic.
@@ -183,13 +185,10 @@ void VaporFlow::SetRegion(size_t num_xforms,
 // biased random rake
 //////////////////////////////////////////////////////////////////////////
 void VaporFlow::SetRakeRegion(const size_t min[3], 
-						  const size_t max[3],
-						  const size_t min_bdim[3],
-						  const size_t max_bdim[3])
+						  const size_t max[3]
+				)
 {
 	for (int i = 0; i< 3; i++){
-		minBlkRake[i] = min_bdim[i];
-		maxBlkRake[i] = max_bdim[i];
 		minRake[i] = min[i];
 		maxRake[i] = max[i];
 	}
@@ -220,28 +219,7 @@ void VaporFlow::ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier,
 	unsteadyAnimationTimeStepMultiplier = animationTimeStepMultiplier;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// specify a set of seed points randomly generated over the specified
-// spatial interval. Points can be in axis aligned dimension 0, 1, 2, 3
-// Obsolete, replaced by Distributed version below.
-//////////////////////////////////////////////////////////////////////////
-/*
-void VaporFlow::SetRandomSeedPoints(const float min[3], 
-									const float max[3], 
-									int numSeeds)
-{
-	for(int iFor = 0; iFor < 3; iFor++)
-	{
-		minRakeExt[iFor] = min[iFor];
-		maxRakeExt[iFor] = max[iFor];
-	}
-	this->numSeeds[0] = numSeeds;
-	this->numSeeds[1] = 1;
-	this->numSeeds[2] = 1;
 
-	bUseRandomSeeds = true;
-}
-*/
 //////////////////////////////////////////////////////////////////////////
 // specify a set of seed points regularly generated over the specified
 // spatial interval. Points can be in axis aligned dimension 0, 1, 2, 3
@@ -262,11 +240,6 @@ void VaporFlow::SetRegularSeedPoints(const double min[3],
 	bUseRandomSeeds = false;
 }
 
-void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
-{
-	initialStepSize = initStepSize;
-	this->maxStepSize = maxStepSize;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // prepare the necessary data
@@ -309,6 +282,32 @@ bool VaporFlow::Get3Data(size_t ts,
 	if(!zeroX) *pUData = xDataPtr;
 	if(!zeroY) *pVData = yDataPtr;
 	if(!zeroZ) *pWData = zDataPtr;
+	return true;
+}
+//////////////////////////////////////////////////////////////////////////
+// Obtain data for three components of a vector field. 
+// Ignore if the variable name is "0"
+// Resulting data array is assigned to float** arguments.
+// If data is not obtained, unlock previously obtained data
+//////////////////////////////////////////////////////////////////////////
+bool VaporFlow::Get3GridData(size_t ts, 
+			const char* xVarName,const char* yVarName,const char* zVarName,
+			RegularGrid** pxGrid, RegularGrid** pyGrid, RegularGrid** pzGrid)
+{
+	bool zeroX = (strcmp(xVarName, "0") == 0); 
+	bool zeroY = (strcmp(yVarName, "0") == 0); 
+	bool zeroZ = (strcmp(zVarName, "0") == 0); 
+	
+	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
+	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
+	if((zeroX || *pxGrid) && (zeroY || *pyGrid) && !zeroZ) *pzGrid = dataMgr->GetGrid(ts, zVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
+	//Check if we failed:
+	if ((!zeroX && (*pxGrid == 0)) || (!zeroY && (*pyGrid == 0)) || (!zeroZ && (*pzGrid == 0))){
+					
+		if (!zeroX && *pxGrid) dataMgr->UnlockGrid(*pxGrid);
+		if (!zeroY && *pyGrid) dataMgr->UnlockGrid(*pyGrid);
+		return false;
+	}
 	return true;
 }
 //Generate the seeds for the rake.  If rake is random calculates distributed seeds 
@@ -539,64 +538,33 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	float **pWData;
-	float **pVData;
-	float **pUData;
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, numXForms);
-	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* bs[0];
-	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* bs[1];
-	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* bs[2];
-	int totalNum = totalXNum*totalYNum*totalZNum;
-	bool zeroX = (strcmp(xSteadyVarName, "0") == 0); 
-	bool zeroY = (strcmp(ySteadyVarName, "0") == 0); 
-	bool zeroZ = (strcmp(zSteadyVarName, "0") == 0); 
-	if(!zeroX) pUData = new float*[1];
-	else pUData = 0;
-	if(!zeroY) pVData = new float*[1];
-	else pVData = 0;
-	if(!zeroZ) pWData = new float*[1];
-	else pWData = 0;
 
-	bool gotData = Get3Data(steadyStartTimeStep, xSteadyVarName, ySteadyVarName,
-		zSteadyVarName, pUData, pVData, pWData);
+	
+	RegularGrid *pUGrid=0, *pVGrid=0, *pWGrid=0;
+	
+	bool gotData = Get3GridData(steadyStartTimeStep, xSteadyVarName, ySteadyVarName,
+		zSteadyVarName, &pUGrid,  &pVGrid,  &pWGrid);
 	
 	if (!gotData) 
 		return false;
+	int totalXNum = (int)(maxRegion[0]-minRegion[0]+1);
+	int totalYNum = (int)(maxRegion[1]-minRegion[1]+1);
+	int totalZNum = (int)(maxRegion[2]-minRegion[2]+1);
 	
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
+	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1);
 	pSolution->SetTimeScaleFactor((float)steadyUserTimeStepMultiplier);
 	pSolution->SetTime((int)steadyStartTimeStep, (int)steadyStartTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
-	// set the boundary of physical grid
-	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
+	VECTOR3 minR(regionExtents);
+	VECTOR3 maxR(regionExtents+3);
+	pCartesianGrid->SetRegionExtents(minR,maxR);
+	pCartesianGrid->SetBoundary(minR, maxR);
 	
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
-	//Now adjust minB, maxB to block region extents:
-	
-	for (int i = 0; i< 3; i++){
-		minB[i] = (float)minUser[i];
-		maxB[i] = (float)maxUser[i];
-		minR[i] = (float)regMin[i];
-		maxR[i] = (float)regMax[i];
-	}
-	
-	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0);
 	
@@ -605,8 +573,6 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 
 	float currentT = (float)steadyStartTimeStep;
 
-	//AN: for memory debugging:
-	//pStreamLine->fullArraySize = container->getMaxPoints()*seedNum*3;
 
 	// by default, tracing is bidirectional
 	if (steadyFlowDirection > 0)
@@ -626,7 +592,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		int j; 
 		for (j = 0; j< 3; j++){
 			if (regionPeriodicDim(j)) continue;
-			if (seedPtr[3*i+j] < regMin[j] || seedPtr[3*i+j] > regMax[j]){
+			if (seedPtr[3*i+j] < regionExtents[j] || seedPtr[3*i+j] > regionExtents[j+3]){
 				break;
 			}
 		}
@@ -644,10 +610,13 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
-	pStreamLine->SetInitStepSize(initialStepSize);
-	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(container->getMaxPoints()*(float)steadyAnimationTimeStepMultiplier));
+	float minspacing[3];
+	pCartesianGrid->GetMinGridSpacing(minspacing);
+	pStreamLine->SetInitStepSize(getInitStepSize(minspacing));
+	pStreamLine->SetMaxStepSize(getMaxStepSize(minspacing));
+	float mmspacing = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
+	pStreamLine->SetStationaryCutoff(0.1f*mmspacing/(container->getMaxPoints()*(float)steadyAnimationTimeStepMultiplier));
 	pStreamLine->computeStreamLine(currentT, container);
 	
 	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
@@ -657,9 +626,9 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	delete pField;
 	//Unlock region:
 
-	if(pUData)dataMgr->UnlockRegion(pUData[0]);
-	if(pVData)dataMgr->UnlockRegion(pVData[0]);
-	if(pWData)dataMgr->UnlockRegion(pWData[0]);
+	if(pUGrid)dataMgr->UnlockGrid(pUGrid);
+	if(pVGrid)dataMgr->UnlockGrid(pVGrid);
+	if(pWGrid)dataMgr->UnlockGrid(pWGrid);
 		
 	return true;
 }
@@ -840,8 +809,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//The sampling rate is the time-difference between samples.
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
-	pStreakLine->SetInitStepSize(initialStepSize);
-	pStreakLine->SetMaxStepSize(maxStepSize);
+	float minspacing[3];
+	pCartesianGrid->GetMinGridSpacing(minspacing);
+	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
+	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	pStreakLine->setIntegrationOrder(FOURTH);
 
 
@@ -1101,8 +1072,11 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	//The sampling rate is the time-difference between samples.
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
-	pStreakLine->SetInitStepSize(initialStepSize);
-	pStreakLine->SetMaxStepSize(maxStepSize);
+	float minspacing[3];
+	pCartesianGrid->GetMinGridSpacing(minspacing);
+	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
+	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
+	
 	pStreakLine->setIntegrationOrder(FOURTH);
 
 	//Insert all the seeds at the first time step:
@@ -1445,4 +1419,33 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	
 	if (numPts == 0) return false;
 	return true;
+}
+float VaporFlow::getInitStepSize(float minspacing[3]){
+	
+	float initstep;
+	float acc = Min(integrationAccuracy,1.f);
+	
+	initstep = SMALLEST_MIN_STEP*acc + (1.f - acc)*LARGEST_MIN_STEP;
+	if (integrationAccuracy <=1.) return initstep;
+	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
+	float minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
+	float maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
+	float acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
+	initstep = initstep*((1.-acc2) + acc2*minmin/maxmin);
+	return initstep;
+}
+float VaporFlow::getMaxStepSize(float minspacing[3]){
+	
+	float maxstep;
+	float acc = Min(integrationAccuracy,1.f);
+	
+	maxstep = SMALLEST_MAX_STEP*acc + (1.f - acc)*LARGEST_MAX_STEP;
+	if (integrationAccuracy <=1.) return maxstep;
+	
+	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
+	float minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
+	float maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
+	float acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
+	maxstep = maxstep*((1.-acc2) + acc2*minmin/maxmin);
+	return maxstep;
 }

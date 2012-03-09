@@ -67,7 +67,7 @@ public:
 	//! \param[out] size_t min_bdim[3]	Minimum block coordinates of region
 	//! \param[out] size_t max_bdim[3]	Maximum block coordinates of region
 	//! \param[in] int timestep			Time step at which the coordinates are being requested.
-	void getRegionVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3], int timestep);
+	void getRegionVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], int timestep);
 	
 	//! Method to obtain voxel and user coordinates of the available data
 	//! in the region.  The region extents may be shrunk so as to include
@@ -80,15 +80,13 @@ public:
 	//! \param[in] int reflevel			Refinement level of requested coordinates
 	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of available region
 	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of available region
-	//! \param[out] size_t min_bdim[3]	Minimum block coordinates of available region
-	//! \param[out] size_t max_bdim[3]	Maximum block coordinates of available region
 	//! \param[in] size_t timestep		Time step at which the data is being requested.
 	//! \param[in] int* sesVarNums		An array of integer session 3D variable nums for requested variables
 	//! \param[in] int numVars			Number of variables, i.e. size of sesVarnums
 	//! \param[out] double* regMin		Minimum user coordinates, if this pointer is non-null
 	//! \param[out] double* regMax		Maximum user coordinates, if this pointer is non-null
 	int getAvailableVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
+		size_t timestep, 
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
 	
 
@@ -197,7 +195,10 @@ public:
 		myBox->GetExtents(exts, timestep);
 		return exts[coord+3];
 	}
-	
+	void getRegionExtents(double exts[6],int timestep){
+		myBox->GetExtents(exts,timestep);
+		return;
+	}
 	float getRegionCenter(int indx, int timestep) {
 		return (0.5f*(getRegionMin(indx,timestep)+getRegionMax(indx,timestep)));
 	}

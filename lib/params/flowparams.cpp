@@ -33,6 +33,7 @@
 #include <vapor/flowlinedata.h>
 #include "glutil.h"
 #include <vapor/errorcodes.h>
+#include "vapor/RegularGrid.h"
 
 #include <qapplication.h>
 #include <qcursor.h>
@@ -40,11 +41,7 @@
 #include "mapperfunction.h"
 
 #include <vapor/common.h>
-//Step sizes for integration accuracy:
-#define SMALLEST_MIN_STEP 0.01f
-#define SMALLEST_MAX_STEP 0.25f
-#define LARGEST_MIN_STEP 4.f
-#define LARGEST_MAX_STEP 10.f
+
 using namespace VAPoR;
 	const string FlowParams::_shortName = "Flow";
 	const string FlowParams::_seedingTag = "FlowSeeding";
@@ -1052,14 +1049,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		}
 	}
 
-	// setup integration parameters:
 	
-	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
-	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
-	
-	
-	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
-	myFlowLib->SetSteadyTimeSteps(timeStep, steadyFlowDirection); 
+	myFlowLib->SetIntegrationAccuracy(integrationAccuracy);
 	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
 	
 	maxPoints = calcMaxPoints();
@@ -1183,12 +1174,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 
 	//Get bounds
 	// setup integration parameters:
-	
-	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
-	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
-	
-	
-	flowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
+	flowLib->SetIntegrationAccuracy(integrationAccuracy);
 
 	
 	const char* xVar="0", *yVar="0", *zVar="0";
@@ -1305,11 +1291,11 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 	//Get the region bounds for testing seeds:
 	double minExt[3], maxExt[3];
 	size_t min_dim[3], max_dim[3]; 
-	size_t min_bdim[3], max_bdim[3];
+
 	int sesvarnums[3];
 	int varcount = 0;
 	for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) sesvarnums[varcount++] = unsteadyVarNum[i] -1;}
-	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, 
 			timeStep, sesvarnums, varcount, minExt, maxExt);
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
@@ -1372,11 +1358,11 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 	//Get the region bounds for testing seeds:
 	double minExt[3], maxExt[3];
 	size_t min_dim[3], max_dim[3]; 
-	size_t min_bdim[3], max_bdim[3];
+	
 	int sesvarnums[3];
 	int varcount = 0;
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) sesvarnums[varcount++] = steadyVarNum[i] -1;}
-	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, 
 			timeStep, sesvarnums,varcount, minExt, maxExt);
 	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
@@ -2263,7 +2249,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
 		int opacVarnum = ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4);
-		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
+		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim,
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
 		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
 		int lod = GetCompressionLevel();
@@ -2303,7 +2289,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 
 		int colorVarnum = ds->mapActiveToSessionVarNum3D(getColorMapEntityIndex()-4);
 		
-		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
+		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, 
 			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
 		if(colorRefLevel < 0) {
 			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Color mapping data unavailable");
@@ -2736,13 +2722,12 @@ int FlowParams::calcNumSeedPoints(int timeStep){
 //used to automatically set vector scale factor.
 float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeStep){
 	
-	float* varData[3];
-	
-	size_t min_dim[3],max_dim[3],min_bdim[3],max_bdim[3];
+	const RegularGrid* varData[3];
+	size_t min_dim[3],max_dim[3];
 	int varnums[3];
 	int varcount = 0;
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varnums, varcount);
+	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, (size_t)timeStep, varnums, varcount);
 	if (availRefLevel < 0) {
 		return -1.f;
 	}
@@ -2758,69 +2743,63 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 			int lod = GetCompressionLevel();
 			if (ds->useLowerAccuracy())
 				lod = Min(lod, ds->maxLODPresent3D(steadyVarNum[var]-1, timeStep));
-			varData[var] = dataMgr->GetRegion((size_t)timeStep,
+			varData[var] = dataMgr->GetGrid((size_t)timeStep,
 				ds->getVariableName3D(steadyVarNum[var]-1).c_str(),
-				availRefLevel, lod, min_bdim, max_bdim,  1);
+				availRefLevel, lod, min_dim, max_dim,  1);
 			if (!varData[var]) {
 				dataMgr->SetErrCode(0);
 				ds->setDataMissing3D(timeStep, availRefLevel,lod, steadyVarNum[var]-1);
 				//release currently locked regions:
 				for (int k = 0; k<var; k++){
-					dataMgr->UnlockRegion(varData[k]);
+					if (varData[k])
+						dataMgr->UnlockGrid(varData[k]);
 				}
 				QApplication::restoreOverrideCursor();
 				return -2.f;
 			}	
 		}
 	}
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs,availRefLevel);
+	
 	int numPts = 0;
 	float dataSum = 0.f;
-	
-	float lowx = 0.f, highx = 0.f, lowy = 0.f, highy = 0.f, lowz = 0.f, highz = 0.f;
-	bool xnull = (steadyVarNum[0] == 0);
-	bool ynull = (steadyVarNum[1] == 0);
-	bool znull = (steadyVarNum[2] == 0);
-	if (!xnull) {
-		lowx = ds->getBelowValue(steadyVarNum[0]-1);
-		highx = ds->getAboveValue(steadyVarNum[0]-1);
-	}
-	if (!ynull) {
-		lowy = ds->getBelowValue(steadyVarNum[1]-1);
-		highy = ds->getAboveValue(steadyVarNum[1]-1);
-	}
-	if (!znull) {
-		lowz = ds->getBelowValue(steadyVarNum[2]-1);
-		highz = ds->getAboveValue(steadyVarNum[2]-1);
-	}
-	
-	//OK, we got the data. find the sum:
-	for (size_t i = min_dim[0]; i<=max_dim[0]; i++){
-		for (size_t j = min_dim[1]; j<=max_dim[1]; j++){
-			for (size_t k = min_dim[2]; k<=max_dim[2]; k++){
-				int xyzCoord = (i - min_bdim[0]*bs[0]) +
-					(j - min_bdim[1]*bs[1])*(bs[0]*(max_bdim[0]-min_bdim[0]+1)) +
-					(k - min_bdim[2]*bs[2])*(bs[1]*(max_bdim[1]-min_bdim[1]+1))*(bs[0]*(max_bdim[0]-min_bdim[0]+1));
-				
-				float varX = (xnull ? 0.f : varData[0][xyzCoord]);
-				float varY = (ynull ? 0.f : varData[1][xyzCoord]);
-				float varZ = (znull ? 0.f : varData[2][xyzCoord]);
-				//points above or below grid have all nonzero coords at high/low val
-
-				//Test if all the non-null components are either above or below
-				//the grid.  If so, don't count it.
-				
-				if ((znull || varZ == lowz) && (ynull || varY == lowy) && (xnull || varX == lowx)) continue;
-				if ((znull || varZ == highz) && (ynull || varY == highy) && (xnull || varX == highx)) continue;
-				
-				dataSum += sqrt(varX*varX+varY*varY+varZ*varZ);
-				numPts++;
-			}
+	//push down the zero grids.
+	for (int i = 0; i<2; i++){
+		if (!varData[0]){
+			varData[0] = varData[1];
+			varData[1] = varData[2];
+			varData[2] = 0;
+		}
+		if (!varData[1]){
+			varData[1] = varData[2];
+			varData[2] = 0;
 		}
 	}
+	if (!varData[0]) return -1.f;  //No grids
+		
+	RegularGrid::ConstIterator itr0, itr1, itr2;
+	itr0 = varData[0]->begin();
+	
+	float mv = varData[0]->GetMissingValue();
+	
+	for (itr0 = varData[0]->begin(),itr2 = varData[2]->begin(),itr1 = varData[1]->begin(); itr0 != varData[0]->end(); ++itr0){
+		float val[3] = { 0.f, 0.f, 0.f};
+		val[0] = *itr0;
+		if(varData[1]) val[1] = *itr1;
+		if(varData[2]) val[2] = *itr2;
+		//Ignore if first variable is mv
+		if (val[0] != mv) {
+			//Note:  we assume that all variables have missing values in same place
+			assert (val[1] != mv && val[2] != mv);
+			float mag = sqrt(val[0]*val[0]+val[1]*val[1]+val[2]*val[2]);
+			dataSum += mag;
+			numPts++;
+		}
+		if (varData[1]) ++itr1;
+		if (varData[2]) ++itr2;
+	}
+		
 	for (int k = 0; k<3; k++){
-		if(varData[k]) dataMgr->UnlockRegion(varData[k]);
+		if(varData[k]) dataMgr->UnlockGrid(varData[k]);
 	}
 	QApplication::restoreOverrideCursor();
 	if (numPts == 0) return -1.f;
@@ -2832,10 +2811,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 bool FlowParams::
 setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	size_t min_dim[3], max_dim[3]; 
-	size_t min_bdim[3], max_bdim[3];
 	DataStatus* ds = DataStatus::getInstance();
 	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
-	
+	size_t tstep = (size_t) timeStep;
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	int availRefLevel = numRefinements;
@@ -2844,7 +2822,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		int varnums[3];
 		int varcount = 0;
 		for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim,  
 			timeStep, varnums,varcount);
 		
 		if (ds->useLowerAccuracy()){
@@ -2859,7 +2837,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		//Unsteady flow.  Find the intersection of all the regions for the timesteps to be sampled.
 		// Also get available refinement/compression level which is min of all ones available
 		
-		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
+		size_t gmin_dim[3],gmax_dim[3];
 		//Get min refinement level that's OK for all time steps for which there is data.
 		//We will skip timesteps with no data
 		if (ds->useLowerAccuracy()) {
@@ -2879,7 +2857,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 		//Start with the extents at the start timestep:
 		int ts = getTimestepSample(0);
-		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim, ts);
+		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, ts);
 		
 		//Intersect the regions for the timesteps with field data:
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
@@ -2901,7 +2879,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			int varnums[3];
 			int varcount = 0;
 			for (int i = 0; i< 3; i++){varnums[varcount++] = unsteadyVarNum[i] -1;}
-			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, 
 				ts, varnums, varcount);
 			if(refLevel < 0)
 				return false;
@@ -2911,44 +2889,52 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			for (int i = 0; i< 3; i++){
 				gmin_dim[i] = Max(gmin_dim[i],min_dim[i]);
 				gmax_dim[i] = Min(gmax_dim[i],max_dim[i]);
-				gmin_bdim[i] = Max(gmin_bdim[i],min_bdim[i]);
-				gmax_bdim[i] = Min(gmax_bdim[i],max_bdim[i]);
+				
 			}
 		}
 		//Copy back the intersected region:
 		for (int i = 0; i< 3; i++){
 			min_dim[i] = gmin_dim[i];
 			max_dim[i] = gmax_dim[i];
-			min_bdim[i] = gmin_bdim[i];
-			max_bdim[i] = gmax_bdim[i];
 		}
 	}
 	
 	//Check that the cache is big enough for all three (or 4) variables
-	float numVoxels = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+	float numVoxels = (max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);
 	float nvars =  3.f;
 	if (flowType != 0) nvars = 6.f;
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, availRefLevel);
+	
 	//Multiply by  *4 to get total bytes, divide by 1M mbytes, * num variables
-	float memreq = nvars*numVoxels*bs[0]*bs[1]*bs[2]/250000.;
+	float memreq = nvars*numVoxels/250000.;
 	if (memreq >= (float)DataStatus::getInstance()->getCacheMB()){
 		SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG," Data cache size %d is\ntoo small for this flow integration",
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
-	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
-	// Also, specify the bounds of the rake, in case it is needed:
+	//At this point min_dim and max_dim are the valid voxel extents of region that contains the valid float extents where
+	//the flow lines will be calculated.  To ensure that the integration bounds are limited to where we really have data and also
+	//remain within the region, find the intersection of the two regions and supply that to the flowLib.
+	double rexts[6];
+	double newexts[6];
+	DataMgr* dataMgr = ds->getDataMgr();
+	rParams->getRegionExtents(rexts,timeStep);
+	dataMgr->MapVoxToUser(tstep,min_dim,newexts, availRefLevel);
+	dataMgr->MapVoxToUser(tstep,max_dim,newexts+3, availRefLevel);
+	for (int i = 0; i<3; i++){
+		newexts[i] = Max(newexts[i],rexts[i]);
+		newexts[i+3] = Min(newexts[i+3],rexts[i+3]);
+	}
+	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, newexts);
+	// specify the bounds of the rake, in case it is needed.  
+	
 	double rakeCoords[6];
 	GetBox()->GetExtents(rakeCoords);
 	
 	
-	DataMgr* dataMgr = ds->getDataMgr();
 	
-	dataMgr->MapUserToBlk(timeStep, rakeCoords, min_bdim, availRefLevel);
-	dataMgr->MapUserToVox(timeStep, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk(timeStep, rakeCoords+3, max_bdim, availRefLevel);
-	dataMgr->MapUserToVox(timeStep, rakeCoords+3, max_dim, availRefLevel);
+	//Convert the rake to voxels and back to user coords
+	dataMgr->MapUserToVox(tstep, rakeCoords, min_dim, availRefLevel);
+	dataMgr->MapUserToVox(tstep, rakeCoords+3, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
 	dataMgr->MapVoxToUser(timeStep,min_dim, testRakeMin,availRefLevel);
@@ -2974,12 +2960,10 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	
 	dataMgr->MapVoxToUser(timeStep,min_dim, rakeCoords,availRefLevel);
 	dataMgr->MapVoxToUser(timeStep,max_dim, rakeCoords+3,availRefLevel);
-	dataMgr->MapUserToBlk(timeStep, rakeCoords, min_bdim, availRefLevel);
 	dataMgr->MapUserToVox(timeStep, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToBlk(timeStep, rakeCoords+3, max_bdim, availRefLevel);
 	dataMgr->MapUserToVox(timeStep, rakeCoords+3, max_dim, availRefLevel);
 	
-	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
+	flowLib->SetRakeRegion(min_dim, max_dim);
 	return true;
 }
 //Perform all the major steps in field line advection where the prioritization is

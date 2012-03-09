@@ -1127,7 +1127,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 			dataMgr->Clear();
 			dataMgrLayered->SetInterpolateOnOff(false);
 			//Try to get requested refinement level or the nearest acceptable level:
-			refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+			refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim,  
 					timeStep, &varnum, 1, regMin, regMax);
 			if(refLevel < 0) {
 				dataMgrLayered->SetInterpolateOnOff(true);
@@ -1155,8 +1155,7 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 		}
 		else { //setup for just doing flat plane:
 			
-			size_t bbmin[3], bbmax[3];
-			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, bbmin, bbmax,timeStep);
+			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, timeStep);
 		}
 	} else {
 		

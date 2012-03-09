@@ -1185,9 +1185,7 @@ void DvrEventRouter::benchmarkPreamble()
 
   size_t max_dim[3];
   size_t min_dim[3];
-  size_t max_bdim[3];
-  size_t min_bdim[3];
-
+ 
   const DataMgr *dataMgr      = Session::getInstance()->getDataMgr();
   RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
   DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
@@ -1195,15 +1193,13 @@ void DvrEventRouter::benchmarkPreamble()
   int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->GetRefinementLevel();
-  size_t bs[3];
-  dataMgr->GetBlockSize(bs,numxforms);
-
-  if(regionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
+  
+  if(regionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, 
           timeStep, &varNum, 1) < 0 ) return;
   
-  int nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
-  int ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
-  int nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
+  int nx = (max_dim[0] - min_dim[0] + 1);
+  int ny = (max_dim[1] - min_dim[1] + 1);
+  int nz = (max_dim[2] - min_dim[2] + 1);
 
   VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;

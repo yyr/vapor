@@ -814,12 +814,12 @@ exportData(){
 	size_t frameInterval[2];
 	size_t minCoords[3],maxCoords[3];
 	size_t mncrds[3],mxcrds[3];
-	size_t minbdim[3],maxbdim[3];
+	
 	frameInterval[0] = (size_t)p->getStartFrameNumber();
 	frameInterval[1] = (size_t)p->getEndFrameNumber();
 	//Note that we will export the current region, even if there's no
 	//valid data in it...
-	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds, minbdim, maxbdim,currentFrame);
+	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds,currentFrame);
 	for (int i = 0; i< 3; i++) {
 		minCoords[i] = mncrds[i];
 		maxCoords[i] = mxcrds[i];

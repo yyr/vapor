@@ -99,11 +99,10 @@ validateNumTrans(int n, int timestep){
 	
 	
 	size_t min_dim[3], max_dim[3];
-	size_t min_bdim[3], max_bdim[3];
-	getRegionVoxelCoords(n,min_dim,max_dim,min_bdim,max_bdim, timestep);
+	getRegionVoxelCoords(n,min_dim,max_dim, timestep);
 	
-	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
-	size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+	//calc num voxels
+	size_t newFullMB = (max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);
 	//right shift by 20 for megavoxels
 	newFullMB >>= 20;
 	//Multiply by 6 for 6 bytes per voxel
@@ -283,7 +282,7 @@ convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[
 }	
 int RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,
+		size_t timestep, const int* varNums, int numVars,
 		double regMin[3], double regMax[3]){
 	//First determine the bounds specified in this RegionParams
 	int i;
@@ -294,8 +293,6 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
-			min_bdim[i] = 0;
-			max_bdim[i] = (32 >>numxforms) -1;
 		}
 		return -1;
 	}
@@ -322,12 +319,9 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	if (ds->dataIsLayered()){
-		setFullGridHeight(fullHeight);
-	}
-	//Do mapping to voxel coords
-	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, minRefLevel);
-	dataMgr->MapUserToVox(timestep, userMaxCoords, max_dim, minRefLevel);
+	
+	//Determine containing voxel coord box:
+	dataMgr->GetEnclosingRegion(timestep, userMinCoords, userMaxCoords, min_dim, max_dim,minRefLevel);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -368,13 +362,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			if (min_dim[i] > max_dim[i]) minRefLevel = -1;
 		}
 	}
-	//calc block dims
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, minRefLevel);
-	for (i = 0; i<3; i++){	
-		min_bdim[i] = min_dim[i] / bs[i];
-		max_bdim[i] = max_dim[i] / bs[i];
-	}
+	
+	
 	//If bounds are needed, calculate them:
 	if (regMax && regMin){
 		//Do mapping to voxel coords
@@ -586,8 +575,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 	return minRefLevel;
 }
 void RegionParams::
-getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], int timestep){
+getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int timestep)
+{
 	int i;
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -595,8 +584,6 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
-			min_bdim[i] = 0;
-			max_bdim[i] = (32 >>numxforms) -1;
 		}
 		return;
 	}
@@ -610,9 +597,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, numxforms);
 	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
-	dataMgr->MapUserToBlk(timestep, userMaxCoords, max_bdim, numxforms);
 	dataMgr->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
 
 	
@@ -874,8 +859,8 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3
 	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
 	const char* varname = ds->getVariableName3D(sessionVarNum).c_str();
 	double regMin[3], regMax[3];
-	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
-	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);
+	size_t min_dim[3],max_dim[3], blkmin[3], blkmax[3];
+	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, timeStep, &sessionVarNum, 1, regMin, regMax);
 	if (availRefLevel < 0) {
 		renParams->setBypass(timeStep);
 		if (ds->warnIfDataMissing()){

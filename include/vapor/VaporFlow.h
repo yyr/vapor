@@ -39,8 +39,8 @@ namespace VAPoR
 		void SetSteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
-		void SetRegion(size_t num_xforms, int clevel, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3], size_t fullGridHeight);
-		void SetRakeRegion(const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
+		void SetRegion(size_t num_xforms, int clevel, const size_t min[3], const size_t max[3], const double regExts[6]);
+		void SetRakeRegion(const size_t min[3], const size_t max[3]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
 			steadyStartTimeStep = timeStep;
@@ -51,7 +51,9 @@ namespace VAPoR
 		void ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		
 		void SetRegularSeedPoints(const double min[3], const double max[3], const size_t numSeeds[3]);
-		void SetIntegrationParams(float initStepSize, float maxStepSize);
+		void SetIntegrationAccuracy(float acc){
+			integrationAccuracy = acc;
+		}
 		void SetDistributedSeedPoints(const double min[3], const double max[3], int numSeeds, 
 			const char* xvar, const char* yvar, const char* zvar, float bias);
 		
@@ -108,6 +110,10 @@ namespace VAPoR
 	private:
 		bool Get3Data(size_t ts, const char* xVarName, const char* yVarName, 
 			const char* zVarName, float** uData, float ** vData, float **wData);
+		bool Get3GridData(size_t ts, const char* xVarName, const char* yVarName, 
+			const char* zVarName, RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
+		float getMaxStepSize(float mingrid[3]);
+		float getInitStepSize(float mingrid[3]);
 
 		size_t userTimeUnit;						// time unit in the original data
 		size_t userTimeStep;						// enumerate time steps in source data
@@ -120,6 +126,7 @@ namespace VAPoR
 		double unsteadyAnimationTimeStepMultiplier;
 		double animationTimeStep;					// which frame in animation
 		double integrationTimeStepSize;				// used for integration
+		float integrationAccuracy;
 
 		size_t steadyStartTimeStep;					// refer to userTimeUnit.  Used only for
 		size_t endTimeStep;							// steady flow
@@ -138,9 +145,6 @@ namespace VAPoR
 		bool fullInDim[3];							// determine if the current region is full in each dimension
 		bool bUseRandomSeeds;						// whether use randomly or regularly generated seeds
 
-		float initialStepSize;						// for integration
-		float maxStepSize;
-
 		DataMgr* dataMgr;							// data manager
 		char *xSteadyVarName, *ySteadyVarName, *zSteadyVarName;		
 													// name of three variables for steady field
@@ -152,7 +156,8 @@ namespace VAPoR
 													// field variables used to determine random seed distribution
 		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
 		int compressLevel;
-		size_t minRegion[3], maxRegion[3];			//Actual region bounds
+		size_t minRegion[3], maxRegion[3];			//containing region grid extents
+		double regionExtents[6];					//Region extents in user coordinates
 		float flowPeriod[3];						//Used if data is periodic
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;

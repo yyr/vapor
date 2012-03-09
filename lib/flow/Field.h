@@ -45,6 +45,7 @@ public:
 	int at_cell(int cellId, CellTopoType eCellTopoType, const float t, vector<VECTOR3>& vNodeData);
 	int getCellVertices(int cellId, CellTopoType cellType, vector<int>& vVertices) { return m_pGrid->getCellVertices(cellId, cellType, vVertices); }
 	int at_phys(const int fromCell, VECTOR3& pos, PointInfo& pInfo,const float t, VECTOR3& nodeData);
+	int getFieldValue(VECTOR3& pos, const float t, VECTOR3& fieldData);
 	int phys_at_ver(int verId, VECTOR3& pos);
 	bool is_in_grid(VECTOR3& pos) {return (m_pGrid->isInRegion(pos));}
 	int at_comp(const int i, const int j, const int k, const float t, VECTOR3& dataValue);
@@ -67,6 +68,7 @@ public:
 	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
 	
 	float GetUserTimePerVaporTS() { return m_pSolution->GetUserTimePerVaporTS();}
+	float GetMaxMinGridSpacing() { return m_pGrid->GetMaxMinGridSpacing();}
 
 };
 //Helper class to get data out of a vector field

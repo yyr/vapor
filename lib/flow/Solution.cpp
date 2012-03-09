@@ -49,7 +49,20 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_pUserTimeSteps = NULL;
 	m_TimeDir = FORWARD;
 }
-
+Solution::Solution(RegularGrid* xGrid, RegularGrid* yGrid, RegularGrid* zGrid,
+				  int timeSteps)
+{
+	m_pUGrid = xGrid;
+	m_pVGrid = yGrid;
+	m_pWGrid = zGrid;
+	m_nTimeSteps = timeSteps;		
+	m_fTimeScaleFactor = 1.0;
+	m_nTimeIncrement = 1;
+	m_nUserTimeStepInc = 0;
+	m_fUserTimePerVaporTS = 1.f;
+	m_pUserTimeSteps = NULL;
+	m_TimeDir = FORWARD;
+}
 Solution::~Solution()
 {
 	m_pUserTimeSteps = NULL;
@@ -85,6 +98,25 @@ void Solution::SetValue(int t, float* pUData, float* pVData, float* pWData)
 	}
 }
 
+void Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
+	float uVal = 0.f, vVal = 0.f, wVal = 0.f;
+	double xval = point.x();
+	double yval = point.y();
+	double zval = point.z();
+	if (m_pUGrid){
+		uVal = m_pUGrid->GetValue((double)point.x(),(double)point.y(),(double)point.z());
+		if (uVal == m_pUGrid->GetMissingValue()) uVal = 0.f;
+	}
+	if (m_pVGrid){
+		vVal = m_pVGrid->GetValue(point.x(),point.y(),point.z());
+		if (vVal == m_pVGrid->GetMissingValue()) vVal = 0.f;
+	}
+	if (m_pWGrid){
+		wVal = m_pWGrid->GetValue(point.x(),point.y(),point.z());
+		if (wVal == m_pWGrid->GetMissingValue()) wVal = 0.f;
+	}
+	fieldVal.Set(uVal,vVal,wVal);
+}
 //////////////////////////////////////////////////////////////////////////
 // whether field is time varying
 //////////////////////////////////////////////////////////////////////////
