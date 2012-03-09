@@ -1826,9 +1826,7 @@ void   DataMgr::MapUserToVox(
 	ijk[1] = 0;
 	ijk[2] = 0;
 
-	string gtype = GetGridType();
-
-	if (! (gtype.compare("layered") == 0)) {
+	if (! (GetGridType().compare("layered") == 0)) {
 		return(Metadata::MapUserToVox(timestep, xyz, ijk, reflevel));
 	}
 	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
@@ -1843,13 +1841,12 @@ void   DataMgr::MapVoxToUser(
     size_t timestep,
     const size_t ijk[3], double xyz[3], int reflevel
  ) {
-	string gtype = GetGridType();
 
 	xyz[0] = 0.0;
 	xyz[1] = 0.0;
 	xyz[2] = 0.0;
 
-	if (gtype.compare("layered") == 0) {
+	if (! (GetGridType().compare("layered") == 0)) {
 		return(Metadata::MapVoxToUser(timestep, ijk, xyz, reflevel));
 	}
 
