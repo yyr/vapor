@@ -1879,7 +1879,7 @@ void    DataMgr::GetEnclosingRegion(
 
     size_t dims[3];
     Metadata::GetDim(dims, reflevel);
-	vector <double> extents = Metadata::GetExtents(ts);
+	vector <double> extents = GetExtents(ts);
 
 	for (int i=0; i<3; i++) {
 		if (extents[i] < extents[i+3]) {
