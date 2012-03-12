@@ -98,8 +98,6 @@ int RegularGrid::_RegularGrid(
 
 	_hasMissing = false;
 	_missingValue = INFINITY;
-	_invalidAccess = new float[1];
-	*_invalidAccess = NAN;
 	_interpolationOrder = 1;
 	ResetItr();
 
@@ -132,7 +130,6 @@ RegularGrid::RegularGrid(
 }
 
 RegularGrid::~RegularGrid() {
-	if (_invalidAccess) delete [] _invalidAccess;
 	if (_blks) delete [] _blks;
 }
 
@@ -143,9 +140,9 @@ float &RegularGrid::AccessIJK( size_t x, size_t y, size_t z) const {
 float &RegularGrid::_AccessIJK(
 	float **blks, size_t x, size_t y, size_t z) const {
 
-	if (x>(_max[0]-_min[0])) return(*_invalidAccess);
-	if (y>(_max[1]-_min[1])) return(*_invalidAccess);
-	if (z>(_max[2]-_min[2])) return(*_invalidAccess);
+	if (x>(_max[0]-_min[0])) return((float &) _missingValue);
+	if (y>(_max[1]-_min[1])) return((float &) _missingValue);
+	if (z>(_max[2]-_min[2])) return((float &) _missingValue);
 
 	// x,y,z are specified relative to _min[i]
 	//

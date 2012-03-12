@@ -355,111 +355,56 @@ void LayeredGrid::GetIJKIndex(
 	// dimensions. We only need to find the index for the varying dimension
 	//
 	if (_varying_dim == 0) {
-		//
-		// clamp the varying coordinate to be inside the grid
-		//
-		double min = _AccessIJK(_coords, 0, *j, *k);
-		double max = _AccessIJK(_coords, dims[0]-1, *j, *k);
-		if (min<max) {
-			if (x<min) x = min;
-			if (x>max) x = max;
+		size_t i0, j0, k0;
+		LayeredGrid::GetIJKIndexFloor(x,y,z,&i0, &j0, &k0);
+		if (i0 == dims[0]-1) {	// on boundary
+			*i = i0;
+			return;
+		}
+
+		double x0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
+		double x1 = _interpolateVaryingCoord(i0+1,j0,k0,x,y,z);
+		if (fabs(x-x0) < fabs(x-x1)) {
+			*i = i0;
 		}
 		else {
-			if (x>min) x = min;
-			if (x<max) x = max;
-		}
-
-		// Now search for the closest point
-		//
-		for (int ii=0; ii<dims[0]-1; ii++) {
-			double p0 = _AccessIJK(_coords, ii, *j, *k);
-			double p1 = _AccessIJK(_coords, ii+1, *j, *k);
-
-			// if the signs of differences change then the coordinate 
-			// is between the two grid points. We only need find out 
-			// which one it is closest to.
-			//
-			if ((x-p0) * (x-p1) <= 0.0) { 
-				double wgt = fabs((x-p0) / (p1-p0));
-
-				if (wgt<0.5) *i = ii;
-				else *i = ii+1;
-
-				return;
-			}
+			*i = i0+1;
 		}
 	}
 	else if (_varying_dim == 1) {
-		//
-		// clamp the varying coordinate to be inside the grid
-		//
-		double min = _AccessIJK(_coords, *i, 0, *k);
-		double max = _AccessIJK(_coords, *i, dims[1]-1, *k);
-		if (min<max) {
-			if (y<min) y = min;
-			if (y>max) y = max;
+		size_t i0, j0, k0;
+		LayeredGrid::GetIJKIndexFloor(x,y,z,&i0, &j0, &k0);
+		if (j0 == dims[1]-1) {	// on boundary
+			*j = j0;
+			return;
+		}
+
+		double y0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
+		double y1 = _interpolateVaryingCoord(i0,j0+1,k0,x,y,z);
+		if (fabs(y-y0) < fabs(y-y1)) {
+			*j = j0;
 		}
 		else {
-			if (y>min) y = min;
-			if (y<max) y = max;
-		}
-
-		// Now search for the closest point
-		//
-		for (int jj=0; jj<dims[1]-1; jj++) {
-			double p0 = _AccessIJK(_coords, *i, jj, *k);
-			double p1 = _AccessIJK(_coords, *i, jj+1, *k);
-
-			// if the signs of differences change then the coordinate 
-			// is between the two grid points. We only need find out 
-			// which one it is closest to.
-			//
-			if ((y-p0) * (y-p1) <= 0.0) { 
-				double wgt = fabs((y-p0) / (p1-p0));
-
-				if (wgt<0.5) *j = jj;
-				else *j = jj+1;
-
-				return;
-			}
+			*j = j0+1;
 		}
 	}
-	else {	// _varying_dim == 2
-		//
-		// clamp the varying coordinate to be inside the grid
-		//
-		double min = _AccessIJK(_coords, *i, *j, 0);
-		double max = _AccessIJK(_coords, *i, *j, dims[2]-1);
-		if (min<max) {
-			if (z<min) z = min;
-			if (z>max) z = max;
+	else if (_varying_dim == 2) {
+		size_t i0, j0, k0;
+		LayeredGrid::GetIJKIndexFloor(x,y,z,&i0, &j0, &k0);
+		if (k0 == dims[2]-1) {	// on boundary
+			*k = k0;
+			return;
+		}
+
+		double z0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
+		double z1 = _interpolateVaryingCoord(i0,j0,k0+1,x,y,z);
+		if (fabs(z-z0) < fabs(z-z1)) {
+			*k = k0;
 		}
 		else {
-			if (z>min) z = min;
-			if (z<max) z = max;
-		}
-
-		// Now search for the closest point
-		//
-		for (int kk=0; kk<dims[2]-1; kk++) {
-			double p0 = _AccessIJK(_coords, *i, *j, kk);
-			double p1 = _AccessIJK(_coords, *i, *j, kk+1);
-
-			// if the signs of differences change then the coordinate 
-			// is between the two grid points. We only need find out 
-			// which one it is closest to.
-			//
-			if ((z-p0) * (z-p1) <= 0.0) { 
-				double wgt = fabs((z-p0) / (p1-p0));
-
-				if (wgt<0.5) *k = kk;
-				else *k = kk+1;
-
-				return;
-			}
+			*k = k0+1;
 		}
 	}
-	assert(1);	// shouldn't get here
 }
 
 void LayeredGrid::GetIJKIndexFloor(
@@ -496,13 +441,15 @@ void LayeredGrid::GetIJKIndexFloor(
 		double x0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
 		double x1 = _interpolateVaryingCoord(i1,j0,k0,x,y,z);
 
-		if ((x-x0) * (x-x1) >= 0.0) { 	// see if point is outside grid
+		// see if point is outside grid or on boundary
+		//
+		if ((x-x0) * (x-x1) >= 0.0) { 	
 			if (x0<=x1) {
-				if (x<x0) *i = 0;
+				if (x<=x0) *i = 0;
 				else if (x>=x1) *i = dims[0]-1;
 			}
 			else {
-				if (x>x0) *i = 0;
+				if (x>=x0) *i = 0;
 				else if (x<=x1) *i = dims[0]-1;
 			}
 			return;
@@ -511,16 +458,13 @@ void LayeredGrid::GetIJKIndexFloor(
 		//
 		// X-coord of point must be between x0 and x1
 		//
-		int n = 0;
-		for (size_t ii=dims[0]; ii>0; ii = ii>>1) n++;
-		for (int ii=0; ii<n; ii++) {
-
-			if (i1-i0 <= 1) {
-				*i = i1;
-				return;
-			}
+		while (i1-i0 > 1) {
 
 			x1 = _interpolateVaryingCoord((i0+i1)>>1,j0,k0,x,y,z);
+			if (x1 == x) {  // pathological case
+				*i = (i0+i1)>>1;
+				break;
+			}
 
 			// if the signs of differences change then the coordinate 
 			// is between x0 and x1
@@ -533,6 +477,7 @@ void LayeredGrid::GetIJKIndexFloor(
 				x0 = x1;
 			}
 		}
+		*i = i0;
 
 	}
 	else if (_varying_dim == 1) {
@@ -545,13 +490,15 @@ void LayeredGrid::GetIJKIndexFloor(
 		double y0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
 		double y1 = _interpolateVaryingCoord(i0,j1,k0,x,y,z);
 
-		if ((y-y0) * (y-y1) >= 0.0) { 	// see if point is outside grid
+		// see if point is outside grid or on boundary
+		//
+		if ((y-y0) * (y-y1) >= 0.0) { 	
 			if (y0<=y1) {
-				if (y<y0) *j = 0;
+				if (y<=y0) *j = 0;
 				else if (y>=y1) *j = dims[1]-1;
 			}
 			else {
-				if (y>y0) *j = 0;
+				if (y>=y0) *j = 0;
 				else if (y<=y1) *j = dims[1]-1;
 			}
 			return;
@@ -560,16 +507,13 @@ void LayeredGrid::GetIJKIndexFloor(
 		//
 		// Y-coord of point must be between y0 and y1
 		//
-		int n = 0;
-		for (size_t ii=dims[1]; ii>0; ii = ii>>1) n++;
-		for (int ii=0; ii<n; ii++) {
-
-			if (j1-j0 <= 1) {
-				*j = j1;
-				return;
-			}
+		while (j1-j0 > 1) {
 
 			y1 = _interpolateVaryingCoord(i0,(j0+j1)>>1,k0,x,y,z);
+			if (y1 == y) {  // pathological case
+				*j = (j0+j1)>>1;
+				break;
+			}
 
 			// if the signs of differences change then the coordinate 
 			// is between y0 and y1
@@ -582,7 +526,7 @@ void LayeredGrid::GetIJKIndexFloor(
 				y0 = y1;
 			}
 		}
-
+		*j = j0;
 	}
 	else {	// _varying_dim == 2
 		*i = i0; *j = j0;
@@ -594,13 +538,15 @@ void LayeredGrid::GetIJKIndexFloor(
 		double z0 = _interpolateVaryingCoord(i0,j0,k0,x,y,z);
 		double z1 = _interpolateVaryingCoord(i0,j0,k1,x,y,z);
 
-		if ((z-z0) * (z-z1) >= 0.0) { 	// see if point is outside grid
+		// see if point is outside grid or on boundary
+		//
+		if ((z-z0) * (z-z1) >= 0.0) { 	
 			if (z0<=z1) {
-				if (z<z0) *k = 0;
+				if (z<=z0) *k = 0;
 				else if (z>=z1) *k = dims[2]-1;
 			}
 			else {
-				if (z>z0) *k = 0;
+				if (z>=z0) *k = 0;
 				else if (z<=z1) *k = dims[2]-1;
 			}
 			return;
@@ -609,16 +555,13 @@ void LayeredGrid::GetIJKIndexFloor(
 		//
 		// Z-coord of point must be between z0 and z1
 		//
-		int n = 0;
-		for (size_t ii=dims[2]; ii>0; ii = ii>>1) n++;
-		for (int ii=0; ii<n; ii++) {
-
-			if (k1-k0 <= 1) {
-				*k = k1;
-				return;
-			}
+		while (k1-k0 > 1) {
 
 			z1 = _interpolateVaryingCoord(i0,j0,(k0+k1)>>1,x,y,z);
+			if (z1 == z) {	// pathological case
+				*k = (k0+k1)>>1;
+				break;
+			}
 
 			// if the signs of differences change then the coordinate 
 			// is between z0 and z1
@@ -631,9 +574,8 @@ void LayeredGrid::GetIJKIndexFloor(
 				z0 = z1;
 			}
 		}
-	
+		*k = k0;
 	}
-	assert(1);	// shouldn't get here
 }
 
 int LayeredGrid::Reshape(
