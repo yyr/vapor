@@ -1051,6 +1051,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 
 	
 	myFlowLib->SetIntegrationAccuracy(integrationAccuracy);
+	myFlowLib->SetSteadyTimeSteps(timeStep, steadyFlowDirection); 
 	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
 	
 	maxPoints = calcMaxPoints();

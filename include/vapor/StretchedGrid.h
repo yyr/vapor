@@ -4,7 +4,9 @@
 #include <vector>
 #include <vapor/common.h>
 #include "RegularGrid.h"
-
+#ifdef _WINDOWS
+#pragma warning(disable : 4251 4100)
+#endif
 //
 //! \class StretchedGrid
 //!

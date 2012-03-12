@@ -2,6 +2,7 @@
 #include <cassert>
 #ifdef _WINDOWS
 #define _USE_MATH_DEFINES
+#pragma warning(disable : 4251 4100)
 #endif
 #include <cmath>
 #include "vapor/SphericalGrid.h"

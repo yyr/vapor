@@ -75,6 +75,7 @@ public:
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
 	
 	float GetUserTimePerVaporTS() {return m_fUserTimePerVaporTS;}
+	void getMinGridSpacing(double mincell[3]);
 };
 };
 #endif

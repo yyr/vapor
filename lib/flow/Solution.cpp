@@ -263,3 +263,11 @@ void Solution::Normalize(bool bLocal)
 		}
 	}
 }
+void Solution::getMinGridSpacing(double mincell[3]){
+	mincell[0] = mincell[1] = mincell[2] = 1.;
+	if (m_pUGrid) m_pUGrid->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	else if (m_pVGrid) m_pVGrid->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	else if (m_pWGrid) m_pWGrid->GetMinCellExtents(mincell, mincell+1, mincell+2);
+	else assert(0);
+	return;
+}

@@ -111,15 +111,15 @@ protected:
 	int m_nNumSeeds;				// number of seeds
 	INTEG_ORD m_integrationOrder;	// integration order
 	TIME_DIR m_timeDir;				// advection direction
-	float m_fInitStepSize;			// initial advection step size of particle
+	double m_fInitStepSize;			// initial advection step size of particle
 	float m_fLowerAngleAccuracy;	// for adaptive stepsize 
 	float m_fUpperAngleAccuracy;
-	float m_fMaxStepSize;			// maximal advection stepsize
+	double m_fMaxStepSize;			// maximal advection stepsize
 	int m_nMaxsize;					// maximal number of particles this line advects
 	vtListParticle m_lSeeds;		// list of seeds
 	CVectorField* m_pField;			// vector field
 	float m_fSamplingRate;
-	float m_fStationaryCutoff;		//defines when flowline is stationary
+	double m_fStationaryCutoff;		//defines when flowline is stationary
 	
 
 public:
@@ -131,10 +131,10 @@ public:
 	void setIntegrationOrder(INTEG_ORD ord) { m_integrationOrder = ord; }
 	int  getMaxPoints(void){ return m_nMaxsize; }
 	INTEG_ORD getIntegrationOrder(void){ return m_integrationOrder; }
-	void SetMaxStepSize(float stepsize) {m_fMaxStepSize = stepsize;}
-	float GetMaxStepSize(void) {return m_fMaxStepSize;}
-	void SetInitStepSize(float initStep) { m_fInitStepSize = initStep; }
-	float GetInitStepSize(void) { return m_fInitStepSize; }
+	void SetMaxStepSize(double stepsize) {m_fMaxStepSize = stepsize;}
+	double GetMaxStepSize(void) {return m_fMaxStepSize;}
+	void SetInitStepSize(double initStep) { m_fInitStepSize = initStep; }
+	double GetInitStepSize(void) { return m_fInitStepSize; }
 	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
 	void SetStationaryCutoff(float cutoff) {m_fStationaryCutoff = cutoff;}
 

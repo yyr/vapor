@@ -611,8 +611,8 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	float minspacing[3];
-	pCartesianGrid->GetMinGridSpacing(minspacing);
+	double minspacing[3];
+	pSolution->getMinGridSpacing(minspacing);
 	pStreamLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreamLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	float mmspacing = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
@@ -809,8 +809,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//The sampling rate is the time-difference between samples.
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
-	float minspacing[3];
-	pCartesianGrid->GetMinGridSpacing(minspacing);
+	double minspacing[3];
+	pSolution->getMinGridSpacing(minspacing);
 	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	pStreakLine->setIntegrationOrder(FOURTH);
@@ -1072,8 +1072,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	//The sampling rate is the time-difference between samples.
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
-	float minspacing[3];
-	pCartesianGrid->GetMinGridSpacing(minspacing);
+	double minspacing[3];
+	pSolution->getMinGridSpacing(minspacing);
 	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	
@@ -1420,32 +1420,32 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	if (numPts == 0) return false;
 	return true;
 }
-float VaporFlow::getInitStepSize(float minspacing[3]){
+double VaporFlow::getInitStepSize(double minspacing[3]){
 	
-	float initstep;
-	float acc = Min(integrationAccuracy,1.f);
+	double initstep;
+	double acc = Min(integrationAccuracy,1.f);
 	
 	initstep = SMALLEST_MIN_STEP*acc + (1.f - acc)*LARGEST_MIN_STEP;
 	if (integrationAccuracy <=1.) return initstep;
 	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
-	float minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
-	float maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
-	float acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
+	double minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
+	double maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
+	double acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
 	initstep = initstep*((1.-acc2) + acc2*minmin/maxmin);
 	return initstep;
 }
-float VaporFlow::getMaxStepSize(float minspacing[3]){
+double VaporFlow::getMaxStepSize(double minspacing[3]){
 	
-	float maxstep;
-	float acc = Min(integrationAccuracy,1.f);
+	double maxstep;
+	double acc = Min(integrationAccuracy,1.f);
 	
 	maxstep = SMALLEST_MAX_STEP*acc + (1.f - acc)*LARGEST_MAX_STEP;
 	if (integrationAccuracy <=1.) return maxstep;
 	
 	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
-	float minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
-	float maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
-	float acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
+	double minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
+	double maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
+	double acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
 	maxstep = maxstep*((1.-acc2) + acc2*minmin/maxmin);
 	return maxstep;
 }

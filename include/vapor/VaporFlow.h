@@ -112,8 +112,8 @@ namespace VAPoR
 			const char* zVarName, float** uData, float ** vData, float **wData);
 		bool Get3GridData(size_t ts, const char* xVarName, const char* yVarName, 
 			const char* zVarName, RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
-		float getMaxStepSize(float mingrid[3]);
-		float getInitStepSize(float mingrid[3]);
+		double getMaxStepSize(double mingrid[3]);
+		double getInitStepSize(double mingrid[3]);
 
 		size_t userTimeUnit;						// time unit in the original data
 		size_t userTimeStep;						// enumerate time steps in source data

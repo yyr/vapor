@@ -421,7 +421,7 @@ public:
  Iterator end() { return(Iterator()); }
 
 
- class ConstIterator {
+ class VDF_API ConstIterator {
  public:
 	ConstIterator (const RegularGrid *rg);
 	ConstIterator ();

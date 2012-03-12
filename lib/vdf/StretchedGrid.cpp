@@ -2,6 +2,9 @@
 #include <cassert>
 #include <cmath>
 #include <vapor/StretchedGrid.h>
+#ifdef _WINDOWS
+#pragma warning(disable : 4251 4100)
+#endif
 
 using namespace std;
 
