@@ -115,6 +115,9 @@ void Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
 		wVal = m_pWGrid->GetValue(point.x(),point.y(),point.z());
 		if (wVal == m_pWGrid->GetMissingValue()) wVal = 0.f;
 	}
+	uVal *= m_fTimeScaleFactor;
+	vVal *= m_fTimeScaleFactor;
+	wVal *= m_fTimeScaleFactor;
 	fieldVal.Set(uVal,vVal,wVal);
 }
 //////////////////////////////////////////////////////////////////////////
