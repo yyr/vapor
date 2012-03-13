@@ -283,12 +283,8 @@ float FieldData::getFieldMag(float point[3])
 {
 	VECTOR3 pos(point[0],point[1],point[2]);
 	VECTOR3 vel;
-	PointInfo pInfo;
-	pInfo.Set(pos, pInfo.interpolant, -1, -1);
-	if(pCartesianGrid->phys_to_cell(pInfo) == -1)
-		return -1.f;
 
-	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, (float)timeStep, vel);
+	int rc = pField->getFieldValue( pos, (float)timeStep, vel);
 	if (rc < 0) 
 		return -1.f;
 
@@ -302,24 +298,39 @@ void FieldData::setup(CVectorField* fld, CartesianGrid* grd,
 	pUData = xdata; pVData = ydata; pWData = zdata;
 	timeStep = tstep;
 }
+//This is initialized by the VaporFlow class.  Just holds some
+//pointers until the field data access is complete
+void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
+					  RegularGrid* xGrid, RegularGrid* yGrid, RegularGrid* zGrid, int tstep){
+	pField = fld; pCartesianGrid = grd; 
+	pUGrid = xGrid; pVGrid = yGrid;pWGrid = zGrid;
+	timeStep = tstep;
+}
 //The destructor unlocks the da
 FieldData::~FieldData(){
 	delete pField;
-	delete [] pUData;
-	delete [] pVData;
-	delete [] pWData;
+
+	if (pUGrid){
+		delete pUGrid;
+	}
+	if (pVGrid){
+		delete pVGrid;
+	}
+	if (pWGrid){
+		delete pWGrid;
+	}
 }
 void FieldData::releaseData(DataMgr* dataMgr){
-	if (pUData && pUData[0]){
-		dataMgr->UnlockRegion(pUData[0]);
-		pUData[0] = 0;
+	if (pUGrid){
+		dataMgr->UnlockGrid(pUGrid);
+		pUGrid = 0;
 	}
-	if (pVData && pVData[0]){
-		dataMgr->UnlockRegion(pVData[0]);
-		pVData[0] = 0;
+	if (pVGrid){
+		dataMgr->UnlockGrid(pVGrid);
+		pVGrid = 0;
 	}
-	if (pWData && pWData[0]){
-		dataMgr->UnlockRegion(pWData[0]);
-		pWData[0] = 0;
+	if (pWGrid){
+		dataMgr->UnlockGrid(pWGrid);
+		pWGrid = 0;
 	}
 }

@@ -2961,10 +2961,9 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	
 	dataMgr->MapVoxToUser(timeStep,min_dim, rakeCoords,availRefLevel);
 	dataMgr->MapVoxToUser(timeStep,max_dim, rakeCoords+3,availRefLevel);
-	dataMgr->MapUserToVox(timeStep, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToVox(timeStep, rakeCoords+3, max_dim, availRefLevel);
 	
-	flowLib->SetRakeRegion(min_dim, max_dim);
+	
+	flowLib->SetRakeRegion(rakeCoords);
 	return true;
 }
 //Perform all the major steps in field line advection where the prioritization is

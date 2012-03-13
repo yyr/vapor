@@ -40,7 +40,7 @@ namespace VAPoR
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
 		void SetRegion(size_t num_xforms, int clevel, const size_t min[3], const size_t max[3], const double regExts[6]);
-		void SetRakeRegion(const size_t min[3], const size_t max[3]);
+		void SetRakeRegion(const double rakeExtents[6]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
 			steadyStartTimeStep = timeStep;
@@ -97,11 +97,11 @@ namespace VAPoR
 		//Returns false if unsuccessful at setting up variables
 		//Note that the field is NOT scaled by the current scale factor
 		//unless the boolean argument is true
-		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, bool useRakeBounds, int numRefinements, int timestep, bool scaleField);
+		FieldData* setupFieldData(const vector<string>& varnames, bool useRakeBounds, int numRefinements, int timestep, bool scaleField);
 	
 		void releaseFieldData(FieldData*);
 		//Obtain min/max vector magnitude in specified region.  Return false on error 
-		bool getFieldMagBounds(float* minVal, float* maxVal, const char* varx, const char* vary, const char* varz, 
+		bool getFieldMagBounds(float* minVal, float* maxVal, const vector<string>& varnames, 
 			bool useRakeBounds, int numRefinements, int timestep);
 
 		DataMgr* getDataMgr(){return dataMgr;}
@@ -111,7 +111,7 @@ namespace VAPoR
 		bool Get3Data(size_t ts, const char* xVarName, const char* yVarName, 
 			const char* zVarName, float** uData, float ** vData, float **wData);
 		bool Get3GridData(size_t ts, const char* xVarName, const char* yVarName, 
-			const char* zVarName, RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
+			const char* zVarName, size_t minreg[3], size_t maxreg[3], RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
 		double getMaxStepSize(double mingrid[3]);
 		double getInitStepSize(double mingrid[3]);
 
@@ -136,10 +136,9 @@ namespace VAPoR
 		int* unsteadyTimestepList;
 		size_t numUnsteadyTimesteps;
 
-		float minRakeExt[3];						// minimal rake range 
-		float maxRakeExt[3];						// maximal rake range
-		size_t minBlkRake[3], maxBlkRake[3];
-		size_t minRake[3], maxRake[3];
+		double minRakeExt[3];						// minimal rake range 
+		double maxRakeExt[3];						// maximal rake range
+		
 		size_t numSeeds[3];							// number of seeds
 		bool periodicDim[3];						// specify the periodic dimensions
 		bool fullInDim[3];							// determine if the current region is full in each dimension

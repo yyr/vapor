@@ -80,7 +80,9 @@ public:
 	//This is initialized by the VaporFlow class
 	void setup(CVectorField* fld, CartesianGrid* grd, 
 		float** xdata, float** ydata, float** zdata, int tstep);
-		
+	//This is initialized by the VaporFlow class
+	void setup(CVectorField* fld, CartesianGrid* grd, 
+		RegularGrid *xgrid, RegularGrid* ygrid, RegularGrid* zgrid, int tstep);
 	float getFieldMag(float point[3]);
 	void releaseData(DataMgr*);
 private:
@@ -91,6 +93,7 @@ private:
 	float** pUData;
 	float** pVData;
 	float** pWData;
+	RegularGrid* pUGrid, *pVGrid, *pWGrid;
 };
 };//end VAPoR namespace
 //////////////////////////////////////////////////////////////////////////

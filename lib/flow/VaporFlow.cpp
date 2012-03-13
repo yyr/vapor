@@ -184,13 +184,11 @@ void VaporFlow::SetRegion(size_t num_xforms,
 // accessing fields that are bounded by the rake, such as the
 // biased random rake
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetRakeRegion(const size_t min[3], 
-						  const size_t max[3]
-				)
+void VaporFlow::SetRakeRegion(const double rakeExtents[6])
 {
 	for (int i = 0; i< 3; i++){
-		minRake[i] = min[i];
-		maxRake[i] = max[i];
+		minRakeExt[i] = rakeExtents[i];
+		maxRakeExt[i] = rakeExtents[i+3];
 	}
 }
 
@@ -291,16 +289,16 @@ bool VaporFlow::Get3Data(size_t ts,
 // If data is not obtained, unlock previously obtained data
 //////////////////////////////////////////////////////////////////////////
 bool VaporFlow::Get3GridData(size_t ts, 
-			const char* xVarName,const char* yVarName,const char* zVarName,
+			const char* xVarName,const char* yVarName,const char* zVarName,	 size_t minExt[3], size_t maxExt[3],
 			RegularGrid** pxGrid, RegularGrid** pyGrid, RegularGrid** pzGrid)
 {
 	bool zeroX = (strcmp(xVarName, "0") == 0); 
 	bool zeroY = (strcmp(yVarName, "0") == 0); 
 	bool zeroZ = (strcmp(zVarName, "0") == 0); 
 	
-	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
-	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
-	if((zeroX || *pxGrid) && (zeroY || *pyGrid) && !zeroZ) *pzGrid = dataMgr->GetGrid(ts, zVarName, (int)numXForms, compressLevel, minRegion, maxRegion,1);
+	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
+	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
+	if((zeroX || *pxGrid) && (zeroY || *pyGrid) && !zeroZ) *pzGrid = dataMgr->GetGrid(ts, zVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	//Check if we failed:
 	if ((!zeroX && (*pxGrid == 0)) || (!zeroY && (*pyGrid == 0)) || (!zeroZ && (*pzGrid == 0))){
 					
@@ -343,7 +341,11 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	dataMgr->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
 	dataMgr->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
 	//Use the current region bounds, not the rake bounds...
-	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
+	vector<string> varnames;
+	varnames.push_back(xPriorityVarName);
+	varnames.push_back(yPriorityVarName);
+	varnames.push_back(zPriorityVarName);
+	FieldData* fData = setupFieldData(varnames, 
 		false, (int)numXForms, timeStep, false);
 	if (!fData) return false;
 	//Note that pathContainer is 0 if we are prioritizing after advection.
@@ -543,7 +545,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	RegularGrid *pUGrid=0, *pVGrid=0, *pWGrid=0;
 	
 	bool gotData = Get3GridData(steadyStartTimeStep, xSteadyVarName, ySteadyVarName,
-		zSteadyVarName, &pUGrid,  &pVGrid,  &pWGrid);
+		zSteadyVarName, minRegion, maxRegion, &pUGrid,  &pVGrid,  &pWGrid);
 	
 	if (!gotData) 
 		return false;
@@ -1201,223 +1203,153 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 //rake bounds.  numRefinements does not need to be same as region numrefinements.
 //scaleField indicates whether or not the field is scaled by current steady field scale factor.
 FieldData* VaporFlow::
-setupFieldData(const char* varx, const char* vary, const char* varz, 
+setupFieldData(const vector<string>& varnames, 
 			   bool useRakeBounds, int numRefinements, int timestep, bool scaleField){
 	
 	size_t minInt[3], maxInt[3];
-	size_t minBlk[3], maxBlk[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
+	size_t ts = (size_t) timestep;
 	
-	double minUser[3], maxUser[3]; //coords we will use for mapping (full block bounds)
 	if (useRakeBounds){
-		for (int i = 0; i< 3; i++) {
-			minInt[i] = minRake[i];
-			maxInt[i] = maxRake[i];
-			minBlk[i] = minBlkRake[i];
-			maxBlk[i] = maxBlkRake[i];
-		}
+		dataMgr->MapUserToVox(ts, minRakeExt, minInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
 			maxInt[i] = maxRegion[i];
-			minBlk[i] = minBlkRegion[i];
-			maxBlk[i] = maxBlkRegion[i];
 		}
 	}
 	
-	
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, numXForms);
 	// get the field data, lock it in place:
 	// create field object
+	
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlk[0]-minBlk[0]+1)* bs[0];
-	int totalYNum = (maxBlk[1]-minBlk[1]+1)* bs[1];
-	int totalZNum = (maxBlk[2]-minBlk[2]+1)* bs[2];
-	int totalNum = totalXNum*totalYNum*totalZNum;
 
-	//Now get the data from the dataMgr:
-	pUData = new float*[1];
-	pVData = new float*[1];
-	pWData = new float*[1];
-	if (strcmp(varx,"0")== 0) pUData[0] = 0;
-	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, compressLevel, minBlk, maxBlk, 1);
-		if (pUData[0]== 0){
-			dataMgr->SetErrCode(0);
-			return 0;
-		}
-	}
-	if (strcmp(vary,"0")== 0) pVData[0] = 0;
-	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk, 1);
-		dataMgr->SetErrCode(0);
-		if (pVData[0] == 0 && pUData[0]) {
-			dataMgr->UnlockRegion(pUData[0]);
-			return 0;
-		}
-	}
-	if (strcmp(varz,"0")== 0) pWData[0] = 0;
-	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
-		if (pWData[0] == 0) {
-			dataMgr->SetErrCode(0);
-			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
-			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
-			return 0;
-		}
-	}
-
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	//Note:  We optionally use the scale factor here
+	
+	RegularGrid *pUGrid=0, *pVGrid=0, *pWGrid=0;
+	
+	bool gotData = Get3GridData(ts, varnames[0].c_str(),varnames[1].c_str(),varnames[2].c_str(),
+		minInt, maxInt, &pUGrid,  &pVGrid,  &pWGrid);
+	
+	if (!gotData) 
+		return false;
+	
+	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1);
 	if (scaleField)
 		pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
 	else
 		pSolution->SetTimeScaleFactor(1.f);
 	pSolution->SetTime(timestep, timestep);
-	
+	int totalXNum = (maxInt[0]-minInt[0]+1);
+	int totalYNum = (maxInt[1]-minInt[1]+1);
+	int totalZNum = (maxInt[2]-minInt[2]+1);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxInt);
 	pCartesianGrid->setPeriod(flowPeriod);
-	
-	// set the boundary of physical grid
-	
-	VECTOR3 minB, maxB, minR, maxR;
-	double regMin[3],regMax[3];
-	
-	//Determine the bounds of the full block region (it's what is used for 
-	// coordinate mapping)
-	//Convert block extents to integer coords:
-	for (int i = 0; i<3; i++){
-		blockRegionMin[i] = bs[i]*minBlk[i];
-		blockRegionMax[i] = bs[i]*(maxBlk[i]+1)-1;
-	}
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numRefinements);
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numRefinements);
-	//Also, map the region extents (needed for in/out testing):
-	dataMgr->MapVoxToUser((size_t)-1, minInt, regMin, numRefinements);
-	dataMgr->MapVoxToUser((size_t)-1, maxInt, regMax, numRefinements);
-	
-	
-	//Now adjust minB, maxB to block region extents:
-	
-	for (int i = 0; i< 3; i++){
-		minB[i] = minUser[i];
-		maxB[i] = maxUser[i];
-		minR[i] = regMin[i];
-		maxR[i] = regMax[i];
-	}
-	
+	VECTOR3 minR(regionExtents);
+	VECTOR3 maxR(regionExtents+3);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minB, maxB);
+	pCartesianGrid->SetBoundary(minR, maxR);
+	
+	
+	
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0.f);
 
 	FieldData* fData = new FieldData();
-	fData->setup(pField, pCartesianGrid, pUData, pVData, pWData, timestep);
+	fData->setup(pField, pCartesianGrid, pUGrid,pVGrid,pWGrid, timestep);
 	return fData;
 }
 
 //Obtain bounds on field magnitude, using voxel bounds on either rake or 
 //region.
 bool VaporFlow::
-getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* vary, const char* varz, 
+getFieldMagBounds(float* minVal, float* maxVal,const vector<string>& varnames, 
 	bool useRakeBounds, int numRefinements, int timestep){
 			 
-	//As in the above method, set up the mapping and get the data.
 	size_t minInt[3], maxInt[3];
-	size_t minBlk[3], maxBlk[3];
+	size_t ts = (size_t) timestep;
 	
 	if (useRakeBounds){
-		for (int i = 0; i< 3; i++) {
-			minInt[i] = minRake[i];
-			maxInt[i] = maxRake[i];
-			minBlk[i] = minBlkRake[i];
-			maxBlk[i] = maxBlkRake[i];
-		}
-			
+		dataMgr->MapUserToVox(ts, minRakeExt, minInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
 			maxInt[i] = maxRegion[i];
-			minBlk[i] = minBlkRegion[i];
-			maxBlk[i] = maxBlkRegion[i];
-		}
-	}
-	
-	
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, numXForms);
-	
-	float **pUData, **pVData, **pWData;
-	
-	//Now get the data from the dataMgr:
-	pUData = new float*[1];
-	pVData = new float*[1];
-	pWData = new float*[1];
-	if (strcmp(varx,"0")== 0) pUData[0] = 0;
-	else {
-		pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements,compressLevel, minBlk, maxBlk, 1);
-		dataMgr->SetErrCode(0);
-		if (pUData[0]== 0)
-			return false;
-	}
-	if (strcmp(vary,"0")== 0) pVData[0] = 0;
-	else {
-		pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, compressLevel, minBlk, maxBlk,  1);
-		if (pVData[0] == 0) {
-			dataMgr->SetErrCode(0);
-			if(pUData[0]) dataMgr->UnlockRegion(pUData[0]);
-			return false;
-		}
-	}
-	if (strcmp(varz,"0")== 0) pWData[0] = 0;
-	else {
-		pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, compressLevel, minBlk, maxBlk,  1);
-		if (pWData[0] == 0) {
-			dataMgr->SetErrCode(0);
-			if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
-			if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
-			return false;
 		}
 	}
 
+	const RegularGrid* varData[3];
+	
+	//Obtain the variables from the dataMgr:
+	for (int var = 0; var<3; var++){
+		if (varnames[var] == "0") varData[var] = 0;
+		else {
+			int lod = compressLevel;
+			
+			varData[var] = dataMgr->GetGrid(ts,
+				varnames[var].c_str(),
+				numRefinements, lod, minInt, maxInt,  1);
+			if (!varData[var]) {
+				dataMgr->SetErrCode(0);
+				//release currently locked regions:
+				for (int k = 0; k<var; k++){
+					if (varData[k])
+						dataMgr->UnlockGrid(varData[k]);
+				}
+				return false;
+			}	
+		}
+	}
 	
 	int numPts = 0;
-	*minVal = 1.e30f;
-	*maxVal = -1.f;
-	//OK, we got the data. find the rms:
-	for (size_t i = minInt[0]; i<=maxInt[0]; i++){
-		for (size_t j = minInt[1]; j<=maxInt[1]; j++){
-			for (size_t k = minInt[2]; k<=maxInt[2]; k++){
-				int xyzCoord = (i - minBlk[0]*bs[0]) +
-					(j - minBlk[1]*bs[1])*(bs[0]*(maxBlk[0]-minBlk[0]+1)) +
-					(k - minBlk[2]*bs[2])*(bs[1]*(maxBlk[1]-minBlk[1]+1))*(bs[0]*(maxBlk[0]-minBlk[0]+1));
-				float dataX = 0.f;
-				if (pUData[0]) dataX = pUData[0][xyzCoord];
-				float dataY = 0.f;
-				if (pVData[0]) dataY = pVData[0][xyzCoord];
-				float dataZ = 0.f;
-				if (pWData[0]) dataZ = pWData[0][xyzCoord];
-
-				float sumsq = dataX*dataX+dataY*dataY+dataZ*dataZ;
-				float dataVal = sqrt(sumsq);
-				if (*minVal > dataVal) 
-					*minVal = dataVal;
-				if (*maxVal < dataVal) 
-					*maxVal = dataVal;
-				numPts++;
-			}
+	float minData = 1.e30, maxData = -1.e30;
+	//push down the zero grids.
+	for (int i = 0; i<2; i++){
+		if (!varData[0]){
+			varData[0] = varData[1];
+			varData[1] = varData[2];
+			varData[2] = 0;
+		}
+		if (!varData[1]){
+			varData[1] = varData[2];
+			varData[2] = 0;
 		}
 	}
-	if(pUData[0])dataMgr->UnlockRegion(pUData[0]);
-	if(pVData[0])dataMgr->UnlockRegion(pVData[0]);
-	if(pWData[0])dataMgr->UnlockRegion(pWData[0]);
+	if (!varData[0]) return false;  //No grids
+		
+	RegularGrid::ConstIterator itr0, itr1, itr2;
+	itr0 = varData[0]->begin();
+	
+	float mv = varData[0]->GetMissingValue();
+	
+	for (itr0 = varData[0]->begin(),itr2 = varData[2]->begin(),itr1 = varData[1]->begin(); itr0 != varData[0]->end(); ++itr0){
+		float val[3] = { 0.f, 0.f, 0.f};
+		val[0] = *itr0;
+		if(varData[1]) val[1] = *itr1;
+		if(varData[2]) val[2] = *itr2;
+		//Ignore if first variable is mv
+		if (val[0] != mv) {
+			//Note:  we assume that all variables have missing values in same place
+			assert (val[1] != mv && val[2] != mv);
+			float mag = sqrt(val[0]*val[0]+val[1]*val[1]+val[2]*val[2]);
+			if (minData > mag) minData = mag;
+			if (maxData < mag) maxData = mag;
+			numPts++;
+		}
+		if (varData[1]) ++itr1;
+		if (varData[2]) ++itr2;
+	}
+		
+	for (int k = 0; k<3; k++){
+		if(varData[k]) dataMgr->UnlockGrid(varData[k]);
+	}
 	
 	if (numPts == 0) return false;
+	
+	*minVal = minData;
+	*maxVal = maxData;
+	
 	return true;
 }
 double VaporFlow::getInitStepSize(double minspacing[3]){

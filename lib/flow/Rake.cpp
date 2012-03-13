@@ -14,8 +14,8 @@ using namespace VAPoR;
 /*			 			SeedGenerator Class                              */
 /************************************************************************/
 
-SeedGenerator::SeedGenerator(const float min[3], 
-							 const float max[3], 
+SeedGenerator::SeedGenerator(const double min[3], 
+							 const double max[3], 
 							 const size_t numSeeds[3])
 {
 	for(int iFor = 0; iFor < 3; iFor++)
@@ -95,14 +95,17 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			//Setup for biased distribution:
 			//First calc min/max of field in rake.
 			float fieldMin, fieldMax;
-			
-			bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varx, vary, varz, 
+			vector<string>varnames;
+			varnames.push_back(varx);
+			varnames.push_back(vary);
+			varnames.push_back(varz);
+			bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varnames, 
 				true, numRefinements, timeStep);
 			if (!rc) {
 				return false;
 			}
 			//Then set up the FieldData
-			FieldData* fData = vFlow->setupFieldData(varx, vary, varz, true, numRefinements, timeStep, false);
+			FieldData* fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
 			if (!fData) {delete pRake; return false;}
 			
 			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed, stride);
@@ -134,8 +137,8 @@ PointRake::PointRake()
 // numSeeds should be 1
 //////////////////////////////////////////////////////////////////////////
 void PointRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
@@ -143,14 +146,14 @@ void PointRake::GenSeedRandom(const size_t numSeeds[3],
 	GenSeedRegular(numSeeds, min, max, pSeed, stride);
 }
 bool PointRake::GenSeedBiased(float , float , float , FieldData* , 
-		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed , unsigned int , int stride)
+		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed , unsigned int , int stride)
 {
 	GenSeedRegular(numSeeds, min, max, pSeed, stride);
 	return true;
 }
 void PointRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  int stride)
 {
@@ -171,8 +174,8 @@ LineRake::LineRake()
 
 
 void LineRake::GenSeedRandom(const size_t numSeeds[3], 
-							 const float min[3], 
-							 const float max[3], 
+							 const double min[3], 
+							 const double max[3], 
 							 float* pSeed,
 							 unsigned int randomSeed, 
 							 int stride)
@@ -196,7 +199,7 @@ void LineRake::GenSeedRandom(const size_t numSeeds[3],
 }
 
 bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed, int stride)
+		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride)
 {
 	int totalNum;
 	//Note:  The following code is more or less replicated in solid rake and plane rake.
@@ -267,8 +270,8 @@ bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldDa
 
 
 void LineRake::GenSeedRegular(const size_t numSeeds[3], 
-							 const float min[3], 
-							 const float max[3], 
+							 const double min[3], 
+							 const double max[3], 
 							 float* pSeed,
 							 int stride)
 {
@@ -296,8 +299,8 @@ PlaneRake::PlaneRake()
 
 
 void PlaneRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
@@ -332,7 +335,7 @@ void PlaneRake::GenSeedRandom(const size_t numSeeds[3],
 	}
 }
 bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, 
+		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, 
 		unsigned int randomSeed, int stride)
 {
 	int totalNum;
@@ -428,8 +431,8 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	return true;
 }
 void PlaneRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  int stride)
 {
@@ -500,8 +503,8 @@ SolidRake::SolidRake()
 
 
 void SolidRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
@@ -545,7 +548,7 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 	
 }
 bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, 
+		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, 
 		unsigned int randomSeed, int stride){
 	assert( bias >= -15.f && bias <= 15.f);
 	int totalNum;
@@ -647,8 +650,8 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 }
 
 void SolidRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const float min[3], 
-							  const float max[3], 
+							  const double min[3], 
+							  const double max[3], 
 							  float* pSeed,
 							  int stride)
 {
