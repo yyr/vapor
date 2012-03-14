@@ -59,6 +59,8 @@ FILE	*MyBase::DiagMsgFilePtr = NULL;
 #endif
 void (*MyBase::DiagMsgCB) (const char *msg) = NULL;
 
+bool MyBase::Enabled = true;
+
 MyBase::MyBase() {
 	SetClassName("MyBase");
 }
@@ -126,6 +128,8 @@ void	MyBase::SetErrMsg(
 ) {
 	va_list args;
 
+	if (! Enabled) return;
+
 	ErrCode = 1;
 
 	va_start(args, format);
@@ -145,6 +149,8 @@ void	MyBase::SetErrMsg(
 	...
 ) {
 	va_list args;
+
+	if (! Enabled) return;
 
 	ErrCode = errcode;
 

@@ -230,6 +230,16 @@ public:
  //! \sa SetDiagMsgFilePtr()
  //
 
+ //!
+ //! Enable or disable error message reporting.
+ //!
+ //! When disabled calls to SetErrMsg() are no-ops. By default error
+ //! reporting is enabled.
+ //! 
+ //! \param[in] enable Boolean flag to enable or disable error reporting
+ //!
+ void EnableErrMsg(bool enable) {Enabled = enable;};
+
  // N.B. the error codes/messages are stored in static class members!!!
  static char 	*ErrMsg;
  static int	ErrCode;
@@ -241,6 +251,7 @@ public:
  static int	DiagMsgSize;
  static FILE	*DiagMsgFilePtr;
  static DiagMsgCB_T DiagMsgCB;
+ static bool Enabled;
 
  
 
