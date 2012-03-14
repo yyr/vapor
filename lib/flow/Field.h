@@ -59,6 +59,7 @@ public:
 	bool isCellOnBoundary(int cellId);
 	float GetGridSpacing(int cellId){return m_pGrid->GetGridSpacing(cellId);}
 	void SetSolutionData(int t, float* pUData, float* pVData, float* pWData) {m_pSolution->SetValue(t, pUData, pVData, pWData);}
+	void SetSolutionGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularGrid* pWGrid) {m_pSolution->SetGrid(t, pUGrid, pVGrid, pWGrid);}
 	
 	int GetStartTime(void) { return m_pSolution->GetStartTime(); }
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }

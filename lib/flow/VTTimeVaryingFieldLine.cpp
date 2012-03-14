@@ -115,7 +115,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	double dt, cell_volume, mag; 
+	double dt, cell_side, mag; 
 	double curTime;
 	VECTOR3 vel;
 	int nSetAdaptiveCount = 0;
@@ -125,15 +125,16 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	thisParticle = seedInfo;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
 	curTime = initialTime;
-
-	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
+	istat = m_pField->getFieldValue(seedInfo.phyCoord, initialTime, vel);
+	
 	if(istat == OUT_OF_BOUND)
 		return OUT_OF_BOUND;
 	
 	// get the initial stepsize
-	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
+	//cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetDMag();
-	dt = pow(cell_volume, 0.3333333) / mag;
+	dt = m_pField->GetMaxMinGridSpacing()/mag;
+	//dt = pow(cell_volume, 0.3333333) / mag;
 	//Allow dt*mag to be 10 times the initial setting:
 	float maxDtMag = dt*mag*10.f;
 
@@ -169,7 +170,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				if(int_order == SECOND)
 					istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
 				else
-					istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
+					istat = runge_kutta4A(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
 				if (istat != FIELD_TOO_BIG) break;
 				//Must retry.  Reset curTime, use a smaller dt.
 				curTime -= dt;
@@ -189,9 +190,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			if(istat == OUT_OF_BOUND)			// out of boundary
 				return OUT_OF_BOUND;
 
-			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
+			//m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
 			// Don't test for critical points on streaklines!
-			
+			m_pField->getFieldValue(thisParticle.phyCoord, curTime, vel);
 
 			nSetAdaptiveCount++;
 			//nSetAdaptiveCount counts the number of advections since the last time
@@ -215,11 +216,11 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				prevPhy = **pIter;
 				pIter--;
 				second_prevPhy = **pIter;
-
-				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
+			    cell_side = m_pField->GetMaxMinGridSpacing();
+				//cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
 				mag = vel.GetDMag();
-				minStepsize = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
-				maxStepsize = m_fMaxStepSize * pow(cell_volume, 0.3333333) / mag;
+				minStepsize = m_fInitStepSize * cell_side / mag;
+				maxStepsize = m_fMaxStepSize * cell_side / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
 				
 				if(bAdaptive == false)

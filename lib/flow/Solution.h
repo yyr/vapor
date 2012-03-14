@@ -26,9 +26,9 @@ private:
 	float** m_pUDataArray;				// U data value
 	float** m_pVDataArray;				// V data value
 	float** m_pWDataArray;				// W data value
-	RegularGrid* m_pUGrid;
-	RegularGrid* m_pVGrid;
-	RegularGrid* m_pWGrid;
+	RegularGrid** m_pUGrid;
+	RegularGrid** m_pVGrid;
+	RegularGrid** m_pWGrid;
 	int m_nNodeNum;						// how many nodes each time step
 	float m_fMinMag;					// minimal magnitude
 	float m_fMaxMag;					// maximum magnitude
@@ -51,14 +51,15 @@ public:
 	// constructor
 	Solution();
 	Solution(float** pUData, float** pVData, float** pWData, int nodeNum, int timeSteps);
-	Solution(RegularGrid* uGrid, RegularGrid* vGrid, RegularGrid* wGrid,int timeSteps);
+	Solution(RegularGrid** uGrid, RegularGrid** vGrid, RegularGrid** wGrid,int timeSteps);
 	~Solution();
 
 	void Reset();
 
 	// solution functions
 	void SetValue(int t, float* pUData, float* pVData, float* pWData);
-	void getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal);
+	void SetGrid(int t, RegularGrid* pUData, RegularGrid* pVData, RegularGrid* pWData);
+	int getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal);
 	
 	bool isTimeVarying(void);
 	int GetValue(int id, const float t, VECTOR3& nodeData);
@@ -75,7 +76,7 @@ public:
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
 	
 	float GetUserTimePerVaporTS() {return m_fUserTimePerVaporTS;}
-	void getMinGridSpacing(double mincell[3]);
+	void getMinGridSpacing(int timestep, double mincell[3]);
 };
 };
 #endif

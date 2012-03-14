@@ -295,7 +295,7 @@ bool VaporFlow::Get3GridData(size_t ts,
 	bool zeroX = (strcmp(xVarName, "0") == 0); 
 	bool zeroY = (strcmp(yVarName, "0") == 0); 
 	bool zeroZ = (strcmp(zVarName, "0") == 0); 
-	
+	*pxGrid = 0; *pyGrid = 0; *pyGrid = 0;
 	if(!zeroX) *pxGrid = dataMgr->GetGrid(ts, xVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	if((zeroX || *pxGrid) && !zeroY) *pyGrid = dataMgr->GetGrid(ts, yVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
 	if((zeroX || *pxGrid) && (zeroY || *pyGrid) && !zeroZ) *pzGrid = dataMgr->GetGrid(ts, zVarName, (int)numXForms, compressLevel, minExt, maxExt,1);
@@ -542,10 +542,10 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	CartesianGrid* pCartesianGrid;
 
 	
-	RegularGrid *pUGrid=0, *pVGrid=0, *pWGrid=0;
+	RegularGrid *pUGrid[1], *pVGrid[1], *pWGrid[1];
 	
 	bool gotData = Get3GridData(steadyStartTimeStep, xSteadyVarName, ySteadyVarName,
-		zSteadyVarName, minRegion, maxRegion, &pUGrid,  &pVGrid,  &pWGrid);
+		zSteadyVarName, minRegion, maxRegion, &pUGrid[0],  &pVGrid[0],  &pWGrid[0]);
 	
 	if (!gotData) 
 		return false;
@@ -614,7 +614,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
 	double minspacing[3];
-	pSolution->getMinGridSpacing(minspacing);
+	pSolution->getMinGridSpacing(0,minspacing);
 	pStreamLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreamLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	float mmspacing = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
@@ -628,9 +628,9 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	delete pField;
 	//Unlock region:
 
-	if(pUGrid)dataMgr->UnlockGrid(pUGrid);
-	if(pVGrid)dataMgr->UnlockGrid(pVGrid);
-	if(pWGrid)dataMgr->UnlockGrid(pWGrid);
+	if(pUGrid[0])dataMgr->UnlockGrid(pUGrid[0]);
+	if(pVGrid[0])dataMgr->UnlockGrid(pVGrid[0]);
+	if(pWGrid[0])dataMgr->UnlockGrid(pWGrid[0]);
 		
 	return true;
 }
@@ -696,18 +696,18 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		container->setPathDirection(-1);
 	}
 	// create field object
+	
+	
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	float **pUData, **pVData, **pWData;
+	RegularGrid **pUGrid, **pVGrid, **pWGrid;
 	
-	int totalXNum, totalYNum, totalZNum, totalNum;
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, numXForms);
-    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* bs[0];
-	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* bs[1];
-	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* bs[2];
-	totalNum = (int)(totalXNum*totalYNum*totalZNum);
+	int totalXNum, totalYNum, totalZNum;
+	
+    totalXNum = (int)(maxRegion[0]-minRegion[0] + 1);
+	totalYNum = (int)(maxRegion[1]-minRegion[1] + 1);
+	totalZNum = (int)(maxRegion[2]-minRegion[2] + 1);
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
@@ -728,22 +728,22 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	bool zeroX = (strcmp(xUnsteadyVarName, "0") == 0); 
 	bool zeroY = (strcmp(yUnsteadyVarName, "0") == 0); 
 	bool zeroZ = (strcmp(zUnsteadyVarName, "0") == 0); 
-	if (zeroX) pUData = 0;
+	if (zeroX) pUGrid = 0;
 	else {
-		pUData = new float*[numTimeSamples];
-		memset(pUData, 0, sizeof(float*)*numTimeSamples);
+		pUGrid = new RegularGrid*[numTimeSamples];
+		memset(pUGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	if (zeroY) pVData = 0;
+	if (zeroY) pVGrid = 0;
 	else {
-		pVData = new float*[numTimeSamples];
-		memset(pVData, 0, sizeof(float*)*numTimeSamples);
+		pVGrid = new RegularGrid*[numTimeSamples];
+		memset(pVGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	if (zeroZ) pWData = 0;
+	if (zeroZ) pWGrid = 0;
 	else {
-		pWData = new float*[numTimeSamples];
-		memset(pWData, 0, sizeof(float*)*numTimeSamples);
+		pWGrid = new RegularGrid*[numTimeSamples];
+		memset(pWGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, numTimesteps);
+	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps);
 	pSolution->SetTimeScaleFactor((float)unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
@@ -754,22 +754,14 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	// set the boundary of physical grid
 	
 	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, (int)numXForms);
+	double regMin[3],regMax[3];
+	
 	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
 	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
 	
-	minB.Set((float)minUser[0], (float)minUser[1], (float)minUser[2]);
-	maxB.Set((float)maxUser[0], (float)maxUser[1], (float)maxUser[2]);
 	minR.Set((float)regMin[0], (float)regMin[1], (float)regMin[2]);
 	maxR.Set((float)regMax[0], (float)regMax[1], (float)regMax[2]);
-	pCartesianGrid->SetBoundary(minB, maxB);
+	pCartesianGrid->SetBoundary(minR, maxR);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	//Now set the region bound:
@@ -812,16 +804,13 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
 	double minspacing[3];
-	pSolution->getMinGridSpacing(minspacing);
-	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
-	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
+	
 	pStreakLine->setIntegrationOrder(FOURTH);
 
 
-	//Keep first and next region pointers.  They must be released as we go:
-	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
-	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
-	
+	//Keep first and next grid pointers.  They must be released as we go:
+	RegularGrid *xGridPtr =0, *yGridPtr = 0, *zGridPtr =0;
+	RegularGrid *xGridPtr2 =0, *yGridPtr2 = 0, *zGridPtr2 =0;
 
 	bool bInject;
 
@@ -865,44 +854,46 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		{
 			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == startTimeStep){
-				bool gotData = Get3Data(iFor, xUnsteadyVarName, yUnsteadyVarName,
-					zUnsteadyVarName, &xDataPtr, &yDataPtr, &zDataPtr);
+				bool gotData = Get3GridData(iFor, xUnsteadyVarName, yUnsteadyVarName,
+					zUnsteadyVarName, minRegion, maxRegion, &xGridPtr, &yGridPtr, &zGridPtr);
 				if(!gotData){
 					delete[] pUserTimeSteps;
 					delete pStreakLine;
 					delete pField;
 					return false;
 				}
-				pField->SetSolutionData(tsIndex,xDataPtr,yDataPtr,zDataPtr);
+				pField->SetSolutionGrid(tsIndex,xGridPtr,yGridPtr,zGridPtr);
+				pSolution->getMinGridSpacing(tsIndex, minspacing);
+				pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
+				pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 			} else { //Changing time sample..
 				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
 				//Now can release first pointers:
-				if(!zeroX)dataMgr->UnlockRegion(xDataPtr);
-				if(!zeroY)dataMgr->UnlockRegion(yDataPtr);
-				if(!zeroZ)dataMgr->UnlockRegion(zDataPtr);
+				if(!zeroX)dataMgr->UnlockGrid(xGridPtr);
+				if(!zeroY)dataMgr->UnlockGrid(yGridPtr);
+				if(!zeroZ)dataMgr->UnlockGrid(zGridPtr);
 				//And use them to save the second pointers:
-				xDataPtr = xDataPtr2;
-				yDataPtr = yDataPtr2;
-				zDataPtr = zDataPtr2;
+				xGridPtr = xGridPtr2;
+				yGridPtr = yGridPtr2;
+				zGridPtr = zGridPtr2;
 				//Also nullify pointers to released timestep data:
 				pField->SetSolutionData(tsIndex-1,0,0,0);
 			}
 			//now get data for second ( next) sampled timestep. 
-			bool gotData = Get3Data(nextSample, xUnsteadyVarName,
-				yUnsteadyVarName, zUnsteadyVarName, &xDataPtr2, &yDataPtr2,
-				&zDataPtr2);
+			bool gotData = Get3GridData(nextSample, xUnsteadyVarName,yUnsteadyVarName, zUnsteadyVarName, 
+				minRegion, maxRegion, &xGridPtr2, &yGridPtr2,&zGridPtr2);
 			if(!gotData){
 				// if we failed:  release resources for 2 time steps:
 				delete[] pUserTimeSteps;
 				delete pStreakLine;
 				delete pField;
-				if (!zeroX && xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-				if (!zeroY && yDataPtr) dataMgr->UnlockRegion(yDataPtr);
-				if (!zeroZ && zDataPtr) dataMgr->UnlockRegion(zDataPtr);
+				if (!zeroX && xGridPtr) dataMgr->UnlockGrid(xGridPtr);
+				if (!zeroY && yGridPtr) dataMgr->UnlockGrid(yGridPtr);
+				if (!zeroZ && zGridPtr) dataMgr->UnlockGrid(zGridPtr);
 				return false;
 			}
-			pField->SetSolutionData(tsIndex+1,xDataPtr2,yDataPtr2,zDataPtr2); 
+			pField->SetSolutionGrid(tsIndex+1,xGridPtr2,yGridPtr2, zGridPtr2); 
 		}
 
 			
@@ -919,14 +910,15 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	// release resources.  we always have valid start and end pointers
 	// at this point.
-	if(!zeroX) dataMgr->UnlockRegion(xDataPtr);
-	if(!zeroY) dataMgr->UnlockRegion(yDataPtr);
-	if(!zeroZ) dataMgr->UnlockRegion(zDataPtr);
-	if(!zeroX) dataMgr->UnlockRegion(xDataPtr2);
-	if(!zeroY) dataMgr->UnlockRegion(yDataPtr2);
-	if(!zeroZ) dataMgr->UnlockRegion(zDataPtr2);
-	pField->SetSolutionData(tsIndex,0,0,0);
-	pField->SetSolutionData(tsIndex+1,0,0,0);
+	if(!zeroX) dataMgr->UnlockGrid(xGridPtr);
+	if(!zeroX) dataMgr->UnlockGrid(yGridPtr);
+	if(!zeroX) dataMgr->UnlockGrid(zGridPtr);
+	if(!zeroX) dataMgr->UnlockGrid(xGridPtr2);
+	if(!zeroX) dataMgr->UnlockGrid(yGridPtr2);
+	if(!zeroX) dataMgr->UnlockGrid(zGridPtr2);
+	
+	pField->SetSolutionGrid(tsIndex,0,0,0);
+	pField->SetSolutionGrid(tsIndex+1,0,0,0);
 	delete[] pUserTimeSteps;
 	delete pStreakLine;
 	delete pField;
@@ -1075,7 +1067,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	//AnimationTimeStepSize is the samples per timeStep
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
 	double minspacing[3];
-	pSolution->getMinGridSpacing(minspacing);
+	pSolution->getMinGridSpacing(startTimeStep,minspacing);
 	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	
@@ -1226,10 +1218,10 @@ setupFieldData(const vector<string>& varnames,
 	CartesianGrid* pCartesianGrid;
 
 	
-	RegularGrid *pUGrid=0, *pVGrid=0, *pWGrid=0;
+	RegularGrid *pUGrid[1], *pVGrid[1], *pWGrid[1];
 	
 	bool gotData = Get3GridData(ts, varnames[0].c_str(),varnames[1].c_str(),varnames[2].c_str(),
-		minInt, maxInt, &pUGrid,  &pVGrid,  &pWGrid);
+		minInt, maxInt, &pUGrid[0],  &pVGrid[0],  &pWGrid[0]);
 	
 	if (!gotData) 
 		return false;
@@ -1257,7 +1249,7 @@ setupFieldData(const vector<string>& varnames,
 	pField->SetUserTimeStepInc(0.f);
 
 	FieldData* fData = new FieldData();
-	fData->setup(pField, pCartesianGrid, pUGrid,pVGrid,pWGrid, timestep);
+	fData->setup(pField, pCartesianGrid, pUGrid[0],pVGrid[0],pWGrid[0], timestep);
 	return fData;
 }
 

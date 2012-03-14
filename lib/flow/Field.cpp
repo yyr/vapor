@@ -303,7 +303,8 @@ void FieldData::setup(CVectorField* fld, CartesianGrid* grd,
 void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
 					  RegularGrid* xGrid, RegularGrid* yGrid, RegularGrid* zGrid, int tstep){
 	pField = fld; pCartesianGrid = grd; 
-	pUGrid = xGrid; pVGrid = yGrid;pWGrid = zGrid;
+	pUGrid = xGrid; pVGrid = yGrid; pWGrid = zGrid;
+	pField->SetSolutionGrid(0, pUGrid, pVGrid, pWGrid);
 	timeStep = tstep;
 }
 //The destructor unlocks the da

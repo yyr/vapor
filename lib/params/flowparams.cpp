@@ -2781,8 +2781,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	itr0 = varData[0]->begin();
 	
 	float mv = varData[0]->GetMissingValue();
-	
-	for (itr0 = varData[0]->begin(),itr2 = varData[2]->begin(),itr1 = varData[1]->begin(); itr0 != varData[0]->end(); ++itr0){
+	if (varData[2])itr2 = varData[2]->begin(); 
+	if (varData[1])itr1 = varData[1]->begin();
+	for (itr0 = varData[0]->begin(); itr0 != varData[0]->end(); ++itr0){
 		float val[3] = { 0.f, 0.f, 0.f};
 		val[0] = *itr0;
 		if(varData[1]) val[1] = *itr1;
