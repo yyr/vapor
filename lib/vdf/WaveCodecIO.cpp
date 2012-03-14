@@ -504,9 +504,9 @@ int WaveCodecIO::CloseVariable() {
 	_ncbufs.clear();
 
 	_WriteTimerStart();
+#ifdef PARALLEL
 	int rank;
 	MPI_Comm_rank(IO_Comm, &rank);
-#ifdef PARALLEL
 int x[] = {0,0,0};
  float *y = (float*) malloc(sizeof(float));
  int *reduce = (int*) malloc(sizeof(int) *3);
@@ -889,8 +889,10 @@ int WaveCodecIO::BlockWriteRegion(
 	size_t bs_p[3];	// packed copy of bs
 	_PackCoord(_vtype, bs, bs_p, 1);
 
+#ifdef PARALLEL
 	int rank;
 	MPI_Comm_rank(IO_Comm, &rank);
+#endif
 	if (_firstWrite) {
 		_dataRange[0] = _dataRange[1] = *region;
 
@@ -2211,7 +2213,7 @@ int WaveCodecIO::_OpenVarWrite(
 #endif		
 		_nc_wave_vars.push_back(ncid);
 
-			  int rank = -1;
+		  int rank = -1;
 #ifdef PARALLEL
 
 			  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
