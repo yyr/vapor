@@ -379,7 +379,7 @@ public:
 	const char *varname,
 	int reflevel = 0,
 	int lod = 0
- ) const;
+ ) ;
 
  //!
  //! Add a pipeline stage to produce derived variables
@@ -694,15 +694,72 @@ private:
  // min and max bounds for quantization
  map <string, float *> _quantizationRangeMap;	
 
- map <size_t, map<string, float> > _dataRangeMinMap;
- map <size_t, map<string, float> > _dataRangeMaxMap;
- map <size_t, map<string, map<int, vector <size_t> > > > _validRegMinMaxMap;
-
  int	_timestamp;	// access time of most recently accessed region
 
  BlkMemMgr	*_blk_mem_mgr;
 
  vector <PipeLine *> _PipeLines;
+
+
+ //
+ // Cache for various metadata attributes 
+ //
+ class VarInfoCache  {
+ public:
+
+	//
+	// min and max variable value range
+	//
+	bool GetRange(
+		size_t ts, string varname, int ref, int lod, float range[2]
+	) const;
+	void SetRange(
+		size_t ts, string varname, int ref, int lod, const float range[2]
+	);
+	void PurgeRange(
+		size_t ts, string varname, int ref, int lod
+	);
+
+	//
+	// min and max region extents
+	//
+	bool GetRegion(
+		size_t ts, string varname, int ref, size_t min[3], size_t max[3]
+	) const;
+	void SetRegion(
+		size_t ts, string varname, int ref, const size_t min[3], 
+		const size_t max[3]
+	);
+	void PurgeRegion(
+		size_t ts, string varname, int ref
+	);
+
+	//
+	// does the variable exist?
+	//
+	bool GetExist(
+		size_t ts, string varname, int ref, int lod, bool &exist
+	) const;
+	void SetExist(size_t ts, string varname, int ref, int lod, bool exist);
+	void PurgeExist(size_t ts, string varname, int ref, int lod);
+
+	void Clear() {_cache.clear(); }
+
+ private:
+
+	class var_info {
+	public:
+		map <size_t, bool> exist;
+		map <size_t, vector <size_t> > region;
+		map <size_t, vector <float> > range;
+	};
+
+	var_info *get_var_info(size_t ts, string varname) const;
+
+	map <size_t, map <string, var_info> > _cache;
+ };
+
+ VarInfoCache _VarInfoCache;
 
  void	*get_region_from_cache(
 	size_t ts,

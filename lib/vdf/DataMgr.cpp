@@ -26,9 +26,6 @@ int	DataMgr::_DataMgr(
 
 	_quantizationRangeMap.clear();
 	_regionsList.clear();
-	_dataRangeMinMap.clear();
-	_dataRangeMaxMap.clear();
-	_validRegMinMaxMap.clear();
 	
 	_mem_size = mem_size;
 
@@ -57,11 +54,6 @@ DataMgr::~DataMgr(
 
 	Clear();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
-
-	_dataRangeMinMap.clear();
-	_dataRangeMaxMap.clear();
-
-	_validRegMinMaxMap.clear();
 
 	
 	map <string, float * >::iterator p;
@@ -671,25 +663,52 @@ void	DataMgr::RemovePipeline(string name) {
 
 int DataMgr::VariableExists(
     size_t ts, const char *varname, int reflevel, int lod
-) const {
+) {
+	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+	if (lod < 0) lod = GetCRatios().size()-1;
+
+	//
+	// If layered data than the variable "ELEVATION" must also exist
+	//
+	string elevation = "ELEVATION";
+	if ((GetGridType().compare("layered") == 0) && (elevation.compare(varname) !=0)) {
+		if (! DataMgr::VariableExists(ts, elevation.c_str(), reflevel, lod)) {
+			return(0);
+		}
+	} 
+		
+
+	//
+	// See if in cache
+	//
+	bool exists;
+	if (_VarInfoCache.GetExist(ts, varname, reflevel, lod, exists)) { 
+		return((int) exists);
+	}
 
 	if (IsVariableNative(varname)) {
-		return(_VariableExists( ts, varname, reflevel, lod));
+		exists = _VariableExists(ts, varname, reflevel, lod);
+		_VarInfoCache.SetExist(ts, varname, reflevel, lod, exists);
+		return((int) exists);
 	}
-	else {
-		PipeLine *pipeline = get_pipeline_for_var(varname);
-		if(pipeline == NULL) return 0;
 
-		const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
-		//
-		// Recursively test existence of all dependencies
-		//
-		for (int i=0; i<ovars.size(); i++) {
-			if (! VariableExists(ts, ovars[i].first.c_str(), reflevel, lod)) {
-				return(0);
-			}
+	PipeLine *pipeline = get_pipeline_for_var(varname);
+	if(pipeline == NULL) {
+		_VarInfoCache.SetExist(ts, varname, reflevel, lod, false);
+		return 0;
+	}
+
+	const vector <pair <string, VarType_T> > &ovars = pipeline->GetOutputs();
+	//
+	// Recursively test existence of all dependencies
+	//
+	for (int i=0; i<ovars.size(); i++) {
+		if (! VariableExists(ts, ovars[i].first.c_str(), reflevel, lod)) {
+			_VarInfoCache.SetExist(ts, varname, reflevel, lod, false);
+			return(0);
 		}
 	}
+	_VarInfoCache.SetExist(ts, varname, reflevel, lod, true);
 	return(1);
 }
 
@@ -918,6 +937,9 @@ int DataMgr::GetDataRange(
 	int reflevel,
 	int lod
 ) {
+	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+	if (lod < 0) lod = GetCRatios().size()-1;
+
 	int	rc;
 	range[0] = range[1] = 0.0;
 
@@ -926,12 +948,14 @@ int DataMgr::GetDataRange(
 
 	// See if we've already cache'd it.
 	//
-	if (get_cached_data_range(ts, varname, range) == 0) return(0);
+	if (_VarInfoCache.GetRange(ts, varname, reflevel, lod, range)) {
+		return(0);
+	}
 
 	// Range isn't cache'd. Need to get it from derived class
 	//
-
 	if (IsVariableNative(varname)) {
+
 		rc = OpenVariableRead(ts, varname, reflevel,lod);
 		if (rc < 0) {
 			SetErrMsg(
@@ -957,9 +981,7 @@ int DataMgr::GetDataRange(
 			if (! finite(range[1]) || isnan(range[1])) range[1] = FLT_MIN;
 #endif
 
-			// Use of []'s creates an entry in map
-			_dataRangeMinMap[ts][varname] = range[0];
-			_dataRangeMaxMap[ts][varname] = range[1];
+			_VarInfoCache.SetRange(ts, varname, reflevel, lod, range);
 
 			CloseVariable();
 			return(0);
@@ -999,9 +1021,7 @@ int DataMgr::GetDataRange(
 	}
 	delete rg;
 
-	// Use of []'s creates an entry in map
-	_dataRangeMinMap[ts][varname] = range[0];
-	_dataRangeMaxMap[ts][varname] = range[1];
+	_VarInfoCache.SetRange(ts, varname, reflevel, lod, range);
 
 	return(0);
 }
@@ -1013,6 +1033,8 @@ int DataMgr::GetValidRegion(
 	size_t min[3],
 	size_t max[3]
 ) {
+	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+
 	int	rc;
 
 	SetDiagMsg("DataMgr::GetValidRegion(%d,%s,%d)",ts,varname,reflevel);
@@ -1022,12 +1044,8 @@ int DataMgr::GetValidRegion(
 
 	// See if we've already cache'd it.
 	//
-	vector <size_t> minmax = get_cached_reg_min_max(ts, varname, reflevel);
-	if (minmax.size()) {
-		for (int i=0; i<3; i++) {
-			min[i] = minmax[i];
-			max[i] = minmax[i+3];
-		}
+
+	if (_VarInfoCache.GetRegion(ts, varname, reflevel, min, max)) {
 		return(0);
 	}
 
@@ -1045,6 +1063,8 @@ int DataMgr::GetValidRegion(
 		}
 
 		GetValidRegion(min, max, reflevel);
+
+		_VarInfoCache.SetRegion(ts,varname, reflevel, min, max);
 
 		CloseVariable();
 	}
@@ -1098,11 +1118,7 @@ int DataMgr::GetValidRegion(
 	//
 	// Cache results
 	//
-	for (int i=0; i<3; i++) minmax.push_back(min[i]);
-	for (int i=0; i<3; i++) minmax.push_back(max[i]);
-
-	// Use of []'s creates an entry in map
-	_validRegMinMaxMap[ts][varname][reflevel] = minmax;
+	_VarInfoCache.SetRegion(ts,varname, reflevel, min, max);
 		
 	return(0);
 }
@@ -1322,9 +1338,7 @@ void	DataMgr::Clear() {
 			
 	}
 	_regionsList.clear();
-	_dataRangeMinMap.clear();
-	_dataRangeMaxMap.clear();
-	_validRegMinMaxMap.clear();
+	_VarInfoCache.Clear();
 }
 
 void	DataMgr::free_var(const string &varname, int do_native) {
@@ -1342,46 +1356,6 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 			itr = _regionsList.begin();
 		}
 		else itr++;
-	}
-
-	// Remove min and max data ranges from cache.
-	//
-	{
-	map <size_t, map<string, float> >::iterator itr1;
-	for (itr1=_dataRangeMinMap.begin(); itr1 !=_dataRangeMinMap.end(); itr1++) {
-		map<string, float> &m = itr1->second;
-
-		map<string, float>::iterator itr2 = m.find(varname);
-		if (itr2 != m.end()) {
-			m.erase(itr2);
-		}
-	}
-	}
-
-	{
-	map <size_t, map<string, float> >::iterator itr1;
-	for (itr1=_dataRangeMaxMap.begin(); itr1 !=_dataRangeMaxMap.end(); itr1++) {
-		map<string, float> &m = itr1->second;
-
-		map<string, float>::iterator itr2 = m.find(varname);
-		if (itr2 != m.end()) {
-			m.erase(itr2);
-		}
-	}
-	}
-
-	// Purge variable from valid min/max region cache
-	//
-	{
-	map <size_t, map<string, map<int, vector <size_t> > > >::iterator itr1;
-	for (itr1=_validRegMinMaxMap.begin(); itr1 !=_validRegMinMaxMap.end(); itr1++) {
-		map<string, map<int, vector <size_t> > >&m = itr1->second;
-
-		map<string, map<int, vector <size_t> > >::iterator itr2 = m.find(varname);
-		if (itr2 != m.end()) {
-			m.erase(itr2);
-		}
-	}
 	}
 
 }
@@ -1449,92 +1423,7 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	return(1);
 }
 
-int DataMgr::get_cached_data_range(
-	size_t ts,
-	const char *varname,
-	float *range
-) {
 
-	// See if we've already cache'd it.
-	//
-
-	// Min value
-	{
-		if (_dataRangeMinMap.empty()) return(-1);
-
-		map <size_t, map<string, float> >::iterator p;
-
-
-		p = _dataRangeMinMap.find(ts);
-
-		if (p == _dataRangeMinMap.end()) return(-1);
-
-		map <string, float> &vmap = p->second;
-		map <string, float>::iterator t;
-
-		t = vmap.find(varname);
-		if (t == vmap.end()) return(-1);
-		range[0] = t->second;
-	}
-
-	// Max value
-	{
-		if (_dataRangeMaxMap.empty()) return(-1);
-
-		map <size_t, map<string, float> >::iterator p;
-
-		p = _dataRangeMaxMap.find(ts);
-
-		if (p == _dataRangeMaxMap.end()) return(-1);
-
-		map <string, float> &vmap = p->second;
-		map <string, float>::iterator t;
-
-		t = vmap.find(varname);
-		if (t == vmap.end()) return(-1);
-		range[1] = t->second;
-	}
-
-	return(0);
-}
-
-vector <size_t> DataMgr::get_cached_reg_min_max(
-	size_t ts,
-	const char *varname,
-	int reflevel
-) {
-
-	// See if we've already cache'd it.
-	//
-	if (! _validRegMinMaxMap.empty()) {
-
-		map <size_t, map<string, map<int, vector <size_t> > > >::iterator p;
-
-		p = _validRegMinMaxMap.find(ts);
-
-		if (! (p == _validRegMinMaxMap.end())) {
-
-			map <string, map <int, vector <size_t> > >&vmap = p->second;
-			map <string, map <int, vector <size_t> > >::iterator t;
-
-			t = vmap.find(varname);
-			if (! (t == vmap.end())) {
-
-				map <int, vector <size_t> > &imap = t->second;
-				map <int, vector <size_t> >::iterator s;
-
-				s = imap.find(reflevel);
-				if (! (s == imap.end())) {
-					return(s->second);
-				}
-			}
-		}
-	}
-
-	// not cached
-	vector <size_t> empty;
-	return(empty);
-}
 
 PipeLine *DataMgr::get_pipeline_for_var(string varname) const {
 
@@ -1559,6 +1448,14 @@ float *DataMgr::execute_pipeline(
 	const size_t max[3],
 	int	lock
 ) {
+
+	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+	if (lod < 0) lod = GetCRatios().size()-1;
+
+	_VarInfoCache.PurgeRange(ts, varname, reflevel, lod);
+	_VarInfoCache.PurgeRegion(ts, varname, reflevel);
+	_VarInfoCache.PurgeExist(ts, varname, reflevel, lod);
+
 	PipeLine *pipeline = get_pipeline_for_var(varname);
  
 	assert(pipeline != NULL);
@@ -1826,10 +1723,13 @@ void   DataMgr::MapUserToVox(
 	ijk[1] = 0;
 	ijk[2] = 0;
 
-	if (! (GetGridType().compare("layered") == 0)) {
-		return(Metadata::MapUserToVox(timestep, xyz, ijk, reflevel));
-	}
+	Metadata::MapUserToVox(timestep, xyz, ijk, reflevel);
+
+	if (! (GetGridType().compare("layered") == 0)) return;
+
+	EnableErrMsg(false);
 	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+	EnableErrMsg(true);
 
 	if (! lg) return;
 
@@ -1846,11 +1746,12 @@ void   DataMgr::MapVoxToUser(
 	xyz[1] = 0.0;
 	xyz[2] = 0.0;
 
-	if (! (GetGridType().compare("layered") == 0)) {
-		return(Metadata::MapVoxToUser(timestep, ijk, xyz, reflevel));
-	}
+	Metadata::MapVoxToUser(timestep, ijk, xyz, reflevel);
+	if (! (GetGridType().compare("layered") == 0)) return;
 
+	EnableErrMsg(false);
 	LayeredGrid *lg = get_elev_grid(timestep,reflevel);
+	EnableErrMsg(true);
 
 	if (! lg) return;
 
@@ -2011,4 +1912,165 @@ void    DataMgr::GetEnclosingRegion(
 			}
 		}
 	}
+}
+
+DataMgr::VarInfoCache::var_info *DataMgr::VarInfoCache::get_var_info(
+	size_t ts, string varname
+) const {
+	map <size_t, map <string, var_info> >::const_iterator itr1;
+
+	itr1 = _cache.find(ts);
+	if (itr1 == _cache.end()) return (NULL);
+
+	map <string, var_info >::const_iterator itr2;
+	itr2 = itr1->second.find(varname);
+	if (itr2 == itr1->second.end()) return(NULL);
+
+	return((VarInfoCache::var_info *) &(itr2->second));
+}
+
+
+bool DataMgr::VarInfoCache::GetRange(
+	size_t ts, string varname, int ref, int lod, float range[2]
+) const {
+
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return(false);
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+
+	map <size_t, vector <float> >::const_iterator itr;
+	itr = viptr->range.find(uid);
+	if (itr == viptr->range.end()) return(false);
+
+	range[0] = itr->second[0];
+	range[1] = itr->second[1];
+	return(true);
+}
+
+void DataMgr::VarInfoCache::SetRange(
+	size_t ts, string varname, int ref, int lod, const float range[2]
+) {
+
+	vector <float> myrange;
+	myrange.push_back(range[0]);
+	myrange.push_back(range[1]);
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+	
+	_cache[ts][varname].range[uid] = myrange;
+}
+
+void DataMgr::VarInfoCache::PurgeRange(
+	size_t ts, string varname, int ref, int lod
+) {
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return;
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+
+	map <size_t, vector <float> >::iterator itr;
+	itr = viptr->range.find(uid);
+	if (itr == viptr->range.end()) return;
+
+	viptr->range.erase(itr);
+}
+
+
+bool DataMgr::VarInfoCache::GetRegion(
+	size_t ts, string varname, int ref, size_t min[3], size_t max[3]
+) const {
+
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return(false);
+
+	size_t uid = (size_t) ref;
+
+	map <size_t, vector <size_t> >::const_iterator itr;
+	itr = viptr->region.find(uid);
+	if (itr == viptr->region.end()) return(false);
+
+	min[0] = itr->second[0];
+	min[1] = itr->second[1];
+	min[2] = itr->second[2];
+	max[0] = itr->second[3];
+	max[1] = itr->second[4];
+	max[2] = itr->second[5];
+	return(true);
+}
+
+void DataMgr::VarInfoCache::SetRegion(
+	size_t ts, string varname, int ref,
+	const size_t min[3], const size_t max[3]
+) {
+
+	vector <size_t> minmax;
+	minmax.push_back(min[0]);
+	minmax.push_back(min[1]);
+	minmax.push_back(min[2]);
+	minmax.push_back(max[0]);
+	minmax.push_back(max[1]);
+	minmax.push_back(max[2]);
+
+	size_t uid = (size_t) ref;
+	
+	_cache[ts][varname].region[uid] = minmax;
+}
+
+void DataMgr::VarInfoCache::PurgeRegion(
+	size_t ts, string varname, int ref
+) {
+
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return;
+
+	size_t uid = (size_t) ref;
+
+	map <size_t, vector <size_t> >::iterator itr;
+	itr = viptr->region.find(uid);
+	if (itr == viptr->region.end()) return;
+
+	viptr->region.erase(itr);
+}
+
+bool DataMgr::VarInfoCache::GetExist(
+	size_t ts, string varname, int ref, int lod, bool &exist
+) const {
+
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return(false);
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+
+	map <size_t, bool>::const_iterator itr;
+	itr = viptr->exist.find(uid);
+	if (itr == viptr->exist.end()) return(false);
+
+	exist = itr->second;
+	return(true);
+}
+
+void DataMgr::VarInfoCache::SetExist(
+	size_t ts, string varname, int ref, int lod, bool exist
+) {
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+	
+	_cache[ts][varname].exist[uid] = exist;
+}
+
+void DataMgr::VarInfoCache::PurgeExist(
+	size_t ts, string varname, int ref, int lod
+) {
+
+	var_info *viptr = get_var_info(ts, varname);
+	if (! viptr) return;
+
+	size_t uid = ((size_t) ref << 8) + (size_t) lod;
+
+	map <size_t, bool>::iterator itr;
+	itr = viptr->exist.find(uid);
+	if (itr == viptr->exist.end()) return;
+
+	viptr->exist.erase(itr);
 }
