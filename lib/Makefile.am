@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-#EXTRA_DIST = INSTALL vapor/include pio/*.in pio/fdepends.awk pio/genf90.pl pio/dtypes.h
+EXTRA_DIST = ../include 
 #DEFS = ""
 #if BUILDVDF
 #MAYVAPE = vapor

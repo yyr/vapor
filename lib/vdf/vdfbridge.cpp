@@ -26,20 +26,26 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
 #define ENDDEF_F90 FC_FUNC(endvdfdef, ENDVDFDEF)
 #define WRITE_F90 FC_FUNC(writevdc2var, WRITEVDC2VAR)
 #define READ_F90 FC_FUNC(readvdc2var, READVDC2VAR)
-extern "C" void CREATE_F90(int *griddims, int *bs, char * path, int path_len)
+extern "C" void CREATE_F90(int *griddims, int *bs, int *ts, int *clobber, char * path ,int path_len)
 {
-  cratios.push_back(1);
-  cratios.push_back(10);
-  cratios.push_back(100);
-  cratios.push_back(500);
-  global[0] = griddims[0];
-  global[1] = griddims[1];
-  global[2] = griddims[2];
-  bsize[0] = bs[0];
-  bsize[1] = bs[1];
-  bsize[2] = bs[2];
-  file_path = new string(path);
-  file = new MetadataVDC(global, bsize, cratios, wname.c_str(), wmode.c_str());
+  bool newfile = (bool)(*clobber);
+  if(newfile){
+    cratios.push_back(1);
+    cratios.push_back(10);
+    cratios.push_back(100);
+    cratios.push_back(500);
+    global[0] = griddims[0];
+    global[1] = griddims[1];
+    global[2] = griddims[2];
+    bsize[0] = bs[0];
+    bsize[1] = bs[1];
+    bsize[2] = bs[2];
+     file_path = new string(path);
+    file = new MetadataVDC(global, bsize, cratios, wname.c_str(), wmode.c_str());
+    file->SetNumTimeSteps(*ts);
+  }
+  else
+      file_path = new string(path);
 }
 extern "C" void DEFINE_F90(char * name, int name_len)
 {
@@ -64,7 +70,7 @@ extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, in
 #endif
   MyBase::SetErrMsgFilePtr(stderr);
 
-  int start_block[3];
+
   int end_block[3];
 
   end_block[0] = start[0] + len[0] - 2 ;
@@ -74,12 +80,10 @@ extern "C" void WRITE_F90(float *array, int *start, int *len, int *IO_Comm_f, in
   end_block[2] = start[2] + len[2] - 2;
 
 #ifdef DEBUG
-  std::cout << "VDC2 rank: " << rank << " start: " << start_block[0] << "," << start_block[1] << "," << start_block[2] << " end: " << end_block[0] << "," << end_block[1] << "," << end_block[2] << " start2: " << start[0] << "," << start[1] << "," << start[2] << " len: " << len[0] << "," << len[1] << "," << len[2] <<  " bsize: " << bsize[0] << "," << bsize[1] << "," << bsize[2] << std::endl;
+  std::cout << "VDC2 rank: " << rank << " start: " << start[0] << "," << start[1] << "," << start[2] << " end: " << end_block[0] << "," << end_block[1] << "," << end_block[2] << " len: " << len[0] << "," << len[1] << "," << len[2] <<  " bsize: " << bsize[0] << "," << bsize[1] << "," << bsize[2] << std::endl;
 #endif
-  MyBase::SetDiagMsg("@st: %d %d %d, en: %d %d %d\n", 
-		     start_block[0], start_block[1], start_block[2],
-		     end_block[0], end_block[1], end_block[2]);
-  xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, reflevel, name, num_iotasks);
+
+   xform_and_write(array, start, end_block, len, IO_Comm, ts, lod, reflevel, name, num_iotasks);
 
 #ifdef PIOVDC_DEBUG
   if(rank == 0)
@@ -128,18 +132,19 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
 #endif
   MetadataVDC metadata(file_path->c_str());
   WaveCodecIO *wcwriter = new WaveCodecIO(metadata, 1);
-
+  //  std::cout << "@Rank" << rank << " wavecodec created " << std::endl;
   wcwriter->SetIOComm(IOComm);
-
+  //  std::cout << "@Rank" << rank << " IOComm set " << std::endl;
   bool collective = true;
   
   int proc_count[3];
-  int comm_size = *num_iotasks;
-
+  int comm_size;
+  MPI_Comm_size(IOComm, &comm_size);
+  //  std::cout << "@Rank" << rank << " found comm size " <<  comm_size << std::endl;
   MPI_Allreduce(count, proc_count, 3, MPI_INT, MPI_SUM, IOComm);
+  //  std::cout << "@Rank" << rank << " mpi_allreduce " << std::endl;
 
-
-  proc_count[0] = proc_count[0] / comm_size;
+   proc_count[0] = proc_count[0] / comm_size;
   proc_count[1] = proc_count[1] / comm_size;
   proc_count[2] = proc_count[2] / comm_size;
 
@@ -147,16 +152,16 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
     collective = false;
 
   wcwriter->SetCollectiveIO(collective);
-
+  //  std::cout << "@Rank" << rank << " setcollectiveIO " << std::endl;
   size_t temp_count[3] = {count[0], count[1], count[2]};
-
+  //  std::cout << "@Rank" << rank << " trying to enable buffering " << std::endl;
   wcwriter->EnableBuffering(temp_count, 1, rank);
   //Write out data array
   if (wcwriter->GetErrCode() != 0) perror("wcwriter ctor failed\n");
 #ifdef PIOVDC_DEBUG
   double openbegin = MPI_Wtime();
 #endif
-
+  //  std::cout << "@Rank" << rank << " opening var for write " << std::endl;
   if (wcwriter->OpenVariableWrite((size_t)*ts, name, *reflevel, *lod) < 0) perror("openVar failed\n");
 #ifdef PIOVDC_DEBUG
   double opentime = MPI_Wtime() - openbegin;
@@ -181,7 +186,7 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
   wcwriter->methodTimer = 0.0;
   wcwriter->methodThreadTimer = 0.0;
   float *buffer = (float *)malloc(sizeof(float) * bsize[0] * bsize[1] * bsize[2]);
-
+  //  std::cout << "@Rank" << rank << " var open, writing " << std::endl;
   if(collective)
     {
       const size_t sblock[3] = { start_block[0], start_block[1], start_block[2]};
@@ -246,11 +251,11 @@ void xform_and_write(const float *data, int *start, int *end, int *count,MPI_Com
 #ifdef PIOVDC_DEBUG
   double closetime = MPI_Wtime() - close_begin;
 #endif
-  if (wcwriter->GetErrCode() != 0) perror("closeVar failed\n");
+if (wcwriter->GetErrCode() != 0) perror("closeVar failed\n");
 #ifdef PIOVDC_DEBUG
   double vdftime = MPI_Wtime() - starttime;
-  std::cout << "rank: " << rank << " VDC2 VDF aggregate time: " << vdftime  << " xformMPI: " << wcwriter->xformMPI << " ioMPI: " << wcwriter->ioMPI << " BlockWriteRegionTimer: " << wcwriter->methodTimer << " BlockWriteRegionThreadTimer: " << wcwriter->methodThreadTimer << " Pure Block Writing: " << onlyBlocks <<  " OpenVarWriteTime: " << opentime << " CloseVarWriteTime: " << closetime << std::endl;
-#endif
+  std::cout << "rank: " << rank << " VDC2 VDF aggregate time: " << vdftime  << " xformMPI: " << wcwriter->xformMPI << " ioMPI: " << wcwriter->ioMPI << " BlockWriteRegionTimer: " << wcwriter->methodTimer << " BlockWriteRegionThreadTimer: " << wcwriter->methodThreadTimer << " OpenVarWriteTime: " << opentime << " CloseVarWriteTime: " << closetime << std::endl;
+#endif 
   delete wcwriter;
 }
 
@@ -269,8 +274,6 @@ void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOC
 
   if(global[0] % bsize[0] != 0 || global[1] % bsize[1] != 0 || global[2] % bsize[2] !=0)
     collective = false;
-
-  wcwriter->SetCollectiveIO(collective);
 
   wcwriter->SetCollectiveIO(collective);
   size_t temp_count[3] = {count[0], count[1], count[2]};
@@ -312,7 +315,7 @@ void inverse_and_read(float *data, int *start, int *end, int *count,MPI_Comm IOC
     fail += rank;
     fail += " \n";
     perror(fail.c_str());
-  }
+    }
 
 #ifdef PIOVDC_DEBUG
   double close_begin = MPI_Wtime();  

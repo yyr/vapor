@@ -396,7 +396,7 @@ public:
  //
  virtual void GetBlockSize(size_t bs[3], int reflevel) const;
 #ifdef PARALLEL
- void SetIOComm(MPI_Comm NewIOComm) {std::cout << "WaveCodecIO::SetIOComm, nthreads = " << _nthreads << std::endl; IO_Comm = NewIOComm;};
+ void SetIOComm(MPI_Comm NewIOComm) {IO_Comm = NewIOComm;};
 #endif
  void SetCollectiveIO(bool newCollectiveIO) {
    collectiveIO = newCollectiveIO;

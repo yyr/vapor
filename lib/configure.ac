@@ -44,11 +44,11 @@ if test "$with_netcdf" != "no"
 then
 	AC_MSG_WARN([NetCDF4 support is provided, but not recommended. Locations for the szip, zlib, and hdf5 libraries must be manually provided using a --with-lib=<location> option])
 
-#m4_include([m4/zlib.m4])
+
 m4_include([m4/hdf5.m4])
 m4_include([m4/szip.m4])
 
-#AM_WITH_ZLIB
+
 AM_WITH_SZIP
 AM_WITH_HDF5
 

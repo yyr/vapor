@@ -504,10 +504,11 @@ int WaveCodecIO::CloseVariable() {
 	_ncbufs.clear();
 
 	_WriteTimerStart();
-
+	int rank;
+	MPI_Comm_rank(IO_Comm, &rank);
 #ifdef PARALLEL
 int x[] = {0,0,0};
-float y[] = {0,0,0};
+ float *y = (float*) malloc(sizeof(float));
  int *reduce = (int*) malloc(sizeof(int) *3);
 int *value = (int*) malloc(sizeof(int) *3);
 
@@ -525,9 +526,11 @@ _validRegMax[0] = reduce[0]; _validRegMax[1] = reduce[1]; _validRegMax[2] = redu
 
  free(reduce);
  free(value);
-MPI_Allreduce(&_dataRange[1], &y[0], 1, MPI_FLOAT, MPI_MAX, IO_Comm);
-MPI_Allreduce(&_dataRange[0], &y[1], 1, MPI_FLOAT, MPI_MIN, IO_Comm);
-_dataRange[1] = y[0]; _dataRange[0] = y[1];
+
+MPI_Allreduce(&_dataRange[1], y, 1, MPI_FLOAT, MPI_MAX, IO_Comm);
+ _dataRange[1] = *y;
+  MPI_Allreduce(&_dataRange[0], y, 1, MPI_FLOAT, MPI_MIN, IO_Comm);
+_dataRange[0] = *y;
 
 SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRegMin[1],_validRegMin[2],_validRegMax[0],_validRegMax[1],_validRegMax[2]);
 
@@ -886,8 +889,11 @@ int WaveCodecIO::BlockWriteRegion(
 	size_t bs_p[3];	// packed copy of bs
 	_PackCoord(_vtype, bs, bs_p, 1);
 
+	int rank;
+	MPI_Comm_rank(IO_Comm, &rank);
 	if (_firstWrite) {
 		_dataRange[0] = _dataRange[1] = *region;
+
 		_firstWrite = false;
 	}
 
@@ -943,14 +949,15 @@ int WaveCodecIO::BlockWriteRegion(
 	//
 	// Clean up threads and reduce data range
 	//
-	for (int t=0; t<_nthreads; t++) {
+
+      	for (int t=0; t<_nthreads; t++) {
 		float v = _rw_thread_objs[t]->GetDataRange()[0];
 		if (v < _dataRange[0]) _dataRange[0] = v;
 
 		v = _rw_thread_objs[t]->GetDataRange()[1];
 		if (v > _dataRange[1]) _dataRange[1] = v;
 		delete _rw_thread_objs[t];
-	}
+		}
 	methodTimer += (MPI_Wtime() - starttime);
 
 	return(_threadStatus);
@@ -1840,8 +1847,9 @@ int WaveCodecIO::_OpenVarRead(
 		int ii = 0;
 		do {
 #ifdef PARALLEL
-	MPI_Info info;
-	MPI_Info_set(info,"ibm_largeblock_io","true");
+		MPI_Info info;
+		MPI_Info_create(&info);
+	//	MPI_Info_set(info,"ibm_largeblock_io","true");
 #endif
 
 #ifdef PNETCDF
@@ -1983,6 +1991,12 @@ int WaveCodecIO::_OpenVarRead(
 #endif
 		NC_ERR_READ(rc,path)
 		_nc_wave_vars.push_back(ncvar);
+#ifdef PNETCDF
+			  if(!collectiveIO){
+			    ncmpi_begin_indep_data(_ncids[j]);
+			  }
+	
+#endif
 
 	}
 
@@ -2038,9 +2052,9 @@ int WaveCodecIO::_OpenVarWrite(
 	_WriteTimerStart();
 
 #ifdef PARALLEL
-	MPI_Info info;
-	MPI_Info_create(&info);
-	MPI_Info_set(info,"ibm_largeblock_io","true");
+		MPI_Info info;
+		MPI_Info_create(&info);
+	//	MPI_Info_set(info,"ibm_largeblock_io","true");
 #endif
 #ifndef NOIO
 #ifdef PARALLEL
@@ -2818,7 +2832,8 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 		if(start[2] == 2)
 		wcount[2] = 0;*/
 #ifdef PNETCDF
-		rc = ncmpi_get_vars_float(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr);
+		//ncmpi_begin_indep_data(_wc->_ncids[j]);
+		rc = ncmpi_get_vars_float_all(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr);
 #else
 		rc = nc_get_vars_float(
 			_wc->_ncids[j], _wc->_nc_wave_vars[j], start, wcount, NULL, cvectorptr
@@ -2845,11 +2860,12 @@ int WaveCodecIO::ReadWriteThreadObj::_FetchBlock(
 			// Read sig map as untyped quantity to avoid data conversion
 			//
 #ifdef PNETCDF
-			rc = ncmpi_get_vars(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr, _wc->_svectorsize, MPI_CHAR);
+			rc = ncmpi_get_vars_float_all(_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL,(float*) svectorptr);
 #else
 			rc = nc_get_vars(
 				_wc->_ncids[j], _wc->_nc_wave_vars[j], start, scount, NULL, svectorptr
 	  );
+			//ncmpi_end_indep_data(_wc->_ncids[j]);
 #endif
 		if(rc != NC_NOERR)
 
