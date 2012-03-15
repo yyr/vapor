@@ -862,7 +862,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 					delete pField;
 					return false;
 				}
-				pField->SetSolutionGrid(tsIndex,xGridPtr,yGridPtr,zGridPtr);
+				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr);
 				pSolution->getMinGridSpacing(tsIndex, minspacing);
 				pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 				pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
@@ -893,7 +893,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				if (!zeroZ && zGridPtr) dataMgr->UnlockGrid(zGridPtr);
 				return false;
 			}
-			pField->SetSolutionGrid(tsIndex+1,xGridPtr2,yGridPtr2, zGridPtr2); 
+			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2, &zGridPtr2); 
 		}
 
 			
@@ -917,8 +917,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	if(!zeroX) dataMgr->UnlockGrid(yGridPtr2);
 	if(!zeroX) dataMgr->UnlockGrid(zGridPtr2);
 	
-	pField->SetSolutionGrid(tsIndex,0,0,0);
-	pField->SetSolutionGrid(tsIndex+1,0,0,0);
+	pField->ClearSolutionGrid(tsIndex);
+	pField->ClearSolutionGrid(tsIndex+1);
 	delete[] pUserTimeSteps;
 	delete pStreakLine;
 	delete pField;
@@ -1217,8 +1217,9 @@ setupFieldData(const vector<string>& varnames,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 
-	
-	RegularGrid *pUGrid[1], *pVGrid[1], *pWGrid[1];
+	RegularGrid **pUGrid = new RegularGrid*[1];
+	RegularGrid **pVGrid = new RegularGrid*[1];
+	RegularGrid **pWGrid = new RegularGrid*[1];
 	
 	bool gotData = Get3GridData(ts, varnames[0].c_str(),varnames[1].c_str(),varnames[2].c_str(),
 		minInt, maxInt, &pUGrid[0],  &pVGrid[0],  &pWGrid[0]);
@@ -1243,13 +1244,11 @@ setupFieldData(const vector<string>& varnames,
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	pCartesianGrid->SetBoundary(minR, maxR);
 	
-	
-	
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0.f);
 
 	FieldData* fData = new FieldData();
-	fData->setup(pField, pCartesianGrid, pUGrid[0],pVGrid[0],pWGrid[0], timestep);
+	fData->setup(pField, pCartesianGrid, pUGrid,pVGrid,pWGrid, timestep);
 	return fData;
 }
 

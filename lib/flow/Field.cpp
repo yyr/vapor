@@ -301,7 +301,7 @@ void FieldData::setup(CVectorField* fld, CartesianGrid* grd,
 //This is initialized by the VaporFlow class.  Just holds some
 //pointers until the field data access is complete
 void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
-					  RegularGrid* xGrid, RegularGrid* yGrid, RegularGrid* zGrid, int tstep){
+					  RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid, int tstep){
 	pField = fld; pCartesianGrid = grd; 
 	pUGrid = xGrid; pVGrid = yGrid; pWGrid = zGrid;
 	pField->SetSolutionGrid(0, pUGrid, pVGrid, pWGrid);
@@ -312,26 +312,29 @@ FieldData::~FieldData(){
 	delete pField;
 
 	if (pUGrid){
-		delete pUGrid;
+		delete [] pUGrid;
 	}
 	if (pVGrid){
-		delete pVGrid;
+		delete [] pVGrid;
 	}
 	if (pWGrid){
-		delete pWGrid;
+		delete [] pWGrid;
 	}
 }
 void FieldData::releaseData(DataMgr* dataMgr){
 	if (pUGrid){
-		dataMgr->UnlockGrid(pUGrid);
+		dataMgr->UnlockGrid(*pUGrid);
+		delete pUGrid;
 		pUGrid = 0;
 	}
 	if (pVGrid){
-		dataMgr->UnlockGrid(pVGrid);
+		dataMgr->UnlockGrid(*pVGrid);
+		delete pVGrid;
 		pVGrid = 0;
 	}
 	if (pWGrid){
-		dataMgr->UnlockGrid(pWGrid);
+		dataMgr->UnlockGrid(*pWGrid);
+		delete pWGrid;
 		pWGrid = 0;
 	}
 }

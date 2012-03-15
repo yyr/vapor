@@ -59,7 +59,8 @@ public:
 	bool isCellOnBoundary(int cellId);
 	float GetGridSpacing(int cellId){return m_pGrid->GetGridSpacing(cellId);}
 	void SetSolutionData(int t, float* pUData, float* pVData, float* pWData) {m_pSolution->SetValue(t, pUData, pVData, pWData);}
-	void SetSolutionGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularGrid* pWGrid) {m_pSolution->SetGrid(t, pUGrid, pVGrid, pWGrid);}
+	void SetSolutionGrid(int t, RegularGrid** pUGrid, RegularGrid** pVGrid, RegularGrid** pWGrid) {m_pSolution->SetGrid(t, *pUGrid, *pVGrid, *pWGrid);}
+	void ClearSolutionGrid(int t) {m_pSolution->SetGrid(t, 0, 0, 0);}
 	
 	int GetStartTime(void) { return m_pSolution->GetStartTime(); }
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
@@ -83,7 +84,7 @@ public:
 		float** xdata, float** ydata, float** zdata, int tstep);
 	//This is initialized by the VaporFlow class
 	void setup(CVectorField* fld, CartesianGrid* grd, 
-		RegularGrid *xgrid, RegularGrid* ygrid, RegularGrid* zgrid, int tstep);
+		RegularGrid **xgrid, RegularGrid** ygrid, RegularGrid** zgrid, int tstep);
 	float getFieldMag(float point[3]);
 	void releaseData(DataMgr*);
 private:
@@ -94,7 +95,7 @@ private:
 	float** pUData;
 	float** pVData;
 	float** pWData;
-	RegularGrid* pUGrid, *pVGrid, *pWGrid;
+	RegularGrid** pUGrid, **pVGrid, **pWGrid;
 };
 };//end VAPoR namespace
 //////////////////////////////////////////////////////////////////////////
