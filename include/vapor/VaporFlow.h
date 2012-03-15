@@ -81,8 +81,6 @@ namespace VAPoR
 
 		void SetPeriodicDimensions(bool xPeriodic, bool yPeriodic, bool zPeriodic);
 		
-		float* GetData(size_t ts, const char* varName);
-		
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
 		void SetPriorityField(const char* varx, const char* vary, const char* varz,
 			float minField = 0.f, float maxField = 1.e30f);
@@ -108,8 +106,7 @@ namespace VAPoR
 		size_t getFullGridHeight() {return full_height;}
 	 
 	private:
-		bool Get3Data(size_t ts, const char* xVarName, const char* yVarName, 
-			const char* zVarName, float** uData, float ** vData, float **wData);
+		
 		bool Get3GridData(size_t ts, const char* xVarName, const char* yVarName, 
 			const char* zVarName, size_t minreg[3], size_t maxreg[3], RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid);
 		double getMaxStepSize(double mingrid[3]);

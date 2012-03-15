@@ -23,9 +23,7 @@ enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction
 class FLOW_API Solution : public VetsUtil::MyBase
 {
 private:
-	float** m_pUDataArray;				// U data value
-	float** m_pVDataArray;				// V data value
-	float** m_pWDataArray;				// W data value
+	
 	RegularGrid** m_pUGrid;
 	RegularGrid** m_pVGrid;
 	RegularGrid** m_pWGrid;
@@ -50,20 +48,20 @@ private:
 public:
 	// constructor
 	Solution();
-	Solution(float** pUData, float** pVData, float** pWData, int nodeNum, int timeSteps);
+	
 	Solution(RegularGrid** uGrid, RegularGrid** vGrid, RegularGrid** wGrid,int timeSteps);
 	~Solution();
 
 	void Reset();
 
 	// solution functions
-	void SetValue(int t, float* pUData, float* pVData, float* pWData);
+	
 	void SetGrid(int t, RegularGrid* pUData, RegularGrid* pVData, RegularGrid* pWData);
 	int getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal);
 	
 	bool isTimeVarying(void);
 	int GetValue(int id, const float t, VECTOR3& nodeData);
-	void Normalize(bool bLocal);
+	
 	void SetTime(int startT, int endT) { m_nStartT = startT; m_nEndT = endT;}
 	int GetStartTime(void) {return m_nStartT;}
 	int GetEndTime(void) {return m_nEndT;}

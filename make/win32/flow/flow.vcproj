@@ -411,19 +411,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\flow\VTPathLine.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\flow\VTStreakLine.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\lib\flow\VTStreamLine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\lib\flow\VTTimeLine.cpp"
 				>
 			</File>
 			<File

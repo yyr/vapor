@@ -239,49 +239,7 @@ void VaporFlow::SetRegularSeedPoints(const double min[3],
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-// prepare the necessary data
-//////////////////////////////////////////////////////////////////////////
-float* VaporFlow::GetData(size_t ts, const char* varName)
-{
-	
-	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, compressLevel, minBlkRegion, maxBlkRegion,1);
-	
-	if (!regionData) {
-		SetErrMsg(VAPOR_ERROR_FLOW,"Error obtaining field\ndata for timestep %d, variable %s",ts, varName);
-		return 0;
-	}
-	return regionData;
-}
-//////////////////////////////////////////////////////////////////////////
-// Obtain data for three components of a vector field. 
-// Ignore if the variable name is "0"
-// Resulting data array is assigned to float** arguments.
-// If data is not obtained, unlock previously obtained data
-//////////////////////////////////////////////////////////////////////////
-bool VaporFlow::Get3Data(size_t ts, 
-			const char* xVarName,const char* yVarName,const char* zVarName,
-			float** pUData, float** pVData, float** pWData)
-{
-	bool zeroX = (strcmp(xVarName, "0") == 0); 
-	bool zeroY = (strcmp(yVarName, "0") == 0); 
-	bool zeroZ = (strcmp(zVarName, "0") == 0); 
-	float* xDataPtr = 0, *yDataPtr = 0, *zDataPtr = 0;
-	if(!zeroX) xDataPtr = GetData(ts,xVarName);
-	if((zeroX || xDataPtr) && !zeroY) yDataPtr = GetData(ts,yVarName);
-	if((zeroX || xDataPtr) && (zeroY || yDataPtr) && !zeroZ) zDataPtr = GetData(ts,zVarName);
-	//Check if we failed:
-	if ((!zeroX && (xDataPtr == 0)) || (!zeroY && (yDataPtr == 0)) || (!zeroZ && (zDataPtr == 0))){
-					
-		if (!zeroX && xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-		if (!zeroY && yDataPtr) dataMgr->UnlockRegion(yDataPtr);
-		return false;
-	}
-	if(!zeroX) *pUData = xDataPtr;
-	if(!zeroY) *pVData = yDataPtr;
-	if(!zeroZ) *pWData = zDataPtr;
-	return true;
-}
+
 //////////////////////////////////////////////////////////////////////////
 // Obtain data for three components of a vector field. 
 // Ignore if the variable name is "0"
@@ -562,7 +520,6 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	VECTOR3 minR(regionExtents);
 	VECTOR3 maxR(regionExtents+3);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minR, maxR);
 	
 	
 	//Use current region to determine coords of grid boundary:
@@ -612,7 +569,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
-	pStreamLine->setIntegrationOrder(FOURTH);
+	
 	double minspacing[3];
 	pSolution->getMinGridSpacing(0,minspacing);
 	pStreamLine->SetInitStepSize(getInitStepSize(minspacing));
@@ -761,7 +718,6 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	minR.Set((float)regMin[0], (float)regMin[1], (float)regMin[2]);
 	maxR.Set((float)regMax[0], (float)regMax[1], (float)regMax[2]);
-	pCartesianGrid->SetBoundary(minR, maxR);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	//Now set the region bound:
@@ -805,7 +761,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
 	double minspacing[3];
 	
-	pStreakLine->setIntegrationOrder(FOURTH);
+	
 
 
 	//Keep first and next grid pointers.  They must be released as we go:
@@ -878,7 +834,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				yGridPtr = yGridPtr2;
 				zGridPtr = zGridPtr2;
 				//Also nullify pointers to released timestep data:
-				pField->SetSolutionData(tsIndex-1,0,0,0);
+				pField->ClearSolutionGrid(tsIndex-1);
 			}
 			//now get data for second ( next) sampled timestep. 
 			bool gotData = Get3GridData(nextSample, xUnsteadyVarName,yUnsteadyVarName, zUnsteadyVarName, 
@@ -953,15 +909,14 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	float **pUData = 0, **pVData = 0, **pWData = 0;
+	RegularGrid** pUGrid, **pVGrid, **pWGrid;
 	
-	int totalXNum, totalYNum, totalZNum, totalNum;
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, numXForms);
-    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* bs[0];
-	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* bs[1];
-	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetBlockSize()[2];
-	totalNum = totalXNum*totalYNum*totalZNum;
+	int totalXNum, totalYNum, totalZNum;
+	
+    totalXNum = (maxRegion[0]-minRegion[0] + 1);
+	totalYNum = (maxRegion[1]-minRegion[1] + 1);
+	totalZNum = (maxRegion[2]-minRegion[2] + 1);
+	
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
@@ -980,24 +935,27 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	int numTimesteps = abs(endTimeStep - startTimeStep) + 1;
 	int numTimeSamples = abs(sampleStartIndex - sampleEndIndex) + 1;
 	
-	bool zeroX = (strcmp(xUnsteadyVarName, "0") == 0); 
+	
+    bool zeroX = (strcmp(xUnsteadyVarName, "0") == 0); 
 	bool zeroY = (strcmp(yUnsteadyVarName, "0") == 0); 
 	bool zeroZ = (strcmp(zUnsteadyVarName, "0") == 0); 
-
-	if(!zeroX){
-		pUData = new float*[numTimeSamples];
-		memset(pUData, 0, sizeof(float*)*numTimeSamples);
+	if (zeroX) pUGrid = 0;
+	else {
+		pUGrid = new RegularGrid*[numTimeSamples];
+		memset(pUGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	if(!zeroY){
-		pVData = new float*[numTimeSamples];
-		memset(pVData, 0, sizeof(float*)*numTimeSamples);
+	if (zeroY) pVGrid = 0;
+	else {
+		pVGrid = new RegularGrid*[numTimeSamples];
+		memset(pVGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	if(!zeroZ){
-		pWData = new float*[numTimeSamples];
-		memset(pWData, 0, sizeof(float*)*numTimeSamples);
+	if (zeroZ) pWGrid = 0;
+	else {
+		pWGrid = new RegularGrid*[numTimeSamples];
+		memset(pWGrid, 0, sizeof(float*)*numTimeSamples);
 	}
+	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps);
 	
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, numTimesteps);
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
@@ -1007,23 +965,14 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMin, minUser, numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, blockRegionMax, maxUser, numXForms);
+	VECTOR3 minR, maxR;
+	double regMin[3],regMax[3];
+	
 	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, numXForms);
 	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, numXForms);
 	
-	minB.Set(minUser[0], minUser[1], minUser[2]);
-	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
 	minR.Set(regMin[0], regMin[1], regMin[2]);
 	maxR.Set(regMax[0], regMax[1], regMax[2]);
-	pCartesianGrid->SetBoundary(minB, maxB);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	//Now set the region bound:
@@ -1071,7 +1020,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 	pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
 	
-	pStreakLine->setIntegrationOrder(FOURTH);
+	
 
 	//Insert all the seeds at the first time step:
 	int nseeds = pStreakLine->addFLASeeds(startTimeStep, flArray[startTimeStep], maxNumSamples);
@@ -1082,9 +1031,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		return false;
 	}
 
-	//Keep first and next region pointers.  They must be released as we go:
-	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
-	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
+	//Keep first and next Grid pointers.  They must be released as we go:
+	
+	RegularGrid *xGridPtr = 0,	*yGridPtr = 0,*zGridPtr = 0;
+	RegularGrid *xGridPtr2 = 0,	*yGridPtr2 = 0,*zGridPtr2 = 0;
 
 
 	int currIndex = sampleStartIndex;
@@ -1129,46 +1079,46 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		{
 			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == startTimeStep){
-				bool gotData = Get3Data(iFor, xUnsteadyVarName, yUnsteadyVarName,
-					zUnsteadyVarName, &xDataPtr, &yDataPtr, &zDataPtr);
+				bool gotData = Get3GridData(iFor, xUnsteadyVarName, yUnsteadyVarName,
+					zUnsteadyVarName, minRegion, maxRegion, &xGridPtr, &yGridPtr, &zGridPtr);
 				if(!gotData){
 					// release resources
 					delete[] pUserTimeSteps;
 					delete pStreakLine;
 					delete pField;
-					if (!zeroX && xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-					if (!zeroY && yDataPtr) dataMgr->UnlockRegion(yDataPtr);
+					if (!zeroX && xGridPtr) dataMgr->UnlockGrid(xGridPtr);
+					if (!zeroY && yGridPtr) dataMgr->UnlockGrid(yGridPtr);
 					return false;
 				}
-				pField->SetSolutionData(tsIndex,xDataPtr,yDataPtr,zDataPtr);
+				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr);
 			} else { //Changing time sample..
 				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
 				//Now can release first pointers:
-				if(!zeroX) dataMgr->UnlockRegion(xDataPtr);
-				if(!zeroY) dataMgr->UnlockRegion(yDataPtr);
-				if(!zeroZ) dataMgr->UnlockRegion(zDataPtr);
+				if(!zeroX) dataMgr->UnlockGrid(xGridPtr);
+				if(!zeroY) dataMgr->UnlockGrid(yGridPtr);
+				if(!zeroZ) dataMgr->UnlockGrid(zGridPtr);
 				//And use them to save the second pointers:
-				xDataPtr = xDataPtr2;
-				yDataPtr = yDataPtr2;
-				zDataPtr = zDataPtr2;
+				xGridPtr = xGridPtr2;
+				yGridPtr = yGridPtr2;
+				zGridPtr = zGridPtr2;
 				//Also nullify pointers to released timestep data:
-				pField->SetSolutionData(tsIndex-1,0,0,0);
+				pField->ClearSolutionGrid(tsIndex-1);
 			}
 			//now get data for second ( next) sampled timestep.
-			bool gotData = Get3Data(nextSample, xUnsteadyVarName, yUnsteadyVarName,
-				zUnsteadyVarName, &xDataPtr2, &yDataPtr2, &zDataPtr2);
+			bool gotData = Get3GridData(nextSample, xUnsteadyVarName, yUnsteadyVarName,
+				zUnsteadyVarName, minRegion, maxRegion, &xGridPtr2, &yGridPtr2, &zGridPtr2);
 			if (!gotData){
 				// if we failed:  release resources
 				delete[] pUserTimeSteps;
 				delete pStreakLine;
 				delete pField;
-				if (!zeroX && xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-				if (!zeroY && yDataPtr) dataMgr->UnlockRegion(yDataPtr);
-				if (!zeroZ && zDataPtr) dataMgr->UnlockRegion(zDataPtr);
+				if (!zeroX && xGridPtr) dataMgr->UnlockGrid(xGridPtr);
+				if (!zeroY && yGridPtr) dataMgr->UnlockGrid(yGridPtr);
+				if (!zeroZ && zGridPtr) dataMgr->UnlockGrid(zGridPtr);
 				return false;
 			}
-			pField->SetSolutionData(tsIndex+1,xDataPtr2,yDataPtr2,zDataPtr2); 
+			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2,&zGridPtr2); 
 		}
 		// advect for one timestep.  Inject seeds only at the first timestep
 		pStreakLine->advectFLAPoints(iFor, timeDir, flArray, (iFor == startTimeStep));
@@ -1177,14 +1127,15 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	// release resources.  we always have valid start and end pointers
 	// at this point.
-	if(!zeroX)dataMgr->UnlockRegion(xDataPtr);
-	if(!zeroY)dataMgr->UnlockRegion(yDataPtr);
-	if(!zeroZ)dataMgr->UnlockRegion(zDataPtr);
-	if(!zeroX)dataMgr->UnlockRegion(xDataPtr2);
-	if(!zeroY)dataMgr->UnlockRegion(yDataPtr2);
-	if(!zeroZ)dataMgr->UnlockRegion(zDataPtr2);
-	pField->SetSolutionData(tsIndex,0,0,0);
-	pField->SetSolutionData(tsIndex+1,0,0,0);
+	if(!zeroX)dataMgr->UnlockGrid(xGridPtr);
+	if(!zeroY)dataMgr->UnlockGrid(yGridPtr);
+	if(!zeroZ)dataMgr->UnlockGrid(zGridPtr);
+	if(!zeroX)dataMgr->UnlockGrid(xGridPtr2);
+	if(!zeroY)dataMgr->UnlockGrid(yGridPtr2);
+	if(!zeroZ)dataMgr->UnlockGrid(zGridPtr2);
+	
+	pField->ClearSolutionGrid(tsIndex);
+	pField->ClearSolutionGrid(tsIndex+1);
 	delete[] pUserTimeSteps;
 	delete pStreakLine;
 	delete pField;
@@ -1242,7 +1193,6 @@ setupFieldData(const vector<string>& varnames,
 	VECTOR3 minR(regionExtents);
 	VECTOR3 maxR(regionExtents+3);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minR, maxR);
 	
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0.f);

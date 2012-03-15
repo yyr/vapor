@@ -27,7 +27,6 @@ using namespace VAPoR;
 
 vtCFieldLine::vtCFieldLine(CVectorField* pField):
 m_nNumSeeds(0),
-m_integrationOrder(FOURTH),
 m_timeDir(FORWARD),
 m_fInitStepSize(1.0),
 m_fLowerAngleAccuracy((float)cos(15.0*DEG_TO_RAD)),
@@ -60,123 +59,13 @@ void vtCFieldLine::releaseSeedMemory(void)
 	//printf("Release memory!\n");
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Integrate along a field line using the 2nd order Euler-Cauchy 
-// predictor-corrector method. This routine is used for both steady and
-// unsteady vector fields. 
-//////////////////////////////////////////////////////////////////////////
-int vtCFieldLine::euler_cauchy(TIME_DIR, TIME_DEP,float*, float)
-{
-	return 1;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Integrate along a field line using the 2th order Runge-Kutta method.
 // This routine is used for both steady and unsteady vector fields. 
-//////////////////////////////////////////////////////////////////////////
-int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep, 
-							   PointInfo& ci, 
-							   double* t, double dt, double prevMag)
-{
-	int istat;
-	istat = OKAY;
-	return istat;
-}
+
 
 int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, 
-							   TIME_DEP time_dep, 
-							   PointInfo& ci, 
-							   double* t,			// initial time
-							   double dt,			//stepsize
-							   double maxMagDt)		//Largest value of dt*mag(vec)
-{
-	int i, istat;
-	VECTOR3 pt0;
-	VECTOR3 vel;
-	VECTOR3 k1, k2, k3;
-	VECTOR3 pt;
-	int fromCell;
-
-	pt = ci.phyCoord;
-
-	// 1st step of the Runge-Kutta scheme
-	istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
-	
-	if ( istat != 1 )
-		return OUT_OF_BOUND;
-
-	if (vel.GetDMag()*dt > maxMagDt) {
-		return FIELD_TOO_BIG;
-	}
-
-	for( i=0; i<3; i++ )
-	{
-		pt0[i] = pt[i];
-		k1[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k1[i]*(float)0.5;
-	}
-	
-	// 2nd step of the Runge-Kutta scheme
-	fromCell = ci.inCell;
-	if ( time_dep  == UNSTEADY)
-		*t += 0.5*time_dir*dt;
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-
-	if (vel.GetDMag()*dt > maxMagDt){ 
-		return FIELD_TOO_BIG;
-	}
-	if ( istat!= 1 )
-	{
-		ci.phyCoord = pt;
-		return OUT_OF_BOUND;
-	}
-	for( i=0; i<3; i++ )
-	{
-		k2[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k2[i]*(float)0.5;
-	}
-
-	// 3rd step of the Runge-Kutta scheme
-	fromCell = ci.inCell;
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-
-	if (vel.GetDMag()*dt > maxMagDt){
-		return FIELD_TOO_BIG;
-	}
-
-	if ( istat != 1 )
-	{
-		ci.phyCoord = pt;
-		return OUT_OF_BOUND;
-	}
-	for( i=0; i<3; i++ )
-	{
-		k3[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k3[i];
-	}
-
-	//    4th step of the Runge-Kutta scheme
-	if ( time_dep  == UNSTEADY)
-		*t += 0.5*time_dir*dt;
-	fromCell = ci.inCell;
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-	if (vel.GetDMag()*dt > maxMagDt){
-		return FIELD_TOO_BIG;
-	}
-	if ( istat != 1 )
-	{
-		ci.phyCoord = pt;
-		return OUT_OF_BOUND;
-	}
-
-	for( i=0; i<3; i++ ){
-		pt[i] = pt0[i]+(k1[i]+(float)2.0*(k2[i]+k3[i])+time_dir*dt*vel[i])/(float)6.0;
-	}
-	ci.phyCoord = pt;
-
-	return istat;
-}
-int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir, 
 							   TIME_DEP time_dep, 
 							   PointInfo& ci, 
 							   double* t,			// initial time
@@ -195,7 +84,6 @@ int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir,
 	// 1st step of the Runge-Kutta scheme
 	// Evaluate the field at pt:
 	istat = m_pField->getFieldValue(pt,*t,vel);
-	//istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
 	
 	if ( istat != 1 )
 		return OUT_OF_BOUND;
@@ -212,11 +100,9 @@ int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir,
 	}
 	
 	// 2nd step of the Runge-Kutta scheme
-	//fromCell = ci.inCell;
 	if ( time_dep  == UNSTEADY)
 		*t += 0.5*time_dir*dt;
 
-	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	istat=m_pField->getFieldValue(pt, *t, vel);
 
 	if (vel.GetDMag()*dt > maxMagDt){ 
@@ -234,8 +120,7 @@ int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir,
 	}
 
 	// 3rd step of the Runge-Kutta scheme
-	//fromCell = ci.inCell;
-	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	
 	istat = m_pField->getFieldValue(pt, *t, vel);
 
 	if (vel.GetDMag()*dt > maxMagDt){
@@ -256,8 +141,7 @@ int vtCFieldLine::runge_kutta4A(TIME_DIR time_dir,
 	//    4th step of the Runge-Kutta scheme
 	if ( time_dep  == UNSTEADY)
 		*t += 0.5*time_dir*dt;
-	//fromCell = ci.inCell;
-	//istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	
 	istat = m_pField->getFieldValue(pt, *t, vel);
 	if (vel.GetDMag()*dt > maxMagDt){
 		return FIELD_TOO_BIG;
@@ -357,11 +241,7 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 				newParticle->itsValidFlag = 0;
 				
 			} else newParticle->itsValidFlag = 1;
-			// query the field in order to get the starting cell interpolant for the seed point
-			//VECTOR3 pos;
-			//pos.Set(points[3*i+0], points[3*i+1], points[3*i+2]);
-			//res = m_pField->at_phys(-1, pos, newParticle->m_pointInfo, t, nodeData);
-			//newParticle->itsValidFlag =  (res == 1) ? 1 : 0 ;
+			
 			
 			m_lSeeds.push_back( newParticle );
 		}
@@ -379,10 +259,7 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 			thisSeed->m_fStartTime = t;
 			thisSeed->ptId = i;
 			thisSeed->itsNumStepsAlive = 0;
-			//VECTOR3 pos;
-			//pos.Set(points[3*i+0], points[3*i+1], points[3*i+2]);
-			//res = m_pField->at_phys(-1, pos, thisSeed->m_pointInfo, t, nodeData);
-			//thisSeed->itsValidFlag =  (res == 1) ? 1 : 0 ;
+			
 			thisSeed->itsValidFlag = 1;
 		}    
 	}
@@ -443,7 +320,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 				t = m_pField->GetStartTime();
 			else assert(0);
 			
-			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+			m_pField->getFieldValue(pointInfo.phyCoord, t, nodeData);
 			currentSpeed = nodeData.GetMag()/
 				(m_pField->getTimeScaleFactor()* m_pField->GetUserTimePerVaporTS());
 			container->setSpeed(lineNum, 0, currentSpeed);
@@ -522,8 +399,8 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 				if(!m_pField->isTimeVarying())
 					t = (float) m_pField->GetStartTime();
 				else assert (0);
-				//	t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
-				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+				
+				m_pField->getFieldValue(pointInfo.phyCoord, t, nodeData);
 				currentSpeed =  nodeData.GetMag()/
 					(m_pField->getTimeScaleFactor()* m_pField->GetUserTimePerVaporTS());
 				container->setSpeed(lineNum, insertionPosn, currentSpeed);
@@ -634,7 +511,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 
 			pointInfo.phyCoord.Set(x,y,z);
 			
-			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, firstT, nodeData);
+			m_pField->getFieldValue(pointInfo.phyCoord, firstT, nodeData);
 			currentSpeed = nodeData.GetMag()/
 				(m_pField->getTimeScaleFactor()*m_pField->GetUserTimePerVaporTS());
 			container->setSpeedAtTime(lineNum, firstT, currentSpeed);
@@ -713,7 +590,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 				PointInfo pointInfo;
 				VECTOR3 nodeData;
 				pointInfo.phyCoord.Set(x, y, z);
-				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, nextTime, nodeData);
+				m_pField->getFieldValue(pointInfo.phyCoord, nextTime, nodeData);
 				currentSpeed =  nodeData.GetMag()/
 					(m_pField->getTimeScaleFactor()*m_pField->GetUserTimePerVaporTS()); 
 				container->setSpeedAtTime(lineNum, nextTime, currentSpeed);

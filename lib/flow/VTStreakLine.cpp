@@ -99,8 +99,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 				list<float>* stepList;
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				istat = advectParticle( m_integrationOrder, 
-										*thisSeed, 
+				istat = advectParticle(  *thisSeed, 
 										nextP, 
 										currentT, 
 										finalT, 
@@ -196,8 +195,7 @@ void vtCStreakLine::advectFLAPoints(int tstep, int flowDir, FlowLineData** flDat
 				list<float>* stepList;
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				istat = advectParticle( m_integrationOrder, 
-										*thisSeed, 
+				istat = advectParticle( *thisSeed, 
 										nextP, 
 										currentT, 
 										finalT, 
@@ -275,8 +273,7 @@ int vtCStreakLine::advectOldParticles( vtListParticleIter start,
 		forwardTrace = new vtListSeedTrace;
 		stepList = new list<float>;
 
-		istat = advectParticle( m_integrationOrder,
-								*thisParticle, 
+		istat = advectParticle( *thisParticle, 
 								*thisParticle, 
 								initialTime, 
 								finalTime, 
@@ -330,8 +327,7 @@ int vtCStreakLine::advectOldParticles( vtListParticleIter start,
 		forwardTrace = new vtListSeedTrace;
 		stepList = new list<float>;
 
-		istat = advectParticle( m_integrationOrder,
-								*thisParticle, 
+		istat = advectParticle( *thisParticle, 
 								*thisParticle, 
 								initialTime, 
 								finalTime, 

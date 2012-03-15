@@ -50,9 +50,6 @@ public:
 	vtParticleInfo(void)
 	{
 		m_pointInfo.phyCoord.Zero();
-		m_pointInfo.interpolant.Zero();
-		m_pointInfo.fromCell = 0;
-		m_pointInfo.inCell = 0;
 
 		m_fStartTime = 0.0;
 		itsValidFlag = 0;
@@ -102,14 +99,14 @@ typedef list<VECTOR3*> vtListSeedTrace;
 //						vtCFieldLine
 //						|			|
 //			vtCStreamLine			vtCTimeVaryingFieldLine
-//									|			|			|
-//							vtCPathline		vtCTimeLine		vtCStreakLine
+//									 		|
+//							 			vtCStreakLine
 //////////////////////////////////////////////////////////////////////////
 class FLOW_API vtCFieldLine : public VetsUtil::MyBase
 {
 protected:
 	int m_nNumSeeds;				// number of seeds
-	INTEG_ORD m_integrationOrder;	// integration order
+	
 	TIME_DIR m_timeDir;				// advection direction
 	double m_fInitStepSize;			// initial advection step size of particle
 	float m_fLowerAngleAccuracy;	// for adaptive stepsize 
@@ -128,9 +125,9 @@ public:
 
 	void setSeedPoints(float*, int, float);
 	void setMaxPoints(int val) { m_nMaxsize = val; }
-	void setIntegrationOrder(INTEG_ORD ord) { m_integrationOrder = ord; }
+	
 	int  getMaxPoints(void){ return m_nMaxsize; }
-	INTEG_ORD getIntegrationOrder(void){ return m_integrationOrder; }
+	
 	void SetMaxStepSize(double stepsize) {m_fMaxStepSize = stepsize;}
 	double GetMaxStepSize(void) {return m_fMaxStepSize;}
 	void SetInitStepSize(double initStep) { m_fInitStepSize = initStep; }
@@ -143,10 +140,9 @@ public:
 	
 protected:
 	void releaseSeedMemory(void);
-	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
+	
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
-	int runge_kutta4A(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
-	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
+	
 	int adapt_step( const VECTOR3& p2, 
 					const VECTOR3& p1, 
 					const VECTOR3& p0, 
@@ -214,14 +210,8 @@ public:
 protected:
 	// code shared by all time varying field lines here
 	void releaseParticleMemory(void);
-	int advectParticle( INTEG_ORD int_order, 
-						vtParticleInfo& initialPoint,
-						float initialTime,
-						vtParticleInfo& finalPoint,
-						float finalTime,
-						bool bAdaptive);
-	int advectParticle( INTEG_ORD int_order, 
-						vtParticleInfo& initialPoint,
+	
+	int advectParticle( vtParticleInfo& initialPoint,
 						vtParticleInfo& finalPoint,
 						float initialTime,
 						float finalTime,
@@ -239,20 +229,7 @@ typedef struct vtPathlineParticle
 	int ptId;
 }vtPathlineParticle;
 
-class FLOW_API vtCPathLine : public vtCTimeVaryingFieldLine
-{
-public:
-	vtCPathLine(CVectorField* pField);
-	~vtCPathLine(void);
 
-	void execute(const void* userData, list<vtListSeedTrace*>& listSeedTraces);
-	void execute(const void* userData, list<vtPathlineParticle*>& listSeedTraces);
-		
-protected:
-	// code specific to pathline
-	void computePathLine(const void*, list<vtListSeedTrace*>&);
-	void computePathLine(const void*, list<vtPathlineParticle*>&);
-};
 
 //////////////////////////////////////////////////////////////////////////
 // class declaration of streakline
@@ -302,32 +279,6 @@ protected:
 							
 };
 
-//////////////////////////////////////////////////////////////////////////
-// class declaration of timeline
-// release a set of particles, injected periodically
-//////////////////////////////////////////////////////////////////////////
-class FLOW_API vtCTimeLine : public vtCTimeVaryingFieldLine
-{
-public:
-	vtCTimeLine(CVectorField* pField);
-	~vtCTimeLine(void);
-
-	void execute(const void* userData, vtListStreakParticle& listSeedTraces);
-	void setTimeDelay(int delay);
-	int getTimeDelay(void);
-
-protected:
-	// code specific to timeline
-	void computeTimeLine(const void*, vtListStreakParticle&);
-	void advectOldParticles(vtListParticleIter start, 
-							vtListParticleIter end, 
-							vtListStreakParticle& listSeedTraces,
-							float initialTime, float finalTime,
-							vector<vtListParticleIter>& deadList);
-	
-	int m_itsTimeDelay;
-	int numTillRelease;
-};
 
 //////////////////////////////////////////////////////////////////////////
 // class declaration of streamline
@@ -346,8 +297,7 @@ public:
 	void computeStreamLine(float curTime, FlowLineData* container);
 	
 protected:
-	int computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
-	int computeFieldLineA(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
+	int computeFieldLine(TIME_DIR, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
 
 	
 

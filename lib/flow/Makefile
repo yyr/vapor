@@ -5,7 +5,7 @@ include ${TOP}/make/config/prebase.mk
 LIBRARY = flow
 FILES = \
 	Field Grid Interpolator Rake Solution flowlinedata\
-	VTFieldLine VTPathLine VTStreamLine VTStreakLine VTTimeLine \
+	VTFieldLine  VTStreamLine VTStreakLine \
 	VTTimeVaryingFieldLine VaporFlow VectorMatrix
 
 HEADER_FILES = VaporFlow flowlinedata

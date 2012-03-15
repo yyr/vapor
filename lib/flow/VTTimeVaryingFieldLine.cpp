@@ -60,50 +60,12 @@ void vtCTimeVaryingFieldLine::releaseParticleMemory(void)
 	m_itsParticles.erase(m_itsParticles.begin(), m_itsParticles.end());
 }
 
-//////////////////////////////////////////////////////////////////////////
-// advect the particle from initialTime to finalTime
-//////////////////////////////////////////////////////////////////////////
-int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order, 
-											vtParticleInfo& initialPoint,
-											float initialTime,
-											vtParticleInfo& finalPoint,
-											float finalTime,
-											bool bAdaptive)
-{
-	int istat = -1;
-	double curTime, dt;
-	PointInfo pt;
-	assert(0);   // This code is not used in VAPOR
-	pt = initialPoint.m_pointInfo;
-
-	if(m_itsTimeAdaptionFlag == 1)
-		dt = (finalTime - initialTime) * 0.5;
-	else
-		dt = finalTime - initialTime;
-
-	curTime = initialTime;
-
-	while((float)curTime < finalTime)
-	{
-		if(int_order == SECOND)
-			istat = runge_kutta2(m_timeDir, UNSTEADY, pt, &curTime, dt,0.);
-		else
-			istat = runge_kutta4(m_timeDir, UNSTEADY, pt, &curTime, dt,0.);
-
-		if(istat != 1)
-			return istat;
-	}
-
-	finalPoint.Set(pt, initialTime, 1, initialPoint.itsNumStepsAlive+1, initialPoint.ptId);
-	return istat;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // advect the particle until it goes out of boundary or vel = 0
 // return back the track of advection
 //////////////////////////////////////////////////////////////////////////
-int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order, 
-											vtParticleInfo& initialPoint,
+int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 											vtParticleInfo& finalPoint,
 											float initialTime,
 											float finalTime,
@@ -131,10 +93,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		return OUT_OF_BOUND;
 	
 	// get the initial stepsize
-	//cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetDMag();
 	dt = m_pField->GetMaxMinGridSpacing()/mag;
-	//dt = pow(cell_volume, 0.3333333) / mag;
+	
 	//Allow dt*mag to be 10 times the initial setting:
 	float maxDtMag = dt*mag*10.f;
 
@@ -155,9 +116,6 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		if (dt > timeLeft) dt = timeLeft;
 		if (timeLeft < 1.e-6) break;
 		
-		
-		
-		
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
@@ -167,17 +125,15 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			retrace = false;
 			//Loop until dt*mag is small enough, dividing dt by 10 if necessary
 			for (int tries = 0; tries < 40; tries++){
-				if(int_order == SECOND)
-					istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
-				else
-					istat = runge_kutta4A(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
+				
+				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
 				if (istat != FIELD_TOO_BIG) break;
 				//Must retry.  Reset curTime, use a smaller dt.
 				curTime -= dt;
 				dt = dt *0.1;
 			}
 			assert(istat != FIELD_TOO_BIG);
-			thisInterpolant = thisParticle.interpolant;
+			
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
 			
@@ -190,7 +146,6 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			if(istat == OUT_OF_BOUND)			// out of boundary
 				return OUT_OF_BOUND;
 
-			//m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
 			// Don't test for critical points on streaklines!
 			m_pField->getFieldValue(thisParticle.phyCoord, curTime, vel);
 
@@ -217,7 +172,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				pIter--;
 				second_prevPhy = **pIter;
 			    cell_side = m_pField->GetMaxMinGridSpacing();
-				//cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
+				
 				mag = vel.GetDMag();
 				minStepsize = m_fInitStepSize * cell_side / mag;
 				maxStepsize = m_fMaxStepSize * cell_side / mag;
@@ -231,10 +186,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				// the last pop_back
 				if(retrace && (currentProgress >= maxProgress))	//The stepsize was reduced.		
 				{
-					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
 					seedTrace.pop_back();
-					thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
+					thisParticle.Set(*(seedTrace.back()));
 					list<float>::iterator pIter = stepList.end();
 					pIter--;
 					curTime -= (*pIter)*m_timeDir;
