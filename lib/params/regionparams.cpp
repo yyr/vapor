@@ -364,7 +364,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	
 	
-	//If bounds are needed, calculate them:
+	//If bounds are needed, calculate them; note that these are just corner coordinates,
+	//may not be the actual region bounds with layered data.
 	if (regMax && regMin){
 		//Do mapping to voxel coords
 		dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
@@ -597,10 +598,8 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int ti
 	}
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	dataMgr->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
-	dataMgr->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
+	dataMgr->GetEnclosingRegion((size_t)timestep, userMinCoords, userMaxCoords, min_dim, max_dim, numxforms);
 
-	
 	return;
 }
 

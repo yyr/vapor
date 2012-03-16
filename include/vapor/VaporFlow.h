@@ -103,7 +103,6 @@ namespace VAPoR
 			bool useRakeBounds, int numRefinements, int timestep);
 
 		DataMgr* getDataMgr(){return dataMgr;}
-		size_t getFullGridHeight() {return full_height;}
 	 
 	private:
 		
@@ -150,7 +149,7 @@ namespace VAPoR
 													// field variables used for prioritizing seeds on flowlines
 		char *xSeedDistVarName, *ySeedDistVarName, *zSeedDistVarName;
 													// field variables used to determine random seed distribution
-		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
+		size_t numXForms;
 		int compressLevel;
 		size_t minRegion[3], maxRegion[3];			//containing region grid extents
 		double regionExtents[6];					//Region extents in user coordinates
@@ -158,7 +157,7 @@ namespace VAPoR
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;
 		float seedDistBias;
-		size_t full_height;  //0 unless grid is layered.
+		
 	};
 };
 

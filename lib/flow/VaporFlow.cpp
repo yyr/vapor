@@ -44,8 +44,7 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	numXForms = 0;
 	compressLevel = 0;
 	for (int i = 0; i< 3; i++){
-		minBlkRegion[i] = 0;
-		maxBlkRegion[i] = 0;
+		
 		minRegion[i] = 0;
 		maxRegion[i] = 0;
 		fullInDim[i] = false;
@@ -87,8 +86,7 @@ void VaporFlow::Reset(void)
 {
 	numXForms = 0;
 	for (int i = 0; i< 3; i++){
-		minBlkRegion[i] = 0;
-		maxBlkRegion[i] = 0;
+		
 		minRegion[i] = 0;
 		maxRegion[i] = 0;
 	}
@@ -175,8 +173,6 @@ void VaporFlow::SetRegion(size_t num_xforms,
 		flowPeriod[i] = (extents[i+3] - extents[i])*((float)fullDims[i])/((float)(fullDims[i]-1)); 
 	}
 
-	
-	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -295,9 +291,7 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed,
 bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timeStep){
 	//Use the current Region, obtain the priority field.
 	//First map the region to doubles:
-	double minDouble[3], maxDouble[3];
-	dataMgr->MapVoxToUser((size_t)-1,minRegion, minDouble, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1,maxRegion, maxDouble, (int)numXForms);
+	
 	//Use the current region bounds, not the rake bounds...
 	vector<string> varnames;
 	varnames.push_back(xPriorityVarName);
@@ -710,7 +704,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	// set the boundary of physical grid
 	
-	VECTOR3 minB, maxB, minR, maxR;
+	VECTOR3 minR, maxR;
 	double regMin[3],regMax[3];
 	
 	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
@@ -1153,7 +1147,7 @@ setupFieldData(const vector<string>& varnames,
 	size_t ts = (size_t) timestep;
 	
 	if (useRakeBounds){
-		dataMgr->MapUserToVox(ts, minRakeExt, minInt, numRefinements);
+		dataMgr->GetEnclosingRegion(ts, minRakeExt, maxRakeExt, minInt, maxInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];

@@ -2914,55 +2914,17 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		return false;
 	}
 	//At this point min_dim and max_dim are the valid voxel extents of region that contains the valid float extents where
-	//the flow lines will be calculated.  To ensure that the integration bounds are limited to where we really have data and also
-	//remain within the region, find the intersection of the two regions and supply that to the flowLib.
+	//the flow lines will be calculated.  These may properly contain the user extents of the region,
+	//however the integration will stop when a flow line gets to the user extents.
 	double rexts[6];
-	double newexts[6];
-	DataMgr* dataMgr = ds->getDataMgr();
+	
 	rParams->getRegionExtents(rexts,timeStep);
-	dataMgr->MapVoxToUser(tstep,min_dim,newexts, availRefLevel);
-	dataMgr->MapVoxToUser(tstep,max_dim,newexts+3, availRefLevel);
-	for (int i = 0; i<3; i++){
-		newexts[i] = Max(newexts[i],rexts[i]);
-		newexts[i+3] = Min(newexts[i+3],rexts[i+3]);
-	}
-	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, newexts);
+	
+	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, rexts);
 	// specify the bounds of the rake, in case it is needed.  
 	
 	double rakeCoords[6];
 	GetBox()->GetExtents(rakeCoords);
-	
-	
-	
-	//Convert the rake to voxels and back to user coords
-	dataMgr->MapUserToVox(tstep, rakeCoords, min_dim, availRefLevel);
-	dataMgr->MapUserToVox(tstep, rakeCoords+3, max_dim, availRefLevel);
-	//Now make sure the region actually contains the rake bounds:
-	double testRakeMin[3],testRakeMax[3];
-	dataMgr->MapVoxToUser(timeStep,min_dim, testRakeMin,availRefLevel);
-	dataMgr->MapVoxToUser(timeStep,max_dim, testRakeMax,availRefLevel);
-	bool changed = false;
-	for (int i = 0; i< 3; i++){
-		if (testRakeMin[i] > rakeCoords[i]) {
-			//min_dim must be reduced:
-			//assert(min_dim[i] > 0);
-			if (min_dim > 0) {
-				min_dim[i]--;
-				changed = true;
-			}
-		}
-		if (testRakeMax[i] < rakeCoords[i+3]){
-			//max_dim must be increased to include the max extent:
-			if (max_dim[i] < ds->getFullSizeAtLevel(availRefLevel, i) -1){
-				max_dim[i]++;
-				changed = true;
-			}
-		}
-	}
-	
-	dataMgr->MapVoxToUser(timeStep,min_dim, rakeCoords,availRefLevel);
-	dataMgr->MapVoxToUser(timeStep,max_dim, rakeCoords+3,availRefLevel);
-	
 	
 	flowLib->SetRakeRegion(rakeCoords);
 	return true;
