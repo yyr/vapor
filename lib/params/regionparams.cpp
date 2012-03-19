@@ -376,7 +376,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 }
 int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
 		double* regMin, double* regMax, 
-		size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3]) 
+		size_t min_dim[3], size_t max_dim[3]) 
 {
 		
 	DataStatus* ds = DataStatus::getInstance();
@@ -397,22 +397,6 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 			return -1;
 		}
 	}
-
-	if (ds->dataIsLayered()){
-		setFullGridHeight(fullHeight);
-	}
-
-#ifdef	DEAD
-	//Do mapping to voxel coords
-	dataMgr->MapUserToVox(timestep, regMin, min_dim, minRefLevel);
-	dataMgr->MapUserToVox(timestep, regMax, max_dim, minRefLevel);
-	
-	for(int i = 0; i< 3; i++){
-		//Make sure slab has nonzero thickness 
-		if (min_dim[i] >= max_dim[i])
-			max_dim[i] = min_dim[i] + 1;
-	}
-#endif
 
 	dataMgr->GetEnclosingRegion(
 		timestep, regMin, regMax, min_dim, max_dim, minRefLevel
@@ -450,13 +434,7 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 			if (min_dim[j] > max_dim[j]) minRefLevel = -1;
 		}
 	}
-	//calc block dims
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, minRefLevel);
-	for (int i = 0; i<3; i++){	
-		min_bdim[i] = min_dim[i] / bs[i];
-		max_bdim[i] = max_dim[i] / bs[i];
-	}
+	
 	//Calculate new bounds:
 	
 	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);

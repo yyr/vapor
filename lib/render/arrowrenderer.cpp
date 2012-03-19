@@ -316,7 +316,6 @@ void ArrowRenderer::performRendering(
 
 	float dirVec[3], endPoint[3], fltPnt[3];
 	double point[3];
-	size_t voxCoord[3];
 	
 	if (!aParams->IsAlignedToData()){
 		for (int k = 0; k<rakeGrid[2]; k++){
@@ -449,11 +448,10 @@ setupVariableData(
 	//It may reduce the refinement level or indicate that the required data is not available.
 
 	int numxforms = aParams->GetRefinementLevel();
-	size_t min_bdim[3], max_bdim[3];
+	
 	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, timestep, varnames, 
 		validExts, validExts+3,
-		min_dim, max_dim, 
-		min_bdim, max_bdim);
+		min_dim, max_dim);
 	if (actualRefLevel < 0) {
 		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at timestep %d\n", timestep);
 		aParams->setBypass(timestep);

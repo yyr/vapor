@@ -2221,104 +2221,124 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	float colorMax = mapperFunction->getMaxColorMapValue();
 
 	float opacVar, colorVar;
-	float* opacRegion = 0; 
-	float* colorRegion = 0;
-	double opacVarMin[3], opacVarMax[3];
-	double colorVarMin[3], colorVarMax[3];
+	RegularGrid* colorGrid = 0, *opacGrid=0;
 	//min and max of valid mappings into data volume:
 	int opacMinMap[3], opacMaxMap[3], colorMinMap[3], colorMaxMap[3];
-	float opacBoxSize[3], colorBoxSize[3];
-	int opacSize[3],colorSize[3];
-	//separate color, opac min_bdim
-	size_t min_cbdim[3], min_obdim[3];
-	DataStatus* ds = DataStatus::getInstance();
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
 	
+	//separate color, opac min_bdim
+	
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
 		
-	//Get the variable (entire region) if needed for mapping opac/color
+	//Get the variable (grid over entire region) if needed for mapping opac/color
 	if (getOpacMapEntityIndex() > 3){
-		//If flow is unsteady, just get the first available timestep
+		//set up args for GetGrid
+		//If flow is unsteady, just get the first available timestep  (BUG!!!)
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4));
-			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for opacity mapped variable");
+			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
 		}
-		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
+		size_t min_dim[3], max_dim[3];
+		double validExts[6];
+		rParams->getRegionExtents(validExts, timeStep);
+
 		int opacVarnum = ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4);
-		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim,
-			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
-		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
-		int lod = GetCompressionLevel();
-		if (ds->useLowerAccuracy())
-			lod = Min(lod, ds->maxLODPresent3D(opacVarnum, timeStep));
-		for (int i = 0; i<3; i++){
-			opacSize[i] = (max_bdim[i] - min_obdim[i] +1)*bs[i];
-			opacMinMap[i] = min_dim[i];
-			opacMaxMap[i] = max_dim[i];
-			opacBoxSize[i] = max_dim[i]-min_dim[i]+1;
+		vector<string> opacVarname;
+		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
+		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
+			validExts, validExts+3,min_dim, max_dim);
+		if (opacRefLevel < 0) {
+			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow opacity mapping data unavailable at timestep %d\n", timeStep);
+			setBypass(timeStep);
+			return;
+		}
+
+		//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
+	
+		int useLOD = GetCompressionLevel();
+		int maxLOD = ds->maxLODPresent(opacVarname[0],timeStep);
+		if (maxLOD < useLOD){
+			if (!ds->useLowerAccuracy()){
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Opacity data unavailable at LOD %d\n", GetCompressionLevel());
+				setBypass(timeStep);
+				return;
+			}
+			useLOD = maxLOD;
 		}
 
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			opacRefLevel, lod, min_obdim, max_bdim,  0);
+		opacGrid = dataMgr->GetGrid(timeStep, opacVarname[0],opacRefLevel, useLOD,min_dim,max_dim,0);
 		QApplication::restoreOverrideCursor();
-		if (!opacRegion){
+
+		if (!opacGrid){
 			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Opacity mapped variable data unavailable\nfor refinement %d at timestep %d", opacRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing3D(timeStep, opacRefLevel, lod, opacVarnum);
 			return;
 		}
-
+		for (int i = 0; i<3; i++){
+			opacMinMap[i] = min_dim[i];
+			opacMaxMap[i] = max_dim[i];
+		}
 	}
+		
 	if (getColorMapEntityIndex() > 3){
-		//set up args for GetRegion
-		//If flow is unsteady, just get the first available timestep
+		//set up args for GetGrid
+		//If flow is unsteady, just get the first available timestep  (BUG!!!)
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
 			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for mapped variable");
-		}
-		
-		size_t min_dim[3], max_dim[3], max_bdim[3];
-
-		int colorVarnum = ds->mapActiveToSessionVarNum3D(getColorMapEntityIndex()-4);
-		
-		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, 
-			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
-		if(colorRefLevel < 0) {
-			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Color mapping data unavailable");
+			if (timeStep < 0) MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"No data for flow mapped variable");
 			return;
 		}
-		int lod = GetCompressionLevel();
-		if (ds->useLowerAccuracy())
-			lod = Min(lod, ds->maxLODPresent3D(colorVarnum, timeStep));
-		for (int i = 0; i<3; i++){
-			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
-			colorMinMap[i] = min_dim[i];
-			colorMaxMap[i] = max_dim[i];
-			colorBoxSize[i] = max_dim[i]-min_dim[i]+1;
+		
+		size_t min_dim[3], max_dim[3];
+		double validExts[6];
+		rParams->getRegionExtents(validExts, timeStep);
+
+		int colorVarnum = ds->mapActiveToSessionVarNum3D(getColorMapEntityIndex()-4);
+		vector<string> colorVarname;
+		colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
+		int colorRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, colorVarname, 
+			validExts, validExts+3,min_dim, max_dim);
+		if (colorRefLevel < 0) {
+			SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"flow color mapping data unavailable at timestep %d\n", timeStep);
+			setBypass(timeStep);
+			return;
+		}
+
+		//Obtain the required grid from the DataMgr.  The LOD of the data may need to be reduced.
+	
+		int useLOD = GetCompressionLevel();
+		int maxLOD = ds->maxLODPresent(colorVarname[0],timeStep);
+		if (maxLOD < useLOD){
+			if (!ds->useLowerAccuracy()){
+				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Color data unavailable at LOD %d\n", GetCompressionLevel());
+				setBypass(timeStep);
+				return;
+			}
+			useLOD = maxLOD;
 		}
 
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			colorRefLevel, lod, min_cbdim, max_bdim,  0);
+		colorGrid = dataMgr->GetGrid(timeStep, colorVarname[0],colorRefLevel, useLOD,min_dim,max_dim,0);
 		QApplication::restoreOverrideCursor();
-		if (!colorRegion){
+
+		if (!colorGrid){
 			DataStatus::getInstance()->getDataMgr()->SetErrCode(0);
 			if (DataStatus::getInstance()->warnIfDataMissing())
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Color mapped variable data unavailable\nfor refinement %d at timestep %d", colorRefLevel, timeStep);
-			DataStatus::getInstance()->setDataMissing3D(timeStep, colorRefLevel, lod, colorVarnum);
 			return;
 		}
-		
+		for (int i = 0; i<3; i++){
+			colorMinMap[i] = min_dim[i];
+			colorMaxMap[i] = max_dim[i];
+		}
 	}
 	
 	//Cycle through all the points.  Map to rgba as we go.
@@ -2349,32 +2369,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					opacVar = container->getSeedIndex(lineNum);
 					break;
 				default : //variable
-					int x,y,z;
 					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
-						
-					//Check for ignore flag... make transparent
-					//Should never happen!
-					assert (dataPoint[0] != IGNORE_FLAG);
-					//	opacVar = opacMin;
-					//	break;
-					//}
-					float remappedPoint[3];
-					periodicMap(dataPoint,remappedPoint,true);
-					//Convert point into integer coordinates in box:
-					x = opacMinMap[0]+(int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacBoxSize[0])/(opacVarMax[0]-opacVarMin[0]));
-					y = opacMinMap[1]+(int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacBoxSize[1])/(opacVarMax[1]-opacVarMin[1]));
-					z = opacMinMap[2]+(int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacBoxSize[2])/(opacVarMax[2]-opacVarMin[2]));
-
-					if (x>opacMaxMap[0]) x = opacMaxMap[0];
-					if (y>opacMaxMap[1]) y = opacMaxMap[1];
-					if (z>opacMaxMap[2]) z = opacMaxMap[2];
-					if (x < opacMinMap[0]) x = opacMinMap[0];
-					if (y < opacMinMap[1]) y = opacMinMap[1];
-					if (z < opacMinMap[2]) z = opacMinMap[2];
-					x -= min_obdim[0]*bs[0];
-					y -= min_obdim[1]*bs[1];
-					z -= min_obdim[2]*bs[2];
-					opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
+					assert(dataPoint[0] != IGNORE_FLAG);
+					opacVar = opacGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+					if (opacVar == opacGrid->GetMissingValue()) colorVar = 0.;
 					break;
 			}
 			int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
@@ -2403,25 +2401,11 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					colorVar = container->getSeedIndex(lineNum);
 					break;
 				default : //variable
-					int x,y,z;
+		
 					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
 					assert(dataPoint[0] != IGNORE_FLAG);
-					
-					float remappedPoint[3];
-					periodicMap(dataPoint,remappedPoint,true);
-					x = colorMinMap[0]+(int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorBoxSize[0])/(colorVarMax[0]-colorVarMin[0]));
-					y = colorMinMap[1]+(int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorBoxSize[1])/(colorVarMax[1]-colorVarMin[1]));
-					z = colorMinMap[2]+(int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorBoxSize[2])/(colorVarMax[2]-colorVarMin[2]));
-					if (x > colorMaxMap[0]) x = colorMaxMap[0];
-					if (y > colorMaxMap[1]) y = colorMaxMap[1];
-					if (z > colorMaxMap[2]) z = colorMaxMap[2];
-					if (x < colorMinMap[0]) x = colorMinMap[0];
-					if (y < colorMinMap[1]) y = colorMinMap[1];
-					if (z < colorMinMap[2]) z = colorMinMap[2];
-					x -= min_cbdim[0]*bs[0];
-					y -= min_cbdim[1]*bs[1];
-					z -= min_cbdim[2]*bs[2];
-					colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
+					colorVar = colorGrid->GetValue(dataPoint[0],dataPoint[1],dataPoint[2]);
+					if (colorVar == colorGrid->GetMissingValue()) colorVar = colorMin;
 					break;
 			}
 			int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));

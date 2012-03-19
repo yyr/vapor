@@ -121,12 +121,10 @@ public:
 	//! \param[inout] double* regMax			Maximum extents requested (in) and actual available (out)
 	//! \param[out] size_t min_dim[3]			Minimum voxel coordinates of available region
 	//! \param[out] size_t max_dim[3]			Maximum voxel coordinates of available region
-	//! \param[out] size_t min_bdim[3]			Minimum block coordinates of available region
-	//! \param[out] size_t max_bdim[3]			Maximum block coordinates of available region
 	//! \retval int Actual refinement level available or -1 if not all variables available.
 	static int PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
 		double* regMin, double* regMax, 
-		size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3]);
+		size_t min_dim[3], size_t max_dim[3]);
 	
 	//! Static method to index into 3D variable data arrays returned by DataMgr.
 	//! Input 3D voxel coordinates are used to find value of data.
