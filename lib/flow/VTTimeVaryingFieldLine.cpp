@@ -106,6 +106,7 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 	
 	while(curTime*m_timeDir < finalTime*m_timeDir)
 	{
+		
 		// how much advection time left
 		double timeLeft;
 		if (m_timeDir == FORWARD) {
@@ -129,7 +130,8 @@ int vtCTimeVaryingFieldLine::advectParticle(vtParticleInfo& initialPoint,
 				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
 				if (istat != FIELD_TOO_BIG) break;
 				//Must retry.  Reset curTime, use a smaller dt.
-				curTime -= dt;
+				curTime -= dt*m_timeDir;
+				if (curTime*m_timeDir < initialTime*m_timeDir) curTime = initialTime;
 				dt = dt *0.1;
 			}
 			assert(istat != FIELD_TOO_BIG);

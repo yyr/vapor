@@ -68,10 +68,8 @@
 		E70413A9123042460083F569 /* VectorMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VectorMatrix.h; path = ../../../lib/flow/VectorMatrix.h; sourceTree = SOURCE_ROOT; };
 		E70413AA123042460083F569 /* VTFieldLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTFieldLine.cpp; path = ../../../lib/flow/VTFieldLine.cpp; sourceTree = SOURCE_ROOT; };
 		E70413AB123042460083F569 /* VTFieldLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VTFieldLine.h; path = ../../../lib/flow/VTFieldLine.h; sourceTree = SOURCE_ROOT; };
-		E70413AC123042460083F569 /* VTPathLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTPathLine.cpp; path = ../../../lib/flow/VTPathLine.cpp; sourceTree = SOURCE_ROOT; };
 		E70413AD123042460083F569 /* VTStreakLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTStreakLine.cpp; path = ../../../lib/flow/VTStreakLine.cpp; sourceTree = SOURCE_ROOT; };
 		E70413AE123042460083F569 /* VTStreamLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTStreamLine.cpp; path = ../../../lib/flow/VTStreamLine.cpp; sourceTree = SOURCE_ROOT; };
-		E70413AF123042460083F569 /* VTTimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTTimeLine.cpp; path = ../../../lib/flow/VTTimeLine.cpp; sourceTree = SOURCE_ROOT; };
 		E70413B0123042460083F569 /* VTTimeVaryingFieldLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VTTimeVaryingFieldLine.cpp; path = ../../../lib/flow/VTTimeVaryingFieldLine.cpp; sourceTree = SOURCE_ROOT; };
 		E70413B3123042460083F569 /* IDLCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IDLCommon.cpp; path = ../../../lib/idl/IDLCommon.cpp; sourceTree = SOURCE_ROOT; };
 		E70413B4123042460083F569 /* IDLCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IDLCommon.h; path = ../../../lib/idl/IDLCommon.h; sourceTree = SOURCE_ROOT; };
@@ -607,10 +605,8 @@
 				E70413A9123042460083F569 /* VectorMatrix.h */,
 				E70413AA123042460083F569 /* VTFieldLine.cpp */,
 				E70413AB123042460083F569 /* VTFieldLine.h */,
-				E70413AC123042460083F569 /* VTPathLine.cpp */,
 				E70413AD123042460083F569 /* VTStreakLine.cpp */,
 				E70413AE123042460083F569 /* VTStreamLine.cpp */,
-				E70413AF123042460083F569 /* VTTimeLine.cpp */,
 				E70413B0123042460083F569 /* VTTimeVaryingFieldLine.cpp */,
 			);
 			name = flow;
