@@ -1217,7 +1217,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const vector<string>& varnames,
 	size_t ts = (size_t) timestep;
 	
 	if (useRakeBounds){
-		dataMgr->MapUserToVox(ts, minRakeExt, minInt, numRefinements);
+		dataMgr->GetEnclosingRegion(ts, minRakeExt, maxRakeExt, minInt, maxInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
@@ -1301,29 +1301,25 @@ getFieldMagBounds(float* minVal, float* maxVal,const vector<string>& varnames,
 double VaporFlow::getInitStepSize(double minspacing[3]){
 	
 	double initstep;
-	double acc = Min(integrationAccuracy,1.f);
-	
-	initstep = SMALLEST_MIN_STEP*acc + (1.f - acc)*LARGEST_MIN_STEP;
-	if (integrationAccuracy <=1.) return initstep;
-	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
+	double acc = integrationAccuracy;
 	double minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
 	double maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
-	double acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
-	initstep = initstep*((1.-acc2) + acc2*minmin/maxmin);
+	//Multiply minmin/maxmin times smallest min step, so that will use the smallest dimension
+	//of the smallest cell at highest accuracy.  Note that the result of this function
+	//is multiplied by maxmin to determine actual min step size.
+	initstep = SMALLEST_MIN_STEP*acc*minmin/maxmin + (1.f - acc)*LARGEST_MIN_STEP;
+	
 	return initstep;
 }
 double VaporFlow::getMaxStepSize(double minspacing[3]){
 	
 	double maxstep;
-	double acc = Min(integrationAccuracy,1.f);
-	
-	maxstep = SMALLEST_MAX_STEP*acc + (1.f - acc)*LARGEST_MAX_STEP;
-	if (integrationAccuracy <=1.) return maxstep;
-	
-	//For values between 1 and 2, interpolate between a factor of 1 and minmax/maxmax
+	double acc = integrationAccuracy;
+	//Multiply minmin/maxmin times smallest max step, so that will use the smallest dimension
+	//of the smallest cell when at highest accuracy
 	double minmin = Min(minspacing[0],Min(minspacing[1],minspacing[2]));
 	double maxmin = Max(minspacing[0],Max(minspacing[1],minspacing[2]));
-	double acc2 = integrationAccuracy - 1.0;  // make it between 0 and 1
-	maxstep = maxstep*((1.-acc2) + acc2*minmin/maxmin);
+	maxstep = SMALLEST_MAX_STEP*acc*minmin/maxmin + (1.f - acc)*LARGEST_MAX_STEP;
+	
 	return maxstep;
 }

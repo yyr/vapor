@@ -1127,9 +1127,9 @@ getTwoDVariables(int ts,  int numVars, int* sesVarNums,
 
 	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, refLevel);
 	
-	float boxExts[6];
+	double boxExts[6];
 	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts,refLevel);
 	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs*numVars > (int)(cacheSize*0.75)){

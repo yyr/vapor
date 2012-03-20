@@ -283,7 +283,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 //----------------------------------------------------------------------------
 void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
-	static float extents[6];
+	static double extents[6];
 	  
 	size_t max_dim[3];
 	size_t min_dim[3];
@@ -441,7 +441,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 		|| myGLWindow->vizIsDirty(AnimationBit)) 
 	{
 		//Check if the region/resolution is too big:
-		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, reflevel);
+		int numMBs = RegionParams::getMBStorageNeeded(extents, reflevel);
 		int cacheSize = DataStatus::getInstance()->getCacheMB();
 		if (numMBs > (int)(0.75*cacheSize)){
 			setAllBypass(true);

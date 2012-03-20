@@ -1581,9 +1581,9 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, refLevel);
 	
 	
-	float boxExts[6];
+	double boxExts[6];
 	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, refLevel);
 	//Check which variables are needed:
 	int varCount = 0;
 	std::vector<int> varNums;

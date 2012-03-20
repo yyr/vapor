@@ -88,7 +88,7 @@ void Solution::SetGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularG
 	}
 }
 int Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
-	float uVal = 0.f, vVal = 0.f, wVal = 0.f;
+	
 	double xval = point.x();
 	double yval = point.y();
 	double zval = point.z();

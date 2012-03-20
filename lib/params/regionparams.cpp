@@ -239,7 +239,7 @@ void RegionParams::setRegionMax(int coord, float maxval, int timestep, bool chec
 //Then puts into unit cube, for use by volume rendering
 //
 void RegionParams::
-convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
+convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]){
 	double fullExtents[6];
 	double subExtents[6];
 	DataStatus* ds = DataStatus::getInstance();
@@ -263,8 +263,8 @@ convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const 
 	
 	double maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
 	for (int i = 0; i<3; i++){
-		extents[i] = (float)((subExtents[i] - fullExtents[i])/maxSize);
-		extents[i+3] = (float)((subExtents[i+3] - fullExtents[i])/maxSize);
+		extents[i] = ((subExtents[i] - fullExtents[i])/maxSize);
+		extents[i+3] = ((subExtents[i+3] - fullExtents[i])/maxSize);
 	}
 	
 }
@@ -272,13 +272,12 @@ convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const 
 //coords, that may be smaller than region coords)
 //
 void RegionParams::
-convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
-	double dbExtents[6];
+convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]){
+	
 	DataStatus* ds = DataStatus::getInstance();
 	
-	ds->mapVoxelToUserCoords(refLevel, min_dim, dbExtents);
-	ds->mapVoxelToUserCoords(refLevel, max_dim, dbExtents+3);
-	for (int i = 0; i< 6; i++) extents[i] = (float)dbExtents[i];
+	ds->mapVoxelToUserCoords(refLevel, min_dim, extents);
+	ds->mapVoxelToUserCoords(refLevel, max_dim, extents+3);
 }	
 int RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
@@ -490,8 +489,8 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 		setFullGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	dataMgr->MapUserToVox(timestep, regMin, min_dim, minRefLevel);
-	dataMgr->MapUserToVox(timestep, regMax, max_dim, minRefLevel);
+	dataMgr->GetEnclosingRegion(timestep, regMin, regMax, min_dim, max_dim, minRefLevel);
+	
 	if (!twoDim){
 		for(i = 0; i< 3; i++){
 			//Make sure 3D slab has nonzero thickness (this can only
@@ -539,13 +538,7 @@ shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3]
 			if (min_dim[i] > max_dim[i]) minRefLevel = -1;
 		}
 	}
-	//calc block dims
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, minRefLevel);
-	for (i = 0; i<3; i++){	
-		min_bdim[i] = min_dim[i] / bs[i];
-		max_bdim[i] = max_dim[i] / bs[i];
-	}
+	
 	//Calculate new bounds:
 	
 	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
@@ -784,35 +777,22 @@ buildNode(){
 
 	return regionNode;
 }
-int RegionParams::getMBStorageNeeded(const double extents[6], int reflevel){
-	float exts[6];
-	for (int i = 0; i<6; i++) exts[i] = extents[i];
-	return getMBStorageNeeded(exts, exts+3, reflevel);
-}
+
 //Static method to find how many megabytes are needed for a dataset.
-int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel){
+int RegionParams::getMBStorageNeeded(const double* extents, int refLevel){
 	
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 	
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, refLevel);
 	
-	size_t min_bdim[3], max_bdim[3];
-	double userMinCoords[3];
-	double userMaxCoords[3];
-	for (int i = 0; i<3; i++){
-		userMinCoords[i] = (double)boxMin[i];
-		userMaxCoords[i] = (double)boxMax[i];
-	}
+	size_t min_dim[3], max_dim[3];
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return 0;
 	size_t timestep = DataStatus::getInstance()->getMinTimestep();
-	dataMgr->MapUserToBlk(timestep, userMinCoords, min_bdim, refLevel);
-	dataMgr->MapUserToBlk(timestep, userMaxCoords, max_bdim, refLevel);
+	dataMgr->GetEnclosingRegion(timestep, extents, extents+3, min_dim, max_dim, refLevel);
 	
 	
-	float numVoxels = (float)(bs[0]*bs[1]*bs[2]*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+	float numVoxels = (float)(max_dim[0]-min_dim[0]+1)*(max_dim[1]-min_dim[1]+1)*(max_dim[2]-min_dim[2]+1);
 	
 	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
 	float fullMB = numVoxels/262144.f;
@@ -825,47 +805,41 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 
 
 float RegionParams::
-calcCurrentValue(RenderParams* renParams, int sessionVarNum, const float point[3], int numRefinements, int timeStep){
+calcCurrentValue(RenderParams* renParams, int sessionVarNum, const double point[3], int numRefinements, int lod, size_t timeStep){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds || !ds->getDataMgr()) return OUT_OF_BOUNDS;
-
+	DataMgr* dataMgr;
+	if (!ds || !(dataMgr = ds->getDataMgr())) return OUT_OF_BOUNDS;
+	string& varname = ds->getVariableName3D(sessionVarNum);
 	//Get the data dimensions (at current resolution):
-	int voxCoords[3];
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, numRefinements);
-	const char* varname = ds->getVariableName3D(sessionVarNum).c_str();
+	
 	double regMin[3], regMax[3];
-	size_t min_dim[3],max_dim[3], blkmin[3], blkmax[3];
+	size_t min_dim[3],max_dim[3];
+	
+	//Get voxel coordinates of a grid containing the point:
+	dataMgr->GetEnclosingRegion(timeStep, point, point, min_dim, max_dim, numRefinements);
+	//Make sure variable is available there:
 	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, timeStep, &sessionVarNum, 1, regMin, regMax);
 	if (availRefLevel < 0) {
 		renParams->setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, 
-				"Data unavailable for variable %s\nat refinement level %d",varname, numRefinements);
+				"Data unavailable for variable %s\nat refinement level %d",varname.c_str(), numRefinements);
 		}
 		return OUT_OF_BOUNDS;
 	}
-	//Get the closest voxel coords of the point, and the block coords that
-	//contain it.
+	
 	for (int i = 0; i<3; i++) {
 		if (point[i] < regMin[i]) return OUT_OF_BOUNDS;
 		if (point[i] > regMax[i]) return OUT_OF_BOUNDS;
-		voxCoords[i] = min_dim[i]+(int)((float)(max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
-		
-		blkmin[i] = voxCoords[i]/bs[i];
-		blkmax[i] = blkmin[i];
-		//Reset the voxel coords to index within the block:
-		voxCoords[i] -= blkmin[i]*bs[i];
 	}
-	// Obtain the region:
-	float *reg = renParams->getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep, false);
-	if (!reg) return OUT_OF_BOUNDS;
+	// Obtain the Regular Grid:
 	
-	//find the coords within this block:
-	int xyzcoord = voxCoords[0] + bs[0]*voxCoords[1] + bs[0]*bs[1]*voxCoords[2];
-
-	float val = reg[xyzcoord];
+	RegularGrid* rg = dataMgr->GetGrid(timeStep, varname, availRefLevel, lod, min_dim, max_dim, 0);
+	
+	if (!rg) return OUT_OF_BOUNDS;
+	
+	float val = rg->GetValue(point[0],point[1],point[2]);
 	return val;
 }
 void RegionParams::

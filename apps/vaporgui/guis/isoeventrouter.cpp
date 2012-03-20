@@ -667,11 +667,12 @@ float IsoEventRouter::evaluateSelectedPoint(){
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	const vector<double> pnt = iParams->GetSelectedPoint();
-	float fltpnt[3];
+	double dbpnt[3];
 	int numRefinements = iParams->GetRefinementLevel();
+	int lod = iParams->GetCompressionLevel();
 	int sessionVarNum = iParams->getSessionVarNum();
-	for (int i = 0; i<3; i++) fltpnt[i] = pnt[i];
-	float val = rParams->calcCurrentValue(iParams, sessionVarNum, fltpnt, numRefinements, timeStep);
+	for (int i = 0; i<3; i++) dbpnt[i] = pnt[i];
+	float val = rParams->calcCurrentValue(iParams, sessionVarNum, dbpnt, numRefinements, lod, timeStep);
 	return val;
 }
 

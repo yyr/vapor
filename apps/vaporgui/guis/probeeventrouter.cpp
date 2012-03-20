@@ -2195,9 +2195,9 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	//Make sure this box will fit in current 
 	//Check if the region/resolution is too big:
 	
-	float boxExts[6];
+	double boxExts[6];
 	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, refLevel);
 	//Check how many variables are needed:
 	int varCount = 0;
 	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){

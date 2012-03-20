@@ -161,22 +161,23 @@ public:
 	//! \param[in] size_t min_dim[3]	Minimum voxel coordinates 
 	//! \param[in] size_t max_dim[3]	Maximum voxel coordinates 
 	//! \param[out] float extents[6]	Stretched extents of box mapped into unit cube.
-	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
+	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
 
 	//! Static method that converts a box to its extents in unit cube (as used in rendering).
 	//! \param[in] int refLevel			Refinement level of data
 	//! \param[in] size_t min_dim[3]	Minimum voxel coordinates 
 	//! \param[in] size_t max_dim[3]	Maximum voxel coordinates 
 	//! \param[out] float extents[6]	Extents of box mapped into unit cube.
-	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
+	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
 	
 	//! Evaluate a variable at a point, as requested by a RenderParams
 	//! \param[in] RenderParams* rp		Instance of RenderParams that is requesting the value, needed in case data is unavailable
 	//! \param[in] int sessionVarNum	Session variable number of requested variable
-	//! \param[in] float point[3]		User coordinates of requested value
+	//! \param[in] double point[3]		User coordinates of requested value
 	//! \param[in] int numRefinements	Refinement level of requested data
+	//! \param[in] int lod				Compression level of requested data
 	//! \param[in] int timeStep			Time step of data
-	float calcCurrentValue(RenderParams* rp, int sessionVarNum, const float point[3], int numRefinements, int timeStep);
+	float calcCurrentValue(RenderParams* rp, int sessionVarNum, const double point[3], int numRefinements, int lod, size_t timeStep);
 
 #ifndef DOXYGEN_SKIP_THIS
 
@@ -209,7 +210,7 @@ public:
 	
 	//Determine how many megabytes will be needed for one variable at specified
 	//refinement level, specified box extents.
-	static int getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel);
+
 	static int getMBStorageNeeded(const double exts[6], int refLevel);
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);

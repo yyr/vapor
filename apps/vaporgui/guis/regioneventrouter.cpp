@@ -570,8 +570,7 @@ refreshRegionInfo(RegionParams* rParams){
 		
 	// if region isn't valid just don't show the bounds:
 	if (ds){
-		dataMgr->MapUserToVox(-1,regionMin,min_dim,refLevel);
-		dataMgr->MapUserToVox(-1,regionMax,max_dim,refLevel);
+		dataMgr->GetEnclosingRegion(-1,regionMin,regionMax,min_dim,max_dim,refLevel);
 		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
 		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
 		minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
@@ -683,9 +682,7 @@ refreshRegionInfo(RegionParams* rParams){
 	if (rc >= 0){
 		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,
 									  timeStep);
-		size_t bs[3] = {32,32,32};
-		if (ds && ds->getDataMgr())
-			ds->getDataMgr()->GetBlockSize(bs, refLevel);
+		
 		//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 		float newFullMB;
 		if (is3D)
