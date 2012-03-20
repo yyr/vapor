@@ -44,14 +44,13 @@ public:
 	int getFieldValue(VECTOR3& pos, const float t, VECTOR3& fieldData);
 	bool is_in_grid(VECTOR3& pos) {return (m_pGrid->isInRegion(pos));}
 	int at_comp(const int i, const int j, const int k, const float t, VECTOR3& dataValue);
-	float volume_of_cell(int cellId);
-
+	
 	
 	void getDimension(int& xdim, int& ydim, int& zdim);
 	int GetTimeSteps(void) {return m_nTimeSteps;}
 	
-	void SetSolutionGrid(int t, RegularGrid** pUGrid, RegularGrid** pVGrid, RegularGrid** pWGrid) {m_pSolution->SetGrid(t, *pUGrid, *pVGrid, *pWGrid);}
-	void ClearSolutionGrid(int t) {m_pSolution->SetGrid(t, 0, 0, 0);}
+	void SetSolutionGrid(int t, RegularGrid** pUGrid, RegularGrid** pVGrid, RegularGrid** pWGrid, bool periodicDims[3]) {m_pSolution->SetGrid(t, *pUGrid, *pVGrid, *pWGrid, periodicDims);}
+	void ClearSolutionGrid(int t) {m_pSolution->SetGrid(t, 0, 0, 0, 0);}
 	
 	int GetStartTime(void) { return m_pSolution->GetStartTime(); }
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
@@ -73,7 +72,7 @@ public:
 	
 	//This is initialized by the VaporFlow class
 	void setup(CVectorField* fld, CartesianGrid* grd, 
-		RegularGrid **xgrid, RegularGrid** ygrid, RegularGrid** zgrid, int tstep);
+		RegularGrid **xgrid, RegularGrid** ygrid, RegularGrid** zgrid, int tstep, bool periodicDims[3]);
 	float getFieldMag(float point[3]);
 	void releaseData(DataMgr*);
 private:

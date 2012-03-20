@@ -49,14 +49,14 @@ public:
 	// constructor
 	Solution();
 	
-	Solution(RegularGrid** uGrid, RegularGrid** vGrid, RegularGrid** wGrid,int timeSteps);
+	Solution(RegularGrid** uGrid, RegularGrid** vGrid, RegularGrid** wGrid,int timeSteps, bool periodicity[3]);
 	~Solution();
 
 	void Reset();
 
 	// solution functions
 	
-	void SetGrid(int t, RegularGrid* pUData, RegularGrid* pVData, RegularGrid* pWData);
+	void SetGrid(int t, RegularGrid* pUData, RegularGrid* pVData, RegularGrid* pWData, bool periodicDim[3]);
 	int getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal);
 	
 	bool isTimeVarying(void);

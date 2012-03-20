@@ -505,14 +505,20 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	int totalYNum = (int)(maxRegion[1]-minRegion[1]+1);
 	int totalZNum = (int)(maxRegion[2]-minRegion[2]+1);
 	
-	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1);
+	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1, periodicDim);
 	pSolution->SetTimeScaleFactor((float)steadyUserTimeStepMultiplier);
 	pSolution->SetTime((int)steadyStartTimeStep, (int)steadyStartTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
-	VECTOR3 minR(regionExtents);
-	VECTOR3 maxR(regionExtents+3);
+	
+	//The region extents must be set to be consistent with the current refinement level, by
+	//converting from the integer extents
+	double rMin[3],rMax[3];
+	dataMgr->MapVoxToUser(steadyStartTimeStep, minRegion, rMin, numXForms);
+	dataMgr->MapVoxToUser(steadyStartTimeStep,maxRegion, rMax, numXForms);
+	VECTOR3 minR(rMin);
+	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	
@@ -694,7 +700,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		pWGrid = new RegularGrid*[numTimeSamples];
 		memset(pWGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps);
+	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps, periodicDim);
 	pSolution->SetTimeScaleFactor((float)unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
@@ -812,7 +818,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 					delete pField;
 					return false;
 				}
-				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr);
+				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr, periodicDim);
 				pSolution->getMinGridSpacing(tsIndex, minspacing);
 				pStreakLine->SetInitStepSize(getInitStepSize(minspacing));
 				pStreakLine->SetMaxStepSize(getMaxStepSize(minspacing));
@@ -843,7 +849,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				if (!zeroZ && zGridPtr) dataMgr->UnlockGrid(zGridPtr);
 				return false;
 			}
-			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2, &zGridPtr2); 
+			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2, &zGridPtr2, periodicDim); 
 		}
 
 			
@@ -948,7 +954,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		pWGrid = new RegularGrid*[numTimeSamples];
 		memset(pWGrid, 0, sizeof(float*)*numTimeSamples);
 	}
-	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps);
+	pSolution = new Solution(pUGrid, pVGrid, pWGrid, numTimesteps, periodicDim);
 	
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
@@ -1084,7 +1090,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 					if (!zeroY && yGridPtr) dataMgr->UnlockGrid(yGridPtr);
 					return false;
 				}
-				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr);
+				pField->SetSolutionGrid(tsIndex,&xGridPtr,&yGridPtr,&zGridPtr, periodicDim);
 			} else { //Changing time sample..
 				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
@@ -1112,7 +1118,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 				if (!zeroZ && zGridPtr) dataMgr->UnlockGrid(zGridPtr);
 				return false;
 			}
-			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2,&zGridPtr2); 
+			pField->SetSolutionGrid(tsIndex+1,&xGridPtr2,&yGridPtr2,&zGridPtr2,periodicDim); 
 		}
 		// advect for one timestep.  Inject seeds only at the first timestep
 		pStreakLine->advectFLAPoints(iFor, timeDir, flArray, (iFor == startTimeStep));
@@ -1172,7 +1178,7 @@ setupFieldData(const vector<string>& varnames,
 	if (!gotData) 
 		return false;
 	
-	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1);
+	pSolution = new Solution(pUGrid,pVGrid,pWGrid, 1, periodicDim);
 	if (scaleField)
 		pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
 	else
@@ -1184,15 +1190,20 @@ setupFieldData(const vector<string>& varnames,
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxInt);
 	pCartesianGrid->setPeriod(flowPeriod);
-	VECTOR3 minR(regionExtents);
-	VECTOR3 maxR(regionExtents+3);
+	//The region extents must be set to be consistent with the current refinement level, by
+	//converting from the integer extents
+	double rMin[3],rMax[3];
+	dataMgr->MapVoxToUser(steadyStartTimeStep, minRegion, rMin, numXForms);
+	dataMgr->MapVoxToUser(steadyStartTimeStep,maxRegion, rMax, numXForms);
+	VECTOR3 minR(rMin);
+	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0.f);
 
 	FieldData* fData = new FieldData();
-	fData->setup(pField, pCartesianGrid, pUGrid,pVGrid,pWGrid, timestep);
+	fData->setup(pField, pCartesianGrid, pUGrid,pVGrid,pWGrid, timestep, periodicDim);
 	return fData;
 }
 

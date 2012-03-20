@@ -29,7 +29,7 @@ Solution::Solution()
 
 
 Solution::Solution(RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid,
-				  int timeSteps)
+				  int timeSteps, bool periodicity[3])
 {
 	m_pUGrid = xGrid;
 	m_pVGrid = yGrid;
@@ -41,6 +41,9 @@ Solution::Solution(RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid
 	m_fUserTimePerVaporTS = 1.f;
 	m_pUserTimeSteps = NULL;
 	m_TimeDir = FORWARD;
+	if (m_pUGrid[0]) m_pUGrid[0]->SetPeriodic(periodicity);
+	if (m_pVGrid[0]) m_pVGrid[0]->SetPeriodic(periodicity);
+	if (m_pWGrid[0]) m_pWGrid[0]->SetPeriodic(periodicity);
 }
 Solution::~Solution()
 {
@@ -65,14 +68,23 @@ void Solution::Reset()
 //////////////////////////////////////////////////////////////////////////
 // change vector data on-the-fly
 //////////////////////////////////////////////////////////////////////////
-void Solution::SetGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularGrid* pWGrid)
+void Solution::SetGrid(int t, RegularGrid* pUGrid, RegularGrid* pVGrid, RegularGrid* pWGrid, bool periodicDims[3])
 {
 	if((t >= 0) && (t < m_nTimeSteps))
 	{
 		//Test before assigning; null pointer indicates zero data:
-		if(m_pUGrid) m_pUGrid[t] = pUGrid;
-		if(m_pVGrid) m_pVGrid[t] = pVGrid;
-		if(m_pWGrid) m_pWGrid[t] = pWGrid;
+		if(m_pUGrid) {
+			m_pUGrid[t] = pUGrid;
+			m_pUGrid[t]->SetPeriodic(periodicDims);
+		}
+		if(m_pVGrid){
+			m_pVGrid[t] = pVGrid;
+			m_pVGrid[t]->SetPeriodic(periodicDims);
+		}
+		if(m_pWGrid){
+			m_pWGrid[t] = pWGrid;
+			m_pWGrid[t]->SetPeriodic(periodicDims);
+		}
 	}
 }
 int Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
@@ -90,19 +102,23 @@ int Solution::getFieldValue(VECTOR3& point,const float t,  VECTOR3& fieldVal){
 		int tindex =   (int)(t - m_nStartT);
 		if (m_pUGrid[tindex]) {
 			uVal = m_pUGrid[tindex]->GetValue(xval, yval,zval);
-			if (uVal == m_pUGrid[tindex]->GetMissingValue()) uVal = 0.f;
+			if (uVal == m_pUGrid[tindex]->GetMissingValue()) 
+				uVal = 0.f;
 		}
 		float vVal = 0.f;
 		if (m_pVGrid[tindex]) {
 			vVal = m_pVGrid[tindex]->GetValue(xval, yval,zval);
-			if (vVal == m_pVGrid[tindex]->GetMissingValue()) vVal = 0.f;
+			if (vVal == m_pVGrid[tindex]->GetMissingValue()) 
+				vVal = 0.f;
 		}
 		float wVal = 0.f;
 		if (m_pWGrid[tindex]) {
 			wVal = m_pWGrid[tindex]->GetValue(xval, yval,zval);
-			if (wVal == m_pWGrid[tindex]->GetMissingValue()) wVal = 0.f;
+			if (wVal == m_pWGrid[tindex]->GetMissingValue()) 
+				wVal = 0.f;
 		}
 		fieldVal.Set(uVal*m_fTimeScaleFactor,vVal*m_fTimeScaleFactor,wVal*m_fTimeScaleFactor);
+		
 	}
 	else
 	{

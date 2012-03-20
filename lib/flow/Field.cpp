@@ -123,10 +123,11 @@ float FieldData::getFieldMag(float point[3])
 //This is initialized by the VaporFlow class.  Just holds some
 //pointers until the field data access is complete
 void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
-					  RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid, int tstep){
+					  RegularGrid** xGrid, RegularGrid** yGrid, RegularGrid** zGrid, int tstep, 
+					  bool periodicDims[3]){
 	pField = fld; pCartesianGrid = grd; 
 	pUGrid = xGrid; pVGrid = yGrid; pWGrid = zGrid;
-	pField->SetSolutionGrid(0, pUGrid, pVGrid, pWGrid);
+	pField->SetSolutionGrid(0, pUGrid, pVGrid, pWGrid, periodicDims);
 	timeStep = tstep;
 }
 //The destructor unlocks the da
