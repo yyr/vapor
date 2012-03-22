@@ -571,7 +571,7 @@ refreshRegionInfo(RegionParams* rParams){
 	size_t min_dim[3] = {0,0,0}, max_dim[3] = {0,0,0};
 		
 	// if region isn't valid just don't show the bounds:
-	if (ds){
+	if (ds && refLevel <= maxRefLevel){
 		dataMgr->GetEnclosingRegion(timeStep,regionMin,regionMax,min_dim,max_dim,refLevel);
 		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
 		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));

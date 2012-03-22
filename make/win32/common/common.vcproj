@@ -405,7 +405,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\vaporinternal\common.h"
+				RelativePath="..\..\..\include\vapor\common.h"
 				>
 			</File>
 			<File
