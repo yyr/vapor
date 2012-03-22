@@ -158,6 +158,18 @@ void vtransform(const float *v, GLfloat mat[12], double *vt)
     t[2] = v[0]*mat[8] + v[1]*mat[9] + v[2]*mat[10] + mat[11];
     vcopy(t, vt);
 }
+void vtransform(const double *v, GLfloat mat[12], double *vt)
+{
+	/* Vector transform in software...
+	*/
+	double	t[3];
+		
+	t[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2] + mat[3];
+	t[1] = v[0]*mat[4] + v[1]*mat[5] + v[2]*mat[6] + mat[7];
+	t[2] = v[0]*mat[8] + v[1]*mat[9] + v[2]*mat[10] + mat[11];
+	vcopy(t, vt);
+}
+	
 
 void vtransform4(const float *v, GLfloat *mat, float *vt)
 {

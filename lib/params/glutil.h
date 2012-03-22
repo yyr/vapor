@@ -95,6 +95,7 @@ PARAMS_API void	vcross (const float *v1, const float *v2, float *cross);
 PARAMS_API void	vreflect (const float *in, const float *mirror, float *out);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform (const float *v, GLfloat *mat, double *vt);
+PARAMS_API void	vtransform (const double *v, GLfloat *mat, double *vt);
 PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API void	vtransform3 (const float *v, float *mat, float *vt);
 PARAMS_API void	vtransform3t (const float *v, float *mat, float *vt);

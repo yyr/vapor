@@ -2069,15 +2069,17 @@ guiEndCursorMove(){
 
 
 float ProbeEventRouter::
-calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums, int numVars){
+calcCurrentValue(ProbeParams* pParams, const float point[3], int* , int ){
 	double regMin[3],regMax[3];
 	if (numVariables <= 0) return OUT_OF_BOUNDS;
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds || !ds->getDataMgr()) return 0.f;
+	if (!ds ) return 0.f; 
+	DataMgr* dataMgr =	ds->getDataMgr();
+	if (!dataMgr) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	if (pParams->doBypass(timeStep)) return OUT_OF_BOUNDS;
-	int arrayCoord[3];
+	
 
 	for (int i = 0; i<3; i++){
 		regMin[i] = point[i];
@@ -2088,68 +2090,28 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* sessionVarNums
 	
 	int numRefinements = pParams->GetRefinementLevel();
 	
-	//Find the region that contains the probe.
-
-	
-	
-	size_t blkMin[3], blkMax[3];
+	//Find the region that contains the point
 	size_t coordMin[3], coordMax[3];
-	if (0 > RegionParams::shrinkToAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
-		sessionVarNums, numVars, regMin, regMax, false)) 
-	{
-		return OUT_OF_BOUNDS;
-	}
-
-	for (int i = 0; i< 3; i++){
-		//if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
-		arrayCoord[i] = coordMin[i] + (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
-		//Make sure the transformed coords are in the region
-		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
-			return OUT_OF_BOUNDS;
-		} 
-	}
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs,numRefinements);
-
-	//Get the block coords (in the full volume) of the desired array coordinate:
-	for (int i = 0; i< 3; i++){
-		blkMin[i] = arrayCoord[i]/bs[i];
-		blkMax[i] = blkMin[i];
-	}
+	int firstVarNum = pParams->getFirstVarNum();
+	vector<string> varNames;
+	varNames.push_back(ds->getVariableName3D(firstVarNum));
+	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, varNames, regMin, regMax, coordMin, coordMax);
+	if (actualRefLevel < 0) return OUT_OF_BOUNDS;
 	
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable specified, then do rms on the variables (if > 1 specified)
-	float** volData = new float*[numVars];
-	//Now obtain all of the volumes needed for this probe:
-	
-	
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	for (int varnum = 0; varnum < numVars; varnum++){
-		volData[varnum] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, sessionVarNums[varnum], timeStep, false);
-		if (!volData[varnum]) {
-			//failure to get data.  
-			QApplication::restoreOverrideCursor();
-			pParams->setBypass(timeStep);
-			return OUT_OF_BOUNDS;
-		}
+	int lod = pParams->GetCompressionLevel();
+	if (ds->useLowerAccuracy()){
+		lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
 	}
-	QApplication::restoreOverrideCursor();
-			
-	int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
-		(arrayCoord[1] - blkMin[1]*bs[1])*(bs[1]*(blkMax[0]-blkMin[0]+1)) +
-		(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
+	if (lod < 0) return OUT_OF_BOUNDS;
 	
-	float varVal;
-	//use the int xyzCoord to index into the loaded data
-	if (numVars == 1) varVal = volData[0][xyzCoord];
-	else { //Add up the squares of the variables
-		varVal = 0.f;
-		for (int k = 0; k<numVars; k++){
-			varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
-		}
-		varVal = sqrt(varVal);
-	}
-	delete [] volData;
+	RegularGrid* valGrid = dataMgr->GetGrid(timeStep, varNames[0].c_str(), actualRefLevel, lod, coordMin,coordMax,0);
+		
+	if (!valGrid) return OUT_OF_BOUNDS;
+	
+	valGrid->SetInterpolationOrder(0);
+		
+	float varVal = valGrid->GetValue(point[0],point[1],point[2]);
+	delete valGrid;
 	return varVal;
 }
 
@@ -2161,7 +2123,8 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr) return;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
@@ -2188,23 +2151,20 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	}
 
 	//create the smallest containing box
-	size_t blkMin[3],blkMax[3];
 	size_t boxMin[3],boxMax[3];
 	
-	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, refLevel);
-	//Make sure this box will fit in current 
+	pParams->getAvailableBoundingBox(timeStep,  boxMin, boxMax, refLevel);
+	
+	
+	
+	
 	//Check if the region/resolution is too big:
 	
-	double boxExts[6];
-	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, refLevel);
-	//Check how many variables are needed:
-	int varCount = 0;
-	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
-		if (pParams->variableIsSelected(varnum)) varCount++;
-	}
+	 
+	int numMBs = (boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/250000;
+	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs*varCount > (int)(cacheSize*0.75)){
+	if (numMBs > (int)(cacheSize*0.75)){
 		pParams->setAllBypass(true);
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
 			"Lower the refinement level,\nreduce the probe size,\nor increase the cache size.",
@@ -2215,26 +2175,19 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 		updateTab();
 		return;
 	}
-	size_t bs[3];
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs,refLevel);
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this probe:
-	int totVars = 0;
-	
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
-		if (!pParams->variableIsSelected(varnum)) continue;
-		assert(varnum >= firstVarNum);
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep, false);
-		QApplication::restoreOverrideCursor();
-		if (!volData[totVars]) {
-			pParams->setBypass(timeStep);
-			return;
-		}
-		totVars++;
+	const string& varname = ds->getVariableName3D(firstVarNum);
+	int lod = pParams->GetCompressionLevel();
+	if (ds->useLowerAccuracy()){
+		lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
 	}
+	if (lod < 0) return;
+	
+	RegularGrid* histoGrid = dataMgr->GetGrid(timeStep, varname, refLevel, lod, boxMin, boxMax,0);	
+	if (histoGrid){
+		pParams->setBypass(timeStep);
+		return;
+	}
+	histoGrid->SetInterpolationOrder(0);
 	
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
@@ -2244,7 +2197,6 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
-		//if (boxMin[i]< 0) boxMin[i] = 0;  //unsigned, can't be < 0
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
 	}
 	float voxSize = vlength(gridSpacing);
@@ -2294,9 +2246,9 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 
 	
 	float xyz[3];
-	//int lastxyz = -1;
-	//int incount = 0;
-	//int outcount = 0;
+	double boxExts[6];
+	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
+	
 	//Now loop over the grid points in the bounding box
 	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
 		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
@@ -2311,33 +2263,16 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 				if (pParams->distanceToCube(xyz, normals, corner) < voxSize){
 					//incount++;
 					//Point is (almost) inside.
-					//Evaluate the variable(s):
-					int xyzCoord = (i - blkMin[0]*bs[0]) +
-						(j - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
-						(k - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
-					//qWarning(" sampled coord %d",xyzCoord);
-	
-					assert(xyzCoord >= 0);
-					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bs[0]*bs[1]*bs[2]));
-					float varVal;
-					//use the int xyzCoord to index into the loaded data
-					if (totVars == 1) varVal = volData[0][xyzCoord];
-					else { //Add up the squares of the variables
-						varVal = 0.f;
-						for (int d = 0; d<totVars; d++){
-							varVal += volData[d][xyzCoord]*volData[d][xyzCoord];
-						}
-						varVal = sqrt(varVal);
-					}
+					//Evaluate the variable:
+					float varVal = histoGrid->GetValue(xyz[0],xyz[1],xyz[2]);
+					
 					histo->addToBin(varVal);
 				
 				} 
-				//else {
-				//	outcount++;
-				//}
-			}
+							}
 		}
 	}
+	delete histoGrid;
 
 }
 

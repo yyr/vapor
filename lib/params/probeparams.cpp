@@ -1014,7 +1014,7 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inD
 //We also need the actual box coords (min and max) to check for valid coords in the block.
 //Note that the box region may be strictly smaller than the block region
 //
-void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs){
+void ProbeParams::getBoundingBox(size_t timestep, double boxMin[3], double boxMax[3]){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space
 	DataStatus* ds = DataStatus::getInstance();
@@ -1022,27 +1022,17 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f, -1);
-	size_t dataSize[3];
+	
 	const float* extents = ds->getExtents();
-	//Start by initializing extents, and variables that will be min,max
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = ds->getFullSizeAtLevel(numRefs,i);
-		boxMin[i] = dataSize[i]-1;
-		boxMax[i] = 0;
+	for (int i = 0; i<3; i++){
+		boxMin[i] = 1.e30;
+		boxMax[i] = -1.e30;
 	}
-	//Get the regionReader to map coordinates:
-	//Use the region reader to calculate coordinates in volume
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (ds->dataIsLayered()){
-		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
-	}
-
 	
 	for (int corner = 0; corner< 8; corner++){
-		int intCoord[3];
-		size_t intResult[3];
-		float startVec[3]; 
+		double startVec[3]; 
 		double resultVec[3];
+		int intCoord[3];
 		intCoord[0] = corner%2;
 		intCoord[1] = (corner/2)%2;
 		intCoord[2] = (corner/4)%2;
@@ -1050,64 +1040,47 @@ void ProbeParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3
 			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
 		// calculate the mapping of this corner,
 		vtransform(startVec, transformMatrix, resultVec);
-		//Force the result to lie inside full domain:
+		//make sure the point is inside the domain, and then expand the max/min corners to include it.
 		for (int i = 0; i<3; i++){
 			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
 			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
-		}
-		dataMgr->MapUserToVox(timestep, resultVec, intResult, numRefs);
-		// then make sure the container includes it:
-		for(int i = 0; i< 3; i++){
-			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
-			if(intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
+			if (resultVec[i]<boxMin[i]) boxMin[i] = resultVec[i];
+			if (resultVec[i]>boxMax[i]) boxMax[i] = resultVec[i];
 		}
 	}
+	
 	return;
 }
-//Find the smallest box containing the probe, in block coords, at current refinement level
+//Find the smallest box containing the probe, in voxel coords, at specified refinement level
 //and current time step.  Restrict it to the available data.
 //
 bool ProbeParams::
-getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
+getAvailableBoundingBox(size_t timestep, 
 		size_t boxMin[3], size_t boxMax[3], int numRefs){
 	
-	//Start with the bounding box for this refinement level:
-	getBoundingBox(timeStep, boxMin, boxMax, numRefs);
-	size_t bs[3];
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, numRefs);
-	size_t temp_min[3],temp_max[3];
-	for (int j = 0; j< 3; j++){
-		temp_min[j] = boxMin[j];
-		temp_max[j] = boxMax[j];
-	}
+	
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	
+	double umin[3],umax[3];
+	//Start with the bounding box that contains the probe.
+	getBoundingBox(timestep, umin,umax);
+	
+	//Find a containing voxel box:
+	dataMgr->GetEnclosingRegion(timestep, umin, umax, boxMin, boxMax, numRefs);
+	
+	//Determine what region is available:
+	size_t temp_min[3], temp_max[3];
+	const string varName = DataStatus::getInstance()->getVariableName3D(firstVarNum);
+	int rc = RegionParams::getValidRegion(timestep, varName.c_str(),numRefs, temp_min, temp_max);
 	bool retVal = true;
-	int i;
-	//Now intersect with available bounds based on variables:
-	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables(); varIndex++){
-		if (!variableSelected[varIndex]) continue;
-		if (DataStatus::getInstance()->maxXFormPresent3D(varIndex,timeStep) < numRefs){
-			retVal = false;
-			continue;
-		} else {
-			const string varName = DataStatus::getInstance()->getVariableName3D(varIndex);
-			int rc = RegionParams::getValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
-			if (rc < 0) {
-				retVal = false;
-			}
-		}
-		if(retVal) for (i = 0; i< 3; i++){
-			if (boxMin[i] < temp_min[i]) boxMin[i] = temp_min[i];
-			if (boxMax[i] > temp_max[i]) boxMax[i] = temp_max[i];
-		}
+	if (rc < 0) {
+		retVal = false;
 	}
-	//Now do the block dimensions:
-	for (int i = 0; i< 3; i++){
-		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i);
-		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
-		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
-		//And make the block coords:
-		boxMinBlk[i] = boxMin[i]/ (bs[i]);
-		boxMaxBlk[i] = boxMax[i]/ (bs[i]);
+	
+	if(retVal) for (int i = 0; i< 3; i++){
+		if (boxMin[i] < temp_min[i]) boxMin[i] = temp_min[i];
+		if (boxMax[i] > temp_max[i]) boxMax[i] = temp_max[i];
 	}
 	
 	return retVal;
@@ -1194,7 +1167,7 @@ void ProbeParams::setProbeDirty(){
 //is not affected 
 unsigned char* ProbeParams::
 calcProbeDataTexture(int ts, int texWidth, int texHeight){
-	size_t blkMin[3], blkMax[3];
+	
 	size_t coordMin[3], coordMax[3];
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
@@ -1203,26 +1176,18 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	if (doBypass(ts)) return 0;
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
-	//Make a list of the session variable nums we want:
-	int* sesVarNums = new int[ds->getNumSessionVariables()];
 	int actualRefLevel; 
-	int numVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
-		if (!variableIsSelected(varnum)) continue;
-		sesVarNums[numVars++] = varnum;
-	}
+		
 	
+	RegularGrid* probeGrid = getProbeGrid(ts, coordMin, coordMax, &actualRefLevel);
 	
-	float** volData = getProbeVariables(ts,  numVars, sesVarNums,
-				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
-
-	if(!volData){
-		delete [] sesVarNums;
+	if(!probeGrid){
 		return 0;
 	}
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, actualRefLevel);
+	//Nearest neighbor interpolation by default...
+	probeGrid->SetInterpolationOrder(0);
 
+	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f, -1);
@@ -1236,13 +1201,11 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	//Now calculate the texture.
 	//
 	//For each pixel, map it into the volume.
-	//The blkMin values tell you the offset to use.
-	//The blkMax values tell how to stride through the data
+	
 	
 	//We first map the coords in the probe to the volume.  
 	//Then we map the volume into the region provided by dataMgr
-	//This is done for each of the variables,
-	//The RMS of the result is then mapped using the transfer function.
+	
 	float clut[256*4];
 	TransferFunction* transFunc = GetTransFunc();
 	assert(transFunc);
@@ -1283,11 +1246,8 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	//Use the region reader to calculate coordinates in volume
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	if (ds->dataIsLayered()){
-		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
-	}
-
-
+	//Use nearest point interpolation:
+	probeGrid->SetInterpolationOrder(0);
 	//Loop over pixels in texture.  Pixel centers map to edges of probe
 	
 	for (int iy = 0; iy < texHeight; iy++){
@@ -1306,25 +1266,13 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
-			
+			float varVal;
 			if(dataOK) { //find the coordinate in the data array
 				
-				int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
-					(arrayCoord[1] - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
-				float varVal;
-				assert(xyzCoord >= 0);
-
-				//use the intDataCoords to index into the loaded data
-				if (numVars == 1) varVal = volData[0][xyzCoord]; 
-				else { //Add up the squares of the variables
-					varVal = 0.f;
-					for (int k = 0; k<numVars; k++){
-						varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
-					}
-					varVal = sqrt(varVal);
-				}
-				
+				varVal = probeGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
+				if (varVal == probeGrid->GetMissingValue()) dataOK = false;
+			}
+			if (dataOK) {				
 				//Use the transfer function to map the data:
 				int lutIndex = transFunc->mapFloatToIndex(varVal);
 				
@@ -1332,9 +1280,9 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 				probeTexture[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
 				probeTexture[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
 				probeTexture[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
-				
 			}
-			else {//point out of region
+				
+			else {//point out of region, or missing value
 				probeTexture[4*(ix+texWidth*iy)] = 0;
 				probeTexture[4*(ix+texWidth*iy)+1] = 0;
 				probeTexture[4*(ix+texWidth*iy)+2] = 0;
@@ -1345,8 +1293,8 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	}//End loop over iy
 	
 	if (doCache) setProbeTexture(probeTexture,ts, 0);
-	delete [] volData;
-	delete [] sesVarNums;
+	dataMgr->UnlockGrid(probeGrid);
+	delete probeGrid;
 	return probeTexture;
 }
 void ProbeParams::adjustTextureSize(int sz[2]){
@@ -1744,6 +1692,51 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	delete [] volData;
 	return true;
 }
+RegularGrid* ProbeParams::getProbeGrid(size_t ts, size_t coordMin[3], size_t coordMax[3],
+						  int* actualRefLevel){
+	if (!isEnabled()) return 0;
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return 0;
+	
+	int refLevel = GetRefinementLevel();
+	//reduce reflevel if variable is available:
+	if (firstVarNum < 0 ) return 0;
+	if (ds->useLowerAccuracy()){
+		refLevel = Min(ds->maxXFormPresent3D(firstVarNum, ts), refLevel);
+	}
+	if (refLevel < 0) return 0;
+	*actualRefLevel = refLevel;
+	
+	//Determine the integer extents of the containing cube, truncate to
+	//valid integer coords:
+	
+	getAvailableBoundingBox(ts, coordMin, coordMax, refLevel);
+	
+	int numMBs = 4*(coordMax[0]-coordMin[0]+1)*(coordMax[1]-coordMin[1]+1)*(coordMax[2]-coordMin[2]+1)/1000000;
+	
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs > (int)(cacheSize*0.75)){
+		setAllBypass(true);
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
+						  "Lower the refinement level, reduce the\nprobe size, or increase the cache size.",
+						  "Rendering has been disabled.");
+		setEnabled(false);
+		return 0;
+	}
+	//Check if lod is OK.
+	int lod = GetCompressionLevel();
+	if (ds->useLowerAccuracy()){
+		lod = Min(ds->maxLODPresent3D(firstVarNum, ts), lod);
+	}
+	if (lod < 0) return 0;
+	const string& varname = ds->getVariableName3D(firstVarNum);
+	RegularGrid* rg = dataMgr->GetGrid(ts, varname, refLevel, lod, coordMin, coordMax, 1);
+	//obtain all of the volumes needed for this probe:
+	
+	return rg;	
+
+}
 //General routine that obtains 1 or more variables from the cache in the smallest volume that
 //contains the probe.  sesVarNums is a list of session variable numbers to be obtained.
 //If the variable num is negative, just returns a null data array.
@@ -1774,7 +1767,7 @@ getProbeVariables(int ts,  int numVars, int* sesVarNums,
 	//Determine the integer extents of the containing cube, truncate to
 	//valid integer coords:
 
-	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, refLevel);
+	getAvailableBoundingBox(ts, coordMin, coordMax, refLevel);
 	
 	double boxExts[6];
 	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts); 

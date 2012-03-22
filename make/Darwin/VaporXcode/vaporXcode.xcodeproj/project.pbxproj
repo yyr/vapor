@@ -550,9 +550,7 @@
 			children = (
 				E7041382123042460083F569 /* common */,
 				E7041394123042460083F569 /* flow */,
-				E70413B1123042460083F569 /* glew */,
 				E70413B2123042460083F569 /* idl */,
-				E70413BD123042460083F569 /* jpeg */,
 				E70413FA123042460083F569 /* Makefile */,
 				E70413FB123042460083F569 /* params */,
 				E7041431123042460083F569 /* render */,
@@ -613,14 +611,6 @@
 			path = ../../../lib/flow;
 			sourceTree = SOURCE_ROOT;
 		};
-		E70413B1123042460083F569 /* glew */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = glew;
-			path = ../../../lib/glew;
-			sourceTree = SOURCE_ROOT;
-		};
 		E70413B2123042460083F569 /* idl */ = {
 			isa = PBXGroup;
 			children = (
@@ -637,14 +627,6 @@
 			);
 			name = idl;
 			path = ../../../lib/idl;
-			sourceTree = SOURCE_ROOT;
-		};
-		E70413BD123042460083F569 /* jpeg */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = jpeg;
-			path = ../../../lib/jpeg;
 			sourceTree = SOURCE_ROOT;
 		};
 		E70413FB123042460083F569 /* params */ = {

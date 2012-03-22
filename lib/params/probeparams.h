@@ -212,6 +212,8 @@ public:
 	float** getProbeVariables(int ts, int numVars, int* sesVarNums,
 				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
 				  int* actualRefLevel);
+	
+	RegularGrid* getProbeGrid(size_t ts, size_t coordMin[3], size_t coordMax[3], int* actualRefLevel);
 
 	unsigned char* getCurrentProbeTexture(int timestep, int texType) {
 		if( texType == 0) return probeDataTextures[timestep];
@@ -250,7 +252,7 @@ public:
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	int getNumVariablesSelected() {return numVariablesSelected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
+	bool getAvailableBoundingBox(size_t timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
 	//Obtain the smallest region that contains the probe, and fits within the full data volume.
 	//If inDomain is false, then don't require to fit within full data volume.
 	void getContainingRegion(float regMin[3], float regMax[3], bool inDomain = true);
@@ -320,7 +322,7 @@ protected:
 	
 	//Find smallest containing cube in integer coords, 
 	//that will contain image of probe
-	void getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
+	void getBoundingBox(size_t timestep, double boxMin[3], double boxMax[3]);
 	//Get the rotated box sides in the unit cube, based on current angles:
 	void getRotatedBoxDims(float boxdims[3]);
 
