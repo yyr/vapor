@@ -21,6 +21,7 @@
 //!
 //
 
+namespace VAPoR {
 class VDF_API LayeredGrid : public RegularGrid {
 public:
 
@@ -100,37 +101,6 @@ public:
  //!
  float GetValue(double x, double y, double z) const;
 
- //! Return the extents of the user coordinate system
- //!
- //! This method returns min and max extents of the user coordinate 
- //! system defined on the grid. The minimum extent for the non-varying
- //! (non-layered) dimensions are the non-varying coordinates
- //! of the grid point with index(0,0,0). The maximum extent
- //! for the non-varying dimensions are the non-varying coordinates of 
- //! the grid point with index(nx-1, ny-1, nz-1), 
- //! where \a nx, \a ny, and \a nz are the I, J, K dimensions,
- //! respectively.
- //!
- //! The min extent of the varying (layered) dimension is given
- //! by the coordinate of the grid point on the i==0 plane, where \a i
- //! is the varying index, with the
- //! minimum varying coordinate value if the varying coordinate of the
- //! point (0,0,0) is less than the varying coordinate of the point
- //! (idim-1, jdim-1, kdim-1). Otherwise the varying coordinate along
- //! the i==0 plane with maximum value is used.
- //!
- //! The max extent of the varying dimension is calculated in a similar
- //! way for the i=dim-1 plane. Hence, the min and max extents define
- //! the corner points of the smallest box that bounds the grid
- //!
- //! \param[out] extents A six-element array, the first three values will
- //! contain the minimum coordinate, and the last three values the 
- //! maximum coordinate
- //!
- //! \sa GetDimension(), LayeredGrid()
- //!
- void GetUserExtents(double extents[6]) const;
-
  //! \copydoc RegularGrid::GetUserCoordinates()
  //!
  int GetUserCoordinates(
@@ -194,5 +164,6 @@ private:
 	double x, double y, double z 
  ) const;
 
+};
 };
 #endif

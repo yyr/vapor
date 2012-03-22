@@ -18,6 +18,7 @@
 //!
 //
 
+namespace VAPoR {
 class VDF_API StretchedGrid : public RegularGrid {
 public:
 
@@ -35,6 +36,8 @@ public:
  //! \param[in] extents A six-element vector specifying the user coordinates
  //! of the first (first three elements) and last (last three elements) of
  //! the grid points indicated by \p min and \p max, respectively.
+ //! Theses extents are ignored for any axis for which a coordinate 
+ //! array (\p xcoords, \p ycoords, or \p zcoords) is provided.
  //! \param[in] periodic A three-element boolean vector indicating
  //! which i,j,k indecies, respectively, are periodic. The varying 
  //! dimension may not be periodic.
@@ -138,6 +141,7 @@ public:
 private:
  size_t _min[3];
  size_t _max[3];
+ double _delta[3];
  std::vector <double> _xcoords;
  std::vector <double> _ycoords;
  std::vector <double> _zcoords;
@@ -147,5 +151,6 @@ private:
 
 
 
+};
 };
 #endif

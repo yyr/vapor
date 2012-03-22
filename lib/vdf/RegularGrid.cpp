@@ -15,6 +15,7 @@
 #include "vapor/RegularGrid.h"
 
 using namespace std;
+using namespace VAPoR;
 
 double GetTime() {
     double t;
@@ -53,6 +54,20 @@ double GetTime() {
     return(t);
 }
 
+void RegularGrid::_SetExtents(const double extents[6]) {
+
+	for (int i=0; i<3; i++) {
+
+		_minu[i] = extents[i];
+		_maxu[i] = extents[i+3];
+		if (_max[i] - _min[i]) {
+			_delta[i] = (_maxu[i] - _minu[i])/(double) (_max[i]-_min[i]);
+		}
+		else {
+			_delta[i] = 0.0; // error
+		}
+	}
+}
 
 int RegularGrid::_RegularGrid(
 	const size_t bs[3],
@@ -77,16 +92,10 @@ int RegularGrid::_RegularGrid(
 		_maxabs[i] = max[i];
 		_min[i] = min[i] % bs[i];
 		_max[i] = _min[i] + (max[i]-min[i]);
-		_minu[i] = extents[i];
-		_maxu[i] = extents[i+3];
-		if (max[i]-min[i]) {
-			_delta[i] = fabs((_maxu[i] - _minu[i])) / (double) (max[i]-min[i]);
-		}
-		else {
-			_delta[i] = 0.0; // error
-		}
 		_periodic[i] = periodic[i];
 	}
+
+	_SetExtents(extents);
 
 	//
 	// Shallow  copy blocks
@@ -371,26 +380,10 @@ int RegularGrid::GetUserCoordinates(
 	if (j>_max[1]-_min[1]) return(-1);
 	if (k>_max[2]-_min[2]) return(-1);
 
-	if (_minu[0]<_maxu[0]) {
-		*x = i * _delta[0] + _minu[0];
-	}
-	else {
-		*x = i * _delta[0] * -1.0 + _minu[0];
-	}
+	*x = i * _delta[0] + _minu[0];
+	*y = j * _delta[1] + _minu[1];
+	*z = k * _delta[2] + _minu[2];
 
-	if (_minu[1]<_maxu[1]) {
-		*y = j * _delta[1] + _minu[1];
-	}
-	else {
-		*y = j * _delta[1] * -1.0 + _minu[1];
-	}
-
-	if (_minu[2]<_maxu[2]) {
-		*z = k * _delta[2] + _minu[2];
-	}
-	else {
-		*z = k * _delta[2] * -1.0 + _minu[2];
-	}
 	return(0);
 
 }
@@ -786,6 +779,7 @@ bool RegularGrid::ConstIterator::operator!=(const ConstIterator &other) {
 	));
 }
 
+namespace VAPoR {
 std::ostream &operator<<(std::ostream &o, const RegularGrid &rg)
 {
 	o << "RegularGrid " << endl
@@ -822,6 +816,7 @@ std::ostream &operator<<(std::ostream &o, const RegularGrid &rg)
 
 	return o;
 }
+};
 
 
 #ifdef	DEAD

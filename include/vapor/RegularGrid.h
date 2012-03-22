@@ -31,6 +31,7 @@
 //! of the tuple corresponds to the \a I axis, etc.
 //
 
+namespace VAPoR {
 class VDF_API RegularGrid {
 public:
 
@@ -53,6 +54,8 @@ public:
  //! \param[in] extents A six-element vector specifying the user coordinates
  //! of the first (first three elements) and last (last three elements) of
  //! the grid points indicated by \p min and \p max, respectively.
+ //! These two points define the extents of the smallest axis-aligned bounding
+ //! box that completely encloses the grid.
  //! \param[in] periodic A three-element boolean vector indicating
  //! which i,j,k indecies, respectively, are periodic
  //! \param[in] blks An array of blocks containing the sampled function. 
@@ -460,6 +463,8 @@ protected:
 
  float &_AccessIJK(float **blks, size_t i, size_t j, size_t k) const;
  void _ClampCoord(double &x, double &y, double &z) const;
+ void _SetExtents(const double extents[6]);
+
 
 private:
 	size_t _bs[3];	// dimensions of each block
@@ -480,9 +485,6 @@ private:
 	size_t _nblocks; // num blocks allocated to _blks
 	float *_itr;
 	float **_blks;
-	float *_invalidAccess; // memory for data access outside of grid
-							// Have to make this a pointer to keep gnu
-							// compiler happy.
 
 	int _RegularGrid(
 		const size_t bs[3], const size_t min[3], const size_t max[3],
@@ -490,5 +492,6 @@ private:
 	);
 	float _GetValueNearestNeighbor(double x, double y, double z) const;
 	float _GetValueLinear(double x, double y, double z) const;
+};
 };
 #endif

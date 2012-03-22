@@ -4,6 +4,7 @@
 #include "vapor/LayeredGrid.h"
 
 using namespace std;
+using namespace VAPoR;
 
 LayeredGrid::LayeredGrid(
 	const size_t bs[3],
@@ -33,7 +34,11 @@ LayeredGrid::LayeredGrid(
 	//
 	if (periodic[_varying_dim]) SetPeriodic(periodic);
 
-	_GetUserExtents(_extents);
+	double myextents[6];
+
+	_GetUserExtents(myextents);
+	RegularGrid::_SetExtents(myextents);
+
 }
 
 LayeredGrid::LayeredGrid(
@@ -62,7 +67,10 @@ LayeredGrid::LayeredGrid(
 
 	assert(periodic[_varying_dim] == false);
 
-	_GetUserExtents(_extents);
+	double myextents[6];
+
+	_GetUserExtents(myextents);
+	RegularGrid::_SetExtents(myextents);
 }
 
 LayeredGrid::~LayeredGrid() {
@@ -203,10 +211,6 @@ float LayeredGrid::GetValue(double x, double y, double z) const {
 
 	return(c0+kwgt*(c1-c0));
 
-}
-
-void LayeredGrid::GetUserExtents(double extents[6]) const {
-	for (int i=0; i<6; i++) extents[i] = _extents[i];
 }
 
 
@@ -462,7 +466,8 @@ void LayeredGrid::GetIJKIndexFloor(
 
 			x1 = _interpolateVaryingCoord((i0+i1)>>1,j0,k0,x,y,z);
 			if (x1 == x) {  // pathological case
-				*i = (i0+i1)>>1;
+				//*i = (i0+i1)>>1;
+				i0 = (i0+i1)>>1;
 				break;
 			}
 
@@ -511,7 +516,8 @@ void LayeredGrid::GetIJKIndexFloor(
 
 			y1 = _interpolateVaryingCoord(i0,(j0+j1)>>1,k0,x,y,z);
 			if (y1 == y) {  // pathological case
-				*j = (j0+j1)>>1;
+				//*j = (j0+j1)>>1;
+				j0 = (j0+j1)>>1;
 				break;
 			}
 
@@ -559,7 +565,8 @@ void LayeredGrid::GetIJKIndexFloor(
 
 			z1 = _interpolateVaryingCoord(i0,j0,(k0+k1)>>1,x,y,z);
 			if (z1 == z) {	// pathological case
-				*k = (k0+k1)>>1;
+				//*k = (k0+k1)>>1;
+				k0 = (k0+k1)>>1;
 				break;
 			}
 
@@ -585,7 +592,12 @@ int LayeredGrid::Reshape(
 ) {
 	int rc = RegularGrid::Reshape(min,max,periodic);
 	if (rc<0) return(-1);
-	_GetUserExtents(_extents);
+
+	double myextents[6];
+
+	_GetUserExtents(myextents);
+	RegularGrid::_SetExtents(myextents);
+
 	return(0);
 }
 void LayeredGrid::SetPeriodic(const bool periodic[3]) {
