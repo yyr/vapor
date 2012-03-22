@@ -496,6 +496,8 @@ refreshRegionInfo(RegionParams* rParams){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) ds = 0;
 	int timeStep = timestepSpin->value();
+	if (!dataMgr) timeStep = 0;
+	if ((timeStep < (int)ds->getMinTimestep()) || (timeStep > (int) ds->getMaxTimestep()) )timeStep = ds->getMinTimestep();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
@@ -570,7 +572,7 @@ refreshRegionInfo(RegionParams* rParams){
 		
 	// if region isn't valid just don't show the bounds:
 	if (ds){
-		dataMgr->GetEnclosingRegion(-1,regionMin,regionMax,min_dim,max_dim,refLevel);
+		dataMgr->GetEnclosingRegion(timeStep,regionMin,regionMax,min_dim,max_dim,refLevel);
 		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
 		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
 		minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
