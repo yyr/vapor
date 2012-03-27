@@ -1051,8 +1051,8 @@
 		E7041539123042CB0083F569 /* guis */ = {
 			isa = PBXGroup;
 			children = (
-				E75B94631507DA5600BF2D69 /* arroweventrouter.cpp */,
 				E75B94641507DA5600BF2D69 /* arroweventrouter.h */,
+				E75B94631507DA5600BF2D69 /* arroweventrouter.cpp */,
 				E75B94651507DA5600BF2D69 /* boxsliderframe.cpp */,
 				E75B94661507DA5600BF2D69 /* boxsliderframe.h */,
 				E704153A123042CB0083F569 /* animationeventrouter.cpp */,
@@ -1371,7 +1371,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = ../../..;
+			buildWorkingDirectory = "/Users/alan/Vapor/vapor2-2Working";
 			dependencies = (
 			);
 			name = vaporgui;

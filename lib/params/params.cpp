@@ -31,6 +31,7 @@
 #include "glutil.h"
 #include <vapor/ParamNode.h>
 #include <vapor/DataMgr.h>
+#include <vapor/RegularGrid.h>
 #include <vapor/errorcodes.h>
 #include "viewpointparams.h"
 #include "regionparams.h"
@@ -673,3 +674,83 @@ void Params::clearDummyParamsInstances(){
 	}
 	dummyParamsInstances.clear();
 }
+//Obtain grids for a set of variables in requested extents. Pointer to requested LOD and refLevel, may change if not available 
+//Extents are reduced if data not available at requested extents.
+//Vector of varnames can include "0" for zero variable.
+//Variables can be 2D or 3D depending on value of "varsAre2D"
+//Returns 0 on failure
+//
+int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, bool varsAre2D, RegularGrid** grids){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return 0;
+	
+	//reduce reflevel if variable is available:
+	
+	if (ds->useLowerAccuracy()){
+		for (int i = 0; i< varnames.size(); i++){
+			if (varnames[i] != "0"){
+				*refLevel = Min(ds->maxXFormPresent(varnames[i], ts), *refLevel);
+				*lod = Min(ds->maxLODPresent(varnames[i], ts), *lod);
+			}
+		}
+	}
+	if (*refLevel < 0 || *lod < 0) return 0;
+	
+	//Determine the integer extents of valid cube, truncate to
+	//valid integer coords:
+	//Find a containing voxel box:
+	size_t boxMin[3], boxMax[3];
+	dataMgr->GetEnclosingRegion(ts, extents, extents+3, boxMin, boxMax, *refLevel);
+	
+	//Determine what region is available for all variables
+	size_t temp_min[3], temp_max[3];
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] != "0"){
+			int rc = dataMgr->GetValidRegion(ts, varnames[i].c_str(), *refLevel, temp_min, temp_max);
+			if (rc != 0) return 0;
+			for (int j=0; j<3; j++){
+				if (temp_min[j] > boxMin[j]) boxMin[j] = temp_min[j];
+				if (temp_max[j] < boxMax[j]) boxMax[j] = temp_max[j];
+				//If there is no valid intersection, the min will be greater than the max
+				if (boxMax[j] < boxMin[j]) return 0;
+			}
+		}
+	}
+			
+
+		
+	//see if we have enough space:
+	int numMBs;
+	if (varsAre2D)
+		numMBs = 4*varnames.size()*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)/1000000;
+	else numMBs = 4*varnames.size()*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/1000000;
+	
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs > (int)(cacheSize*0.75)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s",
+						  "Lower the refinement level, reduce the size, or increase the cache size.");
+		return 0;
+	}
+	
+	
+	for (int i = 0; i< varnames.size(); i++){
+		if(varnames[i] == "0") grids[i] = 0;
+		else {
+			RegularGrid* rg = dataMgr->GetGrid(ts, varnames[i], *refLevel, *lod, boxMin, boxMax, 1);
+			if (!rg) {
+				for (int j = 0; j<i; j++){
+					if (grids[j]){ dataMgr->UnlockGrid(grids[j]); delete grids[j];}
+				}
+				return 0;
+			}
+			grids[i] = rg;
+		}
+	}
+	//obtained all of the grids needed
+	
+	return 1;	
+	
+}
+

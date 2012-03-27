@@ -2247,7 +2247,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		double validExts[6];
 		rParams->getRegionExtents(validExts, timeStep);
 
-		int opacVarnum = ds->mapActiveToSessionVarNum3D(getOpacMapEntityIndex()-4);
+		
 		vector<string> opacVarname;
 		opacVarname.push_back(opacMapEntity[getOpacMapEntityIndex()]);
 		int opacRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, opacVarname, 
@@ -2301,7 +2301,6 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		double validExts[6];
 		rParams->getRegionExtents(validExts, timeStep);
 
-		int colorVarnum = ds->mapActiveToSessionVarNum3D(getColorMapEntityIndex()-4);
 		vector<string> colorVarname;
 		colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
 		int colorRefLevel = RegionParams::PrepareCoordsForRetrieval(numRefinements, timeStep, colorVarname, 
@@ -2799,7 +2798,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	size_t min_dim[3], max_dim[3]; 
 	DataStatus* ds = DataStatus::getInstance();
 	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
-	size_t tstep = (size_t) timeStep;
+	
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	int availRefLevel = numRefinements;

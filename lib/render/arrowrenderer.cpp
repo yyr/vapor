@@ -444,14 +444,13 @@ setupVariableData(
 	dataMgr->MapVoxToUser(timestep,voxExts+3, validExts+3,0);
 #endif
 
-	//Call RegionParams::PrepareCoordsForRetrieval to get the block extents needed in the GetRegion call
+	//Call RegionParams::PrepareCoordsForRetrieval to get the extents needed for data
 	//It may reduce the refinement level or indicate that the required data is not available.
 
 	int numxforms = aParams->GetRefinementLevel();
 	
 	int actualRefLevel = RegionParams::PrepareCoordsForRetrieval(numxforms, timestep, varnames, 
-		validExts, validExts+3,
-		min_dim, max_dim);
+		validExts, validExts+3, min_dim, max_dim);
 	if (actualRefLevel < 0) {
 		SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Arrow data unavailable at timestep %d\n", timestep);
 		aParams->setBypass(timestep);

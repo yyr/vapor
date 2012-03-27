@@ -1010,9 +1010,7 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inD
 
 
 
-//Find the smallest box containing the probe, in block coords, at current refinement level.
-//We also need the actual box coords (min and max) to check for valid coords in the block.
-//Note that the box region may be strictly smaller than the block region
+//Find the smallest box containing the probe, at current refinement level.
 //
 void ProbeParams::getBoundingBox(size_t timestep, double boxMin[3], double boxMax[3]){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
@@ -1168,7 +1166,7 @@ void ProbeParams::setProbeDirty(){
 unsigned char* ProbeParams::
 calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	
-	size_t coordMin[3], coordMax[3];
+	
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
@@ -1176,12 +1174,23 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	if (doBypass(ts)) return 0;
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
-	int actualRefLevel; 
+	int actualRefLevel = GetRefinementLevel();
+	int lod = GetCompressionLevel();
 		
+	RegularGrid* probeGrid;
+	vector<string>varnames;
+	varnames.push_back(ds->getVariableName3D(firstVarNum));
+	double extents[6];
+	float boxmin[3],boxmax[3];
+	getContainingRegion(boxmin, boxmax);
+	for (int i = 0; i<3; i++){
+		extents[i] = boxmin[i];
+		extents[i+3] = boxmax[i];
+	}
+	//int rc = getProbeGrids(ts, 1, &firstVarNum, coordMin, coordMax, &actualRefLevel, &probeGrid);
+	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, false, &probeGrid);
 	
-	RegularGrid* probeGrid = getProbeGrid(ts, coordMin, coordMax, &actualRefLevel);
-	
-	if(!probeGrid){
+	if(!rc){
 		return 0;
 	}
 	//Nearest neighbor interpolation by default...
@@ -1213,12 +1222,11 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	
 	float probeCoord[3];
 	double dataCoord[3];
-	size_t arrayCoord[3];
-	const float* extents = ds->getExtents();
+	const float* exts = ds->getExtents();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
-		float mid = (extents[i]+extents[i+3])*0.5;
-		float halfExtendedSize = (extents[i+3]-extents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		float mid = (exts[i]+exts[i+3])*0.5;
+		float halfExtendedSize = (exts[i+3]-exts[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
@@ -1246,8 +1254,6 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	//Use the region reader to calculate coordinates in volume
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	//Use nearest point interpolation:
-	probeGrid->SetInterpolationOrder(0);
 	//Loop over pixels in texture.  Pixel centers map to edges of probe
 	
 	for (int iy = 0; iy < texHeight; iy++){
@@ -1260,11 +1266,9 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			//find the coords that the texture maps to
 			//probeCoord is the coord in the probe, dataCoord is in data volume 
-			dataMgr->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
-				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
 			float varVal;
 			if(dataOK) { //find the coordinate in the data array
@@ -1513,17 +1517,28 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	
 	//Now obtain the field values for the current probe
 	//Session variable nums are -1 if the variable is 0
-	int sesVarNums[3];
+	vector<string> varnames;
+	for (int i = 0; i<3; i++){
+		int svnum = ibfvSessionVarNum[i]-1;
+		if (svnum < 0) varnames.push_back("0");
+		else varnames.push_back(ds->getVariableName3D(svnum));
+	}
+	double extents[6];
+	float boxmin[3],boxmax[3];
+	getContainingRegion(boxmin, boxmax);
+	for (int i = 0; i<3; i++){
+		extents[i] = boxmin[i];
+		extents[i+3] = boxmax[i];
+	}							
+	int actualRefLevel = GetRefinementLevel();
+	int lod = GetCompressionLevel();
+	RegularGrid* grids[3];
+	//int rc = getProbeGrids(timestep, 3, sesVarNums, coordMin, coordMax, &actualRefLevel, grids);
+	int rc = getGrids( timestep, varnames, extents, &actualRefLevel, &lod, false, grids);
+	if (!rc) return false;
 	
-	for (int i = 0; i<3; i++) sesVarNums[i] = ibfvSessionVarNum[i] -1;
-		
-	size_t blkMin[3],blkMax[3],coordMin[3],coordMax[3];
-	int actualRefLevel;
-	float** volData = getProbeVariables(timestep,  3, sesVarNums,
-				  blkMin, blkMax, coordMin, coordMax,&actualRefLevel);
-	if (!volData) return false;
 
-	//Then go through the array, projecting the field values to the 2D plane.
+	//Then go through the grids, projecting the field values to the 2D plane.
 	//Each (x,y) probe coord is converted to the closest point in the probe grid
 	//Each field value is also multiplied by scale factor, times a factor that relates the
 	//user coord system to the probe grid coords.
@@ -1554,17 +1569,15 @@ bool ProbeParams::buildIBFVFields(int timestep){
 
 	float probeCoord[3];
 	double dataCoord[3];
-	size_t arrayCoord[3];
-	const float* extents = ds->getExtents();
+	
+	const float* exts = ds->getExtents();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
-		float mid = (extents[i]+extents[i+3])*0.5;
-		float halfExtendedSize = (extents[i+3]-extents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		float mid = (exts[i]+exts[i+3])*0.5;
+		float halfExtendedSize = (exts[i+3]-exts[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, actualRefLevel);
 	float worldCorner[4][3];
 	//Map corners of probe into volume 
 	probeCoord[2] = 0.f;
@@ -1599,17 +1612,6 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	//Use the region reader to calculate coordinates in volume
 	DataMgr* dataMgr = ds->getDataMgr();
 
-	//Check on below terrain values if layered data;
-	float lowVal[3];
-	bool layeredData = false;
-	if (ds->dataIsLayered()) {
-		layeredData = true;
-		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
-
-		for (int i = 0; i< 3; i++){
-			lowVal[i] = ds->getBelowValue(sesVarNums[i]);
-		}
-	}
 	//Loop over pixels in texture
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
@@ -1623,16 +1625,11 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			
-			dataMgr->MapUserToVox(timestep, dataCoord, arrayCoord, actualRefLevel);
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
 			}
 			
-			int xyzCoord = (arrayCoord[0] - blkMin[0]*bs[0]) +
-					(arrayCoord[1] - blkMin[1]*bs[1])*(bs[0]*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bs[2])*(bs[1]*(blkMax[1]-blkMin[1]+1))*(bs[0]*(blkMax[0]-blkMin[0]+1));
-			assert(xyzCoord >= 0);
 			int texPos = ix + texWidth*iy;
 			
 			if(dataOK) { //find the coordinate in the data array
@@ -1640,17 +1637,14 @@ bool ProbeParams::buildIBFVFields(int timestep){
 				
 				//use xyzCoord to index into the loaded data
 				for (int k = 0; k<3; k++){
-					if(volData[k]) vecField[k] = volData[k][xyzCoord];
+					if(grids[k]) {
+						float fieldval = grids[k]->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
+						if (fieldval == grids[k]->GetMissingValue()) fieldval = 0;
+						vecField[k] = fieldval;
+					}
 					else vecField[k] = 0.f;
 				}
-				if (layeredData){//extra test for below terrain.
-					int coord;
-					for (coord = 0; coord<3; coord++){
-						if (!volData[coord]) continue;  //ignore zero fields
-						if (vecField[coord] != lowVal[coord]) break;
-					}
-					if(coord == 3) dataOK = false;//all coords are either zero or same as below terrain
-				}
+				
 				if (dataOK){
 					//Project this vector to the probe plane, saving the magnitude:
 					numValidPoints++;
@@ -1688,118 +1682,16 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			ibfvVField[timestep][texPos] *= scaleFac;
 		}
 	}
+	for (int i = 0; i<3; i++){
+		if (grids[i]){
+			dataMgr->UnlockGrid(grids[i]);
+			delete grids[i];
+		}
+	}
 			
-	delete [] volData;
 	return true;
 }
-RegularGrid* ProbeParams::getProbeGrid(size_t ts, size_t coordMin[3], size_t coordMax[3],
-						  int* actualRefLevel){
-	if (!isEnabled()) return 0;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return 0;
-	
-	int refLevel = GetRefinementLevel();
-	//reduce reflevel if variable is available:
-	if (firstVarNum < 0 ) return 0;
-	if (ds->useLowerAccuracy()){
-		refLevel = Min(ds->maxXFormPresent3D(firstVarNum, ts), refLevel);
-	}
-	if (refLevel < 0) return 0;
-	*actualRefLevel = refLevel;
-	
-	//Determine the integer extents of the containing cube, truncate to
-	//valid integer coords:
-	
-	getAvailableBoundingBox(ts, coordMin, coordMax, refLevel);
-	
-	int numMBs = 4*(coordMax[0]-coordMin[0]+1)*(coordMax[1]-coordMin[1]+1)*(coordMax[2]-coordMin[2]+1)/1000000;
-	
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs > (int)(cacheSize*0.75)){
-		setAllBypass(true);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
-						  "Lower the refinement level, reduce the\nprobe size, or increase the cache size.",
-						  "Rendering has been disabled.");
-		setEnabled(false);
-		return 0;
-	}
-	//Check if lod is OK.
-	int lod = GetCompressionLevel();
-	if (ds->useLowerAccuracy()){
-		lod = Min(ds->maxLODPresent3D(firstVarNum, ts), lod);
-	}
-	if (lod < 0) return 0;
-	const string& varname = ds->getVariableName3D(firstVarNum);
-	RegularGrid* rg = dataMgr->GetGrid(ts, varname, refLevel, lod, coordMin, coordMax, 1);
-	//obtain all of the volumes needed for this probe:
-	
-	return rg;	
 
-}
-//General routine that obtains 1 or more variables from the cache in the smallest volume that
-//contains the probe.  sesVarNums is a list of session variable numbers to be obtained.
-//If the variable num is negative, just returns a null data array.
-//Note that this is a generalization of the first part of calcProbeDataTexture
-//Provides several variables to be used in adressing into the data
-
-float** ProbeParams::
-getProbeVariables(int ts,  int numVars, int* sesVarNums,
-				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
-				  int* actualRefLevel){
-	if (!isEnabled()) return 0;
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return 0;
-	
-	int refLevel = GetRefinementLevel();
-	//reduce reflevel if not all variables are available:
-	if (ds->useLowerAccuracy()){
-		for (int varnum = 0; varnum < numVars; varnum++){
-			int sesVarNum = sesVarNums[varnum];
-			if (sesVarNum >= 0){
-				refLevel = Min(ds->maxXFormPresent3D(sesVarNum, ts), refLevel);
-			}
-		}
-	}
-	if (refLevel < 0) return 0;
-	*actualRefLevel = refLevel;
-	
-	//Determine the integer extents of the containing cube, truncate to
-	//valid integer coords:
-
-	getAvailableBoundingBox(ts, coordMin, coordMax, refLevel);
-	
-	double boxExts[6];
-	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, refLevel);
-	
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs*numVars > (int)(cacheSize*0.75)){
-		setAllBypass(true);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the\nprobe size, or increase the cache size.",
-			"Rendering has been disabled.");
-		setEnabled(false);
-		return 0;
-	}
-	
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable 
-	float** volData = new float*[numVars];
-	//obtain all of the volumes needed for this probe:
-	
-	for (int varnum = 0; varnum < numVars; varnum++){
-		int varindex = sesVarNums[varnum];
-		if (varindex < 0) {volData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
-		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, false);
-		if (!volData[varnum]) {
-			delete [] volData;
-			return 0;
-		}
-	}
-
-	return volData;
-}
 //Project a 3-vector to the probe plane.  Uses inverse rotation matrix
 void ProbeParams::projToPlane(float vecField[3], float invRotMtrx[9], float* U, float* V){
 	//Calculate component of vecField in direction of normVec:

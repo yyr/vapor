@@ -206,15 +206,8 @@ public:
 	}
 	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht);
 
-	//General method that obtains a list of variables (containing the probe) from the dataMgr
-	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
-	//for addressing into the volumes.  Replaces first half of calcProbeDataTexture.
-	float** getProbeVariables(int ts, int numVars, int* sesVarNums,
-				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
-				  int* actualRefLevel);
 	
-	RegularGrid* getProbeGrid(size_t ts, size_t coordMin[3], size_t coordMax[3], int* actualRefLevel);
-
+	
 	unsigned char* getCurrentProbeTexture(int timestep, int texType) {
 		if( texType == 0) return probeDataTextures[timestep];
 		else return probeIBFVTextures[timestep];

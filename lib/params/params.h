@@ -28,6 +28,7 @@
 #include "assert.h"
 #include <vapor/common.h>
 #include <vapor/ParamsBase.h>
+#include <vapor/RegularGrid.h>
 #include "Box.h"
 
 class QWidget;
@@ -490,6 +491,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Determine a new value of theta and phi when the probe is rotated around either the
 	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
 	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
+	int getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, bool varsAre2D, RegularGrid** grids);
 	
 	
 protected:
@@ -706,6 +708,7 @@ public:
 	void initializeBypassFlags();
 	//Get a variable region from the datamanager.  May reduce the compression level, but not the refinement level
 	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
+	
 
 protected:
 	
