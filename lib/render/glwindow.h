@@ -38,9 +38,7 @@
 //No more than 20 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 20
-//Following factor accentuates the terrain changes by pointing the
-//normals more away from the vertical
-#define ELEVATION_GRID_ACCENT 20.f
+
 class QLabel;
 class QThread;
 
@@ -231,8 +229,7 @@ public:
 	int getColorbarNumTics() {return numColorbarTics;}
 	int getColorbarDigits() {return colorbarDigits;}
 	int getColorbarFontsize() {return colorbarFontsize;}
-	QColor& getElevGridColor() {return elevColor;}
-	
+		
 
 	int getTimeAnnotType() {return timeAnnotType;}
 	int getTimeAnnotTextSize() {return timeAnnotTextSize;}
@@ -247,7 +244,7 @@ public:
 	}
 
 	
-	bool elevGridRenderingEnabled() {return renderElevGrid;}
+	
 	void setBackgroundColor(QColor& c) {DataStatus::getInstance()->setBackgroundColor(c);}
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {DataStatus::getInstance()->setRegionFrameColor(c);}
@@ -257,9 +254,7 @@ public:
 	void enableColorbar(bool enable) {colorbarEnabled = enable;}
 	void enableRegionFrame(bool enable) {DataStatus::getInstance()->enableRegionFrame(enable);}
 	void enableSubregionFrame(bool enable) {DataStatus::getInstance()->enableSubregionFrame(enable);}
-	void setElevGridColor(QColor& c) {elevColor = c;}
-	void setElevGridRefinementLevel(int lev) {elevGridRefLevel = lev;}
-	void enableElevGridRendering(bool val) {renderElevGrid = val;}
+	
 	void setAxisArrowCoord(int i, float val){axisArrowCoord[i] = val;}
 	void setAxisOriginCoord(int i, float val){axisOriginCoord[i] = val;}
 	void setNumTics(int i, int val) {numTics[i] = val;}
@@ -281,7 +276,6 @@ public:
 	void setColorbarDigits(int ndigs) {colorbarDigits = ndigs;}
 	void setColorbarFontsize(int fsize) {colorbarFontsize = fsize;}
 
-	int getElevGridRefinementLevel() {return elevGridRefLevel;}
 
 	bool mouseIsDown() {return mouseDownHere;}
 	void setMouseDown(bool downUp) {mouseDownHere = downUp;}
@@ -413,7 +407,7 @@ public:
 	bool windowIsActive(){return (winNum == activeWindowNum);}
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
-	void invalidateElevGrid();
+	
 	
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
 	
@@ -501,7 +495,7 @@ protected:
 	GLdouble* getModelMatrix();
 		
 	GLfloat tcoord[2];
-	GLuint _elevTexid;
+	
 	GLfloat* setTexCrd(int i, int j);
 	
 	//These methods cannot be overridden, but the initialize and paint methods
@@ -538,10 +532,8 @@ protected:
 	void drawAxisLabels();
 	void drawTimeAnnotation();
 	
-	void drawElevationGrid(size_t timestep);
 	void placeLights();
-	bool rebuildElevationGrid(size_t timestep);
-	void calcElevGridNormals(size_t timestep);
+	
 	//Helper functions for drawing region bounds:
 	static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:
@@ -551,22 +543,7 @@ protected:
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
 
-	//Cached elevation grid sizes (one for each time step)
-	int *maxXElev, *maxYElev;
-	float** elevVert, **elevNorm;
-	//constants used in fitting texture to domain:
-	float *xfactr, *xbeg, *yfactr, *ybeg;
-	//current values used in tex coord mapping:
-	float xfct, yfct, xbg, ybg;
-	int mxx, mxy;
-
-	int numElevTimesteps;
-	//Additional parameters used for elev grid:
-	QColor elevColor;
-	int elevGridRefLevel;
-	bool renderElevGrid;
 	
-	int elevGridWidth, elevGridHeight;
 
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords

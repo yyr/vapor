@@ -805,12 +805,23 @@ int RegionParams::getMBStorageNeeded(const double* extents, int refLevel){
 
 
 float RegionParams::
-calcCurrentValue(RenderParams* renParams, int sessionVarNum, const double point[3], int numRefinements, int lod, size_t timeStep){
+calcCurrentValue(const string& varname, const double point[3], int numRefinements, int lod, size_t timeStep){
 	
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr;
 	if (!ds || !(dataMgr = ds->getDataMgr())) return OUT_OF_BOUNDS;
-	string& varname = ds->getVariableName3D(sessionVarNum);
+	
+	vector<string>varnames;
+	varnames.push_back(varname);
+	RegularGrid* varGrid;
+	double exts[6];
+	for (int i = 0; i<3; i++){exts[i] = point[i]; exts[i+3] = point[i];}
+	int rc = getGrids(timeStep, varnames, exts, &numRefinements, &lod, &varGrid);
+	if (!rc) return OUT_OF_BOUNDS;
+	float val = varGrid->GetValue(point[0],point[1],point[2]);
+	delete varGrid;
+	return val;
+	/*
 	//Get the data dimensions (at current resolution):
 	
 	double regMin[3], regMax[3];
@@ -841,6 +852,7 @@ calcCurrentValue(RenderParams* renParams, int sessionVarNum, const double point[
 	
 	float val = rg->GetValue(point[0],point[1],point[2]);
 	return val;
+	 */
 }
 void RegionParams::
 setFullGridHeight(size_t val){

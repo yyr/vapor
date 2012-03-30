@@ -126,9 +126,6 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	colorbarRendererTypeId = vfParams.colorbarRendererTypeId;
 	colorbarFontsize = vfParams.colorbarFontsize;
 	
-	elevGridColor = vfParams.elevGridColor;
-	showElevGrid = vfParams.showElevGrid;
-	elevGridRefinement =  vfParams.elevGridRefinement;
 
 	timeAnnotCoords[0] = vfParams.timeAnnotCoords[0];
 	timeAnnotCoords[1] = vfParams.timeAnnotCoords[1];
@@ -218,7 +215,6 @@ void VizFeatureParams::launch(){
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
 	
-	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectElevGridColor()));
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -392,17 +388,7 @@ selectColorbarBackgroundColor(){
 	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal);
 	dialogChanged = true;
 }
-void VizFeatureParams::
-selectElevGridColor(){
-	//Launch colorselector, put result into the button
-	QPalette pal(vizFeatureDlg->surfaceColorEdit->palette());
-	tempElevGridColor = QColorDialog::getColor(pal.color(QPalette::Base));
-	if (!tempElevGridColor.isValid()) return;
-	pal.setColor(QPalette::Base,tempElevGridColor);
-	vizFeatureDlg->surfaceColorEdit->setPalette(pal);
-	dialogChanged = true;
-	
-}
+
 	
 void VizFeatureParams::
 selectAxisColor(){
@@ -558,25 +544,7 @@ setDialog(){
 	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal2);
 
 	int numRefs = ds->getNumTransforms();
-	//if (isLayered){
-		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
-		vizFeatureDlg->refinementCombo->clear();
-		for (i = 0; i<= numRefs; i++){
-			vizFeatureDlg->refinementCombo->addItem(QString::number(i));
-		}
-	//}
-	displacement = vizWin->getDisplacement();
-	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
-	elevGridColor = vizWin->getElevGridColor();
-	tempElevGridColor = elevGridColor;
-	elevGridRefinement = vizWin->getElevGridRefinementLevel();
-	QPalette pal3(vizFeatureDlg->surfaceColorEdit->palette());
-	pal3.setColor(QPalette::Base, elevGridColor);
-	vizFeatureDlg->surfaceColorEdit->setPalette(pal3);
-
-	vizFeatureDlg->refinementCombo->setCurrentIndex(elevGridRefinement);
-	showElevGrid = vizWin->elevGridRenderingEnabled();
-	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);	
+	
 
 	//Set up the renderer combo.
 	vizFeatureDlg->rendererCombo->clear();
@@ -709,10 +677,6 @@ copyFromDialog(){
 
 	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
 
-	elevGridColor = tempElevGridColor;
-
-	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
-	elevGridRefinement = vizFeatureDlg->refinementCombo->currentIndex();
 	
 	applyToViz(vizNum);
 	
@@ -869,12 +833,6 @@ applyToViz(int vizNum){
 	vizWin->setTimeAnnotTextSize(timeAnnotTextSize);
 	vizWin->setTimeAnnotType(timeAnnotType);
 	
-	vizWin->setDisplacement(displacement);
-	vizWin->setElevGridColor(elevGridColor);
-	vizWin->enableElevGridRendering(showElevGrid);
-	vizWin->setElevGridRefinementLevel(elevGridRefinement);
-	
-	vizWin->getGLWindow()->invalidateElevGrid();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 	

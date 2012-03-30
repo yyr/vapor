@@ -87,7 +87,7 @@ public:
 	float calcCurrentValue(ProbeParams* p, const float point[3], int* sessionVarNums, int numVars);
 
 	//probe has a special version of histogramming
-	virtual void refreshHistogram(RenderParams* p, int = -1, const float[2] = 0);
+	virtual void refreshHistogram(RenderParams* p, int = -1, const float[2] = 0, bool is2D = false);
 
 
 	virtual void setEditorDirty(RenderParams* p = 0);

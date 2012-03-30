@@ -64,7 +64,7 @@ public:
 	}
 	
 protected:
-	float calcCurrentValue(TwoDParams* pParams, const float point[3], int* sessionVarNums, int numVars);
+	
 	bool seedAttached;
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without

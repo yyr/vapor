@@ -219,6 +219,7 @@ void TwoDDataEventRouter::updateTab(){
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	
 	//Provide latlon coords if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
@@ -284,9 +285,12 @@ void TwoDDataEventRouter::updateTab(){
 		sessionVarNums[totVars++] = varnum;
 	}
 	float val = OUT_OF_BOUNDS;
-	if (numVariables > 0) {val = calcCurrentValue(twoDParams,selectedPoint,sessionVarNums, totVars);
-		delete [] sessionVarNums;
-	}
+	string varname = ds->getVariableName2D(twoDParams->getFirstVarNum());	
+	double selectPoint[3];
+	for (int i = 0; i<3; i++) selectPoint[i] = selectedPoint[i];
+	val = RegionParams::calcCurrentValue(varname,selectPoint,twoDParams->GetRefinementLevel(), twoDParams->GetCompressionLevel(), (size_t)currentTimeStep);
+	
+
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
@@ -626,7 +630,7 @@ refreshTwoDHisto(){
 	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		refreshHistogram(pParams);
+		refreshHistogram(pParams,pParams->getSessionVarNum(), pParams->getCurrentDatarange(), true);
 	}
 	setEditorDirty();
 }
@@ -1540,114 +1544,6 @@ guiEndCursorMove(){
 	
 }
 
-//Obtain a new histogram for the current selected variables.
-//Save histogram at the position associated with firstVarNum
-void TwoDDataEventRouter::
-refreshHistogram(RenderParams* p, int, const float[2]){
-	TwoDDataParams* pParams = (TwoDDataParams*)p;
-	int firstVarNum = pParams->getFirstVarNum();
-	const float* currentDatarange = pParams->getCurrentDatarange();
-	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return;
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	if(pParams->doBypass(timeStep)) return;
-	if (!histogramList){
-		histogramList = new Histo*[numVariables];
-		numHistograms = numVariables;
-		for (int i = 0; i<numVariables; i++)
-			histogramList[i] = 0;
-	}
-	if (!histogramList[firstVarNum]){
-		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	}
-	Histo* histo = histogramList[firstVarNum];
-	histo->reset(256,currentDatarange[0],currentDatarange[1]);
-	//Determine what resolution is available:
-	int refLevel = pParams->GetRefinementLevel();
-	
-	if (ds->useLowerAccuracy()){
-		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
-			if (pParams->variableIsSelected(varnum)) {
-				refLevel = Min(ds->maxXFormPresent2D(varnum, timeStep), refLevel);
-			}
-		}
-		if (refLevel < 0) return;
-	}
-
-	//create the smallest containing box
-	size_t blkMin[3],blkMax[3];
-	size_t boxMin[3],boxMax[3];
-	
-	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, refLevel);
-	
-	
-	double boxExts[6];
-	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, refLevel);
-	//Check which variables are needed:
-	int varCount = 0;
-	std::vector<int> varNums;
-	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables2D(); varnum++){
-		if (pParams->variableIsSelected(varnum)) {
-			varCount++;
-			varNums.push_back(varnum);
-		}
-	}
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs*varCount > (int)(cacheSize*0.75)){
-		pParams->setAllBypass(true);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current twoD and resolution.\n%s \n%s",
-			"Lower the refinement level,\nreduce the plane size,\nor increase the cache size.",
-			"Rendering has been disabled.");
-		int instance = Params::GetCurrentParamsInstanceIndex(pParams->GetParamsBaseTypeId(),pParams->getVizNum());
-		assert(instance >= 0);
-		guiSetEnabled(false, instance, false);
-		updateTab();
-		return;
-	}
-	size_t bSize[3];
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bSize,refLevel);
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
-	float** planarData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this twoD:
-	
-	for (int var = 0; var < varCount; var++){
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		planarData[var] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varNums[var], timeStep, true);
-		QApplication::restoreOverrideCursor();
-		if (!planarData[var]) {
-			pParams->setBypass(timeStep);
-			return;
-		}
-	}
-	
-	//Loop over the pixels in the volume(s)
-	int xcrd = 0, ycrd = 1;
-	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
-	if (orientation < 2) ycrd++;
-	if (orientation < 1) xcrd++;
-
-	for (int j = boxMin[ycrd]; j<= boxMax[ycrd]; j++){
-		for (int i = boxMin[xcrd]; i<= boxMax[xcrd]; i++){
-			int xyzCoord = (i - blkMin[xcrd]*bSize[xcrd]) +
-					(j - blkMin[ycrd]*bSize[ycrd])*(bSize[xcrd]*(blkMax[xcrd]-blkMin[xcrd]+1));	
-			float varVal;
-					
-			if (varCount == 1) varVal = planarData[0][xyzCoord];
-			else { //Add up the squares of the variables
-				varVal = 0.f;
-				for (int d = 0; d<varCount; d++){
-					varVal += planarData[d][xyzCoord]*planarData[d][xyzCoord];
-				}
-				varVal = sqrt(varVal);
-			}
-			histo->addToBin(varVal);
-		}
-	}
-
-}
-
 	
 //Method called when undo/redo changes params.  It does the following:
 //  puts the new params into the vizwinmgr, deletes the old one
@@ -2098,7 +1994,7 @@ QString TwoDDataEventRouter::getMappedVariableNames(int* numvars){
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
-Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
+Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool, bool ){
 	
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
 	int varNum = renParams->getSessionVarNum();
@@ -2116,7 +2012,8 @@ Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, 
 	
 	if (!mustGet) return 0;
 	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	refreshHistogram(renParams);
+	
+	refreshHistogram(renParams,renParams->getSessionVarNum(), currentDatarange, true);
 	return histogramList[varNum];
 	
 }
@@ -2138,22 +2035,27 @@ void TwoDDataEventRouter::mapCursor(){
 	twoDCoord[0] = -cursorCoords[0];
 	twoDCoord[1] = cursorCoords[1];
 	twoDCoord[2] = 0.f;
-	float selectPoint[3];
+	double selectPoint[3];
 	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
 	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 	selectPoint[mapDims[2]] = constVal[0];
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	size_t timeStep = (size_t) vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
 		//mapDims are just 0,1,2
 		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
-		int varnum = DataStatus::getInstance()->getSessionVariableNum2D("HGT");
-		if (varnum >= 0){
-			float val = calcCurrentValue(tParams,selectPoint,&varnum, 1);
-			if (val != OUT_OF_BOUNDS)
+		string varname("HGT");
+		
+		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
+		if (val != OUT_OF_BOUNDS)
 				selectPoint[mapDims[2]] = val+tParams->getTwoDMin(2);
-		}
+		
 	} 
-	tParams->setSelectedPoint(selectPoint);
+	float spt[3];
+	for (int i = 0; i<3; i++) spt[i] = selectPoint[i];
+	tParams->setSelectedPoint(spt);
 }
 void TwoDDataEventRouter::updateBoundsText(RenderParams* params){
 	QString strn;

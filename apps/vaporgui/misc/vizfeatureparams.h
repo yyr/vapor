@@ -84,7 +84,7 @@ protected slots:
 	void selectTimeTextColor();
 
 	void selectColorbarBackgroundColor();
-	void selectElevGridColor();
+	
 	void selectAxisColor();
 	void applySettings();
 	void annotationChanged();
@@ -114,7 +114,7 @@ protected:
 	QString vizName;
 	bool showBar;
 	bool showAxisArrows;
-	bool showElevGrid;
+	
 	bool showAxisAnnotation;
 	bool enableSpin;
 	int timeAnnotType;//0,1,2 
@@ -135,14 +135,13 @@ protected:
 	int colorbarFontsize;
 	float timeAnnotCoords[2];
 	int numColorbarTics;
-	int elevGridRefinement;
 	QColor colorbarBackgroundColor;
-	QColor elevGridColor;
+
 	QColor timeAnnotColor;
 	QColor axisAnnotationColor;
 	//Temp versions to remember value set in gui.  This info is lost when the dialog closes.
 	QColor tempColorbarBackgroundColor;
-	QColor tempElevGridColor;
+	
 	QColor tempTimeAnnotColor;
 	QColor tempAxisAnnotationColor;
 

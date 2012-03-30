@@ -2118,8 +2118,10 @@ Histo* MappingFrame::getHistogram()
 
   if (params)
   {
+	  //Currently only the 2D data params uses histograms of 2D variables
+	  bool is2D = (params->GetName() == Params::_twoDDataParamsTag);
     return VizWinMgr::getEventRouter(params->GetParamsBaseTypeId())->
-      getHistogram(params, params->isEnabled(),_isoSliderEnabled);
+      getHistogram(params, params->isEnabled(),_isoSliderEnabled, is2D);
   }
 
   return NULL;

@@ -171,13 +171,12 @@ public:
 	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
 	
 	//! Evaluate a variable at a point, as requested by a RenderParams
-	//! \param[in] RenderParams* rp		Instance of RenderParams that is requesting the value, needed in case data is unavailable
-	//! \param[in] int sessionVarNum	Session variable number of requested variable
+	//! \param[in] string varname		requested variable name (2d or 3d)
 	//! \param[in] double point[3]		User coordinates of requested value
 	//! \param[in] int numRefinements	Refinement level of requested data
 	//! \param[in] int lod				Compression level of requested data
 	//! \param[in] int timeStep			Time step of data
-	float calcCurrentValue(RenderParams* rp, int sessionVarNum, const double point[3], int numRefinements, int lod, size_t timeStep);
+	static float calcCurrentValue( const string& varname, const double point[3], int numRefinements, int lod, size_t timeStep);
 
 #ifndef DOXYGEN_SKIP_THIS
 

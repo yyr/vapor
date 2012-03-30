@@ -114,9 +114,8 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 
 	
 	colorbarBackgroundColor = QColor(Qt::black);
-	elevColor = QColor(150,75,0);
-	renderElevGrid = getDefaultTerrainEnabled();
-	elevGridRefLevel = 0;
+	
+	
 	axisArrowsEnabled = getDefaultAxisArrowsEnabled();
 	axisAnnotationEnabled = false;
 	
@@ -177,14 +176,7 @@ GLWindow::GLWindow( QGLFormat& fmt, QWidget* parent, int windowNum )
 		} else assert(0);
 	}
 
-	elevVert = 0;
-	elevNorm = 0;
-	maxXElev = 0;
-	maxYElev = 0;
-	xbeg = ybeg = xfactr = yfactr = 0;
-	numElevTimesteps = 0;
-	_elevTexid = 0;
-	displacement = 0;
+	
 	QString path = qApp->applicationDirPath();
 	//Assume shaders in exec dir
 
@@ -212,8 +204,7 @@ GLWindow::~GLWindow()
 		delete renderer[i];
 	}
 	setNumRenderers(0);
-	invalidateElevGrid();
-	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
+	
 	delete manager;
 	nowPainting = false;
 	
@@ -443,9 +434,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	}
 	
 	
-	if (renderElevGrid) {
-			drawElevationGrid(timeStep);
-	}
+	
 	if (axisAnnotationIsEnabled() && !sphericalTransform) {
 		drawAxisLabels();
 	}
@@ -593,8 +582,7 @@ void GLWindow::initializeGL()
 		renderer[i]->initializeGL();
 		printOpenGLErrorMsg(renderer[i]->getMyName().c_str());
 	}
-    glGenTextures(1, &_elevTexid);
-	glBindTexture(GL_TEXTURE_2D, _elevTexid);
+   
 	nowPainting = false;
 	printOpenGLError();
 	
@@ -917,393 +905,6 @@ void GLWindow::setRegionFrameColorFlt(const QColor& c){
 	regionFrameColorFlt[1]= (float)c.green()/255.;
 	regionFrameColorFlt[2]= (float)c.blue()/255.;
 }
-//Draw an elevation grid (surface) inside the current region extents:
-void GLWindow::drawElevationGrid(size_t timeStep){
-	//If the region is dirty, or the timestep has changed, must rebuild.
-	if (vizIsDirty(RegionBit)) invalidateElevGrid();
-	//First, check if we have already constructed the elevation grid vertices.
-	//If not, rebuild them:
-	if (!elevVert || !elevVert[timeStep]) {
-		if(!rebuildElevationGrid(timeStep)) return;
-	}
-	mxx = maxXElev[timeStep];
-	mxy = maxYElev[timeStep];
-	xfct = xfactr[timeStep];
-	xbg = xbeg[timeStep];
-	yfct = yfactr[timeStep];
-	ybg = ybeg[timeStep];
-	//Establish clipping planes:
-	GLdouble topPlane[] = {0., -1., 0., 1.};
-	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
-	GLdouble leftPlane[] = {1., 0., 0., 0.};
-	GLdouble botPlane[] = {0., 1., 0., 0.};
-	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
-	GLdouble backPlane[] = {0., 0., 1., 0.};
-	//Apply a coord transform that moves the full domain to the unit cube.
-	
-	glPushMatrix();
-	
-	//scale:
-	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-
-	//translate to put origin at corner:
-	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
-	
-	//Set up clipping planes
-	const float* scales = DataStatus::getInstance()->getStretchFactors();
-	RegionParams* myRegionParams = getActiveRegionParams();
-	double regExts[6]; 
-	myRegionParams->GetBox()->GetExtents(regExts,timeStep);
-	topPlane[3] = regExts[4]*scales[1];
-	botPlane[3] = -regExts[1]*scales[1];
-	leftPlane[3] = -regExts[0]*scales[0];
-	rightPlane[3] = regExts[3]*scales[0];
-	frontPlane[3] = regExts[5]*scales[2];
-	backPlane[3] = -regExts[2]*scales[2];
-
-	//Calculate x and y stretch factors, translation factors for texture mapping:
-	
-	glClipPlane(GL_CLIP_PLANE0, topPlane);
-	glEnable(GL_CLIP_PLANE0);
-	glClipPlane(GL_CLIP_PLANE1, rightPlane);
-	glEnable(GL_CLIP_PLANE1);
-	glClipPlane(GL_CLIP_PLANE2, botPlane);
-	glEnable(GL_CLIP_PLANE2);
-	glClipPlane(GL_CLIP_PLANE3, leftPlane);
-	glEnable(GL_CLIP_PLANE3);
-	glClipPlane(GL_CLIP_PLANE4, frontPlane);
-	glEnable(GL_CLIP_PLANE4);
-	glClipPlane(GL_CLIP_PLANE5, backPlane);
-	glEnable(GL_CLIP_PLANE5);
-
-	glPopMatrix();
-	//Set up  color
-	float elevGridColor[4];
-	elevGridColor[0] = ((float)elevColor.red())/255.f;
-	elevGridColor[1] = ((float)elevColor.green())/255.f;
-	elevGridColor[2] = ((float)elevColor.blue())/255.f;
-	elevGridColor[3] = 1.f;
-	ViewpointParams* vpParams = getActiveViewpointParams();
-	int nLights = vpParams->getNumLights();
-	
-	glShadeModel(GL_SMOOTH);
-	if (nLights >0){
-		glEnable(GL_LIGHTING);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, elevGridColor);
-	} else {
-		glDisable(GL_LIGHTING);
-		glColor3fv(elevGridColor);
-	}
-	//Check if there is a texture to apply:
-	
-	
-	
-	//Now we can just traverse the elev grid, one row at a time:
-	glEnable(GL_DEPTH_TEST);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	
-	
-	for (int j = 0; j< mxy-1; j++){
-		glBegin(GL_QUAD_STRIP);
-		
-		
-		for (int i = 0; i< mxx; i++){ //No texture
-		
-			//Each quad is described by sending 4 vertices, i.e. the points indexed by
-			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
-			
-			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*mxx));
-			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*mxx));
-			
-			glNormal3fv(elevNorm[timeStep]+3*(i+j*mxx));
-			glVertex3fv(elevVert[timeStep]+3*(i+j*mxx));
-			
-		}
-		glEnd();
-	}
-	
-	glDisable(GL_CLIP_PLANE0);
-	glDisable(GL_CLIP_PLANE1);
-	glDisable(GL_CLIP_PLANE2);
-	glDisable(GL_CLIP_PLANE3);
-	glDisable(GL_CLIP_PLANE4);
-	glDisable(GL_CLIP_PLANE5);
-	glDisable(GL_LIGHTING);
-	
-	printOpenGLError();
-}
-
-//Invalidate array.  Set pointers to zero before deleting so we
-//can't accidentally get trapped with bad pointer.
-void GLWindow::invalidateElevGrid(){
-	if (elevVert){
-		for (int i = 0; i<numElevTimesteps; i++){
-			if (elevVert[i]){
-				float * elevPtr = elevVert[i];
-				elevVert[i] = 0;
-				delete elevPtr;
-				delete elevNorm[i];
-				elevNorm[i] = 0;
-			}
-		}
-		float ** tmpArray = elevVert;
-		elevVert = 0;
-		delete tmpArray;
-		delete elevNorm;
-		elevNorm = 0;
-		numElevTimesteps = 0;
-		delete [] maxXElev;
-		delete [] maxYElev;
-		delete [] xfactr;
-		delete [] yfactr;
-		delete [] xbeg;
-		delete [] ybeg;
-	}
-}
-bool GLWindow::rebuildElevationGrid(size_t timeStep){
-	//Reconstruct the elevation grid.
-	//First, check that the cache is OK:
-	if (!elevVert){
-		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
-		elevVert = new float*[numElevTimesteps];
-		elevNorm = new float*[numElevTimesteps];
-		maxXElev = new int[numElevTimesteps];
-		maxYElev = new int[numElevTimesteps];
-		xfactr = new float[numElevTimesteps];
-		yfactr = new float[numElevTimesteps];
-		xbeg = new float[numElevTimesteps];
-		ybeg = new float[numElevTimesteps];
-		for (int i = 0; i< numElevTimesteps; i++){
-			elevVert[i] = 0;
-			elevNorm[i] = 0;
-			maxXElev[i] = 0;
-			maxYElev[i] = 0;
-			xfactr[i] = 0.f;
-			yfactr[i] = 0.f;
-			xbeg[i] = 0.f;
-			ybeg[i] = 0.f;
-		}
-	}
-
-	//find the grid coordinate ranges
-	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
-	double regMin[3],regMax[3];
-	double regMinOrig[3], regMaxOrig[3];
-	DataStatus* ds = DataStatus::getInstance();
-	//See if there is a HGT variable
-	
-	float* elevData = 0;
-	float* hgtData = 0;
-	DataMgr* dataMgr = ds->getDataMgr();
-	LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
-
-	float displacement = getDisplacement();
-	//Don't allow the terrain surface to be below the minimum extents:
-	const float* extents = ds->getExtents();
-	float minElev = extents[2]+(0.0001)*(extents[5] - extents[2]);
-	//Initialize regmin, origregmin to full region extents:
-	RegionParams* rParams = getActiveRegionParams();
-	double exts[6];
-	rParams->GetBox()->GetExtents(exts,timeStep);
-	for (int i = 0; i< 3; i++){
-		regMin[i] = exts[i];
-		regMax[i] = exts[i+3];
-		regMinOrig[i] = regMin[i];
-		regMaxOrig[i] = regMax[i];
-	}
-	int varnum = DataStatus::getSessionVariableNum2D("HGT");
-	int refLevel = elevGridRefLevel;
-	if ( varnum < 0 || !DataStatus::getInstance()->dataIsPresent2D(varnum, timeStep)) {
-		//Use Elevation variable as backup:
-		varnum = DataStatus::getSessionVariableNum3D("ELEVATION");
-		if (dataMgrLayered && (varnum >= 0)) {
-			// NOTE:  Currently we are clearing cache here just because we need
-			// turn interpolation off.  This will not be so painful if we
-			// allowed both interpolated and uninterpolated volumes to coexist
-			// in the data manager.
-
-			dataMgr->Clear();
-			dataMgrLayered->SetInterpolateOnOff(false);
-			//Try to get requested refinement level or the nearest acceptable level:
-			refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim,  
-					timeStep, &varnum, 1, regMin, regMax);
-			if(refLevel < 0) {
-				dataMgrLayered->SetInterpolateOnOff(true);
-				return false;
-			}
-			
-			//Modify 3rd coord of region extents to obtain only bottom layer:
-			min_dim[2] = max_dim[2] = 0;
-			min_bdim[2] = max_bdim[2] = 0;
-			//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
-			//performing the interpolation step
-			
-			elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, 0, min_bdim, max_bdim, 0);
-			dataMgrLayered->SetInterpolateOnOff(true);
-			if (!elevData) {
-				dataMgr->SetErrCode(0);
-				if (ds->warnIfDataMissing()){
-					SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
-						timeStep,
-						"This message can be silenced \nusing the User Preference Panel settings." );
-				}
-				ds->setDataMissing3D(timeStep, refLevel, 0, ds->getSessionVariableNum3D(std::string("ELEVATION")));
-				return false;
-			}
-		}
-		else { //setup for just doing flat plane:
-			
-			rParams->getRegionVoxelCoords(elevGridRefLevel, min_dim, max_dim, timeStep);
-		}
-	} else {
-		
-		
-		//Try to get requested refinement level or the nearest acceptable level:
-		refLevel = rParams->shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
-				timeStep, &varnum, 1, regMin, regMax, true);
-		
-
-		if(refLevel < 0 && dataMgrLayered) {
-			dataMgrLayered->SetInterpolateOnOff(true);
-			return false;
-		}
-			
-		
-		//Ignore vertical extents
-		min_dim[2] = max_dim[2] = 0;
-		min_bdim[2] = max_bdim[2] = 0;
-		//Then, ask the Datamgr to retrieve the HGT data
-		
-		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, 0, min_bdim, max_bdim, 0);
-		
-		if (!hgtData) {
-			dataMgr->SetErrCode(0);
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.\n %s", 
-					timeStep,
-					"This message can be silenced \nusing the User Preference Panel settings." );
-			}
-			ds->setDataMissing2D(timeStep, refLevel, 0, ds->getSessionVariableNum2D(std::string("HGT")));
-			return false;
-		}
-	}
-	if (!elevData && !hgtData) return false;
-	//Then create arrays to hold the vertices and their normals:
-	mxx = maxXElev[timeStep] = max_dim[0] - min_dim[0] +1;
-	mxy = maxYElev[timeStep] = max_dim[1] - min_dim[1] +1;
-	elevVert[timeStep] = new float[3*mxx*mxy];
-	elevNorm[timeStep] = new float[3*mxx*mxy];
-	
-	//Determine linear function that maps points of grid into the
-	//subset of interval (0,1)  associated with region.  Interval [0,1] is because the
-	// extents are mapped into unit box.
-	//There are mxx points evenly spaced
-	//going from xbeg to (mxx-1)*xfactr.  
-	xbeg[timeStep] = (regMin[0]-regMinOrig[0])/(regMaxOrig[0]-regMinOrig[0]);
-	//Bx is the max x coordinate, xbeg is min x coord.
-	float Bx = (regMax[0] - regMinOrig[0])/(regMaxOrig[0]-regMinOrig[0]);
-	xfactr[timeStep] = (Bx - xbeg[timeStep])/(float)(mxx-1);
-	ybeg[timeStep] = (regMin[1]-regMinOrig[1])/(regMaxOrig[1]-regMinOrig[1]);
-	float By = (regMax[1] - regMinOrig[1])/(regMaxOrig[1]-regMinOrig[1]);
-	yfactr[timeStep] = (By - ybeg[timeStep])/(float)(mxy-1);
-
-
-	//Then loop over all the vertices in the Elevation or HGT data. 
-	//For each vertex, construct the corresponding 3d point as well as the normal vector.
-	//These must be converted to
-	//stretched cube coordinates.  The x and y coordinates are determined by
-	//scaling them to the extents. (Need to know the actual min/max stretched cube extents
-	//that correspond to the min/max grid extents)
-	//The z coordinate is taken from the data array, converted to 
-	//stretched cube coords
-	//using parameters in the viewpoint params.
-
-	
-	float worldCoord[3];
-	size_t bs[3];
-	ds->getDataMgr()->GetBlockSize(bs, refLevel);
-	for (int j = 0; j<mxy; j++){
-		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(mxy-1);
-		size_t ycrd = 0; 
-		if (varnum >= 0) ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-		for (int i = 0; i<mxx; i++){
-			int pntPos = 3*(i+j*mxx);
-			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(mxx-1);
-			if (varnum < 0) { //No elevation data, just use min extents:
-				worldCoord[2] = minElev+displacement;
-			} else {
-				size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
-				if (elevData)
-					worldCoord[2] = elevData[xcrd+ycrd] + displacement;
-				else {
-					worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
-				} 
-			}
-			if (worldCoord[2] < minElev) worldCoord[2] = minElev;
-			//Convert and put results into elevation grid vertices:
-			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
-		}
-	}
-	//Now calculate normals:
-	calcElevGridNormals(timeStep);
-	
-	return true;
-}
-//Once the elevation grid vertices are determined, calculate the normals.  Use the stretched
-//cube coords in the elevVert array.
-//The normal vectors are determined by looking at z-coords of adjacent vertices in both 
-//x and y.  Suppose that dzx is the change in z associated with an x-change of dz,
-//and that dzy is the change in z associated with a y-change of dy.  Let the normal
-//vector be (a,b,c).  Then a/c is equal to dzx/dx, and b/c is equal to dzy/dy.  So
-// (a,b,c) is proportional to (dzx*dy, dzy*dx, 1) 
-//Must compensate for stretching, since the actual z-differences between
-//adjacent vertices will be miniscule
-void GLWindow::calcElevGridNormals(size_t timeStep){
-	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
-	mxx = maxXElev[timeStep];
-	mxy = maxYElev[timeStep];
-	//Go over the grid of vertices, calculating normals
-	//by looking at adjacent x,y,z coords.
-	for (int j = 0; j < mxy; j++){
-		for (int i = 0; i< mxx; i++){
-			float* point = elevVert[timeStep]+3*(i+mxx*j);
-			float* norm = elevNorm[timeStep]+3*(i+mxx*j);
-			//do differences of right point vs left point,
-			//except at edges of grid just do differences
-			//between current point and adjacent point:
-			float dx=0.f, dy=0.f, dzx=0.f, dzy=0.f;
-			if (i>0 && i <mxx-1){
-				dx = *(point+3) - *(point-3);
-				dzx = *(point+5) - *(point-1);
-			} else if (i == 0) {
-				dx = *(point+3) - *(point);
-				dzx = *(point+5) - *(point+2);
-			} else if (i == mxx-1) {
-				dx = *(point) - *(point-3);
-				dzx = *(point+2) - *(point-1);
-			}
-			if (j>0 && j <mxy-1){
-				dy = *(point+1+3*mxx) - *(point+1 - 3*mxx);
-				dzy = *(point+2+3*mxx) - *(point+2 - 3*mxx);
-			} else if (j == 0) {
-				dy = *(point+1+3*mxx) - *(point+1);
-				dzy = *(point+2+3*mxx) - *(point+2);
-			} else if (j == mxy-1) {
-				dy = *(point+1) - *(point+1 - 3*mxx);
-				dzy = *(point+2) - *(point+2 - 3*mxx);
-			}
-			norm[0] = dy*dzx;
-			norm[1] = dx*dzy;
-			//Making the following small accentuates the angular differences when lit:
-			norm[2] = 1.f/ELEVATION_GRID_ACCENT;
-			for (int k = 0; k < 3; k++) norm[k] /= stretchFac[k];
-			vnormal(norm);
-		}
-	}
-}
-
 void GLWindow::drawTimeAnnotation(){
 
 	//Always need to check the time:
@@ -1592,7 +1193,7 @@ void GLWindow::removeAllRenderers(){
 		delete renderer[i];
 	}
 	//setNumRenderers(0);
-	invalidateElevGrid();
+	
 	nowPainting = false;
 	numRenderers = 0;
 	for (int i = 0; i< MAXNUMRENDERERS; i++){

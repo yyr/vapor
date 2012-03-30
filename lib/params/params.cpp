@@ -418,6 +418,7 @@ void RenderParams::setAllBypass(bool val){
 	for (int i = 0; i<bypassFlags.size(); i++)
 		bypassFlags[i] = ival;
 }
+/*
 // used by Probe, TwoD, and Region currently.  Can retrieve either slice or volume
 // reduce the refinement level, or reduce the compression level (if allowed)
 float* RenderParams::
@@ -491,7 +492,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessio
 	}
 	return reg;
 }
-	
+*/
 //Default camera distance just finds distance to region box in stretched coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
 	double exts[6];
@@ -680,7 +681,7 @@ void Params::clearDummyParamsInstances(){
 //Variables can be 2D or 3D depending on value of "varsAre2D"
 //Returns 0 on failure
 //
-int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, bool varsAre2D, RegularGrid** grids){
+int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6], int* refLevel, int* lod, RegularGrid** grids){
 	
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
@@ -720,13 +721,22 @@ int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6
 	}
 			
 
-		
-	//see if we have enough space:
-	int numMBs;
-	if (varsAre2D)
-		numMBs = 4*varnames.size()*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)/1000000;
-	else numMBs = 4*varnames.size()*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/1000000;
 	
+	//see if we have enough space:
+	int numMBs = 0;
+	const vector<string> varnames3D = dataMgr->GetVariables3D();
+	for (int i = 0; i<varnames.size(); i++){
+		if (varnames[i] == "0") continue;
+		bool varIs3D = false;
+		for (int j = 0; j<varnames3D.size();j++){
+			if (varnames[i] == varnames3D[j]){varIs3D = true; break;}
+		}
+		
+		if (varIs3D)
+			numMBs += 4*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/1000000;
+		else
+			numMBs += 4*(boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)/1000000;
+	} 	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
 	if (numMBs > (int)(cacheSize*0.75)){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current probe and resolution.\n%s",

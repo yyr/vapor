@@ -52,7 +52,7 @@ public:
 		VizWinMgr::getInstance()->setFlowGraphicsDirty((FlowParams*)p);
 	}
 	// Flow panel doesn't have histograms.
-	virtual Histo* getHistogram(RenderParams*, bool, bool) {return 0;}
+	virtual Histo* getHistogram(RenderParams*, bool, bool,bool) {return 0;}
 	
 	//Connect signals and slots from tab
 	virtual void hookUpTab();

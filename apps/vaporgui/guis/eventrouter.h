@@ -200,8 +200,8 @@ public:
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
-	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
-	virtual void refreshHistogram(RenderParams* , int sesVarNum, const float drange[2]);
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false, bool is2D = false);
+	virtual void refreshHistogram(RenderParams* , int sesVarNum, const float drange[2], bool is2D=false);
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null

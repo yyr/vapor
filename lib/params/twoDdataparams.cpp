@@ -880,11 +880,12 @@ void TwoDDataParams::setTwoDDirty(){
 //is not affected 
 unsigned char* TwoDDataParams::
 calcTwoDDataTexture(int ts, int texWidth, int texHeight){
-	size_t blkMin[3], blkMax[3];
-	size_t coordMin[3], coordMax[3];
+	
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) return 0;
+	DataMgr* dataMgr = ds->getDataMgr();
+
+	if (!dataMgr) return 0;
 	if (doBypass(ts)) return 0;
 	
 	//if width and height are 0, then the image will
@@ -895,30 +896,25 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	bool doCache = (texWidth == 0 && texHeight == 0);
 
 
-	//Make a list of the session variable nums we want:
-	int* sesVarNums = new int[ds->getNumSessionVariables2D()];
-	int actualRefLevel; 
-	int numVars = 0;
-	for (int varnum = 0; varnum < ds->getNumSessionVariables2D(); varnum++){
-		if (!variableIsSelected(varnum)) continue;
-		sesVarNums[numVars++] = varnum;
+	//Get the first variable name
+	vector<string>varname;
+	varname.push_back(ds->getVariableName2D(firstVarNum));
+	
+	RegularGrid* twoDGrid;
+	int actualRefLevel = GetRefinementLevel();
+	int lod = GetCompressionLevel();
+	double exts[6];
+	for (int i = 0; i<3; i++){
+		exts[i] = getTwoDMin(i);
+		exts[i+3] = getTwoDMax(i);
 	}
-	
-	
-	//get the slice(s) from the DataMgr
-	//one of the 3 coords in each coordinate argument will be ignored,
-	//depending on orientation of the variables
-	float** planarData = getTwoDVariables(ts,  numVars, sesVarNums,
-				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
-
-	if(!planarData){
-		delete [] sesVarNums;
+	int rc = getGrids(ts, varname, exts, &actualRefLevel, &lod,  &twoDGrid);
+	if(!rc){
 		setBypass(ts);
 		return 0;
 	}
-	size_t bSize[3];
-	ds->getDataMgr()->GetBlockSize(bSize, actualRefLevel);
-
+	twoDGrid->SetInterpolationOrder(0);
+	
 	float a[2],b[2];  //transform of (x,y) is to (a[0]x+b[0],a[1]y+b[1])
 	//Set up to transform from twoD into volume:
 	float constValue[2];
@@ -948,7 +944,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	
 	float twoDCoord[2];
 	double dataCoord[3];
-	size_t arrayCoord[3];
+	
 	const float* extents = ds->getExtents();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
@@ -976,69 +972,49 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 		texHeight = txsize[1];
 	}
 	
-	
 	unsigned char* twoDTexture = new unsigned char[texWidth*texHeight*4];
 
-	//Use the region reader to calculate coordinates in volume
-	DataMgr* dataMgr = ds->getDataMgr();
-
-	if (ds->dataIsLayered()){
-		RegionParams::setFullGridHeight(RegionParams::getFullGridHeight());
-	}
-
-
-	//Loop over pixels in texture.  Pixel centers map to edges of twoD plane
+	//Loop over pixels in texture.  Pixel centers start at 1/2 pixel from edge
 	int dataOrientation = ds->get2DOrientation(firstVarNum);
+	float halfPixHt = 1./(float)texHeight;
+	float halfPixWid = 1./(float)texWidth;
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
-		twoDCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
+		// .5*h - 1 and 1 -.5*h, where h is the height of a pixel relative to [-1,1]
+		
+		twoDCoord[1] = halfPixHt-1.f + 2.f*(1.-halfPixHt)*(float)iy/(float)(texHeight-1);
 		for (int ix = 0; ix < texWidth; ix++){
 			
-			
-			twoDCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
+			bool dataOK = true;
+			twoDCoord[0] = halfPixWid-1.f + 2.f*(1.-halfPixWid)*(float)ix/(float)(texWidth-1);
 			//find the coords that the texture maps to
 			//twoDCoord is the coord in the twoD slice, dataCoord is in data volume 
 			dataCoord[mapDims[2]] = constValue[0];
 			dataCoord[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
-			
-			dataMgr->MapUserToVox(ts, dataCoord, arrayCoord, actualRefLevel);
-			bool dataOK = true;
+						
 			for (int i = 0; i< 3; i++){
 				if (i == dataOrientation) continue;
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
-				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i]) dataOK = false;
 			}
 			
 			if(dataOK) { //find the coordinate in the data array
 				
-				int xyzCoord = (arrayCoord[mapDims[0]] - blkMin[mapDims[0]]*bSize[mapDims[0]]) +
-					(arrayCoord[mapDims[1]] - blkMin[mapDims[1]]*bSize[mapDims[1]])*(bSize[mapDims[0]]*(blkMax[mapDims[0]]-blkMin[mapDims[0]]+1));
-					
-				float varVal;
-				assert(xyzCoord >= 0);
+				float varVal = twoDGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
 
-				//use the intDataCoords to index into the loaded data
-				if (numVars == 1) varVal = planarData[0][xyzCoord]; 
-				else { //Add up the squares of the variables
-					varVal = 0.f;
-					for (int k = 0; k<numVars; k++){
-						varVal += planarData[k][xyzCoord]*planarData[k][xyzCoord];
-					}
-					varVal = sqrt(varVal);
-				}
+				if (varVal != twoDGrid->GetMissingValue()){ 			
+					//Use the transfer function to map the data:
+					int lutIndex = transFunc->mapFloatToIndex(varVal);
 				
-				//Use the transfer function to map the data:
-				int lutIndex = transFunc->mapFloatToIndex(varVal);
-				
-				twoDTexture[4*(ix+texWidth*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
-				twoDTexture[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
-				twoDTexture[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
-				twoDTexture[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
+					twoDTexture[4*(ix+texWidth*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
+					twoDTexture[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
+					twoDTexture[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
+					twoDTexture[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
+				} else {dataOK = false;}
 				
 			}
-			else {//point out of region
+			if(!dataOK) {//point out of region or missing value:
 				twoDTexture[4*(ix+texWidth*iy)] = 0;
 				twoDTexture[4*(ix+texWidth*iy)+1] = 0;
 				twoDTexture[4*(ix+texWidth*iy)+2] = 0;
@@ -1049,8 +1025,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	}//End loop over iy
 	
 	if (doCache) setTwoDTexture(twoDTexture,ts, txsize);
-	delete [] planarData;
-	delete [] sesVarNums;
+	dataMgr->UnlockGrid(twoDGrid);
+	delete twoDGrid;
 	return twoDTexture;
 }
 void TwoDDataParams::adjustTextureSize(int sz[2]){
@@ -1088,83 +1064,6 @@ void TwoDDataParams::adjustTextureSize(int sz[2]){
 	sz[0] = texSize[0];
 	sz[1] = texSize[1];
 	
-}
-//Determine the voxel extents of plane mapped into data.
-
-
-
-
-//General routine that obtains 1 or more 2D variables from the cache in the smallest volume that
-//contains the 2D slice.  sesVarNums is a list of session variable numbers to be obtained.
-//If the variable num is negative, just returns a null data array.
-//(Note that this is a generalization of the first part of calcTwoDDataTexture)
-//Provides several variables to be used in addressing into the data
-
-float** TwoDDataParams::
-getTwoDVariables(int ts,  int numVars, int* sesVarNums,
-				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
-				  int* actualRefLevel){
-	if (!isEnabled()) return 0;
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr* dataMgr = ds->getDataMgr();
-	if (!dataMgr) return 0;
-	
-	int refLevel = GetRefinementLevel();
-	//reduce reflevel if not all variables are available:
-	if (ds->useLowerAccuracy()){
-		for (int varnum = 0; varnum < numVars; varnum++){
-			int sesVarNum = sesVarNums[varnum];
-			if (sesVarNum >= 0){
-				refLevel = Min(ds->maxXFormPresent2D(sesVarNum, ts), refLevel);
-			}
-		}
-	}
-	if (refLevel < 0) return 0;
-	*actualRefLevel = refLevel;
-	
-	//Determine the integer extents of the containing square, truncate to
-	//valid integer coords:
-
-	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, refLevel);
-	
-	double boxExts[6];
-	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts,refLevel);
-	
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs*numVars > (int)(cacheSize*0.75)){
-		setAllBypass(true);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small\nfor current twoD and resolution.\n%s \n%s",
-			"Lower the refinement level,\nreduce the twoD size,\nor increase the cache size.",
-			"Rendering has been disabled.");
-		setEnabled(false);
-		return 0;
-	}
-	
-	//Make the z -extents equal to the full z-extents of data domain.  This is in case the
-	//2D variable is the output of a script, and there is a 3D input to the script. This way the 3D extents of
-	//the 3D input variable are always the full vertical extents of the volume.
-	size_t regBlockExtents[3];
-	dataMgr->GetDimBlk(regBlockExtents,refLevel);
-	blkMin[2] = 0;
-	blkMax[2] = regBlockExtents[2];
-	
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable 
-	float** planarData = new float*[numVars];
-	//obtain all of the planes needed for this twoD:
-	
-	for (int varnum = 0; varnum < numVars; varnum++){
-		int varindex = sesVarNums[varnum];
-		if (varindex < 0) {planarData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
-		planarData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, true);
-		if (!planarData[varnum]) {
-			delete [] planarData;
-			return 0;
-		}
-	}
-
-	return planarData;
 }
 
 bool TwoDDataParams::IsOpaque(){

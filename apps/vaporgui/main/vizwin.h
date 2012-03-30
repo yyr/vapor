@@ -175,12 +175,7 @@ public:
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
 
-	void setDisplacement(float val){myGLWindow->setDisplacement(val);}
-	float getDisplacement() {return myGLWindow->getDisplacement();}
-	void setElevGridColor(QColor& c) {myGLWindow->setElevGridColor(c);}
-	void setElevGridRefinementLevel(int lev) {myGLWindow->setElevGridRefinementLevel(lev);}
-	void enableElevGridRendering(bool val) {myGLWindow->enableElevGridRendering(val);}
-	
+		
 	void setTimeAnnotCoords(float crds[2]){myGLWindow->setTimeAnnotCoords(crds);}
 	float getTimeAnnotCoord(int j) {return myGLWindow->getTimeAnnotCoord(j);}
 	void setTimeAnnotColor(QColor c) {myGLWindow->setTimeAnnotColor(c);}
@@ -190,10 +185,6 @@ public:
 	void setTimeAnnotTextSize(int size){myGLWindow->setTimeAnnotTextSize(size);}
 	int getTimeAnnotTextSize(){return myGLWindow->getTimeAnnotTextSize();}
 	
-	QColor& getElevGridColor() {return myGLWindow->getElevGridColor();}
-	int getElevGridRefinementLevel() {return myGLWindow->getElevGridRefinementLevel();}
-	bool elevGridRenderingEnabled(){return myGLWindow->elevGridRenderingEnabled();}
-
 	bool colorbarIsDirty() {return myGLWindow->colorbarIsDirty();}
 	void setColorbarDirty(bool val){myGLWindow->setColorbarDirty(val);}
 	

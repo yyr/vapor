@@ -157,24 +157,24 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	
 
 	//find the grid coordinate ranges
-	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
+	size_t min_dim[3], max_dim[3];
 	double regMin[3],regMax[3];
 	
 	DataStatus* ds = DataStatus::getInstance();
 	const float* extents = ds->getExtents();
 	//See if there is a HGT variable
 	
-	float* elevData = 0;
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
-
-    LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO*> (dataMgr);
-    if (! dataMgrLayered) return false;
 
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
 	float displacement = tParams->getTwoDMin(2);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
-	
+	double twoDExts[6];
+	for (int i = 0; i<3; i++){
+		twoDExts[i] = tParams->getTwoDMin(i);
+		twoDExts[i+3] = tParams->getTwoDMax(i);
+	}
 	
 	double origRegMin[2], origRegMax[2];
 	for (int i = 0; i< 2; i++){
@@ -196,57 +196,28 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	//Convert to voxels:
 	
 	int elevGridRefLevel = tParams->GetRefinementLevel();
-	//Do mapping to voxel coords at current ref level:
-	dataMgrLayered->MapUserToVox(timeStep, regMin, min_dim, elevGridRefLevel);
-	dataMgrLayered->MapUserToVox(timeStep, regMax, max_dim, elevGridRefLevel);
-	//Convert back to user coords:
-	dataMgrLayered->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
-	dataMgrLayered->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
-	//Extend by 1 voxel in x and y if it is smaller than original domain
-	for (int i = 0; i< 2; i++){
-		if(regMin[i] > origRegMin[i] && min_dim[i]>0) min_dim[i]--;
-		if(regMax[i] < origRegMax[i] && max_dim[i]< ds->getFullSizeAtLevel(elevGridRefLevel,i)-1)
-			max_dim[i]++;
-	}
-	
-	//Convert increased vox dims to user coords:
-	dataMgrLayered->MapVoxToUser(timeStep, min_dim, regMin, elevGridRefLevel);
-	dataMgrLayered->MapVoxToUser(timeStep, max_dim, regMax, elevGridRefLevel);
-	
+	int lod = tParams->GetCompressionLevel();
+	vector<string>varname;
+	varname.push_back("HGT");
+	RegularGrid *hgtGrid;
 	
 	//Try to get requested refinement level or the nearest acceptable level:
-	int refLevel = RegionParams::shrinkToAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
-			timeStep, &varnum, 1, regMin, regMax, true);
+	int rc = tParams->getGrids(timeStep,varname, twoDExts, &elevGridRefLevel, &lod,  &hgtGrid); 
 	
-	if(refLevel < 0) {
-		setBypass(timeStep);
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
-		dataMgrLayered->SetInterpolateOnOff(true);
-		return false;
-	}
-	
-	
-	//Ignore vertical extents
-	min_dim[2] = max_dim[2] = 0;
-	min_bdim[2] = max_bdim[2] = 0;
-	//Then, ask the Datamgr to retrieve the HGT data
-	int lod = tParams->GetCompressionLevel();
-	if (ds->useLowerAccuracy())
-		lod = Min(lod, ds->maxLODPresent2D(varnum, timeStep));
-	hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel, tParams->GetCompressionLevel(), min_bdim, max_bdim, 0);
-	
-	if (!hgtData) {
-		dataMgr->SetErrCode(0);
+	if (!rc) {
+		
 		setBypass(timeStep);
 		if (ds->warnIfDataMissing()){
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
 				timeStep);
 		}
-		ds->setDataMissing2D(timeStep, refLevel, lod, ds->getSessionVariableNum2D(std::string("HGT")));
-		
+		ds->setDataMissing2D(timeStep, elevGridRefLevel, lod, ds->getSessionVariableNum2D(std::string("HGT")));
 		return false;
 	}
 	
+	//get grid extents, based on user coordinate extents.
+	dataMgr->MapUserToVox(timeStep, twoDExts, min_dim, elevGridRefLevel);
+	dataMgr->MapUserToVox(timeStep, twoDExts+3, max_dim, elevGridRefLevel);
 	//Then create arrays to hold the vertices and their normals:
 	//Make each size be grid size + 2. 
 	int maxx = maxXElev = max_dim[0] - min_dim[0] +1;
@@ -259,19 +230,20 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	elevVert = new float[3*maxx*maxy];
 	elevNorm = new float[3*maxx*maxy];
 	cachedTimeStep = timeStep;
-	float deltax = (regMax[0]-regMin[0])/(maxx-1); 
-	float deltay = (regMax[1]-regMin[1])/(maxy-1); 
+	float deltax = (twoDExts[3]-twoDExts[0])/(maxx-1); 
+	float deltay = (twoDExts[4]-twoDExts[1])/(maxy-1); 
 
 	//set minTex, maxTex values less than deltax, deltay so that the texture will
 	//map exactly to the original region bounds
+	
 
-	if (regMin[0] < origRegMin[0] && regMax[0] > origRegMax[0]){
-		minXTex = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+	if (twoDExts[0] < origRegMin[0] && twoDExts[3] > origRegMax[0]){
+		minXTex = (twoDExts[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
 		maxXTex = minXTex + deltax*(maxx-3)/(origRegMax[0]-origRegMin[0]);
-	} else if (regMin[0] < origRegMin[0]){
-		minXTex = (regMin[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
+	} else if (twoDExts[0] < origRegMin[0]){
+		minXTex = (twoDExts[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
 		maxXTex = 1.f;
-	} else if (regMax[0] > origRegMax[0]){
+	} else if (twoDExts[3] > origRegMax[0]){
 		minXTex = 0.f;
 		maxXTex = deltax*(maxx-2)/(origRegMax[0]-origRegMin[0]);
 	} else {
@@ -280,13 +252,13 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	}
 	assert (maxXTex <= 1.f && maxXTex >= 0.f);
 	assert (minXTex <= 1.f && minXTex >= 0.f);
-	if (regMin[1] < origRegMin[1] && regMax[1] > origRegMax[1]){
-		minYTex = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
+	if (twoDExts[1] < origRegMin[1] && twoDExts[4] > origRegMax[1]){
+		minYTex = (twoDExts[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
 		maxYTex =  minYTex + deltay*(maxy-3)/(origRegMax[1]-origRegMin[1]);
-	} else if (regMin[1] < origRegMin[1]){
+	} else if (twoDExts[1] < origRegMin[1]){
 		minYTex = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
 		maxYTex = 1.f;
-	} else if (regMax[1] > origRegMax[1]){
+	} else if (twoDExts[4] > origRegMax[1]){
 		minYTex = 0.f;
 		maxYTex = deltay*(maxy-2)/(origRegMax[1]-origRegMin[1]);
 	} else {
@@ -296,7 +268,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	assert (maxYTex <= 1.f && maxYTex >= 0.f);
 	assert (minYTex <= 1.f && minYTex >= 0.f);
 
-
+	 
 	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
 	//These must be converted to
@@ -313,26 +285,21 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		maxvals[i] = -1.e30;
 	}
 	float worldCoord[3];
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs, refLevel);
+	
 	for (int j = 0; j<maxy; j++){
-		worldCoord[1] = regMin[1] + (float)j*deltay;
+		worldCoord[1] = twoDExts[1] + (float)j*deltay;
 		if (worldCoord[1] < origRegMin[1]) worldCoord[1] = origRegMin[1];
 		if (worldCoord[1] > origRegMax[1]) worldCoord[1] = origRegMax[1];
-		size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
 			
 		for (int i = 0; i<maxx; i++){
 			int pntPos = 3*(i+j*maxx);
-			worldCoord[0] = regMin[0] + (float)i*deltax;
+			worldCoord[0] = twoDExts[0] + (float)i*deltax;
 			if (worldCoord[0] < origRegMin[0]) worldCoord[0] = origRegMin[0];
 			if (worldCoord[0] > origRegMax[0]) worldCoord[0] = origRegMax[0];
-			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
-			if (elevData)
-				worldCoord[2] = elevData[xcrd+ycrd] + displacement;
-			else
-				worldCoord[2] = hgtData[xcrd+ycrd] + displacement;
 			
-			//Convert and put results into elevation grid vertices:
+			worldCoord[2] = hgtGrid->GetValue(worldCoord[0],worldCoord[1], 0.);
+			if (worldCoord[2] == hgtGrid->GetMissingValue()) worldCoord[2] = 0.;
+						//Convert and put results into elevation grid vertices:
 			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){
 				if( *(elevVert + pntPos+k) > maxvals[k])

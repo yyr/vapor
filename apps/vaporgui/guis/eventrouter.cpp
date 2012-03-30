@@ -147,7 +147,7 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 	InstancedPanelCommand::capture(rParams, "copy renderer instance to viz", currentInstance, VAPoR::copyInstance, towin);
 }
 
-void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const float dRange[2]){
+void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const float dRange[2], bool is2D){
 	size_t min_dim[3],max_dim[3];
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -181,7 +181,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		histogramList[varNum] = 0;
 	}
 	int numTrans = renParams->GetRefinementLevel();
-	const char* varname = ds->getVariableName3D(varNum).c_str();
+	const char* varname;
+	if (is2D) varname = ds->getVariableName2D(varNum).c_str();
+	else varname = ds->getVariableName3D(varNum).c_str();
 	
 	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, timeStep, &varNum, 1);
 	if(availRefLevel < 0) {
@@ -193,8 +195,11 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		return;
 	}
 	int lod = renParams->GetCompressionLevel();
-	if (ds->useLowerAccuracy())
-		lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));
+	if (ds->useLowerAccuracy()){
+		if (is2D)
+			lod = Min(lod, ds->maxLODPresent2D(varNum, timeStep));
+		else lod = Min(lod, ds->maxLODPresent3D(varNum, timeStep));
+	}
 		
 	//Check if the region/resolution is too big:
 	  double exts[6];
@@ -225,18 +230,20 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	if (!rg) {
 		dataMgr->SetErrCode(0);
 		if (ds->warnIfDataMissing())
-			renParams->setBypass(timeStep);
 			MessageReporter::errorMsg("Invalid/nonexistent data;\ncannot be histogrammed");
-		ds->setDataMissing3D(timeStep, availRefLevel, lod, varNum);
+		renParams->setBypass(timeStep);
+		if (is2D) ds->setDataMissing2D(timeStep, availRefLevel, lod, varNum);
+		else ds->setDataMissing3D(timeStep, availRefLevel, lod, varNum);
 		return;
 	}
 
 	histogramList[varNum] = new Histo(rg, dRange);
 	
 }
+
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
-Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
+Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool, bool is2D ){
 	
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int varNum = renParams->getSessionVarNum();
@@ -254,10 +261,11 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
 	
 	if (!mustGet) return 0;
 	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	refreshHistogram(renParams, varNum,currentDatarange);
+	refreshHistogram(renParams, varNum,currentDatarange, is2D);
 	return histogramList[varNum];
 	
 }
+ 
 
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the DVR params

@@ -81,8 +81,8 @@ public:
 	void setYSize(TwoDDataParams* pParams,int sliderval);
 	void setXSize(TwoDDataParams* pParams,int sliderval);
 	
-	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
-	virtual void refreshHistogram(RenderParams* p, int = -1, const float[2] = 0);
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false, bool is2D = true);
+	//virtual void refreshHistogram(RenderParams* p, int = -1, const float[2] = 0);
 	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);

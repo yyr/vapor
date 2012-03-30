@@ -1188,7 +1188,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		extents[i+3] = boxmax[i];
 	}
 	//int rc = getProbeGrids(ts, 1, &firstVarNum, coordMin, coordMax, &actualRefLevel, &probeGrid);
-	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, false, &probeGrid);
+	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, &probeGrid);
 	
 	if(!rc){
 		return 0;
@@ -1534,7 +1534,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	int lod = GetCompressionLevel();
 	RegularGrid* grids[3];
 	//int rc = getProbeGrids(timestep, 3, sesVarNums, coordMin, coordMax, &actualRefLevel, grids);
-	int rc = getGrids( timestep, varnames, extents, &actualRefLevel, &lod, false, grids);
+	int rc = getGrids( timestep, varnames, extents, &actualRefLevel, &lod,  grids);
 	if (!rc) return false;
 	
 

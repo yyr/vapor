@@ -1358,12 +1358,7 @@ ParamNode* VizWinMgr::buildNode() {
 				<< (long)clr.blue();
 			attrs[_vizColorbarBackgroundColorAttr] = oss.str();
 
-			oss.str(empty);
-			clr = vizWin[i]->getElevGridColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizElevGridColorAttr] = oss.str();
+			
 
 			oss.str(empty);
 			clr = vizWin[i]->getTimeAnnotColor();
@@ -1395,18 +1390,6 @@ ParamNode* VizWinMgr::buildNode() {
 				else oss << "false";
 			attrs[_vizAxisArrowsEnabledAttr] = oss.str();
 
-			oss.str(empty);
-			if (vizWin[i]->elevGridRenderingEnabled()) oss<<"true";
-				else oss << "false";
-			attrs[_vizElevGridEnabledAttr] = oss.str();
-
-			oss.str(empty);
-				oss << vizWin[i]->getDisplacement();
-			attrs[_vizElevGridDisplacementAttr] = oss.str();
-
-			oss.str(empty);
-			oss << vizWin[i]->getElevGridRefinementLevel();
-			attrs[_vizElevGridRefinementAttr] = oss.str();
 
 			oss.str(empty);
 			oss << (float)vizWin[i]->getAxisArrowCoord(0) << " "
@@ -1548,7 +1531,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		QColor winRgColor = DataStatus::getRegionFrameColor();
 		QColor winSubrgColor = DataStatus::getSubregionFrameColor();
 		QColor winColorbarColor(Qt::white);
-		QColor winElevGridColor(Qt::darkRed);
+		
 		QColor winTimeAnnotColor(Qt::white);
 		float winTimeAnnotCoords[2] = {0.1f, 0.1f};
 		int winTimeAnnotTextSize = 10;
@@ -1579,9 +1562,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		bool colorbarEnabled = false;
 		bool regionEnabled = DataStatus::regionFrameIsEnabled();
 		bool subregionEnabled = DataStatus::subregionFrameIsEnabled();
-		bool elevGridEnabled = false;
-		int elevGridRefinement = 0;
-		float elevGridDisplacement = 0;
+		
 		int numViz = -1;
 		while (*attrs) {
 			string attr = *attrs;
@@ -1626,12 +1607,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				winColorbarColor.setRgb(r,g,b);
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridColorAttr) == 0) {
-				int r,g,b;
-				ist >> r; ist>>g; ist>>b;
-				winElevGridColor.setRgb(r,g,b);
+				//obsolete
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridRefinementAttr) == 0) {
-				ist >> elevGridRefinement;
+				//obsolete
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridRotationAttr) == 0) {
 				//obsolete
@@ -1646,7 +1625,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				//obsolete
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridDisplacementAttr) == 0) {
-				ist >> elevGridDisplacement; 
+				//obsolete
 			}
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
@@ -1707,8 +1686,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				else axisAnnotationEnabled = false; 
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridEnabledAttr) == 0) {
-				if (value == "true") elevGridEnabled = true; 
-				else elevGridEnabled = false; 
+				//obsolete
 			}
 			else if (StrCmpNoCase(attr, _vizColorbarEnabledAttr) == 0) {
 				if (value == "true") colorbarEnabled = true; 
@@ -1746,11 +1724,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
 		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
 		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
-		vizWin[parsingVizNum]->enableElevGridRendering(elevGridEnabled);
-		vizWin[parsingVizNum]->setElevGridRefinementLevel(elevGridRefinement);
-		vizWin[parsingVizNum]->setElevGridColor(winElevGridColor);
-		vizWin[parsingVizNum]->setDisplacement(elevGridDisplacement);
-		
+				
 		vizWin[parsingVizNum]->setTimeAnnotColor(winTimeAnnotColor);
 		vizWin[parsingVizNum]->setTimeAnnotCoords(winTimeAnnotCoords);
 		vizWin[parsingVizNum]->setTimeAnnotTextSize(winTimeAnnotTextSize);

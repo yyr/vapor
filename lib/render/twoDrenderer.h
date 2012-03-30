@@ -32,6 +32,9 @@
 #include "assert.h"
 #include "renderer.h"
 #include "twoDparams.h"
+//Following factor accentuates the terrain changes by pointing the
+//normals more away from the vertical
+#define ELEVATION_GRID_ACCENT 20.f
 namespace VAPoR {
 
 class RENDER_API TwoDRenderer : public Renderer

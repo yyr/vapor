@@ -664,15 +664,16 @@ void IsoEventRouter::guiPassThruPoint(){
 float IsoEventRouter::evaluateSelectedPoint(){
 	ParamsIso* iParams = getActiveIsoParams();
 	if (!iParams->isEnabled()) return OUT_OF_BOUNDS;
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	const vector<double> pnt = iParams->GetSelectedPoint();
 	double dbpnt[3];
 	int numRefinements = iParams->GetRefinementLevel();
 	int lod = iParams->GetCompressionLevel();
-	int sessionVarNum = iParams->getSessionVarNum();
+	
+	const string& varname = iParams->GetIsoVariableName();
 	for (int i = 0; i<3; i++) dbpnt[i] = pnt[i];
-	float val = rParams->calcCurrentValue(iParams, sessionVarNum, dbpnt, numRefinements, lod, timeStep);
+	float val = RegionParams::calcCurrentValue(varname, dbpnt, numRefinements, lod, timeStep);
 	return val;
 }
 
@@ -1276,7 +1277,7 @@ setDatarangeDirty(RenderParams* params)
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
-Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool isIsoControl ){
+Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool isIsoControl ,bool ){
 	
 	ParamsIso* iParams = (ParamsIso*)renParams;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();

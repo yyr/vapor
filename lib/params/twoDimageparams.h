@@ -132,12 +132,7 @@ public:
 	//we need to reread the file and reset the image extents.
 	void setImagesDirty();
 	
-	//General method that obtains a list of variables (containing the twoD) from the dataMgr
-	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
-	//for addressing into the volumes.  Replaces first half of calcTwoDDataTexture.
-	float** getTwoDVariables(int ts, int numVars, int* sesVarNums,
-				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
-				  int* actualRefLevel);
+	
 
 	virtual unsigned char* getCurrentTwoDTexture(int ) {
 		if (!twoDDataTextures) return 0;

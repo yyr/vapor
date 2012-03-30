@@ -211,8 +211,9 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
 	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
 	int refLevel = tParams->GetRefinementLevel();
+	int lod = tParams->GetCompressionLevel();
 
-	//Find the corners of the image (to find size of image in scene.
+	//Find the corners of the image (to find size of image in scene.)
 	//Get these relative to actual extents in projection space
 	double displayCorners[8];
 	if (tParams->isGeoreferenced()){
@@ -239,8 +240,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	// intersect the twoD box with the imageExtents.  This will
 	// determine the region used for the elevation grid.  
 	// Construct
-	// an elevation grid that covers the full image.  Later may
-	// decide it's more efficient to construct a smaller one.
+	// an elevation grid that covers the full image.  Note, with large images 
+	// it could be more efficient to construct a smaller one.
 	// Need to determine the approximate size of the image, to decide
 	// how large a grid to use. 
 
@@ -274,13 +275,14 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	float constElev = tParams->getTwoDMin(2);
 
 	//Set up for doing terrain mapping:
-	size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
-	double regMin[3], regMax[3];
-	float* hgtData = NULL;
+	size_t min_dim[3], max_dim[3];
+	vector<double> fullexts = dataMgr->GetExtents(timeStep);
+	double regExts[6];
+	for(int i = 0; i<6; i++) regExts[i] = fullexts[i];
+	 
 	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f;
-	size_t bs[3];
-	dataMgr->GetBlockSize(bs,refLevel);
-	
+	RegularGrid* hgtGrid = 0;
+		
 	if (tParams->isMappedToTerrain()){
 		
 		//We shall retrieve HGT for the full extents of the data
@@ -289,53 +291,32 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			min_dim[i] = 0;
 			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
 		}
-		//Convert to user coords in non-moving extents:
-		dataMgr->MapVoxToUser(timeStep, min_dim, regMin, refLevel);
-		dataMgr->MapVoxToUser(timeStep, max_dim, regMax, refLevel);
-
-		int varnum = DataStatus::getSessionVariableNum2D("HGT");
+		vector<string>varname;
+		varname.push_back("HGT");
 		
 		//Try to get requested refinement level or the nearest acceptable level:
-		int refLevel1 = RegionParams::shrinkToAvailableVoxelCoords(refLevel, min_dim, max_dim, min_bdim, max_bdim, 
-				timeStep, &varnum, 1, regMin, regMax, true);
-		if(refLevel1 < 0) {
+		int rc = tParams->getGrids(timeStep,varname, regExts, &refLevel, &lod,  &hgtGrid); 
+		
+		if(!rc){
 			setBypass(timeStep);
 			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Terrain elevation data unavailable \nfor 2D rendering at timestep %d",timeStep);
 			return false;
 		}
 		
-		//Make sure the region is nonempty:
-		if (min_dim[0]>= max_dim[0] || min_dim[1]>= max_dim[1]) return false;
+		dataMgr->MapUserToVox(timeStep, regExts, min_dim,refLevel);
+		dataMgr->MapUserToVox(timeStep, regExts+3, max_dim,refLevel);
 		
 		//Ignore vertical extents
 		min_dim[2] = max_dim[2] = 0;
-		min_bdim[2] = max_bdim[2] = 0;
-		int lod = tParams->GetCompressionLevel();
-		if (ds->useLowerAccuracy())
-			lod = Min(lod, ds->maxLODPresent2D(varnum, timeStep));
-		//Then, ask the Datamgr to retrieve the HGT data
 		
-		hgtData = dataMgr->GetRegion(timeStep, "HGT", refLevel1, lod, min_bdim, max_bdim, 0);
-		
-		if (!hgtData) {
-			dataMgr->SetErrCode(0);
-			setBypass(timeStep);
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"HGT data unavailable at timestep %d.", 
-					timeStep);
-			}
-			ds->setDataMissing2D(timeStep, refLevel1, lod, ds->getSessionVariableNum2D(std::string("HGT")));
-			return false;
-		}
-
 
 		//Linear Conversion terms between user coords and grid coords;
 		
-		//regMin maps to reg_min, regMax to max_dim 
-		horizFact = ((double)(max_dim[0] - min_dim[0]))/(regMax[0] - regMin[0]);
-		vertFact = ((double)(max_dim[1] - min_dim[1]))/(regMax[1] - regMin[1]);
-		horizOffset = min_dim[0]  - regMin[0]*horizFact;
-		vertOffset = min_dim[1]  - regMin[1]*vertFact;
+		//regExts maps to reg_min, regExts+3 to max_dim 
+		horizFact = ((double)(max_dim[0] - min_dim[0]))/(regExts[3] - regExts[0]);
+		vertFact = ((double)(max_dim[1] - min_dim[1]))/(regExts[4] - regExts[1]);
+		horizOffset = min_dim[0]  - regExts[0]*horizFact;
+		vertOffset = min_dim[1]  - regExts[1]*vertFact;
 		
 	}
 	
@@ -405,51 +386,13 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
 				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
 
-#ifdef	DEAD
-				//Check if the coordinates are too far, issue warning:
-				if(i>0 && errcnt < 1){
-					float distDiff =  abs(locCoords[0]-prevLocCoords[0])+abs(locCoords[1]-prevLocCoords[1]);
-					if (distDiff > 0.5*(extents[3]-extents[0]+extents[4]-extents[1])){
-						SetErrMsg(VAPOR_WARNING_TWO_D,"Image mapping error:  Image maps beyond map projection limit");
-						errcnt++;
-					}
-				}
-#endif
 				prevLocCoords[0]=locCoords[0];
 				prevLocCoords[1]=locCoords[1];
 				if (tParams->isMappedToTerrain()){
 					//Find cell coordinates of locCoords in data grid space
-					int gridLL[2];
-					float fltGridLL[2];
-					fltGridLL[0] = (locCoords[0]*horizFact + horizOffset);
-					fltGridLL[1] = (locCoords[1]*vertFact + vertOffset);
-					gridLL[0] = (int)fltGridLL[0];
-					gridLL[1] = (int)fltGridLL[1];
-					
-					//check that all 4 corners are inside valid grid coordinates:
-					if (gridLL[0] < min_dim[0] || gridLL[1] < min_dim[1] || gridLL[0] > max_dim[0]-2 ||
-							gridLL[1] > (max_dim[1] -2)){ 
-						//outside points go to minimum elevation
-						locCoords[2] = constElev;
-					} else { 
-						//find locCoords [0..1]relative to grid cell:???
-						float x = (fltGridLL[0] - gridLL[0]);
-						float y = (fltGridLL[1] - gridLL[1]);
-						//To get elevations at corners, need grid coordinates:
-						size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+gridLL[0];
-						size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1])*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-						size_t ycrdP1 = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1]+1)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-						
-						
-						float elevLL = hgtData[xcrd+ycrd] + constElev;
-						float elevLR = hgtData[1+xcrd+ycrd] + constElev;
-						float elevUL = hgtData[xcrd+ycrdP1] + constElev;
-						float elevUR = hgtData[1+xcrd+ycrdP1] + constElev;
-						//Bilinear interpolate:
-						locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
-							y*((1-x)*elevUL + x*elevUR);
-		
-					}
+					float elev = hgtGrid->GetValue((double)locCoords[0], (double)locCoords[1],0.);
+					if (elev == hgtGrid->GetMissingValue()) elev = 0.;
+					locCoords[2] = elev+constElev;
 				}
 				else { //not mapped to terrain, use constant elevation
 					locCoords[2] = constElev;
@@ -483,37 +426,9 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				locCoords[1] = displayCorners[1] + (displayCorners[5]-displayCorners[1])*(double)j/(double)(maxy-1);
 				assert(tParams->isMappedToTerrain());
 				//Find cell coordinates of locCoords in data grid space
-				int gridLL[2];
-				float fltGridLL[2];
-				fltGridLL[0] = (locCoords[0]*horizFact + horizOffset);
-				fltGridLL[1] = (locCoords[1]*vertFact + vertOffset);
-				gridLL[0] = (int)fltGridLL[0];
-				gridLL[1] = (int)fltGridLL[1];
-				
-				//check that all 4 corners are inside valid grid coordinates:
-				if (gridLL[0] < min_dim[0] || gridLL[1] < min_dim[1] || gridLL[0] > max_dim[0]-2 ||
-						gridLL[1] > (max_dim[1] -2)){ 
-					//outside points go to minimum elevation
-					locCoords[2] = constElev;
-				} else { 
-					//find locCoords [0..1] relative to grid cell:
-					float x = (fltGridLL[0] - gridLL[0]);
-					float y = (fltGridLL[1] - gridLL[1]);
-					//To get elevations at corners, need grid coordinates:
-					size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+gridLL[0];
-					size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1])*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-					size_t ycrdP1 = (min_dim[1] - bs[1]*min_bdim[1]+gridLL[1]+1)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
-					
-					
-					float elevLL = hgtData[xcrd+ycrd] + constElev;
-					float elevLR = hgtData[1+xcrd+ycrd] + constElev;
-					float elevUL = hgtData[xcrd+ycrdP1] + constElev;
-					float elevUR = hgtData[1+xcrd+ycrdP1] + constElev;
-					//Bilinear interpolate:
-					locCoords[2] = (1-y)*((1-x)*elevLL + x*elevLR) +
-						y*((1-x)*elevUL + x*elevUR);
-					
-				}
+				float elev = hgtGrid->GetValue((double)locCoords[0], (double)locCoords[1],0.);
+				if (elev == hgtGrid->GetMissingValue()) elev = 0.;
+				locCoords[2] = elev+constElev;
 				
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:
@@ -529,6 +444,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			
 		}
 	}
+	if (hgtGrid) {dataMgr->UnlockGrid(hgtGrid); delete hgtGrid;}
 
 	//qWarning("min,max coords: %f %f %f %f %f %f",
 	// minvals[0],minvals[1],minvals[2],maxvals[0],maxvals[1],maxvals[2]);
