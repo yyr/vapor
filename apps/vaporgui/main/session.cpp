@@ -824,19 +824,6 @@ exportData(){
 		minCoords[i] = mncrds[i];
 		maxCoords[i] = mxcrds[i];
 	}
-	if (DataStatus::getInstance()->dataIsLayered()) {
-		//Make sure region is full in z dimension:
-		
-		size_t max_zdim = DataStatus::getInstance()->getFullSizeAtLevel(numxforms,2) - 1;
-		if (max_zdim != maxCoords[2] || minCoords[2] != 0){
-			MessageReporter::errorMsg("Export of a region on layered grids\nis only permitted when\nthe region is full in the\nvertical (z) dimension.");
-			return;
-		}
-		//Determine the unlayered vertical grid size of the data:
-		size_t dim[3];
-		getDataMgr()->GetDim(dim, -1);
-		maxCoords[2] = dim[2];
-	}
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,

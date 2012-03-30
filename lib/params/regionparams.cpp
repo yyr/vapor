@@ -157,7 +157,7 @@ reinit(bool doOverride){
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
-	bool isLayered = DataStatus::getInstance()->dataIsLayered();
+	
 	double regionExtents[6];
 	vector<double> exts;
 	if (doOverride) {
@@ -751,14 +751,7 @@ int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRe
 	rc = dm->GetValidRegion(timestep, varname, minRefLevel, min_coord, max_coord);
 	if(rc<0) {
 		SetErrCode(0);
-		return rc;
 	}
-
-	if (!ds->dataIsLayered()) return rc;
-	if (rc < 0) return rc;
-	int maxRefLevel = ds->getNumTransforms();
-	min_coord[2] = 0;
-	max_coord[2] = (fullHeight >> (maxRefLevel -minRefLevel)) -1;
 	return rc;
 }
 

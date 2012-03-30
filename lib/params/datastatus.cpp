@@ -530,27 +530,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
-	if (dataIsLayered()){	
-		LayeredIO	*dataMgrLayered = dynamic_cast<LayeredIO*>(dataMgr);
-		//construct a list of the non extended variables
-		std::vector<string> vNames;
-		std::vector<float> vals;
-		for (int i = 0; i< getNumSessionVariables(); i++){
-			if (!isExtendedDown(i)){
-				vNames.push_back(getVariableName3D(i));
-				vals.push_back(getBelowValue(i));
-			}
-		}
-		dataMgrLayered->SetLowVals(vNames, vals);
-		vNames.clear();
-		for (int i = 0; i< getNumSessionVariables(); i++){
-			if (!isExtendedUp(i)){
-				vNames.push_back(getVariableName3D(i));
-				vals.push_back(getAboveValue(i));
-			}
-		}
-		dataMgrLayered->SetHighVals(vNames, vals);
-	}
+	
 	
 	if (!someDataOverall){
 		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE, "No data found in VDC");
@@ -724,18 +704,6 @@ bool DataStatus::sphericalTransform()
 	return (dataMgr->GetCoordSystemType() == "spherical");
 }
 
-bool DataStatus::dataIsLayered(){
-	if (!dataMgr) return false;
-
-	LayeredIO	*dataMgrLayered = dynamic_cast<LayeredIO*>(dataMgr);
-
-	if(! dataMgrLayered) return false;
-	//Check if there is an ELEVATION variable:
-	for (int i = 0; i<variableNames.size(); i++){
-		if (StrCmpNoCase(variableNames[i],"ELEVATION") == 0) return true;
-	}
-	return false;
-}
 
 int DataStatus::
 getMetadataVarNum(std::string varname){

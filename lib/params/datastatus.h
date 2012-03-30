@@ -509,7 +509,6 @@ public:
 		interactiveRefLevel = lev;
 	}
 	static int getInteractiveRefinementLevel() {return interactiveRefLevel;}
-	bool dataIsLayered();
 	
 	//Find the first timestep that has any data with specified session variable num
 	int getFirstTimestep(int sesvarnum);
