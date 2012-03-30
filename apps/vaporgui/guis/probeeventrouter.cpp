@@ -2124,7 +2124,7 @@ refreshHistogram(RenderParams* p, int, const float[2], bool){
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	if (dataMgr) return;
+	if (!dataMgr) return;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
@@ -2140,27 +2140,19 @@ refreshHistogram(RenderParams* p, int, const float[2], bool){
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//Determine what resolution is available:
 	int refLevel = pParams->GetRefinementLevel();
-	
-	if (ds->useLowerAccuracy()){
-		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
-			if (pParams->variableIsSelected(varnum)) {
-				refLevel = Min(ds->maxXFormPresent3D(varnum, timeStep), refLevel);
-			}
-		}
-		if (refLevel < 0) return;
-	}
+	refLevel = Min(ds->maxXFormPresent3D(firstVarNum, timeStep), refLevel);
+	if (refLevel < 0) return;
+	if (!ds->useLowerAccuracy() && refLevel < pParams->GetRefinementLevel()){
+		return;
+	} 
+
 
 	//create the smallest containing box
 	size_t boxMin[3],boxMax[3];
 	
 	pParams->getAvailableBoundingBox(timeStep,  boxMin, boxMax, refLevel);
 	
-	
-	
-	
 	//Check if the region/resolution is too big:
-	
-	 
 	int numMBs = (boxMax[0]-boxMin[0]+1)*(boxMax[1]-boxMin[1]+1)*(boxMax[2]-boxMin[2]+1)/250000;
 	
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
@@ -2177,17 +2169,16 @@ refreshHistogram(RenderParams* p, int, const float[2], bool){
 	}
 	const string& varname = ds->getVariableName3D(firstVarNum);
 	int lod = pParams->GetCompressionLevel();
-	if (ds->useLowerAccuracy()){
-		lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
-	}
+	lod = Min(ds->maxLODPresent3D(firstVarNum, timeStep), lod);
+	if (!ds->useLowerAccuracy() && lod < pParams->GetCompressionLevel()) return;
 	if (lod < 0) return;
 	
-	RegularGrid* histoGrid = dataMgr->GetGrid(timeStep, varname, refLevel, lod, boxMin, boxMax,0);	
-	if (histoGrid){
+	RegularGrid* histoGrid = dataMgr->GetGrid((size_t)timeStep, varname, refLevel, lod, boxMin, boxMax,0);	
+	if (!histoGrid){
 		pParams->setBypass(timeStep);
 		return;
 	}
-	histoGrid->SetInterpolationOrder(0);
+	histoGrid->SetInterpolationOrder(0);	
 	
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
@@ -2245,31 +2236,35 @@ refreshHistogram(RenderParams* p, int, const float[2], bool){
 	vnormal(normals[5]);
 
 	
-	float xyz[3];
+	
 	double boxExts[6];
+	double xyz[3];
+	float flxyz[3];
+	size_t vcoords[3];
 	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
+	
 	
 	//Now loop over the grid points in the bounding box
 	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
-		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
-		if (xyz[2] > (boxExts[5]+voxSize) || (xyz[2] < boxExts[2]-voxSize)) continue;
+		vcoords[2]=k;
 		for (size_t j = boxMin[1]; j <= boxMax[1]; j++){
-			xyz[1] = extents[1] + (((float)j)/(float)(dataSize[1]-1))*(extents[4]-extents[1]);
-			if (xyz[1] > (boxExts[4]+voxSize) || xyz[1] < (boxExts[1]-voxSize)) continue;
+			vcoords[1]=j;
 			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
-				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
-				if (xyz[0] > (boxExts[3]+voxSize) || xyz[0] < (boxExts[0]-voxSize)) continue;
+				
+				vcoords[0]=i;
+				dataMgr->MapVoxToUser(timeStep, vcoords, xyz, refLevel);
+				for (int q = 0; q<3; q++) flxyz[q]=xyz[q];
 				//test if x,y,z is in probe:
-				if (pParams->distanceToCube(xyz, normals, corner) < voxSize){
-					//incount++;
+				if (pParams->distanceToCube(flxyz, normals, corner) < voxSize){
+					
 					//Point is (almost) inside.
 					//Evaluate the variable:
-					float varVal = histoGrid->GetValue(xyz[0],xyz[1],xyz[2]);
 					
+					float varVal = histoGrid->GetValue(xyz[0],xyz[1],xyz[2]);
+					if (varVal == histoGrid->GetMissingValue()) continue;
 					histo->addToBin(varVal);
-				
 				} 
-							}
+			}
 		}
 	}
 	delete histoGrid;

@@ -165,8 +165,6 @@ reinit(bool doOverride){
 			exts.push_back( extents[i]);
 		}
 		clearRegionsMap();
-		if (isLayered) setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
-		else fullHeight = 0;
 		myBox->SetExtents(exts);
 		myBox->Trim();
 	} else {
@@ -192,12 +190,6 @@ reinit(bool doOverride){
 			myBox->SetExtents(exts,currTime);
 		}
 		
-		//If layered data is being read into a session that was not
-		//set for layered data, then the fullheight may need to be
-		//set to default
-		if (isLayered && fullHeight == 0)
-			setFullGridHeight(4*DataStatus::getInstance()->getFullDataSize(2));
-		else if(isLayered) setFullGridHeight(fullHeight);
 	}
 	
 	return true;	
@@ -441,111 +433,7 @@ int RegionParams::PrepareCoordsForRetrieval(int numxforms, size_t timestep, cons
 	
 	return minRefLevel;
 }
-int RegionParams::
-shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,
-		double regMin[3], double regMax[3], bool twoDim){
-	
-	int i;
-		
-	DataStatus* ds = DataStatus::getInstance();
-	//Special case before there is any data...
-	if (!ds->getDataMgr()){
-		for (i = 0; i<3; i++) {
-			min_dim[i] = 0;
-			max_dim[i] = (1024>>numxforms) -1;
-			min_bdim[i] = 0;
-			max_bdim[i] = (32 >>numxforms) -1;
-		}
-		return -1;
-	}
-	//Check that the data exists for this timestep and refinement:
-	int minRefLevel = numxforms;
-	for (i = 0; i<numVars; i++){
-		if (twoDim)
-			minRefLevel = Min(ds->maxXFormPresent2D(varNums[i],(int)timestep), minRefLevel);
-		else
-			minRefLevel = Min(ds->maxXFormPresent3D(varNums[i],(int)timestep), minRefLevel);
-	
-		//Test if it's acceptable, exit if not:
-		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerAccuracy())){
-			if (ds->warnIfDataMissing()){
-				char* vname;
-				if (twoDim)
-					vname = (char*)ds->getVariableName2D(varNums[i]).c_str();
-				else
-					vname = (char*)ds->getVariableName3D(varNums[i]).c_str();
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Data inaccessible\nfor variable %s at timestep %d.",
-					vname, timestep);
-			}
-			return -1;
-		}
-	}
 
-	
-	DataMgr* dataMgr = ds->getDataMgr();
-
-	if (ds->dataIsLayered()){
-		setFullGridHeight(fullHeight);
-	}
-	//Do mapping to voxel coords
-	dataMgr->GetEnclosingRegion(timestep, regMin, regMax, min_dim, max_dim, minRefLevel);
-	
-	if (!twoDim){
-		for(i = 0; i< 3; i++){
-			//Make sure 3D slab has nonzero thickness (this can only
-			//be a problem while the mouse is pressed):
-			//
-			if (min_dim[i] >= max_dim[i]){
-				if (max_dim[i] < 1){
-					max_dim[i] = 1;
-					min_dim[i] = 0;
-				}
-				else min_dim[i] = max_dim[i] - 1;
-			}
-		}
-	}
-	//Now intersect with available bounds based on variables:
-	size_t temp_min[3], temp_max[3];
-	for (int j = 0; j<3; j++){
-		temp_min[j] = min_dim[j];
-		temp_max[j] = max_dim[j];
-	}
-	for (int varIndex = 0; varIndex < numVars; varIndex++){
-		string varName;
-		if (twoDim)
-			varName = ds->getVariableName2D(varNums[varIndex]);
-		else 
-			varName = ds->getVariableName3D(varNums[varIndex]);
-		int rc = getValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max);
-		if (rc < 0) {
-			//Tell the datastatus that the data isn't really there at minRefLevel at any LOD:
-			if (twoDim)
-				ds->setDataMissing2D(timestep, minRefLevel, 0, varNums[varIndex]);
-			else
-				ds->setDataMissing3D(timestep, minRefLevel, 0, varNums[varIndex]);
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data inaccessable for variable %s\nat current timestep.\n %s",
-					varName.c_str(),
-					"This message can be silenced \nin the User Preferences Panel.");
-			}
-			return -1;
-		}
-		else for (i = 0; i< 3; i++){
-			if (min_dim[i] < temp_min[i]) min_dim[i] = temp_min[i];
-			if (max_dim[i] > temp_max[i]) max_dim[i] = temp_max[i];
-			//Again check for validity:
-			if (min_dim[i] > max_dim[i]) minRefLevel = -1;
-		}
-	}
-	
-	//Calculate new bounds:
-	
-	dataMgr->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
-	dataMgr->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
-	
-	return minRefLevel;
-}
 void RegionParams::
 getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int timestep)
 {
@@ -854,29 +742,7 @@ calcCurrentValue(const string& varname, const double point[3], int numRefinement
 	return val;
 	 */
 }
-void RegionParams::
-setFullGridHeight(size_t val){
-	DataStatus* ds = DataStatus::getInstance();
-	DataMgr *dataMgr = ds->getDataMgr();
 
-	if (ds->dataIsLayered()){
-		LayeredIO  *data_mgr_layered = dynamic_cast<LayeredIO*>(dataMgr);
-		assert(data_mgr_layered != NULL);
-
-		
-		size_t currentHeight = data_mgr_layered->GetGridHeight();
-		if (currentHeight != val){			
-			data_mgr_layered->SetGridHeight(val);
-			//purge cache:
-			dataMgr->Clear();
-		}
-		fullHeight = val;
-		return;
-	}
-	assert(val == 0);
-	fullHeight = 0;
-
-}
 int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRefLevel, size_t min_coord[3], size_t max_coord[3]){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dm = ds->getDataMgr();

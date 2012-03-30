@@ -196,8 +196,7 @@ public:
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	int getNumVariablesSelected() {return numVariablesSelected;}
-	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], int numRefs);
+	
 	
 protected:
 	static const string _shortName;

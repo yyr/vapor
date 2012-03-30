@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
+    <width>467</width>
     <height>922</height>
    </rect>
   </property>
@@ -1004,87 +1004,6 @@ share the same region settings.</string>
      </item>
      <item>
       <spacer name="spacer191_5">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>16</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <layout class="QHBoxLayout">
-       <item>
-        <spacer name="spacer28">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>31</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="textLabel1_5">
-         <property name="whatsThis">
-          <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
-         </property>
-         <property name="text">
-          <string>Full Vertical (Z) Grid Size</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="fullHeightEdit">
-         <property name="whatsThis">
-          <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
-         </property>
-         <property name="text">
-          <string>0</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="spacer27">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>51</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <spacer name="spacer26">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>

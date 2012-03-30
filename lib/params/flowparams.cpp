@@ -2225,7 +2225,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	//min and max of valid mappings into data volume:
 	int opacMinMap[3], opacMaxMap[3], colorMinMap[3], colorMaxMap[3];
 	
-	//separate color, opac min_bdim
+	//separate color, opac 
 	
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();

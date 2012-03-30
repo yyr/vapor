@@ -91,9 +91,7 @@ RegionEventRouter::hookUpTab()
 	connect (xSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (zSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (fullHeightEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	
-	connect (fullHeightEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (xCntrEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (yCntrEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (zCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
@@ -146,12 +144,6 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	regSize[1] = ySizeEdit->text().toFloat();
 	regSize[2] = zSizeEdit->text().toFloat();
 
-	//Decide whether we are interested in the value of the fullGridHeight:
-	
-	DataStatus* ds = DataStatus::getInstance();
-	bool layered = ds->dataIsLayered();
-	
-	if (layered) rParams->setFullGridHeight((size_t)(fullHeightEdit->text().toInt()));
 	
 	for (int i = 0; i<3; i++)
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
@@ -214,25 +206,7 @@ void RegionEventRouter::updateTab(){
 	yCntrEdit->setText(QString::number(0.5f*(regExts[4]+regExts[1]),'g',5));
 	zSizeEdit->setText(QString::number(regExts[5]-regExts[2],'g', 4));
 	zCntrEdit->setText(QString::number(0.5f*(regExts[5]+regExts[2]),'g',5));
-	
-	bool layered = false;
-	DataStatus* ds = DataStatus::getInstance();
-    DataMgr	*dataMgr = ds->getDataMgr();
 
-	if (dataMgr) {
-		layered = ds->dataIsLayered();
-		if (layered)
-			fullHeightEdit->setText(QString::number(rParams->getFullGridHeight()));
-		else {
-			size_t dims[3];
-			dataMgr->GetDim(dims, -1);
-			fullHeightEdit->setText(QString::number(dims[2]));
-		}
-	}
-	else fullHeightEdit->setText("0");
-	fullHeightEdit->setEnabled(layered && (dataMgr != 0));
-	
-	
 	if (rParams->isLocal())
 		LocalGlobal->setCurrentIndex(1);
 	else 

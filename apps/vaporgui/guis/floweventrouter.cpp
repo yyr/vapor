@@ -1591,13 +1591,7 @@ guiSetEnabled(bool on, int instance, bool undoredo){
 	int winnum = vizMgr->getActiveViz();
 	FlowParams* fParams = vizMgr->getFlowParams(winnum, instance);
 	if (on == fParams->isEnabled()) return;
-	//Check that the flow variables are extended by zero below the grid,
-	//if the data is layered:
-	DataStatus* ds = DataStatus::getInstance();
-	if (on && ds->dataIsLayered() && !flowVarsZeroBelow()){
-		MessageReporter::warningMsg("Note that flow variables are not set\nto zero below the terrain.\n%s",
-			"The value below the terrain can be set\nin the Edit Visualizer Features panel.");
-	}
+	
 	confirmText(false);
 	PanelCommand* cmd;
 	if(undoredo) cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);

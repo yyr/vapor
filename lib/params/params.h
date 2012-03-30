@@ -706,8 +706,7 @@ public:
 	int getBypassValue(int i) {return bypassFlags[i];} //only used for debugging
 	
 	void initializeBypassFlags();
-	//Get a variable region from the datamanager.  May reduce the compression level, but not the refinement level
-	//float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, bool twoDim);
+	
 	
 
 protected:

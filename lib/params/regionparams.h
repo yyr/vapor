@@ -64,8 +64,6 @@ public:
 	//! \param[in] int reflevel			Refinement level of requested coordinates
 	//! \param[out] size_t min_dim[3]	Minimum voxel coordinates of region
 	//! \param[out] size_t max_dim[3]	Maximum voxel coordinates of region
-	//! \param[out] size_t min_bdim[3]	Minimum block coordinates of region
-	//! \param[out] size_t max_bdim[3]	Maximum block coordinates of region
 	//! \param[in] int timestep			Time step at which the coordinates are being requested.
 	void getRegionVoxelCoords(int reflevel, size_t min_dim[3], size_t max_dim[3], int timestep);
 	
@@ -90,29 +88,6 @@ public:
 		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
 	
 
-	//! Static method to obtain voxel and user coordinates of the available 2D or 3D data
-	//! in any region.  The voxel extents may be shrunk so as to include
-	//! only the extents for which the specified variables are available.
-	//! If the requested refinement level is not available, and the DataStatus allows
-	//! lowered accuracy, then returns the highest refinement level that is available.
-	//! Returns -1 if required data is unavailable.
-	//! Optionally provides user data extents.
-	//! \retval int		Available refinenement level, or -1 if no data available
-	//! \param[in] int reflevel			Refinement level of requested coordinates
-	//! \param[inout] size_t min_dim[3] Minimum voxel coordinates of available region
-	//! \param[inout] size_t max_dim[3] Maximum voxel coordinates of available region
-	//! \param[out] size_t min_bdim[3]	Minimum block coordinates of available region
-	//! \param[out] size_t max_bdim[3]	Maximum block coordinates of available region
-	//! \param[in] size_t timestep		Time step at which the data is being requested.
-	//! \param[in] int* sesVarNums		An array of integer session 3D variable nums for requested variables
-	//! \param[in] int numVars			Number of variables, i.e. size of sesVarnums
-	//! \param[out] double* regMin		Minimum user coordinates, if pointer argument is non-null
-	//! \param[out] double* regMax		Maximum user coordinates, if pointer argument is non-null
-	//! \param[in] bool twoDims			Indicates whether the variables are 2D (true) or 3D (false)
-	static int shrinkToAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
-		const int* sesVarNums, int numVars, double* regMin, double* regMax, bool twoDims);
-
 	//! Static method to prepare for retrieval of data arrays from DataMgr. 
 	//! \param[in] int numxforms Requested refinement level of data
 	//! \param[in] size_t timestep				Time for which data is requested.
@@ -125,36 +100,6 @@ public:
 	static int PrepareCoordsForRetrieval(int numxforms, size_t timestep, const vector<string>& varnames,
 		double* regMin, double* regMax, 
 		size_t min_dim[3], size_t max_dim[3]);
-	
-	//! Static method to index into 3D variable data arrays returned by DataMgr.
-	//! Input 3D voxel coordinates are used to find value of data.
-	//! \param[in] float* varData		3D array as retrieved from DataMgr
-	//! \param[in] size_t coords[3]		voxel coordinates in full domain
-	//! \param[in] size_t min_bdim[3]	Minimum block coordinates used to retrieve region from DataMgr
-	//! \param[in] size_t max_bdim[3]	Maximum block coordinates used to retrieve region from DataMgr
-	//! \retval float Value of specified variable at specified voxel
-	static float IndexIn3DData(float* varData, size_t coords[3], const size_t bs[3],  const size_t min_bdim[3], const size_t max_bdim[3]){
-		assert( (coords[0] >= min_bdim[0]*bs[0]) && (coords[0] < (max_bdim[0]+1)*bs[0]));
-		assert( (coords[1] >= min_bdim[1]*bs[1]) && (coords[1] < (max_bdim[1]+1)*bs[1]));
-		assert( (coords[2] >= min_bdim[2]*bs[2]) && (coords[2] < (max_bdim[2]+1)*bs[2]));
-		return varData[(coords[0]-bs[0]*min_bdim[0])+
-			(coords[1]-bs[1]*min_bdim[1])*(max_bdim[0]-min_bdim[0]+1)*bs[0] +
-			(coords[2]-bs[2]*min_bdim[2])*(max_bdim[0]-min_bdim[0]+1)*bs[0]*(max_bdim[1]-min_bdim[1]+1)*bs[1]];
-	}
-
-	//! Static method to index into 2D variable data arrays returned by DataMgr.
-	//! Input 2D voxel coordinates are used to find value of data.
-	//! \param[in] float* varData		2D array as retrieved from DataMgr
-	//! \param[in] size_t coords[2]		voxel coordinates in full domain
-	//! \param[in] size_t min_bdim[3]	Minimum block coordinates used to retrieve region from DataMgr
-	//! \param[in] size_t max_bdim[3]	Maximum block coordinates used to retrieve region from DataMgr
-	//! \retval float Value of specified variable at specified voxel
-	static float IndexIn2DData(float* varData, size_t coords[3], const size_t bs[3],  const size_t min_bdim[3], const size_t max_bdim[3]){
-		assert( (coords[0] >= min_bdim[0]*bs[0]) && (coords[0] < (max_bdim[0]+1)*bs[0]));
-		assert( (coords[1] >= min_bdim[1]*bs[1]) && (coords[1] < (max_bdim[1]+1)*bs[1]));
-		return varData[(coords[0]-bs[0]*min_bdim[0])+
-			(coords[1]-bs[1]*min_bdim[1])*(max_bdim[0]-min_bdim[0]+1)*bs[0]];
-	}
 
 	//! Static method that converts a box to its stretched extents in unit cube (as used in rendering).
 	//! \param[in] int refLevel			Refinement level of data
@@ -200,8 +145,8 @@ public:
 	float getRegionCenter(int indx, int timestep) {
 		return (0.5f*(getRegionMin(indx,timestep)+getRegionMax(indx,timestep)));
 	}
-	static int getFullGridHeight(){ return fullHeight;}
-	static void setFullGridHeight(size_t val);//will purge if necessary
+	
+	
 	//Version of DataMgr::GetValidRegion that knows about layered data
 	//Callers must supply the full voxel extents, these get reduced depending on what data is available for
 	//the specified variable, or (for derived variables) the input variables to the script.

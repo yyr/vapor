@@ -1186,7 +1186,6 @@ void DvrEventRouter::benchmarkPreamble()
   size_t max_dim[3];
   size_t min_dim[3];
  
-  const DataMgr *dataMgr      = Session::getInstance()->getDataMgr();
   RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
   DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
 	

@@ -418,81 +418,7 @@ void RenderParams::setAllBypass(bool val){
 	for (int i = 0; i<bypassFlags.size(); i++)
 		bypassFlags[i] = ival;
 }
-/*
-// used by Probe, TwoD, and Region currently.  Can retrieve either slice or volume
-// reduce the refinement level, or reduce the compression level (if allowed)
-float* RenderParams::
-getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, bool twoDim){
-	//Get the region associated with the specified variable in the 
-	//specified block extents
-	DataStatus* ds = DataStatus::getInstance();
-	char* vname;
-	int maxLOD, maxRefLevel;
-	int lod = GetCompressionLevel();
-	if (twoDim){
-		vname = (char*) ds->getVariableName2D(sessionVarNum).c_str();
-		maxLOD = ds->maxLODPresent2D(sessionVarNum,timeStep);
-		maxRefLevel = ds->maxXFormPresent2D(sessionVarNum, timeStep);
-	}
-	else {
-		vname = (char*)ds->getVariableName3D(sessionVarNum).c_str();
-		maxLOD = ds->maxLODPresent3D(sessionVarNum,timeStep);
-		maxRefLevel = ds->maxXFormPresent3D(sessionVarNum, timeStep);
-	}
 
-	
-	if (maxLOD < 0 || (maxLOD < lod && !ds->useLowerAccuracy())){
-		setBypass(timeStep);
-		if (ds->warnIfDataMissing()){
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
-				"Data unavailable for LOD %d \nof variable %s, at current timestep.\n%s",
-				lod, vname,
-				"This message can be silenced\nin user preferences panel.");
-		}
-		return 0;
-	}
-	if (maxRefLevel < 0 || (maxRefLevel < refLevel && !ds->useLowerAccuracy())){
-		setBypass(timeStep);
-		if (ds->warnIfDataMissing()){
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
-				"Data unavailable for Refinement level %d \nof variable %s, at current timestep.\n%s",
-				refLevel, vname,
-				"This message can be silenced\nin user preferences panel.");
-		}
-		return 0;
-	}
-	//Modify lod level if allowed:
-	if (lod > maxLOD) lod = maxLOD;
-	if (refLevel > maxRefLevel) refLevel = maxRefLevel;
-	if (twoDim){
-		//Use the full domain as the extents of the 3rd dimension
-		//This is important when deriving 2d variables from 3d inputs.
-		DataMgr* dataMgr = ds->getDataMgr();
-		size_t fulldim[3], bsize[3];
-// Following is a workaround for bug in DataMgr::GetDimBlk:
-		dataMgr->GetDim(fulldim,refLevel);
-		dataMgr->GetBlockSize(bsize,refLevel);
-		blkMin[2] = 0;
-		blkMax[2] = 1+(fulldim[2]-1)/bsize[2];
-	}
-	
-	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		vname, refLevel, lod, blkMin, blkMax,  0);
-	if (!reg){
-		ds->getDataMgr()->SetErrCode(0);
-		if (ds->warnIfDataMissing()){
-			setBypass(timeStep);
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
-				"Data unavailable for refinement level %d, compression %d\nof variable %s, at current timestep.\n %s",
-				refLevel, lod, vname,
-				"This message can be silenced\nin user preferences panel.");
-		}
-		if(twoDim) ds->setDataMissing2D(timeStep,refLevel, lod, sessionVarNum);
-		else ds->setDataMissing3D(timeStep,refLevel, lod, sessionVarNum);
-	}
-	return reg;
-}
-*/
 //Default camera distance just finds distance to region box in stretched coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
 	double exts[6];
@@ -688,15 +614,24 @@ int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6
 	if (!dataMgr) return 0;
 	
 	//reduce reflevel if variable is available:
-	
-	if (ds->useLowerAccuracy()){
-		for (int i = 0; i< varnames.size(); i++){
-			if (varnames[i] != "0"){
-				*refLevel = Min(ds->maxXFormPresent(varnames[i], ts), *refLevel);
-				*lod = Min(ds->maxLODPresent(varnames[i], ts), *lod);
-			}
+	int tempRefLevel = *refLevel;
+	int tempLOD = *lod;
+	for (int i = 0; i< varnames.size(); i++){
+		if (varnames[i] != "0"){
+			tempRefLevel = Min(ds->maxXFormPresent(varnames[i], ts), tempRefLevel);
+			tempLOD = Min(ds->maxLODPresent(varnames[i], ts), tempLOD);
 		}
 	}
+	if (ds->useLowerAccuracy()){
+		*lod = tempLOD;
+		*refLevel = tempRefLevel;
+	} else {
+		if (tempRefLevel< *refLevel || tempLOD < *lod){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, "Variable not present at required refinement and LOD\n");
+			return 0;
+		}
+	}
+						  
 	if (*refLevel < 0 || *lod < 0) return 0;
 	
 	//Determine the integer extents of valid cube, truncate to
@@ -710,7 +645,10 @@ int Params::getGrids(size_t ts, const vector<string>& varnames, double extents[6
 	for (int i = 0; i<varnames.size(); i++){
 		if (varnames[i] != "0"){
 			int rc = dataMgr->GetValidRegion(ts, varnames[i].c_str(), *refLevel, temp_min, temp_max);
-			if (rc != 0) return 0;
+			if (rc != 0) {
+				MyBase::SetErrCode(0);
+				return 0;
+			}
 			for (int j=0; j<3; j++){
 				if (temp_min[j] > boxMin[j]) boxMin[j] = temp_min[j];
 				if (temp_max[j] < boxMax[j]) boxMax[j] = temp_max[j];

@@ -221,8 +221,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	//Now get the data:
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	size_t ts = (size_t)timeStep;
 	RegularGrid* rg = dataMgr->GetGrid(
-		timeStep, varname, availRefLevel, lod, min_dim, max_dim, 0
+		ts, varname, availRefLevel, lod, min_dim, max_dim, 0
 	);
 
 	QApplication::restoreOverrideCursor();

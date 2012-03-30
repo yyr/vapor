@@ -102,7 +102,6 @@ protected slots:
 	void dvrLightingChanged(bool);
 	void preIntegrationChanged(bool);
 	void axisArrowsChanged(bool);
-	void showSurfaceChanged(bool);
 	void spinChanged(bool);
 	void setAutoSave(bool);
 	void copyLatestSession();
@@ -221,7 +220,6 @@ protected:
 	float maxWait;
 	float maxFPS;
 	bool showAxisArrows;
-	bool showTerrain;
 	bool spinAnimate;
 	bool citationRemind;
 	int autoSaveInterval;

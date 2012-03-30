@@ -516,10 +516,7 @@ public:
 	int getFirstTimestep2D(int sesvarnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
 	size_t getFullSizeAtLevel(int lev, int dim) 
-	{ size_t fullHeight = RegionParams::getFullGridHeight();
-		if (dim < 2 || fullHeight == 0) return dataAtLevel[lev][dim];
-		 return (fullHeight >> (numTransforms - lev));
-	}
+		{ return dataAtLevel[lev][dim];}
 	float getVoxelSize(int lev, int dim){
 		return ((extents[dim+3]-extents[dim])/(float)getFullSizeAtLevel(lev,dim));
 	}

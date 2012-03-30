@@ -40,7 +40,7 @@
 #include "glwindow.h"
 
 using namespace VAPoR;
-int VizFeatureParams::sessionVariableNum = 0;
+
 //Create a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(){
 	dialogChanged = false;
@@ -53,32 +53,9 @@ VizFeatureParams::VizFeatureParams(){
 	
 	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
 
-	
-	if (sessionVariableNum >= DataStatus::getInstance()->getNumSessionVariables())
-		sessionVariableNum = 0;
-
-	lowValues.clear();
-	highValues.clear();
-	extendDown.clear();
-	extendUp.clear();
-	tempLowValues.clear();
-	tempHighValues.clear();
-	tempExtendDown.clear();
-	tempExtendUp.clear();
-	
-
 	DataStatus *ds;
 	ds = DataStatus::getInstance();
-	for (int i = 0; i< ds->getNumSessionVariables(); i++){
-		lowValues.push_back(ds->getBelowValue(i));
-		highValues.push_back(ds->getAboveValue(i));
-		tempLowValues.push_back(ds->getBelowValue(i));
-		tempHighValues.push_back(ds->getAboveValue(i));
-		extendUp.push_back(ds->isExtendedUp(i));
-		tempExtendUp.push_back(ds->isExtendedUp(i));
-		extendDown.push_back(ds->isExtendedDown(i));
-		tempExtendDown.push_back(ds->isExtendedDown(i));
-	}
+	
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
@@ -104,7 +81,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 		ticLength[i] = vfParams.ticLength[i];
 		ticDir[i] = vfParams.ticDir[i];
 	}
-	displacement = vfParams.displacement;
+	
 	showAxisAnnotation = vfParams.showAxisAnnotation;
 	axisAnnotationColor = vfParams.axisAnnotationColor;
 	tempAxisAnnotationColor = vfParams.tempAxisAnnotationColor;
@@ -132,22 +109,8 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	timeAnnotColor = vfParams.timeAnnotColor;
 	timeAnnotType = vfParams.timeAnnotType;
 	timeAnnotTextSize = vfParams.timeAnnotTextSize;
-	lowValues.clear();
-	highValues.clear();
-	tempLowValues.clear();
-	tempHighValues.clear();
-	extendDown.clear();
-	extendUp.clear();
-	tempExtendDown.clear();
-	tempExtendUp.clear();
-	int numvars = vfParams.lowValues.size();
-	for (int i = 0; i<numvars; i++){
-		lowValues.push_back(vfParams.lowValues[i]);
-		highValues.push_back(vfParams.highValues[i]);
-		extendUp.push_back(vfParams.extendUp[i]);
-		extendDown.push_back(vfParams.extendDown[i]);
-	}
-	newOutVals = false;
+	
+	
 }
 //Set up the dialog with current parameters from current active visualizer
 void VizFeatureParams::launch(){
@@ -173,15 +136,8 @@ void VizFeatureParams::launch(){
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
-	vizFeatureDlg->displacementEdit->setText(QString::number(displacement));
-	vizFeatureDlg->variableCombo->setCurrentIndex(sessionVariableNum);
-	vizFeatureDlg->lowValEdit->setText(QString::number(lowValues[sessionVariableNum]));
-	vizFeatureDlg->highValEdit->setText(QString::number(highValues[sessionVariableNum]));
-	vizFeatureDlg->extendDownCheckbox->setChecked(extendDown[sessionVariableNum]);
-	vizFeatureDlg->lowValEdit->setEnabled(!extendDown[sessionVariableNum]);
-	vizFeatureDlg->extendUpCheckbox->setChecked(extendUp[sessionVariableNum]);
-	vizFeatureDlg->highValEdit->setEnabled(!extendUp[sessionVariableNum]);
-	newOutVals = false;
+	
+	
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
 		vizFeatureDlg->axisAnnotationFrame->show();
 	} else {
@@ -231,13 +187,11 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->spinAnimationCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->rendererCombo, SIGNAL(activated(int)), this, SLOT(rendererChanged(int)));
-	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(toggled(bool)), this, SLOT(checkSurface(bool)));
+	
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->applyButton2, SIGNAL(clicked()), this, SLOT(applySettings()));
-	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
+	
 	connect (vizFeatureDlg->axisAnnotationCheckbox, SIGNAL(clicked()), this, SLOT(annotationChanged()));
-	connect (vizFeatureDlg->displacementEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->xMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->yMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->zMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -273,14 +227,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->timeSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeCombo,SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeColorButton,SIGNAL(clicked()), this, SLOT(selectTimeTextColor()));
-	connect(vizFeatureDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
-	connect(vizFeatureDlg->displacementEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect(vizFeatureDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
-	connect(vizFeatureDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
-	connect(vizFeatureDlg->extendDownCheckbox, SIGNAL(clicked()), this, SLOT(setOutsideVal()));
-	connect(vizFeatureDlg->extendUpCheckbox, SIGNAL(clicked()), this, SLOT(setOutsideVal()));
-	connect(vizFeatureDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
-	connect(vizFeatureDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
+	
 	connect(vizFeatureDlg->stretch0Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->stretch1Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect(vizFeatureDlg->stretch2Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -291,40 +238,6 @@ void VizFeatureParams::launch(){
 void VizFeatureParams::
 rendererChanged(int renIndex){
 	colorbarRendererTypeId = rendererTypeLookup[renIndex];
-	dialogChanged = true;
-}
-void VizFeatureParams::
-setVariableNum(int varNum){
-	//Save values from previous setting:
-	if(newOutVals){
-		setOutsideVal();
-	}
-	sessionVariableNum = varNum;
-	vizFeatureDlg->lowValEdit->setText(QString::number(tempLowValues[sessionVariableNum]));
-	vizFeatureDlg->highValEdit->setText(QString::number(tempHighValues[sessionVariableNum]));
-	vizFeatureDlg->extendDownCheckbox->setChecked(tempExtendDown[sessionVariableNum]);
-	vizFeatureDlg->extendUpCheckbox->setChecked(tempExtendUp[sessionVariableNum]);
-	vizFeatureDlg->highValEdit->setEnabled(!vizFeatureDlg->extendUpCheckbox->isChecked());
-	vizFeatureDlg->lowValEdit->setEnabled(!vizFeatureDlg->extendDownCheckbox->isChecked());
-	dialogChanged = true;
-}
-void VizFeatureParams::
-setOutsideVal(){
-	float aboveVal = vizFeatureDlg->highValEdit->text().toFloat();
-	float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
-	tempLowValues[sessionVariableNum] = belowVal;
-	tempHighValues[sessionVariableNum] = aboveVal;
-	tempExtendUp[sessionVariableNum] = vizFeatureDlg->extendUpCheckbox->isChecked();
-	tempExtendDown[sessionVariableNum] = vizFeatureDlg->extendDownCheckbox->isChecked();
-	vizFeatureDlg->highValEdit->setEnabled(!vizFeatureDlg->extendUpCheckbox->isChecked());
-	vizFeatureDlg->lowValEdit->setEnabled(!vizFeatureDlg->extendDownCheckbox->isChecked());
-	newOutVals = true;
-	dialogChanged = true;
-	
-}
-void VizFeatureParams::
-changeOutsideVal(const QString&){
-	newOutVals = true;
 	dialogChanged = true;
 }
 
@@ -416,20 +329,7 @@ setDialog(){
     vizFeatureDlg->stretch0Edit->setEnabled(enableStretch);
     vizFeatureDlg->stretch1Edit->setEnabled(enableStretch);
     vizFeatureDlg->stretch2Edit->setEnabled(enableStretch);
-
-	DataStatus* ds = DataStatus::getInstance();
-	bool isLayered = ds->dataIsLayered();
-	vizFeatureDlg->outsideValFrame->setEnabled(isLayered);
-	vizFeatureDlg->variableCombo->setCurrentIndex(sessionVariableNum);
-	if (isLayered) vizFeatureDlg->buttonOk->setDefault(false);
-	if (ds->getNumSessionVariables()>0){
-		vizFeatureDlg->lowValEdit->setText(QString::number(ds->getBelowValue(sessionVariableNum)));
-		vizFeatureDlg->highValEdit->setText(QString::number(ds->getAboveValue(sessionVariableNum)));
-		vizFeatureDlg->variableCombo->clear();
-		for (int i = 0; i<ds->getNumSessionVariables(); i++){
-			vizFeatureDlg->variableCombo->addItem(ds->getVariableName3D(i).c_str());
-		}
-	}
+	
 	int vizNum = getVizNum(currentComboIndex);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
@@ -543,8 +443,6 @@ setDialog(){
 	pal2.setColor(QPalette::Base, colorbarBackgroundColor);
 	vizFeatureDlg->colorbarBackgroundEdit->setPalette(pal2);
 
-	int numRefs = ds->getNumTransforms();
-	
 
 	//Set up the renderer combo.
 	vizFeatureDlg->rendererCombo->clear();
@@ -579,22 +477,6 @@ copyFromDialog(){
 	//Of the state that will modify visualizer
 	VizFeatureCommand* cmd = VizFeatureCommand::captureStart(this, "Feature edit", vizNum);
 
-	if (newOutVals){
-		float aboveVal = vizFeatureDlg->highValEdit->text().toFloat();
-		float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
-		tempLowValues[sessionVariableNum] = belowVal;
-		tempHighValues[sessionVariableNum] = aboveVal;
-		tempExtendUp[sessionVariableNum] = vizFeatureDlg->extendUpCheckbox->isChecked();
-		tempExtendDown[sessionVariableNum] = vizFeatureDlg->extendDownCheckbox->isChecked();
-		//Now copy all temp values to perm values:
-		for (int i = 0; i<lowValues.size(); i++){
-			lowValues[i] = tempLowValues[i];
-			highValues[i] = tempHighValues[i];
-			extendDown[i] = tempExtendDown[i];
-			extendUp[i] = tempExtendUp[i];
-		}
-		newOutVals = false;
-	}
 	
 
 	stretch[0] = vizFeatureDlg->stretch0Edit->text().toFloat();
@@ -675,8 +557,6 @@ copyFromDialog(){
 
 	colorbarBackgroundColor = tempColorbarBackgroundColor;
 
-	displacement = vizFeatureDlg->displacementEdit->text().toFloat();
-
 	
 	applyToViz(vizNum);
 	
@@ -694,54 +574,7 @@ applyToViz(int vizNum){
 	int i;
 	DataStatus* ds = DataStatus::getInstance();
 	
-	bool changedOutVals = false;
-	for (i = 0; i<ds->getNumSessionVariables(); i++){
 	
-		if(ds->getBelowValue(i) != lowValues[i] || ds->getAboveValue(i) != highValues[i]
-			|| ds->isExtendedDown(i) != extendDown[i] || ds->isExtendedUp(i) != extendUp[i])
-		{
-			ds->setOutsideValues(i, lowValues[i],highValues[i],extendDown[i],extendUp[i]);
-			changedOutVals = true;
-		}
-	}
-	if (changedOutVals){
-		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		
-		for (int j = 0; j< MAXVIZWINS; j++) {
-			VizWin* win = vizMgr->getVizWin(j);
-			if (!win) continue;
-			//do each dvr
-			
-			DvrParams* dp = (DvrParams*)vizMgr->getDvrParams(j);
-			vizMgr->setDatarangeDirty(dp);
-			win->setDirtyBit(RegionBit, true);
-		}
-		if (ds->dataIsLayered()){	
-			DataMgr *dataMgr = ds->getDataMgr();
-			LayeredIO   *dataMgrLayered = dynamic_cast<LayeredIO *>(dataMgr);
-
-			//construct a list of the non extended variables
-			std::vector<string> vNames;
-			std::vector<float> vals;
-			for (int i = 0; i< ds->getNumSessionVariables(); i++){
-				if (!ds->isExtendedDown(i)){
-					vNames.push_back(ds->getVariableName3D(i));
-					vals.push_back(ds->getBelowValue(i));
-				}
-			}
-			dataMgrLayered->SetLowVals(vNames, vals);
-			vNames.clear();
-			for (int i = 0; i< ds->getNumSessionVariables(); i++){
-				if (!ds->isExtendedUp(i)){
-					vNames.push_back(ds->getVariableName3D(i));
-					vals.push_back(ds->getAboveValue(i));
-				}
-			}
-			dataMgrLayered->SetHighVals(vNames, vals);
-		}
-		//Must purge the cache when the outside values change:
-		ds->getDataMgr()->Clear();
-	}
 	
 	bool stretchChanged = false;
 	float oldStretch[3];

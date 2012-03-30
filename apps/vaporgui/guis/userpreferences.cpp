@@ -189,7 +189,6 @@ UserPreferences* UserPreferences::clone(){
 	newPrefs->maxWait = maxWait;
 	newPrefs->maxFPS = maxFPS;
 	newPrefs->showAxisArrows = showAxisArrows;
-	newPrefs->showTerrain = showTerrain;
 	newPrefs->spinAnimate = spinAnimate;
 	
 
@@ -277,7 +276,6 @@ void UserPreferences::launch(){
 	connect (dvrLightingCheckbox, SIGNAL(toggled(bool)), this, SLOT(dvrLightingChanged(bool)));
 	connect (preIntegrationCheckbox, SIGNAL(toggled(bool)), this, SLOT(preIntegrationChanged(bool)));
 	connect (axisArrowsCheckbox, SIGNAL(toggled(bool)), this, SLOT(axisArrowsChanged(bool)));
-	connect (surfaceCheckbox, SIGNAL(toggled(bool)), this, SLOT(showSurfaceChanged(bool)));
 	
 	connect (tabNameCombo,SIGNAL(currentIndexChanged(int)), this, SLOT(tabNameChanged(int)));
 	connect (tabOrderSpin,SIGNAL(valueChanged(int)), this, SLOT(tabOrderChanged(int)));
@@ -654,10 +652,7 @@ void UserPreferences::axisArrowsChanged(bool val){
 	showAxisArrows = val;
 	dialogChanged = true;
 }
-void UserPreferences::showSurfaceChanged(bool val){
-	showTerrain = val;
-	dialogChanged = true;
-}
+
 void UserPreferences::spinChanged(bool val){
 	spinAnimate = val;
 	dialogChanged = true;
@@ -837,7 +832,7 @@ setDialog(){
 	maxWait = AnimationParams::getDefaultMaxWait();
 	maxFPS = AnimationParams::getDefaultMaxFPS();
 	showAxisArrows = GLWindow::getDefaultAxisArrowsEnabled();
-	showTerrain= GLWindow::getDefaultTerrainEnabled();
+	
 	spinAnimate= GLWindow::getDefaultSpinAnimateEnabled();
 	isoBitsCombo->setCurrentIndex((isoBitsPerVoxel == 16) ? 1 : 0);
 	dvrBitsCombo->setCurrentIndex((dvrBitsPerVoxel == 16) ? 1 : 0);
@@ -846,7 +841,6 @@ setDialog(){
 	maxWaitEdit->setText(QString::number(maxWait));
 	maxFPSEdit->setText(QString::number(maxFPS));
 	axisArrowsCheckbox->setChecked(showAxisArrows);
-	surfaceCheckbox->setChecked(showTerrain);
 	enableSpinCheckbox->setChecked(spinAnimate);
 
 	//Initialize the tab ordering based on current ordering in TabManager
@@ -938,7 +932,6 @@ applyToState(){
 	AnimationParams::setDefaultMaxWait(maxWait);
 	AnimationParams::setDefaultMaxFPS(maxFPS);
 	GLWindow::setDefaultAxisArrows(showAxisArrows);
-	GLWindow::setDefaultShowTerrain(showTerrain);
 	GLWindow::setDefaultSpinAnimate(spinAnimate);
 	GLWindow::setSpinAnimation(spinAnimate);
 	
@@ -1306,10 +1299,6 @@ ParamNode* UserPreferences::buildNode(){
 	str = GLWindow::getDefaultAxisArrowsEnabled() ? "true" : "false";
 	oss << str;
 	attrs[_defaultShowAxisArrowsAttr] = oss.str();
-	oss.str(empty);
-	str = GLWindow::getDefaultTerrainEnabled() ? "true" : "false";
-	oss << str;
-	attrs[_defaultShowTerrainAttr] = oss.str();
 
 	oss.str(empty);
 	str = GLWindow::getDefaultSpinAnimateEnabled() ? "true" : "false";
@@ -1693,12 +1682,7 @@ bool UserPreferences::elementStartHandler(ExpatParseMgr* pm, int depth,
 						else val = false;
 						GLWindow::setDefaultAxisArrows(val);
 					} else if (StrCmpNoCase(attr, _defaultShowTerrainAttr) == 0) {
-						string boolVal;
-						bool val;
-						ist >> boolVal;
-						if (boolVal == "true") val = true;
-						else val = false;
-						GLWindow::setDefaultShowTerrain(val);
+						//obsolete
 					} else if (StrCmpNoCase(attr, _defaultSpinAnimateAttr) == 0) {
 						string boolVal;
 						bool val;

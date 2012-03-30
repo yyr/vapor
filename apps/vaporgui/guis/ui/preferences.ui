@@ -2289,61 +2289,6 @@
                    </item>
                   </layout>
                  </item>
-                 <item>
-                  <layout class="QHBoxLayout">
-                   <item>
-                    <spacer name="spacer88">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Expanding</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>51</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="surfaceCheckbox">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>25</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>Enable terrain rendering when loading layered data into a default session</string>
-                     </property>
-                     <property name="whatsThis">
-                      <string>Checking this box causes the terrain surface to be rendered whenever a layered dataset is loaded into a default session.  It will not affect the current setting in the visualizer features panel.</string>
-                     </property>
-                     <property name="text">
-                      <string>Display Terrain Surface by Default</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="spacer89">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Expanding</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>51</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
                 </layout>
                </item>
               </layout>

@@ -797,63 +797,6 @@ void TwoDDataParams::setMinOpacMapBound(float val){
 void TwoDDataParams::setMaxOpacMapBound(float val){
 	GetMapperFunc()->setMaxOpacMapValue(val);
 }
-	
-
-
-//Find the smallest box containing the twoD slice, in 3d block coords, at current refinement level
-//and current time step.  Restrict it to the available data.
-//The constant dimension is also included:
-//
-bool TwoDDataParams::
-getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
-		size_t boxMin[3], size_t boxMax[3], int numRefs){
-	
-	//Start with the bounding box for this refinement level:
-	getBoundingBox(timeStep, boxMin, boxMax, numRefs);
-	size_t bs[3];
-	DataStatus::getInstance()->getDataMgr()->GetBlockSize(bs, numRefs);
-	size_t temp_min[3],temp_max[3];
-	for (int j = 0; j<3; j++){
-		temp_min[j] = boxMin[j];
-		temp_max[j] = boxMax[j];
-	}
-	bool retVal = true;
-	int i;
-	//Now intersect with available bounds based on variables:
-	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables2D(); varIndex++){
-		if (!variableSelected[varIndex]) continue;
-		if (DataStatus::getInstance()->maxXFormPresent2D(varIndex,timeStep) < numRefs){
-			retVal = false;
-			continue;
-		} else {
-			const string varName = DataStatus::getInstance()->getVariableName2D(varIndex);
-			int rc = RegionParams::getValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max);
-			if (rc < 0) {
-				retVal = false;
-			}
-		}
-		if(retVal) for (i = 0; i< 3; i++){
-			if (boxMin[i] < temp_min[i]) boxMin[i] = temp_min[i];
-			if (boxMax[i] > temp_max[i]) boxMax[i] = temp_max[i];
-		}
-	}
-	int constDim = DataStatus::getInstance()->get2DOrientation(getFirstVarNum());
-	
-	boxMin[constDim] = temp_min[constDim];
-	boxMax[constDim] = temp_max[constDim];
-	//Now do the block dimensions:
-	for (int i = 0; i< 3; i++){
-		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i);
-		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
-		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
-		//And make the block coords:
-		boxMinBlk[i] = boxMin[i]/ bs[i];
-		boxMaxBlk[i] = boxMax[i]/ bs[i];
-	}
-	
-	return retVal;
-}
-
 
 //Clear out the cache.  
 //just delete the elevation grid

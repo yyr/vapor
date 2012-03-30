@@ -958,7 +958,7 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 	//Get the extents from the metadata, if it exists:
 	if (dataMgr){
 		std::vector<double> mdExtents = dataMgr->GetExtents();
-		DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB*> (dataMgr);
+		
 
         // Automatically calculate stretch factors for spherical data, 
         // so that, volume bounding box will be a unit cube. The spherical

@@ -91,9 +91,7 @@ protected slots:
 	void okClicked();
 	void reloadShaders();
 	void doHelp();
-	void setVariableNum(int);
-	void setOutsideVal();
-	void changeOutsideVal(const QString&);
+	
 	void checkSurface(bool);
 	
 protected:
@@ -127,8 +125,6 @@ protected:
 	int timeAnnotTextSize;
 	float ticWidth;
 	
-
-	float displacement;
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
 	int colorbarDigits;
@@ -146,16 +142,7 @@ protected:
 	QColor tempAxisAnnotationColor;
 
 	float stretch[3];
-	static int sessionVariableNum;
-	bool newOutVals;
-	std::vector<float> lowValues;
-	std::vector<float> highValues;
-	std::vector<float> tempLowValues;
-	std::vector<float> tempHighValues;
-	std::vector<bool> extendDown;
-	std::vector<bool> extendUp;
-	std::vector<bool> tempExtendDown;
-	std::vector<bool> tempExtendUp;
+	
 	std::vector<int> rendererTypeLookup;
 	
 	
