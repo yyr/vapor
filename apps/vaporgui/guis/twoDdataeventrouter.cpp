@@ -80,7 +80,7 @@ TwoDDataEventRouter::TwoDDataEventRouter(QWidget* parent ): QWidget(parent), Ui_
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_twoDDataParamsTag);
 	savedCommand = 0;
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 	numVariables = 0;
 	seedAttached = false;
 	
@@ -135,7 +135,7 @@ TwoDDataEventRouter::hookUpTab()
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(twoDAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (lodCombo,SIGNAL(activated(int)), this, SLOT(guiSetCompRatio(int)));
-	connect (variableListBox,SIGNAL(itemSelectionChanged(void)), this, SLOT(guiChangeVariables(void)));
+	connect (variableCombo,SIGNAL(activated(int)), this, SLOT(guiChangeVariable(int)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setTwoDZCenter()));
@@ -295,14 +295,18 @@ void TwoDDataEventRouter::updateTab(){
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
 	guiSetTextChanged(false);
-	//Set the selection in the variable listbox.
-	//Turn off listBox message-listening
-	ignoreListboxChanges = true;
+	//Set the selection in the variable combo
+	//Turn off combo message-listening
+	ignoreComboChanges = true;
 	for (int i = 0; i< ds->getNumActiveVariables2D(); i++){
-		if (variableListBox->item(i)->isSelected() != twoDParams->variableIsSelected(ds->mapActiveToSessionVarNum2D(i)))
-			variableListBox->item(i)->setSelected(twoDParams->variableIsSelected(ds->mapActiveToSessionVarNum2D(i)));
+		
+		bool selection = twoDParams->variableIsSelected(ds->mapActiveToSessionVarNum2D(i));
+		if (selection)
+			variableCombo->setCurrentIndex(i);
 	}
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
+
+
 
 	updateBoundsText(twoDParams);
 	guiSetTextChanged(false);
@@ -630,7 +634,7 @@ refreshTwoDHisto(){
 	}
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		refreshHistogram(pParams,pParams->getSessionVarNum(), pParams->getCurrentDatarange(), true);
+		refreshHistogram(pParams,pParams->getSessionVarNum(), pParams->getCurrentDatarange());
 	}
 	setEditorDirty();
 }
@@ -805,16 +809,16 @@ reinitTab(bool doOverride){
 
 
 	numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
-	//Set the names in the variable listbox
-	ignoreListboxChanges = true;
-	variableListBox->clear();
+	//Set the names in the variable combo
+	
+	ignoreComboChanges = true;
+	variableCombo->clear();
 	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
 		const std::string& s = DataStatus::getInstance()->getActiveVarName2D(i);
 		const QString& text = QString(s.c_str());
-		QListWidgetItem* newItem = new QListWidgetItem(text);
-		variableListBox->insertItem(i,newItem);
+		variableCombo->insertItem(i,text);
 	}
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 
 	seedAttached = false;
 
@@ -1082,10 +1086,50 @@ void TwoDDataEventRouter::guiCenterProbe(){
 	VizWinMgr::getInstance()->forceRender(pParams);
 
 }
-
-//Respond to an update of the variable listbox.  set the appropriate bits
+//Respond to an change of variable.  set the appropriate bits
 void TwoDDataEventRouter::
-guiChangeVariables(){
+guiChangeVariable(int varnum){
+	//Don't react if the combo is being reset programmatically:
+	if (ignoreComboChanges) return;
+	if (!DataStatus::getInstance()->dataIsPresent2D()) return;
+	confirmText(false);
+	TwoDDataParams* tParams = VizWinMgr::getActiveTwoDDataParams();
+	PanelCommand* cmd = PanelCommand::captureStart(tParams, "change 2d-selected variable");
+	int firstVar = 0;
+	
+	for (int i = 0; i< DataStatus::getInstance()->getNumActiveVariables2D(); i++){
+		//Index by session variable num:
+		int svnum = DataStatus::getInstance()->mapActiveToSessionVarNum2D(i);
+		
+		if (i == varnum){
+			tParams->setVariableSelected(svnum,true);
+			firstVar = varnum;
+		}
+		else 
+			tParams->setVariableSelected(svnum,false);
+	}
+	tParams->setNumVariablesSelected(1);
+	tParams->setFirstVarNum(firstVar);
+	//reset the editing display range shown on the tab, 
+	//this also sets dirty flag
+	updateMapBounds(tParams);
+	
+	//Force a redraw of the transfer function frame
+    setEditorDirty();
+	   
+	
+	PanelCommand::captureEnd(cmd, tParams);
+	//Need to update the selected point for the new variables
+	updateTab();
+	
+	
+	twoDTextureFrame->update();
+	VizWinMgr::getInstance()->forceRender(tParams);
+}
+//Respond to an update of the variable combo.  set the appropriate bits
+/*
+void TwoDDataEventRouter::
+guiChangeVariables(int ){
 	//Don't react if the listbox is being reset programmatically:
 	if (ignoreListboxChanges) return;
 	confirmText(false);
@@ -1150,6 +1194,7 @@ guiChangeVariables(){
 	twoDTextureFrame->update();
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
+*/
 void TwoDDataEventRouter::
 guiSetXCenter(int sliderval){
 	confirmText(false);
@@ -1994,7 +2039,7 @@ QString TwoDDataEventRouter::getMappedVariableNames(int* numvars){
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
-Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool, bool ){
+Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool){
 	
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables2D();
 	int varNum = renParams->getSessionVarNum();
@@ -2013,7 +2058,7 @@ Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, 
 	if (!mustGet) return 0;
 	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
 	
-	refreshHistogram(renParams,renParams->getSessionVarNum(), currentDatarange, true);
+	refreshHistogram(renParams,renParams->getSessionVarNum(), currentDatarange);
 	return histogramList[varNum];
 	
 }
@@ -2039,8 +2084,8 @@ void TwoDDataEventRouter::mapCursor(){
 	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
 	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 	selectPoint[mapDims[2]] = constVal[0];
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	size_t timeStep = (size_t) vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
@@ -2202,3 +2247,54 @@ void TwoDDataEventRouter::paintEvent(QPaintEvent* ev){
 	
 }
 #endif
+
+//Obtain a new histogram for the current selected variables.
+//Save it at the position associated with firstVarNum
+void TwoDDataEventRouter::
+refreshHistogram(RenderParams* p, int, const float[2]){
+	TwoDDataParams* tParams = (TwoDDataParams*)p;
+	int firstVarNum = tParams->getFirstVarNum();
+	const float* currentDatarange = tParams->getCurrentDatarange();
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
+	size_t timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if(tParams->doBypass(timeStep)) return;
+	if (!histogramList){
+		histogramList = new Histo*[numVariables];
+		numHistograms = numVariables;
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (!histogramList[firstVarNum]){
+		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	}
+	Histo* histo = histogramList[firstVarNum];
+	histo->reset(256,currentDatarange[0],currentDatarange[1]);
+	
+
+	RegularGrid* histoGrid;
+	int actualRefLevel = tParams->GetRefinementLevel();
+	int lod = tParams->GetCompressionLevel();
+	vector<string>varnames;
+	varnames.push_back(ds->getVariableName2D(firstVarNum));
+	double exts[6];
+	tParams->GetBox()->GetExtents(exts);
+	int rc = Params::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
+	
+	if(!rc) return;
+
+	histoGrid->SetInterpolationOrder(0);	
+	
+	float v;
+	RegularGrid *rg_const = (RegularGrid *) histoGrid;   
+	RegularGrid::Iterator itr;
+	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
+		v = *itr;
+		if (v == histoGrid->GetMissingValue()) continue;
+		histo->addToBin(v);
+	}
+	
+	delete histoGrid;
+
+}

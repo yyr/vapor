@@ -512,9 +512,7 @@ create new 2D planar instances.</string>
              <item>
               <widget class="QLabel" name="textLabel1_3">
                <property name="text">
-                <string>Select 2D variable(s)
-mapped to color
-and transparency</string>
+                <string>Selected 2D variable:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -525,21 +523,15 @@ and transparency</string>
               </widget>
              </item>
              <item>
-              <widget class="QListWidget" name="variableListBox">
+              <widget class="QComboBox" name="variableCombo">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
-                 <height>107</height>
+                 <width>150</width>
+                 <height>0</height>
                 </size>
                </property>
-               <property name="maximumSize">
-                <size>
-                 <width>144</width>
-                 <height>107</height>
-                </size>
-               </property>
-               <property name="selectionMode">
-                <enum>QAbstractItemView::ExtendedSelection</enum>
+               <property name="toolTip">
+                <string>Choose the 2D variable to be displayed.</string>
                </property>
               </widget>
              </item>

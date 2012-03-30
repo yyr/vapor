@@ -1187,7 +1187,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		extents[i] = boxmin[i];
 		extents[i+3] = boxmax[i];
 	}
-	//int rc = getProbeGrids(ts, 1, &firstVarNum, coordMin, coordMax, &actualRefLevel, &probeGrid);
+	
 	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, &probeGrid);
 	
 	if(!rc){

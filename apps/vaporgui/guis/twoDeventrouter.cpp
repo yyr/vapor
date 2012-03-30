@@ -75,7 +75,7 @@ using namespace VAPoR;
 TwoDEventRouter::TwoDEventRouter(): EventRouter(){
 	
 	savedCommand = 0;
-	ignoreListboxChanges = false;
+	ignoreComboChanges = false;
 	seedAttached = false;
 	notNudgingSliders = false;
 

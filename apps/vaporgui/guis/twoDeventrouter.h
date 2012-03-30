@@ -69,7 +69,7 @@ protected:
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without
 	//triggering a gui changed event
-	bool ignoreListboxChanges;
+	bool ignoreComboChanges;
 	//Flag to ignore slider events caused by updating tab,
 	//so they won't be recognized as a nudge event.
 	bool notNudgingSliders;

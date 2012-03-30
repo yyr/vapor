@@ -154,7 +154,7 @@ void VizFeatureParams::launch(){
 	
 //	sv->resizeContents(w,h);
 	sv->resize(w,h);
-	
+	vizFeatureDlg->adjustSize();
 	//Check if we have time stamps in data:
 	int numTimeTypes = 1;
 	const DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();

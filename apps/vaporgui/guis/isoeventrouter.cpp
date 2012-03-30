@@ -1277,7 +1277,7 @@ setDatarangeDirty(RenderParams* params)
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 //Boolean flag is only used by isoeventrouter version
-Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool isIsoControl ,bool ){
+Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool isIsoControl ){
 	
 	ParamsIso* iParams = (ParamsIso*)renParams;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
