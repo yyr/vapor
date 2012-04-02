@@ -322,8 +322,8 @@ void TwoDImageEventRouter::updateTab(){
 			dBoxMin[i] = boxmin[i];
 			dBoxMax[i] = boxmax[i];
 		}
-		dataMgr->MapUserToVox((size_t)-1, dBoxMin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox((size_t)-1, dBoxMax, gridMax, fullRefLevel);
+		dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
+		dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));

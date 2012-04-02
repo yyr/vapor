@@ -87,10 +87,10 @@ const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
 const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
 const string Session::_sessionVariableTag = "SessionVariable";
 const string Session::_variableNameAttr = "VariableName";
-const string Session::_aboveGridAttr = "AboveGridValue";
-const string Session::_belowGridAttr = "BelowGridValue";
-const string Session::_extendUpAttr = "ExtendAboveGrid";
-const string Session::_extendDownAttr = "ExtendBelowGrid";
+const string Session::_aboveGridAttr = "AboveGridValue"; //obsolete
+const string Session::_belowGridAttr = "BelowGridValue"; //obsolete
+const string Session::_extendUpAttr = "ExtendAboveGrid";  //obsolete
+const string Session::_extendDownAttr = "ExtendBelowGrid"; //obsolete
 const string Session::_VAPORVersionAttr = "VaporVersion";
 
 const string Session::_pythonScriptsTag = "PythonScripts";
@@ -359,18 +359,6 @@ buildNode() {
 		oss.str(empty);
 		oss << getVariableName(i);
 		attrs[_variableNameAttr] = oss.str();
-		oss.str(empty);
-		if (DataStatus::isExtendedUp(i)) oss << "true"; else oss << "false";
-		attrs[_extendUpAttr] = oss.str();
-		oss.str(empty);
-		if (DataStatus::isExtendedDown(i)) oss << "true"; else oss << "false";
-		attrs[_extendDownAttr] = oss.str();
-		oss.str(empty);
-		oss << getBelowValue(i);
-		attrs[_belowGridAttr] = oss.str();
-		oss.str(empty);
-		oss << getAboveValue(i);
-		attrs[_aboveGridAttr] = oss.str();
 		mainNode->NewChild(_sessionVariableTag, attrs,0);
 	}
 	//Create a global params node, and populate it.
@@ -571,13 +559,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			} else if (StrCmpNoCase(tag, _globalTransferFunctionsTag) == 0){
 				return true;
 			} else if (StrCmpNoCase(tag, _sessionVariableTag) == 0){
-				//start with default above/below values
-				float belowVal = BELOW_GRID;
-				float aboveVal = ABOVE_GRID;
-				//Session files if not specifed do NOT extend, since
-				//this option is specified in session files after 1.3
-				bool extendUp = false;
-				bool extendDown = false;
+				
 				std::string varName;
 				
 				while (*attrs) {
@@ -589,22 +571,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					if (StrCmpNoCase(attr, _variableNameAttr) == 0) {
 						ist >> varName;
 					}
-					else if (StrCmpNoCase(attr, _belowGridAttr) == 0){
-						ist >> belowVal;
-					}
-					else if (StrCmpNoCase(attr, _aboveGridAttr) == 0){
-						ist >> aboveVal;
-					}
-					else if (StrCmpNoCase(attr, _extendUpAttr) == 0){
-						if (value == "true") extendUp = true; else extendUp = false;
-					}
-					else if (StrCmpNoCase(attr, _extendDownAttr) == 0){
-						if (value == "true") extendDown = true; else extendDown = false;
-					}
 				}
 				if (varName == "") return false;
 				int varnum = mergeVariableName(varName);
-				DataStatus::getInstance()->setOutsideValues(varnum, belowVal, aboveVal, extendDown, extendUp);
 				return true;
 			} else if (StrCmpNoCase(tag, _pythonScriptsTag) == 0){
 				return true;

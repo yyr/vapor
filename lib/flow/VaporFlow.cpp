@@ -713,8 +713,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	VECTOR3 minR, maxR;
 	double regMin[3],regMax[3];
 	
-	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, (int)numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, (int)numXForms);
+	dataMgr->MapVoxToUser(0, minRegion, regMin, (int)numXForms);
+	dataMgr->MapVoxToUser(0, maxRegion, regMax, (int)numXForms);
 	
 	minR.Set((float)regMin[0], (float)regMin[1], (float)regMin[2]);
 	maxR.Set((float)regMax[0], (float)regMax[1], (float)regMax[2]);
@@ -968,8 +968,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	VECTOR3 minR, maxR;
 	double regMin[3],regMax[3];
 	
-	dataMgr->MapVoxToUser((size_t)-1, minRegion, regMin, numXForms);
-	dataMgr->MapVoxToUser((size_t)-1, maxRegion, regMax, numXForms);
+	dataMgr->MapVoxToUser(0, minRegion, regMin, numXForms);
+	dataMgr->MapVoxToUser(0, maxRegion, regMax, numXForms);
 	
 	minR.Set(regMin[0], regMin[1], regMin[2]);
 	maxR.Set(regMax[0], regMax[1], regMax[2]);

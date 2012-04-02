@@ -271,12 +271,7 @@ public:
 		
 	std::string& getVariableName(int varNum) {
 		return DataStatus::getVariableName3D(varNum);}
-	float getAboveValue(int varNum) {
-		return DataStatus::getAboveValue(varNum);
-	}
-	float getBelowValue(int varNum) {
-		return DataStatus::getBelowValue(varNum);
-	}
+	
 	//Find the session num of a name, or -1 if it's not metadata:
 	int getSessionVariableNum(const string& str){
 		return DataStatus::getSessionVariableNum3D(str);
@@ -338,10 +333,10 @@ protected:
 	static const string _globalTransferFunctionsTag;
 	static const string _dataExtentsAttr;
 	static const string _variableNameAttr;
-	static const string _belowGridAttr;
-	static const string _aboveGridAttr;
-	static const string _extendDownAttr;
-	static const string _extendUpAttr;
+	static const string _belowGridAttr;//obsolete
+	static const string _aboveGridAttr;//obsolete
+	static const string _extendDownAttr;//obsolete
+	static const string _extendUpAttr;//obsolete
 	static const string _interactiveRefLevelAttr;
 	static const string _pythonScriptsTag;
 	static const string _setupScriptTag;

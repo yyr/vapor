@@ -546,11 +546,6 @@ public:
 	static void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
 	static bool regionFrameIsEnabled() {return regionFrameEnabled;}
 	static bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
-	static float getBelowValue(int sesvarNum) {return belowValues[sesvarNum];}
-	static float getAboveValue(int sesvarNum) {return aboveValues[sesvarNum];}
-	static bool isExtendedUp(int sesvarnum) {return extendUp[sesvarnum];}
-	static bool isExtendedDown(int sesvarnum) {return extendDown[sesvarnum];}
-
 	
 	//Insert variableName if necessary; return sessionVariableNum
 	static int mergeVariableName(const std::string& str);
@@ -561,22 +556,11 @@ public:
 		for (int i = 0; i<variableNames.size(); i++)
 			if (variableNames[i] == newName) return;
 		variableNames.push_back(newName);
-		aboveValues.push_back(VetsUtil::ABOVE_GRID);
-		belowValues.push_back(VetsUtil::BELOW_GRID);
-		extendUp.push_back(true);
-		extendDown.push_back(true);
 	}
 	static void addVarName2D(const std::string newName) {
 		for (int i = 0; i<variableNames2D.size(); i++)
 			if (variableNames2D[i] == newName) return;
 		variableNames2D.push_back(newName);
-	}
-	//Set outside values for an existing session variable 
-	static void setOutsideValues(int varnum, float belowVal, float aboveVal, bool down, bool up){
-		belowValues[varnum] = belowVal;
-		aboveValues[varnum] = aboveVal;
-		extendDown[varnum] = down;
-		extendUp[varnum] = up;
 	}
 	
 	//"Metadata" variables are those that are in current metadata, as opposed to
@@ -607,10 +591,6 @@ public:
 	static int getNumSessionVariables2D(){return (int)variableNames2D.size();}
 	static void clearVariableNames() {
 		variableNames.clear();
-		aboveValues.clear();
-		belowValues.clear();
-		extendUp.clear();
-		extendDown.clear();
 		variableNames2D.clear();
 		clearDerivedVars();
 	}
@@ -644,9 +624,6 @@ public:
     bool sphericalTransform();
 
 	vector<string> getVariableNames() {return variableNames;}
-	vector<float> getBelowValues() {return belowValues;}
-	vector<float> getAboveValues() {return aboveValues;}
-	
 	vector<string> getVariableNames2D() {return variableNames2D;}
 
 	//used for specifying nondefault graphics hardware texture size:
@@ -806,10 +783,7 @@ private:
 	//dataMgr.  The number of metadataVariables should coincide with the 
 	//number of variables in the datastatus that have actual data associated with them.
 	static std::vector<std::string> variableNames;
-	static std::vector<float> belowValues;
-	static std::vector<float> aboveValues;
-	static std::vector<bool> extendUp;
-	static std::vector<bool> extendDown;
+	
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
 	static std::vector<std::string> variableNames2D;

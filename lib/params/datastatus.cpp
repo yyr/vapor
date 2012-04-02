@@ -52,10 +52,7 @@ DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
 const vector<string> DataStatus::emptyVec;
 std::vector<std::string> DataStatus::variableNames;
-std::vector<float> DataStatus::aboveValues;
-std::vector<float> DataStatus::belowValues;
-std::vector<bool> DataStatus::extendUp;
-std::vector<bool> DataStatus::extendDown;
+
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;

@@ -3174,30 +3174,7 @@ void FlowEventRouter::refreshTab(){
 		appearanceFrame->show();
 	}
 }
-//Check to see if all the flow variables are zero
-//below the terrain.
-bool FlowEventRouter::
-flowVarsZeroBelow(){
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	//check steady vars:
-	if (fParams->getFlowType() != 1){
-		for (int i = 0; i< 3; i++){
-			int vnum = fParams->getSteadyVarNums()[i];
-			if (vnum == 0) continue;
-			if(DataStatus::isExtendedDown(vnum-1)) return false;
-			if(DataStatus::getBelowValue(vnum-1) != 0.f) return false;
-		}
-	}
-	if (fParams->getFlowType() != 0){
-		for (int i = 0; i< 3; i++){
-			int vnum = fParams->getUnsteadyVarNums()[i];
-			if (vnum == 0) continue;
-			if(DataStatus::isExtendedDown(vnum-1)) return false;
-			if(DataStatus::getBelowValue(vnum-1) != 0.f) return false;
-		}
-	}
-	return true;
-}
+
 //Workaround for Qt/Cocoa bug: postpone showing of OpenGL widgets 
 
 #ifdef Darwin
