@@ -394,7 +394,6 @@ reinit(bool doOverride){
 		//Make sure we really can use the specified numTrans,
 		//with the current region settings
 		
-		//numRefinements = rParams->validateNumTrans(numRefinements);
 		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
 		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;

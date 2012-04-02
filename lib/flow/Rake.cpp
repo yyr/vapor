@@ -79,15 +79,17 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 {
 	Rake* pRake = 0;
 
-	if(rakeDimension == POINT)
-		pRake = new PointRake();
-	else if(rakeDimension == LINE)
-		pRake = new LineRake();
-	else if(rakeDimension == PLANE)
-		pRake = new PlaneRake();
-	else if(rakeDimension == SOLID)
-		pRake = new SolidRake();
-	
+	if (bRandom) pRake = new SolidRake();
+	else {
+		if(rakeDimension == POINT)
+			pRake = new PointRake();
+		else if(rakeDimension == LINE)
+			pRake = new LineRake();
+		else if(rakeDimension == PLANE)
+			pRake = new PlaneRake();
+		else if(rakeDimension == SOLID)
+			pRake = new SolidRake();
+	}
 	if(bRandom){
 		if (distribBias == 0.f){ 
 			pRake->GenSeedRandom(numSeeds, rakeMin, rakeMax, pSeeds, randomSeed, stride);

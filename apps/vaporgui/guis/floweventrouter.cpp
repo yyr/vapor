@@ -1012,6 +1012,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			biasSlider1->setSliderPosition(bval);
 			biasSlider1->setTracking(true);
 		}
+		fParams->setSeedDistBias(seedDistBias);
 		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
 		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
 			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
