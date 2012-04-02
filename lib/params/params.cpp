@@ -288,6 +288,27 @@ distanceToCube(const float point[3],const float normals[6][3], const float corne
 	}
 	return maxDist;
 }
+//static method to measure how far point is from cube in each dimension
+//Needed for histogram testing
+float Params::
+distancesToCube(const float point[3],const float normals[6][3], const float corners[6][3], float maxOut[3]){
+	float testVec[3];
+	float maxDist = -1.30f;
+	for (int j = 0; j<3; j++) maxOut[j] = -1.e30f;
+	for (int i = 0; i< 6; i++){
+		vsub(point, corners[i], testVec);
+		//dist is the projection of the testVec on the outward pointing normal
+		float dist = vdot(testVec,normals[i]);
+		if (dist > 0.0){
+			for (int j = 0; j<3; j++){
+				//find the magnitude of the outward distance in each direction:
+				maxOut[j] = Max(maxOut[j], abs(dist*normals[i][j]));
+			}
+		}
+		if (dist > maxDist) maxDist = dist;
+	}
+	return maxDist;
+}
 
 //----------------------------------------------------------------------------
 // Returns true if the flag is in the command-line arguments

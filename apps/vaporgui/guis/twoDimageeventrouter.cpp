@@ -1697,8 +1697,7 @@ void TwoDImageEventRouter::mapCursor(){
 		//Find terrain height at selected point:
 		const float* extents = DataStatus::getInstance()->getExtents();
 		string varname("HGT");
-		VizWinMgr* vizMgr = VizWinMgr::getInstance();
-		int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+		int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 		double sPoint[3];
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i];
 		float val = RegionParams::calcCurrentValue(varname,sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);

@@ -709,38 +709,7 @@ calcCurrentValue(const string& varname, const double point[3], int numRefinement
 	float val = varGrid->GetValue(point[0],point[1],point[2]);
 	delete varGrid;
 	return val;
-	/*
-	//Get the data dimensions (at current resolution):
 	
-	double regMin[3], regMax[3];
-	size_t min_dim[3],max_dim[3];
-	
-	//Get voxel coordinates of a grid containing the point:
-	dataMgr->GetEnclosingRegion(timeStep, point, point, min_dim, max_dim, numRefinements);
-	//Make sure variable is available there:
-	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, timeStep, &sessionVarNum, 1, regMin, regMax);
-	if (availRefLevel < 0) {
-		renParams->setBypass(timeStep);
-		if (ds->warnIfDataMissing()){
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE, 
-				"Data unavailable for variable %s\nat refinement level %d",varname.c_str(), numRefinements);
-		}
-		return OUT_OF_BOUNDS;
-	}
-	
-	for (int i = 0; i<3; i++) {
-		if (point[i] < regMin[i]) return OUT_OF_BOUNDS;
-		if (point[i] > regMax[i]) return OUT_OF_BOUNDS;
-	}
-	// Obtain the Regular Grid:
-	
-	RegularGrid* rg = dataMgr->GetGrid(timeStep, varname, availRefLevel, lod, min_dim, max_dim, 0);
-	
-	if (!rg) return OUT_OF_BOUNDS;
-	
-	float val = rg->GetValue(point[0],point[1],point[2]);
-	return val;
-	 */
 }
 
 int RegionParams::getValidRegion(size_t timestep, const char* varname, int minRefLevel, size_t min_coord[3], size_t max_coord[3]){

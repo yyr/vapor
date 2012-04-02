@@ -480,6 +480,9 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//Return is positive if point is outside.  Arguments are outward pointing
 	//unit normal vectors and associated points (corners) of probe faces.
 	static float distanceToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3]);
+	//Modifiction of above that provides x,y,z components of distances outside, when point is outside.
+	//This is useful if the box is highly nonuniform in x,y,z
+	static float distancesToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3], float maxDist[3]);
 
 	
     //

@@ -410,12 +410,12 @@ void ProbeEventRouter::updateTab(){
 	maxUserZLabel->setText(QString::number(dboxmax[2]));
 
 	//And convert these to grid coordinates:
-	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
-		dataMgr->MapUserToVox((size_t)-1, dboxmin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox((size_t)-1, dboxmax, gridMax, fullRefLevel);
+		dataMgr->MapUserToVox(currentTimeStep, dboxmin, gridMin, fullRefLevel);
+		dataMgr->MapUserToVox(currentTimeStep, dboxmax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -2197,8 +2197,8 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	float normals[6][3];
 	float vec1[3], vec2[3];
 
-	//Get box that is slightly fattened, to ensure nondegenerate normals
-	pParams->calcBoxCorners(corner, 0.5*voxSize, -1);
+	//Get box that is very slightly fattened, to ensure nondegenerate normals
+	pParams->calcBoxCorners(corner, voxSize*1.e-15, -1);
 	//The first 6 corners are reference points for testing
 	//the 6 normal vectors are outward pointing from these points
 	//Normals are calculated as if cube were axis aligned but this is of 
@@ -2255,14 +2255,21 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 				dataMgr->MapVoxToUser(timeStep, vcoords, xyz, refLevel);
 				for (int q = 0; q<3; q++) flxyz[q]=xyz[q];
 				//test if x,y,z is in probe:
-				if (pParams->distanceToCube(flxyz, normals, corner) < voxSize){
+				float maxDist[3]; 
+				float distOut = pParams->distancesToCube(flxyz, normals, corner, maxDist);
+				if (distOut < voxSize){
 					
-					//Point is (almost) inside.
+					//Point is (almost) inside.  Is it really less than one voxel out?
+					bool moreThanVoxelOut = false;
+					if (distOut > 0.) for (int k = 0; k<3; k++){
+						if (maxDist[k]>gridSpacing[k])moreThanVoxelOut = true;
+					}
+					if (moreThanVoxelOut) continue;
 					//Evaluate the variable:
-					
 					float varVal = histoGrid->GetValue(xyz[0],xyz[1],xyz[2]);
 					if (varVal == histoGrid->GetMissingValue()) continue;
 					histo->addToBin(varVal);
+					
 				} 
 			}
 		}
