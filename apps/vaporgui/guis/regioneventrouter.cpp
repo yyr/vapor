@@ -471,7 +471,7 @@ refreshRegionInfo(RegionParams* rParams){
 	if (!dataMgr) ds = 0;
 	int timeStep = timestepSpin->value();
 	if (!dataMgr) timeStep = 0;
-	if ((timeStep < (int)ds->getMinTimestep()) || (timeStep > (int) ds->getMaxTimestep()) )timeStep = ds->getMinTimestep();
+	else if ((timeStep < (int)ds->getMinTimestep()) || (timeStep > (int) ds->getMaxTimestep()) )timeStep = ds->getMinTimestep();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
