@@ -1833,18 +1833,16 @@ void    DataMgr::GetEnclosingRegion(
 		done = false;
 		istart = min[0];
 		jstart = min[1];
-		while (! done) {
+		for (int k=0; k<dims[2] && ! done; k++) {
 			done = true;
+			max[2] = k;
 			for (int j = jstart; j<=max[1] && done; j++) {
 			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,max[2]); // get Z coordinate
-				if (z > maxu[2]) {
-					if (max[2]<dims[2]-1) {
-						done = false;
-						istart = i;	// don't need to start from beginning
-						jstart = j;
-						max[2]++;
-					}
+				z = rg->AccessIJK(i,j,k); // get Z coordinate
+				if (z < maxu[2]) {
+					done = false;
+					istart = i;	// don't need to start from beginning
+					jstart = j;
 				}
 			}
 			}
@@ -1852,18 +1850,16 @@ void    DataMgr::GetEnclosingRegion(
 		done = false;
 		istart = min[0];
 		jstart = min[1];
-		while (! done) {
+		for (int k = dims[2]-1; k>=0 && ! done; k--) {
 			done = true;
+			min[2] = k;
 			for (int j = jstart; j<=max[1] && done; j++) {
 			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,min[2]); // get Z coordinate
-				if (z < minu[2]) {
-					if (min[2]>0) {
-						done = false;
-						istart = i;
-						jstart = j;
-						min[2]--;
-					}
+				z = rg->AccessIJK(i,j,k); // get Z coordinate
+				if (z > minu[2]) {
+					done = false;
+					istart = i;
+					jstart = j;
 				}
 			}
 			}
@@ -1876,18 +1872,16 @@ void    DataMgr::GetEnclosingRegion(
 		done = false;
 		istart = min[0];
 		jstart = min[1];
-		while (! done) {
+		for (int k=0; k<dims[2] && ! done; k++) {
 			done = true;
+			max[2] = k;
 			for (int j = jstart; j<=max[1] && done; j++) {
 			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,max[2]); // get Z coordinate
-				if (z < maxu[2]) {
-					if (max[2]<dims[2]-1) {
-						done = false;
-						istart = i;	// don't need to start from beginning
-						jstart = j;
-						max[2]++;
-					}
+				z = rg->AccessIJK(i,j,k); // get Z coordinate
+				if (z > maxu[2]) {
+					done = false;
+					istart = i;	// don't need to start from beginning
+					jstart = j;
 				}
 			}
 			}
@@ -1895,18 +1889,16 @@ void    DataMgr::GetEnclosingRegion(
 		done = false;
 		istart = min[0];
 		jstart = min[1];
-		while (! done) {
+		for (int k = dims[2]-1; k>=0 && ! done; k--) {
 			done = true;
+			min[2] = k;
 			for (int j = jstart; j<=max[1] && done; j++) {
 			for (int i = istart; i<=max[0] && done; i++) {
-				z = rg->AccessIJK(i,j,min[2]); // get Z coordinate
-				if (z > minu[2]) {
-					if (min[2]>0) {
-						done = false;
-						istart = i;
-						jstart = j;
-						min[2]--;
-					}
+				z = rg->AccessIJK(i,j,k); // get Z coordinate
+				if (z < maxu[2]) {
+					done = false;
+					istart = i;
+					jstart = j;
 				}
 			}
 			}
