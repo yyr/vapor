@@ -410,6 +410,12 @@ public:
 	bool operator==(const Iterator &other);
 	bool operator!=(const Iterator &other);
 
+    int GetUserCoordinates(
+	double *x, double *y, double *z
+    ) const { return(_rg->GetUserCoordinates(
+		_x - _rg->_min[0], _y - _rg->_min[1], _z - _rg->_min[2], x,y,z));
+	};
+
  private:
 	RegularGrid *_rg;
 	size_t _x, _y, _z;	// current index into _rg->_min[3]
@@ -437,6 +443,12 @@ public:
 
 	bool operator==(const ConstIterator &other);
 	bool operator!=(const ConstIterator &other);
+
+    int GetUserCoordinates(
+	double *x, double *y, double *z
+    ) const { return(_rg->GetUserCoordinates(
+		_x - _rg->_min[0], _y - _rg->_min[1], _z - _rg->_min[2], x,y,z));
+	};
 
  private:
 	const RegularGrid *_rg;
