@@ -283,6 +283,7 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 //----------------------------------------------------------------------------
 void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
+	bool forceReload = false;
 	static double extents[6];
 	  
 	size_t max_dim[3];
@@ -366,6 +367,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	{
 		setClutDirty();
 		savedNumXForms = reflevel;
+		forceReload = true;
 	}
 	  
 	//Loop if user accepts lower resolution:
@@ -398,6 +400,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 		reflevel = availRefLevel;
 		setClutDirty();
 		savedNumXForms = reflevel;
+		forceReload = true;
 	}
 	RegionParams::convertToStretchedBoxExtentsInCube(reflevel, min_dim, max_dim, extents);    
 	//Make the depth buffer writable
@@ -414,7 +417,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	  
 	bool userTextureSizeIsSet = DataStatus::getInstance()->textureSizeIsSpecified();
 	int userTextureSize = DataStatus::getInstance()->getTextureSize();
-	bool forceReload = false;
 
 	if ((userTextureSizeIsSet != _userTextureSizeIsSet) || 
 		(userTextureSize != _userTextureSize)) { 
