@@ -172,6 +172,13 @@ reinit(bool doOverride){
 		for (int timenum = 0; timenum< times.size(); timenum++){
 			int currTime = times[timenum];
 			myBox->GetExtents(regionExtents,currTime);
+			//Translate old wrf extents.  The extents need to be decreased by 0.5 * extent size
+			if (DataStatus::WRFTranslateNeeded()){
+				regionExtents[0] -= 0.5*(extents[3]-extents[0]);
+				regionExtents[3] -= 0.5*(extents[3]-extents[0]);
+				regionExtents[1] -= 0.5*(extents[4]-extents[1]);
+				regionExtents[4] -= 0.5*(extents[4]-extents[1]);
+			}
 			//Just force them to fit in current volume 
 			for (i = 0; i< 3; i++) {
 				if (regionExtents[i] > regionExtents[i+3]) 

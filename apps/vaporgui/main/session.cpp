@@ -424,6 +424,8 @@ loadFromFile(ifstream& ifs){
 	//Reset message counts:
 	MessageReporter::getInstance()->resetCounts();
 	
+	//Clear the WRFTranslate flag:
+	DataStatus::setWRFTranslate(false);
 	//Then set values from file.
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	tempParsedTF = 0;
@@ -573,7 +575,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					}
 				}
 				if (varName == "") return false;
-				int varnum = mergeVariableName(varName);
+				if (varName == "ELEVATION"){  //set the WRFTranslate flag if the session is pre-2.2
+					if (Version::Compare(DataStatus::getInstance()->getSessionVersion(),"2.1.0")<=0){
+						DataStatus::setWRFTranslate(true);
+					}
+				}
+				mergeVariableName(varName);
 				return true;
 			} else if (StrCmpNoCase(tag, _pythonScriptsTag) == 0){
 				return true;
@@ -993,6 +1000,25 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 			for (int i = 0; i< MAXVIZWINS; i++){
 				if (myVizWinMgr->getVizWin(i))
 					myVizWinMgr->getVizWin(i)->setAxisExtents(extents);
+			}
+		} else if (DataStatus::WRFTranslateNeeded()){
+			//Translate the axis extents and origin from old WRF sessions...
+			float axExts[6];
+			for (int i = 0; i< MAXVIZWINS; i++){
+				if (myVizWinMgr->getVizWin(i)){
+					myVizWinMgr->getVizWin(i)->getAxisExtents(axExts);
+					axExts[0] -= 0.5*(extents[3]-extents[0]);
+					axExts[3] -= 0.5*(extents[3]-extents[0]);
+					axExts[1] -= 0.5*(extents[4]-extents[1]);
+					axExts[4] -= 0.5*(extents[4]-extents[1]);
+					myVizWinMgr->getVizWin(i)->setAxisExtents(axExts);
+					float orig = myVizWinMgr->getVizWin(i)->getAxisOriginCoord(0);
+					orig -= 0.5*(extents[3]-extents[0]);
+					myVizWinMgr->getVizWin(i)->setAxisOriginCoord(0,orig);
+					orig = myVizWinMgr->getVizWin(i)->getAxisOriginCoord(1);
+					orig -= 0.5*(extents[4]-extents[1]);
+					myVizWinMgr->getVizWin(i)->setAxisOriginCoord(1,orig);
+				}	
 			}
 		}
 		//Set the newSession flag, next time we'll use these settings.

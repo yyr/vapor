@@ -52,7 +52,7 @@ DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
 const vector<string> DataStatus::emptyVec;
 std::vector<std::string> DataStatus::variableNames;
-
+bool DataStatus::needWRFTranslate = false;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;

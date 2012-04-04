@@ -206,8 +206,27 @@ reinit(bool doOverride){
 	
 		specularExp = defaultSpecularExp;
 		ambientCoeff = defaultAmbientCoeff;
+	} else { //possible translation if old session file was used...
+		if (DataStatus::WRFTranslateNeeded()){
+			const float* extents = DataStatus::getInstance()->getExtents();
+			float* cpos = getCurrentViewpoint()->getCameraPosLocal();
+			cpos[0] -= 0.5*(extents[3]-extents[0]);
+			cpos[1] -= 0.5*(extents[4]-extents[1]);
+			getCurrentViewpoint()->setCameraPosLocal(cpos);
+			cpos = getHomeViewpoint()->getCameraPosLocal();
+			cpos[0] -= 0.5*(extents[3]-extents[0]);
+			cpos[1] -= 0.5*(extents[4]-extents[1]);
+			getHomeViewpoint()->setCameraPosLocal(cpos);
+			float* rpos = getCurrentViewpoint()->getRotationCenterLocal();
+			rpos[0] -= 0.5*(extents[3]-extents[0]);
+			rpos[1] -= 0.5*(extents[4]-extents[1]);
+			getCurrentViewpoint()->setRotationCenterLocal(rpos);
+			rpos = getHomeViewpoint()->getRotationCenterLocal();
+			rpos[0] -= 0.5*(extents[3]-extents[0]);
+			rpos[1] -= 0.5*(extents[4]-extents[1]);
+			getHomeViewpoint()->setRotationCenterLocal(rpos);
+		}
 	}
-	
 	return true;
 }
 //Rescale viewing parameters when the scene is rescaled by factor

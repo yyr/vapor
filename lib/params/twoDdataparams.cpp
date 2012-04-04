@@ -190,6 +190,12 @@ reinit(bool doOverride){
 		//because of rotation, the twoD max/min may not correspond
 		//to the same extents.
 		GetBox()->GetExtents(twoDExts);
+		if (DataStatus::WRFTranslateNeeded()){
+			twoDExts[0] -= 0.5*(extents[3]-extents[0]);
+			twoDExts[3] -= 0.5*(extents[3]-extents[0]);
+			twoDExts[1] -= 0.5*(extents[4]-extents[1]);
+			twoDExts[4] -= 0.5*(extents[4]-extents[1]);
+		}
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (int i = 0; i<2; i++){
 			if (twoDExts[i+3] - twoDExts[i] > maxExtents)

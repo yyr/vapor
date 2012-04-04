@@ -719,6 +719,8 @@ public:
 	//It should already be removed from the python variable mapping
 	static bool removeDerivedVariable2D(const string& derivedVarName);
 	static bool removeDerivedVariable3D(const string& derivedVarName);
+	static bool WRFTranslateNeeded(){return needWRFTranslate;}
+	static void setWRFTranslate(bool value){ needWRFTranslate = value;}
 	
 	
 private:
@@ -815,6 +817,7 @@ private:
 	static std::string projString;
 	static vector <float*> timeVaryingExtents;
 	int VDCType;
+	static bool needWRFTranslate;  //flag indicating that current session user coordinates must be translated for version 2.2+ data
 	
 	//Static tables where all ParamsBase classes are registered.
 	//Each class has a unique:

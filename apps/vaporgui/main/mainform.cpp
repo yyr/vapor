@@ -1011,6 +1011,7 @@ void MainForm::loadData()
 			vector<string> files;
 			files.push_back(filename.toStdString());
 			Session::getInstance()->resetMetadata(files, true, false);
+			DataStatus::setWRFTranslate(false);
 		}
 		else MessageReporter::errorMsg("Unable to read metadata file \n%s", (const char*)filename.toAscii());
 		return;
@@ -1087,6 +1088,7 @@ void MainForm::importWRFData()
 			++it;
 		}
 		Session::getInstance()->resetMetadata(files, true, true);
+		DataStatus::setWRFTranslate(false);
 	
 	} else MessageReporter::errorMsg("No valid WRF files \n");
 	

@@ -1160,7 +1160,7 @@ reinitializeParams(bool doOverride){
 	
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (!vizWin[i]) continue;
-		if(getRealVPParams(i)) getRealVPParams(i)->reinit(doOverride);
+		if(getRealVPParams(i) && (getRealVPParams(i)!= getGlobalVPParams())) getRealVPParams(i)->reinit(doOverride);
 		if(getRealRegionParams(i)) getRealRegionParams(i)->reinit(doOverride);
 		//Reinitialize all the render params for each window
 		for (int pType = 1; pType <= Params::GetNumParamsClasses(); pType++){

@@ -124,6 +124,12 @@ reinit(bool doOverride){
 	} else {
 		double newExts[6];
 		GetRakeExtents(newExts);
+		if (DataStatus::WRFTranslateNeeded()){
+			newExts[0] -= 0.5*(extents[3]-extents[0]);
+			newExts[3] -= 0.5*(extents[3]-extents[0]);
+			newExts[1] -= 0.5*(extents[4]-extents[1]);
+			newExts[4] -= 0.5*(extents[4]-extents[1]);
+		}
 		for (int i = 0; i<3; i++){
 			newExts[i] = Max(newExts[i], (double)extents[i]);
 			newExts[i+3] = Min(newExts[i+3], (double)extents[i+3]);

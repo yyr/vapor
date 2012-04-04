@@ -144,6 +144,12 @@ reinit(bool doOverride){
 		//Just force the mins to be less than the max's
 		//There is no constraint on size or position
 		GetBox()->GetExtents(twoDExtents);
+		if (DataStatus::WRFTranslateNeeded()){
+			twoDExtents[0] -= 0.5*(extents[3]-extents[0]);
+			twoDExtents[3] -= 0.5*(extents[3]-extents[0]);
+			twoDExtents[1] -= 0.5*(extents[4]-extents[1]);
+			twoDExtents[4] -= 0.5*(extents[4]-extents[1]);
+		}
 		for (int i = 0; i<3; i++){
 			if(twoDExtents[i+3] < twoDExtents[i]) 
 				twoDExtents[i+3] = twoDExtents[i];

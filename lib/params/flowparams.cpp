@@ -410,7 +410,12 @@ reinit(bool doOverride){
 			seedBoxExtents[i] = fullExtents[i];
 		}
 	} else {
-
+		if (DataStatus::WRFTranslateNeeded()){
+			seedBoxExtents[0] -= 0.5*(fullExtents[3]-fullExtents[0]);
+			seedBoxExtents[3] -= 0.5*(fullExtents[3]-fullExtents[0]);
+			seedBoxExtents[1] -= 0.5*(fullExtents[4]-fullExtents[1]);
+			seedBoxExtents[4] -= 0.5*(fullExtents[4]-fullExtents[1]);
+		}
 
 		for (i = 0; i<3; i++){
 			if(seedBoxExtents[i] < fullExtents[i])

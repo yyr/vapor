@@ -170,6 +170,12 @@ public:
 		setTicLength(1, 0.05*(extents[3]-extents[0]));
 		setTicLength(2, 0.05*(extents[3]-extents[0]));
 	}
+	void getAxisExtents(float* extents){
+		for (int i = 0; i<3; i++){
+			extents[i] = getMinTic(i);
+			extents[i+3] = getMaxTic(i);
+		}
+	}
 	
 	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
