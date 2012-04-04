@@ -238,7 +238,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		return;
 	}
 
-	histogramList[varNum] = new Histo(rg, dRange);
+	histogramList[varNum] = new Histo(rg, exts, dRange);
 	
 }
 

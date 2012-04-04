@@ -32,7 +32,7 @@ public:
 	Histo(int numberBins, float mnData, float mxData);
 	//Special constructor for unsigned char data:
 	//
-	Histo(const RegularGrid *rg, const float range[2]);
+	Histo(const RegularGrid *rg, const double exts[6], const float range[2]);
 	~Histo();
 	void reset(int newNumBins = -1);
 	void reset(int newNumBins, float mnData, float mxData){

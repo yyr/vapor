@@ -32,7 +32,7 @@ Histo::Histo(int numberBins, float mnData, float mxData){
 	binArray = new int[numBins];
 	reset();
 }
-Histo::Histo(const RegularGrid *rg, const float range[2]) {
+Histo::Histo(const RegularGrid *rg, const double exts[6], const float range[2]) {
 	binArray = new int[256];
 	minData = range[0];
 	maxData = range[1];
@@ -43,10 +43,16 @@ Histo::Histo(const RegularGrid *rg, const float range[2]) {
 	float v;
 	RegularGrid *rg_const = (RegularGrid *) rg;   // kludge - no const_iterator
 	RegularGrid::Iterator itr;
+	double point[3];
 	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
 		v = *itr;
 		if (v == rg->GetMissingValue()) continue;
-
+		itr.GetUserCoordinates(point, point+1, point+2);
+		bool isIn = true;
+		for (int j = 0; j<3; j++){
+			if (point[j]>exts[j+3] || point[j] < exts[j]) isIn = false;
+		}
+		if (!isIn) continue;
 		if (v<range[0]) qv=0;
 		else if (v>range[1]) qv=255;
 		else qv = (unsigned int) rint((v-range[0])/(range[1]-range[0]) * 255);
