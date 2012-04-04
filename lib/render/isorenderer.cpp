@@ -159,9 +159,9 @@ int	IsoRenderer::_updateRegion(
 			ts, map_varname, reflevel, lod, min, max
 		);
 		if (!rg) return(-1);
-		delete rg;
 
 		rc = _driver->SetRegion(rg, myParamsIso->GetMapBounds(),1);
+		delete rg;
 		if (rc<0) return(rc);
 	}
 
