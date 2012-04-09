@@ -21,7 +21,6 @@
 #pragma warning(disable : 4996)
 #endif
 #include <GL/glew.h>
-#include <vapor/LayeredIO.h>
 #include <vapor/GetAppPath.h>
 
 #include "glwindow.h"

@@ -7,39 +7,18 @@ using namespace VAPoR;
 DataMgrWRF::DataMgrWRF(
 	const vector <string> &files,
     size_t mem_size
-) : LayeredIO(mem_size), WRFReader(files) 
+) : DataMgr(mem_size), WRFReader(files) 
 {
-	size_t dim[3];
-    GetDimNative(dim, -1);
-    SetGridHeight(dim[2]);
-
 	_blkptrs = new float*[1];
 }
 
 DataMgrWRF::DataMgrWRF(
     const MetadataWRF &metadata,
     size_t mem_size
-) : LayeredIO(mem_size), WRFReader(metadata) 
+) : DataMgr(mem_size), WRFReader(metadata) 
 {
-	size_t dim[3];
-    GetDimNative(dim, -1);
-    SetGridHeight(dim[2]);
-
 	_blkptrs = new float*[1];
 }
-
-void DataMgrWRF::GetValidRegionNative(
-    size_t min[3], size_t max[3], int reflevel
-) const {
-	size_t dim[3];
-
-	GetDimNative(dim, -1);
-	for (int i=0; i<3; i++) {
-		min[i] = 0;
-		max[i] = dim[i] - 1;
-	}
-}
-
 
 RegularGrid *DataMgrWRF::MakeGrid(
 	size_t ts, string varname, int reflevel, int lod,
@@ -103,7 +82,9 @@ RegularGrid *DataMgrWRF::MakeGrid(
 		}
 	}
 
-	if (varname.compare("ELEVATION") == 0) {
+	if ((varname.compare("ELEVATION") == 0) || vtype != VAR3D) {
+//cerr << "Hard code missing value - 2d\n";
+//		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs, -1e20));
 		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
 	}
 	else {
@@ -115,9 +96,12 @@ RegularGrid *DataMgrWRF::MakeGrid(
 		float **coords = elevation->GetBlks();
 		_blkptrs[0] = blocks;
 
-cerr << "Hard code missing value\n";
+//cerr << "Hard code missing value\n";
+//		LayeredGrid *lg = new LayeredGrid(
+//			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+//		);
 		LayeredGrid *lg = new LayeredGrid(
-			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+			bs,min, max, extents, periodic, _blkptrs, coords,2
 		);
 		delete elevation;
 		return(lg);

@@ -16,6 +16,7 @@
 #include <vapor/RegularGrid.h>
 #include <vapor/LayeredGrid.h>
 #include <vapor/SphericalGrid.h>
+#include <vapor/StretchedGrid.h>
 
 namespace VAPoR {
 class PipeLine;
@@ -57,16 +58,14 @@ public:
  virtual ~DataMgr(); 
 
 
-
-
  //! Read in and return a subregion from the dataset.
  //!
- //! GetRegion() will first check to see if the requested region resides
+ //! GetGrid() will first check to see if the requested region resides
  //! in cache. If so, no reads are performed. If the named variable is not
- //! in cache, GetRegion() will next check to see if the variable can
+ //! in cache, GetGrid() will next check to see if the variable can
  //! be calculated by recursively executing PipeLine stages 
  //! (\see NewPipeline()). Finally,
- //! if the varible is not the result of PipeLine execution GetRegion()
+ //! if the varible is not the result of PipeLine execution GetGrid()
  //! will attempt to access the varible through methods implemented by
  //! derived classes of the DataMgr class.
  //!
@@ -76,48 +75,42 @@ public:
  //! The \p min and \p max vectors identify the minium and
  //! maximum extents, in block coordinates, of the subregion of interest. The
  //! minimum valid value of \p min is (0,0,0), the maximum valid value of
- //! \p max is (nbx-1,nby-1,nbz-1), where nbx, nby, and nbz are the block
- //! dimensions
+ //! \p max is (nx-1,ny-1,nz-1), where nx, ny, and nz are the 
+ //! voxel dimensions
  //! of the volume at the resolution indicated by \p level. I.e.
  //! the coordinates are specified relative to the desired volume
- //! resolution. If the requested region is available, GetRegion() returns 
- //! a pointer to memory containing the region. Subsequent calls to GetRegion()
+ //! resolution. If the requested region is available, GetGrid() returns 
+ //! a pointer to a RegularGrid class containg the requested
+ //! subregion. It is the callers responsbility to delete the 
+ //! returned pointer when it is no longer needed. Subsequent calls 
+ //! to GetGrid()
  //! may invalidate the memory space returned by previous calls unless
- //! the \p lock parameter is set, in which case the array returned by
- //! GetRegion() is locked into memory until freed by a call the
- //! UnlockRegion() method (or the class is destroyed).
+ //! the \p lock parameter is set, in which case the grid returned by
+ //! GetGrid() is locked into memory until freed by a call the
+ //! UnlockGrid() method (or the class is destroyed).
  //!
- //! GetRegion will fail if the requested data are not present. The
+ //! GetGrid() will fail if the requested data are not present. The
  //! VariableExists() method may be used to determine if the data
  //! identified by a (resolution,timestep,variable) tupple are
  //! available on disk.
  //!
  //! \note The \p lock parameter increments a counter associated 
  //! with the requested region of memory. The counter is decremented
- //! when UnlockRegion() is invoked.
+ //! when UnlockGrid() is invoked.
  //!
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname A valid variable name 
  //! \param[in] reflevel Refinement level requested
  //! \param[in] lod Level of detail requested
- //! \param[in] min Minimum region bounds in blocks
- //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] min Minimum region bounds in voxels
+ //! \param[in] max Maximum region bounds in voxels
  //! \param[in] lock If true, the memory region will be locked into the 
  //! cache (i.e. valid after subsequent GetRegion() calls).
  //! \retval ptr A pointer to a region containing the desired data, or NULL
  //! if the region can not be extracted.
  //! \sa NewPipeline(), GetErrMsg()
  //
- float   *GetRegion(
-    size_t ts,
-    const char *varname,
-    int reflevel,
-    int lod,
-    const size_t min[3],
-    const size_t max[3],
-    int lock = 0
- );
 
  RegularGrid   *GetGrid(
     size_t ts,
@@ -129,159 +122,15 @@ public:
     int lock = 0
  );
 
-
- //! Read in, quantize and return a subregion from the multiresolution dataset
- //!
- //! This method is identical to the GetRegion() method except that the
- //! data are returned as quantized, 8-bit unsigned integers. 
- //! Regions with integer data types are created by quantizing
- //! native floating point representations such that floating values
- //! less than or equal to \p range[0] are mapped to min, and values 
- //! greater than or equal to \p range[1] are mapped to max, where "min" and
- //! "max" are the minimum and maximum values that may be represented 
- //! by the integer type. For example, for 8-bit, unsigned ints min is 0
- //! and max is 255. Floating point values between \p range[0] and \p range[1]
- //! are linearly interpolated between min and max.
- //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
- //! \param[in] varname A valid variable name 
- //! \param[in] reflevel Refinement level requested
- //! \param[in] lod Level of detail requested
- //! \param[in] min Minimum region bounds in blocks
- //! \param[in] max Maximum region bounds in blocks
- //! \param[in] range A two-element vector specifying the minimum and maximum
- //! quantization mapping. 
- //! \param[in] lock If true, the memory region will be locked into the 
- //! \retval ptr A pointer to a region containing the desired data, 
- //! quantized to 8 bits, or NULL
- //! if the region can not be extracted.
- //! \sa GetErrMsg(), GetRegion()
- //
- unsigned char   *GetRegionUInt8(
+ float   *GetRegion(
     size_t ts,
     const char *varname,
     int reflevel,
     int lod,
     const size_t min[3],
     const size_t max[3],
-	const float range[2],
     int lock = 0
-);
-
- //! Read in, quantize and return a pair of subregions from the 
- //! multiresolution dataset
- //!
- //! This method is identical to the GetRegionUInt8() method except that the
- //! two variables are read and their values are stored in a single,
- //! interleaved array.
- //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
- //! \param[in] varname1 First variable name 
- //! \param[in] varname2 Second variable name 
- //! \param[in] reflevel Refinement level requested
- //! \param[in] lod Level of detail requested
- //! \param[in] min Minimum region bounds in blocks
- //! \param[in] max Maximum region bounds in blocks
- //! \param[in] range1 First variable data range
- //! \param[in] range2 Second variable data range
- //! quantization mapping. 
- //! \param[in] lock If true, the memory region will be locked into the 
- //! \retval ptr A pointer to a region containing the desired data, 
- //! quantized to 8 bits, or NULL
- //! if the region can not be extracted.
- //! \sa GetErrMsg(), GetRegion()
- //
- unsigned char   *GetRegionUInt8(
-    size_t ts,
-    const char *varname1,
-    const char *varname2,
-    int reflevel,
-    int lod,
-    const size_t min[3],
-    const size_t max[3],
-	const float range1[2],
-	const float range2[2],
-    int lock = 0
-);
-
- //! Read in, quantize and return a pair of subregions from the 
- //! multiresolution dataset
- //!
- //! This method is identical to the GetRegionUInt16() method except that the
- //! two variables are read and their values are stored in a single,
- //! interleaved array.
- //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
- //! \param[in] varname1 First variable name 
- //! \param[in] varname2 Second variable name 
- //! \param[in] reflevel Refinement level requested
- //! \param[in] lod Level of detail requested
- //! \param[in] min Minimum region bounds in blocks
- //! \param[in] max Maximum region bounds in blocks
- //! \param[in] range1 First variable data range
- //! \param[in] range2 Second variable data range
- //! quantization mapping. 
- //! \param[in] lock If true, the memory region will be locked into the 
- //! \retval ptr A pointer to a region containing the desired data, 
- //! quantized to 16 bits, or NULL
- //! if the region can not be extracted.
- //! \sa GetErrMsg(), GetRegion()
- //
- unsigned char   *GetRegionUInt16(
-    size_t ts,
-    const char *varname1,
-    const char *varname2,
-    int reflevel,
-    int lod,
-    const size_t min[3],
-    const size_t max[3],
-	const float range1[2],
-	const float range2[2],
-    int lock = 0
-);
-
-
- //! Read in, quantize and return a subregion from the multiresolution dataset
- //!
- //! This method is identical to the GetRegion() method except that the
- //! data are returned as quantized, 16-bit unsigned integers. 
- //! Regions with integer data types are created by quantizing
- //! native floating point representations such that floating values
- //! less than or equal to \p range[0] are mapped to min, and values 
- //! greater than or equal to \p range[1] are mapped to max, where "min" and
- //! "max" are the minimum and maximum values that may be represented 
- //! by the integer type. For example, for 16-bit, unsigned ints min is 0
- //! and max is 65535. Floating point values between \p range[0] and \p range[1]
- //! are linearly interpolated between min and max.
- //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
- //! \param[in] varname A valid variable name 
- //! \param[in] reflevel Refinement level requested
- //! \param[in] lod Level of detail requested
- //! \param[in] min Minimum region bounds in blocks
- //! \param[in] max Maximum region bounds in blocks
- //! \param[in] range A two-element vector specifying the minimum and maximum
- //! quantization mapping. 
- //! \param[in] lock If true, the memory region will be locked into the 
- //! \retval ptr A pointer to a region containing the desired data, 
- //! quantized to 16 bits, or NULL
- //! if the region can not be extracted.
- //! \sa GetErrMsg(), GetRegion()
- //
- unsigned char   *GetRegionUInt16(
-    size_t ts,
-    const char *varname,
-    int reflevel,
-    int lod,
-    const size_t min[3],
-    const size_t max[3],
-	const float range[2],
-    int lock = 0
-);
+ );
 
 
  //! Unlock a floating-point region of memory 
@@ -293,17 +142,15 @@ public:
  //! marked available for
  //! internal garbage collection during subsequent GetRegion() calls
  //!
- //! \param[in] region A pointer to a region of memory previosly 
- //! returned by GetRegion()
+ //! \param[in] rg A pointer to a RegularGrid previosly 
+ //! returned by GetGrid()
  //! \retval status Returns a non-negative value on success
  //!
  //! \sa GetRegion(), GetRegion()
  //
- int	UnlockRegion (
-    const void *region
- );
+ int UnlockGrid(const RegularGrid *rg);
 
- int UnlockGrid(const RegularGrid *rg) { return(UnlockRegion(rg->GetBlks()[0])); };
+ int UnlockRegion(const float *) {return(-1);};
 
  //! Return the current data range as a two-element array
  //!
@@ -501,14 +348,12 @@ void PurgeVariable(string varname);
 
 protected:
 
- enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
  void    *alloc_region(
 	size_t ts,
 	const char *varname,
 	VarType_T vtype,
 	int reflevel,
 	int lod,
-	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
 	int lock,
@@ -683,7 +528,6 @@ private:
 	int lod;
 	size_t min[3];
 	size_t max[3];
-	_dataTypes_t	type;
 	int lock_counter;
 	void *blks;
  } region_t;
@@ -766,7 +610,6 @@ private:
 	string varname,
 	int reflevel,
 	int lod,
-	_dataTypes_t    type,
 	const size_t min[3],
 	const size_t max[3],
 	int lock
@@ -778,39 +621,15 @@ private:
 	string varname,
 	int reflevel,
 	int lod,
-	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3]
  );
 
- int	set_quantization_range(const char *varname, const float range[2]);
-
- void   setDefaultHighLowVals();
  void	free_var(const string &, int do_native);
 
  int	free_lru();
 
  int	_DataMgr(size_t mem_size);
-
- int get_cached_data_range(size_t ts, const char *varname, float range[2]);
-
- vector <size_t> get_cached_reg_min_max(
-	size_t ts, const char *varname, int reflevel
- );
-
- unsigned char   *get_quantized_region(
-	size_t ts, const char *varname, int reflevel, int lod, const size_t min[3],
-	const size_t max[3], const float range[2], int lock,
-	_dataTypes_t type
- );
-
- void	quantize_region_uint8(
-    const float *fptr, unsigned char *ucptr, size_t size, const float range[2]
- );
-
- void	quantize_region_uint16(
-    const float *fptr, unsigned char *ucptr, size_t size, const float range[2]
- );
 
  float *execute_pipeline(
 	size_t ts, string varname, int reflevel, int lod,

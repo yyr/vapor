@@ -42,7 +42,6 @@
 
 #include "params.h"
 #include <vapor/DataMgr.h>
-#include <vapor/LayeredIO.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
 //#include "glutil.h"

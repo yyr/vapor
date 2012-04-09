@@ -36,7 +36,6 @@
 #include <qcolordialog.h>
 #include <qlayout.h>
 #include <vector>
-#include <vapor/LayeredIO.h>
 #include "glwindow.h"
 
 using namespace VAPoR;

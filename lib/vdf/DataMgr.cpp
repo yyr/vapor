@@ -77,103 +77,12 @@ float	*DataMgr::GetRegion(
 	const size_t max[3],
 	int	lock
 ) {
-
-	float	*blks = NULL;
-	int	rc;
-
 	SetDiagMsg(
 		"DataMgr::GetRegion(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],%d)",
 		ts,varname,reflevel,lod,min[0],min[1],min[2],max[0],max[1],max[2], lock
 	);
-
-	// See if region is already in cache. If so, return it.
-	//
-	blks = (float *) get_region_from_cache(
-		ts, varname, reflevel, lod, DataMgr::FLOAT32, min, max, lock
-	);
-	if (blks) {
-		SetDiagMsg("DataMgr::GetRegion() - data in cache %xll\n", blks);
-		return(blks);
-	}
-
-	//
-	// See if the variable is derived from another variable 
-	//
-	if (IsVariableDerived(varname)) {
-		return (execute_pipeline(
-			ts, string(varname), reflevel, lod, min, max, lock
-		));
-	}
-
-	// Else, read it from disk
-	//
-	VarType_T vtype = DataMgr::GetVarType(varname);
-
-	rc = OpenVariableRead(ts, varname, reflevel, lod);
-	if (rc < 0) {
-		SetErrMsg(
-			"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
-			varname, ts, reflevel, lod
-		);
-		return(NULL);
-	}
-
-	blks = (float *) alloc_region(
-		ts,varname,vtype, reflevel, lod, DataMgr::FLOAT32,min,max,lock,false
-	);
-	if (! blks) return(NULL);
-
-	rc = BlockReadRegion(min, max, blks, true);
-	if (rc < 0) {
-		SetErrMsg(
-			"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
-			varname, ts, reflevel, lod
-		);
-		free_region(ts,varname,reflevel,lod,FLOAT32,min,max);
-		CloseVariable();
-		return (NULL);
-	}
-
-	CloseVariable();
-	SetDiagMsg("DataMgr::GetRegion() - data not in cache %xll\n", blks);
-	
-	//
-	// Make sure we have a valid floating point value
-	//
-
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
-	size_t size;
-	switch (vtype) {
-	case VAR2D_XY:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]);
-		break;
-	case VAR2D_XZ:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[2]);
-		break;
-	case VAR2D_YZ:
-		size = ((max[0]-min[0]+1)*bs[1]) * ((max[1]-min[1]+1)*bs[2]);
-		break;
-	case VAR3D:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) *
-			((max[2]-min[2]+1)*bs[2]);
-		break;
-	default: 
-		size = 0;
-	}
-	for (size_t i=0; i<size; i++) {
-#ifdef WIN32
-		if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = FLT_MAX;
-#else
-		if (! finite(blks[i]) || isnan(blks[i])) blks[i] = FLT_MAX;
-#endif
-	}
-
-	return(blks);
+	return(NULL);
 }
-
-
 
 RegularGrid *DataMgr::GetGrid(
 	size_t ts,
@@ -216,11 +125,11 @@ RegularGrid *DataMgr::GetGrid(
 	// See if region is already in cache. If so, return it.
 	//
 	float *blks = (float *) get_region_from_cache(
-		ts, varname, reflevel, lod, DataMgr::FLOAT32, bmin, bmax, lock
+		ts, varname, reflevel, lod, bmin, bmax, lock
 	);
 
 	if (blks) {
-		SetDiagMsg("DataMgr::GetRegion() - data in cache %xll\n", blks);
+		SetDiagMsg("DataMgr::GetGrid() - data in cache %xll\n", blks);
 		rg = MakeGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
 		if (!rg) return (NULL);
 	}
@@ -240,14 +149,14 @@ RegularGrid *DataMgr::GetGrid(
 	else {
 		first = true;
 
-		SetDiagMsg("DataMgr::GetRegion() - data not in cache \n");
+		SetDiagMsg("DataMgr::GetGrid() - data not in cache \n");
 
 		// Else, read it from disk
 		//
 
 		blks = (float *) alloc_region(
 			ts,varname.c_str(),vtype, reflevel, lod, 
-			DataMgr::FLOAT32,bmin,bmax,lock,false
+			bmin,bmax,lock,false
 		);
 		if (! blks) return(NULL);
 
@@ -257,7 +166,7 @@ RegularGrid *DataMgr::GetGrid(
 				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
 				varname.c_str(), ts, reflevel, lod
 			);
-			free_region(ts,varname.c_str(),reflevel,lod,FLOAT32,bmin,bmax);
+			free_region(ts,varname.c_str(),reflevel,lod,bmin,bmax);
 			return (NULL);
 		}
 	}
@@ -304,268 +213,6 @@ RegularGrid *DataMgr::GetGrid(
 	}
 
 	return(rg);
-}
-
-
-unsigned char	*DataMgr::GetRegionUInt8(
-	size_t ts,
-	const char *varname,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	const float range[2],
-	int lock
-) {
-	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
-		ts,varname,reflevel,lod,min[0],min[1],min[2],max[0],max[1],max[2],
-		range[0], range[1], lock
-	);
-
-	return(get_quantized_region(
-		ts, varname, reflevel, lod, min, max, range, 
-		lock, DataMgr::UINT8
-	));
-}
-
-unsigned char	*DataMgr::GetRegionUInt8(
-	size_t ts,
-	const char *varname1,
-	const char *varname2,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	const float range1[2],
-	const float range2[2],
-	int lock
-) {
-	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],[%f,%f],%d)",
-		ts,varname1, varname2, reflevel,lod, min[0],min[1],min[2],
-		max[0],max[1],max[2], range1[0], range1[1], 
-		range2[0], range2[1], lock
-	);
-	VarType_T vtype1 = DataMgr::GetVarType(varname1);
-	VarType_T vtype2 = DataMgr::GetVarType(varname2);
-	if (vtype1 != vtype2) {
-		SetErrMsg("Variable type mismatch");
-		return(NULL);
-	}
-
-	string varname = varname1;
-	varname += "+";
-	varname += varname2;
-	unsigned char *ublks = NULL;
-
-	// 
-	// Verify that the quantization range hasn't changed for
-	// either variable. If it hasn't, attempt to get the
-	// interleaved field array from the cache.
-	//
-	if ((set_quantization_range(varname1, range1) == 0) && 
-		(set_quantization_range(varname2, range2) == 0)) {
-
-		ublks = (unsigned char *) get_region_from_cache(
-			ts, varname.c_str(), reflevel, lod, DataMgr::UINT16, 
-			min, max, lock
-		);
-	}
-	else {
-		// set_quantization_range() will free the variable if 
-		// the range is dirty, but we have to explicity free the two-field
-		// 'varname', which has two sets of data ranges.
-		//  
-		free_var(varname, 0);
-	}
-
-	if (ublks) return(ublks);
-
-	// Interleaved array is not in cache so we'll need to
-	// construct it
-	//
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
-	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
-	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
-	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
-	switch (vtype1) {
-	case VAR2D_XY:
-		nz = 1;
-		break;
-	case VAR2D_XZ:
-		ny = 1;
-		break;
-	case VAR2D_YZ:
-		nx = 1;
-		break;
-	default:
-		break;
-	}
-	size_t size = nx*ny*nz;
-
-	unsigned char *ublks1, *ublks2;
-
-	ublks = (unsigned char *) alloc_region(
-		ts,varname.c_str(),vtype1, reflevel,lod, DataMgr::UINT16,
-		min,max, lock,false
-	);
-	if (! ublks) return(NULL);
-
-	ublks1 = get_quantized_region(
-		ts, varname1, reflevel, lod, min, max, range1, 
-		0, DataMgr::UINT8
-	);
-	if (! ublks1) return (NULL);
-
-	for (size_t i = 0; i<size; i++) {
-		ublks[2*i] = ublks1[i];
-	}
-
-	ublks2 = get_quantized_region(
-		ts, varname2, reflevel, lod, min, max, range2, 
-		0, DataMgr::UINT8
-	);
-	if (! ublks2) return (NULL);
-
-	for (size_t i = 0; i<size; i++) {
-		ublks[2*i+1] = ublks2[i];
-	}
-	return(ublks);
-}
-
-unsigned char	*DataMgr::GetRegionUInt16(
-	size_t ts,
-	const char *varname,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	const float range[2],
-	int lock
-) {
-	SetDiagMsg(
-		"DataMgr::GetRegionUInt16(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
-		ts,varname,reflevel,lod, min[0],min[1],min[2],max[0],max[1],max[2],
-		range[0], range[1], lock
-	);
-
-	return(get_quantized_region(
-		ts, varname, reflevel, lod, min, max, range, 
-		lock, DataMgr::UINT16
-	));
-}
-
-unsigned char	*DataMgr::GetRegionUInt16(
-	size_t ts,
-	const char *varname1,
-	const char *varname2,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	const float range1[2],
-	const float range2[2],
-	int lock
-) {
-	SetDiagMsg(
-		"DataMgr::GetRegionUInt16(%d,%s,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],[%f,%f],%d)",
-		ts,varname1, varname2, reflevel,lod, min[0],min[1],min[2],
-		max[0],max[1],max[2], range1[0], range1[1], 
-		range2[0], range2[1], lock
-	);
-
-	VarType_T vtype1 = DataMgr::GetVarType(varname1);
-	VarType_T vtype2 = DataMgr::GetVarType(varname2);
-	if (vtype1 != vtype2) {
-		SetErrMsg("Variable type mismatch");
-		return(NULL);
-	}
-
-	string varname = varname1;
-	varname += "+";
-	varname += varname2;
-	unsigned char *ublks = NULL;
-
-	// 
-	// Verify that the quantization range hasn't changed for
-	// either variable. If it hasn't, attempt to get the
-	// interleaved field array from the cache.
-	//
-	if ((set_quantization_range(varname1, range1) == 0) && 
-		(set_quantization_range(varname2, range2) == 0)) {
-
-		ublks = (unsigned char *) get_region_from_cache(
-			ts, varname.c_str(), reflevel, lod, DataMgr::UINT32, 
-			min, max, lock
-		);
-	}
-	else {
-		// set_quantization_range() will free the variable if 
-		// the range is dirty, but we have to explicity free the two-field
-		// 'varname', which has two sets of data ranges.
-		//  
-		free_var(varname, 0);
-	}
-
-	if (ublks) return(ublks);
-
-	// Interleaved array is not in cache so we'll need to
-	// construct it
-	//
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
-	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
-	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
-	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
-	switch (vtype1) {
-	case VAR2D_XY:
-		nz = 1;
-		break;
-	case VAR2D_XZ:
-		ny = 1;
-		break;
-	case VAR2D_YZ:
-		nx = 1;
-		break;
-	default:
-		break;
-	}
-	size_t size = nx*ny*nz;
-
-	unsigned char *ublks1, *ublks2;
-
-	ublks = (unsigned char *) alloc_region(
-		ts,varname.c_str(),vtype1, reflevel,lod, DataMgr::UINT32,
-		min,max, lock,false
-	);
-	if (! ublks) return(NULL);
-
-	ublks1 = get_quantized_region(
-		ts, varname1, reflevel, lod, min, max, range1, 
-		0, DataMgr::UINT16
-	);
-	if (! ublks1) return (NULL);
-
-	for (size_t i = 0; i<size; i++) {
-		ublks[2*2*i+0] = ublks1[2*i+0];
-		ublks[2*2*i+1] = ublks1[2*i+1];
-	}
-
-	ublks2 = get_quantized_region(
-		ts, varname2, reflevel, lod, min, max, range2, 
-		0, DataMgr::UINT16
-	);
-	if (! ublks2) return (NULL);
-
-	for (size_t i = 0; i<size; i++) {
-		ublks[2*2*i+2] = ublks2[2*i+0];
-		ublks[2*2*i+3] = ublks2[2*i+1];
-	}
-	return(ublks);
 }
 
 int	DataMgr::NewPipeline(PipeLine *pipeline) {
@@ -799,136 +446,7 @@ vector <string> DataMgr::GetVariables2DYZ() const {
 }
 
 	
-unsigned char	*DataMgr::get_quantized_region(
-	size_t ts,
-	const char *varname,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	const float range[2],
-	int lock,
-	_dataTypes_t type
-) {
 
-	unsigned char	*ublks = NULL;
-
-	// 
-	// Set the data range for the quantization mapping. This operation 
-	// is a no-op if the value specified does not differ from the
-	// current mapping for this variable.
-	//
-	(void) set_quantization_range(varname, range);
-
-	ublks = (unsigned char *) get_region_from_cache(
-		ts, varname, reflevel, lod, type, min, max, lock
-	);
-
-	if (ublks) {
-		SetDiagMsg(
-			"DataMgr::get_quantized_region() - data in cache %xll\n", ublks
-		);
-		return(ublks);
-	}
-    
-	float	*blks = NULL;
-
-	blks = GetRegion(ts, varname, reflevel, lod, min, max, 1);
-	if (! blks) return (NULL);
-
-
-	VarType_T vtype = DataMgr::GetVarType(varname);
-	ublks = (unsigned char *) alloc_region(
-		ts,varname,vtype, reflevel,lod, type,min,max, lock, false
-	);
-	if (! ublks) {
-		UnlockRegion(blks);
-		return(NULL);
-	}
-
-	// Quantize the floating point data;
-
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
-	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
-	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
-	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
-
-	switch (vtype) {
-	case VAR2D_XY:
-		nz = 1;
-		break;
-	case VAR2D_XZ:
-		ny = 1;
-		break;
-	case VAR2D_YZ:
-		nx = 1;
-		break;
-	default:
-		break;
-	}
-
-	if (type == DataMgr::UINT8) {
-		quantize_region_uint8(blks, ublks, nx*ny*nz, range);
-	}
-	else {
-		quantize_region_uint16(blks, ublks, nx*ny*nz, range);
-	}
-
-	// Unlock the floating point data
-	//
-	UnlockRegion(blks);
-	SetDiagMsg(
-		"DataMgr::get_quantized_region () - data not in cache %xll\n,", ublks
-	);
-
-	return(ublks);
-}
-
-void	DataMgr::quantize_region_uint8(
-	const float *fptr,
-	unsigned char *ucptr,
-	size_t size,
-	const float range[2]
-) {
-	for (size_t i = 0; i<size; i++) {
-		unsigned int	v;
-		if (*fptr < range[0]) *ucptr = 0;
-		else if (*fptr > range[1]) *ucptr = 255;
-		else {
-			v = (int) rint((*fptr - range[0]) / (range[1] - range[0]) * 255);
-			*ucptr = (unsigned char) v;
-		}
-		ucptr++;
-		fptr++;
-	}
-}
-
-void	DataMgr::quantize_region_uint16(
-	const float *fptr,
-	unsigned char *ucptr,
-	size_t size,
-	const float range[2]
-) {
-	for (size_t i = 0; i<size; i++) {
-		unsigned int	v;
-		if (*fptr < range[0]) {
-			v = 0;
-		}
-		else if (*fptr > range[1]) {
-			v = 65535;
-		}
-		else {
-			v = (int) rint((*fptr - range[0]) / (range[1] - range[0]) * 65535);
-		}
-		ucptr[0] = (unsigned char) (v & 0xff);
-		ucptr[1] = (unsigned char) ((v >> 8) & 0xff);
-
-		ucptr+=2;
-		fptr++;
-	}
-}
 
 int DataMgr::GetDataRange(
 	size_t ts,
@@ -1124,9 +642,11 @@ int DataMgr::GetValidRegion(
 }
 
 	
-int	DataMgr::UnlockRegion(
-	const void *blks
+int	DataMgr::UnlockGrid(
+	const RegularGrid *rg
 ) {
+	const void *blks = rg->GetBlks()[0];
+
 	SetDiagMsg("DataMgr::UnlockRegion()");
 
 	list <region_t>::iterator itr;
@@ -1149,7 +669,6 @@ void	*DataMgr::get_region_from_cache(
 	string varname,
 	int reflevel,
 	int lod,
-	_dataTypes_t	type,
 	const size_t min[3],
 	const size_t max[3],
 	int	lock
@@ -1168,8 +687,7 @@ void	*DataMgr::get_region_from_cache(
 			region.min[2] == min[2] &&
 			region.max[0] == max[0] &&
 			region.max[1] == max[1] &&
-			region.max[2] == max[2] &&
-			region.type == type) {
+			region.max[2] == max[2] ) {
 
 			// Increment the lock counter
 			region.lock_counter += lock ? 1 : 0;
@@ -1192,7 +710,6 @@ void	*DataMgr::alloc_region(
 	VarType_T vtype,
 	int reflevel,
 	int lod,
-	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
 	int	lock,
@@ -1219,20 +736,9 @@ void	*DataMgr::alloc_region(
 
 	// Free region already exists
 	//
-	free_region(ts,varname,reflevel,lod,type,min,max);
+	free_region(ts,varname,reflevel,lod,min,max);
 
-	int	vs;
-
-	switch (type) {
-	case UINT8:
-		vs = 1;
-		break;
-	case UINT16:
-		vs = 2;
-		break;
-	default:
-		vs = 4;
-	};
+	int	vs = 4;
 
 	size_t bs[3];
 	GetBlockSize(bs, reflevel);
@@ -1281,7 +787,6 @@ void	*DataMgr::alloc_region(
 	region.max[0] = max[0];
 	region.max[1] = max[1];
 	region.max[2] = max[2];
-	region.type = type;
 	region.lock_counter = lock;
 	region.blks = blks;
 
@@ -1295,7 +800,6 @@ void	DataMgr::free_region(
 	string varname,
 	int reflevel,
 	int lod,
-	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3]
 ) {
@@ -1313,8 +817,7 @@ void	DataMgr::free_region(
 			region.min[2] == min[2] &&
 			region.max[0] == max[0] &&
 			region.max[1] == max[1] &&
-			region.max[2] == max[2] &&
-			region.type == type ) {
+			region.max[2] == max[2] ) {
 
 			if (region.lock_counter == 0) {
 				if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
@@ -1347,8 +850,7 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 	for(itr = _regionsList.begin(); itr!=_regionsList.end(); ) {
 		const region_t &region = *itr;
 
-		if (region.varname.compare(varname) == 0 &&
-			(region.type != DataMgr::FLOAT32 || do_native)) {
+		if (region.varname.compare(varname) == 0 && do_native) {
 
 			if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
 				
@@ -1381,49 +883,6 @@ int	DataMgr::free_lru(
 	return(-1);
 }
 	
-
-int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
-	string varstr = varname;
-	float *rangeptr;
-
-	map <string, float *>::iterator p;
-	p = _quantizationRangeMap.find(varname);
-
-	// 
-	// See if this is a new variable
-	//
-	if (p == _quantizationRangeMap.end()) {
-		float *range = new float[2];
-		assert(range != NULL);
-
-		range[0] = 0.0;
-		range[1] = 0.0;
-
-		// Use of []'s creates an entry in map
-		_quantizationRangeMap[varname] = range;
-	}
-	p = _quantizationRangeMap.find(varname);
-	assert (p != _quantizationRangeMap.end());
-
-	rangeptr = p->second;
-	if (range[0] <= range[1]) {
-		if (range[0] == rangeptr[0] && range[1] == rangeptr[1]) return(0);
-		rangeptr[0] = range[0];
-		rangeptr[1] = range[1];
-	}
-	else {
-		if (range[0] == rangeptr[1] && range[1] == rangeptr[0]) return(0);
-		rangeptr[0] = range[1];
-		rangeptr[1] = range[0];
-	}
-	
-	// Invalidate the cache of quantized quantities
-	//
-	free_var(varstr, 0);
-	return(1);
-}
-
-
 
 PipeLine *DataMgr::get_pipeline_for_var(string varname) const {
 
@@ -1508,7 +967,7 @@ float *DataMgr::execute_pipeline(
 		}
 
 		float *blks = (float *) alloc_region(
-			ts,v.c_str(),vtype, reflevel, lod, DataMgr::FLOAT32,min,max,my_lock,
+			ts,v.c_str(),vtype, reflevel, lod, min,max,my_lock,
 			true
 		);
 		if (! blks) {
@@ -1545,7 +1004,7 @@ float *DataMgr::execute_pipeline(
 	if (rc < 0) {
 		for (int i=0; i<output_vars.size(); i++) {
 			string v = output_vars[i].first;
-			free_region(ts,v.c_str(),reflevel,lod,FLOAT32,min,max);
+			free_region(ts,v.c_str(),reflevel,lod,min,max);
 		}
 		return(NULL);
 	}

@@ -8,8 +8,8 @@
 
 #include <vector>
 #include <string>
-#include <vapor/LayeredIO.h>
 #include <vapor/WRFReader.h>
+#include <vapor/DataMgr.h>
 #include <vapor/common.h>
 
 namespace VAPoR {
@@ -22,7 +22,7 @@ namespace VAPoR {
 //! \date    $Date$
 //!
 //
-class VDF_API DataMgrWRF : public LayeredIO, WRFReader {
+class VDF_API DataMgrWRF : public DataMgr, WRFReader {
 
 public:
 
@@ -37,7 +37,7 @@ public:
  );
 
 
- virtual ~DataMgrWRF() { CloseVariableNative(); }; 
+ virtual ~DataMgrWRF() {  }; 
 
  virtual int _VariableExists(
 	size_t ts,
@@ -102,6 +102,11 @@ public:
     WRFReader::GetTSUserTimeStamp(ts,s);
  }
 
+ virtual void   GetGridDim(size_t dim[3]) const {
+    return(WRFReader::GetGridDim(dim));
+ };
+
+
  virtual string GetMapProjection() const {
 	return(WRFReader::GetMapProjection());
  };
@@ -114,28 +119,26 @@ protected:
  virtual const float *GetDataRange() const {
 	return(NULL);	// Not implemented. Let DataMgr figure it out
  }
- virtual int	OpenVariableReadNative(
-	size_t timestep,
-	const char *varname,
-	int,
-	int
+
+ virtual int    OpenVariableRead(
+    size_t timestep,
+    const char *varname,
+    int,
+    int
  ) {
-	return(WRFReader::OpenVariableRead(
-		timestep, varname)
-	); 
+	return(WRFReader::OpenVariableRead(timestep, varname));
  };
 
- virtual int	CloseVariableNative() {
-	 return (WRFReader::CloseVariable());
+ virtual int    CloseVariable() {
+	return (WRFReader::CloseVariable());
  };
 
- virtual int    BlockReadRegionNative(
-    const size_t* /* bmin */, const size_t* /* bmax */,
-    float *region, bool
- )  {
- 	return(WRFReader::ReadVariable(region)
-	);
- }; 
+ virtual int    BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3],
+    float *region, bool unblock = true
+ ) {
+	return(WRFReader::ReadVariable(region));
+ };
 
  virtual RegularGrid    *MakeGrid(
 	size_t ts, string varname, int reflevel, int lod,
@@ -147,35 +150,12 @@ protected:
 	const size_t bmin[3], const size_t bmax[3], float *blocks
  );
 
-
- virtual void GetValidRegionNative(
+ virtual void GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
- ) const;
-
- virtual void   GetDimNative(size_t dim[3], int reflevel) const {
-	return(WRFReader::GetDim(dim, reflevel));
- };
-
- virtual void   GetDimBlkNative(size_t bdim[3], int reflevel) const {
-	return(WRFReader::GetDimBlk(bdim, reflevel));
- };
-
- virtual void   MapVoxToUserNative(
-    size_t timestep,
-    const size_t vcoord0[3], double vcoord1[3], int reflevel = 0
  ) const {
-	return(WRFReader::MapVoxToUser(
-		timestep, vcoord0, vcoord1, reflevel)
-	);
- };
-
- virtual void   MapUserToVoxNative(
-    size_t timestep,
-    const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
- ) const {
-	return(WRFReader::MapUserToVox(
-		timestep, vcoord0, vcoord1, reflevel)
-	);
+	size_t dim[3]; WRFReader::GetDim(dim, reflevel);
+	min[0] = min[1] = min[2] = 0;
+	max[0] = dim[0]-1; max[1] = dim[1]-1; max[2] = dim[2]-1;
  };
 
 private:

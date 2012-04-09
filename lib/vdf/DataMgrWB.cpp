@@ -104,11 +104,23 @@ RegularGrid *DataMgrWB::MakeGrid(
 	if (GetCoordSystemType().compare("spherical")==0) { 
 		vector <long> permv = GetGridPermutation();
 		size_t perm[] = {permv[0], permv[1], permv[2]};
+
 		return(new SphericalGrid(bs,min,max,extents,perm,periodic,_blkptrs));
+	} else if (DataMgrWB::GetGridType().compare("stretched")==0) {
+		vector <double> xcoords = GetTSXCoords(ts);
+		vector <double> ycoords = GetTSYCoords(ts);
+		vector <double> zcoords = GetTSZCoords(ts);
+
+		return(new StretchedGrid(
+			bs,min,max,extents,periodic,_blkptrs,
+			xcoords, ycoords, zcoords
+		));
 	} else if (
 		! (DataMgrWB::GetGridType().compare("layered")==0) ||
 		varname.compare("ELEVATION") == 0 || vtype != VAR3D
 	) {
+//cerr << "Hard code missing value\n";
+//		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs, -9999.0));
 		return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
 	}
 	else {
@@ -123,8 +135,11 @@ RegularGrid *DataMgrWB::MakeGrid(
 
 
 cerr << "Hard code missing value\n";
+//		LayeredGrid *lg = new LayeredGrid(
+//			bs,min, max, extents, periodic, _blkptrs, coords,2, -9999.0
+//		);
 		LayeredGrid *lg = new LayeredGrid(
-			bs,min, max, extents, periodic, _blkptrs, coords,2, -1e20
+			bs,min, max, extents, periodic, _blkptrs, coords,2
 		);
 		delete elevation;
 		return(lg);

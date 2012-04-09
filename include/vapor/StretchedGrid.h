@@ -136,6 +136,25 @@ public:
  //!
  virtual void GetMinCellExtents(double *x, double *y, double *z) const;
 
+ //! Return the user coordinate maps
+ //!
+ //! Returns the user coordinate maps used to initialize the constructor.
+ //!
+ //! \note The returned vector will be of length zero if the dimension
+ //! associated with the vector is not stretched.
+ //!
+ //! \param [out] Vector of X user coordinates
+ //! \param [out] Vector of Y user coordinates
+ //! \param [out] Vector of Z user coordinates
+ //!
+ void GetUserCoordinateMaps(
+	std::vector <double> &xcoords,
+	std::vector <double> &ycoords,
+	std::vector <double> &zcoords
+ ) const {
+	xcoords = _xcoords; ycoords = _ycoords; zcoords = _zcoords;
+ };
+
 
 
 private:

@@ -27,9 +27,8 @@
 #include <vapor/DataMgr.h>
 #include "pythonpipeline.h"
 #include <vapor/DataMgrWB.h>
-#include <vapor/LayeredIO.h>
+#include <vapor/DataMgrWC.h>
 #include <vapor/DataMgrFactory.h>
-#include <vapor/LayeredIO.h>
 #include <vapor/ParamNode.h>
 
 #include "vizwinmgr.h"
@@ -891,15 +890,9 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 			}
 		} else {//merge
 			assert (dataMgr);
-			MetadataVDC* md; 
-			DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-			LayeredIO* dataMgrLayered = dynamic_cast<LayeredIO *> (dataMgr);
+			MetadataVDC* md = dynamic_cast<MetadataVDC *> (dataMgr);
 			
-			if (dataMgrWB) {
-				md = (MetadataVDC*) dataMgrWB;
-			} else if (dataMgrLayered){
-				md = (MetadataVDC*) dataMgrLayered;
-			} else {
+			if (! md) {
 				DataStatus::getInstance()->setRenderReady(true);
 				return false;
 			}

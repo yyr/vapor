@@ -93,7 +93,7 @@
 #include "userpreferences.h"
 
 #include <vapor/DataMgrWB.h>
-#include <vapor/LayeredIO.h>
+#include <vapor/DataMgrWC.h>
 #include <vapor/MetadataVDC.h>
 #include <vapor/Version.h>
 //Following shortcuts are provided:
@@ -789,11 +789,11 @@ void MainForm::saveMetadata()
 {
 	DataMgr *dataMgr = Session::getInstance()->getDataMgr();
 	DataMgrWB *dataMgrWB = dynamic_cast<DataMgrWB *> (dataMgr);
-	LayeredIO *dataMgrLayered = dynamic_cast<LayeredIO *> (dataMgr);
+	DataMgrWC *dataMgrWC = dynamic_cast<DataMgrWC *> (dataMgr);
 	MetadataVDC* md = dynamic_cast<MetadataVDC*> (dataMgr);
 
 	//Do nothing if there is no metadata:
-	if (!md ||(! dataMgrWB  && !dataMgrLayered)) {
+	if (!md ||(! dataMgrWB  && !dataMgrWC)) {
 			MessageReporter::errorMsg("There is no Metadata \nto save in current session");
 		return;
 	}

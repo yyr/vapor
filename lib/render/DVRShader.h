@@ -75,13 +75,14 @@ protected:
                                      const Matrix3d &modelviewInverse);
 
   float          *_colormap;
+  float          *_coordmap;
   ShaderProgram  *_shader;
   map <int, ShaderProgram *> _shaders;
 
   bool            _lighting;
   bool            _preintegration;
 
-  GLuint _cmapid[2];
+  GLuint _cmapid[4];
 
   float _kd;
   float _ka;
@@ -92,6 +93,7 @@ protected:
   float _vpos[4];
   int _midx;
   int _zidx;
+  int _stretched;
   ShaderMgr *_shadermgr;
 
 };

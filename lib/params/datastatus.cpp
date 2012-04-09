@@ -33,7 +33,6 @@
 #include <vapor/ImpExp.h>
 #include <vapor/MyBase.h>
 #include <vapor/DataMgr.h>
-#include <vapor/LayeredIO.h>
 #include <vapor/Version.h>
 #include <qstring.h>
 #include <qapplication.h>
