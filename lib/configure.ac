@@ -29,7 +29,7 @@ fi
 m4_include([m4/expat.m4])
 m4_include([m4/mpi.m4])
 
-INCLUDES="-I../../include"
+INCLUDES="-Iinclude/"
 
 # Checks for programs used in building libraries
 

@@ -7,7 +7,7 @@ libpiovdc_a_SOURCES = \
 	BlkMemMgr.cpp XmlNode.cpp ExpatParseMgr.cpp ImpExp.cpp Metadata.cpp MetadataVDC.cpp \
 	WaveletBlock1D.cpp  WaveletBlock2D.cpp WaveletBlock3D.cpp \
 	VDFIOBase.cpp NCBuf.cpp \
-	LayeredIO.cpp Transpose.cpp  vdf.cpp \
+	Transpose.cpp  vdf.cpp \
 	WaveFiltBase.cpp  WaveFiltBior.cpp WaveFiltDaub.cpp  WaveFiltCoif.cpp \
 	WaveFiltHaar.cpp MatWaveBase.cpp  MatWaveDwt.cpp MatWaveWavedec.cpp  \
 	SignificanceMap.cpp Compressor.cpp WaveCodecIO.cpp  \
