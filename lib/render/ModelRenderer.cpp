@@ -144,7 +144,7 @@ void ModelRenderer::paintGL()
       
       //Set up clipping planes
       float extents[6];
-      regionParams->GetBox()->GetExtents(extents, framenum);
+      regionParams->GetBox()->GetLocalExtents(extents, framenum);
       
       topPlane[3] = extents[4]*scales[1];
       botPlane[3] = -extents[1]*scales[1];

@@ -286,11 +286,11 @@ mousePressEvent(QMouseEvent* e){
 			if (OK) {
 				doNavigate = false;
 				float dirVec[3];
-				//Find the direction vector of the camera (World coords)
+				//Find the direction vector of the camera (Local coords)
 				myGLWindow->pixelToVector(screenCoords, 
-					vParams->getCameraPos(), dirVec);
+					vParams->getCameraPosLocal(), dirVec);
 				//Remember which handle we hit, highlight it, save the intersection point.
-				manip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
+				manip->captureMouseDown(handleNum, faceNum, vParams->getCameraPosLocal(), dirVec, buttonNum);
 				EventRouter* rep = VizWinMgr::getInstance()->getEventRouter(t);
 				rep->captureMouseDown();
 				setMouseDown(true);
@@ -435,7 +435,7 @@ mouseMoveEvent(QMouseEvent* e){
 		if (handleNum >= 0){
 			if (myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) {
 				float dirVec[3];
-				myGLWindow->pixelToVector(projMouseCoords, vParams->getCameraPos(), dirVec);
+				myGLWindow->pixelToVector(projMouseCoords, vParams->getCameraPosLocal(), dirVec);
 				//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 				manip->slideHandle(handleNum, dirVec,constrain);
 				doNavigate = false;
@@ -514,7 +514,7 @@ void VizWin::setFocus(){
 void VizWin::
 changeCoords(float *vpos, float* vdir, float* upvec) {
 	float worldPos[3];
-	ViewpointParams::worldFromStretchedCube(vpos,worldPos);
+	ViewpointParams::localFromStretchedCube(vpos,worldPos);
 	myWinMgr->getViewpointRouter()->navigate(myWinMgr->getViewpointParams(myWindowNum),worldPos, vdir, upvec);
 	
 	myGLWindow->setViewerCoordsChanged(false);
@@ -540,8 +540,8 @@ setValuesFromGui(ViewpointParams* vpparams){
 	float transCameraPos[3];
 	float cubeCoords[3];
 	//Must transform from world coords to unit cube coords for trackball.
-	ViewpointParams::worldToStretchedCube(vpparams->getCameraPos(), transCameraPos);
-	ViewpointParams::worldToStretchedCube(vpparams->getRotationCenter(), cubeCoords);
+	ViewpointParams::localToStretchedCube(vpparams->getCameraPosLocal(), transCameraPos);
+	ViewpointParams::localToStretchedCube(vpparams->getRotationCenterLocal(), cubeCoords);
 	myTrackball->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
 	
 	//If the perspective was changed, a resize event will be triggered at next redraw:

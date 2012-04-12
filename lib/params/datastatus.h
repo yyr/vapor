@@ -64,6 +64,8 @@ public:
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const float[6] extents array
 	const float* getExtents() { return extents; }
+	const float* getFullSizes() {return fullSizes;}
+	const float* getFullStretchedSizes() {return fullStretchedSizes;}
 
 	//! Determines extents of the data at a particular refinement level.
 	//! \param[in] int level  refinement level
@@ -502,6 +504,7 @@ public:
 			stretchedExtents[i] = extents[i]*factor[i];
 			stretchedExtents[i+3] = extents[i+3]*factor[i];
 			stretchFactors[i] = factor[i];
+			fullStretchedSizes[i] = fullSizes[i]*factor[i];
 		}
 	}
 	static size_t getCacheMB() {return cacheMB;}
@@ -640,11 +643,14 @@ public:
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 
-	//Convert point coordinates in-place.  Return bool if can't do it.
+	//Convert user point coordinates in-place.  Return bool if can't do it.
 	//If the timestep is negative, then the coords are in a time-varying
 	//extent.
-	static bool convertToLatLon(int timestep, double coords[], int npoints = 1);
-	static bool convertFromLatLon(int timestep, double coords[], int npoints = 1);
+	static bool convertToLonLat(double coords[], int npoints = 1);
+	static bool convertFromLonLat(double coords[], int npoints = 1);
+	static bool convertLocalToLonLat(int timestep, double coords[], int npoints = 1);
+	static bool convertLocalFromLonLat(int timestep,double coords[], int npoints = 1);
+
 
 	
 	
@@ -719,8 +725,8 @@ public:
 	//It should already be removed from the python variable mapping
 	static bool removeDerivedVariable2D(const string& derivedVarName);
 	static bool removeDerivedVariable3D(const string& derivedVarName);
-	static bool WRFTranslateNeeded(){return needWRFTranslate;}
-	static void setWRFTranslate(bool value){ needWRFTranslate = value;}
+	static bool pre22Session(){return sessionBefore22;}
+	static void setPre22Session(bool value){ sessionBefore22 = value;}
 	
 	
 private:
@@ -778,6 +784,8 @@ private:
 	float extents[6];
 	float stretchedExtents[6];
 	float stretchFactors[3];
+	float fullSizes[3];
+	float fullStretchedSizes[3];
 
 	// the variableNames array specifies the name associated with each session variable num.
 	//Note that this
@@ -817,7 +825,7 @@ private:
 	static std::string projString;
 	static vector <float*> timeVaryingExtents;
 	int VDCType;
-	static bool needWRFTranslate;  //flag indicating that current session user coordinates must be translated for version 2.2+ data
+	static bool sessionBefore22;  //flag indicating that current session is before 2.2
 	
 	//Static tables where all ParamsBase classes are registered.
 	//Each class has a unique:

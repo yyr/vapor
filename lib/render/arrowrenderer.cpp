@@ -83,7 +83,10 @@ void ArrowRenderer::paintGL(){
 	//
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
 	double rakeExts[6];
-	aParams->GetRakeExtents(rakeExts);
+	aParams->GetRakeLocalExtents(rakeExts);
+	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	vector<double>& userExts = dataMgr->GetExtents(timestep);
+	for (int i = 0; i<3; i++) rakeExts[i] += userExts[i];
 	
 	float vectorLengthScale = aParams->GetVectorScale();
 	//
@@ -258,33 +261,39 @@ void ArrowRenderer::performRendering(
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
 	
-	const vector<double> rExtents = aParams->GetRakeExtents();
+	const vector<double> rExtents = aParams->GetRakeLocalExtents();
+	//Convert to user coordinates:
+	const vector<double>& fullUsrExts = dataMgr->GetExtents(timestep);
+
 	const vector<long> rGrid = aParams->GetRakeGrid();
 	int rakeGrid[3];
-	double rakeExts[6];
-	for (int i = 0; i<3; i++) {
-		rakeGrid[i] = rGrid[i];
-		rakeExts[i] = rExtents[i];
-		rakeExts[i+3] = rExtents[i+3];
-	}
-	bool is3D = aParams->VariablesAre3D();
+	double rakeExts[6];//rake extents in user coordinates
 
-	//If grid is aligned to data, must recalculate the rake grid and extents.
+	//If grid is aligned to data, must calculate the rake grid and extents in local coordinates
+	//before converting to user coordinates
 	//(rakeExts[0],rakeExts[1]) is the starting corner, 
 	//(rakeExts[3],rakeExts[4]) is the ending corner
 	// (rakeGrid[0] and rakeGrid[1]) are the grid size that fits in the data with the 
 	// prescribed strides
 	if (aParams->IsAlignedToData()){
-		aParams->calcDataAlignment(rakeExts, rakeGrid);
+		aParams->calcDataAlignment(rakeExts, rakeGrid, timestep);
+		
+	} else {
+
+		for (int i = 0; i<3; i++) {
+			rakeGrid[i] = rGrid[i];
+			rakeExts[i] = rExtents[i]+fullUsrExts[i];
+			rakeExts[i+3] = rExtents[i+3]+fullUsrExts[i];
+		}
 	}
+	bool is3D = aParams->VariablesAre3D();
 
-	//Perform setup of OpenGL transform matrix
-
-	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+	
+	//Perform setup of OpenGL transform matrix.  This transforms the full stretched domain into the unit box
+	//by scaling and translating.
+	myGLWindow->TransformToUnitBox();
 
 	//Then obtain stretch factors to use for coordinate mapping
 	//Don't apply a glScale to stretch the scene, because that would distort the arrow shape
@@ -405,7 +414,8 @@ setupVariableData(
 
 	//Determine the extents of the data that is needed:
 	double rakeExts[6];
-	aParams->GetRakeExtents(rakeExts);
+	aParams->GetRakeLocalExtents(rakeExts);
+	vector<double>& usrExts = dataMgr->GetExtents(timestep);
 	size_t min_dim[3], max_dim[3];
 	
 	float maxVerticalOffset = 0.f;
@@ -422,8 +432,8 @@ setupVariableData(
 	//Determine the region extents needed to include a voxel beyond all the rake vertices at ref level 0.
 	
 	for (int i = 0; i< 3; i++) {
-		validExts[i] = rakeExts[i];
-		validExts[i+3] = rakeExts[i+3];
+		validExts[i] = rakeExts[i]+usrExts[i];
+		validExts[i+3] = rakeExts[i+3]+usrExts[i];
 	}
 	validExts[5] += maxVerticalOffset;
 

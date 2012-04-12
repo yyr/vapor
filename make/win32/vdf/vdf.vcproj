@@ -437,10 +437,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\LayeredIO.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\vdf\MatWaveBase.cpp"
 				>
 			</File>
@@ -636,10 +632,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\LayeredGrid.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\vapor\LayeredIO.h"
 				>
 			</File>
 			<File

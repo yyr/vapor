@@ -203,10 +203,10 @@ void Renderer::enableFullClippingPlanes(){
 	GLdouble botPlane[] = {0., 1., 0., 0.001};//y = -.001
 	GLdouble frontPlane[] = {0., 0., -1., 1.};//z =1
 	GLdouble backPlane[] = {0., 0., 1., 0.001};//z = -.001
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
-	topPlane[3] = extents[4]*1.001;
-	rightPlane[3] = extents[3]*1.001;
-	frontPlane[3] = extents[5]*1.001;
+	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
+	topPlane[3] = sizes[1]*1.001;
+	rightPlane[3] = sizes[0]*1.001;
+	frontPlane[3] = sizes[2]*1.001;
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -237,9 +237,9 @@ void Renderer::disableFullClippingPlanes(){
 	GLdouble leftPlane[] = {1., 0., 0., 0.001};//x = -.001
 	GLdouble botPlane[] = {0., 1., 0., 0.001};//y = -.001
 	
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
-	topPlane[3] = extents[4]*1.001;
-	rightPlane[3] = extents[3]*1.001;
+	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
+	topPlane[3] = sizes[1]*1.001;
+	rightPlane[3] = sizes[0]*1.001;
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);

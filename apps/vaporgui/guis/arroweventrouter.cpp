@@ -416,7 +416,11 @@ guiChangeExtents(){
 	double newExts[6];
 	boxSliderFrame->getBoxExtents(newExts);
 	Box* bx = aParams->GetBox();
-	bx->SetExtents(newExts);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
+	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
+	bx->SetLocalExtents(newExts);
 	PanelCommand::captureEnd(cmd,aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);	
 }
@@ -529,29 +533,38 @@ void ArrowEventRouter::updateTab(){
 	
 	//Set the rake extents
 	const float* fullExtents = ds->getExtents();
-	double dbExts[6];
-	for (int i = 0; i<6; i++) dbExts[i] = fullExtents[i];
-	boxSliderFrame->setFullDomain(dbExts);
+	double fullUsrExts[6];
+	for (int i = 0; i<3; i++) {
+		fullUsrExts[i] = 0.;
+		fullUsrExts[i+3] = fullExtents[i+3]-fullExtents[i];
+	}
+	//To get the rake extents in user coordinates, need to get the rake extents and add the user coord domain displacement
+	vector<double> usrRakeExts;
+	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
+	//Now adjust for moving extents
+	
+	vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
+	for (int i = 0; i<6; i++) {
+		fullUsrExts[i]+= usrExts[i%3];
+		usrRakeExts.push_back(rakeexts[i]+usrExts[i%3]);
+	}
+	boxSliderFrame->setFullDomain(fullUsrExts);
+	boxSliderFrame->setBoxExtents(usrRakeExts);
 
-	const vector<double>exts = arrowParams->GetRakeExtents();
-	boxSliderFrame->setBoxExtents(exts);
-
-	//Provide latlon corner coords if available:
+	//Provide latlon corner coords if available, based on usrRakeExts
 	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
-		double cornerLatLon[2];
-		const vector<double> exts = arrowParams->GetBox()->GetExtents();
-		cornerLatLon[0] = exts[0];
-		cornerLatLon[1] = exts[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,cornerLatLon)){
+		double cornerLatLon[4];
+		cornerLatLon[0] = usrRakeExts[0];
+		cornerLatLon[1] = usrRakeExts[1];
+		cornerLatLon[0] = usrRakeExts[3];
+		cornerLatLon[1] = usrRakeExts[4];
+		if (DataStatus::convertToLonLat(cornerLatLon,2)){
 			LLLonEdit->setText(QString::number(cornerLatLon[0]));
 			LLLatEdit->setText(QString::number(cornerLatLon[1]));
-			cornerLatLon[0] = exts[3];
-			cornerLatLon[1] = exts[4];
-			DataStatus::convertToLatLon(currentTimeStep,cornerLatLon);
-			URLonEdit->setText(QString::number(cornerLatLon[0]));
-			URLatEdit->setText(QString::number(cornerLatLon[1]));
+			URLonEdit->setText(QString::number(cornerLatLon[2]));
+			URLatEdit->setText(QString::number(cornerLatLon[3]));
 			latLonFrame->show();
 		} else {
 			latLonFrame->hide();
@@ -590,7 +603,7 @@ void ArrowEventRouter::updateTab(){
 	if (isAligned){
 		double exts[6];
 		int grdExts[3];
-		arrowParams->calcDataAlignment(exts,grdExts);
+		arrowParams->calcDataAlignment(exts,grdExts,(size_t)currentTimeStep);
 		//Display the new aligned grid extents
 		xDimEdit->setText(QString::number(grdExts[0]));
 		yDimEdit->setText(QString::number(grdExts[1]));
@@ -725,16 +738,19 @@ guiFitToData(){
 		
 	const float* exts = DataStatus::getInstance()->getExtents();
 	Box* box = aParams->GetBox();
-	const vector<double> boxExts = box->GetExtents();
+	const vector<double> boxExts = box->GetLocalExtents();
 	vector<double> newExtents;
-	newExtents.push_back(exts[0]);
-	newExtents.push_back(exts[1]);
-	newExtents.push_back(boxExts[2]);
-	newExtents.push_back(exts[3]);
-	newExtents.push_back(exts[4]);
-	newExtents.push_back(boxExts[5]);
-	boxSliderFrame->setBoxExtents(newExtents);
-	box->SetExtents(newExtents);
+	newExtents.push_back(0.);
+	newExtents.push_back(0.);
+	newExtents.push_back(0.);
+	newExtents.push_back(exts[3]-exts[0]);
+	newExtents.push_back(exts[4]-exts[1]);
+	newExtents.push_back(exts[5]-exts[2]);
+	
+	box->SetLocalExtents(newExtents);
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	boxSliderFrame->setBoxExtents(currExts);
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->forceRender(aParams);
 }

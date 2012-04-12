@@ -1628,8 +1628,8 @@ guiSetRakeToRegion(){
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float seedBoxMin[3],seedBoxMax[3];
 	for (int i = 0; i< 3; i++){
-		seedBoxMin[i] = rParams->getRegionMin(i,timestep);
-		seedBoxMax[i] = rParams->getRegionMax(i,timestep);
+		seedBoxMin[i] = rParams->getLocalRegionMin(i,timestep);
+		seedBoxMax[i] = rParams->getLocalRegionMax(i,timestep);
 	}
 	fParams->setBox(seedBoxMin,seedBoxMax, -1);
 	PanelCommand::captureEnd(cmd, fParams);
@@ -2733,7 +2733,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 		regMin = extents[coord];
 		regMax = extents[coord+3];
 		double newRegion[6];
-		fParams->GetBox()->GetExtents(newRegion);
+		fParams->GetBox()->GetLocalExtents(newRegion);
 
 		if (newSize > (regMax-regMin)){
 			newSize = regMax-regMin;
@@ -2772,7 +2772,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 		}
 		newRegion[coord] = newCenter - newSize*0.5;
 		newRegion[coord+3] = newCenter + newSize*0.5;
-		fParams->GetBox()->SetExtents(newRegion);
+		fParams->GetBox()->SetLocalExtents(newRegion);
 	}
 	
 	
@@ -2862,10 +2862,10 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 		sliderChanged = true;
 	}
 	double curBox[6];
-	fParams->GetBox()->GetExtents(curBox);
+	fParams->GetBox()->GetLocalExtents(curBox);
 	curBox[coord] = newCenter - newSize*0.5;
 	curBox[coord+3] = newCenter + newSize*0.5;
-	fParams->GetBox()->SetExtents(curBox);
+	fParams->GetBox()->SetLocalExtents(curBox);
 	
 	//For small size make generator count 1 in that dimension
 	if (newSize <= 0.f && !fParams->isRandom()){

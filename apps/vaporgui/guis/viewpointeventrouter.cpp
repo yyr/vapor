@@ -164,29 +164,31 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	bool usingLatLon = vParams->isLatLon();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	Viewpoint* currentViewpoint = vParams->getCurrentViewpoint();
+	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	//In lat-lon mode convert latlon values to campos
 	if (usingLatLon) {
 		//Set the latlon values from the gui to the params
 		vParams->setCamPosLatLon(camPosLat->text().toFloat(),camPosLon->text().toFloat());
 		vParams->setRotCenterLatLon(rotCenterLat->text().toFloat(),rotCenterLon->text().toFloat());
 		//Convert the latlon coordinates for this time step:
-		vParams->convertFromLatLon(timestep);
-		//Update the gui text:
-		camPos0->setText(QString::number(vParams->getCameraPos(0)));
-		camPos1->setText(QString::number(vParams->getCameraPos(1)));
-		rotCenter0->setText(QString::number(vParams->getRotationCenter(0)));
-		rotCenter1->setText(QString::number(vParams->getRotationCenter(1)));
+		vParams->convertLocalFromLonLat(timestep);
+		//Update the gui text to display user coordinates:
+
+		camPos0->setText(QString::number(vParams->getCameraPosLocal(0)+tvExts[0]));
+		camPos1->setText(QString::number(vParams->getCameraPosLocal(1)+tvExts[1]));
+		rotCenter0->setText(QString::number(vParams->getRotationCenterLocal(0)+tvExts[0]));
+		rotCenter1->setText(QString::number(vParams->getRotationCenterLocal(1)+tvExts[1]));
 	} else {
 		//Do the opposite
 		
-		currentViewpoint->setCameraPosLocal(0, camPos0->text().toFloat());
-		currentViewpoint->setCameraPosLocal(1, camPos1->text().toFloat());
-		currentViewpoint->setRotationCenterLocal(0,rotCenter0->text().toFloat());
-		currentViewpoint->setRotationCenterLocal(1,rotCenter1->text().toFloat());
+		currentViewpoint->setCameraPosLocal(0, camPos0->text().toFloat()-tvExts[0]);
+		currentViewpoint->setCameraPosLocal(1, camPos1->text().toFloat()-tvExts[1]);
+		currentViewpoint->setRotationCenterLocal(0,rotCenter0->text().toFloat()-tvExts[0]);
+		currentViewpoint->setRotationCenterLocal(1,rotCenter1->text().toFloat()-tvExts[1]);
 		//Convert to latlon if there is georeferencing
 		bool doconvert = false;
 		if (DataStatus::getProjectionString().size() != 0){
-			doconvert = vParams->convertToLatLon(timestep);
+			doconvert = vParams->convertLocalToLonLat(timestep);
 		}
 		if(doconvert){
 			camPosLat->setText(QString::number(vParams->getCamPosLatLon()[0]));
@@ -261,7 +263,6 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	
 	VizWinMgr::getInstance()->setVizDirty(vParams, LightingBit, true);
 
-	
 	currentViewpoint->setCameraPosLocal(2, camPos2->text().toFloat());
 	vParams->setViewDir(0, viewDir0->text().toFloat());
 	vParams->setViewDir(1, viewDir1->text().toFloat());
@@ -287,9 +288,6 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 }
 void ViewpointEventRouter::
 viewpointReturnPressed(void){
-
-
-
 	confirmText(true);
 }
 
@@ -314,16 +312,20 @@ void ViewpointEventRouter::updateTab(){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	
 	latLonCheckbox->setChecked(vpParams->isLatLon());
+	vector <double> tvExts(6,0.);
+	if(DataStatus::getInstance()->getDataMgr()){
+		tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	}
 	//In latlon mode convert the latlon or vice versa:
 	bool showlatlon = false;
 	if (vpParams->isLatLon()){
 		//Do a conversion in the params, to make sure the values are current
-		vpParams->convertFromLatLon(timestep);
+		vpParams->convertLocalFromLonLat(timestep);
 		showlatlon = true;
 	}
 	else {
 		if (DataStatus::getProjectionString().size() > 0)
-			showlatlon = vpParams->convertToLatLon(timestep);
+			showlatlon = vpParams->convertLocalToLonLat(timestep);
 	}
 	if (showlatlon){
 		camPosLat->setText(QString::number(vpParams->getCamPosLatLon()[0]));
@@ -337,9 +339,9 @@ void ViewpointEventRouter::updateTab(){
 		latLonFrame->hide();
 	//Always display the current values of the campos and rotcenter
 		
-	camPos0->setText(strng.setNum(currentViewpoint->getCameraPosLocal(0), 'g', 3));
-	camPos1->setText(strng.setNum(currentViewpoint->getCameraPosLocal(1), 'g', 3));
-	camPos2->setText(strng.setNum(currentViewpoint->getCameraPosLocal(2), 'g', 3));
+	camPos0->setText(strng.setNum(tvExts[0]+currentViewpoint->getCameraPosLocal(0), 'g', 3));
+	camPos1->setText(strng.setNum(tvExts[1]+currentViewpoint->getCameraPosLocal(1), 'g', 3));
+	camPos2->setText(strng.setNum(tvExts[2]+currentViewpoint->getCameraPosLocal(2), 'g', 3));
 	viewDir0->setText(strng.setNum(currentViewpoint->getViewDir(0), 'g', 3));
 	viewDir1->setText(strng.setNum(currentViewpoint->getViewDir(1), 'g', 3));
 	viewDir2->setText(strng.setNum(currentViewpoint->getViewDir(2), 'g', 3));
@@ -347,9 +349,9 @@ void ViewpointEventRouter::updateTab(){
 	upVec1->setText(strng.setNum(currentViewpoint->getUpVec(1), 'g', 3));
 	upVec2->setText(strng.setNum(currentViewpoint->getUpVec(2), 'g', 3));
 	//perspectiveCombo->setCurrentIndex(currentViewpoint->hasPerspective());
-	rotCenter0->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(0),'g',3));
-	rotCenter1->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(1),'g',3));
-	rotCenter2->setText(strng.setNum(currentViewpoint->getRotationCenterLocal(2),'g',3));
+	rotCenter0->setText(strng.setNum(tvExts[0]+currentViewpoint->getRotationCenterLocal(0),'g',3));
+	rotCenter1->setText(strng.setNum(tvExts[1]+currentViewpoint->getRotationCenterLocal(1),'g',3));
+	rotCenter2->setText(strng.setNum(tvExts[2]+currentViewpoint->getRotationCenterLocal(2),'g',3));
 	const float* lightDir = vpParams->getLightDirection(0);
 	lightPos00->setText(QString::number(lightDir[0]));
 	lightPos01->setText(QString::number(lightDir[1]));
@@ -426,7 +428,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	float maxProj = -1.f;
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6];
-	rParams->GetBox()->GetExtents(regExts,timestep);
+	rParams->GetBox()->GetLocalExtents(regExts,timestep);
 	for (int i = 0; i< 3; i++){
 		//Make a vector that points along side(i) of subregion,
 		
@@ -452,9 +454,9 @@ guiCenterSubRegion(RegionParams* rParams){
 	
 	for (int i = 0; i<3; i++){
 
-		float camPosCrd = rParams->getRegionCenter(i,timestep) -(2.5*maxProj*currentViewpoint->getViewDir(i)/stretch[i]);
+		float camPosCrd = rParams->getLocalRegionCenter(i,timestep) -(2.5*maxProj*currentViewpoint->getViewDir(i)/stretch[i]);
 		currentViewpoint->setCameraPosLocal(i, camPosCrd);
-		currentViewpoint->setRotationCenterLocal(i,rParams->getRegionCenter(i, timestep));
+		currentViewpoint->setRotationCenterLocal(i,rParams->getLocalRegionCenter(i, timestep));
 
 	}
 	
@@ -462,7 +464,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	VizWinMgr::getInstance()->resetViews(vpParams);
 	if (vpParams->isLatLon()) {
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		vpParams->convertToLatLon(timestep);
+		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
 	updateRenderer(vpParams,false,  false);
@@ -563,7 +565,7 @@ guiAlignView(int axis){
 	currentViewpoint->setStretchedCamPosLocal(vpos);
 	if (vpParams->isLatLon()){
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		vpParams->convertToLatLon(timestep);
+		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
 	updateRenderer(vpParams,false,false);
@@ -600,7 +602,7 @@ guiSetCenter(const float* coords){
 	}
 	if (vpParams->isLatLon()){
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		vpParams->convertToLatLon(timestep);
+		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
 	updateRenderer(vpParams,false,  false);
@@ -671,7 +673,7 @@ void ViewpointEventRouter::guiSetStereoMode(int mode){
 	// convert to latlon
 	if (vpParams->isLatLon()){
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		vpParams->convertToLatLon(timestep);
+		vpParams->convertLocalToLonLat(timestep);
 	}
 	//  set render windows dirty
 	updateRenderer(vpParams,false,  false);
@@ -699,7 +701,7 @@ useHomeViewpoint(){
 		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 		assert (timestep >= 0);
 		//Convert the latlon coordinates for this time step:
-		vpParams->convertToLatLon(timestep);
+		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
 	updateRenderer(vpParams,false,  false);
@@ -743,7 +745,7 @@ endSpin(){
 void ViewpointEventRouter::
 navigate (ViewpointParams* vpParams, float* posn, float* viewDir, float* upVec){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	vpParams->setCameraPos(posn, timestep);
+	vpParams->setCameraPosLocal(posn, timestep);
 	vpParams->setUpVec(upVec);
 	vpParams->setViewDir(viewDir);
 	updateTab();

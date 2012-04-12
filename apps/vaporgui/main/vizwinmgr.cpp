@@ -445,19 +445,6 @@ closeEvent()
 }
 
 
-
-/***********************************************************************
- * The following tells relationship of region to viewpoint in a window:
- **************************************************************************/
-bool VizWinMgr::
-cameraBeyondRegionCenter(int coord, int vizWinNum){
-	int timestep = getActiveAnimationParams()->getCurrentFrameNumber();
-	float regionMid = getRegionParams(vizWinNum)->getRegionCenter(coord,timestep);
-	float cameraPos = getViewpointParams(vizWinNum)->getCameraPos(coord);
-	return( regionMid < cameraPos);
-		
-
-}
 /**************************************************************
  * Methods that arrange the viz windows:
  **************************************************************/
@@ -814,9 +801,9 @@ animationParamsChanged(AnimationParams* aParams){
 		ac->paramsChanged(vizNum);
 		vpp = getViewpointParams(vizNum);
 		if (vpp->isLatLon())
-			vpp->convertFromLatLon(aParams->getCurrentFrameNumber());
+			vpp->convertLocalFromLonLat(aParams->getCurrentFrameNumber());
 		else 
-			vpp->convertToLatLon(aParams->getCurrentFrameNumber());
+			vpp->convertLocalToLonLat(aParams->getCurrentFrameNumber());
 	}
 	//If another viz is using these animation params, set their region dirty, too
 	//and set their latlon or local coords
@@ -829,9 +816,9 @@ animationParamsChanged(AnimationParams* aParams){
 			ViewpointParams* vp2 = getViewpointParams(i);
 			if (vp2!= vpp){
 				if (vp2->isLatLon())
-					vp2->convertFromLatLon(aParams->getCurrentFrameNumber());
+					vp2->convertLocalFromLonLat(aParams->getCurrentFrameNumber());
 				else 
-					vp2->convertToLatLon(aParams->getCurrentFrameNumber());
+					vp2->convertLocalToLonLat(aParams->getCurrentFrameNumber());
 			}
 		}
 	}
@@ -2008,7 +1995,7 @@ bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coord
 		if (!p->isEnabled()) continue;
 		if (p->getOrientation() != orientation) continue;
 		if (p->isMappedToTerrain() != terrainMapped) continue;
-		if (abs(p->getTwoDMin(orientation) - coordinate)> tol) continue;
+		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
 		return true;
 	}
 	for (int i = 0; i< iparams.size(); i++){
@@ -2016,7 +2003,7 @@ bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coord
 		if (!p->isEnabled()) continue;
 		if (p->getOrientation() != orientation) continue;
 		if (p->isMappedToTerrain() != terrainMapped) continue;
-		if (abs(p->getTwoDMin(orientation) - coordinate)> tol) continue;
+		if (abs(p->getLocalTwoDMin(orientation) - coordinate)> tol) continue;
 		return true;
 	}
 	return false;

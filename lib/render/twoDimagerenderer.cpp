@@ -129,7 +129,7 @@ void TwoDImageRenderer::paintGL()
 	float corners[8][3];
 	myTwoDImageParams->calcBoxCorners(corners, 0.f);
 	for (int cor = 0; cor < 8; cor++)
-		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
+		ViewpointParams::localToStretchedCube(corners[cor],corners[cor]);
 	
 	
 	//determine the corners of the textured plane.
@@ -271,7 +271,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//by twoDParams z (max or min are same).  
 	//If data is mapped to terrain, but we are outside data, then
 	//take elevation to be the min (which is just vert displacement)
-	float constElev = tParams->getTwoDMin(2);
+	float constElev = tParams->getLocalTwoDMin(2);
 
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3];
@@ -398,7 +398,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				}
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:
-				ViewpointParams::worldToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
+				ViewpointParams::localToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
 				for (int k = 0; k< 3; k++){
 					if( *(elevVert + 3*(i+j*maxx)+k) > maxvals[k])
 						maxvals[k] = *(elevVert + 3*(i+j*maxx)+k);
@@ -431,7 +431,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 				
 				//Convert to stretched cube coords.  Note that following
 				//routine requires local coords, not global world coords, despite name of method:
-				ViewpointParams::worldToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
+				ViewpointParams::localToStretchedCube(locCoords,elevVert+3*(i+j*maxx));
 				for (int k = 0; k< 3; k++){
 					if( *(elevVert + 3*(i+j*maxx)+k) > maxvals[k])
 						maxvals[k] = *(elevVert + 3*(i+j*maxx)+k);

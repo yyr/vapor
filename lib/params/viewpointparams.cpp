@@ -109,13 +109,13 @@ centerFullRegion(int timestep){
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
 	for (int i = 0; i<3; i++){
-		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
+		float dataCenter = 0.5f*(fullExtent[i+3]-fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i)/stretch[i];
 		currentViewpoint->setCameraPosLocal(i, camPosCrd);
 		currentViewpoint->setRotationCenterLocal(i, dataCenter);
 	}
 	if (useLatLon) {
-		convertToLatLon(timestep);
+		convertLocalToLonLat(timestep);
 	}
 }
 
@@ -207,24 +207,23 @@ reinit(bool doOverride){
 		specularExp = defaultSpecularExp;
 		ambientCoeff = defaultAmbientCoeff;
 	} else { //possible translation if old session file was used...
-		if (DataStatus::WRFTranslateNeeded()){
+		if (DataStatus::pre22Session()){
 			const float* extents = DataStatus::getInstance()->getExtents();
 			float* cpos = getCurrentViewpoint()->getCameraPosLocal();
-			cpos[0] -= 0.5*(extents[3]-extents[0]);
-			cpos[1] -= 0.5*(extents[4]-extents[1]);
-			getCurrentViewpoint()->setCameraPosLocal(cpos);
-			cpos = getHomeViewpoint()->getCameraPosLocal();
-			cpos[0] -= 0.5*(extents[3]-extents[0]);
-			cpos[1] -= 0.5*(extents[4]-extents[1]);
-			getHomeViewpoint()->setCameraPosLocal(cpos);
+			float* lpos = getHomeViewpoint()->getCameraPosLocal();
 			float* rpos = getCurrentViewpoint()->getRotationCenterLocal();
-			rpos[0] -= 0.5*(extents[3]-extents[0]);
-			rpos[1] -= 0.5*(extents[4]-extents[1]);
+			float* rhpos = getHomeViewpoint()->getRotationCenterLocal();
+			//In old session files, the coordinate of box extents were not 0-based
+			for (int i = 0; i<3; i++) {
+				cpos[i] -= extents[i];
+				lpos[i] -= extents[i];
+				rpos[i] -= extents[i];
+				rhpos[i] -= extents[i];
+			}
+			getCurrentViewpoint()->setCameraPosLocal(cpos);
+			getHomeViewpoint()->setCameraPosLocal(lpos);
 			getCurrentViewpoint()->setRotationCenterLocal(rpos);
-			rpos = getHomeViewpoint()->getRotationCenterLocal();
-			rpos[0] -= 0.5*(extents[3]-extents[0]);
-			rpos[1] -= 0.5*(extents[4]-extents[1]);
-			getHomeViewpoint()->setRotationCenterLocal(rpos);
+			getHomeViewpoint()->setRotationCenterLocal(rhpos);
 		}
 	}
 	return true;
@@ -253,54 +252,47 @@ rescale (float scaleFac[3], int timestep){
 	}
 	vadd(vtemp, vctr, vtemp2);
 	vph->setCameraPosLocal(vtemp2);
-	//Convert to latlon
+	//Convert to lonlat
 	if (useLatLon)
-		convertToLatLon(timestep);
+		convertLocalToLonLat(timestep);
 }
 
 
-//Static methods for converting between world coords and stretched unit cube coords
+//Static methods for converting between local world coords and stretched unit cube coords
+//
+
+void ViewpointParams::
+localToStretchedCube(const float fromCoords[3], float toCoords[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]*stretch[i])/maxStretchedCubeSide;
+	}
+	return;
+}
+//Static methods for converting between local coords and stretched unit cube coords
 //
 void ViewpointParams::
-worldToStretchedCube(const float fromCoords[3], float toCoords[3]){
+localToStretchedCube(const double fromCoords[3], double toCoords[3]){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
-		toCoords[i] = (fromCoords[i]*stretch[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
-	}
-	return;
-}
-//Static methods for converting between world coords and stretched unit cube coords
-//
-void ViewpointParams::
-worldToStretchedCube(const double fromCoords[3], double toCoords[3]){
-	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	for (int i = 0; i<3; i++){
-		toCoords[i] = (fromCoords[i]*stretch[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
+		toCoords[i] = (fromCoords[i]*stretch[i])/maxStretchedCubeSide;
 	}
 	return;
 }
 
-void ViewpointParams::
-worldToCube(const float fromCoords[3], float toCoords[3]){
-	
-	for (int i = 0; i<3; i++){
-		toCoords[i] = (fromCoords[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
-	}
-	return;
-}
 
 void ViewpointParams::
-worldFromStretchedCube(float fromCoords[3], float toCoords[3]){
+localFromStretchedCube(float fromCoords[3], float toCoords[3]){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
-		toCoords[i] = ((fromCoords[i]*maxStretchedCubeSide) + minStretchedCubeCoord[i])/stretch[i];
+		toCoords[i] = ((fromCoords[i]*maxStretchedCubeSide))/stretch[i];
 	}
 	return;
 }
 void ViewpointParams::
 setCoordTrans(){
 	if (!DataStatus::getInstance()) return;
-	const float* strExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* strSizes = DataStatus::getInstance()->getFullStretchedSizes();
 	
 	maxStretchedCubeSide = -1.f;
 	
@@ -308,17 +300,17 @@ setCoordTrans(){
 	//find largest cube side, it will map to 1.0
 	for (i = 0; i<3; i++) {
 		
-		if ((float)(strExtents[i+3]-strExtents[i]) > maxStretchedCubeSide) maxStretchedCubeSide = (float)(strExtents[i+3]-strExtents[i]);
-		minStretchedCubeCoord[i] = (float)strExtents[i];
-		maxStretchedCubeCoord[i] = (float)strExtents[i+3];
+		if (strSizes[i] > maxStretchedCubeSide) maxStretchedCubeSide = (float)strSizes[i];
+		minStretchedCubeCoord[i] = 0.;
+		maxStretchedCubeCoord[i] = strSizes[i];
 	}
 }
 
 //  First project all 8 box corners to the center line of the camera view, finding the furthest and
 //  nearest projection in front of the camera.  The furthest distance is used as the far distance.
 //  If some point projects behind the camera, then either the camera is inside the box, or a corner of the
-//  box is behind the camera.  In these cases the near plane is set to .005 times the far plane,
-//  whic
+//  box is behind the camera.  This calculation is always performed in local coordinates since a translation won't affect
+//  the result
 void ViewpointParams::
 getFarNearDist(float* boxFar, float* boxNear){
 	//First check full box
@@ -331,20 +323,22 @@ getFarNearDist(float* boxFar, float* boxNear){
 	double minProj = 1.e30;
 
 	DataStatus::getInstance()->getExtentsCartesian(-1, extents);
+	//convert to local extents
+	for (int i = 0; i<6; i++) extents[i] -= extents[i%3];
 
 	//Convert camera position, camera direction, and corners to stretched box coordinates
-	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPos()[i];
-	worldToStretchedCube(cmpos, camPosBox);
+	for (int i = 0; i<3; i++) cmpos[i] = (double)getCameraPosLocal()[i];
+	localToStretchedCube(cmpos, camPosBox);
 	//specify a point in the center of camera view.  
 	//Multiply by the size of the box, so that it won't be dwarfed by the
 	//box dimensions
 	
-	double magPos = vlength(getCameraPos());
+	double magPos = vlength(getCameraPosLocal());
 	if (magPos == 0.0) magPos = 1.0;
 	float* vdir = getViewDir();
 	for (int i = 0; i<3; i++) viewDir[i]=vdir[i]*magPos; 
 	vadd(cmpos,viewDir, camDirPt);
-	worldToStretchedCube(camDirPt, camDirPtBox);
+	localToStretchedCube(camDirPt, camDirPtBox);
 	
 	vsub(camDirPtBox,camPosBox,camDirBox);
 	vnormal(camDirBox);
@@ -354,7 +348,7 @@ getFarNearDist(float* boxFar, float* boxNear){
 		for (int j = 0; j< 3; j++){
 			cor[j] = ( (i>>j)&1) ? extents[j+3] : extents[j];
 		}
-		worldToStretchedCube(cor, boxcor);
+		localToStretchedCube(cor, boxcor);
 		vsub(boxcor, camPosBox, wrk);
 		
 		float mdist = vdot(wrk, camDirBox);
@@ -582,36 +576,39 @@ void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
 	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
 }
 bool ViewpointParams::
-convertFromLatLon(int timestep){
+convertLocalFromLonLat(int timestep){
 //Convert the latlon coordinates for this time step.
-//Note that the latlon coords are in the order Lon,Lat
+//Note that the latlon coords are in the order Lat,lon
 	double coords[4];
+	
 	coords[0] = getCamPosLatLon()[1];
 	coords[1] = getCamPosLatLon()[0];
 	coords[2] = getRotCenterLatLon()[1];
 	coords[3] = getRotCenterLatLon()[0];
-	bool ok = DataStatus::convertFromLatLon(timestep,coords,2);
+	
+	bool ok = DataStatus::convertLocalFromLonLat(timestep, coords,2);
 	if (ok){
-		currentViewpoint->setCameraPosLocal(0, (float)coords[0]);
-		currentViewpoint->setCameraPosLocal(1, (float)coords[1]);
-		currentViewpoint->setRotationCenterLocal(0,(float)coords[2]);
-		currentViewpoint->setRotationCenterLocal(1,(float)coords[2]);
+		currentViewpoint->setCameraPosLocal(0, (float)(coords[0]));
+		currentViewpoint->setCameraPosLocal(1, (float)(coords[1]));
+		currentViewpoint->setRotationCenterLocal(0,(float)(coords[2]));
+		currentViewpoint->setRotationCenterLocal(1,(float)(coords[3]));
 	}
 	return ok;
 }
-//Convert time-invariant extents, (timestep is >= 0)
+//Convert local extents, (timestep is >= 0)
 
 bool ViewpointParams::
-convertToLatLon(int timestep){
+convertLocalToLonLat(int timestep){
 	assert (timestep >= 0);
 //Convert the latlon coordinates for this time step:
 	double coords[4];
-	coords[0] = getCameraPos(0);
-	coords[1] = getCameraPos(1);
-	coords[2] = getRotationCenter(0);
-	coords[3] = getRotationCenter(1);
 	
-	bool ok = DataStatus::convertToLatLon(timestep,coords,2);
+	coords[0] = getCameraPosLocal(0);
+	coords[1] = getCameraPosLocal(1);
+	coords[2] = getRotationCenterLocal(0);
+	coords[3] = getRotationCenterLocal(1);
+	
+	bool ok = DataStatus::convertLocalToLonLat(timestep, coords,2);
 	if (ok){
 		setCamPosLatLon((float)coords[1],(float)coords[0]);
 		setRotCenterLatLon((float)coords[3],(float)coords[2]);

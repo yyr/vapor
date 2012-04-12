@@ -79,7 +79,7 @@ public:
 
 	//! This method gives the current camera position in world coordinates.
 	//! \retval float[3] camera position
-	float* getCameraPos() {return currentViewpoint->getCameraPosLocal();}
+	float* getCameraPosLocal() {return currentViewpoint->getCameraPosLocal();}
 
 	//! This method gives the direction vector of the viewer, pointing from the camera into the scene.
 	//! \retval float[3] view direction
@@ -93,7 +93,7 @@ public:
 	//! Usually this is in the center of the view, but it can be changed
 	//! by user translation.
 	//! \retval float[3] Rotation center coordinates
-	float* getRotationCenter(){return currentViewpoint->getRotationCenterLocal();}
+	float* getRotationCenterLocal(){return currentViewpoint->getRotationCenterLocal();}
 
 #ifndef DOXYGEN_SKIP_THIS
 	static ParamsBase* CreateDefaultInstance() {return new ViewpointParams(-1);}
@@ -101,7 +101,7 @@ public:
 	virtual Params* deepCopy(ParamNode* n = 0);
 	//Note that all calls to get camera pos and get rot center return values
 	//in local coordinates, not in lat/lon.  When the viewpoint params is in
-	//latlon mode, it is necessary to perform convertFromLatLon and convertToLatLon
+	//latlon mode, it is necessary to perform convertLocalFromLonLat and convertLocalToLonLat
 	//to keep the local coords current with latlons.  This conversion must occur whenever
 	//the coordinates change (from the gui or the manip), 
 	//and when the time step changes, whenever
@@ -110,11 +110,11 @@ public:
 	//When setCameraPos or setRotCenter is called in latlon mode, the new local values
 	//must be converted to latlon values.
 	
-	float getCameraPos(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
+	float getCameraPosLocal(int coord) {return currentViewpoint->getCameraPosLocal()[coord];}
 	
-	void setCameraPos(float* val,int timestep ) {
+	void setCameraPosLocal(float* val,int timestep ) {
 		currentViewpoint->setCameraPosLocal(val);
-		if (useLatLon) convertToLatLon(timestep);
+		if (useLatLon) convertLocalToLonLat(timestep);
 	}
 	
 	void setViewDir(int i, float val) { currentViewpoint->setViewDir(i,val);}
@@ -157,12 +157,12 @@ public:
 	void centerFullRegion(int timestep);
 	
 	float* getRotCenterLatLon(){return currentViewpoint->getRotCenterLatLon();}
-	float getRotationCenter(int i){ return currentViewpoint->getRotationCenterLocal(i);}
+	float getRotationCenterLocal(int i){ return currentViewpoint->getRotationCenterLocal(i);}
 	float* getCamPosLatLon() {return currentViewpoint->getCamPosLatLon();}
-	//void setRotationCenter(int i, float val){currentViewpoint->setRotationCenter(i,val);}
-	void setRotationCenter(float* vec, int timestep){
+	
+	void setRotationCenterLocal(float* vec, int timestep){
 		currentViewpoint->setRotationCenterLocal(vec);
-		if (useLatLon) convertToLatLon(timestep);
+		if (useLatLon) convertLocalToLonLat(timestep);
 	}
 	void setCamPosLatLon(float x, float y) {currentViewpoint->setCamPosLatLon(x,y);}
 	void setRotCenterLatLon(float x, float y) {currentViewpoint->setRotCenterLatLon(x,y);}
@@ -171,8 +171,8 @@ public:
 	
 	void rescale(float scaleFac[3], int timestep);
 
-	bool convertToLatLon(int timestep);
-	bool convertFromLatLon(int timestep);
+	bool convertLocalToLonLat(int timestep);
+	bool convertLocalFromLonLat(int timestep);
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(float* boxFar, float* boxNear);
 	
@@ -183,12 +183,13 @@ public:
 	static void setDefaultPrefs();
 	//Transformations to convert world coords to (unit)render cube and back
 	//
-	static void worldToCube(const float fromCoords[3], float toCoords[3]);
-	static void worldToStretchedCube(const float fromCoords[3], float toCoords[3]);
-	static void worldToStretchedCube(const double fromCoords[3], double toCoords[3]);
+	
+	static void localToStretchedCube(const float fromCoords[3], float toCoords[3]);
+	
+	static void localToStretchedCube(const double fromCoords[3], double toCoords[3]);
 
-	static void worldFromCube(float fromCoords[3], float toCoords[3]);
-	static void worldFromStretchedCube(float fromCoords[3], float toCoords[3]);
+	
+	static void localFromStretchedCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
 	
 	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers

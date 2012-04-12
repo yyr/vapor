@@ -114,30 +114,30 @@ reinit(bool doOverride){
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
 	const float* extents = ds->getExtents();
-	vector<double>newExtents;
+	vector<double>newExtents(3,0.);
 	if (doOverride) {
-		for (int i = 0; i<5; i++){
-			newExtents.push_back((double) extents[i]);
+		for (int i = 0; i<3; i++){
+			newExtents.push_back((double)( extents[i+3]-extents[i]));
 		}
-		newExtents.push_back((double) extents[2]);
 		
 	} else {
 		double newExts[6];
-		GetRakeExtents(newExts);
-		if (DataStatus::WRFTranslateNeeded()){
-			newExts[0] -= 0.5*(extents[3]-extents[0]);
-			newExts[3] -= 0.5*(extents[3]-extents[0]);
-			newExts[1] -= 0.5*(extents[4]-extents[1]);
-			newExts[4] -= 0.5*(extents[4]-extents[1]);
+		GetRakeLocalExtents(newExts);
+		if (DataStatus::pre22Session()){
+			//In old session files, rake extents were not 0-based
+			for (int i = 0; i<3; i++){
+				newExts[i] -= extents[i];
+				newExts[i+3] -= extents[i];
+			}
 		}
 		for (int i = 0; i<3; i++){
-			newExts[i] = Max(newExts[i], (double)extents[i]);
-			newExts[i+3] = Min(newExts[i+3], (double)extents[i+3]);
+			newExts[i] = Max(newExts[i], 0.);
+			newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
 			if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
 		}
 		for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
 	}
-	SetRakeExtents(newExtents);
+	SetRakeLocalExtents(newExtents);
 
 	//If grid is mapped to data, 
 	//Make the grid size default to 10x10x1.  If doOverride is false, make sure the grid dims
@@ -209,7 +209,7 @@ void ArrowParams::restart() {
 	}
 	
 	//Don't set the Box values until after it has been registered:
-	SetRakeExtents(exts);
+	SetRakeLocalExtents(exts);
 	gridsize[2] = 1;
 	SetRakeGrid(gridsize);
 	vector<long> alignStrides;
@@ -219,35 +219,40 @@ void ArrowParams::restart() {
 	AlignGridToData(false);
 	
 }
-void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3]){
+//calculate rake extents when aligned to data.
+//Also determine the dimensions (size) of the grid-aligned rake
+void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3],size_t timestep){
 	//Find the first data point that fits in the rake extents:
 	//Take the rake corner, convert it to voxels
 	size_t corner[3],farCorner[3];
 	double rakeExtents[6];
 	double tempExtents[3];
-	GetRakeExtents(rakeExtents);
-	const vector<long> rGrid = GetRakeGrid();
-	for (int i = 0; i<3; i++){
-		rakeExts[i]=rakeExtents[i];
-		rakeExts[i+3]=rakeExtents[i+3];
-		rakeGrid[i] = rGrid[i];
-	}
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if(!dataMgr) {
 		return;
 	}
-	dataMgr->MapUserToVox(0, rakeExtents,corner,-1);
+	GetRakeLocalExtents(rakeExtents);
+	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
+	const vector<long> rGrid = GetRakeGrid();
+	for (int i = 0; i<3; i++){
+		rakeExts[i]=rakeExtents[i]+usrExts[i];
+		rakeExts[i+3]=rakeExtents[i+3]+usrExts[i];
+		rakeGrid[i] = rGrid[i];
+	}
+
+	//Convert corner to voxels in user extents
+	dataMgr->MapUserToVox(timestep, rakeExts,corner,-1);
 	//Is the corner actually inside the rake?
-	dataMgr->MapVoxToUser(0,corner, tempExtents, -1);
-	if (tempExtents[0]<rakeExtents[0]) corner[0]++;
-	if (tempExtents[1]<rakeExtents[1]) corner[1]++;
-	//Now get the user coords of the corner
-	dataMgr->MapVoxToUser(0, corner, tempExtents,-1);
+	dataMgr->MapVoxToUser(timestep,corner, tempExtents, -1);
+	if (tempExtents[0]<rakeExts[0]) corner[0]++;
+	if (tempExtents[1]<rakeExts[1]) corner[1]++;
+	//Now get the local (0-based) coords of the corner
+	dataMgr->MapVoxToUser(timestep, corner, tempExtents,-1);
 	rakeExts[0] = tempExtents[0];
 	rakeExts[1] = tempExtents[1];
-	rakeExts[2] = rakeExtents[2];
+	
 	//Now find how many voxels are in rake:
-	dataMgr->MapUserToVox(0, rakeExtents+3, farCorner,-1);
+	dataMgr->MapUserToVox(timestep, rakeExts+3, farCorner,-1);
 	vector<long>strides = GetGridAlignStrides();
 	if (strides[0] <= 0) rakeGrid[0] = 1; 
 	else rakeGrid[0] = 1+(farCorner[0]-corner[0])/strides[0];
@@ -260,7 +265,7 @@ void ArrowParams::calcDataAlignment(double rakeExts[6], int rakeGrid[3]){
 	if(strides[1]>0)farCorner[1] = corner[1]+(rakeGrid[1]-1)*strides[1];
 	else farCorner[1] = corner[1];
 
-	dataMgr->MapVoxToUser(0,farCorner, tempExtents, -1);
+	dataMgr->MapVoxToUser(timestep,farCorner, tempExtents, -1);
 	rakeExts[3]=tempExtents[0];
 	rakeExts[4]=tempExtents[1];
 }
@@ -271,7 +276,7 @@ float ArrowParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int )
 	//Determine the box that contains the arrows:
 	
 	double dbexts[6];
-	GetRakeExtents(dbexts);
+	GetRakeLocalExtents(dbexts);
 	return RenderParams::getCameraDistance(vpp,dbexts);
 }
 

@@ -224,7 +224,7 @@ restart() {
 	double seedBoxExtents[6];
 	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 0.f;
 	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 1.f;
-	myBox->SetExtents(seedBoxExtents);
+	myBox->SetLocalExtents(seedBoxExtents);
 	
 	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
 
@@ -404,29 +404,33 @@ reinit(bool doOverride){
 	//Set up the seed region:
 	const float* fullExtents = DataStatus::getInstance()->getExtents();
 	double seedBoxExtents[6];
-	GetBox()->GetExtents(seedBoxExtents);
+	GetBox()->GetLocalExtents(seedBoxExtents);
 	if (doOverride){
-		for (i = 0; i<6; i++){
-			seedBoxExtents[i] = fullExtents[i];
+		for (i = 0; i<3; i++){
+			seedBoxExtents[i] = 0.;
+			seedBoxExtents[i+3] = (fullExtents[i+3]-fullExtents[i]);
 		}
 	} else {
-		if (DataStatus::WRFTranslateNeeded()){
-			seedBoxExtents[0] -= 0.5*(fullExtents[3]-fullExtents[0]);
-			seedBoxExtents[3] -= 0.5*(fullExtents[3]-fullExtents[0]);
-			seedBoxExtents[1] -= 0.5*(fullExtents[4]-fullExtents[1]);
-			seedBoxExtents[4] -= 0.5*(fullExtents[4]-fullExtents[1]);
+		if (DataStatus::pre22Session()){
+			//In old session files, the coordinate of box extents were not 0-based
+			if (DataStatus::pre22Session()){
+				for (int i = 0; i<3; i++){
+					seedBoxExtents[i] -= fullExtents[i];
+					seedBoxExtents[i+3] -= fullExtents[i];
+				}
+			}
 		}
 
 		for (i = 0; i<3; i++){
-			if(seedBoxExtents[i] < fullExtents[i])
-				seedBoxExtents[i] = fullExtents[i];
-			if(seedBoxExtents[i+3] > fullExtents[i+3])
-				seedBoxExtents[i+3] = fullExtents[i+3];
+			if(seedBoxExtents[i] < 0.)
+				seedBoxExtents[i] = 0.;
+			if(seedBoxExtents[i+3] > (fullExtents[i+3]-fullExtents[i]))
+				seedBoxExtents[i+3] = (fullExtents[i+3]-fullExtents[i]);
 			if(seedBoxExtents[i+3] < seedBoxExtents[i]) 
 				seedBoxExtents[i+3] = seedBoxExtents[i];
 		}
 	}
-	myBox->SetExtents(seedBoxExtents);
+	myBox->SetLocalExtents(seedBoxExtents);
 	//Set up variables:
 	//Get the variable names:
 	
@@ -698,7 +702,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 	setupFlowRegion(rParams, flowLib, timeStep);
 	//Prepare the flowLib:
 	double seedBox[6];
-	GetBox()->GetExtents(seedBox);
+	GetBox()->GetLocalExtents(seedBox);
 	if (randomGen){
 		const char* xVar = ds->getVariableName3D(seedDistVarNum[0]).c_str();
 		const char* yVar = ds->getVariableName3D(seedDistVarNum[1]).c_str();
@@ -950,7 +954,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	float* seedList = 0;
 	if (!myFlowLib) return 0;
 	double seedBox[6];
-	GetBox()->GetExtents(seedBox);
+	GetBox()->GetLocalExtents(seedBox);
 	//If we are doing autoscale, calculate the average field 
 	//magnitude at lowest resolution, over the region:
 	if (autoScale){
@@ -1113,7 +1117,7 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	//The max number of points in the unsteady flow
 	int mPoints = objectsPerTimestep*(maxFrame - minFrame + 1);
 	double seedBox[6];
-	GetBox()->GetExtents(seedBox);
+	GetBox()->GetLocalExtents(seedBox);
 	//build the unsteady timestep sample list.  This lists the timesteps to be sampled
 	//in the order of integration.  Don't include timesteps for which the unsteady field
 	//is not available at the required resolution
@@ -1598,7 +1602,7 @@ buildNode() {
 
 	oss.str(empty);
 	double seedBox[6];
-	GetBox()->GetExtents(seedBox);
+	GetBox()->GetLocalExtents(seedBox);
 	oss << (double)seedBox[0]<<" "<<(double)seedBox[1]<<" "<<(double)seedBox[2];
 	attrs[_seedRegionMinAttr] = oss.str();
 
@@ -1975,7 +1979,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		//Clear out the seeds, will be added in later if they are found.
 		seedPointList.clear();
 		float seedBox[6];
-		GetBox()->GetExtents(seedBox);
+		GetBox()->GetLocalExtents(seedBox);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -1985,12 +1989,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		
 			if (StrCmpNoCase(attribName, _seedRegionMinAttr) == 0) {
 				ist >> seedBox[0];ist >> seedBox[1];ist >> seedBox[2];
-				GetBox()->SetExtents(seedBox);
+				GetBox()->SetLocalExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _seedRegionMaxAttr) == 0) {
 				
 				ist >> seedBox[3];ist >> seedBox[4];ist >> seedBox[5];
-				GetBox()->SetExtents(seedBox);
+				GetBox()->SetLocalExtents(seedBox);
 			}
 			else if (StrCmpNoCase(attribName, _randomGenAttr) == 0) {
 				if (value == "true") setRandom(true); else setRandom(false);
@@ -2249,7 +2253,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
-		rParams->getRegionExtents(validExts, timeStep);
+		rParams->getLocalRegionExtents(validExts, timeStep);
+		//Convert to user extents at current timeStep
+		const vector<double>& userExts = dataMgr->GetExtents((size_t)timeStep);
+		for (int i = 0; i<6; i++) validExts[i] += userExts[i%3];
 
 		
 		vector<string> opacVarname;
@@ -2303,7 +2310,11 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		
 		size_t min_dim[3], max_dim[3];
 		double validExts[6];
-		rParams->getRegionExtents(validExts, timeStep);
+		rParams->getLocalRegionExtents(validExts, timeStep);
+
+		//Convert to user extents at current timeStep
+		const vector<double>& userExts = dataMgr->GetExtents((size_t)timeStep);
+		for (int i = 0; i<6; i++) validExts[i] += userExts[i%3];
 
 		vector<string> colorVarname;
 		colorVarname.push_back(colorMapEntity[getColorMapEntityIndex()]);
@@ -2439,14 +2450,14 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 //If unscale is true then the resulting values are divided by scale factor
 //(note that input values are always pre-scaled)
 void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3],bool unscale){
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
 		mappedCoords[i] = origCoords[i];
 		if (periodicDim[i]){
 			//If it's off, most likely it's only off by one cycle:
-			while (mappedCoords[i] < extents[i]) {mappedCoords[i] += (extents[i+3]-extents[i]);}
-			while (mappedCoords[i] > extents[i+3]) {mappedCoords[i] -= (extents[i+3]-extents[i]);}
+			while (mappedCoords[i] < 0.) {mappedCoords[i] += sizes[i];}
+			while (mappedCoords[i] > sizes[i]) {mappedCoords[i] -= sizes[i];}
 		}
 		if (unscale) mappedCoords[i] /= scales[i];
 	}
@@ -2902,16 +2913,18 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	}
 	//At this point min_dim and max_dim are the valid voxel extents of region that contains the valid float extents where
 	//the flow lines will be calculated.  These may properly contain the user extents of the region,
-	//however the integration will stop when a flow line gets to the user extents.
+	//however the integration will stop when a flow line gets to the user extents.  
 	double rexts[6];
-	
-	rParams->getRegionExtents(rexts,timeStep);
+	rParams->getLocalRegionExtents(rexts,timeStep);
+	const vector<double>&userExtents = ds->getDataMgr()->GetExtents((size_t)timeStep);
+	for (int i = 0; i<6; i++) rexts[i] += userExtents[i%3];
 	
 	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, rexts);
 	// specify the bounds of the rake, in case it is needed.  
 	
 	double rakeCoords[6];
-	GetBox()->GetExtents(rakeCoords);
+	GetBox()->GetLocalExtents(rakeCoords);
+	for (int i = 0; i<6; i++) rakeCoords[i] += userExtents[i%3];
 	
 	flowLib->SetRakeRegion(rakeCoords);
 	return true;
@@ -3023,7 +3036,7 @@ bool FlowParams::validateSettings(int tstep){
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){
 		double rakeBox[6];
-		GetBox()->GetExtents(rakeBox);
+		GetBox()->GetLocalExtents(rakeBox);
 		float levExts[6];
 		ds->getExtentsAtLevel(tstep, numRefinements, levExts);
 		//Shrink levexts slightly:
@@ -3043,7 +3056,7 @@ bool FlowParams::validateSettings(int tstep){
 				rakeBox[i+3] = levExts[i+3];
 			}
 		}
-		GetBox()->SetExtents(rakeBox);
+		GetBox()->SetLocalExtents(rakeBox);
 	}
 	//See if the steady field is OK (type 0 and 2)
 		// for type 0, needed for tstep

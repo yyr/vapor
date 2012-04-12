@@ -124,8 +124,8 @@ public:
 	int getTimeSampleIndex(int ts, int minStep, int maxStep);
 
 	//void calcSeedExtents(float *extents);
-	float getSeedRegionMin(int coord){ return (float)(myBox->GetExtents()[coord]);}
-	float getSeedRegionMax(int coord){ return (float)(myBox->GetExtents()[coord+3]);}
+	float getSeedRegionMin(int coord){ return (float)(myBox->GetLocalExtents()[coord]);}
+	float getSeedRegionMax(int coord){ return (float)(myBox->GetLocalExtents()[coord+3]);}
 	
 	int calcMaxPoints();
 	int calcNumSeedPoints(int timeStep);

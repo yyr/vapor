@@ -132,10 +132,10 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	
 		const float* extents = DataStatus::getInstance()->getExtents();
 
-		topPlane[3] = tParams->getTwoDMax(1)*scales[1];
-		botPlane[3] = -tParams->getTwoDMin(1)*scales[1];
-		leftPlane[3] = -tParams->getTwoDMin(0)*scales[0];
-		rightPlane[3] = tParams->getTwoDMax(0)*scales[0];
+		topPlane[3] = tParams->getLocalTwoDMax(1)*scales[1];
+		botPlane[3] = -tParams->getLocalTwoDMin(1)*scales[1];
+		leftPlane[3] = -tParams->getLocalTwoDMin(0)*scales[0];
+		rightPlane[3] = tParams->getLocalTwoDMax(0)*scales[0];
 		
 
 	

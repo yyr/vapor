@@ -428,12 +428,13 @@ void ProbeEventRouter::updateTab(){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
+		
 		boxLatLon[0] = boxmin[0];
 		boxLatLon[1] = boxmin[1];
 		boxLatLon[2] = boxmax[0];
 		boxLatLon[3] = boxmax[1];
 		
-		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+		if (DataStatus::convertLocalToLonLat((int)currentTimeStep, boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -462,7 +463,7 @@ void ProbeEventRouter::updateTab(){
 		double selectedLatLon[2];
 		selectedLatLon[0] = selectedPoint[0];
 		selectedLatLon[1] = selectedPoint[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,selectedLatLon)){
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
 			latLonFrame->show();
@@ -1306,13 +1307,13 @@ guiCopyRegionToProbe(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
 	if (pParams->isPlanar()){//maybe need to turn off planar:
-		if (rParams->getRegionMin(2,timestep) < rParams->getRegionMax(2,timestep)){
+		if (rParams->getLocalRegionMin(2,timestep) < rParams->getLocalRegionMax(2,timestep)){
 			pParams->setPlanar(false);
 		}
 	}
 	for (int i = 0; i< 3; i++){
-		pParams->setProbeMin(i, rParams->getRegionMin(i,timestep));
-		pParams->setProbeMax(i, rParams->getRegionMax(i,timestep));
+		pParams->setLocalProbeMin(i, rParams->getLocalRegionMin(i,timestep));
+		pParams->setLocalProbeMax(i, rParams->getLocalRegionMax(i,timestep));
 	}
 	//Note:  the probe may not fit in the region.  
 	updateTab();
@@ -1799,8 +1800,8 @@ guiSetNumRefinements(int n){
 void ProbeEventRouter::
 textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	setIgnoreBoxSliderEvents(true);
-	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
-	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalProbeMin(coord, newCenter-0.5f*newSize);
+	pParams->setLocalProbeMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
 	//force the new center to fit in the full domain,
@@ -1832,8 +1833,8 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
 	if (centerChanged){
-		pParams->setProbeMin(coord, boxMin);
-		pParams->setProbeMax(coord, boxMax);
+		pParams->setLocalProbeMin(coord, boxMin);
+		pParams->setLocalProbeMax(coord, boxMax);
 	}
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
@@ -1901,8 +1902,8 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
 	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
-	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
-	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalProbeMin(coord, newCenter-0.5f*newSize);
+	pParams->setLocalProbeMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
@@ -2477,23 +2478,23 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getProbeMin(0);
-	float pmax = pParams->getProbeMax(0);
+	float pmin = pParams->getLocalProbeMin(0);
+	float pmax = pParams->getLocalProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(0, pmin-voxelSize);
-			pParams->setProbeMax(0, pmax+voxelSize);
+			pParams->setLocalProbeMin(0, pmin-voxelSize);
+			pParams->setLocalProbeMax(0, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastXSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(0, pmin+voxelSize);
-			pParams->setProbeMax(0, pmax-voxelSize);
+			pParams->setLocalProbeMin(0, pmin+voxelSize);
+			pParams->setLocalProbeMax(0, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2525,23 +2526,23 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getProbeMin(0);
-	float pmax = pParams->getProbeMax(0);
+	float pmin = pParams->getLocalProbeMin(0);
+	float pmax = pParams->getLocalProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(0, pmin+voxelSize);
-			pParams->setProbeMax(0, pmax+voxelSize);
+			pParams->setLocalProbeMin(0, pmin+voxelSize);
+			pParams->setLocalProbeMax(0, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastXCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(0, pmin-voxelSize);
-			pParams->setProbeMax(0, pmax-voxelSize);
+			pParams->setLocalProbeMin(0, pmin-voxelSize);
+			pParams->setLocalProbeMax(0, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2573,23 +2574,23 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getProbeMin(1);
-	float pmax = pParams->getProbeMax(1);
+	float pmin = pParams->getLocalProbeMin(1);
+	float pmax = pParams->getLocalProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(1, pmin+voxelSize);
-			pParams->setProbeMax(1, pmax+voxelSize);
+			pParams->setLocalProbeMin(1, pmin+voxelSize);
+			pParams->setLocalProbeMax(1, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastYCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(1, pmin-voxelSize);
-			pParams->setProbeMax(1, pmax-voxelSize);
+			pParams->setLocalProbeMin(1, pmin-voxelSize);
+			pParams->setLocalProbeMax(1, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2621,23 +2622,23 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
-	float pmin = pParams->getProbeMin(2);
-	float pmax = pParams->getProbeMax(2);
+	float pmin = pParams->getLocalProbeMin(2);
+	float pmax = pParams->getLocalProbeMax(2);
 	float maxExtent = ds->getExtents()[5];
 	float minExtent = ds->getExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setProbeMin(2, pmin+voxelSize);
-			pParams->setProbeMax(2, pmax+voxelSize);
+			pParams->setLocalProbeMin(2, pmin+voxelSize);
+			pParams->setLocalProbeMax(2, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastZCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setProbeMin(2, pmin-voxelSize);
-			pParams->setProbeMax(2, pmax-voxelSize);
+			pParams->setLocalProbeMin(2, pmin-voxelSize);
+			pParams->setLocalProbeMax(2, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -2670,23 +2671,23 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getProbeMin(1);
-	float pmax = pParams->getProbeMax(1);
+	float pmin = pParams->getLocalProbeMin(1);
+	float pmax = pParams->getLocalProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(1, pmin-voxelSize);
-			pParams->setProbeMax(1, pmax+voxelSize);
+			pParams->setLocalProbeMin(1, pmin-voxelSize);
+			pParams->setLocalProbeMax(1, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastYSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(1, pmin+voxelSize);
-			pParams->setProbeMax(1, pmax-voxelSize);
+			pParams->setLocalProbeMin(1, pmin+voxelSize);
+			pParams->setLocalProbeMax(1, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2718,23 +2719,23 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
-	float pmin = pParams->getProbeMin(2);
-	float pmax = pParams->getProbeMax(2);
+	float pmin = pParams->getLocalProbeMin(2);
+	float pmax = pParams->getLocalProbeMax(2);
 	float maxExtent = ds->getExtents()[5];
 	float minExtent = ds->getExtents()[2];
 	float newSize = pmax - pmin;
 	if (val > lastZSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastZSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setProbeMin(2, pmin-voxelSize);
-			pParams->setProbeMax(2, pmax+voxelSize);
+			pParams->setLocalProbeMin(2, pmin-voxelSize);
+			pParams->setLocalProbeMax(2, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastZSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setProbeMin(2, pmin+voxelSize);
-			pParams->setProbeMax(2, pmax-voxelSize);
+			pParams->setLocalProbeMin(2, pmin+voxelSize);
+			pParams->setLocalProbeMax(2, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2793,8 +2794,8 @@ adjustBoxSize(ProbeParams* pParams){
 			domSize[i] = 0.f;
 		}
 		maxBoxSize[i] = domSize[i];
-		if (maxBoxSize[i] < (pParams->getProbeMax(i)-pParams->getProbeMin(i))){
-			maxBoxSize[i] = (pParams->getProbeMax(i)-pParams->getProbeMin(i));
+		if (maxBoxSize[i] < (pParams->getLocalProbeMax(i)-pParams->getLocalProbeMin(i))){
+			maxBoxSize[i] = (pParams->getLocalProbeMax(i)-pParams->getLocalProbeMin(i));
 		}
 		if (maxBoxSize[i] <= 0.f) maxBoxSize[i] = 1.f;
 	}

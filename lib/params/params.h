@@ -369,7 +369,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 			extents[i] = boxMin[i];
 			extents[i+3] = boxMax[i];
 		}
-		GetBox()->SetExtents(extents,timestep);
+		GetBox()->SetLocalExtents(extents,timestep);
 	}
 	
 	void setTheta(float th) {
@@ -399,7 +399,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//! \param[in] int time step Current time step (only for moving boxes).
 	void getBox(float boxMin[3], float boxMax[3], int timestep = -1) {
 		double extents[6];
-		GetBox()->GetExtents(extents, timestep);
+		GetBox()->GetLocalExtents(extents, timestep);
 		for (int i = 0; i<3; i++){
 			boxMin[i] = extents[i];
 			boxMax[i] = extents[i+3];

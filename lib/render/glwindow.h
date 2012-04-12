@@ -99,6 +99,9 @@ public:
 	//! \retval AnimationParams* current active AnimationParams
 	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
 
+	//! Method that transforms the world into the unit box, should be called by each renderer before rendering
+	void GLWindow::TransformToUnitBox();
+
 	//MouseMode support
 	//! Static method that indicates the manipulator type that is associated with a mouse mode.
 	//! \sa VizWinMgr
@@ -131,6 +134,8 @@ public:
 	//! \param[in] const char* name of mouse mode
 	//! \retval int Resulting mouse mode
 	static int AddMouseMode(const std::string paramsTag, int manipType, const char* name);
+
+
 
 #ifndef DOXYGEN_SKIP_THIS
 	 GLWindow( QGLFormat& fmt, QWidget* parent, int winnum);

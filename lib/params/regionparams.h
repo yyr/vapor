@@ -92,8 +92,8 @@ public:
 	//! \param[in] int numxforms Requested refinement level of data
 	//! \param[in] size_t timestep				Time for which data is requested.
 	//! \param[in] vector<string>& varnames		Vector of 2D or 3D variable names being requested
-	//! \param[inout] double* regMin			Minimum extents requested (in) and actual available (out)
-	//! \param[inout] double* regMax			Maximum extents requested (in) and actual available (out)
+	//! \param[inout] double* regMin			Minimum user coordinate extents requested (in) and actual available (out)
+	//! \param[inout] double* regMax			Maximum user coordinate extents requested (in) and actual available (out)
 	//! \param[out] size_t min_dim[3]			Minimum voxel coordinates of available region
 	//! \param[out] size_t max_dim[3]			Maximum voxel coordinates of available region
 	//! \retval int Actual refinement level available or -1 if not all variables available.
@@ -128,22 +128,22 @@ public:
 	virtual Params* deepCopy(ParamNode* n = 0);
 	static ParamsBase* CreateDefaultInstance() {return new RegionParams(-1);}
 	const std::string& getShortName() {return _shortName;}
-	float getRegionMin(int coord, int timestep){ 
+	float getLocalRegionMin(int coord, int timestep){ 
 		double exts[6];
-		myBox->GetExtents(exts, timestep);
+		myBox->GetLocalExtents(exts, timestep);
 		return exts[coord];
 	}
-	float getRegionMax(int coord, int timestep){ 
+	float getLocalRegionMax(int coord, int timestep){ 
 		double exts[6];
-		myBox->GetExtents(exts, timestep);
+		myBox->GetLocalExtents(exts, timestep);
 		return exts[coord+3];
 	}
-	void getRegionExtents(double exts[6],int timestep){
-		myBox->GetExtents(exts,timestep);
+	void getLocalRegionExtents(double exts[6],int timestep){
+		myBox->GetLocalExtents(exts,timestep);
 		return;
 	}
-	float getRegionCenter(int indx, int timestep) {
-		return (0.5f*(getRegionMin(indx,timestep)+getRegionMax(indx,timestep)));
+	float getLocalRegionCenter(int indx, int timestep) {
+		return (0.5f*(getLocalRegionMin(indx,timestep)+getLocalRegionMax(indx,timestep)));
 	}
 	
 	
@@ -172,8 +172,8 @@ public:
 	//Methods to set the region max and min from a float value.
 	//public so accessible from router
 	//
-	void setRegionMin(int coord, float minval, int timestep, bool checkMax=true);
-	void setRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
+	void setLocalRegionMin(int coord, float minval, int timestep, bool checkMax=true);
+	void setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin=true);
 	void setInfoNumRefinements(int n){infoNumRefinements = n;}
 	void setInfoTimeStep(int n) {infoTimeStep = n;}
 	void setInfoVarNum(int n) {infoVarNum = n;}

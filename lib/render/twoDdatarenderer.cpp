@@ -132,7 +132,7 @@ void TwoDDataRenderer::paintGL()
 	float corners[8][3];
 	myTwoDParams->calcBoxCorners(corners, 0.f);
 	for (int cor = 0; cor < 8; cor++)
-		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
+		ViewpointParams::localToStretchedCube(corners[cor],corners[cor]);
 	
 	
 	//Draw the textured rectangle:
@@ -167,18 +167,18 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	DataMgr* dataMgr = ds->getDataMgr();
 
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
-	float displacement = tParams->getTwoDMin(2);
+	float displacement = tParams->getLocalTwoDMin(2);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	double twoDExts[6];
 	for (int i = 0; i<3; i++){
-		twoDExts[i] = tParams->getTwoDMin(i);
-		twoDExts[i+3] = tParams->getTwoDMax(i);
+		twoDExts[i] = tParams->getLocalTwoDMin(i);
+		twoDExts[i+3] = tParams->getLocalTwoDMax(i);
 	}
 	
 	double origRegMin[2], origRegMax[2];
 	for (int i = 0; i< 2; i++){
-		regMin[i] = tParams->getTwoDMin(i);
-		regMax[i] = tParams->getTwoDMax(i);
+		regMin[i] = tParams->getLocalTwoDMin(i);
+		regMax[i] = tParams->getLocalTwoDMax(i);
 		origRegMin[i] = regMin[i];
 		origRegMax[i] = regMax[i];
 		//Test for empty box:
@@ -299,7 +299,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 			worldCoord[2] = hgtGrid->GetValue(worldCoord[0],worldCoord[1], 0.);
 			if (worldCoord[2] == hgtGrid->GetMissingValue()) worldCoord[2] = 0.;
 						//Convert and put results into elevation grid vertices:
-			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
+			ViewpointParams::localToStretchedCube(worldCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){
 				if( *(elevVert + pntPos+k) > maxvals[k])
 					maxvals[k] = *(elevVert + pntPos+k);

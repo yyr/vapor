@@ -352,7 +352,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
 	
 	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
-		getActiveViewpointParams()->convertFromLatLon(timeStep);
+		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
 	}
 	
@@ -520,7 +520,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 //Draw a 3D cursor at specified world coords
 void GLWindow::draw3DCursor(const float position[3]){
 	float cubePosition[3];
-	ViewpointParams::worldToStretchedCube(position, cubePosition);
+	ViewpointParams::localToStretchedCube(position, cubePosition);
 	glLineWidth(3.f);
 	glColor3f(1.f,1.f,1.f);
 	glBegin(GL_LINES);
@@ -630,7 +630,7 @@ bool GLWindow::pixelToVector(float winCoords[2], const float camPos[3], float di
 		v[1] = (float)pt[1];
 		v[2] = (float)pt[2];
 		//transform position to world coords
-		ViewpointParams::worldFromStretchedCube(v,dirVec);
+		ViewpointParams::localFromStretchedCube(v,dirVec);
 		//Subtract viewer coords to get a direction vector:
 		vsub(dirVec, camPos, dirVec);
 		
@@ -957,11 +957,11 @@ void GLWindow::drawAxisLabels() {
 	painter.setRenderHint(QPainter::TextAntialiasing);
 	QFontMetrics metrics = QFontMetrics(f);
 
-	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
+	ViewpointParams::localToStretchedCube(axisOriginCoord, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
 	//corners of a box that's projected to axes.
-	ViewpointParams::worldToStretchedCube(minTic, ticMin);
-	ViewpointParams::worldToStretchedCube(maxTic, ticMax);
+	ViewpointParams::localToStretchedCube(minTic, ticMin);
+	ViewpointParams::localToStretchedCube(maxTic, ticMax);
 	
 	float pointOnAxis[3];
 	float winCoords[2];
@@ -994,11 +994,11 @@ void GLWindow::drawAxisLabels() {
 
 void GLWindow::drawAxisTics(){
 	float origin[3], ticMin[3], ticMax[3], ticLen[3];
-	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
+	ViewpointParams::localToStretchedCube(axisOriginCoord, origin);
 	//minTic and maxTic can be regarded as points in world space, defining
 	//corners of a box that's projected to axes.
-	ViewpointParams::worldToStretchedCube(minTic, ticMin);
-	ViewpointParams::worldToStretchedCube(maxTic, ticMax);
+	ViewpointParams::localToStretchedCube(minTic, ticMin);
+	ViewpointParams::localToStretchedCube(maxTic, ticMax);
 	//TicLength needs to be stretched based on which axes are used for tic direction
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	float maxStretchedCubeSide = ViewpointParams::getMaxStretchedCubeSide();
@@ -1388,7 +1388,7 @@ float GLWindow::getPixelSize(){
 	//Window height is subtended by viewing angle (45 degrees),
 	//at viewer distance (dist from camera to view center)
 	ViewpointParams* vpParams = getActiveViewpointParams();
-	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
+	vsub(vpParams->getRotationCenterLocal(),vpParams->getCameraPosLocal(),temp);
 	//Apply stretch factor:
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++) temp[i] = stretch[i]*temp[i];
@@ -1605,8 +1605,8 @@ setValuesFromGui(ViewpointParams* vpparams){
 	float transCameraPos[3];
 	float cubeCoords[3];
 	//Must transform from world coords to unit cube coords for trackball.
-	ViewpointParams::worldToStretchedCube(vpparams->getCameraPos(), transCameraPos);
-	ViewpointParams::worldToStretchedCube(vpparams->getRotationCenter(), cubeCoords);
+	ViewpointParams::localToStretchedCube(vpparams->getCameraPosLocal(), transCameraPos);
+	ViewpointParams::localToStretchedCube(vpparams->getRotationCenterLocal(), cubeCoords);
 	myTBall->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
 	
 	//If the perspective was changed, a resize event will be triggered at next redraw:
@@ -1704,4 +1704,15 @@ int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const cha
 	assert(mode == (int)paramsFromMode.size()-1);
 	assert(manipFromMode.size() == mode+1);
 	return (mode);
+}
+void GLWindow::TransformToUnitBox(){
+	DataStatus* ds = DataStatus::getInstance();
+	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents(timeStep);
+	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
+	const float* scales = ds->getStretchFactors();
+	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
+	float transVec[3];
+	for (int i = 0; i<3; i++) transVec[i] = fullUsrExts[i]*scales[i];
+	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 }

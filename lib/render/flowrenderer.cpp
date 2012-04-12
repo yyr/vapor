@@ -298,7 +298,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//Set up clipping planes
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6]; 
-	myRegionParams->GetBox()->GetExtents(regExts,currentFrameNum);
+	myRegionParams->GetBox()->GetLocalExtents(regExts,currentFrameNum);
 	topPlane[3] = regExts[4]*scales[1];
 	botPlane[3] = -regExts[1]*scales[1];
 	leftPlane[3] = -regExts[0]*scales[0];
@@ -327,10 +327,10 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//Set up size constants:
 	//voxelSize is actually the max of the sides of the voxel in user coords,
 	//At full resolution
-	const float* fullExtent = DataStatus::getInstance()->getStretchedExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
 	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
-	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[2],
-		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[0]));
+	voxelSize = Max((fullSizes[2])/fullDims[2],
+		Max((fullSizes[1])/fullDims[1], (fullSizes[0])/fullDims[0]));
 		
 	
 	stationaryRadius = 0.5f*voxelSize*myFlowParams->getDiamondDiameter();
@@ -702,7 +702,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	
 	int numRefs = myFlowParams->GetRefinementLevel();
 	double exts[6];
-	rParams->GetBox()->GetExtents(exts, timeStep);
+	rParams->GetBox()->GetLocalExtents(exts, timeStep);
 	int numMBs = RegionParams::getMBStorageNeeded(exts, numRefs);
 	
 	//3 variables are needed for

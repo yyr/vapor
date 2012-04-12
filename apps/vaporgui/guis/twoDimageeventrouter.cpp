@@ -245,7 +245,7 @@ void TwoDImageEventRouter::updateTab(){
 		double selectedLatLon[2];
 		selectedLatLon[0] = selectedPoint[0];
 		selectedLatLon[1] = selectedPoint[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,selectedLatLon)){
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
 			latLonFrame->show();
@@ -340,7 +340,7 @@ void TwoDImageEventRouter::updateTab(){
 		boxLatLon[1] = boxmin[1];
 		boxLatLon[2] = boxmax[0];
 		boxLatLon[3] = boxmax[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -586,7 +586,7 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 		int viznum = vizMgr->getActiveViz();
 		float disp; 
 		if (mode) disp = extents[2];
-		else disp = dParams->getTwoDMin(2);
+		else disp = dParams->getLocalTwoDMin(2);
 		if (vizMgr->findCoincident2DSurface(viznum, 2, 
 			disp, mode))
 		{
@@ -605,8 +605,8 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	
 	//Set box bottom and top to bottom of domain, if we are applying to terrain
 	if (mode){
-		dParams->setTwoDMin(2,extents[2]);
-		dParams->setTwoDMax(2,extents[2]);
+		dParams->setLocalTwoDMin(2,extents[2]);
+		dParams->setLocalTwoDMax(2,extents[2]);
 	}
 	
 	//Reposition cursor:
@@ -645,7 +645,7 @@ setTwoDEnabled(bool val, int instance){
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		int orientation = pParams->getOrientation();
-		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getTwoDMin(orientation),
+		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getLocalTwoDMin(orientation),
 			pParams->isMappedToTerrain())){
 				MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the image position in order to avoid rendering defects");
@@ -748,8 +748,8 @@ guiCopyRegionToTwoD(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to twoDImage");
 	
 	for (int i = 0; i< 3; i++){
-		pParams->setTwoDMin(i, rParams->getRegionMin(i,timestep));
-		pParams->setTwoDMax(i, rParams->getRegionMax(i,timestep));
+		pParams->setLocalTwoDMin(i, rParams->getLocalRegionMin(i,timestep));
+		pParams->setLocalTwoDMax(i, rParams->getLocalRegionMax(i,timestep));
 	}
 	
 	updateTab();
@@ -1053,8 +1053,8 @@ guiSetOpacitySlider(int val){
 //
 void TwoDImageEventRouter::
 textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize){
-	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
-	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
+	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
 	//force the new center to fit in the full domain,
@@ -1086,8 +1086,8 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
 	if (centerChanged){
-		pParams->setTwoDMin(coord, boxMin);
-		pParams->setTwoDMax(coord, boxMax);
+		pParams->setLocalTwoDMin(coord, boxMin);
+		pParams->setLocalTwoDMax(coord, boxMax);
 	}
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
@@ -1151,15 +1151,15 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	//There are only two size sliders...
 	if (isSize && orientation <= coord) coord++;
 	const float* extents = DataStatus::getInstance()->getExtents();
-	float center = 0.5f*(pParams->getTwoDMin(coord)+pParams->getTwoDMax(coord));
-	float size = pParams->getTwoDMax(coord)- pParams->getTwoDMin(coord);
+	float center = 0.5f*(pParams->getLocalTwoDMin(coord)+pParams->getLocalTwoDMax(coord));
+	float size = pParams->getLocalTwoDMax(coord)- pParams->getLocalTwoDMin(coord);
 	if (isSize) 
 		size = (extents[coord+3]-extents[coord])*(float)sliderVal/256.f;
 	else 
 		center = extents[coord] + ((float)sliderVal)*(extents[coord+3]-extents[coord])/256.f;
 	
-	pParams->setTwoDMin(coord, center-0.5f*size);
-	pParams->setTwoDMax(coord, center+0.5f*size);
+	pParams->setLocalTwoDMin(coord, center-0.5f*size);
+	pParams->setLocalTwoDMax(coord, center+0.5f*size);
 	if (isSize) adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
@@ -1338,23 +1338,23 @@ void TwoDImageEventRouter::guiNudgeXSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getTwoDMin(0);
-	float pmax = pParams->getTwoDMax(0);
+	float pmin = pParams->getLocalTwoDMin(0);
+	float pmax = pParams->getLocalTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setTwoDMin(0, pmin-voxelSize);
-			pParams->setTwoDMax(0, pmax+voxelSize);
+			pParams->setLocalTwoDMin(0, pmin-voxelSize);
+			pParams->setLocalTwoDMax(0, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastXSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setTwoDMin(0, pmin+voxelSize);
-			pParams->setTwoDMax(0, pmax-voxelSize);
+			pParams->setLocalTwoDMin(0, pmin+voxelSize);
+			pParams->setLocalTwoDMax(0, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -1385,23 +1385,23 @@ void TwoDImageEventRouter::guiNudgeXCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getTwoDMin(0);
-	float pmax = pParams->getTwoDMax(0);
+	float pmin = pParams->getLocalTwoDMin(0);
+	float pmax = pParams->getLocalTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(0, pmin+voxelSize);
-			pParams->setTwoDMax(0, pmax+voxelSize);
+			pParams->setLocalTwoDMin(0, pmin+voxelSize);
+			pParams->setLocalTwoDMax(0, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastXCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(0, pmin-voxelSize);
-			pParams->setTwoDMax(0, pmax-voxelSize);
+			pParams->setLocalTwoDMin(0, pmin-voxelSize);
+			pParams->setLocalTwoDMax(0, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1432,23 +1432,23 @@ void TwoDImageEventRouter::guiNudgeYCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getTwoDMin(1);
-	float pmax = pParams->getTwoDMax(1);
+	float pmin = pParams->getLocalTwoDMin(1);
+	float pmax = pParams->getLocalTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(1, pmin+voxelSize);
-			pParams->setTwoDMax(1, pmax+voxelSize);
+			pParams->setLocalTwoDMin(1, pmin+voxelSize);
+			pParams->setLocalTwoDMax(1, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastYCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(1, pmin-voxelSize);
-			pParams->setTwoDMax(1, pmax-voxelSize);
+			pParams->setLocalTwoDMin(1, pmin-voxelSize);
+			pParams->setLocalTwoDMax(1, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1479,23 +1479,23 @@ void TwoDImageEventRouter::guiNudgeZCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
-	float pmin = pParams->getTwoDMin(2);
-	float pmax = pParams->getTwoDMax(2);
+	float pmin = pParams->getLocalTwoDMin(2);
+	float pmax = pParams->getLocalTwoDMax(2);
 	float maxExtent = ds->getExtents()[5];
 	float minExtent = ds->getExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(2, pmin+voxelSize);
-			pParams->setTwoDMax(2, pmax+voxelSize);
+			pParams->setLocalTwoDMin(2, pmin+voxelSize);
+			pParams->setLocalTwoDMax(2, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastZCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(2, pmin-voxelSize);
-			pParams->setTwoDMax(2, pmax-voxelSize);
+			pParams->setLocalTwoDMin(2, pmin-voxelSize);
+			pParams->setLocalTwoDMax(2, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1527,23 +1527,23 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getTwoDMin(1);
-	float pmax = pParams->getTwoDMax(1);
+	float pmin = pParams->getLocalTwoDMin(1);
+	float pmax = pParams->getLocalTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setTwoDMin(1, pmin-voxelSize);
-			pParams->setTwoDMax(1, pmax+voxelSize);
+			pParams->setLocalTwoDMin(1, pmin-voxelSize);
+			pParams->setLocalTwoDMax(1, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastYSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setTwoDMin(1, pmin+voxelSize);
-			pParams->setTwoDMax(1, pmax-voxelSize);
+			pParams->setLocalTwoDMin(1, pmin+voxelSize);
+			pParams->setLocalTwoDMax(1, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -1568,16 +1568,16 @@ void TwoDImageEventRouter::guiFitToRegion(){
 	//match the non-orientation dimensions
 	for (int i = 0; i<3; i++){
 		if (i == orientation) continue;
-		tParams->setTwoDMin(i, rParams->getRegionMin(i,ts));
-		tParams->setTwoDMax(i, rParams->getRegionMax(i,ts));
+		tParams->setLocalTwoDMin(i, rParams->getLocalRegionMin(i,ts));
+		tParams->setLocalTwoDMax(i, rParams->getLocalRegionMax(i,ts));
 	}
-	if (tParams->getTwoDMin(orientation) < rParams->getRegionMin(orientation,ts)) 
-		tParams->setTwoDMin(orientation,rParams->getRegionMin(orientation,ts));
-	if (tParams->getTwoDMin(orientation) > rParams->getRegionMax(orientation,ts)) 
-		tParams->setTwoDMin(orientation, rParams->getRegionMax(orientation,ts));
+	if (tParams->getLocalTwoDMin(orientation) < rParams->getLocalRegionMin(orientation,ts)) 
+		tParams->setLocalTwoDMin(orientation,rParams->getLocalRegionMin(orientation,ts));
+	if (tParams->getLocalTwoDMin(orientation) > rParams->getLocalRegionMax(orientation,ts)) 
+		tParams->setLocalTwoDMin(orientation, rParams->getLocalRegionMax(orientation,ts));
 
 
-	tParams->setTwoDMax(orientation,tParams->getTwoDMin(orientation));
+	tParams->setLocalTwoDMax(orientation,tParams->getLocalTwoDMin(orientation));
 
 	PanelCommand::captureEnd(cmd, tParams);
 	setTwoDDirty(tParams);
@@ -1667,7 +1667,7 @@ void TwoDImageEventRouter::mapCursor(){
 		if (tParams->mapGeorefPoint(timestep, mappt)) {
 			selectPoint[0] = mappt[0];
 			selectPoint[1] = mappt[1];
-			selectPoint[2] = tParams->getTwoDMin(2);
+			selectPoint[2] = tParams->getLocalTwoDMin(2);
 		}
 		else
 			for (int i = 0; i< 3; i++) selectPoint[i] = 0.f;
@@ -1702,7 +1702,7 @@ void TwoDImageEventRouter::mapCursor(){
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i];
 		float val = RegionParams::calcCurrentValue(varname,sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
 		if (val != OUT_OF_BOUNDS){
-			selectPoint[2] = val+(tParams->getTwoDMin(2)-extents[2]);
+			selectPoint[2] = val+(tParams->getLocalTwoDMin(2)-extents[2]);
 		}
 	} 
 	tParams->setSelectedPoint(selectPoint);

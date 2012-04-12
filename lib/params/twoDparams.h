@@ -72,20 +72,20 @@ public:
 	
 	void getTwoDVoxelExtents(float voxdims[2]);
 	
-	float getTwoDMin(int i) {return (float)(GetBox()->GetExtents()[i]);}
-	float getTwoDMax(int i) {return (float)(GetBox()->GetExtents()[i+3]);}
+	float getLocalTwoDMin(int i) {return (float)(GetBox()->GetLocalExtents()[i]);}
+	float getLocalTwoDMax(int i) {return (float)(GetBox()->GetLocalExtents()[i+3]);}
 	
-	void setTwoDMin(int i, float val){
+	void setLocalTwoDMin(int i, float val){
 		double boxexts[6];
-		GetBox()->GetExtents(boxexts);
+		GetBox()->GetLocalExtents(boxexts);
 		boxexts[i] = val;
-		GetBox()->SetExtents(boxexts);
+		GetBox()->SetLocalExtents(boxexts);
 	}
-	void setTwoDMax(int i, float val){
+	void setLocalTwoDMax(int i, float val){
 		double boxexts[6];
-		GetBox()->GetExtents(boxexts);
+		GetBox()->GetLocalExtents(boxexts);
 		boxexts[i+3] = val;
-		GetBox()->SetExtents(boxexts);
+		GetBox()->SetLocalExtents(boxexts);
 	}
 	
 	
@@ -102,11 +102,11 @@ public:
 	virtual bool imageCrop()=0;
 
 	float getRealImageWidth() {
-		vector<double> box = GetBox()->GetExtents();
+		vector<double> box = GetBox()->GetLocalExtents();
 		return (float)(box[3]-box[0]);
 	}
 	float getRealImageHeight() {
-		vector<double> box = GetBox()->GetExtents();
+		vector<double> box = GetBox()->GetLocalExtents();
 		return (float)(box[4]-box[1]);
 	}
 	

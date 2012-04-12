@@ -60,15 +60,15 @@ public:
 
 
 	//Get/Set methods based on XML rep:
-	const vector<double>& GetRakeExtents(){
-		return (GetBox()->GetExtents());
+	const vector<double>& GetRakeLocalExtents(){
+		return (GetBox()->GetLocalExtents());
 	}
-	void GetRakeExtents(double exts[6]){
-		GetBox()->GetExtents(exts);
+	void GetRakeLocalExtents(double exts[6]){
+		GetBox()->GetLocalExtents(exts);
 	}
 	
-	void SetRakeExtents(const vector<double>&exts){
-		GetBox()->SetExtents(exts);
+	void SetRakeLocalExtents(const vector<double>&exts){
+		GetBox()->SetLocalExtents(exts);
 		setAllBypass(false);
 	}
 	const vector<long>& GetRakeGrid(){
@@ -143,7 +143,7 @@ public:
 		GetRootNode()->SetElementLong(_alignGridStridesTag, strides);
 	}
 	//Utility function to find rake when it is aligned to data:
-	void calcDataAlignment(double rakeExts[6], int rakeGrid[3]);
+	void calcDataAlignment(double rakeExts[6], int rakeGrid[3], size_t timestep);
 	//Utility function to recalculate vector scale factor
 	double calcDefaultScale();
 	

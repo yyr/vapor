@@ -73,7 +73,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	//Get the camera position in cube coords.  This is needed to determine
 	//which handles are in front of the box.
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camPos);
+	ViewpointParams::localToStretchedCube(myViewpointParams->getCameraPosLocal(), camPos);
 	//qWarning(" mouseHandleTest: campos is %f %f %f",camPos[0],camPos[1],camPos[2]);
 	//Determine the octant based on camera relative to box center:
 	int octant = 0;
@@ -358,7 +358,7 @@ void TranslateStretchManip::render(){
 	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
 	myParams->calcStretchedBoxExtentsInCube(extents, timestep);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
+	ViewpointParams::localToStretchedCube(myViewpointParams->getCameraPosLocal(), camVec);
 
 	//Set the handleSize, in cube coords:
 	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/myViewpointParams->getMaxStretchedCubeSide();
@@ -411,7 +411,7 @@ void TranslateStretchManip::drawBoxFaces(){
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
 	for (int cor = 0; cor < 8; cor++){
-		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
+		ViewpointParams::localToStretchedCube(corners[cor],corners[cor]);
 		if (selectedHandle >= 0) {
 			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
 			//The corners associated with a handle are as follows:
@@ -583,7 +583,7 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
 	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
 	myParams->calcStretchedBoxExtents(boxExtents, timestep);
 	
@@ -595,25 +595,25 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 			if(dragDistance + boxExtents[coord] > boxExtents[coord+3]) {
 				dragDistance = boxExtents[coord+3] - boxExtents[coord];
 			}
-			if(constrain && (dragDistance + boxExtents[coord] < extents[coord])) {
-				dragDistance = extents[coord] - boxExtents[coord];
+			if(constrain && (dragDistance + boxExtents[coord] < 0.)) {
+				dragDistance =  -boxExtents[coord];
 			}
 		} else {//Moving "high" handle:
 			if (dragDistance + boxExtents[coord+3] < boxExtents[coord]) {
 				dragDistance = boxExtents[coord] - boxExtents[coord+3];
 			}
-			if (constrain&&(dragDistance + boxExtents[coord+3] > extents[coord+3])) {
-				dragDistance = extents[coord+3]-boxExtents[coord+3];
+			if (constrain&&(dragDistance + boxExtents[coord+3] > sizes[coord])) {
+				dragDistance = sizes[coord]-boxExtents[coord+3];
 			}
 		}
 	} else if (constrain){ //sliding, not stretching
 		//Don't push the box out of the full region extents:
 		
-		if (dragDistance + boxExtents[coord] < extents[coord]) {
-			dragDistance = extents[coord] - boxExtents[coord];
+		if (dragDistance + boxExtents[coord] < 0.) {
+			dragDistance = -boxExtents[coord];
 		}
-		if (dragDistance + boxExtents[coord+3] > extents[coord+3]) {
-			dragDistance = extents[coord+3] - boxExtents[coord+3];
+		if (dragDistance + boxExtents[coord+3] > sizes[coord]) {
+			dragDistance = sizes[coord] - boxExtents[coord+3];
 		}
 		
 	}
@@ -686,7 +686,7 @@ void TranslateRotateManip::drawBoxFaces(){
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.
 	for (int cor = 0; cor < 8; cor++){
-		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
+		ViewpointParams::localToStretchedCube(corners[cor],corners[cor]);
 		if (selectedHandle >= 0) {
 			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
 			//The corners associated with a handle are as follows:
@@ -847,13 +847,13 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	} else { //sliding, not stretching
 		//with constraint: Don't slide the center out of the full domain:
 		if (constrain) {
-			const float* extents = DataStatus::getInstance()->getStretchedExtents();
+			const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
 			float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
-			if (dragDistance + boxCenter < extents[coord]) {
-				dragDistance = extents[coord] - boxCenter;
+			if (dragDistance + boxCenter < 0.) {
+				dragDistance = -boxCenter;
 			}
-			if (dragDistance + boxCenter > extents[coord+3]){
-				dragDistance = extents[coord+3] - boxCenter;
+			if (dragDistance + boxCenter > sizes[coord]){
+				dragDistance = sizes[coord] - boxCenter;
 			} 
 		}
 	}
@@ -880,7 +880,7 @@ void TranslateRotateManip::render(){
 	
 	myParams->calcContainingStretchedBoxExtentsInCube(extents);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
+	ViewpointParams::localToStretchedCube(myViewpointParams->getCameraPosLocal(), camVec);
 
 	//Set the handleSize, in cube coords:
 	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/myViewpointParams->getMaxStretchedCubeSide();

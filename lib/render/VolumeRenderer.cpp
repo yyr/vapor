@@ -310,12 +310,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	DataStatus* ds = DataStatus::getInstance();
 
 //cerr << "transforming everything to unit box coords :-(\n";
-	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
-
-	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	myGLWindow->TransformToUnitBox();
+	
+	const float* scales = ds->getStretchFactors();
 	glScalef(scales[0], scales[1], scales[2]);
 
 	int varNum = currentRenderParams->getSessionVarNum();
@@ -494,7 +491,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 
 	// Update the DVR's view
 	//
-	_driver->SetView(vpParams->getCameraPos(), vpParams->getViewDir());
+	_driver->SetView(vpParams->getCameraPosLocal(), vpParams->getViewDir());
 
 	// Modelview matrix
 	//
@@ -510,22 +507,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	}
 	//qWarning("Render done");
 	  
-	//Colorbar is rendered with DVR renderer:
-	/*if(myGLWindow->colorbarIsEnabled() &&
-		currentRenderParams->GetParamsBaseTypeId() == Params::GetTypeFromTag(Params::_dvrParamsTag)){
-		//Now go to default 2D window
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		
-		renderColorscale(myGLWindow->colorbarIsDirty()||clutIsDirty()||datarangeIsDirty());
-		
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-	}
-	  */
+	
 	clearClutDirty();
 	clearDatarangeDirty();
 }
@@ -611,7 +593,7 @@ int	VolumeRenderer::_updateRegion(
 
 		double dbexts[6];
 		double extents[6];
-		regp->GetBox()->GetExtents(dbexts, ts);
+		regp->GetBox()->GetLocalExtents(dbexts, ts);
 		for (int i = 0; i<6; i++) extents[i] = dbexts[i];
 
 		clip[0] = !(periodic[0] &&

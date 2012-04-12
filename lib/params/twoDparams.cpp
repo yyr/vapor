@@ -86,7 +86,7 @@ void TwoDParams::getBoundingBox(int timestep, size_t boxMin[3], size_t boxMax[3]
 	//Determine the box that contains the twoD slice.
 	DataStatus* ds = DataStatus::getInstance();
 	double exts[6];
-	GetBox()->GetExtents(exts);
+	GetBox()->GetLocalExtents(exts);
 	
 	ds->getDataMgr()->MapUserToVox(timestep,exts, boxMin, numRefs);
 	ds->getDataMgr()->MapUserToVox(timestep,exts+3, boxMax, numRefs);
@@ -124,12 +124,12 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	}
 	//Now convert the min,max back into extents in unit cube:
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
 	
-	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	float maxSize = Max(Max(sizes[0],sizes[1]),sizes[2]);
 	for (crd = 0; crd<3; crd++){
-		bigBoxExtents[crd] = (boxMin[crd]*stretch[crd] - fullExtents[crd])/maxSize;
-		bigBoxExtents[crd+3] = (boxMax[crd]*stretch[crd] - fullExtents[crd])/maxSize;
+		bigBoxExtents[crd] = (boxMin[crd]*stretch[crd])/maxSize;
+		bigBoxExtents[crd+3] = (boxMax[crd]*stretch[crd])/maxSize;
 	}
 	return;
 }
@@ -156,7 +156,7 @@ void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int m
 	mappedDims[2] = dataOrientation;
 	mappedDims[0] = (dataOrientation == 0) ? 1 : 0;  // x or y
 	mappedDims[1] = (dataOrientation < 2) ? 2 : 1; // z or y
-	const vector<double>& exts = GetBox()->GetExtents();
+	const vector<double>& exts = GetBox()->GetLocalExtents();
 	constVal[0] = exts[dataOrientation];
 	constVal[1] = exts[dataOrientation+3];
 	//constant terms go to middle
@@ -263,7 +263,7 @@ getTwoDVoxelExtents(float voxdims[2]){
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
-	const vector<double>& box = GetBox()->GetExtents();
+	const vector<double>& box = GetBox()->GetLocalExtents();
 	int dataOrientation = orientation;
 	int xcrd = 0, ycrd = 1;
 	if (dataOrientation < 2) ycrd = 2;
@@ -272,11 +272,11 @@ getTwoDVoxelExtents(float voxdims[2]){
 	voxdims[1] = box[3+ycrd] - box[ycrd];
 	return;
 }
-//Find distance from camera to planar surface, in stretched coordinates
+//Find distance from camera to planar surface, in stretched local coordinates
 float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, int){
 	//Intersect surface with camera ray.  If no intersection, just shoot ray from
 	//camera to surface center.
-	const float* camPos = vpParams->getCameraPos();
+	const float* camPos = vpParams->getCameraPosLocal();
 	const float* camDir = vpParams->getViewDir();
 	//Solve for intersection with surface:
 	//If behind or parallel, make infinitely far (low priority in sorting)
@@ -294,7 +294,7 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 	float tdmin[3];
 	float tdmax[3];
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const vector<double>& box = GetBox()->GetExtents();
+	const vector<double>& box = GetBox()->GetLocalExtents();
 	for (int i = 0; i<3; i++){
 		cPos[i] = stretch[i]*camPos[i];
 		tdmin[i] = box[i]*stretch[i];

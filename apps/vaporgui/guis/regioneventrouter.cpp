@@ -191,21 +191,47 @@ void RegionEventRouter::updateTab(){
 	
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	double regExts[6];
-	rParams->GetBox()->GetExtents(regExts, timestep);
-	
+	double regLocalExts[6], regUsrExts[6];
+	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
+	//Get the full domain extents in user coordinates
+	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	double fullUsrExts[6];
+	for (int i = 0; i<3; i++) {
+		fullUsrExts[i] = 0.;
+		fullUsrExts[i+3] = fullExtents[i+3]-fullExtents[i];
+	}
+	//To get the region extents in user coordinates, need to add the user coord domain displacement
+	vector<double> usrExts(6,0.);
+	if (DataStatus::getInstance()->getDataMgr()){
+		usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	}
+	for (int i = 0; i<6; i++) {
+		fullUsrExts[i]+= usrExts[i%3];
+		regUsrExts[i] = regLocalExts[i]+usrExts[i%3];
+	}
+
 	Session::getInstance()->blockRecording();
 	for (int i = 0; i< 3; i++){
-		textToSlider(rParams, i, (regExts[i]+regExts[i+3])*0.5f,
-			regExts[i+3]-regExts[i]);
+		textToSlider(rParams, i, (regUsrExts[i]+regUsrExts[i+3])*0.5f,
+			regUsrExts[i+3]-regUsrExts[i]);
 	}
 	setIgnoreBoxSliderEvents(true);
-	xSizeEdit->setText(QString::number(regExts[3]-regExts[0],'g', 4));
-	xCntrEdit->setText(QString::number(0.5f*(regExts[3]+regExts[0]),'g',5));
-	ySizeEdit->setText(QString::number(regExts[4]-regExts[1],'g', 4));
-	yCntrEdit->setText(QString::number(0.5f*(regExts[4]+regExts[1]),'g',5));
-	zSizeEdit->setText(QString::number(regExts[5]-regExts[2],'g', 4));
-	zCntrEdit->setText(QString::number(0.5f*(regExts[5]+regExts[2]),'g',5));
+	xSizeEdit->setText(QString::number(regUsrExts[3]-regUsrExts[0],'g', 4));
+	xCntrEdit->setText(QString::number(0.5f*(regUsrExts[3]+regUsrExts[0]),'g',5));
+	ySizeEdit->setText(QString::number(regUsrExts[4]-regUsrExts[1],'g', 4));
+	yCntrEdit->setText(QString::number(0.5f*(regUsrExts[4]+regUsrExts[1]),'g',5));
+	zSizeEdit->setText(QString::number(regUsrExts[5]-regUsrExts[2],'g', 4));
+	zCntrEdit->setText(QString::number(0.5f*(regUsrExts[5]+regUsrExts[2]),'g',5));
+
+	fullMinXLabel->setText(QString::number(fullUsrExts[0], 'g',4));
+	fullMinYLabel->setText(QString::number(fullUsrExts[1], 'g',4));
+	fullMinZLabel->setText(QString::number(fullUsrExts[2], 'g',4));
+	fullMaxXLabel->setText(QString::number(fullUsrExts[3], 'g',4));
+	fullMaxYLabel->setText(QString::number(fullUsrExts[4], 'g',4));
+	fullMaxZLabel->setText(QString::number(fullUsrExts[5], 'g',4));
+	fullSizeXLabel->setText(QString::number(fullUsrExts[3]-fullUsrExts[0], 'g',4));
+	fullSizeYLabel->setText(QString::number(fullUsrExts[4]-fullUsrExts[1], 'g',4));
+	fullSizeZLabel->setText(QString::number(fullUsrExts[5]-fullUsrExts[2], 'g',4));
 
 	if (rParams->isLocal())
 		LocalGlobal->setCurrentIndex(1);
@@ -218,12 +244,12 @@ void RegionEventRouter::updateTab(){
 		minMaxLonLatFrame->hide();
 	} else {
 		double boxLatLon[4];
-		boxLatLon[0] = regExts[0];
-		boxLatLon[1] = regExts[1];
-		boxLatLon[2] = regExts[3];
-		boxLatLon[3] = regExts[4];
-		int timeStep = timestepSpin->value();
-		if (DataStatus::convertToLatLon(timeStep,boxLatLon,2)){
+		boxLatLon[0] = regUsrExts[0];
+		boxLatLon[1] = regUsrExts[1];
+		boxLatLon[2] = regUsrExts[3];
+		boxLatLon[3] = regUsrExts[4];
+		
+		if (DataStatus::convertToLonLat(boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -301,15 +327,14 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	//Then push the center to the middle if the region doesn't fit
 	bool centerChanged = false;
 	bool sizeChanged = false;
-	Session* ses = Session::getInstance();
-	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	if (ses){
-		extents = ses->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	}
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
+	//Get the full extents in user coordinates
+	const vector<double>& userExtents = dataMgr->GetExtents((size_t)timestep);
+	
+	float regMin = userExtents[coord];
+	float regMax = userExtents[coord+3];
 	
 	if (newSize > regMax-regMin){
 		newSize = regMax-regMin;
@@ -335,9 +360,11 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 		newCenter = regMax- newSize*0.5f;
 		centerChanged = true;
 	}
-	
-	rp->setRegionMin(coord, newCenter - newSize*0.5f,timestep); 
-	rp->setRegionMax(coord,newCenter + newSize*0.5f,timestep); 
+	//Now convert back to local extents, put them into the params:
+	float localCenter = newCenter-userExtents[coord];
+	rp->setLocalRegionMin(coord, localCenter - newSize*0.5f,timestep); 
+	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
+	//Put the user coords into the sliders:
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	int oldSliderSize, oldSliderCenter;
@@ -394,16 +421,13 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
-	Session* ses = Session::getInstance();
+	DataStatus* ds = DataStatus::getInstance();
+	if(!ds->getDataMgr()) return;
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	if (ses){
-		extents = ses->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	}
+	const vector<double>userExtents = ds->getDataMgr()->GetExtents((size_t)timestep);
+	
+	float regMin = userExtents[coord];
+	float regMax = userExtents[coord+3];
 	
 	bool sliderChanged = false;
 	
@@ -424,8 +448,10 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 		newCenter = regMax- newSize*0.5f;
 		sliderChanged = true;
 	}
-	rp->setRegionMin(coord,newCenter - newSize*0.5f,timestep); 
-	rp->setRegionMax(coord,newCenter + newSize*0.5f,timestep); 
+	//Convert back to local to put into region params
+	float localCenter = newCenter - userExtents[coord];
+	rp->setLocalRegionMin(coord,localCenter - newSize*0.5f,timestep); 
+	rp->setLocalRegionMax(coord,localCenter + newSize*0.5f,timestep); 
 	
 	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	//Always need to change text.  Possibly also change slider if it was moved
@@ -465,21 +491,25 @@ refreshRegionInfo(RegionParams* rParams){
 	//Then don't show anything in refinementCombo
 	int mdVarNum = variableCombo->currentIndex();
 	//This index is only relevant to metadata numbering
-	Session* ses = Session::getInstance();
+	
 	DataStatus* ds= DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) ds = 0;
 	int timeStep = timestepSpin->value();
 	if (!dataMgr) timeStep = 0;
 	else if ((timeStep < (int)ds->getMinTimestep()) || (timeStep > (int) ds->getMaxTimestep()) )timeStep = ds->getMinTimestep();
+
+	//Get the user coordinate min/max
+	vector<double> userExtents(6,0.);
+	if(dataMgr) userExtents = dataMgr->GetExtents((size_t)timeStep);
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
 	int maxRefLevel = 10;
 	double regionMin[3],regionMax[3];
 	for (int i = 0; i<3; i++){
-		regionMin[i] = (double)rParams->getRegionMin(i,timeStep);
-		regionMax[i] = (double)rParams->getRegionMax(i,timeStep);
+		regionMin[i] = (double)rParams->getLocalRegionMin(i,timeStep)+userExtents[i];
+		regionMax[i] = (double)rParams->getLocalRegionMax(i,timeStep)+userExtents[i];
 	}
 	
 	int varNum = -1;
@@ -511,24 +541,12 @@ refreshRegionInfo(RegionParams* rParams){
 
 	int refLevel = refinementCombo->currentIndex();
 	
-	const float* fullDataExtents = ses->getExtents();
-
-	fullMinXLabel->setText(QString::number(fullDataExtents[0], 'g',4));
-	fullMinYLabel->setText(QString::number(fullDataExtents[1], 'g',4));
-	fullMinZLabel->setText(QString::number(fullDataExtents[2], 'g',4));
-	fullMaxXLabel->setText(QString::number(fullDataExtents[3], 'g',4));
-	fullMaxYLabel->setText(QString::number(fullDataExtents[4], 'g',4));
-	fullMaxZLabel->setText(QString::number(fullDataExtents[5], 'g',4));
-	fullSizeXLabel->setText(QString::number(fullDataExtents[3]-fullDataExtents[0], 'g',4));
-	fullSizeYLabel->setText(QString::number(fullDataExtents[4]-fullDataExtents[1], 'g',4));
-	fullSizeZLabel->setText(QString::number(fullDataExtents[5]-fullDataExtents[2], 'g',4));
-
-	minXFullLabel->setText(QString::number(fullDataExtents[0],'g',4));
-	minYFullLabel->setText(QString::number(fullDataExtents[1],'g',4));
-	minZFullLabel->setText(QString::number(fullDataExtents[2],'g',4));
-	maxXFullLabel->setText(QString::number(fullDataExtents[3],'g',4));
-	maxYFullLabel->setText(QString::number(fullDataExtents[4],'g',4));
-	maxZFullLabel->setText(QString::number(fullDataExtents[5],'g',4));
+	minXFullLabel->setText(QString::number(userExtents[0],'g',4));
+	minYFullLabel->setText(QString::number(userExtents[1],'g',4));
+	minZFullLabel->setText(QString::number(userExtents[2],'g',4));
+	maxXFullLabel->setText(QString::number(userExtents[3],'g',4));
+	maxYFullLabel->setText(QString::number(userExtents[4],'g',4));
+	maxZFullLabel->setText(QString::number(userExtents[5],'g',4));
 	
 	//For now, the min and max var extents are the whole thing:
 
@@ -596,8 +614,8 @@ refreshRegionInfo(RegionParams* rParams){
 		ds->mapVoxelToUserCoords(refLevel, max_vdim, var_ext+3);
 		//Use full extents if variable is at extremes, to avoid confusion...
 		for (int k = 0; k<3; k++){
-			if (min_vdim[k] == 0) var_ext[k] = fullDataExtents[k];
-			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = fullDataExtents[k+3];
+			if (min_vdim[k] == 0) var_ext[k] = userExtents[k];
+			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = userExtents[k+3];
 		}
 		//Calculate fraction of extents:
 		minVarXLabel->setText(QString::number(var_ext[0],'g',4));
@@ -750,26 +768,27 @@ guiSetNumRefinements(int n){
 }
 
 
-//Move the region center to specified coords, shrink it if necessary
+//Move the region center to specified user coords, shrink it if necessary
 void RegionEventRouter::
 guiSetCenter(const float* coords){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
-	const float* extents = Session::getInstance()->getExtents();
+	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	float boxmin[3], boxmax[3];
 	rParams->getBox(boxmin,boxmax,timestep);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float fullMin = extents[i];
-		float fullMax = extents[i+3];
+		float fullMin = userExtents[i];
+		float fullMax = userExtents[i+3];
 		if (coord < fullMin) coord = fullMin;
 		if (coord > fullMax) coord = fullMax;
 		float regSize = boxmax[i]-boxmin[i];
 		if (coord + 0.5f*regSize > fullMax) regSize = 2.f*(fullMax - coord);
 		if (coord - 0.5f*regSize < fullMin) regSize = 2.f*(coord - fullMin);
-		boxmax[i] = coord + 0.5f*regSize;
-		boxmin[i] = coord - 0.5f*regSize;
+		boxmax[i] = coord + 0.5f*regSize - userExtents[i];
+		boxmin[i] = coord - 0.5f*regSize - userExtents[i];
 	}
 	rParams->setBox(boxmin, boxmax, timestep);
 	PanelCommand::captureEnd(cmd, rParams);
@@ -858,7 +877,12 @@ guiSetMaxSize(){
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "change region size to max");
 	const float* fullDataExtents = Session::getInstance()->getExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	rParams->setBox(fullDataExtents, fullDataExtents+3, timestep);
+	float boxmin[3],boxmax[3];
+	for (int i = 0; i<3; i++){
+		boxmin[i] = 0.;
+		boxmax[i]= fullDataExtents[i+3]-fullDataExtents[i];
+	}
+	rParams->setBox(boxmin, boxmax, timestep);
 	
 	updateTab();
 	PanelCommand::captureEnd(cmd, rParams);
@@ -885,6 +909,7 @@ reinitTab(bool doOverride){
 
 	timestepSpin->setMinimum(mints);
 	timestepSpin->setMaximum(maxts);
+	timestepSpin->setValue(mints);
 
 	int numRefinements = dataMgr->GetNumTransforms();
 	refinementCombo->setMaxCount(numRefinements+1);
@@ -983,8 +1008,8 @@ guiLoadRegionExtents(){
 		bool ok = true;
 		//Force it to be valid:
 		for (int i = 0; i< 3; i++){
-			if (exts[i] < fullExtents[i]) { ok = false; exts[i] = fullExtents[i];}
-			if (exts[i+3] > fullExtents[i+3]){ok = false; exts[i+3] = fullExtents[i+3]; }
+			if (exts[i] < 0.) { ok = false; exts[i] = 0.;}
+			if (exts[i+3] > fullExtents[i+3]-fullExtents[i]){ok = false; exts[i+3] = fullExtents[i+3]-fullExtents[i]; }
 			if (exts[i] > exts[i+3]) { ok = false; exts[i+3] = exts[i];}
 		}
 		if (!ok){
@@ -993,7 +1018,7 @@ guiLoadRegionExtents(){
 		rParams->insertTime(ts);
 		double dbexts[6];
 		for (int i = 0; i<6; i++)dbexts[i] = exts[i];
-		rParams->GetBox()->SetExtents(dbexts,ts);
+		rParams->GetBox()->SetLocalExtents(dbexts,ts);
 
 	}
 	if (numregions == 0) {
@@ -1026,7 +1051,7 @@ saveRegionExtents(){
 	}
 	//Launch a file-open dialog
 	QString filename = QFileDialog::getSaveFileName(this,
-        	"Specify file name for saving list of current time-varying Region extents",
+        	"Specify file name for saving list of current time-varying Local Region extents",
 		Session::getInstance()->getFlowDirectory().c_str(),
         	"Text files (*.txt)");
 	//Check that user did specify a file:

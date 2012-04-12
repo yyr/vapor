@@ -146,7 +146,7 @@ restart(){
 	}
 	vector<double> regexts;
 	for (int i = 0; i<6; i++) regexts.push_back(defaultRegionExtents[i]);
-	myBox->SetExtents(regexts);
+	myBox->SetLocalExtents(regexts);
 	
 }
 //Reinitialize region settings, session has changed
@@ -158,77 +158,78 @@ reinit(bool doOverride){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	
 	double regionExtents[6];
-	vector<double> exts;
+	vector<double> exts(3,0.0);
 	if (doOverride) {
-		for (i = 0; i< 6; i++) {
-			exts.push_back( extents[i]);
+		for (i = 0; i< 3; i++) {
+			exts.push_back( extents[i+3]-extents[i]);
 		}
 		clearRegionsMap();
-		myBox->SetExtents(exts);
+		myBox->SetLocalExtents(exts);
 		myBox->Trim();
 	} else {
+		//ensure all the local time-extents to be valid
 		const vector<long>& times = myBox->GetTimes();
 		for (int timenum = 0; timenum< times.size(); timenum++){
 			int currTime = times[timenum];
-			myBox->GetExtents(regionExtents,currTime);
-			//Translate old wrf extents.  The extents need to be decreased by 0.5 * extent size
-			if (DataStatus::WRFTranslateNeeded()){
-				regionExtents[0] -= 0.5*(extents[3]-extents[0]);
-				regionExtents[3] -= 0.5*(extents[3]-extents[0]);
-				regionExtents[1] -= 0.5*(extents[4]-extents[1]);
-				regionExtents[4] -= 0.5*(extents[4]-extents[1]);
+			myBox->GetLocalExtents(regionExtents,currTime);
+			if (DataStatus::pre22Session()){
+				//In old session files, the coordinate of box extents were not 0-based
+				for (int i = 0; i<3; i++) {
+					regionExtents[i] -= extents[i];
+					regionExtents[i+3] -= extents[i];
+				}
 			}
-			//Just force them to fit in current volume 
+			//force them to fit in current volume 
 			for (i = 0; i< 3; i++) {
+				
+				if (regionExtents[i] > extents[i+3]-extents[i])
+					regionExtents[i] = extents[i+3]-extents[i];
+				if (regionExtents[i] < 0.)
+					regionExtents[i] = 0.;
+				if (regionExtents[i+3] > extents[i+3]-extents[i])
+					regionExtents[i+3] = extents[i+3]-extents[i];
+				if (regionExtents[i+3] < 0.)
+					regionExtents[i+3] = 0.;
 				if (regionExtents[i] > regionExtents[i+3]) 
 					regionExtents[i+3] = regionExtents[i];
-				if (regionExtents[i] > extents[i+3])
-					regionExtents[i] = extents[i+3];
-				if (regionExtents[i] < extents[i])
-					regionExtents[i] = extents[i];
-				if (regionExtents[i+3] > extents[i+3])
-					regionExtents[i+3] = extents[i+3];
-				if (regionExtents[i+3] < extents[i])
-					regionExtents[i+3] = extents[i];
 			}
 			exts.clear();
 			for (int j = 0; j< 6; j++) exts.push_back(regionExtents[j]);
-			myBox->SetExtents(exts,currTime);
-		}
-		
+			myBox->SetLocalExtents(exts,currTime);
+		}	
 	}
 	
 	return true;	
 }
 
-void RegionParams::setRegionMin(int coord, float minval, int timestep, bool checkMax){
+void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool checkMax){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
 	if (ds && ds->getDataMgr()){
 		fullDataExtents = ds->getExtents();
-		if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
-		if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
+		if (minval < 0.) minval = 0.;
+		if (minval > fullDataExtents[coord+3]-fullDataExtents[coord]) minval = fullDataExtents[coord+3]-fullDataExtents[coord];
 	}
 	double exts[6];
-	myBox->GetExtents(exts, timestep);
+	myBox->GetLocalExtents(exts, timestep);
 	if (checkMax) {if (minval > exts[coord+3]) minval = exts[coord+3];}
 	exts[coord] = minval;
-	myBox->SetExtents(exts,timestep);
+	myBox->SetLocalExtents(exts,timestep);
 }
-void RegionParams::setRegionMax(int coord, float maxval, int timestep, bool checkMin){
+void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
 	if (ds && ds->getDataMgr()){
-		fullDataExtents = DataStatus::getInstance()->getExtents();
-		if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
-		if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
+		fullDataExtents = ds->getExtents();
+		if (maxval < 0.) maxval = 0.;
+		if (maxval > fullDataExtents[coord+3]-fullDataExtents[coord]) maxval = fullDataExtents[coord+3]-fullDataExtents[coord];
 	}
 	double exts[6];
-	myBox->GetExtents(exts, timestep);
+	myBox->GetLocalExtents(exts, timestep);
 	
 	if (checkMin){if (maxval < exts[coord]) maxval = exts[coord];}
 	exts[coord+3] = maxval;
-	myBox->SetExtents(exts, timestep);
+	myBox->SetLocalExtents(exts, timestep);
 }
 
 
@@ -309,12 +310,14 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	double regExts[6];
-	GetBox()->GetExtents(regExts, timestep);
-	for (i = 0; i<3; i++){
-		userMinCoords[i] = regExts[i];;
-		userMaxCoords[i] = regExts[i+3];
-	}
+	GetBox()->GetLocalExtents(regExts, timestep);
 	DataMgr* dataMgr = ds->getDataMgr();
+	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
+	for (i = 0; i<3; i++){
+		userMinCoords[i] = regExts[i]+usrExts[i];
+		userMaxCoords[i] = regExts[i+3]+usrExts[i];
+	}
+	
 
 	
 	//Determine containing voxel coord box:
@@ -456,7 +459,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int ti
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	double regExts[6];
-	GetBox()->GetExtents(regExts, timestep);
+	GetBox()->GetLocalExtents(regExts, timestep);
 	for (i = 0; i<3; i++){
 		userMinCoords[i] = regExts[i];
 		userMaxCoords[i] = regExts[i+3];
@@ -544,7 +547,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tagString, const 
 			
 		}
 		insertTime(tstep);
-		myBox->SetExtents(exts, tstep);
+		myBox->SetLocalExtents(exts, tstep);
 		return true;
 	}
 	pm->skipElement(tagString, depth);
@@ -562,20 +565,20 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	} 
 	else if (StrCmpNoCase(tag, _regionMinTag) == 0){
 		vector<double> bound = pm->getDoubleData();
-		myBox->GetExtents(defaultRegionExtents);
+		myBox->GetLocalExtents(defaultRegionExtents);
 		
 		defaultRegionExtents[0] = bound[0];
 		defaultRegionExtents[1] = bound[1];
 		defaultRegionExtents[2] = bound[2];
-		myBox->SetExtents(defaultRegionExtents);
+		myBox->SetLocalExtents(defaultRegionExtents);
 		return true;
 	} else if (StrCmpNoCase(tag, _regionMaxTag) == 0){
 		vector<double> bound = pm->getDoubleData();
-		myBox->GetExtents(defaultRegionExtents);
+		myBox->GetLocalExtents(defaultRegionExtents);
 		defaultRegionExtents[3] = bound[0];
 		defaultRegionExtents[4] = bound[1];
 		defaultRegionExtents[5] = bound[2];
-		myBox->SetExtents(defaultRegionExtents);
+		myBox->SetLocalExtents(defaultRegionExtents);
 		return true;
 	} else if (StrCmpNoCase(tag, _regionAtTimeTag) == 0){
 		return true;
@@ -629,7 +632,7 @@ buildNode(){
 
 	//Now add children:  
 	double defaultRegionExtents[6];
-	myBox->GetExtents(defaultRegionExtents);
+	myBox->GetLocalExtents(defaultRegionExtents);
 	
 	vector<double> bounds;
 	int i;

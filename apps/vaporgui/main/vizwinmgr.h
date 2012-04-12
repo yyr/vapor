@@ -358,12 +358,7 @@ public:
 		return (ViewpointParams*)Params::GetDefaultParams(Params::_viewpointParamsTag);
 	}
 	Trackball* getGlobalTrackball() {return globalTrackball;}
-	//For a specific coordinate, and a specific window num, determine
-	//whether or not the camera is situated further from the origin than
-	//the current region center
-	//
-	bool cameraBeyondRegionCenter(int coord, int vizWinNum);
-
+	
 	//Force all renderers to re-obtain render data
 	void refreshRenderData();
 	//

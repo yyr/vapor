@@ -50,7 +50,7 @@ Box::Box(): ParamsBase(0, Box::_boxTag) {
 	GetRootNode()->SetElementDouble(_anglesTag,angles);
 	GetRootNode()->Attrs()[_typeAttr] = ParamNode::_paramsBaseAttr;
 }
-int Box::GetExtents(double extents[6], int timestep){
+int Box::GetLocalExtents(double extents[6], int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
 	const vector<double>& exts = GetRootNode()->GetElementDouble(Box::_extentsTag,defaultExtents);
@@ -70,15 +70,15 @@ int Box::GetExtents(double extents[6], int timestep){
 	for (int j = 0; j<6; j++){extents[j] = exts[j];}
 	return 0;
 }
-int Box::GetExtents(float extents[6], int timestep){
+int Box::GetLocalExtents(float extents[6], int timestep){
 	double exts[6];
-	int rc = GetExtents(exts, timestep);
+	int rc = GetLocalExtents(exts, timestep);
 	if (rc) return rc;
 	for (int i = 0; i<6; i++) extents[i] = exts[i];
 	return 0;
 }
 
-int Box::SetExtents(const vector<double>& extents, int timestep){
+int Box::SetLocalExtents(const vector<double>& extents, int timestep){
 	const vector<double> defaultExtents(6,0.);
 	const vector<long> defaultTimes(1,0);
 	const vector<double>& curExts = GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
@@ -105,14 +105,35 @@ int Box::SetExtents(const vector<double>& extents, int timestep){
 
 	return GetRootNode()->SetElementDouble(_extentsTag, copyExtents);	
 }
-int Box::SetExtents(const double extents[6], int timestep){
+int Box::SetLocalExtents(const double extents[6], int timestep){
 	vector<double> exts;
 	for (int i = 0; i<6; i++) exts.push_back(extents[i]);
-	return SetExtents(exts, timestep);
+	return SetLocalExtents(exts, timestep);
 }
-int Box::SetExtents(const float extents[6], int timestep){
+int Box::SetLocalExtents(const float extents[6], int timestep){
 	vector<double> exts;
 	for (int i = 0; i<6; i++) exts.push_back((double)extents[i]);
-	return SetExtents(exts, timestep);
+	return SetLocalExtents(exts, timestep);
 }
 
+int Box::GetUserExtents(double extents[6], size_t timestep){
+	int rc = GetLocalExtents(extents, (int)timestep);
+	if (!rc) return rc;
+	vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	//Time-varying extents are just used to get an offset that varies in time.
+	for (int i = 0; i<6; i++){
+		extents[i] += tvExts[i%3];
+	}
+	return 0;
+}
+	
+int Box::GetUserExtents(float extents[6], size_t timestep){
+	int rc = GetLocalExtents(extents, (int)timestep);
+	if (!rc) return rc;
+	vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	//Time-varying extents are just used to get an offset that varies in time.
+	for (int i = 0; i<6; i++){
+		extents[i] += tvExts[i%3];
+	}
+	return 0;
+}

@@ -37,47 +37,58 @@ public:
 	Box();
 	static ParamsBase* CreateDefaultInstance() {return new Box();}
 	
-	//! Get the box extents as a double array.  If timestep is >= 0, then get it just
+	//! Get the box user extents as a double array at a specified time step >= 0
+	//! \param[out] extents[6] double Returned extents
+	//! \param[in] timestep size_t Specific time step being retrieved
+	//! \retval int zero if successful.
+	int GetUserExtents(double extents[6], size_t timestep);
+	//! Get the user box extents as a float array at specified time step
+	//! for the specified timestep
+	//! \param[out] extents[6] float Returned extents
+	//! \param[in] timestep size_t Specific time step being retrieved
+	//! \retcode int zero if successful.
+	int GetUserExtents(float extents[6], size_t timestep);
+	//! Get the local box extents as a double array.  If timestep is >= 0, then get it just
 	//! for the specified timestep
 	//! \param[out] extents[6] double Returned extents
 	//! \param[in] timestep int Specific time step being retrieved, or -1 for generic time steps
 	//! \retval int zero if successful.
-	int GetExtents(double extents[6], int timestep = -1);
-	//! Get the box extents as a float array.  If timestep is >= 0, then get it just
+
+	int GetLocalExtents(double extents[6], int timestep = -1);
+	//! Get the local box extents as a float array.  If timestep is >= 0, then get it just
 	//! for the specified timestep
 	//! \param[out] extents[6] float Returned extents
 	//! \param[in] timestep int Specific time step being retrieved, or -1 for generic time steps
 	//! \retcode int zero if successful.
-	int GetExtents(float extents[6], int timestep = -1);
-	//! Get the box extents as a vector.  First 6 values are default; additional
+	int GetLocalExtents(float extents[6], int timestep = -1);
+	//! Get the local box extents as a vector.  First 6 values are default; additional
 	//! values are associated with non-default regions
 	//! \sa GetTimes()
 	//!
 	//! \param[out] extents const vector<double>& returned extents
-	const vector<double>&  GetExtents() {
-		const vector<double> defaultExtents(6,0.);
-		return GetRootNode()->GetElementDouble(_extentsTag,defaultExtents);
+	const vector<double>&  GetLocalExtents() {
+		const vector<double> localExtents(6,0.);
+		return GetRootNode()->GetElementDouble(_extentsTag,localExtents);
 	}
-	//! Specify the extents.  If time step is -1, then set the generic extents.
+	//! Specify the local extents.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
-	//!
 	//! param[in] extents vector<double>& Six doubles that will be new extents
 	//! param[in] timestep int Specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	
-	int SetExtents(const vector<double>& extents, int timestep = -1);
-	//! Specify the extents as a double array.  If time step is -1, then set the generic extents.
+	int SetLocalExtents(const vector<double>& extents, int timestep = -1);
+	//! Specify the local extents as a double array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
 	//! param[in] double extents6] 6 doubles that will be new extents
 	//! param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	int SetExtents(const double extents[6], int timestep = -1);
-	//! Specify the extents as a float array.  If time step is -1, then set the generic extents.
+	int SetLocalExtents(const double extents[6], int timestep = -1);
+	//! Specify the local extents as a float array.  If time step is -1, then set the generic extents.
 	//! Otherwise set the extents for a specific timestep.
 	//! param[in] float extents[6]
 	//! param[in] int timestep specified time step, or -1 for generic times
 	//! \retval int zero if successful.
-	int SetExtents(const float extents[6], int timestep = -1);
+	int SetLocalExtents(const float extents[6], int timestep = -1);
+	
 	//! Get the three orientation angles (theta, phi, psi)
 	//! Defaults to empty vector if no angles are set.
 	//! \retval const vector<double> vector of length 3 of angles.

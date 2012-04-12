@@ -129,9 +129,9 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
-			float twoDMid = 0.5f*(extents[i+3] + extents[i]);
+			float twoDMid = 0.5f*(extents[i+3] - extents[i]);
 			if (i<2) {
-				twoDExtents[i] = twoDMid - twoDRadius;
+				twoDExtents[i] = 0.;
 				twoDExtents[i+3] = twoDMid + twoDRadius;
 			} else {
 				twoDExtents[i] = twoDExtents[i+3] = twoDMid;
@@ -143,12 +143,13 @@ reinit(bool doOverride){
 	} else {
 		//Just force the mins to be less than the max's
 		//There is no constraint on size or position
-		GetBox()->GetExtents(twoDExtents);
-		if (DataStatus::WRFTranslateNeeded()){
-			twoDExtents[0] -= 0.5*(extents[3]-extents[0]);
-			twoDExtents[3] -= 0.5*(extents[3]-extents[0]);
-			twoDExtents[1] -= 0.5*(extents[4]-extents[1]);
-			twoDExtents[4] -= 0.5*(extents[4]-extents[1]);
+		GetBox()->GetLocalExtents(twoDExtents);
+		if (DataStatus::pre22Session()){
+			//In old session files, the coordinate of box extents were not 0-based
+			for (int i = 0; i<3; i++) {
+				twoDExtents[i] -= extents[i];
+				twoDExtents[i+3] -= extents[i];
+			}
 		}
 		for (int i = 0; i<3; i++){
 			if(twoDExtents[i+3] < twoDExtents[i]) 
@@ -156,7 +157,7 @@ reinit(bool doOverride){
 		}
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
-	GetBox()->SetExtents(twoDExtents);
+	GetBox()->SetLocalExtents(twoDExtents);
 	
 	
 	//Create new arrays to hold bounds 
@@ -239,7 +240,7 @@ restart(){
 		else twoDExtents[i+3] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
-	GetBox()->SetExtents(twoDExtents);
+	GetBox()->SetLocalExtents(twoDExtents);
 }
 
 //Handlers for Expat parsing.
@@ -316,7 +317,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
 		float box[6];
-		GetBox()->GetExtents(box);
+		GetBox()->GetLocalExtents(box);
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -325,11 +326,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _twoDMinAttr) == 0) {
 				ist >> box[0];ist >> box[1];ist >> box[2];
-				GetBox()->SetExtents(box);
+				GetBox()->SetLocalExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _twoDMaxAttr) == 0) {
 				ist >> box[3];ist >> box[4];ist >> box[5];
-				GetBox()->SetExtents(box);
+				GetBox()->SetLocalExtents(box);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
@@ -428,7 +429,7 @@ buildNode() {
 	//Now do geometry node:
 	attrs.clear();
 	oss.str(empty);
-	const vector<double>& twoDExtents = GetBox()->GetExtents();
+	const vector<double>& twoDExtents = GetBox()->GetLocalExtents();
 	oss << (double)twoDExtents[0]<<" "<<(double)twoDExtents[1]<<" "<<(double)twoDExtents[2];
 	attrs[_twoDMinAttr] = oss.str();
 	oss.str(empty);
@@ -518,7 +519,7 @@ unsigned char* TwoDImageParams::
 readTextureImage(int timestep, int* wid, int* ht, float imgExts[4]){
 	
 	static const basic_string <char>::size_type npos = (size_t)-1;
-	const vector<double>& boxExts = GetBox()->GetExtents();
+	const vector<double>& boxExts = GetBox()->GetLocalExtents();
 	//Initially set imgExts to the TwoDImage extents
 	imgExts[0] = boxExts[0];
 	imgExts[1] = boxExts[1];

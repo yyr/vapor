@@ -215,7 +215,7 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int i = 0; i<3; i++){
 			float probeRadius = 0.1f*(extents[i+3] - extents[i]);
-			float probeMid = 0.5f*(extents[i+3] + extents[i]);
+			float probeMid = 0.5f*(extents[i+3] - extents[i]);
 			if (i<2) {
 				exts[i] = probeMid - probeRadius;
 				exts[i+3] = probeMid + probeRadius;
@@ -238,25 +238,25 @@ reinit(bool doOverride){
 		//Force the probe size to be no larger than the domain extents, Note that
 		//because of rotation, the probe max/min may not correspond
 		//to the same extents.
-		GetBox()->GetExtents(exts);
-		if (DataStatus::WRFTranslateNeeded()){
-			exts[0] -= 0.5*(extents[3]-extents[0]);
-			exts[3] -= 0.5*(extents[3]-extents[0]);
-			exts[1] -= 0.5*(extents[4]-extents[1]);
-			exts[4] -= 0.5*(extents[4]-extents[1]);
+		GetBox()->GetLocalExtents(exts);
+		if (DataStatus::pre22Session()){
+			//In old session files, the coordinate of box extents were not 0-based
+			for (int i = 0; i<3; i++) {
+				exts[i] -= extents[i];
+				exts[i+3] -= extents[i];
+			}
 		}
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (int i = 0; i<3; i++){
 			if (exts[i+3] - exts[i] > maxExtents)
 				exts[i+3] = exts[i] + maxExtents;
-			//  Eliminate previous constraint:  probe was to have center in the domain:
-			
+		
 			if(exts[i+3] < exts[i]) 
 				exts[i+3] = exts[i];
 		}
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
-	GetBox()->SetExtents(exts);
+	GetBox()->SetLocalExtents(exts);
 	//Get the variable names:
 
 	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
@@ -520,7 +520,7 @@ restart(){
 		else exts[i+3] = 0.5f;
 		selectPoint[i] = 0.5f;
 	}
-	GetBox()->SetExtents(exts);
+	GetBox()->SetLocalExtents(exts);
 	NPN = 0;
 	NMESH = 0;
 	
@@ -730,7 +730,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	//Parse the geometry node
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
 		float exts[6], angles[3];
-		GetBox()->GetExtents(exts);
+		GetBox()->GetLocalExtents(exts);
 		GetBox()->GetAngles(angles);
 		while (*attrs) {
 			string attribName = *attrs;
@@ -753,11 +753,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _probeMinAttr) == 0) {
 				ist >> exts[0];ist >> exts[1];ist >> exts[2];
-				GetBox()->SetExtents(exts);
+				GetBox()->SetLocalExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _probeMaxAttr) == 0) {
 				ist >> exts[3];ist >> exts[4];ist >> exts[5];
-				GetBox()->SetExtents(exts);
+				GetBox()->SetLocalExtents(exts);
 			}
 			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
 				ist >> cursorCoords[0];ist >> cursorCoords[1];
@@ -933,7 +933,7 @@ buildNode() {
 	oss << (double) angles[0];
 	attrs[_thetaAttr] = oss.str();
 
-	const vector<double>& exts = GetBox()->GetExtents();
+	const vector<double>& exts = GetBox()->GetLocalExtents();
 	oss.str(empty);
 	oss << (double)exts[0]<<" "<<(double)exts[1]<<" "<<(double)exts[2];
 	attrs[_probeMinAttr] = oss.str();
@@ -1121,12 +1121,12 @@ void ProbeParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	}
 	//Now convert the min,max back into extents in unit cube:
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
 	
-	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	float maxSize = Max(Max(fullSizes[0],fullSizes[1]),fullSizes[2]);
 	for (crd = 0; crd<3; crd++){
-		bigBoxExtents[crd] = (boxMin[crd]*stretch[crd] - fullExtents[crd])/maxSize;
-		bigBoxExtents[crd+3] = (boxMax[crd]*stretch[crd] - fullExtents[crd])/maxSize;
+		bigBoxExtents[crd] = (boxMin[crd]*stretch[crd])/maxSize;
+		bigBoxExtents[crd+3] = (boxMax[crd]*stretch[crd])/maxSize;
 	}
 	return;
 }
@@ -1433,16 +1433,16 @@ void ProbeParams::getRotatedBoxDims(float boxdims[3]){
 	calcBoxCorners(corners, 0.f, -1);
 	
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
 	
-	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	float maxSize = Max(Max(fullSizes[0],fullSizes[1]),fullSizes[2]);
 	//Obtain the 4 corners needed (0,1,2,4) in the unit cube
 	float xformCors[4][3];
 	for (int cornum = 0; cornum<4; cornum++){
 		int corIndx = cornum;
 		if (corIndx == 3) corIndx = 4;
 		for (int crd = 0; crd<3; crd++){
-			xformCors[cornum][crd] = (corners[corIndx][crd]*stretch[crd] - fullExtents[crd])/maxSize;
+			xformCors[cornum][crd] = (corners[corIndx][crd]*stretch[crd])/maxSize;
 		}
 	}
 	//Now find the actual length (dist between corner 1,2,4 and 0):
@@ -1907,7 +1907,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	float wid = vdist(cor[0],cor[1]);
 
 	double exts[6];
-	GetBox()->GetExtents(exts);
+	GetBox()->GetLocalExtents(exts);
 	float depth = abs(exts[5]-exts[2]);
 	exts[0] = probeCenter[0] - 0.5f*wid;
 	exts[3] = probeCenter[0] + 0.5f*wid;
@@ -1915,7 +1915,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	exts[4] = probeCenter[1] + 0.5f*ht;
 	exts[2] = probeCenter[2] - 0.5f*depth;
 	exts[5] = probeCenter[2] + 0.5f*depth;
-	GetBox()->SetExtents(exts);
+	GetBox()->SetLocalExtents(exts);
 	return true;
 }
 
@@ -1973,16 +1973,17 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	return numfound;
 	
 }
-//Find camera distance to probe in stretched coordinates
+//Find camera distance to probe in stretched local coordinates
 float ProbeParams::getCameraDistance(ViewpointParams* vpp, RegionParams* , int ){
 	//Intersect probe with ray from camera
 	//Rotate camPos and camDir to probe coordinate system,
 	//Find ray intersection with probe (if it intersects)
-	const float* camPos = vpp->getCameraPos();
+	const float* camPos = vpp->getCameraPosLocal();
 	const float* camDir = vpp->getViewDir();
 	float relCamPos[3], localCamPos[3], localCamDir[3];
 	float rotMatrix[9];
-	const vector<double>& exts = GetBox()->GetExtents();
+	const vector<double>& exts = GetBox()->GetLocalExtents();
+	//translate so camPos is relative to middle of probe
 	for (int i = 0; i<3; i++)
 		relCamPos[i] = camPos[i] - 0.5f*(exts[i+3]+exts[i]);
 	//Get the 3x3 rotation matrix and invert(transpose) it

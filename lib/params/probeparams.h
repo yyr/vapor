@@ -126,19 +126,19 @@ public:
 		}
 		return (sqrt(sumVal));
 	}
-	float getProbeMin(int i) {return (float)GetBox()->GetExtents()[i];}
-	float getProbeMax(int i) {return (float)GetBox()->GetExtents()[i+3];}
-	void setProbeMin(int i, float val){
+	float getLocalProbeMin(int i) {return (float)GetBox()->GetLocalExtents()[i];}
+	float getLocalProbeMax(int i) {return (float)GetBox()->GetLocalExtents()[i+3];}
+	void setLocalProbeMin(int i, float val){
 		double exts[6];
-		GetBox()->GetExtents(exts);
+		GetBox()->GetLocalExtents(exts);
 		exts[i] = val;
-		GetBox()->SetExtents(exts);
+		GetBox()->SetLocalExtents(exts);
 	}
-	void setProbeMax(int i, float val){
+	void setLocalProbeMax(int i, float val){
 		double exts[6];
-		GetBox()->GetExtents(exts);
+		GetBox()->GetLocalExtents(exts);
 		exts[i+3] = val;
-		GetBox()->SetExtents(exts);
+		GetBox()->SetLocalExtents(exts);
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
@@ -170,11 +170,11 @@ public:
 	int getNMESH() {return NMESH;}
 
 	float getRealImageWidth() {
-		const vector<double>& exts = GetBox()->GetExtents();
+		const vector<double>& exts = GetBox()->GetLocalExtents();
 		return (float)(exts[3]-exts[0]);
 	}
 	float getRealImageHeight() {
-		const vector<double>& exts = GetBox()->GetExtents();
+		const vector<double>& exts = GetBox()->GetLocalExtents();
 		return (float)(exts[4]-exts[1]);
 	}
 	

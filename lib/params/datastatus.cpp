@@ -51,7 +51,7 @@ DataStatus* DataStatus::theDataStatus = 0;
 const std::string DataStatus::_emptyString = "";
 const vector<string> DataStatus::emptyVec;
 std::vector<std::string> DataStatus::variableNames;
-bool DataStatus::needWRFTranslate = false;
+bool DataStatus::sessionBefore22 = false;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
@@ -151,6 +151,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	
 	std::vector<double> mdExtents = dataMgr->GetExtents(0);
 	for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
+	for (int i = 0; i<3; i++) fullSizes[i] = (float)(mdExtents[i+3] - mdExtents[i]);
 
 #ifdef	DEAD
 	if (! sphericalTransform()) {
@@ -776,7 +777,8 @@ void DataStatus::getExtentsCartesian(int timestep, float myExtents[6]) {
 
 //static methods to convert coordinates to and from latlon
 //coordinates are in the order longitude,latitude
-bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
+//result is in user coordinates.
+bool DataStatus::convertFromLonLat(double coords[2], int npoints){
 	//Set up proj.4 to convert from LatLon to VDC coords
 	if (getProjectionString().size() == 0) return false;
 	projPJ vapor_proj = pj_init_plus(getProjectionString().c_str());
@@ -806,20 +808,37 @@ bool DataStatus::convertFromLatLon(int timestep, double coords[2], int npoints){
 			for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
 		}
 	}
-	//Subtract offset to convert projection coords to vapor coords
-	if(timestep >= 0) {
-		const float * globExts = DataStatus::getInstance()->getExtents();
-		const float* exts = getExtents(timestep);
-		for (int i = 0; i<2*npoints; i++) coords[i] -= (exts[i%2]-globExts[i%2]);
-	}
+	
 	pj_free(vapor_proj);
 	pj_free(latlon_proj);
 	return true;
 	
 }
-//if timestep is -1, the coordinates are assumed to be in the invariant
-//extents.  Otherwise they are taken to be in the time-varying extents
-bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
+bool DataStatus::convertLocalFromLonLat(int timestep, double coords[2], int npoints){
+	DataMgr* dataMgr = getInstance()->getDataMgr();
+	if (!dataMgr) return false;
+	if(!convertFromLonLat(coords, npoints)) return false;
+	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	for (int i = 0; i<npoints; i++){
+		coords[2*i] -= tvExts[0];
+		coords[2*i+1] -= tvExts[1];
+	}
+	return true;
+}
+bool DataStatus::convertLocalToLonLat(int timestep, double coords[2], int npoints){
+	DataMgr* dataMgr = getInstance()->getDataMgr();
+	if (!dataMgr) return false;
+	const vector<double>& tvExts = dataMgr->GetExtents((size_t)timestep);
+	//Convert local to user coordinates:
+	for (int i = 0; i<npoints; i++){
+		coords[2*i] += tvExts[0];
+		coords[2*i+1] += tvExts[1];
+	}
+	if(!convertToLonLat(coords, npoints)) return false;
+	return true;
+}
+//coordinates are always in user coordinates.
+bool DataStatus::convertToLonLat(double coords[2], int npoints){
 
 	//Set up proj.4 to convert to latlon
 	if (getProjectionString().size() == 0) return false;
@@ -833,12 +852,6 @@ bool DataStatus::convertToLatLon(int timestep, double coords[2], int npoints){
 		return false;
 	}
 	bool vaporRad = pj_is_latlong(vapor_proj)||(string::npos != getProjectionString().find("ob_tran"));
-	if (timestep >= 0){
-		const float * globExts = DataStatus::getInstance()->getExtents();
-		//Apply projection offset to convert vapor local coords to projection space:
-		const float* exts = getExtents(timestep);
-		for (int i = 0; i<2*npoints; i++) coords[i] += (exts[i%2]-globExts[i%2]);
-	}
 
 	static const double RAD2DEG = 180./3.1415926545;
 	static const double DEG2RAD = 3.1415926545/180.;

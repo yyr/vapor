@@ -227,7 +227,7 @@ void TwoDDataEventRouter::updateTab(){
 		double selectedLatLon[2];
 		selectedLatLon[0] = selectedPoint[0];
 		selectedLatLon[1] = selectedPoint[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,selectedLatLon)){
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
 			latLonFrame->show();
@@ -407,7 +407,7 @@ void TwoDDataEventRouter::updateTab(){
 		boxLatLon[1] = boxmin[1];
 		boxLatLon[2] = boxmax[0];
 		boxLatLon[3] = boxmax[1];
-		if (DataStatus::convertToLatLon(currentTimeStep,boxLatLon,2)){
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -549,7 +549,7 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 		int viznum = vizMgr->getActiveViz();
 		float disp; 
 		if (mode) disp = extents[2];
-		else disp = dParams->getTwoDMin(2);
+		else disp = dParams->getLocalTwoDMin(2);
 		//Check that we aren't putting this on another planar surface:
 		if (vizMgr->findCoincident2DSurface(viznum, 2, 
 			disp, mode))
@@ -562,8 +562,8 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	
 	//If setting to terrain, set box bottom and top to bottom of domain
 	if (mode){
-		dParams->setTwoDMin(2,extents[2]);
-		dParams->setTwoDMax(2,extents[2]);
+		dParams->setLocalTwoDMin(2,extents[2]);
+		dParams->setLocalTwoDMax(2,extents[2]);
 	}
 	
 	
@@ -601,7 +601,7 @@ setTwoDEnabled(bool val, int instance){
 
 	//If we are enabling, also make this the current instance:
 	if (val) {
-		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getTwoDMin(orientation),
+		if (vizMgr->findCoincident2DSurface(activeViz, orientation, pParams->getLocalTwoDMin(orientation),
 			pParams->isMappedToTerrain())){
 				MessageReporter::warningMsg("This 2D data surface is close to another enabled 2D surface.\n%s\n",
 					"Change the 2D data position in order to avoid rendering defects");
@@ -782,8 +782,8 @@ guiCopyRegionToTwoD(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to TwoDData");
 	
 	for (int i = 0; i< 3; i++){
-		pParams->setTwoDMin(i, rParams->getRegionMin(i,timestep));
-		pParams->setTwoDMax(i, rParams->getRegionMax(i,timestep));
+		pParams->setLocalTwoDMin(i, rParams->getLocalRegionMin(i,timestep));
+		pParams->setLocalTwoDMax(i, rParams->getLocalRegionMax(i,timestep));
 	}
 	
 	updateTab();
@@ -1268,15 +1268,15 @@ void TwoDDataEventRouter::guiFitToRegion(){
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "Fit 2D data to region");
 	//Just match the first two dimensions:
 	for (int i = 0; i<2; i++){
-		tParams->setTwoDMin(i, rParams->getRegionMin(i,ts));
-		tParams->setTwoDMax(i, rParams->getRegionMax(i,ts));
+		tParams->setLocalTwoDMin(i, rParams->getLocalRegionMin(i,ts));
+		tParams->setLocalTwoDMax(i, rParams->getLocalRegionMax(i,ts));
 	}
-	if (tParams->getTwoDMin(2) < rParams->getRegionMin(2,ts)) 
-		tParams->setTwoDMin(2,rParams->getRegionMin(2,ts));
-	if (tParams->getTwoDMin(2) > rParams->getRegionMax(2,ts)) 
-		tParams->setTwoDMin(2, rParams->getRegionMax(2,ts));
+	if (tParams->getLocalTwoDMin(2) < rParams->getLocalRegionMin(2,ts)) 
+		tParams->setLocalTwoDMin(2,rParams->getLocalRegionMin(2,ts));
+	if (tParams->getLocalTwoDMin(2) > rParams->getLocalRegionMax(2,ts)) 
+		tParams->setLocalTwoDMin(2, rParams->getLocalRegionMax(2,ts));
 
-	tParams->setTwoDMax(2,tParams->getTwoDMin(2));
+	tParams->setLocalTwoDMax(2,tParams->getLocalTwoDMin(2));
 
 	PanelCommand::captureEnd(cmd, tParams);
 	setTwoDDirty(tParams);
@@ -1327,8 +1327,8 @@ guiSetNumRefinements(int n){
 void TwoDDataEventRouter::
 textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize){
 	setIgnoreBoxSliderEvents(true);
-	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
-	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
+	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
 	//force the new center to fit in the full domain,
@@ -1360,8 +1360,8 @@ textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize)
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
 	if (centerChanged){
-		pParams->setTwoDMin(coord, boxMin);
-		pParams->setTwoDMax(coord, boxMax);
+		pParams->setLocalTwoDMin(coord, boxMin);
+		pParams->setLocalTwoDMax(coord, boxMax);
 	}
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
@@ -1433,8 +1433,8 @@ sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize)
 		if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
 	}
 
-	pParams->setTwoDMin(coord, newCenter-0.5f*newSize);
-	pParams->setTwoDMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
+	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
@@ -1760,23 +1760,23 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getTwoDMin(0);
-	float pmax = pParams->getTwoDMax(0);
+	float pmin = pParams->getLocalTwoDMin(0);
+	float pmax = pParams->getLocalTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setTwoDMin(0, pmin-voxelSize);
-			pParams->setTwoDMax(0, pmax+voxelSize);
+			pParams->setLocalTwoDMin(0, pmin-voxelSize);
+			pParams->setLocalTwoDMax(0, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastXSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setTwoDMin(0, pmin+voxelSize);
-			pParams->setTwoDMax(0, pmax-voxelSize);
+			pParams->setLocalTwoDMin(0, pmin+voxelSize);
+			pParams->setLocalTwoDMax(0, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -1807,23 +1807,23 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
-	float pmin = pParams->getTwoDMin(0);
-	float pmax = pParams->getTwoDMax(0);
+	float pmin = pParams->getLocalTwoDMin(0);
+	float pmax = pParams->getLocalTwoDMax(0);
 	float maxExtent = ds->getExtents()[3];
 	float minExtent = ds->getExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(0, pmin+voxelSize);
-			pParams->setTwoDMax(0, pmax+voxelSize);
+			pParams->setLocalTwoDMin(0, pmin+voxelSize);
+			pParams->setLocalTwoDMax(0, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastXCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(0, pmin-voxelSize);
-			pParams->setTwoDMax(0, pmax-voxelSize);
+			pParams->setLocalTwoDMin(0, pmin-voxelSize);
+			pParams->setLocalTwoDMax(0, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1854,23 +1854,23 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getTwoDMin(1);
-	float pmax = pParams->getTwoDMax(1);
+	float pmin = pParams->getLocalTwoDMin(1);
+	float pmax = pParams->getLocalTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(1, pmin+voxelSize);
-			pParams->setTwoDMax(1, pmax+voxelSize);
+			pParams->setLocalTwoDMin(1, pmin+voxelSize);
+			pParams->setLocalTwoDMax(1, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastYCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(1, pmin-voxelSize);
-			pParams->setTwoDMax(1, pmax-voxelSize);
+			pParams->setLocalTwoDMin(1, pmin-voxelSize);
+			pParams->setLocalTwoDMax(1, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1901,23 +1901,23 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
-	float pmin = pParams->getTwoDMin(2);
-	float pmax = pParams->getTwoDMax(2);
+	float pmin = pParams->getLocalTwoDMin(2);
+	float pmax = pParams->getLocalTwoDMax(2);
 	float maxExtent = ds->getExtents()[5];
 	float minExtent = ds->getExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
 		if (pmax+voxelSize <= maxExtent){ 
-			pParams->setTwoDMin(2, pmin+voxelSize);
-			pParams->setTwoDMax(2, pmax+voxelSize);
+			pParams->setLocalTwoDMin(2, pmin+voxelSize);
+			pParams->setLocalTwoDMax(2, pmax+voxelSize);
 			newCenter = (pmin+pmax)*0.5f + voxelSize;
 		}
 	} else {
 		lastZCenterSlider--;
 		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
-			pParams->setTwoDMin(2, pmin-voxelSize);
-			pParams->setTwoDMax(2, pmax-voxelSize);
+			pParams->setLocalTwoDMin(2, pmin-voxelSize);
+			pParams->setLocalTwoDMax(2, pmax-voxelSize);
 			newCenter = (pmin+pmax)*0.5f - voxelSize;
 		}
 	}
@@ -1949,23 +1949,23 @@ void TwoDDataEventRouter::guiNudgeYSize(int val) {
 	
 	//See if the change was an increase or decrease:
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
-	float pmin = pParams->getTwoDMin(1);
-	float pmax = pParams->getTwoDMax(1);
+	float pmin = pParams->getLocalTwoDMin(1);
+	float pmax = pParams->getLocalTwoDMax(1);
 	float maxExtent = ds->getExtents()[4];
 	float minExtent = ds->getExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
 		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
-			pParams->setTwoDMin(1, pmin-voxelSize);
-			pParams->setTwoDMax(1, pmax+voxelSize);
+			pParams->setLocalTwoDMin(1, pmin-voxelSize);
+			pParams->setLocalTwoDMax(1, pmax+voxelSize);
 			newSize = newSize + 2.*voxelSize;
 		}
 	} else {
 		lastYSizeSlider--;
 		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
-			pParams->setTwoDMin(1, pmin+voxelSize);
-			pParams->setTwoDMax(1, pmax-voxelSize);
+			pParams->setLocalTwoDMin(1, pmin+voxelSize);
+			pParams->setLocalTwoDMax(1, pmax-voxelSize);
 			newSize = newSize - 2.*voxelSize;
 		}
 	}
@@ -2095,7 +2095,7 @@ void TwoDDataEventRouter::mapCursor(){
 		
 		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
 		if (val != OUT_OF_BOUNDS)
-				selectPoint[mapDims[2]] = val+tParams->getTwoDMin(2);
+				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);
 		
 	} 
 	float spt[3];
@@ -2279,7 +2279,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	vector<string>varnames;
 	varnames.push_back(ds->getVariableName2D(firstVarNum));
 	double exts[6];
-	tParams->GetBox()->GetExtents(exts);
+	tParams->GetBox()->GetLocalExtents(exts);
 	int rc = Params::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
 	
 	if(!rc) return;

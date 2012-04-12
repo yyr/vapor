@@ -134,12 +134,12 @@ void Params::calcStretchedBoxExtentsInCube(float extents[6], int timestep){
 		}
 		return;
 	}
-	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
 	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
-	maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	maxSize = Max(Max(fullSizes[0],fullSizes[1]),fullSizes[2]);
 	for (int i = 0; i<3; i++){
-		extents[i] = (boxMin[i]*stretchFactors[i] - fullExtents[i])/maxSize;
-		extents[i+3] = (boxMax[i]*stretchFactors[i] - fullExtents[i])/maxSize;
+		extents[i] = (boxMin[i]*stretchFactors[i])/maxSize;
+		extents[i+3] = (boxMax[i]*stretchFactors[i])/maxSize;
 	}
 }
 //For params subclasses that have a box, do the same in (unstretched) world coords
@@ -440,20 +440,20 @@ void RenderParams::setAllBypass(bool val){
 		bypassFlags[i] = ival;
 }
 
-//Default camera distance just finds distance to region box in stretched coordinates.
+//Default camera distance just finds distance to region box in stretched local coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, RegionParams* rpp, int timestep){
 	double exts[6];
-	rpp->GetBox()->GetExtents(exts, timestep);
+	rpp->GetBox()->GetLocalExtents(exts, timestep);
 	return getCameraDistance(vpp, exts);
 
 }
 	
-//Static method to find distance to a box, in stretched coordinates.
+//Static method to find distance to a box, in stretched local coordinates.
 float RenderParams::getCameraDistance(ViewpointParams* vpp, const double exts[6]){
 
 	//Intersect box with camera ray.  If no intersection, just shoot ray from
 	//camera to region center.
-	const float* camPos = vpp->getCameraPos();
+	const float* camPos = vpp->getCameraPosLocal();
 	const float* camDir = vpp->getViewDir();
 
 	//Stretch everything:
