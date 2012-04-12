@@ -100,7 +100,7 @@ public:
 	AnimationParams* getActiveAnimationParams() {return (AnimationParams*)getActiveParams(Params::_animationParamsTag);}
 
 	//! Method that transforms the world into the unit box, should be called by each renderer before rendering
-	void GLWindow::TransformToUnitBox();
+	void TransformToUnitBox();
 
 	//MouseMode support
 	//! Static method that indicates the manipulator type that is associated with a mouse mode.

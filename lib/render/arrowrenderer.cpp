@@ -85,7 +85,7 @@ void ArrowRenderer::paintGL(){
 	double rakeExts[6];
 	aParams->GetRakeLocalExtents(rakeExts);
 	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
-	vector<double>& userExts = dataMgr->GetExtents(timestep);
+	const vector<double>& userExts = dataMgr->GetExtents(timestep);
 	for (int i = 0; i<3; i++) rakeExts[i] += userExts[i];
 	
 	float vectorLengthScale = aParams->GetVectorScale();
@@ -415,7 +415,7 @@ setupVariableData(
 	//Determine the extents of the data that is needed:
 	double rakeExts[6];
 	aParams->GetRakeLocalExtents(rakeExts);
-	vector<double>& usrExts = dataMgr->GetExtents(timestep);
+	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
 	size_t min_dim[3], max_dim[3];
 	
 	float maxVerticalOffset = 0.f;
