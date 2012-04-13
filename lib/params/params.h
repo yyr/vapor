@@ -467,12 +467,12 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	
 	void calcStretchedBoxExtents(float* extents, int timestep);
 	void calcBoxExtents(float* extents, int timestep);
-	//Calculate the box in world coords, using any theta or phi
-	virtual void calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
+	//Calculate the box in local coords, using any theta or phi
+	virtual void calcLocalBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 	
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
-	void buildCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
+	void buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation = 0.f, int axis = -1);
 
 
 	//Helper function for testing distances,

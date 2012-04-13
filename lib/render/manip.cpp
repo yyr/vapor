@@ -406,7 +406,7 @@ void TranslateStretchManip::render(){
 void TranslateStretchManip::drawBoxFaces(){
 	float corners[8][3];
 	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
-	myParams->calcBoxCorners(corners, 0.f, timestep);
+	myParams->calcLocalBoxCorners(corners, 0.f, timestep);
 	
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
@@ -681,7 +681,7 @@ void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
 	Permuter* myPermuter = 0;
 	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
-	myParams->calcBoxCorners(corners, 0.f, -1, tempRotation, tempRotAxis);
+	myParams->calcLocalBoxCorners(corners, 0.f, -1, tempRotation, tempRotAxis);
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.

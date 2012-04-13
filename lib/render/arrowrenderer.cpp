@@ -94,10 +94,10 @@ void ArrowRenderer::paintGL(){
 	//
 	size_t dim[3];
 	dataMgr->GetDim(dim, -1);
-	const float* fullexts = ds->getExtents();
+	const float* fullSizes = ds->getFullSizes();
 	float maxVoxSize = 0.f;
 	for (int i = 0; i<2; i++){
-		float voxSide = (fullexts[i+3]-fullexts[i])/(dim[i]);
+		float voxSide = (fullSizes[i])/(dim[i]);
 		if (voxSide > maxVoxSize) maxVoxSize = voxSide;
 	}
 	if (maxVoxSize == 0.f) maxVoxSize = 1.f;

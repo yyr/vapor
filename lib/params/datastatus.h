@@ -481,14 +481,7 @@ public:
 	//! \retval bool true if lower accuracy is requested.
 	static bool useLowerAccuracy() {return doUseLowerAccuracy;}
 
-	//! Map voxel coordinates to user coordinates at a specified refinement level.
-	//! Requires the DataMgr to be available.
-	//! \param[in] int refLevel Refinement level of data.
-	//! \param[in] size_t voxCoords[3] specified voxel coordinates
-	//! \param[out] double userCoords[3] output user coordinates.
-	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		dataMgr->MapVoxToUser(0, voxCoords, userCoords, refLevel);
-	}
+	
 #ifndef DOXYGEN_SKIP_THIS
 	DataStatus();
 	~DataStatus();

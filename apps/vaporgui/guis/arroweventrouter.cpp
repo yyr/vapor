@@ -532,11 +532,11 @@ void ArrowEventRouter::updateTab(){
 	colorBox->setPalette(pal);
 	
 	//Set the rake extents
-	const float* fullExtents = ds->getExtents();
+	const float* fullSizes = ds->getFullSizes();
 	double fullUsrExts[6];
 	for (int i = 0; i<3; i++) {
 		fullUsrExts[i] = 0.;
-		fullUsrExts[i+3] = fullExtents[i+3]-fullExtents[i];
+		fullUsrExts[i+3] = fullSizes[i];
 	}
 	//To get the rake extents in user coordinates, need to get the rake extents and add the user coord domain displacement
 	vector<double> usrRakeExts;
@@ -736,16 +736,16 @@ guiFitToData(){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to full data extents");
 		
-	const float* exts = DataStatus::getInstance()->getExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	Box* box = aParams->GetBox();
 	const vector<double> boxExts = box->GetLocalExtents();
 	vector<double> newExtents;
 	newExtents.push_back(0.);
 	newExtents.push_back(0.);
 	newExtents.push_back(0.);
-	newExtents.push_back(exts[3]-exts[0]);
-	newExtents.push_back(exts[4]-exts[1]);
-	newExtents.push_back(exts[5]-exts[2]);
+	newExtents.push_back(fullSizes[0]);
+	newExtents.push_back(fullSizes[1]);
+	newExtents.push_back(fullSizes[2]);
 	
 	box->SetLocalExtents(newExtents);
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();

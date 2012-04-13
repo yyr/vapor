@@ -127,8 +127,8 @@ restart(){
 	fullHeight = 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) ds = 0;
-	const float* fullDataExtents = 0;
-	if (ds) fullDataExtents = DataStatus::getInstance()->getExtents();
+	const float* fullSizes = 0;
+	if (ds) fullSizes = DataStatus::getInstance()->getFullSizes();
 	
 	if (!myBox){
 		myBox = new Box();
@@ -136,8 +136,8 @@ restart(){
 	float defaultRegionExtents[6];
 	for (int i = 0; i< 3; i++){
 		if (ds){
-			defaultRegionExtents[i] = fullDataExtents[i];
-			defaultRegionExtents[i+3] = fullDataExtents[i+3];
+			defaultRegionExtents[i] = 0.;
+			defaultRegionExtents[i+3] = fullSizes[i];
 		} else {
 			defaultRegionExtents[i] = 0.f;
 			defaultRegionExtents[i+3] = 1.f;
@@ -204,11 +204,11 @@ reinit(bool doOverride){
 
 void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool checkMax){
 	DataStatus* ds = DataStatus::getInstance();
-	const float* fullDataExtents;
+	const float* fullSizes;
 	if (ds && ds->getDataMgr()){
-		fullDataExtents = ds->getExtents();
+		fullSizes = ds->getExtents();
 		if (minval < 0.) minval = 0.;
-		if (minval > fullDataExtents[coord+3]-fullDataExtents[coord]) minval = fullDataExtents[coord+3]-fullDataExtents[coord];
+		if (minval > fullSizes[coord]) minval = fullSizes[coord];
 	}
 	double exts[6];
 	myBox->GetLocalExtents(exts, timestep);
@@ -218,11 +218,11 @@ void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool
 }
 void RegionParams::setLocalRegionMax(int coord, float maxval, int timestep, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
-	const float* fullDataExtents;
+	const float* fullSizes;
 	if (ds && ds->getDataMgr()){
-		fullDataExtents = ds->getExtents();
+		fullSizes = ds->getFullSizes();
 		if (maxval < 0.) maxval = 0.;
-		if (maxval > fullDataExtents[coord+3]-fullDataExtents[coord]) maxval = fullDataExtents[coord+3]-fullDataExtents[coord];
+		if (maxval > fullSizes[coord]) maxval = fullSizes[coord];
 	}
 	double exts[6];
 	myBox->GetLocalExtents(exts, timestep);
@@ -247,10 +247,12 @@ convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const 
 	
 	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
 
-	ds->mapVoxelToUserCoords(refLevel, fullMin, fullExtents);
-	ds->mapVoxelToUserCoords(refLevel, fullMax, fullExtents+3);
-	ds->mapVoxelToUserCoords(refLevel, min_dim, subExtents);
-	ds->mapVoxelToUserCoords(refLevel, max_dim, subExtents+3);
+	DataMgr* dataMgr = ds->getDataMgr();
+	//The conversion is independent of timestep, since it is translated into unit box.
+	dataMgr->MapVoxToUser(-1,fullMin,fullExtents,refLevel);
+	dataMgr->MapVoxToUser(-1,fullMax,fullExtents+3,refLevel);
+	dataMgr->MapVoxToUser(-1,min_dim,subExtents,refLevel);
+	dataMgr->MapVoxToUser(-1,max_dim,subExtents+3,refLevel);
 
 	// Now apply stretch factors
 	const float* stretchFactor = ds->getStretchFactors();
@@ -267,17 +269,7 @@ convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const 
 	}
 	
 }
-//static method to do conversion to box coords (probably based on available
-//coords, that may be smaller than region coords)
-//
-void RegionParams::
-convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]){
-	
-	DataStatus* ds = DataStatus::getInstance();
-	
-	ds->mapVoxelToUserCoords(refLevel, min_dim, extents);
-	ds->mapVoxelToUserCoords(refLevel, max_dim, extents+3);
-}	
+
 int RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t timestep, const int* varNums, int numVars,

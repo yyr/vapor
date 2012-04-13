@@ -107,7 +107,7 @@ void ProbeRenderer::paintGL()
 	}
 
 	float corners[8][3];
-	myProbeParams->calcBoxCorners(corners, 0.f, -1);
+	myProbeParams->calcLocalBoxCorners(corners, 0.f, -1);
 	for (int cor = 0; cor < 8; cor++)
 		ViewpointParams::localToStretchedCube(corners[cor],corners[cor]);
 	

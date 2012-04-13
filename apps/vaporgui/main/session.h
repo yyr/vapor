@@ -266,8 +266,6 @@ public:
 		stretchedExtents[j] = val*extents[j];
 		stretchedExtents[j+3] = val*extents[j+3];
 	}
-	//Better version of getExtents, uses refinement level
-	//void getExtents(int refLevel, float extents[6]);
 		
 	std::string& getVariableName(int varNum) {
 		return DataStatus::getVariableName3D(varNum);}

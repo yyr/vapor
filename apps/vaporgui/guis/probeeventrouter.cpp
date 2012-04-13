@@ -265,6 +265,7 @@ void ProbeEventRouter::updateTab(){
 	
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
 	lodCombo->setCurrentIndex(probeParams->GetCompressionLevel());
 	int pType = probeParams->getProbeType();
@@ -372,21 +373,22 @@ void ProbeEventRouter::updateTab(){
 	//setup the size sliders 
 	adjustBoxSize(probeParams);
 
+	const vector<double>&userExts = ds->getDataMgr()->GetExtents(timestep);
 	//And the center sliders/textboxes:
-	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = ds->getExtents();
-	probeParams->getBox(boxmin, boxmax, -1);
-	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
-	xCenterEdit->setText(QString::number(boxCenter[0]));
-	yCenterEdit->setText(QString::number(boxCenter[1]));
-	zCenterEdit->setText(QString::number(boxCenter[2]));
+	double locExts[6],boxCenter[3];
+	const float* fullSizes = ds->getFullSizes();
+	probeParams->GetBox()->GetLocalExtents(locExts);
+	for (int i = 0; i<3; i++) boxCenter[i] = (locExts[i]+locExts[3+i])*0.5f;
+	xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
+	xCenterEdit->setText(QString::number(userExts[0]+boxCenter[0]));
+	yCenterEdit->setText(QString::number(userExts[1]+boxCenter[1]));
+	zCenterEdit->setText(QString::number(userExts[2]+boxCenter[2]));
 
 	//Calculate extents of the containing box
 	float corners[8][3];
-	probeParams->calcBoxCorners(corners, 0.f, -1);
+	probeParams->calcLocalBoxCorners(corners, 0.f, -1);
 	double dboxmin[3], dboxmax[3];
 	size_t gridMin[3],gridMax[3];
 	for (int i = 0; i< 3; i++){
@@ -396,26 +398,27 @@ void ProbeEventRouter::updateTab(){
 			if (mincrd > corners[j][i]) mincrd = corners[j][i];
 			if (maxcrd < corners[j][i]) maxcrd = corners[j][i];
 		}
-		if (mincrd < extents[i]) mincrd = extents[i];
-		if (maxcrd > extents[i+3]) maxcrd = extents[i+3];
+		if (mincrd < 0.) mincrd = 0.;
+		if (maxcrd > fullSizes[i]) maxcrd = fullSizes[i];
 		dboxmin[i] = mincrd;
 		dboxmax[i] = maxcrd;
 	}
+	//Now convert to user coordinates
 
-	minUserXLabel->setText(QString::number(dboxmin[0]));
-	minUserYLabel->setText(QString::number(dboxmin[1]));
-	minUserZLabel->setText(QString::number(dboxmin[2]));
-	maxUserXLabel->setText(QString::number(dboxmax[0]));
-	maxUserYLabel->setText(QString::number(dboxmax[1]));
-	maxUserZLabel->setText(QString::number(dboxmax[2]));
+	minUserXLabel->setText(QString::number(userExts[0]+dboxmin[0]));
+	minUserYLabel->setText(QString::number(userExts[1]+dboxmin[1]));
+	minUserZLabel->setText(QString::number(userExts[2]+dboxmin[2]));
+	maxUserXLabel->setText(QString::number(userExts[0]+dboxmax[0]));
+	maxUserYLabel->setText(QString::number(userExts[1]+dboxmax[1]));
+	maxUserZLabel->setText(QString::number(userExts[2]+dboxmax[2]));
 
 	//And convert these to grid coordinates:
-	size_t currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
-		dataMgr->MapUserToVox(currentTimeStep, dboxmin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox(currentTimeStep, dboxmax, gridMax, fullRefLevel);
+		dataMgr->MapUserToVox(timestep, dboxmin, gridMin, fullRefLevel);
+		dataMgr->MapUserToVox(timestep, dboxmax, gridMax, fullRefLevel);
 		minGridXLabel->setText(QString::number(gridMin[0]));
 		minGridYLabel->setText(QString::number(gridMin[1]));
 		minGridZLabel->setText(QString::number(gridMin[2]));
@@ -429,12 +432,12 @@ void ProbeEventRouter::updateTab(){
 	} else {
 		double boxLatLon[4];
 		
-		boxLatLon[0] = boxmin[0];
-		boxLatLon[1] = boxmin[1];
-		boxLatLon[2] = boxmax[0];
-		boxLatLon[3] = boxmax[1];
+		boxLatLon[0] = locExts[0];
+		boxLatLon[1] = locExts[1];
+		boxLatLon[2] = locExts[3];
+		boxLatLon[3] = locExts[4];
 		
-		if (DataStatus::convertLocalToLonLat((int)currentTimeStep, boxLatLon,2)){
+		if (DataStatus::convertLocalToLonLat((int)timestep, boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -445,25 +448,27 @@ void ProbeEventRouter::updateTab(){
 		}
 	}
     
-
-	
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
 	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
 	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
 	mapCursor();
+	
 	const float* selectedPoint = probeParams->getSelectedPoint();
-	selectedXLabel->setText(QString::number(selectedPoint[0]));
-	selectedYLabel->setText(QString::number(selectedPoint[1]));
-	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	float selectedUserCoords[3];
+	//selectedPoint is in local coordinates.  convert to user coords:
+	for (int i = 0; i<3; i++)selectedUserCoords[i] = selectedPoint[i]+userExts[i];
+	selectedXLabel->setText(QString::number(selectedUserCoords[0]));
+	selectedYLabel->setText(QString::number(selectedUserCoords[1]));
+	selectedZLabel->setText(QString::number(selectedUserCoords[2]));
 
 	//Provide latlon coords if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];
-		selectedLatLon[0] = selectedPoint[0];
-		selectedLatLon[1] = selectedPoint[1];
-		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
+		selectedLatLon[0] = selectedUserCoords[0];
+		selectedLatLon[1] = selectedUserCoords[1];
+		if (DataStatus::convertToLonLat(selectedLatLon,1)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
 			latLonFrame->show();
@@ -472,15 +477,11 @@ void ProbeEventRouter::updateTab(){
 		}
 	}
 	attachSeedCheckbox->setChecked(seedAttached);
-	int* sesVarNums = new int[numVariables];
-	int nvars = 0;
-	for (int i = 0; i< numVariables; i++){
-		if (probeParams->variableIsSelected(i)){
-			sesVarNums[nvars++] = i;
-		}
-	}
-	float val = calcCurrentValue(probeParams,selectedPoint,sesVarNums, nvars);
-	delete [] sesVarNums;
+	int sesVarNum = probeParams->getFirstVarNum();
+	
+	
+	float val = calcCurrentValue(probeParams,selectedUserCoords,&sesVarNum, 1);
+	
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
 	else valueMagLabel->setText(QString::number(val));
@@ -533,7 +534,7 @@ void ProbeEventRouter::updateTab(){
 	Session::getInstance()->unblockRecording();
 	
 	setIgnoreBoxSliderEvents(false);
-	//setProbeDirty(probeParams);
+	
 }
 //Fix for clean Windows scrolling:
 void ProbeEventRouter::refreshTab(){
@@ -572,6 +573,10 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	probeParams->setAlpha(alphaEdit->text().toFloat());
 	probeParams->setFieldScale(fieldScaleEdit->text().toFloat());
 
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Set the probe size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[0] = xSizeEdit->text().toFloat();
@@ -579,26 +584,25 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	boxSize[2] = zSizeEdit->text().toFloat();
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		//if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
 	}
-	boxCenter[0] = xCenterEdit->text().toFloat();
-	boxCenter[1] = yCenterEdit->text().toFloat();
-	boxCenter[2] = zCenterEdit->text().toFloat();
-	probeParams->getBox(boxmin, boxmax, -1);
-	const float* extents = DataStatus::getInstance()->getExtents();
+	//Convert text to local extents:
+	boxCenter[0] = xCenterEdit->text().toFloat()- userExts[0];
+	boxCenter[1] = yCenterEdit->text().toFloat()- userExts[1];
+	boxCenter[2] = zCenterEdit->text().toFloat()- userExts[2];
+	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	for (int i = 0; i<3;i++){
 		//No longer constrain the box to have center in the domain:
-		//if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-		//if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
+	//Set the local box extents:
 	probeParams->setBox(boxmin,boxmax, -1);
 	adjustBoxSize(probeParams);
 	//set the center sliders:
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
+	yCenterSlider->setValue((int)(256.f*boxCenter[1]/fullSizes[1]));
+	zCenterSlider->setValue((int)(256.f*boxCenter[2]/fullSizes[2]));
 	resetTextureSize(probeParams);
 	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 	setProbeDirty(probeParams);
@@ -1285,9 +1289,14 @@ guiFitDomain(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to domain");
 
-	const float* extents = DataStatus::getInstance()->getExtents();
+	float locextents[6];
+	const float* sizes = DataStatus::getInstance()->getFullSizes();
+	for (int i = 0; i<3; i++){
+		locextents[i] = 0.;
+		locextents[i+3] = sizes[i];
+	}
 
-	setProbeToExtents(extents,pParams);
+	setProbeToExtents(locextents,pParams);
 	
 	updateTab();
 	setProbeDirty(pParams);
@@ -1804,103 +1813,15 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	pParams->setLocalProbeMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
-	//force the new center to fit in the full domain,
 	
-	bool centerChanged = false;
-	DataStatus* ds = DataStatus::getInstance();
-	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	float boxMin,boxMax;
-	if (ds && ds->getDataMgr()){
-		extents = DataStatus::getInstance()->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	
-		if (newCenter < regMin) {
-			newCenter = regMin;
-			centerChanged = true;
-		}
-		if (newCenter > regMax) {
-			newCenter = regMax;
-			centerChanged = true;
-		}
-	} else {
-		regMin = newCenter - newSize*0.5f; 
-		regMax = newCenter + newSize*0.5f;
-	}
-		
-	boxMin = newCenter - newSize*0.5f; 
-	boxMax= newCenter + newSize*0.5f; 
-	if (centerChanged){
-		pParams->setLocalProbeMin(coord, boxMin);
-		pParams->setLocalProbeMax(coord, boxMax);
-	}
-	
-	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
-	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
-	int oldSliderSize, oldSliderCenter;
-	switch(coord) {
-		case 0:
-			
-			oldSliderSize = xSizeSlider->value();
-			
-			oldSliderCenter = xCenterSlider->value();
-			if (oldSliderSize != sliderSize){
-				xSizeSlider->setValue(sliderSize);
-			}
-			
-			if (oldSliderCenter != sliderCenter)
-				xCenterSlider->setValue(sliderCenter);
-			if(centerChanged) xCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastXSizeSlider = sliderSize;
-			lastXCenterSlider = sliderCenter;
-			break;
-		case 1:
-			oldSliderSize = ySizeSlider->value();
-			oldSliderCenter = yCenterSlider->value();
-			if (oldSliderSize != sliderSize)
-				ySizeSlider->setValue(sliderSize);
-			
-			if (oldSliderCenter != sliderCenter)
-				yCenterSlider->setValue(sliderCenter);
-			if(centerChanged) yCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastYSizeSlider = sliderSize;
-			lastYCenterSlider = sliderCenter;
-			break;
-		case 2:
-			oldSliderSize = zSizeSlider->value();
-			oldSliderCenter = zCenterSlider->value();
-			if (oldSliderSize != sliderSize)
-				zSizeSlider->setValue(sliderSize);
-			
-			
-			if (oldSliderCenter != sliderCenter)
-				zCenterSlider->setValue(sliderCenter);
-			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastZSizeSlider = sliderSize;
-			lastZCenterSlider = sliderCenter;
-			break;
-		default:
-			assert(0);
-	}
-	guiSetTextChanged(false);
-	if(centerChanged) {
-		setProbeDirty(pParams);
-		probeTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams);
-	}
-	update();
-	setIgnoreBoxSliderEvents(false);
-	return;
 }
 //Set text when a slider changes.
 //
 void ProbeEventRouter::
 sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	
-	const float* extents = DataStatus::getInstance()->getExtents();
-	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
+	const float* sizes = DataStatus::getInstance()->getFullSizes();
+	float newCenter = ((float)slideCenter)*(sizes[coord])/256.f;
 	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
 	pParams->setLocalProbeMin(coord, newCenter-0.5f*newSize);
 	pParams->setLocalProbeMax(coord, newCenter+0.5f*newSize);
@@ -1908,22 +1829,26 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	//Set the text in the edit boxes
 	mapCursor();
 	const float* selectedPoint = pParams->getSelectedPoint();
-	
+	//Map to user coordinates
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>&userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
+	newCenter += userExts[coord];
+	float selectCoord = selectedPoint[coord] + userExts[coord];
 	switch(coord) {
 		case 0:
 			xSizeEdit->setText(QString::number(newSize,'g',7));
 			xCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedXLabel->setText(QString::number(selectedPoint[coord]));
+			selectedXLabel->setText(QString::number(selectCoord));
 			break;
 		case 1:
 			ySizeEdit->setText(QString::number(newSize,'g',7));
 			yCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedYLabel->setText(QString::number(selectedPoint[coord]));
+			selectedYLabel->setText(QString::number(selectCoord));
 			break;
 		case 2:
 			zSizeEdit->setText(QString::number(newSize,'g',7));
 			zCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedZLabel->setText(QString::number(selectedPoint[coord]));
+			selectedZLabel->setText(QString::number(selectCoord));
 			break;
 		default:
 			assert(0);
@@ -2184,11 +2109,11 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
 	float gridSpacing[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i);
-		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
+		gridSpacing[i] = fullSizes[i]/(float)(dataSize[i]-1);
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
 	}
 	float voxSize = vlength(gridSpacing);
@@ -2199,7 +2124,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	float vec1[3], vec2[3];
 
 	//Get box that is very slightly fattened, to ensure nondegenerate normals
-	pParams->calcBoxCorners(corner, voxSize*1.e-15, -1);
+	pParams->calcLocalBoxCorners(corner, voxSize*1.e-15, -1);
 	//The first 6 corners are reference points for testing
 	//the 6 normal vectors are outward pointing from these points
 	//Normals are calculated as if cube were axis aligned but this is of 
@@ -2236,14 +2161,9 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	vcross(vec1,vec2,normals[5]);
 	vnormal(normals[5]);
 
-	
-	
-	double boxExts[6];
 	double xyz[3];
 	float flxyz[3];
 	size_t vcoords[3];
-	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
-	
 	
 	//Now loop over the grid points in the bounding box
 	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
@@ -2253,7 +2173,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
 				
 				vcoords[0]=i;
-				dataMgr->MapVoxToUser(timeStep, vcoords, xyz, refLevel);
+				dataMgr->MapVoxToUser((size_t)timeStep, vcoords, xyz, refLevel);
 				for (int q = 0; q<3; q++) flxyz[q]=xyz[q];
 				//test if x,y,z is in probe:
 				float maxDist[3]; 
@@ -2480,8 +2400,8 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalProbeMin(0);
 	float pmax = pParams->getLocalProbeMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getFullSizes()[0];
+	float minExtent = 0.;
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
@@ -2528,8 +2448,8 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalProbeMin(0);
 	float pmax = pParams->getLocalProbeMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getFullSizes()[0];
+	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
@@ -2576,8 +2496,8 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalProbeMin(1);
 	float pmax = pParams->getLocalProbeMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getFullSizes()[1];
+	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
@@ -2624,8 +2544,8 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getLocalProbeMin(2);
 	float pmax = pParams->getLocalProbeMax(2);
-	float maxExtent = ds->getExtents()[5];
-	float minExtent = ds->getExtents()[2];
+	float maxExtent = ds->getFullSizes()[2];
+	float minExtent = 0.;
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
@@ -2673,8 +2593,8 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalProbeMin(1);
 	float pmax = pParams->getLocalProbeMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getFullSizes()[1];
+	float minExtent = 0.;
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
@@ -2721,8 +2641,8 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getLocalProbeMin(2);
 	float pmax = pParams->getLocalProbeMax(2);
-	float maxExtent = ds->getExtents()[5];
-	float minExtent = ds->getExtents()[2];
+	float maxExtent = ds->getFullSizes()[2];
+	float minExtent = 0.;
 	float newSize = pmax - pmin;
 	if (val > lastZSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastZSizeSlider++;
@@ -2764,9 +2684,8 @@ adjustBoxSize(ProbeParams* pParams){
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180.,pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 	//Apply rotation matrix inverted to full domain size
-	const float* extents = DataStatus::getInstance()->getExtents();
-	float extentSize[3];
-	for (int i= 0; i<3; i++) extentSize[i] = (extents[i+3]-extents[i]);
+	
+	const float* extentSize = DataStatus::getInstance()->getFullSizes();
 	
 	//Determine the size of the domain in the direction associated with each
 	//axis of the probe.  To do this, find a unit vector in that direction.
@@ -2903,7 +2822,7 @@ QString ProbeEventRouter::getMappedVariableNames(int* numvars){
 	}
 	return names;
 }
-// Map the cursor coords into world space,
+// Map the cursor coords into local user coord space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
 void ProbeEventRouter::mapCursor(){
@@ -2912,7 +2831,7 @@ void ProbeEventRouter::mapCursor(){
 	float probeCoord[3];
 	float selectPoint[3];
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
+	pParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	//The cursor sits in the z=0 plane of the probe box coord system.
 	//x is reversed because we are looking from the opposite direction (?)
 	const float* cursorCoords = pParams->getCursorCoords();
@@ -2991,8 +2910,12 @@ guiCropToDomain(){
 	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to domain");
-	const float *extents = DataStatus::getInstance()->getExtents();
-
+	const float *sizes = DataStatus::getInstance()->getFullSizes();
+	float extents[6];
+	for (int i = 0; i<3; i++){
+		extents[i] = 0.;
+		extents[i+3]=sizes[i];
+	}
 	if (pParams->cropToBox(extents)){
 		updateTab();
 		setProbeDirty(pParams);
@@ -3065,7 +2988,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	//c.  Find scale S and translation T that takes [-1,1]cube to region extents
 	float newScale[3], newCenter[3];
 	float boxmin[3],boxmax[3];
-		//get box in user coords
+		//get box in local coords
 	pParams->getBox(boxmin,boxmax,-1);
 	for (int i = 0; i< 3; i++){
 		//d.  permute diagonal entries in S based on value of align 
@@ -3093,7 +3016,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	//scaling in that dimension appropriately:
 	float transformMatrix[12];
 	//Set up to transform from probe (coords [-1,1]) into volume:
-	pParams->buildCoordTransform(transformMatrix, 0.f, -1);
+	pParams->buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	for (int i = 0; i< 3; i++){
 		
 		if(i != 2 || ! pParams->isPlanar()) {
@@ -3116,7 +3039,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	//Check to make sure the transformed probe is no bigger than the region.  If
 	//it is bigger, scale it down appropriately.
 	float regMin[3],regMax[3];
-	pParams->getContainingRegion(regMin,regMax,false);
+	pParams->getLocalContainingRegion(regMin,regMax,false);
 	
 	float maxRatio = 1.f;
 	
@@ -3135,7 +3058,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 		pParams->setBox(probeMin, probeMax, -1);
 	}
 	//Check to see if it should be centered better:
-	pParams->getContainingRegion(regMin,regMax,false);
+	pParams->getLocalContainingRegion(regMin,regMax,false);
 	for (int i = 0; i<3; i++){
 		if (regMax[i] > extents[i+3])
 			newCenter[i] -= (regMax[i] - extents[i+3]);

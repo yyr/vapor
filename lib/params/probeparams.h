@@ -246,9 +246,9 @@ public:
 	int getNumVariablesSelected() {return numVariablesSelected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
 	bool getAvailableBoundingBox(size_t timestep, size_t boxMin[3], size_t boxMax[3], int numRefs);
-	//Obtain the smallest region that contains the probe, and fits within the full data volume.
+	//Obtain the smallest region (in local coords) that contains the probe, and fits within the full data volume.
 	//If inDomain is false, then don't require to fit within full data volume.
-	void getContainingRegion(float regMin[3], float regMax[3], bool inDomain = true);
+	void getLocalContainingRegion(float regMin[3], float regMax[3], bool inDomain = true);
 
 	int getProbeType() {return probeType;}
 	void setProbeType(int val) {probeType = val;}

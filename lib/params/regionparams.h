@@ -108,13 +108,6 @@ public:
 	//! \param[out] float extents[6]	Stretched extents of box mapped into unit cube.
 	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
 
-	//! Static method that converts a box to its extents in unit cube (as used in rendering).
-	//! \param[in] int refLevel			Refinement level of data
-	//! \param[in] size_t min_dim[3]	Minimum voxel coordinates 
-	//! \param[in] size_t max_dim[3]	Maximum voxel coordinates 
-	//! \param[out] float extents[6]	Extents of box mapped into unit cube.
-	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], double extents[6]);
-	
 	//! Evaluate a variable at a point, as requested by a RenderParams
 	//! \param[in] string varname		requested variable name (2d or 3d)
 	//! \param[in] double point[3]		User coordinates of requested value

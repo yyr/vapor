@@ -609,9 +609,10 @@ refreshRegionInfo(RegionParams* rParams){
 		maxXVoxVarLabel->setText(QString::number(max_vdim[0]));
 		maxYVoxVarLabel->setText(QString::number(max_vdim[1]));
 		maxZVoxVarLabel->setText(QString::number(max_vdim[2]));
-		  
-		ds->mapVoxelToUserCoords(refLevel, min_vdim, var_ext);
-		ds->mapVoxelToUserCoords(refLevel, max_vdim, var_ext+3);
+		
+		dataMgr->MapVoxToUser((size_t)timeStep, min_vdim, var_ext,refLevel);
+		dataMgr->MapVoxToUser((size_t)timeStep, max_vdim, var_ext+3,refLevel);
+		
 		//Use full extents if variable is at extremes, to avoid confusion...
 		for (int k = 0; k<3; k++){
 			if (min_vdim[k] == 0) var_ext[k] = userExtents[k];
@@ -715,7 +716,7 @@ guiCopyProbeToRegion(){
 				"Copied region is the smallest \naxis-aligned box that contains the probe");
 	}
 	float regMin[3], regMax[3];
-	pParams->getContainingRegion(regMin, regMax);
+	pParams->getLocalContainingRegion(regMin, regMax);
 	rParams->setBox(regMin, regMax,timestep);
 	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);

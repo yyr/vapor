@@ -965,14 +965,14 @@ void ProbeParams::setMinOpacMapBound(float val){
 void ProbeParams::setMaxOpacMapBound(float val){
 	GetMapperFunc()->setMaxOpacMapValue(val);
 }
-void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inDomain){
-	//Determine the smallest axis-aligned cube that contains the probe.  This is
+void ProbeParams::getLocalContainingRegion(float regMin[3], float regMax[3], bool inDomain){
+	//Determine the smallest axis-aligned cube that contains the probe's local coordinates.  This is
 	//obtained by mapping all 8 corners into the space.
 	//Note that this is just a floating point version of getBoundingBox(), below.
 	float transformMatrix[12];
 	//Set up to transform from probe (coords [-1,1]) into volume:
-	buildCoordTransform(transformMatrix, 0.f, -1);
-	const float* extents = DataStatus::getInstance()->getExtents();
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
+	const float* sizes = DataStatus::getInstance()->getFullSizes();
 
 	//Calculate the normal vector to the probe plane:
 	float zdir[3] = {0.f,0.f,1.f};
@@ -1000,12 +1000,12 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3], bool inD
 			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
 		// calculate the mapping of this corner,
 		vtransform(startVec, transformMatrix, resultVec);
-		// force mapped corner to lie in the full extents, if inDomain is true..
+		// force mapped corner to lie in the local extents, if inDomain is true..
 		//and then force box to contain the corner:
 		for (int i = 0; i<3; i++) {
 			if (inDomain){
-				if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
-				if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+				if (resultVec[i] < 0.) resultVec[i] = 0.;
+				if (resultVec[i] > sizes[i]) resultVec[i] = sizes[i];
 			}
 			if (resultVec[i] < regMin[i]) regMin[i] = resultVec[i];
 			if (resultVec[i] > regMax[i]) regMax[i] = resultVec[i];
@@ -1025,9 +1025,9 @@ void ProbeParams::getBoundingBox(size_t timestep, double boxMin[3], double boxMa
 	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	
-	const float* extents = ds->getExtents();
+	const float* fullSizes = ds->getFullSizes();
 	for (int i = 0; i<3; i++){
 		boxMin[i] = 1.e30;
 		boxMax[i] = -1.e30;
@@ -1046,8 +1046,8 @@ void ProbeParams::getBoundingBox(size_t timestep, double boxMin[3], double boxMa
 		vtransform(startVec, transformMatrix, resultVec);
 		//make sure the point is inside the domain, and then expand the max/min corners to include it.
 		for (int i = 0; i<3; i++){
-			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
-			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+			if (resultVec[i] < 0.) resultVec[i] = 0.;
+			if (resultVec[i] > fullSizes[i]) resultVec[i] = fullSizes[i];
 			if (resultVec[i]<boxMin[i]) boxMin[i] = resultVec[i];
 			if (resultVec[i]>boxMax[i]) boxMax[i] = resultVec[i];
 		}
@@ -1098,7 +1098,7 @@ void ProbeParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	//obtained by mapping all 8 corners into the space.
 	//It will not necessarily fit inside the unit cube.
 	float corners[8][3];
-	calcBoxCorners(corners, 0.f, -1);
+	calcLocalBoxCorners(corners, 0.f, -1);
 	
 	float boxMin[3],boxMax[3];
 	int crd, cor;
@@ -1183,15 +1183,16 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	int actualRefLevel = GetRefinementLevel();
 	int lod = GetCompressionLevel();
 		
+	const vector<double>&userExts = ds->getDataMgr()->GetExtents((size_t)ts);
 	RegularGrid* probeGrid;
 	vector<string>varnames;
 	varnames.push_back(ds->getVariableName3D(firstVarNum));
 	double extents[6];
 	float boxmin[3],boxmax[3];
-	getContainingRegion(boxmin, boxmax);
+	getLocalContainingRegion(boxmin, boxmax);
 	for (int i = 0; i<3; i++){
-		extents[i] = boxmin[i];
-		extents[i+3] = boxmax[i];
+		extents[i] = boxmin[i]+userExts[i];
+		extents[i+3] = boxmax[i]+userExts[i];
 	}
 	
 	int rc = getGrids( ts, varnames, extents, &actualRefLevel, &lod, &probeGrid);
@@ -1202,10 +1203,9 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	//Nearest neighbor interpolation by default...
 	probeGrid->SetInterpolationOrder(0);
 
-	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1228,24 +1228,16 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 	
 	float probeCoord[3];
 	double dataCoord[3];
-	const float* exts = ds->getExtents();
+	const float* sizes = ds->getFullSizes();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
-		float mid = (exts[i]+exts[i+3])*0.5;
-		float halfExtendedSize = (exts[i+3]-exts[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		float mid = (sizes[i])*0.5;
+		float halfExtendedSize = sizes[i]*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
-	for (int cornum = 0; cornum < 4; cornum++){
-		// coords relative to (-1,1)
-		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
-		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
-		//Then transform to values in data 
-		vtransform(probeCoord, transformMatrix, dataCoord);
-		
-	}
 	
 	if (doCache) {
 		int txsize[2];
@@ -1253,7 +1245,6 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 		texWidth = txsize[0];
 		texHeight = txsize[1];
 	}
-	
 	
 	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
@@ -1275,6 +1266,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight){
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
+				dataCoord[i] += userExts[i]; //Convert to user coordinates.
 			}
 			float varVal;
 			if(dataOK) { //find the coordinate in the data array
@@ -1325,14 +1317,14 @@ void ProbeParams::adjustTextureSize(int sz[2]){
 	float dataCoord[3];
 	
 	
-	const float* extents = ds->getExtents();
+	const float* fullSizes = ds->getFullSizes();
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
 
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	
 	for (int cornum = 0; cornum < 4; cornum++){
 		// coords relative to (-1,1)
@@ -1342,7 +1334,7 @@ void ProbeParams::adjustTextureSize(int sz[2]){
 		vtransform(probeCoord, transformMatrix, dataCoord);
 		//Then get array coords:
 		for (int i = 0; i<3; i++){
-			icor[cornum][i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+			icor[cornum][i] = (size_t) (0.5f+(float)dataSize[i]*dataCoord[i]/fullSizes[i]);
 		}
 	}
 	//To get texture width, take distance in array coords, get first power of 2
@@ -1384,14 +1376,14 @@ getProbeVoxelExtents(float voxdims[2]){
 		voxdims[0] = voxdims[1] = 1.f;
 		return;
 	}
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* fullSizes = DataStatus::getInstance()->getFullSizes();
 	float probeCoord[3];
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1411,7 +1403,7 @@ getProbeVoxelExtents(float voxdims[2]){
 		vtransform(probeCoord, transformMatrix, dataCoord);
 		//Then get array coords:
 		for (int i = 0; i<3; i++){
-			cor[cornum][i] = ((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]);
+			cor[cornum][i] = ((float)dataSize[i])*(dataCoord[i])/(fullSizes[i]);
 		}
 	}
 	float vecWid[3], vecHt[3];
@@ -1430,7 +1422,7 @@ void ProbeParams::getRotatedBoxDims(float boxdims[3]){
 	//cor(1)-cor[0] is x side
 	//cor[2] - cor[0] is y side
 	//cor[4] - cor[0] is z side
-	calcBoxCorners(corners, 0.f, -1);
+	calcLocalBoxCorners(corners, 0.f, -1);
 	
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	const float* fullSizes = DataStatus::getInstance()->getFullStretchedSizes();
@@ -1521,6 +1513,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	//If the required data is valid, just return true:
 	if(ibfvUField[timestep] && ibfvVField[timestep]) return true;
 	
+	const vector<double>&userExts = ds->getDataMgr()->GetExtents((size_t)timestep);
 	//Now obtain the field values for the current probe
 	//Session variable nums are -1 if the variable is 0
 	vector<string> varnames;
@@ -1531,10 +1524,10 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	}
 	double extents[6];
 	float boxmin[3],boxmax[3];
-	getContainingRegion(boxmin, boxmax);
+	getLocalContainingRegion(boxmin, boxmax);
 	for (int i = 0; i<3; i++){
-		extents[i] = boxmin[i];
-		extents[i+3] = boxmax[i];
+		extents[i] = boxmin[i]+userExts[i];
+		extents[i+3] = boxmax[i]+userExts[i];
 	}							
 	int actualRefLevel = GetRefinementLevel();
 	int lod = GetCompressionLevel();
@@ -1556,7 +1549,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	}
 	//Set up to transform from probe into volume:
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 
 	//Get the 3x3 rotation matrix:
 	float rotMatrix[9], invMatrix[9];
@@ -1576,15 +1569,15 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	float probeCoord[3];
 	double dataCoord[3];
 	
-	const float* exts = ds->getExtents();
+	const float* fullSizes = ds->getFullSizes();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
-		float mid = (exts[i]+exts[i+3])*0.5;
-		float halfExtendedSize = (exts[i+3]-exts[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		float mid = fullSizes[i]*0.5;
+		float halfExtendedSize = fullSizes[i]*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
-	float worldCorner[4][3];
+	float localCorner[4][3];
 	//Map corners of probe into volume 
 	probeCoord[2] = 0.f;
 	for (int cornum = 0; cornum < 4; cornum++){
@@ -1592,12 +1585,12 @@ bool ProbeParams::buildIBFVFields(int timestep){
 		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
 		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
 		//Then transform to values in data 
-		vtransform(probeCoord, transformMatrix, worldCorner[cornum]);
+		vtransform(probeCoord, transformMatrix, localCorner[cornum]);
 	}
 	float tempCoord[3];
-	vsub(worldCorner[1],worldCorner[0],tempCoord);
+	vsub(localCorner[1],localCorner[0],tempCoord);
 	float xside = vlength(tempCoord);  
-	vsub(worldCorner[2],worldCorner[0],tempCoord);
+	vsub(localCorner[2],localCorner[0],tempCoord);
 	float yside = vlength(tempCoord);
 	int texHeight = textureSize[1];
 	int texWidth = textureSize[0];
@@ -1615,7 +1608,7 @@ bool ProbeParams::buildIBFVFields(int timestep){
 	ibfvValid[timestep] = new unsigned char[textureSize[0]*textureSize[1]];
 	float sumMag = 0.f;
 	int numValidPoints = 0;
-	//Use the region reader to calculate coordinates in volume
+	//Use the RegularGrid to calculate coordinates in volume
 	DataMgr* dataMgr = ds->getDataMgr();
 
 	//Loop over pixels in texture
@@ -1634,6 +1627,8 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
+				//Convert to user coordinates:
+				dataCoord[i] += userExts[i];
 			}
 			
 			int texPos = ix + texWidth*iy;
@@ -1641,7 +1636,6 @@ bool ProbeParams::buildIBFVFields(int timestep){
 			if(dataOK) { //find the coordinate in the data array
 				float vecField[3];
 				
-				//use xyzCoord to index into the loaded data
 				for (int k = 0; k<3; k++){
 					if(grids[k]) {
 						float fieldval = grids[k]->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
@@ -1716,7 +1710,7 @@ bool ProbeParams::cropToBox(const float boxExts[6]){
 	//First find the intersection of the box with the smallest box containing the probe:
 	float regMin[3],regMax[3];
 	float boxIntersection[6];
-	getContainingRegion(regMin, regMax, false);
+	getLocalContainingRegion(regMin, regMax, false);
 	//Check if it's already in box, if so do nothing:
 	bool inbox = true;
 	for (int i = 0; i< 3; i++){
@@ -1779,7 +1773,7 @@ bool ProbeParams::fitToBox(const float boxExts[6]){
 	float transformMatrix[12];
 	float cor[4][3], cor2[4][3];
 	float probeCenter[3];
-	buildCoordTransform(transformMatrix, 0.f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.f, -1);
 	float rotMatrix[9];
 	const vector<double>& angles = GetBox()->GetAngles();
 	getRotationMatrix((float)(angles[0]*M_PI/180.), (float)(angles[1]*M_PI/180.), (float)(angles[2]*M_PI/180.), rotMatrix);
@@ -1935,7 +1929,7 @@ int ProbeParams::interceptBox(const float boxExts[6], float intercept[6][3]){
 	vtransform3(vecz, rotMatrix, probeNormal);
 	float transformMatrix[12];
 	
-	buildCoordTransform(transformMatrix, 0.01f, -1);
+	buildLocalCoordTransform(transformMatrix, 0.01f, -1);
 	vtransform(vec0, transformMatrix, probeCenter);
 	vnormal(probeNormal);
 	//The equation of the probe plane is dot(V, probeNormal) = dst:

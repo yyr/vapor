@@ -165,12 +165,12 @@ void Params::calcStretchedBoxExtents(float* extents, int timestep){
 		extents[i+3] = boxMax[i]*stretchFactors[i];
 	}
 }
-//Following calculates box corners in world space.  Does not use
+//Following calculates box corners in user space.  Does not use
 //stretching.
 void Params::
-calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation, int axis){
+calcLocalBoxCorners(float corners[8][3], float extraThickness, int timestep, float rotation, int axis){
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix, extraThickness, timestep, rotation, axis);
+	buildLocalCoordTransform(transformMatrix, extraThickness, timestep, rotation, axis);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front
@@ -205,7 +205,7 @@ calcBoxCorners(float corners[8][3], float extraThickness, int timestep, float ro
 //Optional rotation and axis parameters modify theta and phi
 //by rotation about axis.  Rotation is in degrees!
 void Params::
-buildCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation, int axis){
+buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int timestep, float rotation, int axis){
 	//Note:  transformMatrix is a 3x4 matrix that converts Box coords
 	// in the range [-1,1] to float coords in the volume.
 	//The last column of the matrix is the translation
