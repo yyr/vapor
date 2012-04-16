@@ -12,10 +12,10 @@ FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	AMRIO  WRF MOM WRFReader Transpose DataMgr DataMgrWB \
-	DataMgrWRF vdf \
-	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
+	DataMgrWC DataMgrWRF DataMgrAMR \
+	vdf WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
+	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory  NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid
 
@@ -28,10 +28,10 @@ HEADER_FILES = \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	AMRIO  WRF MOM WRFReader DataMgr DataMgrWB \
-	DataMgrWRF \
+	DataMgrWC DataMgrWRF DataMgrAMR \
 	WaveFiltBase  WaveFiltBior  WaveFiltDaub  WaveFiltCoif \
 	WaveFiltHaar MatWaveBase  MatWaveDwt MatWaveWavedec  \
-	SignificanceMap Compressor WaveCodecIO DataMgrWC DataMgrAMR \
+	SignificanceMap Compressor WaveCodecIO \
 	DataMgrFactory Lifting1D Transpose NCBuf \
 	LayeredGrid RegularGrid SphericalGrid StretchedGrid
 

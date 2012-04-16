@@ -62,18 +62,6 @@ public:
  //
  virtual void   GetGridDim(size_t dim[3]) const = 0;
 
- //! Return the internal blocking factor used for data. 
- //!
- //! Returns the X,Y,Z coordinate dimensions of all internal data blocks 
- //! in grid (voxel) coordinates.  If the data are
- //! not blocked this method should return the same values as 
- //! GetDim().
- //!
- //! \retval bs  A three element vector containing the voxel dimension of
- //! a data block
- //
- virtual const size_t *GetBlockSize() const = 0;
-
  //! Return the internal blocking factor at a given refinement level
  //!
  //! For multi-resolution data this method returns the dimensions
@@ -264,14 +252,6 @@ public:
  //
  virtual void GetTSUserTimeStamp(size_t ts, string &s) const = 0;
 
- //! Return the domain extents specified in user coordinates
- //! for the indicated time step
- //!
- //! \deprecated Use GetExtents() instead.
- //!
- //!
- //
- virtual vector<double> GetTSExtents(size_t ) const { return(GetExtents()); };
 
  //! Get the dimension of a volume
  //!
@@ -318,119 +298,17 @@ public:
  //! indicates the maximum refinment level defined.
  //!
  virtual void	MapVoxToBlk(const size_t vcoord[3], size_t bcoord[3], int reflevel = -1) const;
-		
 
- //! Map integer voxel coordinates to user-defined floating point coords.
- //!
- //! Map the integer coordinates of the specified voxel to floating
- //! point coordinates in a user defined space. The voxel coordinates,
- //! \p vcoord0 are specified relative to the refinement level
- //! indicated by \p reflevel for time step \p timestep.  
- //! The mapping is performed by using linear interpolation 
- //! The user-defined coordinate system is obtained
- //! from the Metadata structure passed to the class constructor.
- //! The user coordinates are returned in \p vcoord1.
- //! Results are undefined if vcoord is outside of the volume 
- //! boundary.
- //!
- //! \param[in] timestep Time step of the variable. If an invalid
- //! timestep is supplied the global domain extents are used. 
- //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel)
- //! coordinates
- //! \param[out] vcoord1 Coordinate of transformed voxel in user-defined,
- //! floating point  coordinates
- //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC. In fact,
- //! any invalid value is treated as the maximum refinement level
- //!
- //! \note Does not support layered grid types
- //!
- //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
- //! GetTSXCoords()
- //
- virtual void	MapVoxToUser(
+ virtual void   MapVoxToUser(
 	size_t timestep,
 	const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
  ) const;
 
- //! Map floating point coordinates to integer voxel offsets.
- //!
- //! Map floating point coordinates, specified relative to a 
- //! user-defined coordinate system, to the closest integer voxel 
- //! coordinates for a voxel at a given refinement level. 
- //! The integer voxel coordinates, \p vcoord1, 
- //! returned are specified relative to the refinement level
- //! indicated by \p reflevel for time step, \p timestep.
- //! The mapping is performed by using linear interpolation 
- //! The user defined coordinate system is obtained
- //! from the Metadata structure passed to the class constructor.
- //! Results are undefined if \p vcoord0 is outside of the volume 
- //! boundary.
- //!
- //! If a user coordinate system is not defined for the specified
- //! time step, \p timestep, the global extents for the VDC will 
- //! be used.
- //!
- //! \param[in] timestep Time step of the variable  If an invalid
- //! timestep is supplied the global domain extents are used.
- //! \param[in] vcoord0 Coordinate of input point in floating point
- //! coordinates
- //! \param[out] vcoord1 Integer coordinates of closest voxel, at the 
- //! indicated refinement level, to the specified point.
- //! integer coordinates
- //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC. In fact,
- //! any invalid value is treated as the maximum refinement level
- //!
- //! \note Does not support layered grid types
- //!
- //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
- //! GetTSXCoords()
- //
- virtual void	MapUserToVox(
-	size_t timestep,
-	const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
+ void MapUserToVox(
+	size_t timestep, const double vcoord0[3], size_t vcoord1[3],
+	int reflevel
  ) const;
 
- //! Map floating point coordinates to integer block offsets.
- //!
- //! Map floating point coordinates, specified relative to a 
- //! user-defined coordinate system, to integer coordinates of the block
- //! containing the point at a given refinement level. 
- //! The integer voxel coordinates, \p vcoord1
- //! are specified relative to the refinement level
- //! indicated by \p reflevel for time step, \p timestep.
- //! The mapping is performed by using linear interpolation 
- //! The user defined coordinate system is obtained
- //! from the Metadata structure passed to the class constructor.
- //! The user coordinates are returned in \p vcoord1.
- //! Results are undefined if \p vcoord0 is outside of the volume 
- //! boundary.
- //!
- //! If a user coordinate system is not defined for the specified
- //! time step, \p timestep, the global extents for the VDC will 
- //! be used.
- //!
- //! \param[in] timestep Time step of the variable.  If an invalid
- //! timestep is supplied the global domain extents are used.
- //! \param[in] vcoord0 Coordinate of input point in floating point
- //! coordinates
- //! \param[out] vcoord1 Integer coordinates of block containing the point
- //! \param[in] reflevel Refinement level of the variable. A value of -1
- //! indicates the maximum refinment level defined for the VDC. In fact,
- //! any invalid value is treated as the maximum refinement level
- //!
- //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
- //! GetTSXCoords()
- //
- virtual void	MapUserToBlk(
-	size_t timestep,
-	const double vcoord0[3], size_t bcoord0[3], int reflevel = 0
- ) const {
-	size_t v[3];
-	MapUserToVox(timestep, vcoord0, v, reflevel);
-	Metadata::MapVoxToBlk(v, bcoord0, reflevel);
- }
 
  //! Return the variable type for the indicated variable
  //!

@@ -8,27 +8,18 @@ using namespace VAPoR;
 // Maximum number of allocable blocks
 #define MAX_NBLOCKS 1024*1024 
 
-void   DataMgrAMR::_GetDimBlk(size_t bdim[3], int reflevel) const {
-    size_t dim[3];
-
-    AMRIO::GetDim(dim, reflevel);
-
-    size_t bs[3];
-    AMRIO::GetBlockSize(bs, reflevel);
-    for (int i=0; i<3; i++) {
-        bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs[i]);
-    }
-}
-
 int DataMgrAMR::_DataMgrAMR()
 {
 	AMRIO::GetBlockSize(_bs, -1);
 
 	size_t bdim[3];
-	_GetDimBlk(bdim, -1);
+	AMRIO::GetDimBlk(bdim, -1);
 
 	//
-	// Native AMR block size can be too small for efficient memory mgt
+	// Native AMR block size can be too small for efficient memory mgt. So
+	// we make sure the block size is at least 64^3 (N.B. of course this
+	// doesn't change the size of the AMR blocks stored on disk, only
+	// the access size allowed by the DataMgr)
 	//
 	for (int i=0; i<3; i++) {
 		_bsshift[i] = 0;
@@ -39,16 +30,7 @@ int DataMgrAMR::_DataMgrAMR()
 		bdim[i] = bdim[i] >> _bsshift[i];
 	}
 
-	_nblocks = 1;
-	for (int i=0; i<3; i++) {
-		_nblocks *= bdim[i];
-	}
-	if (_nblocks > MAX_NBLOCKS) _nblocks = MAX_NBLOCKS;
-	_blkptrs = new float*[_nblocks];
-
 	_ts = -1;
-	_ts_current = (size_t) -1;
-
 
 	return(0);
 }
@@ -69,14 +51,14 @@ DataMgrAMR::DataMgrAMR(
 	(void) _DataMgrAMR();
 }
 
-int	DataMgrAMR::OpenVariableRead(
+int	DataMgrAMR::_OpenVariableRead(
     size_t timestep,
     const char *varname,
     int reflevel,
     int lod
 ) {
 
-    if (reflevel < 0) reflevel = GetNumTransforms();
+    if (reflevel < 0) reflevel = AMRIO::GetNumTransforms();
 
 	int rc = AMRIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc < 0) return (-1);
@@ -114,7 +96,7 @@ int	DataMgrAMR::_ReadBlocks(
 	//
 	const size_t *bs_native = AMRIO::GetBlockSize();
 	size_t bdim_native_base[3];
-	_GetDimBlk(bdim_native_base, 0);
+	AMRIO::GetDimBlk(bdim_native_base, 0);
 	size_t minbase[3];
 	size_t maxbase[3];
 	size_t bmin_native[3];
@@ -134,11 +116,16 @@ int	DataMgrAMR::_ReadBlocks(
 	if (rc < 0) return (-1);
 
 	
-	const size_t *bs = DataMgrAMR::GetBlockSize();
+	//
+	// bs is the block size returned to the DataMgr, but this may be
+	// larger than the actual AMR block size (bs_native) stored on disk
+	//
+	size_t bs[3];
+	DataMgrAMR::_GetBlockSize(bs, reflevel);
 	size_t block_size = bs[0]*bs[1]*bs[2];
 
 	size_t bdim_native[3];
-	_GetDimBlk(bdim_native, reflevel);
+	AMRIO::GetDimBlk(bdim_native, reflevel);
 
 	int index = 0;
 	for (int k=0; k<(bmax[2]-bmin[2]+1); k++) {
@@ -176,103 +163,11 @@ int	DataMgrAMR::_ReadBlocks(
 	return(0);
 }
  
-int	DataMgrAMR::BlockReadRegion(
+int	DataMgrAMR::_BlockReadRegion(
     const size_t bmin[3], const size_t bmax[3],
-    float *region, bool unblock
+    float *region
 ) {
-	assert (unblock == true);
-
 	return(_ReadBlocks(&_amrtree, _reflevel, bmin, bmax, region));
 }
 
 
-RegularGrid *DataMgrAMR::MakeGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
-) {
-
-	size_t bs[3];
-	DataMgrAMR::GetBlockSize(bs,-1);
-
-	size_t bdim[3];
-	AMRIO::GetDimBlk(bdim,reflevel);
-
-	size_t dim[3];
-	AMRIO::GetDim(dim,reflevel);
-
-	size_t nblocks = 1;
-	size_t block_size = 1;
-	size_t min[3], max[3];
-	for (int i=0; i<3; i++) {
-		nblocks *= bmax[i]-bmin[i]+1;
-		block_size *= bs[i];
-		min[i] = bmin[i]*bs[i];
-		max[i] = bmax[i]*bs[i] + bs[i] - 1;
-		if (max[i] >= dim[i]) max[i] = dim[i]-1;
-	}
-	if (nblocks > _nblocks) {
-		SetErrMsg("Requested region too large");
-		return(NULL);
-	}
-	for (int i=0; i<nblocks; i++) {
-		_blkptrs[i] = blocks + i*block_size;
-	}
-
-	double extents[6];
-    AMRIO::MapVoxToUser(ts,min, extents, reflevel);
-    AMRIO::MapVoxToUser(ts,max, extents+3, reflevel);
-
-	//
-	// Determine which dimensions are periodic, if any. For a dimension to
-	// be periodic the data set must be periodic, and the requested
-	// blocks must be boundary blocks
-	//
-	const vector <long> &periodic_vec = AMRIO::GetPeriodicBoundary();
-
-	bool periodic[3];
-	for (int i=0; i<3; i++) {
-		if (periodic_vec[i] && bmin[i]==0 && bmax[i]==bdim[i]-1) {
-			periodic[i] = true;
-		}
-		else {
-			periodic[i] = false;
-		}
-	}
-
-	return(new RegularGrid(bs,min,max,extents,periodic,_blkptrs));
-}
-
-RegularGrid *DataMgrAMR::ReadGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
-) {
-
-    if (reflevel < 0) reflevel = GetNumTransforms();
-
-	int rc = AMRIO::OpenVariableRead(ts, varname.c_str(), reflevel,0);
-	if (rc < 0) return (NULL);
-
-	//
-	// Read in the AMR tree
-	// N.B. Really only need to do this when the time step
-	// changes - same tree used for all variables of a given
-	// time step
-	//
-	if (ts != _ts_current) {
-		rc = AMRIO::OpenTreeRead(ts);
-		if (rc < 0) return (NULL);
-
-		rc = AMRIO::TreeRead(&_amrtree_current);
-		if (rc < 0) return (NULL);
-
-		(void) AMRIO::CloseTree();
-		_ts_current = ts;
-	}
-
-	rc =  _ReadBlocks(&_amrtree_current, reflevel, bmin, bmax, blocks);
-	if (rc<0) return(NULL);
-
-	AMRIO::CloseVariable();
-
-	return(MakeGrid(ts,varname,reflevel,lod,bmin,bmax,blocks));
-}

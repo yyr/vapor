@@ -434,7 +434,7 @@ void PythonEdit::testScript(){
 	}
 	//check that all input and output variables appear in script:
 	vector<string>  inVars3D, inVars2D;
-	vector<pair<string, Metadata::VarType_T> > outputs;
+	vector<pair<string, DataMgr::VarType_T> > outputs;
 	if(!startUp){
 		QString prog = pythonEdit->toPlainText();
 		
@@ -466,14 +466,14 @@ void PythonEdit::testScript(){
 				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars2->item(i)->text().toAscii().data());
 				return;
 			}
-			outputs.push_back( make_pair(outputVars2->item(i)->text().toStdString(),Metadata::VAR2D_XY));
+			outputs.push_back( make_pair(outputVars2->item(i)->text().toStdString(),DataMgr::VAR2D_XY));
 		}
 		for (int i = 0; i< outputVars3->count(); i++){ 
 			if (!prog.contains(outputVars3->item(i)->text())) {
 				MessageReporter::errorMsg(" Program does not contain output variable %s", outputVars3->item(i)->text().toAscii().data());
 				return;
 			}
-			outputs.push_back(make_pair(outputVars3->item(i)->text().toStdString(),Metadata::VAR3D));
+			outputs.push_back(make_pair(outputVars3->item(i)->text().toStdString(),DataMgr::VAR3D));
 		}
 		
 	}
@@ -486,12 +486,12 @@ void PythonEdit::testScript(){
 	//at refinement level 0
 	if (!startUp && outputVars2->count() > 0 && outputVars3->count() == 0 && inputVars3->count() > 0){
 		size_t regBlockExtents[3];
-		dmgr->GetDimBlk(regBlockExtents,0);
+//		dmgr->GetDimBlk(regBlockExtents,0);
 		min_bdim[2] = 0;
 		max_bdim[2] = regBlockExtents[2];
 	}
 	vector<string> testIn;
-	vector<pair<string, Metadata::VarType_T> > testOut;
+	vector<pair<string, DataMgr::VarType_T> > testOut;
 	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
 	
 	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, compression, min_bdim, max_bdim);

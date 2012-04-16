@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <cassert>
@@ -7,7 +8,6 @@
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include <vapor/errorcodes.h>
-#include <vapor/Metadata.h>
 #ifdef WIN32
 #include <float.h>
 #endif
@@ -24,12 +24,9 @@ int	DataMgr::_DataMgr(
 
 	_PipeLines.clear();
 
-	_quantizationRangeMap.clear();
 	_regionsList.clear();
 	
 	_mem_size = mem_size;
-
-	_timestamp = 0;
 
 	return(0);
 }
@@ -41,8 +38,6 @@ DataMgr::DataMgr(
 	SetDiagMsg("DataMgr::DataMgr(,%d)", mem_size);
 
 	if (_DataMgr(mem_size) < 0) return;
-
-
 }
 
 
@@ -50,38 +45,144 @@ DataMgr::~DataMgr(
 ) {
 	SetDiagMsg("DataMgr::~DataMgr()");
 
-	_timestamp = 0;
-
 	Clear();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
-
-	
-	map <string, float * >::iterator p;
-	for(p = _quantizationRangeMap.begin(); p!=_quantizationRangeMap.end(); p++){
-		if (p->second) delete [] p->second;
-	}
-	_quantizationRangeMap.clear();
 
 	_blk_mem_mgr = NULL;
 
 }
 
-
-
-float	*DataMgr::GetRegion(
-	size_t ts,
-	const char *varname,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	int	lock
+RegularGrid *DataMgr::make_grid(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t min[3], const size_t max[3], 
+	float *blocks, float *xcblks, float *ycblks, float *zcblks
 ) {
-	SetDiagMsg(
-		"DataMgr::GetRegion(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],%d)",
-		ts,varname,reflevel,lod,min[0],min[1],min[2],max[0],max[1],max[2], lock
-	);
-	return(NULL);
+
+	size_t bs[3];
+	_GetBlockSize(bs,reflevel);
+
+	size_t bdim[3];
+	get_dim_blk(bdim,reflevel);
+
+	size_t dim[3];
+	DataMgr::GetDim(dim,reflevel);
+
+	size_t bmin[3], bmax[3];
+	map_vox_to_blk(min, bmin, reflevel);
+	map_vox_to_blk(max, bmax, reflevel);
+
+    //
+    // Make sure 2D variables have valid 3rd dimensions
+    //
+    VarType_T vtype = DataMgr::GetVarType(varname);
+    switch (vtype) {
+    case VAR2D_XY:
+        dim[2] = bdim[2] = 1;
+		bs[2] = 1;
+        break;
+    case VAR2D_XZ:
+        dim[2] = bdim[2] = 1;
+		bs[1] = bs[2];
+		bs[2] = 1;
+        break;
+    case VAR2D_YZ:
+        dim[2] = bdim[2] = 1;
+		bs[0] = bs[1];
+		bs[1] = bs[2];
+		bs[2] = 1;
+        break;
+    default:
+        break;
+    }
+
+	int nblocks = 1;
+	size_t block_size = 1;
+	float **blkptrs = NULL;
+	float **xcblkptrs = NULL;
+	float **ycblkptrs = NULL;
+	float **zcblkptrs = NULL;
+
+	for (int i=0; i<3; i++) {
+		nblocks *= bmax[i]-bmin[i]+1;
+		block_size *= bs[i];
+	}
+
+	blkptrs = new float*[nblocks];
+	if (DataMgr::GetGridType().compare("layered")==0) {
+		zcblkptrs = new float*[nblocks];
+	}
+	for (int i=0; i<nblocks; i++) {
+		blkptrs[i] = blocks + i*block_size;
+
+		if (DataMgr::GetGridType().compare("layered")==0) {
+			zcblkptrs[i] = zcblks + i*block_size;
+		}
+	}
+
+	double extents[6];
+	map_vox_to_user_regular(ts,min, extents, reflevel);
+	map_vox_to_user_regular(ts,max, extents+3, reflevel);
+
+	//
+	// Determine which dimensions are periodic, if any. For a dimension to
+	// be periodic the data set must be periodic, and the requested
+	// blocks must be boundary blocks
+	//
+	const vector <long> &periodic_vec = DataMgr::GetPeriodicBoundary();
+
+	bool periodic[3];
+	for (int i=0; i<3; i++) {
+		if (periodic_vec[i] && min[i]==0 && max[i]==dim[i]-1) {
+			periodic[i] = true;
+		}
+		else {
+			periodic[i] = false;
+		}
+	}
+
+	RegularGrid *rg = NULL;
+	if (DataMgr::GetCoordSystemType().compare("spherical")==0) { 
+		vector <long> permv = GetGridPermutation();
+		size_t perm[] = {permv[0], permv[1], permv[2]};
+
+		rg = new SphericalGrid(bs,min,max,extents,perm,periodic,blkptrs);
+
+	}
+	else if (DataMgr::GetGridType().compare("regular")==0) {
+		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+	}
+	else if (DataMgr::GetGridType().compare("stretched")==0) {
+		vector <double> xcoords = _GetTSXCoords(ts);
+		vector <double> ycoords = _GetTSYCoords(ts);
+		vector <double> zcoords = _GetTSZCoords(ts);
+
+		rg = new StretchedGrid(
+			bs,min,max,extents,periodic,blkptrs,
+			xcoords, ycoords, zcoords
+		);
+
+	} else if ((DataMgr::GetGridType().compare("layered")==0) && vtype !=VAR3D){
+
+//cerr << "Hard code missing value\n";
+//		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs, -9999.0);
+		rg = new RegularGrid(bs,min,max,extents,periodic,blkptrs);
+	
+	} else if ((DataMgr::GetGridType().compare("layered")==0) && vtype ==VAR3D){
+
+std::cerr << "Hard code missing value\n";
+//		rg = new LayeredGrid(
+//			bs,min, max, extents, periodic, blkptrs, zcblkptrs,2, -9999.0
+//		);
+		rg = new LayeredGrid(
+			bs,min, max, extents, periodic, blkptrs, zcblkptrs,2
+		);
+	}
+	if (blkptrs) delete [] blkptrs;
+	if (xcblkptrs) delete [] xcblkptrs;
+	if (ycblkptrs) delete [] ycblkptrs;
+	if (zcblkptrs) delete [] zcblkptrs;
+
+	return(rg);
 }
 
 RegularGrid *DataMgr::GetGrid(
@@ -91,10 +192,10 @@ RegularGrid *DataMgr::GetGrid(
 	int lod,
 	const size_t min[3],
 	const size_t max[3],
-	int	lock
+	bool	lock
 ) {
 	RegularGrid *rg = NULL;
-	bool first = false;
+	bool ondisk = false;
 
 	SetDiagMsg(
 		"DataMgr::GetGrid(%d,%s,%d,%d,[%d,%d,%d],[%d,%d,%d],%d)",
@@ -118,83 +219,100 @@ RegularGrid *DataMgr::GetGrid(
 		break;
 	}
 
-	size_t bmin[3], bmax[3];
-	MapVoxToBlk(mymin, bmin, reflevel);
-	MapVoxToBlk(mymax, bmax, reflevel);
-
-	// See if region is already in cache. If so, return it.
 	//
-	float *blks = (float *) get_region_from_cache(
-		ts, varname, reflevel, lod, bmin, bmax, lock
-	);
+	// This code won't work for vtype = (VAR2DXZ or VAR2DYZ)
+	//
+	size_t bmin[3], bmax[3];
+	map_vox_to_blk(mymin, bmin, reflevel);
+	map_vox_to_blk(mymax, bmax, reflevel);
 
-	if (blks) {
-		SetDiagMsg("DataMgr::GetGrid() - data in cache %xll\n", blks);
-		rg = MakeGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
-		if (!rg) return (NULL);
+	//
+	// min_aligned and max_aligned are versions of mymin and mymax
+	// that are block-aligned to improve cache hit rate
+	//
+	size_t bs[3], min_aligned[3], max_aligned[3];
+	_GetBlockSize(bs, reflevel);
+	for (int i=0; i<3; i++) {
+		min_aligned[i] = bmin[i] * bs[i];
+		max_aligned[i] = bmax[i] * bs[i] + bs[i]-1;
 	}
-	else if (IsVariableDerived(varname.c_str())) {
 
+	float *blks = NULL;		// variable blocks
+	float *xcblks = NULL;	// X,Y,Z coordinate blocks
+	float *ycblks = NULL;
+	float *zcblks = NULL;
+
+	if (DataMgr::IsVariableDerived(varname)) {
 		//
-		// See if the variable is derived from another variable 
+		// See if data is already in cache
 		//
-		blks = execute_pipeline(
-			ts, varname, reflevel, lod, bmin, bmax, lock
+		blks = get_region_from_cache(
+			ts, varname, reflevel, lod, mymin, mymax, true
 		);
-		if (! blks) return(NULL);
-
-		rg = MakeGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
-		if (!rg) return (NULL);
-	} 
+	}
 	else {
-		first = true;
 
-		SetDiagMsg("DataMgr::GetGrid() - data not in cache \n");
-
-		// Else, read it from disk
 		//
-
-		blks = (float *) alloc_region(
-			ts,varname.c_str(),vtype, reflevel, lod, 
-			bmin,bmax,lock,false
+		// Get data from cache or disk
+		//
+		blks = get_region(
+			ts, varname, reflevel, lod, min_aligned, max_aligned, true, &ondisk
 		);
-		if (! blks) return(NULL);
+		if (! blks) return (NULL);
+	}
 
-		rg = ReadGrid(ts, varname, reflevel, lod, bmin, bmax, blks);
-		if (! rg) {
-			SetErrMsg(
-				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
-				varname.c_str(), ts, reflevel, lod
-			);
-			free_region(ts,varname.c_str(),reflevel,lod,bmin,bmax);
-			return (NULL);
+	//
+	// For layered data we need the blocks for the elevation grid
+	//
+	if ((DataMgr::GetGridType().compare("layered")==0) && vtype == VAR3D) {
+		bool dummy;
+		zcblks = get_region(
+			ts, "ELEVATION", reflevel, lod, min_aligned, max_aligned,
+			true, &dummy
+		);
+		if (! zcblks) {
+			if (blks) unlock_blocks(blks);
+			return(NULL);
 		}
 	}
 
-	//
-	// Reset the dimensions of the regular grid to whatever was originally
-	// requested. Also need to handle periodicity.
-	//
-	size_t dim[3];
-	GetDim(dim,reflevel);
 
-	bool iper, jper, kper;
-	rg->HasPeriodic(&iper, &jper, &kper);
-	bool periodic[3];
-	if (iper && mymin[0] == 0 && mymax[0] == dim[0]-1) periodic[0] = true;
-	else periodic[0] = false;
-	if (jper && mymin[1] == 0 && mymax[1] == dim[1]-1) periodic[1] = true;
-	else periodic[1] = false;
-	if (kper && mymin[2] == 0 && mymax[2] == dim[2]-1) periodic[2] = true;
-	else periodic[2] = false;
-	int rc = rg->Reshape(mymin,mymax,periodic);
-	if (rc<0) {
-		SetErrMsg("Invalid grid dimensions\n");
-		return(NULL);
+	if (DataMgr::IsVariableDerived(varname) && ! blks) {
+		//
+		// Derived variable that is not in cache, so we need to 
+		// create it
+		//
+		rg = execute_pipeline(
+				ts, varname, reflevel, lod, mymin, mymax, lock,
+				xcblks, ycblks, zcblks
+			);
+	}
+	else {
+		rg = make_grid(
+			ts, varname, reflevel, lod, mymin, mymax,
+			blks, xcblks, ycblks, zcblks
+		);
 	}
 
+	if (!rg) {
+		if (blks) unlock_blocks(blks);
+		if (xcblks) unlock_blocks(xcblks);
+		if (ycblks) unlock_blocks(ycblks);
+		if (zcblks) unlock_blocks(zcblks);
+		return (NULL);
+	}
 
-	if (first) {
+	// 
+	// Safe to remove locks now that were not explicitly requested
+	//
+	if (! lock) {
+		if (blks) unlock_blocks(blks);
+		if (xcblks) unlock_blocks(xcblks);
+		if (ycblks) unlock_blocks(ycblks);
+		if (zcblks) unlock_blocks(zcblks);
+	}
+
+	if (ondisk) {
 		//
 		// Make sure we have a valid floating point value
 		//
@@ -204,11 +322,11 @@ RegularGrid *DataMgr::GetGrid(
 		else mv = 0.0;
 
 		for (itr = rg->begin(); itr!=rg->end(); ++itr) {
-	#ifdef WIN32
+#ifdef WIN32
 			if ((! _finite(*itr) || _isnan(*itr)) && *itr!=mv) *itr= FLT_MAX;
-	#else
+#else
 			if ((! finite(*itr) || isnan(*itr)) && *itr!=mv) *itr= FLT_MAX;
-	#endif
+#endif
 		}
 	}
 
@@ -311,14 +429,14 @@ void	DataMgr::RemovePipeline(string name) {
 int DataMgr::VariableExists(
     size_t ts, const char *varname, int reflevel, int lod
 ) {
-	if (reflevel < 0) reflevel = GetNumTransforms()-1;
-	if (lod < 0) lod = GetCRatios().size()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
+	if (lod < 0) lod = DataMgr::GetCRatios().size()-1;
 
 	//
 	// If layered data than the variable "ELEVATION" must also exist
 	//
 	string elevation = "ELEVATION";
-	if ((GetGridType().compare("layered") == 0) && (elevation.compare(varname) !=0)) {
+	if ((DataMgr::GetGridType().compare("layered") == 0) && (elevation.compare(varname) !=0)) {
 		if (! DataMgr::VariableExists(ts, elevation.c_str(), reflevel, lod)) {
 			return(0);
 		}
@@ -333,7 +451,7 @@ int DataMgr::VariableExists(
 		return((int) exists);
 	}
 
-	if (IsVariableNative(varname)) {
+	if (DataMgr::IsVariableNative(varname)) {
 		exists = _VariableExists(ts, varname, reflevel, lod);
 		_VarInfoCache.SetExist(ts, varname, reflevel, lod, exists);
 		return((int) exists);
@@ -377,6 +495,22 @@ bool DataMgr::IsVariableDerived(string name) const {
 	}
 	return(false);
 }
+
+vector <string> DataMgr::GetVariableNames() const {
+    vector <string> svec1, svec2;
+    svec1 = GetVariables3D();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+
+    svec1 = GetVariables2DXY();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+    svec1 = GetVariables2DXZ();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+    svec1 = GetVariables2DYZ();
+    for(int i=0; i<svec1.size(); i++) svec2.push_back(svec1[i]);
+
+    return(svec2);
+};
+
 
 vector <string> DataMgr::GetVariables3D() const {
 
@@ -445,8 +579,6 @@ vector <string> DataMgr::GetVariables2DYZ() const {
 	return(svec);
 }
 
-	
-
 
 int DataMgr::GetDataRange(
 	size_t ts,
@@ -455,8 +587,8 @@ int DataMgr::GetDataRange(
 	int reflevel,
 	int lod
 ) {
-	if (reflevel < 0) reflevel = GetNumTransforms()-1;
-	if (lod < 0) lod = GetCRatios().size()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
+	if (lod < 0) lod = DataMgr::GetCRatios().size()-1;
 
 	int	rc;
 	range[0] = range[1] = 0.0;
@@ -472,9 +604,9 @@ int DataMgr::GetDataRange(
 
 	// Range isn't cache'd. Need to get it from derived class
 	//
-	if (IsVariableNative(varname)) {
+	if (DataMgr::IsVariableNative(varname)) {
 
-		rc = OpenVariableRead(ts, varname, reflevel,lod);
+		rc = _OpenVariableRead(ts, varname, reflevel,lod);
 		if (rc < 0) {
 			SetErrMsg(
 				"Failed to read variable/timestep/level/lod (%s, %d, %d, %d)",
@@ -483,7 +615,7 @@ int DataMgr::GetDataRange(
 			return(-1);
 		}
 
-		const float *r = GetDataRange();
+		const float *r = _GetDataRange();
 		if (r) {
 			range[0] = r[0];
 			range[1] = r[1];
@@ -501,10 +633,10 @@ int DataMgr::GetDataRange(
 
 			_VarInfoCache.SetRange(ts, varname, reflevel, lod, range);
 
-			CloseVariable();
+			_CloseVariable();
 			return(0);
 		}
-		CloseVariable();
+		_CloseVariable();
 	}
 
 	//
@@ -513,7 +645,7 @@ int DataMgr::GetDataRange(
 	// ourselves
 	//
 	size_t min[3], max[3];
-	rc = GetValidRegion(ts, varname, reflevel, min, max);
+	rc = DataMgr::GetValidRegion(ts, varname, reflevel, min, max);
 	if (rc<0) return(-1);
 
 	
@@ -551,7 +683,7 @@ int DataMgr::GetValidRegion(
 	size_t min[3],
 	size_t max[3]
 ) {
-	if (reflevel < 0) reflevel = GetNumTransforms()-1;
+	if (reflevel < 0) reflevel = DataMgr::GetNumTransforms()-1;
 
 	int	rc;
 
@@ -567,11 +699,11 @@ int DataMgr::GetValidRegion(
 		return(0);
 	}
 
-	if (IsVariableNative(varname)) {
+	if (DataMgr::IsVariableNative(varname)) {
 
 		// Range isn't cache'd. Need to read it from the file
 		//
-		rc = OpenVariableRead(ts, varname, reflevel, 0);
+		rc = _OpenVariableRead(ts, varname, reflevel, 0);
 		if (rc < 0) {
 			SetErrMsg(
 				"Failed to read variable/timestep/level/lod (%s, %d, %d %d)",
@@ -580,19 +712,19 @@ int DataMgr::GetValidRegion(
 			return(-1);
 		}
 
-		GetValidRegion(min, max, reflevel);
+		_GetValidRegion(min, max, reflevel);
 
 		_VarInfoCache.SetRegion(ts,varname, reflevel, min, max);
 
-		CloseVariable();
+		_CloseVariable();
 	}
-	else if (IsVariableDerived(varname)) {
+	else if (DataMgr::IsVariableDerived(varname)) {
 
 		//
 		// Initialize min1 and max1 to maximum extents
 		//
 		size_t dim[3], min1[3], max1[3];
-		GetDim(dim, reflevel);
+		DataMgr::GetDim(dim, reflevel);
 		for (int i=0; i<3; i++) {
 			min1[i] = 0;
 			max1[i] = dim[i]-1;
@@ -613,7 +745,7 @@ int DataMgr::GetValidRegion(
 		for (int i=0; i<ivars.size(); i++) {
 			size_t min2[3], max2[3];
 			
-			int rc = GetValidRegion(
+			int rc = DataMgr::GetValidRegion(
 				ts, ivars[i].c_str(), reflevel, min2, max2
 			);
 			if (rc<0) return(-1);
@@ -642,12 +774,9 @@ int DataMgr::GetValidRegion(
 }
 
 	
-int	DataMgr::UnlockGrid(
-	const RegularGrid *rg
+void	DataMgr::unlock_blocks(
+	const float *blks
 ) {
-	const void *blks = rg->GetBlks()[0];
-
-	SetDiagMsg("DataMgr::UnlockRegion()");
 
 	list <region_t>::iterator itr;
 	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
@@ -655,23 +784,30 @@ int	DataMgr::UnlockGrid(
 
 		if (region.blks == blks && region.lock_counter>0) {
 			region.lock_counter--;
-			return(0);
+			return;
 		}
 	}
-
-	SetErrMsg("Couldn't unlock region - not found");
-	return(-1);
+	return;
 }
 
+void	DataMgr::UnlockGrid(
+	const RegularGrid *rg
+) {
+	SetDiagMsg("DataMgr::UnlockGrid()");
+	const float *blks = rg->GetBlks()[0];
+	unlock_blocks(blks);
+}
+	
 
-void	*DataMgr::get_region_from_cache(
+
+float	*DataMgr::get_region_from_cache(
 	size_t ts,
 	string varname,
 	int reflevel,
 	int lod,
 	const size_t min[3],
 	const size_t max[3],
-	int	lock
+	bool	lock
 ) {
 
 	list <region_t>::iterator itr;
@@ -697,14 +833,82 @@ void	*DataMgr::get_region_from_cache(
 			_regionsList.erase(itr);
 			_regionsList.push_back(tmp_region);
 
+			SetDiagMsg(
+				"DataMgr::GetGrid() - data in cache %xll\n", tmp_region.blks
+			);
 			return(tmp_region.blks);
 		}
 	}
 
 	return(NULL);
+
 }
 
-void	*DataMgr::alloc_region(
+float *DataMgr::get_region_from_fs(
+	size_t ts, string varname, int reflevel, int lod,
+    const size_t min[3], const size_t max[3], bool	lock
+) {
+	VarType_T vtype = DataMgr::GetVarType(varname);
+
+	size_t bmin[3], bmax[3];
+	map_vox_to_blk(min, bmin, reflevel);
+	map_vox_to_blk(max, bmax, reflevel);
+
+	float *blks = alloc_region(
+		ts,varname.c_str(),vtype, reflevel, lod, 
+		min,max,lock,false
+	);
+	if (! blks) return(NULL);
+
+    int rc = _OpenVariableRead(
+		ts, varname.c_str(), reflevel, lod
+	);
+    if (rc < 0) {
+		free_region(ts,varname.c_str(),reflevel,lod,min,max);
+		return(NULL);
+	}
+
+	rc = _BlockReadRegion(bmin, bmax, blks);
+    if (rc < 0) {
+		free_region(ts,varname.c_str(),reflevel,lod,min,max);
+		return(NULL);
+	}
+
+	_CloseVariable();
+
+	SetDiagMsg("DataMgr::GetGrid() - data read from fs\n");
+	return(blks);
+}
+
+float *DataMgr::get_region(
+	size_t ts, string varname, int reflevel, int lod, 
+	const size_t min[3], const size_t max[3], bool lock, 
+	bool *ondisk
+) {
+	// See if region is already in cache. If not, read from the 
+	// file system.
+	//
+	*ondisk = false;
+	float *blks = get_region_from_cache(
+		ts, varname, reflevel, lod, min, max, lock
+	);
+	if (! blks && ! DataMgr::IsVariableDerived(varname)) {
+		blks = (float *) get_region_from_fs(
+			ts, varname, reflevel, lod, min, max, lock
+		);
+		if (! blks) {
+			SetErrMsg(
+				"Failed to read region from variable/timestep/level/lod (%s, %d, %d, %d)",
+				varname.c_str(), ts, reflevel, lod
+			);
+			return(NULL);
+		}
+		*ondisk = true;
+	}
+	return(blks);
+}
+
+float	*DataMgr::alloc_region(
 	size_t ts,
 	const char *varname,
 	VarType_T vtype,
@@ -712,7 +916,7 @@ void	*DataMgr::alloc_region(
 	int lod,
 	const size_t min[3],
 	const size_t max[3],
-	int	lock,
+	bool	lock,
 	bool fill
 ) {
 
@@ -721,7 +925,7 @@ void	*DataMgr::alloc_region(
 
 
 		size_t bs[3];
-		GetBlockSize(bs, -1);
+		_GetBlockSize(bs, -1);
 		mem_block_size = bs[0]*bs[1]*bs[2];
 
 		size_t num_blks = (_mem_size * 1024 * 1024) / mem_block_size;
@@ -738,27 +942,31 @@ void	*DataMgr::alloc_region(
 	//
 	free_region(ts,varname,reflevel,lod,min,max);
 
+	size_t bmin[3], bmax[3];
+	map_vox_to_blk(min, bmin, reflevel);
+	map_vox_to_blk(max, bmax, reflevel);
+
 	int	vs = 4;
 
 	size_t bs[3];
-	GetBlockSize(bs, reflevel);
+	_GetBlockSize(bs, reflevel);
 
 	size_t size;
 	switch (vtype) {
 	case VAR2D_XY:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) * vs;
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]) * vs;
 		break;
 
 	case VAR2D_XZ:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[2]) * vs;
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[2]) * vs;
 		break;
 	case VAR2D_YZ:
-		size = ((max[0]-min[0]+1)*bs[1]) * ((max[1]-min[1]+1)*bs[2]) * vs;
+		size = ((bmax[0]-bmin[0]+1)*bs[1]) * ((bmax[1]-bmin[1]+1)*bs[2]) * vs;
 		break;
 
 	case VAR3D:
-		size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) *
-			((max[2]-min[2]+1)*bs[2]) * vs;
+		size = ((bmax[0]-bmin[0]+1)*bs[0]) * ((bmax[1]-bmin[1]+1)*bs[1]) *
+			((bmax[2]-bmin[2]+1)*bs[2]) * vs;
 		break;
 
 	default:
@@ -898,14 +1106,17 @@ PipeLine *DataMgr::get_pipeline_for_var(string varname) const {
 	return(NULL);
 }
 
-float *DataMgr::execute_pipeline(
+RegularGrid *DataMgr::execute_pipeline(
 	size_t ts,
 	string varname,
 	int reflevel,
 	int lod,
 	const size_t min[3],
 	const size_t max[3],
-	int	lock
+	bool	lock,
+	float *xcblks,
+	float *ycblks,
+	float *zcblks
 ) {
 
 	if (reflevel < 0) reflevel = GetNumTransforms()-1;
@@ -925,25 +1136,24 @@ float *DataMgr::execute_pipeline(
 	//
 	// Ptrs to space for input and output variables
 	//
-	vector <const float *> in_blkptrs;
-	vector <float *> out_blkptrs;
+	vector <const RegularGrid *> in_grids;
+	vector <RegularGrid *> out_grids;
 
 	//
 	// Get input variables, and lock them into memory
 	//
 	for (int i=0; i<input_varnames.size(); i++) {
-		int my_lock = 1;
-		float *blks = GetRegion(
-						ts, input_varnames[i].c_str(), reflevel, lod, 
-						min, max, my_lock
+		RegularGrid *rg = GetGrid(
+						ts, input_varnames[i], reflevel, lod, 
+						min, max, true
 		);
-		if (! blks) {
+		if (! rg) {
 			// Unlock any locked variables and abort
 			//
-			for (int j=0; j<in_blkptrs.size(); j++) UnlockRegion(in_blkptrs[j]);
+			for (int j=0; j<in_grids.size(); j++) UnlockGrid(in_grids[j]);
 			return(NULL);
 		}
-		in_blkptrs.push_back(blks);
+		in_grids.push_back(rg);
 	}
 
 	//
@@ -952,7 +1162,6 @@ float *DataMgr::execute_pipeline(
 	//
 	int output_index = -1;
 	for (int i=0; i<output_vars.size(); i++) {
-		int my_lock = 1;
 
 		string v = output_vars[i].first;
 		VarType_T vtype = output_vars[i].second;
@@ -963,29 +1172,34 @@ float *DataMgr::execute_pipeline(
 		//
 		if (v.compare(varname) == 0) {
 			output_index = i;
-			my_lock = lock;
 		}
 
-		float *blks = (float *) alloc_region(
-			ts,v.c_str(),vtype, reflevel, lod, min,max,my_lock,
+		float *blks = alloc_region(
+			ts,v.c_str(),vtype, reflevel, lod, min,max,true,
 			true
 		);
 		if (! blks) {
 			// Unlock any locked variables and abort
 			//
-			for (int j=0;j<in_blkptrs.size();j++) UnlockRegion(in_blkptrs[j]);
-			for (int j=0;j<out_blkptrs.size();j++) UnlockRegion(out_blkptrs[j]);
+			for (int j=0;j<in_grids.size();j++) UnlockGrid(in_grids[j]);
+			for (int j=0;j<out_grids.size();j++) UnlockGrid(out_grids[j]);
 			return(NULL);
 		}
-		out_blkptrs.push_back(blks);
+		RegularGrid *rg = make_grid(
+			ts, v, reflevel, lod, min, max, blks, 
+			xcblks, ycblks, zcblks
+		);
+		if (! rg) {
+			for (int j=0;j<in_grids.size();j++) UnlockGrid(in_grids[j]);
+			for (int j=0;j<out_grids.size();j++) UnlockGrid(out_grids[j]);
+			return(NULL);
+		}
+		out_grids.push_back(rg);
 	}
 	assert(output_index >= 0);
 
-	size_t bs[3];
-	GetBlockSize(bs, reflevel);
-
 	int rc = pipeline->Calculate(
-		in_blkptrs, out_blkptrs, ts, reflevel, lod, bs, min, max
+		in_grids, out_grids, ts, reflevel, lod 
 	);
 
 	//
@@ -995,54 +1209,37 @@ float *DataMgr::execute_pipeline(
 	// N.B. unlocking a variable doesn't necessarily free it, but
 	// makes the space available if needed later
 	//
-	for (int i=0; i<in_blkptrs.size(); i++) UnlockRegion(in_blkptrs[i]);
 
-	for (int i=0; i<out_blkptrs.size(); i++) {
-		if (i != output_index) UnlockRegion(out_blkptrs[i]);
+	//
+	// Always unlock/free all input variables
+	//
+	for (int i=0; i<in_grids.size(); i++) {
+		UnlockGrid(in_grids[i]);
+		delete in_grids[i];
 	}
 
+	//
+	// Unlock/free all outputs on error
+	//
 	if (rc < 0) {
-		for (int i=0; i<output_vars.size(); i++) {
-			string v = output_vars[i].first;
-			free_region(ts,v.c_str(),reflevel,lod,min,max);
+		for (int i=0; i<out_grids.size(); i++) {
+			delete out_grids[i];
+			UnlockGrid(out_grids[i]);
 		}
 		return(NULL);
 	}
 
-	for (int i=0; i<output_vars.size(); i++) {
-
-		string v = output_vars[i].first;
-		VarType_T vtype = output_vars[i].second;
-		float *blks = out_blkptrs[i];
-
-		size_t size;
-		switch (vtype) {
-		case VAR2D_XY:
-			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]);
-			break;
-		case VAR2D_XZ:
-			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[2]);
-			break;
-		case VAR2D_YZ:
-			size = ((max[0]-min[0]+1)*bs[1]) * ((max[1]-min[1]+1)*bs[2]);
-			break;
-		case VAR3D:
-			size = ((max[0]-min[0]+1)*bs[0]) * ((max[1]-min[1]+1)*bs[1]) *
-				((max[2]-min[2]+1)*bs[2]);
-			break;
-		default: 
-			size = 0;
-		}
-		for (size_t i=0; i<size; i++) {
-#ifdef WIN32
-			if (! _finite(blks[i]) || _isnan(blks[i])) blks[i] = FLT_MAX;
-#else
-			if (! finite(blks[i]) || isnan(blks[i])) blks[i] = FLT_MAX;
-#endif
+	//
+	// Unlock/free outputs not being returned
+	//
+	for (int i=0; i<out_grids.size(); i++) {
+		if (i != output_index || ! lock) {
+			delete out_grids[i];
+			UnlockGrid(out_grids[i]);
 		}
 	}
 
-	return(out_blkptrs[output_index]);
+	return(out_grids[output_index]);
 }
 
 bool DataMgr::cycle_check(
@@ -1122,8 +1319,29 @@ vector <string> DataMgr::get_derived_variables() const {
     return(svec);
 }
 
-Metadata::VarType_T DataMgr::GetVarType(const string &varname) const {
-	if (!IsVariableDerived(varname)) return Metadata::GetVarType(varname);
+DataMgr::VarType_T DataMgr::GetVarType(const string &varname) const {
+	if (! DataMgr::IsVariableDerived(varname)) {
+		vector <string> vars = GetVariables3D();
+		for (int i=0; i<vars.size(); i++ ) {
+			if (vars[i].compare(varname) == 0) return(VAR3D);
+		}
+
+		vars = GetVariables2DXY();
+		for (int i=0; i<vars.size(); i++ ) {
+			if (vars[i].compare(varname) == 0) return(VAR2D_XY);
+		}
+
+		vars = GetVariables2DXZ();
+		for (int i=0; i<vars.size(); i++ ) {
+			if (vars[i].compare(varname) == 0) return(VAR2D_XZ);
+		}
+
+		vars = GetVariables2DYZ();
+		for (int i=0; i<vars.size(); i++ ) {
+			if (vars[i].compare(varname) == 0) return(VAR2D_YZ);
+		}
+		return(VARUNKNOWN);
+	}
 	for (int i = 0; i< _PipeLines.size(); i++){
 		const vector<pair<string, VarType_T> > &ovars = _PipeLines[i]->GetOutputs();
 		for (int j = 0; j<ovars.size(); j++){
@@ -1132,8 +1350,7 @@ Metadata::VarType_T DataMgr::GetVarType(const string &varname) const {
 			}
 		}
 	}
-	assert(0);
-	return VAR3D;
+	return VARUNKNOWN;
 }
 	
 
@@ -1174,15 +1391,124 @@ LayeredGrid *DataMgr::get_elev_grid(size_t ts, int reflevel)
 	return(lg);
 }
 
+void    DataMgr::map_vox_to_blk(
+	const size_t vcoord[3], size_t bcoord[3], int reflevel
+) const {
+    size_t bs[3];
+    _GetBlockSize(bs, reflevel);
+
+    for (int i=0; i<3; i++) {
+        bcoord[i] = vcoord[i] / bs[i];
+    }
+}
+
+void    DataMgr::get_dim_blk(
+	size_t bdim[3], int reflevel
+) const {
+	size_t dim[3];
+	DataMgr::GetDim(dim, -1);
+
+	for (int i=0; i<3; i++) {
+		if (dim[i]) dim[i]--;
+	}
+	size_t bmax[3];
+	map_vox_to_blk(dim, bmax, reflevel);
+
+	for (int i=0; i<3; i++) {
+		bdim[i] = bmax[i] + 1;
+	}
+}
+
+
+void	DataMgr::map_vox_to_user_regular(
+    size_t timestep, 
+	const size_t vcoord0[3], double vcoord1[3],
+	int	reflevel
+) const {
+
+    if (reflevel < 0 || reflevel > DataMgr::GetNumTransforms()) {
+		reflevel = DataMgr::GetNumTransforms();
+	}
+    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
+
+	size_t	dim[3];
+
+	vector <double> extents = DataMgr::GetExtents(timestep);
+
+	DataMgr::GetDim(dim, -1);	// finest dimension
+	for(int i = 0; i<3; i++) {
+
+		// distance between voxels along dimension 'i' in user coords
+		double deltax = (extents[i+3] - extents[i]) / (dim[i] - 1);
+
+		// coordinate of first voxel in user space
+		double x0 = extents[i];
+
+		// Boundary shrinks and step size increases with each transform
+		for(int j=0; j<(int)ldelta; j++) {
+			x0 += 0.5 * deltax;
+			deltax *= 2.0;
+		}
+		vcoord1[i] = x0 + (vcoord0[i] * deltax);
+	}
+}
+
+void	DataMgr::map_user_to_vox_regular(
+    size_t timestep, const double vcoord0[3], size_t vcoord1[3],
+	int	reflevel
+) const {
+
+    if (reflevel < 0 || reflevel > DataMgr::GetNumTransforms()) {
+		reflevel = DataMgr::GetNumTransforms();
+	}
+    int  ldelta = DataMgr::GetNumTransforms() - reflevel;
+
+	size_t	dim[3];
+	vector <double> extents = DataMgr::GetExtents(timestep);
+
+	vector <double> lextents = extents;
+    size_t maxdim[3];
+	DataMgr::GetDim(maxdim, -1);
+
+	DataMgr::GetDim(dim, reflevel);	
+	for(int i = 0; i<3; i++) {
+		double a;
+
+		// distance between voxels along dimension 'i' in user coords
+		double deltax = (lextents[i+3] - lextents[i]) / (maxdim[i] - 1);
+
+		// coordinate of first voxel in user space
+		double x0 = lextents[i];
+
+		// Boundary shrinks and step size increases with each transform
+		for(int j=0; j<(int)ldelta; j++) {
+			x0 += 0.5 * deltax;
+			deltax *= 2.0;
+		}
+		lextents[i] = x0;
+		lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
+
+		a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
+		vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
+
+		if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
+	}
+}
+
 void   DataMgr::MapUserToVox(
     size_t timestep,
     const double xyz[3], size_t ijk[3], int reflevel
  ) {
+
+	SetDiagMsg(
+		"DataMgr::MapUserToVox(%d, (%f, %f, %f), (,,) %d)",
+		timestep, xyz[0], xyz[1], xyz[2], reflevel
+	);
 	ijk[0] = 0;
 	ijk[1] = 0;
 	ijk[2] = 0;
 
-	Metadata::MapUserToVox(timestep, xyz, ijk, reflevel);
+	map_user_to_vox_regular(timestep, xyz, ijk, reflevel);
 
 	if (! (GetGridType().compare("layered") == 0)) return;
 
@@ -1200,12 +1526,16 @@ void   DataMgr::MapVoxToUser(
     size_t timestep,
     const size_t ijk[3], double xyz[3], int reflevel
  ) {
+	SetDiagMsg(
+		"DataMgr::MapVoxToUser(%d, (%d, %d, %d), (,,) %d)",
+		timestep, ijk[0], ijk[1], ijk[2], reflevel
+	);
 
 	xyz[0] = 0.0;
 	xyz[1] = 0.0;
 	xyz[2] = 0.0;
 
-	Metadata::MapVoxToUser(timestep, ijk, xyz, reflevel);
+	map_vox_to_user_regular(timestep, ijk, xyz, reflevel);
 	if (! (GetGridType().compare("layered") == 0)) return;
 
 	EnableErrMsg(false);
@@ -1238,7 +1568,7 @@ void    DataMgr::GetEnclosingRegion(
     DataMgr::MapVoxToUser(ts, temp_max, temp_maxu, reflevel);
 
     size_t dims[3];
-    Metadata::GetDim(dims, reflevel);
+    DataMgr::GetDim(dims, reflevel);
 	vector <double> extents = GetExtents(ts);
 
 	for (int i=0; i<3; i++) {

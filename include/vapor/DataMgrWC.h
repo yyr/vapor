@@ -35,7 +35,6 @@ public:
 	const string &metafile,
 	size_t mem_size
  );
-// ) : DataMgr(mem_size), WaveCodecIO(metafile()) {};
 
  DataMgrWC(
 	const MetadataVDC &metadata,
@@ -44,6 +43,82 @@ public:
 
 
  virtual ~DataMgrWC() {}; 
+
+protected:
+
+
+ //
+ //	Metadata methods
+ //
+
+ virtual void   _GetDim(size_t dim[3], int reflevel) const {
+    return(WaveCodecIO::GetDim(dim, reflevel));
+ };
+
+ virtual void _GetBlockSize(size_t bs[3], int reflevel) const {
+	WaveCodecIO::GetBlockSize(bs, reflevel);
+ }
+
+ virtual int _GetNumTransforms() const {
+	return(WaveCodecIO::GetNumTransforms());
+ };
+
+ virtual vector <size_t> _GetCRatios() const {
+	return(WaveCodecIO::GetCRatios());
+ };
+
+ virtual string _GetCoordSystemType() const {
+	return(WaveCodecIO::GetCoordSystemType());
+ };
+
+ virtual string _GetGridType() const {
+	return(WaveCodecIO::GetGridType());
+ };
+
+ virtual vector<double> _GetExtents(size_t ts) const {
+	return(WaveCodecIO::GetExtents(ts));
+ };
+
+ virtual long _GetNumTimeSteps() const {
+	return(WaveCodecIO::GetNumTimeSteps());
+ };
+
+ virtual string _GetMapProjection() const {
+	return(WaveCodecIO::GetMapProjection());
+ };
+
+ virtual vector <string> _GetVariables3D() const {
+	return(WaveCodecIO::GetVariables3D());
+ };
+
+ virtual vector <string> _GetVariables2DXY() const {
+	return(WaveCodecIO::GetVariables2DXY());
+ };
+
+ virtual vector <string> _GetVariables2DXZ() const {
+	return(WaveCodecIO::GetVariables2DXZ());
+ };
+
+ virtual vector <string> _GetVariables2DYZ() const {
+	return(WaveCodecIO::GetVariables2DYZ());
+ };
+
+ virtual vector<long> _GetPeriodicBoundary() const {
+	return(WaveCodecIO::GetPeriodicBoundary());
+ };
+
+ virtual vector<long> _GetGridPermutation() const {
+	return(WaveCodecIO::GetGridPermutation());
+ };
+
+ virtual double _GetTSUserTime(size_t ts) const {
+	return(WaveCodecIO::GetTSUserTime(ts));
+ };
+
+ virtual void _GetTSUserTimeStamp(size_t ts, string &s) const {
+	WaveCodecIO::GetTSUserTimeStamp(ts,s);
+ };
+
 
  virtual int _VariableExists(
 	size_t ts,
@@ -54,134 +129,37 @@ public:
 	return (WaveCodecIO::VariableExists(ts,varname,reflevel, lod));
  };
 
- //
- //	Metadata methods
- //
 
- virtual const size_t *GetBlockSize() const {
-	return(MetadataVDC::GetBlockSize());
- }
-
- virtual void GetBlockSize(size_t bs[3], int reflevel) const {
-	WaveCodecIO::GetBlockSize(bs, reflevel);
- }
-
- virtual int GetNumTransforms() const {
-	return(WaveCodecIO::GetNumTransforms());
- };
-
- virtual vector <size_t> GetCRatios() const {
-	return(WaveCodecIO::GetCRatios());
- };
-
- virtual vector<double> GetExtents(size_t ts) const {
-	return(WaveCodecIO::GetExtents(ts));
- };
-
- virtual long GetNumTimeSteps() const {
-	return(WaveCodecIO::GetNumTimeSteps());
- };
-
- virtual vector <string> _GetVariables3D() const {
-	return(WaveCodecIO::GetVariables3D());
- };
-
- virtual vector <string> _GetVariables2DXY() const {
-	return(WaveCodecIO::GetVariables2DXY());
- };
- virtual vector <string> _GetVariables2DXZ() const {
-	return(WaveCodecIO::GetVariables2DXZ());
- };
- virtual vector <string> _GetVariables2DYZ() const {
-	return(WaveCodecIO::GetVariables2DYZ());
- };
-
- virtual vector<long> GetPeriodicBoundary() const {
-	return(WaveCodecIO::GetPeriodicBoundary());
- };
-
- virtual vector<long> GetGridPermutation() const {
-	return(WaveCodecIO::GetGridPermutation());
- };
-
- virtual double GetTSUserTime(size_t ts) const {
-	return(WaveCodecIO::GetTSUserTime(ts));
- };
-
- virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
-	WaveCodecIO::GetTSUserTimeStamp(ts,s);
- };
-
- virtual void   GetGridDim(size_t dim[3]) const {
-	return(WaveCodecIO::GetGridDim(dim));
- };
-
- virtual string GetMapProjection() const {
-	return(WaveCodecIO::GetMapProjection());
- };
-
- virtual string GetCoordSystemType() const {
-	return(WaveCodecIO::GetCoordSystemType());
- };
-
- virtual string GetGridType() const {
-	return(WaveCodecIO::GetGridType());
- };
-	
-
-
-
-protected:
-
- virtual int	OpenVariableRead(
+ virtual int	_OpenVariableRead(
 	size_t timestep,
 	const char *varname,
 	int reflevel = 0,
 	int lod = 0
  ) {
-	return(WaveCodecIO::OpenVariableRead(
-		timestep, varname, reflevel, lod)
-	); 
+	return(WaveCodecIO::OpenVariableRead(timestep, varname, reflevel, lod)); 
  };
 
- virtual int	CloseVariable() {
-	 return (WaveCodecIO::CloseVariable());
- };
-
- virtual int    BlockReadRegion(
-    const size_t bmin[3], const size_t bmax[3],
-    float *region, bool unblock = true
- )  {
- 	return(WaveCodecIO::BlockReadRegion(
-		bmin, bmax, region, unblock)
-	);
- }; 
-
- virtual RegularGrid    *MakeGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
- );
-
- virtual RegularGrid    *ReadGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
- );
-
- virtual void GetValidRegion(
+ virtual void _GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
  ) const {
- 	return(WaveCodecIO::GetValidRegion(
-		min, max, reflevel)
-	);
+ 	return(WaveCodecIO::GetValidRegion( min, max, reflevel));
  };
 
- virtual const float *GetDataRange() const {
+ virtual const float *_GetDataRange() const {
 	return(WaveCodecIO::GetDataRange());
  }
 
-private:
- float **_blkptrs;
- int _DataMgrWC();
+ virtual int    _BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3],
+    float *region
+ )  {
+ 	return(WaveCodecIO::BlockReadRegion(bmin, bmax, region, false));
+ }; 
+
+ virtual int	_CloseVariable() {
+	 return (WaveCodecIO::CloseVariable());
+ };
+
 
 };
 

@@ -26,8 +26,6 @@
 #include "dvrparams.h"
 #include <vapor/DataMgr.h>
 #include "pythonpipeline.h"
-#include <vapor/DataMgrWB.h>
-#include <vapor/DataMgrWC.h>
 #include <vapor/DataMgrFactory.h>
 #include <vapor/ParamNode.h>
 

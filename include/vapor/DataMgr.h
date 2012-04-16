@@ -11,7 +11,6 @@
 #include <vector>
 #include <vapor/MyBase.h>
 #include <vapor/BlkMemMgr.h>
-#include <vapor/Metadata.h>
 #include <vapor/common.h>
 #include <vapor/RegularGrid.h>
 #include <vapor/LayeredGrid.h>
@@ -37,9 +36,20 @@ class PipeLine;
 //! it declares a number of protected pure virtual methods that must be
 //! implemented by specializations of this class.
 //
-class VDF_API DataMgr : public Metadata, public VetsUtil::MyBase {
+class VDF_API DataMgr : public VetsUtil::MyBase {
 
 public:
+
+ //! An enum of variable types. Variables defined in a data collection
+ //! may be either three-dimensional
+ //! (\p VAR3D), or two-dimensional. In the latter case the two-dimesional
+ //! data are constrained to lie in the XY, XZ, or YZ coordinate planes
+ //! of a 3D volume
+ //!
+ enum VarType_T {
+    VARUNKNOWN = -1,
+    VAR3D, VAR2D_XY, VAR2D_XZ, VAR2D_YZ
+ };
 
  //! Constructor for the DataMgr class. 
  //!
@@ -57,6 +67,88 @@ public:
 
  virtual ~DataMgr(); 
 
+ //! \copydoc _GetDim()
+ //
+ virtual void   GetDim(size_t dim[3], int reflevel = 0) const {
+	return(_GetDim(dim, reflevel));
+ }
+
+ //! \copydoc _GetNumTransforms()
+ //
+ int GetNumTransforms() const { return(_GetNumTransforms()); };
+
+ //! \copydoc GetCRatios()
+ //
+ virtual vector <size_t> GetCRatios() const { return( _GetCRatios()); }
+
+ //! \copydoc _GetCoordSystemType()
+ //
+ virtual string GetCoordSystemType() const {
+	return(_GetCoordSystemType());
+ }
+
+ //! \copydoc _GetGridType()
+ //
+ virtual string GetGridType() const { return(_GetGridType()); };
+
+ //! \copydoc _GetExtents()
+ //
+ virtual vector<double> GetExtents(size_t ts = 0) const {
+	return(_GetExtents(ts)); 
+ };
+
+ //! \copydoc _GetNumTimeSteps()
+ //
+ virtual long GetNumTimeSteps() const { return(_GetNumTimeSteps()); };
+
+
+ //! \copydoc _GetMapProjection()
+ //
+ virtual string GetMapProjection() const {
+	return(_GetMapProjection()); 
+ }
+
+ virtual vector <string> GetVariableNames() const;
+
+ //! \copydoc _GetVariables3D()
+ //
+ virtual vector <string> GetVariables3D() const;
+
+ //! \copydoc _GetVariables2DXY()
+ //
+ virtual vector <string> GetVariables2DXY() const;
+
+ //! \copydoc _GetVariablesXZ()
+ //
+ virtual vector <string> GetVariables2DXZ() const;
+
+ //! \copydoc _GetVariablesYZ()
+ //
+ virtual vector <string> GetVariables2DYZ() const;
+
+ //! \copydoc _GetPeriodicBoundary()
+ //
+ virtual vector<long> GetPeriodicBoundary() const {
+	return(_GetPeriodicBoundary());
+ };
+
+ //! \copydoc _GetGridPermutation()
+ //
+ virtual vector<long> GetGridPermutation() const {
+	return(_GetGridPermutation());
+ };
+
+ //! \copydoc _GetTSUserTime()
+ //
+ virtual double GetTSUserTime(size_t ts) const {
+	return(_GetTSUserTime(ts));
+ };
+
+ //! \copydoc _GetTSUserTimeStamp()
+ //
+ virtual void GetTSUserTimeStamp(size_t ts, string &s) const {
+	return(_GetTSUserTimeStamp(ts, s));
+ };
 
  //! Read in and return a subregion from the dataset.
  //!
@@ -69,11 +161,11 @@ public:
  //! will attempt to access the varible through methods implemented by
  //! derived classes of the DataMgr class.
  //!
- //! The \p ts, \p varname, and \p level pararmeter tuple identifies 
- //! the time step, variable name, and refinement level, 
+ //! The \p ts, \p varname, \p lod, and \p level pararmeter tuple identifies 
+ //! the time step, variable name, level-of-detail, and refinement level, 
  //! respectively, of the requested volume.
  //! The \p min and \p max vectors identify the minium and
- //! maximum extents, in block coordinates, of the subregion of interest. The
+ //! maximum extents, in voxel coordinates, of the subregion of interest. The
  //! minimum valid value of \p min is (0,0,0), the maximum valid value of
  //! \p max is (nx-1,ny-1,nz-1), where nx, ny, and nz are the 
  //! voxel dimensions
@@ -98,8 +190,7 @@ public:
  //! with the requested region of memory. The counter is decremented
  //! when UnlockGrid() is invoked.
  //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
+ //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
  //! \param[in] varname A valid variable name 
  //! \param[in] reflevel Refinement level requested
  //! \param[in] lod Level of detail requested
@@ -119,19 +210,8 @@ public:
     int lod,
     const size_t min[3],
     const size_t max[3],
-    int lock = 0
+    bool lock = false
  );
-
- float   *GetRegion(
-    size_t ts,
-    const char *varname,
-    int reflevel,
-    int lod,
-    const size_t min[3],
-    const size_t max[3],
-    int lock = 0
- );
-
 
  //! Unlock a floating-point region of memory 
  //!
@@ -148,17 +228,24 @@ public:
  //!
  //! \sa GetRegion(), GetRegion()
  //
- int UnlockGrid(const RegularGrid *rg);
+ void UnlockGrid(const RegularGrid *rg);
 
+ //! \deprecated
+ //
  int UnlockRegion(const float *) {return(-1);};
+
+ //! Clear the memory cache
+ //!
+ //! This method clears the internal memory cache of all entries
+ //
+ void	Clear();
 
  //! Return the current data range as a two-element array
  //!
  //! This method returns the minimum and maximum data values
  //! for the indicated time step and variable
  //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
+ //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
  //! \param[in] varname Name of variable 
  //! \param[in] reflevel Refinement level requested
  //! \param[in] lod Level of detail requested
@@ -182,8 +269,7 @@ public:
  //! be available for this region.
  //!
  //!
- //! \param[in] ts A valid time step from the Metadata object used 
- //! to initialize the class
+ //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
  //! \param[in] varname Name of variable 
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] min Minimum coordinate bounds (in voxels) of volume
@@ -199,27 +285,8 @@ public:
     size_t max[3]
  );
 
- //! Clear the memory cache
- //!
- //! This method clears the internal memory cache of all entries
- //
- void	Clear();
 
- //! Returns true if indicated data volume is available
- //!
- //! Returns true if the variable identified by the timestep, variable
- //! name, refinement level, and level-of-detail is present in 
- //! the data set. Returns 0 if
- //! the variable is not present.
- //! \param[in] ts A valid time step from the Metadata object used
- //! to initialize the class
- //! \param[in] varname A valid variable name
- //! \param[in] reflevel Refinement level requested. The coarsest 
- //! refinement level is 0 (zero). A value of -1 indicates the finest
- //! refinement level contained in the VDC.
- //! \param[in] lod Compression level of detail requested. The coarsest 
- //! approximation level is 0 (zero). A value of -1 indicates the finest
- //! refinement level contained in the VDC.
+ //! \copydoc _VariableExists()
  //
  virtual int VariableExists(
 	size_t ts,
@@ -258,22 +325,6 @@ public:
  //!
  void RemovePipeline(string name);
 
- //! \copydoc Metadata::GetVariables3D()
- //
- virtual vector <string> GetVariables3D() const;
-
- //! \copydoc Metadata::GetVariables2DXY()
- //
- virtual vector <string> GetVariables2DXY() const;
-
- //! \copydoc Metadata::GetVariables2DXZ()
- //
- virtual vector <string> GetVariables2DXZ() const;
-
- //! \copydoc Metadata::GetVariables2DYZ()
- //
- virtual vector <string> GetVariables2DYZ() const;
-
  //! Return true if the named variable is the output of a pipeline
  //!
  //! This method returns true if \p varname matches a variable name
@@ -298,30 +349,74 @@ public:
  virtual VarType_T GetVarType(const string &varname) const; 
 
 	
-//! Purge the cache of a variable
-//!
-//! \param[in] varname is the variable name
-//!
-void PurgeVariable(string varname);
-
-
- //! \copydoc Metadata::MapUserToVox()
+ //! Purge the cache of a variable
  //!
- //! \note Supports layered grid types
+ //! \param[in] varname is the variable name
+ //!
+ void PurgeVariable(string varname);
+
+ //! Map floating point coordinates to integer voxel offsets.
+ //!
+ //! Map floating point coordinates, specified relative to a
+ //! user-defined coordinate system, to the closest integer voxel
+ //! coordinates for a voxel at a given refinement level.
+ //! The integer voxel coordinates, \p vcoord1,
+ //! returned are specified relative to the refinement level
+ //! indicated by \p reflevel for time step, \p timestep.
+ //! The mapping is performed by using linear interpolation
+ //! Results are undefined if \p vcoord0 is outside of the volume
+ //! boundary.
+ //!
+ //! If a user coordinate system is not defined for the specified
+ //! time step, \p timestep, the global extents for the VDC will
+ //! be used.
+ //!
+ //! \param[in] timestep Time step of the variable  If an invalid
+ //! timestep is supplied the global domain extents are used.
+ //! \param[in] vcoord0 Coordinate of input point in floating point
+ //! coordinates
+ //! \param[out] vcoord1 Integer coordinates of closest voxel, at the
+ //! indicated refinement level, to the specified point.
+ //! integer coordinates
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC. In fact,
+ //! any invalid value is treated as the maximum refinement level
+ //!
+ //! \sa GetGridType(), GetExtents()
  //
  virtual void   MapUserToVox(
     size_t timestep,
     const double vcoord0[3], size_t vcoord1[3], int reflevel = 0
- ) ;
+ );
 
- //! \copydoc Metadata::MapVoxToUser()
+ //! Map integer voxel coordinates to user-defined floating point coords.
  //!
- //! \note Supports layered grid types
+ //! Map the integer coordinates of the specified voxel to floating
+ //! point coordinates in a user defined space. The voxel coordinates,
+ //! \p vcoord0 are specified relative to the refinement level
+ //! indicated by \p reflevel for time step \p timestep.
+ //! The mapping is performed by using linear interpolation
+ //! The user coordinates are returned in \p vcoord1.
+ //! Results are undefined if vcoord is outside of the volume
+ //! boundary.
+ //!
+ //! \param[in] timestep Time step of the variable. If an invalid
+ //! timestep is supplied the global domain extents are used.
+ //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel)
+ //! coordinates
+ //! \param[out] vcoord1 Coordinate of transformed voxel in user-defined,
+ //! floating point  coordinates
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined. In fact,
+ //! any invalid value is treated as the maximum refinement level
+ //!
+ //! \sa Metatdata::GetGridType(), GetExtents(),
+ //! GetTSXCoords()
  //
  virtual void   MapVoxToUser(
     size_t timestep,
     const size_t vcoord0[3], double vcoord1[3], int ref_level = 0
- ) ;
+ );
 
  //!
  //! Get voxel coordinates of grid containing a region
@@ -348,23 +443,263 @@ void PurgeVariable(string varname);
 
 protected:
 
- void    *alloc_region(
-	size_t ts,
-	const char *varname,
-	VarType_T vtype,
-	int reflevel,
-	int lod,
-	const size_t min[3],
-	const size_t max[3],
-	int lock,
-	bool fill
- ); 
 
  const vector<string> emptyVec;
- 
 
  // The protected methods below are pure virtual and must be implemented by any 
  // child class  of the DataMgr.
+
+ //! Get the dimension of a volume
+ //!
+ //! Returns the X,Y,Z coordinate dimensions of all data variables
+ //! in grid (voxel) coordinates at the resolution
+ //! level indicated by \p reflevel. Hence, all variables of a given
+ //! type (3D or 2D)
+ //! must have the same dimension. If \p reflevel is -1 (or the value
+ //! returned by GetNumTransforms()) the native grid resolution is
+ //! returned. In fact, any value outside the valid range is treated
+ //! as the maximum refinement level
+ //!
+ //! \param[in] reflevel Refinement level of the variable
+ //! \param[out] dim A three element vector (ordered X, Y, Z) containing the
+ //! voxel dimensions of the data at the specified resolution.
+ //!
+ //! \sa GetNumTransforms()
+ //
+ virtual void   _GetDim(size_t dim[3], int reflevel = 0) const = 0;
+
+
+ //! Return the internal blocking factor at a given refinement level
+ //!
+ //! For multi-resolution data this method returns the dimensions
+ //! of a data block at refinement level \p reflevel, where reflevel
+ //! is in the range 0 to GetNumTransforms(). A value of -1 may be
+ //! specified to indicate the maximum refinement level. In fact,
+ //! any value outside the valid refinement level range will be treated
+ //! as the maximum refinement level.
+ //!
+ //! \param[in] reflevel Refinement level
+ //! \param[bs] dim Transformed dimension.
+ //!
+ //! \retval bs  A three element vector containing the voxel dimension of
+ //! a data block
+ //
+ virtual void _GetBlockSize(size_t bs[3], int reflevel) const = 0;
+
+ //! Return number of transformations in hierarchy
+ //!
+ //! For multi-resolution data this method returns the number of
+ //! coarsened approximations present. If no approximations
+ //! are available - if only the native data are present - the return
+ //! value is 0.
+ //!
+ //! \retval n  The number of coarsened data approximations available
+ //
+ virtual int _GetNumTransforms() const = 0;
+
+ //! Return the compression ratios available.
+ //!
+ //! For data sets offering level-of-detail, the method returns a
+ //! vector of integers, each specifying an available compression factor.
+ //! For example, a factor of 10 indicates a compression ratio of 10:1.
+ //! The vector returned is sorted from highest compression ratio
+ //! to lowest. I.e. the most compressed data maps to index 0 in
+ //! the returned vector.
+ //!
+ //! \retval cr A vector of one or more compression factors
+ //
+ virtual vector <size_t> _GetCRatios() const {
+	vector <size_t> cr; cr.push_back(1); return(cr);
+ }
+
+ //! Return the coordinate system type. One of \b cartesian or \b spherical
+ //! \retval type
+ //!
+ //
+ virtual string _GetCoordSystemType() const { return("cartesian"); };
+
+ //! Return the grid type. One of \b regular, \b stretched, \b block_amr,
+ //! or \b spherical
+ //!
+ //! \retval type
+ //!
+ //
+ virtual string _GetGridType() const { return("regular"); };
+
+ //! Return the domain extents specified in user coordinates
+ //!
+ //! Return the domain extents specified in user coordinates
+ //! for the indicated time step. Variables in the data have
+ //! spatial positions defined in a user coordinate system.
+ //! These positions may vary with time. This method returns
+ //! min and max bounds, in user coordinates, of all variables
+ //! at a given time step.
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1. If \p ts is out of range, GetExtents()
+ //! will return a reasonable default value.
+ //!
+ //! \retval extents A six-element array containing the min and max
+ //! bounds of the data domain in user-defined coordinates. The first
+ //! three elements specify the minimum X, Y, and Z bounds, respectively,
+ //! the second three elements specify the maximum bounds.
+ //!
+ //
+ virtual vector<double> _GetExtents(size_t ts = 0) const = 0;
+
+ //! Return the X dimension coordinate array, if it exists
+ //!
+ //! For stretched grids, _GetGridType() == "stretched", this method
+ //! returns the X component of the grid user coordinates. This method
+ //! is only called for stretched grids. 
+ //!
+ //! \retval value An array of monotonically changing values specifying
+ //! the X dimension user coordinates, in a user-defined coordinate 
+ //! system, of each
+ //! YZ sample plane. An empty vector is returned if the coordinate
+ //! dimension array is not defined for the specified time step.
+ //!
+ //! \sa _GetGridType(), GetTSXCoords()
+ //!
+ //
+ vector <double> _GetTSXCoords(size_t ts) const {
+	vector <double> empty; return(empty);
+ }
+
+ //! Return the Y dimension coordinate array, if it exists
+ //!
+ vector <double> _GetTSYCoords(size_t ts) const {
+	vector <double> empty; return(empty);
+ }
+
+ //! Return the Z dimension coordinate array, if it exists
+ //!
+ vector <double> _GetTSZCoords(size_t ts) const {
+	vector <double> empty; return(empty);
+ }
+
+ //! Return the number of time steps in the data collection
+ //!
+ //! \retval value The number of time steps
+ //!
+ //
+ virtual long _GetNumTimeSteps() const = 0;
+
+
+ //! Return the Proj4 map projection string.
+ //!
+ //! \retval value An empty string if a Proj4 map projection is
+ //! not available, otherwise a properly formatted Proj4 projection
+ //! string is returned.
+ //!
+ //
+ virtual string _GetMapProjection() const {string empty; return (empty); };
+
+ //!
+ //! \retval value is a space-separated list of 3D variable names.
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> _GetVariables3D() const = 0;
+
+ //! Return the names of the 2D, XY variables in the collection
+ //!
+ //! \retval value is a space-separated list of 2D XY variable names
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> _GetVariables2DXY() const = 0;
+
+ //! Return the names of the 2D, XZ variables in the collection
+ //!
+ //! \retval value is a space-separated list of 2D ZY variable names
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> _GetVariables2DXZ() const = 0;
+
+ //! Return the names of the 2D, YZ variables in the collection
+ //!
+ //! \retval value is a space-separated list of 2D YZ variable names
+ //! An emptry string is returned if no variables of this type are present
+ //!
+ //
+ virtual vector <string> _GetVariables2DYZ() const = 0;
+
+
+ //! Return a three-element boolean array indicating if the X,Y,Z
+ //! axes have periodic boundaries, respectively.
+ //!
+ //! \retval boolean-vector
+ //!
+ //
+ virtual vector<long> _GetPeriodicBoundary() const = 0;
+
+
+ //! Return a three-element integer array indicating the coordinate
+ //! ordering permutation.
+ //!
+ //! \retval integer-vector
+ //!
+ virtual vector<long> _GetGridPermutation() const {
+	vector <long> v; v.push_back(0); v.push_back(1); v.push_back(2); return(v);
+ };
+
+ //! Return the time for a time step
+ //!
+ //! This method returns the time, in user-defined coordinates,
+ //! associated with the time step, \p ts. Variables such as
+ //! velocity field components that are expressed in distance per
+ //! units of time are expected to use the same time coordinates
+ //! as the values returned by this mehtod.
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //!
+ //! \retval value The user time at time step \p ts. If \p ts is outside
+ //! the valid range zero is returned.
+ //!
+ //
+ virtual double _GetTSUserTime(size_t ts) const = 0;
+
+
+ //! Return the time for a time step
+ //!
+ //! This method returns the user time,
+ //! associated with the time step, \p ts, as a formatted string.
+ //! The returned time stamp is intended to be used for annotation
+ //! purposes
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \param[out] s A formated time string. If \p ts is outside
+ //! the valid range zero the empty string is returned.
+ //!
+ //
+ virtual void _GetTSUserTimeStamp(size_t ts, string &s) const = 0;
+
+
+ //! Returns true if indicated data volume is available
+ //!
+ //! Returns true if the variable identified by the timestep, variable
+ //! name, refinement level, and level-of-detail is present in 
+ //! the data set. Returns 0 if
+ //! the variable is not present.
+ //! \param[in] ts A valid time step between 0 and GetNumTimesteps()-1
+ //! \param[in] varname A valid variable name
+ //! \param[in] reflevel Refinement level requested. The coarsest 
+ //! refinement level is 0 (zero). A value of -1 indicates the finest
+ //! refinement level contained in the VDC.
+ //! \param[in] lod Compression level of detail requested. The coarsest 
+ //! approximation level is 0 (zero). A value of -1 indicates the finest
+ //! refinement level contained in the VDC.
+ //
+ virtual int _VariableExists(
+	size_t ts,
+	const char *varname,
+	int reflevel = 0,
+	int lod = 0
+ ) const = 0;
 
 
  //! Open the named variable for reading
@@ -379,14 +714,14 @@ protected:
  //!
  //! The valid range of values for
  //! \p reflevel is [0..max_refinement], where \p max_refinement is the
- //! maximum finement level of the data set: Metadata::GetNumTransforms().
+ //! maximum finement level of the data set: GetNumTransforms().
  //! A value of zero indicates the
  //! coarsest resolution data, a value of \p max_refinement indicates the
  //! finest resolution data.
  //!
  //! The valid range of values for
  //! \p lod is [0..max_lod], where \p max_lod is the
- //! maximum lod of the data set: Metadata::GetCRatios().size() - 1.
+ //! maximum lod of the data set: GetCRatios().size() - 1.
  //! A value of zero indicates the
  //! highest compression ratio, a value of \p max_lod indicates the
  //! lowest compression ratio.
@@ -402,52 +737,14 @@ protected:
  //! \param[in] lod Level of detail requested. A value of -1
  //! indicates the lowest compression level available for the VDC
  //!
- //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
+ //! \sa GetVariables3D(), GetVariables2DXY(), GetNumTransforms()
  //!
- virtual int	OpenVariableRead(
+ virtual int	_OpenVariableRead(
 	size_t timestep,
 	const char *varname,
 	int reflevel = 0,
 	int lod = 0
  ) = 0;
-
- //! Close the currently opened variable.
- //!
- //! \sa OpenVariableRead()
- //
- virtual int	CloseVariable() = 0;
-
- //! Read in and return a subregion from the currently opened multiresolution
- //! data volume.
- //!
- //! The dimensions of the region are provided in block coordinates. However,
- //! the returned region is not blocked. 
- //! 
- //!
- //! \param[in] bmin Minimum region extents in block coordinates
- //! \param[in] bmax Maximum region extents in block coordinates
- //! \param[out] region The requested volume subregion
- //!
- //! \retval status Returns a non-negative value on success
- //! \sa OpenVariableRead(), Metadata::GetBlockSize(), MapVoxToBlk()
- //
- virtual int    BlockReadRegion(
-    const size_t bmin[3], const size_t bmax[3],
-    float *region, bool unblock = true
- ) = 0;
-
- virtual RegularGrid    *ReadGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
- ) = 0; 
-
- virtual RegularGrid    *MakeGrid(
-	size_t ts, string varname, int reflevel, int lod,
-    const size_t bmin[3], const size_t bmax[3], float *blocks
- ) = 0; 
-
-
-
 
  //! Return the valid bounds of the currently opened region
  //!
@@ -465,9 +762,9 @@ protected:
  //! \retval status Returns a negative value if the volume is not opened
  //! for reading.
  //!
- //! \sa OpenVariableWrite(), OpenVariableRead()
+ //! \sa _OpenVariableRead()
  //
- virtual void GetValidRegion(
+ virtual void _GetValidRegion(
     size_t min[3], size_t max[3], int reflevel
  ) const = 0;
 
@@ -482,44 +779,37 @@ protected:
  //! implementation of this method returns NULL, the DataMgr class
  //! will compute the min and max itself.
  //!
- virtual const float *GetDataRange() const = 0;
+ virtual const float *_GetDataRange() const { return(NULL);};
 
 
-
-
-
- //! \copydoc Metadata::VariableExists()
+ //! Read in and return a subregion from the currently opened multiresolution
+ //! data volume.
+ //!
+ //! The dimensions of the region are provided in block coordinates. However,
+ //! the returned region is not blocked. 
+ //! 
+ //!
+ //! \param[in] bmin Minimum region extents in block coordinates
+ //! \param[in] bmax Maximum region extents in block coordinates
+ //! \param[out] region The requested volume subregion
+ //!
+ //! \retval status Returns a non-negative value on success
+ //! \sa _OpenVariableRead(), _GetBlockSize()
  //
- virtual int _VariableExists(
-	size_t ts,
-	const char *varname,
-	int reflevel = 0,
-	int lod = 0
- ) const = 0;
+ virtual int    _BlockReadRegion(
+    const size_t bmin[3], const size_t bmax[3],
+    float *region
+ ) = 0;
 
- //! \copydoc Metadata::_GetVariables3D()
+ //! Close the currently opened variable.
+ //!
+ //! \sa _OpenVariableRead()
  //
- virtual vector <string> _GetVariables3D() const = 0;
-
- //! \copydoc Metadata::_GetVariables2DXY()
- //
- virtual vector <string> _GetVariables2DXY() const = 0;
-
- //! \copydoc Metadata::_GetVariables2DXZ()
- //
- virtual vector <string> _GetVariables2DXZ() const = 0;
-
- //! \copydoc Metadata::_GetVariables2DYZ()
- //
- virtual vector <string> _GetVariables2DYZ() const = 0;
-
+ virtual int	_CloseVariable() = 0;
 
 private:
 
-
-
  size_t _mem_size;
-
 
  typedef struct {
 	size_t ts;
@@ -529,16 +819,11 @@ private:
 	size_t min[3];
 	size_t max[3];
 	int lock_counter;
-	void *blks;
+	float *blks;
  } region_t;
 
  // a list of all allocated regions
  list <region_t> _regionsList;
-
- // min and max bounds for quantization
- map <string, float *> _quantizationRangeMap;	
-
- int	_timestamp;	// access time of most recently accessed region
 
  BlkMemMgr	*_blk_mem_mgr;
 
@@ -605,16 +890,44 @@ private:
 
  VarInfoCache _VarInfoCache;
 
- void	*get_region_from_cache(
+ float	*get_region_from_cache(
 	size_t ts,
 	string varname,
 	int reflevel,
 	int lod,
 	const size_t min[3],
 	const size_t max[3],
-	int lock
+	bool lock
  );
 
+ float	*get_region_from_fs(
+	size_t ts,
+	string varname,
+	int reflevel,
+	int lod,
+	const size_t min[3],
+	const size_t max[3],
+	bool lock
+ );
+
+ float *get_region(
+	size_t ts, string varname, int reflevel, int lod, 
+	const size_t min[3], const size_t max[3], bool lock, bool *ondisk
+ );
+
+ void unlock_blocks(const float *blks);
+
+ float    *alloc_region(
+	size_t ts,
+	const char *varname,
+	VarType_T vtype,
+	int reflevel,
+	int lod,
+	const size_t min[3],
+	const size_t max[3],
+	bool lock,
+	bool fill
+ ); 
 
  void	free_region(
 	size_t ts,
@@ -631,9 +944,10 @@ private:
 
  int	_DataMgr(size_t mem_size);
 
- float *execute_pipeline(
+ RegularGrid *execute_pipeline(
 	size_t ts, string varname, int reflevel, int lod,
-	const size_t min[3], const size_t max[3], int lock
+	const size_t min[3], const size_t max[3], bool lock,
+	float *xcblks, float *ycblks, float *zcblks
  ); 
 
  // Check for circular dependencies in a pipeline 
@@ -657,6 +971,30 @@ private:
 
  LayeredGrid *get_elev_grid(size_t ts, int reflevel);
 
+ void    map_user_to_vox_regular(
+	size_t timestep, const double vcoord0[3], size_t vcoord1[3], int reflevel
+ ) const;
+
+ void map_vox_to_user_regular(
+	size_t timestep, const size_t vcoord0[3], double vcoord1[3], int reflevel
+ ) const;
+
+ void map_vox_to_blk(
+	const size_t vcoord[3], size_t bcoord[3], int reflevel = -1
+ ) const;
+
+ void get_dim_blk( size_t bdim[3], int reflevel) const;
+
+ RegularGrid *make_grid(
+	size_t ts, string varname, int reflevel, int lod,
+	const size_t bmin[3], const size_t bmax[3],
+	float *blocks, float *xcblocks, float *ycblocks, float *zcblocks
+ );
+
+
+
+
+
 };
 
 //! \class PipeLine
@@ -678,7 +1016,7 @@ class VDF_API PipeLine {
 	PipeLine(
 		string name,
 		vector <string> inputs, 
-		vector <pair <string, Metadata::VarType_T> > outputs
+		vector <pair <string, DataMgr::VarType_T> > outputs
 	) {
 		_name = name;
 		_inputs = inputs;
@@ -696,14 +1034,11 @@ class VDF_API PipeLine {
 	//! one - will be stored in the cache for subsequent retrieval
 	//
 	virtual int Calculate (
-		vector <const float *> input_blks,
-		vector <float *> output_blks,	// space for the output variables
+		vector <const RegularGrid *> input_grids,
+		vector <RegularGrid *> output_grids,	// space for the output variables
 		size_t ts, // current time step
 		int reflevel, // refinement level
-		int lod, //
-		const size_t bs[3], // block dimensions
-		const size_t min[3],	// dimensions of all variables (in blocks)
-		const size_t max[3]
+		int lod //
 	) = 0;
 
 	//! Returns the PipeLine stages name
@@ -716,14 +1051,14 @@ class VDF_API PipeLine {
 
 	//! Returns the PipeLine outputs
 	//
-	const vector <pair <string, Metadata::VarType_T> > &GetOutputs() const { 
+	const vector <pair <string, DataMgr::VarType_T> > &GetOutputs() const { 
 		return (_outputs); 
 	};
 private:
 	string _name;
 	vector <string> _inputs;
-	vector<pair<string, Metadata::VarType_T> > _outputs;
-    };
+	vector<pair<string, DataMgr::VarType_T> > _outputs;
+};
 
 
 };

@@ -96,6 +96,7 @@ void    Metadata::MapVoxToBlk(
 		bcoord[i] = vcoord[i] / bs[i];
 	}
 }
+
  
 void	Metadata::MapVoxToUser(
     size_t timestep, 
@@ -110,7 +111,7 @@ void	Metadata::MapVoxToUser(
 
 	size_t	dim[3];
 
-	vector <double> extents = GetExtents(timestep);
+	vector <double> extents = Metadata::GetExtents(timestep);
 
 	Metadata::GetDim(dim, -1);	// finest dimension
 	for(int i = 0; i<3; i++) {
@@ -141,7 +142,7 @@ void	Metadata::MapUserToVox(
     int  ldelta = GetNumTransforms() - reflevel;
 
 	size_t	dim[3];
-	vector <double> extents = GetExtents(timestep);
+	vector <double> extents = Metadata::GetExtents(timestep);
 
 	vector <double> lextents = extents;
     size_t maxdim[3];
