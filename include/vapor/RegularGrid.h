@@ -362,7 +362,7 @@ public:
  }
 
  void GetBlockSize(size_t bs[3]) const {
-	bs[0] = _bs[1]; bs[1] = _bs[1]; bs[2] = _bs[2];
+	bs[0] = _bs[0]; bs[1] = _bs[1]; bs[2] = _bs[2];
  }
 
  //! Return the minimum grid spacing between all grid points
