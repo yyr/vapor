@@ -510,12 +510,12 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 			}
 		}
 		
-		vector<pair<string, Metadata::VarType_T> > outpairs;
+		vector<pair<string, DataMgr::VarType_T> > outpairs;
 		for (int i = 0; i < out3dVars.size(); i++){
-			outpairs.push_back( make_pair(out3dVars[i],Metadata::VAR3D));
+			outpairs.push_back( make_pair(out3dVars[i],DataMgr::VAR3D));
 		}
 		for (int i = 0; i < out2dVars.size(); i++){
-			outpairs.push_back( make_pair(out2dVars[i],Metadata::VAR2D_XY));
+			outpairs.push_back( make_pair(out2dVars[i],DataMgr::VAR2D_XY));
 		}
 		if (validInputs){
 			PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);
@@ -1033,12 +1033,12 @@ const vector<string>& DataStatus::getDerived3DOutputVars(int id) {
 		vector<string>inputs;
 		for (int i = 0; i< in2DVars.size(); i++) inputs.push_back(in2DVars[i]);
 		for (int i = 0; i< in3DVars.size(); i++) inputs.push_back(in3DVars[i]);
-		vector<pair<string, Metadata::VarType_T> > outpairs;
+		vector<pair<string, DataMgr::VarType_T> > outpairs;
 		for (int i = 0; i < out3DVars.size(); i++){
-			outpairs.push_back( make_pair(out3DVars[i],Metadata::VAR3D));
+			outpairs.push_back( make_pair(out3DVars[i],DataMgr::VAR3D));
 		}
 		for (int i = 0; i < out2DVars.size(); i++){
-			outpairs.push_back( make_pair(out2DVars[i],Metadata::VAR2D_XY));
+			outpairs.push_back( make_pair(out2DVars[i],DataMgr::VAR2D_XY));
 		}
 		
 		PythonPipeLine* pipe = new PythonPipeLine(pname, inputs, outpairs, dataMgr);

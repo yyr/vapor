@@ -28,7 +28,7 @@ std::map<PyObject*, float*> PythonPipeLine::arrayAllocMap;
 QMutex* PythonPipeLine::arrayAllocMutex = new QMutex();
 
 PythonPipeLine::PythonPipeLine(string name, vector<string> inputs, 
-		vector < pair < string, Metadata::VarType_T > > outputs, DataMgr* dmgr) :
+		vector < pair < string, DataMgr::VarType_T > > outputs, DataMgr* dmgr) :
 PipeLine(name, inputs, outputs)
 {
 	currentDataMgr = dmgr;
@@ -176,7 +176,7 @@ int PythonPipeLine::python_wrapper(
 	const size_t min[3],const size_t max[3],
   	vector<string>  inputs, 
 	vector<const float*> inputData,
-  	vector<pair<string, Metadata::VarType_T> > outputs, 
+  	vector<pair<string, DataMgr::VarType_T> > outputs, 
 	vector<float*> outputData)
 {
    	
@@ -198,7 +198,7 @@ int PythonPipeLine::python_wrapper(
 	Py_ssize_t pydims[3];
 	PyObject* pyRegion;
 	
-	currentDataMgr->GetBlockSize(blksize,reflevel);
+//	currentDataMgr->GetBlockSize(blksize,reflevel);
 	currentDataMgr->GetDim(dim, reflevel);	
 	
 	for (int i = 0; i<3; i++){
@@ -248,8 +248,8 @@ int PythonPipeLine::python_wrapper(
 	}
 	for (int i = 0; i< inputData.size(); i++){
 		string vname = inputs[i];
-		Metadata::VarType_T datatype = currentDataMgr->GetVarType(vname);
-		if (datatype == Metadata::VAR3D){
+		DataMgr::VarType_T datatype = currentDataMgr->GetVarType(vname);
+		if (datatype == DataMgr::VAR3D){
 			// convert the float array a python array:
 			//Create a new array to pass into python:
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
@@ -337,7 +337,7 @@ int PythonPipeLine::python_wrapper(
 	for (int i = 0; i< outputs.size(); i++) {
 		const char* vname = outputs[i].first.c_str();
 		int dimen = 2;
-		if (outputs[i].second == Metadata::VAR3D) dimen = 3;
+		if (outputs[i].second == DataMgr::VAR3D) dimen = 3;
 		PyObject* ky = Py_BuildValue("s",vname);
 		
 		PyObject* varArray = PyDict_GetItem(mainDict, ky);
@@ -411,7 +411,7 @@ int PythonPipeLine::python_wrapper(
 std::string& PythonPipeLine::
 python_test_wrapper(const string& script, const vector<string>& inputVars2, 
 					const vector<string>& inputVars3, 
-					vector<pair<string, Metadata::VarType_T> > outputs,
+					vector<pair<string, DataMgr::VarType_T> > outputs,
 					size_t ts,int reflevel,int compression, const size_t min[3],const size_t max[3]){
 	
 	bool executionError=false;
@@ -463,7 +463,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	int regmin[3],regmax[3];
 	
 	if (currentDataMgr){
-		currentDataMgr->GetBlockSize(blksize,reflevel);
+//		currentDataMgr->GetBlockSize(blksize,reflevel);
 		
 		currentDataMgr->GetDim(dim, reflevel);	
 		
@@ -521,7 +521,7 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 		for (int i = 0; i< outputs.size(); i++) {
 			const char* vname = outputs[i].first.c_str();
 			int dimen = 2;
-			if (outputs[i].second == Metadata::VAR3D) dimen = 3;
+			if (outputs[i].second == DataMgr::VAR3D) dimen = 3;
 			PyObject* ky = Py_BuildValue("s",vname);
 		
 			PyObject* varArray = PyDict_GetItem(mainDict, ky);
@@ -637,7 +637,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     //Need to convert min,max extents to block extents
 	size_t blksize[3];
 	
-	currentDataMgr->GetBlockSize(blksize,reflevel);
+//	currentDataMgr->GetBlockSize(blksize,reflevel);
     
     currentDataMgr->GetDim(dims,reflevel);
     for (int i = 0; i<3; i++){
@@ -652,7 +652,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 		revPydims[2-i] = pydims[i];
     }
     
-    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
+//    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
 	if (!regData){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;
@@ -686,7 +686,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
 	//Need to convert min,max extents to block extents
     size_t blksize[3];
-	currentDataMgr->GetBlockSize(blksize,reflevel);
+//	currentDataMgr->GetBlockSize(blksize,reflevel);
     currentDataMgr->GetDim(dims,reflevel);
     for (int i = 0; i<2; i++){
 		minblkreg[i] = minreg[i]/blksize[i];
@@ -701,7 +701,7 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 		revPydims[1-i] = pydims[i];
     }
     
-    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
+    //regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
 	if (!regData){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;

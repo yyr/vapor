@@ -12,8 +12,7 @@
 #include <string>
 #include <vector>
 #include <vapor/MyBase.h>
-#include <vapor/BlkMemMgr.h>
-#include <vapor/Metadata.h>
+#include <vapor/RegularGrid.h>
 #include <vapor/DataMgr.h>
 #include <vapor/common.h>
 #include "datastatus.h"
@@ -40,10 +39,18 @@ class DataMgr;
 
 class PARAMS_API PythonPipeLine : public PipeLine {
 public:
-	PythonPipeLine(string name, vector<string> inputs, vector < pair < string, Metadata::VarType_T > > outputs, DataMgr*);
+	PythonPipeLine(string name, vector<string> inputs, vector < pair < string, DataMgr::VarType_T > > outputs, DataMgr*);
 
 	static void terminate(){ if (everInitialized) Py_Finalize();}
 		
+	virtual int Calculate (
+	   vector <const RegularGrid *> input_blks,
+	   vector <RegularGrid *> output_blks,	// space for the output variables
+	   size_t ts, // current time step
+	   int reflevel, // refinement level
+	   int lod
+	   ) {return(0);}
+
 	virtual int Calculate (
 	   vector <const float *> input_blks,
 	   vector <float *> output_blks,	// space for the output variables
@@ -58,7 +65,7 @@ public:
 	std::string& python_test_wrapper(const string& script, 
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
-						vector<pair<string, Metadata::VarType_T> > outputs,
+						vector<pair<string, DataMgr::VarType_T> > outputs,
 						size_t ts, int reflevel, int compression, const size_t min[3],const size_t max[3]);
 
 	static std::string& getStartupScript() {return startupScript;}
@@ -72,7 +79,7 @@ protected:
 		const size_t min[3],const size_t max[3], 
   		const vector<string > inputs, 
 		vector<const float*> inData,
-  		vector<pair<string, Metadata::VarType_T> > outputs, 
+  		vector<pair<string, DataMgr::VarType_T> > outputs, 
 		vector<float*> outData);
 	static PyObject* vaporModule;
 	void initialize();
