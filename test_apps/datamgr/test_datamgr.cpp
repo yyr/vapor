@@ -24,7 +24,6 @@ struct {
 	char *savefilebase;
 	int	level;
 	int	lod;
-	char *dtype;
 	char *ftype;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
@@ -43,7 +42,6 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"savefilebase",	1, 	"",	"Base path name to output file"},
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
 	{"lod",1, "0","Level of detail. Zero implies coarsest resolution"},
-	{"dtype",	1,	"float",	"data type (float|uint8|uint16)"},
 	{"ftype",	1,	"vdf",	"data set type (vdf|wrf)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
@@ -66,7 +64,6 @@ OptionParser::Option_T	get_options[] = {
 	{"lod", VetsUtil::CvtToInt, &opt.lod, sizeof(opt.lod)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"dtype", VetsUtil::CvtToString, &opt.dtype, sizeof(opt.dtype)},
 	{"ftype", VetsUtil::CvtToString, &opt.ftype, sizeof(opt.ftype)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
@@ -91,13 +88,6 @@ void print_info(DataMgr *datamgr) {
 		datamgr->GetDim(dim, i);
 
 		cout << "Grid " << i << ":" << dim[0] << " " << dim[1] << " " << dim[2];
-		cout << endl;
-	}
-	for (int i=0; i<= num_transforms; i++) {
-		size_t bs[3];
-		datamgr->GetBlockSize(bs, i);
-
-		cout << "Block " << i << ":" << bs[0] << " " << bs[1] << " " << bs[2];
 		cout << endl;
 	}
 
@@ -206,7 +196,6 @@ int main(int argc, char **argv) {
 	}
 
 
-	const size_t *bs = datamgr->GetBlockSize();
 	FILE *fp = NULL;
 
 	cout << "Variable name : " << vname << endl;
@@ -216,11 +205,11 @@ int main(int argc, char **argv) {
 		cout << "Processing loop " << l << endl;
 
 
-		size_t bdim[3];
-		datamgr->GetDimBlk(bdim, opt.level);
+		size_t dim[3];
+		datamgr->GetDim(dim, opt.level);
 		for(int i = 0; i<3; i++) {
 			if (min[i] == -1) min[i] = 0;
-			if (max[i] == -1) max[i] = bdim[i]-1;
+			if (max[i] == -1) max[i] = dim[i]-1;
 		}
 
 		for(int ts = opt.ts0; ts<opt.ts0+opt.nts && ts < nts; ts++) {
@@ -246,60 +235,26 @@ int main(int argc, char **argv) {
 				break;
 			}
 
-			if (strcmp(opt.dtype, "float") == 0) {
-				float *fptr;
-				fptr = datamgr->GetRegion(
-					ts, vname.c_str(), opt.level, opt.level, min, max, 0
-				);
+			RegularGrid *rg;
+			rg = datamgr->GetGrid(
+				ts, vname, opt.level, opt.level, min, max, 0
+			);
 
-				if (! fptr) {
-					delete datamgr;
-					exit(1);
-				}
-
-				if (fp) {
-					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2];
-
-					fwrite(fptr, sizeof(fptr[0]), size, fp);
-					fclose(fp);
-				}
+			if (! rg) {
+				delete datamgr;
+				exit(1);
 			}
-			else if (strcmp(opt.dtype, "uint8") == 0) {
-				float qrange[2] = {0.0, 1.0};
-				unsigned char *ucptr;
-				ucptr = datamgr->GetRegionUInt8(
-					ts, vname.c_str(), opt.level, opt.level, min, max, qrange, 0
-				);
-				if (! ucptr) {
-					delete datamgr;
-					exit(1);
-				}
 
-				if (fp) {
-					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2];
-
-					fwrite(ucptr, sizeof(ucptr[0]), size, fp);
-					fclose(fp);
+			if (fp) {
+				RegularGrid::Iterator itr;
+				float v;
+				for (itr = rg->begin(); itr!=rg->end(); ++itr) {
+					v = *itr;
+					fwrite(&v, sizeof(v), 1, fp);
 				}
+				fclose(fp);
 			}
-			else if (strcmp(opt.dtype, "uint16") == 0) {
-				float qrange[2] = {0.0, 1.0};
-				unsigned char *ucptr;
-				ucptr = datamgr->GetRegionUInt16(
-					ts, vname.c_str(), opt.level, opt.level, min, max, qrange, 0
-				);
-				if (! ucptr) {
-					delete datamgr;
-					exit(1);
-				}
 
-				if (fp) {
-					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2] * 2;
-
-					fwrite(ucptr, sizeof(ucptr[0]), size, fp);
-					fclose(fp);
-				}
-			}
 			size_t min[3], max[3];
 			int rc = datamgr->GetValidRegion(ts,vname.c_str(),opt.level,min,max);
 			assert(rc >= 0);
