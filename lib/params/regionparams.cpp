@@ -206,7 +206,7 @@ void RegionParams::setLocalRegionMin(int coord, float minval, int timestep, bool
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullSizes;
 	if (ds && ds->getDataMgr()){
-		fullSizes = ds->getExtents();
+		fullSizes = ds->getFullSizes();
 		if (minval < 0.) minval = 0.;
 		if (minval > fullSizes[coord]) minval = fullSizes[coord];
 	}

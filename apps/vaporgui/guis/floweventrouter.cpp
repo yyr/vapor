@@ -584,7 +584,7 @@ void FlowEventRouter::updateTab(){
 	fParams->getBox(seedBoxMin,seedBoxMax, -1);
 	
 	for (int i = 0; i< 3; i++){
-		textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
+			textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
 	}
 
@@ -719,7 +719,17 @@ void FlowEventRouter::updateTab(){
 		minOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMinOpacMapValue()));
 		maxOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxOpacMapValue()));
 	}
+	//Add time-varying displacement to rake extents:
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	
+	if (dStatus->getDataMgr()){ 
+		const vector<double>& tvExts =  dStatus->getDataMgr()->GetExtents(timestep);
+
+		for (int i = 0; i<3; i++){
+			seedBoxMax[i]+=tvExts[i];
+			seedBoxMin[i]+=tvExts[i];
+		}
+	}
 	
 	xSizeEdit->setText(QString::number(seedBoxMax[0]-seedBoxMin[0],'g', 4));
 	xCenterEdit->setText(QString::number(0.5f*(seedBoxMax[0]+seedBoxMin[0]),'g',5));
@@ -727,6 +737,7 @@ void FlowEventRouter::updateTab(){
 	yCenterEdit->setText(QString::number(0.5f*(seedBoxMax[1]+seedBoxMin[1]),'g',5));
 	zSizeEdit->setText(QString::number(seedBoxMax[2]-seedBoxMin[2],'g', 4));
 	zCenterEdit->setText(QString::number(0.5f*(seedBoxMax[2]+seedBoxMin[2]),'g',5));
+	
 	seedtimeIncrementEdit->setText(QString::number(fParams->getSeedTimeIncrement()));
 	seedtimeStartEdit->setText(QString::number(fParams->getSeedTimeStart()));
 	if (flowType != 2)
@@ -1487,7 +1498,8 @@ reinitTab(bool doOverride){
 
 //Methods that record changes in the history:
 //
-//Move the rake center to specified coords, shrink it if necessary
+
+//Move the rake center to specified local coords, shrink it if necessary
 void FlowEventRouter::
 guiCenterRake(const float* coords){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
@@ -1497,8 +1509,8 @@ guiCenterRake(const float* coords){
 	fParams->getBox(seedBoxMin, seedBoxMax, -1);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float regMin = fullExtent[i];
-		float regMax = fullExtent[i+3];
+		float regMin = 0.;
+		float regMax = fullExtent[i+3]-fullExtent[i];
 		if (coord < regMin) coord = regMin;
 		if (coord > regMax) coord = regMax;
 		float boxSize = seedBoxMax[i] - seedBoxMin[i];
@@ -2723,40 +2735,39 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	bool centerChanged = false;
 	bool sizeChanged = false;
 	DataStatus* ds = DataStatus::getInstance();
-	const float* extents; 
+	const float* fullSize; 
 	float regMin = newCenter - 0.5f*newSize;
 	float regMax = newCenter  + 0.5f*newSize;
 	
 
 	if (ds->getDataMgr()){
-		extents = DataStatus::getInstance()->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
+		fullSize = DataStatus::getInstance()->getFullSizes();
+		
 		double newRegion[6];
 		fParams->GetBox()->GetLocalExtents(newRegion);
 
-		if (newSize > (regMax-regMin)){
-			newSize = regMax-regMin;
+		if (newSize > (fullSize[coord])){
+			newSize = fullSize[coord];
 			sizeChanged = true;
 		}
 		if (newSize < 0.f) {
 			newSize = 0.f;
 			sizeChanged = true;
 		}
-		if (newCenter < regMin) {
-			newCenter = regMin;
+		if (newCenter < 0.) {
+			newCenter = 0.;
 			centerChanged = true;
 		}
-		if (newCenter > regMax) {
-			newCenter = regMax;
+		if (newCenter > fullSize[coord]) {
+			newCenter = fullSize[coord];
 			centerChanged = true;
 		}
-		if ((newCenter - newSize*0.5f) < regMin){
+		if ((newCenter - newSize*0.5f) < 0.){
 			newCenter = regMin+ newSize*0.5f;
 			centerChanged = true;
 		}
-		if ((newCenter + newSize*0.5f) > regMax){
-			newCenter = regMax- newSize*0.5f;
+		if ((newCenter + newSize*0.5f) > fullSize[coord]){
+			newCenter = fullSize[coord]- newSize*0.5f;
 			centerChanged = true;
 		}
 		//For small size make generator count 1 in that dimension
@@ -2833,14 +2844,17 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
-	const float* extents; 
+	
 	float regMin = 0.f;
 	float regMax = 1.f;
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds){
-		extents = ds->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
+	DataMgr* dataMgr = ds->getDataMgr();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
+	if (dataMgr){
+		const vector<double>& tvExts = dataMgr->GetExtents(timestep);
+		regMin = tvExts[coord];
+		regMax = tvExts[coord+3];
 	}
 	bool sliderChanged = false;
 	
@@ -2863,8 +2877,8 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	}
 	double curBox[6];
 	fParams->GetBox()->GetLocalExtents(curBox);
-	curBox[coord] = newCenter - newSize*0.5;
-	curBox[coord+3] = newCenter + newSize*0.5;
+	curBox[coord] = newCenter - newSize*0.5 - regMin;
+	curBox[coord+3] = newCenter + newSize*0.5 - regMin;
 	fParams->GetBox()->SetLocalExtents(curBox);
 	
 	//For small size make generator count 1 in that dimension

@@ -121,6 +121,7 @@ DataStatus()
 		stretchedExtents[i+3] = 1.f;
 		stretchFactors[i] = 1.f;
 		fullDataSize[i] = 64;
+		fullStretchedSizes[i] = 1.f;
 	}
 	
 	theDataStatus = this;

@@ -23,7 +23,6 @@
 		E700022D14EF1954002070D3 /* ModelParams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelParams.h; sourceTree = "<group>"; };
 		E700022E14EF1954002070D3 /* ModelScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelScene.cpp; sourceTree = "<group>"; };
 		E700022F14EF1954002070D3 /* ModelScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelScene.h; sourceTree = "<group>"; };
-		E700023014EF19CB002070D3 /* DataMgrLayered2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataMgrLayered2.h; sourceTree = "<group>"; };
 		E700023114EF19CB002070D3 /* LayeredGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayeredGrid.cpp; sourceTree = "<group>"; };
 		E700023214EF19CB002070D3 /* LayeredGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayeredGrid.h; sourceTree = "<group>"; };
 		E700023314EF19CB002070D3 /* NCBuf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NCBuf.cpp; sourceTree = "<group>"; };
@@ -200,7 +199,6 @@
 		E7041487123042460083F569 /* DataMgrWRF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DataMgrWRF.cpp; path = ../../../lib/vdf/DataMgrWRF.cpp; sourceTree = SOURCE_ROOT; };
 		E7041489123042460083F569 /* ExpatParseMgr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ExpatParseMgr.cpp; path = ../../../lib/vdf/ExpatParseMgr.cpp; sourceTree = SOURCE_ROOT; };
 		E704148B123042460083F569 /* ImpExp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImpExp.cpp; path = ../../../lib/vdf/ImpExp.cpp; sourceTree = SOURCE_ROOT; };
-		E704148D123042460083F569 /* LayeredIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LayeredIO.cpp; path = ../../../lib/vdf/LayeredIO.cpp; sourceTree = SOURCE_ROOT; };
 		E704148F123042460083F569 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../../lib/vdf/Makefile; sourceTree = SOURCE_ROOT; };
 		E7041490123042460083F569 /* MatWaveBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatWaveBase.cpp; path = ../../../lib/vdf/MatWaveBase.cpp; sourceTree = SOURCE_ROOT; };
 		E7041492123042460083F569 /* MatWaveDwt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatWaveDwt.cpp; path = ../../../lib/vdf/MatWaveDwt.cpp; sourceTree = SOURCE_ROOT; };
@@ -244,7 +242,6 @@
 		E70414D9123042930083F569 /* DataMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgr.h; path = ../../../include/vapor/DataMgr.h; sourceTree = SOURCE_ROOT; };
 		E70414DA123042930083F569 /* DataMgrAMR.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrAMR.h; path = ../../../include/vapor/DataMgrAMR.h; sourceTree = SOURCE_ROOT; };
 		E70414DB123042930083F569 /* DataMgrFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrFactory.h; path = ../../../include/vapor/DataMgrFactory.h; sourceTree = SOURCE_ROOT; };
-		E70414DC123042930083F569 /* DataMgrLayered.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrLayered.h; path = ../../../include/vapor/DataMgrLayered.h; sourceTree = SOURCE_ROOT; };
 		E70414DD123042930083F569 /* DataMgrWB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrWB.h; path = ../../../include/vapor/DataMgrWB.h; sourceTree = SOURCE_ROOT; };
 		E70414DE123042930083F569 /* DataMgrWC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrWC.h; path = ../../../include/vapor/DataMgrWC.h; sourceTree = SOURCE_ROOT; };
 		E70414DF123042930083F569 /* DataMgrWRF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DataMgrWRF.h; path = ../../../include/vapor/DataMgrWRF.h; sourceTree = SOURCE_ROOT; };
@@ -253,7 +250,6 @@
 		E70414E2123042930083F569 /* ExpatParseMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ExpatParseMgr.h; path = ../../../include/vapor/ExpatParseMgr.h; sourceTree = SOURCE_ROOT; };
 		E70414E3123042930083F569 /* flowlinedata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = flowlinedata.h; path = ../../../include/vapor/flowlinedata.h; sourceTree = SOURCE_ROOT; };
 		E70414E4123042930083F569 /* ImpExp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImpExp.h; path = ../../../include/vapor/ImpExp.h; sourceTree = SOURCE_ROOT; };
-		E70414E5123042930083F569 /* LayeredIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LayeredIO.h; path = ../../../include/vapor/LayeredIO.h; sourceTree = SOURCE_ROOT; };
 		E70414E6123042930083F569 /* Lifting1D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Lifting1D.h; path = ../../../include/vapor/Lifting1D.h; sourceTree = SOURCE_ROOT; };
 		E70414E7123042930083F569 /* MapperFunctionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MapperFunctionBase.h; path = ../../../include/vapor/MapperFunctionBase.h; sourceTree = SOURCE_ROOT; };
 		E70414E8123042930083F569 /* MatWaveBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatWaveBase.h; path = ../../../include/vapor/MatWaveBase.h; sourceTree = SOURCE_ROOT; };
@@ -783,7 +779,6 @@
 		E704146E123042460083F569 /* vdf */ = {
 			isa = PBXGroup;
 			children = (
-				E700023014EF19CB002070D3 /* DataMgrLayered2.h */,
 				E700023114EF19CB002070D3 /* LayeredGrid.cpp */,
 				E700023214EF19CB002070D3 /* LayeredGrid.h */,
 				E700023314EF19CB002070D3 /* NCBuf.cpp */,
@@ -810,7 +805,6 @@
 				E7041487123042460083F569 /* DataMgrWRF.cpp */,
 				E7041489123042460083F569 /* ExpatParseMgr.cpp */,
 				E704148B123042460083F569 /* ImpExp.cpp */,
-				E704148D123042460083F569 /* LayeredIO.cpp */,
 				E704148F123042460083F569 /* Makefile */,
 				E7041490123042460083F569 /* MatWaveBase.cpp */,
 				E7041492123042460083F569 /* MatWaveDwt.cpp */,
@@ -876,7 +870,6 @@
 				E70414D9123042930083F569 /* DataMgr.h */,
 				E70414DA123042930083F569 /* DataMgrAMR.h */,
 				E70414DB123042930083F569 /* DataMgrFactory.h */,
-				E70414DC123042930083F569 /* DataMgrLayered.h */,
 				E70414DD123042930083F569 /* DataMgrWB.h */,
 				E70414DE123042930083F569 /* DataMgrWC.h */,
 				E70414DF123042930083F569 /* DataMgrWRF.h */,
@@ -885,7 +878,6 @@
 				E70414E2123042930083F569 /* ExpatParseMgr.h */,
 				E70414E3123042930083F569 /* flowlinedata.h */,
 				E70414E4123042930083F569 /* ImpExp.h */,
-				E70414E5123042930083F569 /* LayeredIO.h */,
 				E70414E6123042930083F569 /* Lifting1D.h */,
 				E70414E7123042930083F569 /* MapperFunctionBase.h */,
 				E70414E8123042930083F569 /* MatWaveBase.h */,
@@ -1109,13 +1101,13 @@
 				E704156D123042CB0083F569 /* twodframe.h */,
 				E704156E123042CB0083F569 /* twoDimageeventrouter.cpp */,
 				E704156F123042CB0083F569 /* twoDimageeventrouter.h */,
-				E7041570123042CB0083F569 /* ui */,
 				E7041580123042CB0083F569 /* userpreferences.cpp */,
 				E7041581123042CB0083F569 /* userpreferences.h */,
 				E7041582123042CB0083F569 /* viewpointeventrouter.cpp */,
 				E7041583123042CB0083F569 /* viewpointeventrouter.h */,
 				E7041584123042CB0083F569 /* vizselectcombo.cpp */,
 				E7041585123042CB0083F569 /* vizselectcombo.h */,
+				E7041570123042CB0083F569 /* ui */,
 			);
 			name = guis;
 			path = ../../../apps/vaporgui/guis;
