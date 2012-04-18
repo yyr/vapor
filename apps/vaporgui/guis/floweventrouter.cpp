@@ -2787,8 +2787,8 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	}
 	
 	
-	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
-	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
+	int sliderSize = (int)(0.5f+ 256.f*newSize/fullSize[coord]);
+	int sliderCenter = (int)(0.5f+ 256.f*newCenter/fullSize[coord]);
 	int oldSliderSize, oldSliderCenter;
 	switch(coord) {
 		case 0:
