@@ -147,16 +147,17 @@ void VaporFlow::SetUnsteadyFieldComponents(const char* xvar,
 // specify the spatial extent and resolution of the region that will be
 // used for the flow calculations
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetRegion(size_t num_xforms,
+void VaporFlow::SetLocalRegion(size_t num_xforms,
 						  int clevel,
 						  const size_t min[3], 
 						  const size_t max[3],
-						  const double regExts[6])
+						  const double regLocalExts[6])
 {
 	
 	numXForms = num_xforms;
 	compressLevel = clevel;
 	size_t fullDims[3];
+	//extents are just used to obtain domain size:
 	const std::vector<double> extents = dataMgr->GetExtents();
 	
 	size_t fullDataSize[3];
@@ -165,8 +166,8 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	for (int i = 0; i< 3; i++){
 		minRegion[i] = min[i];
 		maxRegion[i] = max[i];
-		regionExtents[i] = regExts[i];
-		regionExtents[i+3] = regExts[i+3];
+		regionLocalExtents[i] = regLocalExts[i];
+		regionLocalExtents[i+3] = regLocalExts[i+3];
 		if (min[i] == 0 && max[i] == (fullDataSize[i]-1)) fullInDim[i] = true; 
 		else fullInDim[i] = false;
 		//Establish the period, in case the data is periodic.
@@ -180,11 +181,11 @@ void VaporFlow::SetRegion(size_t num_xforms,
 // accessing fields that are bounded by the rake, such as the
 // biased random rake
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetRakeRegion(const double rakeExtents[6])
+void VaporFlow::SetLocalRakeRegion(const double rakeLocalExtents[6])
 {
 	for (int i = 0; i< 3; i++){
-		minRakeExt[i] = rakeExtents[i];
-		maxRakeExt[i] = rakeExtents[i+3];
+		minLocalRakeExt[i] = rakeLocalExtents[i];
+		maxLocalRakeExt[i] = rakeLocalExtents[i+3];
 	}
 }
 
@@ -224,8 +225,8 @@ void VaporFlow::SetRegularSeedPoints(const double min[3],
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		minRakeExt[iFor] = min[iFor];
-		maxRakeExt[iFor] = max[iFor];
+		minLocalRakeExt[iFor] = min[iFor];
+		maxLocalRakeExt[iFor] = max[iFor];
 	}
 	this->numSeeds[0] = (unsigned int)numSeeds[0];
 	this->numSeeds[1] = (unsigned int)numSeeds[1];
@@ -266,11 +267,11 @@ bool VaporFlow::Get3GridData(size_t ts,
 int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed, int stride){
 	int seedNum;
 	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
-	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
+	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f){
 		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
 	}
-	pSeedGenerator->GetSeeds(this, seeds, bUseRandomSeeds, randomSeed, stride);
+	pSeedGenerator->GetSeeds(timeStep, this, seeds, bUseRandomSeeds, randomSeed, stride);
 	delete pSeedGenerator;
 	return seedNum;
 }
@@ -436,8 +437,8 @@ void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3
 	assert( bias >= -15.f && bias <= 15.f);
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		minRakeExt[iFor] = min[iFor];
-		maxRakeExt[iFor] = max[iFor];
+		minLocalRakeExt[iFor] = min[iFor];
+		maxLocalRakeExt[iFor] = max[iFor];
 	}
 	this->numSeeds[0] = numSeeds;
 	this->numSeeds[1] = 1;
@@ -457,18 +458,18 @@ void VaporFlow::SetDistributedSeedPoints(const double min[3], const double max[3
 	seedDistBias = bias;
 }			
 
-bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed){
+bool VaporFlow::GenStreamLines(int timestep, FlowLineData* container, unsigned int randomSeed){
 	// first generate seeds
 	float* seedPtr;
 	int seedNum;
 	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
 	assert(seedNum == container->getNumLines());
 	seedPtr = new float[seedNum*3];
-	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
+	SeedGenerator* pSeedGenerator = new SeedGenerator(minLocalRakeExt, maxLocalRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f)
 		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, (int)numXForms,
 			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
-	bool rc = pSeedGenerator->GetSeeds(this, seedPtr, bUseRandomSeeds, randomSeed);
+	bool rc = pSeedGenerator->GetSeeds(timestep, this, seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 	if (!rc) return false;
 	//Then do streamlines with prepared seeds:
@@ -512,11 +513,13 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
-	//The region extents must be set to be consistent with the current refinement level, by
-	//converting from the integer extents
+	//The region extents must be converted based on time-varying extents
+	const vector<double>& usrExts = dataMgr->GetExtents(steadyStartTimeStep);
 	double rMin[3],rMax[3];
-	dataMgr->MapVoxToUser(steadyStartTimeStep, minRegion, rMin, numXForms);
-	dataMgr->MapVoxToUser(steadyStartTimeStep,maxRegion, rMax, numXForms);
+	for (int i = 0; i<3; i++){
+		rMin[i] = usrExts[i]+regionLocalExtents[i];
+		rMax[i] = usrExts[i]+regionLocalExtents[i+3];
+	}
 	VECTOR3 minR(rMin);
 	VECTOR3 maxR(rMax);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
@@ -551,7 +554,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		int j; 
 		for (j = 0; j< 3; j++){
 			if (regionPeriodicDim(j)) continue;
-			if (seedPtr[3*i+j] < regionExtents[j] || seedPtr[3*i+j] > regionExtents[j+3]){
+			if (seedPtr[3*i+j] < rMin[j] || seedPtr[3*i+j] > rMax[j]){
 				break;
 			}
 		}
@@ -604,7 +607,7 @@ void VaporFlow::SetPeriodicDimensions(bool xdim, bool ydim, bool zdim){
 //if prioritize is true.  Eventually should handle timeSteps that are
 //not in the set of unsteady sample times.  Expects a sample timestep
 ///////////////////////////////////////////////////////////////
-bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* unsteadyContainer, int timeStep, bool prioritize){
+bool VaporFlow::GenStreamLines (int timeStep, FlowLineData* steadyContainer, PathLineData* unsteadyContainer, bool prioritize){
 	//First make a list of the seeds from the unsteady Container:
 	int numSeeds = unsteadyContainer->getNumLines();
 	assert(steadyContainer->getNumLines() == unsteadyContainer->getNumLines());
@@ -1151,9 +1154,14 @@ setupFieldData(const vector<string>& varnames,
 	
 	size_t minInt[3], maxInt[3];
 	size_t ts = (size_t) timestep;
-	
+	const vector<double>& userExts = dataMgr->GetExtents(ts);
+	double rakeExts[6];
+	for (int i = 0; i<3; i++){
+		rakeExts[i] = minLocalRakeExt[i]+userExts[i];
+		rakeExts[i+3] = maxLocalRakeExt[i]+userExts[i];
+	}
 	if (useRakeBounds){
-		dataMgr->GetEnclosingRegion(ts, minRakeExt, maxRakeExt, minInt, maxInt, numRefinements);
+		dataMgr->GetEnclosingRegion(ts, rakeExts, rakeExts+3, minInt, maxInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];
@@ -1217,7 +1225,13 @@ getFieldMagBounds(float* minVal, float* maxVal,const vector<string>& varnames,
 	size_t ts = (size_t) timestep;
 	
 	if (useRakeBounds){
-		dataMgr->GetEnclosingRegion(ts, minRakeExt, maxRakeExt, minInt, maxInt, numRefinements);
+		const vector<double>& userExts = dataMgr->GetExtents(ts);
+		double tvExts[6];
+		for (int i = 0; i<3; i++){
+			tvExts[i] = minLocalRakeExt[i]+userExts[i];
+			tvExts[i+3] = maxLocalRakeExt[i]+userExts[i];
+		}
+		dataMgr->GetEnclosingRegion(ts, tvExts, tvExts+3, minInt, maxInt, numRefinements);
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];

@@ -2737,11 +2737,11 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullSize; 
 	float regMin = newCenter - 0.5f*newSize;
-	float regMax = newCenter  + 0.5f*newSize;
 	
 
 	if (ds->getDataMgr()){
 		fullSize = DataStatus::getInstance()->getFullSizes();
+
 		
 		double newRegion[6];
 		fParams->GetBox()->GetLocalExtents(newRegion);
@@ -2785,6 +2785,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 		newRegion[coord+3] = newCenter + newSize*0.5;
 		fParams->GetBox()->SetLocalExtents(newRegion);
 	}
+	else return;
 	
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/fullSize[coord]);

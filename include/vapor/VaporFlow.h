@@ -39,8 +39,8 @@ namespace VAPoR
 		void SetSteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
-		void SetRegion(size_t num_xforms, int clevel, const size_t min[3], const size_t max[3], const double regExts[6]);
-		void SetRakeRegion(const double rakeExtents[6]);
+		void SetLocalRegion(size_t num_xforms, int clevel, const size_t localmin[3], const size_t localmax[3], const double regExts[6]);
+		void SetLocalRakeRegion(const double rakeLocalExtents[6]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
 			steadyStartTimeStep = timeStep;
@@ -58,10 +58,10 @@ namespace VAPoR
 			const char* xvar, const char* yvar, const char* zvar, float bias);
 		
 		//New version for API.  Uses rake, then puts integration results in container
-		bool GenStreamLines(FlowLineData* container, unsigned int randomSeed);
+		bool GenStreamLines(int timestep, FlowLineData* container, unsigned int randomSeed);
 		//Version for field line advection, takes seeds from unsteady container, 
 		//(optionally) prioritizes the seeds
-		bool GenStreamLines (FlowLineData* steadyContainer, PathLineData* unsteadyContainer, int timeStep, bool prioritize);
+		bool GenStreamLines (int timestep, FlowLineData* steadyContainer, PathLineData* unsteadyContainer,  bool prioritize);
 	    
 		//Obtains a list of seeds for the currently established rake.
 		//Uses settings established by SetRandomSeedPoints, SetDistributedSeedPoints,
@@ -132,8 +132,8 @@ namespace VAPoR
 		int* unsteadyTimestepList;
 		size_t numUnsteadyTimesteps;
 
-		double minRakeExt[3];						// minimal rake range 
-		double maxRakeExt[3];						// maximal rake range
+		double minLocalRakeExt[3];						// minimal rake range 
+		double maxLocalRakeExt[3];						// maximal rake range
 		
 		size_t numSeeds[3];							// number of seeds
 		bool periodicDim[3];						// specify the periodic dimensions
@@ -152,7 +152,7 @@ namespace VAPoR
 		size_t numXForms;
 		int compressLevel;
 		size_t minRegion[3], maxRegion[3];			//containing region grid extents
-		double regionExtents[6];					//Region extents in user coordinates
+		double regionLocalExtents[6];					//Region extents in local user coordinates
 		float flowPeriod[3];						//Used if data is periodic
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;

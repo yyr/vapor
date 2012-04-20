@@ -283,19 +283,10 @@ renderFlowData(bool constColors, int currentFrameNum){
 		glEnable(GL_COLOR_MATERIAL);
 	}
 	
-	//Apply a coord transform that moves the full region to the unit cube.
 	
 	glPushMatrix();
 	
-	//scale:
-	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-
-	//translate to put origin at corner:
-	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
-	
-	//Set up clipping planes
+	//Set up clipping planes on subvolume in unit box:
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6]; 
 	myRegionParams->GetBox()->GetLocalExtents(regExts,currentFrameNum);
@@ -319,7 +310,10 @@ renderFlowData(bool constColors, int currentFrameNum){
 	glClipPlane(GL_CLIP_PLANE5, backPlane);
 	glEnable(GL_CLIP_PLANE5);
 
-	
+	//Apply a coord transform that moves the full user-coord region to the unit cube, 
+	//since flow geometry will be rendered in user coordinates.
+	myGLWindow->TransformToUnitBox();
+
 	float diam = myFlowParams->getShapeDiameter();
 	//Don't allow zero diameter, it causes OpenGL error code 1281
 	if (diam < 1.e-10) diam = 1.e-10f;

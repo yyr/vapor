@@ -14,14 +14,14 @@ using namespace VAPoR;
 /*			 			SeedGenerator Class                              */
 /************************************************************************/
 
-SeedGenerator::SeedGenerator(const double min[3], 
-							 const double max[3], 
+SeedGenerator::SeedGenerator(const double localmin[3], 
+							 const double localmax[3], 
 							 const size_t numSeeds[3])
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		rakeMin[iFor] = min[iFor];
-		rakeMax[iFor] = max[iFor];
+		rakeLocalMin[iFor] = localmin[iFor];
+		rakeLocalMax[iFor] = localmax[iFor];
 		this->numSeeds[iFor] = numSeeds[iFor];
 	}
 	
@@ -48,7 +48,7 @@ void SeedGenerator::SetRakeDim(void)
 	diff = 0;
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		if(rakeMax[iFor] == rakeMin[iFor])
+		if(rakeLocalMax[iFor] == rakeLocalMin[iFor])
 			diff++;
 	}
 
@@ -71,7 +71,7 @@ size_t SeedGenerator::GetRakeDim(void)
 //////////////////////////////////////////////////////////////////////////
 // generate seeds
 //////////////////////////////////////////////////////////////////////////
-bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
+bool SeedGenerator::GetSeeds(int timestep, VaporFlow* vFlow,
 							 float *pSeeds, 
 							 const bool bRandom, 
 							 const unsigned int randomSeed,
@@ -90,9 +90,10 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 		else if(rakeDimension == SOLID)
 			pRake = new SolidRake();
 	}
+	const vector<double>&usrExts = vFlow->getDataMgr()->GetExtents((size_t)timestep);
 	if(bRandom){
 		if (distribBias == 0.f){ 
-			pRake->GenSeedRandom(numSeeds, rakeMin, rakeMax, pSeeds, randomSeed, stride);
+			pRake->GenSeedRandom(usrExts,numSeeds, rakeLocalMin, rakeLocalMax, pSeeds, randomSeed, stride);
 		} else {
 			//Setup for biased distribution:
 			//First calc min/max of field in rake.
@@ -110,7 +111,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			FieldData* fData = vFlow->setupFieldData(varnames, true, numRefinements, timeStep, false);
 			if (!fData) {delete pRake; return false;}
 			
-			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed, stride);
+			rc = pRake->GenSeedBiased(usrExts,distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeLocalMin,rakeLocalMax, pSeeds, randomSeed, stride);
 			if (!rc) {
 				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
 					"Unable to generate requested number of\ndistributed seed points.\nTry a bias closer to 0.");
@@ -121,7 +122,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 		}
 	}
 	else
-		pRake->GenSeedRegular(numSeeds, rakeMin, rakeMax, pSeeds, stride);
+		pRake->GenSeedRegular(usrExts,numSeeds, rakeLocalMin, rakeLocalMax, pSeeds, stride);
 	delete pRake;
 	return true;
 }
@@ -138,31 +139,33 @@ PointRake::PointRake()
 //////////////////////////////////////////////////////////////////////////
 // numSeeds should be 1
 //////////////////////////////////////////////////////////////////////////
-void PointRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void PointRake::GenSeedRandom(const vector<double>&usrExts, 
+							  const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
 {
-	GenSeedRegular(numSeeds, min, max, pSeed, stride);
+	GenSeedRegular(usrExts,numSeeds, localmin, localmax, pSeed, stride);
 }
-bool PointRake::GenSeedBiased(float , float , float , FieldData* , 
-		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed , unsigned int , int stride)
+bool PointRake::GenSeedBiased(const vector<double>&usrExts, float , float , float , FieldData* , 
+		const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed , unsigned int , int stride)
 {
-	GenSeedRegular(numSeeds, min, max, pSeed, stride);
+	GenSeedRegular(usrExts, numSeeds, localmin, localmax, pSeed, stride);
 	return true;
 }
-void PointRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void PointRake::GenSeedRegular(const vector<double>&usrExts, 
+							   const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  int stride)
 {
 	int totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	for (int count = 0; count < totalNum; count++) {
 		for(int iFor = 0; iFor < 3; iFor++)
-			pSeed[count*stride + iFor] = (min[iFor]+max[iFor])*0.5;
+			pSeed[count*stride + iFor] = usrExts[iFor]+(localmin[iFor]+localmax[iFor])*0.5;
 	}
 	return;
 }
@@ -175,9 +178,10 @@ LineRake::LineRake()
 
 
 
-void LineRake::GenSeedRandom(const size_t numSeeds[3], 
-							 const double min[3], 
-							 const double max[3], 
+void LineRake::GenSeedRandom(const vector<double>&usrExts, 
+							 const size_t numSeeds[3], 
+							 const double localmin[3], 
+							 const double localmax[3], 
 							 float* pSeed,
 							 unsigned int randomSeed, 
 							 int stride)
@@ -193,15 +197,15 @@ void LineRake::GenSeedRandom(const size_t numSeeds[3],
 		// randomly generate a number between [0, 1]
 		float alpha = (float)rand()/(float)RAND_MAX;
 
-		// the random seed is generated by min*alpha + max*(1-alpha)
-		pSeed[stride*iFor + 0] = Lerp(min[0], max[0], alpha);
-		pSeed[stride*iFor + 1] = Lerp(min[1], max[1], alpha);
-		pSeed[stride*iFor + 2] = Lerp(min[2], max[2], alpha);
+		// the random seed is generated by localmin*alpha + localmax*(1-alpha)
+		pSeed[stride*iFor + 0] = usrExts[0]+Lerp(localmin[0], localmax[0], alpha);
+		pSeed[stride*iFor + 1] = usrExts[1]+Lerp(localmin[1], localmax[1], alpha);
+		pSeed[stride*iFor + 2] = usrExts[2]+Lerp(localmin[2], localmax[2], alpha);
 	}
 }
 
-bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride)
+bool LineRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fieldMin, float fieldMax, FieldData* fData, 
+		const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride)
 {
 	int totalNum;
 	//Note:  The following code is more or less replicated in solid rake and plane rake.
@@ -236,9 +240,9 @@ bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldDa
 			float alpha, point[3];
 			alpha = (float)ran1(&rseed);
 		
-			point[0] = Lerp(min[0], max[0], alpha);
-			point[1] = Lerp(min[1], max[1], alpha);
-			point[2] = Lerp(min[2], max[2], alpha);
+			point[0] = usrExts[0]+Lerp(localmin[0], localmax[0], alpha);
+			point[1] = usrExts[1]+Lerp(localmin[1], localmax[1], alpha);
+			point[2] = usrExts[2]+Lerp(localmin[2], localmax[2], alpha);
 		
 		
 		
@@ -271,9 +275,10 @@ bool LineRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldDa
 }
 
 
-void LineRake::GenSeedRegular(const size_t numSeeds[3], 
-							 const double min[3], 
-							 const double max[3], 
+void LineRake::GenSeedRegular(const vector<double>&usrExts, 
+							  const size_t numSeeds[3], 
+							 const double localmin[3], 
+							 const double localmax[3], 
 							 float* pSeed,
 							 int stride)
 {
@@ -286,9 +291,9 @@ void LineRake::GenSeedRegular(const size_t numSeeds[3],
 	for(int iFor = 0; iFor < totalNum; iFor++)
 	{
 		alpha = (float)(iFor+1) * unitRatio;
-		pSeed[stride*iFor + 0] = Lerp(min[0], max[0], alpha);
-		pSeed[stride*iFor + 1] = Lerp(min[1], max[1], alpha);
-		pSeed[stride*iFor + 2] = Lerp(min[2], max[2], alpha);
+		pSeed[stride*iFor + 0] = usrExts[0]+Lerp(localmin[0], localmax[0], alpha);
+		pSeed[stride*iFor + 1] = usrExts[1]+Lerp(localmin[1], localmax[1], alpha);
+		pSeed[stride*iFor + 2] = usrExts[2]+Lerp(localmin[2], localmax[2], alpha);
 	}
 }
 
@@ -300,9 +305,10 @@ PlaneRake::PlaneRake()
 }
 
 
-void PlaneRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void PlaneRake::GenSeedRandom(const vector<double>&usrExts, 
+							  const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
@@ -314,8 +320,8 @@ void PlaneRake::GenSeedRandom(const size_t numSeeds[3],
 
 	for(iFor = 0; iFor < 3; iFor++)
 	{
-		ll[iFor] = min[iFor];
-		hh[iFor] = max[iFor];
+		ll[iFor] = localmin[iFor];
+		hh[iFor] = localmax[iFor];
 	}
 
 	hl[0] = hh[0];	hl[1] = ll[1];	hl[2] = ll[2];
@@ -331,13 +337,13 @@ void PlaneRake::GenSeedRandom(const size_t numSeeds[3],
 		coeff[0] = (float)rand()/(float)RAND_MAX;
 		coeff[1] = (float)rand()/(float)RAND_MAX;
 		
-		pSeed[stride*iFor + 0] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
-		pSeed[stride*iFor + 1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
-		pSeed[stride*iFor + 2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
+		pSeed[stride*iFor + 0] = usrExts[0]+BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+		pSeed[stride*iFor + 1] = usrExts[1]+BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+		pSeed[stride*iFor + 2] = usrExts[2]+BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 	}
 }
-bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, 
+bool PlaneRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fieldMin, float fieldMax, FieldData* fData, 
+		const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, 
 		unsigned int randomSeed, int stride)
 {
 	int totalNum;
@@ -348,9 +354,9 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	int sameCoord[3];
 	for(iFor = 0; iFor < 3; iFor++)
 	{
-		ll[iFor] = min[iFor];
-		hh[iFor] = max[iFor];
-		if (min[iFor] == max[iFor]) sameCoord[iFor] = 1;
+		ll[iFor] = localmin[iFor];
+		hh[iFor] = localmax[iFor];
+		if (localmin[iFor] == localmax[iFor]) sameCoord[iFor] = 1;
 		else sameCoord[iFor] = 0;
 	}
 	assert(sameCoord[0] + sameCoord[1] + sameCoord[2] == 1);
@@ -402,9 +408,9 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 			coeff[0] = (float)ran1(&rseed);
 			coeff[1] = (float)ran1(&rseed);
 		
-			point[0] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
-			point[1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
-			point[2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
+			point[0] = usrExts[0]+BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+			point[1] = usrExts[1]+BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+			point[2] = usrExts[2]+BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 		
 			float mag = fData->getFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range
@@ -432,9 +438,10 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	delete seedSorter;
 	return true;
 }
-void PlaneRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void PlaneRake::GenSeedRegular(const vector<double>&usrExts, 
+							   const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  int stride)
 {
@@ -444,8 +451,8 @@ void PlaneRake::GenSeedRegular(const size_t numSeeds[3],
 	for(iFor = 0; iFor < 3; iFor++)
 	{
 		lh[iFor] = hl[iFor] = 0.0;
-		ll[iFor] = min[iFor];
-		hh[iFor] = max[iFor];
+		ll[iFor] = localmin[iFor];
+		hh[iFor] = localmax[iFor];
 	}
 	//hl and lh depend on which coordinate is not changing
 
@@ -488,9 +495,9 @@ void PlaneRake::GenSeedRegular(const size_t numSeeds[3],
 			coeff[0] = (float)(iFor+1) * widthUnit;
 			coeff[1] = (float)(jFor+1) * heightUnit;
 
-			pSeed[index] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
-			pSeed[index+1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
-			pSeed[index+2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
+			pSeed[index] = usrExts[0]+BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+			pSeed[index+1] = usrExts[1]+BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+			pSeed[index+2] = usrExts[2]+BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 			index += stride;
 		}
 }
@@ -504,9 +511,10 @@ SolidRake::SolidRake()
 
 
 
-void SolidRake::GenSeedRandom(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void SolidRake::GenSeedRandom(const vector<double>&usrExts, 
+							  const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
 							  int stride)
@@ -519,9 +527,9 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 	for(iFor = 0; iFor < 3; iFor++)
 	{
 		//shrink slightly, to ensure seeds lie entirely inside edge cells
-		float edgeWidth = (max[iFor]-min[iFor])*0.03;
-		lll[iFor] = min[iFor]+edgeWidth;
-		hhh[iFor] = max[iFor]-edgeWidth;
+		float edgeWidth = (localmax[iFor]-localmin[iFor])*0.03;
+		lll[iFor] = localmin[iFor]+edgeWidth;
+		hhh[iFor] = localmax[iFor]-edgeWidth;
 	}
 
 	hll[0] = hhh[0];	hll[1] = lll[1];	hll[2] = lll[2];
@@ -543,14 +551,14 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 		coeff[1] = (float)rand()/(float)RAND_MAX;
 		coeff[2] = (float)rand()/(float)RAND_MAX;
 
-		pSeed[stride*iFor + 0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
-		pSeed[stride*iFor + 1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
-		pSeed[stride*iFor + 2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
+		pSeed[stride*iFor + 0] = usrExts[0]+TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
+		pSeed[stride*iFor + 1] = usrExts[1]+TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
+		pSeed[stride*iFor + 2] = usrExts[2]+TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 	}
 	
 }
-bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
-		const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, 
+bool SolidRake::GenSeedBiased(const vector<double>&usrExts, float bias, float fieldMin, float fieldMax, FieldData* fData, 
+		const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, 
 		unsigned int randomSeed, int stride){
 	assert( bias >= -15.f && bias <= 15.f);
 	int totalNum;
@@ -561,9 +569,9 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
 		//shrink slightly, to ensure seeds lie entirely inside edge cells
-		float edgeWidth = (max[iFor]-min[iFor])*0.03;
-		lll[iFor] = min[iFor]+edgeWidth;
-		hhh[iFor] = max[iFor]-edgeWidth;
+		float edgeWidth = (localmax[iFor]-localmin[iFor])*0.03;
+		lll[iFor] = localmin[iFor]+edgeWidth;
+		hhh[iFor] = localmax[iFor]-edgeWidth;
 	}
 
 	hll[0] = hhh[0];	hll[1] = lll[1];	hll[2] = lll[2];
@@ -619,9 +627,9 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 			coeff[2] = (float)ran1(&rseed);
 			assert(coeff[0] > 0.f && coeff[0] < 1.f);
 
-			point[0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
-			point[1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
-			point[2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
+			point[0] = usrExts[0]+TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
+			point[1] = usrExts[1]+TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
+			point[2] = usrExts[2]+TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 
 			float mag = fData->getFieldMag(point);
 			if (mag < 0.f) continue;  //Point is out of range
@@ -651,9 +659,10 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 
 }
 
-void SolidRake::GenSeedRegular(const size_t numSeeds[3], 
-							  const double min[3], 
-							  const double max[3], 
+void SolidRake::GenSeedRegular(const vector<double>&usrExts, 
+							   const size_t numSeeds[3], 
+							  const double localmin[3], 
+							  const double localmax[3], 
 							  float* pSeed,
 							  int stride)
 {
@@ -662,8 +671,8 @@ void SolidRake::GenSeedRegular(const size_t numSeeds[3],
 	int iFor, jFor, kFor;
 	for(iFor = 0; iFor < 3; iFor++)
 	{
-		lll[iFor] = min[iFor];
-		hhh[iFor] = max[iFor];
+		lll[iFor] = localmin[iFor];
+		hhh[iFor] = localmax[iFor];
 	}
 	hll[0] = hhh[0];	hll[1] = lll[1];	hll[2] = lll[2];
 	lhl[0] = lll[0];	lhl[1] = hhh[1];	lhl[2] = lll[2];
@@ -692,9 +701,9 @@ void SolidRake::GenSeedRegular(const size_t numSeeds[3],
 				coeff[1] = (float)(jFor+1) * yUnit;
 				coeff[2] = (float)(kFor+1) * zUnit;
 
-				pSeed[index] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
-				pSeed[index+1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
-				pSeed[index+2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
+				pSeed[index] = usrExts[0]+TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
+				pSeed[index+1] = usrExts[1]+TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
+				pSeed[index+2] = usrExts[2]+TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 				index += stride;
 			}
 }

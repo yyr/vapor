@@ -37,12 +37,12 @@ namespace VAPoR
 	class FLOW_API SeedGenerator : public VetsUtil::MyBase
 	{
 	public:
-		SeedGenerator(const double min[3], const double max[3], const size_t numSeeds[3]);
+		SeedGenerator(const double localmin[3], const double localmax[3], const size_t numSeeds[3]);
 		~SeedGenerator();
 
 		void SetRakeDim(void);
 		size_t GetRakeDim(void);
-		bool GetSeeds(VaporFlow* vFlow, float* pSeeds, const bool bRandom, const unsigned int randomSeed, int stride = 3);
+		bool GetSeeds(int timestep, VaporFlow* vFlow, float* pSeeds, const bool bRandom, const unsigned int randomSeed, int stride = 3);
 		void SetSeedDistrib(float distbias, int ts, size_t numrefin,
 			const char* xvar, const char* yvar, const char* zvar){
 				assert( distbias >= -15.f && distbias <= 15.f);
@@ -55,7 +55,7 @@ namespace VAPoR
 		}
 		
 	private:
-		double rakeMin[3], rakeMax[3];		// minimal and maximal positions
+		double rakeLocalMin[3], rakeLocalMax[3];		// minimal and maximal positions, local coords
 		size_t numSeeds[3];					// number of seeds
 		int rakeDimension;					// 0, 1, 2, 3
 		float distribBias;					//For nonuniform distribution
@@ -68,10 +68,10 @@ namespace VAPoR
 	{
 	public:
 		virtual ~Rake(){}
-		virtual void GenSeedRandom( const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3) = 0;
-		virtual void GenSeedRegular(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, int stride = 3) = 0;
-		virtual bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, 
-			const size_t numSeeds[3], const double minrake[3], const double maxrake[3], float* pSeed, unsigned int randSeed, int stride = 3) = 0;
+		virtual void GenSeedRandom(const vector<double>& usrExts, const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3) = 0;
+		virtual void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3) = 0;
+		virtual bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, 
+			const size_t numSeeds[3], const double localminrake[3], const double localmaxrake[3], float* pSeed, unsigned int randSeed, int stride = 3) = 0;
 	
 	
 	//Internal classes to qsort list of points
@@ -100,10 +100,10 @@ namespace VAPoR
 	public:
 		PointRake();
 		virtual ~PointRake(){}
-		void GenSeedRandom(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
-		void GenSeedRegular(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, int stride = 3);
-		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3], 
-			const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
+		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3], 
+			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 	};
 
 	class FLOW_API LineRake : public Rake
@@ -111,10 +111,10 @@ namespace VAPoR
 	public:
 		LineRake();
 		virtual ~LineRake(){}
-		void GenSeedRandom(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
-		void GenSeedRegular(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, int stride = 3);
-		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
-			const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
+		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 	};
 
 	class FLOW_API PlaneRake : public Rake
@@ -122,10 +122,10 @@ namespace VAPoR
 	public:
 		PlaneRake();
 		virtual ~PlaneRake(){}
-		void GenSeedRandom(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
-		void GenSeedRegular(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, int stride = 3);
-		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
-			const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
+		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 	};
 
 	class FLOW_API SolidRake : public Rake
@@ -133,10 +133,10 @@ namespace VAPoR
 	public:
 		SolidRake();
 		virtual ~SolidRake(){}
-		void GenSeedRandom(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
-		void GenSeedRegular(const size_t numSeeds[3], const double min[3], const double max[3], float* pSeed, int stride = 3);
-		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
-			const double min[3], const double max[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRandom(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
+		void GenSeedRegular(const vector<double>& usrExts,const size_t numSeeds[3], const double localmin[3], const double localmax[3], float* pSeed, int stride = 3);
+		bool GenSeedBiased(const vector<double>& usrExts,float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const double localmin[3], const double localmax[3], float* pSeed, unsigned int randomSeed, int stride = 3);
 	};
 };
 

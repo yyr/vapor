@@ -223,7 +223,7 @@ restart() {
 	randomSeed = 1;
 	double seedBoxExtents[6];
 	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 0.f;
-	seedBoxExtents[0] = seedBoxExtents[1] = seedBoxExtents[2] = 1.f;
+	seedBoxExtents[3] = seedBoxExtents[4] = seedBoxExtents[5] = 1.f;
 	myBox->SetLocalExtents(seedBoxExtents);
 	
 	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
@@ -1078,10 +1078,10 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		rc = myFlowLib->GenStreamLinesNoRake(steadyFlowData,seedList);
 	} else if (pathData){
 	//generate the steady flow lines 
-		rc =  myFlowLib->GenStreamLines(steadyFlowData, pathData, timeStep, prioritize);
+		rc =  myFlowLib->GenStreamLines(timeStep, steadyFlowData, pathData, prioritize);
 	} else { // use rake or seed list..
 		if (doRake){
-			rc = myFlowLib->GenStreamLines(steadyFlowData, randomSeed);
+			rc = myFlowLib->GenStreamLines(timeStep, steadyFlowData, randomSeed);
 		} else {
 			rc = myFlowLib->GenStreamLinesNoRake(steadyFlowData,seedList);
 		}
@@ -2916,17 +2916,14 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	//however the integration will stop when a flow line gets to the user extents.  
 	double rexts[6];
 	rParams->getLocalRegionExtents(rexts,timeStep);
-	const vector<double>&userExtents = ds->getDataMgr()->GetExtents((size_t)timeStep);
-	for (int i = 0; i<6; i++) rexts[i] += userExtents[i%3];
 	
-	flowLib->SetRegion(availRefLevel, lod, min_dim, max_dim, rexts);
+	flowLib->SetLocalRegion(availRefLevel, lod, min_dim, max_dim, rexts);
 	// specify the bounds of the rake, in case it is needed.  
 	
 	double rakeCoords[6];
 	GetBox()->GetLocalExtents(rakeCoords);
-	for (int i = 0; i<6; i++) rakeCoords[i] += userExtents[i%3];
 	
-	flowLib->SetRakeRegion(rakeCoords);
+	flowLib->SetLocalRakeRegion(rakeCoords);
 	return true;
 }
 //Perform all the major steps in field line advection where the prioritization is
@@ -3033,27 +3030,29 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 
 bool FlowParams::validateSettings(int tstep){
 	DataStatus* ds = DataStatus::getInstance();
+	const vector<double>& usrExts = ds->getDataMgr()->GetExtents(tstep);
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){
 		double rakeBox[6];
 		GetBox()->GetLocalExtents(rakeBox);
-		float levExts[6];
-		ds->getExtentsAtLevel(tstep, numRefinements, levExts);
-		//Shrink levexts slightly:
+		float shrExts[6];
+		//ds->getExtentsAtLevel(tstep, numRefinements, levExts);
+		//Shrink exts slightly, then subtract to put into local extents
 		for (int i = 0; i< 3; i++){
-			float mid = (levExts[i]+levExts[i+3])*0.5;
-			levExts[i] = 0.999999*levExts[i] + 0.000001*mid;
-			levExts[i+3] = 0.999999*levExts[i+3] + 0.000001*mid;
+			float mid = (usrExts[i]+usrExts[i+3])*0.5;
+			shrExts[i] = 0.999999*usrExts[i] + 0.000001*mid - usrExts[i];
+			shrExts[i+3] = 0.999999*usrExts[i+3] + 0.000001*mid- usrExts[i];
+			
 		}
 
 		for (int i = 0; i<3; i++){
-			if(rakeBox[i] < levExts[i]) rakeBox[i] = levExts[i];
-			if(rakeBox[i+3] < levExts[i]) rakeBox[i+3] = levExts[i];
-			if(rakeBox[i+3] > levExts[i+3]) rakeBox[i+3] = levExts[i+3];
-			if(rakeBox[i] > levExts[i+3]) rakeBox[i] = levExts[i+3];
+			if(rakeBox[i] < shrExts[i]) rakeBox[i] = shrExts[i];
+			if(rakeBox[i+3] < shrExts[i]) rakeBox[i+3] = shrExts[i];
+			if(rakeBox[i+3] > shrExts[i+3]) rakeBox[i+3] = shrExts[i+3];
+			if(rakeBox[i] > shrExts[i+3]) rakeBox[i] = shrExts[i+3];
 			if(rakeBox[i+3] < rakeBox[i]){
-				rakeBox[i] = levExts[i];
-				rakeBox[i+3] = levExts[i+3];
+				rakeBox[i] = shrExts[i];
+				rakeBox[i+3] = shrExts[i+3];
 			}
 		}
 		GetBox()->SetLocalExtents(rakeBox);
