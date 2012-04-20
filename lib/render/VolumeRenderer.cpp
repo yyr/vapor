@@ -20,9 +20,10 @@
 //----------------------------------------------------------------------------
 
 #include <GL/glew.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cfloat>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -79,17 +80,26 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
     _driver(NULL),
     _type(type),
     _frames(0),
-    _seconds(0),
-	_userTextureSize(0),
-	_userTextureSizeIsSet(false)
+    _seconds(0)
 	
 	
 {
+	_timeStep = (size_t) -1;
+	_varNum = -1;
+	_lod = -1;
+	_reflevel = -1;
+	_userTextureSizeIsSet = false;
+	_userTextureSize = 0;
+	_range[0] = FLT_MIN;
+	_range[1] = FLT_MAX;
+
+	for (int i=0; i<6; i++) {
+		_extents[i] = FLT_MAX;
+	}
 
   //Construct dvrvolumizer
   _driver = create_driver(type, 1);
   
-  datarangeDirtyBit = false;
 }
 
 //----------------------------------------------------------------------------
@@ -283,123 +293,183 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 //----------------------------------------------------------------------------
 void VolumeRenderer::DrawVoxelScene(unsigned fast)
 {
-	bool forceReload = false;
-	static double extents[6];
-	  
-	size_t max_dim[3];
-	size_t min_dim[3];
-	
-	int i;
-
-
-	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	DataStatus* ds = DataStatus::getInstance();
+	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
+	DataMgr* dataMgr = ds->getDataMgr();
+	ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 
 	// Nothing to do if there's no data source!
 	if (!dataMgr) return;
+
+	//
+	// Record any state changes since the last call
+	//
+
+	size_t timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	bool timeStepDirty = false;
+	if (_timeStep != timeStep) {
+		_timeStep = timeStep;
+		timeStepDirty = true;
+	}
 	
-	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
-	int timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	double extents[6];
+	myRegionParams->getLocalRegionExtents(extents, timeStep);
+	bool extentsDirty = false;
+	for (int i=0; i<6; i++) {
+		if (_extents[i] != extents[i]) {
+			extentsDirty = true;
+		}
+		_extents[i] = extents[i];
+	}
 
-	//If we have partial bypass, the data is only available at low res, so exit if
-	//the mouse is not down:
-	if (currentRenderParams->doBypass(timeStep) && !myGLWindow->mouseIsDown() && !myGLWindow->spinning()) 
+	const float *rangeptr = currentRenderParams->getCurrentDatarange();
+	myRegionParams->getLocalRegionExtents(extents, timeStep);
+	bool rangeDirty = false;
+	for (int i=0; i<2; i++) {
+		if (_range[i] != rangeptr[i]) {
+			rangeDirty = true;
+		}
+		_range[i] = rangeptr[i];
+	}
+
+	int varNum = currentRenderParams->getSessionVarNum();
+	bool varDirty = false;
+	if (_varNum != varNum) {
+		_varNum = varNum;
+		varDirty = true;
+	}
+	string varname = ds->getVariableName3D(varNum);
+
+	int lod = currentRenderParams->GetCompressionLevel();
+	if (ds->useLowerAccuracy()) lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
+	bool lodDirty = false;
+	if (_lod != lod) {
+		_lod = lod;
+		lodDirty = true;
+	}
+
+	int reflevel;
+	bool reflevelDirty = false;
+	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
+	{
+		//
+		// Ugh. The refinement level isn't changed if the user is 
+		// navigating. We have to detect navigation here and use the
+		// "interactiveRefinementLevel if we're navigating
+		//
+		reflevel = Min(currentRenderParams->GetRefinementLevel(), DataStatus::getInteractiveRefinementLevel());
+	} else {
+		reflevel = currentRenderParams->GetRefinementLevel();
+	}
+	if (_reflevel != reflevel) {
+		_reflevel = reflevel;
+		reflevelDirty = true;
+	}
+
+
+	bool userTextureSizeIsSet = ds->textureSizeIsSpecified();
+	int userTextureSize = ds->getTextureSize();
+	bool userTextureDirty = false;
+	if ((userTextureSizeIsSet != _userTextureSizeIsSet) || 
+		(userTextureSize != _userTextureSize)) { 
+
+		_userTextureSize = userTextureSize;
+		_userTextureSizeIsSet = userTextureSizeIsSet;
+		userTextureDirty = true;
+	}
+
+	//
+	// If doBypass() is true there is no data to render
+	//
+	if (currentRenderParams->doBypass(timeStep)) {
 		return;
+	}
 
-	  
-	ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
-	DataStatus* ds = DataStatus::getInstance();
+	//
+	// Now that we've recorded all of the state changes we take whatever action 
+	// is necessary
+	//
 
-//cerr << "transforming everything to unit box coords :-(\n";
+	if (userTextureDirty) {
+		if (_userTextureSizeIsSet) {
+			_driver->SetMaxTexture(_userTextureSize);
+		}
+		else {
+			_driver->SetMaxTexture(0);
+		}
+	}
+
+	// 
+	// Re-load data if needed
+	//
+	if (reflevelDirty || lodDirty || timeStepDirty || varDirty || extentsDirty || userTextureDirty || rangeDirty) {
+		size_t max_dim[3];
+		size_t min_dim[3];
+
+		int availRefLevel = myRegionParams->getAvailableVoxelCoords(
+			reflevel, min_dim, max_dim, timeStep,&varNum, 1
+		);
+
+		if(availRefLevel < 0) {
+			MyBase::SetErrMsg(
+				VAPOR_ERROR_DATA_UNAVAILABLE,
+                "Data unavailable for variable %s\n at refinement level %d and current time step",
+                varname.c_str(), reflevel
+			);
+			setBypass(timeStep);
+			_reflevel = -1;
+			return;
+		}
+
+		//
+		// Turn off error callback, look for memory allocation problem.
+		//
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+		int rc = _updateRegion(
+			dataMgr, currentRenderParams, myRegionParams,
+			timeStep, varname, reflevel, lod, min_dim, max_dim
+		);
+			
+		//Turn it back on:
+	    
+		QApplication::restoreOverrideCursor();
+		if (rc < 0) {
+			setBypass(timeStep);
+			return;
+		}
+	}
+
+
+	//cerr << "transforming everything to unit box coords :-(\n";
 	myGLWindow->TransformToUnitBox();
 	
 	const float* scales = ds->getStretchFactors();
 	glScalef(scales[0], scales[1], scales[2]);
 
-	int varNum = currentRenderParams->getSessionVarNum();
-
 	if (myGLWindow->vizIsDirty(ViewportBit)) {
 		const GLint* viewport = myGLWindow->getViewport();
 		_driver->Resize(viewport[2], viewport[3]);
 	}
-  
-  //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
-  //the roi is mapped into.  First find the mapping of the full data array.  This
-  //is mapped to the center of the cube with the largest dimension equal to 1.
-  //Then determine what is the subvolume we are dealing with as a portion
-  //of the full mapped data.
-	int reflevel, lod;
-	lod = currentRenderParams->GetCompressionLevel();
-	if (ds->useLowerAccuracy())
-		lod = Min(lod,ds->maxLODPresent3D(varNum, timeStep));
-	
-	if (myGLWindow->mouseIsDown() || myGLWindow->spinning()) 
-	{
-		reflevel = Min(currentRenderParams->GetRefinementLevel(),
-            DataStatus::getInteractiveRefinementLevel());
 
-		if (! _driver->GetRenderFast()) {
-			_driver->SetRenderFast(true);
 
-			// Need update sampling rate & opacity correction 
-			setClutDirty(); 
-			myGLWindow->setDirtyBit(NavigatingBit,true);
-		}
-	} else {
-
-		reflevel = currentRenderParams->GetRefinementLevel();
-		if (_driver->GetRenderFast())
-		{
-			_driver->SetRenderFast(false);
-
-			// Need update sampling rate & opacity correction
-			setClutDirty();
-			//And force rerender
-			myGLWindow->setDirtyBit(NavigatingBit,true);
-		}
+	//
+	// If we're navigating turn on fast rendering
+	//
+	if (myGLWindow->mouseIsDown() || myGLWindow->spinning())  {
+		if (! _driver->GetRenderFast()) _driver->SetRenderFast(true);
 	}
-
-	//Whenever reflevel changes, we need to dirty the clut, since
-	//that affects the opacity correction.
-	if (reflevel != savedNumXForms)
-	{
-		setClutDirty();
-		savedNumXForms = reflevel;
-		forceReload = true;
+	else {
+		if (_driver->GetRenderFast()) _driver->SetRenderFast(false);
+	}
+	//
+	// Need update sampling rate & opacity correction 
+	//
+	if (reflevelDirty) {
+		setClutDirty(); 
 	}
 	  
-	//Loop if user accepts lower resolution:
-	
-	int availRefLevel = myRegionParams->getAvailableVoxelCoords(reflevel, min_dim, max_dim, 
-		timeStep,&varNum, 1);
 
-	if(availRefLevel < 0) {
-		//The data is not available at the required ref level.
-		//Set full bypass if the interactiveRefinementLevel is not available:
-		//Set partial bypass if interactive level is available
-		//Provide an error message if bypass was not already set:
-		bool doMsg = true;
-		if ((DataStatus::getInstance()->maxXFormPresent3D(varNum, timeStep)) < DataStatus::getInteractiveRefinementLevel())
-			setBypass(timeStep);
-		else {
-			doMsg = !doBypass(timeStep);
-			setPartialBypass(timeStep);
-		}
-		if (doMsg) {
-			string varname = ds->getVariableName3D(varNum);
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
-				"Data unavailable for variable %s\n at refinement level %d and current time step",
-				varname.c_str(), reflevel);
-		}
-		return;
-	}
-
-	if (availRefLevel < reflevel){
-		reflevel = availRefLevel;
-		setClutDirty();
-		savedNumXForms = reflevel;
-		forceReload = true;
-	}
-	RegionParams::convertToStretchedBoxExtentsInCube(reflevel, min_dim, max_dim, extents);    
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
@@ -411,82 +481,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	//Windows or Linux!
 	glColor3f(1.f,1.f,1.f);	   
 	  
-	  
-	bool userTextureSizeIsSet = DataStatus::getInstance()->textureSizeIsSpecified();
-	int userTextureSize = DataStatus::getInstance()->getTextureSize();
-
-	if ((userTextureSizeIsSet != _userTextureSizeIsSet) || 
-		(userTextureSize != _userTextureSize)) { 
-
-		_userTextureSize = userTextureSize;
-		_userTextureSizeIsSet = userTextureSizeIsSet;
-		forceReload = true;
-
-		if (_userTextureSizeIsSet) {
-			_driver->SetMaxTexture(_userTextureSize);
-		}
-		else {
-			_driver->SetMaxTexture(0);
-		}
-	}
-			
   
-	// set up region. Only need to do this if the data
-	// roi changes, or if the datarange has changed.
-	//
-	if (myGLWindow->vizIsDirty(RegionBit) || forceReload
-		|| datarangeIsDirty() 
-	//	|| myGLWindow->vizIsDirty(NavigatingBit)
-		|| myGLWindow->vizIsDirty(AnimationBit)) 
-	{
-		//Check if the region/resolution is too big:
-		int numMBs = RegionParams::getMBStorageNeeded(extents, reflevel);
-		int cacheSize = DataStatus::getInstance()->getCacheMB();
-		if (numMBs > (int)(0.75*cacheSize)){
-			setAllBypass(true);
-			MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small \nfor current region and resolution.\n%s",
-				"Lower the refinement level, reduce region size,\nor increase the cache size.");
-			return;
-		}
-		myGLWindow->setRenderNew();
-		int	rc;
-		int nx,ny,nz;
-	   
-		//qWarning("Requesting region from dataMgr");
-		//Turn off error callback, look for memory allocation problem.
-		
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		string varname = (DataStatus::getInstance()->getVariableName3D(currentRenderParams->getSessionVarNum()));
-
-		rc = _updateRegion(
-			dataMgr, currentRenderParams, myRegionParams,
-			timeStep, varname, reflevel, lod, min_dim, max_dim
-		);
-			
-		//Turn it back on:
-	    
-		QApplication::restoreOverrideCursor();
-		
-		if (rc<0){
-			//Only set bypass if the data is not available at the interactiveRefLevel
-			//Otherwise set partial bypass
-			if (reflevel <= DataStatus::getInteractiveRefinementLevel())
-				setBypass(timeStep);
-			else setPartialBypass(timeStep);
-			MyBase::SetErrCode(0);
-			if (ds->warnIfDataMissing()){
-				SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Volume data unavailable\nfor refinement level %d\nof variable %s, at current timestep.", 
-					reflevel, varname.c_str());
-			}
-			ds->setDataMissing3D(timeStep, reflevel, lod, currentRenderParams->getSessionVarNum());
-			setBypass(timeStep);
-			dataMgr->SetErrCode(0);
-			return;
-		}
-
-		
-	}
-
 	_updateDriverRenderParamsSpec(currentRenderParams);
 
 	// Update the DVR's view
@@ -496,6 +491,15 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	// Modelview matrix
 	//
 	glMatrixMode(GL_MODELVIEW);
+
+	//cerr << "timeStepDirty : " << timeStepDirty << endl;
+	//cerr << "extentsDirty : " << extentsDirty << endl;
+	//cerr << "varDirty : " << varDirty << endl;
+	//cerr << "lodDirty : " << lodDirty << endl;
+	//cerr << "reflevelDirty : " << reflevelDirty << endl;
+	//cerr << "userTextureDirty : " << userTextureDirty << endl;
+	//cerr << "rangeDirty : " << rangeDirty << endl;
+	//cerr << endl;
 
 	//Make the z-buffer read-only for the volume data
 	glDepthMask(GL_FALSE);
@@ -509,7 +513,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	  
 	
 	clearClutDirty();
-	clearDatarangeDirty();
 }
 
 

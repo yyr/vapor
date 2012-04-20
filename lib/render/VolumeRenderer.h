@@ -35,12 +35,10 @@ namespace VAPoR {
 	
       
   public:
-	
-	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
-	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
-	virtual void clearDatarangeDirty(){datarangeDirtyBit = false;}
-	virtual void setAllDataDirty() {setDatarangeDirty();}
 
+	virtual void setAllDataDirty() {}
+	virtual void setDatarangeDirty() {}
+	
     VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp, string name = "VolumeRenderer");
     virtual ~VolumeRenderer();
     
@@ -79,11 +77,15 @@ namespace VAPoR {
     int    _frames;
     double _seconds;
 
-	int _userTextureSize;
-	bool _userTextureSizeIsSet;
-
   private:
-    bool datarangeDirtyBit;
+	size_t _timeStep;
+	double _extents[6];
+	float _range[6];
+	int	_varNum;
+	int _lod;
+	int _reflevel;
+	bool _userTextureSizeIsSet;
+	int _userTextureSize;
 	  
   };
 };

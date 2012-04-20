@@ -174,7 +174,7 @@ void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 	DVRRayCaster *driver = (DVRRayCaster *) _driver;
 
 
-	if (_isovalueDF.Test() || datarangeIsDirty()) {
+	if (_isovalueDF.Test()) {
 
 		float isoval = myParamsIso->GetIsoValue();
 		const float *color = myParamsIso->GetConstantColor();

@@ -37,12 +37,6 @@ namespace VAPoR {
       
   public:
 	
-	bool datarangeIsDirty() { return(_dataDF.Test()); }
-
-	void setDatarangeDirty() { _dataDF.Set(); }
-
-	void clearDatarangeDirty() { _dataDF.Clear(); }
-
 	bool clutIsDirty() { return(_colorMapDF.Test()); }
 
 	void setClutDirty() { _colorMapDF.Set(); }
