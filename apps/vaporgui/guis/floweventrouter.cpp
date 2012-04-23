@@ -580,13 +580,7 @@ void FlowEventRouter::updateTab(){
 	
 	randomSeedEdit->setEnabled(fParams->isRandom()&&fParams->rakeEnabled());
 
-	float seedBoxMin[3],seedBoxMax[3];
-	fParams->getBox(seedBoxMin,seedBoxMax, -1);
 	
-	for (int i = 0; i< 3; i++){
-			textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
-			seedBoxMax[i]-seedBoxMin[i]);
-	}
 
 	//Geometric parameters:
 	geometryCombo->setCurrentIndex(fParams->getShapeType());
@@ -721,16 +715,22 @@ void FlowEventRouter::updateTab(){
 	}
 	//Add time-varying displacement to rake extents:
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	
+	float seedBoxMin[3],seedBoxMax[3];
+	fParams->getBox(seedBoxMin,seedBoxMax);
 	if (dStatus->getDataMgr()){ 
 		const vector<double>& tvExts =  dStatus->getDataMgr()->GetExtents(timestep);
-
+		
 		for (int i = 0; i<3; i++){
 			seedBoxMax[i]+=tvExts[i];
 			seedBoxMin[i]+=tvExts[i];
 		}
 	}
 	
+	for (int i = 0; i< 3; i++){
+		textToSlider(fParams, i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
+					 seedBoxMax[i]-seedBoxMin[i]);
+	}
+		
 	xSizeEdit->setText(QString::number(seedBoxMax[0]-seedBoxMin[0],'g', 4));
 	xCenterEdit->setText(QString::number(0.5f*(seedBoxMax[0]+seedBoxMin[0]),'g',5));
 	ySizeEdit->setText(QString::number(seedBoxMax[1]-seedBoxMin[1],'g', 4));
@@ -2731,65 +2731,71 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
-	setIgnoreBoxSliderEvents(true);
+	
 	bool centerChanged = false;
 	bool sizeChanged = false;
 	DataStatus* ds = DataStatus::getInstance();
-	const float* fullSize; 
-	float regMin = newCenter - 0.5f*newSize;
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
 	
-
-	if (ds->getDataMgr()){
-		fullSize = DataStatus::getInstance()->getFullSizes();
-
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double> userExtents = dataMgr->GetExtents((size_t)timestep);  
 		
-		double newRegion[6];
-		fParams->GetBox()->GetLocalExtents(newRegion);
-
-		if (newSize > (fullSize[coord])){
-			newSize = fullSize[coord];
-			sizeChanged = true;
-		}
-		if (newSize < 0.f) {
-			newSize = 0.f;
-			sizeChanged = true;
-		}
-		if (newCenter < 0.) {
-			newCenter = 0.;
-			centerChanged = true;
-		}
-		if (newCenter > fullSize[coord]) {
-			newCenter = fullSize[coord];
-			centerChanged = true;
-		}
-		if ((newCenter - newSize*0.5f) < 0.){
-			newCenter = regMin+ newSize*0.5f;
-			centerChanged = true;
-		}
-		if ((newCenter + newSize*0.5f) > fullSize[coord]){
-			newCenter = fullSize[coord]- newSize*0.5f;
-			centerChanged = true;
-		}
-		//For small size make generator count 1 in that dimension
-		if (newSize <= 0.f && !fParams->isRandom()){
-			if (fParams->getNumGenerators(coord) != 1) {
-				fParams->setNumGenerators(coord,1);
-				switch(coord){
-					case 0: xSeedEdit->setText("1"); break;
-					case 1: ySeedEdit->setText("1"); break;
-					case 2: zSeedEdit->setText("1"); break;
-				}
+	float regMin = userExtents[coord];
+	float regMax = userExtents[coord+3];
+	if (newSize == regMax-regMin && newCenter == 0.5f*(regMax+regMin)) {
+		return;
+	}
+	setIgnoreBoxSliderEvents(true);
+	
+	if (newSize > regMax-regMin){
+		newSize = regMax-regMin;
+		sizeChanged = true;
+	}
+	if (newSize < 0.f) {
+		newSize = 0.f;
+		sizeChanged = true;
+	}
+	if (newCenter < regMin) {
+		newCenter = regMin;
+		centerChanged = true;
+	}
+	if (newCenter > regMax) {
+		newCenter = regMax;
+		centerChanged = true;
+	}
+	if ((newCenter - newSize*0.5f) < regMin){
+		newCenter = regMin+ newSize*0.5f;
+		centerChanged = true;
+	}
+	if ((newCenter + newSize*0.5f) > regMax){
+		newCenter = regMax- newSize*0.5f;
+		centerChanged = true;
+	}
+	
+	
+	//Now convert back to local extents, put them into the params:
+	
+	//For small size make generator count 1 in that dimension
+	if (newSize <= 0.f && !fParams->isRandom()){
+		if (fParams->getNumGenerators(coord) != 1) {
+			fParams->setNumGenerators(coord,1);
+			switch(coord){
+				case 0: xSeedEdit->setText("1"); break;
+				case 1: ySeedEdit->setText("1"); break;
+				case 2: zSeedEdit->setText("1"); break;
 			}
 		}
-		newRegion[coord] = newCenter - newSize*0.5;
-		newRegion[coord+3] = newCenter + newSize*0.5;
-		fParams->GetBox()->SetLocalExtents(newRegion);
 	}
-	else return;
-	
-	
-	int sliderSize = (int)(0.5f+ 256.f*newSize/fullSize[coord]);
-	int sliderCenter = (int)(0.5f+ 256.f*newCenter/fullSize[coord]);
+	float localExtents[6];
+	fParams->GetBox()->GetLocalExtents(localExtents);
+	float localCenter = newCenter-userExtents[coord];
+	localExtents[coord] = localCenter - newSize*0.5f;
+	localExtents[coord+3] = localCenter + newSize*0.5f;
+	fParams->GetBox()->SetLocalExtents(localExtents);
+	//Put the user coords into the sliders:
+	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
+	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	int oldSliderSize, oldSliderCenter;
 	switch(coord) {
 		case 0:
