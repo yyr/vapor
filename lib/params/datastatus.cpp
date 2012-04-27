@@ -52,6 +52,7 @@ const std::string DataStatus::_emptyString = "";
 const vector<string> DataStatus::emptyVec;
 std::vector<std::string> DataStatus::variableNames;
 bool DataStatus::sessionBefore22 = false;
+float DataStatus::pre22Offset[3] = {0.f,0.f,0.f};
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
@@ -151,8 +152,11 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	numTimesteps = numTS;
 	
 	std::vector<double> mdExtents = dataMgr->GetExtents(0);
-	for (int i = 0; i< 6; i++) extents[i] = (float)mdExtents[i];
-	for (int i = 0; i<3; i++) fullSizes[i] = (float)(mdExtents[i+3] - mdExtents[i]);
+	for (int i = 0; i< 3; i++) {
+		extents[i+3] = (float)(mdExtents[i+3]-mdExtents[i]);
+		extents[i] = 0.;
+		fullSizes[i] = (float)(mdExtents[i+3] - mdExtents[i]);
+	}
 
 #ifdef	DEAD
 	if (! sphericalTransform()) {
@@ -756,7 +760,7 @@ int DataStatus::get2DOrientation(int mdvar){
 void DataStatus::getExtentsCartesian(int timestep, float myExtents[6]) {
 	const float *extptr;
 	if (timestep < 0) {
-		extptr = getExtents();
+		extptr = getLocalExtents();
 	}
 	else {
 		extptr = getExtents(timestep);

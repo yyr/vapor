@@ -130,7 +130,7 @@ void TwoDRenderer::drawElevationGrid(size_t timeStep){
 	if (tParams->imageCrop()){
 		const float* scales = DataStatus::getInstance()->getStretchFactors();
 	
-		const float* extents = DataStatus::getInstance()->getExtents();
+		const float* extents = DataStatus::getInstance()->getLocalExtents();
 
 		topPlane[3] = tParams->getLocalTwoDMax(1)*scales[1];
 		botPlane[3] = -tParams->getLocalTwoDMin(1)*scales[1];

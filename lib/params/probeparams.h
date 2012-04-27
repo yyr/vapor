@@ -64,10 +64,10 @@ public:
 		currentDatarange[0] = minval; currentDatarange[1]=maxval;}
 
 	virtual float getCameraDistance(ViewpointParams* vpp, RegionParams* rp, int timestep);
-	void setSelectedPoint(const float point[3]){
+	void setSelectedPointLocal(const float point[3]){
 		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
-	virtual const float* getSelectedPoint() {
+	virtual const float* getSelectedPointLocal() {
 		return selectPoint;
 	}
 	//Override default, allow probe manip to go outside of data:

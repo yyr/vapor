@@ -160,28 +160,24 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	double regMin[3],regMax[3];
 	
 	DataStatus* ds = DataStatus::getInstance();
-	const float* extents = ds->getExtents();
+	const float* localExtents = ds->getLocalExtents();
 	//See if there is a HGT variable
 	
 	float* hgtData = 0;
 	DataMgr* dataMgr = ds->getDataMgr();
-
+	const vector<double>& usrExts = dataMgr->GetExtents(timeStep);
 	TwoDParams* tParams = (TwoDParams*) currentRenderParams;
 	float displacement = tParams->getLocalTwoDMin(2);
 	int varnum = DataStatus::getSessionVariableNum2D("HGT");
 	double twoDExts[6];
 	for (int i = 0; i<3; i++){
-		twoDExts[i] = tParams->getLocalTwoDMin(i);
-		twoDExts[i+3] = tParams->getLocalTwoDMax(i);
+		regMin[i] = twoDExts[i] = tParams->getLocalTwoDMin(i) + usrExts[i];
+		regMax[i] = twoDExts[i+3] = tParams->getLocalTwoDMax(i) + usrExts[i];
 	}
 	
-	double origRegMin[2], origRegMax[2];
+	
 	for (int i = 0; i< 2; i++){
-		regMin[i] = tParams->getLocalTwoDMin(i);
-		regMax[i] = tParams->getLocalTwoDMax(i);
-		origRegMin[i] = regMin[i];
-		origRegMax[i] = regMax[i];
-		//Test for empty box:
+		
 		if (regMax[i] <= regMin[i]){
 			maxXElev = 0;
 			maxYElev = 0;
@@ -190,8 +186,8 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 
 	}
 	
-	regMin[2] = extents[2];
-	regMax[2] = extents[5];
+	regMin[2] = localExtents[2];
+	regMax[2] = localExtents[5];
 	//Convert to voxels:
 	
 	int elevGridRefLevel = tParams->GetRefinementLevel();
@@ -236,37 +232,11 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	//map exactly to the original region bounds
 	
 
-	if (twoDExts[0] < origRegMin[0] && twoDExts[3] > origRegMax[0]){
-		minXTex = (twoDExts[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
-		maxXTex = minXTex + deltax*(maxx-3)/(origRegMax[0]-origRegMin[0]);
-	} else if (twoDExts[0] < origRegMin[0]){
-		minXTex = (twoDExts[0]+deltax - origRegMin[0])/(origRegMax[0]-origRegMin[0]);
-		maxXTex = 1.f;
-	} else if (twoDExts[3] > origRegMax[0]){
-		minXTex = 0.f;
-		maxXTex = deltax*(maxx-2)/(origRegMax[0]-origRegMin[0]);
-	} else {
-		minXTex = 0.f;
-		maxXTex = 1.f;
-	}
-	assert (maxXTex <= 1.f && maxXTex >= 0.f);
-	assert (minXTex <= 1.f && minXTex >= 0.f);
-	if (twoDExts[1] < origRegMin[1] && twoDExts[4] > origRegMax[1]){
-		minYTex = (twoDExts[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
-		maxYTex =  minYTex + deltay*(maxy-3)/(origRegMax[1]-origRegMin[1]);
-	} else if (twoDExts[1] < origRegMin[1]){
-		minYTex = (regMin[1]+deltay - origRegMin[1])/(origRegMax[1]-origRegMin[1]);
-		maxYTex = 1.f;
-	} else if (twoDExts[4] > origRegMax[1]){
-		minYTex = 0.f;
-		maxYTex = deltay*(maxy-2)/(origRegMax[1]-origRegMin[1]);
-	} else {
-		minYTex = 0.f;
-		maxYTex = 1.f;
-	}
-	assert (maxYTex <= 1.f && maxYTex >= 0.f);
-	assert (minYTex <= 1.f && minYTex >= 0.f);
-
+	
+	minXTex = 0.f;
+	maxXTex = 1.f;
+	minYTex = 0.f;
+	maxYTex = 1.f;
 	 
 	//Then loop over all the vertices in the Elevation or HGT data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
@@ -283,23 +253,24 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 		minvals[i] = 1.e30;
 		maxvals[i] = -1.e30;
 	}
-	float worldCoord[3];
+	float worldCoord[3], locCoord[3];
 	
 	for (int j = 0; j<maxy; j++){
 		worldCoord[1] = twoDExts[1] + (float)j*deltay;
-		if (worldCoord[1] < origRegMin[1]) worldCoord[1] = origRegMin[1];
-		if (worldCoord[1] > origRegMax[1]) worldCoord[1] = origRegMax[1];
 			
 		for (int i = 0; i<maxx; i++){
 			int pntPos = 3*(i+j*maxx);
 			worldCoord[0] = twoDExts[0] + (float)i*deltax;
-			if (worldCoord[0] < origRegMin[0]) worldCoord[0] = origRegMin[0];
-			if (worldCoord[0] > origRegMax[0]) worldCoord[0] = origRegMax[0];
 			
 			worldCoord[2] = hgtGrid->GetValue(worldCoord[0],worldCoord[1], 0.);
-			if (worldCoord[2] == hgtGrid->GetMissingValue()) worldCoord[2] = 0.;
-						//Convert and put results into elevation grid vertices:
-			ViewpointParams::localToStretchedCube(worldCoord,elevVert+pntPos);
+			
+			//convert world back to local coords:
+			locCoord[0]= worldCoord[0] - usrExts[0];
+			locCoord[1]= worldCoord[1] - usrExts[1];
+			if (worldCoord[2] == hgtGrid->GetMissingValue()) locCoord[2] = 0.;
+			else locCoord[2] = worldCoord[2] - usrExts[2];
+			//Convert and put results into elevation grid vertices:
+			ViewpointParams::localToStretchedCube(locCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){
 				if( *(elevVert + pntPos+k) > maxvals[k])
 					maxvals[k] = *(elevVert + pntPos+k);

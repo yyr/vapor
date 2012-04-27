@@ -63,7 +63,7 @@ public:
 	//! Obtain the full extents of the data in user coordinates.
 	//! Values in this array are in the order: minx, miny, minz, maxx, maxy, maxz.
 	//! \retval const float[6] extents array
-	const float* getExtents() { return extents; }
+	const float* getLocalExtents() { return extents; }
 	const float* getFullSizes() {return fullSizes;}
 	const float* getFullStretchedSizes() {return fullStretchedSizes;}
 
@@ -525,7 +525,7 @@ public:
 	static const float* getExtents(int timestep){ 
 		if (timeVaryingExtents[timestep] != 0) return timeVaryingExtents[timestep];
 	else 
-		return getInstance()->getExtents();
+		return getInstance()->getLocalExtents();
 	}
 
 	void getExtentsCartesian(int timestep, float extents[6]);
@@ -720,6 +720,10 @@ public:
 	static bool removeDerivedVariable3D(const string& derivedVarName);
 	static bool pre22Session(){return sessionBefore22;}
 	static void setPre22Session(bool value){ sessionBefore22 = value;}
+	static void setPre22Offset(float offset[3]){
+		pre22Offset[0] = offset[0];pre22Offset[1] = offset[1];pre22Offset[2] = offset[2];
+	}
+	static float* getPre22Offset(){return pre22Offset;}
 	
 	
 private:
@@ -819,6 +823,7 @@ private:
 	static vector <float*> timeVaryingExtents;
 	int VDCType;
 	static bool sessionBefore22;  //flag indicating that current session is before 2.2
+	static float pre22Offset[3];
 	
 	//Static tables where all ParamsBase classes are registered.
 	//Each class has a unique:

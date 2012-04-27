@@ -363,7 +363,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//! \param[in] float[3] boxMin  The minimum coordinates of the box.
 	//! \param[in] float[3] boxMax  The maximum coordinates of the box.
 	//! \param[in] int time step Current time step (only for moving boxes).
-	void setBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
+	void setLocalBox(const float boxMin[3], const float boxMax[3], int timestep = -1 ) {
 		double extents[6];
 		for (int i = 0; i<3; i++){
 			extents[i] = boxMin[i];
@@ -397,7 +397,7 @@ Params(int winNum, const string& name) : ParamsBase(name) {
 	//! \param[out] float[3] boxMin  The minimum coordinates of the box.
 	//! \param[out] float[3] boxMax  The maximum coordinates of the box.
 	//! \param[in] int time step Current time step (only for moving boxes).
-	void getBox(float boxMin[3], float boxMax[3], int timestep = -1) {
+	void getLocalBox(float boxMin[3], float boxMax[3], int timestep = -1) {
 		double extents[6];
 		GetBox()->GetLocalExtents(extents, timestep);
 		for (int i = 0; i<3; i++){
@@ -565,8 +565,9 @@ public:
 	//! virtual method used only by params that support selecting points in 3D space, 
 	//! and displaying those points with a 3D cursor.
 	//! Default implementation returns null.
+	//! Selected point is in local coordinates
 	//! \retval const float* pointer to 3D point.
-	virtual const float* getSelectedPoint() {
+	virtual const float* getSelectedPointLocal() {
 		return 0;
 	}
 

@@ -256,15 +256,10 @@ public:
 	void setCitationRemind(bool val){citationRemind=val;}
 	bool getCitationRemindDefault(){return citationRemindDefault;}
 	void setCitationRemindDefault(bool val){citationRemindDefault=val;}
-	const float* getExtents() {return extents;}
-	const float* getStretchedExtents() {return stretchedExtents;}
-	float getExtents(int i) {return extents[i];}
-	float getStretchedExtents(int i) {return stretchedExtents[i];}
+	
 	float getStretch(int j) {return stretchFactors[j];}
 	void setStretch(int j, float val) {
 		stretchFactors[j] = val;
-		stretchedExtents[j] = val*extents[j];
-		stretchedExtents[j+3] = val*extents[j+3];
 	}
 		
 	std::string& getVariableName(int varNum) {
@@ -387,7 +382,6 @@ protected:
 	bool newSession;
 	bool renderOK;
 	float extents[6];
-	float stretchedExtents[6];
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;
 	//hold a transfer function during parsing (between when the start and end tags

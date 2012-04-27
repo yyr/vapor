@@ -184,7 +184,8 @@ TwoDDataEventRouter::hookUpTab()
 void TwoDDataEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	DataStatus* ds = DataStatus::getInstance();
-	if (ds->getDataMgr()&& ds->dataIsPresent2D()){
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (dataMgr && ds->dataIsPresent2D()){
 		setEnabled(true);
 		instanceTable->setEnabled(true);
 	}
@@ -210,23 +211,25 @@ void TwoDDataEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
+	const vector<double>& tvExts = dataMgr->GetExtents((size_t)currentTimeStep);
 	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
 	
 	int orientation = 2; //x-y aligned
 	//set up the cursor position
 	mapCursor();
-	const float* selectedPoint = twoDParams->getSelectedPoint();
-	selectedXLabel->setText(QString::number(selectedPoint[0]));
-	selectedYLabel->setText(QString::number(selectedPoint[1]));
-	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	const float* localSelectedPoint = twoDParams->getSelectedPointLocal();
+	
+	selectedXLabel->setText(QString::number(localSelectedPoint[0]+tvExts[0]));
+	selectedYLabel->setText(QString::number(localSelectedPoint[1]+tvExts[1]));
+	selectedZLabel->setText(QString::number(localSelectedPoint[2]+tvExts[2]));
 	
 	//Provide latlon coords if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];
-		selectedLatLon[0] = selectedPoint[0];
-		selectedLatLon[1] = selectedPoint[1];
+		selectedLatLon[0] = localSelectedPoint[0];
+		selectedLatLon[1] = localSelectedPoint[1];
 		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
@@ -257,20 +260,20 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	if (numvars > 1)
 	{
-	transferFunctionFrame->setVariableName(varnames.toStdString());
-	QString labelString = "Length of vector("+shortVarNames+") at selected point:";
-	variableLabel->setText(labelString);
+		transferFunctionFrame->setVariableName(varnames.toStdString());
+		QString labelString = "Length of vector("+shortVarNames+") at selected point:";
+		variableLabel->setText(labelString);
 	}
 	else if (numvars > 0)
 	{
-	transferFunctionFrame->setVariableName(varnames.toStdString());
-	QString labelString = "Value of variable("+shortVarNames+") at selected point:";
-	variableLabel->setText(labelString);
+		transferFunctionFrame->setVariableName(varnames.toStdString());
+		QString labelString = "Value of variable("+shortVarNames+") at selected point:";
+		variableLabel->setText(labelString);
 	}
 	else
 	{
-	transferFunctionFrame->setVariableName("");
-	variableLabel->setText("");
+		transferFunctionFrame->setVariableName("");
+		variableLabel->setText("");
 	}
 	int numRefs = twoDParams->GetRefinementLevel();
 	if(numRefs <= refinementCombo->count())
@@ -287,7 +290,7 @@ void TwoDDataEventRouter::updateTab(){
 	float val = OUT_OF_BOUNDS;
 	string varname = ds->getVariableName2D(twoDParams->getFirstVarNum());	
 	double selectPoint[3];
-	for (int i = 0; i<3; i++) selectPoint[i] = selectedPoint[i];
+	for (int i = 0; i<3; i++) selectPoint[i] = localSelectedPoint[i]+tvExts[i];
 	val = RegionParams::calcCurrentValue(varname,selectPoint,twoDParams->GetRefinementLevel(), twoDParams->GetCompressionLevel(), (size_t)currentTimeStep);
 	
 
@@ -358,16 +361,20 @@ void TwoDDataEventRouter::updateTab(){
     
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = ds->getExtents();
-	twoDParams->getBox(boxmin, boxmax);
-	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	
+	twoDParams->getLocalBox(boxmin, boxmax);
+	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + tvExts[i];
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-tvExts[0])/(tvExts[3]-tvExts[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-tvExts[1])/(tvExts[4]-tvExts[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-tvExts[2])/(tvExts[5]-tvExts[2])));
 	xCenterEdit->setText(QString::number(boxCenter[0]));
 	yCenterEdit->setText(QString::number(boxCenter[1]));
 	zCenterEdit->setText(QString::number(boxCenter[2]));
 	
+	for(int i = 0; i<3; i++){
+		boxmin[i] += tvExts[i];
+		boxmax[i] += tvExts[i];
+	}
 	//setup the size sliders 
 	adjustBoxSize(twoDParams);
 
@@ -379,7 +386,6 @@ void TwoDDataEventRouter::updateTab(){
 	maxUserYLabel->setText(QString::number(boxmax[1]));
 	maxUserZLabel->setText(QString::number(boxmax[2]));
 
-	DataMgr *dataMgr = ds->getDataMgr();
 	if (dataMgr){
 		int fullRefLevel = ds->getNumTransforms();
 
@@ -407,7 +413,7 @@ void TwoDDataEventRouter::updateTab(){
 		boxLatLon[1] = boxmin[1];
 		boxLatLon[2] = boxmax[0];
 		boxLatLon[3] = boxmax[1];
-		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
+		if (DataStatus::convertToLonLat(boxLatLon,2)){
 			minLonLabel->setText(QString::number(boxLatLon[0]));
 			minLatLabel->setText(QString::number(boxLatLon[1]));
 			maxLonLabel->setText(QString::number(boxLatLon[2]));
@@ -454,20 +460,23 @@ void TwoDDataEventRouter::refreshTab(){
 
 void TwoDDataEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
 	TwoDDataParams* twoDParams = VizWinMgr::getActiveTwoDDataParams();
 	PanelCommand* cmd = PanelCommand::captureStart(twoDParams, "edit TwoDData text");
 	QString strn;
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
-
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& tvExts = dataMgr->GetExtents(timestep);
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
 	int xcrd =0, ycrd = 1, zcrd = 2;
 	if (orientation < 2) {ycrd = 2; zcrd = 1;}
 	if (orientation < 1) {xcrd = 1; zcrd = 0;}
 
-	const float *extents = DataStatus::getInstance()->getExtents();
+	
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[xcrd] = xSizeEdit->text().toFloat();
@@ -475,29 +484,30 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	boxSize[zcrd] = 0;
 	for (int i = 0; i<3; i++){
 		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		if (boxSize[i] > (extents[i+3]-extents[i])) boxSize[i] = (extents[i+3]-extents[i]);
+		if (boxSize[i] > (tvExts[i+3]-tvExts[i])) boxSize[i] = (tvExts[i+3]-tvExts[i]);
 	}
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	twoDParams->getBox(boxmin, boxmax);
+	twoDParams->getLocalBox(boxmin, boxmax);
 	//the box z-size is not adjustable:
 	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
 		if (i!=2){
-			if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-			if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+			if (boxCenter[i] < tvExts[i])boxCenter[i] = tvExts[i];
+			if (boxCenter[i] > tvExts[i+3])boxCenter[i] = tvExts[i+3];
 		}
-		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
-		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
+		//boxmin, boxmax are in local coordinates
+		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i]-tvExts[i];
+		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i]-tvExts[i];
 	}
-	twoDParams->setBox(boxmin,boxmax);
+	twoDParams->setLocalBox(boxmin,boxmax);
 	adjustBoxSize(twoDParams);
 	//set the center sliders:
 	setIgnoreBoxSliderEvents(true);
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-tvExts[0])/(tvExts[3]-tvExts[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-tvExts[1])/(tvExts[4]-tvExts[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-tvExts[2])/(tvExts[5]-tvExts[2])));
 	setIgnoreBoxSliderEvents(false);
 	resetTextureSize(twoDParams);
 	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
@@ -678,18 +688,18 @@ twoDLoadTF(void){
 void TwoDDataEventRouter::
 twoDCenterRegion(){
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
-	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void TwoDDataEventRouter::
 twoDCenterView(){
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
-	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void TwoDDataEventRouter::
 twoDCenterRake(){
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
-	fRouter->guiCenterRake(pParams->getSelectedPoint());
+	fRouter->guiCenterRake(pParams->getSelectedPointLocal());
 }
 
 void TwoDDataEventRouter::
@@ -697,7 +707,7 @@ twoDAddSeed(){
 	Point4 pt;
 	TwoDDataParams* pParams = (TwoDDataParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDDataParamsTag);
 	mapCursor();
-	pt.set3Val(pParams->getSelectedPoint());
+	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	int timestep = ap->getCurrentFrameNumber();
 	pt.set1Val(3,(float)timestep);
@@ -714,7 +724,7 @@ twoDAddSeed(){
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float boxMin[3], boxMax[3];
-	rParams->getBox(boxMin, boxMax,timestep);
+	rParams->getLocalBox(boxMin, boxMax,timestep);
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
@@ -1049,9 +1059,9 @@ void TwoDDataEventRouter::guiCenterTwoD(){
 	confirmText(false);
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center TwoDData to Selected Point");
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	float twoDMin[3],twoDMax[3];
-	pParams->getBox(twoDMin,twoDMax);
+	pParams->getLocalBox(twoDMin,twoDMax);
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], twoDMax[i]-twoDMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1069,16 +1079,16 @@ void TwoDDataEventRouter::guiCenterProbe(){
 	TwoDDataParams* tParams = VizWinMgr::getActiveTwoDDataParams();
 	
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
-	const float* selectedPoint = tParams->getSelectedPoint();
+	const float* selectedPoint = tParams->getSelectedPointLocal();
 	float pMin[3],pMax[3];
-	pParams->getBox(pMin,pMax,-1);
+	pParams->getLocalBox(pMin,pMax,-1);
 	//Move center so it coincides with the selected point
 	for (int i = 0; i<3; i++){
 		float diff = (pMax[i]-pMin[i])*0.5;
 		pMin[i] = selectedPoint[i] - diff;
 		pMax[i] = selectedPoint[i] + diff; 
 	}
-	pParams->setBox(pMin,pMax,-1);
+	pParams->setLocalBox(pMin,pMax,-1);
 		
 	PanelCommand::captureEnd(cmd, pParams);
 	
@@ -1326,95 +1336,16 @@ guiSetNumRefinements(int n){
 //
 void TwoDDataEventRouter::
 textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize){
-	setIgnoreBoxSliderEvents(true);
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>&tvExts = dataMgr->GetExtents(timestep);
+	newCenter -= tvExts[coord];
 	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
 	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
-	//force the new center to fit in the full domain,
 	
-	bool centerChanged = false;
-	DataStatus* ds = DataStatus::getInstance();
-	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	float boxMin,boxMax;
-	if (ds && ds->getDataMgr()){
-		extents = DataStatus::getInstance()->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	
-		if (newCenter < regMin) {
-			newCenter = regMin;
-			centerChanged = true;
-		}
-		if (newCenter > regMax) {
-			newCenter = regMax;
-			centerChanged = true;
-		}
-	} else {
-		regMin = newCenter - newSize*0.5f; 
-		regMax = newCenter + newSize*0.5f;
-	}
-		
-	boxMin = newCenter - newSize*0.5f; 
-	boxMax= newCenter + newSize*0.5f; 
-	if (centerChanged){
-		pParams->setLocalTwoDMin(coord, boxMin);
-		pParams->setLocalTwoDMax(coord, boxMax);
-	}
-	
-	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
-	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
-	int oldSliderSize, oldSliderCenter;
-	switch(coord) {
-		case 0:
-			
-			oldSliderSize = xSizeSlider->value();
-			
-			oldSliderCenter = xCenterSlider->value();
-			if (oldSliderSize != sliderSize){
-				xSizeSlider->setValue(sliderSize);
-			}
-			
-			if (oldSliderCenter != sliderCenter)
-				xCenterSlider->setValue(sliderCenter);
-			if(centerChanged) xCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastXSizeSlider = sliderSize;
-			lastXCenterSlider = sliderCenter;
-			break;
-		case 1:
-			oldSliderSize = ySizeSlider->value();
-			oldSliderCenter = yCenterSlider->value();
-			if (oldSliderSize != sliderSize)
-				ySizeSlider->setValue(sliderSize);
-			
-			if (oldSliderCenter != sliderCenter)
-				yCenterSlider->setValue(sliderCenter);
-			if(centerChanged) yCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastYSizeSlider = sliderSize;
-			lastYCenterSlider = sliderCenter;
-			break;
-		case 2:
-			
-			oldSliderCenter = zCenterSlider->value();
-			if (oldSliderCenter != sliderCenter)
-				zCenterSlider->setValue(sliderCenter);
-			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastZCenterSlider = sliderCenter;
-			break;
-		default:
-			assert(0);
-	}
-	guiSetTextChanged(false);
-	if(centerChanged) {
-		setTwoDDirty(pParams);
-		twoDTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams);;
-	}
-	update();
-	setIgnoreBoxSliderEvents(false);
-	return;
 }
 //Set text when a slider changes.
 //
@@ -1423,37 +1354,40 @@ sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize)
 	//Determine which coordinate of box is being slid:
 	int orientation = DataStatus::getInstance()->get2DOrientation(pParams->getFirstVarNum());
 	if (orientation < coord) coord++;
-	const float* extents = DataStatus::getInstance()->getExtents();
-	
-	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
-	float newSize = (extents[coord+3]-extents[coord])*(float)slideSize/256.f;
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& tvExts = dataMgr->GetExtents(timestep);
+	//calculate center in user coords:
+	float newCenter = tvExts[coord] + ((float)slideCenter)*(tvExts[coord+3]-tvExts[coord])/256.f;
+	float newSize = (tvExts[coord+3]-tvExts[coord])*(float)slideSize/256.f;
 	//If it's not inside the x,y domain, move the center:
 	if (coord != 2){
-		if ((newCenter - 0.5*newSize) < extents[coord]) newCenter = extents[coord]+0.5*newSize;
-		if ((newCenter + 0.5*newSize) > extents[coord+3]) newCenter = extents[coord+3]-0.5*newSize;
+		if ((newCenter - 0.5*newSize) < tvExts[coord]) newCenter = tvExts[coord]+0.5*newSize;
+		if ((newCenter + 0.5*newSize) > tvExts[coord+3]) newCenter = tvExts[coord+3]-0.5*newSize;
 	}
 
-	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
-	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
+	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize - tvExts[coord]);
+	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize- tvExts[coord]);
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* localSelectedPoint = pParams->getSelectedPointLocal();
 	
 	switch(coord) {
 		case 0:
 			xSizeEdit->setText(QString::number(newSize,'g',7));
 			xCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedXLabel->setText(QString::number(selectedPoint[coord]));
+			selectedXLabel->setText(QString::number(localSelectedPoint[coord]+tvExts[coord]));
 			break;
 		case 1:
 			ySizeEdit->setText(QString::number(newSize,'g',7));
 			yCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedYLabel->setText(QString::number(selectedPoint[coord]));
+			selectedYLabel->setText(QString::number(localSelectedPoint[coord]+tvExts[coord]));
 			break;
 		case 2:
 			zCenterEdit->setText(QString::number(newCenter,'g',7));
-			selectedZLabel->setText(QString::number(selectedPoint[coord]));
+			selectedZLabel->setText(QString::number(localSelectedPoint[coord]+tvExts[coord]));
 			break;
 		default:
 			assert(0);
@@ -1512,7 +1446,7 @@ void TwoDDataEventRouter::
 captureMouseUp(){
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
 	//float boxMin[3],boxMax[3];
-	//pParams->getBox(boxMin,boxMax);
+	//pParams->getLocalBox(boxMin,boxMax);
 	//twoDTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
 	resetTextureSize(pParams);
 	setTwoDDirty(pParams);
@@ -1577,7 +1511,7 @@ guiEndCursorMove(){
 	mapCursor();
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
-		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
+		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPointLocal());
 	}
 	
 	//Update the tab, it's in front:
@@ -1762,8 +1696,8 @@ void TwoDDataEventRouter::guiNudgeXSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalTwoDMin(0);
 	float pmax = pParams->getLocalTwoDMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getLocalExtents()[3];
+	float minExtent = ds->getLocalExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
@@ -1809,8 +1743,8 @@ void TwoDDataEventRouter::guiNudgeXCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalTwoDMin(0);
 	float pmax = pParams->getLocalTwoDMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getLocalExtents()[3];
+	float minExtent = ds->getLocalExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
@@ -1856,8 +1790,8 @@ void TwoDDataEventRouter::guiNudgeYCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalTwoDMin(1);
 	float pmax = pParams->getLocalTwoDMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getLocalExtents()[4];
+	float minExtent = ds->getLocalExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
@@ -1903,8 +1837,8 @@ void TwoDDataEventRouter::guiNudgeZCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getLocalTwoDMin(2);
 	float pmax = pParams->getLocalTwoDMax(2);
-	float maxExtent = ds->getExtents()[5];
-	float minExtent = ds->getExtents()[2];
+	float maxExtent = ds->getLocalExtents()[5];
+	float minExtent = ds->getLocalExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
@@ -1951,8 +1885,8 @@ void TwoDDataEventRouter::guiNudgeYSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalTwoDMin(1);
 	float pmax = pParams->getLocalTwoDMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getLocalExtents()[4];
+	float minExtent = ds->getLocalExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
@@ -1992,25 +1926,25 @@ adjustBoxSize(TwoDDataParams* pParams){
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
 	if (!Session::getInstance()->getDataMgr()) return;
-	pParams->getBox(boxmin, boxmax);
+	pParams->getLocalBox(boxmin, boxmax);
 
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	
 	//force 2d data to be no larger than extents:
 	
-	if (boxmin[xcrd] < extents[xcrd]) boxmin[xcrd] = extents[xcrd];
+	if (boxmin[xcrd] < 0.) boxmin[xcrd] = 0.;
 	if (boxmax[xcrd] > extents[xcrd+3]) boxmax[xcrd] = extents[xcrd+3];
-	if (boxmin[ycrd] < extents[ycrd]) boxmin[ycrd] = extents[ycrd];
+	if (boxmin[ycrd] < 0.) boxmin[ycrd] = 0.;
 	if (boxmax[ycrd] > extents[ycrd+3]) boxmax[ycrd] = extents[ycrd+3];
 	
 	
-	pParams->setBox(boxmin, boxmax);
+	pParams->setLocalBox(boxmin, boxmax);
 	//Set the size sliders appropriately:
 	xSizeEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
 	ySizeEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
 	
-	xSizeSlider->setValue((int)(256.f*(boxmax[xcrd]-boxmin[xcrd])/(extents[xcrd+3]-extents[xcrd])));
-	ySizeSlider->setValue((int)(256.f*(boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3]-extents[ycrd])));
+	xSizeSlider->setValue((int)(256.f*(boxmax[xcrd]-boxmin[xcrd])/(extents[xcrd+3])));
+	ySizeSlider->setValue((int)(256.f*(boxmax[ycrd]-boxmin[ycrd])/(extents[ycrd+3])));
 	
 	//Cancel any response to text events generated in this method:
 	//
@@ -2100,7 +2034,7 @@ void TwoDDataEventRouter::mapCursor(){
 	} 
 	float spt[3];
 	for (int i = 0; i<3; i++) spt[i] = selectPoint[i];
-	tParams->setSelectedPoint(spt);
+	tParams->setSelectedPointLocal(spt);
 }
 void TwoDDataEventRouter::updateBoundsText(RenderParams* params){
 	QString strn;

@@ -155,7 +155,7 @@ bool RegionParams::
 reinit(bool doOverride){
 	int i;
 	
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	
 	double regionExtents[6];
 	vector<double> exts(3,0.0);
@@ -173,10 +173,11 @@ reinit(bool doOverride){
 			int currTime = times[timenum];
 			myBox->GetLocalExtents(regionExtents,currTime);
 			if (DataStatus::pre22Session()){
+				float * offset = DataStatus::getPre22Offset();
 				//In old session files, the coordinate of box extents were not 0-based
 				for (int i = 0; i<3; i++) {
-					regionExtents[i] -= extents[i];
-					regionExtents[i+3] -= extents[i];
+					regionExtents[i] -= offset[i];
+					regionExtents[i+3] -= offset[i];
 				}
 			}
 			//force them to fit in current volume 

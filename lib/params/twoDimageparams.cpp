@@ -120,7 +120,7 @@ bool TwoDImageParams::
 reinit(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	const float* extents = ds->getExtents();
+	const float* extents = ds->getLocalExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
 	//Either set the twoD bounds to default (full) size in the center of the domain, or 
@@ -146,9 +146,10 @@ reinit(bool doOverride){
 		GetBox()->GetLocalExtents(twoDExtents);
 		if (DataStatus::pre22Session()){
 			//In old session files, the coordinate of box extents were not 0-based
+			float * offset = DataStatus::getPre22Offset();
 			for (int i = 0; i<3; i++) {
-				twoDExtents[i] -= extents[i];
-				twoDExtents[i+3] -= extents[i];
+				twoDExtents[i] -= offset[i];
+				twoDExtents[i+3] -= offset[i];
 			}
 		}
 		for (int i = 0; i<3; i++){
@@ -984,7 +985,7 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 
 	//Now displayCorners are corners in projection space.  subtract offsets:
 	const float* exts = DataStatus::getExtents(timestep);
-	const float* globExts = DataStatus::getInstance()->getExtents();
+	const float* globExts = DataStatus::getInstance()->getLocalExtents();
 	for (int i = 0; i<8; i++) displayCorners[i] -= (exts[i%2] - globExts[i%2]);
 	return true;
 }
@@ -1037,7 +1038,7 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 	
 	//Now pt is in projection space.  subtract offsets:
 	const float* exts = DataStatus::getExtents(timestep);
-	const float* globExts = DataStatus::getInstance()->getExtents();
+	const float* globExts = DataStatus::getInstance()->getLocalExtents();
 	for (int i = 0; i<2; i++) pt[i] -= (exts[i] - globExts[i]);
 	return true;
 	

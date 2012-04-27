@@ -212,8 +212,6 @@ void Session::init() {
 	newSession = true;
 	extents[0] = extents[1] = extents[2] = 0.f;
 	extents[3] = extents[4] = extents[5] = 1.f;
-	stretchedExtents[0] = stretchedExtents[1] = stretchedExtents[2] = 0.f;
-	stretchedExtents[3] = stretchedExtents[4] = stretchedExtents[5] = 1.f;
 	
 	DataStatus::removeMetadataVars();
 	//Set current paths to default preferences
@@ -538,11 +536,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			//set the pre22Session flag if the session is pre-2.1.1 
 			if (Version::Compare(sessionVersionString,"2.1.0")<=0){
 				DataStatus::setPre22Session(true);
+				DataStatus::setPre22Offset(extents);
 			}
 			for (int i = 0; i<3; i++){
 				stretchFactors[i] = stretchFac[i];
-				stretchedExtents[i] = extents[i]*stretchFactors[i];
-				stretchedExtents[i+3] = extents[i+3]*stretchFactors[i];
 			}
 			return true;
 		}
@@ -940,7 +937,6 @@ resetMetadata(vector<string>& files, bool restoredSession, bool importing, bool 
 
 		for (i = 0; i< 6; i++){
 			extents[i] = (float)mdExtents[i];
-			stretchedExtents[i] = extents[i]*stretchFactors[i%3];
 		}
 	}
 	//Histo::releaseHistograms();

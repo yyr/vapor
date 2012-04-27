@@ -234,7 +234,7 @@ void TwoDImageEventRouter::updateTab(){
 
 	//set up the cursor position
 	mapCursor();
-	const float* selectedPoint = twoDParams->getSelectedPoint();
+	const float* selectedPoint = twoDParams->getSelectedPointLocal();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));
 	selectedZLabel->setText(QString::number(selectedPoint[2]));
@@ -291,8 +291,8 @@ void TwoDImageEventRouter::updateTab(){
 	
 	//And the center sliders/textboxes:
 	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = ds->getExtents();
-	twoDParams->getBox(boxmin, boxmax);
+	const float* extents = ds->getLocalExtents();
+	twoDParams->getLocalBox(boxmin, boxmax);
 	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
 	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
 	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
@@ -388,7 +388,7 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	if (orientation < 2) {ycrd = 2; zcrd = 1;}
 	if (orientation < 1) {xcrd = 1; zcrd = 0;}
 
-	const float *extents = DataStatus::getInstance()->getExtents();
+	const float *extents = DataStatus::getInstance()->getLocalExtents();
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[xcrd] = widthEdit->text().toFloat();
@@ -400,14 +400,14 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	twoDParams->getBox(boxmin, boxmax);
+	twoDParams->getLocalBox(boxmin, boxmax);
 	//the box z-size is not adjustable:
 	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
 		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
-	twoDParams->setBox(boxmin,boxmax);
+	twoDParams->setLocalBox(boxmin,boxmax);
 	adjustBoxSize(twoDParams);
 	//set the center sliders:
 	setIgnoreBoxSliderEvents(true);
@@ -517,7 +517,7 @@ void TwoDImageEventRouter::guiFitToImage(){
 	float newExts[6];
 	
 	tParams->getImageCorners(timestep, corners);
-	tParams->getBox(newExts, newExts+3);
+	tParams->getLocalBox(newExts, newExts+3);
 	newExts[0] = newExts[1] = 1.e30f;
 	newExts[3] = newExts[4] = -1.e30f;
 	//Adjust the new 2d extents to contain these corners
@@ -528,7 +528,7 @@ void TwoDImageEventRouter::guiFitToImage(){
 		if (newExts[3] < corners[2*i]) newExts[3] = corners[2*i];
 		if (newExts[4] < corners[2*i+1]) newExts[4] = corners[2*i+1];
 	}
-	tParams->setBox(newExts, newExts+3);
+	tParams->setLocalBox(newExts, newExts+3);
 	PanelCommand::captureEnd(cmd, tParams); 
 	setTwoDDirty(tParams);
 	VizWinMgr::getInstance()->forceRender(tParams);;
@@ -665,18 +665,18 @@ setTwoDEnabled(bool val, int instance){
 void TwoDImageEventRouter::
 twoDCenterRegion(){
 	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
-	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void TwoDImageEventRouter::
 twoDCenterView(){
 	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
-	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void TwoDImageEventRouter::
 twoDCenterRake(){
 	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
-	fRouter->guiCenterRake(pParams->getSelectedPoint());
+	fRouter->guiCenterRake(pParams->getSelectedPointLocal());
 }
 
 void TwoDImageEventRouter::
@@ -684,7 +684,7 @@ twoDAddSeed(){
 	Point4 pt;
 	TwoDImageParams* pParams = (TwoDImageParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_twoDImageParamsTag);
 	mapCursor();
-	pt.set3Val(pParams->getSelectedPoint());
+	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	
 	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
@@ -701,7 +701,7 @@ twoDAddSeed(){
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float boxMin[3], boxMax[3];
-	rParams->getBox(boxMin, boxMax,-1);
+	rParams->getLocalBox(boxMin, boxMax,-1);
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
@@ -894,9 +894,9 @@ void TwoDImageEventRouter::guiCenterTwoD(){
 	confirmText(false);
 	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center TwoDImage to Selected Point");
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	float twoDMin[3],twoDMax[3];
-	pParams->getBox(twoDMin,twoDMax);
+	pParams->getLocalBox(twoDMin,twoDMax);
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], twoDMax[i]-twoDMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
@@ -914,16 +914,16 @@ void TwoDImageEventRouter::guiCenterProbe(){
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
 	
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe at Selected Point");
-	const float* selectedPoint = tParams->getSelectedPoint();
+	const float* selectedPoint = tParams->getSelectedPointLocal();
 	float pMin[3],pMax[3];
-	pParams->getBox(pMin,pMax,-1);
+	pParams->getLocalBox(pMin,pMax,-1);
 	//Move center so it coincides with the selected point
 	for (int i = 0; i<3; i++){
 		float diff = (pMax[i]-pMin[i])*0.5;
 		pMin[i] = selectedPoint[i] - diff;
 		pMax[i] = selectedPoint[i] + diff; 
 	}
-	pParams->setBox(pMin,pMax,-1);
+	pParams->setLocalBox(pMin,pMax,-1);
 		
 	PanelCommand::captureEnd(cmd, pParams);
 	
@@ -1066,7 +1066,7 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 	float regMax = 1.f;
 	float boxMin,boxMax;
 	if (ds && ds->getDataMgr()){
-		extents = DataStatus::getInstance()->getExtents();
+		extents = DataStatus::getInstance()->getLocalExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
 	
@@ -1150,7 +1150,7 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	int orientation = pParams->getOrientation();
 	//There are only two size sliders...
 	if (isSize && orientation <= coord) coord++;
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	float center = 0.5f*(pParams->getLocalTwoDMin(coord)+pParams->getLocalTwoDMax(coord));
 	float size = pParams->getLocalTwoDMax(coord)- pParams->getLocalTwoDMin(coord);
 	if (isSize) 
@@ -1163,7 +1163,7 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	if (isSize) adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	
 	switch(coord) {
 		case 0:
@@ -1213,7 +1213,7 @@ void TwoDImageEventRouter::
 captureMouseUp(){
 	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
 	//float boxMin[3],boxMax[3];
-	//pParams->getBox(boxMin,boxMax);
+	//pParams->getLocalBox(boxMin,boxMax);
 	//twoDTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
 	resetTextureSize(pParams);
 	setTwoDDirty(pParams);
@@ -1277,7 +1277,7 @@ guiEndCursorMove(){
 	mapCursor();
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
-		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
+		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPointLocal());
 	}
 	
 	//Update the tab, it's in front:
@@ -1340,8 +1340,8 @@ void TwoDImageEventRouter::guiNudgeXSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalTwoDMin(0);
 	float pmax = pParams->getLocalTwoDMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getLocalExtents()[3];
+	float minExtent = ds->getLocalExtents()[0];
 	float newSize = pmax - pmin;
 	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastXSizeSlider++;
@@ -1387,8 +1387,8 @@ void TwoDImageEventRouter::guiNudgeXCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 0);
 	float pmin = pParams->getLocalTwoDMin(0);
 	float pmax = pParams->getLocalTwoDMax(0);
-	float maxExtent = ds->getExtents()[3];
-	float minExtent = ds->getExtents()[0];
+	float maxExtent = ds->getLocalExtents()[3];
+	float minExtent = ds->getLocalExtents()[0];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
 		lastXCenterSlider++;
@@ -1434,8 +1434,8 @@ void TwoDImageEventRouter::guiNudgeYCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalTwoDMin(1);
 	float pmax = pParams->getLocalTwoDMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getLocalExtents()[4];
+	float minExtent = ds->getLocalExtents()[1];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
 		lastYCenterSlider++;
@@ -1481,8 +1481,8 @@ void TwoDImageEventRouter::guiNudgeZCenter(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 2);
 	float pmin = pParams->getLocalTwoDMin(2);
 	float pmax = pParams->getLocalTwoDMax(2);
-	float maxExtent = ds->getExtents()[5];
-	float minExtent = ds->getExtents()[2];
+	float maxExtent = ds->getLocalExtents()[5];
+	float minExtent = ds->getLocalExtents()[2];
 	float newCenter = (pmin+pmax)*0.5f;
 	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
 		lastZCenterSlider++;
@@ -1529,8 +1529,8 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	float voxelSize = ds->getVoxelSize(pParams->GetRefinementLevel(), 1);
 	float pmin = pParams->getLocalTwoDMin(1);
 	float pmax = pParams->getLocalTwoDMax(1);
-	float maxExtent = ds->getExtents()[4];
-	float minExtent = ds->getExtents()[1];
+	float maxExtent = ds->getLocalExtents()[4];
+	float minExtent = ds->getLocalExtents()[1];
 	float newSize = pmax - pmin;
 	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
 		lastYSizeSlider++;
@@ -1597,9 +1597,9 @@ adjustBoxSize(TwoDImageParams* pParams){
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
 	if (!Session::getInstance()->getDataMgr()) return;
-	pParams->getBox(boxmin, boxmax);
+	pParams->getLocalBox(boxmin, boxmax);
 
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	//In image mode, just make box have nonnegative extent
 
 	
@@ -1613,7 +1613,7 @@ adjustBoxSize(TwoDImageParams* pParams){
 		boxmin[orientation] = boxmax[orientation] = mid;
 	}
 	
-	pParams->setBox(boxmin, boxmax);
+	pParams->setLocalBox(boxmin, boxmax);
 	widthEdit->setText(QString::number(boxmax[xcrd]-boxmin[xcrd]));
 	lengthEdit->setText(QString::number(boxmax[ycrd]-boxmin[ycrd]));
 	//If the box is bigger than the extents, just put the sliders at the
@@ -1695,7 +1695,7 @@ void TwoDImageEventRouter::mapCursor(){
 
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
-		const float* extents = DataStatus::getInstance()->getExtents();
+		const float* extents = DataStatus::getInstance()->getLocalExtents();
 		string varname("HGT");
 		int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 		double sPoint[3];
@@ -1705,7 +1705,7 @@ void TwoDImageEventRouter::mapCursor(){
 			selectPoint[2] = val+(tParams->getLocalTwoDMin(2)-extents[2]);
 		}
 	} 
-	tParams->setSelectedPoint(selectPoint);
+	tParams->setSelectedPointLocal(selectPoint);
 }
 
 

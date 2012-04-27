@@ -882,7 +882,7 @@ guiCopyProbePoint(){
 			"Variable values may differ as a result");
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "copy point from probe");
-	const float* selectedpoint = pParams->getSelectedPoint();
+	const float* selectedpoint = pParams->getSelectedPointLocal();
 	iParams->SetSelectedPoint(selectedpoint);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab();

@@ -453,7 +453,7 @@ void ProbeEventRouter::updateTab(){
 	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
 	mapCursor();
 	
-	const float* selectedPoint = probeParams->getSelectedPoint();
+	const float* selectedPoint = probeParams->getSelectedPointLocal();
 	float selectedUserCoords[3];
 	//selectedPoint is in local coordinates.  convert to user coords:
 	for (int i = 0; i<3; i++)selectedUserCoords[i] = selectedPoint[i]+userExts[i];
@@ -597,7 +597,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
 	}
 	//Set the local box extents:
-	probeParams->setBox(boxmin,boxmax, -1);
+	probeParams->setLocalBox(boxmin,boxmax, -1);
 	adjustBoxSize(probeParams);
 	//set the center sliders:
 	xCenterSlider->setValue((int)(256.f*boxCenter[0]/fullSizes[0]));
@@ -1082,18 +1082,18 @@ probeLoadTF(void){
 void ProbeEventRouter::
 probeCenterRegion(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
-	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getRegionRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void ProbeEventRouter::
 probeCenterView(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
-	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPoint());
+	VizWinMgr::getInstance()->getViewpointRouter()->guiSetCenter(pParams->getSelectedPointLocal());
 }
 void ProbeEventRouter::
 probeCenterRake(){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
-	fRouter->guiCenterRake(pParams->getSelectedPoint());
+	fRouter->guiCenterRake(pParams->getSelectedPointLocal());
 }
 
 void ProbeEventRouter::
@@ -1101,7 +1101,7 @@ probeAddSeed(){
 	Point4 pt;
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	mapCursor();
-	pt.set3Val(pParams->getSelectedPoint());
+	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	int ts = ap->getCurrentFrameNumber();
 	pt.set1Val(3,(float)ts);
@@ -1118,7 +1118,7 @@ probeAddSeed(){
 	//Check that the point is in the current Region:
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	float boxMin[3], boxMax[3];
-	rParams->getBox(boxMin, boxMax,ts);
+	rParams->getLocalBox(boxMin, boxMax,ts);
 	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
 		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
@@ -1617,9 +1617,9 @@ void ProbeEventRouter::guiCenterProbe(){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "Center Probe to Selected Point");
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax,-1);
+	pParams->getLocalBox(probeMin,probeMax,-1);
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], probeMax[i]-probeMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
@@ -1828,7 +1828,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	adjustBoxSize(pParams);
 	//Set the text in the edit boxes
 	mapCursor();
-	const float* selectedPoint = pParams->getSelectedPoint();
+	const float* selectedPoint = pParams->getSelectedPointLocal();
 	//Map to user coordinates
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	const vector<double>&userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
@@ -1907,7 +1907,7 @@ void ProbeEventRouter::
 captureMouseUp(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	//float boxMin[3],boxMax[3];
-	//pParams->getBox(boxMin,boxMax);
+	//pParams->getLocalBox(boxMin,boxMax);
 	//probeTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
 	resetTextureSize(pParams);
 	setProbeDirty(pParams);
@@ -1977,7 +1977,7 @@ guiEndCursorMove(){
 	//If we are connected to a seed, move it:
 	if (seedIsAttached() && attachedFlow){
 		mapCursor();
-		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
+		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPointLocal());
 	}
 	bool b = isAnimating();
 	if (b) ibfvPause();
@@ -2680,7 +2680,7 @@ adjustBoxSize(ProbeParams* pParams){
 	float boxmin[3], boxmax[3];
 	//Don't do anything if we haven't read the data yet:
 	if (!Session::getInstance()->getDataMgr()) return;
-	pParams->getBox(boxmin, boxmax, -1);
+	pParams->getLocalBox(boxmin, boxmax, -1);
 	float rotMatrix[9];
 	getRotationMatrix(pParams->getTheta()*M_PI/180.,pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
 	//Apply rotation matrix inverted to full domain size
@@ -2841,7 +2841,7 @@ void ProbeEventRouter::mapCursor(){
 	probeCoord[2] = 0.f;
 	
 	vtransform(probeCoord, transformMatrix, selectPoint);
-	pParams->setSelectedPoint(selectPoint);
+	pParams->setSelectedPointLocal(selectPoint);
 }
 void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 	ProbeParams* probeParams = (ProbeParams*)rParams;
@@ -2891,7 +2891,7 @@ guiCropToRegion(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to region");
 	float extents[6];
-	rParams->getBox(extents,extents+3,timestep);
+	rParams->getLocalBox(extents,extents+3,timestep);
 
 	if (pParams->cropToBox(extents)){
 		updateTab();
@@ -2936,7 +2936,7 @@ guiFitRegion(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to region");
 	float extents[6];
-	rParams->getBox(extents,extents+3,timestep);
+	rParams->getLocalBox(extents,extents+3,timestep);
 	setProbeToExtents(extents,pParams);
 	updateTab();
 	setProbeDirty(pParams);
@@ -2989,7 +2989,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 	float newScale[3], newCenter[3];
 	float boxmin[3],boxmax[3];
 		//get box in local coords
-	pParams->getBox(boxmin,boxmax,-1);
+	pParams->getLocalBox(boxmin,boxmax,-1);
 	for (int i = 0; i< 3; i++){
 		//d.  permute diagonal entries in S based on value of align 
 		
@@ -3009,7 +3009,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 		probeMin[i] = newCenter[i]-0.5f*newScale[i];
 		probeMax[i] = newCenter[i]+0.5f*newScale[i];
 	}
-	pParams->setBox(probeMin, probeMax, -1);
+	pParams->setLocalBox(probeMin, probeMax, -1);
 	
 	//For each axis of probe, (except z-axis of planar probe)
 	//See how far the end of the axis is from the probe boundary.  Adjust the 
@@ -3035,7 +3035,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 		
 	}
 	
-	pParams->setBox(probeMin, probeMax, -1);
+	pParams->setLocalBox(probeMin, probeMax, -1);
 	//Check to make sure the transformed probe is no bigger than the region.  If
 	//it is bigger, scale it down appropriately.
 	float regMin[3],regMax[3];
@@ -3055,7 +3055,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 			probeMin[i] = newCenter[i]-0.5f*newScale[i];
 			probeMax[i] = newCenter[i]+0.5f*newScale[i];
 		}
-		pParams->setBox(probeMin, probeMax, -1);
+		pParams->setLocalBox(probeMin, probeMax, -1);
 	}
 	//Check to see if it should be centered better:
 	pParams->getLocalContainingRegion(regMin,regMax,false);
@@ -3067,7 +3067,7 @@ setProbeToExtents(const float extents[6], ProbeParams* pParams){
 		probeMin[i] = newCenter[i]-0.5f*newScale[i];
 		probeMax[i] = newCenter[i]+0.5f*newScale[i];
 	}
-	pParams->setBox(probeMin, probeMax, -1);
+	pParams->setLocalBox(probeMin, probeMax, -1);
 	return;
 }
 //Angle conversions (in degrees)

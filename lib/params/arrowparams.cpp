@@ -113,7 +113,7 @@ reinit(bool doOverride){
 	
 	//Check the rake extents.  If doOverride is true, set the extents to the bottom of the data domain. If not, 
 	//shrink the extents to fit inside the domain.
-	const float* extents = ds->getExtents();
+	const float* extents = ds->getLocalExtents();
 	vector<double>newExtents(3,0.);
 	if (doOverride) {
 		for (int i = 0; i<3; i++){
@@ -125,9 +125,10 @@ reinit(bool doOverride){
 		GetRakeLocalExtents(newExts);
 		if (DataStatus::pre22Session()){
 			//In old session files, rake extents were not 0-based
+			float * offset = DataStatus::getPre22Offset();
 			for (int i = 0; i<3; i++){
-				newExts[i] -= extents[i];
-				newExts[i+3] -= extents[i];
+				newExts[i] -= offset[i];
+				newExts[i+3] -= offset[i];
 			}
 		}
 		for (int i = 0; i<3; i++){
@@ -356,7 +357,7 @@ double ArrowParams::calcDefaultScale(){
 		}
 	}
 	for (int i = 0; i<3; i++) maxvarvals[i] *= stretch[i];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	double maxVecLength = (double)Max(extents[3]-extents[0],extents[4]-extents[1])*0.1;
 	double maxVecVal = Max(maxvarvals[0],Max(maxvarvals[1],maxvarvals[2]));
 	if (maxVecVal == 0.) return(maxVecLength);

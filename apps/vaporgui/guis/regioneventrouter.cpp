@@ -194,7 +194,7 @@ void RegionEventRouter::updateTab(){
 	double regLocalExts[6], regUsrExts[6];
 	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
 	//Get the full domain extents in user coordinates
-	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	double fullUsrExts[6];
 	for (int i = 0; i<3; i++) {
 		fullUsrExts[i] = 0.;
@@ -717,7 +717,7 @@ guiCopyProbeToRegion(){
 	}
 	float regMin[3], regMax[3];
 	pParams->getLocalContainingRegion(regMin, regMax);
-	rParams->setBox(regMin, regMax,timestep);
+	rParams->setLocalBox(regMin, regMax,timestep);
 	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	PanelCommand::captureEnd(cmd,rParams);
@@ -732,8 +732,8 @@ guiCopyRakeToRegion(){
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy rake to region");
 	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
 	float boxmin[3],boxmax[3];
-	fParams->getBox(boxmin, boxmax, timestep);
-	rParams->setBox(boxmin, boxmax, timestep);
+	fParams->getLocalBox(boxmin, boxmax, timestep);
+	rParams->setLocalBox(boxmin, boxmax, timestep);
 	
 	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
@@ -778,7 +778,7 @@ guiSetCenter(const float* coords){
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	float boxmin[3], boxmax[3];
-	rParams->getBox(boxmin,boxmax,timestep);
+	rParams->getLocalBox(boxmin,boxmax,timestep);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
 		float fullMin = userExtents[i];
@@ -791,7 +791,7 @@ guiSetCenter(const float* coords){
 		boxmax[i] = coord + 0.5f*regSize - userExtents[i];
 		boxmin[i] = coord - 0.5f*regSize - userExtents[i];
 	}
-	rParams->setBox(boxmin, boxmax, timestep);
+	rParams->setLocalBox(boxmin, boxmax, timestep);
 	PanelCommand::captureEnd(cmd, rParams);
 	VizWinMgr::getInstance()->setRegionDirty(rParams);
 }
@@ -876,14 +876,14 @@ guiSetMaxSize(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "change region size to max");
-	const float* fullDataExtents = Session::getInstance()->getExtents();
+	const float* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	float boxmin[3],boxmax[3];
 	for (int i = 0; i<3; i++){
 		boxmin[i] = 0.;
 		boxmax[i]= fullDataExtents[i+3]-fullDataExtents[i];
 	}
-	rParams->setBox(boxmin, boxmax, timestep);
+	rParams->setLocalBox(boxmin, boxmax, timestep);
 	
 	updateTab();
 	PanelCommand::captureEnd(cmd, rParams);
@@ -988,7 +988,7 @@ guiLoadRegionExtents(){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "read regions file");
 
-	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	//Read the file
 
 	int numregions = 0;

@@ -204,7 +204,7 @@ void ProbeParams::setOpacityScale(float val)
 bool ProbeParams::
 reinit(bool doOverride){
 	
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	setMaxNumRefinements(DataStatus::getInstance()->getNumTransforms());
 	//Set up the numRefinements combo
 	
@@ -241,9 +241,10 @@ reinit(bool doOverride){
 		GetBox()->GetLocalExtents(exts);
 		if (DataStatus::pre22Session()){
 			//In old session files, the coordinate of box extents were not 0-based
+			float * offset = DataStatus::getPre22Offset();
 			for (int i = 0; i<3; i++) {
-				exts[i] -= extents[i];
-				exts[i+3] -= extents[i];
+				exts[i] -= offset[i];
+				exts[i+3] -= offset[i];
 			}
 		}
 		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);

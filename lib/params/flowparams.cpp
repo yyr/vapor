@@ -402,7 +402,7 @@ reinit(bool doOverride){
 	
 
 	//Set up the seed region:
-	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
 	double seedBoxExtents[6];
 	GetBox()->GetLocalExtents(seedBoxExtents);
 	if (doOverride){
@@ -412,12 +412,12 @@ reinit(bool doOverride){
 		}
 	} else {
 		if (DataStatus::pre22Session()){
+			float * offset = DataStatus::getPre22Offset();
 			//In old session files, the coordinate of box extents were not 0-based
-			if (DataStatus::pre22Session()){
-				for (int i = 0; i<3; i++){
-					seedBoxExtents[i] -= fullExtents[i];
-					seedBoxExtents[i+3] -= fullExtents[i];
-				}
+			
+			for (int i = 0; i<3; i++){
+				seedBoxExtents[i] -= offset[i];
+				seedBoxExtents[i+3] -= offset[i];
 			}
 		}
 
@@ -965,7 +965,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		//Scale the steady field so that it will go steadyFlowLength diameters 
 		//in unit time
 		
-		const float* fullExtents = DataStatus::getInstance()->getExtents();
+		const float* fullExtents = DataStatus::getInstance()->getLocalExtents();
 		float diff[3];
 		vsub(fullExtents, fullExtents+3, diff);
 		float diam = sqrt(vdot(diff, diff));

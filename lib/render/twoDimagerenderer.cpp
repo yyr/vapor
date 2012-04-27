@@ -204,7 +204,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 
 	//Determine the grid size, the data extents, and the image size:
 	DataStatus* ds = DataStatus::getInstance();
-	const float* extents = ds->getExtents();
+	const float* extents = ds->getLocalExtents();
 	DataMgr* dataMgr = ds->getDataMgr();
 
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
@@ -221,7 +221,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	} else {
 		//Use corners of 2D extents:
 		float boxmin[3], boxmax[3];
-		tParams->getBox(boxmin, boxmax);
+		tParams->getLocalBox(boxmin, boxmax);
 		displayCorners[0] = boxmin[0];
 		displayCorners[1] = boxmin[1];
 		displayCorners[4] = boxmax[0];

@@ -55,10 +55,10 @@ public:
 		elevGridDirty = val;
 	}
 	
-	virtual const float* getSelectedPoint() {
+	virtual const float* getSelectedPointLocal() {
 		return selectPoint;
 	}
-	void setSelectedPoint(const float point[3]){
+	void setSelectedPointLocal(const float point[3]){
 		for (int i = 0; i<3; i++) selectPoint[i] = point[i];
 	}
 	const float* getCursorCoords(){return cursorCoords;}

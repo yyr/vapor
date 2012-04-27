@@ -208,17 +208,17 @@ reinit(bool doOverride){
 		ambientCoeff = defaultAmbientCoeff;
 	} else { //possible translation if old session file was used...
 		if (DataStatus::pre22Session()){
-			const float* extents = DataStatus::getInstance()->getExtents();
+			float * offset = DataStatus::getPre22Offset();
 			float* cpos = getCurrentViewpoint()->getCameraPosLocal();
 			float* lpos = getHomeViewpoint()->getCameraPosLocal();
 			float* rpos = getCurrentViewpoint()->getRotationCenterLocal();
 			float* rhpos = getHomeViewpoint()->getRotationCenterLocal();
 			//In old session files, the coordinate of box extents were not 0-based
 			for (int i = 0; i<3; i++) {
-				cpos[i] -= extents[i];
-				lpos[i] -= extents[i];
-				rpos[i] -= extents[i];
-				rhpos[i] -= extents[i];
+				cpos[i] -= offset[i];
+				lpos[i] -= offset[i];
+				rpos[i] -= offset[i];
+				rhpos[i] -= offset[i];
 			}
 			getCurrentViewpoint()->setCameraPosLocal(cpos);
 			getHomeViewpoint()->setCameraPosLocal(lpos);

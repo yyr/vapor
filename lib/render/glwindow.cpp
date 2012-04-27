@@ -429,7 +429,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 		manip->render();
 		int manipType = getModeManipType(mode);
 		//For probe and 2D manips, display cursor
-		if (manipType > 1) draw3DCursor(p->getSelectedPoint());
+		if (manipType > 1) draw3DCursor(p->getSelectedPointLocal());
 	}
 	
 	

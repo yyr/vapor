@@ -162,18 +162,20 @@ bool TwoDDataParams::
 reinit(bool doOverride){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	const float* extents = ds->getExtents();
+	DataMgr* dataMgr = ds->getDataMgr();
+	
+	const float* localExtents = ds->getLocalExtents();
 	setMaxNumRefinements(ds->getNumTransforms());
 	//Set up the numRefinements combo
 	
 	
 	//Either set the twoD bounds to default (full) size in the center of the domain, or 
 	//try to use the previous bounds:
-	double twoDExts[6];
+	double twoDExts[6];  //These will be local extents
 	if (doOverride){
 		for (int i = 0; i<3; i++){
-			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
-			float twoDMid = 0.5f*(extents[i+3] - extents[i]);
+			float twoDRadius = 0.5f*(localExtents[i+3] - localExtents[i]);
+			float twoDMid = 0.5f*(localExtents[i+3] - localExtents[i]);
 			if (i<2) {
 				twoDExts[i] = twoDMid - twoDRadius;
 				twoDExts[i+3] = twoDMid + twoDRadius;
@@ -182,22 +184,25 @@ reinit(bool doOverride){
 			}
 		}
 		
-		cursorCoords[0] = cursorCoords[1] = 0.0f;
+		cursorCoords[0] = 0.;
+		cursorCoords[1] = 0.;
 		numRefinements = 0;
 	} else {
 		//Force the twoD horizontal size to be no larger than the domain size, and 
 		//force the twoD horizontal center to be inside the domain.  Note that
 		//because of rotation, the twoD max/min may not correspond
 		//to the same extents.
+		
 		GetBox()->GetLocalExtents(twoDExts);
 		if (DataStatus::pre22Session()){
+			float * offset = DataStatus::getPre22Offset();
 			//In old session files, the coordinate of box extents were not 0-based
 			for (int i = 0; i<3; i++) {
-				twoDExts[i] -= extents[i];
-				twoDExts[i+3] -= extents[i];
+				twoDExts[i] -= offset[i];
+				twoDExts[i+3] -= offset[i];
 			}
 		}
-		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
+		float maxExtents = Max(Max(localExtents[3],localExtents[4]),localExtents[5]);
 		for (int i = 0; i<2; i++){
 			if (twoDExts[i+3] - twoDExts[i] > maxExtents)
 				twoDExts[i+3] = twoDExts[i] + maxExtents;
@@ -206,9 +211,9 @@ reinit(bool doOverride){
 				twoDExts[i] -= center;
 				twoDExts[i+3] -= center;
 			}
-			if (center > (extents[i+3]-extents[i])) {
-				twoDExts[i] += ((extents[i+3]-extents[i])-center);
-				twoDExts[i+3] += ((extents[i+3]-extents[i])-center);
+			if (center > (localExtents[i+3])) {
+				twoDExts[i] += (localExtents[i+3]-center);
+				twoDExts[i+3] += (localExtents[i+3]-center);
 			}
 			if(twoDExts[i+3] < twoDExts[i]) 
 				twoDExts[i+3] = twoDExts[i];
@@ -326,8 +331,8 @@ reinit(bool doOverride){
 			newMaxEdit[i] = 1.f;
 		}
 	}
-	minTerrainHeight = extents[2];
-	maxTerrainHeight = extents[2];
+	minTerrainHeight = localExtents[2];
+	maxTerrainHeight = localExtents[2];
 	int hgtvar = ds->getSessionVariableNum2D("HGT");
 	if (hgtvar >= 0)
 		maxTerrainHeight = ds->getDefaultDataMax2D(hgtvar);
@@ -854,9 +859,10 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	int actualRefLevel = GetRefinementLevel();
 	int lod = GetCompressionLevel();
 	double exts[6];
+	const vector<double>& usrExts = dataMgr->GetExtents((size_t)ts);
 	for (int i = 0; i<3; i++){
-		exts[i] = getLocalTwoDMin(i);
-		exts[i+3] = getLocalTwoDMax(i);
+		exts[i] = getLocalTwoDMin(i)+usrExts[i];
+		exts[i+3] = getLocalTwoDMax(i)+usrExts[i];
 	}
 	int rc = getGrids(ts, varname, exts, &actualRefLevel, &lod,  &twoDGrid);
 	if(!rc){
@@ -886,7 +892,7 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	//We first map the coords in the twoD plane to the volume.  
 	//Then we map the volume into the region provided by dataMgr
 	//This is done for each of the variables,
-	//The RMS of the result is then mapped using the transfer function.
+	//The result is then mapped using the transfer function.
 	float clut[256*4];
 	TransferFunction* transFunc = GetTransFunc();
 	assert(transFunc);
@@ -894,12 +900,11 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	
 	float twoDCoord[2];
 	double dataCoord[3];
-	
-	const float* extents = ds->getExtents();
+	const float* localExtents = ds->getLocalExtents();
 	float extExtents[6]; //Extend extents 1/2 voxel on each side so no bdry issues.
 	for (int i = 0; i<3; i++){
-		float mid = (extents[i]+extents[i+3])*0.5;
-		float halfExtendedSize = (extents[i+3]-extents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
+		float mid = (localExtents[i]+localExtents[i+3])*0.5;
+		float halfExtendedSize = (localExtents[i+3]-localExtents[i])*0.5*(1.f+dataSize[i])/(float)(dataSize[i]);
 		extExtents[i] = mid - halfExtendedSize;
 		extExtents[i+3] = mid + halfExtendedSize;
 	}
@@ -950,7 +955,8 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			}
 			
 			if(dataOK) { //find the coordinate in the data array
-				
+				//Convert to user coordinates
+				for (int k=0; k<3; k++) dataCoord[k] += usrExts[k];
 				float varVal = twoDGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
 
 				if (varVal != twoDGrid->GetMissingValue()){ 			
@@ -1000,10 +1006,10 @@ void TwoDDataParams::adjustTextureSize(int sz[2]){
 	int xcrd = 0, ycrd = 1;
 	if (dataOrientation < 2) ycrd++;
 	if (dataOrientation < 1) xcrd++;
-	const float* extents = ds->getExtents();
+	const float* localExtents = ds->getLocalExtents();
 	const vector<double>& box = GetBox()->GetLocalExtents();
-	float relWid = (box[3+xcrd]-box[xcrd])/(extents[xcrd+3]-extents[xcrd]);
-	float relHt = (box[3+ycrd]-box[ycrd])/(extents[ycrd+3]-extents[ycrd]);
+	float relWid = (box[3+xcrd]-box[xcrd])/(localExtents[xcrd+3]);
+	float relHt = (box[3+ycrd]-box[ycrd])/(localExtents[ycrd+3]);
 	int xdist = (int)(relWid*dataSize[xcrd]);
 	int ydist = (int)(relHt*dataSize[ycrd]);
 	texSize[0] = 1<<(VetsUtil::ILog2(xdist));

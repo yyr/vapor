@@ -387,7 +387,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	}
 
 	//Initialize axis annotation to use full extents:
-	const float *extents = Session::getInstance()->getExtents();
+	const float *extents = DataStatus::getInstance()->getLocalExtents();
 	vizWin[useWindowNum]->setAxisExtents(extents);
 	
 
@@ -1988,7 +1988,7 @@ void VizWinMgr::setInteractiveNavigating(int level){
 bool VizWinMgr::findCoincident2DSurface(int vizwin, int orientation, float coordinate, bool terrainMapped){
 	vector<Params*>& dparams = Params::GetAllParamsInstances(Params::_twoDDataParamsTag,vizwin);
 	vector<Params*>& iparams = Params::GetAllParamsInstances(Params::_twoDImageParamsTag,vizwin);
-	const float * extents = DataStatus::getInstance()->getExtents();
+	const float * extents = DataStatus::getInstance()->getLocalExtents();
 	float tol = (extents[orientation+3]-extents[orientation])*0.0001f;
 	for (int i = 0; i< dparams.size(); i++){
 		TwoDDataParams* p = (TwoDDataParams*)dparams[i];

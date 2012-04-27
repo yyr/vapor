@@ -134,16 +134,8 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	return;
 }
 
-
-
-//Determine the voxel extents of plane mapped into data.
-
-
-
-
-
 	//Construct transform of form (x,y)-> a[0]x+b[0],a[1]y+b[1],
-	//Mapping [-1,1]X[-1,1] into 3D volume.
+	//Mapping [-1,1]X[-1,1] into 3D volume, in local coordinates.
     //Also determine the first and second coords that are used in 
     //the transform and the constant value
     //mappedDims[0] and mappedDims[1] are the dimensions that are
@@ -234,10 +226,10 @@ calcBoxCorners(float corners[8][3], float, int, float, int ){
 void TwoDParams::setOrientation(int val){
 	if (orientation == val) return;
 	float boxmin[3],boxmax[3],sizeRatio[3],newBoxSize[3], boxmid[3];
-	getBox(boxmin,boxmax,0);
-	const float * extents = DataStatus::getInstance()->getExtents();
+	getLocalBox(boxmin,boxmax,0);
+	const float * localExtents = DataStatus::getInstance()->getLocalExtents();
 	for (int i = 0; i<3; i++){
-		sizeRatio[i] = (boxmax[i]-boxmin[i])/(extents[i+3]-extents[i]);
+		sizeRatio[i] = (boxmax[i]-boxmin[i])/(localExtents[i+3]);
 		newBoxSize[i] = (boxmax[i]-boxmin[i]);
 		boxmid[i] = 0.5f*(boxmax[i]+boxmin[i]);
 	}
@@ -245,13 +237,13 @@ void TwoDParams::setOrientation(int val){
 	//Always set the boxsize to zero in the new orientation-direction:
 	newBoxSize[val] = 0.f;
 	//The relative size in the old direction becomes the relative size from the new direction
-	newBoxSize[orientation] = sizeRatio[val]*(extents[orientation+3]-extents[orientation]);
+	newBoxSize[orientation] = sizeRatio[val]*(localExtents[orientation+3]);
 	
 	for (int i = 0; i< 3; i++){
 		boxmin[i] = boxmid[i] -0.5f*newBoxSize[i];
 		boxmax[i] = boxmid[i] +0.5f*newBoxSize[i];
 	}
-	setBox(boxmin,boxmax,0);
+	setLocalBox(boxmin,boxmax,0);
 	orientation = val;
 	return;
 	
@@ -354,7 +346,7 @@ float TwoDParams::getCameraDistance(ViewpointParams* vpParams, RegionParams*, in
 	//Otherwise must find closest corner:
 	float minDist = 1.e30f;
 	float boxmin[3], boxmax[3];
-	getBox(boxmin, boxmax);
+	getLocalBox(boxmin, boxmax);
 	boxmin[2]+=ht;
 	boxmax[2]+=ht;
 	//Start by testing boxmin and boxmax.. they are always corners

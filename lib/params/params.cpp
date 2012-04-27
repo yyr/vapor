@@ -125,7 +125,7 @@ float RenderParams::getMaxOpacMapBound(){
 //For params subclasses that have a box:
 void Params::calcStretchedBoxExtentsInCube(float extents[6], int timestep){
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax, timestep);
+	getLocalBox(boxMin, boxMax, timestep);
 	float maxSize = 1.f;
 	if (!DataStatus::getInstance()){
 		for (int i = 0; i<3; i++){
@@ -146,7 +146,7 @@ void Params::calcStretchedBoxExtentsInCube(float extents[6], int timestep){
 void Params::calcBoxExtents(float* extents, int timestep){
 	
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax, timestep);
+	getLocalBox(boxMin, boxMax, timestep);
 	
 	for (int i = 0; i<3; i++){
 		extents[i] = boxMin[i];
@@ -157,7 +157,7 @@ void Params::calcBoxExtents(float* extents, int timestep){
 void Params::calcStretchedBoxExtents(float* extents, int timestep){
 	
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax, timestep);
+	getLocalBox(boxMin, boxMax, timestep);
 	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
 	
 	for (int i = 0; i<3; i++){
@@ -243,7 +243,7 @@ buildLocalCoordTransform(float transformMatrix[12], float extraThickness, int ti
 	
 	float boxSize[3];
 	float boxMin[3], boxMax[3];
-	getBox(boxMin, boxMax, timestep);
+	getLocalBox(boxMin, boxMax, timestep);
 
 	for (int i = 0; i< 3; i++) {
 		boxMin[i] -= extraThickness;
@@ -407,7 +407,7 @@ void Params::convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, i
 	
 void Params::getStretchedBox(float boxmin[3], float boxmax[3], int timestep){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
-	getBox(boxmin,boxmax, timestep);
+	getLocalBox(boxmin,boxmax, timestep);
 	for (int i = 0; i< 3; i++){
 		boxmin[i] *= stretch[i];
 		boxmax[i] *= stretch[i];
@@ -420,7 +420,7 @@ void Params::setStretchedBox(const float boxmin[3], const float boxmax[3], int t
 		newBoxmin[i] = boxmin[i]/stretch[i];
 		newBoxmax[i] = boxmax[i]/stretch[i];
 	}
-	setBox(newBoxmin, newBoxmax, timestep);
+	setLocalBox(newBoxmin, newBoxmax, timestep);
 }
 
 //Following methods adapted from ParamsBase.cpp

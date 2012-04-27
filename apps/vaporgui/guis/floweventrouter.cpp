@@ -716,7 +716,7 @@ void FlowEventRouter::updateTab(){
 	//Add time-varying displacement to rake extents:
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	float seedBoxMin[3],seedBoxMax[3];
-	fParams->getBox(seedBoxMin,seedBoxMax);
+	fParams->getLocalBox(seedBoxMin,seedBoxMax);
 	if (dStatus->getDataMgr()){ 
 		const vector<double>& tvExts =  dStatus->getDataMgr()->GetExtents(timestep);
 		
@@ -1504,9 +1504,9 @@ void FlowEventRouter::
 guiCenterRake(const float* coords){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "move rake center");
-	const float* fullExtent = DataStatus::getInstance()->getExtents();
+	const float* fullExtent = DataStatus::getInstance()->getLocalExtents();
 	float seedBoxMin[3],seedBoxMax[3];
-	fParams->getBox(seedBoxMin, seedBoxMax, -1);
+	fParams->getLocalBox(seedBoxMin, seedBoxMax, -1);
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
 		float regMin = 0.;
@@ -1519,7 +1519,7 @@ guiCenterRake(const float* coords){
 		seedBoxMax[i] = coord + 0.5f*boxSize;
 		seedBoxMin[i] = coord - 0.5f*boxSize;
 	}
-	fParams->setBox(seedBoxMin, seedBoxMax, -1);
+	fParams->setLocalBox(seedBoxMin, seedBoxMax, -1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1643,7 +1643,7 @@ guiSetRakeToRegion(){
 		seedBoxMin[i] = rParams->getLocalRegionMin(i,timestep);
 		seedBoxMax[i] = rParams->getLocalRegionMax(i,timestep);
 	}
-	fParams->setBox(seedBoxMin,seedBoxMax, -1);
+	fParams->setLocalBox(seedBoxMin,seedBoxMax, -1);
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
