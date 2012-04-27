@@ -1708,6 +1708,7 @@ int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const cha
 void GLWindow::TransformToUnitBox(){
 	DataStatus* ds = DataStatus::getInstance();
 	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentFrameNumber();
+	if (!ds->getDataMgr()) return;
 	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents(timeStep);
 	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
 	const float* scales = ds->getStretchFactors();

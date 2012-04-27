@@ -411,6 +411,7 @@ guiSelectColor(){
 void ArrowEventRouter::
 guiChangeExtents(){
 	confirmText(true);
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getInstance()->getApplicableParams(ArrowParams::_arrowParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "change barb extents");
 	double newExts[6];
@@ -542,7 +543,7 @@ void ArrowEventRouter::updateTab(){
 	vector<double> usrRakeExts;
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
 	//Now adjust for moving extents
-	
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
 	for (int i = 0; i<6; i++) {
 		fullUsrExts[i]+= usrExts[i%3];
@@ -734,6 +735,7 @@ guiSetEnabled(bool value, int instance, bool undoredo){
 void ArrowEventRouter::
 guiFitToData(){
 	ArrowParams* aParams = (ArrowParams*)VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Fit to full data extents");
 		
 	const float* fullSizes = DataStatus::getInstance()->getFullSizes();

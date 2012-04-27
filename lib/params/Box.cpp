@@ -119,6 +119,7 @@ int Box::SetLocalExtents(const float extents[6], int timestep){
 int Box::GetUserExtents(double extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (!rc) return rc;
+	if (!DataStatus::getInstance()->getDataMgr()) return -1;
 	const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){
@@ -130,6 +131,7 @@ int Box::GetUserExtents(double extents[6], size_t timestep){
 int Box::GetUserExtents(float extents[6], size_t timestep){
 	int rc = GetLocalExtents(extents, (int)timestep);
 	if (!rc) return rc;
+	if (!DataStatus::getInstance()->getDataMgr()) return -1;
 	const vector<double>&tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Time-varying extents are just used to get an offset that varies in time.
 	for (int i = 0; i<6; i++){

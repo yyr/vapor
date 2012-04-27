@@ -201,6 +201,7 @@ void TwoDDataEventRouter::updateTab(){
 		return;
 	}
 	if (GLWindow::isRendering()) return;
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	guiSetTextChanged(false);
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
 
@@ -730,6 +731,10 @@ twoDAddSeed(){
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
 			"the seed point is outside current region");
 	}
+	//convert to user coordinates:
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++) pt.set1Val(i, (float)( pt.getVal(i)+usrExts[i]));
 	fRouter->guiAddSeed(pt);
 }	
 
@@ -1997,7 +2002,7 @@ Histo* TwoDDataEventRouter::getHistogram(RenderParams* renParams, bool mustGet, 
 	
 }
 
-// Map the cursor coords into world space,
+// Map the cursor coords into local coordinates space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
 void TwoDDataEventRouter::mapCursor(){
@@ -2007,7 +2012,7 @@ void TwoDDataEventRouter::mapCursor(){
 	float twoDCoord[3];
 	float a[2],b[2],constVal[2];
 	int mapDims[3];
-	tParams->build2DTransform(a,b,constVal,mapDims);
+	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
 	const float* cursorCoords = tParams->getCursorCoords();
 	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
 	//x is reversed because we are looking from the opposite direction 

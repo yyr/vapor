@@ -142,7 +142,7 @@ void TwoDParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
     //varying in the 3D volume.  mappedDims[2] is constant.
     //constVal are the constant values that are used, for top and bottom of
     //box (only different if terrain mapped)
-void TwoDParams::build2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
+void TwoDParams::buildLocal2DTransform(float a[2],float b[2],float constVal[2], int mappedDims[3]){
 	//Find out orientation:
 	int dataOrientation = orientation;
 	mappedDims[2] = dataOrientation;
@@ -166,7 +166,7 @@ calcBoxCorners(float corners[8][3], float, int, float, int ){
 	
 	float a[2],b[2],constValue[2];
 	int mapDims[3];
-	build2DTransform(a,b,constValue,mapDims);
+	buildLocal2DTransform(a,b,constValue,mapDims);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front

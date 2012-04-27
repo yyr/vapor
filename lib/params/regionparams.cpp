@@ -279,6 +279,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	int i;
 	
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return -1;
 	//Special case before there is any data...
 	if (!ds->getDataMgr()){
 		for (i = 0; i<3; i++) {

@@ -686,7 +686,7 @@ twoDAddSeed(){
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
-	
+	int timestep = ap->getCurrentFrameNumber();
 	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	//Check that it's OK:
@@ -707,6 +707,9 @@ twoDAddSeed(){
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
 			"the seed point is outside current region");
 	}
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++) pt.set1Val(i, (float)( pt.getVal(i)+usrExts[i]));
 	fRouter->guiAddSeed(pt);
 }	
 
@@ -1677,7 +1680,7 @@ void TwoDImageEventRouter::mapCursor(){
 		float twoDCoord[3];
 		float a[2],b[2],constVal[2];
 		int mapDims[3];
-		tParams->build2DTransform(a,b,constVal,mapDims);
+		tParams->buildLocal2DTransform(a,b,constVal,mapDims);
 		
 		//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
 		//x is reversed because we are looking from the opposite direction 

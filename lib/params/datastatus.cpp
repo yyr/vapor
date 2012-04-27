@@ -150,7 +150,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	else VDCType = 0;
 	assert (numTS >= getNumTimesteps());  //We should always be increasing this
 	numTimesteps = numTS;
-	
+	if (!dm) return false;
 	std::vector<double> mdExtents = dataMgr->GetExtents(0);
 	for (int i = 0; i< 3; i++) {
 		extents[i+3] = (float)(mdExtents[i+3]-mdExtents[i]);

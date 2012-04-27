@@ -2237,6 +2237,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	if(!dataMgr) return;
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
@@ -3030,6 +3031,7 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 
 bool FlowParams::validateSettings(int tstep){
 	DataStatus* ds = DataStatus::getInstance();
+	if (!DataStatus::getInstance()->getDataMgr()) return false;
 	const vector<double>& usrExts = ds->getDataMgr()->GetExtents(tstep);
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){

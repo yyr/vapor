@@ -160,6 +160,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 	double regMin[3],regMax[3];
 	
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return false;
 	const float* localExtents = ds->getLocalExtents();
 	//See if there is a HGT variable
 	

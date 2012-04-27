@@ -158,7 +158,7 @@ setVtabTextChanged(const QString& ){
 //Put all text changes into the params
 void ViewpointEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vParams, "edit Viewpoint text");
 	bool usingLatLon = vParams->isLatLon();

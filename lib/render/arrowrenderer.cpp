@@ -261,6 +261,7 @@ void ArrowRenderer::performRendering(
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
 	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
 	
 	const vector<double> rExtents = aParams->GetRakeLocalExtents();
@@ -411,6 +412,7 @@ setupVariableData(
 	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return -1;
 
 	//Determine the extents of the data that is needed:
 	double rakeExts[6];

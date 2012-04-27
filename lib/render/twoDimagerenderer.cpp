@@ -275,6 +275,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3];
+	if (!DataStatus::getInstance()->getDataMgr()) return false;
 	vector<double> fullexts = dataMgr->GetExtents(timeStep);
 	double regExts[6];
 	for(int i = 0; i<6; i++) regExts[i] = fullexts[i];

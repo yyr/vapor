@@ -188,7 +188,7 @@ void RegionEventRouter::copyRegionToProbe(){
 //
 void RegionEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
-	
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	double regLocalExts[6], regUsrExts[6];
@@ -773,6 +773,8 @@ guiSetNumRefinements(int n){
 void RegionEventRouter::
 guiSetCenter(const float* coords){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
+
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
 	
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();

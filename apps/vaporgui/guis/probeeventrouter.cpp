@@ -259,8 +259,9 @@ void ProbeEventRouter::updateTab(){
 	setIgnoreBoxSliderEvents(true);  //don't generate nudge events
 
 	DataStatus* ds = DataStatus::getInstance();
+
 	if (ds->getDataMgr() && ds->dataIsPresent3D() ) instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
+	else return;
 	instanceTable->rebuild(this);
 	
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
@@ -372,7 +373,7 @@ void ProbeEventRouter::updateTab(){
 	}
 	//setup the size sliders 
 	adjustBoxSize(probeParams);
-
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	const vector<double>&userExts = ds->getDataMgr()->GetExtents(timestep);
 	//And the center sliders/textboxes:
 	double locExts[6],boxCenter[3];
@@ -1098,6 +1099,7 @@ probeCenterRake(){
 
 void ProbeEventRouter::
 probeAddSeed(){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	Point4 pt;
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
 	mapCursor();
@@ -1124,6 +1126,8 @@ probeAddSeed(){
 			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
 			"the seed point is outside the current region");
 	}
+	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)ts);
+	for (int i = 0; i<3; i++) pt.set1Val(i, (float)( pt.getVal(i)+usrExts[i]));
 	fRouter->guiAddSeed(pt);
 }	
 void ProbeEventRouter::
@@ -1830,6 +1834,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	mapCursor();
 	const float* selectedPoint = pParams->getSelectedPointLocal();
 	//Map to user coordinates
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	const vector<double>&userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	newCenter += userExts[coord];
