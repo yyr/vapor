@@ -142,16 +142,17 @@ public:
 	//Override default, allow manip to go outside of data:
 	virtual bool isDomainConstrained() {return false;}
 
-	float * getCurrentTwoDImageExtents(int ){
+	// Return the image extents in the current displayed image
+	float * getCurrentTwoDImageExtents(){
 		if (!imageExtents) return 0;
 		return imageExtents;
 	}
 	
 	std::string& getImageProjectionString() {return projDefinitionString;}
 	void setImageProjectionString(const char* str){projDefinitionString = str;}
-	//Determine the corners of the image in local coordinates
+	//Determine the corners of the image in user coordinates
 	//Only available when the renderer is enabled.
-	bool getImageCorners(int timestep, double cors[8]);
+	bool getImageCorners(double cors[8]);
 	int getImagePlacement(){return imagePlacement;}
 	void setImagePlacement(int val){ imagePlacement = val;}
 

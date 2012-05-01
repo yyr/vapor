@@ -56,7 +56,7 @@ float DataStatus::pre22Offset[3] = {0.f,0.f,0.f};
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 std::vector<std::string> DataStatus::variableNames2D;
-std::vector<float*> DataStatus::timeVaryingExtents;
+
 std::string DataStatus::projString;
 int DataStatus::numMetadataVariables2D = 0;
 int DataStatus::numOriented2DVars[3] = {0,0,0};
@@ -175,25 +175,8 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 
 	projString = dataMgr->GetMapProjection();
 	
-	timeVaryingExtents.clear();
-	for (int i = 0; i<numTS; i++){
-		
-		const vector<double>& mdexts = dataMgr->GetExtents(i);
-		if (mdexts.size() < 6) {
-			timeVaryingExtents.push_back(0);
-			continue;
-		}
-		float* tsexts = new float[6];
-		if (! sphericalTransform()) {
-			for (int j = 0; j< 6; j++){ tsexts[j] = mdexts[j];}
-		}
-		else {
-			vector <long> perm = dataMgr->GetGridPermutation();
-			tsexts[0] = tsexts[1] = tsexts[2] = -1.0 * mdexts[perm[2]+3];
-			tsexts[3] = tsexts[4] = tsexts[5] = mdexts[perm[2]+3];
-		}
-		timeVaryingExtents.push_back(tsexts);
-	}
+	
+	
 	
 	//clean out the various status arrays:
 
@@ -757,14 +740,11 @@ int DataStatus::get2DOrientation(int mdvar){
 	return 1;
 }
 
-void DataStatus::getExtentsCartesian(int timestep, float myExtents[6]) {
+void DataStatus::getLocalExtentsCartesian(float myExtents[6]) {
 	const float *extptr;
-	if (timestep < 0) {
-		extptr = getLocalExtents();
-	}
-	else {
-		extptr = getExtents(timestep);
-	}
+	
+	extptr = getLocalExtents();
+	
 	if (sphericalTransform() && dataMgr) {
 		//
 		// Convert spherical extents to Cartesian coordinates, which is

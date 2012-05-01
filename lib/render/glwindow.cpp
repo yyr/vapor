@@ -429,7 +429,14 @@ void GLWindow::paintEvent(QPaintEvent*)
 		manip->render();
 		int manipType = getModeManipType(mode);
 		//For probe and 2D manips, display cursor
-		if (manipType > 1) draw3DCursor(p->getSelectedPointLocal());
+		if (manipType > 1) {
+			const float *localPoint = p->getSelectedPointLocal();
+			//Need to convert local coordinates to stretched box coordinates.
+		
+			float strBoxPt[3];
+		//	p->localToStretchedCoordinatesInCube(localPoint, strBoxPt);
+			draw3DCursor(localPoint);
+		}
 	}
 	
 	

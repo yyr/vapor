@@ -96,7 +96,7 @@ void ViewpointParams::
 centerFullRegion(int timestep){
 	//Find the largest of the dimensions of the current region:
 	float fullExtent[6];
-	DataStatus::getInstance()->getExtentsCartesian(-1, fullExtent);
+	DataStatus::getInstance()->getLocalExtentsCartesian(fullExtent);
 
 	float maxSide = Max(fullExtent[5]-fullExtent[2], 
 		Max(fullExtent[4]-fullExtent[1],
@@ -322,7 +322,7 @@ getFarNearDist(float* boxFar, float* boxNear){
 	double maxProj = -1.e30;
 	double minProj = 1.e30;
 
-	DataStatus::getInstance()->getExtentsCartesian(-1, extents);
+	DataStatus::getInstance()->getLocalExtentsCartesian(extents);
 	//convert to local extents
 	for (int i = 0; i<6; i++) extents[i] -= extents[i%3];
 

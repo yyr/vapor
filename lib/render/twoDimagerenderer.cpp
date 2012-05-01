@@ -208,7 +208,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	DataMgr* dataMgr = ds->getDataMgr();
 
 	TwoDImageParams* tParams = (TwoDImageParams*) currentRenderParams;
-	const float* imgExts = tParams->getCurrentTwoDImageExtents(timeStep);
+	const float* imgExts = tParams->getCurrentTwoDImageExtents();
 	int refLevel = tParams->GetRefinementLevel();
 	int lod = tParams->GetCompressionLevel();
 
@@ -216,7 +216,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//Get these relative to actual extents in projection space
 	double displayCorners[8];
 	if (tParams->isGeoreferenced()){
-		if (!tParams->getImageCorners(timeStep,displayCorners))
+		if (!tParams->getImageCorners(displayCorners))
 			return false;
 	} else {
 		//Use corners of 2D extents:
@@ -275,8 +275,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3];
-	if (!DataStatus::getInstance()->getDataMgr()) return false;
-	vector<double> fullexts = dataMgr->GetExtents(timeStep);
+	if (!dataMgr) return false;
+	const vector<double>& fullexts = dataMgr->GetExtents(timeStep);
 	double regExts[6];
 	for(int i = 0; i<6; i++) regExts[i] = fullexts[i];
 	 
@@ -347,7 +347,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 		//Use a line buffer to hold 3d coordinates for transforming
 		double* elevVertLine = new double[3*maxx];
 		float locCoords[3];
-		const float* timeVaryingExtents = DataStatus::getExtents(timeStep);
+		
+		
 		float prevLocCoords[2];
 		for (int j = 0; j<maxy; j++){
 			
@@ -383,8 +384,8 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			//local (non-moving) extents for rendering:
 			
 			for (int i = 0; i< maxx; i++){
-				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-timeVaryingExtents[0];
-				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-timeVaryingExtents[1];
+				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-fullexts[0];
+				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-fullexts[1];
 
 				prevLocCoords[0]=locCoords[0];
 				prevLocCoords[1]=locCoords[1];

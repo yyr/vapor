@@ -128,8 +128,8 @@ reinit(bool doOverride){
 	double twoDExtents[6];
 	if (doOverride){
 		for (int i = 0; i<3; i++){
-			float twoDRadius = 0.5f*(extents[i+3] - extents[i]);
-			float twoDMid = 0.5f*(extents[i+3] - extents[i]);
+			float twoDRadius = 0.5f*(extents[i+3]);
+			float twoDMid = 0.5f*(extents[i+3]);
 			if (i<2) {
 				twoDExtents[i] = 0.;
 				twoDExtents[i+3] = twoDMid + twoDRadius;
@@ -877,11 +877,11 @@ void TwoDImageParams::setupImageNums(TIFF* tif){
 	delete [] timeDifference;
 	return;
 }
-//Determine the image corners (from lower-left, clockwise) in local coords.
-bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
+//Determine the image corners (from lower-left, clockwise) in user coordinates.
+bool TwoDImageParams::getImageCorners(double displayCorners[8]){
 
 	
-	const float* imgExts = getCurrentTwoDImageExtents(timestep);
+	const float* imgExts = getCurrentTwoDImageExtents();
 	if (!imgExts) return false;
 	//Set up proj.4 to convert from image space to VDC coords
 	projPJ dst_proj;
@@ -982,11 +982,6 @@ bool TwoDImageParams::getImageCorners(int timestep, double displayCorners[8]){
 	displayCorners[6] = maxx;
 	displayCorners[7] = miny;
 
-
-	//Now displayCorners are corners in projection space.  subtract offsets:
-	const float* exts = DataStatus::getExtents(timestep);
-	const float* globExts = DataStatus::getInstance()->getLocalExtents();
-	for (int i = 0; i<8; i++) displayCorners[i] -= (exts[i%2] - globExts[i%2]);
 	return true;
 }
 
@@ -996,7 +991,7 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 
 	//obtain the extents of the image in the projected space.
 	//the point pt is relative to these extents
-	const float* imgExts = getCurrentTwoDImageExtents(timestep);
+	const float* imgExts = getCurrentTwoDImageExtents();
 	if (!imgExts) return false;
 	//Set up proj.4 to convert from image space to VDC coords
 	projPJ dst_proj;
@@ -1036,10 +1031,6 @@ bool TwoDImageParams::mapGeorefPoint(int timestep, double pt[2]){
 		for (int i = 0; i<2; i++) pt[i] *= (RAD2DEG*111177.0);
 	}
 	
-	//Now pt is in projection space.  subtract offsets:
-	const float* exts = DataStatus::getExtents(timestep);
-	const float* globExts = DataStatus::getInstance()->getLocalExtents();
-	for (int i = 0; i<2; i++) pt[i] -= (exts[i] - globExts[i]);
 	return true;
 	
 }

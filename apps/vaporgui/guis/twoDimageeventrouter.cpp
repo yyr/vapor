@@ -288,39 +288,42 @@ void TwoDImageEventRouter::updateTab(){
 	resetTextureSize(twoDParams);
 	
 	QString strn;
-	
-	//And the center sliders/textboxes:
-	float boxmin[3],boxmax[3],boxCenter[3];
 	const float* extents = ds->getLocalExtents();
-	twoDParams->getLocalBox(boxmin, boxmax);
-	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
-	xCenterEdit->setText(QString::number(boxCenter[0]));
-	yCenterEdit->setText(QString::number(boxCenter[1]));
-	zCenterEdit->setText(QString::number(boxCenter[2]));
-	guiSetTextChanged(false);
-	//setup the size sliders 
-	adjustBoxSize(twoDParams);
-
-	//Specify the box extents in both user and grid coords:
-	minUserXLabel->setText(QString::number(boxmin[0]));
-	minUserYLabel->setText(QString::number(boxmin[1]));
-	minUserZLabel->setText(QString::number(boxmin[2]));
-	maxUserXLabel->setText(QString::number(boxmax[0]));
-	maxUserYLabel->setText(QString::number(boxmax[1]));
-	maxUserZLabel->setText(QString::number(boxmax[2]));
-
 	DataMgr *dataMgr = ds->getDataMgr();
 	if (dataMgr){
+		//Set the center sliders/textboxes:
+		float boxmin[3],boxmax[3],boxCenter[3];
+		
+		twoDParams->getLocalBox(boxmin, boxmax);
+		const vector<double>&usrExts = dataMgr->GetExtents((size_t)currentTimeStep);
+		for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + usrExts[i];
+		xCenterSlider->setValue((int)(256.f*(boxCenter[0]-usrExts[0])/extents[3]));
+		yCenterSlider->setValue((int)(256.f*(boxCenter[1]-usrExts[1])/extents[4]));
+		zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/extents[5]));
+		xCenterEdit->setText(QString::number(boxCenter[0]));
+		yCenterEdit->setText(QString::number(boxCenter[1]));
+		zCenterEdit->setText(QString::number(boxCenter[2]));
+		guiSetTextChanged(false);
+		//setup the size sliders 
+		adjustBoxSize(twoDParams);
+
+		//Specify the box extents in both user and grid coords:
+		minUserXLabel->setText(QString::number(usrExts[0]));
+		minUserYLabel->setText(QString::number(usrExts[1]));
+		minUserZLabel->setText(QString::number(usrExts[2]));
+		maxUserXLabel->setText(QString::number(usrExts[3]));
+		maxUserYLabel->setText(QString::number(usrExts[4]));
+		maxUserZLabel->setText(QString::number(usrExts[5]));
+
+	
 		int fullRefLevel = ds->getNumTransforms();
 
-		double dBoxMin[3], dBoxMax[3];
+		
 		size_t gridMin[3],gridMax[3];
+		double dBoxMin[3],dBoxMax[3];
 		for (int i = 0; i<3; i++) {
-			dBoxMin[i] = boxmin[i];
-			dBoxMax[i] = boxmax[i];
+			dBoxMin[i] = usrExts[i];
+			dBoxMax[i] = usrExts[i+3];
 		}
 		dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
 		dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
@@ -330,24 +333,25 @@ void TwoDImageEventRouter::updateTab(){
 		maxGridXLabel->setText(QString::number(gridMax[0]));
 		maxGridYLabel->setText(QString::number(gridMax[1]));
 		maxGridZLabel->setText(QString::number(gridMax[2]));
-	}
-    //Provide latlon box extents if available:
-	if (DataStatus::getProjectionString().size() == 0){
-		minMaxLonLatFrame->hide();
-	} else {
-		double boxLatLon[4];
-		boxLatLon[0] = boxmin[0];
-		boxLatLon[1] = boxmin[1];
-		boxLatLon[2] = boxmax[0];
-		boxLatLon[3] = boxmax[1];
-		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
-			minLonLabel->setText(QString::number(boxLatLon[0]));
-			minLatLabel->setText(QString::number(boxLatLon[1]));
-			maxLonLabel->setText(QString::number(boxLatLon[2]));
-			maxLatLabel->setText(QString::number(boxLatLon[3]));
-			minMaxLonLatFrame->show();
-		} else {
+	
+		//Provide latlon box extents if available:
+		if (DataStatus::getProjectionString().size() == 0){
 			minMaxLonLatFrame->hide();
+		} else {
+			double boxLatLon[4];
+			boxLatLon[0] = usrExts[0];
+			boxLatLon[1] = usrExts[1];
+			boxLatLon[2] = usrExts[3];
+			boxLatLon[3] = usrExts[4];
+			if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
+				minLonLabel->setText(QString::number(boxLatLon[0]));
+				minLatLabel->setText(QString::number(boxLatLon[1]));
+				maxLonLabel->setText(QString::number(boxLatLon[2]));
+				maxLatLabel->setText(QString::number(boxLatLon[3]));
+				minMaxLonLatFrame->show();
+			} else {
+				minMaxLonLatFrame->hide();
+			}
 		}
 	}
 	
@@ -372,7 +376,9 @@ void TwoDImageEventRouter::refreshTab(){
 
 void TwoDImageEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	DataStatus* ds = DataStatus::getInstance();
+	DataMgr* dataMgr = ds->getDataMgr();
+	if (!dataMgr) return;
 	TwoDImageParams* twoDParams = VizWinMgr::getActiveTwoDImageParams();
 	PanelCommand* cmd = PanelCommand::captureStart(twoDParams, "edit TwoD text");
 	QString strn;
@@ -388,7 +394,8 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	if (orientation < 2) {ycrd = 2; zcrd = 1;}
 	if (orientation < 1) {xcrd = 1; zcrd = 0;}
 
-	const float *extents = DataStatus::getInstance()->getLocalExtents();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[xcrd] = widthEdit->text().toFloat();
@@ -400,20 +407,19 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	boxCenter[0] = xCenterEdit->text().toFloat();
 	boxCenter[1] = yCenterEdit->text().toFloat();
 	boxCenter[2] = zCenterEdit->text().toFloat();
-	twoDParams->getLocalBox(boxmin, boxmax);
 	//the box z-size is not adjustable:
 	boxSize[zcrd] = boxmax[zcrd]-boxmin[zcrd];
 	for (int i = 0; i<3;i++){
-		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
-		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
+		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i] - usrExts[0];
+		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i] - usrExts[1];
 	}
 	twoDParams->setLocalBox(boxmin,boxmax);
 	adjustBoxSize(twoDParams);
 	//set the center sliders:
 	setIgnoreBoxSliderEvents(true);
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-usrExts[0])/(usrExts[3]-usrExts[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-usrExts[1])/(usrExts[4]-usrExts[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/(usrExts[5]-usrExts[2])));
 	setIgnoreBoxSliderEvents(false);
 	resetTextureSize(twoDParams);
 	//twoDTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
@@ -509,15 +515,16 @@ void TwoDImageEventRouter::guiFitToImage(){
 	double corners[8];
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	if(!tParams->getImageCorners(timestep, corners)) return;
-
+	
+	if(!tParams->getImageCorners(corners)) return;
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "fit 2D extents to image");
-	
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& userExts = dataMgr->GetExtents(timestep);
 	float newExts[6];
-	
-	tParams->getImageCorners(timestep, corners);
 	tParams->getLocalBox(newExts, newExts+3);
+
 	newExts[0] = newExts[1] = 1.e30f;
 	newExts[3] = newExts[4] = -1.e30f;
 	//Adjust the new 2d extents to contain these corners
@@ -528,6 +535,11 @@ void TwoDImageEventRouter::guiFitToImage(){
 		if (newExts[3] < corners[2*i]) newExts[3] = corners[2*i];
 		if (newExts[4] < corners[2*i+1]) newExts[4] = corners[2*i+1];
 	}
+	//Convert from user to local extents:
+	newExts[0] -= userExts[0];
+	newExts[1] -= userExts[1];
+	newExts[3] -= userExts[0];
+	newExts[4] -= userExts[1];
 	tParams->setLocalBox(newExts, newExts+3);
 	PanelCommand::captureEnd(cmd, tParams); 
 	setTwoDDirty(tParams);
@@ -577,15 +589,13 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	TwoDImageParams* dParams = VizWinMgr::getActiveTwoDImageParams();
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
-	float extents[6];
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	DataStatus::getInstance()->getExtentsAtLevel(timestep,dParams->GetRefinementLevel(), extents);
+	
 	if (dParams->isEnabled()) {
 		//Check that we aren't putting this on another planar surface:
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		int viznum = vizMgr->getActiveViz();
 		float disp; 
-		if (mode) disp = extents[2];
+		if (mode) disp = 0.; //min z in local coordinates
 		else disp = dParams->getLocalTwoDMin(2);
 		if (vizMgr->findCoincident2DSurface(viznum, 2, 
 			disp, mode))
@@ -605,8 +615,8 @@ void TwoDImageEventRouter::guiApplyTerrain(bool mode){
 	
 	//Set box bottom and top to bottom of domain, if we are applying to terrain
 	if (mode){
-		dParams->setLocalTwoDMin(2,extents[2]);
-		dParams->setLocalTwoDMax(2,extents[2]);
+		dParams->setLocalTwoDMin(2,0.);
+		dParams->setLocalTwoDMax(2,0.);
 	}
 	
 	//Reposition cursor:
@@ -1060,89 +1070,6 @@ textToSlider(TwoDImageParams* pParams, int coord, float newCenter, float newSize
 	pParams->setLocalTwoDMax(coord, newCenter+0.5f*newSize);
 	adjustBoxSize(pParams);
 	return;
-	//force the new center to fit in the full domain,
-	
-	bool centerChanged = false;
-	DataStatus* ds = DataStatus::getInstance();
-	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	float boxMin,boxMax;
-	if (ds && ds->getDataMgr()){
-		extents = DataStatus::getInstance()->getLocalExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	
-		if (newCenter < regMin) {
-			newCenter = regMin;
-			centerChanged = true;
-		}
-		if (newCenter > regMax) {
-			newCenter = regMax;
-			centerChanged = true;
-		}
-	} else {
-		regMin = newCenter - newSize*0.5f; 
-		regMax = newCenter + newSize*0.5f;
-	}
-		
-	boxMin = newCenter - newSize*0.5f; 
-	boxMax= newCenter + newSize*0.5f; 
-	if (centerChanged){
-		pParams->setLocalTwoDMin(coord, boxMin);
-		pParams->setLocalTwoDMax(coord, boxMax);
-	}
-	
-	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
-	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
-	int oldSliderSize, oldSliderCenter;
-	switch(coord) {
-		case 0:
-			
-			oldSliderSize = widthSlider->value();
-			
-			oldSliderCenter = xCenterSlider->value();
-			if (oldSliderSize != sliderSize){
-				widthSlider->setValue(sliderSize);
-			}
-			
-			if (oldSliderCenter != sliderCenter)
-				xCenterSlider->setValue(sliderCenter);
-			if(centerChanged) xCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastXSizeSlider = sliderSize;
-			lastXCenterSlider = sliderCenter;
-			break;
-		case 1:
-			oldSliderSize = lengthSlider->value();
-			oldSliderCenter = yCenterSlider->value();
-			if (oldSliderSize != sliderSize)
-				lengthSlider->setValue(sliderSize);
-			
-			if (oldSliderCenter != sliderCenter)
-				yCenterSlider->setValue(sliderCenter);
-			if(centerChanged) yCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastYSizeSlider = sliderSize;
-			lastYCenterSlider = sliderCenter;
-			break;
-		case 2:
-			
-			oldSliderCenter = zCenterSlider->value();
-			if (oldSliderCenter != sliderCenter)
-				zCenterSlider->setValue(sliderCenter);
-			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
-			lastZCenterSlider = sliderCenter;
-			break;
-		default:
-			assert(0);
-	}
-	guiSetTextChanged(false);
-	if(centerChanged) {
-		setTwoDDirty(pParams);
-		twoDTextureFrame->update();
-		VizWinMgr::getInstance()->forceRender(pParams);;
-	}
-	update();
-	return;
 }
 //Set text when a slider changes.
 //
@@ -1154,6 +1081,10 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	//There are only two size sliders...
 	if (isSize && orientation <= coord) coord++;
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	if (!dataMgr) return;
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>userExts = dataMgr->GetExtents(timestep);
 	float center = 0.5f*(pParams->getLocalTwoDMin(coord)+pParams->getLocalTwoDMax(coord));
 	float size = pParams->getLocalTwoDMax(coord)- pParams->getLocalTwoDMin(coord);
 	if (isSize) 
@@ -1167,19 +1098,19 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	//Set the text in the edit boxes
 	mapCursor();
 	const float* selectedPoint = pParams->getSelectedPointLocal();
-	
+	center += userExts[coord];
 	switch(coord) {
 		case 0:
 			if (!isSize)xCenterEdit->setText(QString::number(center,'g',7));
-			selectedXLabel->setText(QString::number(selectedPoint[coord]));
+			selectedXLabel->setText(QString::number(selectedPoint[coord]+userExts[coord]));
 			break;
 		case 1:
 			if (!isSize)yCenterEdit->setText(QString::number(center,'g',7));
-			selectedYLabel->setText(QString::number(selectedPoint[coord]));
+			selectedYLabel->setText(QString::number(selectedPoint[coord]+userExts[coord]));
 			break;
 		case 2:
 			if (!isSize)zCenterEdit->setText(QString::number(center,'g',7));
-			selectedZLabel->setText(QString::number(selectedPoint[coord]));
+			selectedZLabel->setText(QString::number(selectedPoint[coord]+userExts[coord]));
 			break;
 		default:
 			assert(0);
@@ -1561,6 +1492,7 @@ void TwoDImageEventRouter::guiNudgeYSize(int val) {
 	setTwoDDirty(pParams);
 	VizWinMgr::getInstance()->forceRender(pParams);;
 }
+
 void TwoDImageEventRouter::guiFitToRegion(){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
@@ -1604,7 +1536,6 @@ adjustBoxSize(TwoDImageParams* pParams){
 
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	//In image mode, just make box have nonnegative extent
-
 	
 	if (boxmin[xcrd]> boxmax[xcrd]) boxmax[xcrd] = boxmin[xcrd];
 	if (boxmin[ycrd]> boxmax[ycrd]) boxmax[ycrd] = boxmin[ycrd];

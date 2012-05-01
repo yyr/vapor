@@ -522,13 +522,9 @@ public:
 
 	//Used for georeferencing and moving region:
 	static const std::string getProjectionString() {return projString;}
-	static const float* getExtents(int timestep){ 
-		if (timeVaryingExtents[timestep] != 0) return timeVaryingExtents[timestep];
-	else 
-		return getInstance()->getLocalExtents();
-	}
 
-	void getExtentsCartesian(int timestep, float extents[6]);
+	//Following method used to give different extents with spherical data:
+	void getLocalExtentsCartesian(float extents[6]);
 	
 
 	//Get/set methods for global vizfeatures
@@ -820,7 +816,7 @@ private:
 	//Interactive refinement level:
 	static int interactiveRefLevel;
 	static std::string projString;
-	static vector <float*> timeVaryingExtents;
+	
 	int VDCType;
 	static bool sessionBefore22;  //flag indicating that current session is before 2.2
 	static float pre22Offset[3];
