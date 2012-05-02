@@ -551,15 +551,15 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	TwoDDataParams* dParams = VizWinMgr::getActiveTwoDDataParams();
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
-	float extents[6];
+	
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
 	int timestep = ap->getCurrentFrameNumber();
-	DataStatus::getInstance()->getExtentsAtLevel(timestep, dParams->GetRefinementLevel(), extents);
+	
 	if (dParams->isEnabled()) {
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		int viznum = vizMgr->getActiveViz();
 		float disp; 
-		if (mode) disp = extents[2];
+		if (mode) disp = 0.;
 		else disp = dParams->getLocalTwoDMin(2);
 		//Check that we aren't putting this on another planar surface:
 		if (vizMgr->findCoincident2DSurface(viznum, 2, 
@@ -573,8 +573,8 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	
 	//If setting to terrain, set box bottom and top to bottom of domain
 	if (mode){
-		dParams->setLocalTwoDMin(2,extents[2]);
-		dParams->setLocalTwoDMax(2,extents[2]);
+		dParams->setLocalTwoDMin(2,0.);
+		dParams->setLocalTwoDMax(2,0.);
 	}
 	
 	
