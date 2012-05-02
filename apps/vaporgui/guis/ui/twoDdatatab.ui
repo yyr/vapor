@@ -596,7 +596,7 @@ create new 2D planar instances.</string>
              <string>Check to apply variable to terrain</string>
             </property>
             <property name="text">
-             <string>Apply color and opacity to terrain surface</string>
+             <string>Apply color and opacity to terrain</string>
             </property>
            </widget>
           </item>
@@ -1390,7 +1390,7 @@ orientation of the plane.</string>
              <string>Min and max user coordinates of the specified planar region </string>
             </property>
             <property name="text">
-             <string>Local user extents (X,Y,Z)</string>
+             <string>User coord extents (X,Y,Z)</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -3238,14 +3238,14 @@ depending on which button is clicked.</string>
    <header>../../guis/instancetable.h</header>
   </customwidget>
   <customwidget>
-   <class>MappingFrame</class>
-   <extends>QWidget</extends>
-   <header>mappingframe.h</header>
-  </customwidget>
-  <customwidget>
    <class>TwoDFrame</class>
    <extends>QWidget</extends>
    <header>./twodframe.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MappingFrame</class>
+   <extends>QWidget</extends>
+   <header>mappingframe.h</header>
   </customwidget>
  </customwidgets>
  <includes>

@@ -1845,7 +1845,7 @@ orientation of the plane.</string>
                <string>Min and max user coordinates of the specified planar region </string>
               </property>
               <property name="text">
-               <string>Local user extents (X,Y,Z)</string>
+               <string> User coord extents (X,Y,Z)</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -2041,7 +2041,7 @@ orientation of the plane.</string>
             <item>
              <widget class="QLabel" name="textLabel9_2">
               <property name="text">
-               <string>Max</string>
+               <string>Max:</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

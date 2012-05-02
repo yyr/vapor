@@ -231,7 +231,7 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	int gridsize[2];
 	for (int i = 0; i<2; i++){
 		gridsize[i] = (int)(ds->getFullSizeAtLevel(refLevel,i)*
-			abs(displayCorners[i+4]-displayCorners[i])/(extents[i+3]-extents[i])+0.5f);
+			abs((displayCorners[i+4]-displayCorners[i])/extents[i+3])+0.5f);
 		//No sense in making the grid bigger than display size
 		if (gridsize[i] > 1000) gridsize[i] = 1000;
 	}
@@ -276,9 +276,9 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 	//Set up for doing terrain mapping:
 	size_t min_dim[3], max_dim[3];
 	if (!dataMgr) return false;
-	const vector<double>& fullexts = dataMgr->GetExtents(timeStep);
+	const vector<double>& fullUserExts = dataMgr->GetExtents(timeStep);
 	double regExts[6];
-	for(int i = 0; i<6; i++) regExts[i] = fullexts[i];
+	for(int i = 0; i<6; i++) regExts[i] = fullUserExts[i];
 	 
 	float horizFact=0.f, vertFact=0.f, horizOffset=0.f, vertOffset=0.f;
 	RegularGrid* hgtGrid = 0;
@@ -384,14 +384,14 @@ bool TwoDImageRenderer::rebuildElevationGrid(size_t timeStep){
 			//local (non-moving) extents for rendering:
 			
 			for (int i = 0; i< maxx; i++){
-				locCoords[0] = (float)elevVertLine[3*i] + extents[0]-fullexts[0];
-				locCoords[1] = (float)elevVertLine[3*i+1]+ extents[1]-fullexts[1];
+				locCoords[0] = (float)elevVertLine[3*i] -fullUserExts[0];
+				locCoords[1] = (float)elevVertLine[3*i+1]-fullUserExts[1];
 
 				prevLocCoords[0]=locCoords[0];
 				prevLocCoords[1]=locCoords[1];
 				if (tParams->isMappedToTerrain()){
 					//Find cell coordinates of locCoords in data grid space
-					float elev = hgtGrid->GetValue((double)locCoords[0], (double)locCoords[1],0.);
+					float elev = hgtGrid->GetValue(elevVertLine[3*i], elevVertLine[3*i+1],0.);
 					if (elev == hgtGrid->GetMissingValue()) elev = 0.;
 					locCoords[2] = elev+constElev;
 				}

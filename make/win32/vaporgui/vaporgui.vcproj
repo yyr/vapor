@@ -80,7 +80,7 @@
 				AdditionalDependencies="glew32.lib QtCore4.lib QtOpenGL4.lib QtGui4.lib qtmain.lib opengl32.lib assimp.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib python26.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)/assimp_release-dll_win32&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ASSIMP_LIB_PATH)\assimp_release-dll_win32&quot;;&quot;$(GLEW_LIB_PATH)&quot;;&quot;$(PYTHON_LIB_PATH)&quot;;&quot;$(QTDIR)\lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				DelayLoadDLLs="opengl32.dll"

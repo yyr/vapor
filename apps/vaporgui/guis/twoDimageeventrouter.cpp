@@ -176,6 +176,7 @@ void TwoDImageEventRouter::updateTab(){
 	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
 	int winnum = vizMgr->getActiveViz();
 	Session* ses = Session::getInstance();
+	if (!ds->getDataMgr()) return;
 	ses->blockRecording();
     
 	refinementCombo->setCurrentIndex(twoDParams->GetRefinementLevel());
@@ -186,65 +187,67 @@ void TwoDImageEventRouter::updateTab(){
 	
 	placementCombo->setCurrentIndex(twoDParams->getImagePlacement());
 	//Force consistent settings, if there is a dataset
-	if (ds->getDataMgr()){
-		//See if we can do terrain mapping
-		if(orientation == 2){
-			int varnum = DataStatus::getSessionVariableNum2D("HGT");
-			if (varnum < 0 || !ds->dataIsPresent2D(varnum, currentTimeStep)){
-				applyTerrainCheckbox->setEnabled(false);
-				applyTerrainCheckbox->setChecked(false);
-				twoDParams->setMappedToTerrain(false);
-			} else {
-				applyTerrainCheckbox->setEnabled(true);
-				applyTerrainCheckbox->setChecked(twoDParams->isMappedToTerrain());
-			}
-		} else {
-			applyTerrainCheckbox->setChecked(false);
+	
+	//See if we can do terrain mapping
+	if(orientation == 2){
+		int varnum = DataStatus::getSessionVariableNum2D("HGT");
+		if (varnum < 0 || !ds->dataIsPresent2D(varnum, currentTimeStep)){
 			applyTerrainCheckbox->setEnabled(false);
-		}
-		if ((ds->getProjectionString().size() > 0) && orientation == 2){
-			geoRefCheckbox->setEnabled(true);
-			geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+			applyTerrainCheckbox->setChecked(false);
+			twoDParams->setMappedToTerrain(false);
 		} else {
-			geoRefCheckbox->setEnabled(false);
-			geoRefCheckbox->setChecked(false);
-			twoDParams->setGeoreferenced(false);
+			applyTerrainCheckbox->setEnabled(true);
+			applyTerrainCheckbox->setChecked(twoDParams->isMappedToTerrain());
 		}
-		bool georef = twoDParams->isGeoreferenced();
-		if (georef){
-			cropCheckbox->setEnabled(true);
-			fitToImageButton->setEnabled(true);
-			cropCheckbox->setChecked(twoDParams->imageCrop());
-		} else {
-			cropCheckbox->setEnabled(false);
-			fitToImageButton->setEnabled(false);
-			cropCheckbox->setChecked(true);
-		}
-		//placement combo is disabled if either mapped to terrain or georef:
-		if (twoDParams->isMappedToTerrain() || georef){
-			placementCombo->setEnabled(false);
-			placementCombo->setCurrentIndex(0);//upright
-			twoDParams->setImagePlacement(0);
-		} else {
-			placementCombo->setEnabled(true);
-		}
-
+	} else {
+		applyTerrainCheckbox->setChecked(false);
+		applyTerrainCheckbox->setEnabled(false);
+	}
+	if ((ds->getProjectionString().size() > 0) && orientation == 2){
+		geoRefCheckbox->setEnabled(true);
+		geoRefCheckbox->setChecked(twoDParams->isGeoreferenced());
+	} else {
+		geoRefCheckbox->setEnabled(false);
+		geoRefCheckbox->setChecked(false);
+		twoDParams->setGeoreferenced(false);
+	}
+	bool georef = twoDParams->isGeoreferenced();
+	if (georef){
+		cropCheckbox->setEnabled(true);
+		fitToImageButton->setEnabled(true);
+		cropCheckbox->setChecked(twoDParams->imageCrop());
+	} else {
+		cropCheckbox->setEnabled(false);
+		fitToImageButton->setEnabled(false);
+		cropCheckbox->setChecked(true);
+	}
+	//placement combo is disabled if either mapped to terrain or georef:
+	if (twoDParams->isMappedToTerrain() || georef){
+		placementCombo->setEnabled(false);
+		placementCombo->setCurrentIndex(0);//upright
+		twoDParams->setImagePlacement(0);
+	} else {
+		placementCombo->setEnabled(true);
 	}
 
 
 	//set up the cursor position
 	mapCursor();
-	const float* selectedPoint = twoDParams->getSelectedPointLocal();
-	selectedXLabel->setText(QString::number(selectedPoint[0]));
-	selectedYLabel->setText(QString::number(selectedPoint[1]));
-	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	DataMgr* dataMgr = ds->getDataMgr();
+	const vector<double>&usrExts = dataMgr->GetExtents((size_t)currentTimeStep);
+	const float* localSelectedPoint = twoDParams->getSelectedPointLocal();
+	
+	selectedXLabel->setText(QString::number(localSelectedPoint[0]+usrExts[0]));
+	selectedYLabel->setText(QString::number(localSelectedPoint[1]+usrExts[1]));
+	selectedZLabel->setText(QString::number(localSelectedPoint[2]+usrExts[2]));
+	
 	//Provide latlon coords if available:
 	if (DataStatus::getProjectionString().size() == 0){
 		latLonFrame->hide();
 	} else {
 		double selectedLatLon[2];
-		selectedLatLon[0] = selectedPoint[0];
-		selectedLatLon[1] = selectedPoint[1];
+		selectedLatLon[0] = localSelectedPoint[0];
+		selectedLatLon[1] = localSelectedPoint[1];
 		if (DataStatus::convertLocalToLonLat(currentTimeStep,selectedLatLon)){
 			selectedLonLabel->setText(QString::number(selectedLatLon[0]));
 			selectedLatLabel->setText(QString::number(selectedLatLon[1]));
@@ -289,71 +292,73 @@ void TwoDImageEventRouter::updateTab(){
 	
 	QString strn;
 	const float* extents = ds->getLocalExtents();
-	DataMgr *dataMgr = ds->getDataMgr();
-	if (dataMgr){
-		//Set the center sliders/textboxes:
-		float boxmin[3],boxmax[3],boxCenter[3];
-		
-		twoDParams->getLocalBox(boxmin, boxmax);
-		const vector<double>&usrExts = dataMgr->GetExtents((size_t)currentTimeStep);
-		for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + usrExts[i];
-		xCenterSlider->setValue((int)(256.f*(boxCenter[0]-usrExts[0])/extents[3]));
-		yCenterSlider->setValue((int)(256.f*(boxCenter[1]-usrExts[1])/extents[4]));
-		zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/extents[5]));
-		xCenterEdit->setText(QString::number(boxCenter[0]));
-		yCenterEdit->setText(QString::number(boxCenter[1]));
-		zCenterEdit->setText(QString::number(boxCenter[2]));
-		guiSetTextChanged(false);
-		//setup the size sliders 
-		adjustBoxSize(twoDParams);
+	
 
-		//Specify the box extents in both user and grid coords:
-		minUserXLabel->setText(QString::number(usrExts[0]));
-		minUserYLabel->setText(QString::number(usrExts[1]));
-		minUserZLabel->setText(QString::number(usrExts[2]));
-		maxUserXLabel->setText(QString::number(usrExts[3]));
-		maxUserYLabel->setText(QString::number(usrExts[4]));
-		maxUserZLabel->setText(QString::number(usrExts[5]));
+	//Set the center sliders/textboxes:
+	float boxmin[3],boxmax[3],boxCenter[3];
+	
+	twoDParams->getLocalBox(boxmin, boxmax);
+	
+	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f + usrExts[i];
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-usrExts[0])/extents[3]));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-usrExts[1])/extents[4]));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-usrExts[2])/extents[5]));
+	xCenterEdit->setText(QString::number(boxCenter[0]));
+	yCenterEdit->setText(QString::number(boxCenter[1]));
+	zCenterEdit->setText(QString::number(boxCenter[2]));
+	guiSetTextChanged(false);
+	//setup the size sliders 
+	adjustBoxSize(twoDParams);
+	double dBoxMin[3],dBoxMax[3];
+	for (int i = 0; i<3; i++) {
+		dBoxMin[i] = usrExts[i]+boxmin[i];
+		dBoxMax[i] = usrExts[i]+boxmax[i];
+	}
+	
+
+	//Specify the box extents in both user and grid coords:
+	minUserXLabel->setText(QString::number((float)dBoxMin[0]));
+	minUserYLabel->setText(QString::number((float)dBoxMin[1]));
+	minUserZLabel->setText(QString::number((float)dBoxMin[2]));
+	maxUserXLabel->setText(QString::number((float)dBoxMax[3]));
+	maxUserYLabel->setText(QString::number((float)dBoxMax[4]));
+	maxUserZLabel->setText(QString::number((float)dBoxMax[5]));
+
+
+	int fullRefLevel = ds->getNumTransforms();
 
 	
-		int fullRefLevel = ds->getNumTransforms();
-
-		
-		size_t gridMin[3],gridMax[3];
-		double dBoxMin[3],dBoxMax[3];
-		for (int i = 0; i<3; i++) {
-			dBoxMin[i] = usrExts[i];
-			dBoxMax[i] = usrExts[i+3];
-		}
-		dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
-		dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
-		minGridXLabel->setText(QString::number(gridMin[0]));
-		minGridYLabel->setText(QString::number(gridMin[1]));
-		minGridZLabel->setText(QString::number(gridMin[2]));
-		maxGridXLabel->setText(QString::number(gridMax[0]));
-		maxGridYLabel->setText(QString::number(gridMax[1]));
-		maxGridZLabel->setText(QString::number(gridMax[2]));
+	size_t gridMin[3],gridMax[3];
 	
-		//Provide latlon box extents if available:
-		if (DataStatus::getProjectionString().size() == 0){
-			minMaxLonLatFrame->hide();
+	dataMgr->MapUserToVox(currentTimeStep, dBoxMin, gridMin, fullRefLevel);
+	dataMgr->MapUserToVox(currentTimeStep, dBoxMax, gridMax, fullRefLevel);
+	minGridXLabel->setText(QString::number(gridMin[0]));
+	minGridYLabel->setText(QString::number(gridMin[1]));
+	minGridZLabel->setText(QString::number(gridMin[2]));
+	maxGridXLabel->setText(QString::number(gridMax[0]));
+	maxGridYLabel->setText(QString::number(gridMax[1]));
+	maxGridZLabel->setText(QString::number(gridMax[2]));
+
+	//Provide latlon box extents if available:
+	if (DataStatus::getProjectionString().size() == 0){
+		minMaxLonLatFrame->hide();
+	} else {
+		double boxLatLon[4];
+		boxLatLon[0] = boxmin[0];
+		boxLatLon[1] = boxmin[1];
+		boxLatLon[2] = boxmax[0];
+		boxLatLon[3] = boxmax[1];
+		if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
+			minLonLabel->setText(QString::number(boxLatLon[0]));
+			minLatLabel->setText(QString::number(boxLatLon[1]));
+			maxLonLabel->setText(QString::number(boxLatLon[2]));
+			maxLatLabel->setText(QString::number(boxLatLon[3]));
+			minMaxLonLatFrame->show();
 		} else {
-			double boxLatLon[4];
-			boxLatLon[0] = usrExts[0];
-			boxLatLon[1] = usrExts[1];
-			boxLatLon[2] = usrExts[3];
-			boxLatLon[3] = usrExts[4];
-			if (DataStatus::convertLocalToLonLat(currentTimeStep,boxLatLon,2)){
-				minLonLabel->setText(QString::number(boxLatLon[0]));
-				minLatLabel->setText(QString::number(boxLatLon[1]));
-				maxLonLabel->setText(QString::number(boxLatLon[2]));
-				maxLatLabel->setText(QString::number(boxLatLon[3]));
-				minMaxLonLatFrame->show();
-			} else {
-				minMaxLonLatFrame->hide();
-			}
+			minMaxLonLatFrame->hide();
 		}
 	}
+
 	
 	//Only allow terrain map with horizontal orientation
 	
@@ -1582,6 +1587,44 @@ void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
 // Map the cursor coords into world space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
+/*
+void TwoDImageEventRouter::mapCursor(){
+	//Get the transform 
+	TwoDImageParams* tParams = VizWinMgr::getInstance()->getActiveTwoDImageParams();
+	if(!DataStatus::getInstance()->getDataMgr()) return;
+	float twoDCoord[3];
+	float a[2],b[2],constVal[2];
+	int mapDims[3];
+	tParams->buildLocal2DTransform(a,b,constVal,mapDims);
+	const float* cursorCoords = tParams->getCursorCoords();
+	//If using flat plane, the cursor sits in the z=0 plane of the twoD box coord system.
+	//x is reversed because we are looking from the opposite direction 
+	twoDCoord[0] = -cursorCoords[0];
+	twoDCoord[1] = cursorCoords[1];
+	twoDCoord[2] = 0.f;
+	double selectPoint[3];
+	selectPoint[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
+	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
+	selectPoint[mapDims[2]] = constVal[0];
+	
+	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+
+	if (tParams->isMappedToTerrain()) {
+		//Find terrain height at selected point:
+		//mapDims are just 0,1,2
+		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
+		string varname("HGT");
+		
+		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
+		if (val != OUT_OF_BOUNDS)
+				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);
+		
+	} 
+	float spt[3];
+	for (int i = 0; i<3; i++) spt[i] = selectPoint[i];
+	tParams->setSelectedPointLocal(spt);
+}
+*/
 void TwoDImageEventRouter::mapCursor(){
 	//If the scene and image are georeferenced we do this differently than
 	//if not.
@@ -1626,12 +1669,12 @@ void TwoDImageEventRouter::mapCursor(){
 	}
 
 
-
+	int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
 		const float* extents = DataStatus::getInstance()->getLocalExtents();
 		string varname("HGT");
-		int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+		
 		double sPoint[3];
 		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i];
 		float val = RegionParams::calcCurrentValue(varname,sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
@@ -1639,6 +1682,9 @@ void TwoDImageEventRouter::mapCursor(){
 			selectPoint[2] = val+(tParams->getLocalTwoDMin(2)-extents[2]);
 		}
 	} 
+	//Convert selected point (in user coordinates) to local coordinates
+	const vector<double>userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
+	for (int i = 0; i<3; i++) selectPoint[i] -= userExtents[i];
 	tParams->setSelectedPointLocal(selectPoint);
 }
 
