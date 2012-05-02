@@ -2009,6 +2009,8 @@ void TwoDDataEventRouter::mapCursor(){
 	//Get the transform 
 	TwoDDataParams* tParams = VizWinMgr::getInstance()->getActiveTwoDDataParams();
 	if(!DataStatus::getInstance()->getDataMgr()) return;
+	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>& userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents(timeStep);
 	float twoDCoord[3];
 	float a[2],b[2],constVal[2];
 	int mapDims[3];
@@ -2024,14 +2026,15 @@ void TwoDDataEventRouter::mapCursor(){
 	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 	selectPoint[mapDims[2]] = constVal[0];
 	
-	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	
 
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
 		//mapDims are just 0,1,2
 		assert (mapDims[0] == 0 && mapDims[1] == 1 && mapDims[2] == 2);
 		string varname("HGT");
-		
+		double sPoint[3];
+		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
 		float val = RegionParams::calcCurrentValue(varname,selectPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), timeStep);
 		if (val != OUT_OF_BOUNDS)
 				selectPoint[mapDims[2]] = val+tParams->getLocalTwoDMin(2);

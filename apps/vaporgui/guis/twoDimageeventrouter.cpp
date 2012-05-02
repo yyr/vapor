@@ -320,9 +320,9 @@ void TwoDImageEventRouter::updateTab(){
 	minUserXLabel->setText(QString::number((float)dBoxMin[0]));
 	minUserYLabel->setText(QString::number((float)dBoxMin[1]));
 	minUserZLabel->setText(QString::number((float)dBoxMin[2]));
-	maxUserXLabel->setText(QString::number((float)dBoxMax[3]));
-	maxUserYLabel->setText(QString::number((float)dBoxMax[4]));
-	maxUserZLabel->setText(QString::number((float)dBoxMax[5]));
+	maxUserXLabel->setText(QString::number((float)dBoxMax[0]));
+	maxUserYLabel->setText(QString::number((float)dBoxMax[1]));
+	maxUserZLabel->setText(QString::number((float)dBoxMax[2]));
 
 
 	int fullRefLevel = ds->getNumTransforms();
@@ -1634,20 +1634,25 @@ void TwoDImageEventRouter::mapCursor(){
 	if(!DataStatus::getInstance()->getDataMgr()) return;
 	float selectPoint[3];
 	const float* cursorCoords = tParams->getCursorCoords();
-	
+	int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
 	if (tParams->isGeoreferenced()){
 		
 		double mappt[2];
 		mappt[0] = -cursorCoords[0];
 		mappt[1] = cursorCoords[1];
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-		if (tParams->mapGeorefPoint(timestep, mappt)) {
+		
+		if (tParams->mapGeorefPoint(currentTimeStep, mappt)) {
 			selectPoint[0] = mappt[0];
 			selectPoint[1] = mappt[1];
 			selectPoint[2] = tParams->getLocalTwoDMin(2);
 		}
 		else
 			for (int i = 0; i< 3; i++) selectPoint[i] = 0.f;
+
+		//Convert selected point (in user coordinates) to local coordinates
+		
+		for (int i = 0; i<3; i++) selectPoint[i] -= userExtents[i];
 	}
 		
 	else { //map linearly into volume
@@ -1669,22 +1674,20 @@ void TwoDImageEventRouter::mapCursor(){
 	}
 
 
-	int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
-		const float* extents = DataStatus::getInstance()->getLocalExtents();
+		
 		string varname("HGT");
 		
 		double sPoint[3];
-		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i];
+		for (int i = 0; i<3; i++) sPoint[i] = selectPoint[i]+userExtents[i];
 		float val = RegionParams::calcCurrentValue(varname,sPoint,tParams->GetRefinementLevel(), tParams->GetCompressionLevel(), (size_t)currentTimeStep);
 		if (val != OUT_OF_BOUNDS){
-			selectPoint[2] = val+(tParams->getLocalTwoDMin(2)-extents[2]);
+			selectPoint[2] = val+(tParams->getLocalTwoDMin(2));
 		}
 	} 
-	//Convert selected point (in user coordinates) to local coordinates
-	const vector<double>userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
-	for (int i = 0; i<3; i++) selectPoint[i] -= userExtents[i];
+	
 	tParams->setSelectedPointLocal(selectPoint);
 }
 

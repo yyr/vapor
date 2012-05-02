@@ -269,7 +269,7 @@ bool TwoDDataRenderer::rebuildElevationGrid(size_t timeStep){
 			locCoord[0]= worldCoord[0] - usrExts[0];
 			locCoord[1]= worldCoord[1] - usrExts[1];
 			if (worldCoord[2] == hgtGrid->GetMissingValue()) locCoord[2] = 0.;
-			else locCoord[2] = worldCoord[2] - usrExts[2];
+			else locCoord[2] = worldCoord[2] - usrExts[2]+tParams->getLocalTwoDMin(2);
 			//Convert and put results into elevation grid vertices:
 			ViewpointParams::localToStretchedCube(locCoord,elevVert+pntPos);
 			for (int k = 0; k< 3; k++){
