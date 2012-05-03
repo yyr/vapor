@@ -786,8 +786,8 @@ bool DataStatus::convertFromLonLat(double coords[2], int npoints){
 			pj_free(latlon_proj);
 			return false;
 		}
-		//Do we need to convert radians to degrees?
-		if (string::npos == getProjectionString().find("ob_tran")){
+		//convert radians to degrees if the vapor projection is rotated lat-lon
+		if (!string::npos == getProjectionString().find("ob_tran")){
 			static const double RAD2DEG = 180./3.1415926545;
 			//dest point is in radians, convert to degrees:
 			for (int i = 0; i<npoints*2; i++) coords[i] *= RAD2DEG;
