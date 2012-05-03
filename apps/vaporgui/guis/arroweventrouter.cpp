@@ -543,7 +543,11 @@ void ArrowEventRouter::updateTab(){
 	vector<double> usrRakeExts;
 	const vector<double>& rakeexts = arrowParams->GetRakeLocalExtents();
 	//Now adjust for moving extents
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	if (!DataStatus::getInstance()->getDataMgr()) {
+		session->unblockRecording();
+		return;
+	}
+		
 	const vector<double>& usrExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
 	for (int i = 0; i<6; i++) {
 		fullUsrExts[i]+= usrExts[i%3];

@@ -373,7 +373,10 @@ void ProbeEventRouter::updateTab(){
 	}
 	//setup the size sliders 
 	adjustBoxSize(probeParams);
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	if (!DataStatus::getInstance()->getDataMgr()) {
+		ses->unblockRecording();
+		return;
+	}
 	const vector<double>&userExts = ds->getDataMgr()->GetExtents(timestep);
 	//And the center sliders/textboxes:
 	double locExts[6],boxCenter[3];
