@@ -136,6 +136,7 @@ reinit(bool doOverride){
 			newExts[i+3] = Min(newExts[i+3], (double)(extents[i+3]-extents[i]));
 			if (newExts[i] > newExts[i+3]) newExts[i+3] = newExts[i];
 		}
+		newExtents.clear();
 		for (int i = 0; i<6; i++) newExtents.push_back(newExts[i]);
 	}
 	SetRakeLocalExtents(newExtents);
