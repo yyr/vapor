@@ -245,7 +245,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//Don't render anything if no data
 	if (flowLineData == 0) return;
 
-	calcPeriodicExtents();
+	calcPeriodicExtents(currentFrameNum);
 	int mxPoints = flowLineData->getMaxPoints();
 	
 	GLdouble topPlane[] = {0., -1., 0., 1.};
@@ -290,12 +290,13 @@ renderFlowData(bool constColors, int currentFrameNum){
 	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	double regExts[6]; 
 	myRegionParams->GetBox()->GetLocalExtents(regExts,currentFrameNum);
-	topPlane[3] = regExts[4]*scales[1];
-	botPlane[3] = -regExts[1]*scales[1];
-	leftPlane[3] = -regExts[0]*scales[0];
-	rightPlane[3] = regExts[3]*scales[0];
-	frontPlane[3] = regExts[5]*scales[2];
-	backPlane[3] = -regExts[2]*scales[2];
+	const float* fullsizes = DataStatus::getInstance()->getFullSizes();
+	topPlane[3] = regExts[4]/fullsizes[1];
+	botPlane[3] = -regExts[1]/fullsizes[1];
+	leftPlane[3] = -regExts[0]/fullsizes[0];
+	rightPlane[3] = regExts[3]/fullsizes[0];
+	frontPlane[3] = regExts[5]/fullsizes[2];
+	backPlane[3] = -regExts[2]/fullsizes[2];
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -1042,23 +1043,26 @@ bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], in
 	}
 	return changed;
 }
-void FlowRenderer::calcPeriodicExtents() {
+void FlowRenderer::calcPeriodicExtents(int timestep) {
 	//The periodic extents go slightly further than the extents, going to the end of the last voxel.  
 	// This is because the user specification of extents is the difference between the first and last voxel
 	// position in the data.  The period is actually one voxel beyond the end of the data, since that point
 	// is not repeated.
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
+	const vector<double>& userExtents = dataMgr->GetExtents((size_t)timestep);
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	
 	size_t dims[3];
-	DataStatus::getInstance()->getDataMgr()->GetDim(dims, -1);
+	dataMgr->GetDim(dims, -1);
 	for (int i = 0; i<3; i++){
-		periodicExtents[i] = extents[i];
+		periodicExtents[i] = userExtents[i]*stretch[i];
 		if (myFlowParams->getPeriodicDim(i)){
 			float dim = (float)dims[i];
-			periodicExtents[i+3] = extents[i] + (extents[i+3]-extents[i])*(dim/(dim-1.f));
+			periodicExtents[i+3] = userExtents[i]*stretch[i] + (userExtents[i+3]-userExtents[i])*(dim/(dim-1.f))*stretch[i];
 		}
 		//With nonperiodic data, just use the extents (close enough, prevents surprises!)
-		else periodicExtents[i+3] = extents[i+3];
+		else periodicExtents[i+3] = userExtents[i+3]*stretch[i];
 	}
 
 }

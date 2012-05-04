@@ -111,7 +111,7 @@ public:
 
 protected:
 
-	void calcPeriodicExtents();
+	void calcPeriodicExtents(int timestep);
 	int numFrames;
 	
 	bool interruptFlag;
