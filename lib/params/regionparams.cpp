@@ -453,7 +453,7 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], int ti
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	double regExts[6];
-	GetBox()->GetLocalExtents(regExts, timestep);
+	GetBox()->GetUserExtents(regExts, timestep);
 	for (i = 0; i<3; i++){
 		userMinCoords[i] = regExts[i];
 		userMaxCoords[i] = regExts[i+3];

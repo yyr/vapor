@@ -420,7 +420,7 @@ void PythonEdit::delOutputVar3(){
 
 
 void PythonEdit::testScript(){
-	size_t min_dim[3],max_dim[3],min_bdim[3],max_bdim[3];
+	size_t min_dim[3],max_dim[3];
 	DataStatus* ds = DataStatus::getInstance();
 	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	int reflevel = 0;
@@ -485,16 +485,16 @@ void PythonEdit::testScript(){
 	//If there is an output 2D variable and no output 3d variable, then make the extents the full VDC extents
 	//at refinement level 0
 	if (!startUp && outputVars2->count() > 0 && outputVars3->count() == 0 && inputVars3->count() > 0){
-		size_t regBlockExtents[3];
-//		dmgr->GetDimBlk(regBlockExtents,0);
-		min_bdim[2] = 0;
-		max_bdim[2] = regBlockExtents[2];
+		size_t regExtents[3];
+		dmgr->GetDim(regExtents,0);
+		min_dim[2] = 0;
+		max_dim[2] = regExtents[2];
 	}
 	vector<string> testIn;
 	vector<pair<string, DataMgr::VarType_T> > testOut;
 	PythonPipeLine* pipe = new PythonPipeLine(string("TEST"), testIn, testOut, dmgr);
 	
-	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, compression, min_bdim, max_bdim);
+	const string& rettxt = pipe->python_test_wrapper(script, inVars2D, inVars3D, outputs, timeStep, reflevel, compression, min_dim, max_dim);
 	
 	if (rettxt.size() > 0){
 		if (rettxt != "TEST_SCRIPT_ERROR")

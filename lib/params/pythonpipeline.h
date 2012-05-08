@@ -49,8 +49,8 @@ public:
 	   size_t ts, // current time step
 	   int reflevel, // refinement level
 	   int lod
-	   ) {return(0);}
-
+	  );
+/*
 	virtual int Calculate (
 	   vector <const float *> input_blks,
 	   vector <float *> output_blks,	// space for the output variables
@@ -61,12 +61,13 @@ public:
 	   const size_t min[3],	// dimensions of all variables (in blocks)
 	   const size_t max[3]
 	   );
-        
+        */
 	std::string& python_test_wrapper(const string& script, 
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
 						vector<pair<string, DataMgr::VarType_T> > outputs,
-						size_t ts, int reflevel, int compression, const size_t min[3],const size_t max[3]);
+						size_t ts, int reflevel, int compression,
+						size_t rmin[3], size_t rmax[3]);
 
 	static std::string& getStartupScript() {return startupScript;}
 	static void setStartupScript(const std::string& newScript) {
@@ -75,12 +76,11 @@ public:
 	}
 	static void setEverInitialized() {everInitialized = true;}
 protected:
-	int python_wrapper(int scriptId,size_t ts,int reflevel, int compression,
-		const size_t min[3],const size_t max[3], 
+	int python_wrapper(int scriptId,size_t ts,int reflevel, int compression, 
   		const vector<string > inputs, 
-		vector<const float*> inData,
+		vector <const RegularGrid *> inData,
   		vector<pair<string, DataMgr::VarType_T> > outputs, 
-		vector<float*> outData);
+		vector <RegularGrid *> outData);
 	static PyObject* vaporModule;
 	void initialize();
 	std::string pythonOutputText;
@@ -105,6 +105,10 @@ protected:
 	
 	static void realign3DArray(const float* srcArray, size_t srcSize[3],float* destArray, size_t destSize[3]);
 	static void realign2DArray(const float* srcArray, size_t srcSize[2],float* destArray, size_t destSize[2]);
+	static void copyTo3DGrid(const float* srcArray, RegularGrid* destGrid);
+	static void copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray);
+	static void copyTo2DGrid(const float* srcArray, RegularGrid* destGrid);
+	static void copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray);
 	
 	static string startupScript;
 	

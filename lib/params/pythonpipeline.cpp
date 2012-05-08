@@ -33,21 +33,19 @@ PipeLine(name, inputs, outputs)
 {
 	currentDataMgr = dmgr;
 }
+
 int PythonPipeLine::Calculate (
-							   vector <const float *> input_blks,
-							   vector <float *> output_blks,	// space for the output variables
-							   size_t ts, // current time step
-							   int reflevel, // refinement level
-							   int lod, // compression level
-							   const size_t bs[3], // block dimensions
-							   const size_t min[3],	// dimensions of all variables (in blocks)
-							   const size_t max[3]
-							   ) {
+	vector <const RegularGrid *> input_grids,
+	vector <RegularGrid *> output_grids,	// space for the output variables
+	size_t ts, // current time step
+	int reflevel, // refinement level
+	int lod
+ ) {
 	//call python wrapper.
 	int scriptId = DataStatus::getInstance()->getDerivedScriptId(GetName());
-	return python_wrapper(scriptId,ts,reflevel,lod,min,max, 
-						  GetInputs(), input_blks,
-						  GetOutputs(), output_blks);
+	return python_wrapper(scriptId,ts,reflevel,lod,
+						  GetInputs(), input_grids,
+						  GetOutputs(), output_grids);
 }
 
 PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = { 
@@ -173,51 +171,33 @@ void PythonPipeLine::initialize(){
 //Wrapper for calling a python script from the PipeLine
 int PythonPipeLine::python_wrapper(
 	int scriptId,size_t ts,int reflevel, int compression,
-	const size_t min[3],const size_t max[3],
   	vector<string>  inputs, 
-	vector<const float*> inputData,
+	vector<const RegularGrid*> inputData,
   	vector<pair<string, DataMgr::VarType_T> > outputs, 
-	vector<float*> outputData)
+	vector<RegularGrid*> outputData)
 {
    	
-		
 	DataStatus* ds = DataStatus::getInstance();	
 	string pythonMethod =  ds->getDerivedScript(scriptId);
 	
 	vector<float*> allocatedArrays;
    
-		
     if(!initialized) initialize();
 	
-	//must convert input block extents to actual region extents
-	size_t dim[3], revPydims[3];
-	size_t blksize[3];
-	size_t regsize[3];
-	size_t minblkreg[3],maxblkreg[3], blkregsize[3];
-	int regmin[3],regmax[3];
+	//Determine sizes of arrays to allocate for python:
+	RegularGrid *rg = outputData[0];
+	size_t mins[3],maxs[3];
+	rg->GetIJKMinMax(mins,maxs);
+	
+	int regmin[3], regmax[3];
 	Py_ssize_t pydims[3];
 	PyObject* pyRegion;
 	
-//	currentDataMgr->GetBlockSize(blksize,reflevel);
-	currentDataMgr->GetDim(dim, reflevel);	
-	
-	for (int i = 0; i<3; i++){
-		regmin[i] = min[i]*blksize[i];
-		regmax[i] = (max[i]+1)*blksize[i]-1;
-		if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
-		regsize[i] = regmax[i]-regmin[i]+1;
-		minblkreg[i] = regmin[i]/blksize[i];
-		maxblkreg[i] = regmax[i]/blksize[i];
-		blkregsize[i] = (maxblkreg[i] - minblkreg[i] + 1)*blksize[i];
-		assert(minblkreg[i] == min[i]);
-		assert(maxblkreg[i] == max[i]);
-	}
+
 	for(int i = 0; i< 3; i++){
-		pydims[i] = blkregsize[2-i];
-        int maxPySize = (dim[2-i]-regmin[2-i]);
-        if (pydims[i] > maxPySize) pydims[i] = maxPySize;
-		revPydims[2-i]=pydims[i];
-		
+		pydims[i] = maxs[2-i]-mins[2-i];
+		regmin[i] = mins[2-i];
+		regmax[i] = maxs[2-i];
 	}
 			
 		
@@ -250,13 +230,12 @@ int PythonPipeLine::python_wrapper(
 		string vname = inputs[i];
 		DataMgr::VarType_T datatype = currentDataMgr->GetVarType(vname);
 		if (datatype == DataMgr::VAR3D){
-			// convert the float array a python array:
 			//Create a new array to pass into python:
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			allocatedArrays.push_back(pyData);
 			//Now realign the array...
-			realign3DArray(inputData[i],blkregsize, pyData, revPydims);
+			copyFrom3DGrid(inputData[i], pyData);
 			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
 								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			flags = PyArray_FLAGS(pyRegion);
@@ -264,8 +243,8 @@ int PythonPipeLine::python_wrapper(
 			float* pyData = new float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			allocatedArrays.push_back(pyData);
-			//Now realign the array...
-			realign2DArray(inputData[i],blkregsize, pyData, revPydims);
+			//Now copy the data from the grid.
+			copyFrom2DGrid(inputData[i], pyData);
 			pyRegion = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_FLOAT,NULL,pyData,0,
 								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			
@@ -276,8 +255,6 @@ int PythonPipeLine::python_wrapper(
 		PyObject_SetItem(mainDict,ky,pyRegion);
 	}
 	
-		
-	 
 	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
 	PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
@@ -368,10 +345,10 @@ int PythonPipeLine::python_wrapper(
 			
 		if (dimen == 3) {
 			//Realign, put into DataMgr's allocated region
-			realign3DArray(dataArray, revPydims, outputData[i], blkregsize);
+			copyTo3DGrid(dataArray,  outputData[i]);
 			
 		} else {
-			realign2DArray(dataArray, revPydims, outputData[i], blkregsize);
+			copyTo2DGrid(dataArray, outputData[i]);
 		}
 		
 	}
@@ -412,7 +389,7 @@ std::string& PythonPipeLine::
 python_test_wrapper(const string& script, const vector<string>& inputVars2, 
 					const vector<string>& inputVars3, 
 					vector<pair<string, DataMgr::VarType_T> > outputs,
-					size_t ts,int reflevel,int compression, const size_t min[3],const size_t max[3]){
+					size_t ts,int reflevel,int compression, size_t rmin[3], size_t rmax[3]){
 	
 	bool executionError=false;
 	if(!initialized) {
@@ -438,10 +415,6 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	
 	string pythonMethod = script ;
 	
-	
-	//must convert input block extents to actual region extents
-	size_t dim[3];
-	size_t blksize[3];
 
 	//get the module dictionary...
 	PyObject* mainModule = PyImport_AddModule("__main__");
@@ -461,18 +434,12 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	}*/
 
 	int regmin[3],regmax[3];
-	
+	for (int i = 0; i<3; i++){
+			regmin[i] = rmin[i];
+			regmax[i] = rmax[i];
+	}
 	if (currentDataMgr){
-//		currentDataMgr->GetBlockSize(blksize,reflevel);
 		
-		currentDataMgr->GetDim(dim, reflevel);	
-		
-		
-		for (int i = 0; i<3; i++){
-			regmin[i] = min[i]*blksize[i];
-			regmax[i] = (max[i]+1)*blksize[i]-1;
-			if (regmax[i] >= dim[i]) regmax[i] = dim[i]-1; 
-		}
 		PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
 		PyObject* refinement = Py_BuildValue("i",reflevel);
 		PyObject* timestep = Py_BuildValue("i",ts);
@@ -624,36 +591,24 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
     static float *regData = 0;
     PyObject *pyRegion;
-    size_t dims[3], revPydims[3];
+   
     Py_ssize_t pydims[3];
-    size_t blockedRegionSize[3];
 
     int tstep, reflevel, lod;
     int minreg[3],maxreg[3];
-    size_t minblkreg[3],maxblkreg[3];
+	size_t regmin[3],regmax[3];
+
     if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
-    
-    //Need to convert min,max extents to block extents
-	size_t blksize[3];
-	
-//	currentDataMgr->GetBlockSize(blksize,reflevel);
-    
-    currentDataMgr->GetDim(dims,reflevel);
-    for (int i = 0; i<3; i++){
-		minblkreg[i] = minreg[i]/blksize[i];
-		maxblkreg[i] = maxreg[i]/blksize[i];
-		blockedRegionSize[i] = (maxblkreg[i]-minblkreg[i]+1)*blksize[i];
-	}
+    string vname(varname);
 	for (int i = 0; i<3; i++){
-		pydims[i] = blockedRegionSize[2-i];
-		int maxPySize = (dims[2-i]-minreg[2-i]); 
-		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
-		revPydims[2-i] = pydims[i];
+		pydims[i] = maxreg[2-i]-minreg[2-i]+1;
+		regmin[i] = minreg[i];
+		regmax[i] = maxreg[i];
     }
-    
-//    regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
-	if (!regData){
+    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, false);
+
+	if (!rg){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;
 	}
@@ -661,8 +616,9 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
     if(!pyData) return NULL;
 
-	//Now realign the array...
-    realign3DArray(regData,blockedRegionSize, pyData, revPydims); 
+	//Now copy in the data:
+	copyFrom3DGrid(rg, pyData);
+   
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
 						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 	mapArrayObject(pyRegion, pyData);
@@ -822,6 +778,58 @@ PyObject* PythonPipeLine::variableExists(PyObject *self, PyObject* args){
 	int retval = currentDataMgr->VariableExists(ts, varname, reflevel, lod);
 	
     return Py_BuildValue("i", retval);
+}
+//Static methods for converting between float arrays and RegularGrid data.
+//Coordinate order is always reversed.  They will need to deal with missing values too.
+void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
+	size_t mins[3],maxs[3];
+	destGrid->GetIJKMinMax(mins,maxs);
+	for (int k = mins[2]; k<=maxs[2]; k++){
+		for (int j = mins[1]; j<= maxs[1]; j++){
+			for (int i = mins[0]; i<= maxs[0]; i++){
+				int srcIndex = (k-mins[2])+(j-mins[1])*(maxs[2]-mins[2]+1)+ (i-mins[0])*(maxs[2]-mins[2]+1)*(maxs[1]-mins[1]+1);
+				float& val = destGrid->AccessIJK(i,j,k);
+				val = srcArray[srcIndex];
+			}
+		}
+	}
+}
+void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray){
+	size_t mins[3],maxs[3];
+	srcGrid->GetIJKMinMax(mins,maxs);
+	for (int k = mins[2]; k<=maxs[2]; k++){
+		for (int j = mins[1]; j<= maxs[1]; j++){
+			for (int i = mins[0]; i<= maxs[0]; i++){
+				int destIndex = (k-mins[2])+(j-mins[1])*(maxs[2]-mins[2]+1)+ (i-mins[0])*(maxs[2]-mins[2]+1)*(maxs[1]-mins[1]+1);
+				float& val = srcGrid->AccessIJK(i,j,k);
+				destArray[destIndex] = val;
+			}
+		}
+	}
+}
+void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
+	size_t mins[3], maxs[3];
+	destGrid->GetIJKMinMax(mins,maxs);
+	for (int j = mins[1]; j<= maxs[1]; j++){
+		for (int i = mins[0]; i<= maxs[0]; i++){
+			int srcIndex = (j-mins[1])+ (i-mins[0])*(maxs[1]-mins[1]+1);
+			float& val = destGrid->AccessIJK(i,j,0);
+			val = srcArray[srcIndex];
+		}
+	}
+
+}
+void PythonPipeLine::copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray){
+	size_t mins[3], maxs[3];
+	srcGrid->GetIJKMinMax(mins,maxs);
+	for (int j = mins[1]; j<= maxs[1]; j++){
+		for (int i = mins[0]; i<= maxs[0]; i++){
+			int destIndex = (j-mins[1])+ (i-mins[0])*(maxs[1]-mins[1]+1);
+			float& val = srcGrid->AccessIJK(i,j,0);
+			destArray[destIndex] = val;
+		}
+	}
+
 }
 // static method to copy an array into another one with different dimensioning.
 // Useful to convert a blocked region to a smaller region that intersects full domain bounds.
