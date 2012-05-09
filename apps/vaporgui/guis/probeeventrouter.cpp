@@ -2107,7 +2107,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	if (!ds->useLowerAccuracy() && lod < pParams->GetCompressionLevel()) return;
 	if (lod < 0) return;
 	
-	RegularGrid* histoGrid = dataMgr->GetGrid((size_t)timeStep, varname, refLevel, lod, boxMin, boxMax,0);	
+	RegularGrid* histoGrid = dataMgr->GetGrid((size_t)timeStep, varname, refLevel, lod, boxMin, boxMax,1);	
 	if (!histoGrid){
 		pParams->setBypass(timeStep);
 		return;
@@ -2203,6 +2203,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 			}
 		}
 	}
+	dataMgr->UnlockGrid(histoGrid);
 	delete histoGrid;
 
 }

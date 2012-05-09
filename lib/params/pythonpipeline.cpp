@@ -176,7 +176,7 @@ int PythonPipeLine::python_wrapper(
   	vector<pair<string, DataMgr::VarType_T> > outputs, 
 	vector<RegularGrid*> outputData)
 {
-   	
+   
 	DataStatus* ds = DataStatus::getInstance();	
 	string pythonMethod =  ds->getDerivedScript(scriptId);
 	
@@ -195,7 +195,7 @@ int PythonPipeLine::python_wrapper(
 	
 
 	for(int i = 0; i< 3; i++){
-		pydims[i] = maxs[2-i]-mins[2-i];
+		pydims[i] = maxs[2-i]-mins[2-i]+1;
 		regmin[i] = mins[2-i];
 		regmax[i] = maxs[2-i];
 	}
@@ -335,7 +335,7 @@ int PythonPipeLine::python_wrapper(
 		}
 		npy_intp* dims = PyArray_DIMS(varArray);
 		for (int j = 0; j< nd; j++) {
-			if (dims[j] != (regmax[nd-1-j] - regmin[nd-1-j]+1)){
+			if (dims[j] != (regmax[j-nd+3] - regmin[j-nd+3]+1)){
 				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
 				return -1;
 			}
@@ -377,7 +377,6 @@ int PythonPipeLine::python_wrapper(
 	for (int i = 0; i< allocatedArrays.size(); i++){
 		delete allocatedArrays[i];
 	}
-	
 		
 	return 0;
 }
@@ -591,9 +590,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
     static float *regData = 0;
     PyObject *pyRegion;
-   
     Py_ssize_t pydims[3];
-
     int tstep, reflevel, lod;
     int minreg[3],maxreg[3];
 	size_t regmin[3],regmax[3];
@@ -606,7 +603,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 		regmin[i] = minreg[i];
 		regmax[i] = maxreg[i];
     }
-    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, false);
+    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, true);
 
 	if (!rg){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
@@ -618,7 +615,7 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
 
 	//Now copy in the data:
 	copyFrom3DGrid(rg, pyData);
-   
+    currentDataMgr->UnlockGrid(rg);
 	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
 						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 	mapArrayObject(pyRegion, pyData);
@@ -631,52 +628,34 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
 	const char *varname;
     static float *regData = 0;
     PyObject *pyRegion;
-    size_t dims[3], revPydims[2];
     Py_ssize_t pydims[2];
-    size_t blockedRegionSize[2];
-
     int tstep, reflevel,lod;
     int minreg[3],maxreg[3];
-    size_t minblkreg[3],maxblkreg[3];
+    size_t regmin[3],regmax[3];
     if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
-	//Need to convert min,max extents to block extents
-    size_t blksize[3];
-//	currentDataMgr->GetBlockSize(blksize,reflevel);
-    currentDataMgr->GetDim(dims,reflevel);
-    for (int i = 0; i<2; i++){
-		minblkreg[i] = minreg[i]/blksize[i];
-		maxblkreg[i] = maxreg[i]/blksize[i];
-		blockedRegionSize[i] = (maxblkreg[i]-minblkreg[i]+1)*blksize[i];
-	}
-	minblkreg[2]=maxblkreg[2]=0;
+	string vname(varname);
+    
 	for (int i = 0; i<2; i++){
-		pydims[i] = blockedRegionSize[1-i];
-		int maxPySize = (dims[1-i]-minreg[1-i]); 
-		if (pydims[i] > maxPySize) pydims[i] = maxPySize;
-		revPydims[1-i] = pydims[i];
+		pydims[i] = maxreg[1-i]-minreg[1-i]+1;
+		regmin[i]=minreg[i];
+		regmax[i]=maxreg[i];
     }
     
-    //regData = currentDataMgr->GetRegion(tstep, varname, reflevel, lod, minblkreg, maxblkreg, 0);
-	if (!regData){
+    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, true);
+	if (!rg){
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
 		return NULL;
 	}
-    
-    //fill in unused space:
-    for (int j = 0; j< blockedRegionSize[1]; j++){
-    	for (int i = 0; i< blockedRegionSize[0]; i++){
-			if(i> maxreg[0]) regData[i+j*blockedRegionSize[0]] = -1.f;
-			if(j> maxreg[1]) regData[i+j*blockedRegionSize[0]] = -1.f;
-		}
-    }
 
     //Create a new array to pass to python:
     float* pyData = new float[pydims[0]*pydims[1]];
     if(!pyData) return NULL;
 
-	//Now realign the array...
-    realign2DArray(regData,blockedRegionSize, pyData, revPydims); 
+	//Now copy in the data:
+	copyFrom2DGrid(rg, pyData);
+    currentDataMgr->UnlockGrid(rg);
+
     pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_FLOAT,NULL,pyData,0,
 						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
     mapArrayObject(pyRegion, pyData);

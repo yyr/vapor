@@ -650,7 +650,7 @@ int DataMgr::GetDataRange(
 
 	
 	const RegularGrid *rg = DataMgr::GetGrid(
-		ts, varname, reflevel, lod, min, max, 0
+		ts, varname, reflevel, lod, min, max, 1
 	);
 	if (! rg) return(-1);
 
@@ -669,6 +669,7 @@ int DataMgr::GetDataRange(
 			if (v > range[1]) range[1] = v;
 		}
 	}
+	DataMgr::UnlockGrid(rg);
 	delete rg;
 
 	_VarInfoCache.SetRange(ts, varname, reflevel, lod, range);
@@ -1223,8 +1224,9 @@ RegularGrid *DataMgr::execute_pipeline(
 	//
 	if (rc < 0) {
 		for (int i=0; i<out_grids.size(); i++) {
-			delete out_grids[i];
+			
 			UnlockGrid(out_grids[i]);
+			delete out_grids[i];
 		}
 		return(NULL);
 	}
@@ -1234,8 +1236,9 @@ RegularGrid *DataMgr::execute_pipeline(
 	//
 	for (int i=0; i<out_grids.size(); i++) {
 		if (i != output_index || ! lock) {
-			delete out_grids[i];
+			
 			UnlockGrid(out_grids[i]);
+			delete out_grids[i];
 		}
 	}
 

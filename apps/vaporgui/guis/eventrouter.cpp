@@ -223,7 +223,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	size_t ts = (size_t)timeStep;
 	RegularGrid* rg = dataMgr->GetGrid(
-		ts, varname, availRefLevel, lod, min_dim, max_dim, 0
+		ts, varname, availRefLevel, lod, min_dim, max_dim, 1
 	);
 
 	QApplication::restoreOverrideCursor();
@@ -239,6 +239,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	}
 
 	histogramList[varNum] = new Histo(rg, exts, dRange);
+	dataMgr->UnlockGrid(rg);
 	
 }
 
