@@ -1239,9 +1239,8 @@ RegularGrid *DataMgr::execute_pipeline(
 			UnlockGrid(out_grids[i]);
 			delete out_grids[i];
 		}
+		else if (! lock) UnlockGrid(out_grids[i]);
 	}
-
-	if (! lock) UnlockGrid(out_grids[i]);
 
 	return(out_grids[output_index]);
 }
