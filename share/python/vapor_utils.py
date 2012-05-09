@@ -106,9 +106,9 @@ def curl_findiff(A,B,C):
 	aux2 = deriv_findiff(B,3,dz)     
 	outx = aux1-aux2						
 
-	aux1 = deriv_findiff(C,3,dx)       #y component of the curl
-	aux2 = deriv_findiff(A,1,dz)
-	outy = aux2-aux1
+	aux1 = deriv_findiff(A,3,dz)       #y component of the curl
+	aux2 = deriv_findiff(C,1,dx)
+	outy = aux1-aux2
 
 	aux1 = deriv_findiff(B,1,dx)       #z component of the curl
 	aux2 = deriv_findiff(A,2,dy)
