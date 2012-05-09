@@ -1235,12 +1235,13 @@ RegularGrid *DataMgr::execute_pipeline(
 	// Unlock/free outputs not being returned
 	//
 	for (int i=0; i<out_grids.size(); i++) {
-		if (i != output_index || ! lock) {
-			
+		if (i != output_index) {
 			UnlockGrid(out_grids[i]);
 			delete out_grids[i];
 		}
 	}
+
+	if (! lock) UnlockGrid(out_grids[i]);
 
 	return(out_grids[output_index]);
 }
