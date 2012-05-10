@@ -1068,8 +1068,14 @@ getAvailableBoundingBox(size_t timestep,
 	DataMgr* dataMgr = ds->getDataMgr();
 	
 	double umin[3],umax[3];
-	//Start with the bounding box that contains the probe.
+	//Start with the [local] bounding box that contains the probe.
 	getBoundingBox(timestep, umin,umax);
+	//convert to user coordinates:
+	const vector<double>& userExtents = dataMgr->GetExtents((size_t)timestep);
+	for (int i = 0; i<3; i++){
+		umin[i] += userExtents[i];
+		umax[i] += userExtents[i];
+	}
 	
 	//Find a containing voxel box:
 	dataMgr->GetEnclosingRegion(timestep, umin, umax, boxMin, boxMax, numRefs);
