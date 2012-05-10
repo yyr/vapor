@@ -136,7 +136,7 @@ public:
 
 	//! Method for classes that capture mouse event events (i.e. have manipulators)
 	//! This must be reimplemented to respond when the mouse is pressed
-	virtual void captureMouseDown() {assert(0);}
+	virtual void captureMouseDown(int mouseNum) {assert(0);}
 
 #ifndef DOXYGEN_SKIP_THIS
 	EventRouter() {

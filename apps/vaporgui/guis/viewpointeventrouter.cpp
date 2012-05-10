@@ -52,6 +52,8 @@ ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), U
 	setupUi(this);
 	myParamsBaseType = Params::GetTypeFromTag(Params::_viewpointParamsTag);
 	savedCommand = 0;
+	panChanged = false;
+	for (int i = 0; i<3; i++)lastCamPos[i] = 0.f;
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
 }
 
@@ -711,7 +713,24 @@ void ViewpointEventRouter::
 captureMouseUp(){
 	//Update the tab:
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
-	if (!savedCommand) return;
+	if (!savedCommand) {
+		panChanged = false;
+		return;
+	}
+	if (panChanged){
+		//Apply the translation to the rotation
+		float trans, newRot[3];
+		float* camPosLoc = vpParams->getCameraPosLocal();
+		float* rotCenterLocal = vpParams->getRotationCenterLocal();
+		int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		for (int i = 0; i<3; i++) {
+			trans = camPosLoc[i] - lastCamPos[i];
+			newRot[i] = rotCenterLocal[i]+trans;
+		}
+		vpParams->setRotationCenterLocal(newRot, ts);
+		panChanged = false;
+		updateRenderer(vpParams,false,false);
+	}
 	updateTab();
 	PanelCommand::captureEnd(savedCommand, vpParams);
 	//DON't Set region  dirty
@@ -771,12 +790,18 @@ reinitTab(bool doOverride){
 //Save undo/redo state when user grabs a rake handle
 //
 void ViewpointEventRouter::
-captureMouseDown(){
+captureMouseDown(int button){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
+	if (button == 3){//panning
+		//save current camera position
+		float* camPos = vpParams->getCameraPosLocal();
+		for (int i = 0; i<3; i++) lastCamPos[i] = camPos[i];
+		panChanged = true;
+	}
 	savedCommand = PanelCommand::captureStart(vpParams,  "viewpoint navigation");
 }
 

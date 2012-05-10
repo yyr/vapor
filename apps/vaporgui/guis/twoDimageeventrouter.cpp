@@ -1136,7 +1136,7 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 //Save undo/redo state when user grabs a twoD handle, or maybe a twoD face (later)
 //
 void TwoDImageEventRouter::
-captureMouseDown(){
+captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);

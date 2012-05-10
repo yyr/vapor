@@ -71,7 +71,7 @@ public:
 	void sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize);
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	virtual void captureMouseUp();
 	void textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize);
 	void setZCenter(TwoDDataParams* pParams,int sliderval);

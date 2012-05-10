@@ -51,7 +51,7 @@ public:
 
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow)=0;
-	virtual void captureMouseDown()=0;
+	virtual void captureMouseDown(int button)=0;
 	virtual void captureMouseUp()=0;
 	
 	virtual void reinitTab(bool doOverride)=0;

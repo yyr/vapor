@@ -58,7 +58,7 @@ public:
 	//Methods to capture state at start and end of mouse moves:
 	//
 	
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	//When the mouse goes up, save the face displacement into the region.
 	virtual void captureMouseUp();
 	//When the spin is ended, it replaces captureMouseUp:
@@ -79,6 +79,10 @@ public:
 	
 	virtual void reinitTab(bool doOverride);
 	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
+
+protected:
+	float lastCamPos[3];
+	bool panChanged;
 
 	
 protected slots:

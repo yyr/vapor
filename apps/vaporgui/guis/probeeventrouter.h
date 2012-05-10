@@ -67,7 +67,7 @@ public:
 	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	virtual void captureMouseUp();
 	virtual QSize sizeHint() const;
 #ifdef Darwin

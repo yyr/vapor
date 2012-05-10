@@ -73,7 +73,7 @@ public:
 
 	//Start to slide a handle.  Need to save direction vector
 	//
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	//When the mouse goes up, save the displacement into the params
 	virtual void captureMouseUp();
 #ifdef Darwin

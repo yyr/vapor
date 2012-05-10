@@ -199,7 +199,7 @@ void ArrowEventRouter::confirmText(bool /*render*/){
 //Save undo/redo state when user grabs a rake handle
 //
 void ArrowEventRouter::
-captureMouseDown(){
+captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);

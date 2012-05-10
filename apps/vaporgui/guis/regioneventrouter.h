@@ -71,7 +71,7 @@ public:
 	void sliderToText(RegionParams*, int coord, int center, int size);
 	//Start to slide a region face.  Need to save direction vector
 	//
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	//When the mouse goes up, save the face displacement into the region.
 	void captureMouseUp();
 	

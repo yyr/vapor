@@ -219,6 +219,7 @@ mousePressEvent(QMouseEvent* e){
 		;//do nothing
 	else if (e->button()== Qt::LeftButton) buttonNum = 1;
 	else if (e->button() == Qt::RightButton) buttonNum = 2;
+	else if (e->button() == Qt::MidButton) buttonNum = 3;
 	//If ctrl + left button is pressed, only respond in navigation mode
 	if((buttonNum == 1) && ((e->modifiers() & (Qt::ControlModifier|Qt::MetaModifier))))
 			buttonNum = 0;
@@ -292,7 +293,7 @@ mousePressEvent(QMouseEvent* e){
 				//Remember which handle we hit, highlight it, save the intersection point.
 				manip->captureMouseDown(handleNum, faceNum, vParams->getCameraPosLocal(), dirVec, buttonNum);
 				EventRouter* rep = VizWinMgr::getInstance()->getEventRouter(t);
-				rep->captureMouseDown();
+				rep->captureMouseDown(buttonNum);
 				setMouseDown(true);
 				myGLWindow->update();
 			} //otherwise, fall through to navigation mode
@@ -312,7 +313,7 @@ mousePressEvent(QMouseEvent* e){
 
 	if (doNavigate){
 		ViewpointEventRouter* vep = VizWinMgr::getInstance()->getViewpointRouter();
-					vep->captureMouseDown();
+					vep->captureMouseDown(buttonNum);
 		Qt::MouseButton btn = e->button();
 		//Left button + ctrl = mid button:
 		if ((e->buttons() & Qt::LeftButton) &&  (e->buttons() & Qt::RightButton)) btn = Qt::MidButton;

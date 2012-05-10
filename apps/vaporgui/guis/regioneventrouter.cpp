@@ -929,7 +929,7 @@ reinitTab(bool doOverride){
 //Save undo/redo state when user grabs a rake handle
 //
 void RegionEventRouter::
-captureMouseDown(){
+captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);

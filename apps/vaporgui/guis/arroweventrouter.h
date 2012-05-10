@@ -46,7 +46,7 @@ public:
 	virtual void reinitTab(bool doOverride);
 
 	virtual void captureMouseUp();
-	virtual void captureMouseDown();
+	virtual void captureMouseDown(int button);
 	virtual QSize sizeHint() const;
 	//Following needed if tab has embedded opengl frames
 	//virtual void refreshTab(){}

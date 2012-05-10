@@ -552,9 +552,6 @@ void TwoDDataEventRouter::guiApplyTerrain(bool mode){
 	if (mode == dParams->isMappedToTerrain()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle mapping to terrain");
 	
-	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
-	int timestep = ap->getCurrentFrameNumber();
-	
 	if (dParams->isEnabled()) {
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		int viznum = vizMgr->getActiveViz();
@@ -1435,7 +1432,7 @@ void TwoDDataEventRouter::setBindButtons(bool canbind)
 //Save undo/redo state when user grabs a twoD handle, or maybe a twoD face (later)
 //
 void TwoDDataEventRouter::
-captureMouseDown(){
+captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);

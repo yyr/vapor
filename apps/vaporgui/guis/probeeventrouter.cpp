@@ -1899,7 +1899,7 @@ void ProbeEventRouter::setBindButtons(bool canbind)
 //Save undo/redo state when user grabs a probe handle, or maybe a probe face (later)
 //
 void ProbeEventRouter::
-captureMouseDown(){
+captureMouseDown(int){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);
