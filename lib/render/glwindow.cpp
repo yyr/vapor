@@ -350,7 +350,13 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//If we are visualizing in latLon space, must update the local coordinates
 	//and put them in the trackball, prior to setting up the trackball.
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
-	
+#ifdef TEST_KEYFRAMING
+	vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
+	if (loadedViewpoints.size()>0 && timeStep != previousTimeStep){
+		getActiveViewpointParams()->setCurrentViewpoint(loadedViewpoints[timeStep%loadedViewpoints.size()]);
+		setValuesFromGui(getActiveViewpointParams());
+	} 
+#endif
 	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());

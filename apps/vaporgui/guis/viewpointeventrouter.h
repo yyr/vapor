@@ -20,13 +20,13 @@
 #ifndef VIEWPOINTEVENTROUTER_H
 #define VIEWPOINTEVENTROUTER_H
 
-
 #include <qobject.h>
 #include "params.h"
 #include "eventrouter.h"
 #include <vapor/MyBase.h>
 #include "viztab.h"
-
+#include "viewpointparams.h"
+#define TEST_KEYFRAMING
 
 using namespace VetsUtil;
 
@@ -84,12 +84,20 @@ protected:
 	float lastCamPos[3];
 	bool panChanged;
 
+#ifdef TEST_KEYFRAMING
+	FILE* viewpointOutputFile;
+	vector<Viewpoint*> loadedViewpoints;
+#endif
 	
 protected slots:
 	void guiSetStereoMode(int);
 	void guiToggleLatLon(bool);
 	void viewpointReturnPressed();
 	void setVtabTextChanged(const QString& qs);
+#ifdef TEST_KEYFRAMING
+	void writeKeyframe();
+	void readKeyframes();
+#endif
 
 };
 

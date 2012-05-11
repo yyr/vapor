@@ -53,6 +53,9 @@ float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
 
 
 using namespace VAPoR;
+#ifdef TEST_KEYFRAMING
+std::vector<VAPoR::Viewpoint*> ViewpointParams::loadedViewpoints;
+#endif
 const string ViewpointParams::_shortName = "View";
 const string ViewpointParams::_latLonAttr = "UseLatLon";
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
