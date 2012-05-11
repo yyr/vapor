@@ -162,12 +162,14 @@ public:
  //!
  //! This method returns the minimum and maximum valid IJK index
  //!
+ //! \deprecated  This method is deprecated. Use GetDimensions()
+ //!
  //! \param[out] min[3] Minimum valid IJK index
  //! \param[out] max[3] Maximum valid IJK index
  //
  virtual void GetIJKMinMax(size_t min[3], size_t max[3]) const {
-	min[0] = _min[0]; min[1] = _min[1]; min[2] = _min[2];
-	max[0] = _max[0]; max[1] = _max[1]; max[2] = _max[2];
+	min[0] = min[1] = min[2] = 0;
+	max[0] = _max[0]-_min[0]; max[1] = _max[1]-_min[1]; max[2] = _max[2]-_min[2];
  }
 
  //! Return the ijk dimensions of grid

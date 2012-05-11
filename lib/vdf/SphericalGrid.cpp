@@ -123,10 +123,9 @@ int SphericalGrid::GetUserCoordinates(
 
 	size_t min[3], max[3];
 
-	GetIJKMinMax(min, max);
-	if (i<min[0] || i>max[0]) return(-1);
-	if (j<min[1] || j>max[1]) return(-1);
-	if (k<min[2] || k>max[2]) return(-1);
+    if (i>_max[0]-_min[0]) return(-1);
+    if (j>_max[1]-_min[1]) return(-1);
+    if (k>_max[2]-_min[2]) return(-1);
 
 	double extentsS[6];
 	RegularGrid::GetUserExtents(extentsS);
