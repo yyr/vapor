@@ -121,11 +121,12 @@ int SphericalGrid::GetUserCoordinates(
 	double *x, double *y, double *z
 ) const {
 
-	size_t min[3], max[3];
+	size_t dims[3];
+	GetDimensions(dims);
 
-    if (i>_max[0]-_min[0]) return(-1);
-    if (j>_max[1]-_min[1]) return(-1);
-    if (k>_max[2]-_min[2]) return(-1);
+    if (i>=dims[0]) return(-1);
+    if (j>=dims[1]) return(-1);
+    if (k>=dims[2]) return(-1);
 
 	double extentsS[6];
 	RegularGrid::GetUserExtents(extentsS);
@@ -134,8 +135,6 @@ int SphericalGrid::GetUserCoordinates(
 	_permute(_permutation, extentsSP, extentsS[0], extentsS[1], extentsS[2]);
 	_permute(_permutation, extentsSP+3, extentsS[3], extentsS[4], extentsS[5]);
 
-	size_t dims[3];
-	GetDimensions(dims);
 	double dimsP[3];
 	_permute(_permutation, dimsP, dims[0], dims[1], dims[2]);
 
