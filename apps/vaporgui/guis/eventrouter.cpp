@@ -237,7 +237,12 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 		ds->setDataMissing3D(timeStep, availRefLevel, lod, varNum);
 		return;
 	}
-
+	//Convert local extents to user extents
+	const vector<double>& userExts = dataMgr->GetExtents(ts);
+	for (int i = 0; i<3; i++) {
+		exts[i] += userExts[i];
+		exts[i+3] += userExts[i];
+	}
 	histogramList[varNum] = new Histo(rg, exts, dRange);
 	dataMgr->UnlockGrid(rg);
 	

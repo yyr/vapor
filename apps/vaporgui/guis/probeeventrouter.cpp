@@ -2060,6 +2060,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double>&userExts = dataMgr->GetExtents((size_t)timeStep);
 	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
@@ -2182,7 +2183,8 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 				
 				vcoords[0]=i;
 				dataMgr->MapVoxToUser((size_t)timeStep, vcoords, xyz, refLevel);
-				for (int q = 0; q<3; q++) flxyz[q]=xyz[q];
+				//convert to local, make float.
+				for (int q = 0; q<3; q++) flxyz[q]=(xyz[q]-userExts[q]);
 				//test if x,y,z is in probe:
 				float maxDist[3]; 
 				float distOut = pParams->distancesToCube(flxyz, normals, corner, maxDist);

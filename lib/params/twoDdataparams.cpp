@@ -933,13 +933,13 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 	int dataOrientation = ds->get2DOrientation(firstVarNum);
 	float halfPixHt = 1./(float)texHeight;
 	float halfPixWid = 1./(float)texWidth;
+
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
 		// .5*h - 1 and 1 -.5*h, where h is the height of a pixel relative to [-1,1]
 		
 		twoDCoord[1] = halfPixHt-1.f + 2.f*(1.-halfPixHt)*(float)iy/(float)(texHeight-1);
 		for (int ix = 0; ix < texWidth; ix++){
-			
 			bool dataOK = true;
 			twoDCoord[0] = halfPixWid-1.f + 2.f*(1.-halfPixWid)*(float)ix/(float)(texWidth-1);
 			//find the coords that the texture maps to
@@ -948,7 +948,6 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			dataCoord[mapDims[0]] = twoDCoord[0]*a[0]+b[0];
 			dataCoord[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 			
-						
 			for (int i = 0; i< 3; i++){
 				if (i == dataOrientation) continue;
 				if (dataCoord[i] < extExtents[i] || dataCoord[i] > extExtents[i+3]) dataOK = false;
@@ -956,10 +955,12 @@ calcTwoDDataTexture(int ts, int texWidth, int texHeight){
 			
 			if(dataOK) { //find the coordinate in the data array
 				//Convert to user coordinates
+				
 				for (int k=0; k<3; k++) dataCoord[k] += usrExts[k];
 				float varVal = twoDGrid->GetValue(dataCoord[0],dataCoord[1],dataCoord[2]);
 
-				if (varVal != twoDGrid->GetMissingValue()){ 			
+				if (varVal != twoDGrid->GetMissingValue()){ 
+	
 					//Use the transfer function to map the data:
 					int lutIndex = transFunc->mapFloatToIndex(varVal);
 				

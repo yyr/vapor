@@ -186,22 +186,30 @@ int PythonPipeLine::python_wrapper(
 	
 	//Determine sizes of arrays to allocate for python:
 	RegularGrid *rg = outputData[0];
+	size_t dims[3];
+	rg->GetDimensions(dims);
 	size_t mins[3],maxs[3];
-	rg->GetIJKMinMax(mins,maxs);
-	
+	double umins[3],umaxs[3];
+	for (int i = 0; i<3; i++){
+		mins[i] = 0;
+		maxs[i] = dims[i]-1;
+	}
+	//convert to relative integer coordinates:
+	currentDataMgr->MapVoxToUser(ts,mins,umins,reflevel);
+	currentDataMgr->MapVoxToUser(ts,maxs,umaxs,reflevel);
+	currentDataMgr->MapUserToVox(ts,umins,mins,reflevel);
+	currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
 	int regmin[3], regmax[3];
 	Py_ssize_t pydims[3];
 	PyObject* pyRegion;
 	
-
+	//reverse order so that regmin, pydims, etc. are in python coordinate order, not user coordinate order.
 	for(int i = 0; i< 3; i++){
-		pydims[i] = maxs[2-i]-mins[2-i]+1;
+		pydims[i] = dims[2-i];
 		regmin[i] = mins[2-i];
 		regmax[i] = maxs[2-i];
 	}
 			
-		
-
 	//Convert the input arrays and put into dictionary:
 	PyObject* mainModule = PyImport_AddModule("__main__");
 	PyObject* mainDict = PyModule_GetDict(mainModule);
@@ -240,6 +248,7 @@ int PythonPipeLine::python_wrapper(
 								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
 			flags = PyArray_FLAGS(pyRegion);
 		} else {
+			//The last two python dimension are the first two user dimensions:
 			float* pyData = new float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			allocatedArrays.push_back(pyData);
@@ -254,8 +263,9 @@ int PythonPipeLine::python_wrapper(
 		PyObject* ky = Py_BuildValue("s",inputs[i].c_str());
 		PyObject_SetItem(mainDict,ky,pyRegion);
 	}
-	
-	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[2],regmin[1],regmin[0],regmax[2],regmax[1],regmax[0]);
+	//Extents are in python coordinate order, so they can be used directly to allocate arrays inside the
+	//Python script:
+	PyObject* exts = Py_BuildValue("(iiiiii)",regmin[0],regmin[1],regmin[2],regmax[0],regmax[1],regmax[2]);
 	PyObject* refinement = Py_BuildValue("i",reflevel);
 	PyObject* timestep = Py_BuildValue("i",ts);
 	PyObject* lod = Py_BuildValue("i",compression);
@@ -595,10 +605,12 @@ PyObject* PythonPipeLine::get_3Dvariable(PyObject *self, PyObject* args){
     int minreg[3],maxreg[3];
 	size_t regmin[3],regmax[3];
 
+	//Arguments are in python order.  Reverse them for use with VAPOR
     if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
 		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
     string vname(varname);
 	for (int i = 0; i<3; i++){
+		//pydims are in python order, minreg, maxreg are in user order
 		pydims[i] = maxreg[2-i]-minreg[2-i]+1;
 		regmin[i] = minreg[i];
 		regmax[i] = maxreg[i];
@@ -759,14 +771,16 @@ PyObject* PythonPipeLine::variableExists(PyObject *self, PyObject* args){
     return Py_BuildValue("i", retval);
 }
 //Static methods for converting between float arrays and RegularGrid data.
-//Coordinate order is always reversed.  They will need to deal with missing values too.
+//Coordinate order is always reversed.  They will need to deal with missing values soon.
 void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
-	size_t mins[3],maxs[3];
-	destGrid->GetIJKMinMax(mins,maxs);
-	for (int k = mins[2]; k<=maxs[2]; k++){
-		for (int j = mins[1]; j<= maxs[1]; j++){
-			for (int i = mins[0]; i<= maxs[0]; i++){
-				int srcIndex = (k-mins[2])+(j-mins[1])*(maxs[2]-mins[2]+1)+ (i-mins[0])*(maxs[2]-mins[2]+1)*(maxs[1]-mins[1]+1);
+	size_t dims[3];
+	destGrid->GetDimensions(dims);
+	for (int k =0; k<dims[2]; k++){
+		for (int j = 0; j< dims[1]; j++){
+			for (int i = 0; i< dims[0]; i++){
+				//get index in srcArray (reversed, i.e. python order)
+				int srcIndex = k+j*dims[2]+ i*dims[2]*dims[1];
+				//obtain from Vapor grid coordinate order
 				float& val = destGrid->AccessIJK(i,j,k);
 				val = srcArray[srcIndex];
 			}
@@ -774,12 +788,13 @@ void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
 	}
 }
 void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray){
-	size_t mins[3],maxs[3];
-	srcGrid->GetIJKMinMax(mins,maxs);
-	for (int k = mins[2]; k<=maxs[2]; k++){
-		for (int j = mins[1]; j<= maxs[1]; j++){
-			for (int i = mins[0]; i<= maxs[0]; i++){
-				int destIndex = (k-mins[2])+(j-mins[1])*(maxs[2]-mins[2]+1)+ (i-mins[0])*(maxs[2]-mins[2]+1)*(maxs[1]-mins[1]+1);
+	size_t dims[3];
+	srcGrid->GetDimensions(dims);
+	for (int k = 0; k < dims[2]; k++){
+		for (int j = 0; j < dims[1]; j++){
+			for (int i = 0; i < dims[0]; i++){
+				//destIndex is in python order
+				int destIndex = k+j*dims[2]+ i*dims[2]*dims[1];
 				float& val = srcGrid->AccessIJK(i,j,k);
 				destArray[destIndex] = val;
 			}
@@ -787,11 +802,12 @@ void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray
 	}
 }
 void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
-	size_t mins[3], maxs[3];
-	destGrid->GetIJKMinMax(mins,maxs);
-	for (int j = mins[1]; j<= maxs[1]; j++){
-		for (int i = mins[0]; i<= maxs[0]; i++){
-			int srcIndex = (j-mins[1])+ (i-mins[0])*(maxs[1]-mins[1]+1);
+	size_t dims[3];
+	destGrid->GetDimensions(dims);
+	//For 2D data, only use first two VAPOR dimensions
+	for (int j = 0; j<  dims[1]; j++){
+		for (int i = 0; i< dims[0]; i++){
+			int srcIndex = j+ i*dims[1];
 			float& val = destGrid->AccessIJK(i,j,0);
 			val = srcArray[srcIndex];
 		}
@@ -799,11 +815,11 @@ void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
 
 }
 void PythonPipeLine::copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray){
-	size_t mins[3], maxs[3];
-	srcGrid->GetIJKMinMax(mins,maxs);
-	for (int j = mins[1]; j<= maxs[1]; j++){
-		for (int i = mins[0]; i<= maxs[0]; i++){
-			int destIndex = (j-mins[1])+ (i-mins[0])*(maxs[1]-mins[1]+1);
+	size_t dims[3];
+	srcGrid->GetDimensions(dims);
+	for (int j = 0; j< dims[1]; j++){
+		for (int i = 0; i< dims[0]; i++){
+			int destIndex = j+ i*dims[1];
 			float& val = srcGrid->AccessIJK(i,j,0);
 			destArray[destIndex] = val;
 		}

@@ -2197,7 +2197,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	size_t timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	if(tParams->doBypass(timeStep)) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
@@ -2219,6 +2219,11 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	varnames.push_back(ds->getVariableName2D(firstVarNum));
 	double exts[6];
 	tParams->GetBox()->GetLocalExtents(exts);
+	const vector<double>& userExts = dataMgr->GetExtents(timeStep);
+	for (int i = 0; i<3; i++){
+		exts[i]+=userExts[i];
+		exts[i+3]+=userExts[i];
+	}
 	int rc = Params::getGrids( timeStep, varnames, exts, &actualRefLevel, &lod, &histoGrid);
 	
 	if(!rc) return;
@@ -2228,6 +2233,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	float v;
 	RegularGrid *rg_const = (RegularGrid *) histoGrid;   
 	RegularGrid::Iterator itr;
+	
 	for (itr = rg_const->begin(); itr!=rg_const->end(); ++itr) {
 		v = *itr;
 		if (v == histoGrid->GetMissingValue()) continue;
