@@ -195,8 +195,8 @@ int PythonPipeLine::python_wrapper(
 		maxs[i] = dims[i]-1;
 	}
 	//convert to relative integer coordinates:
-	currentDataMgr->MapVoxToUser(ts,mins,umins,reflevel);
-	currentDataMgr->MapVoxToUser(ts,maxs,umaxs,reflevel);
+	rg->GetUserCoordinates(0,0,0,umins, umins+1, umins+2);
+	rg->GetUserCoordinates(maxs[0],maxs[1],maxs[2],umaxs, umaxs+1, umaxs+2);
 	currentDataMgr->MapUserToVox(ts,umins,mins,reflevel);
 	currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
 	int regmin[3], regmax[3];
