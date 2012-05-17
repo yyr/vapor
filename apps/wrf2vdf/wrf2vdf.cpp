@@ -1204,6 +1204,15 @@ bool file_ok(
 		}
 	}
 
+#ifdef	DEAD
+// Fixed 3527665: wrfvdfcreate does not properly handle single file. 
+//
+// The verification below is no longer valid as the Global VDC extents
+// were being compared with the possibly time-varying extents in the 
+// WRF data set. Moreover, the fudgefactor used in the floating point
+// comparison was failing.
+//
+
 	vector <double> extentsWRF = metadataWRF->GetExtents();
 	vector <double> extentsVDC = metadataVDC->GetExtents();
 
@@ -1235,6 +1244,7 @@ bool file_ok(
 			return(false);
 		}
 	}
+#endif
 	return(true);
 }
 
