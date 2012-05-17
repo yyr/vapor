@@ -2126,6 +2126,8 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
 	}
 	float voxSize = vlength(gridSpacing);
+	size_t dims[3];
+	histoGrid->GetDimensions(dims);
 
 	//Prepare for test by finding corners and normals to box:
 	float corner[8][3];
@@ -2170,19 +2172,15 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	vcross(vec1,vec2,normals[5]);
 	vnormal(normals[5]);
 
-	double xyz[3];
-	float flxyz[3];
-	size_t vcoords[3];
+	double xyz[3]={0.,0.,0.};
+	float flxyz[3]={0.,0.,0.};
+	
 	
 	//Now loop over the grid points in the bounding box
-	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
-		vcoords[2]=k;
-		for (size_t j = boxMin[1]; j <= boxMax[1]; j++){
-			vcoords[1]=j;
-			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
-				
-				vcoords[0]=i;
-				dataMgr->MapVoxToUser((size_t)timeStep, vcoords, xyz, refLevel);
+	for (size_t k = 0; k < dims[2]; k++){
+		for (size_t j = 0; j < dims[1]; j++){
+			for (size_t i = 0; i <= dims[0]; i++){
+				histoGrid->GetUserCoordinates(i,j,k, xyz, xyz+1, xyz+2);
 				//convert to local, make float.
 				for (int q = 0; q<3; q++) flxyz[q]=(xyz[q]-userExts[q]);
 				//test if x,y,z is in probe:
@@ -2196,11 +2194,9 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 						if (maxDist[k]>gridSpacing[k])moreThanVoxelOut = true;
 					}
 					if (moreThanVoxelOut) continue;
-					//Evaluate the variable:
-					float varVal = histoGrid->GetValue(xyz[0],xyz[1],xyz[2]);
+					float varVal = histoGrid->AccessIJK(i,j,k);
 					if (varVal == histoGrid->GetMissingValue()) continue;
 					histo->addToBin(varVal);
-					
 				} 
 			}
 		}

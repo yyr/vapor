@@ -384,11 +384,14 @@ reinit(bool doOverride){
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
-			//Delete trans funcs 
+			//Delete extra trans funcs 
 		for (int i = newNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
 	} //end if(doOverride)
+	//In any case the currentDatarange should be set to the bounds on firstVarNum
+	if (firstVarNum>=0)
+		setCurrentDatarange(newTransFunc[firstVarNum]->getMinMapValue(),newTransFunc[firstVarNum]->getMaxMapValue());
 	//Make sure edit bounds are valid
 	for(int i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
