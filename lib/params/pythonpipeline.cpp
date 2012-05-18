@@ -779,7 +779,7 @@ void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
 		for (int j = 0; j< dims[1]; j++){
 			for (int i = 0; i< dims[0]; i++){
 				//get index in srcArray (reversed, i.e. python order)
-				int srcIndex = k+j*dims[2]+ i*dims[2]*dims[1];
+				int srcIndex = i+j*dims[0]+k*dims[0]*dims[1];
 				//obtain from Vapor grid coordinate order
 				float& val = destGrid->AccessIJK(i,j,k);
 				val = srcArray[srcIndex];
@@ -794,7 +794,7 @@ void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray
 		for (int j = 0; j < dims[1]; j++){
 			for (int i = 0; i < dims[0]; i++){
 				//destIndex is in python order
-				int destIndex = k+j*dims[2]+ i*dims[2]*dims[1];
+				int destIndex = i+j*dims[0]+k*dims[0]*dims[1];
 				float& val = srcGrid->AccessIJK(i,j,k);
 				destArray[destIndex] = val;
 			}
@@ -807,7 +807,7 @@ void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
 	//For 2D data, only use first two VAPOR dimensions
 	for (int j = 0; j<  dims[1]; j++){
 		for (int i = 0; i< dims[0]; i++){
-			int srcIndex = j+ i*dims[1];
+			int srcIndex = i+ j*dims[0];
 			float& val = destGrid->AccessIJK(i,j,0);
 			val = srcArray[srcIndex];
 		}
@@ -819,7 +819,7 @@ void PythonPipeLine::copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray
 	srcGrid->GetDimensions(dims);
 	for (int j = 0; j< dims[1]; j++){
 		for (int i = 0; i< dims[0]; i++){
-			int destIndex = j+ i*dims[1];
+			int destIndex = i+ j*dims[0];
 			float& val = srcGrid->AccessIJK(i,j,0);
 			destArray[destIndex] = val;
 		}
