@@ -4,6 +4,7 @@
 AC_PREREQ(2.59)
 AC_INIT(libpiovdc, 1.0, vapor@ucar.edu)
 AC_CONFIG_FILES([Makefile vdf/Makefile common/Makefile])
+AC_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE([no-dependencies -Wno-portability])
 AC_PROG_RANLIB
 AC_FC_WRAPPERS
@@ -29,7 +30,7 @@ fi
 m4_include([m4/expat.m4])
 m4_include([m4/mpi.m4])
 
-INCLUDES="-Iinclude/"
+INCLUDES="-I../include/"
 
 # Checks for programs used in building libraries
 

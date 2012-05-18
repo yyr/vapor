@@ -8,6 +8,8 @@
 #include <vapor/CFuncs.h>
 #include <vapor/WaveCodecIO.h>
 
+#include "config.h"
+
 using namespace std;
 using namespace VetsUtil;
 using namespace VAPoR;
