@@ -1675,7 +1675,7 @@ void TwoDImageEventRouter::mapCursor(){
 
 
 	
-	if (tParams->isMappedToTerrain()) {
+	if (tParams->isMappedToTerrain()&&tParams->isEnabled()) {
 		//Find terrain height at selected point:
 		
 		string varname("HGT");

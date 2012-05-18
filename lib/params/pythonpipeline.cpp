@@ -183,9 +183,19 @@ int PythonPipeLine::python_wrapper(
 	vector<float*> allocatedArrays;
    
     if(!initialized) initialize();
-	
+	//See if there are any 3D outputs.  If so use the
+	//first 3D output var to determine the dimensions.  If not,
+	//just use the first output variable
+	int first3DVar = -1, outputIndex = 0;
+	for (int i = 0; i<outputs.size(); i++){
+		if (outputs[i].second == DataMgr::VAR3D){
+			outputIndex = i;
+			first3DVar = i;
+			break;
+		}
+	}
 	//Determine sizes of arrays to allocate for python:
-	RegularGrid *rg = outputData[0];
+	RegularGrid *rg = outputData[outputIndex];
 	size_t dims[3];
 	rg->GetDimensions(dims);
 	size_t mins[3],maxs[3];
@@ -234,11 +244,22 @@ int PythonPipeLine::python_wrapper(
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Python interpreter preparation error");
 		return -1;
 	}
+	
 	for (int i = 0; i< inputData.size(); i++){
 		string vname = inputs[i];
 		DataMgr::VarType_T datatype = currentDataMgr->GetVarType(vname);
 		if (datatype == DataMgr::VAR3D){
+			//Check if there are no 3D outputs; if so, make the 
+			//3D vars be full in the Z dimension
+			if (first3DVar < 0){
+				//Find the full height of the data:
+				size_t dim[3];
+				currentDataMgr->GetDim(dim, reflevel); 
+				pydims[0] = (Py_ssize_t) dim[2];
+			}
 			//Create a new array to pass into python:
+			//If the output variable is 2D then make the vertical extents full in the domain
+
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
 			allocatedArrays.push_back(pyData);
@@ -346,7 +367,7 @@ int PythonPipeLine::python_wrapper(
 		npy_intp* dims = PyArray_DIMS(varArray);
 		for (int j = 0; j< nd; j++) {
 			if (dims[j] != (regmax[j-nd+3] - regmin[j-nd+3]+1)){
-				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with __BOUNDS__",vname);
+				MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING, "Shape of %s array does not conform with vapor.BOUNDS",vname);
 				return -1;
 			}
 		}

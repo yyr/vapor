@@ -484,7 +484,9 @@ void ProbeEventRouter::updateTab(){
 	int sesVarNum = probeParams->getFirstVarNum();
 	
 	
-	float val = calcCurrentValue(probeParams,selectedUserCoords,&sesVarNum, 1);
+	float val = 0.;
+	if (probeParams->isEnabled())
+		val = calcCurrentValue(probeParams,selectedUserCoords,&sesVarNum, 1);
 	
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));

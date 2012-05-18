@@ -290,10 +290,11 @@ void TwoDDataEventRouter::updateTab(){
 	}
 	float val = OUT_OF_BOUNDS;
 	string varname = ds->getVariableName2D(twoDParams->getFirstVarNum());	
-	double selectPoint[3];
-	for (int i = 0; i<3; i++) selectPoint[i] = localSelectedPoint[i]+tvExts[i];
-	val = RegionParams::calcCurrentValue(varname,selectPoint,twoDParams->GetRefinementLevel(), twoDParams->GetCompressionLevel(), (size_t)currentTimeStep);
-	
+	if (twoDParams->isEnabled()){
+		double selectPoint[3];
+		for (int i = 0; i<3; i++) selectPoint[i] = localSelectedPoint[i]+tvExts[i];
+		val = RegionParams::calcCurrentValue(varname,selectPoint,twoDParams->GetRefinementLevel(), twoDParams->GetCompressionLevel(), (size_t)currentTimeStep);
+	}
 
 	if (val == OUT_OF_BOUNDS)
 		valueMagLabel->setText(QString(" "));
