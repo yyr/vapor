@@ -537,7 +537,9 @@ SetDiagMsg("@MPI validreg min: %d %d %d, max: %d %d %d",_validRegMin[0],_validRe
 #endif
 
 #ifndef NOIO
-	for(int j=0; j<=_lod; j++) {
+	for(int j=0; j<=_lod && j<_ncids.size(); j++) {
+
+		
 
 		if (_ncids[j] > -1) {
 			int rc; 
@@ -2042,6 +2044,8 @@ int WaveCodecIO::_OpenVarWrite(
 	for(int j=0; j<=_lod; j++) {
 		int rc;
 
+		if (_ncoeffs[j] < 1) break;
+
 		ostringstream oss;
         oss << basename << ".nc" << j;
 		string path = oss.str();
@@ -2371,6 +2375,8 @@ int WaveCodecIO::ReadWriteThreadObj::_WriteBlock(
 
 
 	for(int j=0; j<=_wc->_lod; j++) {
+		if (_wc->_ncoeffs[j] < 1) break;
+
 		size_t start[] = {0,0,0,0};
 		size_t wcount[] = {1,1,1,1};
 		size_t scount[] = {1,1,1,1};
