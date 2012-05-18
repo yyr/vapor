@@ -1134,6 +1134,8 @@ RegularGrid *DataMgr::execute_pipeline(
 	const vector <string> &input_varnames = pipeline->GetInputs();
 	const vector <pair <string, VarType_T> > &output_vars = pipeline->GetOutputs();
 
+    VarType_T vtype = DataMgr::GetVarType(varname);
+
 	//
 	// Ptrs to space for input and output variables
 	//
@@ -1144,9 +1146,40 @@ RegularGrid *DataMgr::execute_pipeline(
 	// Get input variables, and lock them into memory
 	//
 	for (int i=0; i<input_varnames.size(); i++) {
+		size_t min_in[] = {min[0], min[1], min[2]};
+		size_t max_in[] = {max[0], max[1], max[2]};
+		VarType_T vtype_in = DataMgr::GetVarType(input_varnames[i]);
+
+		// 
+		// If the requested output variable is 2D and an input variable
+		// is 3D we need to make sure that the 3rd dimension of the
+		// 3D input variable covers the full domain
+		//
+		if (vtype != VAR3D && vtype_in == VAR3D) {
+			size_t dims[3];
+			DataMgr::GetDim(dims, reflevel);
+
+			switch (vtype) {
+			case VAR2D_XY:
+				min_in[2] = 0;
+				max_in[2] = dims[2]-1;
+				break;
+			case VAR2D_XZ:
+				min_in[1] = 0;
+				max_in[1] = dims[1]-1;
+				break;
+			case VAR2D_YZ:
+				min_in[0] = 0;
+				max_in[0] = dims[0]-1;
+				break;
+			default:
+				break;
+			}
+		}
+
 		RegularGrid *rg = GetGrid(
 						ts, input_varnames[i], reflevel, lod, 
-						min, max, true
+						min_in, max_in, true
 		);
 		if (! rg) {
 			// Unlock any locked variables and abort
@@ -1165,7 +1198,7 @@ RegularGrid *DataMgr::execute_pipeline(
 	for (int i=0; i<output_vars.size(); i++) {
 
 		string v = output_vars[i].first;
-		VarType_T vtype = output_vars[i].second;
+		VarType_T vtype_out = output_vars[i].second;
 
 		//
 		// if output variable i is the one we are interested in record
@@ -1176,7 +1209,7 @@ RegularGrid *DataMgr::execute_pipeline(
 		}
 
 		float *blks = alloc_region(
-			ts,v.c_str(),vtype, reflevel, lod, min,max,true,
+			ts,v.c_str(),vtype_out, reflevel, lod, min,max,true,
 			true
 		);
 		if (! blks) {
