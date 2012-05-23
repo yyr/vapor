@@ -234,7 +234,16 @@ public:
 	static void setDefaultSpecularExp(float val){ defaultSpecularExp = val;}
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
 #ifdef TEST_KEYFRAMING
-	static vector<Viewpoint*>& getLoadedViewpoints() {return loadedViewpoints;}
+	static const vector<Viewpoint*> getLoadedViewpoints() {return loadedViewpoints;}
+	static void clearLoadedViewpoints() {
+		for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
+		loadedViewpoints.clear();
+	}
+	static int getNumLoadedViewpoints(){return loadedViewpoints.size();}
+	static void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
+	static const Viewpoint* getLoadedViewpoint(int timestep){
+		return (loadedViewpoints[timestep%loadedViewpoints.size()]);
+	}
 #endif
 
 protected:

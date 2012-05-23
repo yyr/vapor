@@ -60,8 +60,8 @@ ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), U
 
 #ifdef TEST_KEYFRAMING
 	viewpointOutputFile = 0;
-	vector<Viewpoint*> loadedViewpoints = ViewpointParams::getLoadedViewpoints();
-	loadedViewpoints.clear();
+
+	ViewpointParams::clearLoadedViewpoints();
 #endif
 
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
@@ -283,7 +283,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	
 	VizWinMgr::getInstance()->setVizDirty(vParams, LightingBit, true);
 
-	currentViewpoint->setCameraPosLocal(2, camPos2->text().toFloat());
+	currentViewpoint->setCameraPosLocal(2, camPos2->text().toFloat()-tvExts[2]);
 	vParams->setViewDir(0, viewDir0->text().toFloat());
 	vParams->setViewDir(1, viewDir1->text().toFloat());
 	vParams->setViewDir(2, viewDir2->text().toFloat());
@@ -291,7 +291,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setUpVec(1, upVec1->text().toFloat());
 	vParams->setUpVec(2, upVec2->text().toFloat());
 	
-	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat());
+	currentViewpoint->setRotationCenterLocal(2,rotCenter2->text().toFloat()-tvExts[2]);
 
 	float sepAngle = stereoSeparationEdit->text().toFloat();
 	vParams->setStereoSeparation(sepAngle);
@@ -893,11 +893,8 @@ readKeyframes(){
 		return;
 	}
 	//clear out existing viewpoints:
-	vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
-	for (int i = 0; i<loadedViewpoints.size(); i++){
-		delete loadedViewpoints[i];
-	}
-	loadedViewpoints.clear();
+	
+	ViewpointParams::clearLoadedViewpoints();
 	while(1){
 		Viewpoint* vp = new Viewpoint;
 		int timestep;
@@ -912,11 +909,18 @@ readKeyframes(){
 		vp->setViewDir(viewdir);
 		vp->setUpVec(upvec);
 		vp->setRotationCenterLocal(rotcenter);
-		loadedViewpoints.push_back(vp);
-		if (loadedViewpoints.size() != timestep+1)
+		ViewpointParams::addViewpoint(vp);
+		if (ViewpointParams::getNumLoadedViewpoints() != timestep+1)
 			MessageReporter::warningMsg("timestep mismatch in file %s",(const char*)filename.toAscii());
 	}
-	MessageReporter::warningMsg(" %d viewpoints read from file %s", loadedViewpoints.size(),(const char*)filename.toAscii());
+	MessageReporter::warningMsg(" %d viewpoints read from file %s", ViewpointParams::getNumLoadedViewpoints(),(const char*)filename.toAscii());
+	//Set the current viewpoint
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	Viewpoint* vp = new Viewpoint(*ViewpointParams::getLoadedViewpoint(timestep));
+	vpParams->setCurrentViewpoint(vp);
+	updateTab();
+	updateRenderer(vpParams,false, false);
 
 }
 void ViewpointEventRouter::

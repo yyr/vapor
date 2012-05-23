@@ -12,7 +12,7 @@ class ParamNode;
 class PARAMS_API Viewpoint : public ParsedXml {
 	
 public: 
-	Viewpoint() {previousClass = 0;}
+	Viewpoint() {previousClass = 0; perspective = true;}
 	
 	virtual ~Viewpoint(){}
 	

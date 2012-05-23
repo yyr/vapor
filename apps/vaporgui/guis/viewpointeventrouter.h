@@ -86,7 +86,6 @@ protected:
 
 #ifdef TEST_KEYFRAMING
 	FILE* viewpointOutputFile;
-	vector<Viewpoint*> loadedViewpoints;
 #endif
 	
 protected slots:

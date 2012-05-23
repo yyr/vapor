@@ -47,7 +47,6 @@ const string Viewpoint::_camLatLonTag = "CameraLatLon";
 const string Viewpoint::_perspectiveAttr = "Perspective";
 
 
-
 bool Viewpoint::
 elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tagString, const char ** attrs){
 	if (StrCmpNoCase(tagString, _viewpointTag) == 0) {

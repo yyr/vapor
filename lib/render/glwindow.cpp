@@ -351,9 +351,13 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//and put them in the trackball, prior to setting up the trackball.
 	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
 #ifdef TEST_KEYFRAMING
-	vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
+	const vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
 	if (loadedViewpoints.size()>0 && timeStep != previousTimeStep){
-		getActiveViewpointParams()->setCurrentViewpoint(loadedViewpoints[timeStep%loadedViewpoints.size()]);
+		//Make a copy, note that this is a memory leak:
+	
+		const Viewpoint* vp = loadedViewpoints[timeStep%loadedViewpoints.size()];
+		Viewpoint* newViewpoint = new Viewpoint(*vp);
+		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
 		setValuesFromGui(getActiveViewpointParams());
 	} 
 #endif
