@@ -8,7 +8,10 @@
 	SHEAR - horizontal wind shear
 	SLP - sea-level pressure (2D)
 	TD - dewpoint temperature
-	TK - temperature in degrees Kelvin.'''
+	TK - temperature in degrees Kelvin.
+	wrf_deriv_findiff - 6th order finite-difference derivative 	wrf_curl_findiff - finite-difference curl
+	wrf_grad_findiff - finite-difference gradient
+	wrf_div_findiff - finite-difference divergence'''
 	
 import numpy 
 import vapor_utils
@@ -188,39 +191,22 @@ def ETH(P,PB,T,QVAPOR):
 	WRF_ETH = TK*numpy.power(1000.0/PRESS,GAMMA*(1.0+GAMMAMD*Q))*numpy.exp(EXPNT)
 	return WRF_ETH
 
-def PV(T,P,PB,U,V,F):
+def PV(T,P,PB,U,V,ELEV,F):
 	''' Routine that calculates potential vorticity using WRF variables.
 	Calling sequence: WRF_PV = PV(T,P,PB,U,V,F)
 	Where T,P,PB,U,V are WRF 3D variables, F is WRF 2D variable.
+	ELEV is the VAPOR ELEVATION variable (PH+PHB)/g
 	Result is 3D variable WRF_PV.'''
 # Based on wrf_pvo.f in NCL WRF library
-# Results are not exactly the same as wrf_pvo.f because this is 
-# calculated in cartesian coords, not model layers.    
-	from vapor_utils import deriv_findiff
-	from vapor_utils import deriv_vert
+	from vapor_utils import deriv_var_findiff
 	PR = 0.01*(P+PB)
-	s = numpy.shape(P)	#size of the input array
-# Need to find DX, DY, DZ
-	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
-	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
-	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
-	dx = (usrmax[2]-usrmin[2])/ext[2]	# grid delta in user coord system
-	dy =  (usrmax[1]-usrmin[1])/ext[1]
-	dz =  (usrmax[0]-usrmin[0])/ext[0]
-	DP = numpy.empty(s,numpy.float32)
-# set up the P differences.  Avoid divide by zero
-	DP[0,:,:] = PR[1,:,:]-PR[0,:,:]
-	DP[1:s[0]-2,:,:] = PR[2:s[0]-1,:,:] - PR[0:s[0]-3,:,:]
-	DP[s[0]-1,:,:] = PR[s[0]-1,:,:]-PR[s[0]-2,:,:]
-	dpzeros = numpy.equal(DP, 0.0)
-	DP[dpzeros] = .0000001
-	DTHDP = deriv_vert(T,DP)
-	DTHDX = deriv_findiff(T,1,dx)
-	DTHDY = deriv_findiff(T,2,dy)
-	DUDP = deriv_vert(U,DP)
-	DVDP = deriv_vert(V,DP)
-	DUDY = deriv_findiff(U,2,dy)
-	DVDX = deriv_findiff(V,1,dx)
+	DTHDP = deriv_var_findiff(T,PR,3)
+	DTHDX = wrf_deriv_findiff(T,ELEV,1)
+	DTHDY = wrf_deriv_findiff(T,ELEV,2)
+	DUDP = deriv_var_findiff(U,PR,3)
+	DVDP = deriv_var_findiff(V,PR,3)
+	DUDY = wrf_deriv_findiff(U,ELEV,2)
+	DVDX = wrf_deriv_findiff(V,ELEV,1)
 	AVORT = DVDX - DUDY + F
 	WRF_PVO = numpy.float32(-9.81*(DTHDP*AVORT-DVDP*DTHDX+DUDP*DTHDY)*10000.)
 	return WRF_PVO
@@ -246,26 +232,23 @@ def RH(P,PB,T,QVAPOR):
 	return WRF_RH
 
 
-def SHEAR(U,V):
+def SHEAR(U,V,P,PB,level1=200.,level2=850.):
 	'''Program calculates horizontal wind shear
-	Calling sequence: SHR = SHEAR(U,V)
+	Calling sequence: SHR = SHEAR(U,V,P,PB,level1,level2)
 	where U and V are 3D wind velocity components, and
 	result SHR is 3D wind shear.
 	Shear is defined as the RMS difference between the horizontal 
-	velocity divided by the vertical elevation difference.
-	Make sure U and V are set to have value 0 below the terrain.'''
-#Shear is defined as the RMS difference between the horizontal velocity divided by the vertical elevation difference
-	s = numpy.shape(U)	#size of the input arrays  
-	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
-	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
-	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
-	dz =  (usrmax[0]-usrmin[0])/ext[0] #vertical delta in grid
-	WRF_SHEAR = numpy.empty(s,numpy.float32)
-	UDIFF = (U[1:s[0]-1,:,:]-U[0:s[0]-2,:,:])*(U[1:s[0]-1,:,:]-U[0:s[0]-2,:,:])
-	VDIFF = (V[1:s[0]-1,:,:]-V[0:s[0]-2,:,:])*(V[1:s[0]-1,:,:]-V[0:s[0]-2,:,:])
-	WRF_SHEAR[0:s[0]-2,:,:] = numpy.sqrt(UDIFF+VDIFF)/dz
-	WRF_SHEAR[s[0]-1,:,:] = 0.0 
-	return WRF_SHEAR
+	velocity interpolated to the specified pressure levels,
+ 	level1 and level2 (in millibars) which default to 200 and 850.'''
+	from numpy import sqrt
+	PR = 0.01*(P+PB) 
+	uinterp1 = vapor_utils.interp3d(U,PR,level1)
+	uinterp2 = vapor_utils.interp3d(U,PR,level2)
+	vinterp1 = vapor_utils.interp3d(V,PR,level1)
+	vinterp2 = vapor_utils.interp3d(V,PR,level2)
+	result = (uinterp1-uinterp2)*(uinterp1-uinterp2)+(vinterp1-vinterp2)*(vinterp1-vinterp2)
+	result = sqrt(result)
+	return result 
 
 def SLP(P,PB,T,QVAPOR,ELEVATION):
 	'''Calculation of Sea-level pressure.
@@ -349,4 +332,119 @@ def TK(P,PB,T):
 	TH = T+300.0
 	WRF_TK = TH*numpy.power((P+PB)*.00001,c)
 	return WRF_TK
+
+def wrf_deriv_findiff(A,ELEV,dir):
+	''' Operator that calculates the derivative of a WRF (or layered) variable A
+	in the direction dir (user coordinates; in Python the direction is reversed) 
+	ELEV is the ELEVATION variable. '''
+	import vapor
+	import vapor_utils
+	if (dir == 3):
+		return vapor_utils.deriv_var_findiff(A,ELEV,3)
+
+	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
+	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
+	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
+	dx = (usrmax[2]-usrmin[2])/ext[2]
+	dy =  (usrmax[1]-usrmin[1])/ext[1]
+	
+	if (dir == 1):
+		dadx_eta = vapor_utils.deriv_findiff(A,1,dx)
+		dadz = vapor_utils.deriv_var_findiff(A,ELEV,3)
+		dzdx_eta = vapor_utils.deriv_findiff(ELEV,1,dx)
+		ans = dadx_eta -dadz*dzdx_eta
+		return ans
+
+	if (dir == 2):
+	#	dA/dy is (dA/dy)_eta - (dA/dz)*(dZ/dy)_eta
+		dady_eta = vapor_utils.deriv_findiff(A,2,dy)
+		dadz = vapor_utils.deriv_var_findiff(A,ELEV,3)
+		dzdy_eta = vapor_utils.deriv_findiff(ELEV,2,dy)
+		ans = dady_eta - dadz*dzdy_eta
+		return ans
+	
+def wrf_grad_findiff(A,ELEV):
+	''' Operator that calculates the gradient of a scalar field 
+	using 6th order finite differences on a WRF (layered) grid
+	Calling sequence:  GRD = grad_findiff(A,ELEV)
+	Where:
+	A is a float32 array defining a scalar field.
+	ELEV is the corresponding ELEVATION array
+	Result GRD is a triple of 3 3-dimensional float3d arrays consisting of
+	the gradient of A.'''
+	
+	aux1 = wrf_deriv_findiff(A,ELEV,3)   #x component of gradient (in python coords)
+	aux2 = wrf_deriv_findiff(A,ELEV,2)
+	aux3 = wrf_deriv_findiff(A,ELEV,1)
+	return aux1,aux2,aux3 # return in user coordinate (x,y,z) order
+
+# Calculate divergence for WRF (layered) grid
+def wrf_div_findiff(A,B,C,ELEV):
+	''' Operator that calculates the divergence of a vector field
+	using 6th order finite differences.
+	Calling sequence:  DIV = wrf_div_findiff(A,B,C,ELEV)
+	Where:
+	A, B, and C are 3-dimensional float32 arrays defining a vector field.
+	A is the x-component, B is y, C is z (in user coordinates)
+	ELEV is the ELEVATION variable
+	Resulting DIV is a 3-dimensional float3d array consisting of
+	the divergence of the triple (A,B,C).'''
+
+	return wrf_deriv_findiff(A,ELEV,1)+wrf_deriv_findiff(B,ELEV,2)+wrf_deriv_findiff(C,ELEV,3)
+
+
+
+def wrf_curl_findiff(A,B,C,ELEV):
+	''' Operator that calculates the curl of a vector field 
+	using 6th order finite differences, on a layered (e.g. WRF) grid.
+	Calling sequence:  curlfield = wrf_curl_findiff(A,B,C,ELEV)
+	Where:
+	A,B,C are three 3-dimensional float32 arrays that define a
+	vector field on a layered grid
+	ELEV is the ELEVATION variable for the layered grid.  
+	curlfield is a 3-tuple of 3-dimensional float32 arrays that is 
+	returned by this operator.'''
+	import vapor
+	import vapor_utils	
+	ext = (vapor.BOUNDS[3]-vapor.BOUNDS[0], vapor.BOUNDS[4]-vapor.BOUNDS[1],vapor.BOUNDS[5]-vapor.BOUNDS[2])
+	usrmax = vapor.MapVoxToUser([vapor.BOUNDS[3],vapor.BOUNDS[4],vapor.BOUNDS[5]],vapor.REFINEMENT)
+	usrmin = vapor.MapVoxToUser([vapor.BOUNDS[0],vapor.BOUNDS[1],vapor.BOUNDS[2]],vapor.REFINEMENT)
+	dx =  (usrmax[2]-usrmin[2])/ext[2]	#user x coordinate, python z coordinate
+	dy =  (usrmax[1]-usrmin[1])/ext[1]
+	dz =  (usrmax[0]-usrmin[0])/ext[0]
+	
+#	x component is dC/dy - dB/dz [y,z are user coordinates]
+#	dC/dy is calc by (dC/dy)_eta - (dC/dz)*(dZ/dy)_eta
+#	where _eta indicates the derivative calculated in the WRF grid coordinates
+#	as is performed by deriv_findiff.pro;
+#	Z is ELEVATION and dC/dz is deriv wrt Elevation
+#	dB/dz is deriv wrt ELEV
+
+	dcdy_eta = vapor_utils.deriv_findiff(C, 2, dy)
+	dcdz = vapor_utils.deriv_var_findiff(C,ELEV,3)
+	dzdy_eta = vapor_utils.deriv_findiff(ELEV,2,dy)
+	dbdz = vapor_utils.deriv_var_findiff(B,ELEV,3)
+
+	outx = dcdy_eta - dcdz*dzdy_eta -dbdz
+
+#	y component is dA/dz - dC/dx
+#	dC/dx is (dC/dx)_eta -(dC/dz)*(dZ/dx)_eta)
+	
+	dadz = vapor_utils.deriv_var_findiff(A,ELEV,3)
+	dcdx_eta = vapor_utils.deriv_findiff(C,1,dx)
+	dzdx_eta = vapor_utils.deriv_findiff(ELEV,1,dx)
+
+	outy = dadz - dcdx_eta + dcdz*dzdx_eta
+
+#	z component is dB/dx - dA/dy
+#	dB/dx is (dB/dx)_eta - (dB/dz)*(dZ/dx)_eta
+#	dA/dy is (dA/dy)_eta - (dA/dz)*(dZ/dy)_eta
+	
+	dbdx_eta = vapor_utils.deriv_findiff(B,1,dx)
+	dady_eta = vapor_utils.deriv_findiff(A,2,dy)
+
+	outz = dbdx_eta - dbdz*dzdx_eta -dady_eta + dadz*dzdy_eta
+	
+	return outx, outy, outz     	#return results in user coordinate order
+
 
