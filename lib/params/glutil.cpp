@@ -1083,6 +1083,72 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 	return numfound;
 
 }
+//Convert a camera view to a pure-imaginary quaternion, for linear interpolation of viewpoints
+void view2ImagQuat(float vdir[3],float upvec[3], float q[3]){
+	float vtemp[3];
+	float left[3] = {-1.f, 0.f, 0.f};
+	float ydir[3] = {0.f, 1.f, 0.f};
+	float right[3];
+	float quat[4];
+	//Normalize the vectors:
+	vnormal(upvec);
+	vnormal(vdir);
+	//Force the up vector to be orthogonal to viewDir
+	vcopy(vdir, vtemp);
+	vscale(vtemp, vdot(vdir, upvec));
+	//Subtract the component of up in the viewdir direction
+	vsub(upvec, vtemp, upvec);
+	//Make sure it's still valid
+	if (vdot(upvec,upvec) == 0.f) {
+		//First try up = viewdir x left
+		vcross(vdir, left, upvec);
+		if (vdot (upvec, upvec) == 0.f) {
+			//try viewdir x ydir
+			vcross(vdir, ydir, upvec);
+		}
+	}
+	vnormal(upvec);
+	//calculate "right" vector:
+	vcross(vdir, upvec, right);
+	//Construct 4x4 matrix.  Just because rotmatrix2q expects 4x4
+	float minv[16];
+	//Bottom row, right column not needed.
+	minv[3] = 0.f;
+	minv[7] = 0.f;
+	minv[11] = 0.f;
+	minv[15] = 1.f;
+	//copy in first 3 elements of columns
+	vcopy(right, minv);
+	vcopy(upvec, minv+4);
+	//third col is neg of viewdir
+	
+	vcopy(vdir, minv + 8);
+	vscale(minv+8, -1.f);
+	//vcopy(vpos, minv+ 12);
+	//int rc = minvert(minv, mtrx);
+	rotmatrix2q(minv, quat);
+	float mag1 = sqrt(quat[0]*quat[0]+quat[1]*quat[1]+quat[2]*quat[2]+quat[3]*quat[3]);
+	float re = acos(quat[0]);
+	float mag = vlength(quat+1);
+	for (int i = 0; i<3; i++) q[i] = quat[i+1]*re/mag;
+}
+//Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints
+void imagQuat2View(float q[3], float vdir[3],float upvec[3]){
+	float quat[4];
+	float mtrx[16];
+	//First, calc exponential of q:
+	float mag = vlength(q);
+	quat[0]=cos(mag);
+	float s = sin(mag)/mag;
+	for (int i = 0; i<3; i++) quat[i+1] = q[i]*s;
+	//then convert quat to a matrix
+	qmatrix(quat,mtrx);
+	//extract rows:
+	vcopy(mtrx+4,upvec);
+	vcopy(mtrx+8,vdir);
+	vscale(vdir,-1.f);
+}
+
 
 
 #define DEAD
