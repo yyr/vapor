@@ -95,6 +95,7 @@ protected slots:
 	void setVtabTextChanged(const QString& qs);
 #ifdef TEST_KEYFRAMING
 	void writeKeyframe();
+	void writeStopKeyframe();
 	void readKeyframes();
 #endif
 

@@ -1083,13 +1083,13 @@ int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float b
 	return numfound;
 
 }
-//Convert a camera view to a pure-imaginary quaternion, for linear interpolation of viewpoints
-void view2ImagQuat(float vdir[3],float upvec[3], float q[3]){
+//Convert a camera view to a quaternion, for linear interpolation of viewpoints.
+//The log of the quaternion, or log of its negative, are used for interpolation
+void view2Quat(float vdir[3],float upvec[3], float q[4]){
 	float vtemp[3];
 	float left[3] = {-1.f, 0.f, 0.f};
 	float ydir[3] = {0.f, 1.f, 0.f};
 	float right[3];
-	float quat[4];
 	//Normalize the vectors:
 	vnormal(upvec);
 	vnormal(vdir);
@@ -1126,20 +1126,25 @@ void view2ImagQuat(float vdir[3],float upvec[3], float q[3]){
 	vscale(minv+8, -1.f);
 	//vcopy(vpos, minv+ 12);
 	//int rc = minvert(minv, mtrx);
-	rotmatrix2q(minv, quat);
-	float mag1 = sqrt(quat[0]*quat[0]+quat[1]*quat[1]+quat[2]*quat[2]+quat[3]*quat[3]);
+	rotmatrix2q(minv, q);
+/*
 	float re = acos(quat[0]);
 	float mag = vlength(quat+1);
 	for (int i = 0; i<3; i++) q[i] = quat[i+1]*re/mag;
+	return re;
+	*/
 }
-//Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints
-void imagQuat2View(float q[3], float vdir[3],float upvec[3]){
+//Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
+//optional boolean argument is in case the orientation is reversed, so the quaternion is negated.
+void imagQuat2View(float q[3], float vdir[3],float upvec[3], bool backside){
 	float quat[4];
 	float mtrx[16];
 	//First, calc exponential of q:
 	float mag = vlength(q);
-	quat[0]=cos(mag);
-	float s = sin(mag)/mag;
+	float revFactor = 1.f;
+	if (backside) revFactor = -1.f;
+	quat[0]=revFactor*cos(mag);
+	float s = revFactor*sin(mag)/mag;
 	for (int i = 0; i<3; i++) quat[i+1] = q[i]*s;
 	//then convert quat to a matrix
 	qmatrix(quat,mtrx);
@@ -1148,7 +1153,36 @@ void imagQuat2View(float q[3], float vdir[3],float upvec[3]){
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
 }
-
+//Convert a pair of camera views to pure-imaginary quaternions, for linear interpolation of viewpoints.
+//Boolean return value indicates that an inversion was required in order that the quaternions do not subtend
+//a curve that goes the "long" way around.  When the return value is true, that boolean value must be passed
+//back in imagQuat2View when converting the interpolants, and, to avoid a derivative discontinuity at the end points, 
+//the end-point derivative (in pure-imaginary quaternions) must be negated.  In other words, if D1 is the derivative
+//of the pure-imaginary quaternion coming in from the left, 
+//which needs to be matched for continuity at the first point, then -D1 should be used as the derivative at the left end
+//point of the interpolating spline in the interval from q1 to q2; likewise for the derivative D2 at the right end point.
+bool view2ImagQuats(float vdir1[3],float upvec1[3],float vdir2[3], float upvec2[3], float q1[3], float q2[3]){
+	float quat1[4],quat2[4];
+	view2Quat(vdir1,upvec1,quat1);
+	view2Quat(vdir2,upvec2,quat2);
+	float re1 = acos(quat1[0]);
+	float mag1 = vlength(quat1+1);
+	float re2 = acos(quat2[0]);
+	float mag2 = vlength(quat2+1);
+	float reSum = (re1+re2);
+	//Do we need to go the other way?  Test if the average angle is greater than pi/2.
+	if (reSum <= M_PI) {
+		for (int i = 0; i<3; i++) q1[i] = quat1[i+1]*re1/mag1;
+		for (int i = 0; i<3; i++) q2[i] = quat2[i+1]*re2/mag2;
+		return false;
+	} else {
+		re1 = M_PI - re1;
+		re2 = M_PI - re2;
+		for (int i = 0; i<3; i++) q1[i] = -quat1[i+1]*re1/mag1;
+		for (int i = 0; i<3; i++) q2[i] = -quat2[i+1]*re2/mag2;
+		return true;
+	}
+}
 
 
 #define DEAD
