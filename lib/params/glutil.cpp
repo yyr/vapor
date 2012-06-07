@@ -1124,19 +1124,26 @@ void view2Quat(float vdir[3],float upvec[3], float q[4]){
 	
 	vcopy(vdir, minv + 8);
 	vscale(minv+8, -1.f);
-	//vcopy(vpos, minv+ 12);
-	//int rc = minvert(minv, mtrx);
+	
 	rotmatrix2q(minv, q);
-/*
+
+}
+//Convert a camera view to pure imaginary quaternion, for linear interpolation of viewpoints.
+//The boolean backside argument indicates the conversion will be to a rotation near 180 degrees.
+void view2ImagQuat(float vdir[3], float upvec[3], float q[3], bool backside){
+	
+	float quat[4];
+	view2Quat(vdir, upvec, quat);
 	float re = acos(quat[0]);
+	if(backside) re = re - M_PI;
 	float mag = vlength(quat+1);
 	for (int i = 0; i<3; i++) q[i] = quat[i+1]*re/mag;
-	return re;
-	*/
+	return;
+	
 }
 //Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
-//optional boolean argument is in case the orientation is reversed, so the quaternion is negated.
-void imagQuat2View(float q[3], float vdir[3],float upvec[3], bool backside){
+//boolean argument indicates the orientation is reversed, so the quaternion is negated.
+void imagQuat2View(float q[3], float vdir[3], float upvec[3], bool backside){
 	float quat[4];
 	float mtrx[16];
 	//First, calc exponential of q:
@@ -1153,37 +1160,17 @@ void imagQuat2View(float q[3], float vdir[3],float upvec[3], bool backside){
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
 }
-//Convert a pair of camera views to pure-imaginary quaternions, for linear interpolation of viewpoints.
-//Boolean return value indicates that an inversion was required in order that the quaternions do not subtend
-//a curve that goes the "long" way around.  When the return value is true, that boolean value must be passed
-//back in imagQuat2View when converting the interpolants, and, to avoid a derivative discontinuity at the end points, 
-//the end-point derivative (in pure-imaginary quaternions) must be negated.  In other words, if D1 is the derivative
-//of the pure-imaginary quaternion coming in from the left, 
-//which needs to be matched for continuity at the first point, then -D1 should be used as the derivative at the left end
-//point of the interpolating spline in the interval from q1 to q2; likewise for the derivative D2 at the right end point.
-bool view2ImagQuats(float vdir1[3],float upvec1[3],float vdir2[3], float upvec2[3], float q1[3], float q2[3]){
+//Determine whether or not the interpolation between two rotations should be using backside or not.
+bool doBackInterpolate(float vdir1[3],float upvec1[3],float vdir2[3], float upvec2[3]){
 	float quat1[4],quat2[4];
 	view2Quat(vdir1,upvec1,quat1);
 	view2Quat(vdir2,upvec2,quat2);
 	float re1 = acos(quat1[0]);
-	float mag1 = vlength(quat1+1);
 	float re2 = acos(quat2[0]);
-	float mag2 = vlength(quat2+1);
 	float reSum = (re1+re2);
-	//Do we need to go the other way?  Test if the average angle is greater than pi/2.
-	if (reSum <= M_PI) {
-		for (int i = 0; i<3; i++) q1[i] = quat1[i+1]*re1/mag1;
-		for (int i = 0; i<3; i++) q2[i] = quat2[i+1]*re2/mag2;
-		return false;
-	} else {
-		re1 = M_PI - re1;
-		re2 = M_PI - re2;
-		for (int i = 0; i<3; i++) q1[i] = -quat1[i+1]*re1/mag1;
-		for (int i = 0; i<3; i++) q2[i] = -quat2[i+1]*re2/mag2;
-		return true;
-	}
+	if (reSum <= M_PI) return false;
+	else return true;
 }
-
 
 #define DEAD
 #ifdef	DEAD
