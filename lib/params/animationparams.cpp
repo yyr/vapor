@@ -19,6 +19,7 @@
 //		It contains all the parameters required for animation
 
 //
+#define TEST_KEYFRAMING
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
@@ -223,6 +224,9 @@ getNextFrame(int dir){
 				if (repeatPlay) testFrame = endFrame;
 				else testFrame = currentFrame;
 			}
+#ifdef TEST_KEYFRAMING
+			if (ViewpointParams::getNumLoadedViewpoints()>0) break;
+#endif
 			if (ds->dataIsPresent(testFrame)) break;
 			testFrame += dir*frameStepSize;
 		}

@@ -305,7 +305,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned fast)
 	// Record any state changes since the last call
 	//
 
-	size_t timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timeStep = myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
 	bool timeStepDirty = false;
 	if (_timeStep != timeStep) {
 		_timeStep = timeStep;

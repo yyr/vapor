@@ -167,7 +167,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const fl
 	}
 	
 	if (!ds->getDataMgr()) return;
-	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentTimestep();
 	//Don't refresh histo if bypassFlag is set:
 	if (renParams->doBypass(timeStep)) return;
 	int numVariables = ds->getNumSessionVariables();

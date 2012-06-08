@@ -168,7 +168,7 @@ void GLProbeWindow::paintGL()
 
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	
-	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	
    qglClearColor(palette().color(QPalette::Window));	// same as frame
 	

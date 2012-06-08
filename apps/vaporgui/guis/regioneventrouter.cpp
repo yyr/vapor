@@ -190,7 +190,7 @@ void RegionEventRouter::updateTab(){
 	if(!MainForm::getTabManager()->isFrontTab(this)) return;
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	double regLocalExts[6], regUsrExts[6];
 	rParams->GetBox()->GetLocalExtents(regLocalExts, timestep);
 	//Get the full domain extents in user coordinates
@@ -321,7 +321,7 @@ void RegionEventRouter::relabel()
 void RegionEventRouter::
 textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	setIgnoreBoxSliderEvents(true);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
@@ -423,7 +423,7 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	//Then push the center to the middle if the region doesn't fit
 	DataStatus* ds = DataStatus::getInstance();
 	if(!ds->getDataMgr()) return;
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>userExtents = ds->getDataMgr()->GetExtents((size_t)timestep);
 	
 	float regMin = userExtents[coord];
@@ -705,7 +705,7 @@ refreshRegionInfo(RegionParams* rParams){
 void RegionEventRouter::
 guiCopyProbeToRegion(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy probe to region");
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_probeParamsTag);
@@ -727,7 +727,7 @@ guiCopyProbeToRegion(){
 void RegionEventRouter::
 guiCopyRakeToRegion(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy rake to region");
 	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_flowParamsTag);
@@ -777,7 +777,7 @@ guiSetCenter(const float* coords){
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "move region center");
 	
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>&userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	float boxmin[3], boxmax[3];
 	rParams->getLocalBox(boxmin,boxmax,timestep);
@@ -879,7 +879,7 @@ guiSetMaxSize(){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams, "change region size to max");
 	const float* fullDataExtents = DataStatus::getInstance()->getLocalExtents();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	float boxmin[3],boxmax[3];
 	for (int i = 0; i<3; i++){
 		boxmin[i] = 0.;
@@ -1089,7 +1089,7 @@ void RegionEventRouter::
 guiAdjustExtents(){
 	confirmText(false);
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_regionParamsTag);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "adjust current extents");
 	
 	if(!rParams->insertTime(timestep)){  //no change

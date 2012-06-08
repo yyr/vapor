@@ -183,7 +183,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	ViewpointParams* vParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vParams, "edit Viewpoint text");
 	bool usingLatLon = vParams->isLatLon();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	Viewpoint* currentViewpoint = vParams->getCurrentViewpoint();
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	//In lat-lon mode convert latlon values to campos
@@ -330,7 +330,7 @@ void ViewpointEventRouter::updateTab(){
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	int nLights = vpParams->getNumLights();
 	numLights->setText(strng.setNum(nLights));
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	latLonCheckbox->setChecked(vpParams->isLatLon());
 	vector <double> tvExts(6,0.);
@@ -437,7 +437,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center sub-region view");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
@@ -484,7 +484,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
 	if (vpParams->isLatLon()) {
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
@@ -500,7 +500,7 @@ guiCenterFullRegion(RegionParams* rParams){
 	}
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center full region view");
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	vpParams->centerFullRegion(timestep);
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(vpParams);
@@ -585,7 +585,7 @@ guiAlignView(int axis){
 	vsub(srotctr, vdir, vpos);
 	currentViewpoint->setStretchedCamPosLocal(vpos);
 	if (vpParams->isLatLon()){
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
@@ -622,7 +622,7 @@ guiSetCenter(const float* coords){
 		currentViewpoint->setRotationCenterLocal(i,coords[i]);
 	}
 	if (vpParams->isLatLon()){
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		vpParams->convertLocalToLonLat(timestep);
 	}
 	updateTab();
@@ -693,7 +693,7 @@ void ViewpointEventRouter::guiSetStereoMode(int mode){
 	currentViewpoint->setUpVec(updir);
 	// convert to latlon
 	if (vpParams->isLatLon()){
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		vpParams->convertLocalToLonLat(timestep);
 	}
 	//  set render windows dirty
@@ -719,7 +719,7 @@ useHomeViewpoint(){
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
 	//Convert to latlong if necessary
 	if (vpParams->isLatLon()){
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		assert (timestep >= 0);
 		//Convert the latlon coordinates for this time step:
 		vpParams->convertLocalToLonLat(timestep);
@@ -741,7 +741,7 @@ captureMouseUp(){
 		float trans, newRot[3];
 		float* camPosLoc = vpParams->getCameraPosLocal();
 		float* rotCenterLocal = vpParams->getRotationCenterLocal();
-		int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		for (int i = 0; i<3; i++) {
 			trans = camPosLoc[i] - lastCamPos[i];
 			newRot[i] = rotCenterLocal[i]+trans;
@@ -782,7 +782,7 @@ endSpin(){
  */
 void ViewpointEventRouter::
 navigate (ViewpointParams* vpParams, float* posn, float* viewDir, float* upVec){
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	vpParams->setCameraPosLocal(posn, timestep);
 	vpParams->setUpVec(upVec);
 	vpParams->setViewDir(viewDir);
@@ -911,14 +911,15 @@ readKeyframes(){
 		vp->setUpVec(upvec);
 		vp->setRotationCenterLocal(rotcenter);
 		ViewpointParams::addViewpoint(vp);
-		if (ViewpointParams::getNumLoadedViewpoints() != timestep+1)
-			MessageReporter::warningMsg("timestep mismatch in file %s",(const char*)filename.toAscii());
+		ViewpointParams::addTimestep((size_t)timestep);
+		
+
 	}
 	MessageReporter::warningMsg(" %d viewpoints read from file %s", ViewpointParams::getNumLoadedViewpoints(),(const char*)filename.toAscii());
 	//Set the current viewpoint
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	Viewpoint* vp = new Viewpoint(*ViewpointParams::getLoadedViewpoint(timestep));
+	int framenum = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	Viewpoint* vp = new Viewpoint(*ViewpointParams::getLoadedViewpoint(framenum));
 	vpParams->setCurrentViewpoint(vp);
 	updateTab();
 	updateRenderer(vpParams,false, false);
@@ -960,7 +961,7 @@ writeKeyframe(){
 	//OK, file is open. Write current viewpoint:
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	Viewpoint* vp = vpParams->getCurrentViewpoint();
-	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	int numBytes = fprintf(viewpointOutputFile, "%d %g %g %g %g %g %g %g %g %g %g %g %g 0\n",
 		timestep, vp->getCameraPosLocal(0),vp->getCameraPosLocal(1),vp->getCameraPosLocal(2),
 		vp->getViewDir(0),vp->getViewDir(1),vp->getViewDir(2),

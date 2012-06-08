@@ -422,7 +422,7 @@ void PythonEdit::delOutputVar3(){
 void PythonEdit::testScript(){
 	size_t min_dim[3],max_dim[3];
 	DataStatus* ds = DataStatus::getInstance();
-	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timeStep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int reflevel = 0;
 	int compression = 0;
 

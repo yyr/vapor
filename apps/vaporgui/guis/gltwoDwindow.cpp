@@ -130,7 +130,7 @@ void GLTwoDWindow::paintGL()
 	if (isDataWindow) myParams = VizWinMgr::getActiveTwoDDataParams();
 	else myParams = VizWinMgr::getActiveTwoDImageParams();
 	
-	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 
     qglClearColor(palette().color(QPalette::Window));		// same as frame
 	

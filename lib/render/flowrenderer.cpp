@@ -145,9 +145,9 @@ void FlowRenderer::paintGL()
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//If the region is dirty, always need to rebuild:
 	if(myGLWindow->vizIsDirty(RegionBit)) setDataDirty();
-	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	int currentTimestep = myAnimationParams->getCurrentTimestep();
 	int flowType = myFlowParams->getFlowType();
-	int timeStep = currentFrameNum;
+	int timeStep = currentTimestep;
 	bool didRebuild = false;
 	bool didRemap = false;
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
@@ -198,7 +198,7 @@ void FlowRenderer::paintGL()
 	}
 	
 	if (dirtyDL || !useDisplayLists) {
-		renderFlowData(constColors, currentFrameNum);
+		renderFlowData(constColors, currentTimestep);
 	}
 	
 	if (useDisplayLists) {
@@ -215,7 +215,7 @@ void FlowRenderer::paintGL()
 		//Capture only steady or fla flow.
 		// FLA only captures seeds.
 		if (flowType != 1){
-			captureFlow(currentFrameNum);
+			captureFlow(currentTimestep);
 		}
 	}
 		

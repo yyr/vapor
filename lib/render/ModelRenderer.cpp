@@ -128,7 +128,7 @@ void ModelRenderer::paintGL()
    // Get timestep information
    //
    AnimationParams* animationParams = myGLWindow->getActiveAnimationParams();
-   int framenum = animationParams->getCurrentFrameNumber();
+   int timestep = animationParams->getCurrentTimestep();
 
    if (params->GetClipping())
    {
@@ -144,7 +144,7 @@ void ModelRenderer::paintGL()
       
       //Set up clipping planes
       float extents[6];
-      regionParams->GetBox()->GetLocalExtents(extents, framenum);
+      regionParams->GetBox()->GetLocalExtents(extents, timestep);
       
       topPlane[3] = extents[4]*scales[1];
       botPlane[3] = -extents[1]*scales[1];
@@ -172,15 +172,15 @@ void ModelRenderer::paintGL()
    // Retrieve and render the model
    //
    const ModelScene *scene = getModelScene(params);
-   const GLModelNode *model = getModel(params, scene, framenum);
+   const GLModelNode *model = getModel(params, scene, timestep);
 
    if (model)
    {
-      for (int clone=0; clone<scene->nClones(framenum); clone++)
+      for (int clone=0; clone<scene->nClones(timestep); clone++)
       {
          Matrix3d matrix(params->GetTransformation());
 
-         matrix *= Matrix3d(scene->transform(framenum, clone));
+         matrix *= Matrix3d(scene->transform(timestep, clone));
 
          // column-major for OpenGL
          matrix.transpose();
@@ -207,11 +207,11 @@ void ModelRenderer::paintGL()
 // Method to load the 3D model
 //----------------------------------------------------------------------------
 const GLModelNode* ModelRenderer::getModel(ModelParams *mParams, 
-                                           const ModelScene *scene, int framenum)
+                                           const ModelScene *scene, int timestep)
 {
    if (!scene) return NULL;
 
-   string modelFile = scene->modelFile(framenum);
+   string modelFile = scene->modelFile(timestep);
 
    if (modelFile.empty()) modelFile = mParams->GetModelFilename();
 

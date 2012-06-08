@@ -84,7 +84,7 @@ void ArrowRenderer::paintGL(){
 	const vector<long> rakeGrid = aParams->GetRakeGrid();
 	double rakeExts[6];
 	aParams->GetRakeLocalExtents(rakeExts);
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& userExts = dataMgr->GetExtents(timestep);
 	for (int i = 0; i<3; i++) rakeExts[i] += userExts[i];
 	
@@ -262,7 +262,7 @@ void ArrowRenderer::performRendering(
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
 	
 	const vector<double> rExtents = aParams->GetRakeLocalExtents();
 	//Convert to user coordinates:
@@ -409,7 +409,7 @@ setupVariableData(
 ){
 
 	ArrowParams* aParams = (ArrowParams*)currentRenderParams;
-	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)myGLWindow->getActiveAnimationParams()->getCurrentTimestep();
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return -1;

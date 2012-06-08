@@ -601,7 +601,7 @@ applyToViz(int vizNum){
 		
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		vizMgr->setAllTwoDElevDirty();
-		int timestep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 		//Set the region dirty bit in every window:
 		bool firstShared = false;
 		for (int j = 0; j< MAXVIZWINS; j++) {

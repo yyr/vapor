@@ -305,7 +305,7 @@ rayHandleIntersect(float ray[3], float cameraPos[3], int handleNum, int faceNum,
 	double val;
 	float handleExtents[6];
 	float boxExtents[6];
-	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentTimestep();
 	myParams->calcBoxExtents(boxExtents,timestep);
 	makeHandleExtents(handleNum, handleExtents, 0, boxExtents);
 	int coord;
@@ -355,7 +355,7 @@ void TranslateStretchManip::render(){
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//Without any rotation applied:
-	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentTimestep();
 	myParams->calcStretchedBoxExtentsInCube(extents, timestep);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::localToStretchedCube(myViewpointParams->getCameraPosLocal(), camVec);
@@ -405,7 +405,7 @@ void TranslateStretchManip::render(){
 
 void TranslateStretchManip::drawBoxFaces(){
 	float corners[8][3];
-	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentTimestep();
 	myParams->calcLocalBoxCorners(corners, 0.f, timestep);
 	
 	//Now the corners need to be put into the unit cube, and displaced appropriately
@@ -484,7 +484,7 @@ void TranslateStretchManip::
 mouseRelease(float /*screenCoords*/[2]){
 	//Need to commit to latest drag position
 	//Are we dragging?
-	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentTimestep();
 	if (selectedHandle >= 0){
 		float boxMin[3], boxMax[3];
 		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
@@ -584,7 +584,7 @@ slideHandle(int handleNum, float movedRay[3], bool constrain){
 	//Do this calculation in stretched world coords
 	float boxExtents[6];
 	const float* sizes = DataStatus::getInstance()->getFullStretchedSizes();
-	int timestep = myGLWin->getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = myGLWin->getActiveAnimationParams()->getCurrentTimestep();
 	myParams->calcStretchedBoxExtents(boxExtents, timestep);
 	
 	if (isStretching){ //don't push through opposite face ..

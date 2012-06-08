@@ -63,19 +63,19 @@ void TwoDImageRenderer::paintGL()
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	TwoDImageParams* myTwoDImageParams = (TwoDImageParams*)currentRenderParams;
 	
-	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	int currentTimestep = myAnimationParams->getCurrentTimestep();
 	
 	
 	unsigned char* twoDTex = 0;
 	
-	if (myTwoDImageParams->twoDIsDirty(currentFrameNum)){
+	if (myTwoDImageParams->twoDIsDirty(currentTimestep)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		twoDTex = getTwoDTexture(myTwoDImageParams,currentFrameNum,true);
+		twoDTex = getTwoDTexture(myTwoDImageParams,currentTimestep,true);
 		QApplication::restoreOverrideCursor();
-		if(!twoDTex) {setBypass(currentFrameNum); return;}
+		if(!twoDTex) {setBypass(currentTimestep); return;}
 		myGLWindow->setRenderNew();
 	} else { //existing texture is OK:
-		twoDTex = getTwoDTexture(myTwoDImageParams,currentFrameNum,true);
+		twoDTex = getTwoDTexture(myTwoDImageParams,currentTimestep,true);
 	}
 	if (myTwoDImageParams->elevGridIsDirty()){
 		invalidateElevGrid();
@@ -83,7 +83,7 @@ void TwoDImageRenderer::paintGL()
 		myGLWindow->setRenderNew();
 	}
 	int imgSize[2];
-	myTwoDImageParams->getTextureSize(imgSize, currentFrameNum);
+	myTwoDImageParams->getTextureSize(imgSize, currentTimestep);
 	int imgWidth = imgSize[0];
 	int imgHeight = imgSize[1];
 	if (twoDTex){
@@ -120,7 +120,7 @@ void TwoDImageRenderer::paintGL()
 	//Draw elevation grid if we are mapped to terrain, or if
 	//It's in georeferenced image mode:
 	if (myTwoDImageParams->isGeoreferenced() || myTwoDImageParams->isMappedToTerrain()){
-		drawElevationGrid(currentFrameNum);
+		drawElevationGrid(currentTimestep);
 		glDisable(GL_TEXTURE_2D);
 		return;
 	}

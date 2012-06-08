@@ -173,7 +173,7 @@ void TwoDImageEventRouter::updateTab(){
 	
 	TwoDImageParams* twoDParams = VizWinMgr::getActiveTwoDImageParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	Session* ses = Session::getInstance();
 	if (!ds->getDataMgr()) return;
@@ -399,7 +399,7 @@ void TwoDImageEventRouter::confirmText(bool /*render*/){
 	if (orientation < 2) {ycrd = 2; zcrd = 1;}
 	if (orientation < 1) {xcrd = 1; zcrd = 0;}
 
-	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& usrExts = dataMgr->GetExtents(timestep);
 	//Set the twoD size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
@@ -525,7 +525,7 @@ void TwoDImageEventRouter::guiFitToImage(){
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
 	PanelCommand* cmd = PanelCommand::captureStart(tParams, "fit 2D extents to image");
-	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& userExts = dataMgr->GetExtents(timestep);
 	float newExts[6];
 	tParams->getLocalBox(newExts, newExts+3);
@@ -701,8 +701,8 @@ twoDAddSeed(){
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
-	int timestep = ap->getCurrentFrameNumber();
-	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
+	int timestep = ap->getCurrentTimestep();
+	pt.set1Val(3,(float)ap->getCurrentTimestep());
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	//Check that it's OK:
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
@@ -762,7 +762,7 @@ guiCopyRegionToTwoD(){
 	confirmText(false);
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	TwoDImageParams* pParams = VizWinMgr::getActiveTwoDImageParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to twoDImage");
 	
 	for (int i = 0; i< 3; i++){
@@ -1088,7 +1088,7 @@ sliderToText(TwoDImageParams* pParams, int coord, int sliderVal, bool isSize){
 	const float* extents = DataStatus::getInstance()->getLocalExtents();
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
-	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>userExts = dataMgr->GetExtents(timestep);
 	float center = 0.5f*(pParams->getLocalTwoDMin(coord)+pParams->getLocalTwoDMax(coord));
 	float size = pParams->getLocalTwoDMax(coord)- pParams->getLocalTwoDMin(coord);
@@ -1502,7 +1502,7 @@ void TwoDImageEventRouter::guiFitToRegion(){
 	confirmText(false);
 	TwoDImageParams* tParams = VizWinMgr::getActiveTwoDImageParams();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int orientation = tParams->getOrientation();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "Fit image box to region");
 	//match the non-orientation dimensions
@@ -1571,7 +1571,7 @@ adjustBoxSize(TwoDImageParams* pParams){
 void TwoDImageEventRouter::resetTextureSize(TwoDImageParams* twoDParams){
 	//setup the texture size.  If the image has been read, get the dimensions 
 	//from the image:
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	if (twoDParams->getCurrentTwoDTexture(timestep)){
 		int txsize[2];
 		twoDParams->getTextureSize(txsize, timestep);
@@ -1607,7 +1607,7 @@ void TwoDImageEventRouter::mapCursor(){
 	selectPoint[mapDims[1]] = twoDCoord[1]*a[1]+b[1];
 	selectPoint[mapDims[2]] = constVal[0];
 	
-	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timeStep = (size_t) VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 
 	if (tParams->isMappedToTerrain()) {
 		//Find terrain height at selected point:
@@ -1634,7 +1634,7 @@ void TwoDImageEventRouter::mapCursor(){
 	if(!DataStatus::getInstance()->getDataMgr()) return;
 	float selectPoint[3];
 	const float* cursorCoords = tParams->getCursorCoords();
-	int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	int currentTimeStep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>userExtents = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)currentTimeStep);
 	if (tParams->isGeoreferenced()){
 		

@@ -509,7 +509,7 @@ setActiveViz(int vizNum){
 		//Determine if the local viewpoint dialog applies, update the tab dialog
 		//appropriately
 		updateActiveParams();
-		//Set the animation toolbar to the correct timestep:
+		//Set the animation toolbar to the correct frame number:
 		int currentFrame = getActiveAnimationParams()->getCurrentFrameNumber();
 		MainForm::getInstance()->setCurrentTimestep(currentFrame);
 		//Tell the glwindows who is active
@@ -801,9 +801,9 @@ animationParamsChanged(AnimationParams* aParams){
 		ac->paramsChanged(vizNum);
 		vpp = getViewpointParams(vizNum);
 		if (vpp->isLatLon())
-			vpp->convertLocalFromLonLat(aParams->getCurrentFrameNumber());
+			vpp->convertLocalFromLonLat(aParams->getCurrentTimestep());
 		else 
-			vpp->convertLocalToLonLat(aParams->getCurrentFrameNumber());
+			vpp->convertLocalToLonLat(aParams->getCurrentTimestep());
 	}
 	//If another viz is using these animation params, set their region dirty, too
 	//and set their latlon or local coords
@@ -816,9 +816,9 @@ animationParamsChanged(AnimationParams* aParams){
 			ViewpointParams* vp2 = getViewpointParams(i);
 			if (vp2!= vpp){
 				if (vp2->isLatLon())
-					vp2->convertLocalFromLonLat(aParams->getCurrentFrameNumber());
+					vp2->convertLocalFromLonLat(aParams->getCurrentTimestep());
 				else 
-					vp2->convertLocalToLonLat(aParams->getCurrentFrameNumber());
+					vp2->convertLocalToLonLat(aParams->getCurrentTimestep());
 			}
 		}
 	}
@@ -1935,7 +1935,7 @@ bool VizWinMgr::flowDataIsDirty(FlowParams* p){
 	if (p->getFlowType()==1){
 		return (flowRend->allFlowDataIsDirty());
 	}
-	int timeStep = getAnimationParams(p->getVizNum())->getCurrentFrameNumber();
+	int timeStep = getAnimationParams(p->getVizNum())->getCurrentTimestep();
 	return flowRend->flowDataIsDirty(timeStep);
 }
 

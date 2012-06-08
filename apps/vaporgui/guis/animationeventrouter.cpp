@@ -186,12 +186,18 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 	
 
 	if (startFrame < minFrame || startFrame > maxFrame) {
+
 		startFrame = minFrame;
 		startFrameEdit->setText(strn.setNum(startFrame));
 		
 	}
 	aParams->setStartFrameNumber(startFrame);
 	int endFrame = endFrameEdit->text().toInt();
+#ifdef TEST_KEYFRAMING
+	if (ViewpointParams::getNumLoadedViewpoints()>0){
+		if (endFrame > maxFrame) aParams->setMaxFrame(endFrame);
+	} else 
+#endif
 	if (endFrame < minFrame || endFrame > maxFrame || endFrame < startFrame) {
 		endFrame = maxFrame;
 		endFrameEdit->setText(strn.setNum(endFrame));

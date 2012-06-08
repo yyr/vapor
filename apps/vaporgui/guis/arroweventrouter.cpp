@@ -417,7 +417,7 @@ guiChangeExtents(){
 	double newExts[6];
 	boxSliderFrame->getBoxExtents(newExts);
 	Box* bx = aParams->GetBox();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	//convert newExts (in user coords) to local extents, by subtracting time-varying extents origin 
 	const vector<double>& tvExts = DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	for (int i = 0; i<6; i++) newExts[i] -= tvExts[i%3];
@@ -472,7 +472,7 @@ void ArrowEventRouter::updateTab(){
 	instanceTable->rebuild(this);
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	ArrowParams* arrowParams = (ArrowParams*) VizWinMgr::getActiveParams(ArrowParams::_arrowParamsTag);
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
 	copyCombo->clear();
@@ -754,7 +754,7 @@ guiFitToData(){
 	newExtents.push_back(fullSizes[2]);
 	
 	box->SetLocalExtents(newExtents);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& currExts =DataStatus::getInstance()->getDataMgr()->GetExtents((size_t)timestep);
 	boxSliderFrame->setBoxExtents(currExts);
 	PanelCommand::captureEnd(cmd, aParams);

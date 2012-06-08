@@ -238,17 +238,21 @@ public:
 	static void clearLoadedViewpoints() {
 		for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
 		loadedViewpoints.clear();
+		loadedTimesteps.clear();
 	}
 	static int getNumLoadedViewpoints(){return loadedViewpoints.size();}
 	static void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
-	static const Viewpoint* getLoadedViewpoint(int timestep){
-		return (loadedViewpoints[timestep%loadedViewpoints.size()]);
+	static void addTimestep(size_t ts){loadedTimesteps.push_back(ts);}
+	static const Viewpoint* getLoadedViewpoint(int framenum){
+		return (loadedViewpoints[framenum%loadedViewpoints.size()]);
 	}
+	static vector<size_t> getLoadedTimesteps() {return loadedTimesteps;}
 #endif
 
 protected:
 #ifdef TEST_KEYFRAMING
 	static vector<Viewpoint*>loadedViewpoints;
+	static vector<size_t>loadedTimesteps;
 #endif
 	static const string _shortName;
 	static const string _latLonAttr;

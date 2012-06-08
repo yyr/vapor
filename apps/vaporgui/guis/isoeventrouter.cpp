@@ -504,7 +504,7 @@ void IsoEventRouter::refreshTFHisto(){
 	if (!vizWin) return;
 	ParamsIso* iParams = getActiveIsoParams();
 	if (iParams->GetMapVariableNum()<0) return;
-	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
@@ -665,7 +665,7 @@ float IsoEventRouter::evaluateSelectedPoint(){
 	ParamsIso* iParams = getActiveIsoParams();
 	if (!iParams->isEnabled()) return OUT_OF_BOUNDS;
 	
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double> pnt = iParams->GetSelectedPoint();
 	double dbpnt[3];
 	int numRefinements = iParams->GetRefinementLevel();
@@ -683,7 +683,7 @@ refreshHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::_isoParamsTag);
-	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+	if (iParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
@@ -855,7 +855,7 @@ updateHistoBounds(RenderParams* params){
 	if (viznum < 0) return;
 	DataStatus* ds = DataStatus::getInstance();
 	int varnum = ds->getSessionVariableNum3D(iParams->GetIsoVariableName());
-	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
+	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentTimestep();
 	float minval, maxval;
 	if (iParams->isEnabled()){
 		minval = ds->getDataMin3D(varnum, currentTimeStep);
@@ -923,7 +923,7 @@ guiSetMapComboVarNum(int val){
 	//If the change is to set the combo to a nonexistent variable, then do not make
 	//the change:
 	if (val != 0){ 
-		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		int sesvarnum = ds->mapActiveToSessionVarNum3D(val-1);
 		if (ds->getVDCType() != 2){
 			int ref = ds->maxXFormPresent3D(sesvarnum, timeStep);
@@ -1176,7 +1176,7 @@ guiSetConstantColor(QColor& newColor){
 void IsoEventRouter::
 updateMapBounds(RenderParams* params){
 	ParamsIso* isoParams = (ParamsIso*)params;
-	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int varNum = DataStatus::getInstance()->getSessionVariableNum3D(isoParams->GetMapVariableName());
 	QString strn;
 	
@@ -1324,7 +1324,7 @@ void IsoEventRouter::guiFitTFToData(){
 	if(sesvarnum < 0) return;
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	float minBound = ds->getDataMin3D(sesvarnum,ts);
 	float maxBound = ds->getDataMax3D(sesvarnum,ts);

@@ -1045,7 +1045,7 @@ void MainForm::mergeData()
 		uiSetter.setupUi(&sDialog);
 		int activeWinNum = VizWinMgr::getInstance()->getActiveViz();
 		if (activeWinNum >= 0){
-			defaultOffset = VizWinMgr::getInstance()->getAnimationParams(activeWinNum)->getCurrentFrameNumber();
+			defaultOffset = VizWinMgr::getInstance()->getAnimationParams(activeWinNum)->getCurrentTimestep();
 		}
 		uiSetter.timestepOffsetSpin->setValue(defaultOffset);
 		if (sDialog.exec() != QDialog::Accepted) return;

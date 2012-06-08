@@ -781,7 +781,7 @@ exportData(){
 	//always go for max number of transforms:
 	int numxforms = DataStatus::getInstance()->getNumTransforms();
 	
-	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
+	size_t currentTimestep = (size_t)p->getCurrentTimestep();
 	size_t frameInterval[2];
 	size_t minCoords[3],maxCoords[3];
 	size_t mncrds[3],mxcrds[3];
@@ -790,14 +790,14 @@ exportData(){
 	frameInterval[1] = (size_t)p->getEndFrameNumber();
 	//Note that we will export the current region, even if there's no
 	//valid data in it...
-	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds,currentFrame);
+	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds,currentTimestep);
 	for (int i = 0; i< 3; i++) {
 		minCoords[i] = mncrds[i];
 		maxCoords[i] = mxcrds[i];
 	}
 	
 	int rc = exporter.Export(currentMetadataFile,
-		currentFrame,
+		currentTimestep,
 		getVariableName(dParams->getSessionVarNum()),
 		minCoords,
 		maxCoords,
@@ -807,7 +807,7 @@ exportData(){
 		exporter.SetErrCode(0);
 	} else {
 		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables \nmay not be exported",
-			currentFrame, (const char*)VizWinMgr::getInstance()->getVizWinName(winNum).toAscii());
+			currentTimestep, (const char*)VizWinMgr::getInstance()->getVizWinName(winNum).toAscii());
 	}
 	return;
 }

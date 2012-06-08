@@ -66,17 +66,17 @@ void ProbeRenderer::paintGL()
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
 	
-	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	int currentTimestep = myAnimationParams->getCurrentTimestep();
 	
 	unsigned char* probeTex = 0;
 	
-	if (myProbeParams->probeIsDirty(currentFrameNum)){
+	if (myProbeParams->probeIsDirty(currentTimestep)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum, true, _framebufferid, _fbTexid);
+		probeTex = getProbeTexture(myProbeParams,currentTimestep, true, _framebufferid, _fbTexid);
 		QApplication::restoreOverrideCursor();
 		myGLWindow->setRenderNew();
 	} else { //existing texture is OK:
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,true, _framebufferid, _fbTexid);
+		probeTex = getProbeTexture(myProbeParams,currentTimestep,true, _framebufferid, _fbTexid);
 	}
 	int imgSize[2];
 	myProbeParams->getTextureSize(imgSize);
@@ -502,26 +502,26 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 }
 //Static method to calculate the probe texture whether IBFV or data or both
 unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, 
-		int frameNum, bool doCache, GLuint fbid, GLuint fbtexid){
-	if (!pParams->probeIsDirty(frameNum)) 
-		return pParams->getCurrentProbeTexture(frameNum, pParams->getProbeType());
-	if (pParams->doBypass(frameNum)) return 0;
+		int timeStep, bool doCache, GLuint fbid, GLuint fbtexid){
+	if (!pParams->probeIsDirty(timeStep)) 
+		return pParams->getCurrentProbeTexture(timeStep, pParams->getProbeType());
+	if (pParams->doBypass(timeStep)) return 0;
 	if (pParams->getProbeType() == 0) {
-		unsigned char* dtex = pParams->calcProbeDataTexture(frameNum, 0,0);
-		if (!dtex) pParams->setBypass(frameNum);
+		unsigned char* dtex = pParams->calcProbeDataTexture(timeStep, 0,0);
+		if (!dtex) pParams->setBypass(timeStep);
 		return dtex;
 	}
 	//OK, now handle IBFV texture:
 	if (pParams->ibfvColorMerged()){
-		unsigned char* dataTex = pParams->calcProbeDataTexture(frameNum, 256,256);
+		unsigned char* dataTex = pParams->calcProbeDataTexture(timeStep, 256,256);
 		//Always put this in the cache...
-		pParams->setProbeTexture(dataTex,frameNum,0);
-		if (!dataTex) pParams->setBypass(frameNum);
+		pParams->setProbeTexture(dataTex,timeStep,0);
+		if (!dataTex) pParams->setBypass(timeStep);
 	}
-	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum, fbid, fbtexid);
-	if (!probeTex) pParams->setBypass(frameNum);
+	unsigned char* probeTex = buildIBFVTexture(pParams,  timeStep, fbid, fbtexid);
+	if (!probeTex) pParams->setBypass(timeStep);
 	if (doCache){
-		pParams->setProbeTexture(probeTex, frameNum, 1);
+		pParams->setProbeTexture(probeTex, timeStep, 1);
 	}
 	return probeTex;
 }

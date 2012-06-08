@@ -210,7 +210,7 @@ void TwoDDataEventRouter::updateTab(){
 	
 	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	int currentTimeStep = vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	const vector<double>& tvExts = dataMgr->GetExtents((size_t)currentTimeStep);
 	lodCombo->setCurrentIndex(twoDParams->GetCompressionLevel());
@@ -470,7 +470,7 @@ void TwoDDataEventRouter::confirmText(bool /*render*/){
 	QString strn;
 	
 	twoDParams->setHistoStretch(histoScaleEdit->text().toFloat());
-	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& tvExts = dataMgr->GetExtents(timestep);
 	
 	int orientation = DataStatus::getInstance()->get2DOrientation(twoDParams->getFirstVarNum());
@@ -637,7 +637,7 @@ refreshTwoDHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
-	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
@@ -708,7 +708,7 @@ twoDAddSeed(){
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
-	int timestep = ap->getCurrentFrameNumber();
+	int timestep = ap->getCurrentTimestep();
 	pt.set1Val(3,(float)timestep);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	//Check that it's OK:
@@ -791,7 +791,7 @@ guiCopyRegionToTwoD(){
 	confirmText(false);
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	TwoDDataParams* pParams = VizWinMgr::getActiveTwoDDataParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to TwoDData");
 	
 	for (int i = 0; i< 3; i++){
@@ -1277,7 +1277,7 @@ void TwoDDataEventRouter::guiFitToRegion(){
 	confirmText(false);
 	TwoDDataParams* tParams = VizWinMgr::getActiveTwoDDataParams();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	PanelCommand* cmd = PanelCommand::captureStart(tParams,  "Fit 2D data to region");
 	//Just match the first two dimensions:
 	for (int i = 0; i<2; i++){
@@ -1341,7 +1341,7 @@ void TwoDDataEventRouter::
 textToSlider(TwoDDataParams* pParams, int coord, float newCenter, float newSize){
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>&tvExts = dataMgr->GetExtents(timestep);
 	newCenter -= tvExts[coord];
 	pParams->setLocalTwoDMin(coord, newCenter-0.5f*newSize);
@@ -1359,7 +1359,7 @@ sliderToText(TwoDDataParams* pParams, int coord, int slideCenter, int slideSize)
 	if (orientation < coord) coord++;
 	DataMgr* dataMgr = DataStatus::getInstance()->getDataMgr();
 	if (!dataMgr) return;
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& tvExts = dataMgr->GetExtents(timestep);
 	//calculate center in user coords:
 	float newCenter = tvExts[coord] + ((float)slideCenter)*(tvExts[coord+3]-tvExts[coord])/256.f;
@@ -1616,7 +1616,7 @@ void TwoDDataEventRouter::captureImage() {
 	//reconstruct with appropriate aspect ratio.
 	
 	
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int imgSize[2];
 	pParams->getTextureSize(imgSize, timestep);
 	int wid = imgSize[0];

@@ -25,6 +25,7 @@
 
 #include "params.h"
 #include <vapor/common.h>
+#include "viewpointparams.h"
 
 
 namespace VAPoR {
@@ -52,6 +53,17 @@ public:
 	//! \retval int current frame number
 	int getCurrentFrameNumber() {return currentFrame;}
 
+	//! Identify the current data timestep being used
+	//! \retval size_t current time step
+	int getCurrentTimestep() {
+#ifdef TEST_KEYFRAMING
+		if (ViewpointParams::getLoadedViewpoints().size() > 0){
+			return ViewpointParams::getLoadedTimesteps()[currentFrame%ViewpointParams::getLoadedViewpoints().size()];
+		}
+#endif
+		return currentFrame;
+	}
+
 	//! Identify the starting frame number currently set in the UI.
 	//! \retval int starting frame number.
 	int getStartFrameNumber() {return startFrame;}
@@ -60,13 +72,21 @@ public:
 	//! \retval int ending frame number.
 	int getEndFrameNumber() {return endFrame;}
 
-	//! Identify the minimum frame number available in the data.
+	//! Identify the minimum frame number 
 	//! \retval int minimum frame number.
 	int getMinFrame() {return minFrame;}
 
-	//! Identify the maximum frame number available in the data
+	//! Identify the maximum frame number 
 	//! \retval int maximum frame number.
 	int getMaxFrame() {return maxFrame;}
+
+	//! Set the minimum frame number 
+	//! \param[in] int minimum frame number.
+	void setMinFrame(int minF) {minFrame = minF;}
+
+	//! Identify the maximum frame number 
+	//! \param[in] int maximum frame number.
+	void setMaxFrame(int maxF) {maxFrame = maxF;}
 
 
 #ifndef DOXYGEN_SKIP_THIS

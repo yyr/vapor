@@ -714,7 +714,7 @@ void FlowEventRouter::updateTab(){
 		maxOpacmapEdit->setText(QString::number(fParams->GetMapperFunc()->getMaxOpacMapValue()));
 	}
 	//Add time-varying displacement to rake extents:
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	float seedBoxMin[3],seedBoxMax[3];
 	fParams->getLocalBox(seedBoxMin,seedBoxMax);
 	if (dStatus->getDataMgr()){ 
@@ -748,7 +748,7 @@ void FlowEventRouter::updateTab(){
 	//Put the opacity and color bounds for the currently chosen mappings
 	//These should be the actual range of the variables
 	int var = fParams->getColorMapEntityIndex();
-	int tstep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int tstep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	if (var<4){
 		minColorBound->setText(QString::number(fParams->minRange(var, tstep)));
 		maxColorBound->setText(QString::number(fParams->maxRange(var, tstep)));
@@ -1634,7 +1634,7 @@ guiSetOpacityScale(int val){
 void FlowEventRouter::
 guiSetRakeToRegion(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "move rake to region");
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
@@ -1729,7 +1729,7 @@ guiSetNumRefinements(int n){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	if (fParams->GetRefinementLevel() == n) return;
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n,timestep);
 	if (newNumTrans != n) {
 		MessageReporter::warningMsg("%s","Invalid number of Refinements \nfor current region, data cache size");
@@ -2489,7 +2489,7 @@ void FlowEventRouter::saveSeeds(){
 	if (fParams->rakeEnabled()){
 		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 		AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
-		seedPoints = fParams->getRakeSeeds(rParams, &numSeeds,aParams->getCurrentFrameNumber());
+		seedPoints = fParams->getRakeSeeds(rParams, &numSeeds,aParams->getCurrentTimestep());
 		if (!seedPoints || numSeeds <= 0){
 			MessageReporter::errorMsg("Unable to generate rake seeds");
 			return;
@@ -2577,7 +2577,7 @@ void FlowEventRouter::saveFlowLines(){
 	//What's the current timestep?
 	int vizNum = vizMgr->getActiveViz();
 	AnimationParams* myAnimationParams = vizMgr->getAnimationParams(vizNum);
-	int timeStep = myAnimationParams->getCurrentFrameNumber();
+	int timeStep = myAnimationParams->getCurrentTimestep();
 	assert (fRenderer);
 	//
 	//Rebuild if necessary:
@@ -2738,7 +2738,7 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
 	
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double> userExtents = dataMgr->GetExtents((size_t)timestep);  
 		
 	float regMin = userExtents[coord];
@@ -2856,7 +2856,7 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	float regMax = 1.f;
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	if (dataMgr){
 		const vector<double>& tvExts = dataMgr->GetExtents(timestep);

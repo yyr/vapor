@@ -349,10 +349,11 @@ void GLWindow::paintEvent(QPaintEvent*)
 	
 	//If we are visualizing in latLon space, must update the local coordinates
 	//and put them in the trackball, prior to setting up the trackball.
-	int timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
 #ifdef TEST_KEYFRAMING
 	/* test code
-	if (timeStep != previousTimeStep){
+	if (frameNum != previousFrameNum){
 		Viewpoint* vp = getActiveViewpointParams()->getCurrentViewpoint();
 		static float lastVdir[3], lastUp[3];
 		static bool first = true;
@@ -374,10 +375,10 @@ void GLWindow::paintEvent(QPaintEvent*)
 	}
 	*/
 	const vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
-	if (loadedViewpoints.size()>0 && timeStep != previousTimeStep){
+	if (loadedViewpoints.size()>0 && frameNum != previousFrameNum){
 		//Make a copy, note that this is a memory leak:
 	
-		const Viewpoint* vp = loadedViewpoints[timeStep%loadedViewpoints.size()];
+		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
 		Viewpoint* newViewpoint = new Viewpoint(*vp);
 		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
 		setValuesFromGui(getActiveViewpointParams());
@@ -580,6 +581,7 @@ void GLWindow::initializeGL()
 {
 	printOpenGLError();
     previousTimeStep = -1;
+	previousFrameNum = -1;
 	glewInit();
 	glEnable(GL_MULTISAMPLE);
 	//Check to see if we are using MESA:
@@ -946,7 +948,7 @@ void GLWindow::setRegionFrameColorFlt(const QColor& c){
 void GLWindow::drawTimeAnnotation(){
 
 	//Always need to check the time:
-	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentFrameNumber(); 
+	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentTimestep(); 
 	QString labelContents;
 	if (timeAnnotType == 1){
 		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
@@ -1545,7 +1547,7 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 	if (handleNum > 2) handleNum = handleNum-3;
 	else handleNum = 2 - handleNum;
 	float boxExtents[6];
-	int timestep = getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = getActiveAnimationParams()->getCurrentTimestep();
 	manipParams->calcStretchedBoxExtentsInCube(boxExtents, timestep);
 	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
 	// project the boxCtr and one more point, to get a direction vector
@@ -1746,7 +1748,7 @@ int GLWindow::AddMouseMode(const std::string paramsTag, int manipType, const cha
 }
 void GLWindow::TransformToUnitBox(){
 	DataStatus* ds = DataStatus::getInstance();
-	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timeStep = (size_t)getActiveAnimationParams()->getCurrentTimestep();
 	if (!ds->getDataMgr()) return;
 	const vector<double>& fullUsrExts = ds->getDataMgr()->GetExtents(timeStep);
 	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();

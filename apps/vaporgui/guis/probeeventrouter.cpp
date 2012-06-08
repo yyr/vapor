@@ -266,7 +266,7 @@ void ProbeEventRouter::updateTab(){
 	
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)vizMgr->getActiveAnimationParams()->getCurrentTimestep();
 	int winnum = vizMgr->getActiveViz();
 	lodCombo->setCurrentIndex(probeParams->GetCompressionLevel());
 	int pType = probeParams->getProbeType();
@@ -581,7 +581,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 
 	if (!DataStatus::getInstance()->getDataMgr()) return;
 
-	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = (size_t)VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>& userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	//Set the probe size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
@@ -1034,7 +1034,7 @@ refreshProbeHisto(){
 	if (!vizWin) return;
 	if (!DataStatus::getInstance()->dataIsPresent3D()) return;
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+	if (pParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
@@ -1110,7 +1110,7 @@ probeAddSeed(){
 	mapCursor();
 	pt.set3Val(pParams->getSelectedPointLocal());
 	AnimationParams* ap = (AnimationParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_animationParamsTag);
-	int ts = ap->getCurrentFrameNumber();
+	int ts = ap->getCurrentTimestep();
 	pt.set1Val(3,(float)ts);
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
 	//Check that it's OK:
@@ -1293,7 +1293,7 @@ sessionLoadTF(QString* name){
 void ProbeEventRouter::
 guiFitDomain(){
 	confirmText(false);
-	//int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	//int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to domain");
@@ -1320,7 +1320,7 @@ guiFitDomain(){
 void ProbeEventRouter::
 guiCopyRegionToProbe(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
@@ -1840,7 +1840,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	const float* selectedPoint = pParams->getSelectedPointLocal();
 	//Map to user coordinates
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	size_t timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>&userExts = DataStatus::getInstance()->getDataMgr()->GetExtents(timestep);
 	newCenter += userExts[coord];
 	float selectCoord = selectedPoint[coord] + userExts[coord];
@@ -2013,7 +2013,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3], int* , int ){
 	DataMgr* dataMgr =	ds->getDataMgr();
 	if (!dataMgr) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	if (pParams->doBypass(timeStep)) return OUT_OF_BOUNDS;
 	
 
@@ -2061,7 +2061,7 @@ refreshHistogram(RenderParams* p, int, const float[2]){
 	DataStatus* ds = DataStatus::getInstance();
 	DataMgr* dataMgr = ds->getDataMgr();
 	if (!dataMgr) return;
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	const vector<double>&userExts = dataMgr->GetExtents((size_t)timeStep);
 	if(pParams->doBypass(timeStep)) return;
 	if (!histogramList){
@@ -2294,7 +2294,7 @@ void ProbeEventRouter::captureImage() {
 	//If this is data, then reconstruct with appropriate aspect ratio.
 	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int imgSize[2];
 	pParams->getTextureSize(imgSize);
 	int wid = imgSize[0];
@@ -2855,7 +2855,7 @@ void ProbeEventRouter::mapCursor(){
 void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 	ProbeParams* probeParams = (ProbeParams*)rParams;
 	QString strn;
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	DataStatus* ds = DataStatus::getInstance();
 	float mnval = 1.e30f, mxval = -1.30f;
 	bool multvars = (probeParams->getNumVariablesSelected()>1);
@@ -2895,7 +2895,7 @@ void ProbeEventRouter::updateBoundsText(RenderParams* rParams){
 void ProbeEventRouter::
 guiCropToRegion(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "crop probe to region");
@@ -2940,7 +2940,7 @@ guiCropToDomain(){
 void ProbeEventRouter::
 guiFitRegion(){
 	confirmText(false);
-	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "fit probe to region");
@@ -3110,7 +3110,7 @@ void ProbeEventRouter::guiFitTFToData(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	bool multvars = (pParams->getNumVariablesSelected()>1);
 	//loop over selected variables to calc min/max bound
 	float mnval = 1.e30f, mxval = -1.e30f;

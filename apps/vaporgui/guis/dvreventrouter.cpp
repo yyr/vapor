@@ -271,7 +271,7 @@ refreshHisto(){
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (!vizWin) return;
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_dvrParamsTag);
-	if (dParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber())){
+	if (dParams->doBypass(VizWinMgr::getActiveAnimationParams()->getCurrentTimestep())){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,"Unable to refresh histogram");
 		return;
 	}
@@ -665,7 +665,7 @@ updateMapBounds(RenderParams* params){
 	//Find out what timestep is current:
 	int viznum = dParams->getVizNum();
 	if (viznum < 0) return;
-	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
+	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentTimestep();
 	float minbnd, maxbnd;
 	int varnum = dParams->getSessionVarNum();
 	if (params->isEnabled()){
@@ -1189,7 +1189,7 @@ void DvrEventRouter::benchmarkPreamble()
   RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
   DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
 	
-  int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+  int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->GetRefinementLevel();
   
@@ -1312,7 +1312,7 @@ void DvrEventRouter::guiFitTFToData(){
 	DvrParams* pParams = VizWinMgr::getActiveDvrParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "fit TF to data");
 	//Get bounds from DataStatus:
-	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int ts = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 	int sesvarnum = pParams->getSessionVarNum();
 	float minBound = ds->getDataMin3D(sesvarnum,ts);
 	float maxBound = ds->getDataMax3D(sesvarnum,ts);

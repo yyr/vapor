@@ -230,7 +230,7 @@ mousePressEvent(QMouseEvent* e){
 	int mode = GLWindow::getCurrentMouseMode();
 	if (mode > 0 && buttonNum > 0) {  //Not navigation mode:
 		
-		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+		int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentTimestep();
 		int faceNum;
 		float boxExtents[6];
 		ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
