@@ -125,6 +125,7 @@ PARAMS_API void getRotAngles(float* theta, float* phi, float* psi, const float* 
 PARAMS_API int rayBoxIntersect(const float rayStart[3], const float rayDir[3],const float boxExts[6], float results[2]);
 
 PARAMS_API void	qnormal (float *q);
+PARAMS_API void qinv(const float q1[4], float q2[4]);
 PARAMS_API void	qmult (const float *q1, const float *q2, float *dest);
 PARAMS_API void	qmatrix (const float *q, GLfloat *m);
 PARAMS_API float	ProjectToSphere (float r, float x, float y);
@@ -133,10 +134,10 @@ PARAMS_API float	ScalePoint (long pt, long origin, long size);
 PARAMS_API void	rvec2q(const float	rvec[3],float		radians,float		q[4]);
 PARAMS_API void	rotmatrix2q(float* m, float *q );
 PARAMS_API float   getScale(GLfloat* rotmatrix);
-PARAMS_API void view2Quat(float vdir[3],float upvec[3], float q[4]);
-PARAMS_API void imagQuat2View(float q[3], float vdir[3],float upvec[3], bool backside);
-PARAMS_API void view2ImagQuat(float vdir[3],float upvec[3], float q[3], bool backside);
-PARAMS_API bool doBackInterpolate(float vdir1[3],float upvec1[3],float vdir2[3],float upvec2[3]);
+PARAMS_API void view2Quat(float vdir[3], float upvec[3], float q[4]);
+PARAMS_API void imagQuat2View(const float startquat[4], const float q[3], float vdir[3],float upvec[3]);
+PARAMS_API void view2ImagQuat(const float startquat[4], float vdir[3],float upvec[3], float q[3]);
+
 inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
@@ -166,6 +167,9 @@ inline void qcopy(const float*a, float* b)
 inline void qzero(float* a)	{a[0] = a[1] = a[2] = 0, a[3] = 1;}
 inline void qadd(const float* a,const float* b,float* c)	
 	{vadd(a,b,c), c[3]=a[3]+b[3];}
+inline float qlength(const float q[4]){
+	return sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
+}
 
 //Forward declarations for utility functions.
 //These should really go in glutil!

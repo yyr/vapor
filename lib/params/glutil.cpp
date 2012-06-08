@@ -317,11 +317,19 @@ void qnormal(float *q)
     q[2] *= s;
     q[3] *= s;
 }
-
+void qinv(const float q1[4], float q2[4]){
+	//Inverse of quaternion is conjugate/norm-square.  4th coeff is real part!
+	float mag = q1[0]*q1[0]+q1[1]*q1[1]+q1[2]*q1[2]+q1[3]*q1[3];
+	assert(mag > 0.f);
+	for (int i = 0; i<3; i++) q2[i] = -q1[i]/mag;
+	q2[3] = q1[3]/mag;
+	float reslt[4];
+	qmult(q1, q2, reslt);
+}
 
 void qmult(const float *q1, const float *q2, float *dest)
 {
-    /* Multiply two quaternions.
+    /* Multiply two quaternions.  Note quaternion real part is 4th coefficient!
      */
     static int	count = 0;
     float 	t1[3], t2[3], t3[3];
@@ -339,11 +347,12 @@ void qmult(const float *q1, const float *q2, float *dest)
     tf[3] = q1[3] * q2[3] - vdot(q1, q2);
     
     qcopy(tf, dest);
-    
+    /* why is this code here?
     if (++count >= 97) {
-	count = 0;
-	qnormal(dest);
+		count = 0;
+		qnormal(dest);
     }
+	*/
 }
 
 
@@ -371,7 +380,7 @@ void qmatrix(const float *q, GLfloat *m)
     m[14] = 0;
     m[15] = 1;
 }
-/*  Convert a 4x4 rotation matrix to a quaternion
+/*  Convert a 4x4 rotation matrix to a quaternion.  q[3] is real part!
 	Code adapted from 
 	http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion
 */
@@ -1124,52 +1133,49 @@ void view2Quat(float vdir[3],float upvec[3], float q[4]){
 	
 	vcopy(vdir, minv + 8);
 	vscale(minv+8, -1.f);
-	
+	vzero(minv+12);
+	minv[15] = 1.f;
 	rotmatrix2q(minv, q);
 
 }
 //Convert a camera view to pure imaginary quaternion, for linear interpolation of viewpoints.
-//The boolean backside argument indicates the conversion will be to a rotation near 180 degrees.
-void view2ImagQuat(float vdir[3], float upvec[3], float q[3], bool backside){
+//The start quaternion argument indicates the conversion is relative to that quaternion
+void view2ImagQuat(const float startQuat[4], float vdir[3], float upvec[3], float q[3]){
 	
-	float quat[4];
+	float quat[4],quat2[4];
+	float qStartInv[4];
 	view2Quat(vdir, upvec, quat);
-	float re = acos(quat[0]);
-	if(backside) re = re - M_PI;
-	float mag = vlength(quat+1);
-	for (int i = 0; i<3; i++) q[i] = quat[i+1]*re/mag;
-	return;
-	
+	qinv(startQuat,qStartInv);
+	//Multiply on left by qStartInv:
+	qmult(qStartInv,quat,quat2);
+	float mag = vlength(quat2);
+	float re = acos(quat2[3]);
+	if (mag == 0.f) for (int i = 0; i<3; i++) q[i] = 0.f;
+	else for (int i = 0; i<3; i++) q[i] = quat2[i]*re/mag;
+	return;	
 }
 //Convert a pure-imaginary quaternion to camera view, for linear interpolation of viewpoints.
-//boolean argument indicates the orientation is reversed, so the quaternion is negated.
-void imagQuat2View(float q[3], float vdir[3], float upvec[3], bool backside){
-	float quat[4];
+//First argument is a quaternion used as left multiplier on result that are used
+//in a single interpolation.
+void imagQuat2View(const float firstquat[4], const float q[3], float vdir[3], float upvec[3]){
+	float quat[4], quat2[4];
 	float mtrx[16];
 	//First, calc exponential of q:
 	float mag = vlength(q);
-	float revFactor = 1.f;
-	if (backside) revFactor = -1.f;
-	quat[0]=revFactor*cos(mag);
-	float s = revFactor*sin(mag)/mag;
-	for (int i = 0; i<3; i++) quat[i+1] = q[i]*s;
-	//then convert quat to a matrix
-	qmatrix(quat,mtrx);
+	quat[3]= cos(mag);
+	if (mag > 0.f){
+		float s = sin(mag)/mag;
+		for (int i = 0; i<3; i++) quat[i] = q[i]*s;
+	} else {
+		for (int i = 0; i<3; i++) quat[i] = 0.f;
+	}
+	qmult(firstquat, quat, quat2);
+	//then convert quat2 to a matrix
+	qmatrix(quat2,mtrx);
 	//extract rows:
 	vcopy(mtrx+4,upvec);
 	vcopy(mtrx+8,vdir);
 	vscale(vdir,-1.f);
-}
-//Determine whether or not the interpolation between two rotations should be using backside or not.
-bool doBackInterpolate(float vdir1[3],float upvec1[3],float vdir2[3], float upvec2[3]){
-	float quat1[4],quat2[4];
-	view2Quat(vdir1,upvec1,quat1);
-	view2Quat(vdir2,upvec2,quat2);
-	float re1 = acos(quat1[0]);
-	float re2 = acos(quat2[0]);
-	float reSum = (re1+re2);
-	if (reSum <= M_PI) return false;
-	else return true;
 }
 
 #define DEAD
