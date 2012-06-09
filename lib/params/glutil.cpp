@@ -1148,7 +1148,8 @@ void view2ImagQuat(const float startQuat[4], float vdir[3], float upvec[3], floa
 	qinv(startQuat,qStartInv);
 	//Multiply on left by qStartInv:
 	qmult(qStartInv,quat,quat2);
-	float mag = vlength(quat2);
+	qnormal(quat2);  //force full quaternion to be norm-1 (correct round-off error)
+	float mag = vlength(quat2); //norm of imaginary part
 	float re = acos(quat2[3]);
 	if (mag == 0.f) for (int i = 0; i<3; i++) q[i] = 0.f;
 	else for (int i = 0; i<3; i++) q[i] = quat2[i]*re/mag;
