@@ -85,6 +85,7 @@ protected:
 	bool panChanged;
 
 #ifdef TEST_KEYFRAMING
+	float keyframeSpeed;
 	FILE* viewpointOutputFile;
 #endif
 	
@@ -95,7 +96,7 @@ protected slots:
 	void setVtabTextChanged(const QString& qs);
 #ifdef TEST_KEYFRAMING
 	void writeKeyframe();
-	void writeStopKeyframe();
+	void changeKeyframeSpeed();
 	void readKeyframes();
 #endif
 

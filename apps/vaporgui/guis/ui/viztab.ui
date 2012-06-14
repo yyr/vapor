@@ -1170,9 +1170,22 @@ where the camera is pointed.</string>
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="writeStopButton">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Write Stopped Viewpoint</string>
+          <string>Speed:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="speedEdit">
+         <property name="toolTip">
+          <string>Speed at keyframe is distance between camera positions per frame</string>
+         </property>
+         <property name="text">
+          <string>1.0</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
