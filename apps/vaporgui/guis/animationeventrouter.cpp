@@ -167,7 +167,7 @@ AnimationEventRouter::hookUpTab()
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
 
 	//Animation control widgets:
-	connect (keyIndexSpin, SIGNAL(valueChange(int)),this, SLOT(guiChangeKeyIndex(int)));
+	connect (keyIndexSpin, SIGNAL(valueChanged(int)),this, SLOT(guiChangeKeyIndex(int)));
 	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
 	connect (setKeyButton, SIGNAL(clicked()), this, SLOT(guiSetKeyframe()));
 	connect (deleteButton, SIGNAL(clicked()), this, SLOT(guiDeleteKeyframe()));
