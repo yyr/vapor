@@ -104,10 +104,16 @@ protected slots:
 	void setAtabTextChanged(const QString& qs);
 	void animationReturnPressed();
 	//Animation slots:
-	
 	void animationReplayClick();
 	void animationToBeginClick();
 	void animationToEndClick();
+	//keyframing slots:
+	void guiChangeKeyIndex(int);
+	void guiEnableKeyframing(bool);
+	void guiSetKeyframe();
+	void guiDeleteKeyframe();
+	void guiInsertKeyframe();
+	void guiGotoKeyframe();
 	
 
 };

@@ -30,7 +30,7 @@
 
 namespace VAPoR {
 class ExpatParseMgr;
-
+class Keyframe;
 class XmlNode;
 class ParamNode;
 //! \class AnimationParams
@@ -88,6 +88,10 @@ public:
 	//! \param[in] int maximum frame number.
 	void setMaxFrame(int maxF) {maxFrame = maxF;}
 
+	Keyframe* getKeyframe(int index) {return keyframes[index];}
+	vector<Keyframe*>& getKeyframes() {return keyframes;}
+	bool keyframingEnabled() {return useKeyframing;}
+	void enableKeyframing( bool onoff){useKeyframing = onoff;}
 
 #ifndef DOXYGEN_SKIP_THIS
 
@@ -99,8 +103,6 @@ public:
 	virtual void restart();
 	static void setDefaultPrefs();
 	virtual bool reinit(bool doOverride);
-
-	
 
 	bool isPlaying() {return (playDirection != 0);}
 
@@ -170,8 +172,20 @@ protected:
 	bool stateChanged;
 	static float defaultMaxWait;
 	static float defaultMaxFPS;
+
+	//Keyframing state:
+	bool useKeyframing;
+
+
+	std::vector<Keyframe*> keyframes;
 #endif /* DOXYGEN_SKIP_THIS */
 	
+};
+class Keyframe{
+	Viewpoint* viewpoint;
+	float speed;
+	int timeStep;
+	int frameNum;
 };
 };
 

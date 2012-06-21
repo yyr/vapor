@@ -131,6 +131,9 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (keyTimestepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (framenumEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (speedEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
@@ -140,6 +143,9 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (keyTimestepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (framenumEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (speedEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 
 	connect (frameStepSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetFrameStep(int)));
 	connect (animationSlider, SIGNAL(valueChanged(int)), this, SLOT (guiSetPosition(int)));
@@ -159,6 +165,14 @@ AnimationEventRouter::hookUpTab()
 	connect(toEndButton, SIGNAL(clicked()), this, SLOT(animationToEndClick()));
 	connect(stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
 	connect(stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
+
+	//Animation control widgets:
+	connect (keyIndexSpin, SIGNAL(valueChange(int)),this, SLOT(guiChangeKeyIndex(int)));
+	connect (enableKeyframeCheckBox, SIGNAL(toggled(bool)),this,SLOT(guiEnableKeyframing(bool)));
+	connect (setKeyButton, SIGNAL(clicked()), this, SLOT(guiSetKeyframe()));
+	connect (deleteButton, SIGNAL(clicked()), this, SLOT(guiDeleteKeyframe()));
+	connect (insertButton, SIGNAL(clicked()), this, SLOT(guiInsertKeyframe()));
+	connect (gotoButton, SIGNAL(clicked()), this, SLOT(guiGotoKeyframe()));
 
 	connect (LocalGlobal, SIGNAL (activated (int)), VizWinMgr::getInstance(), SLOT (setAnimationLocalGlobal(int)));
 	connect (VizWinMgr::getInstance(), SIGNAL(enableMultiViz(bool)), LocalGlobal, SLOT(setEnabled(bool)));
@@ -716,6 +730,43 @@ void AnimationEventRouter::guiSetTimestep(int framenum){
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	refreshFrontTab();
+}
+
+void AnimationEventRouter::guiChangeKeyIndex(int keyIndex){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current keyframe index");
+
+	PanelCommand::captureEnd(cmd, aParams);
+}
+void AnimationEventRouter::guiEnableKeyframing(bool enabled){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Toggle keyframing enabled");
+	aParams->enableKeyframing(enabled);
+	PanelCommand::captureEnd(cmd, aParams);
+}
+void AnimationEventRouter::guiSetKeyframe(){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Set Keyframe");
+
+	PanelCommand::captureEnd(cmd, aParams);
+}
+void AnimationEventRouter::guiDeleteKeyframe(){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Delete Keyframe");
+
+	PanelCommand::captureEnd(cmd, aParams);
+}
+void AnimationEventRouter::guiInsertKeyframe(){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Insert Keyframe");
+
+	PanelCommand::captureEnd(cmd, aParams);
+}
+void AnimationEventRouter::guiGotoKeyframe(){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Go To Keyframe");
+
+	PanelCommand::captureEnd(cmd, aParams);
 }
 void AnimationEventRouter::refreshFrontTab(){
 	TabManager* tmgr = MainForm::getTabManager();
