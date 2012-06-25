@@ -180,7 +180,7 @@ public:
  //!
  void GetDimensions(size_t dims[3]) const;
 
- //! Return the value of the \a missing_value
+ //! Return the value of the \a missing_value parameter
  //!
  //! The missing value is a special value intended to indicate that the 
  //! value of the sampled or reconstructed function is unknown at a
@@ -188,10 +188,22 @@ public:
  //!
  float GetMissingValue() const {return (_missingValue); };
 
+ //! Set the missing value indicator
+ //!
+ //! This method sets the value of the missing value indicator. The
+ //! method does not the value of any grid point locations. 
+ //!
+ //! \sa HasMissingData(), GetMissingValue()
+ //!
+ void SetMissingValue(float missing_value) {
+	_missingValue = missing_value; _hasMissing = true;
+ };
+
  //! Return missing data flag
  //!
  //! This method returns true iff the class instance was created with 
- //! the constructor specifying \p missing_value parameter. This does not
+ //! the constructor specifying \p missing_value parameter or if 
+ //! the SetMissingValue() method has been called. This does not
  //! imply that grid points exist with missing data, only that the 
  //! class was constructed with the missing data version of the constructor.
  //
