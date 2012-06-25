@@ -67,13 +67,13 @@ GLModelNode::GLModelNode(const aiScene *scene, const aiNode *node) :
          {
             int index = face->mIndices[i];
 
-            glVertex3f(mesh->mVertices[index].x,
-                       mesh->mVertices[index].y,
-                       mesh->mVertices[index].z);
-
             glNormal3f(mesh->mNormals[index].x,
                        mesh->mNormals[index].y,
                        mesh->mNormals[index].z);
+
+            glVertex3f(mesh->mVertices[index].x,
+                       mesh->mVertices[index].y,
+                       mesh->mVertices[index].z);
          }
       }
    }

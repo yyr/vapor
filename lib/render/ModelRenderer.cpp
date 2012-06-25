@@ -89,10 +89,12 @@ void ModelRenderer::paintGL()
    //
    // Perform setup of OpenGL transform matrix
    //
-   float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
-   glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
-   float* transVec = ViewpointParams::getMinStretchedCubeCoords();
-   glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+   //cerr << "transforming everything to unit box coords :-(\n";
+   myGLWindow->TransformToUnitBox();
+
+   const float* scales = DataStatus::getInstance()->getStretchFactors();
+   glScalef(scales[0], scales[1], scales[2]);
+
 
    // 
    // Set up lighting and color
@@ -120,9 +122,6 @@ void ModelRenderer::paintGL()
    }
    
    glColor3fv(constColor);
-
-   const float* scales = DataStatus::getInstance()->getStretchFactors();
-   glScalef(scales[0], scales[1], scales[2]);
 
    //
    // Get timestep information
