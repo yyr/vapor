@@ -32,6 +32,7 @@
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
 #include <vapor/ParamNode.h>
+#include "glutil.h"
 
 
 
@@ -200,4 +201,34 @@ buildNode(){
 	viewpointNode->SetElementDouble(_rotCenterTag, dbvec);
 	
 	return viewpointNode;
+}
+
+Viewpoint* interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
+	Viewpoint* vp = new Viewpoint(*vp1);
+	float rCenter[3], vdir[3],campos[3],upvec[3], startQuat[4], imagQuat[3];
+	float camdist1 = vdist(vp1->getCameraPosLocal(), vp1->getRotationCenterLocal());
+	float camdist2 = vdist(vp2->getCameraPosLocal(), vp2->getRotationCenterLocal());
+	//Multiplicative interpolation of dist:
+	float camInterp = pow(camdist1, (float)(1.-alpha))*pow(camdist2,alpha);
+	// Linearly interpolate the rotation center:
+	for (int i = 0; i<3; i++){
+		rCenter[i] = (1.-alpha)*vp1->getRotationCenterLocal(i) + alpha*vp2->getRotationCenterLocal(i);
+	}
+	vp->setRotationCenterLocal(rCenter);
+	//Interpolate rotation in quaternions:  First convert first VP orientation to norm-1 quaternion 
+	view2Quat(vp1->getViewDir(), vp1->getUpVec(), startQuat);
+	//Then convert second vp to pure imaginary quaternion, relative to 1st vp (which corresponds to zero quaternion)
+	view2ImagQuat(startQuat, vp2->getViewDir(),vp2->getUpVec(), imagQuat);
+	//interpolate linearly in imag quaternions:
+	vscale(imagQuat, alpha);
+	//convert back to a viewpoint:
+	imagQuat2View(startQuat, imagQuat, vdir, upvec);
+	vp->setUpVec(upvec);
+	vp->setViewDir(vdir);
+	//Use the interpolated viewDist to find new campos, based on vdir:
+	for(int i = 0; i<3; i++){
+		campos[i] = rCenter[i] - camInterp*vdir[i];
+	}
+	vp->setCameraPosLocal(campos);
+	return vp;
 }

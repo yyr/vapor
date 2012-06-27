@@ -75,6 +75,9 @@ public:
 	ParamNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+
+	//Linearly interpolate between two viewpoints
+	Viewpoint* interpolate(Viewpoint* VP1, Viewpoint* VP2, float alpha);
 	
 protected:
 	static const string _camPosTag;
