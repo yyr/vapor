@@ -19,7 +19,7 @@
 //		It contains all the parameters required for animation
 
 //
-#define TEST_KEYFRAMING
+
 #ifdef WIN32
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
@@ -48,11 +48,17 @@ const string AnimationParams::_maxWaitAttr = "MaxWait";
 float AnimationParams::defaultMaxFPS = 10.f;
 float AnimationParams::defaultMaxWait = 6000.f;
 
+
 AnimationParams::AnimationParams(int winnum): Params( winnum, Params::_animationParamsTag){
 	
 	restart();
 }
-AnimationParams::~AnimationParams(){}
+AnimationParams::~AnimationParams(){
+	for (int i = 0; i<keyframes.size(); i++){
+		delete keyframes[i];
+	}
+	keyframes.clear();
+}
 
 
 //Currently nothing "deep" to copy:
@@ -77,6 +83,14 @@ restart(){
 	maxWait = defaultMaxWait;
 	useTimestepSampleList = false;
 	timestepList.clear();
+	loadedViewpoints.clear();
+	loadedTimesteps.clear();
+	keyframes.clear();
+	useKeyframing=false;
+	//Insert a default keyframe:
+	Viewpoint* vp = new Viewpoint();
+	Keyframe* kf = new Keyframe(vp,0., 0, 0);
+	keyframes.push_back(kf);
 	stateChanged = true;
 	
 }
@@ -224,9 +238,9 @@ getNextFrame(int dir){
 				if (repeatPlay) testFrame = endFrame;
 				else testFrame = currentFrame;
 			}
-#ifdef TEST_KEYFRAMING
-			if (ViewpointParams::getNumLoadedViewpoints()>0) break;
-#endif
+
+			if (keyframingEnabled()) break;
+
 			if (ds->dataIsPresent(testFrame)) break;
 			testFrame += dir*frameStepSize;
 		}
@@ -239,7 +253,22 @@ getNextFrame(int dir){
 		
 	}
 }
-
+void AnimationParams::deleteKeyframe(int index){
+	delete keyframes[index];
+	for (int i = index; i<keyframes.size()-1; i++){
+		keyframes[i] = keyframes[i+1];
+	}
+	keyframes.pop_back();
+}
+void AnimationParams::insertKeyframe(int index, Keyframe* keyframe){
+	if (index >= keyframes.size()-1){
+		keyframes.push_back(keyframe);
+		return;
+	}
+	vector<Keyframe*>::iterator it;
+	it = keyframes.begin()+index+1;
+	keyframes.insert(it,keyframe);
+}
 bool AnimationParams::
 elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char ** attrs){
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {

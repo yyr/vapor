@@ -14,9 +14,15 @@
 #include <vapor/GetAppPath.h>
 #include "pythonpipeline.h"
 #include <QMutex>
+#include <sstream>
 
 using namespace VetsUtil;
 using namespace VAPoR;
+
+#ifdef _WINDOWS //Define INFINITY
+#include <limits>
+	float INFINITY = numeric_limits<float>::infinity( );
+#endif
 
 std::string PythonPipeLine::startupScript = "";
 bool PythonPipeLine::everInitialized = false;
@@ -53,6 +59,10 @@ PyMethodDef PythonPipeLine::vaporMethodDefinitions[] = {
                         "Get a variable from the DataMgr cache"},
 		{"Get2DVariable",PythonPipeLine::get_2Dvariable, METH_VARARGS,
                         "Get a variable from the DataMgr cache"},
+		{"Get3DMask",PythonPipeLine::get_3Dmask, METH_VARARGS,
+                        "Get a 3d mask for a variable"},
+		{"Get2DMask",PythonPipeLine::get_2Dmask, METH_VARARGS,
+                        "Get a 2d mask for a variable"},
 		{"MapVoxToUser",PythonPipeLine::mapVoxToUser, METH_VARARGS,
 						"Map voxel to user coordinates at specified refinement level"},
 		{"MapUserToVox",PythonPipeLine::mapUserToVox, METH_VARARGS,
@@ -181,6 +191,13 @@ int PythonPipeLine::python_wrapper(
 	string pythonMethod =  ds->getDerivedScript(scriptId);
 	
 	vector<float*> allocatedArrays;
+	vector<bool*> allocatedMasks;
+
+	//If any variable has missing data we will use numpy.ma
+	bool useMask = false;
+	for (int i = 0; i< inputData.size(); i++){
+		if (inputData[i]->HasMissingData()) useMask = true;
+	}
    
     if(!initialized) initialize();
 	//See if there are any 3D outputs.  If so use the
@@ -211,7 +228,7 @@ int PythonPipeLine::python_wrapper(
 	currentDataMgr->MapUserToVox(ts,umaxs,maxs,reflevel);
 	int regmin[3], regmax[3];
 	Py_ssize_t pydims[3];
-	PyObject* pyRegion;
+	PyObject* pyRegion, *pyRegionMask;
 	
 	//reverse order so that regmin, pydims, etc. are in python coordinate order, not user coordinate order.
 	for(int i = 0; i< 3; i++){
@@ -262,27 +279,56 @@ int PythonPipeLine::python_wrapper(
 
 			float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
 			if(!pyData) return 0;
+			bool* pyMask = 0;
+			if (useMask){
+				pyMask = new bool[pydims[0]*pydims[1]*pydims[2]];
+				if (!pyMask) return 0;
+				allocatedMasks.push_back(pyMask);
+			}
 			allocatedArrays.push_back(pyData);
 			//Now realign the array...
-			copyFrom3DGrid(inputData[i], pyData);
+			copyFrom3DGrid(inputData[i], pyData, pyMask);
 			pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_FLOAT,NULL,pyData,0,
 								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			if (useMask){
+				pyRegionMask = PyArray_New(&PyArray_Type,3,pydims,PyArray_BOOL,NULL,pyMask,0,
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			}
 			flags = PyArray_FLAGS(pyRegion);
 		} else {
 			//The last two python dimension are the first two user dimensions:
 			float* pyData = new float[pydims[1]*pydims[2]];
 			if(!pyData) return 0;
+			bool* pyMask = 0;
+			if (useMask){
+				pyMask = new bool[pydims[1]*pydims[2]];
+				if (!pyMask) return 0;
+				allocatedMasks.push_back(pyMask);
+			}
 			allocatedArrays.push_back(pyData);
 			//Now copy the data from the grid.
-			copyFrom2DGrid(inputData[i], pyData);
+			copyFrom2DGrid(inputData[i], pyData, pyMask);
 			pyRegion = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_FLOAT,NULL,pyData,0,
 								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			if (useMask){
+				pyRegionMask = PyArray_New(&PyArray_Type,2,pydims+1,PyArray_BOOL,NULL,pyMask,0,
+								   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+			}
 			
 		}
 		
-		//Put it into the dictionary:
-		PyObject* ky = Py_BuildValue("s",inputs[i].c_str());
-		PyObject_SetItem(mainDict,ky,pyRegion);
+		//Put it into the dictionary, with modified name for masking
+		if(useMask){
+			const char* vname= (inputs[i]+"_origUnmask").c_str();
+			const char* mname= (inputs[i]+"_origMask").c_str();
+			PyObject* ky1 = Py_BuildValue("s",vname);
+			PyObject* ky2 = Py_BuildValue("s",mname);
+			PyObject_SetItem(mainDict,ky1,pyRegion);
+			PyObject_SetItem(mainDict,ky2,pyRegionMask);
+		} else {
+			PyObject* ky = Py_BuildValue("s",inputs[i].c_str());
+			PyObject_SetItem(mainDict,ky,pyRegion);
+		}
 	}
 	//Extents are in python coordinate order, so they can be used directly to allocate arrays inside the
 	//Python script:
@@ -376,10 +422,10 @@ int PythonPipeLine::python_wrapper(
 			
 		if (dimen == 3) {
 			//Realign, put into DataMgr's allocated region
-			copyTo3DGrid(dataArray,  outputData[i]);
+			copyTo3DGrid(dataArray,  0, outputData[i]);
 			
 		} else {
-			copyTo2DGrid(dataArray, outputData[i]);
+			copyTo2DGrid(dataArray, 0, outputData[i]);
 		}
 		
 	}
@@ -408,6 +454,9 @@ int PythonPipeLine::python_wrapper(
 	for (int i = 0; i< allocatedArrays.size(); i++){
 		delete allocatedArrays[i];
 	}
+	for (int i = 0; i< allocatedMasks.size(); i++){
+		delete allocatedMasks[i];
+	}
 		
 	return 0;
 }
@@ -435,14 +484,65 @@ python_test_wrapper(const string& script, const vector<string>& inputVars2,
 	pretext += "sys.stdout = myIO\n";
 	pretext += "sys.stderr = myErr\n";
 	
+	
+	
+	//Determine whether or not missing values are in use:
+	bool useMask = true;  //Only for testing!
+	
+	std::ostringstream ss;
+	
+	if (currentDataMgr){
+		for (int i = 0; i< inputVars2.size(); i++){
+			RegularGrid* rg = currentDataMgr->GetGrid(ts, inputVars2[i], 0,0, rmin,rmax, false);
+			if (rg && rg->HasMissingData()){
+				useMask = true;
+				delete rg;
+				break;
+			}
+			delete rg;
+		}
+		if (!useMask) for (int i = 0; i< inputVars3.size(); i++){
+			RegularGrid* rg = currentDataMgr->GetGrid(ts, inputVars3[i], 0,0, rmin,rmax, false);
+			if (rg && rg->HasMissingData()){
+				useMask = true;
+				delete rg;
+				break;
+			}
+			delete rg;
+		}
+	}
+	if (useMask) {
+		pretext += "import numpy.ma\n";
+	}
+
 	for (int i = 0; i< inputVars3.size(); i++){
-		pretext += inputVars3[i] + " = vapor.Get3DVariable(vapor.TIMESTEP,'" + inputVars3[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+		string varname3d = inputVars3[i];
+		string maskname3d;
+		if (useMask) {
+			varname3d += "_origdata3d";
+			maskname3d = inputVars3[i]+"_mask3d";
+		}
+		pretext += varname3d + " = vapor.Get3DVariable(vapor.TIMESTEP,'" + inputVars3[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+		if (useMask){
+			pretext += maskname3d + " = vapor.Get3DMask(vapor.TIMESTEP,'" + inputVars3[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+			pretext += inputVars3[i] + " = numpy.ma.array('" + varname3d +"',mask='"+maskname3d+"')\n";
+		}
 	}
 	for (int i = 0; i< inputVars2.size(); i++){
-		pretext += inputVars2[i] + " = vapor.Get2DVariable(vapor.TIMESTEP,'" + inputVars2[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+		string varname2d = inputVars2[i];
+		string maskname2d;
+		if (useMask) {
+			varname2d += "_origdata2d";
+			maskname2d = inputVars2[i]+"_mask2d";
+		}
+		pretext += varname2d + " = vapor.Get2DVariable(vapor.TIMESTEP,'" + inputVars2[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+		if (useMask){
+			pretext += maskname2d + " = vapor.Get2DMask(vapor.TIMESTEP,'" + inputVars2[i] + "',vapor.REFINEMENT,vapor.LOD,vapor.BOUNDS)\n";
+			pretext += inputVars2[i] + " = numpy.ma.array('" + varname2d +"',mask='"+maskname2d+"')\n";
+		} 
+
+
 	}
-	
-	
 	string pythonMethod = script ;
 	
 
@@ -694,6 +794,91 @@ PyObject* PythonPipeLine::get_2Dvariable(PyObject *self, PyObject* args){
     mapArrayObject(pyRegion, pyData);
     return Py_BuildValue("O", pyRegion);
 }
+//get/set called by Python interpreter:
+//Note this is static
+PyObject* PythonPipeLine::get_3Dmask(PyObject *self, PyObject* args){
+	const char *varname;
+    static float *regData = 0;
+    PyObject *pyRegion;
+    Py_ssize_t pydims[3];
+    int tstep, reflevel, lod;
+    int minreg[3],maxreg[3];
+	size_t regmin[3],regmax[3];
+
+	//Arguments are in python order.  Reverse them for use with VAPOR
+    if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
+		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
+    string vname(varname);
+	for (int i = 0; i<3; i++){
+		//pydims are in python order, minreg, maxreg are in user order
+		pydims[i] = maxreg[2-i]-minreg[2-i]+1;
+		regmin[i] = minreg[i];
+		regmax[i] = maxreg[i];
+    }
+    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, true);
+
+	if (!rg){
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
+		return NULL;
+	}
+	//Create a new array to pass to python:
+    float* pyData = new float[pydims[0]*pydims[1]*pydims[2]];
+    if(!pyData) return NULL;
+	//Create a new array to pass to python:
+    bool* pyMask = new bool[pydims[0]*pydims[1]*pydims[2]];
+    if(!pyMask) return NULL;
+
+	//Now copy in the data:
+	copyFrom3DGrid(rg, pyData,pyMask);
+    currentDataMgr->UnlockGrid(rg);
+	delete pyData;
+	pyRegion = PyArray_New(&PyArray_Type,3,pydims,PyArray_BOOL,NULL,pyMask,0,
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+	//?mapArrayObject(pyRegion, pyData);
+    return Py_BuildValue("O", pyRegion);
+}
+//get/set 2D called by Python interpreter:
+//Note this is static
+//the z coord of extents is ignored
+PyObject* PythonPipeLine::get_2Dmask(PyObject *self, PyObject* args){
+	const char *varname;
+    static float *regData = 0;
+    PyObject *pyRegion;
+    Py_ssize_t pydims[2];
+    int tstep, reflevel,lod;
+    int minreg[3],maxreg[3];
+    size_t regmin[3],regmax[3];
+    if (!PyArg_ParseTuple(args,"isii(iiiiii)",&tstep,&varname,&reflevel,&lod,
+		minreg+2,minreg+1,minreg,maxreg+2,maxreg+1,maxreg)) return NULL; 
+	string vname(varname);
+    
+	for (int i = 0; i<2; i++){
+		pydims[i] = maxreg[1-i]-minreg[1-i]+1;
+		regmin[i]=minreg[i];
+		regmax[i]=maxreg[i];
+    }
+    
+    RegularGrid* rg = currentDataMgr->GetGrid((size_t)tstep, vname, reflevel,lod, regmin,regmax, true);
+	if (!rg){
+		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Error obtaining variable %s from VDC",varname);
+		return NULL;
+	}
+
+    //Create a new array to pass to python:
+    float* pyData = new float[pydims[0]*pydims[1]];
+    if(!pyData) return NULL;
+	bool* pyMask = new bool[pydims[0]*pydims[1]];
+    if(!pyMask) return NULL;
+
+	//Now copy in the data:
+	copyFrom2DGrid(rg, pyData, pyMask);
+    currentDataMgr->UnlockGrid(rg);
+	delete pyData;
+    pyRegion = PyArray_New(&PyArray_Type,2,pydims,PyArray_BOOL,NULL,pyMask,0,
+						   NPY_C_CONTIGUOUS|NPY_ALIGNED|NPY_WRITEABLE, NULL);
+    //?mapArrayObject(pyRegion, pyData);
+    return Py_BuildValue("O", pyRegion);
+}
 //convert voxel to user coordinates at specified refinement level.
 //Note this is static
 //The python coordinates are reversed, then converted by DataMgr, then converted values are reversed for Python
@@ -792,8 +977,8 @@ PyObject* PythonPipeLine::variableExists(PyObject *self, PyObject* args){
     return Py_BuildValue("i", retval);
 }
 //Static methods for converting between float arrays and RegularGrid data.
-//Coordinate order is always reversed.  They will need to deal with missing values soon.
-void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
+//Coordinate order is always reversed. 
+void PythonPipeLine::copyTo3DGrid(const float* srcArray, bool* srcMask, RegularGrid* destGrid){
 	size_t dims[3];
 	destGrid->GetDimensions(dims);
 	for (int k =0; k<dims[2]; k++){
@@ -803,26 +988,46 @@ void PythonPipeLine::copyTo3DGrid(const float* srcArray, RegularGrid* destGrid){
 				int srcIndex = i+j*dims[0]+k*dims[0]*dims[1];
 				//obtain from Vapor grid coordinate order
 				float& val = destGrid->AccessIJK(i,j,k);
-				val = srcArray[srcIndex];
+				if (srcMask && srcMask[srcIndex])
+					val = destGrid->GetMissingValue();
+				else val = srcArray[srcIndex];
 			}
 		}
 	}
 }
-void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray){
+void PythonPipeLine::copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray, bool* destMask){
 	size_t dims[3];
 	srcGrid->GetDimensions(dims);
-	for (int k = 0; k < dims[2]; k++){
-		for (int j = 0; j < dims[1]; j++){
-			for (int i = 0; i < dims[0]; i++){
-				//destIndex is in python order
-				int destIndex = i+j*dims[0]+k*dims[0]*dims[1];
-				float& val = srcGrid->AccessIJK(i,j,k);
-				destArray[destIndex] = val;
+	if (!destMask){
+		for (int k = 0; k < dims[2]; k++){
+			for (int j = 0; j < dims[1]; j++){
+				for (int i = 0; i < dims[0]; i++){
+					//destIndex is in python order
+					int destIndex = i+j*dims[0]+k*dims[0]*dims[1];
+					float& val = srcGrid->AccessIJK(i,j,k);
+					destArray[destIndex] = val;
+				}
+			}
+		}
+	} else {
+		float maskValue = srcGrid->GetMissingValue();
+		for (int k = 0; k < dims[2]; k++){
+			for (int j = 0; j < dims[1]; j++){
+				for (int i = 0; i < dims[0]; i++){
+					//destIndex is in python order
+					int destIndex = i+j*dims[0]+k*dims[0]*dims[1];
+					float& val = srcGrid->AccessIJK(i,j,k);
+					destArray[destIndex] = val;
+					if (val == maskValue)
+						destMask[destIndex] = true;
+					else
+						destMask[destIndex] = false;
+				}
 			}
 		}
 	}
 }
-void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
+void PythonPipeLine::copyTo2DGrid(const float* srcArray, bool* srcMask, RegularGrid* destGrid){
 	size_t dims[3];
 	destGrid->GetDimensions(dims);
 	//For 2D data, only use first two VAPOR dimensions
@@ -830,52 +1035,42 @@ void PythonPipeLine::copyTo2DGrid(const float* srcArray, RegularGrid* destGrid){
 		for (int i = 0; i< dims[0]; i++){
 			int srcIndex = i+ j*dims[0];
 			float& val = destGrid->AccessIJK(i,j,0);
-			val = srcArray[srcIndex];
+			if (srcMask && srcMask[srcIndex])
+				val = destGrid->GetMissingValue();
+			else val = srcArray[srcIndex];
 		}
 	}
-
 }
-void PythonPipeLine::copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray){
+void PythonPipeLine::copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray, bool* destMask){
 	size_t dims[3];
 	srcGrid->GetDimensions(dims);
-	for (int j = 0; j< dims[1]; j++){
-		for (int i = 0; i< dims[0]; i++){
-			int destIndex = i+ j*dims[0];
-			float& val = srcGrid->AccessIJK(i,j,0);
-			destArray[destIndex] = val;
+	if (!destMask){
+		for (int j = 0; j< dims[1]; j++){
+			for (int i = 0; i< dims[0]; i++){
+				int destIndex = i+ j*dims[0];
+				float& val = srcGrid->AccessIJK(i,j,0);
+				destArray[destIndex] = val;
+			}
+		}
+	} else {
+		float maskValue = srcGrid->GetMissingValue();
+		for (int j = 0; j < dims[1]; j++){
+			for (int i = 0; i < dims[0]; i++){
+				//destIndex is in python order
+				int destIndex = i+ j*dims[0];
+				float& val = srcGrid->AccessIJK(i,j,0);
+				destArray[destIndex] = val;
+				if (val == maskValue)
+					destMask[destIndex] = true;
+				else
+					destMask[destIndex] = false;
+			}
 		}
 	}
 
 }
-// static method to copy an array into another one with different dimensioning.
-// Useful to convert a blocked region to a smaller region that intersects full domain bounds.
-// Also useful to copy smaller region back to full domain bounds.  Source and
-// destination region share the same (0,0,0) origin, but dest may be larger or smaller.
-// Source and destination have opposite ordering of array bounds
-void PythonPipeLine::realign3DArray(const float* srcArray, size_t srcSize[3], float* destArray, size_t destSize[3]){
-        int xmax = (srcSize[0] < destSize[0]) ? srcSize[0] : destSize[0];
-        int ymax = (srcSize[1] < destSize[1]) ? srcSize[1] : destSize[1];
-        int zmax = (srcSize[2] < destSize[2]) ? srcSize[2] : destSize[2];
-        for (int k = 0; k < zmax; k++){
-                for (int j = 0; j < ymax; j++){
-                        for (int i= 0; i< xmax; i++){
-                                destArray[i+destSize[0]*(j+destSize[1]*k)]=
-                                        srcArray[i+srcSize[0]*(j+srcSize[1]*k)];
-                        }
-                }
-        }
-}
 
-void PythonPipeLine::realign2DArray(const float* srcArray, size_t srcSize[2], float* destArray, size_t destSize[2]){
-        int xmax = (srcSize[0] < destSize[0]) ? srcSize[0] : destSize[0];
-        int ymax = (srcSize[1] < destSize[1]) ? srcSize[1] : destSize[1];
-        for (int j = 0; j < ymax; j++){
-                for (int i= 0; i< xmax; i++){
-                        destArray[i+destSize[0]*j]= srcArray[i+srcSize[0]*j];
-                }
-        }
 
-}
 void PythonPipeLine::tryDeleteArrayStorage(PyObject* pyobj){
 	if (!arrayAllocMutex->tryLock(10000)){//  <= 10 second wait..
 		MyBase::SetErrMsg(VAPOR_ERROR_SCRIPTING,"Thread conflict in array deallocation");

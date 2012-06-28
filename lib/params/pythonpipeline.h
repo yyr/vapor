@@ -50,18 +50,7 @@ public:
 	   int reflevel, // refinement level
 	   int lod
 	  );
-/*
-	virtual int Calculate (
-	   vector <const float *> input_blks,
-	   vector <float *> output_blks,	// space for the output variables
-	   size_t ts, // current time step
-	   int reflevel, // refinement level
-	   int lod, //
-	   const size_t bs[3], // block dimensions
-	   const size_t min[3],	// dimensions of all variables (in blocks)
-	   const size_t max[3]
-	   );
-        */
+
 	std::string& python_test_wrapper(const string& script, 
 						const vector<string>& inputVars2,
 						const vector<string>& inputVars3, 
@@ -96,6 +85,8 @@ protected:
 	//Methods called by Python interpreter:
 	static PyObject* get_3Dvariable(PyObject *self, PyObject* args);
 	static PyObject* get_2Dvariable(PyObject *self, PyObject* args);
+	static PyObject* get_3Dmask(PyObject *self, PyObject* args);
+	static PyObject* get_2Dmask(PyObject *self, PyObject* args);
 	static PyObject* mapUserToVox(PyObject *self, PyObject* args);
 	static PyObject* mapVoxToUser(PyObject *self, PyObject* args);
 	static PyObject* getFullVDCDims(PyObject *self, PyObject* args);
@@ -103,12 +94,10 @@ protected:
 	static PyObject* getValidRegionMax(PyObject *self, PyObject* args);
 	static PyObject* variableExists(PyObject *self, PyObject* args);
 	
-	static void realign3DArray(const float* srcArray, size_t srcSize[3],float* destArray, size_t destSize[3]);
-	static void realign2DArray(const float* srcArray, size_t srcSize[2],float* destArray, size_t destSize[2]);
-	static void copyTo3DGrid(const float* srcArray, RegularGrid* destGrid);
-	static void copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray);
-	static void copyTo2DGrid(const float* srcArray, RegularGrid* destGrid);
-	static void copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray);
+	static void copyTo3DGrid(const float* srcArray, bool *srcMask, RegularGrid* destGrid);
+	static void copyFrom3DGrid(const RegularGrid* srcGrid, float* destArray, bool* destMask = 0);
+	static void copyTo2DGrid(const float* srcArray, bool* srcMask, RegularGrid* destGrid);
+	static void copyFrom2DGrid(const RegularGrid* srcGrid, float* destArray, bool* destMask = 0);
 	
 	static string startupScript;
 	

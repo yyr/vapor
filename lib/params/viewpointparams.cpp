@@ -53,10 +53,7 @@ float VAPoR::ViewpointParams::defaultSpecularExp = 20.f;
 
 
 using namespace VAPoR;
-#ifdef TEST_KEYFRAMING
-std::vector<VAPoR::Viewpoint*> ViewpointParams::loadedViewpoints;
-std::vector<size_t> ViewpointParams::loadedTimesteps;
-#endif
+
 const string ViewpointParams::_shortName = "View";
 const string ViewpointParams::_latLonAttr = "UseLatLon";
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
@@ -147,18 +144,9 @@ restart(){
 	//Set default values in viewpoint:
 	stereoSeparation = 0.f;
 	stereoMode = 0; //Center view
-	currentViewpoint->setPerspective(true);
-	for (int i = 0; i< 3; i++){
-		currentViewpoint->setCameraPosLocal(i,0.5f);
-		setViewDir(i,0.f);
-		setUpVec(i, 0.f);
-		currentViewpoint->setRotationCenterLocal(i,0.5f);
-	}
 	setCamPosLatLon(0.f, 0.f);
 	setRotCenterLatLon(0.f,0.f);
-	setUpVec(1,1.f);
-	setViewDir(2,-1.f); 
-	currentViewpoint->setCameraPosLocal(2,2.5f);
+	
 	if (homeViewpoint) delete homeViewpoint;
 	homeViewpoint = new Viewpoint(*currentViewpoint);
 	

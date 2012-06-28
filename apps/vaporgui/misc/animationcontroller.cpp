@@ -226,7 +226,7 @@ endRendering(int vizNum){
 			MainForm::getInstance()->setPause();
 		}
 		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
-		MainForm::getInstance()->setCurrentTimestep(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber());
+		MainForm::getInstance()->setCurrentFrameNum(VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber());
 	}
 	
 	//Do this out of the mutex:

@@ -103,6 +103,7 @@ protected slots:
 	void guiRebuildList();
 	void setAtabTextChanged(const QString& qs);
 	void animationReturnPressed();
+	void keyframeReturnPressed();
 	//Animation slots:
 	void animationReplayClick();
 	void animationToBeginClick();
@@ -110,10 +111,11 @@ protected slots:
 	//keyframing slots:
 	void guiChangeKeyIndex(int);
 	void guiEnableKeyframing(bool);
-	void guiSetKeyframe();
+	void guiChangeKeyframe();
 	void guiDeleteKeyframe();
 	void guiInsertKeyframe();
 	void guiGotoKeyframe();
+	void fixKeyframes();
 	
 
 };

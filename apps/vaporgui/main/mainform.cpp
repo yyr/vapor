@@ -295,12 +295,12 @@ void MainForm::createToolBars(){
 // Animation Toolbar:
 	animationToolBar = addToolBar("animation control");
 	QIntValidator *v = new QIntValidator(0,99999,animationToolBar);
-	timestepEdit = new QLineEdit(animationToolBar);
-	timestepEdit->setAlignment(Qt::AlignHCenter);
-	timestepEdit->setMaximumWidth(40);
-	timestepEdit->setToolTip( "Edit/Display current time step");
-	timestepEdit->setValidator(v);
-	animationToolBar->addWidget(timestepEdit);
+	frameNumEdit = new QLineEdit(animationToolBar);
+	frameNumEdit->setAlignment(Qt::AlignHCenter);
+	frameNumEdit->setMaximumWidth(40);
+	frameNumEdit->setToolTip( "Edit/Display current time step");
+	frameNumEdit->setValidator(v);
+	animationToolBar->addWidget(frameNumEdit);
 	
 	animationToolBar->addAction(playBackwardAction);
 	animationToolBar->addAction(stepBackAction);
@@ -412,7 +412,7 @@ void MainForm::hookupSignals() {
 	connect (pauseAction, SIGNAL(triggered()), this, SLOT(pauseClick()));
 	connect (stepForwardAction, SIGNAL(triggered()), this, SLOT(stepForward()));
 	connect (stepBackAction, SIGNAL(triggered()), this, SLOT(stepBack()));
-	connect (timestepEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
+	connect (frameNumEdit, SIGNAL(editingFinished()),this, SLOT(setTimestep()));
 }
 
 void MainForm::createMenus(){
@@ -1505,7 +1505,7 @@ void MainForm::stepForward(){
 //Respond to a change in the text in the animation toolbar
 void MainForm::setTimestep(){
 	AnimationEventRouter* aRouter = (AnimationEventRouter*)VizWinMgr::getEventRouter(Params::_animationParamsTag);
-	int tstep = timestepEdit->text().toInt();
+	int tstep = frameNumEdit->text().toInt();
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 
 	if (tstep < aParams->getStartFrameNumber()) tstep = aParams->getStartFrameNumber();
@@ -1513,8 +1513,8 @@ void MainForm::setTimestep(){
 	aRouter->guiSetTimestep(tstep);
 }
 //Set the timestep in the animation toolbar:
-void MainForm::setCurrentTimestep(int tstep){
-	timestepEdit->setText(QString::number(tstep));
+void MainForm::setCurrentFrameNum(int tstep){
+	frameNumEdit->setText(QString::number(tstep));
 	update();
 }
 void MainForm::paintEvent(QPaintEvent* e){

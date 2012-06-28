@@ -62,7 +62,7 @@ ViewpointEventRouter::ViewpointEventRouter(QWidget* parent ): QWidget(parent), U
 	viewpointOutputFile = 0;
 	keyframeSpeed = 1.0;
 
-	ViewpointParams::clearLoadedViewpoints();
+	
 #endif
 
 	MessageReporter::infoMsg("ViewpointEventRouter::ViewpointEventRouter()");
@@ -898,8 +898,8 @@ readKeyframes(){
 		return;
 	}
 	//clear out existing viewpoints:
-	
-	ViewpointParams::clearLoadedViewpoints();
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	aParams->clearLoadedViewpoints();
 	while(1){
 		Viewpoint* vp = new Viewpoint;
 		int timestep;
@@ -914,16 +914,16 @@ readKeyframes(){
 		vp->setViewDir(viewdir);
 		vp->setUpVec(upvec);
 		vp->setRotationCenterLocal(rotcenter);
-		ViewpointParams::addViewpoint(vp);
-		ViewpointParams::addTimestep((size_t)timestep);
+		aParams->addViewpoint(vp);
+		aParams->addTimestep((size_t)timestep);
 		
 
 	}
-	MessageReporter::warningMsg(" %d viewpoints read from file %s", ViewpointParams::getNumLoadedViewpoints(),(const char*)filename.toAscii());
+	MessageReporter::warningMsg(" %d viewpoints read from file %s", aParams->getNumLoadedViewpoints(),(const char*)filename.toAscii());
 	//Set the current viewpoint
 	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
 	int framenum = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	Viewpoint* vp = new Viewpoint(*ViewpointParams::getLoadedViewpoint(framenum));
+	Viewpoint* vp = new Viewpoint(*aParams->getLoadedViewpoint(framenum));
 	vpParams->setCurrentViewpoint(vp);
 	updateTab();
 	updateRenderer(vpParams,false, false);
@@ -963,7 +963,7 @@ writeKeyframe(){
 		}
 	}
 	//OK, file is open. Write current viewpoint:
-	keyframeSpeed = speedEdit->text().toFloat();
+	keyframeSpeed = abs(speedEdit->text().toFloat());
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::_viewpointParamsTag);
 	Viewpoint* vp = vpParams->getCurrentViewpoint();
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentTimestep();
@@ -982,6 +982,6 @@ writeKeyframe(){
 }
 void ViewpointEventRouter::
 changeKeyframeSpeed(){
-	keyframeSpeed = speedEdit->text().toFloat();
+	keyframeSpeed = abs(speedEdit->text().toFloat());
 }
 #endif

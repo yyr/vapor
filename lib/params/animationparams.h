@@ -56,11 +56,10 @@ public:
 	//! Identify the current data timestep being used
 	//! \retval size_t current time step
 	int getCurrentTimestep() {
-#ifdef TEST_KEYFRAMING
-		if (ViewpointParams::getLoadedViewpoints().size() > 0){
-			return ViewpointParams::getLoadedTimesteps()[currentFrame%ViewpointParams::getLoadedViewpoints().size()];
+
+		if (keyframingEnabled()&&getLoadedViewpoints().size() > 0){
+			return getLoadedTimesteps()[currentFrame%getLoadedViewpoints().size()];
 		}
-#endif
 		return currentFrame;
 	}
 
@@ -90,11 +89,30 @@ public:
 
 	Keyframe* getKeyframe(int index) {return keyframes[index];}
 	vector<Keyframe*>& getKeyframes() {return keyframes;}
+	void deleteKeyframe(int index);
+		
+	void insertKeyframe(int index, Keyframe* keyframe);
+		
+	int getNumKeyframes() {return keyframes.size();}
 	bool keyframingEnabled() {return useKeyframing;}
 	void enableKeyframing( bool onoff){useKeyframing = onoff;}
 
+
 #ifndef DOXYGEN_SKIP_THIS
 
+	const vector<Viewpoint*> getLoadedViewpoints() {return loadedViewpoints;}
+	void clearLoadedViewpoints() {
+		for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
+		loadedViewpoints.clear();
+		loadedTimesteps.clear();
+	}
+	int getNumLoadedViewpoints(){return loadedViewpoints.size();}
+	void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
+	void addTimestep(size_t ts){loadedTimesteps.push_back(ts);}
+	const Viewpoint* getLoadedViewpoint(int framenum){
+		return (loadedViewpoints[framenum%loadedViewpoints.size()]);
+	}
+	vector<size_t> getLoadedTimesteps() {return loadedTimesteps;}
 	//The rest is not part of the public API
 	static ParamsBase* CreateDefaultInstance() {return new AnimationParams(-1);}
 	const std::string& getShortName() {return _shortName;}
@@ -148,6 +166,9 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
+	vector<Viewpoint*>loadedViewpoints;
+	vector<size_t>loadedTimesteps;
+
 	static const string _shortName;
 	static const string _repeatAttr;
 	static const string _maxRateAttr;
@@ -175,13 +196,15 @@ protected:
 
 	//Keyframing state:
 	bool useKeyframing;
-
-
 	std::vector<Keyframe*> keyframes;
 #endif /* DOXYGEN_SKIP_THIS */
 	
 };
 class Keyframe{
+public:
+	Keyframe(Viewpoint* vp, float spd, int ts, int fnum){
+		viewpoint = vp; speed = spd; timeStep = ts; frameNum = fnum;
+	}
 	Viewpoint* viewpoint;
 	float speed;
 	int timeStep;

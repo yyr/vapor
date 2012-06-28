@@ -12,7 +12,18 @@ class ParamNode;
 class PARAMS_API Viewpoint : public ParsedXml {
 	
 public: 
-	Viewpoint() {previousClass = 0; perspective = true;}
+	Viewpoint() {//set to default
+		previousClass = 0; perspective = true;
+		for (int i = 0; i< 3; i++){
+			setCameraPosLocal(i,0.5f);
+			setViewDir(i,0.f);
+			setUpVec(i, 0.f);
+			setRotationCenterLocal(i,0.5f);
+		}
+		setUpVec(1,1.f);
+		setViewDir(2,-1.f); 
+		setCameraPosLocal(2,2.5f);
+	}
 	
 	virtual ~Viewpoint(){}
 	
@@ -77,7 +88,7 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 
 	//Linearly interpolate between two viewpoints
-	Viewpoint* interpolate(Viewpoint* VP1, Viewpoint* VP2, float alpha);
+	static Viewpoint* interpolate(Viewpoint* VP1, Viewpoint* VP2, float alpha);
 	
 protected:
 	static const string _camPosTag;

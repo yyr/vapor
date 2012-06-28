@@ -20,6 +20,7 @@
 #ifndef VIEWPOINTPARAMS_H
 #define VIEWPOINTPARAMS_H
 #define TEST_KEYFRAMING
+
 #include <qwidget.h>
 #include "params.h"
 
@@ -144,9 +145,7 @@ public:
 	void setAmbientCoeff(float val) {ambientCoeff=val;}
 	Viewpoint* getCurrentViewpoint() { return currentViewpoint;}
 	void setCurrentViewpoint(Viewpoint* newVP){
-#ifndef TEST_KEYFRAMING
 		if (currentViewpoint) delete currentViewpoint;
-#endif
 		currentViewpoint = newVP;
 	}
 	Viewpoint* getHomeViewpoint() { return homeViewpoint;}
@@ -233,27 +232,12 @@ public:
 	static void setDefaultAmbientCoeff(float val){ defaultAmbientCoeff = val;}
 	static void setDefaultSpecularExp(float val){ defaultSpecularExp = val;}
 	static void setDefaultNumLights(int val){ defaultNumLights = val;}
-#ifdef TEST_KEYFRAMING
-	static const vector<Viewpoint*> getLoadedViewpoints() {return loadedViewpoints;}
-	static void clearLoadedViewpoints() {
-		for (int i = 0; i<loadedViewpoints.size(); i++) delete loadedViewpoints[i];
-		loadedViewpoints.clear();
-		loadedTimesteps.clear();
-	}
-	static int getNumLoadedViewpoints(){return loadedViewpoints.size();}
-	static void addViewpoint(Viewpoint* vp){loadedViewpoints.push_back(vp);}
-	static void addTimestep(size_t ts){loadedTimesteps.push_back(ts);}
-	static const Viewpoint* getLoadedViewpoint(int framenum){
-		return (loadedViewpoints[framenum%loadedViewpoints.size()]);
-	}
-	static vector<size_t> getLoadedTimesteps() {return loadedTimesteps;}
-#endif
+
 
 protected:
-#ifdef TEST_KEYFRAMING
-	static vector<Viewpoint*>loadedViewpoints;
-	static vector<size_t>loadedTimesteps;
-#endif
+
+	
+
 	static const string _shortName;
 	static const string _latLonAttr;
 	static const string _currentViewTag;

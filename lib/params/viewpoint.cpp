@@ -203,7 +203,7 @@ buildNode(){
 	return viewpointNode;
 }
 
-Viewpoint* interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
+Viewpoint* Viewpoint::interpolate(Viewpoint* vp1, Viewpoint* vp2, float alpha){
 	Viewpoint* vp = new Viewpoint(*vp1);
 	float rCenter[3], vdir[3],campos[3],upvec[3], startQuat[4], imagQuat[3];
 	float camdist1 = vdist(vp1->getCameraPosLocal(), vp1->getRotationCenterLocal());

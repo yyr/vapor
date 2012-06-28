@@ -351,7 +351,7 @@ void GLWindow::paintEvent(QPaintEvent*)
 	//and put them in the trackball, prior to setting up the trackball.
 	int frameNum = getActiveAnimationParams()->getCurrentFrameNumber();
 	int timeStep = getActiveAnimationParams()->getCurrentTimestep();
-#ifdef TEST_KEYFRAMING
+
 	/* test code
 	if (frameNum != previousFrameNum){
 		Viewpoint* vp = getActiveViewpointParams()->getCurrentViewpoint();
@@ -374,16 +374,17 @@ void GLWindow::paintEvent(QPaintEvent*)
 		for (int i = 0; i<3; i++) {lastVdir[i] = vdir[i]; lastUp[i] = upvec[i];}
 	}
 	*/
-	const vector<Viewpoint*>& loadedViewpoints = ViewpointParams::getLoadedViewpoints();
-	if (loadedViewpoints.size()>0 && frameNum != previousFrameNum){
-		//Make a copy, note that this is a memory leak:
+	const vector<Viewpoint*>& loadedViewpoints = getActiveAnimationParams()->getLoadedViewpoints();
+	if (getActiveAnimationParams()->keyframingEnabled() && loadedViewpoints.size()>0 && frameNum != previousFrameNum){
 	
 		const Viewpoint* vp = loadedViewpoints[frameNum%loadedViewpoints.size()];
 		Viewpoint* newViewpoint = new Viewpoint(*vp);
 		getActiveViewpointParams()->setCurrentViewpoint(newViewpoint);
 		setValuesFromGui(getActiveViewpointParams());
-	} 
-#endif
+	} else if (vizIsDirty(NavigatingBit)){  //If the viewpoint is set by animation keyframing
+		setValuesFromGui(getActiveViewpointParams());
+	}
+
 	if (getActiveViewpointParams()->isLatLon()&& timeStep != previousTimeStep){
 		getActiveViewpointParams()->convertLocalFromLonLat(timeStep);
 		setValuesFromGui(getActiveViewpointParams());
